@@ -5,11 +5,17 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateMap, type MapData, type SurfaceKind } from './map';
 import type { TileCatalog } from './tiles';
 
+/** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
+export type ItemKind = 'furniture' | 'consumable' | 'key';
+
 export interface ItemDef {
   id: string;
   name: string;
   price: number;
-  tile: string;
+  /** Sem kind = furniture. */
+  kind?: ItemKind;
+  /** Tile do móvel no café (obrigatório para furniture). */
+  tile?: string;
   tags: string[];
   deprecated?: boolean;
 }
@@ -60,7 +66,7 @@ export type Condition =
   | { cleaned: string }
   | { money: { gte: number } };
 
-export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number } | { cutscene: string };
+export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number } | { cutscene: string } | { giveItem: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -180,6 +186,9 @@ export function validateContent(raw: RawContent): string[] {
     }
   }
   const home = raw.maps.find((m) => m.id === raw.world.homeMap);
+  const doorChecks: { where: string; requires?: Condition; locked?: string }[] = raw.maps.flatMap((m) =>
+    (m.doors ?? []).map((d) => ({ where: `${m.id}: porta "${d.id}"`, requires: d.requires as Condition | undefined, locked: d.locked })),
+  );
 
   // Gatos e cenas
   errors.push(...validateCats(raw.cats, raw.catSprites));
@@ -193,7 +202,10 @@ export function validateContent(raw: RawContent): string[] {
     if (!item.id.startsWith('item.')) err(`items: id "${item.id}" deve começar com "item."`);
     if (itemIds.has(item.id)) err(`items: id repetido "${item.id}"`);
     itemIds.add(item.id);
-    if (!raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
+    const kind = item.kind ?? 'furniture';
+    if (!['furniture', 'consumable', 'key'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
+    if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
+    if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
   }
 
@@ -257,6 +269,11 @@ export function validateContent(raw: RawContent): string[] {
     }
   };
 
+  for (const d of doorChecks) {
+    if (d.requires) checkCondition(d.where, d.requires);
+    if (d.locked && !dialogueIds.has(d.locked)) err(`${d.where}: fala de trancada inexistente "${d.locked}"`);
+  }
+
   for (const beat of raw.story.beats) {
     const where = `story "${beat.id}"`;
     for (const dep of beat.after ?? []) if (!beatIds.has(dep)) err(`${where}: "after" aponta para "${dep}", que não existe`);
@@ -265,6 +282,7 @@ export function validateContent(raw: RawContent): string[] {
     for (const effect of beat.effects) {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
+      if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
     }
   }
 

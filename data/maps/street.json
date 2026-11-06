@@ -92,6 +92,8 @@
       "id": "door.cafe",
       "at": [17, 8],
       "to": "map.cafe_main",
+      "requires": { "owned": "item.key_bakery" },
+      "locked": "dlg.door_locked_bakery",
       "spawn": [14, 4],
       "facing": "down"
     }

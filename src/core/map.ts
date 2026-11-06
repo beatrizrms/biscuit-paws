@@ -36,7 +36,14 @@ export interface MapDoor {
   spawn: Cell;
   /** Para onde a personagem olha ao chegar. */
   facing?: Facing;
+  /** Condição para passar (ex.: { "owned": "item.key_bakery" }). Sem ela, a porta está sempre aberta. */
+  requires?: DoorCondition;
+  /** Fala mostrada quando está trancada. */
+  locked?: string;
 }
+
+/** Mesma forma das condições da história (content.ts); repetida aqui para o mapa não depender do conteúdo. */
+export type DoorCondition = Record<string, unknown>;
 
 export interface MapData {
   schemaVersion: 1;

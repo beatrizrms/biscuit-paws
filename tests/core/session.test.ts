@@ -293,3 +293,33 @@ describe('faxina', () => {
     expect(session.visibleDirt().every((d) => d.clearedBy)).toBe(true);
   });
 });
+
+describe('chave e portas', () => {
+  const streetDoor = () => content.maps['map.street']!.doors!.find((d) => d.id === 'door.cafe')!;
+
+  it('a porta da padaria fica trancada até ela receber a chave na compra', () => {
+    const { session, dialogues } = newSession();
+    session.start(true);
+    expect(session.canUseDoor(streetDoor())).toBe(false);
+    session.doorLocked(streetDoor());
+    expect(dialogues()).toEqual([{ dialogueId: 'dlg.door_locked_bakery' }]);
+
+    session.finishCutscene('cs.prologue_thoughts'); // chegada + compra
+    expect(session.state.inventory['item.key_bakery']).toBe(1);
+    expect(session.canUseDoor(streetDoor())).toBe(true);
+  });
+
+  it('a chave não se compra nem se devolve', () => {
+    const { session } = newSession();
+    startOnStreet(session);
+    expect(session.buy('item.key_bakery')).toEqual({ ok: false, reason: 'unknown_item' });
+    expect(session.refund('item.key_bakery')).toEqual({ ok: false, reason: 'unknown_item' });
+    expect(session.state.money).toBe(150);
+  });
+
+  it('porta sem requisito está sempre aberta', () => {
+    const { session } = newSession();
+    const inside = content.map.doors!.find((d) => d.id === 'door.street')!;
+    expect(session.canUseDoor(inside)).toBe(true);
+  });
+});

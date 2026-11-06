@@ -103,7 +103,13 @@ export class WorldScene extends Phaser.Scene {
 
     if (!input.up && !this.changingMap) this.doorLocked = false;
     const door = doorAt(this.map, this.feetCell(), input.up && !input.down);
-    if (door && !this.placing && !this.doorLocked) this.useDoor(door);
+    if (door && !this.placing && !this.doorLocked) {
+      if (this.session.canUseDoor(door)) this.useDoor(door);
+      else {
+        this.doorLocked = true; // avisa uma vez por aperto
+        this.session.doorLocked(door);
+      }
+    }
   }
 
   // ---------- Mapas e portas ----------
@@ -187,7 +193,7 @@ export class WorldScene extends Phaser.Scene {
   private startPlacing(itemId: string): void {
     this.cancelPlacing();
     const { catalog, items } = this.session.content;
-    const def = catalog.tiles[items[itemId]!.tile]!;
+    const def = catalog.tiles[items[itemId]!.tile ?? '']!;
     const ghosts: Phaser.GameObjects.Image[] = [];
     for (let dy = 0; dy < def.h; dy++) {
       for (let dx = 0; dx < def.w; dx++) {
@@ -277,7 +283,7 @@ export class WorldScene extends Phaser.Scene {
 
   private ghostDef() {
     const { catalog, items } = this.session.content;
-    return catalog.tiles[items[this.placing!.itemId]!.tile]!;
+    return catalog.tiles[items[this.placing!.itemId]!.tile ?? '']!;
   }
 
   private cellAt(pointer: Phaser.Input.Pointer): Cell {

@@ -12,7 +12,7 @@ export const PLACED_PREFIX = 'placed.';
 export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
-    return item ? [{ id: `${PLACED_PREFIX}${p.uid}`, tile: item.tile, at: p.at }] : [];
+    return item?.tile ? [{ id: `${PLACED_PREFIX}${p.uid}`, tile: item.tile, at: p.at }] : [];
   });
   return { ...map, objects: [...map.objects, ...extra] };
 }

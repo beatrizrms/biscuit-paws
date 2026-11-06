@@ -34,7 +34,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 ## Prólogo (em andamento)
 - [x] Cenas sem mapa: Natal, lembrança da Tekinha (Misty), anúncio no celular
 - [x] Chegada na rua: o lugar horrível, os vizinhos que não gostam de gatos
-- [ ] Compra e chave (porta trancada sem a chave)
+- [x] Compra e chave (porta trancada sem a chave)
 - [ ] O miado: gatinho na porta, caixa de nome, ele entra e fica
 - [ ] Água e ração: mercado (mercado_interior) e compra no caixa
 - [ ] Alimentar e primeiro coração

@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "items": [
+    { "id": "item.key_bakery", "name": "Chave da padaria", "price": 0, "kind": "key", "tags": ["key"] },
+
     { "id": "item.cat_bed", "name": "Caminha de gato", "price": 25, "tile": "cat_bed", "tags": ["furniture", "for:cats"] },
     { "id": "item.water_bowl", "name": "Tigela de água", "price": 8, "tile": "water_bowl", "tags": ["furniture", "for:cats"] },
     { "id": "item.food_bowl", "name": "Tigela de ração", "price": 8, "tile": "food_bowl", "tags": ["furniture", "for:cats"] },

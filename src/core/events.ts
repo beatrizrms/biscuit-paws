@@ -7,6 +7,7 @@ export interface GameEvents {
   'map.entered': { mapId: string };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
+  'item.received': { itemId: string };
   'item.placed': { itemId: string; uid: string; at: Cell };
   'item.picked_up': { itemId: string; uid: string };
   'item.refunded': { itemId: string; amount: number };

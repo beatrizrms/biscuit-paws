@@ -99,6 +99,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 }
 ```
 
+- `kind`: `furniture` (padrão; vai para o catálogo e precisa de `tile`), `consumable` (ração, remédio) ou `key` (não se compra nem se devolve).
 - `price`: preço de compra, em moedas (inteiro).
 - `tile`: nome no catálogo de tiles. A camada do tile (`floor`, `wall`, `object`) decide onde o móvel pode ficar.
 - Tags usadas hoje: `for:cats`, `for:guests`, `decor` (seções do catálogo, definidas em `data/ui_text.json`) e `table`, `chair` (contadas pela história).
@@ -118,7 +119,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 }
 ```
 
-Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Depois de passar, só outra porta funciona quando a seta para cima for solta.
+Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Opcional: `"requires"` (condição, ex.: `{ "owned": "item.key_bakery" }`) e `"locked"` (fala mostrada quando trancada). Depois de passar, só outra porta funciona quando a seta para cima for solta.
 Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 
 ### Sujeira do café (`dirt`, no mapa)
@@ -235,7 +236,7 @@ Condições (também `{ "visited": "map.id" }`): `{ "all": [...] }`, `{ "any": [
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
-Efeitos: `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
+Efeitos: `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
 

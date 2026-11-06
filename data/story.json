@@ -19,6 +19,9 @@
         },
         {
           "setFlag": "bought.old_bakery"
+        },
+        {
+          "giveItem": "item.key_bakery"
         }
       ],
       "after": [

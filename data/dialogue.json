@@ -29,6 +29,10 @@
         },
         {
           "speaker": "",
+          "text": "Você assina os papéis com o antigo dono e recebe a chave. É sua."
+        },
+        {
+          "speaker": "",
           "text": "Ande com as setas ou WASD. Para entrar, vá até a porta e siga para cima."
         }
       ]
@@ -114,6 +118,14 @@
         {
           "speaker": "",
           "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
+        }
+      ]
+    },
+    "dlg.door_locked_bakery": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Está trancada. Preciso da chave."
         }
       ]
     }

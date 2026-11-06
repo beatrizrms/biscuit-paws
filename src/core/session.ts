@@ -1,12 +1,12 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
-import type { Content, Effect } from './content';
+import type { Condition, Content, Effect } from './content';
 import { seenFlag } from './cutscene';
 import { EventBus } from './events';
-import type { Cell, MapData, SurfaceDef } from './map';
+import type { Cell, MapData, MapDoor, SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
 import type { GameState } from './state';
-import { activeBeats, currentGoals, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
+import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import { cellsOf, type DirtSpot } from './map';
 
 export type ActionResult =
@@ -40,6 +40,16 @@ export class GameSession {
   start(isNew: boolean): void {
     this.bus.emit('game.started', { isNew });
     this.advanceStory();
+  }
+
+  /** A porta deixa passar? (requisito em dados, ex.: ter a chave). */
+  canUseDoor(door: MapDoor): boolean {
+    return !door.requires || evaluate(door.requires as Condition, this.state, this.storyContext());
+  }
+
+  /** Tentou abrir uma porta trancada: mostra a fala de trancada, se houver. */
+  doorLocked(door: MapDoor): void {
+    if (door.locked) this.bus.emit('dialogue.requested', { dialogueId: door.locked });
   }
 
   /** A interface terminou de mostrar uma cena: marca `seen.<id>` e segue a história. */
@@ -101,7 +111,8 @@ export class GameSession {
 
   /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
   refund(itemId: string): ActionResult {
-    if (!this.content.items[itemId]) return { ok: false, reason: 'unknown_item' };
+    const refundable = this.content.items[itemId];
+    if (!refundable || (refundable.kind ?? 'furniture') === 'key') return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
     this.removeFromInventory(itemId);
     const amount = this.refundValue(itemId);
@@ -179,6 +190,7 @@ export class GameSession {
   buy(itemId: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
+    if ((item.kind ?? 'furniture') === 'key') return { ok: false, reason: 'unknown_item' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
@@ -244,6 +256,10 @@ export class GameSession {
   private applyEffect(effect: Effect): void {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
+    else if ('giveItem' in effect) {
+      this.state.inventory[effect.giveItem] = (this.state.inventory[effect.giveItem] ?? 0) + 1;
+      this.bus.emit('item.received', { itemId: effect.giveItem });
+    }
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
     else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
   }
