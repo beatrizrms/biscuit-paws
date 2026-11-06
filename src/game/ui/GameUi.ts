@@ -2,6 +2,7 @@
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
+import { CutsceneView } from './CutsceneView';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -26,6 +27,7 @@ export class GameUi {
   private typing: { full: string; shown: number; timer: number } | null = null;
   private toastTimer = 0;
   private hintMode: HintMode = 'walk';
+  private cutscene!: CutsceneView;
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
   private hudPending = false;
   /** Meta mostrada agora (para animar o pensamento quando ela muda). */
@@ -62,12 +64,14 @@ export class GameUi {
     $('.catalog .close').addEventListener('click', () => this.closeCatalog());
     this.dialogueLayer.addEventListener('click', () => this.advanceDialogue());
     window.addEventListener('keydown', (e) => {
-      if (!this.isDialogueOpen()) return;
+      if (!this.dialogueLayer.classList.contains('open')) return; // só a caixa de fala (a cena tem a dela)
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         this.advanceDialogue();
       }
     });
+
+    this.cutscene = new CutsceneView(root, session, () => this.refresh());
 
     const bus = session.bus;
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
@@ -78,11 +82,11 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen();
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen();
   }
 
   isDialogueOpen(): boolean {
-    return this.dialogueLayer.classList.contains('open');
+    return this.dialogueLayer.classList.contains('open') || this.cutscene?.isOpen() === true;
   }
 
   isCatalogOpen(): boolean {
@@ -124,6 +128,7 @@ export class GameUi {
 
   /** Modo debug: fecha todas as falas de uma vez. */
   skipDialogue(): void {
+    this.cutscene.skipAll();
     this.dialogueQueue = [];
     if (this.typing) window.clearInterval(this.typing.timer);
     this.typing = null;

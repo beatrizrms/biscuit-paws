@@ -31,6 +31,16 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Sujeira no café velho: faxina por clique; manchas e rachaduras saem com a reforma
 - [ ] Outras estações da rua (dados já preparados)
 
+## Prólogo (em andamento)
+- [x] Cenas sem mapa: Natal, lembrança da Tekinha (Misty), anúncio no celular
+- [x] Chegada na rua: o lugar horrível, os vizinhos que não gostam de gatos
+- [ ] Compra e chave (porta trancada sem a chave)
+- [ ] O miado: gatinho na porta, caixa de nome, ele entra e fica
+- [ ] Água e ração: mercado (mercado_interior) e compra no caixa
+- [ ] Alimentar e primeiro coração
+- [ ] Cartão final e fim do dia
+- [ ] Ato 1 reorganizado (itens de gato só depois do gato)
+
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
 - [ ] `data/cats.json` e entidade Gato (IA simples: vagar, descansar)

@@ -133,6 +133,28 @@ Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 Sem `clearedBy`: sai com faxina (clique, a até 2 células da personagem; fica em `cleaned` no save). Com `clearedBy`: só some quando o pintor reforma aquela superfície.
 Condição de história: `{ "cleaned": "web" }` = toda a sujeira com essa tag (das que saem com faxina) já foi limpa.
 
+## Cenas sem mapa (`data/cutscenes.json`)
+
+```jsonc
+"cs.prologue_thoughts": {
+  "background": "#241c33", "snow": true,
+  "steps": [
+    { "type": "text", "speaker": "", "text": "Véspera de Natal..." },
+    { "type": "cat", "cat": "cat.tekinha", "animation": "sleep", "caption": "Tekinha" },
+    { "type": "hide" },
+    { "type": "phone", "app": "Classificados", "title": "VENDE-SE...", "lines": ["..."] },
+    { "type": "card", "text": "NESSA NOITE..." }
+  ]
+}
+```
+
+A história dispara com o efeito `{ "cutscene": "cs.id" }`. Ao terminar, a flag `seen.cs.id` fica marcada (use em `when`).
+
+## Gatos (`data/cats.json`, `data/cat_sprites.json`)
+
+`id` é permanente; o nome escolhido pela jogadora fica no save. Gatos sem `name` fixo precisam de `nameSuggestions` (caixa de nome ao abrigar).
+`variant`: folha do Cosy Cats (`cat_sprites.json`: 6 colunas x 7 linhas de 32x32; animações sit, walk_*, sleep, play). `memory: true`: só aparece em lembranças (Tekinha).
+
 ## Mundo (`data/world.json`)
 
 ```jsonc

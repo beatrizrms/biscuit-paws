@@ -18,6 +18,9 @@ export function rawContent(): RawContent {
     economy: read('data/economy.json'),
     story: read('data/story.json'),
     dialogue: read('data/dialogue.json'),
+    cats: read('data/cats.json'),
+    catSprites: read('data/cat_sprites.json'),
+    cutscenes: read('data/cutscenes.json'),
   };
 }
 

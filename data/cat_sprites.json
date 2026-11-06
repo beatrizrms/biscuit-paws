@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Cosy Cats (leckie1989): uma folha 192x224 por gato, 6 colunas x 7 linhas de 32x32. Pés na linha de pixel 28.",
+  "frameSize": 32,
+  "columns": 6,
+  "animations": [
+    {
+      "name": "sit",
+      "row": 0,
+      "frames": 4,
+      "fps": 5
+    },
+    {
+      "name": "walk_down",
+      "row": 1,
+      "frames": 4,
+      "fps": 8
+    },
+    {
+      "name": "walk_up",
+      "row": 2,
+      "frames": 4,
+      "fps": 8
+    },
+    {
+      "name": "walk_right",
+      "row": 3,
+      "frames": 4,
+      "fps": 8
+    },
+    {
+      "name": "walk_left",
+      "row": 4,
+      "frames": 4,
+      "fps": 8
+    },
+    {
+      "name": "sleep",
+      "row": 5,
+      "frames": 4,
+      "fps": 3
+    },
+    {
+      "name": "play",
+      "row": 6,
+      "frames": 6,
+      "fps": 8
+    }
+  ],
+  "variants": {
+    "biscuit": "assets/cats/biscuit.png",
+    "custard": "assets/cats/custard.png",
+    "domino": "assets/cats/domino.png",
+    "freckle": "assets/cats/freckle.png",
+    "hazel": "assets/cats/hazel.png",
+    "marmalade": "assets/cats/marmalade.png",
+    "midnight": "assets/cats/midnight.png",
+    "misty": "assets/cats/misty.png",
+    "patches": "assets/cats/patches.png",
+    "pebble": "assets/cats/pebble.png",
+    "snowdrop": "assets/cats/snowdrop.png",
+    "toffee": "assets/cats/toffee.png"
+  }
+}

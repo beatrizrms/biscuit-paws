@@ -2,8 +2,17 @@
   "schemaVersion": 1,
   "beats": [
     {
+      "id": "story.prologue_thoughts",
+      "act": 0,
+      "effects": [
+        {
+          "cutscene": "cs.prologue_thoughts"
+        }
+      ]
+    },
+    {
       "id": "story.intro",
-      "act": 1,
+      "act": 0,
       "effects": [
         {
           "dialogue": "dlg.intro"
@@ -11,7 +20,13 @@
         {
           "setFlag": "bought.old_bakery"
         }
-      ]
+      ],
+      "after": [
+        "story.prologue_thoughts"
+      ],
+      "when": {
+        "flag": "seen.cs.prologue_thoughts"
+      }
     },
     {
       "id": "story.enter_bakery",

@@ -14,6 +14,8 @@ export interface GameEvents {
   'surface.painted': { surfaceId: string; finishId: string; price: number };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };
+  'cutscene.requested': { cutsceneId: string };
+  'cutscene.finished': { cutsceneId: string };
 }
 
 export type EventName = keyof GameEvents;

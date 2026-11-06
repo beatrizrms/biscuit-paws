@@ -18,9 +18,15 @@ function cleanAll(session: GameSession) {
   for (const d of session.visibleDirt().filter((x) => !x.clearedBy)) expect(session.clean(d.id)).toEqual({ ok: true });
 }
 
+/** Começa um jogo novo: a cena dos pensamentos e depois a rua. */
+function startOnStreet(session: GameSession) {
+  session.start(true);
+  session.finishCutscene('cs.prologue_thoughts');
+}
+
 /** Começa um jogo novo (na rua), entra no café e faz a faxina. */
 function startInCafe(session: GameSession) {
-  session.start(true);
+  startOnStreet(session);
   session.enter('map.cafe_main');
   cleanAll(session);
 }
@@ -32,9 +38,20 @@ function buyAndPlace(session: GameSession, itemId: string, at: [number, number])
 }
 
 describe('começo da história', () => {
+  it('um jogo novo abre com a cena dos pensamentos; a rua e a fala vêm depois dela', () => {
+    const { session, dialogues, events } = newSession();
+    session.start(true);
+    expect(events.filter((e) => e.name === 'cutscene.requested').map((e) => e.payload)).toEqual([{ cutsceneId: 'cs.prologue_thoughts' }]);
+    expect(dialogues()).toEqual([]);
+    expect(session.goals()).toEqual([]);
+    session.finishCutscene('cs.prologue_thoughts');
+    expect(session.state.flags['seen.cs.prologue_thoughts']).toBe(true);
+    expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }]);
+  });
+
   it('um jogo novo começa na rua, com pouco dinheiro, a abertura e o pensamento de entrar', () => {
     const { session, dialogues } = newSession();
-    session.start(true);
+    startOnStreet(session);
     expect(session.location()).toBe('map.street');
     expect(session.atHome()).toBe(false);
     expect(session.state.money).toBe(150);
@@ -45,7 +62,7 @@ describe('começo da história', () => {
 
   it('entrar no café pela primeira vez mostra o interior e a próxima meta', () => {
     const { session, dialogues, events } = newSession();
-    session.start(true);
+    startOnStreet(session);
     session.enter('map.cafe_main');
     expect(session.atHome()).toBe(true);
     expect(session.state.visited).toEqual(['map.street', 'map.cafe_main']);
@@ -234,7 +251,7 @@ describe('devolução', () => {
 describe('faxina', () => {
   it('limpar as teias e o chão conclui a faxina e libera o cantinho quente', () => {
     const { session, dialogues } = newSession();
-    session.start(true);
+    startOnStreet(session);
     session.enter('map.cafe_main');
     const webs = session.visibleDirt().filter((d) => d.tags.includes('web'));
     webs.forEach((d) => session.clean(d.id));

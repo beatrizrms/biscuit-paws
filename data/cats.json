@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "_comment": "id é permanente; o nome que a jogadora escolhe fica no save. nameSuggestions: sugestões da caixa de nome. memory: só aparece em lembranças.",
+  "cats": [
+    {
+      "id": "cat.tekinha",
+      "name": "Tekinha",
+      "variant": "misty",
+      "personality": "sweet",
+      "memory": true,
+      "tags": [
+        "memory"
+      ]
+    },
+    {
+      "id": "cat.first_stray",
+      "variant": "marmalade",
+      "personality": "brave",
+      "nameSuggestions": [
+        "Botinhas",
+        "Pão de Mel",
+        "Brigadeiro",
+        "Biscoito",
+        "Paçoca"
+      ],
+      "tags": [
+        "origin:street",
+        "season:winter"
+      ]
+    }
+  ]
+}

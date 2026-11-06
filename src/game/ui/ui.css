@@ -265,3 +265,116 @@
   cursor: pointer;
 }
 .catalog .refund:hover { border-color: var(--wood3); }
+
+/* Cenas sem mapa (prólogo, cartões) */
+.cutscene {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: auto;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 5;
+}
+.cutscene.open { display: block; animation: cs-fade 0.6s ease-out; }
+@keyframes cs-fade { from { opacity: 0; } }
+.cs-snow { position: absolute; inset: -40px 0 0; opacity: 0; }
+.cutscene.snowing .cs-snow {
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1.2px 1.2px at 20px 30px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 90px 80px, #fff 50%, transparent 51%),
+    radial-gradient(1.6px 1.6px at 150px 20px, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 60px 140px, #fff 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 190px 110px, #fff 50%, transparent 51%);
+  background-size: 210px 160px;
+  animation: cs-snowfall 9s linear infinite;
+}
+@keyframes cs-snowfall { to { background-position: 30px 160px; } }
+.cs-stage {
+  position: absolute;
+  inset: 0 0 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cs-cat-wrap { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+.cs-glow {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe8d0aa 0%, #ffe8d033 45%, transparent 70%);
+  animation: cs-breathe 3.2s ease-in-out infinite;
+}
+@keyframes cs-breathe { 50% { transform: scale(1.06); opacity: 0.8; } }
+.cs-cat {
+  width: var(--frame-size);
+  height: var(--frame-size);
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  animation-name: cs-cat-frames;
+  animation-iteration-count: infinite;
+}
+@keyframes cs-cat-frames { from { background-position-x: 0; } to { background-position-x: calc(var(--frames) * var(--frame-size) * -1); } }
+.cs-caption {
+  position: absolute;
+  bottom: 4px;
+  font-style: italic;
+  font-size: 10px;
+  color: var(--cream2);
+  letter-spacing: 0.1em;
+}
+.cs-phone {
+  width: 120px;
+  height: 200px;
+  padding: 14px 8px;
+  box-sizing: border-box;
+  background: #2d2433;
+  border: 3px solid #5a4048;
+  border-radius: 14px;
+  box-shadow: 0 0 30px #ffe8d044;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cs-phone .app { color: var(--pink2); font-size: 8px; font-weight: bold; letter-spacing: 0.08em; }
+.cs-phone .ad {
+  background: var(--cream);
+  border-radius: 6px;
+  padding: 8px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 8px;
+}
+.cs-phone .ad strong { color: var(--berry); font-size: 9px; }
+.cs-card {
+  max-width: 420px;
+  text-align: center;
+  color: var(--cream);
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-shadow: 0 2px 0 #00000055;
+}
+.cs-text {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 22px;
+  min-height: 46px;
+  padding: 9px 12px;
+  color: var(--cream);
+  font-size: 10.5px;
+  background: #00000033;
+  border-top: 1px solid #ffffff22;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.cs-text.visible { opacity: 1; }
+.cs-text.narrator .text { font-style: italic; color: var(--cream2); }
+.cs-text .speaker { display: block; font-weight: bold; color: var(--pink2); font-size: 9px; margin-bottom: 2px; }
+.cs-text .speaker:empty { display: none; }
+.cs-hint { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 7px; color: #ffffff66; }

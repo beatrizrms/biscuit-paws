@@ -9,6 +9,9 @@ import economyJson from '../../data/economy.json';
 import storyJson from '../../data/story.json';
 import dialogueJson from '../../data/dialogue.json';
 import uiTextJson from '../../data/ui_text.json';
+import catsJson from '../../data/cats.json';
+import catSpritesJson from '../../data/cat_sprites.json';
+import cutscenesJson from '../../data/cutscenes.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
@@ -20,6 +23,9 @@ export const content: Content = buildContent({
   economy: economyJson,
   story: storyJson,
   dialogue: dialogueJson,
+  cats: catsJson,
+  catSprites: catSpritesJson,
+  cutscenes: cutscenesJson,
 } as unknown as RawContent);
 
 export const uiText = uiTextJson;

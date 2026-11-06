@@ -1,5 +1,6 @@
 /* Painel do modo debug: carregado só em npm run dev (via debugTools.ts). */
 .debug-panel {
+  z-index: 6; /* acima das cenas */
   position: absolute;
   left: 6px;
   bottom: 16px;

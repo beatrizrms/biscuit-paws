@@ -82,6 +82,8 @@ cat-cafe-game/
 | `surface.painted` | o pintor trocou o acabamento de uma superfície | `surfaceId, finishId, price` |
 | `story.beat_completed` | marco da história concluído | `beatId` |
 | `dialogue.requested` | o core pede para mostrar uma fala | `dialogueId` |
+| `cutscene.requested` | o core pede para mostrar uma cena sem mapa | `cutsceneId` |
+| `cutscene.finished` | a cena terminou (marca a flag `seen.<id>`) | `cutsceneId` |
 
 Nomes novos entram nesta tabela antes de serem usados.
 

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Cenas sem mapa. Passos: text (fala/narração), cat (mostra um gato animado), hide (esconde imagem), phone (anúncio no celular), card (cartão grande). background: cor de fundo; snow: neve caindo.",
+  "cutscenes": {
+    "cs.prologue_thoughts": {
+      "background": "#241c33",
+      "snow": true,
+      "steps": [
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Véspera de Natal. A cidade inteira brilha, e você não para de pensar no ano que vem."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Quero começar algo meu. Mas... o quê?"
+        },
+        {
+          "type": "cat",
+          "cat": "cat.tekinha",
+          "animation": "sleep",
+          "caption": "Tekinha"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Você pensa na Tekinha. Ela era perfeita. Hoje, é um anjinho."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Ela odiava o frio... Quantos gatinhos estão lá fora agora, sem um cantinho quente?"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Natal é época de fazer o bem."
+        },
+        {
+          "type": "hide"
+        },
+        {
+          "type": "phone",
+          "app": "Classificados",
+          "title": "VENDE-SE: antiga padaria",
+          "lines": [
+            "Vila das Baunilhas",
+            "Ponto antigo, precisa de reforma.",
+            "Preço de pechincha!"
+          ]
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "A Vila das Baunilhas... o bairro onde eu nasci."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Amanhã cedo eu vou ver."
+        }
+      ]
+    },
+    "cs.prologue_end": {
+      "background": "#1b2140",
+      "snow": true,
+      "steps": [
+        {
+          "type": "card",
+          "text": "NESSA NOITE, MENOS UM GATINHO DORMIU COM FRIO E BARRIGA VAZIA."
+        }
+      ]
+    }
+  }
+}

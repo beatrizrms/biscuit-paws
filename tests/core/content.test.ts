@@ -41,3 +41,24 @@ describe('validateContent', () => {
     expect(errors).toMatch(/fala inexistente "dlg.nope"/);
   });
 });
+
+describe('cenas e gatos', () => {
+  it('acusa gato, animação e cena inexistentes', () => {
+    const raw = rawContent();
+    raw.cutscenes.cutscenes['cs.broken'] = { background: '#000', steps: [{ type: 'cat', cat: 'cat.nope', animation: 'dance' }] };
+    raw.story.beats.push({ id: 'story.broken_cs', act: 0, effects: [{ cutscene: 'cs.nope' }] });
+    raw.cats.cats.push({ id: 'cat.nameless', variant: 'tigre', personality: 'x', tags: [] });
+    const errors = validateContent(raw).join('\n');
+    expect(errors).toMatch(/gato inexistente "cat.nope"/);
+    expect(errors).toMatch(/animação inexistente "dance"/);
+    expect(errors).toMatch(/cena inexistente "cs.nope"/);
+    expect(errors).toMatch(/variante inexistente "tigre"/);
+    expect(errors).toMatch(/precisa de nameSuggestions/);
+  });
+
+  it('textos das cenas também não podem ter notas de bastidor', () => {
+    const raw = rawContent();
+    raw.cutscenes.cutscenes['cs.prologue_end']!.steps = [{ type: 'card', text: 'TODO final' }];
+    expect(validateContent(raw).join()).toMatch(/cutscene "cs.prologue_end": texto da jogadora/);
+  });
+});

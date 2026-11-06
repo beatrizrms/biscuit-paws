@@ -1,5 +1,7 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
+import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
+import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateMap, type MapData, type SurfaceKind } from './map';
 import type { TileCatalog } from './tiles';
 
@@ -58,7 +60,7 @@ export type Condition =
   | { cleaned: string }
   | { money: { gte: number } };
 
-export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number };
+export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number } | { cutscene: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -117,6 +119,9 @@ export interface Content {
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
+  cats: Record<string, CatDef>;
+  catSprites: CatSpritesData;
+  cutscenes: Record<string, CutsceneDef>;
 }
 
 export interface RawContent {
@@ -128,6 +133,9 @@ export interface RawContent {
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
+  cats: CatsData;
+  catSprites: CatSpritesData;
+  cutscenes: CutscenesData;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -139,7 +147,8 @@ export function buildContent(raw: RawContent): Content {
   for (const item of raw.items.items) items[item.id] = item;
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
+  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
+    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -171,6 +180,13 @@ export function validateContent(raw: RawContent): string[] {
     }
   }
   const home = raw.maps.find((m) => m.id === raw.world.homeMap);
+
+  // Gatos e cenas
+  errors.push(...validateCats(raw.cats, raw.catSprites));
+  const catIds = new Set(raw.cats.cats.map((c) => c.id));
+  const animations = new Set(raw.catSprites.animations.map((a) => a.name));
+  errors.push(...validateCutscenes(raw.cutscenes, catIds, animations));
+  const cutsceneIds = new Set(Object.keys(raw.cutscenes.cutscenes));
 
   const itemIds = new Set<string>();
   for (const item of raw.items.items) {
@@ -248,6 +264,7 @@ export function validateContent(raw: RawContent): string[] {
     beat.goal?.steps.forEach((s) => checkCondition(where, s.when));
     for (const effect of beat.effects) {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
+      if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
     }
   }
 
@@ -263,6 +280,7 @@ export function validateContent(raw: RawContent): string[] {
     beat.goal?.steps.forEach((s) => playerText(`story "${beat.id}"`, s.text));
   }
   for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => playerText(`dialogue "${id}"`, l.text));
+  for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => playerText(`cutscene "${id}"`, t));
 
   return errors;
 }

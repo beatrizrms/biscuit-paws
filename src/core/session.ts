@@ -1,6 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import type { Content, Effect } from './content';
+import { seenFlag } from './cutscene';
 import { EventBus } from './events';
 import type { Cell, MapData, SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
@@ -38,6 +39,13 @@ export class GameSession {
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
   start(isNew: boolean): void {
     this.bus.emit('game.started', { isNew });
+    this.advanceStory();
+  }
+
+  /** A interface terminou de mostrar uma cena: marca `seen.<id>` e segue a história. */
+  finishCutscene(cutsceneId: string): void {
+    this.state.flags[seenFlag(cutsceneId)] = true;
+    this.bus.emit('cutscene.finished', { cutsceneId });
     this.advanceStory();
   }
 
@@ -235,6 +243,7 @@ export class GameSession {
 
   private applyEffect(effect: Effect): void {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
+    else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
     else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
   }

@@ -37,14 +37,16 @@ async function openGame(page: Page): Promise<void> {
   expect(errors).toEqual([]);
 }
 
-/** Passa todas as falas abertas (a abertura da história bloqueia o movimento). */
+/** Passa todas as cenas e falas abertas (a abertura da história bloqueia o movimento). */
 async function skipDialogue(page: Page): Promise<void> {
-  const layer = page.locator('.dialogue-layer');
-  for (let i = 0; i < 40 && (await layer.evaluate((el) => el.classList.contains('open'))); i++) {
+  const busy = () =>
+    page.evaluate(() => !!document.querySelector('.dialogue-layer.open, .cutscene.open'));
+  for (let i = 0; i < 80 && (await busy()); i++) {
     await page.keyboard.press('Space');
     await page.waitForTimeout(30);
   }
-  await expect(layer).not.toHaveClass(/open/);
+  await expect(page.locator('.dialogue-layer')).not.toHaveClass(/open/);
+  await expect(page.locator('.cutscene')).not.toHaveClass(/open/);
 }
 
 /** O jogo começa na rua: entra direto no café (como se tivesse passado pela porta) e passa a fala. */
@@ -146,7 +148,8 @@ test('y-sort: atrás do balcão quando está acima, na frente quando está abaix
 
 test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', async ({ page }, testInfo) => {
   await openGame(page);
-  await expect(page.locator('.dialogue')).toContainText('Dezembro');
+  await expect(page.locator('.cutscene')).toHaveClass(/open/);
+  await expect(page.locator('.cs-text')).toContainText('Natal');
   await expect(page.locator('.hud-money')).toContainText('150');
   await page.screenshot({ path: testInfo.outputPath('05-abertura.png') });
   await skipDialogue(page);

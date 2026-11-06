@@ -12,6 +12,7 @@ describe('save', () => {
   it('ida e volta preserva o estado', () => {
     const session = new GameSession(content, newGameState(500));
     session.start(true);
+    session.finishCutscene('cs.prologue_thoughts');
     session.buy('item.cat_bed');
     session.place('item.cat_bed', [12, 9]);
     session.buy('item.cactus');

@@ -32,5 +32,6 @@ export function setDebug(on: boolean): void {
 
 /** Slot de save de cada modo. */
 export function saveSlot(): string {
-  return isDebugOn() ? 'debug' : 'slot1';
+  // Slot próprio do debug. Não pode ser "debug": essa chave já guarda se o modo está ligado.
+  return isDebugOn() ? 'slot-debug' : 'slot1';
 }

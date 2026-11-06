@@ -62,7 +62,7 @@ Consequência: save v1 com fixture em `tests/fixtures/save_v1.json`, armazenamen
 
 ## 017. Modo debug só no desenvolvimento, com save separado (nov/2026)
 Motivo: testar com atalhos (dinheiro, pular falas, ver colisão) sem que nada disso chegue à jogadora nem estrague o save "de verdade".
-Consequência: F9 (ou `?debug=1`) liga/desliga em `npm run dev`. O debug usa o slot de save `debug`; o normal usa `slot1`. O painel é carregado por import dinâmico e o Vite o remove do build; o plugin `stripDevNotes` (vite.config.ts) tira os `devNote` dos JSON no build. Notas para a equipe vão em `devNote`, nunca no texto da jogadora; o `npm run check` acusa "marco", "debug", "TODO"... em textos da jogadora.
+Consequência: F9 (ou `?debug=1`) liga/desliga em `npm run dev`. O debug usa o slot de save `slot-debug`; o normal usa `slot1`. O painel é carregado por import dinâmico e o Vite o remove do build; o plugin `stripDevNotes` (vite.config.ts) tira os `devNote` dos JSON no build. Notas para a equipe vão em `devNote`, nunca no texto da jogadora; o `npm run check` acusa "marco", "debug", "TODO"... em textos da jogadora.
 
 ## 018. A loja começa velha e sem balcão (nov/2026)
 Motivo: a história começa numa padaria abandonada; montar o balcão e reformar fazem parte do progresso.
@@ -91,3 +91,7 @@ Consequência: sujeira em `dirt` no mapa do café (pacote sujeira, gerado por IA
 ## 025. Bairro: Vila das Baunilhas (nov/2026)
 Motivo: decisão da desenvolvedora (prólogo novo: o bairro onde a protagonista nasceu).
 Consequência: o bairro do jogo é a Vila das Baunilhas; "Rua das Amoras" saiu das falas. O nome do jogo continua Biscuit Paws (decisão 009, definitiva).
+
+## 026. Prólogo com cenas em HTML; gatos do Cosy Cats; nome escolhido pela jogadora (nov/2026)
+Motivo: o prólogo tem momentos sem mapa (pensamentos, celular); a Tekinha e os gatos de rua precisam de sprites; cada gato novo é especial.
+Consequência: `data/cutscenes.json` + `CutsceneView` (HTML por cima do jogo, mundo pausado). Tekinha = Misty (só lembrança); o gatinho de rua = Marmalade. Gatos têm id permanente (`cat.first_stray`); ao abrigar um gato novo abre uma caixa de nome com sugestão (`nameSuggestions`), e o nome vai para o save.
