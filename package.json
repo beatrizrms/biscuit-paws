@@ -1,0 +1,28 @@
+{
+  "name": "biscuit-paws",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "tiles": "tsx scripts/build-tiles.ts",
+    "predev": "npm run tiles",
+    "dev": "vite",
+    "prebuild": "npm run check",
+    "build": "vite build",
+    "check": "npm run tiles && tsc --noEmit && tsx scripts/check-map.ts",
+    "pretest": "npm run tiles",
+    "test": "vitest run",
+    "test:e2e": "npm run tiles && playwright test"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

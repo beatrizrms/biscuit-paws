@@ -1,0 +1,14 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+screenshots/
+
+# Arte licenciada (leckie1989): nunca no Git. Veja docs/ART_AND_LICENSE.md
+public/assets/
+assets/
+*.png
+*.zip
+
+# Gerado por npm run tiles
+data/tiles.json
