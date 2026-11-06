@@ -5,6 +5,8 @@
 - Tiles "velhos" (`cat-cafe-tileset-ext.png`): gerados por script a partir do pacote acima (modificação permitida pela licença).
 - Personagem provisória (`mulher_placeholder_32x64.png`): gerada para testes, será trocada antes do lançamento.
 
+- Rua e vila (4 estações) e sujeira do café abandonado: arte gerada por IA na paleta do Cat Cafe (uso declarado na página da Steam).
+
 ## Planejados (marcos futuros)
 - Cosy Cats 32x32: https://leckie1989.itch.io/cosy-cats-32x32-animated-cat-sprites
 - Cosy UI Kit: https://leckie1989.itch.io/cosy-ui-kit-soft-pixel-interface
