@@ -1,0 +1,70 @@
+{
+ "tileSize": 32,
+ "columns": 16,
+ "rows": 32,
+ "pieces": {
+  "loja_velha": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 0
+  },
+  "loja_menta": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 5
+  },
+  "loja_rosa": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 10
+  },
+  "loja_ceu": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 128
+  },
+  "loja_moveis": {
+   "col": 5,
+   "row": 8,
+   "w_tiles": 6,
+   "h_tiles": 8,
+   "first_tile_id": 133
+  },
+  "mercado": {
+   "col": 0,
+   "row": 16,
+   "w_tiles": 7,
+   "h_tiles": 8,
+   "first_tile_id": 256
+  },
+  "casa_a": {
+   "col": 7,
+   "row": 16,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 263
+  },
+  "casa_b": {
+   "col": 11,
+   "row": 16,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 267
+  },
+  "casa_c": {
+   "col": 0,
+   "row": 24,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 384
+  }
+ }
+}

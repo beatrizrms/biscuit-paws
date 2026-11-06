@@ -28,8 +28,9 @@ Leia `docs/` antes de mexer no código. Este arquivo é o resumo das regras.
 8. **Plataforma abstraída:** armazenamento e saída do jogo passam por `src/platform/`, para trocar navegador por Electron/Steam depois.
 
 ## Arte e licença
-- Só pixel art 32 x 32 do mesmo artista (leckie1989). Não misture 16 x 16 com 32 x 32.
-- **Nunca** commitar os PNGs em repositório público. Mantenha `public/assets/` no `.gitignore` se o repositório for público.
+- Pixel art 32 x 32 na paleta Cosy: pacotes do leckie1989 + pacotes gerados por IA na mesma paleta (rua, sujeira). Não misture 16 x 16 com 32 x 32.
+- **Uso de IA na arte precisa ser declarado na página da Steam** (decisão 020).
+- **Nunca** commitar os PNGs. `public/assets/` e `assets/` ficam no `.gitignore`.
 - Mantenha `CREDITS.md` atualizado.
 - Detalhes em `docs/ART_AND_LICENSE.md`.
 

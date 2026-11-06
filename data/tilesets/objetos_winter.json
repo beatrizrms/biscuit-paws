@@ -1,0 +1,112 @@
+{
+ "tileSize": 32,
+ "columns": 16,
+ "rows": 5,
+ "pieces": {
+  "banco": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 0
+  },
+  "lixeira": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 2
+  },
+  "poste": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4,
+   "first_tile_id": 3
+  },
+  "caixa_correio": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 5
+  },
+  "arvore": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 3,
+   "first_tile_id": 6
+  },
+  "caixote_macas": {
+   "col": 8,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 8
+  },
+  "caixote_laranjas": {
+   "col": 9,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 9
+  },
+  "vaso_planta": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 10
+  },
+  "lousa_cafe": {
+   "col": 11,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 11
+  },
+  "mesa_terraco": {
+   "col": 12,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "first_tile_id": 12
+  },
+  "abeto_natal": {
+   "col": 14,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 14
+  },
+  "caixa_gato_vazia": {
+   "col": 15,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 15
+  },
+  "caixa_gato_manta": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 64
+  },
+  "caixa_gato_olhos": {
+   "col": 1,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 65
+  },
+  "pegadas": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 66
+  }
+ }
+}

@@ -1,0 +1,175 @@
+{
+ "tileSize": 32,
+ "columns": 12,
+ "rows": 7,
+ "pieces": {
+  "teia_canto_esq": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 0
+  },
+  "teia_canto_dir": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 1
+  },
+  "teia_canto_grande_esq": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 2
+  },
+  "teia_canto_grande_dir": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 4
+  },
+  "teia_fio_aranha": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 6
+  },
+  "teia_janela": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 7
+  },
+  "poeira_a": {
+   "col": 9,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 9
+  },
+  "poeira_b": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 10
+  },
+  "poeira_c": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "first_tile_id": 24
+  },
+  "poeira_densa": {
+   "col": 2,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 26
+  },
+  "mancha_agua": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 28
+  },
+  "mancha_bolor": {
+   "col": 5,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 29
+  },
+  "mancha_fuligem": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 30
+  },
+  "escorrido_parede": {
+   "col": 7,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 31
+  },
+  "rachadura_a": {
+   "col": 8,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 32
+  },
+  "rachadura_b": {
+   "col": 9,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 33
+  },
+  "vidro_quebrado": {
+   "col": 10,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 34
+  },
+  "papeis_chao": {
+   "col": 11,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 35
+  },
+  "folhas_secas": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 48
+  },
+  "buraco_rato": {
+   "col": 1,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 49
+  },
+  "balde_goteira": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 50
+  },
+  "lencol_sobre_movel": {
+   "col": 3,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "first_tile_id": 51
+  },
+  "particulas_poeira": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 53
+  },
+  "raio_de_sol": {
+   "col": 6,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3,
+   "first_tile_id": 54
+  }
+ }
+}

@@ -121,3 +121,13 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
   a folha original + linhas novas embaixo. **Também fica fora do Git** (é obra derivada; a licença proíbe redistribuir).
 - O desgaste usa só cores da paleta Cosy e semente fixa (sai igual toda vez).
 - Cada célula do mapa escolhe uma variação pelos pesos (a 0 é a mais leve), para o chão velho não virar padrão repetido.
+
+## Pacotes gerados por IA (decisão 020)
+| Pacote | Origem | Uso |
+| --- | --- | --- |
+| Rua e vila, 4 estações (`assets/rua_estacoes_tilesets`) | gerado por código/IA na paleta do Cat Cafe | Rua do café (hoje: inverno) |
+| Sujeira do café abandonado (`assets/sujeira_cafe_abandonado`) | gerado por código/IA na paleta do Cat Cafe | Teias, poeira e manchas no café velho |
+
+Regras desses pacotes (LEIA-ME de cada um): uso no nosso jogo, pessoal ou comercial; **não redistribuir**; **declarar o uso de IA na página da Steam**.
+Arquivos usados hoje: `public/assets/street/winter/*.png`, `public/assets/dirt/sujeira_tileset.png` (fora do Git). Os JSONs de peças (nomes e posições) ficam em `data/tilesets/`.
+Ainda não usados: `assets/opcoes_fachada.png` (referência das fachadas), `assets/mercado_interior/`, `assets/Cosy-Cats-32x32/` (Marco 1; ler a licença antes).
