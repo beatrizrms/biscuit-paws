@@ -226,7 +226,8 @@ function wallSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   );
 }
 
-function cellsOf([c0, r0]: Cell, def: TileDef): Cell[] {
+/** Todas as células que a peça ocupa. */
+export function cellsOf([c0, r0]: Cell, def: TileDef): Cell[] {
   const cells: Cell[] = [];
   for (let dy = 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) cells.push([c0 + dx, r0 + dy]);
   return cells;

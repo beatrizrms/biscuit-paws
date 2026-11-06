@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "savedAt": "2026-11-06T18:00:00.000Z",
+  "day": 1,
+  "money": 76,
+  "flags": { "bought.old_bakery": true },
+  "inventory": { "item.cushion_pink": 1, "item.removed_long_ago": 2 },
+  "placed": [
+    { "uid": "p1", "item": "item.cat_bed", "at": [12, 9] },
+    { "uid": "p2", "item": "item.water_bowl", "at": [13, 9] },
+    { "uid": "p3", "item": "item.old_lamp", "at": [2, 8] }
+  ],
+  "nextUid": 4,
+  "story": { "completed": ["story.intro"] },
+  "cats": {}
+}

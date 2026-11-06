@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "beats": [
+    {
+      "id": "story.intro",
+      "act": 1,
+      "effects": [{ "dialogue": "dlg.intro" }, { "setFlag": "bought.old_bakery" }]
+    },
+    {
+      "id": "story.warm_corner",
+      "act": 1,
+      "after": ["story.intro"],
+      "goal": {
+        "title": "Um cantinho quente",
+        "steps": [
+          { "text": "Coloque uma caminha de gato", "when": { "placed": "item.cat_bed" } },
+          { "text": "Coloque uma tigela de água", "when": { "placed": "item.water_bowl" } },
+          { "text": "Coloque uma tigela de ração", "when": { "placed": "item.food_bowl" } }
+        ]
+      },
+      "effects": [{ "dialogue": "dlg.warm_corner_done" }]
+    },
+    {
+      "id": "story.first_seats",
+      "act": 1,
+      "after": ["story.warm_corner"],
+      "goal": {
+        "title": "Um lugar para sentar",
+        "steps": [
+          { "text": "Coloque uma mesa", "when": { "placedTag": "table" } },
+          { "text": "Coloque duas cadeiras", "when": { "placedTag": "chair", "gte": 2 } }
+        ]
+      },
+      "effects": [{ "dialogue": "dlg.neighbor_visit" }, { "setFlag": "met.old_neighbor" }, { "addMoney": 50 }]
+    },
+    {
+      "id": "story.meow_outside",
+      "act": 1,
+      "after": ["story.first_seats"],
+      "goal": {
+        "title": "Um miado lá fora",
+        "steps": [{ "text": "Descubra quem está miando (no próximo marco)", "when": { "flag": "cat.first_found" } }]
+      },
+      "effects": []
+    }
+  ]
+}

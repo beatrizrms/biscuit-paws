@@ -9,7 +9,7 @@
     "dev": "vite",
     "prebuild": "npm run check",
     "build": "vite build",
-    "check": "npm run tiles && tsc --noEmit && tsx scripts/check-map.ts",
+    "check": "npm run tiles && tsc --noEmit && tsx scripts/check-data.ts",
     "pretest": "npm run tiles",
     "test": "vitest run",
     "test:e2e": "npm run tiles && playwright test"

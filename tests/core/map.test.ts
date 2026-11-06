@@ -36,9 +36,9 @@ describe('cafe_main.json', () => {
     expect(solid[3]![3]).toBe(false); // atrás do balcão dá para andar
   });
 
-  it('inclui peças de várias células', () => {
+  it('é a loja vazia: só peças do prédio (janelas, porta, capacho, balcão)', () => {
     const tiles = new Set(cafe.objects.map((o) => o.tile));
-    for (const t of ['window', 'door', 'sofa', 'cat_tree', 'bookshelf', 'floor_rug']) expect(tiles).toContain(t);
+    expect(tiles).toEqual(new Set(['window', 'door', 'doormat', 'counter_left', 'counter_mid', 'counter_right']));
   });
 });
 

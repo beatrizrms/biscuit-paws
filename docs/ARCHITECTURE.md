@@ -71,11 +71,18 @@ cat-cafe-game/
 | `day.ended` | fim do dia | `day` |
 | `customer.served` | cliente atendido | `customerId, tip` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |
+| `game.started` | sessão começou (jogo novo ou carregado) | `isNew` |
+| `money.changed` | dinheiro mudou | `from, to, reason` |
+| `item.bought` | item comprado (vai para o inventário) | `itemId, price` |
+| `item.placed` | móvel posicionado no café | `itemId, uid, at` |
+| `item.picked_up` | móvel recolhido de volta ao inventário | `itemId, uid` |
+| `story.beat_completed` | marco da história concluído | `beatId` |
+| `dialogue.requested` | o core pede para mostrar uma fala | `dialogueId` |
 
 Nomes novos entram nesta tabela antes de serem usados.
 
 ## Plataforma
-`src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `list()`). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.
+`src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `list()`), **assíncrona** (o Electron vai ler arquivos de forma assíncrona). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.
 
 ## Renderização
 - Resolução interna 640 x 360, escala inteira.

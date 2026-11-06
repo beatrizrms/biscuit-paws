@@ -39,15 +39,9 @@
   },
   "objects": [
     { "id": "obj.window_left", "tile": "window", "at": [1, 0] },
-    { "id": "obj.plant_hanging", "tile": "plant_hanging", "at": [3, 0] },
-    { "id": "obj.menu_board", "tile": "menu_board", "at": [5, 0] },
-    { "id": "obj.wall_shelf", "tile": "wall_shelf", "at": [4, 1] },
-    { "id": "obj.wall_clock", "tile": "wall_clock", "at": [8, 0] },
     { "id": "obj.window_right", "tile": "window", "at": [10, 0] },
-    { "id": "obj.picture_paw", "tile": "picture_paw", "at": [12, 1] },
     { "id": "obj.door", "tile": "door", "at": [14, 1] },
     { "id": "obj.doormat", "tile": "doormat", "at": [14, 3] },
-
     { "id": "obj.counter_left", "tile": "counter_left", "at": [0, 4] },
     { "id": "obj.counter_mid_1", "tile": "counter_mid", "at": [1, 4] },
     { "id": "obj.counter_mid_2", "tile": "counter_mid", "at": [2, 4] },
@@ -55,21 +49,7 @@
     { "id": "obj.counter_mid_4", "tile": "counter_mid", "at": [4, 4] },
     { "id": "obj.counter_mid_5", "tile": "counter_mid", "at": [5, 4] },
     { "id": "obj.counter_mid_6", "tile": "counter_mid", "at": [6, 4] },
-    { "id": "obj.counter_right", "tile": "counter_right", "at": [7, 4] },
-    { "id": "obj.plant_pot", "tile": "plant_pot", "at": [10, 4] },
-    { "id": "obj.sofa", "tile": "sofa", "at": [11, 4] },
-
-    { "id": "obj.bookshelf", "tile": "bookshelf", "at": [0, 6] },
-    { "id": "obj.chair_front", "tile": "chair_front", "at": [3, 7] },
-    { "id": "obj.table_round", "tile": "table_round", "at": [4, 7] },
-    { "id": "obj.chair_back", "tile": "chair_back", "at": [5, 7] },
-    { "id": "obj.rug", "tile": "floor_rug", "at": [9, 7] },
-    { "id": "obj.cat_tree", "tile": "cat_tree", "at": [13, 5] },
-    { "id": "obj.scratch_post", "tile": "scratch_post", "at": [15, 7] },
-    { "id": "obj.plant_tall", "tile": "plant_tall", "at": [0, 9] },
-    { "id": "obj.cat_bed", "tile": "cat_bed", "at": [12, 9] },
-    { "id": "obj.food_bowl", "tile": "food_bowl", "at": [14, 10] },
-    { "id": "obj.water_bowl", "tile": "water_bowl", "at": [15, 10] }
+    { "id": "obj.counter_right", "tile": "counter_right", "at": [7, 4] }
   ],
   "spawn": { "player": [8, 8] }
 }
