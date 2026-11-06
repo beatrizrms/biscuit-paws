@@ -3,6 +3,7 @@
   "catalogTitle": "Catálogo",
   "catalogSections": [
     { "tag": "for:cats", "title": "Para os gatos" },
+    { "tag": "counter", "title": "Balcão" },
     { "tag": "for:guests", "title": "Para os clientes" },
     { "tag": "decor", "title": "Decoração" }
   ],

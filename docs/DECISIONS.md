@@ -63,3 +63,7 @@ Consequência: save v1 com fixture em `tests/fixtures/save_v1.json`, armazenamen
 ## 017. Modo debug só no desenvolvimento, com save separado (nov/2026)
 Motivo: testar com atalhos (dinheiro, pular falas, ver colisão) sem que nada disso chegue à jogadora nem estrague o save "de verdade".
 Consequência: F9 (ou `?debug=1`) liga/desliga em `npm run dev`. O debug usa o slot de save `debug`; o normal usa `slot1`. O painel é carregado por import dinâmico e o Vite o remove do build; o plugin `stripDevNotes` (vite.config.ts) tira os `devNote` dos JSON no build. Notas para a equipe vão em `devNote`, nunca no texto da jogadora; o `npm run check` acusa "marco", "debug", "TODO"... em textos da jogadora.
+
+## 018. A loja começa velha e sem balcão (nov/2026)
+Motivo: a história começa numa padaria abandonada; montar o balcão e reformar fazem parte do progresso.
+Consequência: o mapa base usa os tiles velhos (`*_old`, gerados por `npm run art`) e não tem balcão. As peças do balcão estão no catálogo (seção "Balcão", tag `counter`). O piso de madeira velha marca onde ficava o antigo balcão.

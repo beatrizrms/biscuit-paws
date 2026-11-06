@@ -14,6 +14,13 @@
     { "id": "item.cat_condo", "name": "Casinha de gato", "price": 140, "tile": "cat_condo", "tags": ["furniture", "for:cats"] },
     { "id": "item.cat_tree", "name": "Árvore de gato", "price": 180, "tile": "cat_tree", "tags": ["furniture", "for:cats"] },
 
+    { "id": "item.counter_left", "name": "Balcão (ponta esquerda)", "price": 20, "tile": "counter_left", "tags": ["furniture", "counter"] },
+    { "id": "item.counter_mid", "name": "Balcão (meio)", "price": 15, "tile": "counter_mid", "tags": ["furniture", "counter"] },
+    { "id": "item.counter_right", "name": "Balcão (ponta direita)", "price": 20, "tile": "counter_right", "tags": ["furniture", "counter"] },
+    { "id": "item.counter_single", "name": "Balcão pequeno", "price": 25, "tile": "counter_single", "tags": ["furniture", "counter"] },
+    { "id": "item.counter_register", "name": "Balcão com caixa", "price": 45, "tile": "counter_register", "tags": ["furniture", "counter"] },
+    { "id": "item.display_case", "name": "Vitrine de doces", "price": 90, "tile": "display_case", "tags": ["furniture", "counter"] },
+
     { "id": "item.table_round", "name": "Mesa redonda", "price": 30, "tile": "table_round", "tags": ["furniture", "for:guests", "table"] },
     { "id": "item.chair_front", "name": "Cadeira (de frente)", "price": 15, "tile": "chair_front", "tags": ["furniture", "for:guests", "chair"] },
     { "id": "item.chair_back", "name": "Cadeira (de costas)", "price": 15, "tile": "chair_back", "tags": ["furniture", "for:guests", "chair"] },

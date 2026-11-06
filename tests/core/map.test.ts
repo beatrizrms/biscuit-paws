@@ -1,12 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { resolveMap, solidRects, validateMap, type MapData } from '../../src/core/map';
-import { buildCatalog, type TileMeta } from '../../src/core/tiles';
+import { getTile } from '../../src/core/tiles';
+import { variantAt } from '../../src/core/map';
+import { loadContent } from './content';
 
-const catalog = buildCatalog(
-  readFileSync('data/tiles.csv', 'utf8'),
-  JSON.parse(readFileSync('data/tiles.meta.json', 'utf8')) as TileMeta,
-);
+const { catalog } = loadContent();
 const cafe = JSON.parse(readFileSync('data/maps/cafe_main.json', 'utf8')) as MapData;
 
 /** Mapa mínimo 4x4: parede em cima, madeira embaixo. */
@@ -29,16 +28,21 @@ describe('cafe_main.json', () => {
     expect(cafe.size).toEqual({ cols: 16, rows: 11 });
   });
 
-  it('tem o balcão sólido na linha 4 (colunas 0 a 7) e passagem na coluna 8', () => {
+  it('é a loja velha e vazia: só paredes sólidas, nenhum móvel nem balcão', () => {
     const { solid } = resolveMap(cafe, catalog);
-    for (let c = 0; c <= 7; c++) expect(solid[4]![c]).toBe(true);
-    expect(solid[4]![8]).toBe(false);
-    expect(solid[3]![3]).toBe(false); // atrás do balcão dá para andar
+    for (let r = 0; r <= 2; r++) expect(solid[r]!.every(Boolean)).toBe(true);
+    for (let r = 3; r < 11; r++) expect(solid[r]!.some(Boolean)).toBe(false);
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat']));
+    expect(Object.values(cafe.legend).every((name) => name.endsWith('_old'))).toBe(true);
   });
 
-  it('é a loja vazia: só peças do prédio (janelas, porta, capacho, balcão)', () => {
-    const tiles = new Set(cafe.objects.map((o) => o.tile));
-    expect(tiles).toEqual(new Set(['window', 'door', 'doormat', 'counter_left', 'counter_mid', 'counter_right']));
+  it('pisos e paredes velhos usam variações, sempre as mesmas por célula', () => {
+    const map = resolveMap(cafe, catalog);
+    const floor = getTile(catalog, 'floor_check_old');
+    const frames = new Set(map.sprites.filter((s) => s.tile === 'floor_check_old').map((s) => s.frame));
+    expect(frames.size).toBeGreaterThan(1);
+    expect(variantAt(floor, 5, 6)).toBe(variantAt(floor, 5, 6));
+    expect(resolveMap(cafe, catalog).sprites).toEqual(map.sprites);
   });
 });
 

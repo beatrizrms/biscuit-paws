@@ -14,6 +14,11 @@ interface DebugHook {
     map: { tileSize: number };
     playerState(): PlayerState;
     teleportPlayer(col: number, row: number): void;
+    session: {
+      addMoney(delta: number, reason: string): void;
+      buy(itemId: string): { ok: boolean };
+      place(itemId: string, at: [number, number]): { ok: boolean };
+    };
   };
 }
 
@@ -45,6 +50,17 @@ async function clickCell(page: Page, col: number, row: number, button: 'left' | 
   const box = (await page.locator('canvas').boundingBox())!;
   const zoom = box.width / 640;
   await page.mouse.click(box.x + (col * TILE + TILE / 2 + 64) * zoom, box.y + (row * TILE + TILE / 2 + 4) * zoom, { button });
+}
+
+/** A loja começa sem balcão: monta um na linha 4 (colunas 0 a 7), como o desenho original. */
+async function buildCounter(page: Page): Promise<void> {
+  const ok = await page.evaluate(() => {
+    const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
+    session.addMoney(1000, 'test');
+    const pieces = ['item.counter_left', ...Array(6).fill('item.counter_mid'), 'item.counter_right'];
+    return pieces.every((id, col) => session.buy(id).ok && session.place(id, [col, 4]).ok);
+  });
+  expect(ok).toBe(true);
 }
 
 const player = (page: Page) =>
@@ -93,6 +109,7 @@ test('WASD também anda', async ({ page }) => {
 test('y-sort: atrás do balcão quando está acima, na frente quando está abaixo', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  await buildCounter(page);
 
   await teleport(page, 3, 3);
   await page.waitForTimeout(100);
