@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "savedAt": "2026-11-07T12:00:00.000Z",
+  "day": 1,
+  "money": 40,
+  "flags": { "bought.old_bakery": true },
+  "inventory": {},
+  "placed": [{ "uid": "p1", "item": "item.counter_left", "at": [0, 4] }],
+  "nextUid": 2,
+  "story": { "completed": ["story.intro"] },
+  "cats": {},
+  "finishes": {
+    "surface.hall_floor": "finish.check_pink",
+    "surface.wallpaper": "finish.wallpaper_that_was_removed"
+  }
+}

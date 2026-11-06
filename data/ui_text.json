@@ -2,10 +2,22 @@
   "schemaVersion": 1,
   "catalogTitle": "Catálogo",
   "catalogSections": [
-    { "tag": "for:cats", "title": "Para os gatos" },
-    { "tag": "counter", "title": "Balcão" },
-    { "tag": "for:guests", "title": "Para os clientes" },
-    { "tag": "decor", "title": "Decoração" }
+    {
+      "tag": "for:cats",
+      "title": "Para os gatos"
+    },
+    {
+      "tag": "counter",
+      "title": "Balcão"
+    },
+    {
+      "tag": "for:guests",
+      "title": "Para os clientes"
+    },
+    {
+      "tag": "decor",
+      "title": "Decoração"
+    }
   ],
   "inBag": "na bolsa",
   "goalsTitle": "Diário",
@@ -22,6 +34,14 @@
     "blocked": "Esse lugar precisa ficar livre.",
     "not_in_inventory": "Você não tem esse item.",
     "unknown_item": "Item desconhecido.",
-    "not_found": "Nada para recolher aqui."
-  }
+    "not_found": "Nada para recolher aqui.",
+    "unknown_surface": "Essa parte não pode ser reformada.",
+    "unknown_finish": "Acabamento desconhecido.",
+    "wrong_surface": "Esse acabamento não serve aqui.",
+    "already_painted": "Já está assim."
+  },
+  "renovationTitle": "Reforma (pintor)",
+  "renovationHint": "O pintor deixa pronto na hora.",
+  "current": "atual",
+  "painted": "Pronto! O pintor terminou o serviço."
 }

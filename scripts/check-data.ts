@@ -7,6 +7,7 @@ const read = <T>(path: string) => JSON.parse(readFileSync(path, 'utf8')) as T;
 const shared: Omit<RawContent, 'map'> = {
   catalog: read('data/tiles.json'),
   items: read('data/items.json'),
+  finishes: read('data/finishes.json'),
   economy: read('data/economy.json'),
   story: read('data/story.json'),
   dialogue: read('data/dialogue.json'),

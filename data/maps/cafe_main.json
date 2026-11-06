@@ -43,5 +43,11 @@
     { "id": "obj.door", "tile": "door", "at": [14, 1] },
     { "id": "obj.doormat", "tile": "doormat", "at": [14, 3] }
   ],
-  "spawn": { "player": [8, 8] }
+  "spawn": { "player": [8, 8] },
+  "surfaces": [
+    { "id": "surface.wallpaper", "name": "Papel de parede", "legend": "P", "kind": "wall" },
+    { "id": "surface.wainscot", "name": "Lambri", "legend": "R", "kind": "wainscot" },
+    { "id": "surface.hall_floor", "name": "Piso do salão", "legend": "M", "kind": "floor" },
+    { "id": "surface.counter_floor", "name": "Piso do balcão", "legend": "X", "kind": "floor" }
+  ]
 }

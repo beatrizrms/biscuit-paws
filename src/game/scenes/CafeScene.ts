@@ -73,6 +73,7 @@ export class CafeScene extends Phaser.Scene {
 
     this.session.bus.on('item.placed', () => this.buildMap());
     this.session.bus.on('item.picked_up', () => this.buildMap());
+    this.session.bus.on('surface.painted', () => this.buildMap());
 
     if (import.meta.env.DEV) {
       exposeDebug(this);

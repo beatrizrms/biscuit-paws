@@ -1,5 +1,5 @@
 // Liga a sessão ao armazenamento: carrega no começo e salva a cada mudança.
-import { parseSave, serializeSave } from '../core/save';
+import { knownIds, parseSave, serializeSave } from '../core/save';
 import { GameSession } from '../core/session';
 import { newGameState } from '../core/state';
 import type { Storage } from '../platform/storage';
@@ -17,7 +17,7 @@ export async function openSession(
 
   if (json) {
     try {
-      const { state, warnings } = parseSave(json, new Set(Object.keys(content.items)));
+      const { state, warnings } = parseSave(json, knownIds(content));
       warnings.forEach((w) => console.warn(`[save] ${w}`));
       session = new GameSession(content, state);
     } catch (e) {

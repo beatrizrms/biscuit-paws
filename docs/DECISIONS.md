@@ -67,3 +67,7 @@ Consequência: F9 (ou `?debug=1`) liga/desliga em `npm run dev`. O debug usa o s
 ## 018. A loja começa velha e sem balcão (nov/2026)
 Motivo: a história começa numa padaria abandonada; montar o balcão e reformar fazem parte do progresso.
 Consequência: o mapa base usa os tiles velhos (`*_old`, gerados por `npm run art`) e não tem balcão. As peças do balcão estão no catálogo (seção "Balcão", tag `counter`). O piso de madeira velha marca onde ficava o antigo balcão.
+
+## 019. Pintor fica pronto na hora; save v2 (nov/2026)
+Motivo: ainda não há ciclo do dia (Marco 2).
+Consequência: `GameSession.paint` aplica o acabamento na hora e emite `surface.painted`. Quando houver dia, dá para trocar por "pronto amanhã" sem mudar o formato dos dados. O save subiu para v2 (campo `finishes`), com migrador da v1 e fixtures das duas versões.

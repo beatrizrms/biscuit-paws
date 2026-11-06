@@ -10,6 +10,7 @@ export function rawContent(): RawContent {
     catalog: buildCatalog(readFileSync('data/tiles.csv', 'utf8'), read<TileMeta>('data/tiles.meta.json'), read<WornTiles>('data/tiles.worn.json')),
     map: read('data/maps/cafe_main.json'),
     items: read('data/items.json'),
+    finishes: read('data/finishes.json'),
     economy: read('data/economy.json'),
     story: read('data/story.json'),
     dialogue: read('data/dialogue.json'),

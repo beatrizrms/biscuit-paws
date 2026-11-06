@@ -111,3 +111,37 @@ describe('dinheiro e inventário', () => {
     expect(session.pickUp('nao-existe')).toEqual({ ok: false, reason: 'not_found' });
   });
 });
+
+describe('pintor (reforma)', () => {
+  it('troca o piso do salão: cobra, guarda no estado e muda o mapa', () => {
+    const { session, events } = newSession();
+    session.start(true);
+    events.length = 0;
+    expect(session.mapData().legend.M).toBe('floor_check_old');
+
+    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: true });
+    expect(session.state.money).toBe(150 - 60);
+    expect(session.state.finishes).toEqual({ 'surface.hall_floor': 'finish.wood_planks' });
+    expect(session.mapData().legend.M).toBe('floor_wood_b');
+    expect(session.mapData().legend.X).toBe('floor_wood_old'); // outra superfície não muda
+    expect(events.map((e) => e.name)).toEqual(['money.changed', 'surface.painted']);
+  });
+
+  it('recusa acabamento que não serve, repetido, sem dinheiro ou desconhecido', () => {
+    const { session } = newSession();
+    expect(session.paint('surface.hall_floor', 'finish.wallpaper_mint')).toEqual({ ok: false, reason: 'wrong_surface' });
+    expect(session.paint('surface.roof', 'finish.wood_planks')).toEqual({ ok: false, reason: 'unknown_surface' });
+    expect(session.paint('surface.hall_floor', 'finish.gold')).toEqual({ ok: false, reason: 'unknown_finish' });
+    session.paint('surface.hall_floor', 'finish.wood_planks');
+    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: false, reason: 'already_painted' });
+    session.state.money = 10;
+    expect(session.paint('surface.wallpaper', 'finish.wallpaper_mint')).toEqual({ ok: false, reason: 'no_money' });
+  });
+
+  it('móveis continuam no lugar depois da reforma', () => {
+    const { session } = newSession();
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    session.paint('surface.hall_floor', 'finish.tile_mint');
+    expect(session.mapData().objects.some((o) => o.tile === 'cat_bed')).toBe(true);
+  });
+});

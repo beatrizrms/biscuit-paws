@@ -232,3 +232,7 @@
   color: var(--berry);
   text-decoration: none;
 }
+
+/* Reforma (pintor) no catálogo */
+.catalog h4 { margin: 4px 0 2px; font-size: 8px; color: var(--wood3); }
+.catalog .note { margin: 0 0 2px; font-size: 7px; color: var(--ink2); font-style: italic; }

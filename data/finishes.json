@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "finishes": [
+    { "id": "finish.wood_parquet", "name": "Taco de madeira", "tile": "floor_wood_a", "kind": "floor", "price": 60 },
+    { "id": "finish.wood_planks", "name": "Tábuas de madeira", "tile": "floor_wood_b", "kind": "floor", "price": 60 },
+    { "id": "finish.check_pink", "name": "Xadrez rosa", "tile": "floor_check_pink", "kind": "floor", "price": 70 },
+    { "id": "finish.tile_mint", "name": "Azulejo menta", "tile": "floor_tile_mint", "kind": "floor", "price": 70 },
+
+    { "id": "finish.wallpaper_stripe_pink", "name": "Listras rosa", "tile": "wall_stripe_pink", "kind": "wall", "price": 80 },
+    { "id": "finish.wallpaper_dots_cream", "name": "Creme com bolinhas", "tile": "wall_dots_cream", "kind": "wall", "price": 80 },
+    { "id": "finish.wallpaper_mint", "name": "Verde menta", "tile": "wall_mint", "kind": "wall", "price": 80 },
+
+    { "id": "finish.wainscot_varnished", "name": "Lambri envernizado", "tile": "wall_wainscot", "kind": "wainscot", "price": 40 }
+  ]
+}

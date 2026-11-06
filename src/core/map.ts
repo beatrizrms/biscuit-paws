@@ -21,6 +21,18 @@ export interface MapData {
   layers: { floor: string[]; walls: string[] };
   objects: MapObject[];
   spawn: { player: Cell };
+  /** Superfícies que o pintor pode reformar (opcional). */
+  surfaces?: SurfaceDef[];
+}
+
+export type SurfaceKind = 'floor' | 'wall' | 'wainscot';
+
+/** Uma superfície do mapa: todas as células com a letra `legend` mudam juntas. */
+export interface SurfaceDef {
+  id: string;
+  name: string;
+  legend: string;
+  kind: SurfaceKind;
 }
 
 /** Uma célula de 32 x 32 pronta para desenhar. */

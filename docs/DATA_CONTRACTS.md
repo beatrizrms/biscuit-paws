@@ -103,6 +103,31 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 - `tile`: nome no catálogo de tiles. A camada do tile (`floor`, `wall`, `object`) decide onde o móvel pode ficar.
 - Tags usadas hoje: `for:cats`, `for:guests`, `decor` (seções do catálogo, definidas em `data/ui_text.json`) e `table`, `chair` (contadas pela história).
 
+## Reforma: superfícies (no mapa) e acabamentos (`data/finishes.json`)
+
+O mapa lista as **superfícies** que o pintor pode trocar. Cada uma é uma letra da legenda: todas as células com essa letra mudam juntas.
+
+```jsonc
+// em data/maps/cafe_main.json (campo opcional)
+"surfaces": [
+  { "id": "surface.hall_floor", "name": "Piso do salão", "legend": "M", "kind": "floor" },
+  { "id": "surface.wallpaper", "name": "Papel de parede", "legend": "P", "kind": "wall" }
+]
+```
+
+Os **acabamentos** são o que o pintor vende. `kind` diz em que superfície serve (`floor`, `wall`, `wainscot`).
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "finishes": [
+    { "id": "finish.wood_planks", "name": "Tábuas de madeira", "tile": "floor_wood_b", "kind": "floor", "price": 60 }
+  ]
+}
+```
+
+Sem reforma, a superfície usa o tile da legenda (o velho). O `npm run check` confere letras, camadas dos tiles e IDs.
+
 ## Economia (`data/economy.json`)
 
 ```jsonc
@@ -167,7 +192,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 
 ```jsonc
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "savedAt": "2026-12-01T10:00:00Z",
   "day": 3,
   "money": 120,
@@ -178,9 +203,12 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
   "story": { "completed": ["story.intro"] },
   "cats": {
     "cat.mimi": { "sheltered": true, "affection": 4 }
-  }
+  },
+  "finishes": { "surface.hall_floor": "finish.wood_planks" }   // v2: reforma do pintor
 }
 ```
+
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`). Fixtures: `tests/fixtures/save_v1.json` e `save_v2.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.

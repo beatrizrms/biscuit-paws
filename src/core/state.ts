@@ -19,6 +19,8 @@ export interface GameState {
   nextUid: number;
   story: { completed: string[] };
   cats: Record<string, { sheltered: boolean; affection: number }>;
+  /** Reforma: superfície -> acabamento aplicado pelo pintor. Sem entrada = original (velho). */
+  finishes: Record<string, string>;
 }
 
 export function newGameState(startingMoney: number): GameState {
@@ -31,6 +33,7 @@ export function newGameState(startingMoney: number): GameState {
     nextUid: 1,
     story: { completed: [] },
     cats: {},
+    finishes: {},
   };
 }
 

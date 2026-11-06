@@ -147,10 +147,14 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
 
   // Botão direito recolhe e pega na mão; Esc cancela e o item volta para a bolsa.
+  // Cada passo espera o jogo reagir antes do próximo (sem corrida entre teclas).
   await clickCell(page, 12, 9, 'right');
-  await page.keyboard.press('Escape');
   await expect(page.locator('.hud-goals li.done')).toHaveCount(0);
+  await expect(page.locator('.hint')).toContainText('cancelar'); // modo de posicionar
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.hint')).toContainText('catálogo'); // voltou a andar
   await page.keyboard.press('c');
+  await expect(page.locator('.catalog')).toHaveClass(/open/);
   await expect(page.locator('[data-item="item.cat_bed"] .owned')).toBeVisible();
 });
 
@@ -177,4 +181,21 @@ test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ p
   await ready();
   await expect(page.locator('.debug-panel')).toHaveCount(0);
   await expect(page.locator('.hud-money')).toContainText('150');
+});
+
+test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await page.keyboard.press('c');
+  await page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]').click();
+  await expect(page.locator('.hud-money')).toContainText('90');
+  await expect(page.locator('.toast')).toHaveClass(/show/);
+  await page.screenshot({ path: testInfo.outputPath('08-piso-novo.png') });
+
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
+  await page.keyboard.press('c');
+  const current = page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]');
+  await expect(current).toBeDisabled();
+  await expect(current).toContainText('atual');
 });

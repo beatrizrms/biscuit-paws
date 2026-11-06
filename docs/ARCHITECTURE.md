@@ -76,6 +76,7 @@ cat-cafe-game/
 | `item.bought` | item comprado (vai para o inventário) | `itemId, price` |
 | `item.placed` | móvel posicionado no café | `itemId, uid, at` |
 | `item.picked_up` | móvel recolhido de volta ao inventário | `itemId, uid` |
+| `surface.painted` | o pintor trocou o acabamento de uma superfície | `surfaceId, finishId, price` |
 | `story.beat_completed` | marco da história concluído | `beatId` |
 | `dialogue.requested` | o core pede para mostrar uma fala | `dialogueId` |
 

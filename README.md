@@ -3,7 +3,7 @@
 Simulador 2D de café de gatos, no estilo Stardew Valley, para a Steam.
 Phaser 3 + TypeScript + Vite. Resolução interna 640 x 360, escala inteira, grade de 32 px.
 
-Estado atual: **Marco 0.5, a chegada.** Você compra a velha padaria vazia, começa com pouco dinheiro, compra e posiciona móveis e segue as primeiras metas da história. O jogo salva sozinho.
+Estado atual: **Marco 0.5, a chegada.** Você compra a velha padaria vazia (sem balcão, paredes e piso gastos), começa com pouco dinheiro, compra e posiciona móveis, contrata o pintor e segue as primeiras metas da história. O jogo salva sozinho.
 
 ## Antes de rodar: a arte
 
@@ -31,7 +31,7 @@ Os prints do teste ficam em `test-results/`.
 
 Controles:
 - **Setas / WASD:** andar
-- **C:** catálogo de móveis (clique num item para comprar e já posicionar)
+- **C:** catálogo: móveis, balcão e **Reforma (pintor)** (clique num item para comprar e já posicionar; num acabamento, para o pintor aplicar)
 - **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)
 - **Botão direito num móvel:** recolher e mudar de lugar
 - **Espaço / Enter / clique:** avançar as falas
@@ -67,6 +67,8 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 - `data/story.json`: marcos da história e metas do diário (condição -> efeito).
 - `data/dialogue.json`: falas.
 - `data/items.json`: móveis do catálogo, nomes e preços.
+- `data/finishes.json`: acabamentos do pintor (pisos e papéis de parede) e preços. As superfícies reformáveis ficam no mapa (`surfaces`).
+- `data/tiles.worn.json`: tiles velhos gerados do pacote (estilo de desgaste, troca de cores, variações).
 - `data/economy.json`: dinheiro inicial.
 - `data/ui_text.json`: textos da interface.
 

@@ -8,6 +8,7 @@ export interface GameEvents {
   'item.bought': { itemId: string; price: number };
   'item.placed': { itemId: string; uid: string; at: Cell };
   'item.picked_up': { itemId: string; uid: string };
+  'surface.painted': { surfaceId: string; finishId: string; price: number };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };
 }

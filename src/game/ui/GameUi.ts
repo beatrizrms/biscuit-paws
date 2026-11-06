@@ -174,10 +174,43 @@ export class GameUi {
           .join('');
         return rows ? `<h3>${esc(section.title)}</h3>${rows}` : '';
       })
-      .join('');
-    this.catalogList.querySelectorAll<HTMLButtonElement>('.row').forEach((btn) =>
+      .join('') + this.renderRenovation();
+    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-item]').forEach((btn) =>
       btn.addEventListener('click', () => this.pick(btn.dataset.item!)),
     );
+    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-finish]').forEach((btn) =>
+      btn.addEventListener('click', () => this.paint(btn.dataset.surface!, btn.dataset.finish!)),
+    );
+  }
+
+  /** Seção do pintor: para cada superfície, os acabamentos que servem nela. */
+  private renderRenovation(): string {
+    const { state } = this.session;
+    const finishes = Object.values(content.finishes);
+    const blocks = this.session
+      .surfaces()
+      .map((surface) => {
+        const rows = finishes
+          .filter((f) => f.kind === surface.kind)
+          .map((f) => {
+            const current = state.finishes[surface.id] === f.id;
+            const disabled = current || state.money < f.price;
+            return `<button class="row" data-surface="${surface.id}" data-finish="${f.id}" ${disabled ? 'disabled' : ''}>
+              <span>${esc(f.name)}</span><span class="price">${current ? uiText.current : f.price}</span>
+            </button>`;
+          })
+          .join('');
+        return `<h4>${esc(surface.name)}</h4>${rows}`;
+      })
+      .join('');
+    return blocks ? `<h3>${esc(uiText.renovationTitle)}</h3><p class="note">${esc(uiText.renovationHint)}</p>${blocks}` : '';
+  }
+
+  private paint(surfaceId: string, finishId: string): void {
+    const result = this.session.paint(surfaceId, finishId);
+    if (!result.ok) return this.problem(result.reason);
+    this.closeCatalog();
+    this.toast(uiText.painted);
   }
 
   /** Item da bolsa: posiciona. Senão: compra e posiciona. */

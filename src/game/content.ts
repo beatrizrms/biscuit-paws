@@ -2,6 +2,7 @@
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
 import itemsJson from '../../data/items.json';
+import finishesJson from '../../data/finishes.json';
 import economyJson from '../../data/economy.json';
 import storyJson from '../../data/story.json';
 import dialogueJson from '../../data/dialogue.json';
@@ -12,6 +13,7 @@ export const content: Content = buildContent({
   catalog: tilesJson,
   map: cafeJson,
   items: itemsJson,
+  finishes: finishesJson,
   economy: economyJson,
   story: storyJson,
   dialogue: dialogueJson,

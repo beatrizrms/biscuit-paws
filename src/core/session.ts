@@ -2,14 +2,26 @@
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import type { Content, Effect } from './content';
 import { EventBus } from './events';
-import type { Cell, MapData } from './map';
+import type { Cell, MapData, SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
 import type { GameState } from './state';
 import { activeBeats, currentGoals, isBeatSatisfied, type GoalView } from './story';
 
 export type ActionResult =
   | { ok: true }
-  | { ok: false; reason: 'unknown_item' | 'no_money' | 'not_in_inventory' | 'not_found' | PlaceProblem };
+  | {
+      ok: false;
+      reason:
+        | 'unknown_item'
+        | 'no_money'
+        | 'not_in_inventory'
+        | 'not_found'
+        | 'unknown_surface'
+        | 'unknown_finish'
+        | 'wrong_surface'
+        | 'already_painted'
+        | PlaceProblem;
+    };
 
 export class GameSession {
   readonly bus = new EventBus();
@@ -25,9 +37,36 @@ export class GameSession {
     this.advanceStory();
   }
 
-  /** Mapa do café com os móveis da jogadora. */
+  /** Mapa do café com a reforma do pintor e os móveis da jogadora. */
   mapData(): MapData {
-    return withPlaced(this.content.map, this.state.placed, this.content.items);
+    const base = this.content.map;
+    const legend = { ...base.legend };
+    for (const surface of base.surfaces ?? []) {
+      const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
+      if (finish) legend[surface.legend] = finish.tile;
+    }
+    return withPlaced({ ...base, legend }, this.state.placed, this.content.items);
+  }
+
+  /** Superfícies que o pintor pode reformar. */
+  surfaces(): SurfaceDef[] {
+    return this.content.map.surfaces ?? [];
+  }
+
+  /** Contrata o pintor: troca o acabamento de uma superfície (fica pronto na hora). */
+  paint(surfaceId: string, finishId: string): ActionResult {
+    const surface = this.surfaces().find((s) => s.id === surfaceId);
+    if (!surface) return { ok: false, reason: 'unknown_surface' };
+    const finish = this.content.finishes[finishId];
+    if (!finish) return { ok: false, reason: 'unknown_finish' };
+    if (finish.kind !== surface.kind) return { ok: false, reason: 'wrong_surface' };
+    if (this.state.finishes[surfaceId] === finishId) return { ok: false, reason: 'already_painted' };
+    if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };
+    this.addMoney(-finish.price, `paint:${surfaceId}`);
+    this.state.finishes[surfaceId] = finishId;
+    this.bus.emit('surface.painted', { surfaceId, finishId, price: finish.price });
+    this.advanceStory();
+    return { ok: true };
   }
 
   goals(): GoalView[] {

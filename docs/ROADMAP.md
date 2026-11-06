@@ -20,7 +20,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Motor da história (`data/story.json`) com metas no diário e falas (`data/dialogue.json`)
 - [x] Primeiro ato: cantinho quente -> lugar para sentar -> visita da Dona Lurdes -> miado lá fora
 - [x] Save automático (antecipado do Marco 3)
-- [ ] Pintor: escolher piso e papel de parede (loja velha -> reformada)
+- [x] Loja começa velha (tiles gerados do pacote) e sem balcão; balcão vendido em peças
+- [x] Pintor: escolher piso e papel de parede (loja velha -> reformada); save v2
 
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir

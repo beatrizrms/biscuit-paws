@@ -1,6 +1,6 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
-import { validateMap, type MapData } from './map';
+import { validateMap, type MapData, type SurfaceKind } from './map';
 import type { TileCatalog } from './tiles';
 
 export interface ItemDef {
@@ -15,6 +15,20 @@ export interface ItemDef {
 export interface ItemsData {
   schemaVersion: 1;
   items: ItemDef[];
+}
+
+/** Acabamento que o pintor aplica numa superfície (piso, papel de parede, lambri). */
+export interface FinishDef {
+  id: string;
+  name: string;
+  tile: string;
+  kind: SurfaceKind;
+  price: number;
+}
+
+export interface FinishesData {
+  schemaVersion: 1;
+  finishes: FinishDef[];
 }
 
 export interface EconomyData {
@@ -78,6 +92,7 @@ export interface Content {
   catalog: TileCatalog;
   map: MapData;
   items: Record<string, ItemDef>;
+  finishes: Record<string, FinishDef>;
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -87,6 +102,7 @@ export interface RawContent {
   catalog: TileCatalog;
   map: MapData;
   items: ItemsData;
+  finishes: FinishesData;
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -95,7 +111,9 @@ export interface RawContent {
 export function buildContent(raw: RawContent): Content {
   const items: Record<string, ItemDef> = {};
   for (const item of raw.items.items) items[item.id] = item;
-  return { catalog: raw.catalog, map: raw.map, items, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
+  const finishes: Record<string, FinishDef> = {};
+  for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
+  return { catalog: raw.catalog, map: raw.map, items, finishes, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -114,6 +132,26 @@ export function validateContent(raw: RawContent): string[] {
     itemIds.add(item.id);
     if (!raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
+  }
+
+  const LAYER_OF: Record<SurfaceKind, string> = { floor: 'floor', wall: 'wall', wainscot: 'wall' };
+  const finishIds = new Set<string>();
+  for (const f of raw.finishes.finishes) {
+    if (!f.id.startsWith('finish.')) err(`finishes: id "${f.id}" deve começar com "finish."`);
+    if (finishIds.has(f.id)) err(`finishes: id repetido "${f.id}"`);
+    finishIds.add(f.id);
+    const tile = raw.catalog.tiles[f.tile];
+    if (!tile) err(`finishes: "${f.id}" usa tile inexistente "${f.tile}"`);
+    else if (tile.layer !== LAYER_OF[f.kind]) err(`finishes: "${f.id}" é ${f.kind}, mas o tile "${f.tile}" é da camada "${tile.layer}"`);
+    if (!Number.isInteger(f.price) || f.price < 0) err(`finishes: "${f.id}" tem preço inválido`);
+  }
+  const surfaceIds = new Set<string>();
+  for (const s of raw.map.surfaces ?? []) {
+    if (!s.id.startsWith('surface.')) err(`mapa: superfície "${s.id}" deve começar com "surface."`);
+    if (surfaceIds.has(s.id)) err(`mapa: superfície repetida "${s.id}"`);
+    surfaceIds.add(s.id);
+    if (!raw.map.legend[s.legend]) err(`mapa: superfície "${s.id}" usa a letra "${s.legend}", que não está na legenda`);
+    if (!raw.finishes.finishes.some((f) => f.kind === s.kind)) err(`mapa: nenhum acabamento serve para "${s.id}" (${s.kind})`);
   }
 
   if (!Number.isInteger(raw.economy.startingMoney) || raw.economy.startingMoney < 0) {
@@ -163,6 +201,8 @@ export function validateContent(raw: RawContent): string[] {
     if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
   };
   raw.items.items.forEach((i) => playerText(`item "${i.id}"`, i.name));
+  raw.finishes.finishes.forEach((f) => playerText(`finish "${f.id}"`, f.name));
+  (raw.map.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));
   for (const beat of raw.story.beats) {
     if (beat.goal) playerText(`story "${beat.id}"`, beat.goal.title);
     beat.goal?.steps.forEach((s) => playerText(`story "${beat.id}"`, s.text));
