@@ -46,7 +46,15 @@ export interface WornTiles {
   schemaVersion: 1;
   image: string;
   seed: number;
-  tiles: { name: string; from: string; style: WornStyle; variants: number; weights?: number[] }[];
+  tiles: {
+    name: string;
+    from: string;
+    style: WornStyle;
+    /** Troca de cores antes do desgaste: "#rrggbb" de origem -> "#rrggbb" novo. */
+    recolor?: Record<string, string>;
+    variants: number;
+    weights?: number[];
+  }[];
 }
 
 const LAYERS: readonly TileLayer[] = ['floor', 'wall', 'object'];

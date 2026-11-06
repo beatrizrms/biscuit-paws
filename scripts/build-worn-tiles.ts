@@ -213,6 +213,14 @@ const STYLES: Record<WornStyle, (t: Tile, rng: Rng, variant: number) => void> = 
   },
 };
 
+/** Troca cores exatas ("#rrggbb" -> "#rrggbb"), por exemplo o rosa do pacote por bege. */
+function recolor(t: Tile, map: Record<string, string>): void {
+  const hex = (c: RGB) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
+  const parse = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB;
+  const table = new Map(Object.entries(map).map(([from, to]) => [from.toLowerCase(), parse(to)]));
+  t.map((c) => table.get(hex(c)) ?? c);
+}
+
 // ---------- Monta a folha estendida ----------
 
 const source = PNG.sync.read(readFileSync(sourcePath));
@@ -225,6 +233,7 @@ for (const w of worn.tiles) {
   const from = catalog.tiles[w.from]!;
   for (let v = 0; v < w.variants; v++) {
     const tile = Tile.from(source, from.col, from.row);
+    if (w.recolor) recolor(tile, w.recolor);
     STYLES[w.style](tile, createRng(worn.seed + count * 101 + v), v);
     tile.write(out, def.col + v, def.row);
   }
