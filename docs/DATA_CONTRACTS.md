@@ -99,6 +99,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 }
 ```
 
+- `requires` (opcional): condição para poder comprar. Os itens de gato têm `{ "flag": "has.cat" }` (só depois do primeiro gato).
 - `kind`: `furniture` (padrão; vai para o catálogo e precisa de `tile`), `consumable` (ração, remédio) ou `key` (não se compra nem se devolve).
 - `price`: preço de compra, em moedas (inteiro).
 - `tile`: nome no catálogo de tiles. A camada do tile (`floor`, `wall`, `object`) decide onde o móvel pode ficar.
@@ -119,7 +120,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 }
 ```
 
-Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Opcional: `"requires"` (condição, ex.: `{ "owned": "item.key_bakery" }`) e `"locked"` (fala mostrada quando trancada). Depois de passar, só outra porta funciona quando a seta para cima for solta.
+Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Opcional: `"intercept": { "when": condição, "cutscene": "cs.id" }` (em vez de atravessar, mostra a cena; ex.: o gatinho na porta), `"requires"` (condição, ex.: `{ "owned": "item.key_bakery" }`) e `"locked"` (fala mostrada quando trancada). Depois de passar, só outra porta funciona quando a seta para cima for solta.
 Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 
 ### Sujeira do café (`dirt`, no mapa)
@@ -231,12 +232,12 @@ Cada passo pode ter `"devNote"`: nota para a equipe, que só aparece no modo deb
 
 Um marco termina quando todos os `after` estão concluídos, todos os passos da meta valem e o `when` vale. Marcos concluídos nunca voltam atrás.
 
-Condições (também `{ "visited": "map.id" }`): `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
+Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
 `{ "placed": "item.id", "gte": n }`, `{ "placedTag": "tag", "gte": n }`, `{ "owned": "item.id", "gte": n }`, `{ "money": { "gte": n } }`.
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
-Efeitos: `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
+Efeitos: `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
 
@@ -249,7 +250,11 @@ Efeitos: `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": 
 }
 ```
 
-`speaker` vazio = narração (aparece em itálico).
+`speaker` vazio = narração (aparece em itálico). `{cat:cat.id}` no texto vira o nome que a jogadora deu ao gato.
+
+## Corações (`data/relationships.json`)
+
+`pointsPerHeart` e `maxHearts`. Os pontos ficam no save em `relationships`, por par (`"player|cat.first_stray": 120`); os corações são calculados. Serve para gato, vizinho, cliente e NPC↔gato.
 
 ## Textos da interface (`data/ui_text.json`)
 
@@ -272,13 +277,15 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
     "cat.mimi": { "sheltered": true, "affection": 4 }
   },
   "finishes": { "surface.hall_floor": "finish.wood_planks" },  // v2: reforma do pintor
+  "cats": { "cat.first_stray": { "sheltered": true, "name": "Pipoca", "map": "map.cafe_main" } },  // v4
+  "relationships": { "player|cat.first_stray": 120 },                                     // v4
   "location": "map.street",                                  // v3: onde a personagem está
   "visited": ["map.street", "map.cafe_main"],                 // v3: mapas onde já entrou
   "cleaned": ["dirt.web_window_left"]                         // v3: sujeiras já limpas ("*" = todas)
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo). Fixtures: `tests/fixtures/save_v1.json`, `save_v2.json`, `save_v3.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`). Fixtures: `tests/fixtures/save_v1.json` a `save_v4.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.

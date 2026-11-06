@@ -5,6 +5,9 @@ import type { Cell } from './map';
 export interface GameEvents {
   'game.started': { isNew: boolean };
   'map.entered': { mapId: string };
+  'cat.sheltered': { catId: string };
+  'cat.named': { catId: string; name: string };
+  'cat.affection_changed': { catId: string; from: number; to: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
   'item.received': { itemId: string };

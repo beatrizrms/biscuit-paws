@@ -40,3 +40,39 @@ export function validateCats(data: CatsData, sprites: CatSpritesData): string[] 
   }
   return errors;
 }
+
+/** Nome válido? Tira espaços das pontas; 1 a 14 letras; sem < > (vai para HTML). */
+export function cleanCatName(raw: string): string | null {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (name.length < 1 || name.length > 14 || /[<>]/.test(name)) return null;
+  return name;
+}
+
+/** Sugestão de nome (a tentativa 0 é a primeira; "outra sugestão" passa para a próxima). */
+export function suggestCatName(cat: CatDef, attempt: number): string {
+  const list = cat.nameSuggestions ?? [];
+  if (list.length === 0) return cat.name ?? '';
+  return list[((attempt % list.length) + list.length) % list.length]!;
+}
+
+export type CatGoal = { kind: 'walk'; to: [number, number] } | { kind: 'sit'; seconds: number } | { kind: 'sleep'; seconds: number };
+
+/**
+ * O que o gato faz a seguir: andar até uma célula livre perto, sentar ou cochilar.
+ * Puro e com RNG injetado (repetível nos testes).
+ */
+export function nextCatGoal(
+  rng: { next(): number; int(min: number, max: number): number },
+  at: [number, number],
+  solid: boolean[][],
+): CatGoal {
+  const roll = rng.next();
+  if (roll < 0.25) return { kind: 'sit', seconds: rng.int(2, 5) };
+  if (roll < 0.35) return { kind: 'sleep', seconds: rng.int(6, 12) };
+  for (let tries = 0; tries < 12; tries++) {
+    const c = at[0] + rng.int(-4, 4);
+    const r = at[1] + rng.int(-3, 3);
+    if (solid[r]?.[c] === false && (c !== at[0] || r !== at[1])) return { kind: 'walk', to: [c, r] };
+  }
+  return { kind: 'sit', seconds: 2 };
+}

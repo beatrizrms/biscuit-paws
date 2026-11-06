@@ -3,6 +3,8 @@ import { doorAt, resolveMap, solidRects, type Cell, type Facing, type MapDoor, t
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
+import { CatSprite } from '../entities/Cat';
+import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
@@ -32,6 +34,8 @@ export class WorldScene extends Phaser.Scene {
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
   private debugPanel?: DebugPanel;
   private changingMap = false;
+  private cats: CatSprite[] = [];
+  private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
   private doorLocked = false;
   map!: ResolvedMap;
@@ -55,7 +59,8 @@ export class WorldScene extends Phaser.Scene {
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard!.addKeys({
       up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D,
-    }) as Keys;
+      // Sem captura: senão W, A, S, D não dá para digitar na caixa de nome do gato.
+    }, false) as Keys;
     // Teclas de ação por evento: um toque rápido nunca se perde.
     this.input.keyboard!.on('keydown-C', () => {
       if (this.ui.isDialogueOpen()) return;
@@ -76,6 +81,7 @@ export class WorldScene extends Phaser.Scene {
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
+    this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
 
     if (import.meta.env.DEV) {
       exposeDebug(this);
@@ -99,12 +105,14 @@ export class WorldScene extends Phaser.Scene {
         };
     this.player.move(input);
     this.player.updateDepth();
+    for (const cat of this.cats) cat.tick(this.time.now);
     if (this.placing) this.refreshGhost();
 
     if (!input.up && !this.changingMap) this.doorLocked = false;
     const door = doorAt(this.map, this.feetCell(), input.up && !input.down);
     if (door && !this.placing && !this.doorLocked) {
-      if (this.session.canUseDoor(door)) this.useDoor(door);
+      if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
+      else if (this.session.canUseDoor(door)) this.useDoor(door);
       else {
         this.doorLocked = true; // avisa uma vez por aperto
         this.session.doorLocked(door);
@@ -118,6 +126,10 @@ export class WorldScene extends Phaser.Scene {
   private loadMap(mapId: string, spawn?: Cell, facing: Facing = 'down'): void {
     this.cancelPlacing();
     this.ui.closeCatalog();
+    this.catColliders.forEach((c) => c.destroy());
+    this.catColliders = [];
+    this.cats.forEach((c) => c.destroy());
+    this.cats = [];
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -140,6 +152,11 @@ export class WorldScene extends Phaser.Scene {
     const [col, row] = spawn ?? this.map.spawn;
     this.placePlayer(col, row);
     this.player.face(facing);
+
+    // Gatos que moram neste mapa.
+    for (const catId of this.session.shelteredCats()) {
+      if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
+    }
   }
 
   private useDoor(door: MapDoor): void {
@@ -175,6 +192,30 @@ export class WorldScene extends Phaser.Scene {
       this.solids.add(this.add.zone(r.col * ts + w / 2, r.row * ts + h / 2, w, h));
     }
     this.solidCollider = this.physics.add.collider(this.player, this.solids);
+    this.catColliders.forEach((c) => c.destroy());
+    this.catColliders = this.cats.map((cat) => this.physics.add.collider(cat, this.solids!));
+  }
+
+  /** Põe um gato no mapa atual, perto de `near` (ou num lugar livre qualquer). */
+  private spawnCat(catId: string, near?: Cell): void {
+    const state = this.session.state.cats[catId];
+    const def = this.session.content.cats[catId];
+    if (!state || !def || state.map !== this.map.id) return;
+    const rng = createRng(cellHash(catId.length, this.cats.length + 1) ^ 0x9e37);
+    const [c, r] = this.freeCellNear(near ?? this.map.spawn, rng);
+    const ts = this.map.tileSize;
+    const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.map.solid);
+    this.cats.push(cat);
+    this.catColliders.push(this.physics.add.collider(cat, this.solids!));
+  }
+
+  private freeCellNear([c0, r0]: Cell, rng: { int(min: number, max: number): number }): Cell {
+    for (let i = 0; i < 30; i++) {
+      const c = c0 + rng.int(-2, 2);
+      const r = r0 + rng.int(0, 2);
+      if (this.map.solid[r]?.[c] === false) return [c, r];
+    }
+    return [c0, r0];
   }
 
   private placePlayer(col: number, row: number): void {
@@ -316,6 +357,15 @@ export class WorldScene extends Phaser.Scene {
   goTo(mapId: string, spawn?: Cell): void {
     this.session.enter(mapId);
     this.loadMap(mapId, spawn);
+  }
+
+  /** Para testes: confirma a caixa de nome. */
+  confirmNaming(): void {
+    this.ui.confirmNaming();
+  }
+
+  catCount(): number {
+    return this.cats.length;
   }
 
   sessionState() {

@@ -6,8 +6,11 @@ import { loadContent } from './content';
 
 const content = loadContent();
 
-function newSession() {
-  const session = new GameSession(content, newGameState(content.economy.startingMoney));
+function newSession(withCat = true) {
+  const state = newGameState(content.economy.startingMoney);
+  // A maioria dos testes compra itens de gato: libera direto (o fluxo do gato tem testes próprios).
+  if (withCat) state.flags['has.cat'] = true;
+  const session = new GameSession(content, state);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   return { session, events, dialogues: () => events.filter((e) => e.name === 'dialogue.requested').map((e) => e.payload) };
@@ -24,11 +27,13 @@ function startOnStreet(session: GameSession) {
   session.finishCutscene('cs.prologue_thoughts');
 }
 
-/** Começa um jogo novo (na rua), entra no café e faz a faxina. */
+/** Começa um jogo novo (na rua), entra no café, faz a faxina e recebe o gatinho (com nome). */
 function startInCafe(session: GameSession) {
   startOnStreet(session);
   session.enter('map.cafe_main');
   cleanAll(session);
+  session.finishCutscene('cs.meow_door');
+  expect(session.nameCat('cat.first_stray', 'Botinhas')).toEqual({ ok: true });
 }
 
 /** Compra e posiciona; falha o teste se algo der errado. */
@@ -105,10 +110,11 @@ describe('começo da história', () => {
       'dlg.intro',
       'dlg.inside',
       'dlg.cleaned',
+      'dlg.cat_named',
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
-    expect(session.goals().map((g) => g.title)).toEqual(['Esse miado...']);
+    expect(session.goals()).toEqual([]); // o Ato 1 reorganizado vem depois do prólogo
   });
 
   it('recolher um móvel não desfaz um marco concluído', () => {
@@ -258,7 +264,7 @@ describe('faxina', () => {
     expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
     cleanAll(session);
     expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cleaned' });
-    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+    expect(session.goals().map((g) => g.title)).toEqual(['Esse miado...']);
   });
 
   it('precisa estar perto (até 2 células) e não limpa duas vezes', () => {
@@ -321,5 +327,81 @@ describe('chave e portas', () => {
     const { session } = newSession();
     const inside = content.map.doors!.find((d) => d.id === 'door.street')!;
     expect(session.canUseDoor(inside)).toBe(true);
+  });
+});
+
+describe('o gatinho na porta', () => {
+  function cleanedCafe() {
+    const s = newSession(false);
+    s.session.start(true);
+    s.session.finishCutscene('cs.prologue_thoughts');
+    s.session.enter('map.cafe_main');
+    cleanAll(s.session);
+    return s;
+  }
+  const insideDoor = () => content.map.doors!.find((d) => d.id === 'door.street')!;
+
+  it('antes do gato, as coisas de gato estão travadas', () => {
+    const { session } = newSession(false);
+    expect(session.itemUnlocked('item.cat_bed')).toBe(false);
+    expect(session.buy('item.cat_bed')).toEqual({ ok: false, reason: 'locked' });
+    expect(session.itemUnlocked('item.table_round')).toBe(true);
+  });
+
+  it('depois da faxina, a porta de dentro mostra o gatinho em vez de sair', () => {
+    const { session, events } = cleanedCafe();
+    expect(session.doorIntercept(insideDoor())).toBe('cs.meow_door');
+    expect(events.at(-1)).toEqual({ name: 'cutscene.requested', payload: { cutsceneId: 'cs.meow_door' } });
+  });
+
+  it('a porta só intercepta uma vez, e não antes da faxina', () => {
+    const { session } = newSession(false);
+    session.start(true);
+    expect(session.doorIntercept(insideDoor())).toBeUndefined();
+    const s2 = cleanedCafe();
+    s2.session.finishCutscene('cs.meow_door');
+    expect(s2.session.doorIntercept(insideDoor())).toBeUndefined();
+  });
+
+  it('a cena abriga o gato; a caixa de nome valida e o nome destrava a próxima meta', () => {
+    const { session, events, dialogues } = cleanedCafe();
+    session.finishCutscene('cs.meow_door');
+    expect(session.shelteredCats()).toEqual(['cat.first_stray']);
+    expect(events.some((e) => e.name === 'cat.sheltered')).toBe(true);
+    expect(session.itemUnlocked('item.cat_bed')).toBe(true);
+    expect(session.goals()).toEqual([]); // espera o nome
+
+    expect(session.suggestCatName('cat.first_stray', 0)).toBe('Botinhas');
+    expect(session.suggestCatName('cat.first_stray', 1)).toBe('Pão de Mel');
+    expect(session.nameCat('cat.first_stray', '   ')).toEqual({ ok: false, reason: 'invalid_name' });
+    expect(session.nameCat('cat.first_stray', 'Um nome comprido demais')).toEqual({ ok: false, reason: 'invalid_name' });
+    expect(session.nameCat('cat.first_stray', '  Pipoca  ')).toEqual({ ok: true });
+    expect(session.catName('cat.first_stray')).toBe('Pipoca');
+    expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cat_named' });
+    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+  });
+
+  it('não dá nome a gato que não mora aqui; a Tekinha tem nome fixo', () => {
+    const { session } = newSession(false);
+    expect(session.nameCat('cat.first_stray', 'Pipoca')).toEqual({ ok: false, reason: 'not_sheltered' });
+    expect(session.catName('cat.tekinha')).toBe('Tekinha');
+  });
+});
+
+describe('corações', () => {
+  it('pontos viram corações, com evento quando muda', () => {
+    const { session, events } = newSession();
+    session.state.cats['cat.first_stray'] = { sheltered: true, name: 'Pipoca', map: 'map.cafe_main' };
+    session.addCatAffection('cat.first_stray', 60);
+    expect(session.catHearts('cat.first_stray')).toBe(0);
+    session.addCatAffection('cat.first_stray', 60);
+    expect(session.catHearts('cat.first_stray')).toBe(1);
+    expect(events.filter((e) => e.name === 'cat.affection_changed').map((e) => e.payload)).toEqual([
+      { catId: 'cat.first_stray', from: 0, to: 1 },
+    ]);
+    session.addCatAffection('cat.first_stray', 99_999);
+    expect(session.catHearts('cat.first_stray')).toBe(10);
+    session.addCatAffection('cat.first_stray', -99_999);
+    expect(session.catHearts('cat.first_stray')).toBe(0);
   });
 });

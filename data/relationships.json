@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Corações: pontos por coração e máximo. Usado para gatos, vizinhos e clientes.",
+  "pointsPerHeart": 100,
+  "maxHearts": 10
+}

@@ -64,6 +64,16 @@ async function cleanCafe(page: Page): Promise<void> {
   await skipDialogue(page);
 }
 
+/** Depois da faxina: o gatinho na porta (cena), a caixa de nome com a sugestão, e as falas. */
+async function adoptFirstCat(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    (window as unknown as { __biscuitPaws: { cafe: { session: { finishCutscene(id: string): void } } } }).__biscuitPaws.cafe.session.finishCutscene('cs.meow_door'),
+  );
+  await expect(page.locator('.naming-layer')).toHaveClass(/open/);
+  await page.click('.naming .confirm');
+  await skipDialogue(page);
+}
+
 /** Clica no centro de uma célula do mapa (o mapa de 512 x 352 fica centrado na tela de 640 x 360). */
 async function clickCell(page: Page, col: number, row: number, button: 'left' | 'right' = 'left'): Promise<void> {
   const box = (await page.locator('canvas').boundingBox())!;
@@ -159,6 +169,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.toast')).toContainText('lá dentro');
   await enterCafe(page);
   await cleanCafe(page);
+  await adoptFirstCat(page);
 
   await page.keyboard.press('c');
   await page.locator('[data-item="item.cat_bed"]').click();
@@ -279,4 +290,44 @@ test('faxina: clicar na sujeira de perto limpa; de longe, pede para chegar perto
   await clickCell(page, 4, 1);
   await expect(page.locator('.toast')).toContainText('reformando');
   await page.screenshot({ path: testInfo.outputPath('13-faxina.png') });
+});
+
+test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no café', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await enterCafe(page);
+  await cleanCafe(page);
+  // Antes do gato, o catálogo não mostra a caminha.
+  await page.keyboard.press('c');
+  await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(0);
+  await page.keyboard.press('c');
+
+  // Vai até a porta de dentro e sobe: em vez de sair, vem a cena.
+  await teleport(page, 14, 4);
+  await hold(page, 'ArrowUp', 700);
+  await expect(page.locator('.cutscene')).toHaveClass(/open/);
+  expect((await player(page)).map).toBe('map.cafe_main');
+  await skipDialogue(page);
+
+  // Caixa de nome com a sugestão; dá para digitar W, A, S, D sem andar.
+  await expect(page.locator('.naming input')).toHaveValue('Botinhas');
+  await page.screenshot({ path: testInfo.outputPath('14-nome.png') });
+  const before = await player(page);
+  await page.fill('.naming input', '');
+  await page.locator('.naming input').pressSequentially('Wasabi');
+  expect(await player(page)).toEqual(before);
+  await page.click('.naming .confirm');
+  await expect(page.locator('.dialogue')).toContainText('Wasabi');
+  await skipDialogue(page);
+
+  const state = await page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { catCount(): number; sessionState(): { cats: Record<string, { name: string }> } } } }).__biscuitPaws.cafe);
+  void state;
+  const info = await page.evaluate(() => {
+    const w = (window as unknown as { __biscuitPaws: { cafe: { catCount(): number; sessionState(): { cats: Record<string, { name: string }> } } } }).__biscuitPaws.cafe;
+    return { n: w.catCount(), name: w.sessionState().cats['cat.first_stray']?.name };
+  });
+  expect(info).toEqual({ n: 1, name: 'Wasabi' });
+  await page.keyboard.press('c');
+  await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(1);
+  await page.screenshot({ path: testInfo.outputPath('15-gato-no-cafe.png') });
 });

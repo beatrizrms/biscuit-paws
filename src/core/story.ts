@@ -23,6 +23,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('flag' in c) return state.flags[c.flag] === true;
   if ('beat' in c) return state.story.completed.includes(c.beat);
   if ('visited' in c) return state.visited.includes(c.visited);
+  if ('catNamed' in c) return (state.cats[c.catNamed]?.name ?? '') !== '';
   if ('cleaned' in c) return ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned)).every((d) => isCleaned(state, d));
   if ('placedTag' in c) {
     const count = state.placed.filter((p) => ctx.items[p.item]?.tags.includes(c.placedTag)).length;

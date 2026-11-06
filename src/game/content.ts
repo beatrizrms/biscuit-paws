@@ -12,6 +12,7 @@ import uiTextJson from '../../data/ui_text.json';
 import catsJson from '../../data/cats.json';
 import catSpritesJson from '../../data/cat_sprites.json';
 import cutscenesJson from '../../data/cutscenes.json';
+import relationshipsJson from '../../data/relationships.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
@@ -26,6 +27,7 @@ export const content: Content = buildContent({
   cats: catsJson,
   catSprites: catSpritesJson,
   cutscenes: cutscenesJson,
+  relationships: relationshipsJson,
 } as unknown as RawContent);
 
 export const uiText = uiTextJson;

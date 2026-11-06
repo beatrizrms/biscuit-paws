@@ -40,6 +40,8 @@ export interface MapDoor {
   requires?: DoorCondition;
   /** Fala mostrada quando está trancada. */
   locked?: string;
+  /** Em vez de atravessar, mostra uma cena quando a condição vale (ex.: o gatinho na porta). */
+  intercept?: { when: DoorCondition; cutscene: string };
 }
 
 /** Mesma forma das condições da história (content.ts); repetida aqui para o mapa não depender do conteúdo. */

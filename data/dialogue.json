@@ -113,11 +113,11 @@
         },
         {
           "speaker": "Você",
-          "text": "As manchas e as rachaduras... essas só com reforma. Sobraram poucas moedas, melhor começar pelo essencial."
+          "text": "As manchas e as rachaduras... essas só com reforma."
         },
         {
           "speaker": "",
-          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
+          "text": "Então, bem baixinho, vem um miado da porta da frente."
         }
       ]
     },
@@ -126,6 +126,26 @@
         {
           "speaker": "Você",
           "text": "Está trancada. Preciso da chave."
+        }
+      ]
+    },
+    "dlg.cat_named": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "{cat:cat.first_stray}. Combina com você."
+        },
+        {
+          "speaker": "",
+          "text": "{cat:cat.first_stray} se enrosca nas suas pernas e sai explorando o café."
+        },
+        {
+          "speaker": "Você",
+          "text": "Você precisa de um cantinho quente... e de comida."
+        },
+        {
+          "speaker": "",
+          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
         }
       ]
     }

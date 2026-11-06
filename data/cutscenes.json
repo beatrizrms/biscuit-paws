@@ -71,6 +71,42 @@
           "text": "NESSA NOITE, MENOS UM GATINHO DORMIU COM FRIO E BARRIGA VAZIA."
         }
       ]
+    },
+    "cs.meow_door": {
+      "background": "#3b2a32",
+      "snow": true,
+      "steps": [
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Você abre a porta. O frio entra junto com um miado fininho."
+        },
+        {
+          "type": "cat",
+          "cat": "cat.first_stray",
+          "animation": "sit"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Um gatinho laranja, coberto de neve, olha para você com olhos enormes e brilhantes."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Oi, pequeno... Está com frio, né?"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Ele pisca bem devagar. Parece pedir um lugar quentinho."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Entra. Aqui dentro está mais quente."
+        }
+      ]
     }
   }
 }

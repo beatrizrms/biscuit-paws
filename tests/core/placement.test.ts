@@ -7,7 +7,9 @@ import { loadContent } from './content';
 const content = loadContent();
 
 function richSession() {
-  return new GameSession(content, newGameState(10_000));
+  const state = newGameState(10_000);
+  state.flags['has.cat'] = true; // itens de gato liberados
+  return new GameSession(content, state);
 }
 
 function put(session: GameSession, itemId: string, at: [number, number]) {

@@ -3,6 +3,7 @@
 import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
+import { NamingBox } from './NamingBox';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -28,6 +29,7 @@ export class GameUi {
   private toastTimer = 0;
   private hintMode: HintMode = 'walk';
   private cutscene!: CutsceneView;
+  private naming!: NamingBox;
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
   private hudPending = false;
   /** Meta mostrada agora (para animar o pensamento quando ela muda). */
@@ -71,7 +73,13 @@ export class GameUi {
       }
     });
 
-    this.cutscene = new CutsceneView(root, session, () => this.refresh());
+    // Quando a cena ou a caixa de nome fecham, as falas que esperavam aparecem.
+    const afterOverlay = () => {
+      this.refresh();
+      this.openDialogueIfFree();
+    };
+    this.cutscene = new CutsceneView(root, session, afterOverlay);
+    this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
 
     const bus = session.bus;
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
@@ -82,11 +90,11 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen();
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen();
   }
 
   isDialogueOpen(): boolean {
-    return this.dialogueLayer.classList.contains('open') || this.cutscene?.isOpen() === true;
+    return this.dialogueLayer.classList.contains('open') || this.cutscene?.isOpen() === true || this.naming?.isOpen() === true;
   }
 
   isCatalogOpen(): boolean {
@@ -124,6 +132,11 @@ export class GameUi {
 
   problem(reason: keyof typeof uiText.problems): void {
     this.toast(uiText.problems[reason] ?? reason);
+  }
+
+  /** Para testes e debug: confirma a caixa de nome com o nome sugerido. */
+  confirmNaming(): void {
+    this.naming.confirm();
   }
 
   /** Modo debug: fecha todas as falas de uma vez. */
@@ -179,6 +192,7 @@ export class GameUi {
     this.catalogList.innerHTML = uiText.catalogSections
       .map((section) => {
         const rows = items
+          .filter((i) => this.session.itemUnlocked(i.id))
           .filter((i) => i.tags.includes(section.tag))
           .filter((i) => uiText.catalogSections.find((s) => i.tags.includes(s.tag)) === section) // cada item numa seção só
           .map((i) => {
@@ -255,12 +269,19 @@ export class GameUi {
 
   private queueDialogue(dialogueId: string): void {
     const lines = content.dialogue.dialogues[dialogueId]?.lines ?? [];
-    this.dialogueQueue.push(...lines);
-    if (!this.isDialogueOpen()) {
-      this.closeCatalog();
-      this.dialogueLayer.classList.add('open');
-      this.advanceDialogue();
-    }
+    // {cat:cat.id} vira o nome que a jogadora deu ao gato.
+    const fill = (text: string) => text.replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id));
+    this.dialogueQueue.push(...lines.map((l) => ({ speaker: fill(l.speaker), text: fill(l.text) })));
+    this.openDialogueIfFree();
+  }
+
+  /** Abre a caixa de fala se houver fala na fila e nada na frente (cena, caixa de nome). */
+  private openDialogueIfFree(): void {
+    if (this.dialogueQueue.length === 0 || this.dialogueLayer.classList.contains('open')) return;
+    if (this.cutscene?.isOpen() || this.naming?.isOpen()) return; // abre quando elas fecharem
+    this.closeCatalog();
+    this.dialogueLayer.classList.add('open');
+    this.advanceDialogue();
   }
 
   /** Mostra a próxima fala; se a atual ainda está sendo escrita, completa. */

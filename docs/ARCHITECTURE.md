@@ -66,8 +66,9 @@ cat-cafe-game/
 
 | Evento | Quando dispara | Dados |
 | --- | --- | --- |
-| `cat.sheltered` | gato é abrigado na loja | `catId` |
-| `cat.affection_changed` | afeto de um gato muda | `catId, from, to` |
+| `cat.sheltered` | gato é abrigado na loja (abre a caixa de nome) | `catId` |
+| `cat.named` | a jogadora deu nome ao gato | `catId, name` |
+| `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
 | `day.ended` | fim do dia | `day` |
 | `customer.served` | cliente atendido | `customerId, tip` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |

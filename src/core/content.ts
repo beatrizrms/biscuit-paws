@@ -3,6 +3,7 @@
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateMap, type MapData, type SurfaceKind } from './map';
+import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
 /** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
@@ -16,6 +17,8 @@ export interface ItemDef {
   kind?: ItemKind;
   /** Tile do móvel no café (obrigatório para furniture). */
   tile?: string;
+  /** Condição para poder comprar (ex.: itens de gato só depois de ter um gato). */
+  requires?: Condition;
   tags: string[];
   deprecated?: boolean;
 }
@@ -62,11 +65,20 @@ export type Condition =
   | { owned: string; gte?: number }
   /** A personagem já entrou neste mapa. */
   | { visited: string }
+  /** A jogadora já deu nome a este gato. */
+  | { catNamed: string }
   /** Toda a sujeira do café com esta tag (das que saem com faxina) já foi limpa. */
   | { cleaned: string }
   | { money: { gte: number } };
 
-export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number } | { cutscene: string } | { giveItem: string };
+export type Effect =
+  | { dialogue: string }
+  | { setFlag: string }
+  | { addMoney: number }
+  | { cutscene: string }
+  | { giveItem: string }
+  /** Abriga um gato no café (abre a caixa de nome). */
+  | { shelterCat: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -128,6 +140,7 @@ export interface Content {
   cats: Record<string, CatDef>;
   catSprites: CatSpritesData;
   cutscenes: Record<string, CutsceneDef>;
+  relationships: RelationshipsConfig;
 }
 
 export interface RawContent {
@@ -142,6 +155,7 @@ export interface RawContent {
   cats: CatsData;
   catSprites: CatSpritesData;
   cutscenes: CutscenesData;
+  relationships: RelationshipsConfig;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -154,7 +168,7 @@ export function buildContent(raw: RawContent): Content {
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
-    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes };
+    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -186,8 +200,13 @@ export function validateContent(raw: RawContent): string[] {
     }
   }
   const home = raw.maps.find((m) => m.id === raw.world.homeMap);
-  const doorChecks: { where: string; requires?: Condition; locked?: string }[] = raw.maps.flatMap((m) =>
-    (m.doors ?? []).map((d) => ({ where: `${m.id}: porta "${d.id}"`, requires: d.requires as Condition | undefined, locked: d.locked })),
+  const doorChecks: { where: string; requires?: Condition; locked?: string; intercept?: { when: Condition; cutscene: string } }[] = raw.maps.flatMap((m) =>
+    (m.doors ?? []).map((d) => ({
+      where: `${m.id}: porta "${d.id}"`,
+      requires: d.requires as Condition | undefined,
+      locked: d.locked,
+      intercept: d.intercept as { when: Condition; cutscene: string } | undefined,
+    })),
   );
 
   // Gatos e cenas
@@ -257,6 +276,8 @@ export function validateContent(raw: RawContent): string[] {
     else if ('not' in c) checkCondition(where, c.not);
     else if ('cleaned' in c) {
       if (!(home?.dirt ?? []).some((d) => !d.clearedBy && d.tags.includes(c.cleaned))) err(`${where}: nenhuma sujeira com a tag "${c.cleaned}"`);
+    } else if ('catNamed' in c) {
+      if (!catIds.has(c.catNamed)) err(`${where}: gato inexistente "${c.catNamed}"`);
     } else if ('visited' in c) {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
@@ -269,7 +290,12 @@ export function validateContent(raw: RawContent): string[] {
     }
   };
 
+  for (const item of raw.items.items) if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
   for (const d of doorChecks) {
+    if (d.intercept) {
+      checkCondition(d.where, d.intercept.when);
+      if (!cutsceneIds.has(d.intercept.cutscene)) err(`${d.where}: cena inexistente "${d.intercept.cutscene}"`);
+    }
     if (d.requires) checkCondition(d.where, d.requires);
     if (d.locked && !dialogueIds.has(d.locked)) err(`${d.where}: fala de trancada inexistente "${d.locked}"`);
   }
@@ -283,6 +309,7 @@ export function validateContent(raw: RawContent): string[] {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
+      if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);
     }
   }
 

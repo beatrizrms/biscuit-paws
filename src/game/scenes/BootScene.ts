@@ -4,6 +4,7 @@ import { LocalStorage } from '../../platform/localStorage';
 import { content } from '../content';
 import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
+import { catTexture } from '../entities/Cat';
 
 export const TEXTURE = { player: 'player' } as const;
 
@@ -17,6 +18,11 @@ export class BootScene extends Phaser.Scene {
     const { sheets, tileSize } = content.catalog;
     for (const [id, sheet] of Object.entries(sheets)) {
       this.load.spritesheet(id, sheet.image, { frameWidth: tileSize, frameHeight: tileSize });
+    }
+    // Folhas do Cosy Cats dos gatos que vivem no mundo (a Tekinha só aparece em lembrança, em HTML).
+    const sprites = content.catSprites;
+    for (const variant of new Set(Object.values(content.cats).filter((c) => !c.memory).map((c) => c.variant))) {
+      this.load.spritesheet(catTexture(variant), sprites.variants[variant]!, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
     }
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,

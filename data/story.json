@@ -86,10 +86,52 @@
       ]
     },
     {
+      "id": "story.meow",
+      "act": 0,
+      "after": [
+        "story.cleanup"
+      ],
+      "goal": {
+        "title": "Esse miado...",
+        "steps": [
+          {
+            "text": "Vem da porta da frente. Vou ver.",
+            "when": {
+              "flag": "seen.cs.meow_door"
+            },
+            "devNote": "A porta de dentro (14,3) mostra a cena cs.meow_door em vez de sair."
+          }
+        ]
+      },
+      "effects": [
+        {
+          "shelterCat": "cat.first_stray"
+        },
+        {
+          "setFlag": "has.cat"
+        }
+      ]
+    },
+    {
+      "id": "story.cat_named",
+      "act": 0,
+      "after": [
+        "story.meow"
+      ],
+      "when": {
+        "catNamed": "cat.first_stray"
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.cat_named"
+        }
+      ]
+    },
+    {
       "id": "story.warm_corner",
       "act": 1,
       "after": [
-        "story.cleanup"
+        "story.cat_named"
       ],
       "goal": {
         "title": "Um cantinho quente",
@@ -158,26 +200,6 @@
           "addMoney": 50
         }
       ]
-    },
-    {
-      "id": "story.meow_outside",
-      "act": 1,
-      "after": [
-        "story.first_seats"
-      ],
-      "goal": {
-        "title": "Esse miado...",
-        "steps": [
-          {
-            "text": "Quem está miando lá fora?",
-            "when": {
-              "flag": "cat.first_found"
-            },
-            "devNote": "Continua no Marco 1 (gatos): a flag cat.first_found ainda não existe."
-          }
-        ]
-      },
-      "effects": []
     }
   ]
 }

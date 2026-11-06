@@ -87,6 +87,19 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/map.lighthouse_that_was_removed/);
   });
 
+  it('save_v3 migra para v4 sem gatos e sem corações', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v3.json', 'utf8'), known);
+    expect(state.cats).toEqual({});
+    expect(state.relationships).toEqual({});
+  });
+
+  it('save_v4: guarda nome e corações; gato que sumiu dos dados é ignorado', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v4.json', 'utf8'), known);
+    expect(state.cats).toEqual({ 'cat.first_stray': { sheltered: true, name: 'Pipoca', map: 'map.cafe_main' } });
+    expect(state.relationships['player|cat.first_stray']).toBe(120);
+    expect(warnings.join()).toMatch(/cat.lost_forever/);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

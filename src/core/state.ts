@@ -18,7 +18,10 @@ export interface GameState {
   placed: PlacedItem[];
   nextUid: number;
   story: { completed: string[] };
-  cats: Record<string, { sheltered: boolean; affection: number }>;
+  /** Gatos abrigados: nome escolhido e mapa onde vivem. */
+  cats: Record<string, CatState>;
+  /** Corações entre pares ("player|cat.x", "npc.y|cat.x"...): pontos acumulados. */
+  relationships: Record<string, number>;
   /** Reforma: superfície -> acabamento aplicado pelo pintor. Sem entrada = original (velho). */
   finishes: Record<string, string>;
   /** Mapa onde a personagem está. */
@@ -27,6 +30,13 @@ export interface GameState {
   visited: string[];
   /** Sujeiras do café já limpas (ids). */
   cleaned: string[];
+}
+
+export interface CatState {
+  sheltered: boolean;
+  /** Nome dado pela jogadora (vazio até ela escolher). */
+  name: string;
+  map: string;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street'): GameState {
@@ -39,6 +49,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street'): Ga
     nextUid: 1,
     story: { completed: [] },
     cats: {},
+    relationships: {},
     finishes: {},
     location: startMap,
     visited: [startMap],

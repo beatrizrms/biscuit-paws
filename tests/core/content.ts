@@ -21,6 +21,7 @@ export function rawContent(): RawContent {
     cats: read('data/cats.json'),
     catSprites: read('data/cat_sprites.json'),
     cutscenes: read('data/cutscenes.json'),
+    relationships: read('data/relationships.json'),
   };
 }
 

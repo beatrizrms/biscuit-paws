@@ -2,6 +2,8 @@
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import type { Condition, Content, Effect } from './content';
 import { seenFlag } from './cutscene';
+import { cleanCatName, suggestCatName } from './cats';
+import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import type { Cell, MapData, MapDoor, SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
@@ -25,6 +27,8 @@ export type ActionResult =
         | 'locked'
         | 'too_far'
         | 'needs_repair'
+        | 'invalid_name'
+        | 'not_sheltered'
         | PlaceProblem;
     };
 
@@ -39,6 +43,61 @@ export class GameSession {
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
   start(isNew: boolean): void {
     this.bus.emit('game.started', { isNew });
+    this.advanceStory();
+  }
+
+  /** O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato) */
+  itemUnlocked(itemId: string): boolean {
+    const item = this.content.items[itemId];
+    return !!item && (!item.requires || evaluate(item.requires, this.state, this.storyContext()));
+  }
+
+  /** Esta porta, agora, mostra uma cena em vez de deixar passar? Devolve o id da cena. */
+  doorIntercept(door: MapDoor): string | undefined {
+    const i = door.intercept;
+    if (!i || !evaluate(i.when as Condition, this.state, this.storyContext())) return undefined;
+    this.bus.emit('cutscene.requested', { cutsceneId: i.cutscene });
+    return i.cutscene;
+  }
+
+  // ---------- Gatos ----------
+
+  /** Gatos abrigados (ids). */
+  shelteredCats(): string[] {
+    return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered);
+  }
+
+  /** Nome do gato: o escolhido, o fixo dos dados, ou vazio. */
+  catName(catId: string): string {
+    return this.state.cats[catId]?.name || this.content.cats[catId]?.name || '';
+  }
+
+  suggestCatName(catId: string, attempt: number): string {
+    const cat = this.content.cats[catId];
+    return cat ? suggestCatName(cat, attempt) : '';
+  }
+
+  /** A jogadora deu nome ao gato (caixa de nome). */
+  nameCat(catId: string, rawName: string): ActionResult {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered) return { ok: false, reason: 'not_sheltered' };
+    const name = cleanCatName(rawName);
+    if (!name) return { ok: false, reason: 'invalid_name' };
+    cat.name = name;
+    this.bus.emit('cat.named', { catId, name });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Corações entre a protagonista e um gato. */
+  catHearts(catId: string): number {
+    return hearts(this.state, this.content.relationships, PLAYER, catId);
+  }
+
+  /** Soma afeto (pontos) entre a protagonista e um gato. */
+  addCatAffection(catId: string, delta: number): void {
+    const [from, to] = addPoints(this.state, this.content.relationships, PLAYER, catId, delta);
+    if (from !== to) this.bus.emit('cat.affection_changed', { catId, from, to });
     this.advanceStory();
   }
 
@@ -191,6 +250,7 @@ export class GameSession {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
     if ((item.kind ?? 'furniture') === 'key') return { ok: false, reason: 'unknown_item' };
+    if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
@@ -256,7 +316,11 @@ export class GameSession {
   private applyEffect(effect: Effect): void {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
-    else if ('giveItem' in effect) {
+    else if ('shelterCat' in effect) {
+      const id = effect.shelterCat;
+      this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id };
+      this.bus.emit('cat.sheltered', { catId: id });
+    } else if ('giveItem' in effect) {
       this.state.inventory[effect.giveItem] = (this.state.inventory[effect.giveItem] ?? 0) + 1;
       this.bus.emit('item.received', { itemId: effect.giveItem });
     }

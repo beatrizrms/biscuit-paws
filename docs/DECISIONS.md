@@ -95,3 +95,7 @@ Consequência: o bairro do jogo é a Vila das Baunilhas; "Rua das Amoras" saiu d
 ## 026. Prólogo com cenas em HTML; gatos do Cosy Cats; nome escolhido pela jogadora (nov/2026)
 Motivo: o prólogo tem momentos sem mapa (pensamentos, celular); a Tekinha e os gatos de rua precisam de sprites; cada gato novo é especial.
 Consequência: `data/cutscenes.json` + `CutsceneView` (HTML por cima do jogo, mundo pausado). Tekinha = Misty (só lembrança); o gatinho de rua = Marmalade. Gatos têm id permanente (`cat.first_stray`); ao abrigar um gato novo abre uma caixa de nome com sugestão (`nameSuggestions`), e o nome vai para o save.
+
+## 027. Itens de gato só depois do primeiro gato; gatos andam sozinhos (nov/2026)
+Motivo: comprar caminha e tigelas antes de existir gato não fazia sentido na história.
+Consequência: itens com `requires` (núcleo recusa a compra com `locked`; o catálogo esconde). A porta de dentro tem `intercept`: depois da faxina mostra o gatinho (`cs.meow_door`), que é abrigado, recebe nome (caixa com sugestão) e passeia pelo café (`nextCatGoal` no núcleo, com RNG). Corações genéricos por par (`relationships`). Save v4.

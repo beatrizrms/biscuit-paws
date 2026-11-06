@@ -41,7 +41,9 @@
     "already_painted": "Já está assim.",
     "locked": "Ainda não conheço um pintor.",
     "too_far": "Preciso chegar mais perto.",
-    "needs_repair": "Isso não sai com faxina. Só reformando."
+    "needs_repair": "Isso não sai com faxina. Só reformando.",
+    "invalid_name": "Escolha um nome de 1 a 14 letras.",
+    "not_sheltered": "Esse gatinho ainda não mora aqui."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -49,5 +51,11 @@
   "painted": "Pronto! O pintor terminou o serviço.",
   "refund": "devolver",
   "refunded": "Devolvido.",
-  "notHome": "Isso eu arrumo lá dentro do café."
+  "notHome": "Isso eu arrumo lá dentro do café.",
+  "naming": {
+    "title": "Um novo amigo!",
+    "prompt": "Como vai se chamar?",
+    "another": "outra sugestão",
+    "confirm": "Pronto"
+  }
 }

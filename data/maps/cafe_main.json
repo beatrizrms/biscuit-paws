@@ -44,7 +44,12 @@
     { "id": "obj.doormat", "tile": "doormat", "at": [14, 3] }
   ],
   "spawn": { "player": [8, 8] },
-  "doors": [{ "id": "door.street", "at": [14, 3], "to": "map.street", "spawn": [17, 9], "facing": "down" }],
+  "doors": [
+    {
+      "id": "door.street", "at": [14, 3], "to": "map.street", "spawn": [17, 9], "facing": "down",
+      "intercept": { "when": { "all": [{ "beat": "story.cleanup" }, { "not": { "flag": "seen.cs.meow_door" } }] }, "cutscene": "cs.meow_door" }
+    }
+  ],
   "dirt": [
     { "id": "dirt.web_corner_left", "tile": "dirt_teia_canto_grande_esq", "at": [0, 0], "tags": ["web"] },
     { "id": "dirt.web_corner_right", "tile": "dirt_teia_canto_grande_dir", "at": [14, 0], "tags": ["web"] },
