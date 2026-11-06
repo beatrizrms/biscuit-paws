@@ -18,7 +18,7 @@ Você ama gatos e comprou, com suas economias, uma padaria abandonada para trans
 - Uma vizinha idosa lembra da loja como padaria, e isso rende falas e uma pista de história.
 
 ## Mundo
-- Mapa inicial: **uma única rua curta**, com a loja e poucos vizinhos.
+- Mapa inicial: **uma única rua curta** da **Vila das Baunilhas** (o bairro onde a protagonista nasceu), com a loja e poucos vizinhos.
 - Clientes são **humanos**. Os **gatos vivem no café** (não são clientes).
 - A loja tem ao menos duas fases: **abandonada** e **reformada**, feitas com a mesma planta.
 
@@ -31,7 +31,7 @@ Você ama gatos e comprou, com suas economias, uma padaria abandonada para trans
 
 ## Começo da história (Ato 1, "A chegada")
 Rascunho; os textos ficam em `data/dialogue.json` e os marcos em `data/story.json`.
-1. **Abertura:** dezembro, neve na Rua das Amoras. Com as economias de uma vida, você compra a velha padaria da esquina, vazia. Sobram 150 moedas.
+1. **Abertura:** dezembro, neve na Vila das Baunilhas, o bairro onde ela nasceu. Com as economias de uma vida, você compra a velha padaria da esquina, vazia. Sobram 150 moedas.
 2. **Um cantinho quente:** caminha, tigela de água e tigela de ração (para o gato que ainda vai chegar).
 3. **Um lugar para sentar:** uma mesa e duas cadeiras.
 4. **Dona Lurdes:** a vizinha idosa aparece, lembra da padaria do seu Antônio, desconfia dos gatos de rua, mas deixa 50 moedas "para o começo".

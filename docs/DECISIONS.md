@@ -87,3 +87,7 @@ Consequência: `data/maps/street.json` (30 x 11, inverno) com as fachadas e obje
 ## 024. Faxina por clique; manchas saem com a reforma (nov/2026)
 Motivo: dar sensação de progresso no café abandonado e um motivo para chamar o pintor.
 Consequência: sujeira em `dirt` no mapa do café (pacote sujeira, gerado por IA). Teias, poeira, papéis, cacos e o balde saem com clique de perto (meta "Uma boa faxina", antes do cantinho quente). Manchas na parede, rachaduras e o buraco de rato têm `clearedBy` e somem quando a superfície é reformada. Saves antigos vêm com `cleaned: ["*"]` (já limpos).
+
+## 025. Bairro: Vila das Baunilhas (nov/2026)
+Motivo: decisão da desenvolvedora (prólogo novo: o bairro onde a protagonista nasceu).
+Consequência: o bairro do jogo é a Vila das Baunilhas; "Rua das Amoras" saiu das falas. O nome do jogo continua Biscuit Paws (decisão 009, definitiva).
