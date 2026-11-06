@@ -141,6 +141,9 @@
         },
         "lencol_sobre_movel": {
           "layer": "object"
+        },
+        "buraco_rato": {
+          "layer": "wall"
         }
       }
     }

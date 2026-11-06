@@ -38,10 +38,40 @@
       ]
     },
     {
-      "id": "story.warm_corner",
+      "id": "story.cleanup",
       "act": 1,
       "after": [
         "story.enter_bakery"
+      ],
+      "goal": {
+        "title": "Uma boa faxina",
+        "steps": [
+          {
+            "text": "Tirar essas teias dos cantos.",
+            "when": {
+              "cleaned": "web"
+            },
+            "devNote": "Clique na sujeira, com a personagem a até 2 células."
+          },
+          {
+            "text": "Varrer a poeira, os papéis e os cacos.",
+            "when": {
+              "cleaned": "floor"
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.cleaned"
+        }
+      ]
+    },
+    {
+      "id": "story.warm_corner",
+      "act": 1,
+      "after": [
+        "story.cleanup"
       ],
       "goal": {
         "title": "Um cantinho quente",

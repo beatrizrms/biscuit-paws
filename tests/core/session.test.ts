@@ -13,10 +13,16 @@ function newSession() {
   return { session, events, dialogues: () => events.filter((e) => e.name === 'dialogue.requested').map((e) => e.payload) };
 }
 
-/** Começa um jogo novo (na rua) e entra no café. */
+/** Limpa toda a sujeira que sai com faxina (sem checar distância). */
+function cleanAll(session: GameSession) {
+  for (const d of session.visibleDirt().filter((x) => !x.clearedBy)) expect(session.clean(d.id)).toEqual({ ok: true });
+}
+
+/** Começa um jogo novo (na rua), entra no café e faz a faxina. */
 function startInCafe(session: GameSession) {
   session.start(true);
   session.enter('map.cafe_main');
+  cleanAll(session);
 }
 
 /** Compra e posiciona; falha o teste se algo der errado. */
@@ -45,7 +51,7 @@ describe('começo da história', () => {
     expect(session.state.visited).toEqual(['map.street', 'map.cafe_main']);
     expect(events.some((e) => e.name === 'map.entered')).toBe(true);
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }, { dialogueId: 'dlg.inside' }]);
-    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+    expect(session.goals().map((g) => g.title)).toEqual(['Uma boa faxina']);
     // Sair e voltar não repete a fala.
     session.enter('map.street');
     session.enter('map.cafe_main');
@@ -81,6 +87,7 @@ describe('começo da história', () => {
     expect(dialogues().map((d) => (d as { dialogueId: string }).dialogueId)).toEqual([
       'dlg.intro',
       'dlg.inside',
+      'dlg.cleaned',
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
@@ -221,5 +228,51 @@ describe('devolução', () => {
     session.pickUp(session.state.placed[0]!.uid);
     expect(session.refund('item.cactus')).toEqual({ ok: true });
     expect(session.state.money).toBe(150);
+  });
+});
+
+describe('faxina', () => {
+  it('limpar as teias e o chão conclui a faxina e libera o cantinho quente', () => {
+    const { session, dialogues } = newSession();
+    session.start(true);
+    session.enter('map.cafe_main');
+    const webs = session.visibleDirt().filter((d) => d.tags.includes('web'));
+    webs.forEach((d) => session.clean(d.id));
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
+    cleanAll(session);
+    expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cleaned' });
+    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+  });
+
+  it('precisa estar perto (até 2 células) e não limpa duas vezes', () => {
+    const { session } = newSession();
+    const bucket = 'dirt.leak_bucket'; // em (8, 5)
+    expect(session.clean(bucket, [[8, 9]])).toEqual({ ok: false, reason: 'too_far' });
+    expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: true });
+    expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: false, reason: 'not_found' });
+    expect(session.dirtAt([8, 5])).toBeUndefined();
+  });
+
+  it('manchas e rachaduras não saem com faxina; somem com a reforma', () => {
+    const { session } = newSession();
+    expect(session.clean('dirt.stain_water')).toEqual({ ok: false, reason: 'needs_repair' });
+    expect(session.dirtAt([4, 1])?.id).toBe('dirt.stain_water');
+    session.state.flags['painter.available'] = true;
+    session.paint('surface.wallpaper', 'finish.wallpaper_mint');
+    expect(session.visibleDirt().some((d) => d.clearedBy === 'surface.wallpaper')).toBe(false);
+    expect(session.visibleDirt().some((d) => d.clearedBy === 'surface.hall_floor')).toBe(true);
+  });
+
+  it('a sujeira limpa some do mapa desenhado', () => {
+    const { session } = newSession();
+    const before = session.mapData().dirt!.length;
+    session.clean('dirt.papers');
+    expect(session.mapData().dirt!.length).toBe(before - 1);
+  });
+
+  it('saves antigos ("*") já vêm com a faxina feita, mas as manchas continuam', () => {
+    const { session } = newSession();
+    session.state.cleaned = ['*'];
+    expect(session.visibleDirt().every((d) => d.clearedBy)).toBe(true);
   });
 });

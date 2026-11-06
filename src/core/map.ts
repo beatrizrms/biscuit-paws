@@ -16,6 +16,18 @@ export interface MapObject {
   overlay?: string;
 }
 
+/**
+ * Sujeira do lugar abandonado. Sem `clearedBy`: sai com faxina (clique). Com `clearedBy`:
+ * só some quando o pintor reforma aquela superfície (manchas, rachaduras).
+ */
+export interface DirtSpot {
+  id: string;
+  tile: string;
+  at: Cell;
+  tags: string[];
+  clearedBy?: string;
+}
+
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */
 export interface MapDoor {
   id: string;
@@ -37,6 +49,8 @@ export interface MapData {
   objects: MapObject[];
   spawn: { player: Cell };
   doors?: MapDoor[];
+  /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
+  dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */
   background?: string;
   /** Superfícies que o pintor pode reformar (opcional). */
@@ -88,7 +102,7 @@ export interface Rect {
  * Profundidade (ordem de desenho). Pisos e paredes ficam no fundo; objetos e
  * personagens usam a coordenada Y da base em pixels (y-sort), sempre >= 32.
  */
-export const DEPTH = { floor: 0, floorOverlay: 0.25, floorObject: 0.5, wall: 1, wallObject: 1.5 } as const;
+export const DEPTH = { floor: 0, floorOverlay: 0.25, floorObject: 0.5, floorDirt: 0.6, wall: 1, wallObject: 1.5, wallDirt: 1.6 } as const;
 
 /** Quanto acima do objeto fica o que é desenhado por cima dele (overlay). */
 const OVERLAY_LIFT = 0.01;
@@ -176,6 +190,17 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
     }
   }
 
+  // Sujeira
+  const dirtIds = new Set<string>();
+  for (const d of map.dirt ?? []) {
+    if (!d.id.startsWith('dirt.')) err(`sujeira "${d.id}" deve começar com "dirt."`);
+    if (dirtIds.has(d.id)) err(`sujeira "${d.id}" repetida`);
+    dirtIds.add(d.id);
+    const def = catalog.tiles[d.tile];
+    if (!def) err(`sujeira "${d.id}": tile inexistente "${d.tile}"`);
+    else if (!inBounds(...d.at) || !inBounds(d.at[0] + def.w - 1, d.at[1] + def.h - 1)) err(`sujeira "${d.id}" sai do mapa`);
+  }
+
   // Portas
   const doorIds = new Set<string>();
   for (const door of map.doors ?? []) {
@@ -227,6 +252,15 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
         const overFrame = frameOf(catalog, over, col - c0, row - r0);
         sprites.push({ tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });
       }
+    }
+  }
+
+  for (const d of map.dirt ?? []) {
+    const def = catalog.tiles[d.tile]!;
+    const [c0, r0] = d.at;
+    const depth = def.layer === 'floor' ? DEPTH.floorDirt : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
+    for (const [col, row] of cellsOf(d.at, def)) {
+      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth });
     }
   }
 

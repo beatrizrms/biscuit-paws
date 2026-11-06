@@ -10,6 +10,7 @@ export interface GameEvents {
   'item.placed': { itemId: string; uid: string; at: Cell };
   'item.picked_up': { itemId: string; uid: string };
   'item.refunded': { itemId: string; amount: number };
+  'dirt.cleaned': { dirtId: string };
   'surface.painted': { surfaceId: string; finishId: string; price: number };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };

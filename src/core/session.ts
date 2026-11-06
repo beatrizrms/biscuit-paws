@@ -5,7 +5,8 @@ import { EventBus } from './events';
 import type { Cell, MapData, SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
 import type { GameState } from './state';
-import { activeBeats, currentGoals, isBeatSatisfied, type GoalView } from './story';
+import { activeBeats, currentGoals, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
+import { cellsOf, type DirtSpot } from './map';
 
 export type ActionResult =
   | { ok: true }
@@ -21,6 +22,8 @@ export type ActionResult =
         | 'wrong_surface'
         | 'already_painted'
         | 'locked'
+        | 'too_far'
+        | 'needs_repair'
         | PlaceProblem;
     };
 
@@ -73,7 +76,7 @@ export class GameSession {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
       if (finish) legend[surface.legend] = finish.tile;
     }
-    return withPlaced({ ...base, legend }, this.state.placed, this.content.items);
+    return withPlaced({ ...base, legend, dirt: this.visibleDirt() }, this.state.placed, this.content.items);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -100,6 +103,44 @@ export class GameSession {
     return { ok: true };
   }
 
+  /** Sujeira do café que ainda aparece (a limpa e a de superfícies reformadas somem). */
+  visibleDirt(): DirtSpot[] {
+    return (this.content.map.dirt ?? []).filter((d) =>
+      d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d),
+    );
+  }
+
+  /** Sujeira visível numa célula do café (ou undefined). */
+  dirtAt([col, row]: Cell): DirtSpot | undefined {
+    const { catalog } = this.content;
+    return this.visibleDirt()
+      .filter((d) => catalog.tiles[d.tile] && cellsOf(d.at, catalog.tiles[d.tile]!).some(([c, r]) => c === col && r === row))
+      .sort((a, b) => Number(!!a.clearedBy) - Number(!!b.clearedBy))[0];
+  }
+
+  /**
+   * Limpa uma sujeira. `from`: células dos pés da personagem; ela precisa estar a até
+   * `reach` células de alguma célula da sujeira.
+   */
+  clean(dirtId: string, from: readonly Cell[] = [], reach = 2): ActionResult {
+    const d = this.visibleDirt().find((x) => x.id === dirtId);
+    if (!d) return { ok: false, reason: 'not_found' };
+    if (d.clearedBy) return { ok: false, reason: 'needs_repair' };
+    const def = this.content.catalog.tiles[d.tile]!;
+    if (from.length > 0) {
+      const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
+      if (!near) return { ok: false, reason: 'too_far' };
+    }
+    this.state.cleaned.push(d.id);
+    this.bus.emit('dirt.cleaned', { dirtId: d.id });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  private storyContext(): StoryContext {
+    return { items: this.content.items, dirt: this.content.map.dirt ?? [] };
+  }
+
   /** Superfícies que o pintor pode reformar. */
   surfaces(): SurfaceDef[] {
     return this.content.map.surfaces ?? [];
@@ -123,7 +164,7 @@ export class GameSession {
   }
 
   goals(): GoalView[] {
-    return currentGoals(this.content.story, this.state, this.content.items);
+    return currentGoals(this.content.story, this.state, this.storyContext());
   }
 
   /** Compra um item: desconta o preço e põe no inventário. */
@@ -182,7 +223,7 @@ export class GameSession {
    */
   private advanceStory(): void {
     for (let guard = 0; guard < 1000; guard++) {
-      const next = activeBeats(this.content.story, this.state).find((b) => isBeatSatisfied(b, this.state, this.content.items));
+      const next = activeBeats(this.content.story, this.state).find((b) => isBeatSatisfied(b, this.state, this.storyContext()));
       if (!next) return;
       this.state.story.completed.push(next.id);
       // Efeitos antes do aviso: quem escuta já sabe que uma fala foi aberta (o HUD espera ela acabar).

@@ -75,6 +75,7 @@ export class WorldScene extends Phaser.Scene {
     this.session.bus.on('item.placed', rebuildIfHome);
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('surface.painted', rebuildIfHome);
+    this.session.bus.on('dirt.cleaned', rebuildIfHome);
 
     if (import.meta.env.DEV) {
       exposeDebug(this);
@@ -238,12 +239,39 @@ export class WorldScene extends Phaser.Scene {
       this.cancelPlacing();
       return;
     }
-    if (pointer.rightButtonDown()) {
-      // Recolher um móvel e já pegá-lo na mão, para mudar de lugar.
+    if (!pointer.rightButtonDown()) {
+      // Clique: limpar a sujeira (de perto).
+      const dirt = this.session.dirtAt(this.cellAt(pointer));
+      if (!dirt) return;
+      const result = this.session.clean(dirt.id, this.playerCells());
+      if (!result.ok) return this.ui.problem(result.reason);
+      this.puff(pointer.worldX, pointer.worldY);
+      return;
+    }
+    {
+      // Botão direito: recolher um móvel e já pegá-lo na mão, para mudar de lugar.
       const placed = this.session.placedAt(this.cellAt(pointer));
       if (!placed) return;
       this.session.pickUp(placed.uid);
       this.startPlacing(placed.item);
+    }
+  }
+
+  /** Nuvenzinha de poeira onde a sujeira foi limpa. */
+  private puff(x: number, y: number): void {
+    for (let i = 0; i < 6; i++) {
+      const dot = this.add.circle(x, y, 2 + (i % 3), 0xfff4e0, 0.9).setDepth(GHOST_DEPTH);
+      const angle = (i / 6) * Math.PI * 2;
+      this.tweens.add({
+        targets: dot,
+        x: x + Math.cos(angle) * 12,
+        y: y + Math.sin(angle) * 12 - 6,
+        alpha: 0,
+        scale: 0.4,
+        duration: 380,
+        ease: "Quad.easeOut",
+        onComplete: () => dot.destroy(),
+      });
     }
   }
 

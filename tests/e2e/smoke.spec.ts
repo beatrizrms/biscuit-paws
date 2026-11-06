@@ -53,6 +53,15 @@ async function enterCafe(page: Page): Promise<void> {
   await skipDialogue(page);
 }
 
+/** Faz a faxina toda de uma vez (sem andar) e passa a fala de "limpou". */
+async function cleanCafe(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const s = (window as unknown as { __biscuitPaws: { cafe: { session: { visibleDirt(): { id: string; clearedBy?: string }[]; clean(id: string): unknown } } } }).__biscuitPaws.cafe.session;
+    for (const d of s.visibleDirt().filter((x) => !x.clearedBy)) s.clean(d.id);
+  });
+  await skipDialogue(page);
+}
+
 /** Clica no centro de uma célula do mapa (o mapa de 512 x 352 fica centrado na tela de 640 x 360). */
 async function clickCell(page: Page, col: number, row: number, button: 'left' | 'right' = 'left'): Promise<void> {
   const box = (await page.locator('canvas').boundingBox())!;
@@ -146,6 +155,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.catalog')).not.toHaveClass(/open/);
   await expect(page.locator('.toast')).toContainText('lá dentro');
   await enterCafe(page);
+  await cleanCafe(page);
 
   await page.keyboard.press('c');
   await page.locator('[data-item="item.cat_bed"]').click();
@@ -240,4 +250,30 @@ test('rua: anda até a porta da padaria, entra e sai sem ficar indo e voltando',
   await page.waitForTimeout(500);
   expect((await player(page)).map).toBe('map.street');
   await page.screenshot({ path: testInfo.outputPath('11-saiu.png') });
+});
+
+test('faxina: clicar na sujeira de perto limpa; de longe, pede para chegar perto', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await enterCafe(page);
+  await page.screenshot({ path: testInfo.outputPath('12-cafe-sujo.png') });
+  const cleaned = () =>
+    page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { cleaned: string[] } } } }).__biscuitPaws.cafe.sessionState().cleaned);
+
+  // Balde de goteira em (8, 5). Longe (linha 9): não limpa.
+  await teleport(page, 8, 9);
+  await clickCell(page, 8, 5);
+  await expect(page.locator('.toast')).toContainText('mais perto');
+  expect(await cleaned()).toEqual([]);
+
+  // Perto (linha 6): limpa.
+  await teleport(page, 8, 6);
+  await clickCell(page, 8, 5);
+  await expect.poll(cleaned).toEqual(['dirt.leak_bucket']);
+
+  // Mancha na parede: só sai com reforma.
+  await teleport(page, 4, 3);
+  await clickCell(page, 4, 1);
+  await expect(page.locator('.toast')).toContainText('reformando');
+  await page.screenshot({ path: testInfo.outputPath('13-faxina.png') });
 });

@@ -1,17 +1,31 @@
 // Motor da história: avalia condições e diz quais marcos e metas estão ativos.
 // Puro: sem Phaser, DOM ou window. Quem aplica os efeitos é a GameSession.
 import type { Beat, Condition, ItemDef, StoryData } from './content';
+import type { DirtSpot } from './map';
 import { ownedCount, placedCount, type GameState } from './state';
 
-export function evaluate(c: Condition, state: GameState, items: Record<string, ItemDef>): boolean {
-  if ('all' in c) return c.all.every((x) => evaluate(x, state, items));
-  if ('any' in c) return c.any.some((x) => evaluate(x, state, items));
-  if ('not' in c) return !evaluate(c.not, state, items);
+/** O que as condições precisam saber além do estado. */
+export interface StoryContext {
+  items: Record<string, ItemDef>;
+  /** Sujeira do café (toda, limpa ou não). */
+  dirt: DirtSpot[];
+}
+
+/** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda (saves antigos). */
+export function isCleaned(state: GameState, d: DirtSpot): boolean {
+  return state.cleaned.includes(d.id) || state.cleaned.includes('*');
+}
+
+export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boolean {
+  if ('all' in c) return c.all.every((x) => evaluate(x, state, ctx));
+  if ('any' in c) return c.any.some((x) => evaluate(x, state, ctx));
+  if ('not' in c) return !evaluate(c.not, state, ctx);
   if ('flag' in c) return state.flags[c.flag] === true;
   if ('beat' in c) return state.story.completed.includes(c.beat);
   if ('visited' in c) return state.visited.includes(c.visited);
+  if ('cleaned' in c) return ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned)).every((d) => isCleaned(state, d));
   if ('placedTag' in c) {
-    const count = state.placed.filter((p) => items[p.item]?.tags.includes(c.placedTag)).length;
+    const count = state.placed.filter((p) => ctx.items[p.item]?.tags.includes(c.placedTag)).length;
     return count >= (c.gte ?? 1);
   }
   if ('placed' in c) return placedCount(state, c.placed) >= (c.gte ?? 1);
@@ -30,9 +44,9 @@ export function activeBeats(story: StoryData, state: GameState): Beat[] {
 }
 
 /** Um marco ativo termina quando a condição e todos os passos da meta valem. */
-export function isBeatSatisfied(beat: Beat, state: GameState, items: Record<string, ItemDef>): boolean {
-  const stepsDone = (beat.goal?.steps ?? []).every((s) => evaluate(s.when, state, items));
-  return stepsDone && (beat.when ? evaluate(beat.when, state, items) : true);
+export function isBeatSatisfied(beat: Beat, state: GameState, ctx: StoryContext): boolean {
+  const stepsDone = (beat.goal?.steps ?? []).every((s) => evaluate(s.when, state, ctx));
+  return stepsDone && (beat.when ? evaluate(beat.when, state, ctx) : true);
 }
 
 export interface GoalView {
@@ -42,12 +56,12 @@ export interface GoalView {
 }
 
 /** Metas para mostrar no diário. */
-export function currentGoals(story: StoryData, state: GameState, items: Record<string, ItemDef>): GoalView[] {
+export function currentGoals(story: StoryData, state: GameState, ctx: StoryContext): GoalView[] {
   return activeBeats(story, state)
     .filter((b) => b.goal)
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
-      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, items), devNote: s.devNote })),
+      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, ctx), devNote: s.devNote })),
     }));
 }

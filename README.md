@@ -30,6 +30,7 @@ Na primeira vez que rodar o teste de fumaça, instale o navegador do Playwright:
 Os prints do teste ficam em `test-results/`.
 
 Controles:
+- **Clique na sujeira** (de perto): limpar. Manchas e rachaduras só saem quando o pintor reforma.
 - **Setas / WASD:** andar. Para entrar ou sair por uma porta, pare na frente dela e siga para cima.
 - **C:** catálogo: móveis, balcão e **Reforma (pintor)** (clique num item para comprar e já posicionar; num acabamento, para o pintor aplicar)
 - **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)

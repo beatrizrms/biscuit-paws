@@ -28,7 +28,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Portas entre a rua e o café; câmera segue a personagem
 - [x] Metas como subconsciente (balão de pensamento, 1ª pessoa)
 - [x] Pintor liberado pela Dona Lurdes; devolução de itens da bolsa
-- [ ] Sujeira no café velho, limpa aos poucos (pacote sujeira)
+- [x] Sujeira no café velho: faxina por clique; manchas e rachaduras saem com a reforma
 - [ ] Outras estações da rua (dados já preparados)
 
 ## Marco 1: gatos no café

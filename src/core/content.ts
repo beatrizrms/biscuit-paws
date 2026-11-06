@@ -54,6 +54,8 @@ export type Condition =
   | { owned: string; gte?: number }
   /** A personagem já entrou neste mapa. */
   | { visited: string }
+  /** Toda a sujeira do café com esta tag (das que saem com faxina) já foi limpa. */
+  | { cleaned: string }
   | { money: { gte: number } };
 
 export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number };
@@ -191,6 +193,9 @@ export function validateContent(raw: RawContent): string[] {
     if (!Number.isInteger(f.price) || f.price < 0) err(`finishes: "${f.id}" tem preço inválido`);
   }
   const surfaceIds = new Set<string>();
+  for (const d of home?.dirt ?? []) {
+    if (d.clearedBy && !(home?.surfaces ?? []).some((s) => s.id === d.clearedBy)) err(`mapa: sujeira "${d.id}" sai com "${d.clearedBy}", que não existe`);
+  }
   for (const s of home?.surfaces ?? []) {
     if (!s.id.startsWith('surface.')) err(`mapa: superfície "${s.id}" deve começar com "surface."`);
     if (surfaceIds.has(s.id)) err(`mapa: superfície repetida "${s.id}"`);
@@ -222,7 +227,9 @@ export function validateContent(raw: RawContent): string[] {
     if ('all' in c) c.all.forEach((x) => checkCondition(where, x));
     else if ('any' in c) c.any.forEach((x) => checkCondition(where, x));
     else if ('not' in c) checkCondition(where, c.not);
-    else if ('visited' in c) {
+    else if ('cleaned' in c) {
+      if (!(home?.dirt ?? []).some((d) => !d.clearedBy && d.tags.includes(c.cleaned))) err(`${where}: nenhuma sujeira com a tag "${c.cleaned}"`);
+    } else if ('visited' in c) {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);

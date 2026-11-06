@@ -121,6 +121,18 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Depois de passar, só outra porta funciona quando a seta para cima for solta.
 Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 
+### Sujeira do café (`dirt`, no mapa)
+
+```jsonc
+"dirt": [
+  { "id": "dirt.web_window", "tile": "dirt_teia_janela", "at": [10, 0], "tags": ["web"] },
+  { "id": "dirt.stain_water", "tile": "dirt_mancha_agua", "at": [4, 1], "tags": ["stain"], "clearedBy": "surface.wallpaper" }
+]
+```
+
+Sem `clearedBy`: sai com faxina (clique, a até 2 células da personagem; fica em `cleaned` no save). Com `clearedBy`: só some quando o pintor reforma aquela superfície.
+Condição de história: `{ "cleaned": "web" }` = toda a sujeira com essa tag (das que saem com faxina) já foi limpa.
+
 ## Mundo (`data/world.json`)
 
 ```jsonc

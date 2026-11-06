@@ -81,11 +81,27 @@
       "lines": [
         {
           "speaker": "",
-          "text": "Lá dentro, o forno está frio e as prateleiras, vazias. Mas o lugar ainda tem cheiro de lembrança."
+          "text": "Lá dentro, o forno está frio e as prateleiras, vazias. Teias, poeira, um balde pegando goteira..."
         },
         {
           "speaker": "Você",
-          "text": "Sobraram poucas moedas... Melhor começar pelo essencial."
+          "text": "Antes de qualquer coisa: uma boa faxina."
+        },
+        {
+          "speaker": "",
+          "text": "Clique na sujeira perto de você para limpar."
+        }
+      ]
+    },
+    "dlg.cleaned": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Pronto. Já dá para respirar aqui dentro."
+        },
+        {
+          "speaker": "Você",
+          "text": "As manchas e as rachaduras... essas só com reforma. Sobraram poucas moedas, melhor começar pelo essencial."
         },
         {
           "speaker": "",

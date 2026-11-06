@@ -21,7 +21,7 @@
   ],
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · porta: siga para cima · C (no café): catálogo",
+  "hintWalk": "Setas/WASD: andar · porta: siga para cima · clique: limpar · C (no café): catálogo",
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -39,7 +39,9 @@
     "unknown_finish": "Acabamento desconhecido.",
     "wrong_surface": "Esse acabamento não serve aqui.",
     "already_painted": "Já está assim.",
-    "locked": "Ainda não conheço um pintor."
+    "locked": "Ainda não conheço um pintor.",
+    "too_far": "Preciso chegar mais perto.",
+    "needs_repair": "Isso não sai com faxina. Só reformando."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",

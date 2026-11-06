@@ -83,3 +83,7 @@ Consequência: o pintor só aparece com a flag `painter.available` (`data/finish
 ## 023. O jogo começa na rua; vários mapas com portas (nov/2026)
 Motivo: a história começa diante da padaria velha, e a vizinhança é parte do jogo.
 Consequência: `data/maps/street.json` (30 x 11, inverno) com as fachadas e objetos do pacote da rua; `data/world.json` diz onde começar e qual mapa é o café. O catálogo de tiles aceita várias folhas (`data/tilesets.json`). Uma única `WorldScene` troca de mapa pelas portas (sem reiniciar interface nem save) e a câmera segue a personagem quando o mapa é mais largo que a tela. O catálogo (C) só abre dentro do café. Save v3 (`location`, `visited`, `cleaned`).
+
+## 024. Faxina por clique; manchas saem com a reforma (nov/2026)
+Motivo: dar sensação de progresso no café abandonado e um motivo para chamar o pintor.
+Consequência: sujeira em `dirt` no mapa do café (pacote sujeira, gerado por IA). Teias, poeira, papéis, cacos e o balde saem com clique de perto (meta "Uma boa faxina", antes do cantinho quente). Manchas na parede, rachaduras e o buraco de rato têm `clearedBy` e somem quando a superfície é reformada. Saves antigos vêm com `cleaned: ["*"]` (já limpos).
