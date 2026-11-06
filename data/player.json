@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "char.player",
+  "sheet": "assets/characters/mulher_placeholder_32x64.png",
+  "frameWidth": 32,
+  "frameHeight": 64,
+  "directions": ["down", "left", "right", "up"],
+  "walkFrames": 4,
+  "fps": 8,
+  "speed": 80,
+  "feet": { "width": 16, "height": 10 }
+}
