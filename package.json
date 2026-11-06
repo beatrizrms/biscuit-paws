@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "tiles": "tsx scripts/build-tiles.ts",
-    "predev": "npm run tiles",
+    "art": "tsx scripts/build-worn-tiles.ts",
+    "predev": "npm run tiles && npm run art",
     "dev": "vite",
-    "prebuild": "npm run check",
+    "prebuild": "npm run check && npm run art",
     "build": "vite build",
     "check": "npm run tiles && tsc --noEmit && tsx scripts/check-data.ts",
     "pretest": "npm run tiles",
@@ -20,6 +21,8 @@
   "devDependencies": {
     "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
+    "@types/pngjs": "^6.0.5",
+    "pngjs": "^7.0.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.6",

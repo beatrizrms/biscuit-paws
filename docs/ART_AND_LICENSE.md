@@ -111,3 +111,13 @@ Cat Cafe 32x32 Tileset & Interiors, Leckie Pixel Studio (leckie1989): https://le
 Cosy Cats 32x32: https://leckie1989.itch.io/cosy-cats-32x32-animated-cat-sprites
 Cosy UI Kit: https://leckie1989.itch.io/cosy-ui-kit-soft-pixel-interface
 ```
+
+## Tiles derivados ("velhos")
+A licença permite **modificar** os assets. Versões gastas de pisos e paredes são **geradas por script** a partir dos tiles do pacote
+(nada é desenhado do zero, para manter o traço e a paleta do leckie1989):
+
+- Lista em `data/tiles.worn.json`: nome novo, tile de origem, estilo de desgaste, número de variações e pesos.
+- `npm run art` (roda junto com `npm run dev` e `npm run build`) gera `public/assets/tiles/cat-cafe-tileset-ext.png`:
+  a folha original + linhas novas embaixo. **Também fica fora do Git** (é obra derivada; a licença proíbe redistribuir).
+- O desgaste usa só cores da paleta Cosy e semente fixa (sai igual toda vez).
+- Cada célula do mapa escolhe uma variação pelos pesos (a 0 é a mais leve), para o chão velho não virar padrão repetido.

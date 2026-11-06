@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Tiles 'velhos' gerados a partir dos tiles do pacote (licença permite modificar). npm run art gera o PNG; npm run tiles põe no catálogo. Herdam solid/layer do tile de origem. style: wallpaper, wainscot, wood_floor, tile_floor. weights: quantas vezes cada variação aparece (a 0 é a mais leve).",
+  "image": "assets/tiles/cat-cafe-tileset-ext.png",
+  "seed": 2026,
+  "tiles": [
+    { "name": "floor_wood_a_worn", "from": "floor_wood_a", "style": "wood_floor", "variants": 4, "weights": [7, 4, 1, 2] },
+    { "name": "floor_check_pink_worn", "from": "floor_check_pink", "style": "tile_floor", "variants": 4, "weights": [6, 2, 1, 1] },
+    { "name": "wall_stripe_pink_worn", "from": "wall_stripe_pink", "style": "wallpaper", "variants": 4, "weights": [14, 1, 1, 2] },
+    { "name": "wall_wainscot_worn", "from": "wall_wainscot", "style": "wainscot", "variants": 4, "weights": [6, 2, 1, 1] }
+  ]
+}

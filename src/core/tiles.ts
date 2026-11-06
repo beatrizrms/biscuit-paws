@@ -12,6 +12,12 @@ export interface TileDef {
   h: number;
   solid: boolean;
   layer: TileLayer;
+  /** Quantas versões lado a lado o tile tem na folha (o mapa escolhe uma por célula). */
+  variants?: number;
+  /** Peso de cada versão (quantas vezes aparece). Sem pesos, todas valem igual. */
+  variantWeights?: number[];
+  /** Tile do pacote de onde este foi gerado (tiles "velhos"). */
+  from?: string;
 }
 
 export interface SheetInfo {
@@ -33,11 +39,24 @@ export interface TileMeta {
   tiles: Record<string, { solid: boolean; layer: TileLayer }>;
 }
 
+export type WornStyle = 'wallpaper' | 'wainscot' | 'wood_floor' | 'tile_floor';
+
+/** data/tiles.worn.json: tiles gerados a partir dos tiles do pacote. */
+export interface WornTiles {
+  schemaVersion: 1;
+  image: string;
+  seed: number;
+  tiles: { name: string; from: string; style: WornStyle; variants: number; weights?: number[] }[];
+}
+
 const LAYERS: readonly TileLayer[] = ['floor', 'wall', 'object'];
 const CSV_HEADER = ['name', 'col', 'row', 'width_tiles', 'height_tiles'];
 
-/** Junta o tiles.csv do pacote com as nossas decisões (tiles.meta.json). */
-export function buildCatalog(csvText: string, meta: TileMeta): TileCatalog {
+/**
+ * Junta o tiles.csv do pacote com as nossas decisões (tiles.meta.json) e, se houver,
+ * os tiles gerados (tiles.worn.json), que ficam em linhas novas abaixo da folha original.
+ */
+export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles): TileCatalog {
   const lines = csvText.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
   const header = (lines.shift() ?? '').split(',');
   for (const [i, col] of CSV_HEADER.entries()) {
@@ -62,7 +81,32 @@ export function buildCatalog(csvText: string, meta: TileMeta): TileCatalog {
   for (const name of Object.keys(meta.tiles)) {
     if (!tiles[name]) throw new Error(`tiles.meta.json: "${name}" não existe no tiles.csv`);
   }
-  return { schemaVersion: 1, sheet: meta.sheet, tiles };
+  if (!worn) return { schemaVersion: 1, sheet: meta.sheet, tiles };
+
+  // Cada tile gerado ocupa "variants" células seguidas numa linha nova.
+  let row = rows;
+  let col = 0;
+  for (const t of worn.tiles) {
+    const source = tiles[t.from];
+    if (!source) throw new Error(`tiles.worn.json: "${t.name}" vem de "${t.from}", que não existe`);
+    if (source.w !== 1 || source.h !== 1) throw new Error(`tiles.worn.json: "${t.from}" precisa ser 1x1`);
+    if (tiles[t.name]) throw new Error(`tiles.worn.json: nome repetido "${t.name}"`);
+    if (!Number.isInteger(t.variants) || t.variants < 1 || t.variants > columns) {
+      throw new Error(`tiles.worn.json: "${t.name}" tem variants inválido`);
+    }
+    if (col + t.variants > columns) {
+      row++;
+      col = 0;
+    }
+    if (t.weights && (t.weights.length !== t.variants || t.weights.some((w) => !Number.isInteger(w) || w < 1))) {
+      throw new Error(`tiles.worn.json: "${t.name}" precisa de ${t.variants} pesos inteiros >= 1`);
+    }
+    tiles[t.name] = { ...source, name: t.name, col, row, variants: t.variants, from: t.from };
+    if (t.weights) tiles[t.name]!.variantWeights = t.weights;
+    col += t.variants;
+  }
+  const usedRows = col === 0 ? row - rows : row - rows + 1;
+  return { schemaVersion: 1, sheet: { ...meta.sheet, image: worn.image, rows: rows + usedRows }, tiles };
 }
 
 export function getTile(catalog: TileCatalog, name: string): TileDef {
@@ -71,7 +115,7 @@ export function getTile(catalog: TileCatalog, name: string): TileDef {
   return def;
 }
 
-/** Índice do quadro na folha para a célula (dx, dy) dentro da peça. */
-export function frameOf(catalog: TileCatalog, def: TileDef, dx = 0, dy = 0): number {
-  return (def.row + dy) * catalog.sheet.columns + def.col + dx;
+/** Índice do quadro na folha para a célula (dx, dy) dentro da peça, na versão `variant`. */
+export function frameOf(catalog: TileCatalog, def: TileDef, dx = 0, dy = 0, variant = 0): number {
+  return (def.row + dy) * catalog.sheet.columns + def.col + dx + variant * def.w;
 }

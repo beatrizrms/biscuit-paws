@@ -19,6 +19,7 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 ```bash
 npm install
 npm run dev         # abre o jogo em http://localhost:5173
+npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda sozinho no dev e no build)
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)

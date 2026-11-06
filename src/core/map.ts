@@ -1,5 +1,6 @@
 // Mapa: validação, expansão de peças de várias células, células sólidas e profundidade.
 // Puro: sem Phaser, DOM ou window.
+import { cellHash } from './rng';
 import { frameOf, type TileCatalog, type TileDef, type TileLayer } from './tiles';
 
 export type Cell = [col: number, row: number];
@@ -155,7 +156,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
         if (char === EMPTY) return;
         const tile = map.legend[char]!;
         const def = catalog.tiles[tile]!;
-        sprites.push({ tile, frame: frameOf(catalog, def), col, row, depth });
+        sprites.push({ tile, frame: frameOf(catalog, def, 0, 0, variantAt(def, col, row)), col, row, depth });
       });
     });
   });
@@ -167,7 +168,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const depth =
       def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
     for (const [col, row] of cellsOf(obj.at, def)) {
-      sprites.push({ tile: obj.tile, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth });
+      sprites.push({ tile: obj.tile, frame: frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0)), col, row, depth });
     }
   }
 
@@ -224,6 +225,18 @@ function wallSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
       return char !== EMPTY && !!name && catalog.tiles[name]?.solid === true;
     }),
   );
+}
+
+/** Tiles com várias versões: cada célula usa uma, sempre a mesma (sem guardar nada no save). */
+export function variantAt(def: TileDef, col: number, row: number): number {
+  if (!def.variants || def.variants < 2) return 0;
+  const weights = def.variantWeights ?? Array.from({ length: def.variants }, () => 1);
+  let pick = cellHash(col, row) % weights.reduce((a, b) => a + b, 0);
+  for (let v = 0; v < weights.length; v++) {
+    pick -= weights[v]!;
+    if (pick < 0) return v;
+  }
+  return 0;
 }
 
 /** Todas as células que a peça ocupa. */
