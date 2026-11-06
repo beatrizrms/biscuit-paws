@@ -29,6 +29,16 @@ Você ama gatos e comprou, com suas economias, uma padaria abandonada para trans
 4. **Noite:** fechar o dia, salvar, ver o que mudou.
 5. **Adoção** (fase posterior): clientes podem adotar gatos, o que gera um evento e uma lembrança.
 
+## Começo da história (Ato 1, "A chegada")
+Rascunho; os textos ficam em `data/dialogue.json` e os marcos em `data/story.json`.
+1. **Abertura:** dezembro, neve na Rua das Amoras. Com as economias de uma vida, você compra a velha padaria da esquina, vazia. Sobram 150 moedas.
+2. **Um cantinho quente:** caminha, tigela de água e tigela de ração (para o gato que ainda vai chegar).
+3. **Um lugar para sentar:** uma mesa e duas cadeiras.
+4. **Dona Lurdes:** a vizinha idosa aparece, lembra da padaria do seu Antônio, desconfia dos gatos de rua, mas deixa 50 moedas "para o começo".
+5. **Um miado lá fora:** gancho para o Marco 1 (o primeiro gato).
+
+O dinheiro inicial é apertado de propósito: dá para cumprir o ato e sobra pouco para decorar.
+
 ## Estações (em fases)
 - **Fase 1:** só o inverno natalino (história inicial).
 - **Fase 2:** primavera e verão, com novos visuais, clientes e eventos.

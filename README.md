@@ -3,7 +3,7 @@
 Simulador 2D de café de gatos, no estilo Stardew Valley, para a Steam.
 Phaser 3 + TypeScript + Vite. Resolução interna 640 x 360, escala inteira, grade de 32 px.
 
-Estado atual: **Marco 0, o café andável.** O café aparece montado e a personagem anda e colide.
+Estado atual: **Marco 0.5, a chegada.** Você compra a velha padaria vazia, começa com pouco dinheiro, compra e posiciona móveis e segue as primeiras metas da história. O jogo salva sozinho.
 
 ## Antes de rodar: a arte
 
@@ -19,7 +19,7 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 ```bash
 npm install
 npm run dev         # abre o jogo em http://localhost:5173
-npm run check       # tipos + validação dos mapas
+npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)
 npm run build       # build de produção em dist/
@@ -28,7 +28,14 @@ npm run build       # build de produção em dist/
 Na primeira vez que rodar o teste de fumaça, instale o navegador do Playwright: `npx playwright install chromium`.
 Os prints do teste ficam em `test-results/`.
 
-Controles: setas ou WASD.
+Controles:
+- **Setas / WASD:** andar
+- **C:** catálogo de móveis (clique num item para comprar e já posicionar)
+- **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)
+- **Botão direito num móvel:** recolher e mudar de lugar
+- **Espaço / Enter / clique:** avançar as falas
+
+Para começar um jogo novo, abra `http://localhost:5173/?novo`.
 
 ## Onde mexer
 
@@ -50,29 +57,41 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 
 `data/tiles.csv` é cópia do pacote e não deve ser editado. `data/tiles.json` é gerado (`npm run tiles`) e fica fora do Git.
 
+### Mudar a história, as falas, os preços
+- `data/story.json`: marcos da história e metas do diário (condição -> efeito).
+- `data/dialogue.json`: falas.
+- `data/items.json`: móveis do catálogo, nomes e preços.
+- `data/economy.json`: dinheiro inicial.
+- `data/ui_text.json`: textos da interface.
+
+O formato está em `docs/DATA_CONTRACTS.md`. Rode `npm run check`: ele acusa referências quebradas (fala, item ou marco que não existe).
+
 ### Ajustar a personagem
 `data/player.json`: velocidade, quadros por segundo e tamanho da caixa dos pés.
 
 ## Como o código está organizado
 
 ```
-data/          conteúdo (mapas, catálogo de tiles, personagem)
-src/core/      regras puras, sem Phaser: catálogo, mapa, movimento (testadas)
-src/game/      Phaser: cenas, sprites, teclado
-scripts/       gerador do catálogo e validador dos mapas
+data/          conteúdo (mapas, tiles, itens, história, falas, personagem)
+src/core/      regras puras, sem Phaser: mapa, movimento, sessão, história, posicionamento, save (testadas)
+src/game/      Phaser: cenas, sprites, teclado; ui/ = interface em HTML por cima do canvas
+src/platform/  armazenamento (hoje localStorage; no futuro, arquivos via Electron)
+scripts/       gerador do catálogo e validador do conteúdo
 tests/core/    testes unitários
 tests/e2e/     teste de fumaça no navegador
 docs/          história, arquitetura, contratos de dados, arte, roadmap, decisões
 ```
 
-Duas ideias principais:
+Três ideias principais:
 1. **O `core` decide, o Phaser só desenha.** Por exemplo, quais células são sólidas e qual a profundidade de cada peça
    são calculadas em `src/core/map.ts`. A cena só cria as imagens e os corpos de colisão.
 2. **Y-sort:** a profundidade de cada objeto é a coordenada Y da base dele, e a da personagem é a base dos pés.
    Quem está mais embaixo na tela é desenhado por cima.
+3. **Tudo passa pela `GameSession`** (`src/core/session.ts`): comprar, posicionar, recolher. Ela avança a história
+   e avisa o resto por eventos (`item.placed`, `dialogue.requested`...). A cena e a interface só escutam.
 
 Em `npm run dev`, a cena fica acessível no console do navegador como `__biscuitPaws.cafe`
-(por exemplo `__biscuitPaws.cafe.teleportPlayer(3, 3)`).
+(por exemplo `__biscuitPaws.cafe.teleportPlayer(3, 3)` ou `__biscuitPaws.cafe.sessionState()`).
 
 ## Créditos
 Veja `CREDITS.md`.

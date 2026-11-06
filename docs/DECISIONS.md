@@ -43,3 +43,19 @@ Consequência: `data/tiles.meta.json` (nosso) define `solid` e `layer` (`floor`,
 ## 012. Bordas do mapa são limite (nov/2026)
 Motivo: o desenho do café não tem paredes nas laterais nem embaixo.
 Consequência: a personagem colide com os limites do mapa, além das células sólidas.
+
+## 013. Interface em HTML por cima do canvas (nov/2026)
+Motivo: texto desenhado num canvas de 640 x 360 fica borrado ou serrilhado. Em HTML fica nítido em qualquer escala, e é a área de conforto da desenvolvedora.
+Consequência: `src/game/ui/` usa HTML + CSS (cores da paleta Cosy) num `#ui` escalado junto com o canvas. Mostra o estado da sessão e repassa cliques; não decide regras. Quando o Cosy UI Kit entrar, as molduras podem virar `border-image`.
+
+## 014. História como dados: condição -> efeito (nov/2026)
+Motivo: escrever e reordenar a história sem mexer em código.
+Consequência: `data/story.json` (marcos, metas), `data/dialogue.json` (falas). O motor (`src/core/story.ts`) só avalia condições; a `GameSession` aplica os efeitos. Formato em `DATA_CONTRACTS.md`.
+
+## 015. A loja começa vazia; móveis são da jogadora (nov/2026)
+Motivo: o começo da história é a compra da padaria vazia, e decorar é parte central do jogo.
+Consequência: `data/maps/cafe_main.json` tem só o prédio (paredes, piso, janelas, porta, balcão). Móveis comprados ficam no save (`placed`) e são somados ao mapa por `withPlaced`.
+
+## 016. Save antecipado (era o Marco 3) (nov/2026)
+Motivo: sem save, os móveis e o dinheiro sumiriam ao recarregar.
+Consequência: save v1 com fixture em `tests/fixtures/save_v1.json`, armazenamento assíncrono em `src/platform/`, salvamento automático a cada mudança.

@@ -82,7 +82,7 @@ cat-cafe-game/
 Nomes novos entram nesta tabela antes de serem usados.
 
 ## Plataforma
-`src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `list()`), **assíncrona** (o Electron vai ler arquivos de forma assíncrona). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.
+`src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `remove(key)`, `list()`), **assíncrona** (o Electron vai ler arquivos de forma assíncrona). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.
 
 ## Renderização
 - Resolução interna 640 x 360, escala inteira.

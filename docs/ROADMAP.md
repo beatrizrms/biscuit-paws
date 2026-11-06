@@ -13,11 +13,21 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] `npm run check`, testes do core e teste de fumaça (Playwright)
 - [x] README
 
+## Marco 0.5: a chegada (história, dinheiro, decoração)
+- [x] Abertura: a compra da padaria vazia
+- [x] Dinheiro inicial (`data/economy.json`) e catálogo de móveis com preços (`data/items.json`)
+- [x] Comprar, posicionar (piso, parede, objeto) e recolher móveis
+- [x] Motor da história (`data/story.json`) com metas no diário e falas (`data/dialogue.json`)
+- [x] Primeiro ato: cantinho quente -> lugar para sentar -> visita da Dona Lurdes -> miado lá fora
+- [x] Save automático (antecipado do Marco 3)
+- [ ] Pintor: escolher piso e papel de parede (loja velha -> reformada)
+
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
 - [ ] `data/cats.json` e entidade Gato (IA simples: vagar, descansar)
 - [ ] Gatos sentam em almofadas e caminhas
 - [ ] Evento `cat.sheltered`
+- [ ] Continuação da história: encontrar o gato que mia lá fora (`cat.first_found`)
 
 ## Marco 2: dia, frio e abrigo
 - [ ] Ciclo do dia (manhã, dia, noite)
@@ -26,8 +36,9 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] `day.ended`
 
 ## Marco 3: save e load
-- [ ] Save versionado, migrações, fixture v1
-- [ ] Armazenamento via `src/platform/`
+- [x] Save versionado, migrações, fixture v1 (feito no Marco 0.5)
+- [x] Armazenamento via `src/platform/` (feito no Marco 0.5)
+- [ ] Vários slots e tela de "continuar / jogo novo"
 
 ## Marco 4: clientes e café aberto
 - [ ] Clientes humanos, pedidos, servir, dinheiro e gorjeta
@@ -35,7 +46,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 
 ## Marco 5: reforma e decoração
 - [ ] Loja abandonada -> reformada
-- [ ] Compra e posicionamento de móveis
+- [x] Compra e posicionamento de móveis (feito no Marco 0.5)
 
 ## Marco 6: vizinhança
 - [ ] Vizinhos com preconceito que muda com o tempo

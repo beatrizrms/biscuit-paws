@@ -1,0 +1,225 @@
+/* Interface por cima do canvas. Medidas em pixels do jogo (640 x 360); #ui é escalado junto com o canvas.
+   Cores: paleta Cosy (cosy-palette.gpl), a mesma do tileset. */
+:root {
+  --ink: #3b2a32;
+  --ink2: #5a4048;
+  --cream: #fff4e0;
+  --cream2: #f6e2c4;
+  --cream3: #e3c49e;
+  --wood3: #7f4b33;
+  --wood4: #5c3428;
+  --pink2: #f6a5b4;
+  --pink3: #d97890;
+  --mint2: #9fd8b5;
+  --mint3: #68ad8a;
+  --butter2: #f8d877;
+  --butter3: #e0a94e;
+  --berry: #d9475d;
+  --grey2: #a99fa6;
+}
+
+#ui {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 640px;
+  height: 360px;
+  transform-origin: 0 0;
+  z-index: 1;
+  pointer-events: none;
+  font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  font-size: 9px;
+  line-height: 1.35;
+  color: var(--ink);
+  user-select: none;
+}
+
+.panel {
+  background: var(--cream);
+  border: 2px solid var(--wood3);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 var(--wood4);
+}
+
+/* Dinheiro */
+.hud-money {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+  font-size: 10px;
+}
+.coin {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--butter2);
+  border: 1.5px solid var(--butter3);
+  box-sizing: border-box;
+}
+.hud-money.bump { animation: bump 0.35s; }
+@keyframes bump {
+  40% { transform: scale(1.15); }
+}
+
+/* Diário de metas */
+.hud-goals {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: 140px;
+  padding: 4px 7px 5px;
+}
+.hud-goals:empty { display: none; }
+.hud-goals h2 {
+  margin: 0 0 1px;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pink3);
+}
+.hud-goals h3 { margin: 0 0 2px; font-size: 8.5px; }
+.hud-goals ul { font-size: 8px; }
+.hud-goals ul { margin: 0; padding: 0; list-style: none; }
+.hud-goals li { display: flex; gap: 4px; align-items: baseline; }
+.hud-goals li::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--wood3);
+  border-radius: 1px;
+  background: var(--cream);
+  transform: translateY(1px);
+}
+.hud-goals li.done { color: var(--grey2); text-decoration: line-through; }
+.hud-goals li.done::before { background: var(--mint3); border-color: var(--mint3); }
+
+/* Dica de controles */
+.hint {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 7.5px;
+  color: var(--cream);
+  text-shadow: 0 1px 0 var(--ink);
+}
+
+/* Aviso rápido */
+.toast {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* Falas */
+.dialogue-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  display: none;
+}
+.dialogue-layer.open { display: block; }
+.dialogue {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 18px;
+  min-height: 52px;
+  padding: 9px 12px 10px;
+  font-size: 10.5px;
+}
+.dialogue .speaker {
+  position: absolute;
+  top: -11px;
+  left: 10px;
+  padding: 1px 7px;
+  background: var(--pink2);
+  border: 2px solid var(--wood3);
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 9px;
+}
+.dialogue .speaker:empty { display: none; }
+.dialogue.narrator { font-style: italic; color: var(--ink2); }
+.dialogue .more {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  font-size: 8px;
+  color: var(--pink3);
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Catálogo */
+.catalog {
+  position: absolute;
+  top: 26px;
+  right: 6px;
+  bottom: 18px;
+  width: 190px;
+  padding: 5px 6px 6px;
+  display: none;
+  flex-direction: column;
+  pointer-events: auto;
+}
+.catalog.open { display: flex; }
+.catalog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+.catalog h2 { margin: 0; font-size: 11px; }
+.catalog .close {
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--pink3);
+  cursor: pointer;
+}
+.catalog .list { overflow-y: auto; flex: 1; padding-right: 2px; }
+.catalog h3 {
+  margin: 5px 0 2px;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pink3);
+}
+.catalog .row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  width: 100%;
+  margin: 0 0 2px;
+  padding: 2px 5px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: var(--cream2);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.catalog .row:hover:not(:disabled) { background: var(--cream3); border-color: var(--wood3); }
+.catalog .row:disabled { opacity: 0.45; cursor: default; }
+.catalog .row .price { font-weight: bold; }
+.catalog .row .owned { grid-column: 1 / -1; font-size: 7.5px; color: var(--mint3); }

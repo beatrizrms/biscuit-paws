@@ -1,0 +1,219 @@
+// Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
+// Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
+import type { GameSession } from '../../core/session';
+import { content, uiText } from '../content';
+
+type HintMode = 'walk' | 'placing' | 'dialogue';
+
+const TYPE_SPEED_MS = 22;
+
+export interface UiHandlers {
+  /** A jogadora escolheu um item que já está na bolsa: começar a posicionar. */
+  onPlace(itemId: string): void;
+}
+
+export class GameUi {
+  private money: HTMLElement;
+  private goals: HTMLElement;
+  private hint: HTMLElement;
+  private toastEl: HTMLElement;
+  private dialogueLayer: HTMLElement;
+  private dialogueBox: HTMLElement;
+  private catalog: HTMLElement;
+  private catalogList: HTMLElement;
+
+  private dialogueQueue: { speaker: string; text: string }[] = [];
+  private typing: { full: string; shown: number; timer: number } | null = null;
+  private toastTimer = 0;
+  private hintMode: HintMode = 'walk';
+
+  constructor(
+    private root: HTMLElement,
+    private session: GameSession,
+    private handlers: UiHandlers,
+  ) {
+    root.innerHTML = `
+      <div class="panel hud-goals"></div>
+      <div class="panel hud-money"><span class="coin"></span><span class="amount"></span></div>
+      <div class="hint"></div>
+      <div class="toast" role="status"></div>
+      <section class="panel catalog" aria-label="${uiText.catalogTitle}">
+        <header><h2>${uiText.catalogTitle}</h2><button class="close" title="Fechar (C)">fechar</button></header>
+        <div class="list"></div>
+      </section>
+      <div class="dialogue-layer">
+        <div class="panel dialogue"><span class="speaker"></span><span class="text"></span><span class="more">▼</span></div>
+      </div>`;
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+    this.money = $('.hud-money');
+    this.goals = $('.hud-goals');
+    this.hint = $('.hint');
+    this.toastEl = $('.toast');
+    this.dialogueLayer = $('.dialogue-layer');
+    this.dialogueBox = $('.dialogue');
+    this.catalog = $('.catalog');
+    this.catalogList = $('.catalog .list');
+
+    $('.catalog .close').addEventListener('click', () => this.closeCatalog());
+    this.dialogueLayer.addEventListener('click', () => this.advanceDialogue());
+    window.addEventListener('keydown', (e) => {
+      if (!this.isDialogueOpen()) return;
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        this.advanceDialogue();
+      }
+    });
+
+    const bus = session.bus;
+    bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
+    bus.on('money.changed', () => this.refresh(true));
+    bus.onAny(() => this.refresh());
+    this.refresh();
+  }
+
+  /** Falas ou catálogo abertos: a personagem não anda. */
+  isBusy(): boolean {
+    return this.isDialogueOpen() || this.isCatalogOpen();
+  }
+
+  isDialogueOpen(): boolean {
+    return this.dialogueLayer.classList.contains('open');
+  }
+
+  isCatalogOpen(): boolean {
+    return this.catalog.classList.contains('open');
+  }
+
+  toggleCatalog(): void {
+    if (this.isCatalogOpen()) this.closeCatalog();
+    else if (!this.isDialogueOpen()) {
+      this.renderCatalog();
+      this.catalog.classList.add('open');
+    }
+  }
+
+  closeCatalog(): void {
+    this.catalog.classList.remove('open');
+  }
+
+  setHint(mode: HintMode): void {
+    this.hintMode = mode;
+    this.renderHint();
+  }
+
+  toast(text: string): void {
+    this.toastEl.textContent = text;
+    this.toastEl.classList.add('show');
+    window.clearTimeout(this.toastTimer);
+    this.toastTimer = window.setTimeout(() => this.toastEl.classList.remove('show'), 1600);
+  }
+
+  problem(reason: keyof typeof uiText.problems): void {
+    this.toast(uiText.problems[reason] ?? reason);
+  }
+
+  private refresh(bumpMoney = false): void {
+    const { state } = this.session;
+    (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
+    if (bumpMoney) {
+      this.money.classList.remove('bump');
+      void this.money.offsetWidth; // reinicia a animação
+      this.money.classList.add('bump');
+    }
+
+    const goal = this.session.goals()[0];
+    this.goals.innerHTML = goal
+      ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(goal.title)}</h3><ul>${goal.steps
+          .map((s) => `<li class="${s.done ? 'done' : ''}">${esc(s.text)}</li>`)
+          .join('')}</ul>`
+      : '';
+
+    if (this.isCatalogOpen()) this.renderCatalog();
+    this.renderHint();
+  }
+
+  private renderHint(): void {
+    const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
+    this.hint.textContent = mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : uiText.hintWalk;
+  }
+
+  private renderCatalog(): void {
+    const { state } = this.session;
+    const items = Object.values(content.items).filter((i) => !i.deprecated);
+    this.catalogList.innerHTML = uiText.catalogSections
+      .map((section) => {
+        const rows = items
+          .filter((i) => i.tags.includes(section.tag))
+          .filter((i) => uiText.catalogSections.find((s) => i.tags.includes(s.tag)) === section) // cada item numa seção só
+          .map((i) => {
+            const owned = state.inventory[i.id] ?? 0;
+            const disabled = owned === 0 && state.money < i.price;
+            return `<button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
+              <span>${esc(i.name)}</span><span class="price">${i.price}</span>
+              ${owned > 0 ? `<span class="owned">${owned} ${uiText.inBag}</span>` : ''}
+            </button>`;
+          })
+          .join('');
+        return rows ? `<h3>${esc(section.title)}</h3>${rows}` : '';
+      })
+      .join('');
+    this.catalogList.querySelectorAll<HTMLButtonElement>('.row').forEach((btn) =>
+      btn.addEventListener('click', () => this.pick(btn.dataset.item!)),
+    );
+  }
+
+  /** Item da bolsa: posiciona. Senão: compra e posiciona. */
+  private pick(itemId: string): void {
+    if ((this.session.state.inventory[itemId] ?? 0) === 0) {
+      const result = this.session.buy(itemId);
+      if (!result.ok) return this.problem(result.reason);
+    }
+    this.closeCatalog();
+    this.handlers.onPlace(itemId);
+  }
+
+  private queueDialogue(dialogueId: string): void {
+    const lines = content.dialogue.dialogues[dialogueId]?.lines ?? [];
+    this.dialogueQueue.push(...lines);
+    if (!this.isDialogueOpen()) {
+      this.closeCatalog();
+      this.dialogueLayer.classList.add('open');
+      this.advanceDialogue();
+    }
+  }
+
+  /** Mostra a próxima fala; se a atual ainda está sendo escrita, completa. */
+  private advanceDialogue(): void {
+    const textEl = this.dialogueBox.querySelector('.text') as HTMLElement;
+    if (this.typing) {
+      window.clearInterval(this.typing.timer);
+      textEl.textContent = this.typing.full;
+      this.typing = null;
+      return;
+    }
+    const line = this.dialogueQueue.shift();
+    if (!line) {
+      this.dialogueLayer.classList.remove('open');
+      this.renderHint();
+      return;
+    }
+    (this.dialogueBox.querySelector('.speaker') as HTMLElement).textContent = line.speaker;
+    this.dialogueBox.classList.toggle('narrator', line.speaker === uiText.narrator);
+    textEl.textContent = '';
+    const typing = { full: line.text, shown: 0, timer: 0 };
+    typing.timer = window.setInterval(() => {
+      typing.shown++;
+      textEl.textContent = typing.full.slice(0, typing.shown);
+      if (typing.shown >= typing.full.length) {
+        window.clearInterval(typing.timer);
+        this.typing = null;
+      }
+    }, TYPE_SPEED_MS);
+    this.typing = typing;
+    this.renderHint();
+  }
+}
+
+function esc(text: string): string {
+  return text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+}

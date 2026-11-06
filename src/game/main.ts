@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import './ui/ui.css';
 import { BootScene } from './scenes/BootScene';
 import { CafeScene } from './scenes/CafeScene';
 
@@ -12,7 +13,7 @@ function integerZoom(): number {
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
-  parent: 'game',
+  parent: 'stage',
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: '#2b1d1a',
@@ -23,4 +24,15 @@ const game = new Phaser.Game({
   scene: [BootScene, CafeScene],
 });
 
-window.addEventListener('resize', () => game.scale.setZoom(integerZoom()));
+/** Canvas e interface HTML crescem juntos, sempre na mesma escala inteira. */
+function layout(): void {
+  const zoom = integerZoom();
+  game.scale.setZoom(zoom);
+  const stage = document.getElementById('stage')!;
+  stage.style.width = `${GAME_WIDTH * zoom}px`;
+  stage.style.height = `${GAME_HEIGHT * zoom}px`;
+  document.getElementById('ui')!.style.transform = `scale(${zoom})`;
+}
+
+layout();
+window.addEventListener('resize', layout);

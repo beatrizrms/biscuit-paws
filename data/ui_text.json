@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "catalogTitle": "Catálogo",
+  "catalogSections": [
+    { "tag": "for:cats", "title": "Para os gatos" },
+    { "tag": "for:guests", "title": "Para os clientes" },
+    { "tag": "decor", "title": "Decoração" }
+  ],
+  "inBag": "na bolsa",
+  "goalsTitle": "Diário",
+  "hintWalk": "Setas/WASD: andar · C: catálogo · botão direito num móvel: recolher",
+  "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
+  "hintDialogue": "Espaço, Enter ou clique: continuar",
+  "narrator": "",
+  "problems": {
+    "no_money": "Moedas insuficientes.",
+    "out_of_bounds": "Fora do café.",
+    "occupied": "Já tem algo aí.",
+    "needs_floor": "Isso precisa ficar no chão.",
+    "needs_wall": "Isso vai na parede.",
+    "blocked": "Esse lugar precisa ficar livre.",
+    "not_in_inventory": "Você não tem esse item.",
+    "unknown_item": "Item desconhecido.",
+    "not_found": "Nada para recolher aqui."
+  }
+}
