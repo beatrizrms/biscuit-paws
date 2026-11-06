@@ -1,0 +1,25 @@
+/* Painel do modo debug: carregado só em npm run dev (via debugTools.ts). */
+.debug-panel {
+  position: absolute;
+  left: 6px;
+  bottom: 16px;
+  max-width: 300px;
+  padding: 3px 5px 4px;
+  font-size: 7px;
+  pointer-events: auto;
+  background: #fff4e0e6;
+  border-color: var(--berry);
+}
+.debug-panel header { color: var(--berry); margin-bottom: 2px; }
+.debug-panel .buttons { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 2px; }
+.debug-panel button {
+  font: inherit;
+  padding: 1px 4px;
+  border: 1px solid var(--wood3);
+  border-radius: 2px;
+  background: var(--cream2);
+  color: var(--ink);
+  cursor: pointer;
+}
+.debug-panel button.on { background: var(--berry); color: var(--cream); }
+.debug-panel .status { color: var(--ink2); }

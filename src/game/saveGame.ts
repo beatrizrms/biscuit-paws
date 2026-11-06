@@ -5,12 +5,14 @@ import { newGameState } from '../core/state';
 import type { Storage } from '../platform/storage';
 import { content } from './content';
 
-const SLOT = 'slot1';
-
 /** Carrega o save (ou começa um jogo novo) e passa a salvar automaticamente. */
-export async function openSession(storage: Storage, forceNew = false): Promise<{ session: GameSession; isNew: boolean }> {
-  if (forceNew) await storage.remove(SLOT);
-  const json = await storage.load(SLOT);
+export async function openSession(
+  storage: Storage,
+  slot: string,
+  forceNew = false,
+): Promise<{ session: GameSession; isNew: boolean }> {
+  if (forceNew) await storage.remove(slot);
+  const json = await storage.load(slot);
   let session: GameSession | null = null;
 
   if (json) {
@@ -21,7 +23,7 @@ export async function openSession(storage: Storage, forceNew = false): Promise<{
     } catch (e) {
       // Save ilegível: não apaga; guarda uma cópia e começa de novo.
       console.error('[save] não foi possível carregar; começando um jogo novo', e);
-      await storage.save(`${SLOT}.broken-${Date.now()}`, json);
+      await storage.save(`${slot}.broken-${Date.now()}`, json);
     }
   }
   const isNew = session === null;
@@ -29,7 +31,7 @@ export async function openSession(storage: Storage, forceNew = false): Promise<{
 
   session.bus.onAny((name) => {
     if (name === 'dialogue.requested') return;
-    void storage.save(SLOT, serializeSave(session.state, new Date()));
+    void storage.save(slot, serializeSave(session.state, new Date()));
   });
   return { session, isNew };
 }

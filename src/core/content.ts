@@ -39,7 +39,10 @@ export type Condition =
 export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number };
 
 export interface GoalStep {
+  /** Texto que a jogadora vê. */
   text: string;
+  /** Nota de desenvolvimento: só aparece no modo debug. */
+  devNote?: string;
   when: Condition;
 }
 
@@ -94,6 +97,10 @@ export function buildContent(raw: RawContent): Content {
   for (const item of raw.items.items) items[item.id] = item;
   return { catalog: raw.catalog, map: raw.map, items, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
 }
+
+/** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
+const DEV_WORDS = /\b(marcos?|debug|placeholder)\b/i;
+const DEV_MARKERS = /\b(TODO|FIXME|WIP)\b/; // só em maiúsculas: "todo dia" é português comum
 
 /** Confere IDs, prefixos e referências cruzadas. Lista vazia = tudo certo. */
 export function validateContent(raw: RawContent): string[] {
@@ -150,6 +157,17 @@ export function validateContent(raw: RawContent): string[] {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
     }
   }
+
+  // Textos que a jogadora vê não podem ter notas de desenvolvimento.
+  const playerText = (where: string, text: string) => {
+    if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
+  };
+  raw.items.items.forEach((i) => playerText(`item "${i.id}"`, i.name));
+  for (const beat of raw.story.beats) {
+    if (beat.goal) playerText(`story "${beat.id}"`, beat.goal.title);
+    beat.goal?.steps.forEach((s) => playerText(`story "${beat.id}"`, s.text));
+  }
+  for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => playerText(`dialogue "${id}"`, l.text));
 
   return errors;
 }

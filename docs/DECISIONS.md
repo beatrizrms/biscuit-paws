@@ -59,3 +59,7 @@ Consequência: `data/maps/cafe_main.json` tem só o prédio (paredes, piso, jane
 ## 016. Save antecipado (era o Marco 3) (nov/2026)
 Motivo: sem save, os móveis e o dinheiro sumiriam ao recarregar.
 Consequência: save v1 com fixture em `tests/fixtures/save_v1.json`, armazenamento assíncrono em `src/platform/`, salvamento automático a cada mudança.
+
+## 017. Modo debug só no desenvolvimento, com save separado (nov/2026)
+Motivo: testar com atalhos (dinheiro, pular falas, ver colisão) sem que nada disso chegue à jogadora nem estrague o save "de verdade".
+Consequência: F9 (ou `?debug=1`) liga/desliga em `npm run dev`. O debug usa o slot de save `debug`; o normal usa `slot1`. O painel é carregado por import dinâmico e o Vite o remove do build; o plugin `stripDevNotes` (vite.config.ts) tira os `devNote` dos JSON no build. Notas para a equipe vão em `devNote`, nunca no texto da jogadora; o `npm run check` acusa "marco", "debug", "TODO"... em textos da jogadora.

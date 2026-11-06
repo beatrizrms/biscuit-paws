@@ -36,3 +36,12 @@ function layout(): void {
 
 layout();
 window.addEventListener('resize', layout);
+
+// F9 liga/desliga o modo debug (só em npm run dev; some do build de produção).
+if (import.meta.env.DEV) {
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'F9') return;
+    e.preventDefault();
+    void import('./debug').then((d) => d.setDebug(!d.isDebugOn()));
+  });
+}

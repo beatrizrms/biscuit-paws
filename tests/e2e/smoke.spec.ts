@@ -136,3 +136,28 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('c');
   await expect(page.locator('[data-item="item.cat_bed"] .owned')).toBeVisible();
 });
+
+test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ page }, testInfo) => {
+  const ready = () => page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
+  await openGame(page);
+  await skipDialogue(page);
+  await expect(page.locator('.debug-panel')).toHaveCount(0);
+
+  await page.keyboard.press('F9');
+  await page.waitForURL(/debug=1/);
+  await ready();
+  await expect(page.locator('.debug-panel')).toBeVisible();
+  await page.getByRole('button', { name: 'Pular falas' }).click();
+  await page.getByRole('button', { name: '+100 moedas' }).click();
+  await expect(page.locator('.hud-money')).toContainText('250');
+  await page.getByRole('button', { name: 'Grade' }).click();
+  await page.getByRole('button', { name: 'Colisão' }).click();
+  await page.screenshot({ path: testInfo.outputPath('07-debug.png') });
+
+  // Desliga: volta ao save normal, que não ganhou as 100 moedas.
+  await page.keyboard.press('F9');
+  await page.waitForURL((url) => !url.search.includes('debug'));
+  await ready();
+  await expect(page.locator('.debug-panel')).toHaveCount(0);
+  await expect(page.locator('.hud-money')).toContainText('150');
+});

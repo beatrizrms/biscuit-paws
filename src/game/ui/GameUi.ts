@@ -26,11 +26,14 @@ export class GameUi {
   private typing: { full: string; shown: number; timer: number } | null = null;
   private toastTimer = 0;
   private hintMode: HintMode = 'walk';
+  /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
+  private hudPending = false;
 
   constructor(
     private root: HTMLElement,
     private session: GameSession,
     private handlers: UiHandlers,
+    private debug = false,
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
@@ -112,7 +115,19 @@ export class GameUi {
     this.toast(uiText.problems[reason] ?? reason);
   }
 
+  /** Modo debug: fecha todas as falas de uma vez. */
+  skipDialogue(): void {
+    this.dialogueQueue = [];
+    if (this.typing) window.clearInterval(this.typing.timer);
+    this.typing = null;
+    if (this.isDialogueOpen()) this.closeDialogue();
+  }
+
   private refresh(bumpMoney = false): void {
+    if (this.isDialogueOpen()) {
+      this.hudPending = true;
+      return;
+    }
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
     if (bumpMoney) {
@@ -124,7 +139,10 @@ export class GameUi {
     const goal = this.session.goals()[0];
     this.goals.innerHTML = goal
       ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(goal.title)}</h3><ul>${goal.steps
-          .map((s) => `<li class="${s.done ? 'done' : ''}">${esc(s.text)}</li>`)
+          .map((s) => {
+            const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
+            return `<li class="${s.done ? 'done' : ''}"><span>${esc(s.text)}${note}</span></li>`;
+          })
           .join('')}</ul>`
       : '';
 
@@ -192,11 +210,7 @@ export class GameUi {
       return;
     }
     const line = this.dialogueQueue.shift();
-    if (!line) {
-      this.dialogueLayer.classList.remove('open');
-      this.renderHint();
-      return;
-    }
+    if (!line) return this.closeDialogue();
     (this.dialogueBox.querySelector('.speaker') as HTMLElement).textContent = line.speaker;
     this.dialogueBox.classList.toggle('narrator', line.speaker === uiText.narrator);
     textEl.textContent = '';
@@ -210,6 +224,15 @@ export class GameUi {
       }
     }, TYPE_SPEED_MS);
     this.typing = typing;
+    this.renderHint();
+  }
+
+  private closeDialogue(): void {
+    this.dialogueLayer.classList.remove('open');
+    if (this.hudPending) {
+      this.hudPending = false;
+      this.refresh(true);
+    }
     this.renderHint();
   }
 }

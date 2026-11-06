@@ -39,7 +39,7 @@
       "after": ["story.first_seats"],
       "goal": {
         "title": "Um miado lá fora",
-        "steps": [{ "text": "Descubra quem está miando (no próximo marco)", "when": { "flag": "cat.first_found" } }]
+        "steps": [{ "text": "Descubra quem está miando lá fora", "when": { "flag": "cat.first_found" }, "devNote": "Continua no Marco 1 (gatos): a flag cat.first_found ainda não existe." }]
       },
       "effects": []
     }

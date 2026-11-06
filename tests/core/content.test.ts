@@ -3,6 +3,15 @@ import { validateContent } from '../../src/core/content';
 import { rawContent } from './content';
 
 describe('validateContent', () => {
+  it('acusa nota de desenvolvimento em texto da jogadora', () => {
+    const raw = rawContent();
+    raw.story.beats[1]!.goal!.steps[0]!.text = 'Faça isso (no próximo marco)';
+    raw.dialogue.dialogues['dlg.intro']!.lines[0]!.text = 'TODO escrever';
+    const errors = validateContent(raw).join('\n');
+    expect(errors).toMatch(/story "story.warm_corner": texto da jogadora/);
+    expect(errors).toMatch(/dialogue "dlg.intro": texto da jogadora/);
+  });
+
   it('o conteúdo de data/ é válido', () => {
     expect(validateContent(rawContent())).toEqual([]);
   });

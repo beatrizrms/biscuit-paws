@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import playerJson from '../../../data/player.json';
 import { LocalStorage } from '../../platform/localStorage';
 import { content } from '../content';
+import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 
 export const TEXTURE = { tiles: 'tiles', player: 'player' } as const;
@@ -24,7 +25,7 @@ export class BootScene extends Phaser.Scene {
   async create(): Promise<void> {
     // ?novo na URL começa um jogo novo (apaga o save).
     const forceNew = new URLSearchParams(window.location.search).has('novo');
-    const { session, isNew } = await openSession(new LocalStorage(), forceNew);
+    const { session, isNew } = await openSession(new LocalStorage(), saveSlot(), forceNew);
     this.scene.start('Cafe', { session, isNew });
   }
 }

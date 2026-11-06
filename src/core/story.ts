@@ -37,7 +37,7 @@ export function isBeatSatisfied(beat: Beat, state: GameState, items: Record<stri
 export interface GoalView {
   beatId: string;
   title: string;
-  steps: { text: string; done: boolean }[];
+  steps: { text: string; done: boolean; devNote?: string }[];
 }
 
 /** Metas para mostrar no diário. */
@@ -47,6 +47,6 @@ export function currentGoals(story: StoryData, state: GameState, items: Record<s
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
-      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, items) })),
+      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, items), devNote: s.devNote })),
     }));
 }

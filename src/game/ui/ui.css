@@ -223,3 +223,12 @@
 .catalog .row:disabled { opacity: 0.45; cursor: default; }
 .catalog .row .price { font-weight: bold; }
 .catalog .row .owned { grid-column: 1 / -1; font-size: 7.5px; color: var(--mint3); }
+
+/* Modo debug (só em npm run dev) */
+.hud-goals .dev {
+  display: block;
+  font-size: 7px;
+  font-style: italic;
+  color: var(--berry);
+  text-decoration: none;
+}

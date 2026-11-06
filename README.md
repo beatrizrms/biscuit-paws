@@ -37,6 +37,11 @@ Controles:
 
 Para começar um jogo novo, abra `http://localhost:5173/?novo`.
 
+### Modo debug (só em `npm run dev`)
+**F9** liga e desliga (ou abra `?debug=1`). Aparece um painel com: +100 moedas, pular falas, ver as caixas de colisão,
+ver a grade (com a célula sob o mouse), jogo novo e os marcos já concluídos. As metas mostram as notas de desenvolvimento (`devNote`).
+O debug tem **save próprio**: os truques não mexem no seu save normal. Nada do debug vai para o `npm run build`.
+
 ## Onde mexer
 
 ### Mudar o mapa do café

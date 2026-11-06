@@ -39,7 +39,7 @@ export class GameSession {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
-    this.changeMoney(-item.price, `buy:${itemId}`);
+    this.addMoney(-item.price, `buy:${itemId}`);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
     this.bus.emit('item.bought', { itemId, price: item.price });
     this.advanceStory();
@@ -93,8 +93,9 @@ export class GameSession {
       const next = activeBeats(this.content.story, this.state).find((b) => isBeatSatisfied(b, this.state, this.content.items));
       if (!next) return;
       this.state.story.completed.push(next.id);
-      this.bus.emit('story.beat_completed', { beatId: next.id });
+      // Efeitos antes do aviso: quem escuta já sabe que uma fala foi aberta (o HUD espera ela acabar).
       next.effects.forEach((e) => this.applyEffect(e));
+      this.bus.emit('story.beat_completed', { beatId: next.id });
     }
     throw new Error('História em laço infinito');
   }
@@ -102,10 +103,11 @@ export class GameSession {
   private applyEffect(effect: Effect): void {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
-    else if ('addMoney' in effect) this.changeMoney(effect.addMoney, 'story');
+    else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
   }
 
-  private changeMoney(delta: number, reason: string): void {
+  /** Soma (ou desconta) dinheiro. Usado pela história, pelas compras e pelo modo debug. */
+  addMoney(delta: number, reason: string): void {
     const from = this.state.money;
     this.state.money = from + delta;
     this.bus.emit('money.changed', { from, to: this.state.money, reason });

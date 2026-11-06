@@ -3,6 +3,8 @@ import { resolveMap, solidRects, type Cell, type ResolvedMap } from '../../core/
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
+import { isDebugOn } from '../debug';
+import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { TEXTURE } from './BootScene';
 
@@ -15,15 +17,16 @@ const NO_INPUT = { up: false, down: false, left: false, right: false };
 
 /** O café: desenha o mapa da sessão, move a jogadora e cuida do modo de posicionar móveis. */
 export class CafeScene extends Phaser.Scene {
-  private session!: GameSession;
+  session!: GameSession;
   private isNew = false;
-  private ui!: GameUi;
+  ui!: GameUi;
   private player!: Player;
   private keys!: Keys;
   private mapImages?: Phaser.GameObjects.Group;
   private solids?: Phaser.Physics.Arcade.StaticGroup;
   private solidCollider?: Phaser.Physics.Arcade.Collider;
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
+  private debugPanel?: DebugPanel;
   map!: ResolvedMap;
 
   constructor() {
@@ -36,7 +39,8 @@ export class CafeScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.ui = new GameUi(document.getElementById('ui')!, this.session, { onPlace: (id) => this.startPlacing(id) });
+    const uiRoot = document.getElementById('ui')!;
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id) }, isDebugOn());
 
     this.buildMap();
     const ts = this.map.tileSize;
@@ -70,7 +74,12 @@ export class CafeScene extends Phaser.Scene {
     this.session.bus.on('item.placed', () => this.buildMap());
     this.session.bus.on('item.picked_up', () => this.buildMap());
 
-    if (import.meta.env.DEV) exposeDebug(this);
+    if (import.meta.env.DEV) {
+      exposeDebug(this);
+      if (isDebugOn()) {
+        void import('../debugTools').then((m) => (this.debugPanel = m.attachDebugTools(this, uiRoot)));
+      }
+    }
     this.session.start(this.isNew);
   }
 
@@ -140,6 +149,7 @@ export class CafeScene extends Phaser.Scene {
 
   /** O cursor aponta para a célula da base (canto inferior esquerdo) da peça. */
   private moveGhost(pointer: Phaser.Input.Pointer): void {
+    if (this.debugPanel) this.debugPanel.setCell(...this.cellAt(pointer));
     if (!this.placing) return;
     const [col, row] = this.cellAt(pointer);
     const def = this.ghostDef();
