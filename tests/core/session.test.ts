@@ -51,7 +51,7 @@ describe('começo da história', () => {
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
-    expect(session.goals().map((g) => g.title)).toEqual(['Um miado lá fora']);
+    expect(session.goals().map((g) => g.title)).toEqual(['Esse miado...']);
   });
 
   it('recolher um móvel não desfaz um marco concluído', () => {

@@ -66,38 +66,50 @@
   40% { transform: scale(1.15); }
 }
 
-/* Diário de metas */
+/* Subconsciente: as metas aparecem como pensamentos dela, numa nuvem */
 .hud-goals {
   position: absolute;
   top: 6px;
-  left: 6px;
-  max-width: 140px;
-  padding: 4px 7px 5px;
+  left: 8px;
+  max-width: 150px;
+  padding: 5px 9px 6px;
+  background: #fff4e0f0;
+  border: 1.5px solid var(--lav3, #8d78bd);
+  border-radius: 14px;
+  box-shadow: 0 2px 0 #bca8e0;
+  font-style: italic;
 }
+/* bolinhas do balão de pensamento */
+.hud-goals::before,
+.hud-goals::after {
+  content: "";
+  position: absolute;
+  border: 1.5px solid #8d78bd;
+  background: #fff4e0;
+  border-radius: 50%;
+}
+.hud-goals::before { width: 7px; height: 7px; left: 14px; bottom: -11px; }
+.hud-goals::after { width: 4px; height: 4px; left: 9px; bottom: -17px; }
 .hud-goals:empty { display: none; }
 .hud-goals h2 {
-  margin: 0 0 1px;
-  font-size: 7px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--pink3);
+  margin: 0;
+  font-size: 6.5px;
+  font-style: normal;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: #8d78bd;
 }
-.hud-goals h3 { margin: 0 0 2px; font-size: 8.5px; }
-.hud-goals ul { font-size: 8px; }
-.hud-goals ul { margin: 0; padding: 0; list-style: none; }
+.hud-goals h3 { margin: 0 0 2px; font-size: 8.5px; color: var(--ink2); }
+.hud-goals ul { margin: 0; padding: 0; list-style: none; font-size: 8px; }
 .hud-goals li { display: flex; gap: 4px; align-items: baseline; }
-.hud-goals li::before {
-  content: '';
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border: 1px solid var(--wood3);
-  border-radius: 1px;
-  background: var(--cream);
-  transform: translateY(1px);
-}
+.hud-goals li::before { content: "·"; flex: none; color: #8d78bd; font-style: normal; }
 .hud-goals li.done { color: var(--grey2); text-decoration: line-through; }
-.hud-goals li.done::before { background: var(--mint3); border-color: var(--mint3); }
+.hud-goals li.done::before { content: "✓"; color: var(--mint3); }
+.hud-goals.new { animation: thought 0.9s ease-out; }
+@keyframes thought {
+  0% { opacity: 0; transform: translateY(4px) scale(0.96); }
+  100% { opacity: 1; transform: none; }
+}
 
 /* Dica de controles */
 .hint {

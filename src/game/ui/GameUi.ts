@@ -28,6 +28,8 @@ export class GameUi {
   private hintMode: HintMode = 'walk';
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
   private hudPending = false;
+  /** Meta mostrada agora (para animar o pensamento quando ela muda). */
+  private shownGoal: string | undefined;
 
   constructor(
     private root: HTMLElement,
@@ -137,6 +139,12 @@ export class GameUi {
     }
 
     const goal = this.session.goals()[0];
+    if (goal?.beatId !== this.shownGoal) {
+      this.shownGoal = goal?.beatId;
+      this.goals.classList.remove("new");
+      void this.goals.offsetWidth; // reinicia a animação
+      this.goals.classList.add("new");
+    }
     this.goals.innerHTML = goal
       ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(goal.title)}</h3><ul>${goal.steps
           .map((s) => {

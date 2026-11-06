@@ -71,3 +71,7 @@ Consequência: o mapa base usa os tiles velhos (`*_old`, gerados por `npm run ar
 ## 019. Pintor fica pronto na hora; save v2 (nov/2026)
 Motivo: ainda não há ciclo do dia (Marco 2).
 Consequência: `GameSession.paint` aplica o acabamento na hora e emite `surface.painted`. Quando houver dia, dá para trocar por "pronto amanhã" sem mudar o formato dos dados. O save subiu para v2 (campo `finishes`), com migrador da v1 e fixtures das duas versões.
+
+## 021. Metas como subconsciente (nov/2026)
+Motivo: o "diário" soava como lista de tarefas; o tom do jogo é íntimo e aconchegante.
+Consequência: o painel vira um balão de pensamento ("subconsciente") e os textos das metas em `data/story.json` são escritos como pensamentos dela, em 1ª pessoa.
