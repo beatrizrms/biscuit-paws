@@ -3,15 +3,15 @@
 Marque as caixas conforme concluir. Cada marco precisa de print conferido, testes e README atualizado.
 
 ## Marco 0: o café andável
-- [ ] Projeto Phaser + TS + Vite, resolução 640 x 360, escala inteira
-- [ ] Catálogo de tiles gerado de `tiles.csv`
-- [ ] Mapa carregado de `data/maps/cafe_main.json`
-- [ ] Peças de várias células (janela, porta, sofá, árvore de gato)
-- [ ] Personagem animada (setas e WASD)
-- [ ] Colisão com caixa nos pés e células sólidas
-- [ ] Y-sort (passar atrás e na frente do balcão)
-- [ ] `npm run check`, testes do core e teste de fumaça (Playwright)
-- [ ] README
+- [x] Projeto Phaser + TS + Vite, resolução 640 x 360, escala inteira
+- [x] Catálogo de tiles gerado de `tiles.csv`
+- [x] Mapa carregado de `data/maps/cafe_main.json`
+- [x] Peças de várias células (janela, porta, sofá, árvore de gato)
+- [x] Personagem animada (setas e WASD)
+- [x] Colisão com caixa nos pés e células sólidas
+- [x] Y-sort (passar atrás e na frente do balcão)
+- [x] `npm run check`, testes do core e teste de fumaça (Playwright)
+- [x] README
 
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
