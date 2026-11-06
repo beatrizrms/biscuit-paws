@@ -52,6 +52,8 @@ export type Condition =
   /** Quantos móveis posicionados têm esta tag (ex.: "chair" conta cadeiras de qualquer tipo). */
   | { placedTag: string; gte?: number }
   | { owned: string; gte?: number }
+  /** A personagem já entrou neste mapa. */
+  | { visited: string }
   | { money: { gte: number } };
 
 export type Effect = { dialogue: string } | { setFlag: string } | { addMoney: number };
@@ -91,10 +93,21 @@ export interface DialogueData {
   dialogues: Record<string, { lines: DialogueLine[] }>;
 }
 
+/** data/world.json: onde o jogo começa e qual mapa é o café (onde se decora e reforma). */
+export interface WorldData {
+  schemaVersion: 1;
+  startMap: string;
+  homeMap: string;
+}
+
 /** Todo o conteúdo que uma sessão de jogo precisa. */
 export interface Content {
   catalog: TileCatalog;
+  /** O mapa do café (onde se decora e reforma). */
   map: MapData;
+  /** Todos os mapas, por id (inclui o café). */
+  maps: Record<string, MapData>;
+  world: WorldData;
   items: Record<string, ItemDef>;
   finishes: Record<string, FinishDef>;
   /** Flag que libera o pintor. */
@@ -106,7 +119,8 @@ export interface Content {
 
 export interface RawContent {
   catalog: TileCatalog;
-  map: MapData;
+  maps: MapData[];
+  world: WorldData;
   items: ItemsData;
   finishes: FinishesData;
   economy: EconomyData;
@@ -115,11 +129,15 @@ export interface RawContent {
 }
 
 export function buildContent(raw: RawContent): Content {
+  const maps: Record<string, MapData> = {};
+  for (const m of raw.maps) maps[m.id] = m;
+  const home = maps[raw.world.homeMap];
+  if (!home) throw new Error(`world.json: homeMap "${raw.world.homeMap}" não existe`);
   const items: Record<string, ItemDef> = {};
   for (const item of raw.items.items) items[item.id] = item;
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: raw.map, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
+  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -128,8 +146,29 @@ const DEV_MARKERS = /\b(TODO|FIXME|WIP)\b/; // só em maiúsculas: "todo dia" é
 
 /** Confere IDs, prefixos e referências cruzadas. Lista vazia = tudo certo. */
 export function validateContent(raw: RawContent): string[] {
-  const errors = validateMap(raw.map, raw.catalog);
+  const errors = raw.maps.flatMap((m) => validateMap(m, raw.catalog));
   const err = (msg: string) => errors.push(msg);
+
+  // Mapas e portas
+  const mapIds = new Set<string>();
+  for (const m of raw.maps) {
+    if (!m.id.startsWith('map.')) err(`mapa: id "${m.id}" deve começar com "map."`);
+    if (mapIds.has(m.id)) err(`mapa: id repetido "${m.id}"`);
+    mapIds.add(m.id);
+  }
+  if (!mapIds.has(raw.world.startMap)) err(`world: startMap "${raw.world.startMap}" não existe`);
+  if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
+  for (const m of raw.maps) {
+    for (const door of m.doors ?? []) {
+      const target = raw.maps.find((t) => t.id === door.to);
+      if (!target) err(`${m.id}: porta "${door.id}" leva a "${door.to}", que não existe`);
+      else {
+        const [c, r] = door.spawn;
+        if (c < 0 || r < 0 || c >= target.size.cols || r >= target.size.rows) err(`${m.id}: porta "${door.id}" chega fora de "${door.to}"`);
+      }
+    }
+  }
+  const home = raw.maps.find((m) => m.id === raw.world.homeMap);
 
   const itemIds = new Set<string>();
   for (const item of raw.items.items) {
@@ -152,11 +191,11 @@ export function validateContent(raw: RawContent): string[] {
     if (!Number.isInteger(f.price) || f.price < 0) err(`finishes: "${f.id}" tem preço inválido`);
   }
   const surfaceIds = new Set<string>();
-  for (const s of raw.map.surfaces ?? []) {
+  for (const s of home?.surfaces ?? []) {
     if (!s.id.startsWith('surface.')) err(`mapa: superfície "${s.id}" deve começar com "surface."`);
     if (surfaceIds.has(s.id)) err(`mapa: superfície repetida "${s.id}"`);
     surfaceIds.add(s.id);
-    if (!raw.map.legend[s.legend]) err(`mapa: superfície "${s.id}" usa a letra "${s.legend}", que não está na legenda`);
+    if (!home!.legend[s.legend]) err(`mapa: superfície "${s.id}" usa a letra "${s.legend}", que não está na legenda`);
     if (!raw.finishes.finishes.some((f) => f.kind === s.kind)) err(`mapa: nenhum acabamento serve para "${s.id}" (${s.kind})`);
   }
 
@@ -183,7 +222,9 @@ export function validateContent(raw: RawContent): string[] {
     if ('all' in c) c.all.forEach((x) => checkCondition(where, x));
     else if ('any' in c) c.any.forEach((x) => checkCondition(where, x));
     else if ('not' in c) checkCondition(where, c.not);
-    else if ('beat' in c) {
+    else if ('visited' in c) {
+      if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
+    } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
     } else if ('placedTag' in c) {
       if (!itemTags.has(c.placedTag)) err(`${where}: nenhum item tem a tag "${c.placedTag}"`);
@@ -209,7 +250,7 @@ export function validateContent(raw: RawContent): string[] {
   };
   raw.items.items.forEach((i) => playerText(`item "${i.id}"`, i.name));
   raw.finishes.finishes.forEach((f) => playerText(`finish "${f.id}"`, f.name));
-  (raw.map.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));
+  (home?.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));
   for (const beat of raw.story.beats) {
     if (beat.goal) playerText(`story "${beat.id}"`, beat.goal.title);
     beat.goal?.steps.forEach((s) => playerText(`story "${beat.id}"`, s.text));

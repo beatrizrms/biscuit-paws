@@ -5,7 +5,7 @@ import { rawContent } from './content';
 describe('validateContent', () => {
   it('acusa nota de desenvolvimento em texto da jogadora', () => {
     const raw = rawContent();
-    raw.story.beats[1]!.goal!.steps[0]!.text = 'Faça isso (no próximo marco)';
+    raw.story.beats.find((b) => b.id === 'story.warm_corner')!.goal!.steps[0]!.text = 'Faça isso (no próximo marco)';
     raw.dialogue.dialogues['dlg.intro']!.lines[0]!.text = 'TODO escrever';
     const errors = validateContent(raw).join('\n');
     expect(errors).toMatch(/story "story.warm_corner": texto da jogadora/);

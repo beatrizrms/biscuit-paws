@@ -5,11 +5,25 @@ import { frameOf, type TileCatalog, type TileDef, type TileLayer } from './tiles
 
 export type Cell = [col: number, row: number];
 
+export type Facing = 'down' | 'left' | 'right' | 'up';
+
 export interface MapObject {
   id: string;
   tile: string;
   /** Origem da peça (canto superior esquerdo), em células. */
   at: Cell;
+  /** Tile desenhado por cima, do mesmo tamanho (ex.: neve sobre o banco). */
+  overlay?: string;
+}
+
+/** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */
+export interface MapDoor {
+  id: string;
+  at: Cell;
+  to: string;
+  spawn: Cell;
+  /** Para onde a personagem olha ao chegar. */
+  facing?: Facing;
 }
 
 export interface MapData {
@@ -18,9 +32,13 @@ export interface MapData {
   tileSize: number;
   size: { cols: number; rows: number };
   legend: Record<string, string>;
-  layers: { floor: string[]; walls: string[] };
+  /** floor: piso; walls: paredes; overlay (opcional): por cima do piso, como neve na calçada. */
+  layers: { floor: string[]; walls: string[]; overlay?: string[] };
   objects: MapObject[];
   spawn: { player: Cell };
+  doors?: MapDoor[];
+  /** Cor de fundo atrás do mapa (ex.: céu na rua). */
+  background?: string;
   /** Superfícies que o pintor pode reformar (opcional). */
   surfaces?: SurfaceDef[];
 }
@@ -38,6 +56,8 @@ export interface SurfaceDef {
 /** Uma célula de 32 x 32 pronta para desenhar. */
 export interface MapSprite {
   tile: string;
+  /** Folha (textura) do tile. */
+  sheet: string;
   frame: number;
   col: number;
   row: number;
@@ -53,6 +73,8 @@ export interface ResolvedMap {
   /** solid[row][col] */
   solid: boolean[][];
   spawn: Cell;
+  doors: MapDoor[];
+  background?: string;
 }
 
 export interface Rect {
@@ -66,14 +88,17 @@ export interface Rect {
  * Profundidade (ordem de desenho). Pisos e paredes ficam no fundo; objetos e
  * personagens usam a coordenada Y da base em pixels (y-sort), sempre >= 32.
  */
-export const DEPTH = { floor: 0, floorObject: 0.5, wall: 1, wallObject: 1.5 } as const;
+export const DEPTH = { floor: 0, floorOverlay: 0.25, floorObject: 0.5, wall: 1, wallObject: 1.5 } as const;
+
+/** Quanto acima do objeto fica o que é desenhado por cima dele (overlay). */
+const OVERLAY_LIFT = 0.01;
 
 export function ySortDepth(baseY: number): number {
   return baseY;
 }
 
 const EMPTY = '.';
-const GRID_LAYER: Record<keyof MapData['layers'], TileLayer> = { floor: 'floor', walls: 'wall' };
+const GRID_LAYER: Record<keyof MapData['layers'], TileLayer> = { floor: 'floor', walls: 'wall', overlay: 'floor' };
 
 /** Devolve a lista de problemas do mapa (vazia = mapa válido). */
 export function validateMap(map: MapData, catalog: TileCatalog): string[] {
@@ -81,7 +106,7 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
   const err = (msg: string) => errors.push(`${map.id ?? 'mapa'}: ${msg}`);
 
   if (map.schemaVersion !== 1) err(`schemaVersion ${map.schemaVersion} não suportada`);
-  if (map.tileSize !== catalog.sheet.tileSize) err(`tileSize ${map.tileSize} difere do catálogo (${catalog.sheet.tileSize})`);
+  if (map.tileSize !== catalog.tileSize) err(`tileSize ${map.tileSize} difere do catálogo (${catalog.tileSize})`);
   const { cols, rows } = map.size;
   const inBounds = (c: number, r: number) => c >= 0 && r >= 0 && c < cols && r < rows;
 
@@ -96,6 +121,7 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
   // Camadas de grade
   for (const layerName of Object.keys(GRID_LAYER) as (keyof MapData['layers'])[]) {
     const grid = map.layers[layerName];
+    if (grid === undefined && layerName === 'overlay') continue; // opcional
     if (!Array.isArray(grid)) {
       err(`camada "${layerName}" ausente`);
       continue;
@@ -118,7 +144,7 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
   // Objetos
   const ids = new Set<string>();
   const occupied = new Map<string, string>(); // "layer:c,r" -> id
-  const wallSolid = wallSolidGrid(map, catalog);
+  const wallSolid = baseSolidGrid(map, catalog);
   for (const obj of map.objects) {
     if (ids.has(obj.id)) err(`objeto "${obj.id}" repetido`);
     ids.add(obj.id);
@@ -143,6 +169,19 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
         if (wallSolid[r]?.[c]) err(`objeto "${obj.id}": base em (${c},${r}) está dentro de uma parede`);
       }
     }
+    if (obj.overlay) {
+      const over = catalog.tiles[obj.overlay];
+      if (!over) err(`objeto "${obj.id}": overlay inexistente "${obj.overlay}"`);
+      else if (over.w !== def.w || over.h !== def.h) err(`objeto "${obj.id}": overlay "${obj.overlay}" tem outro tamanho`);
+    }
+  }
+
+  // Portas
+  const doorIds = new Set<string>();
+  for (const door of map.doors ?? []) {
+    if (doorIds.has(door.id)) err(`porta "${door.id}" repetida`);
+    doorIds.add(door.id);
+    if (!inBounds(...door.at)) err(`porta "${door.id}" fora do mapa`);
   }
 
   // Ponto de partida
@@ -161,14 +200,15 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
   const ts = map.tileSize;
   const sprites: MapSprite[] = [];
 
-  (['floor', 'walls'] as const).forEach((layerName) => {
-    const depth = layerName === 'floor' ? DEPTH.floor : DEPTH.wall;
-    map.layers[layerName].forEach((line, row) => {
+  const gridDepth = { floor: DEPTH.floor, overlay: DEPTH.floorOverlay, walls: DEPTH.wall } as const;
+  (['floor', 'overlay', 'walls'] as const).forEach((layerName) => {
+    (map.layers[layerName] ?? []).forEach((line, row) => {
       [...line].forEach((char, col) => {
         if (char === EMPTY) return;
         const tile = map.legend[char]!;
         const def = catalog.tiles[tile]!;
-        sprites.push({ tile, frame: frameOf(catalog, def, 0, 0, variantAt(def, col, row)), col, row, depth });
+        const frame = frameOf(catalog, def, 0, 0, variantAt(def, col, row));
+        sprites.push({ tile, sheet: def.sheet, frame, col, row, depth: gridDepth[layerName] });
       });
     });
   });
@@ -179,8 +219,14 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     // Todas as células da peça usam a base da peça inteira.
     const depth =
       def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
+    const over = obj.overlay ? catalog.tiles[obj.overlay] : undefined;
     for (const [col, row] of cellsOf(obj.at, def)) {
-      sprites.push({ tile: obj.tile, frame: frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0)), col, row, depth });
+      const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
+      sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col, row, depth });
+      if (over) {
+        const overFrame = frameOf(catalog, over, col - c0, row - r0);
+        sprites.push({ tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });
+      }
     }
   }
 
@@ -192,15 +238,17 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     sprites,
     solid: solidGrid(map, catalog),
     spawn: map.spawn.player,
+    doors: map.doors ?? [],
+    background: map.background,
   };
 }
 
 /**
- * Grade de células sólidas: paredes sólidas inteiras + a base (última linha)
- * de cada objeto sólido (decisão 010).
+ * Grade de células sólidas: paredes e pisos sólidos (asfalto, água) inteiros + a base
+ * (última linha) de cada objeto sólido (decisão 010).
  */
 export function solidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
-  const grid = wallSolidGrid(map, catalog);
+  const grid = baseSolidGrid(map, catalog);
   for (const obj of map.objects) {
     const def = catalog.tiles[obj.tile];
     if (!def?.solid) continue;
@@ -228,15 +276,23 @@ export function solidRects(solid: boolean[][]): Rect[] {
   return rects;
 }
 
-function wallSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
+/** Células sólidas das grades: paredes sólidas e pisos sólidos (asfalto, água). */
+function baseSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   const { cols, rows } = map.size;
+  const solidAt = (grid: string[] | undefined, r: number, c: number) => {
+    const char = grid?.[r]?.[c] ?? EMPTY;
+    const name = map.legend[char];
+    return char !== EMPTY && !!name && catalog.tiles[name]?.solid === true;
+  };
   return Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: cols }, (_, c) => {
-      const char = map.layers.walls?.[r]?.[c] ?? EMPTY;
-      const name = map.legend[char];
-      return char !== EMPTY && !!name && catalog.tiles[name]?.solid === true;
-    }),
+    Array.from({ length: cols }, (_, c) => solidAt(map.layers.walls, r, c) || solidAt(map.layers.floor, r, c)),
   );
+}
+
+/** Porta que a personagem ativa ao andar para cima na célula dos pés (ou undefined). */
+export function doorAt(map: Pick<ResolvedMap, 'doors'>, [col, row]: Cell, movingUp: boolean): MapDoor | undefined {
+  if (!movingUp) return undefined;
+  return map.doors.find((d) => d.at[0] === col && d.at[1] === row);
 }
 
 /** Tiles com várias versões: cada célula usa uma, sempre a mesma (sem guardar nada no save). */

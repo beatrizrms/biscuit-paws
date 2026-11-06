@@ -30,7 +30,7 @@ Na primeira vez que rodar o teste de fumaça, instale o navegador do Playwright:
 Os prints do teste ficam em `test-results/`.
 
 Controles:
-- **Setas / WASD:** andar
+- **Setas / WASD:** andar. Para entrar ou sair por uma porta, pare na frente dela e siga para cima.
 - **C:** catálogo: móveis, balcão e **Reforma (pintor)** (clique num item para comprar e já posicionar; num acabamento, para o pintor aplicar)
 - **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)
 - **Botão direito num móvel:** recolher e mudar de lugar
@@ -67,6 +67,8 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 - `data/story.json`: marcos da história e metas do diário (condição -> efeito).
 - `data/dialogue.json`: falas.
 - `data/items.json`: móveis do catálogo, nomes e preços.
+- `data/maps/street.json`: a rua (fachadas, objetos, neve, porta do café). `data/world.json`: onde o jogo começa.
+- `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça.
 - `data/finishes.json`: acabamentos do pintor (pisos e papéis de parede) e preços. As superfícies reformáveis ficam no mapa (`surfaces`).
 - `data/tiles.worn.json`: tiles velhos gerados do pacote (estilo de desgaste, troca de cores, variações).
 - `data/economy.json`: dinheiro inicial.

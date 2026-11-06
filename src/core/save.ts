@@ -2,10 +2,10 @@
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 2;
+export const SAVE_SCHEMA_VERSION = 3;
 
-export interface SaveV2 extends GameState {
-  schemaVersion: 2;
+export interface SaveV3 extends GameState {
+  schemaVersion: 3;
   savedAt: string;
 }
 
@@ -19,10 +19,12 @@ type RawSave = Record<string, unknown>;
 const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   /** v1 -> v2: entra a reforma do pintor (superfície -> acabamento). Saves antigos começam sem reforma. */
   1: (save) => ({ ...save, schemaVersion: 2, finishes: {} }),
+  /** v2 -> v3: entram a rua e a sujeira. Saves antigos estavam dentro do café, que fica sem sujeira (já arrumado). */
+  2: (save) => ({ ...save, schemaVersion: 3, location: 'map.cafe_main', visited: ['map.street', 'map.cafe_main'], cleaned: ['*'] }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV2 = { schemaVersion: 2, savedAt: now.toISOString(), ...state };
+  const save: SaveV3 = { schemaVersion: 3, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -36,6 +38,9 @@ export interface KnownIds {
   items: ReadonlySet<string>;
   finishes: ReadonlySet<string>;
   surfaces: ReadonlySet<string>;
+  maps: ReadonlySet<string>;
+  /** Onde começar se o local salvo não existir mais. */
+  startMap: string;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -51,7 +56,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV2>;
+  const v2 = save as unknown as Partial<SaveV3>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -80,7 +85,11 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     story: { completed: [...(v2.story?.completed ?? [])] },
     cats: { ...(v2.cats ?? {}) },
     finishes,
+    location: v2.location && known.maps.has(v2.location) ? v2.location : known.startMap,
+    visited: (v2.visited ?? []).filter((m) => known.maps.has(m)),
+    cleaned: [...(v2.cleaned ?? [])],
   };
+  if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
 }
 
@@ -89,10 +98,14 @@ export function knownIds(content: {
   items: Record<string, unknown>;
   finishes: Record<string, unknown>;
   map: { surfaces?: { id: string }[] };
+  maps: Record<string, unknown>;
+  world: { startMap: string };
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
     finishes: new Set(Object.keys(content.finishes)),
     surfaces: new Set((content.map.surfaces ?? []).map((s) => s.id)),
+    maps: new Set(Object.keys(content.maps)),
+    startMap: content.world.startMap,
   };
 }

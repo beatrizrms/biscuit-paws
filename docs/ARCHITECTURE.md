@@ -72,6 +72,7 @@ cat-cafe-game/
 | `customer.served` | cliente atendido | `customerId, tip` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |
 | `game.started` | sessão começou (jogo novo ou carregado) | `isNew` |
+| `map.entered` | a personagem entrou num mapa (porta) | `mapId` |
 | `money.changed` | dinheiro mudou | `from, to, reason` |
 | `item.bought` | item comprado (vai para o inventário) | `itemId, price` |
 | `item.placed` | móvel posicionado no café | `itemId, uid, at` |

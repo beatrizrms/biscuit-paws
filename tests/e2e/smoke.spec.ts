@@ -11,8 +11,9 @@ interface PlayerState {
 
 interface DebugHook {
   cafe: {
-    map: { tileSize: number };
-    playerState(): PlayerState;
+    map: { tileSize: number; id: string };
+    goTo(mapId: string): void;
+    playerState(): PlayerState & { map: string };
     teleportPlayer(col: number, row: number): void;
     session: {
       addMoney(delta: number, reason: string): void;
@@ -44,6 +45,12 @@ async function skipDialogue(page: Page): Promise<void> {
     await page.waitForTimeout(30);
   }
   await expect(layer).not.toHaveClass(/open/);
+}
+
+/** O jogo começa na rua: entra direto no café (como se tivesse passado pela porta) e passa a fala. */
+async function enterCafe(page: Page): Promise<void> {
+  await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.cafe_main'));
+  await skipDialogue(page);
 }
 
 /** Clica no centro de uma célula do mapa (o mapa de 512 x 352 fica centrado na tela de 640 x 360). */
@@ -80,9 +87,10 @@ async function hold(page: Page, key: string, ms: number): Promise<void> {
   await page.waitForTimeout(100);
 }
 
-test('o café abre e a personagem não atravessa a parede', async ({ page }, testInfo) => {
+test('no café, a personagem não atravessa a parede', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  await enterCafe(page);
   await page.screenshot({ path: testInfo.outputPath('01-cafe.png') });
 
   // Coluna 8 é livre do spawn até a parede (passagem ao lado do balcão).
@@ -110,6 +118,7 @@ test('WASD também anda', async ({ page }) => {
 test('y-sort: atrás do balcão quando está acima, na frente quando está abaixo', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  await enterCafe(page);
   await buildCounter(page);
 
   await teleport(page, 3, 3);
@@ -132,6 +141,11 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-money')).toContainText('150');
   await page.screenshot({ path: testInfo.outputPath('05-abertura.png') });
   await skipDialogue(page);
+  // Na rua o catálogo não abre.
+  await page.keyboard.press('c');
+  await expect(page.locator('.catalog')).not.toHaveClass(/open/);
+  await expect(page.locator('.toast')).toContainText('lá dentro');
+  await enterCafe(page);
 
   await page.keyboard.press('c');
   await page.locator('[data-item="item.cat_bed"]').click();
@@ -187,6 +201,7 @@ test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ p
 test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  await enterCafe(page);
   // O pintor só aparece depois da Dona Lurdes: libera direto pelo estado.
   await page.evaluate(() => {
     const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
@@ -204,4 +219,25 @@ test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ p
   const current = page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]');
   await expect(current).toBeDisabled();
   await expect(current).toContainText('atual');
+});
+
+test('rua: anda até a porta da padaria, entra e sai sem ficar indo e voltando', async ({ page }, testInfo) => {
+  await openGame(page);
+  expect((await player(page)).map).toBe('map.street');
+  await skipDialogue(page);
+  await page.screenshot({ path: testInfo.outputPath('09-rua.png') });
+
+  // Spawn na coluna 15; a porta do café fica na coluna 17 (andar para cima na calçada).
+  await hold(page, 'ArrowRight', 800);
+  await hold(page, 'ArrowUp', 600);
+  await expect.poll(async () => (await player(page)).map).toBe('map.cafe_main');
+  await skipDialogue(page);
+  await page.screenshot({ path: testInfo.outputPath('10-dentro.png') });
+
+  // Segura a seta para cima: sai pela porta de dentro e fica na rua (não entra de novo).
+  await hold(page, 'ArrowUp', 2500);
+  await expect.poll(async () => (await player(page)).map).toBe('map.street');
+  await page.waitForTimeout(500);
+  expect((await player(page)).map).toBe('map.street');
+  await page.screenshot({ path: testInfo.outputPath('11-saiu.png') });
 });

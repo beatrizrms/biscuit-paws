@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "_comment": "startMap: onde um jogo novo começa. homeMap: o café (onde se decora e reforma).",
+  "startMap": "map.street",
+  "homeMap": "map.cafe_main"
+}

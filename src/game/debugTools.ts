@@ -2,13 +2,13 @@
 // então nada disto entra no build de produção.
 import { LocalStorage } from '../platform/localStorage';
 import { saveSlot, setDebug } from './debug';
-import type { CafeScene } from './scenes/CafeScene';
+import type { WorldScene } from './scenes/WorldScene';
 import { DebugPanel } from './ui/DebugPanel';
 import './ui/debug.css';
 
 const OVERLAY_DEPTH = 99_999;
 
-export function attachDebugTools(scene: CafeScene, root: HTMLElement): DebugPanel {
+export function attachDebugTools(scene: WorldScene, root: HTMLElement): DebugPanel {
   const ts = scene.map.tileSize;
   const grid = scene.add
     .grid(0, 0, scene.map.cols * ts, scene.map.rows * ts, ts, ts)

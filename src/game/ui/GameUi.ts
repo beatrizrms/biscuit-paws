@@ -113,6 +113,11 @@ export class GameUi {
     this.toastTimer = window.setTimeout(() => this.toastEl.classList.remove('show'), 1600);
   }
 
+  /** Aviso com um texto de data/ui_text.json. */
+  toastText(key: 'notHome'): void {
+    this.toast(uiText[key]);
+  }
+
   problem(reason: keyof typeof uiText.problems): void {
     this.toast(uiText.problems[reason] ?? reason);
   }

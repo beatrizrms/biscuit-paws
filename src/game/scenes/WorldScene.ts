@@ -1,22 +1,26 @@
 import Phaser from 'phaser';
-import { resolveMap, solidRects, type Cell, type ResolvedMap } from '../../core/map';
+import { doorAt, resolveMap, solidRects, type Cell, type Facing, type MapDoor, type ResolvedMap } from '../../core/map';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
 import { isDebugOn } from '../debug';
+import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { TEXTURE } from './BootScene';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
 const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
 const GHOST_DEPTH = 100_000;
+const FADE_MS = 160;
 const NO_INPUT = { up: false, down: false, left: false, right: false };
 
-/** O café: desenha o mapa da sessão, move a jogadora e cuida do modo de posicionar móveis. */
-export class CafeScene extends Phaser.Scene {
+/**
+ * O mundo: desenha o mapa onde a personagem está (rua, café...), move a jogadora,
+ * troca de mapa pelas portas e, dentro do café, cuida do modo de posicionar móveis.
+ */
+export class WorldScene extends Phaser.Scene {
   session!: GameSession;
   private isNew = false;
   ui!: GameUi;
@@ -27,10 +31,13 @@ export class CafeScene extends Phaser.Scene {
   private solidCollider?: Phaser.Physics.Arcade.Collider;
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
   private debugPanel?: DebugPanel;
+  private changingMap = false;
+  /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
+  private doorLocked = false;
   map!: ResolvedMap;
 
   constructor() {
-    super('Cafe');
+    super('World');
   }
 
   init(data: { session: GameSession; isNew: boolean }): void {
@@ -42,16 +49,8 @@ export class CafeScene extends Phaser.Scene {
     const uiRoot = document.getElementById('ui')!;
     this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id) }, isDebugOn());
 
-    this.buildMap();
-    const ts = this.map.tileSize;
-    const width = this.map.cols * ts;
-    const height = this.map.rows * ts;
-    this.physics.world.setBounds(0, 0, width, height);
-    this.cameras.main.centerOn(width / 2, height / 2);
-
-    const [col, row] = this.map.spawn;
-    this.player = new Player(this, col * ts + ts / 2, (row + 1) * ts - 8);
-    this.solidCollider = this.physics.add.collider(this.player, this.solids!);
+    this.player = new Player(this, 0, 0);
+    this.loadMap(this.session.location());
 
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard!.addKeys({
@@ -60,6 +59,7 @@ export class CafeScene extends Phaser.Scene {
     // Teclas de ação por evento: um toque rápido nunca se perde.
     this.input.keyboard!.on('keydown-C', () => {
       if (this.ui.isDialogueOpen()) return;
+      if (!this.session.atHome()) return this.ui.toastText('notHome');
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
@@ -71,9 +71,10 @@ export class CafeScene extends Phaser.Scene {
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onPointerDown(p));
 
-    this.session.bus.on('item.placed', () => this.buildMap());
-    this.session.bus.on('item.picked_up', () => this.buildMap());
-    this.session.bus.on('surface.painted', () => this.buildMap());
+    const rebuildIfHome = () => this.session.atHome() && this.buildMap();
+    this.session.bus.on('item.placed', rebuildIfHome);
+    this.session.bus.on('item.picked_up', rebuildIfHome);
+    this.session.bus.on('surface.painted', rebuildIfHome);
 
     if (import.meta.env.DEV) {
       exposeDebug(this);
@@ -86,30 +87,76 @@ export class CafeScene extends Phaser.Scene {
 
   update(): void {
     const k = this.keys;
-
-    this.player.move(
-      this.ui.isBusy()
-        ? NO_INPUT
-        : {
-            up: k.up.isDown || k.w.isDown,
-            down: k.down.isDown || k.s.isDown,
-            left: k.left.isDown || k.a.isDown,
-            right: k.right.isDown || k.d.isDown,
-          },
-    );
+    const busy = this.ui.isBusy() || this.changingMap;
+    const input = busy
+      ? NO_INPUT
+      : {
+          up: k.up.isDown || k.w.isDown,
+          down: k.down.isDown || k.s.isDown,
+          left: k.left.isDown || k.a.isDown,
+          right: k.right.isDown || k.d.isDown,
+        };
+    this.player.move(input);
     this.player.updateDepth();
     if (this.placing) this.refreshGhost();
+
+    if (!input.up && !this.changingMap) this.doorLocked = false;
+    const door = doorAt(this.map, this.feetCell(), input.up && !input.down);
+    if (door && !this.placing && !this.doorLocked) this.useDoor(door);
   }
 
-  /** (Re)desenha o mapa e a colisão a partir da sessão. Chamado quando um móvel muda. */
-  private buildMap(): void {
-    this.map = resolveMap(this.session.mapData(), this.session.content.catalog);
+  // ---------- Mapas e portas ----------
+
+  /** Mostra um mapa e põe a personagem em `spawn` (ou no ponto de partida do mapa). */
+  private loadMap(mapId: string, spawn?: Cell, facing: Facing = 'down'): void {
+    this.cancelPlacing();
+    this.ui.closeCatalog();
+    this.buildMap(mapId);
+    const ts = this.map.tileSize;
+    const width = this.map.cols * ts;
+    const height = this.map.rows * ts;
+    this.physics.world.setBounds(0, 0, width, height);
+
+    const cam = this.cameras.main;
+    cam.setBackgroundColor(this.map.background ?? '#2b1d1a');
+    cam.stopFollow();
+    if (width <= GAME_WIDTH) {
+      cam.removeBounds();
+      cam.centerOn(width / 2, height / 2);
+    } else {
+      // Mapa mais largo que a tela: a câmera segue a personagem na horizontal.
+      // Sobra de altura fica em cima (céu), nunca embaixo do chão.
+      cam.setBounds(0, height - GAME_HEIGHT, width, GAME_HEIGHT);
+      cam.startFollow(this.player, true);
+    }
+
+    const [col, row] = spawn ?? this.map.spawn;
+    this.placePlayer(col, row);
+    this.player.face(facing);
+  }
+
+  private useDoor(door: MapDoor): void {
+    this.changingMap = true;
+    this.doorLocked = true;
+    const cam = this.cameras.main;
+    cam.fadeOut(FADE_MS, 43, 29, 26);
+    cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.session.enter(door.to);
+      this.loadMap(door.to, door.spawn, door.facing);
+      cam.fadeIn(FADE_MS, 43, 29, 26);
+      this.changingMap = false;
+    });
+  }
+
+  /** (Re)desenha o mapa e a colisão. Sem `mapId`, redesenha o mapa atual (ex.: um móvel mudou). */
+  private buildMap(mapId = this.session.location()): void {
+    this.map = resolveMap(this.session.mapData(mapId), this.session.content.catalog);
     const ts = this.map.tileSize;
 
     this.mapImages?.destroy(true);
     this.mapImages = this.add.group();
     for (const s of this.map.sprites) {
-      this.mapImages.add(this.add.image(s.col * ts, s.row * ts, TEXTURE.tiles, s.frame).setOrigin(0).setDepth(s.depth));
+      this.mapImages.add(this.add.image(s.col * ts, s.row * ts, s.sheet, s.frame).setOrigin(0).setDepth(s.depth));
     }
 
     this.solidCollider?.destroy();
@@ -120,10 +167,21 @@ export class CafeScene extends Phaser.Scene {
       const h = r.h * ts;
       this.solids.add(this.add.zone(r.col * ts + w / 2, r.row * ts + h / 2, w, h));
     }
-    if (this.player) this.solidCollider = this.physics.add.collider(this.player, this.solids);
+    this.solidCollider = this.physics.add.collider(this.player, this.solids);
   }
 
-  // ---------- Posicionar móveis ----------
+  private placePlayer(col: number, row: number): void {
+    const ts = this.map.tileSize;
+    (this.player.body as Phaser.Physics.Arcade.Body).reset(col * ts + ts / 2, (row + 1) * ts - 8);
+    this.player.updateDepth();
+  }
+
+  private feetCell(): Cell {
+    const ts = this.map.tileSize;
+    return [Math.floor(this.player.x / ts), Math.floor((this.player.y - 1) / ts)];
+  }
+
+  // ---------- Posicionar móveis (só dentro do café) ----------
 
   private startPlacing(itemId: string): void {
     this.cancelPlacing();
@@ -133,7 +191,7 @@ export class CafeScene extends Phaser.Scene {
     for (let dy = 0; dy < def.h; dy++) {
       for (let dx = 0; dx < def.w; dx++) {
         ghosts.push(
-          this.add.image(0, 0, TEXTURE.tiles, frameOf(catalog, def, dx, dy)).setOrigin(0).setAlpha(0.8).setDepth(GHOST_DEPTH),
+          this.add.image(0, 0, def.sheet, frameOf(catalog, def, dx, dy)).setOrigin(0).setAlpha(0.8).setDepth(GHOST_DEPTH),
         );
       }
     }
@@ -145,7 +203,7 @@ export class CafeScene extends Phaser.Scene {
   private cancelPlacing(): void {
     this.placing?.ghosts.forEach((g) => g.destroy());
     this.placing = null;
-    this.ui.setHint('walk');
+    this.ui?.setHint('walk');
   }
 
   /** O cursor aponta para a célula da base (canto inferior esquerdo) da peça. */
@@ -170,7 +228,7 @@ export class CafeScene extends Phaser.Scene {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.ui.isBusy()) return;
+    if (this.ui.isBusy() || !this.session.atHome()) return;
     if (this.placing) {
       if (pointer.rightButtonDown()) return this.cancelPlacing();
       this.moveGhost(pointer);
@@ -212,14 +270,18 @@ export class CafeScene extends Phaser.Scene {
 
   // ---------- Para testes e depuração ----------
 
-  playerState(): { x: number; y: number; depth: number } {
-    return { x: this.player.x, y: this.player.y, depth: this.player.depth };
+  playerState(): { x: number; y: number; depth: number; map: string } {
+    return { x: this.player.x, y: this.player.y, depth: this.player.depth, map: this.map.id };
   }
 
   teleportPlayer(col: number, row: number): void {
-    const ts = this.map.tileSize;
-    (this.player.body as Phaser.Physics.Arcade.Body).reset(col * ts + ts / 2, (row + 1) * ts - 8);
-    this.player.updateDepth();
+    this.placePlayer(col, row);
+  }
+
+  /** Vai direto para um mapa (como se tivesse passado pela porta). */
+  goTo(mapId: string, spawn?: Cell): void {
+    this.session.enter(mapId);
+    this.loadMap(mapId, spawn);
   }
 
   sessionState() {
@@ -228,6 +290,6 @@ export class CafeScene extends Phaser.Scene {
 }
 
 /** Em desenvolvimento, deixa a cena acessível no console e no Playwright. */
-function exposeDebug(scene: CafeScene): void {
-  (window as unknown as { __biscuitPaws: unknown }).__biscuitPaws = { cafe: scene };
+function exposeDebug(scene: WorldScene): void {
+  (window as unknown as { __biscuitPaws: unknown }).__biscuitPaws = { world: scene, cafe: scene };
 }

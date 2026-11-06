@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git).",
+  "sheets": [
+    {
+      "id": "street_ground",
+      "image": "assets/street/winter/chao_winter.png",
+      "pieces": "chao_winter.json",
+      "prefix": "street_",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "asfalto_a": {
+          "solid": true
+        },
+        "asfalto_b": {
+          "solid": true
+        },
+        "asfalto_faixa": {
+          "solid": true
+        },
+        "agua_a": {
+          "solid": true
+        },
+        "agua_b": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_ground_snow",
+      "image": "assets/street/winter/neve_chao_winter.png",
+      "pieces": "neve_chao_winter.json",
+      "prefix": "snow_street_",
+      "layer": "floor",
+      "solid": false
+    },
+    {
+      "id": "street_facades",
+      "image": "assets/street/winter/fachadas_winter.png",
+      "pieces": "fachadas_winter.json",
+      "prefix": "facade_",
+      "layer": "wall",
+      "solid": true
+    },
+    {
+      "id": "street_facades_snow",
+      "image": "assets/street/winter/neve_fachadas_winter.png",
+      "pieces": "neve_fachadas_winter.json",
+      "prefix": "snow_facade_",
+      "layer": "wall",
+      "solid": false
+    },
+    {
+      "id": "street_props",
+      "image": "assets/street/winter/objetos_winter.png",
+      "pieces": "objetos_winter.json",
+      "prefix": "prop_",
+      "layer": "object",
+      "solid": false,
+      "overrides": {
+        "banco": {
+          "solid": true
+        },
+        "lixeira": {
+          "solid": true
+        },
+        "caixa_correio": {
+          "solid": true
+        },
+        "caixote_macas": {
+          "solid": true
+        },
+        "caixote_laranjas": {
+          "solid": true
+        },
+        "vaso_planta": {
+          "solid": true
+        },
+        "pegadas": {
+          "layer": "floor"
+        }
+      }
+    },
+    {
+      "id": "street_props_snow",
+      "image": "assets/street/winter/neve_objetos_winter.png",
+      "pieces": "neve_objetos_winter.json",
+      "prefix": "snow_prop_",
+      "layer": "object",
+      "solid": false
+    },
+    {
+      "id": "snow_piles",
+      "image": "assets/street/winter/neve_monte_winter.png",
+      "pieces": "neve_monte_winter.json",
+      "prefix": "snow_",
+      "layer": "object",
+      "solid": false
+    },
+    {
+      "id": "dirt",
+      "image": "assets/dirt/sujeira_tileset.png",
+      "pieces": "sujeira_tileset.json",
+      "prefix": "dirt_",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "teia_canto_esq": {
+          "layer": "wall"
+        },
+        "teia_canto_dir": {
+          "layer": "wall"
+        },
+        "teia_canto_grande_esq": {
+          "layer": "wall"
+        },
+        "teia_canto_grande_dir": {
+          "layer": "wall"
+        },
+        "teia_fio_aranha": {
+          "layer": "wall"
+        },
+        "teia_janela": {
+          "layer": "wall"
+        },
+        "escorrido_parede": {
+          "layer": "wall"
+        },
+        "mancha_agua": {
+          "layer": "wall"
+        },
+        "mancha_bolor": {
+          "layer": "wall"
+        },
+        "mancha_fuligem": {
+          "layer": "wall"
+        },
+        "balde_goteira": {
+          "layer": "object"
+        },
+        "lencol_sobre_movel": {
+          "layer": "object"
+        }
+      }
+    }
+  ]
+}

@@ -14,10 +14,34 @@
       ]
     },
     {
-      "id": "story.warm_corner",
+      "id": "story.enter_bakery",
       "act": 1,
       "after": [
         "story.intro"
+      ],
+      "goal": {
+        "title": "A velha padaria",
+        "steps": [
+          {
+            "text": "Preciso ver como está lá dentro.",
+            "when": {
+              "visited": "map.cafe_main"
+            },
+            "devNote": "Porta do café: coluna 17 da rua, andar para cima."
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.inside"
+        }
+      ]
+    },
+    {
+      "id": "story.warm_corner",
+      "act": 1,
+      "after": [
+        "story.enter_bakery"
       ],
       "goal": {
         "title": "Um cantinho quente",

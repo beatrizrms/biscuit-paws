@@ -5,17 +5,19 @@ import { content } from '../content';
 import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 
-export const TEXTURE = { tiles: 'tiles', player: 'player' } as const;
+export const TEXTURE = { player: 'player' } as const;
 
-/** Carrega a arte e o save, e passa para o café. */
+/** Carrega a arte e o save, e passa para o mundo. Cada folha do catálogo vira uma textura com o id dela. */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
   }
 
   preload(): void {
-    const { sheet } = content.catalog;
-    this.load.spritesheet(TEXTURE.tiles, sheet.image, { frameWidth: sheet.tileSize, frameHeight: sheet.tileSize });
+    const { sheets, tileSize } = content.catalog;
+    for (const [id, sheet] of Object.entries(sheets)) {
+      this.load.spritesheet(id, sheet.image, { frameWidth: tileSize, frameHeight: tileSize });
+    }
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,
       frameHeight: playerJson.frameHeight,
@@ -26,6 +28,6 @@ export class BootScene extends Phaser.Scene {
     // ?novo na URL começa um jogo novo (apaga o save).
     const forceNew = new URLSearchParams(window.location.search).has('novo');
     const { session, isNew } = await openSession(new LocalStorage(), saveSlot(), forceNew);
-    this.scene.start('Cafe', { session, isNew });
+    this.scene.start('World', { session, isNew });
   }
 }

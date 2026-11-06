@@ -79,3 +79,7 @@ Consequência: o painel vira um balão de pensamento ("subconsciente") e os text
 ## 022. Sem renda, nada de ficar presa: pintor depois da Dona Lurdes e devolução total (nov/2026)
 Motivo: antes dos clientes (Marco 4) não há como ganhar dinheiro; gastar tudo cedo travava a primeira meta.
 Consequência: o pintor só aparece com a flag `painter.available` (`data/finishes.json: unlockFlag`), dada pela visita da Dona Lurdes, que indica o sobrinho pintor. Itens da bolsa podem ser devolvidos com `refundRate` (`data/economy.json`, hoje 1 = 100%). Quando houver renda, dá para baixar o reembolso só nos dados.
+
+## 023. O jogo começa na rua; vários mapas com portas (nov/2026)
+Motivo: a história começa diante da padaria velha, e a vizinhança é parte do jogo.
+Consequência: `data/maps/street.json` (30 x 11, inverno) com as fachadas e objetos do pacote da rua; `data/world.json` diz onde começar e qual mapa é o café. O catálogo de tiles aceita várias folhas (`data/tilesets.json`). Uma única `WorldScene` troca de mapa pelas portas (sem reiniciar interface nem save) e a câmera segue a personagem quando o mapa é mais largo que a tela. O catálogo (C) só abre dentro do café. Save v3 (`location`, `visited`, `cleaned`).

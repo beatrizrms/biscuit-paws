@@ -9,6 +9,7 @@ export function evaluate(c: Condition, state: GameState, items: Record<string, I
   if ('not' in c) return !evaluate(c.not, state, items);
   if ('flag' in c) return state.flags[c.flag] === true;
   if ('beat' in c) return state.story.completed.includes(c.beat);
+  if ('visited' in c) return state.visited.includes(c.visited);
   if ('placedTag' in c) {
     const count = state.placed.filter((p) => items[p.item]?.tags.includes(c.placedTag)).length;
     return count >= (c.gte ?? 1);

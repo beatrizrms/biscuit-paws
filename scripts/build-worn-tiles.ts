@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 import { createRng, type Rng } from '../src/core/rng';
-import { buildCatalog, type TileMeta, type WornStyle, type WornTiles } from '../src/core/tiles';
+import { buildCatalog, MAIN_SHEET, type TileMeta, type WornStyle, type WornTiles } from '../src/core/tiles';
 
 type RGB = [number, number, number];
 
@@ -224,7 +224,8 @@ function recolor(t: Tile, map: Record<string, string>): void {
 // ---------- Monta a folha estendida ----------
 
 const source = PNG.sync.read(readFileSync(sourcePath));
-const out = new PNG({ width: catalog.sheet.columns * TS, height: catalog.sheet.rows * TS });
+const sheet = catalog.sheets[MAIN_SHEET]!;
+const out = new PNG({ width: sheet.columns * TS, height: sheet.rows * TS });
 source.data.copy(out.data, 0, 0, source.data.length);
 
 let count = 0;

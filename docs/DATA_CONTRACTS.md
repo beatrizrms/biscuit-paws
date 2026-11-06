@@ -103,6 +103,38 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 - `tile`: nome no catálogo de tiles. A camada do tile (`floor`, `wall`, `object`) decide onde o móvel pode ficar.
 - Tags usadas hoje: `for:cats`, `for:guests`, `decor` (seções do catálogo, definidas em `data/ui_text.json`) e `table`, `chair` (contadas pela história).
 
+### Campos opcionais do mapa (rua, portas)
+
+```jsonc
+{
+  "background": "#a9d4ea",                 // cor atrás do mapa (o céu da rua)
+  "layers": { "floor": [...], "walls": [...], "overlay": [...] },   // overlay: por cima do piso (neve na calçada)
+  "objects": [
+    { "id": "obj.bench", "tile": "prop_banco", "at": [5, 8], "overlay": "snow_prop_banco" }   // neve por cima, mesmo tamanho
+  ],
+  "doors": [
+    { "id": "door.cafe", "at": [17, 8], "to": "map.cafe_main", "spawn": [14, 4], "facing": "down" }
+  ]
+}
+```
+
+Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Depois de passar, só outra porta funciona quando a seta para cima for solta.
+Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
+
+## Mundo (`data/world.json`)
+
+```jsonc
+{ "schemaVersion": 1, "startMap": "map.street", "homeMap": "map.cafe_main" }
+```
+
+`startMap`: onde um jogo novo começa. `homeMap`: o café, único mapa onde dá para decorar e reformar.
+
+## Folhas extras de tiles (`data/tilesets.json`)
+
+Cada folha nova (rua, neve, sujeira) aponta para a imagem em `public/` e para um JSON de peças em `data/tilesets/`
+(`col`, `row`, `w_tiles`, `h_tiles`). Os nomes no catálogo ganham um prefixo (`street_`, `facade_`, `prop_`, `snow_...`, `dirt_`).
+`layer` e `solid` valem para a folha toda; `overrides` muda peças específicas. Fachadas são camada `wall` (fundo, sólidas na base).
+
 ## Reforma: superfícies (no mapa) e acabamentos (`data/finishes.json`)
 
 O mapa lista as **superfícies** que o pintor pode trocar. Cada uma é uma letra da legenda: todas as células com essa letra mudam juntas.
@@ -164,7 +196,7 @@ Cada passo pode ter `"devNote"`: nota para a equipe, que só aparece no modo deb
 
 Um marco termina quando todos os `after` estão concluídos, todos os passos da meta valem e o `when` vale. Marcos concluídos nunca voltam atrás.
 
-Condições: `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
+Condições (também `{ "visited": "map.id" }`): `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
 `{ "placed": "item.id", "gte": n }`, `{ "placedTag": "tag", "gte": n }`, `{ "owned": "item.id", "gte": n }`, `{ "money": { "gte": n } }`.
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
@@ -192,7 +224,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 
 ```jsonc
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "savedAt": "2026-12-01T10:00:00Z",
   "day": 3,
   "money": 120,
@@ -204,11 +236,14 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
   "cats": {
     "cat.mimi": { "sheltered": true, "affection": 4 }
   },
-  "finishes": { "surface.hall_floor": "finish.wood_planks" }   // v2: reforma do pintor
+  "finishes": { "surface.hall_floor": "finish.wood_planks" },  // v2: reforma do pintor
+  "location": "map.street",                                  // v3: onde a personagem está
+  "visited": ["map.street", "map.cafe_main"],                 // v3: mapas onde já entrou
+  "cleaned": ["dirt.web_window_left"]                         // v3: sujeiras já limpas ("*" = todas)
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`). Fixtures: `tests/fixtures/save_v1.json` e `save_v2.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo). Fixtures: `tests/fixtures/save_v1.json`, `save_v2.json`, `save_v3.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.

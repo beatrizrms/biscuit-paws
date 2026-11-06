@@ -49,6 +49,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     else this.idle();
   }
 
+  /** Vira para uma direção (parada). */
+  face(direction: Direction): void {
+    this.facing = direction;
+    this.setVelocity(0, 0);
+    this.idle();
+  }
+
   /** Y-sort: a profundidade é a base dos pés. */
   updateDepth(): void {
     this.setDepth(ySortDepth(this.y));

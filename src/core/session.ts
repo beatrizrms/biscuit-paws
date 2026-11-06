@@ -38,8 +38,35 @@ export class GameSession {
     this.advanceStory();
   }
 
-  /** Mapa do café com a reforma do pintor e os móveis da jogadora. */
-  mapData(): MapData {
+  /** Mapa onde a personagem está. */
+  location(): string {
+    return this.state.location;
+  }
+
+  /** Está no café (onde dá para decorar e reformar)? */
+  atHome(): boolean {
+    return this.state.location === this.content.map.id;
+  }
+
+  /** Entra num mapa (pela porta): guarda o local e lembra que já esteve lá. */
+  enter(mapId: string): void {
+    if (!this.content.maps[mapId]) throw new Error(`Mapa desconhecido: "${mapId}"`);
+    this.state.location = mapId;
+    if (!this.state.visited.includes(mapId)) this.state.visited.push(mapId);
+    this.bus.emit('map.entered', { mapId });
+    this.advanceStory();
+  }
+
+  /**
+   * Dados do mapa para desenhar. O café vem com a reforma do pintor e os móveis da jogadora;
+   * os outros mapas vêm como estão nos dados.
+   */
+  mapData(mapId = this.content.map.id): MapData {
+    if (mapId !== this.content.map.id) {
+      const other = this.content.maps[mapId];
+      if (!other) throw new Error(`Mapa desconhecido: "${mapId}"`);
+      return other;
+    }
     const base = this.content.map;
     const legend = { ...base.legend };
     for (const surface of base.surfaces ?? []) {

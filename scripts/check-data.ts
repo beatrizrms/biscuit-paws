@@ -1,11 +1,17 @@
-// npm run check: valida todo o conteúdo em data/ (mapas, itens, história, falas, economia).
+// npm run check: valida todo o conteúdo em data/ (mapas, itens, história, falas, economia, reforma).
 import { readFileSync, readdirSync } from 'node:fs';
 import { validateContent, type RawContent } from '../src/core/content';
 import type { MapData } from '../src/core/map';
 
 const read = <T>(path: string) => JSON.parse(readFileSync(path, 'utf8')) as T;
-const shared: Omit<RawContent, 'map'> = {
+const maps = readdirSync('data/maps')
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => read<MapData>(`data/maps/${f}`));
+
+const raw: RawContent = {
   catalog: read('data/tiles.json'),
+  maps,
+  world: read('data/world.json'),
   items: read('data/items.json'),
   finishes: read('data/finishes.json'),
   economy: read('data/economy.json'),
@@ -13,15 +19,11 @@ const shared: Omit<RawContent, 'map'> = {
   dialogue: read('data/dialogue.json'),
 };
 
-let failed = false;
-for (const file of readdirSync('data/maps').filter((f) => f.endsWith('.json'))) {
-  const map = read<MapData>(`data/maps/${file}`);
-  const errors = validateContent({ ...shared, map });
-  if (errors.length > 0) {
-    failed = true;
-    console.error(`✗ ${file}\n  ${errors.join('\n  ')}`);
-  } else {
-    console.log(`✓ ${file} + itens (${shared.items.items.length}), história (${shared.story.beats.length} marcos), falas`);
-  }
+const errors = validateContent(raw);
+if (errors.length > 0) {
+  console.error(`✗ conteúdo com problemas:\n  ${errors.join('\n  ')}`);
+  process.exit(1);
 }
-process.exit(failed ? 1 : 0);
+console.log(
+  `✓ mapas (${maps.map((m) => m.id).join(', ')}), itens (${raw.items.items.length}), história (${raw.story.beats.length} marcos), falas, reforma`,
+);

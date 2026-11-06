@@ -13,6 +13,12 @@ function newSession() {
   return { session, events, dialogues: () => events.filter((e) => e.name === 'dialogue.requested').map((e) => e.payload) };
 }
 
+/** Começa um jogo novo (na rua) e entra no café. */
+function startInCafe(session: GameSession) {
+  session.start(true);
+  session.enter('map.cafe_main');
+}
+
 /** Compra e posiciona; falha o teste se algo der errado. */
 function buyAndPlace(session: GameSession, itemId: string, at: [number, number]) {
   expect(session.buy(itemId)).toEqual({ ok: true });
@@ -20,18 +26,44 @@ function buyAndPlace(session: GameSession, itemId: string, at: [number, number])
 }
 
 describe('começo da história', () => {
-  it('um jogo novo começa com pouco dinheiro, a abertura e a primeira meta', () => {
+  it('um jogo novo começa na rua, com pouco dinheiro, a abertura e o pensamento de entrar', () => {
     const { session, dialogues } = newSession();
     session.start(true);
+    expect(session.location()).toBe('map.street');
+    expect(session.atHome()).toBe(false);
     expect(session.state.money).toBe(150);
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }]);
     expect(session.state.flags['bought.old_bakery']).toBe(true);
+    expect(session.goals().map((g) => g.title)).toEqual(['A velha padaria']);
+  });
+
+  it('entrar no café pela primeira vez mostra o interior e a próxima meta', () => {
+    const { session, dialogues, events } = newSession();
+    session.start(true);
+    session.enter('map.cafe_main');
+    expect(session.atHome()).toBe(true);
+    expect(session.state.visited).toEqual(['map.street', 'map.cafe_main']);
+    expect(events.some((e) => e.name === 'map.entered')).toBe(true);
+    expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }, { dialogueId: 'dlg.inside' }]);
     expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+    // Sair e voltar não repete a fala.
+    session.enter('map.street');
+    session.enter('map.cafe_main');
+    expect(dialogues()).toHaveLength(2);
+  });
+
+  it('cada mapa tem os seus dados; só o café leva móveis e reforma', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    expect(session.mapData('map.street').objects.some((o) => o.tile === 'cat_bed')).toBe(false);
+    expect(session.mapData().objects.some((o) => o.tile === 'cat_bed')).toBe(true);
+    expect(() => session.enter('map.lua')).toThrow(/desconhecido/);
   });
 
   it('o primeiro ato inteiro dá para fazer com o dinheiro inicial', () => {
     const { session, dialogues } = newSession();
-    session.start(true);
+    startInCafe(session);
 
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     buyAndPlace(session, 'item.water_bowl', [13, 9]);
@@ -48,6 +80,7 @@ describe('começo da história', () => {
     expect(session.state.money).toBe(moneyBeforeNeighbor - 15 + 50);
     expect(dialogues().map((d) => (d as { dialogueId: string }).dialogueId)).toEqual([
       'dlg.intro',
+      'dlg.inside',
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
@@ -56,7 +89,7 @@ describe('começo da história', () => {
 
   it('recolher um móvel não desfaz um marco concluído', () => {
     const { session } = newSession();
-    session.start(true);
+    startInCafe(session);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     buyAndPlace(session, 'item.water_bowl', [13, 9]);
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
@@ -129,7 +162,7 @@ describe('pintor (reforma)', () => {
 
   it('a visita da Dona Lurdes libera o pintor', () => {
     const { session } = newSession();
-    session.start(true);
+    startInCafe(session);
     for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.water_bowl', [13, 9]], ['item.food_bowl', [14, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
       buyAndPlace(session, id, [at[0], at[1]]);
     }

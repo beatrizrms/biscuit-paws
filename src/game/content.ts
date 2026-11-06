@@ -1,6 +1,8 @@
 // Junta os arquivos de data/ num Content para a sessão de jogo.
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
+import streetJson from '../../data/maps/street.json';
+import worldJson from '../../data/world.json';
 import itemsJson from '../../data/items.json';
 import finishesJson from '../../data/finishes.json';
 import economyJson from '../../data/economy.json';
@@ -11,7 +13,8 @@ import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  map: cafeJson,
+  maps: [cafeJson, streetJson],
+  world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
   economy: economyJson,

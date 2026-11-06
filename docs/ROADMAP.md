@@ -23,6 +23,14 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Loja começa velha (tiles gerados do pacote) e sem balcão; balcão vendido em peças
 - [x] Pintor: escolher piso e papel de parede (loja velha -> reformada); save v2
 
+## Marco 0.6: a rua e o subconsciente
+- [x] Rua do café (inverno) com fachadas, objetos e neve; o jogo começa nela
+- [x] Portas entre a rua e o café; câmera segue a personagem
+- [x] Metas como subconsciente (balão de pensamento, 1ª pessoa)
+- [x] Pintor liberado pela Dona Lurdes; devolução de itens da bolsa
+- [ ] Sujeira no café velho, limpa aos poucos (pacote sujeira)
+- [ ] Outras estações da rua (dados já preparados)
+
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
 - [ ] `data/cats.json` e entidade Gato (IA simples: vagar, descansar)

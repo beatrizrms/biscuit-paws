@@ -21,9 +21,15 @@ export interface GameState {
   cats: Record<string, { sheltered: boolean; affection: number }>;
   /** Reforma: superfície -> acabamento aplicado pelo pintor. Sem entrada = original (velho). */
   finishes: Record<string, string>;
+  /** Mapa onde a personagem está. */
+  location: string;
+  /** Mapas onde ela já entrou. */
+  visited: string[];
+  /** Sujeiras do café já limpas (ids). */
+  cleaned: string[];
 }
 
-export function newGameState(startingMoney: number): GameState {
+export function newGameState(startingMoney: number, startMap = 'map.street'): GameState {
   return {
     day: 1,
     money: startingMoney,
@@ -34,6 +40,9 @@ export function newGameState(startingMoney: number): GameState {
     story: { completed: [] },
     cats: {},
     finishes: {},
+    location: startMap,
+    visited: [startMap],
+    cleaned: [],
   };
 }
 

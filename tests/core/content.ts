@@ -1,14 +1,18 @@
 // Carrega o conteúdo real de data/ para os testes.
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { loadCatalogFromDisk } from '../../scripts/catalog-node';
 import { buildContent, type Content, type RawContent } from '../../src/core/content';
-import { buildCatalog, type TileMeta, type WornTiles } from '../../src/core/tiles';
+import type { MapData } from '../../src/core/map';
 
 const read = <T>(path: string) => JSON.parse(readFileSync(path, 'utf8')) as T;
 
 export function rawContent(): RawContent {
   return {
-    catalog: buildCatalog(readFileSync('data/tiles.csv', 'utf8'), read<TileMeta>('data/tiles.meta.json'), read<WornTiles>('data/tiles.worn.json')),
-    map: read('data/maps/cafe_main.json'),
+    catalog: loadCatalogFromDisk(),
+    maps: readdirSync('data/maps')
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => read<MapData>(`data/maps/${f}`)),
+    world: read('data/world.json'),
     items: read('data/items.json'),
     finishes: read('data/finishes.json'),
     economy: read('data/economy.json'),

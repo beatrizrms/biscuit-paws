@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 3,
+  "savedAt": "2026-11-07T15:00:00.000Z",
+  "day": 1,
+  "money": 120,
+  "flags": {
+    "bought.old_bakery": true
+  },
+  "inventory": {},
+  "placed": [
+    {
+      "uid": "p1",
+      "item": "item.cat_bed",
+      "at": [
+        12,
+        9
+      ]
+    }
+  ],
+  "nextUid": 2,
+  "story": {
+    "completed": [
+      "story.intro",
+      "story.enter_bakery"
+    ]
+  },
+  "cats": {},
+  "finishes": {},
+  "location": "map.lighthouse_that_was_removed",
+  "visited": [
+    "map.street",
+    "map.cafe_main"
+  ],
+  "cleaned": [
+    "dirt.web_window_left"
+  ]
+}

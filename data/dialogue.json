@@ -12,20 +12,16 @@
           "text": "Com as economias de uma vida inteira, você comprou a velha padaria da esquina, fechada há muitos anos."
         },
         {
-          "speaker": "",
-          "text": "O forno está frio e as prateleiras, vazias. Mas o balcão continua aqui, e o lugar ainda tem cheiro de lembrança."
+          "speaker": "Você",
+          "text": "\"PA A IA\"... Faltam umas letras no letreiro."
         },
         {
           "speaker": "Você",
           "text": "Vai virar um café. Um café com gatos."
         },
         {
-          "speaker": "Você",
-          "text": "Só que sobraram poucas moedas... Melhor começar pelo essencial."
-        },
-        {
           "speaker": "",
-          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
+          "text": "Ande com as setas ou WASD. Para entrar, vá até a porta e siga para cima."
         }
       ]
     },
@@ -78,6 +74,22 @@
         {
           "speaker": "",
           "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
+        }
+      ]
+    },
+    "dlg.inside": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Lá dentro, o forno está frio e as prateleiras, vazias. Mas o lugar ainda tem cheiro de lembrança."
+        },
+        {
+          "speaker": "Você",
+          "text": "Sobraram poucas moedas... Melhor começar pelo essencial."
+        },
+        {
+          "speaker": "",
+          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
         }
       ]
     }

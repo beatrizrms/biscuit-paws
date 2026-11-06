@@ -1,10 +1,8 @@
 import Phaser from 'phaser';
 import './ui/ui.css';
 import { BootScene } from './scenes/BootScene';
-import { CafeScene } from './scenes/CafeScene';
-
-export const GAME_WIDTH = 640;
-export const GAME_HEIGHT = 360;
+import { WorldScene } from './scenes/WorldScene';
+import { GAME_HEIGHT, GAME_WIDTH } from './screen';
 
 /** Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). */
 function integerZoom(): number {
@@ -21,7 +19,7 @@ const game = new Phaser.Game({
   roundPixels: true,
   scale: { mode: Phaser.Scale.NONE, zoom: integerZoom() },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, CafeScene],
+  scene: [BootScene, WorldScene],
 });
 
 /** Canvas e interface HTML crescem juntos, sempre na mesma escala inteira. */

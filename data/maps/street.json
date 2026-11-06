@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "map.street",
+  "tileSize": 32,
+  "size": {
+    "cols": 30,
+    "rows": 11
+  },
+  "background": "#a9d4ea",
+  "legend": {
+    "A": "street_calcada_a",
+    "B": "street_calcada_b",
+    "C": "street_meio_fio",
+    "D": "street_asfalto_a",
+    "E": "street_asfalto_b",
+    "a": "snow_street_calcada_a",
+    "b": "snow_street_calcada_b",
+    "c": "snow_street_meio_fio",
+    "d": "snow_street_asfalto_a",
+    "e": "snow_street_asfalto_b"
+  },
+  "layers": {
+    "floor": [
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "ABAABABAABABAABABAABABAABABAAB",
+      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "DDEDEDDEDEDDEDEDDEDEDDEDEDDEDE"
+    ],
+    "walls": [
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      ".............................."
+    ],
+    "overlay": [
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "..............................",
+      "abaababaababaababaababaababaab",
+      "cccccccccccccccccccccccccccccc",
+      "ddededdededdededdededdededdede"
+    ]
+  },
+  "objects": [
+    { "id": "obj.facade_house_a", "tile": "facade_casa_a", "at": [0, 0], "overlay": "snow_facade_casa_a" },
+    { "id": "obj.facade_furniture", "tile": "facade_loja_moveis", "at": [4, 0], "overlay": "snow_facade_loja_moveis" },
+    { "id": "obj.facade_house_b", "tile": "facade_casa_b", "at": [10, 0], "overlay": "snow_facade_casa_b" },
+    { "id": "obj.facade_cafe", "tile": "facade_loja_velha", "at": [14, 0], "overlay": "snow_facade_loja_velha" },
+    { "id": "obj.facade_market", "tile": "facade_mercado", "at": [19, 0], "overlay": "snow_facade_mercado" },
+    { "id": "obj.facade_house_c", "tile": "facade_casa_c", "at": [26, 0], "overlay": "snow_facade_casa_c" },
+    { "id": "obj.lamp_1", "tile": "prop_poste", "at": [3, 6], "overlay": "snow_prop_poste" },
+    { "id": "obj.lamp_2", "tile": "prop_poste", "at": [13, 6], "overlay": "snow_prop_poste" },
+    { "id": "obj.lamp_3", "tile": "prop_poste", "at": [18, 6], "overlay": "snow_prop_poste" },
+    { "id": "obj.lamp_4", "tile": "prop_poste", "at": [25, 6], "overlay": "snow_prop_poste" },
+    { "id": "obj.bench", "tile": "prop_banco", "at": [5, 8], "overlay": "snow_prop_banco" },
+    { "id": "obj.planter", "tile": "prop_vaso_planta", "at": [9, 8], "overlay": "snow_prop_vaso_planta" },
+    { "id": "obj.mailbox", "tile": "prop_caixa_correio", "at": [10, 8], "overlay": "snow_prop_caixa_correio" },
+    { "id": "obj.tree", "tile": "prop_arvore", "at": [11, 7], "overlay": "snow_prop_arvore" },
+    { "id": "obj.chalkboard", "tile": "prop_lousa_cafe", "at": [16, 8], "overlay": "snow_prop_lousa_cafe" },
+    { "id": "obj.crate_apples", "tile": "prop_caixote_macas", "at": [20, 8], "overlay": "snow_prop_caixote_macas" },
+    { "id": "obj.crate_oranges", "tile": "prop_caixote_laranjas", "at": [21, 8], "overlay": "snow_prop_caixote_laranjas" },
+    { "id": "obj.christmas_tree", "tile": "prop_abeto_natal", "at": [22, 8], "overlay": "snow_prop_abeto_natal" },
+    { "id": "obj.bin", "tile": "prop_lixeira", "at": [23, 8], "overlay": "snow_prop_lixeira" },
+    { "id": "obj.snow_pile_1", "tile": "snow_monte_neve", "at": [1, 9] },
+    { "id": "obj.snow_pile_2", "tile": "snow_monte_neve", "at": [8, 9] },
+    { "id": "obj.snow_pile_3", "tile": "snow_monte_neve", "at": [28, 9] }
+  ],
+  "spawn": {
+    "player": [15, 9]
+  },
+  "doors": [
+    {
+      "id": "door.cafe",
+      "at": [17, 8],
+      "to": "map.cafe_main",
+      "spawn": [14, 4],
+      "facing": "down"
+    }
+  ]
+}

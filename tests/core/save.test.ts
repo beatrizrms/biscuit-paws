@@ -70,6 +70,22 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings).toHaveLength(2);
   });
 
+  it('save_v1 e v2 migram para v3 dentro do café, já limpo', () => {
+    for (const file of ['save_v1.json', 'save_v2.json']) {
+      const { state } = parseSave(readFileSync(`tests/fixtures/${file}`, 'utf8'), known);
+      expect(state.location).toBe('map.cafe_main');
+      expect(state.visited).toEqual(['map.street', 'map.cafe_main']);
+      expect(state.cleaned).toEqual(['*']);
+    }
+  });
+
+  it('save_v3: local que não existe mais volta para o início do jogo', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v3.json', 'utf8'), known);
+    expect(state.location).toBe('map.street');
+    expect(state.cleaned).toEqual(['dirt.web_window_left']);
+    expect(warnings.join()).toMatch(/map.lighthouse_that_was_removed/);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

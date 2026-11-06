@@ -21,7 +21,7 @@
   ],
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · C: catálogo · botão direito num móvel: recolher",
+  "hintWalk": "Setas/WASD: andar · porta: siga para cima · C (no café): catálogo",
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -46,5 +46,6 @@
   "current": "atual",
   "painted": "Pronto! O pintor terminou o serviço.",
   "refund": "devolver",
-  "refunded": "Devolvido."
+  "refunded": "Devolvido.",
+  "notHome": "Isso eu arrumo lá dentro do café."
 }
