@@ -174,10 +174,14 @@ export class GameUi {
           .map((i) => {
             const owned = state.inventory[i.id] ?? 0;
             const disabled = owned === 0 && state.money < i.price;
-            return `<button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
+            const refund =
+              owned > 0
+                ? `<button class="refund" data-refund="${i.id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(i.id)}</button>`
+                : '';
+            return `<div class="item-row"><button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
               <span>${esc(i.name)}</span><span class="price">${i.price}</span>
               ${owned > 0 ? `<span class="owned">${owned} ${uiText.inBag}</span>` : ''}
-            </button>`;
+            </button>${refund}</div>`;
           })
           .join('');
         return rows ? `<h3>${esc(section.title)}</h3>${rows}` : '';
@@ -186,6 +190,13 @@ export class GameUi {
     this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-item]').forEach((btn) =>
       btn.addEventListener('click', () => this.pick(btn.dataset.item!)),
     );
+    this.catalogList.querySelectorAll<HTMLButtonElement>('.refund[data-refund]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const result = this.session.refund(btn.dataset.refund!);
+        if (!result.ok) return this.problem(result.reason);
+        this.toast(uiText.refunded);
+      }),
+    );
     this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-finish]').forEach((btn) =>
       btn.addEventListener('click', () => this.paint(btn.dataset.surface!, btn.dataset.finish!)),
     );
@@ -193,6 +204,7 @@ export class GameUi {
 
   /** Seção do pintor: para cada superfície, os acabamentos que servem nela. */
   private renderRenovation(): string {
+    if (!this.session.painterUnlocked()) return '';
     const { state } = this.session;
     const finishes = Object.values(content.finishes);
     const blocks = this.session

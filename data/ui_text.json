@@ -38,10 +38,13 @@
     "unknown_surface": "Essa parte não pode ser reformada.",
     "unknown_finish": "Acabamento desconhecido.",
     "wrong_surface": "Esse acabamento não serve aqui.",
-    "already_painted": "Já está assim."
+    "already_painted": "Já está assim.",
+    "locked": "Ainda não conheço um pintor."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
   "current": "atual",
-  "painted": "Pronto! O pintor terminou o serviço."
+  "painted": "Pronto! O pintor terminou o serviço.",
+  "refund": "devolver",
+  "refunded": "Devolvido."
 }

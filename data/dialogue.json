@@ -3,29 +3,82 @@
   "dialogues": {
     "dlg.intro": {
       "lines": [
-        { "speaker": "", "text": "Dezembro. A neve cobre a Rua das Amoras." },
-        { "speaker": "", "text": "Com as economias de uma vida inteira, você comprou a velha padaria da esquina, fechada há muitos anos." },
-        { "speaker": "", "text": "O forno está frio e as prateleiras, vazias. Mas o balcão continua aqui, e o lugar ainda tem cheiro de lembrança." },
-        { "speaker": "Você", "text": "Vai virar um café. Um café com gatos." },
-        { "speaker": "Você", "text": "Só que sobraram poucas moedas... Melhor começar pelo essencial." },
-        { "speaker": "", "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo." }
+        {
+          "speaker": "",
+          "text": "Dezembro. A neve cobre a Rua das Amoras."
+        },
+        {
+          "speaker": "",
+          "text": "Com as economias de uma vida inteira, você comprou a velha padaria da esquina, fechada há muitos anos."
+        },
+        {
+          "speaker": "",
+          "text": "O forno está frio e as prateleiras, vazias. Mas o balcão continua aqui, e o lugar ainda tem cheiro de lembrança."
+        },
+        {
+          "speaker": "Você",
+          "text": "Vai virar um café. Um café com gatos."
+        },
+        {
+          "speaker": "Você",
+          "text": "Só que sobraram poucas moedas... Melhor começar pelo essencial."
+        },
+        {
+          "speaker": "",
+          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
+        }
       ]
     },
     "dlg.warm_corner_done": {
       "lines": [
-        { "speaker": "Você", "text": "Pronto. Um cantinho quente, com água e comida." },
-        { "speaker": "Você", "text": "Agora, um lugar para as pessoas sentarem. Todo café precisa de uma mesa." }
+        {
+          "speaker": "Você",
+          "text": "Pronto. Um cantinho quente, com água e comida."
+        },
+        {
+          "speaker": "Você",
+          "text": "Agora, um lugar para as pessoas sentarem. Todo café precisa de uma mesa."
+        }
       ]
     },
     "dlg.neighbor_visit": {
       "lines": [
-        { "speaker": "", "text": "Toc, toc. Uma senhora de cachecol vermelho espia pela porta." },
-        { "speaker": "Dona Lurdes", "text": "Então é verdade! Alguém abriu a padaria do seu Antônio." },
-        { "speaker": "Dona Lurdes", "text": "Eu comprava pão aqui todo dia, sabia? Faz tanto tempo..." },
-        { "speaker": "Dona Lurdes", "text": "Gatos, é? Hmm. Os de rua vivem revirando o meu lixo." },
-        { "speaker": "Dona Lurdes", "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida." },
-        { "speaker": "", "text": "Dona Lurdes deixou 50 moedas no balcão." },
-        { "speaker": "", "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado." }
+        {
+          "speaker": "",
+          "text": "Toc, toc. Uma senhora de cachecol vermelho espia pela porta."
+        },
+        {
+          "speaker": "Dona Lurdes",
+          "text": "Então é verdade! Alguém abriu a padaria do seu Antônio."
+        },
+        {
+          "speaker": "Dona Lurdes",
+          "text": "Eu comprava pão aqui todo dia, sabia? Faz tanto tempo..."
+        },
+        {
+          "speaker": "Dona Lurdes",
+          "text": "Gatos, é? Hmm. Os de rua vivem revirando o meu lixo."
+        },
+        {
+          "speaker": "Dona Lurdes",
+          "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida."
+        },
+        {
+          "speaker": "Dona Lurdes",
+          "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor. Diga que fui eu que mandei."
+        },
+        {
+          "speaker": "",
+          "text": "Dona Lurdes deixou 50 moedas no balcão."
+        },
+        {
+          "speaker": "",
+          "text": "Agora o pintor aparece no catálogo (C), na seção Reforma."
+        },
+        {
+          "speaker": "",
+          "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
+        }
       ]
     }
   }

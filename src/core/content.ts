@@ -28,6 +28,8 @@ export interface FinishDef {
 
 export interface FinishesData {
   schemaVersion: 1;
+  /** Flag que libera o pintor (sem ela, a seção Reforma não aparece). */
+  unlockFlag?: string;
   finishes: FinishDef[];
 }
 
@@ -35,6 +37,8 @@ export interface EconomyData {
   schemaVersion: 1;
   startingMoney: number;
   currency: string;
+  /** Fração do preço devolvida ao devolver um item da bolsa (0 a 1). */
+  refundRate: number;
 }
 
 /** Condição de história, escrita em JSON. */
@@ -93,6 +97,8 @@ export interface Content {
   map: MapData;
   items: Record<string, ItemDef>;
   finishes: Record<string, FinishDef>;
+  /** Flag que libera o pintor. */
+  painterUnlockFlag?: string;
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -113,7 +119,7 @@ export function buildContent(raw: RawContent): Content {
   for (const item of raw.items.items) items[item.id] = item;
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: raw.map, items, finishes, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
+  return { catalog: raw.catalog, map: raw.map, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -157,6 +163,7 @@ export function validateContent(raw: RawContent): string[] {
   if (!Number.isInteger(raw.economy.startingMoney) || raw.economy.startingMoney < 0) {
     err('economy: startingMoney inválido');
   }
+  if (!(raw.economy.refundRate >= 0 && raw.economy.refundRate <= 1)) err('economy: refundRate deve ficar entre 0 e 1');
 
   const itemTags = new Set(raw.items.items.flatMap((i) => i.tags));
   const dialogueIds = new Set(Object.keys(raw.dialogue.dialogues));

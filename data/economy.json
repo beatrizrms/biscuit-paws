@@ -1,5 +1,7 @@
 {
   "schemaVersion": 1,
   "startingMoney": 150,
-  "currency": "moedas"
+  "currency": "moedas",
+  "refundRate": 1,
+  "_comment": "refundRate: quanto volta ao devolver um item da bolsa (1 = tudo). Enquanto não há clientes, devolver tudo evita que a jogadora fique presa sem dinheiro."
 }

@@ -18,6 +18,7 @@ interface DebugHook {
       addMoney(delta: number, reason: string): void;
       buy(itemId: string): { ok: boolean };
       place(itemId: string, at: [number, number]): { ok: boolean };
+      state: { flags: Record<string, boolean> };
     };
   };
 }
@@ -186,6 +187,11 @@ test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ p
 test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  // O pintor só aparece depois da Dona Lurdes: libera direto pelo estado.
+  await page.evaluate(() => {
+    const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
+    session.state.flags['painter.available'] = true;
+  });
   await page.keyboard.press('c');
   await page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]').click();
   await expect(page.locator('.hud-money')).toContainText('90');

@@ -20,6 +20,7 @@ export type ActionResult =
         | 'unknown_finish'
         | 'wrong_surface'
         | 'already_painted'
+        | 'locked'
         | PlaceProblem;
     };
 
@@ -48,6 +49,30 @@ export class GameSession {
     return withPlaced({ ...base, legend }, this.state.placed, this.content.items);
   }
 
+  /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
+  painterUnlocked(): boolean {
+    const flag = this.content.painterUnlockFlag;
+    return !flag || this.state.flags[flag] === true;
+  }
+
+  /** Quanto volta ao devolver este item. */
+  refundValue(itemId: string): number {
+    const item = this.content.items[itemId];
+    return item ? Math.floor(item.price * this.content.economy.refundRate) : 0;
+  }
+
+  /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
+  refund(itemId: string): ActionResult {
+    if (!this.content.items[itemId]) return { ok: false, reason: 'unknown_item' };
+    if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
+    this.removeFromInventory(itemId);
+    const amount = this.refundValue(itemId);
+    this.addMoney(amount, `refund:${itemId}`);
+    this.bus.emit('item.refunded', { itemId, amount });
+    this.advanceStory();
+    return { ok: true };
+  }
+
   /** Superfícies que o pintor pode reformar. */
   surfaces(): SurfaceDef[] {
     return this.content.map.surfaces ?? [];
@@ -59,6 +84,7 @@ export class GameSession {
     if (!surface) return { ok: false, reason: 'unknown_surface' };
     const finish = this.content.finishes[finishId];
     if (!finish) return { ok: false, reason: 'unknown_finish' };
+    if (!this.painterUnlocked()) return { ok: false, reason: 'locked' };
     if (finish.kind !== surface.kind) return { ok: false, reason: 'wrong_surface' };
     if (this.state.finishes[surfaceId] === finishId) return { ok: false, reason: 'already_painted' };
     if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };

@@ -80,6 +80,9 @@
           "setFlag": "met.old_neighbor"
         },
         {
+          "setFlag": "painter.available"
+        },
+        {
           "addMoney": 50
         }
       ]

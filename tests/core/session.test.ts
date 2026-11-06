@@ -113,8 +113,31 @@ describe('dinheiro e inventário', () => {
 });
 
 describe('pintor (reforma)', () => {
+  /** Sessão com o pintor já apresentado pela Dona Lurdes. */
+  function painterSession() {
+    const s = newSession();
+    s.session.state.flags['painter.available'] = true;
+    return s;
+  }
+
+  it('fica bloqueado até a Dona Lurdes indicar o pintor', () => {
+    const { session } = newSession();
+    expect(session.painterUnlocked()).toBe(false);
+    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: false, reason: 'locked' });
+    expect(session.state.money).toBe(150);
+  });
+
+  it('a visita da Dona Lurdes libera o pintor', () => {
+    const { session } = newSession();
+    session.start(true);
+    for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.water_bowl', [13, 9]], ['item.food_bowl', [14, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
+      buyAndPlace(session, id, [at[0], at[1]]);
+    }
+    expect(session.painterUnlocked()).toBe(true);
+  });
+
   it('troca o piso do salão: cobra, guarda no estado e muda o mapa', () => {
-    const { session, events } = newSession();
+    const { session, events } = painterSession();
     session.start(true);
     events.length = 0;
     expect(session.mapData().legend.M).toBe('floor_check_old');
@@ -128,7 +151,7 @@ describe('pintor (reforma)', () => {
   });
 
   it('recusa acabamento que não serve, repetido, sem dinheiro ou desconhecido', () => {
-    const { session } = newSession();
+    const { session } = painterSession();
     expect(session.paint('surface.hall_floor', 'finish.wallpaper_mint')).toEqual({ ok: false, reason: 'wrong_surface' });
     expect(session.paint('surface.roof', 'finish.wood_planks')).toEqual({ ok: false, reason: 'unknown_surface' });
     expect(session.paint('surface.hall_floor', 'finish.gold')).toEqual({ ok: false, reason: 'unknown_finish' });
@@ -139,9 +162,31 @@ describe('pintor (reforma)', () => {
   });
 
   it('móveis continuam no lugar depois da reforma', () => {
-    const { session } = newSession();
+    const { session } = painterSession();
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     session.paint('surface.hall_floor', 'finish.tile_mint');
     expect(session.mapData().objects.some((o) => o.tile === 'cat_bed')).toBe(true);
+  });
+});
+
+describe('devolução', () => {
+  it('devolve item da bolsa com reembolso total (refundRate 1)', () => {
+    const { session, events } = newSession();
+    session.buy('item.sofa');
+    events.length = 0;
+    expect(session.state.money).toBe(30);
+    expect(session.refund('item.sofa')).toEqual({ ok: true });
+    expect(session.state.money).toBe(150);
+    expect(session.state.inventory).toEqual({});
+    expect(events.map((e) => e.name)).toEqual(['money.changed', 'item.refunded']);
+  });
+
+  it('só devolve o que está na bolsa (móvel posicionado precisa ser recolhido antes)', () => {
+    const { session } = newSession();
+    buyAndPlace(session, 'item.cactus', [10, 8]);
+    expect(session.refund('item.cactus')).toEqual({ ok: false, reason: 'not_in_inventory' });
+    session.pickUp(session.state.placed[0]!.uid);
+    expect(session.refund('item.cactus')).toEqual({ ok: true });
+    expect(session.state.money).toBe(150);
   });
 });

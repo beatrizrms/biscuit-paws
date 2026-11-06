@@ -248,3 +248,20 @@
 /* Reforma (pintor) no catálogo */
 .catalog h4 { margin: 4px 0 2px; font-size: 8px; color: var(--wood3); }
 .catalog .note { margin: 0 0 2px; font-size: 7px; color: var(--ink2); font-style: italic; }
+
+/* Devolver item da bolsa */
+.catalog .item-row { position: relative; }
+.catalog .refund {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 7px;
+  color: var(--wood3);
+  background: var(--cream);
+  border: 1px solid var(--cream3);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.catalog .refund:hover { border-color: var(--wood3); }
