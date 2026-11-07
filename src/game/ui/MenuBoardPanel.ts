@@ -92,6 +92,16 @@ export class MenuBoardPanel {
     return `<div class="board" style="width:${px(W)};height:${px(H)};background-image:url(${board.image})">${cells.join('')}</div>`;
   }
 
+  /** Quantos clientes cabem agora e como (lugares e louça; regras em service.json). */
+  private capacityHtml(): string {
+    const c = this.session.service.capacity();
+    const t = uiText.menuBoard.capacity;
+    const fill = (x: string) => x.replace('{total}', String(c.total)).replace('{standing}', String(c.standing)).replace('{seated}', String(c.seated));
+    const d = this.session.state.dishes;
+    const dishes = t.dishes.replace('{cup}', String(d.cup)).replace('{glass}', String(d.glass)).replace('{plate}', String(d.plate));
+    return `<p class="capacity"><b>${esc(fill(t.line))}</b> ${esc(fill(t.detail))}<br />${esc(c.canEat ? t.canEat : t.cannotEat)} · ${esc(dishes)}</p>`;
+  }
+
   private render(): void {
     if (!this.open) return;
     const sv = this.session.service;
@@ -102,6 +112,7 @@ export class MenuBoardPanel {
     const empty = Array.from({ length: Math.max(0, slots - inMenu.length) }, () => `<div class="recipe slot-empty">${uiText.menuBoard.emptySlot}</div>`);
     const scroll = this.body.scrollTop; // redesenhar não pode mexer na rolagem de quem está lendo
     this.body.innerHTML = `${this.boardHtml(inMenu)}
+      ${this.capacityHtml()}
       <h3>${uiText.menuBoard.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${inMenu.map((r) => this.row(r, true)).join('')}${empty.join('')}
       <h3>${uiText.menuBoard.recipes}</h3>

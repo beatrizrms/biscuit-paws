@@ -7,6 +7,7 @@ import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import type { Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
 import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
+import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
 
@@ -260,13 +261,36 @@ export class CafeService {
 
   // ---------- Capacidade e lugares ----------
 
-  /** Quantos clientes cabem agora: o teto dos dados, limitado pela louça que não está suja. */
-  capacity(): number {
-    const clean = VESSELS.reduce((n, v) => n + (this.st.dishes[v] ?? 0), 0);
-    const inUse =
-      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'drink').length +
-      this.st.service.customers.filter((c) => c.stage === 'drinking').length;
-    return Math.min(this.cfg.maxCustomers, clean + inUse);
+  /** Já tem tantos clientes atendidos (fora da fila) quanto cabem? */
+  private isFull(): boolean {
+    return this.st.service.customers.filter((c) => c.stage !== 'queue').length >= this.capacity().total;
+  }
+
+  /** Esta receita pode ser servida neste tipo de lugar? (pela louça: service.json, servedAt) */
+  servesAt(r: RecipeDef, kind: ServiceKind): boolean {
+    return this.cfg.servedAt[r.vessel]?.includes(kind) ?? false;
+  }
+
+  /**
+   * Quantos clientes cabem agora e de que forma: lugares (em pé e assentos) e louça que não está suja
+   * (limpa + já servida), contadas por tipo. Só conta a louça que o cardápio de agora usa.
+   */
+  capacity(): CapacityView {
+    const vessels: Record<Vessel, number> = { cup: 0, glass: 0, plate: 0 };
+    for (const v of VESSELS) vessels[v] = this.st.dishes[v] ?? 0;
+    for (const i of [...this.st.hands, ...this.st.surfaces.map((s) => s.item)]) if (i.kind === 'drink') vessels[i.vessel] += 1;
+    for (const c of this.st.service.customers) {
+      const v = c.stage === 'drinking' ? this.recipe(c.recipe ?? '')?.vessel : undefined;
+      if (v) vessels[v] += 1;
+    }
+    const spots = this.spots();
+    return capacityOf({
+      vessels,
+      standingSpots: spots.filter((s) => s.kind === 'standing').length,
+      seats: spots.filter((s) => s.kind === 'table').length,
+      servedAt: this.cfg.servedAt,
+      menuVessels: new Set(this.orderable().map((r) => r.vessel)),
+    });
   }
 
   /** Lugares de atendimento: em pé na frente do balcão; sentado numa cadeira ao lado de uma mesa. */
@@ -301,8 +325,8 @@ export class CafeService {
 
   /** Um lugar livre que tenha pedido possível (em pé ou na mesa). */
   private usableSpot(): { kind: ServiceKind; spot: Cell; dishAt: Cell } | undefined {
-    const kinds = new Set(this.orderable().map((r) => r.service));
-    return this.freeSpots().find((s) => kinds.has(s.kind));
+    const recipes = this.orderable();
+    return this.freeSpots().find((s) => recipes.some((r) => this.servesAt(r, s.kind)));
   }
 
   /** O atendimento está funcionando agora (marco/condição dos dados + horário)? */
@@ -353,9 +377,9 @@ export class CafeService {
         this.leave(c, true);
       }
     }
-    // Fila: quem esperava ganha um lugar livre.
+    // Fila: quem esperava ganha um lugar livre (se ainda cabe gente: lugares e louça).
     for (const c of sv.customers.filter((x) => x.stage === 'queue')) {
-      const spot = this.usableSpot();
+      const spot = this.isFull() ? undefined : this.usableSpot();
       if (!spot) break;
       this.seat(c, spot);
     }
@@ -367,8 +391,9 @@ export class CafeService {
     if (!this.isOpen()) return;
     if (sv.nextCustomerAt === null) sv.nextCustomerAt = now + this.cfg.firstArrivalMinutes;
     if (now < sv.nextCustomerAt) return;
-    if (sv.customers.length >= this.capacity() || this.orderable().length === 0) return;
-    const spot = this.usableSpot();
+    if (this.orderable().length === 0) return;
+    // Lotado (lugares ou louça): quem chega espera na fila, se tiver vaga nela.
+    const spot = this.isFull() ? undefined : this.usableSpot();
     const queueFree = this.cfg.queue.filter((q) => !sv.customers.some((c) => c.stage === 'queue' && same(c.spot, q)));
     if (!spot && queueFree.length === 0) return;
     const rng = this.h.rng();
@@ -395,7 +420,7 @@ export class CafeService {
 
   /** Vai para o lugar e faz o pedido (do quadro, que dá para fazer, do tipo do lugar; o favorito pesa mais). */
   private seat(c: Customer, spot: { kind: ServiceKind; spot: Cell; dishAt: Cell }): void {
-    const options = this.orderable().filter((r) => r.service === spot.kind);
+    const options = this.orderable().filter((r) => this.servesAt(r, spot.kind));
     if (options.length === 0) return;
     const rng = this.h.rng();
     const favorite = options.find((r) => r.id === c.favorite);

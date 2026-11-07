@@ -30,8 +30,8 @@ export interface RecipeDef {
   premium?: Record<string, string>;
   /** Etapas, em ordem (café: cafeteira; pão de queijo: fogão e depois forno). */
   steps: RecipeStep[];
+  /** A louça diz onde o cliente consome (service.json: servedAt): xícara/copo em pé ou na mesa; prato só na mesa. */
   vessel: Vessel;
-  service: ServiceKind;
   /** Preço de venda (premium multiplica, ver service.json). */
   price: number;
   /** Condição para aparecer no quadro (marco, equipamento comprado, cômodo restaurado...). */
@@ -47,8 +47,11 @@ export interface ServiceConfig {
   schemaVersion: 1;
   /** Quantos itens cabem no quadro do cardápio. */
   menuSlots: number;
-  /** Teto de clientes ao mesmo tempo (a louça limpa também limita). */
-  maxCustomers: number;
+  /**
+   * Onde cada louça pode ser servida. Regra da casa: beber (xícara, copo) em pé ou na mesa; comer (prato) só na mesa.
+   * A capacidade (capacity.ts) sai daqui, dos lugares e da louça: não há teto fixo.
+   */
+  servedAt: Record<Vessel, ServiceKind[]>;
   /** Horário em que entram clientes. */
   open: { from: string; until: string };
   /** O primeiro cliente do dia chega depois de tantos minutos; os outros, num intervalo sorteado. */
@@ -133,13 +136,13 @@ export function validateRecipes(
       if (!(s.minutes > 0)) errors.push(`${where}: etapa sem tempo`);
     }
     if (!VESSELS.includes(r.vessel)) errors.push(`${where}: louça inválida "${r.vessel}"`);
-    if (!['standing', 'table'].includes(r.service)) errors.push(`${where}: serviço inválido "${r.service}"`);
-    // Regra da casa: em pé só com xícara ou copo; comer (prato) só na mesa.
-    if (r.service === 'standing' && r.vessel === 'plate') errors.push(`${where}: em pé não usa prato`);
-    if (r.vessel === 'plate' && r.service !== 'table') errors.push(`${where}: prato só na mesa`);
     if (!(r.price > 0)) errors.push(`${where}: preço precisa ser positivo`);
   }
-  if (!(service.menuSlots >= 1) || !(service.maxCustomers >= 1)) errors.push('service: menuSlots e maxCustomers precisam ser 1 ou mais');
+  if (!(service.menuSlots >= 1)) errors.push('service: menuSlots precisa ser 1 ou mais');
+  for (const v of VESSELS) {
+    const at = service.servedAt?.[v] ?? [];
+    if (at.length === 0 || at.some((k) => !['standing', 'table'].includes(k))) errors.push(`service: servedAt "${v}" precisa de "standing" e/ou "table"`);
+  }
   if (!(service.sinkCapacity >= 1) || !(service.washMinutesPerDish > 0)) errors.push('service: sinkCapacity e washMinutesPerDish precisam ser positivos');
   if (!(service.premiumPriceMultiplier >= 1) || !(service.tipRate >= 0)) errors.push('service: premiumPriceMultiplier >= 1 e tipRate >= 0');
   for (const [key, eq] of Object.entries(service.equipment)) {

@@ -1,8 +1,20 @@
 {
   "schemaVersion": 1,
-  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
+  "_comment": "Atendimento. menuSlots: itens no quadro. servedAt: onde cada louça pode ser servida (beber em pé ou na mesa; comer só na mesa); a capacidade sai dos lugares e da louça (capacity.ts), sem teto fixo. enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
   "menuSlots": 4,
-  "maxCustomers": 6,
+  "servedAt": {
+    "cup": [
+      "standing",
+      "table"
+    ],
+    "glass": [
+      "standing",
+      "table"
+    ],
+    "plate": [
+      "table"
+    ]
+  },
   "open": {
     "from": "09:00",
     "until": "18:00"

@@ -217,7 +217,14 @@
     "missingIngredients": "faltam ingredientes",
     "missingVessel": "sem {name} limpo(a)",
     "steps": "Etapas: {steps}",
-    "premiumPrice": "premium {price}"
+    "premiumPrice": "premium {price}",
+    "capacity": {
+      "line": "Cabem {total} clientes por vez",
+      "detail": "({standing} em pé no balcão, {seated} sentados).",
+      "canEat": "Comida: servida na mesa, com prato.",
+      "cannotEat": "Comida: precisa de mesa com cadeira, prato e uma receita de prato no quadro.",
+      "dishes": "Louça limpa: {cup} xícaras, {glass} copos, {plate} pratos"
+    }
   },
   "backpack": {
     "title": "Mochila",

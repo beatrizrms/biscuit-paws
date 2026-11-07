@@ -71,9 +71,9 @@ describe('receitas e cardápio', () => {
     expect(sv.recipeStatus('recipe.cafe_latte')).toBe('locked');
   });
 
-  it('a louça da Gabi são 6 peças no total', () => {
+  it('a louça da Gabi: 6 xícaras, 6 copos e 6 pratos', () => {
     const { state } = openCafe();
-    expect(state.dishes.cup + state.dishes.glass + state.dishes.plate).toBe(6);
+    expect(state.dishes).toEqual({ cup: 6, glass: 6, plate: 6 });
   });
 
   it('um pacote rende doses (pó de café: 10)', () => {
@@ -99,15 +99,15 @@ describe('receitas e cardápio', () => {
     expect(state.menu).not.toContain('recipe.black_tea');
   });
 
-  it('regra da casa: em pé não usa prato; prato só na mesa', () => {
-    const bad: RecipeDef = { ...content.recipes['recipe.black_coffee']!, id: 'recipe.bad', vessel: 'plate' };
+  it('regra da casa nos dados: onde cada louça pode ser servida precisa ser válido', () => {
+    const bad: RecipeDef = { ...content.recipes['recipe.black_coffee']! };
     const errors = validateRecipes(
       { schemaVersion: 3, recipes: [bad] },
-      content.service,
+      { ...content.service, servedAt: { ...content.service.servedAt, plate: [] } },
       content.carry,
       { items: new Set(Object.keys(content.items)), icons: new Set(['cafe_preto']), itemTags: new Set(Object.values(content.items).flatMap((i) => i.tags)) },
     );
-    expect(errors.join()).toMatch(/em pé não usa prato/);
+    expect(errors.join()).toMatch(/servedAt "plate"/);
   });
 });
 
@@ -129,7 +129,7 @@ describe('ciclo do pedido', () => {
     advance(session, 6);
     expect(sv.surfaceAt([7, 5])?.item).toEqual({ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup', quality: 'simple' });
     expect(sv.doses('item.coffee_ground')).toBe(9);
-    expect(state.dishes.cup).toBe(1);
+    expect(state.dishes.cup).toBe(5);
 
     // Pega (uma coisa por vez) e entrega.
     expect(sv.pickUp([7, 5])).toEqual({ ok: true });
@@ -147,7 +147,7 @@ describe('ciclo do pedido', () => {
     advance(session, content.service.consumeMinutes.standing + 1);
     expect(state.service.customers.some((x) => x.id === c.id)).toBe(false);
     expect(sv.surfaceAt([4, 5])?.item).toEqual({ kind: 'dirty', vessel: 'cup' });
-    expect(sv.capacity()).toBe(5);
+    expect(sv.capacity().total).toBe(2); // 1 em pé + 1 sentado: os lugares limitam antes da louça
 
     // Recolhe, deixa na pia e lava (leva uns minutos): volta para o estoque limpo.
     sv.pickUp([4, 5]);
@@ -156,10 +156,9 @@ describe('ciclo do pedido', () => {
     expect(sv.depositDirty()).toEqual({ ok: true });
     expect(sv.sinkAction()).toBe('wash');
     expect(sv.startWash()).toEqual({ ok: true });
-    expect(state.dishes.cup).toBe(1);
+    expect(state.dishes.cup).toBe(5);
     advance(session, content.service.washMinutesPerDish + 1);
-    expect(state.dishes.cup).toBe(2);
-    expect(sv.capacity()).toBe(6);
+    expect(state.dishes.cup).toBe(6);
   });
 
   it('só prepara o que foi pedido; sem pedido, nada', () => {
@@ -186,10 +185,14 @@ describe('ciclo do pedido', () => {
     expect(state.money).toBe(money);
   });
 
-  it('sem lugar livre, o cliente espera na fila e senta quando liberar', () => {
+  it('lotado, o cliente espera na fila e senta quando liberar', () => {
     const { session, sv, state } = openCafe();
+    // Só o lugar em pé: tira a cadeira (o café continua em funcionamento parcial).
+    const chair = state.placed.find((p) => content.items[p.item]?.tags.includes('chair'))!;
+    session.pickUp(chair.uid);
     sv.toggleMenu('recipe.black_coffee');
     advance(session, 6);
+    expect(sv.capacity().total).toBe(1);
     // Força o próximo a chegar já.
     state.service.nextCustomerAt = 0;
     advance(session, 1);
@@ -198,12 +201,16 @@ describe('ciclo do pedido', () => {
     expect(content.service.queue).toContainEqual(queued!.spot);
   });
 
-  it('louça suja reduz a capacidade; o teto vem dos dados', () => {
+  it('capacidade: lugares e louça do cardápio; louça suja não conta', () => {
     const { sv, state } = openCafe();
-    expect(sv.capacity()).toBe(Math.min(content.service.maxCustomers, 6));
-    state.dishes.cup -= 1;
+    expect(state.dishes).toEqual({ cup: 6, glass: 6, plate: 6 }); // presente da Gabi
+    expect(sv.capacity().total).toBe(0); // cardápio vazio
+    sv.toggleMenu('recipe.black_coffee');
+    // 1 lugar em pé no balcão + 1 cadeira na mesa; café pode ser tomado nos dois.
+    expect(sv.capacity()).toEqual({ total: 2, standing: 1, seated: 1, canEat: false });
+    state.dishes.cup = 1;
     state.surfaces.push({ at: [4, 5], item: { kind: 'dirty', vessel: 'cup' } });
-    expect(sv.capacity()).toBe(5);
+    expect(sv.capacity().total).toBe(1);
   });
 
   it('o atendimento abre no funcionamento parcial (cadeiras, cafeteira, mesa e cadeira), no horário', () => {
