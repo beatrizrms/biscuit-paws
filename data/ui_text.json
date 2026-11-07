@@ -72,7 +72,9 @@
     "not_on_tray": "Na bandeja só vai louça.",
     "no_tray": "Você não tem bandeja (o mercado vende).",
     "sink_full": "A pia está cheia. Lave antes de pôr mais.",
-    "not_at_home": "Aqui não. Só dentro do café."
+    "not_at_home": "Aqui não. Só dentro do café.",
+    "needs_counter": "Isso vai em cima de um balcão.",
+    "has_something_on_top": "Tire primeiro o que está em cima do balcão."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",

@@ -456,7 +456,7 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
     s.state.cleaned = ['*'];
     s.state.money = 400;
     s.state.time = 9 * 60;
-    for (const [id, at] of [['item.counter_single', [4, 5]], ['item.coffee_machine', [7, 5]], ['item.table_round', [10, 8]], ['item.chair_front', [11, 8]]] as const) {
+    for (const [id, at] of [['item.counter_single', [4, 5]], ['item.counter_single', [7, 5]], ['item.coffee_machine', [7, 5]], ['item.table_round', [10, 8]], ['item.chair_front', [11, 8]]] as const) {
       s.buy(id);
       s.place(id, [at[0], at[1]]);
     }

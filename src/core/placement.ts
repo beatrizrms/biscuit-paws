@@ -4,17 +4,37 @@ import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import type { PlacedItem } from './state';
 import type { TileCatalog, TileDef, TileLayer } from './tiles';
 
-export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked';
+export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked' | 'needs_counter' | 'has_something_on_top';
 
 export const PLACED_PREFIX = 'placed.';
 
 /** Mapa base + móveis da jogadora, como objetos comuns. */
-export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>): MapData {
+export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
-    return item?.tile ? [{ id: `${PLACED_PREFIX}${p.uid}`, tile: item.tile, at: p.at }] : [];
+    if (!item?.tile) return [];
+    // Em cima de outro móvel (ex.: cafeteira no balcão): sobe até o tampo.
+    const onTop = !!item.placeOn && !!hostAt(placed, items, item.placeOn, p.at);
+    return [{ id: `${PLACED_PREFIX}${p.uid}`, tile: item.tile, at: p.at, ...(onTop ? { lift } : {}) }];
   });
   return { ...map, objects: [...map.objects, ...extra] };
+}
+
+/** O móvel com esta tag posicionado na célula (o "apoio" de quem vai em cima). */
+export function hostAt(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, [c, r]: Cell): PlacedItem | undefined {
+  return placed.find((p) => p.at[0] === c && p.at[1] === r && !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag));
+}
+
+/** Algo em cima deste móvel? (não dá para recolher o balcão com a cafeteira em cima) */
+export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem): PlacedItem | undefined {
+  return placed.find((p) => p !== host && items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
+}
+
+/** Onde um item que vai em cima pode ficar: num apoio com a tag, sem nada em cima ainda. */
+export function placeOnProblem(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell): PlaceProblem | null {
+  const host = hostAt(placed, items, tag, at);
+  if (!host) return 'needs_counter';
+  return itemOnTop(placed, items, host) ? 'occupied' : null;
 }
 
 /**
@@ -72,7 +92,7 @@ export function placedItemAt(
   const hits = placed.flatMap((p) => {
     const def = catalog.tiles[items[p.item]?.tile ?? ''];
     if (!def || !cellsOf(p.at, def).some(([c, r]) => c === col && r === row)) return [];
-    return [{ p, rank: order.indexOf(def.layer) }];
+    return [{ p, rank: order.indexOf(def.layer) - (items[p.item]?.placeOn ? 1 : 0) }];
   });
   return hits.sort((a, b) => a.rank - b.rank)[0]?.p;
 }

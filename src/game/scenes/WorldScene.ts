@@ -333,7 +333,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.mapImages?.destroy(true);
     this.mapImages = this.add.group();
     for (const s of this.map.sprites) {
-      this.mapImages.add(this.add.image(s.col * ts, s.row * ts, s.sheet, s.frame).setOrigin(0).setDepth(s.depth));
+      this.mapImages.add(this.add.image(s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setOrigin(0).setDepth(s.depth));
     }
 
     this.solidCollider?.destroy();
@@ -621,6 +621,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return false;
   }
 
+  /** Quanto um móvel posicionado foi desenhado para cima (equipamento em cima do balcão). */
+  private liftOf(uid: string): number {
+    return this.map.sprites.find((s) => s.dy && this.session.state.placed.some((p) => p.uid === uid && p.at[0] === s.col && p.at[1] === s.row))?.dy ?? 0;
+  }
+
   /** Itens deixados no café (bebidas prontas, louça suja) como ícones nas células. */
   private refreshSurfaces(): void {
     this.surfaceIcons.forEach((i) => i.destroy());
@@ -745,7 +750,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const frame = Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)));
       let bar = this.progressBars.get(placed.uid);
       if (!bar) {
-        bar = this.add.image((placed.at[0] + 0.5) * ts, placed.at[1] * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+        bar = this.add.image((placed.at[0] + 0.5) * ts, placed.at[1] * ts - 2 - this.liftOf(placed.uid), 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
         this.progressBars.set(placed.uid, bar);
       }
       bar.setTexture(`progress_${frame}`);
@@ -759,7 +764,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           const first = def.row * columns + work[0]!;
           const anim = `work-${sheet.id}-${def.row}`;
           if (!this.anims.exists(anim)) this.anims.create({ key: anim, frames: this.anims.generateFrameNumbers(key, { start: first, end: def.row * columns + work[1]! }), frameRate: 6, repeat: -1 });
-          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts, key, first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 1);
+          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts - this.liftOf(placed.uid), key, first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 2);
           sprite.play(anim);
           this.equipAnims.set(placed.uid, sprite);
         }

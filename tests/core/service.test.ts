@@ -26,6 +26,8 @@ function openCafe(opts: { counter?: boolean; coffee?: boolean } = {}) {
     expect(session.place(item, at)).toEqual({ ok: true });
   };
   if (opts.counter !== false) put('item.counter_single', [4, 5]);
+  // A cafeteira vai em cima de um balcão.
+  put('item.counter_single', [7, 5]);
   put('item.coffee_machine', [7, 5]);
   put('item.table_round', [10, 8]);
   put('item.chair_front', [11, 8]);
@@ -45,8 +47,11 @@ describe('receitas e cardápio', () => {
     const session = new GameSession(content, state);
     const sv = session.service;
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('equipment');
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [7, 5]);
     session.buy('item.coffee_machine');
-    session.place('item.coffee_machine', [7, 5]);
+    expect(session.place('item.coffee_machine', [8, 5])).toEqual({ ok: false, reason: 'needs_counter' });
+    expect(session.place('item.coffee_machine', [7, 5])).toEqual({ ok: true });
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
     session.buy('item.coffee_ground');
     session.buy('item.paper_filter');
@@ -266,6 +271,8 @@ describe('quest: o primeiro cliente', () => {
     const state = newGameState(500, 'map.cafe_main', 9 * 60);
     state.story.completed.push(...untilChairs);
     const session = new GameSession(content, state);
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [7, 5]);
     session.buy('item.coffee_machine');
     session.place('item.coffee_machine', [7, 5]);
     expect(session.goals()).toEqual([]);
@@ -340,7 +347,7 @@ describe('fase 2: forno e receitas em etapas', () => {
     const ctx = openCafe();
     const { session, sv } = ctx;
     session.state.money += 1000;
-    for (const [id, at] of [['item.stove', [2, 8]], ['item.oven', [4, 8]]] as const) {
+    for (const [id, at] of [['item.counter_single', [2, 8]], ['item.counter_single', [4, 8]], ['item.stove', [2, 8]], ['item.oven', [4, 8]]] as const) {
       session.buy(id);
       session.place(id, [at[0], at[1]]);
     }
@@ -377,6 +384,8 @@ describe('fase 2: forno e receitas em etapas', () => {
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
     const { session, sv } = openCafe();
     session.state.money += 1000;
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [2, 8]);
     session.buy('item.stove');
     session.place('item.stove', [2, 8]);
     expect(sv.recipeStatus('recipe.cheese_bread')).toBe('equipment');
@@ -429,5 +438,24 @@ describe('fase 2: qualidade e preferências', () => {
     expect(a.state.service.customers.map((c) => [c.look, c.favorite, c.wantsPremium, c.recipe])).toEqual(
       b.state.service.customers.map((c) => [c.look, c.favorite, c.wantsPremium, c.recipe]),
     );
+  });
+});
+
+describe('equipamentos em cima do balcão', () => {
+  it('só vão em cima de um balcão livre; o balcão não sai com algo em cima; não vira lugar de cliente', () => {
+    const { session, sv, state } = openCafe();
+    const machine = state.placed.find((p) => p.item === 'item.coffee_machine')!;
+    const counter = state.placed.find((p) => p.item === 'item.counter_single' && p.at[0] === 7)!;
+    // Já tem a cafeteira em cima: o bule não cabe no mesmo balcão.
+    session.state.money += 100;
+    session.buy('item.teapot');
+    expect(session.place('item.teapot', [7, 5])).toEqual({ ok: false, reason: 'occupied' });
+    // Recolher o balcão com a cafeteira em cima não pode; a cafeteira sai primeiro.
+    expect(session.pickUp(counter.uid)).toEqual({ ok: false, reason: 'has_something_on_top' });
+    expect(session.placedAt([7, 5])?.uid).toBe(machine.uid);
+    // O balcão da cafeteira não é lugar de cliente em pé; o outro é.
+    expect(sv.spots().filter((s) => s.kind === 'standing').map((s) => s.spot)).toEqual([[4, 6]]);
+    // No mapa, a cafeteira fica em cima do tampo.
+    expect(session.mapData().objects.find((o) => o.id === 'placed.' + machine.uid)?.lift).toBe(content.world.counterLift);
   });
 });

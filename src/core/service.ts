@@ -277,8 +277,10 @@ export class CafeService {
     const items = this.h.content.items;
     const withTag = (tag: string) => this.st.placed.filter((p) => items[p.item]?.tags.includes(tag));
     const out: { kind: ServiceKind; spot: Cell; dishAt: Cell }[] = [];
+    const busyCounters = new Set(this.st.placed.filter((p) => items[p.item]?.placeOn).map((p) => `${p.at[0]},${p.at[1]}`));
     for (const p of withTag(this.cfg.standingTag)) {
       for (const [c, r] of this.cellsOfPlaced(p.item, p.at)) {
+        if (busyCounters.has(`${c},${r}`)) continue;
         const below: Cell = [c, r + 1];
         if (free(below)) out.push({ kind: 'standing', spot: below, dishAt: [c, r] });
       }

@@ -25,6 +25,8 @@ export interface MapObject {
   overlay?: string;
   /** Só aparece quando a condição vale (ex.: a lousa depois de comprada). */
   when?: DoorCondition;
+  /** Desenhado tantos pixels acima (em cima de outro móvel). */
+  lift?: number;
 }
 
 /**
@@ -106,6 +108,8 @@ export interface SurfaceDef {
 
 /** Uma célula de 32 x 32 pronta para desenhar. */
 export interface MapSprite {
+  /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
+  dy?: number;
   tile: string;
   /** Folha (textura) do tile. */
   sheet: string;
@@ -211,7 +215,8 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
       continue;
     }
     for (const [c, r] of cellsOf(obj.at, def)) {
-      const key = `${def.layer}:${c},${r}`;
+      // Quem está em cima de outro móvel (lift: cafeteira no balcão) divide a célula com ele.
+      const key = `${obj.lift ? 'top' : def.layer}:${c},${r}`;
       const other = occupied.get(key);
       if (other) err(`objeto "${obj.id}" se sobrepõe a "${other}" em (${c},${r})`);
       else occupied.set(key, obj.id);
@@ -288,7 +293,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const over = obj.overlay ? catalog.tiles[obj.overlay] : undefined;
     for (const [col, row] of cellsOf(obj.at, def)) {
       const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
-      sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col, row, depth });
+      sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
       if (over) {
         const overFrame = frameOf(catalog, over, col - c0, row - r0);
         sprites.push({ tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });

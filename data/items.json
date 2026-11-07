@@ -712,7 +712,8 @@
         "counter",
         "coffee_machine",
         "equipment"
-      ]
+      ],
+      "placeOn": "bar"
     },
     {
       "id": "item.parcel",
@@ -734,7 +735,8 @@
         "counter",
         "equipment",
         "teapot"
-      ]
+      ],
+      "placeOn": "bar"
     },
     {
       "id": "item.blender",
@@ -746,7 +748,8 @@
         "counter",
         "equipment",
         "blender"
-      ]
+      ],
+      "placeOn": "bar"
     },
     {
       "id": "item.tray",
@@ -859,7 +862,8 @@
         "counter",
         "equipment",
         "stove"
-      ]
+      ],
+      "placeOn": "bar"
     },
     {
       "id": "item.oven",
@@ -871,7 +875,8 @@
         "counter",
         "equipment",
         "oven"
-      ]
+      ],
+      "placeOn": "bar"
     }
   ]
 }

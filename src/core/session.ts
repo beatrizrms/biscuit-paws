@@ -9,7 +9,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
+import { itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -534,7 +534,7 @@ export class GameSession {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
       if (finish) legend[surface.legend] = finish.tile;
     }
-    return withPlaced({ ...base, legend, dirt: this.visibleDirt() }, this.state.placed, this.content.items);
+    return withPlaced({ ...base, legend, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -685,6 +685,8 @@ export class GameSession {
   checkPlacement(itemId: string, at: Cell, reserved: readonly Cell[] = []): PlaceProblem | null {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
+    const placeOn = this.content.items[itemId]?.placeOn;
+    if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
     return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
   }
 
@@ -712,6 +714,7 @@ export class GameSession {
   pickUp(uid: string): ActionResult {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
+    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
     const [removed] = this.state.placed.splice(index, 1);
     this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
     this.bus.emit('item.picked_up', { itemId: removed!.item, uid });

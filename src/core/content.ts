@@ -31,6 +31,8 @@ export interface ItemDef {
   iconImage?: string;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
+  /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
+  placeOn?: string;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
   storesAs?: { item: string; qty: number };
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
@@ -200,6 +202,8 @@ export interface WorldData {
   goHomeDoors: string[];
   /** Quantas poeiras do café voltam a cada manhã (rotina de varrer). */
   dailyDirt: number;
+  /** Pixels que um equipamento sobe quando está em cima do balcão. */
+  counterLift?: number;
   /**
    * Onde ela dorme. null = em casa, fora do mapa (transição "Você foi para casa").
    * Ponto de extensão: quando o quartinho do café for destrancado, vira o id desse mapa.
@@ -483,6 +487,7 @@ export function validateContent(raw: RawContent): string[] {
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
+    if (item.placeOn && !itemTags.has(item.placeOn)) err(`items: "${item.id}" vai em cima de "${item.placeOn}", tag que nenhum item tem`);
     if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);
     if (item.storesAs && !item.tags.includes(raw.carry.heavy.tag)) err(`items: "${item.id}" tem storesAs mas não é pesado (tag "${raw.carry.heavy.tag}")`);
   }

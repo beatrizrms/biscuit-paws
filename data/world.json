@@ -15,5 +15,6 @@
   "goHomeDoors": [
     "door.street"
   ],
-  "dailyDirt": 2
+  "dailyDirt": 2,
+  "counterLift": 14
 }
