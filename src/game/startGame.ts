@@ -3,7 +3,8 @@
 import type Phaser from 'phaser';
 import { GameSession } from '../core/session';
 import { AUTO_SLOT, type ManualSlot, type SlotId } from '../core/saveSlots';
-import { newGameState } from '../core/state';
+import { newGameState, type PlayerState } from '../core/state';
+import { buildPlayerTextures } from './playerLook';
 import { content } from './content';
 import { services } from './services';
 
@@ -11,8 +12,8 @@ import { services } from './services';
 const AUTOSAVE_MS = 1500;
 
 export type StartRequest =
-  /** Jogo novo no slot (já confirmado se ele estava ocupado). */
-  | { mode: 'new'; slot: ManualSlot }
+  /** Jogo novo no slot (já confirmado se ele estava ocupado), com o nome e a aparência do criador. */
+  | { mode: 'new'; slot: ManualSlot; player?: PlayerState }
   /** Carrega um slot (o autosave volta ao slot manual de origem). */
   | { mode: 'load'; from: SlotId };
 
@@ -25,7 +26,9 @@ export async function startGame(scene: Phaser.Scene, req: StartRequest): Promise
   let isNew = false;
   if (req.mode === 'new') {
     slot = req.slot;
-    session = new GameSession(content, newGameState(content.economy.startingMoney, content.world.startMap));
+    const state = newGameState(content.economy.startingMoney, content.world.startMap);
+    if (req.player) state.player = { ...req.player };
+    session = new GameSession(content, state);
     isNew = true;
     await saves.write(slot, session.state);
   } else {
@@ -35,6 +38,8 @@ export async function startGame(scene: Phaser.Scene, req: StartRequest): Promise
     session = new GameSession(content, r.state);
     slot = req.from === AUTO_SLOT ? await saves.autoOrigin() : req.from;
   }
+  // A personagem: junta as camadas da aparência (caminhada e poses) antes de abrir o mundo.
+  await buildPlayerTextures(scene, session.appearance());
   await saves.setCurrentSlot(slot);
   attachSaving(session, slot);
   scene.scene.start('World', { session, isNew, slot });

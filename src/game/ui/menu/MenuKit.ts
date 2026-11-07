@@ -24,13 +24,15 @@ function onKey(e: KeyboardEvent): void {
   if (!top) return;
   const items = focusables(top.el);
   const i = items.indexOf(document.activeElement as HTMLElement);
+  // Setas para os lados ficam com o elemento: volume (controle deslizante), texto (nome) e opções que giram (data-cycle).
+  const active = document.activeElement as HTMLInputElement | null;
+  const keepsSideways = active?.type === 'range' || active?.type === 'text' || active?.dataset.cycle !== undefined;
   if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-    // Setas para os lados mexem no volume quando o foco está num controle deslizante.
-    if (e.key === 'ArrowRight' && (document.activeElement as HTMLInputElement | null)?.type === 'range') return;
+    if (e.key === 'ArrowRight' && keepsSideways) return;
     e.preventDefault();
     items[(i + 1) % items.length]?.focus();
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-    if (e.key === 'ArrowLeft' && (document.activeElement as HTMLInputElement | null)?.type === 'range') return;
+    if (e.key === 'ArrowLeft' && keepsSideways) return;
     e.preventDefault();
     items[(i - 1 + items.length) % items.length]?.focus();
   } else if (e.key === 'Escape') {

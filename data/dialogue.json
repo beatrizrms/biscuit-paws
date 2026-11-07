@@ -8,11 +8,11 @@
           "text": "Dezembro. A neve cobre a Vila das Baunilhas."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "\"PA A IA\"... Faltam umas letras no letreiro."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Está horrível. Mas olha o tamanho desse espaço!"
         },
         {
@@ -20,11 +20,11 @@
           "text": "Pegadinhas de gato pela neve, na calçada inteira. O anúncio não exagerou."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Tanto gatinho na rua, nesse frio... e aposto que os vizinhos vivem reclamando deles."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Quem conhece um gato de verdade passa a amar. Eu vou mostrar."
         }
       ]
@@ -32,15 +32,15 @@
     "dlg.warm_corner_done": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Pronto. Um cantinho quente para {cat:cat.first_stray}."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Agora, o mais importante: um café sem cafeteira não é café."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Só que cafeteira custa caro... Vou ver se a vila tem algum serviço para mim. O mercado deve ter."
         }
       ]
@@ -69,7 +69,7 @@
         },
         {
           "speaker": "Dona Neusa",
-          "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida.",
+          "text": "Mas tome, para o seu começo, {player}. Este lugar merece voltar a ter vida.",
           "npc": "npc.neusa"
         },
         {
@@ -82,7 +82,7 @@
     "dlg.inside": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Minha padaria. Antes de qualquer coisa: uma boa faxina."
         },
         {
@@ -94,11 +94,11 @@
     "dlg.cleaned": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Pronto. Já dá para respirar aqui dentro."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "As manchas e as rachaduras... essas só com reforma."
         },
         {
@@ -110,7 +110,7 @@
     "dlg.door_locked_bakery": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Está trancada. Preciso da chave."
         }
       ]
@@ -118,7 +118,7 @@
     "dlg.cat_named": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "{cat:cat.first_stray}. Combina com você."
         },
         {
@@ -126,7 +126,7 @@
           "text": "{cat:cat.first_stray} se enrosca nas suas pernas e sai explorando o café."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Você precisa de um cantinho quente... e de comida."
         },
         {
@@ -138,7 +138,7 @@
     "dlg.ready_to_feed": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Água fresquinha, ração na bolsa. Agora é só encher a tigela."
         },
         {
@@ -158,7 +158,7 @@
           "text": "Depois, se aninha perto dos seus pés, quentinho, de barriga cheia."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Bem-vindo, {cat:cat.first_stray}. Agora você tem casa."
         }
       ]
@@ -171,7 +171,7 @@
           "text": "Bom dia! Você deve ser a interessada na padaria!"
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Sou eu! Vim assim que vi o anúncio."
         },
         {
@@ -193,11 +193,11 @@
           "text": "Faz anos que ninguém cuida daqui. Mas a estrutura é boa, e o espaço é enorme."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Está terrível... mas eu consigo ver: mesas, almofadas, gatinhos dormindo ao sol."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Eu vou comprar!"
         },
         {
@@ -216,7 +216,7 @@
         {
           "speaker": "Corretora",
           "npc": "npc.realtor",
-          "text": "Seja muito feliz aqui. E boa sorte com a vizinhança!"
+          "text": "Seja muito feliz aqui, {player}. E boa sorte com a vizinhança!"
         },
         {
           "speaker": "Corretora",
@@ -230,10 +230,10 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Cheguei! Nossa... dá pra ver que tem muito potencial aqui, hein?"
+          "text": "Cheguei, {player}! Nossa... dá pra ver que tem muito potencial aqui, hein?"
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Ainda tá no começo, mas já tá bem mais limpinho que ontem."
         },
         {
@@ -269,13 +269,13 @@
     "dlg.gabi_bye": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Gabi, não precisava! Vai ser perfeito pra servir os clientes."
         },
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Precisava sim. Boa sorte no novo empreendimento! Volto pra tomar um café quando abrir."
+          "text": "Precisava sim. Boa sorte no novo empreendimento, {player}! Volto pra tomar um café quando abrir."
         },
         {
           "speaker": "Gabi",
@@ -311,7 +311,7 @@
     "dlg.coffee_ready": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "A cafeteira chegou! Só de olhar, isto aqui já parece um café de verdade."
         }
       ]
@@ -319,11 +319,11 @@
     "dlg.tables_wanted": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Bom dia, {cat:cat.first_stray}! Hoje é dia de pensar nos clientes."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Ninguém toma café em pé. Preciso de mesas."
         }
       ]
@@ -331,7 +331,7 @@
     "dlg.chairs_done": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Mesas e cadeiras. Já parece um café de verdade."
         }
       ]
@@ -339,15 +339,15 @@
     "dlg.first_customer_done": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Meu primeiro cliente! E ele foi embora sorrindo."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Ainda é só o começo: sem placa, com o básico. Mas já dá para ganhar um dinheirinho das 9h às 18h."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Quando o salão estiver todo reformado e a placa chegar, faço a inauguração de verdade."
         }
       ]
@@ -355,11 +355,11 @@
     "dlg.inauguration": {
       "lines": [
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Paredes novas, piso novo e a placa lá fora. Ficou lindo."
         },
         {
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Biscuit Paws está oficialmente inaugurado!"
         }
       ]

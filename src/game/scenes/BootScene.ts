@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import playerJson from '../../../data/player.json';
 import { broom, content, emotes, serviceArt } from '../content';
 import { preloadAudio } from '../audio/AudioManager';
 import { t } from '../i18n';
@@ -10,8 +9,7 @@ import { catTexture } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
 import tilesetsJson from '../../../data/tilesets.json';
-
-export const TEXTURE = { player: 'player' } as const;
+import { preloadWalkLayers } from '../playerLook';
 
 /**
  * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
@@ -62,10 +60,8 @@ export class BootScene extends Phaser.Scene {
       if ('animation' in sheet) this.load.spritesheet(`anim:${sheet.id}`, sheet.image, { frameWidth: 32, frameHeight: 32 });
     }
     this.load.image('van_right', content.delivery.van.right);
-    this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
-      frameWidth: playerJson.frameWidth,
-      frameHeight: playerJson.frameHeight,
-    });
+    // Personagem: as camadas da caminhada (o criador mostra qualquer combinação; as poses vêm ao começar o jogo).
+    preloadWalkLayers(this.load);
   }
 
   async create(): Promise<void> {

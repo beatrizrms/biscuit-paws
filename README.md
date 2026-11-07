@@ -12,7 +12,7 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 | Arquivo | Destino |
 | --- | --- |
 | `cat-cafe-tileset.png` (pacote Cat Cafe 32x32, pasta `tiles/`) | `public/assets/tiles/cat-cafe-tileset.png` |
-| `mulher_placeholder_32x64.png` (zip da personagem provisória) | `public/assets/characters/mulher_placeholder_32x64.png` |
+| pacote `personagem_principal` (zip) | `assets/personagem_principal/`, depois rode `npm run character` (copia para `public/assets/characters/player/` e confere os arquivos) |
 
 ## Comandos
 
@@ -40,7 +40,7 @@ Controles:
 - **Mercado:** **E** numa prateleira põe itens no carrinho (+/−); **E** no caixa mostra o total e paga. Sair sem pagar não cobra nada (o carrinho fica até dormir).
 - **M:** quadro do cardápio, com quantos clientes cabem (lugares e louça).
 
-O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
+O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. No **Novo jogo**, depois do slot, vem **Sua personagem**: nome e aparência (pele, olhos, cabelo, roupa, parte de baixo, calçado, óculos e acessório), com prévia que gira, "Aleatório" e "Exemplos". Isso só se escolhe no início do jogo. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
 
 Atalhos para testar (pulam a Home): `http://localhost:5173/?novo` começa um jogo novo no slot 1; `?jogar` continua o save mais recente (ou começa um novo).
 

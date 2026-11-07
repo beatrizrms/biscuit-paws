@@ -12,6 +12,7 @@ import { EventBus } from './events';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
+import type { Appearance } from './appearance';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -580,6 +581,16 @@ export class GameSession {
   /** Gatos abrigados (ids). */
   shelteredCats(): string[] {
     return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered);
+  }
+
+  /** Nome da protagonista (vazio em saves de antes do criador). */
+  playerName(): string {
+    return this.state.player.name;
+  }
+
+  /** Aparência da protagonista: a escolhida ou a padrão dos dados. */
+  appearance(): Appearance {
+    return this.state.player.appearance ?? this.content.character.default;
   }
 
   /** Nome do gato: o escolhido, o fixo dos dados, ou vazio. */

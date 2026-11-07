@@ -64,7 +64,8 @@ export class MainMenuScene extends Phaser.Scene {
     this.menu = new MainMenu(root, {
       started: () => audio.playScene('home'),
       play: async (slot) => this.go(() => startGame(this, { mode: 'load', from: slot })),
-      newGame: (slot) => void this.go(() => startGame(this, { mode: 'new', slot })),
+      newGame: (slot, player) => void this.go(() => startGame(this, { mode: 'new', slot, player })),
+      textures: this.textures,
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.menu?.destroy();

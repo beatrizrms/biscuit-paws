@@ -1,6 +1,9 @@
 // Home: "toque para começar" (libera o áudio), título e botões: Continuar (com resumo), Novo jogo,
 // Carregar/recuperar, Opções, Créditos. Mouse, teclado (setas + Enter + Esc) e toque.
+import type Phaser from 'phaser';
 import type { ManualSlot, SlotId } from '../../../core/saveSlots';
+import type { PlayerState } from '../../../core/state';
+import { openCreator } from './CreatorPanel';
 import { gameInfo, t } from '../../i18n';
 import { services } from '../../services';
 import { openCredits } from './CreditsPanel';
@@ -10,7 +13,10 @@ import { openSlots } from './SlotsPanel';
 
 export interface MainMenuHandlers {
   play(slot: SlotId): Promise<{ ok: true } | { ok: false; error: string }>;
-  newGame(slot: ManualSlot): void;
+  /** Jogo novo no slot, com o nome e a aparência escolhidos no criador. */
+  newGame(slot: ManualSlot, player: PlayerState): void;
+  /** Texturas do jogo (as camadas da personagem, para a prévia do criador). */
+  textures: Phaser.Textures.TextureManager;
   /** O primeiro gesto (libera o áudio). */
   started(): void;
 }
@@ -74,7 +80,7 @@ export class MainMenu {
     const on = (act: string, fn: () => void) => (this.el.querySelector(`[data-act="${act}"]`) as HTMLElement).addEventListener('click', fn);
     on('continue', () => recent && void this.play(recent));
     on('new', () => void this.newGame());
-    on('load', () => openSlots(this.root, 'load', { onPlay: (s) => void this.play(s), onNewGame: (s) => this.handlers.newGame(s), onClose: again }));
+    on('load', () => openSlots(this.root, 'load', { onPlay: (s) => void this.play(s), onNewGame: (s) => this.create(s), onClose: again }));
     on('options', () => openOptions(this.root, again));
     on('credits', () => openCredits(this.root, again));
     const first = this.el.querySelector<HTMLElement>('[data-act]:not([disabled])');
@@ -96,7 +102,12 @@ export class MainMenu {
   private async newGame(): Promise<void> {
     const statuses = await services().saves.statuses();
     const anyManual = (['slot1', 'slot2', 'slot3'] as const).some((s) => statuses[s].kind !== 'empty');
-    if (!anyManual) return this.handlers.newGame('slot1');
-    openSlots(this.root, 'new', { onPlay: () => undefined, onNewGame: (s) => this.handlers.newGame(s), onClose: () => void this.render() });
+    if (!anyManual) return this.create('slot1');
+    openSlots(this.root, 'new', { onPlay: () => undefined, onNewGame: (s) => this.create(s), onClose: () => void this.render() });
+  }
+
+  /** Criar personagem; "voltar" volta para a Home. */
+  private create(slot: ManualSlot): void {
+    openCreator(this.root, this.handlers.textures, { onDone: (player) => this.handlers.newGame(slot, player), onBack: () => void this.render() });
   }
 }

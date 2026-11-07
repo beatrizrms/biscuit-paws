@@ -10,6 +10,7 @@ import { NewsPanel } from './NewsPanel';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { Hotbar } from './Hotbar';
+import { fillNames } from './text';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -583,14 +584,9 @@ export class GameUi {
   }
 
   /** Abre a caixa de fala se houver fala na fila e nada na frente (cena, caixa de nome). */
-  /** {cat:cat.id} nos textos vira o nome que a jogadora deu ao gato. */
+  /** {player}, {cat:cat.id} e {timer:id} nos textos (ui/text.ts). */
   private fillNames(text: string): string {
-    return text
-      .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id))
-      .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
-        const t = this.session.timerClock(id);
-        return t === undefined ? '' : formatClock(t, 5);
-      });
+    return fillNames(this.session, text);
   }
 
   private openDialogueIfFree(): void {

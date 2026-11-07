@@ -25,6 +25,8 @@ import { saveNow } from '../startGame';
 import { openPause } from '../ui/menu/PauseMenu';
 import { t } from '../i18n';
 import { formatClock, tintAt } from '../../core/time';
+import { catPropColor, type Pose } from '../../core/appearance';
+import { poseTexture } from '../playerLook';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -34,6 +36,11 @@ const GHOST_DEPTH = 100_000;
 const FADE_MS = 160;
 /** Quantas vezes o relógio corre mais rápido ao "Esperar". */
 const WAIT_SPEED = 40;
+/** Louça em cima da bandeja da pose: tamanho, distância entre peças e o ponto do tampo (pixels do quadro 32x64, a partir do meio). */
+const TRAY_DISH_SCALE = 0.75;
+const TRAY_DISH_GAP = 7;
+const TRAY_TOP: Record<'down' | 'left' | 'right' | 'up', [number, number]> = { down: [0, 47], left: [-10, 47], right: [10, 47], up: [0, 45] };
+
 const NO_INPUT = { up: false, down: false, left: false, right: false };
 
 /**
@@ -256,7 +263,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
+    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing();
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
@@ -721,7 +728,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
       const act = sv.sinkAction();
       if (act === 'deposit') return report(sv.depositDirty());
-      if (act === 'wash') return report(sv.startWash());
+      if (act === 'wash') return report(this.withPose(sv.startWash(), 'wash'));
     }
     // Saco pesado: no café, vai para o estoque.
     if (st.hands.some((h) => h.kind === 'heavy')) return report(sv.storeHeavy());
@@ -744,17 +751,27 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
       if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) return report(sv.pickUp(station.at));
-      if (st.hands.length === 0 || bringsWip) return report(sv.prepare(station.uid));
+      if (st.hands.length === 0 || bringsWip) return report(this.withPose(sv.prepare(station.uid), equipment === 'stove' ? 'stir' : 'operate'));
     }
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
-    if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) return report(sv.pickUp(surface.at));
+    if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
+      // Recolher louça suja: a pose de limpar a mesa.
+      const dirty = surface.item.kind === 'dirty';
+      return report(dirty ? this.withPose(sv.pickUp(surface.at), 'wipe_table') : sv.pickUp(surface.at));
+    }
     // Soltar: na célula clicada ou na da frente.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
       if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
     }
     return false;
+  }
+
+  /** Deu certo: ela faz a pose da ação por um instante (data/character.json, actionMs). */
+  private withPose<R extends { ok: boolean }>(result: R, pose: Pose): R {
+    if (result.ok) void this.player.playAction(pose, this.session.content.character.poses[pose].actionMs ?? 800);
+    return result;
   }
 
   /** Quanto um móvel posicionado foi desenhado para cima (equipamento em cima do balcão). */
@@ -846,8 +863,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.handIcons.forEach((i) => i.destroy());
       this.carriedCatSprite?.destroy();
       this.carriedCatSprite = null;
-      if (st.tray) {
-        // Bandeja: um desenho só, com 0 a 3 louças em cima.
+      const catId = sv.carriedCat();
+      const catColor = catPropColor(this.session.content.character, this.session.content.cats[catId ?? '']?.variant);
+      // Pose de carregar (bandeja, gato no colo): a personagem anda com ela; senão, a normal.
+      this.player.setCarryPose(st.tray ? 'tray' : catId ? 'cat' : null, catColor);
+      const posed = this.textures.exists(st.tray ? poseTexture('tray') : poseTexture('cat', catColor));
+      if (st.tray && posed) {
+        // Bandeja na pose: as louças vão em cima dela, lado a lado.
+        this.handIcons = st.hands
+          .map((h) => this.handItemImage(h))
+          .filter((img): img is Phaser.GameObjects.Image => !!img)
+          .map((img) => img.setScale(TRAY_DISH_SCALE).setOrigin(0.5, 1));
+      } else if (st.tray) {
+        // Sem a arte da pose: um desenho só, com 0 a 3 louças em cima.
         const icon = serviceArt.trayIcons[Math.min(st.hands.length, serviceArt.trayIcons.length - 1)]!;
         const f = iconFrame(this, icon);
         this.handIcons = f ? [this.add.image(0, 0, f.key, f.frame).setOrigin(0.5, 0.5)] : [];
@@ -857,11 +885,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           .filter((x): x is { h: HandItem; img: Phaser.GameObjects.Image } => !!x.img)
           .map(({ h, img }) => img.setScale(this.handScale(h)).setOrigin(0.5, 0.5));
       }
-      // Gato no colo: some do chão e aparece nos braços.
-      const catId = sv.carriedCat();
+      // Gato no colo: some do chão e aparece nos braços (a pose já desenha o gato; sem ela, o sprite do gato).
       for (const cat of this.cats) {
         if (cat.catId === catId) {
           cat.setVisible(false).setVelocity(0, 0);
+          if (posed) continue;
           const variant = this.session.content.cats[catId]?.variant ?? '';
           this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.6).play(`${catTexture(variant)}-sit`);
         }
@@ -872,7 +900,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const hx = this.player.x - 16 + ax;
     const hy = this.player.y - 64 + ay;
     const front = this.player.depth + (dir === 'up' ? -1 : 2);
-    this.handIcons.forEach((img, i) => img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front));
+    if (st.tray && this.textures.exists(poseTexture('tray'))) {
+      // Em cima da bandeja da pose: no centro, na altura dos braços.
+      const [tx, ty] = TRAY_TOP[dir];
+      const n = this.handIcons.length;
+      this.handIcons.forEach((img, i) => img.setPosition(this.player.x + tx + (i - (n - 1) / 2) * TRAY_DISH_GAP, this.player.y - 64 + ty).setDepth(front));
+    } else this.handIcons.forEach((img, i) => img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front));
     this.carriedCatSprite?.setPosition(hx, hy).setDepth(front).setFlipX(dir === 'left');
     if (!this.session.atHome()) return;
     // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
@@ -1099,7 +1132,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.sweeping = true;
     const left = x < this.player.x;
     this.player.face(left ? 'left' : 'right');
-    // O quadro cobre a metade de baixo da personagem (mão no meio do corpo, cerdas no chão).
+    const posed = this.textures.exists(poseTexture('sweep'));
+    if (posed) void this.player.playAction('sweep', broom.sweepMs);
+    // Sem a arte da pose: o quadro cobre a metade de baixo da personagem (mão no meio do corpo, cerdas no chão).
     const tool = this.add
       .image(this.player.x, this.player.y, 'broom', 'varrer_1')
       .setOrigin(0.5, 1)
@@ -1107,6 +1142,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       .setDepth(this.player.depth + 1);
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
     const frameMs = 1000 / broom.sweepFps;
+    tool.setVisible(!posed);
     for (let t = 0, i = 0; t < broom.sweepMs; t += frameMs, i++) {
       tool.setFrame(i % 2 === 0 ? 'varrer_1' : 'varrer_2');
       dust.setFrame(`poeira_${(i % 3) + 1}`);

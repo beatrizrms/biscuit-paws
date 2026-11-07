@@ -45,6 +45,8 @@ test('home: novo jogo, pausa salva, volta ao menu e Continuar mostra o resumo', 
   test.setTimeout(90_000);
   await openHome(page);
   await page.locator('[data-act="new"]').click();
+  await page.locator('.creator-name input').fill('Bia');
+  await page.locator('.menu-creator [data-act="done"]').click();
   await settle(page);
   await page.keyboard.press('Escape');
   await expect(page.locator('.menu-panel.pause')).toBeVisible();
@@ -109,4 +111,26 @@ test('opções: som desligado e volume ficam gravados à parte do save', async (
   await page.locator('.menu-tap').click();
   await page.locator('[data-act="options"]').click();
   await expect(page.locator('.menu-option[data-ch="music"] .toggle')).toHaveText('desligado');
+});
+
+test('criar personagem: nome obrigatório, teclado troca a opção, vestido esconde a parte de baixo', async ({ page }) => {
+  const errors = await openHome(page);
+  await page.locator('[data-act="new"]').click();
+  await expect(page.locator('.menu-creator')).toBeVisible();
+  // Sem nome não começa.
+  await page.locator('.menu-creator [data-act="done"]').click();
+  await expect(page.locator('.creator-error')).toContainText('nome');
+  await page.locator('.creator-name input').fill('Lu');
+  // Linha da roupa: setas para os lados até o vestido; a parte de baixo some.
+  const top = page.locator('[data-cycle="top"]');
+  await top.focus();
+  for (let i = 0; i < 8 && (await top.textContent()) !== 'Vestido'; i++) await page.keyboard.press('ArrowRight');
+  await expect(top).toHaveText('Vestido');
+  await expect(page.locator('[data-cycle="bottom"]')).toHaveCount(0);
+  await page.locator('.menu-creator [data-act="done"]').click();
+  await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: { world?: { map?: unknown } } }).__biscuitPaws?.world?.map);
+  const player = await page.evaluate(() => (window as unknown as { __biscuitPaws: { world: { session: { state: { player: { name: string; appearance: { top: string } } } } } } }).__biscuitPaws.world.session.state.player);
+  expect(player.name).toBe('Lu');
+  expect(player.appearance.top).toBe('dress');
+  expect(errors).toEqual([]);
 });

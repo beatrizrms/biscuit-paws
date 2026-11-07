@@ -79,5 +79,31 @@
     "save": "Salvar",
     "toMenu": "Voltar ao menu",
     "saved": "Jogo salvo no {slot}."
+  },
+  "creator": {
+    "title": "Sua personagem",
+    "name": "Nome",
+    "namePlaceholder": "Como você se chama?",
+    "nameRequired": "Escolha um nome para começar.",
+    "skin": "Pele",
+    "eyes": "Olhos",
+    "hairStyle": "Cabelo",
+    "hairColor": "Cor do cabelo",
+    "top": "Roupa",
+    "topColor": "Cor da roupa",
+    "bottom": "Parte de baixo",
+    "bottomColor": "Cor",
+    "shoes": "Calçado",
+    "shoesColor": "Cor do calçado",
+    "glasses": "Óculos",
+    "head": "Na cabeça",
+    "prev": "anterior",
+    "next": "próxima",
+    "turnLeft": "girar para a esquerda",
+    "turnRight": "girar para a direita",
+    "random": "Aleatório",
+    "preset": "Exemplos",
+    "back": "Voltar",
+    "done": "Começar"
   }
 }

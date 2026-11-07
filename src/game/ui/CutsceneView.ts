@@ -3,6 +3,7 @@
 import type { CutsceneDef, CutsceneStep } from '../../core/cutscene';
 import type { GameSession } from '../../core/session';
 import { content, phone, uiText } from '../content';
+import { fillNames } from './text';
 
 const TYPE_SPEED_MS = 26;
 const CAT_SCALE = 5;
@@ -97,13 +98,13 @@ export class CutsceneView {
       case 'text':
         this.textBox.classList.add('visible');
         this.textBox.classList.toggle('narrator', step.speaker === '');
-        (this.textBox.querySelector('.speaker') as HTMLElement).textContent = step.speaker;
-        this.type(this.textBox.querySelector('.text') as HTMLElement, step.text);
+        (this.textBox.querySelector('.speaker') as HTMLElement).textContent = fillNames(this.session, step.speaker);
+        this.type(this.textBox.querySelector('.text') as HTMLElement, fillNames(this.session, step.text));
         break;
       case 'card':
         this.textBox.classList.remove('visible');
         this.stage.innerHTML = '<div class="cs-card"></div>';
-        this.type(this.stage.querySelector('.cs-card') as HTMLElement, step.text);
+        this.type(this.stage.querySelector('.cs-card') as HTMLElement, fillNames(this.session, step.text));
         break;
       case 'cat':
         this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption);

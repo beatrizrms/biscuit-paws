@@ -13,7 +13,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Quero começar algo meu. Mas... o quê?"
         },
         {
@@ -29,7 +29,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Ela odiava o frio... Quantos gatinhos estão lá fora agora, sem um cantinho quente?"
         },
         {
@@ -57,7 +57,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "\"Vende-se: antiga padaria\"... Deixa eu ver."
         },
         {
@@ -73,22 +73,22 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "A Vila das Baunilhas... o bairro onde eu nasci."
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "\"Grande população de gatos\"... Gatos de rua, isso sim. Passando frio nessa neve."
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "E duvido que a vizinhança goste muito deles."
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Amanhã cedo eu vou ver."
         }
       ]
@@ -124,7 +124,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Oi, pequeno... Está com frio, né?"
         },
         {
@@ -134,7 +134,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Entra. Aqui dentro está mais quente."
         }
       ]
@@ -156,7 +156,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Gabi! Bom dia!"
         },
         {
@@ -166,7 +166,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "É verdade! Uma padaria velha aqui na Vila das Baunilhas. Vou abrir um café... com gatinhos."
         },
         {
@@ -181,7 +181,7 @@
         },
         {
           "type": "text",
-          "speaker": "Você",
+          "speaker": "{player}",
           "text": "Claro! Te espero no café."
         },
         {

@@ -50,3 +50,23 @@
   background: #3b2a32; color: #fff4e0; font-size: 8px; opacity: 0; transition: opacity 0.25s; pointer-events: none;
 }
 .menu-toast.show { opacity: 1; }
+
+/* Criar personagem */
+.menu-panel.creator { width: 430px; max-width: calc(100% - 16px); padding: 8px 12px 10px; }
+.menu-panel.creator h2 { margin: 0 0 4px; }
+.creator-body { display: flex; gap: 12px; align-items: flex-start; }
+.creator-preview { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.creator-preview canvas.frame { width: 96px; height: 192px; image-rendering: pixelated; background: #f3e3c6; border: 2px solid #8b5e3c; border-radius: 6px; }
+.creator-preview .menu-row { gap: 4px; }
+.menu-btn.small { padding: 2px 8px; font-size: 8px; min-width: 0; }
+.creator-options { flex: 1; min-width: 0; }
+.creator-name { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: bold; margin-bottom: 4px; }
+.creator-name input { flex: 1; min-width: 0; font: inherit; font-weight: normal; padding: 2px 5px; border: 1.5px solid #8b5e3c; border-radius: 4px; background: #fff8ec; color: #3b2a22; }
+.creator-name input:focus { outline: 2px solid #e48aa0; }
+.creator-row { display: grid; grid-template-columns: 74px 14px 1fr 14px; align-items: center; gap: 2px; font-size: 8px; margin: 1px 0; }
+.creator-row .label { color: #6b4a3a; }
+.creator-row button { font: inherit; color: #3b2a22; background: #f6e7cc; border: 1px solid #c9a27a; border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+.creator-row .value { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.creator-row button:focus, .creator-row button:hover { background: #ffd9e1; border-color: #e48aa0; outline: none; }
+.creator-error { min-height: 10px; margin: 2px 0; font-size: 8px; color: #c0485f; text-align: center; }
+.menu-btn.primary { background: #cfe8d8; }

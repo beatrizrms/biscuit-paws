@@ -29,6 +29,7 @@ const raw: RawContent = {
   recipes: read('data/recipes.json'),
   service: read('data/service.json'),
   business: read('data/business.json'),
+  character: read('data/character.json'),
   carry: read('data/carry.json'),
   emotes: read('data/emotes.json'),
   jobs: read('data/jobs.json'),

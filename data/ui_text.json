@@ -283,5 +283,6 @@
     "tray": "Bandeja: {n}/{max}",
     "sinkLoad": "Pia: {n} para lavar",
     "sinkWashing": "Pia: lavando"
-  }
+  },
+  "playerFallback": "Você"
 }

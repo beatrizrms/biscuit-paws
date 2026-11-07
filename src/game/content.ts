@@ -27,6 +27,7 @@ import jobsJson from '../../data/jobs.json';
 import newsJson from '../../data/news.json';
 import deliveryJson from '../../data/delivery.json';
 import businessJson from '../../data/business.json';
+import characterJson from '../../data/character.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -58,6 +59,7 @@ export const content: Content = buildContent({
   news: newsJson,
   delivery: deliveryJson,
   business: businessJson,
+  character: characterJson,
 } as unknown as RawContent);
 
 /** Arte do atendimento (quadro, balões, barra, louça no mundo, moeda). */

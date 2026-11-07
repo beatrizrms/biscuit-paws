@@ -5,6 +5,7 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
+import { validateCharacter, type CharacterData } from './appearance';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
@@ -257,6 +258,7 @@ export interface Content {
   carry: CarryConfig;
   delivery: DeliveryConfig;
   business: BusinessData;
+  character: CharacterData;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
@@ -290,6 +292,7 @@ export interface RawContent {
   news: NewsData;
   delivery: DeliveryConfig;
   business: BusinessData;
+  character: CharacterData;
 }
 
 /** Correio (data/delivery.json). */
@@ -322,7 +325,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, business: raw.business };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, business: raw.business, character: raw.character };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -519,6 +522,7 @@ export function validateContent(raw: RawContent): string[] {
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
   checkCondition('business: softOpenWhen', raw.business.softOpenWhen);
   errors.push(...validateBusiness(raw.business, surfaceIds));
+  errors.push(...validateCharacter(raw.character));
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);

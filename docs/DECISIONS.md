@@ -173,3 +173,7 @@ Consequência: itens com `use` (ração, petisco) entram sozinhos na barra; alim
 ## 044. Mochila em grade de espaços, ligada à barra (nov/2026)
 Motivo: a mochila em cartões com nome e textos ficava poluída e parecia separada da barra (pedido da desenvolvedora, opção A de três).
 Consequência: painel no centro com a barra (1 a 8) em cima e a grade da mochila embaixo, só ícone e quantidade; móveis guardados também entram na grade (miniatura do tile). Uma linha de detalhes mostra nome, para que serve e as ações (pôr na barra no primeiro espaço livre, tirar da barra, posicionar, segurar, bandeja). Arrastar da mochila para um espaço põe ali; dentro da barra troca; da barra para a grade tira. Com um item selecionado, 1 a 8 põe naquele espaço. A barra só ganha sozinha o que acabou de chegar: o que ela tirou de propósito não volta. Sem save novo (a barra já está no v10).
+
+## 045. Personagem principal personalizável, com nome e poses (nov/2026)
+Motivo: pedido da desenvolvedora (usar o pacote personagem_principal; escolher atributos no menu).
+Consequência: Novo jogo -> slot -> criar personagem (nome + aparência, só no início do jogo) -> prólogo. A aparência vai para o save (v12) só como IDs; o jogo monta a folha das camadas ao começar. Sai a personagem provisória. As 7 poses do pacote entram já: bandeja e gato no colo andando; varrer, lavar, operar equipamento, mexer no fogão e recolher louça como animações curtas. O nome aparece nas falas ({player}).

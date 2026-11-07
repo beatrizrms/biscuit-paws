@@ -4,11 +4,12 @@ import type { HandItem } from './carry';
 import { HOTBAR_SIZE, newHotbar } from './hotbar';
 import type { GameState } from './state';
 import { isBusinessStage } from './business';
+import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 
-export const SAVE_SCHEMA_VERSION = 11;
+export const SAVE_SCHEMA_VERSION = 12;
 
-export interface SaveV11 extends GameState {
-  schemaVersion: 11;
+export interface SaveV12 extends GameState {
+  schemaVersion: 12;
   savedAt: string;
 }
 
@@ -72,10 +73,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
    * para "funcionamento parcial" se o café já tem o mínimo (data/business.json). Inaugurar é um marco novo.
    */
   10: (save) => ({ ...save, schemaVersion: 11, business: 'closed' }),
+  /** v11 -> v12: nome e aparência da protagonista. Saves antigos ficam sem nome e com a aparência padrão. */
+  11: (save) => ({ ...save, schemaVersion: 12, player: { name: '', appearance: null } }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV11 = { schemaVersion: 11, savedAt: now.toISOString(), ...state };
+  const save: SaveV12 = { schemaVersion: 12, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -95,6 +98,8 @@ export interface KnownIds {
   recipes: ReadonlySet<string>;
   /** Onde começar se o local salvo não existir mais. */
   startMap: string;
+  /** Opções da aparência (escolha que sumiu volta ao padrão). */
+  character: CharacterData;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -110,7 +115,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV11>;
+  const v2 = save as unknown as Partial<SaveV12>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -194,6 +199,10 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       active: Number.isInteger(v2.hotbar?.active) && v2.hotbar!.active >= 0 && v2.hotbar!.active < HOTBAR_SIZE ? v2.hotbar!.active : 0,
     },
     business: isBusinessStage(v2.business) ? v2.business : 'closed',
+    player: {
+      name: typeof v2.player?.name === 'string' ? cleanPlayerName(v2.player.name) : '',
+      appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
+    },
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
@@ -209,6 +218,7 @@ export function knownIds(content: {
   jobs: Record<string, unknown>;
   recipes: Record<string, unknown>;
   world: { startMap: string };
+  character: CharacterData;
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -219,5 +229,6 @@ export function knownIds(content: {
     jobs: new Set(Object.keys(content.jobs)),
     recipes: new Set(Object.keys(content.recipes)),
     startMap: content.world.startMap,
+    character: content.character,
   };
 }

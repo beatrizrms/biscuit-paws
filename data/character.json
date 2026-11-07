@@ -1,0 +1,583 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Personagem principal personalizável (pacote personagem_principal; importado por scripts/import-character.ts para public/assets/characters/player/). IDs em inglês e estáveis (o save guarda só eles); asset = nome no arquivo do pacote. Camadas 128x256 (quadros 32x64; 4 colunas; linhas baixo, esquerda, direita, cima), empilhadas em layerOrder. Regras: roupa com coversLegs (vestido) não desenha a parte de baixo; cabelo \"none\" não desenha cabelo; um acessório por grupo (óculos, cabeça). poses: trocam corpo e camisa pelos da pose; walks = anda com a pose (bandeja, gato); as outras são paradas (só braços e objeto animam). presets: combinações prontas (exemplos do pacote). actionMs: quanto dura a animação de uma ação parada (varrer segue a vassoura, data/broom).",
+  "sheet": {
+    "frameWidth": 32,
+    "frameHeight": 64,
+    "columns": 4,
+    "rows": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ]
+  },
+  "basePath": "assets/characters/player",
+  "layerOrder": [
+    "body",
+    "eyes",
+    "shoes",
+    "bottom",
+    "top",
+    "hair",
+    "accessory"
+  ],
+  "skins": [
+    {
+      "id": "pale",
+      "name": "Pálida",
+      "asset": "palida"
+    },
+    {
+      "id": "light",
+      "name": "Clara",
+      "asset": "clara"
+    },
+    {
+      "id": "tan",
+      "name": "Morena",
+      "asset": "morena"
+    },
+    {
+      "id": "brown",
+      "name": "Parda",
+      "asset": "parda"
+    },
+    {
+      "id": "dark",
+      "name": "Negra",
+      "asset": "negra"
+    },
+    {
+      "id": "east_asian",
+      "name": "Asiática",
+      "asset": "asiatica"
+    }
+  ],
+  "eyes": [
+    {
+      "id": "brown",
+      "name": "Castanhos",
+      "asset": "castanho"
+    },
+    {
+      "id": "black",
+      "name": "Pretos",
+      "asset": "preto"
+    },
+    {
+      "id": "blue",
+      "name": "Azuis",
+      "asset": "azul"
+    },
+    {
+      "id": "green",
+      "name": "Verdes",
+      "asset": "verde"
+    },
+    {
+      "id": "hazel",
+      "name": "Mel",
+      "asset": "mel"
+    }
+  ],
+  "hair": {
+    "styles": [
+      {
+        "id": "none",
+        "name": "Sem cabelo",
+        "asset": ""
+      },
+      {
+        "id": "short",
+        "name": "Curto",
+        "asset": "curto"
+      },
+      {
+        "id": "bob",
+        "name": "Chanel",
+        "asset": "chanel"
+      },
+      {
+        "id": "long",
+        "name": "Longo",
+        "asset": "longo"
+      },
+      {
+        "id": "bun",
+        "name": "Coque",
+        "asset": "coque"
+      },
+      {
+        "id": "ponytail",
+        "name": "Rabo de cavalo",
+        "asset": "rabo"
+      },
+      {
+        "id": "afro",
+        "name": "Afro",
+        "asset": "afro"
+      },
+      {
+        "id": "curly",
+        "name": "Cacheado",
+        "asset": "cacheado"
+      },
+      {
+        "id": "braids",
+        "name": "Tranças",
+        "asset": "trancas"
+      }
+    ],
+    "colors": [
+      {
+        "id": "black",
+        "name": "Preto",
+        "asset": "preto"
+      },
+      {
+        "id": "dark_brown",
+        "name": "Castanho-escuro",
+        "asset": "castanho_escuro"
+      },
+      {
+        "id": "brown",
+        "name": "Castanho",
+        "asset": "castanho"
+      },
+      {
+        "id": "blond",
+        "name": "Loiro",
+        "asset": "loiro"
+      },
+      {
+        "id": "red",
+        "name": "Ruivo",
+        "asset": "ruivo"
+      },
+      {
+        "id": "gray",
+        "name": "Grisalho",
+        "asset": "grisalho"
+      },
+      {
+        "id": "pink",
+        "name": "Rosa",
+        "asset": "rosa"
+      },
+      {
+        "id": "blue",
+        "name": "Azul",
+        "asset": "azul"
+      }
+    ]
+  },
+  "top": {
+    "styles": [
+      {
+        "id": "tshirt",
+        "name": "Camiseta",
+        "asset": "camiseta"
+      },
+      {
+        "id": "long_sleeve",
+        "name": "Manga longa",
+        "asset": "manga_longa"
+      },
+      {
+        "id": "hoodie",
+        "name": "Moletom",
+        "asset": "moletom"
+      },
+      {
+        "id": "tank",
+        "name": "Regata",
+        "asset": "regata"
+      },
+      {
+        "id": "collar_shirt",
+        "name": "Camisa de gola",
+        "asset": "camisa_gola"
+      },
+      {
+        "id": "dress",
+        "name": "Vestido",
+        "asset": "vestido",
+        "coversLegs": true
+      },
+      {
+        "id": "apron",
+        "name": "Avental do café",
+        "asset": "avental"
+      }
+    ],
+    "colors": [
+      {
+        "id": "pink",
+        "name": "Rosa",
+        "asset": "rosa"
+      },
+      {
+        "id": "red",
+        "name": "Vermelho",
+        "asset": "vermelho"
+      },
+      {
+        "id": "orange",
+        "name": "Laranja",
+        "asset": "laranja"
+      },
+      {
+        "id": "yellow",
+        "name": "Amarelo",
+        "asset": "amarelo"
+      },
+      {
+        "id": "green",
+        "name": "Verde",
+        "asset": "verde"
+      },
+      {
+        "id": "blue",
+        "name": "Azul",
+        "asset": "azul"
+      },
+      {
+        "id": "purple",
+        "name": "Roxo",
+        "asset": "roxo"
+      },
+      {
+        "id": "white",
+        "name": "Branco",
+        "asset": "branco"
+      }
+    ]
+  },
+  "bottom": {
+    "styles": [
+      {
+        "id": "pants",
+        "name": "Calça",
+        "asset": "calca"
+      },
+      {
+        "id": "shorts",
+        "name": "Bermuda",
+        "asset": "bermuda"
+      },
+      {
+        "id": "skirt",
+        "name": "Saia",
+        "asset": "saia"
+      }
+    ],
+    "colors": [
+      {
+        "id": "jeans",
+        "name": "Jeans",
+        "asset": "jeans"
+      },
+      {
+        "id": "black",
+        "name": "Preto",
+        "asset": "preto"
+      },
+      {
+        "id": "gray",
+        "name": "Cinza",
+        "asset": "cinza"
+      },
+      {
+        "id": "beige",
+        "name": "Bege",
+        "asset": "bege"
+      },
+      {
+        "id": "green",
+        "name": "Verde",
+        "asset": "verde"
+      },
+      {
+        "id": "pink",
+        "name": "Rosa",
+        "asset": "rosa"
+      }
+    ]
+  },
+  "shoes": {
+    "styles": [
+      {
+        "id": "sneakers",
+        "name": "Tênis",
+        "asset": "tenis"
+      },
+      {
+        "id": "boots",
+        "name": "Botinha",
+        "asset": "botinha"
+      }
+    ],
+    "colors": [
+      {
+        "id": "white",
+        "name": "Branco",
+        "asset": "branco"
+      },
+      {
+        "id": "black",
+        "name": "Preto",
+        "asset": "preto"
+      },
+      {
+        "id": "red",
+        "name": "Vermelho",
+        "asset": "vermelho"
+      },
+      {
+        "id": "brown",
+        "name": "Marrom",
+        "asset": "marrom"
+      },
+      {
+        "id": "pink",
+        "name": "Rosa",
+        "asset": "rosa"
+      }
+    ]
+  },
+  "accessories": {
+    "glasses": [
+      {
+        "id": "none",
+        "name": "Sem óculos",
+        "asset": ""
+      },
+      {
+        "id": "round",
+        "name": "Óculos redondo",
+        "asset": "oculos_redondo"
+      },
+      {
+        "id": "square",
+        "name": "Óculos quadrado",
+        "asset": "oculos_quadrado"
+      }
+    ],
+    "head": [
+      {
+        "id": "none",
+        "name": "Nada",
+        "asset": ""
+      },
+      {
+        "id": "cap_blue",
+        "name": "Boné azul",
+        "asset": "bone_azul"
+      },
+      {
+        "id": "cap_red",
+        "name": "Boné vermelho",
+        "asset": "bone_vermelho"
+      },
+      {
+        "id": "cap_black",
+        "name": "Boné preto",
+        "asset": "bone_preto"
+      },
+      {
+        "id": "cap_pink",
+        "name": "Boné rosa",
+        "asset": "bone_rosa"
+      },
+      {
+        "id": "bandana_red",
+        "name": "Bandana vermelha",
+        "asset": "bandana_vermelha"
+      },
+      {
+        "id": "bandana_blue",
+        "name": "Bandana azul",
+        "asset": "bandana_azul"
+      },
+      {
+        "id": "bandana_yellow",
+        "name": "Bandana amarela",
+        "asset": "bandana_amarela"
+      },
+      {
+        "id": "bow_pink",
+        "name": "Laço rosa",
+        "asset": "laco_rosa"
+      },
+      {
+        "id": "bow_red",
+        "name": "Laço vermelho",
+        "asset": "laco_vermelho"
+      },
+      {
+        "id": "bow_lilac",
+        "name": "Laço lilás",
+        "asset": "laco_lilas"
+      },
+      {
+        "id": "straw_hat",
+        "name": "Chapéu de palha",
+        "asset": "chapeu_palha"
+      },
+      {
+        "id": "flower",
+        "name": "Flor",
+        "asset": "flor"
+      }
+    ]
+  },
+  "poses": {
+    "tray": {
+      "asset": "bandeja",
+      "walks": true,
+      "fps": 8,
+      "back": "bandeja",
+      "front": "bandeja"
+    },
+    "cat": {
+      "asset": "gato",
+      "walks": true,
+      "fps": 7,
+      "catProp": true
+    },
+    "sweep": {
+      "asset": "varrer",
+      "walks": false,
+      "fps": 6,
+      "back": "varrer",
+      "front": "varrer"
+    },
+    "wipe_table": {
+      "asset": "limpar_mesa",
+      "walks": false,
+      "fps": 8,
+      "front": "limpar_mesa",
+      "actionMs": 900
+    },
+    "operate": {
+      "asset": "operar",
+      "walks": false,
+      "fps": 5,
+      "actionMs": 900
+    },
+    "stir": {
+      "asset": "mexer",
+      "walks": false,
+      "fps": 6,
+      "front": "mexer",
+      "actionMs": 1100
+    },
+    "wash": {
+      "asset": "lavar",
+      "walks": false,
+      "fps": 6,
+      "front": "lavar",
+      "actionMs": 1200
+    }
+  },
+  "catProp": {
+    "colors": [
+      "laranja",
+      "cinza",
+      "preto",
+      "branco"
+    ],
+    "byVariant": {
+      "pebble": "cinza",
+      "marmalade": "laranja"
+    },
+    "fallback": "laranja"
+  },
+  "default": {
+    "skin": "light",
+    "eyes": "brown",
+    "hairStyle": "long",
+    "hairColor": "brown",
+    "top": "hoodie",
+    "topColor": "red",
+    "bottom": "pants",
+    "bottomColor": "jeans",
+    "shoes": "sneakers",
+    "shoesColor": "white",
+    "glasses": "none",
+    "head": "none"
+  },
+  "presets": [
+    {
+      "skin": "light",
+      "eyes": "brown",
+      "hairStyle": "long",
+      "hairColor": "brown",
+      "top": "hoodie",
+      "topColor": "pink",
+      "bottom": "pants",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "bow_pink"
+    },
+    {
+      "skin": "dark",
+      "eyes": "black",
+      "hairStyle": "afro",
+      "hairColor": "black",
+      "top": "dress",
+      "topColor": "yellow",
+      "bottom": "skirt",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "red",
+      "glasses": "none",
+      "head": "flower"
+    },
+    {
+      "skin": "tan",
+      "eyes": "hazel",
+      "hairStyle": "curly",
+      "hairColor": "dark_brown",
+      "top": "apron",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "black",
+      "shoes": "boots",
+      "shoesColor": "brown",
+      "glasses": "none",
+      "head": "none"
+    },
+    {
+      "skin": "east_asian",
+      "eyes": "black",
+      "hairStyle": "bob",
+      "hairColor": "black",
+      "top": "collar_shirt",
+      "topColor": "white",
+      "bottom": "skirt",
+      "bottomColor": "gray",
+      "shoes": "sneakers",
+      "shoesColor": "black",
+      "glasses": "round",
+      "head": "none"
+    },
+    {
+      "skin": "pale",
+      "eyes": "blue",
+      "hairStyle": "ponytail",
+      "hairColor": "red",
+      "top": "tshirt",
+      "topColor": "green",
+      "bottom": "shorts",
+      "bottomColor": "beige",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "cap_blue"
+    }
+  ]
+}

@@ -1,12 +1,20 @@
 {
   "schemaVersion": 1,
+  "_comment": "Movimento e caixa dos pés. O desenho vem das camadas do criador (data/character.json, src/game/playerLook.ts).",
   "id": "char.player",
-  "sheet": "assets/characters/mulher_placeholder_32x64.png",
   "frameWidth": 32,
   "frameHeight": 64,
-  "directions": ["down", "left", "right", "up"],
+  "directions": [
+    "down",
+    "left",
+    "right",
+    "up"
+  ],
   "walkFrames": 4,
   "fps": 8,
   "speed": 80,
-  "feet": { "width": 16, "height": 10 }
+  "feet": {
+    "width": 16,
+    "height": 10
+  }
 }

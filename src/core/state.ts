@@ -6,6 +6,7 @@ import { emptyLoad, newServiceState, type ServiceState, type SinkState } from '.
 import type { Cell } from './map';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
+import type { Appearance } from './appearance';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -66,6 +67,16 @@ export interface GameState {
   sink: SinkState;
   /** Estágio do negócio (v11): fechado, funcionamento parcial (sem placa) ou inaugurado (com placa). Só avança. */
   business: BusinessStage;
+  /**
+   * A protagonista (v12): nome e aparência escolhidos no início do jogo.
+   * appearance null = a padrão dos dados (saves de antes do criador).
+   */
+  player: PlayerState;
+}
+
+export interface PlayerState {
+  name: string;
+  appearance: Appearance | null;
 }
 
 /** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
@@ -124,6 +135,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     sink: { load: emptyLoad(), washing: null },
     hotbar: newHotbar(),
     business: 'closed',
+    player: { name: '', appearance: null },
   };
 }
 

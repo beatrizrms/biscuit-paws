@@ -45,7 +45,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Preparar bebidas no balcão (receitas)
 - [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)
 - [x] Tela inicial (Home), menu principal, pausa; 3 slots + autosave com backup, exportar/importar, saves corrompidos; opções de som (2 canais)
-- [ ] Criador de personagem (pacote personagem_principal) no Novo jogo
+- [x] Criador de personagem (pacote personagem_principal) no Novo jogo: nome, aparência e 7 poses
 - [ ] Músicas e sons ambientes (canais prontos)
 - [x] Atendimento, Fase 1: quadro do cardápio (M), mochila (I), mãos, preparo com barra, clientes em pé, louça suja e pia, capacidade pela louça
 - [ ] Atendimento, Fase 2: bandeja, itens pesados, gato no veterinário, forno, pia como estação, qualidade e preferências
