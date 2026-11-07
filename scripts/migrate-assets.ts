@@ -3,7 +3,7 @@
 // npx tsx scripts/migrate-assets.ts --undo     -> desfaz usando assets/_migracao/log.json
 // O mapa vem da tabela entre <!-- MAPA:INICIO --> e <!-- MAPA:FIM --> em docs/ASSET_REORGANIZATION.md.
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 type Move = { from: string; to: string; dir: boolean };
@@ -84,9 +84,33 @@ function dynamicRefs(): string[] {
     .map(([f, n, l]) => `${f}:${n}  ${l.trim()}`);
 }
 
+/** Arquivos que o Windows não deixou mover (abertos em outro programa): copiados, original fica para apagar depois. */
+const locked: string[] = [];
+
 function move(from: string, to: string): void {
-  mkdirSync(dirname(to.replace(/\/$/, '')), { recursive: true });
-  renameSync(from.replace(/\/$/, ''), to.replace(/\/$/, ''));
+  const [src, dst] = [from.replace(/\/$/, ''), to.replace(/\/$/, '')];
+  mkdirSync(dirname(dst), { recursive: true });
+  try {
+    renameSync(src, dst);
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'EPERM' || !statSync(src).isDirectory()) throw e;
+    // Pasta com algum arquivo aberto: move arquivo por arquivo.
+    for (const f of walk(src)) {
+      const target = dst + f.slice(src.length);
+      mkdirSync(dirname(target), { recursive: true });
+      try {
+        renameSync(f, target);
+      } catch {
+        copyFileSync(f, target);
+        locked.push(f);
+      }
+    }
+    for (const d of walkDirs(src).reverse()) if (readdirSync(d).length === 0) rmdirSync(d);
+  }
+}
+
+function walkDirs(d: string): string[] {
+  return [d, ...readdirSync(d).map((n) => join(d, n).replace(/\\/g, '/')).filter((p) => statSync(p).isDirectory()).flatMap(walkDirs)];
 }
 
 if (UNDO) {
@@ -123,4 +147,5 @@ for (const m of ordered) move(m.from, m.to);
 rewrite(moves, true);
 mkdirSync(dirname(LOG), { recursive: true });
 writeFileSync(LOG, JSON.stringify({ date: new Date().toISOString(), moves: ordered }, null, 2));
+if (locked.length) console.log(`\nCopiados (o original estava aberto em outro programa; apagar depois):\n  ${locked.join('\n  ')}`);
 console.log(`\nFeito. Log para desfazer: ${LOG}. Agora: npm run check && npm test && npm run test:e2e, e conferir um print.`);
