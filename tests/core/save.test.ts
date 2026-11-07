@@ -160,6 +160,23 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/recipe.removed_from_game/);
   });
 
+  it('save_v8 migra para v9 sem bandeja, pia vazia e preparos na primeira etapa', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v8.json', 'utf8'), known);
+    expect(state.tray).toBe(false);
+    expect(state.sink).toEqual({ load: { cup: 0, glass: 0, plate: 0 }, washing: null });
+    expect(state.service.customers[0]).toMatchObject({ favorite: null, wantsPremium: false });
+  });
+
+  it('save_v9: guarda bandeja, pia, etapas e preferências', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v9.json', 'utf8'), known);
+    expect(warnings.join()).not.toMatch(/sink|bandeja/);
+    expect(state.tray).toBe(true);
+    expect(state.hands[1]).toMatchObject({ kind: 'drink', quality: 'premium' });
+    expect(state.sink.washing?.load.glass).toBe(1);
+    expect(state.service.preps[0]).toMatchObject({ recipe: 'recipe.cheese_bread', step: 1 });
+    expect(state.service.customers[0]).toMatchObject({ favorite: 'recipe.black_coffee', wantsPremium: true });
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

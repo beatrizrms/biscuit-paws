@@ -35,7 +35,12 @@ sheet(
 
 // Ícones de comida e o remédio (32x32), numa folha só.
 export const FOOD_ICONS = ['pao', 'pao_de_queijo', 'bolo_fatia', 'biscoito', 'remedio', 'cafe_preto', 'cafe_com_leite', 'cha', 'suco'];
-sheet(FOOD_ICONS.map((n) => `${SRC}/icones/${n}.png`), 32, FOOD_ICONS.length, 'public/assets/icons/fluxo_icones.png');
+const TRAYS = ['bandeja_vazia', 'bandeja_1_itens', 'bandeja_2_itens', 'bandeja_3_itens'];
+sheet([...FOOD_ICONS.map((n) => `${SRC}/icones/${n}.png`), ...TRAYS.map((n) => `${SRC}/bandeja/${n}.png`)], 32, FOOD_ICONS.length + TRAYS.length, 'public/assets/icons/fluxo_icones.png');
+
+// Balcões (esquerda, meio, direita) e o marcador que pulsa.
+sheet(['esq', 'meio', 'dir'].map((n) => `${SRC}/estacoes/balcao_${n}.png`), 32, 3, `${OUT}/balcoes.png`);
+for (const n of ['balcao_marcador_1', 'balcao_marcador_2']) copyFileSync(`${SRC}/estacoes/${n}.png`, `${OUT}/ui/${n}.png`);
 
 // Louça 16x16 (limpa, cheia, suja x xícara, prato, copo) e a interface.
 copyFileSync(`${SRC}/louca/louca_tileset_16.png`, `${OUT}/louca_16.png`);

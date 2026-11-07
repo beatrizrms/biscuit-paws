@@ -68,7 +68,11 @@
     "no_vessel": "Não tem louça limpa. Lave na pia.",
     "cannot_put_here": "Não dá para soltar aqui.",
     "wrong_order": "Não foi isso que o cliente pediu.",
-    "not_a_treat": "Pegue um petisco na mochila (I) primeiro."
+    "not_a_treat": "Pegue um petisco na mochila (I) primeiro.",
+    "not_on_tray": "Na bandeja só vai louça.",
+    "no_tray": "Você não tem bandeja (o mercado vende).",
+    "sink_full": "A pia está cheia. Lave antes de pôr mais.",
+    "not_at_home": "Aqui não. Só dentro do café."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -106,8 +110,16 @@
         "title": "Frutas e polpas"
       },
       {
+        "tag": "bakery",
+        "title": "Padaria"
+      },
+      {
         "tag": "pantry",
         "title": "Despensa"
+      },
+      {
+        "tag": "tool",
+        "title": "Utensílios"
       }
     ]
   },
@@ -180,7 +192,9 @@
     "soldOut": "Esgotado: {why}",
     "missingEquipment": "falta {name}",
     "missingIngredients": "faltam ingredientes",
-    "missingVessel": "sem {name} limpo(a)"
+    "missingVessel": "sem {name} limpo(a)",
+    "steps": "Etapas: {steps}",
+    "premiumPrice": "premium {price}"
   },
   "backpack": {
     "title": "Mochila",
@@ -195,7 +209,11 @@
     "hold": "segurar",
     "stow": "guardar",
     "dirty": "{name} suja",
-    "furniture": "Móveis guardados: {n} (posicione pelo catálogo, C)."
+    "furniture": "Móveis guardados: {n} (posicione pelo catálogo, C).",
+    "useTray": "usar bandeja",
+    "stowTray": "guardar bandeja",
+    "wip": "{name} ({equipment})",
+    "cat": "{name} no colo"
   },
   "service": {
     "prepStarted": "Preparando: {name}",
@@ -204,6 +222,17 @@
     "left": "Um cliente cansou de esperar e foi embora.",
     "washed": "Louça lavada.",
     "open": "Atendimento: {n}/{cap} clientes",
-    "hands": "Nas mãos: {name}"
+    "hands": "Nas mãos: {name}",
+    "servedTip": "+{price} ({name}) +{tip} de gorjeta",
+    "premium": "★",
+    "wipReady": "Massa pronta: leve ao {equipment}.",
+    "sinkLoaded": "Louça na pia: {n}. E com as mãos livres para lavar.",
+    "washing": "Lavando a louça...",
+    "stored": "Guardado no estoque: {name} x{qty}.",
+    "trayOn": "Bandeja na mão: leva até {n} louças.",
+    "trayOff": "Bandeja guardada.",
+    "tray": "Bandeja: {n}/{max}",
+    "sinkLoad": "Pia: {n} para lavar",
+    "sinkWashing": "Pia: lavando"
   }
 }

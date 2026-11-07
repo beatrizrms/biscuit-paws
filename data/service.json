@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes (depois das cadeiras, com cafeteira, mesa e cadeira; depois do primeiro cliente, flag cafe.open). queue: fila na entrada. sink: pia. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente sorteados (pacote clientes, 10 variações).",
+  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes. queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
   "menuSlots": 4,
   "maxCustomers": 6,
   "open": {
@@ -66,6 +66,14 @@
     "blender": {
       "name": "Liquidificador",
       "tag": "blender"
+    },
+    "stove": {
+      "name": "Fogão",
+      "tag": "stove"
+    },
+    "oven": {
+      "name": "Forno",
+      "tag": "oven"
     }
   },
   "surfaceTags": [
@@ -79,17 +87,20 @@
     "cup": {
       "name": "Xícara",
       "icon": "xicara_limpa",
-      "dirtyIcon": "xicara_suja"
+      "dirtyIcon": "xicara_suja",
+      "dirtyName": "Xícara suja"
     },
     "glass": {
       "name": "Copo",
       "icon": "copo_limpo",
-      "dirtyIcon": "copo_sujo"
+      "dirtyIcon": "copo_sujo",
+      "dirtyName": "Copo sujo"
     },
     "plate": {
       "name": "Prato",
       "icon": "prato_limpo",
-      "dirtyIcon": "prato_sujo"
+      "dirtyIcon": "prato_sujo",
+      "dirtyName": "Prato sujo"
     }
   },
   "customerLooks": [
@@ -103,5 +114,15 @@
     "npc.customer_08",
     "npc.customer_09",
     "npc.customer_10"
-  ]
+  ],
+  "sinkCapacity": 6,
+  "washMinutesPerDish": 3,
+  "premiumPriceMultiplier": 1.5,
+  "tipRate": 0.2,
+  "tipPatience": 0.5,
+  "preferences": {
+    "favoriteChance": 0.5,
+    "favoriteWeight": 0.6,
+    "premiumLoverChance": 0.3
+  }
 }

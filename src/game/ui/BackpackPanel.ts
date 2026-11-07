@@ -9,9 +9,14 @@ import { iconHtml } from './ShopPanel';
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 /** Nome de um objeto da mão (bebida, louça suja, item). */
-export function handItemName(h: HandItem): string {
-  if (h.kind === 'drink') return content.recipes[h.recipe]?.name ?? '';
-  if (h.kind === 'dirty') return uiText.backpack.dirty.replace('{name}', content.service.vessels[h.vessel].name);
+export function handItemName(h: HandItem, catName: (id: string) => string = (id) => content.cats[id]?.name ?? ''): string {
+  if (h.kind === 'drink') return (content.recipes[h.recipe]?.name ?? '') + (h.quality === 'premium' ? ` ${uiText.service.premium}` : '');
+  if (h.kind === 'dirty') return content.service.vessels[h.vessel].dirtyName;
+  if (h.kind === 'wip') {
+    const eq = content.recipes[h.recipe]?.steps[h.step]?.equipment;
+    return uiText.backpack.wip.replace('{name}', content.recipes[h.recipe]?.name ?? '').replace('{equipment}', (eq && content.service.equipment[eq]?.name) || '');
+  }
+  if (h.kind === 'cat') return uiText.backpack.cat.replace('{name}', catName(h.catId));
   return content.items[h.item]?.name ?? '';
 }
 
@@ -65,7 +70,11 @@ export class BackpackPanel {
       const packs = st.inventory[id] ?? 0;
       const servings = item.servings ?? 1;
       const amount = servings > 1 ? t.doses.replace('{n}', String(sv.doses(id))) : `x${packs}`;
-      const hold = item.tags.includes('treat') && packs > 0 ? `<button data-hold="${id}">${t.hold}</button>` : '';
+      const hold = item.tags.includes('treat') && packs > 0
+        ? `<button data-hold="${id}">${t.hold}</button>`
+        : id === content.carry.tray.item && packs > 0
+          ? `<button data-tray>${st.tray ? t.stowTray : t.useTray}</button>`
+          : '';
       return `<div class="recipe"><span class="name">${iconHtml(item.icon)}<b>${esc(item.name)}</b></span><span class="desc">${amount}</span>${hold}</div>`;
     };
     const ingredients = abstract.filter((i) => i!.tags.includes('ingredient'));
@@ -73,7 +82,7 @@ export class BackpackPanel {
     const furniture = Object.entries(st.inventory).filter(([id]) => (content.items[id]?.kind ?? 'furniture') === 'furniture').reduce((n, [, q]) => n + q, 0);
     const dishes = VESSELS.map((v) => `<span class="vessel">${iconHtml(content.service.vessels[v].icon)}${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b></span>`).join('');
     const hands = st.hands.length
-      ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
+      ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h, (id) => this.session.catName(id)))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
       : `<p class="empty">${t.handsEmpty}</p>`;
     this.body.innerHTML = `
       <h3>${t.hands}</h3>${hands}
@@ -84,6 +93,12 @@ export class BackpackPanel {
     this.body.querySelectorAll<HTMLButtonElement>('[data-hold]').forEach((b) =>
       b.addEventListener('click', () => {
         const r = sv.hold(b.dataset.hold!);
+        if (!r.ok) this.onProblem(r.reason);
+      }),
+    );
+    this.body.querySelectorAll<HTMLButtonElement>('[data-tray]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const r = sv.toggleTray();
         if (!r.ok) this.onProblem(r.reason);
       }),
     );

@@ -2,7 +2,7 @@
 // Puro: sem Phaser, DOM ou window.
 import type { HandItem, SurfaceItem } from './carry';
 import type { Vessel } from './recipes';
-import { newServiceState, type ServiceState } from './service';
+import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
 import type { Cell } from './map';
 
 export interface PlacedItem {
@@ -56,6 +56,10 @@ export interface GameState {
   surfaces: SurfaceItem[];
   /** Atendimento (v8): clientes, preparos e o total atendido. */
   service: ServiceState;
+  /** Está segurando a bandeja (v9). */
+  tray: boolean;
+  /** Pia (v9): louça suja esperando e a lavagem em andamento. */
+  sink: SinkState;
 }
 
 /** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
@@ -110,6 +114,8 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     hands: [],
     surfaces: [],
     service: newServiceState(),
+    tray: false,
+    sink: { load: emptyLoad(), washing: null },
   };
 }
 

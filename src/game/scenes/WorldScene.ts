@@ -4,7 +4,7 @@ import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
-import { CatSprite } from '../entities/Cat';
+import { CatSprite, catTexture } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
@@ -56,6 +56,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private surfaceIcons: Phaser.GameObjects.Image[] = [];
   private handIcons: Phaser.GameObjects.Image[] = [];
   private handsKey = '';
+  private carriedCatSprite: Phaser.GameObjects.Sprite | null = null;
+  private sinkSprite: Phaser.GameObjects.Sprite | null = null;
+  private sinkBar: Phaser.GameObjects.Image | null = null;
+  private sinkCleanUntil = 0;
   private equipAnims = new Map<string, Phaser.GameObjects.Sprite>();
   private progressBars = new Map<string, Phaser.GameObjects.Image>();
   private customerViews = new Map<string, CustomerSprite>();
@@ -161,13 +165,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
-    this.session.bus.on('customer.served', ({ customerId, price }) => {
+    this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
+    this.session.bus.on('customer.served', ({ customerId, price, tip }) => {
       const view = this.customerViews.get(customerId);
       if (!view) return;
       const x = view.sprite.x;
       const y = view.sprite.y - 66;
       const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
-      const label = this.add.text(x + 2, y, `+${price}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
+      const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
       this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
     });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
@@ -223,7 +228,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player.speedFactor = this.session.service.speed();
     this.player.move(input);
     this.player.updateDepth();
-    for (const cat of this.cats) cat.tick(this.time.now);
+    for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);
     this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {
       this.waiters.splice(this.waiters.indexOf(w), 1);
@@ -511,7 +516,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Tigela de ração por perto: enche e o gato vem comer.
     const bowl = this.session.bowlNear(this.playerCells(), target);
-    if (!bowl) return false;
+    if (!bowl) return this.tryPickUpCat(target);
     const result = this.session.feedFromBowl(bowl);
     if (!result.ok) this.ui.problem(result.reason);
     return true;
@@ -575,9 +580,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     };
     const customer = sv.customerToServe(feet);
     if (customer && !target) return report(sv.serve(customer.id));
-    if (st.hands.some((h) => h.kind === 'dirty') && sv.sinkNear(feet) && (!target || (target[0] === this.session.content.service.sink[0] && target[1] === this.session.content.service.sink[1]))) {
-      if (!this.sweeping) void this.playWash().then(() => report(sv.wash()));
-      return true;
+    // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
+    const sink = this.session.content.service.sink;
+    if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
+      const act = sv.sinkAction();
+      if (act === 'deposit') return report(sv.depositDirty());
+      if (act === 'wash') return report(sv.startWash());
+    }
+    // Saco pesado: no café, vai para o estoque.
+    if (st.hands.some((h) => h.kind === 'heavy')) return report(sv.storeHeavy());
+    // Gato no colo: põe no chão, na frente dela.
+    const carried = sv.carriedCat();
+    if (carried) {
+      const r = sv.putDownCat();
+      if (r.ok) this.dropCat(carried, this.facingCell());
+      return report(r);
     }
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     if (st.hands.some((h) => h.kind === 'item')) {
@@ -587,13 +604,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
     const stations = Object.keys(this.session.content.service.equipment).flatMap((eq) => sv.stationsFor(eq));
     const station = stations.find((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
-    if (station && st.hands.length === 0) {
-      if (sv.surfaceAt(station.at)) return report(sv.pickUp(station.at));
-      return report(sv.prepare(station.uid));
+    if (station) {
+      const equipment = sv.equipmentOf(station.uid);
+      const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
+      if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) return report(sv.pickUp(station.at));
+      if (st.hands.length === 0 || bringsWip) return report(sv.prepare(station.uid));
     }
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
-    if (surface && near(surface.at) && st.hands.length < this.session.content.carry.carryCapacity) return report(sv.pickUp(surface.at));
+    if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) return report(sv.pickUp(surface.at));
     // Soltar: na célula clicada ou na da frente.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
@@ -602,32 +621,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return false;
   }
 
-  /** Lavando: a pia anima (quadros "lavando"), mostra a louça limpa e volta ao normal. Ela fica parada. */
-  private async playWash(): Promise<void> {
-    const sheet = (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[]; clean?: number } }[]).find((s) => s.id === 'sink');
-    if (!sheet?.animation) return;
-    this.sweeping = true;
-    const ts = this.map.tileSize;
-    const [c, r] = this.session.content.service.sink;
-    const key = 'anim:sink';
-    const [a, b] = sheet.animation.work as [number, number];
-    if (!this.anims.exists('sink-wash')) this.anims.create({ key: 'sink-wash', frames: this.anims.generateFrameNumbers(key, { start: a, end: b }), frameRate: 6, repeat: 1 });
-    const sprite = this.add.sprite(c * ts, r * ts, key, a).setOrigin(0).setDepth(ySortDepth((r + 1) * ts) + 1);
-    sprite.play('sink-wash');
-    await this.wait(1300);
-    sprite.stop();
-    if (sheet.animation.clean !== undefined) sprite.setFrame(sheet.animation.clean);
-    this.sweeping = false;
-    this.time.delayedCall(1200, () => sprite.destroy());
-  }
-
   /** Itens deixados no café (bebidas prontas, louça suja) como ícones nas células. */
   private refreshSurfaces(): void {
     this.surfaceIcons.forEach((i) => i.destroy());
     this.surfaceIcons = [];
     if (!this.session.atHome()) return;
     const ts = this.map.tileSize;
+    if (!this.anims.exists('ready-pulse')) {
+      this.anims.create({ key: 'ready-pulse', frames: serviceArt.readyMarker.map((_, i) => ({ key: `ready_${i}` })), frameRate: 3, repeat: -1 });
+    }
     for (const s of this.session.state.surfaces) {
+      // Pronto para pegar (pedido ou massa): o marcador pulsa embaixo.
+      if (s.item.kind === 'drink' || s.item.kind === 'wip') {
+        const marker = this.add.sprite(s.at[0] * ts, s.at[1] * ts, 'ready_0').setOrigin(0).setDepth(ySortDepth((s.at[1] + 1) * ts) + 4);
+        marker.play('ready-pulse');
+        this.surfaceIcons.push(marker as unknown as Phaser.GameObjects.Image);
+      }
       const img = this.handItemImage(s.item);
       if (!img) continue;
       // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente.
@@ -639,21 +648,50 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Imagem do que está na mão (bebida: ícone da receita; louça suja: ícone apagado; item: ícone do item). */
   private handItemImage(item: HandItem): Phaser.GameObjects.Image | undefined {
-    // Bebida e louça suja: a louça 16x16 do pacote (cheia ou suja), no tamanho de verdade.
-    if (item.kind !== 'item') {
+    const c = this.session.content;
+    // Pedido pronto e louça suja: a louça 16x16 do pacote (cheia ou suja), no tamanho de verdade.
+    if (item.kind === 'drink' || item.kind === 'dirty') {
       const d = serviceArt.dishes;
       const row = d.rows[item.vessel];
       if (row !== undefined) return this.add.image(0, 0, 'dishes16', row * 3 + (item.kind === 'drink' ? d.cols.full : d.cols.dirty));
     }
-    const icon =
-      item.kind === 'drink'
-        ? this.session.content.recipes[item.recipe]?.icon
-        : item.kind === 'dirty'
-          ? this.session.content.service.vessels[item.vessel].dirtyIcon
-          : this.session.content.items[item.item]?.icon;
+    if (item.kind === 'cat') return undefined; // o gato no colo é desenhado à parte (animado)
+    const icon = item.kind === 'wip' ? c.recipes[item.recipe]?.icon : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon : undefined;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
-    return this.add.image(0, 0, f.key, f.frame);
+    const img = this.add.image(0, 0, f.key, f.frame);
+    if (item.kind === 'wip') img.setTint(0xf2dcb8); // massa crua, ainda não terminou
+    return img;
+  }
+
+  /** Tamanho do objeto na mão (petisco e massa pequenos; saco grande). */
+  private handScale(item: HandItem | undefined): number {
+    if (!item) return 1;
+    return item.kind === 'heavy' ? 0.85 : item.kind === 'item' || item.kind === 'wip' ? 0.55 : 1;
+  }
+
+  /** Pega o gato que estiver ao lado (mãos livres). */
+  private tryPickUpCat(target?: Cell): boolean {
+    const st = this.session.state;
+    if (st.hands.length > 0 || st.tray || !this.session.atHome()) return false;
+    const feet = this.playerCells();
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    if (!cat) return false;
+    const r = this.session.service.pickUpCat(cat.catId);
+    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    return true;
+  }
+
+  /** Põe o gato no chão, na célula da frente (ou nos pés dela, se a da frente estiver ocupada). */
+  private dropCat(catId: string, at: Cell): void {
+    const cat = this.cats.find((c) => c.catId === catId);
+    if (!cat) return;
+    const ts = this.map.tileSize;
+    const solid = this.map.solid[at[1]]?.[at[0]] !== false;
+    const [c, r] = solid ? this.feetCell() : at;
+    cat.setPosition(c * ts + ts / 2, (r + 1) * ts - 6).setVisible(true);
+    (cat.body as Phaser.Physics.Arcade.Body).reset(cat.x, cat.y);
   }
 
   /** A cada quadro: o que ela carrega, barras de preparo, equipamentos animados e os clientes. */
@@ -661,15 +699,40 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const st = this.session.state;
     const sv = this.session.service;
     // Mãos: o ícone vai na frente dela.
-    const key = JSON.stringify(st.hands);
+    const key = JSON.stringify([st.hands, st.tray]);
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
-      this.handIcons = st.hands.map((h) => this.handItemImage(h)).filter((i): i is Phaser.GameObjects.Image => !!i).map((i, n) => i.setScale(st.hands[n]?.kind === 'item' ? 0.55 : 1).setOrigin(0.5, 1));
+      this.carriedCatSprite?.destroy();
+      this.carriedCatSprite = null;
+      if (st.tray) {
+        // Bandeja: um desenho só, com 0 a 3 louças em cima.
+        const icon = serviceArt.trayIcons[Math.min(st.hands.length, serviceArt.trayIcons.length - 1)]!;
+        const f = iconFrame(this, icon);
+        this.handIcons = f ? [this.add.image(0, 0, f.key, f.frame).setOrigin(0.5, 0.5)] : [];
+      } else {
+        this.handIcons = st.hands
+          .map((h) => ({ h, img: this.handItemImage(h) }))
+          .filter((x): x is { h: HandItem; img: Phaser.GameObjects.Image } => !!x.img)
+          .map(({ h, img }) => img.setScale(this.handScale(h)).setOrigin(0.5, 0.5));
+      }
+      // Gato no colo: some do chão e aparece nos braços.
+      const catId = sv.carriedCat();
+      for (const cat of this.cats) {
+        if (cat.catId === catId) {
+          cat.setVisible(false).setVelocity(0, 0);
+          const variant = this.session.content.cats[catId]?.variant ?? '';
+          this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.6).play(`${catTexture(variant)}-sit`);
+        }
+      }
     }
     const dir = this.player.facingDirection();
-    const dx = dir === 'left' ? -9 : dir === 'right' ? 9 : 0;
-    this.handIcons.forEach((img, i) => img.setPosition(this.player.x + dx, this.player.y - 18 - i * 8).setDepth(this.player.depth + (dir === 'up' ? -1 : 2)));
+    const [ax, ay] = serviceArt.handAnchor[dir];
+    const hx = this.player.x - 16 + ax;
+    const hy = this.player.y - 64 + ay;
+    const front = this.player.depth + (dir === 'up' ? -1 : 2);
+    this.handIcons.forEach((img, i) => img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front));
+    this.carriedCatSprite?.setPosition(hx, hy).setDepth(front).setFlipX(dir === 'left');
     if (!this.session.atHome()) return;
     // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
     const ts = this.map.tileSize;
@@ -712,7 +775,35 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       bar.destroy();
       this.progressBars.delete(uid);
     }
+    this.updateSink();
     this.syncCustomers();
+  }
+
+  /** Pia: louça esperando (quadro com louça), lavando (animação + barra), recém-lavada (louça limpa). */
+  private updateSink(): void {
+    const sv = this.session.service;
+    const sheet = (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[]; dirty?: number; clean?: number } }[]).find((s) => s.id === 'sink');
+    if (!sheet?.animation) return;
+    const ts = this.map.tileSize;
+    const [c, r] = this.session.content.service.sink;
+    if (!this.sinkSprite || !this.sinkSprite.active) {
+      this.sinkSprite = this.add.sprite(c * ts, r * ts, 'anim:sink', 0).setOrigin(0).setDepth(ySortDepth((r + 1) * ts) + 1).setVisible(false);
+      const [a, b] = sheet.animation.work as [number, number];
+      if (!this.anims.exists('sink-wash')) this.anims.create({ key: 'sink-wash', frames: this.anims.generateFrameNumbers('anim:sink', { start: a, end: b }), frameRate: 6, repeat: -1 });
+    }
+    const progress = sv.washProgress();
+    if (progress !== undefined) {
+      if (!this.sinkSprite.anims.isPlaying) this.sinkSprite.setVisible(true).play('sink-wash');
+      if (!this.sinkBar || !this.sinkBar.active) this.sinkBar = this.add.image((c + 0.5) * ts, r * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+      this.sinkBar.setTexture(`progress_${Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)))}`);
+      return;
+    }
+    this.sinkBar?.destroy();
+    this.sinkBar = null;
+    this.sinkSprite.stop();
+    if (this.time.now < this.sinkCleanUntil && sheet.animation.clean !== undefined) this.sinkSprite.setVisible(true).setFrame(sheet.animation.clean);
+    else if (sv.sinkLoad() > 0 && sheet.animation.dirty !== undefined) this.sinkSprite.setVisible(true).setFrame(sheet.animation.dirty);
+    else this.sinkSprite.setVisible(false);
   }
 
   /** Clientes: cria quem chegou (entra pela porta), anda até o lugar, balão do pedido; quem saiu vai embora. */
@@ -766,6 +857,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.equipAnims.clear();
     this.progressBars.forEach((b) => b.destroy());
     this.progressBars.clear();
+    this.sinkSprite?.destroy();
+    this.sinkSprite = null;
+    this.sinkBar?.destroy();
+    this.sinkBar = null;
+    this.handsKey = ''; // redesenha o que está nas mãos (o gato do mapa novo)
     this.customersFresh = true;
   }
 

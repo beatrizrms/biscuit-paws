@@ -49,6 +49,7 @@ export type ActionResult =
         | 'job_unavailable'
         | 'missing_item'
         | 'door_full'
+        | 'hands_full'
         | 'nothing_here'
         | 'already_owned'
         | PlaceProblem;
@@ -71,6 +72,7 @@ export class GameSession {
       bus: this.bus,
       rng: () => createRng(state.day * 1009 + state.service.nextCustomerId * 97 + rngCalls++),
       homeMap: () => this.mapData(this.content.map.id),
+      atHome: () => this.atHome(),
       evaluate: (c) => evaluate(c, this.state, this.storyContext()),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       advanceStory: () => this.advanceStory(),
@@ -660,12 +662,20 @@ export class GameSession {
   buy(itemId: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
-    if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    // Chave e presente não se compram; ferramenta só se tiver preço (ex.: a bandeja; a vassoura é presente).
+    if (['key', 'gift'].includes(item.kind ?? 'furniture') || (item.kind === 'tool' && !(item.price > 0))) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (item.kind === 'fixture' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
+    if (item.kind === 'tool' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
+    // Pesado (saco de ração, areia): vai direto para as mãos; precisa estar com elas livres.
+    const heavy = item.tags.includes(this.content.carry.heavy.tag);
+    if (heavy) {
+      const r = this.service.carryHeavy(itemId);
+      if (!r.ok) return { ok: false, reason: r.reason === 'hands_full' ? 'hands_full' : 'unknown_item' };
+    }
     this.addMoney(-item.price, `buy:${itemId}`);
-    this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    if (!heavy) this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
     this.bus.emit('item.bought', { itemId, price: item.price });
     this.advanceStory();
     return { ok: true };

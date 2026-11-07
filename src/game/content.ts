@@ -65,6 +65,9 @@ export const serviceArt = serviceArtJson as unknown as {
   bubble: { normal: string; impatient: string; furious: string; iconSlot: [number, number, number, number]; impatientBelow: number; furiousBelow: number; waiting: string[] };
   progress: string[];
   coin: string;
+  readyMarker: string[];
+  trayIcons: string[];
+  handAnchor: Record<'down' | 'left' | 'right' | 'up', [number, number]>;
   dishes: { image: string; tile: number; rows: Record<string, number>; cols: Record<'clean' | 'full' | 'dirty', number> };
 };
 

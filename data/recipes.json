@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 2,
-  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings` doses, em items.json). equipment: chave em service.json. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). prepMinutes: minutos de jogo. price: venda. unlock: condição para aparecer no quadro.",
+  "schemaVersion": 3,
+  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro.",
   "recipes": [
     {
       "id": "recipe.black_coffee",
@@ -10,11 +10,18 @@
         "item.coffee_ground": 1,
         "item.paper_filter": 1
       },
-      "equipment": "coffee_machine",
       "vessel": "cup",
       "service": "standing",
-      "prepMinutes": 10,
-      "price": 12
+      "price": 12,
+      "premium": {
+        "item.coffee_ground": "item.coffee_beans_bag"
+      },
+      "steps": [
+        {
+          "equipment": "coffee_machine",
+          "minutes": 10
+        }
+      ]
     },
     {
       "id": "recipe.black_tea",
@@ -23,11 +30,18 @@
       "ingredients": {
         "item.tea_black_bag": 1
       },
-      "equipment": "teapot",
       "vessel": "cup",
       "service": "standing",
-      "prepMinutes": 8,
-      "price": 8
+      "price": 8,
+      "premium": {
+        "item.tea_black_bag": "item.tea_leaves_tin"
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 8
+        }
+      ]
     },
     {
       "id": "recipe.orange_juice",
@@ -37,11 +51,18 @@
         "item.pulp_orange": 1,
         "item.sugar": 1
       },
-      "equipment": "blender",
       "vessel": "glass",
       "service": "standing",
-      "prepMinutes": 6,
-      "price": 10
+      "price": 10,
+      "premium": {
+        "item.pulp_orange": "item.orange"
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 6
+        }
+      ]
     },
     {
       "id": "recipe.cafe_latte",
@@ -52,14 +73,21 @@
         "item.paper_filter": 1,
         "item.milk_powder": 1
       },
-      "equipment": "coffee_machine",
       "vessel": "cup",
       "service": "standing",
-      "prepMinutes": 12,
       "price": 15,
       "unlock": {
         "flag": "recipe.cafe_latte"
-      }
+      },
+      "premium": {
+        "item.coffee_ground": "item.coffee_beans_bag"
+      },
+      "steps": [
+        {
+          "equipment": "coffee_machine",
+          "minutes": 12
+        }
+      ]
     },
     {
       "id": "recipe.green_tea",
@@ -68,14 +96,21 @@
       "ingredients": {
         "item.tea_green_bag": 1
       },
-      "equipment": "teapot",
       "vessel": "cup",
       "service": "standing",
-      "prepMinutes": 8,
       "price": 9,
       "unlock": {
         "flag": "recipe.green_tea"
-      }
+      },
+      "premium": {
+        "item.tea_green_bag": "item.tea_leaves_tin"
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 8
+        }
+      ]
     },
     {
       "id": "recipe.strawberry_juice",
@@ -85,14 +120,21 @@
         "item.pulp_strawberry": 1,
         "item.sugar": 1
       },
-      "equipment": "blender",
       "vessel": "glass",
       "service": "standing",
-      "prepMinutes": 6,
       "price": 11,
       "unlock": {
         "flag": "recipe.strawberry_juice"
-      }
+      },
+      "premium": {
+        "item.pulp_strawberry": "item.strawberry"
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 6
+        }
+      ]
     },
     {
       "id": "recipe.lemonade",
@@ -102,14 +144,68 @@
         "item.pulp_lemon": 1,
         "item.sugar": 1
       },
-      "equipment": "blender",
       "vessel": "glass",
       "service": "standing",
-      "prepMinutes": 6,
       "price": 10,
       "unlock": {
         "flag": "recipe.lemonade"
-      }
+      },
+      "premium": {
+        "item.pulp_lemon": "item.lemon"
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 6
+        }
+      ]
+    },
+    {
+      "id": "recipe.cheese_bread",
+      "name": "Pão de queijo",
+      "icon": "pao_de_queijo",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.milk": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 6
+        },
+        {
+          "equipment": "oven",
+          "minutes": 20
+        }
+      ],
+      "vessel": "plate",
+      "service": "table",
+      "price": 18
+    },
+    {
+      "id": "recipe.cake_slice",
+      "name": "Fatia de bolo",
+      "icon": "bolo_fatia",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.chocolate": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 25
+        }
+      ],
+      "vessel": "plate",
+      "service": "table",
+      "price": 22
     }
   ]
 }

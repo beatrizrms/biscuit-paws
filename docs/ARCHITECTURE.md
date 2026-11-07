@@ -80,10 +80,12 @@ cat-cafe-game/
 | `job.completed` | pedido concluído e pago | `jobId, reward` |
 | `cat.fed` | um gato comeu da tigela | `catId, itemId, bowlUid` |
 | `customer.arrived` | cliente entrou (na fila: `recipeId` null) | `customerId, recipeId` |
-| `customer.served` | pedido entregue: o cliente paga | `customerId, recipeId, price` |
+| `customer.served` | pedido entregue: o cliente paga (e gorjeta, se satisfeito) | `customerId, recipeId, price, tip, quality` |
+| `sink.changed` | louça entrou na pia ou começou a lavagem | `load` |
+| `heavy.stored` | saco pesado guardado no estoque do café | `itemId` |
 | `customer.left` | cliente foi embora (`happy`: foi atendido) | `customerId, happy` |
 | `menu.changed` | quadro do cardápio mudou | `menu` |
-| `prep.started` / `prep.ready` | preparo começou / bebida pronta no equipamento | `stationUid, recipeId` |
+| `prep.started` / `prep.ready` | etapa começou / ficou pronta no equipamento (`final`: o pedido; senão, massa para a próxima etapa) | `stationUid, recipeId` (+ `final`) |
 | `hands.changed` | algo entrou ou saiu das mãos | `count` |
 | `dish.washed` | louça suja lavada na pia | `count` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |

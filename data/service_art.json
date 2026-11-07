@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Arte do atendimento (pacote Fluxo do café, onda 1; importado por scripts/import-fluxo.ts). Só a interface usa. boards: quadro do cardápio por número de slots (posições do ícone e do preço). bubble: balão do pedido (ícone em iconSlot); impatientBelow/furiousBelow: fração da paciência. dishes: louça 16x16 no mundo (linhas por louça, colunas por estado).",
+  "_comment": "Arte do atendimento (pacote Fluxo do café, onda 1; importado por scripts/import-fluxo.ts). Só a interface usa. boards: quadro do cardápio por número de slots (posições do ícone e do preço). bubble: balão do pedido (ícone em iconSlot); impatientBelow/furiousBelow: fração da paciência. dishes: louça 16x16 no mundo (linhas por louça, colunas por estado). readyMarker: marcador que pulsa no balcão quando algo fica pronto. trayIcons: bandeja com 0..3 itens. handAnchor: onde o item fica na mão (pixels do quadro 32x64, por direção; do pacote personagem_carregando).",
   "boards": {
     "4": {
       "image": "assets/fluxo/ui/cardapio_4_slots.png",
@@ -329,5 +329,33 @@
       "full": 1,
       "dirty": 2
     }
+  },
+  "readyMarker": [
+    "assets/fluxo/ui/balcao_marcador_1.png",
+    "assets/fluxo/ui/balcao_marcador_2.png"
+  ],
+  "trayIcons": [
+    "bandeja_vazia",
+    "bandeja_1_itens",
+    "bandeja_2_itens",
+    "bandeja_3_itens"
+  ],
+  "handAnchor": {
+    "down": [
+      16,
+      45
+    ],
+    "left": [
+      9,
+      45
+    ],
+    "right": [
+      23,
+      45
+    ],
+    "up": [
+      16,
+      45
+    ]
   }
 }

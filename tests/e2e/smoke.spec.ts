@@ -492,6 +492,11 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
   await page.keyboard.press('e');
   await expect(page.locator('.hud-goals')).toContainText('Xícara suja');
   await teleport(page, 1, 4);
+  // Pia: um E deixa a louça, outro começa a lavar; leva uns minutos.
   await page.keyboard.press('e');
-  await expect(page.locator('.toast')).toContainText('Louça lavada');
+  await expect(page.locator('.toast')).toContainText('Louça na pia');
+  await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('Lavando');
+  await advance(5);
+  await expect(page.locator('.hud-goals')).not.toContainText('Pia:');
 });

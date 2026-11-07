@@ -10,6 +10,15 @@ export const VESSELS: readonly Vessel[] = ['cup', 'glass', 'plate'];
 /** Em pé (no balcão) ou sentado (mesa + cadeira + prato). */
 export type ServiceKind = 'standing' | 'table';
 
+/** Qualidade do que sai da cozinha: premium quando todos os ingredientes trocáveis são os melhores. */
+export type Quality = 'simple' | 'premium';
+
+/** Uma etapa do preparo: num equipamento, por um tempo. Entre etapas, ela leva a massa de um equipamento ao outro. */
+export interface RecipeStep {
+  equipment: string;
+  minutes: number;
+}
+
 export interface RecipeDef {
   id: string;
   name: string;
@@ -17,20 +26,20 @@ export interface RecipeDef {
   icon: string;
   /** Ingrediente -> doses (um pacote rende `servings` doses, em items.json). */
   ingredients: Record<string, number>;
-  /** Equipamento (chave em service.json: equipment). */
-  equipment: string;
+  /** Trocas premium: ingrediente simples -> o melhor (ex.: pó de café -> café em grãos). */
+  premium?: Record<string, string>;
+  /** Etapas, em ordem (café: cafeteira; pão de queijo: fogão e depois forno). */
+  steps: RecipeStep[];
   vessel: Vessel;
   service: ServiceKind;
-  /** Minutos de jogo no equipamento. */
-  prepMinutes: number;
-  /** Preço de venda, em moedas. */
+  /** Preço de venda (premium multiplica, ver service.json). */
   price: number;
   /** Condição para aparecer no quadro (marco, equipamento comprado, cômodo restaurado...). */
   unlock?: Condition;
 }
 
 export interface RecipesData {
-  schemaVersion: 2;
+  schemaVersion: 3;
   recipes: RecipeDef[];
 }
 
@@ -53,8 +62,11 @@ export interface ServiceConfig {
   enabledWhen: Condition;
   /** Fila: onde esperam quando não há lugar livre (células do café). */
   queue: Cell[];
-  /** Pia (célula do café): a louça suja volta limpa. */
+  /** Pia (célula do café). */
   sink: Cell;
+  /** Quanta louça cabe na pia e quantos minutos leva cada peça. */
+  sinkCapacity: number;
+  washMinutesPerDish: number;
   /** Equipamentos: chave -> nome e tag do móvel posicionado que faz o papel. */
   equipment: Record<string, { name: string; tag: string }>;
   /** Tags dos móveis que são superfícies (balcão, mesa) e onde o cliente fica em pé. */
@@ -63,9 +75,16 @@ export interface ServiceConfig {
   tableTag: string;
   chairTag: string;
   /** Louça: nome e ícones (limpa e suja). */
-  vessels: Record<Vessel, { name: string; icon: string; dirtyIcon: string }>;
+  vessels: Record<Vessel, { name: string; icon: string; dirtyIcon: string; dirtyName: string }>;
   /** NPCs que podem aparecer como cliente (sorteados). */
   customerLooks: string[];
+  /** Premium vende mais caro. */
+  premiumPriceMultiplier: number;
+  /** Gorjeta (fração do preço) quando o cliente fica satisfeito: atendido com paciência de sobra e na qualidade que gosta. */
+  tipRate: number;
+  tipPatience: number;
+  /** Preferências sorteadas: um favorito do quadro e gostar de premium. */
+  preferences: { favoriteChance: number; favoriteWeight: number; premiumLoverChance: number };
 }
 
 export interface CarryConfig {
@@ -74,6 +93,12 @@ export interface CarryConfig {
   carryCapacity: number;
   /** Quanto cada objeto na mão tira da velocidade (0.1 = 10%). */
   speedPenaltyPerItem: number;
+  /** Bandeja: o item da mochila, quanta louça leva e a velocidade com ela. */
+  tray: { item: string; capacity: number; speedFactor: number };
+  /** Itens pesados (tag): ocupam as mãos sozinhos e deixam lenta. */
+  heavy: { tag: string; speedFactor: number };
+  /** Gato no colo. */
+  cat: { speedFactor: number };
 }
 
 /** Por que uma receita não pode ser pedida agora. */
@@ -98,15 +123,25 @@ export function validateRecipes(
       if (!refs.items.has(item)) errors.push(`${where}: item inexistente "${item}"`);
       if (!Number.isInteger(n) || n < 1) errors.push(`${where}: doses inválidas de "${item}"`);
     }
-    if (!service.equipment[r.equipment]) errors.push(`${where}: equipamento inexistente "${r.equipment}"`);
+    for (const [base, better] of Object.entries(r.premium ?? {})) {
+      if (!(base in r.ingredients)) errors.push(`${where}: troca premium de "${base}", que não é ingrediente`);
+      if (!refs.items.has(better)) errors.push(`${where}: item premium inexistente "${better}"`);
+    }
+    if (r.steps.length === 0) errors.push(`${where}: sem etapas`);
+    for (const s of r.steps) {
+      if (!service.equipment[s.equipment]) errors.push(`${where}: equipamento inexistente "${s.equipment}"`);
+      if (!(s.minutes > 0)) errors.push(`${where}: etapa sem tempo`);
+    }
     if (!VESSELS.includes(r.vessel)) errors.push(`${where}: louça inválida "${r.vessel}"`);
     if (!['standing', 'table'].includes(r.service)) errors.push(`${where}: serviço inválido "${r.service}"`);
     // Regra da casa: em pé só com xícara ou copo; comer (prato) só na mesa.
     if (r.service === 'standing' && r.vessel === 'plate') errors.push(`${where}: em pé não usa prato`);
     if (r.vessel === 'plate' && r.service !== 'table') errors.push(`${where}: prato só na mesa`);
-    if (!(r.prepMinutes > 0) || !(r.price > 0)) errors.push(`${where}: tempo e preço precisam ser positivos`);
+    if (!(r.price > 0)) errors.push(`${where}: preço precisa ser positivo`);
   }
   if (!(service.menuSlots >= 1) || !(service.maxCustomers >= 1)) errors.push('service: menuSlots e maxCustomers precisam ser 1 ou mais');
+  if (!(service.sinkCapacity >= 1) || !(service.washMinutesPerDish > 0)) errors.push('service: sinkCapacity e washMinutesPerDish precisam ser positivos');
+  if (!(service.premiumPriceMultiplier >= 1) || !(service.tipRate >= 0)) errors.push('service: premiumPriceMultiplier >= 1 e tipRate >= 0');
   for (const [key, eq] of Object.entries(service.equipment)) {
     if (!refs.itemTags.has(eq.tag)) errors.push(`service: equipamento "${key}" usa tag que nenhum item tem ("${eq.tag}")`);
   }
@@ -119,5 +154,7 @@ export function validateRecipes(
   }
   if (service.customerLooks.length === 0) errors.push('service: customerLooks vazio');
   if (!(carry.carryCapacity >= 1) || !(carry.speedPenaltyPerItem >= 0)) errors.push('carry: carryCapacity >= 1 e speedPenaltyPerItem >= 0');
+  if (!refs.items.has(carry.tray.item) || !(carry.tray.capacity >= 1)) errors.push('carry: bandeja inválida');
+  if (!refs.itemTags.has(carry.heavy.tag)) errors.push(`carry: nenhum item tem a tag de pesado "${carry.heavy.tag}"`);
   return errors;
 }

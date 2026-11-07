@@ -52,7 +52,7 @@ export class MenuBoardPanel {
   private statusText(r: RecipeDef, status: RecipeStatus): string {
     const t = uiText.menuBoard;
     if (status === 'available') return t.available;
-    if (status === 'equipment') return t.soldOut.replace('{why}', t.missingEquipment.replace('{name}', content.service.equipment[r.equipment]?.name ?? ''));
+    if (status === 'equipment') return t.soldOut.replace('{why}', t.missingEquipment.replace('{name}', content.service.equipment[this.session.service.missingEquipment(r.id) ?? '']?.name ?? ''));
     if (status === 'ingredients') return t.soldOut.replace('{why}', t.missingIngredients);
     if (status === 'vessel') return t.soldOut.replace('{why}', t.missingVessel.replace('{name}', content.service.vessels[r.vessel].name.toLowerCase()));
     return t.locked;
@@ -65,6 +65,8 @@ export class MenuBoardPanel {
     return `<div class="recipe ${status === 'available' ? '' : 'sold-out'}">
       <span class="name">${iconHtml(r.icon)}<b>${esc(r.name)}</b> <span class="price">${r.price}</span></span>
       <span class="desc">${esc(ingredients)} · ${esc(content.service.vessels[r.vessel].name)}</span>
+      ${r.steps.length > 1 ? `<span class="desc">${esc(uiText.menuBoard.steps.replace('{steps}', r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → ')))}</span>` : ''}
+      ${r.premium ? `<span class="desc">${uiText.service.premium} ${esc(uiText.menuBoard.premiumPrice.replace('{price}', String(this.session.service.priceOf(r.id, 'premium'))))}</span>` : ''}
       <span class="status">${esc(this.statusText(r, status))}</span>
       <button data-recipe="${r.id}">${action}</button></div>`;
   }

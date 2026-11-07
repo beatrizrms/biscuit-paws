@@ -349,6 +349,14 @@
         "dirty": 1,
         "clean": 6
       }
+    },
+    {
+      "id": "counters",
+      "image": "assets/fluxo/balcoes.png",
+      "pieces": "balcoes.json",
+      "prefix": "bar_",
+      "layer": "object",
+      "solid": true
     }
   ]
 }

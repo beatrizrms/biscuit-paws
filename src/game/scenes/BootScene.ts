@@ -40,6 +40,7 @@ export class BootScene extends Phaser.Scene {
     for (const [k, path] of Object.entries({ bubble_normal: art.bubble.normal, bubble_impatient: art.bubble.impatient, bubble_furious: art.bubble.furious, coin16: art.coin })) this.load.image(k, path);
     art.bubble.waiting.forEach((p, i) => this.load.image(`bubble_wait_${i}`, p));
     art.progress.forEach((p, i) => this.load.image(`progress_${i}`, p));
+    art.readyMarker.forEach((p, i) => this.load.image(`ready_${i}`, p));
     this.load.spritesheet('dishes16', art.dishes.image, { frameWidth: art.dishes.tile, frameHeight: art.dishes.tile });
     for (const sheet of tilesetsJson.sheets) {
       if ('animation' in sheet) this.load.spritesheet(`anim:${sheet.id}`, sheet.image, { frameWidth: 32, frameHeight: 32 });

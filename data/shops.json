@@ -27,7 +27,15 @@
         "item.pulp_lemon",
         "item.sugar",
         "item.honey",
-        "item.milk_powder"
+        "item.milk_powder",
+        "item.cat_food_sack",
+        "item.litter_sack",
+        "item.tray",
+        "item.flour",
+        "item.eggs",
+        "item.milk",
+        "item.butter",
+        "item.chocolate"
       ]
     }
   }

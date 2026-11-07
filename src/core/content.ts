@@ -31,6 +31,8 @@ export interface ItemDef {
   iconImage?: string;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
+  /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
+  storesAs?: { item: string; qty: number };
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
   dishes?: Partial<Record<Vessel, number>>;
   tags: string[];
@@ -481,6 +483,8 @@ export function validateContent(raw: RawContent): string[] {
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
+    if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);
+    if (item.storesAs && !item.tags.includes(raw.carry.heavy.tag)) err(`items: "${item.id}" tem storesAs mas não é pesado (tag "${raw.carry.heavy.tag}")`);
   }
   for (const [id, icon] of Object.entries(raw.icons.icons)) {
     if (icon.sheet && !raw.icons.sheets?.[icon.sheet]) err(`icons: "${id}" usa folha inexistente "${icon.sheet}"`);

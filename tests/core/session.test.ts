@@ -680,7 +680,7 @@ describe('mercado: matéria-prima', () => {
     const { session } = newSession();
     const sold = new Set(session.shopItems('shop.market'));
     const ingredients = Object.values(content.items).filter((i) => i.tags.includes('ingredient'));
-    expect(ingredients.length).toBe(19);
+    expect(ingredients.length).toBe(24); // 19 de bebidas + 5 da padaria
     for (const i of ingredients) expect(sold.has(i.id)).toBe(true);
     for (const r of Object.values(content.recipes)) for (const id of Object.keys(r.ingredients)) expect(sold.has(id)).toBe(true);
     expect(session.buy('item.coffee_ground')).toEqual({ ok: true });

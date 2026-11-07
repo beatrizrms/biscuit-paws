@@ -1,12 +1,12 @@
-// Atendimento do café: cardápio, pedidos, preparo nos equipamentos, mãos, louça e clientes.
-// Puro: sem Phaser, DOM ou window. O tempo é o relógio do jogo (minutos absolutos, nowAbs).
-// A cena só desenha: lê este estado e chama as ações (pegar, soltar, preparar, servir, lavar).
+// Atendimento do café: cardápio, pedidos, preparo nos equipamentos (em etapas), mãos e bandeja, itens pesados,
+// gato no colo, louça e pia, clientes com preferências. Puro: sem Phaser, DOM ou window.
+// O tempo é o relógio do jogo (minutos absolutos, nowAbs). A cena só desenha e chama as ações.
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import type { Rng } from './rng';
-import { speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
-import { VESSELS, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
+import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
+import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
 import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
 
@@ -23,13 +23,25 @@ export interface Customer {
   recipe: string | null;
   /** waiting: até quando espera; drinking: quando termina. */
   until: number;
+  /** Preferências: uma receita favorita (pede mais) e gostar de premium (só dá gorjeta se for premium). */
+  favorite: string | null;
+  wantsPremium: boolean;
 }
 
-/** Bebida sendo feita num equipamento posicionado. */
+/** Uma etapa sendo feita num equipamento posicionado. */
 export interface Prep {
   stationUid: string;
   recipe: string;
+  /** Índice da etapa (na receita). */
+  step: number;
+  quality: Quality;
   readyAt: number;
+}
+
+/** Pia: louça suja esperando e a lavagem em andamento. */
+export interface SinkState {
+  load: Record<Vessel, number>;
+  washing: { readyAt: number; load: Record<Vessel, number> } | null;
 }
 
 export interface ServiceState {
@@ -45,6 +57,8 @@ export function newServiceState(): ServiceState {
   return { customers: [], preps: [], nextCustomerAt: null, nextCustomerId: 1, served: 0 };
 }
 
+export const emptyLoad = (): Record<Vessel, number> => ({ cup: 0, glass: 0, plate: 0 });
+
 export type ServiceProblem =
   | 'not_unlocked'
   | 'menu_full'
@@ -57,7 +71,11 @@ export type ServiceProblem =
   | 'cannot_put_here'
   | 'nothing_here'
   | 'wrong_order'
-  | 'not_a_treat';
+  | 'not_a_treat'
+  | 'not_on_tray'
+  | 'no_tray'
+  | 'sink_full'
+  | 'not_at_home';
 
 export type ServiceResult = { ok: true } | { ok: false; reason: ServiceProblem };
 
@@ -69,6 +87,8 @@ export interface ServiceHost {
   rng(): Rng;
   /** Mapa do café (com os móveis da jogadora). */
   homeMap(): MapData;
+  /** Ela está no café? */
+  atHome(): boolean;
   evaluate(c: Condition): boolean;
   addMoney(delta: number, reason: string): void;
   advanceStory(): void;
@@ -77,6 +97,7 @@ export interface ServiceHost {
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
 const same = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
+const loadCount = (load: Record<Vessel, number>) => VESSELS.reduce((n, v) => n + (load[v] ?? 0), 0);
 
 export class CafeService {
   constructor(private h: ServiceHost) {}
@@ -87,8 +108,14 @@ export class CafeService {
   private get cfg() {
     return this.h.content.service;
   }
+  private get carry() {
+    return this.h.content.carry;
+  }
   private now(): number {
     return nowAbs(this.st);
+  }
+  private handsChanged(): void {
+    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
   }
 
   // ---------- Ingredientes (doses) ----------
@@ -114,6 +141,21 @@ export class CafeService {
     }
   }
 
+  /** Dá para fazer com os ingredientes de agora? E sai premium (todas as trocas premium disponíveis)? */
+  private ingredientsFor(r: RecipeDef): { ok: boolean; quality: Quality; use: [string, number][] } {
+    const subs = r.premium ?? {};
+    const canPremium = Object.keys(subs).length > 0 && Object.entries(r.ingredients).every(([item, n]) => this.doses(subs[item] ?? item) >= n);
+    if (canPremium) return { ok: true, quality: 'premium', use: Object.entries(r.ingredients).map(([item, n]) => [subs[item] ?? item, n]) };
+    // Simples: cada ingrediente pode vir do normal ou, se faltar, da troca premium.
+    const use: [string, number][] = [];
+    for (const [item, n] of Object.entries(r.ingredients)) {
+      if (this.doses(item) >= n) use.push([item, n]);
+      else if (subs[item] && this.doses(subs[item]!) >= n) use.push([subs[item]!, n]);
+      else return { ok: false, quality: 'simple', use: [] };
+    }
+    return { ok: true, quality: 'simple', use };
+  }
+
   // ---------- Equipamentos e louça ----------
 
   /** Móveis posicionados que fazem o papel deste equipamento. */
@@ -123,6 +165,11 @@ export class CafeService {
     return this.st.placed
       .filter((p) => this.h.content.items[p.item]?.tags.includes(tag))
       .map((p) => ({ uid: p.uid, at: p.at, cells: this.cellsOfPlaced(p.item, p.at) }));
+  }
+
+  /** Todos os equipamentos posicionados. */
+  allStations(): { uid: string; at: Cell; cells: Cell[] }[] {
+    return Object.keys(this.cfg.equipment).flatMap((eq) => this.stationsFor(eq));
   }
 
   private cellsOfPlaced(itemId: string, at: Cell): Cell[] {
@@ -137,16 +184,21 @@ export class CafeService {
     return Object.entries(this.cfg.equipment).find(([, eq]) => tags.includes(eq.tag))?.[0];
   }
 
-  /** Louça limpa que ainda não está separada para um preparo. */
-  cleanFree(v: Vessel): number {
-    const reserved = this.st.service.preps.filter((p) => this.recipe(p.recipe)?.vessel === v).length;
-    return (this.st.dishes[v] ?? 0) - reserved;
+  /** Massa entre etapas e preparos em andamento já separam uma louça limpa para o fim. */
+  private reserved(v: Vessel): number {
+    const wips = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'wip' && this.recipe(i.recipe)?.vessel === v);
+    return this.st.service.preps.filter((p) => this.recipe(p.recipe)?.vessel === v).length + wips.length;
   }
 
-  /** Louça suja espalhada (mãos e superfícies). */
+  /** Louça limpa que ainda não está separada para um preparo. */
+  cleanFree(v: Vessel): number {
+    return (this.st.dishes[v] ?? 0) - this.reserved(v);
+  }
+
+  /** Louça suja espalhada (mãos, superfícies e esperando na pia). */
   dirtyCount(): number {
     const all = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)];
-    return all.filter((i) => i.kind === 'dirty').length;
+    return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad());
   }
 
   /** O presente da Gabi (ou outro item com "dishes") entra no estoque de louça limpa. */
@@ -166,10 +218,15 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
-    if (this.stationsFor(r.equipment).length === 0) return 'equipment';
-    if (Object.entries(r.ingredients).some(([item, n]) => this.doses(item) < n)) return 'ingredients';
+    if (r.steps.some((s) => this.stationsFor(s.equipment).length === 0)) return 'equipment';
+    if (!this.ingredientsFor(r).ok) return 'ingredients';
     if (this.cleanFree(r.vessel) < 1) return 'vessel';
     return 'available';
+  }
+
+  /** Primeiro equipamento que falta para a receita (para o quadro dizer qual). */
+  missingEquipment(id: string): string | undefined {
+    return this.recipe(id)?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
   }
 
   unlockedRecipes(): RecipeDef[] {
@@ -195,12 +252,19 @@ export class CafeService {
     return this.st.menu.filter((id) => this.recipeStatus(id) === 'available').map((id) => this.recipe(id)!);
   }
 
+  /** Preço de um pedido na qualidade em que sai. */
+  priceOf(recipeId: string, quality: Quality = 'simple'): number {
+    const base = this.recipe(recipeId)?.price ?? 0;
+    return quality === 'premium' ? Math.round(base * this.cfg.premiumPriceMultiplier) : base;
+  }
+
   // ---------- Capacidade e lugares ----------
 
   /** Quantos clientes cabem agora: o teto dos dados, limitado pela louça que não está suja. */
   capacity(): number {
     const clean = VESSELS.reduce((n, v) => n + (this.st.dishes[v] ?? 0), 0);
-    const inUse = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'drink').length +
+    const inUse =
+      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'drink').length +
       this.st.service.customers.filter((c) => c.stage === 'drinking').length;
     return Math.min(this.cfg.maxCustomers, clean + inUse);
   }
@@ -233,6 +297,12 @@ export class CafeService {
     return this.spots().filter((s) => !taken.some((t) => same(t, s.spot)));
   }
 
+  /** Um lugar livre que tenha pedido possível (em pé ou na mesa). */
+  private usableSpot(): { kind: ServiceKind; spot: Cell; dishAt: Cell } | undefined {
+    const kinds = new Set(this.orderable().map((r) => r.service));
+    return this.freeSpots().find((s) => kinds.has(s.kind));
+  }
+
   /** O atendimento está funcionando agora (marco/condição dos dados + horário)? */
   isOpen(): boolean {
     if (!this.h.evaluate(this.cfg.enabledWhen)) return false;
@@ -242,11 +312,11 @@ export class CafeService {
 
   // ---------- Relógio ----------
 
-  /** A cada minuto de jogo: bebidas ficam prontas, clientes esperam/consomem/vão embora, chegam novos. */
+  /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
   tick(): void {
     const now = this.now();
     const sv = this.st.service;
-    // Preparos prontos: a bebida aparece no equipamento.
+    // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
       const station = this.st.placed.find((p) => p.uid === prep.stationUid);
@@ -255,12 +325,23 @@ export class CafeService {
         sv.preps = sv.preps.filter((p) => p !== prep);
         continue;
       }
-      if (this.surfaceAt(station.at)) continue; // equipamento ocupado: espera tirarem a bebida
+      if (this.surfaceAt(station.at)) continue; // equipamento ocupado: espera tirarem o que está nele
       sv.preps = sv.preps.filter((p) => p !== prep);
-      for (const [item, n] of Object.entries(r.ingredients)) this.useDoses(item, n);
-      this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
-      this.st.surfaces.push({ at: [...station.at], item: { kind: 'drink', recipe: r.id, vessel: r.vessel } });
-      this.h.bus.emit('prep.ready', { stationUid: station.uid, recipeId: r.id });
+      const last = prep.step >= r.steps.length - 1;
+      if (last) {
+        this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
+        this.st.surfaces.push({ at: [...station.at], item: { kind: 'drink', recipe: r.id, vessel: r.vessel, quality: prep.quality } });
+      } else {
+        this.st.surfaces.push({ at: [...station.at], item: { kind: 'wip', recipe: r.id, step: prep.step + 1, quality: prep.quality } });
+      }
+      this.h.bus.emit('prep.ready', { stationUid: station.uid, recipeId: r.id, final: last });
+    }
+    // Pia.
+    const washing = this.st.sink.washing;
+    if (washing && washing.readyAt <= now) {
+      for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
+      this.st.sink.washing = null;
+      this.h.bus.emit('dish.washed', { count: loadCount(washing.load) });
     }
     // Clientes.
     for (const c of [...sv.customers]) {
@@ -272,7 +353,7 @@ export class CafeService {
     }
     // Fila: quem esperava ganha um lugar livre.
     for (const c of sv.customers.filter((x) => x.stage === 'queue')) {
-      const spot = this.freeSpots()[0];
+      const spot = this.usableSpot();
       if (!spot) break;
       this.seat(c, spot);
     }
@@ -285,19 +366,23 @@ export class CafeService {
     if (sv.nextCustomerAt === null) sv.nextCustomerAt = now + this.cfg.firstArrivalMinutes;
     if (now < sv.nextCustomerAt) return;
     if (sv.customers.length >= this.capacity() || this.orderable().length === 0) return;
-    const spot = this.freeSpots()[0];
+    const spot = this.usableSpot();
     const queueFree = this.cfg.queue.filter((q) => !sv.customers.some((c) => c.stage === 'queue' && same(c.spot, q)));
     if (!spot && queueFree.length === 0) return;
     const rng = this.h.rng();
+    const pref = this.cfg.preferences;
+    const start = queueFree[0] ?? this.cfg.queue[0]!;
     const c: Customer = {
       id: `c${sv.nextCustomerId++}`,
       look: rng.int(0, this.cfg.customerLooks.length - 1),
       stage: 'queue',
       kind: 'standing',
-      spot: [...(queueFree[0] ?? this.cfg.queue[0]!)],
-      dishAt: [...(queueFree[0] ?? this.cfg.queue[0]!)],
+      spot: [...start],
+      dishAt: [...start],
       recipe: null,
       until: now + this.cfg.patienceMinutes,
+      favorite: rng.chance(pref.favoriteChance) && this.st.menu.length > 0 ? this.st.menu[rng.int(0, this.st.menu.length - 1)]! : null,
+      wantsPremium: rng.chance(pref.premiumLoverChance),
     };
     sv.customers.push(c);
     if (spot) this.seat(c, spot);
@@ -306,16 +391,17 @@ export class CafeService {
     sv.nextCustomerAt = now + rng.int(a, b);
   }
 
-  /** Vai para o lugar e faz o pedido (só o que está no quadro e dá para fazer, do tipo do lugar). */
+  /** Vai para o lugar e faz o pedido (do quadro, que dá para fazer, do tipo do lugar; o favorito pesa mais). */
   private seat(c: Customer, spot: { kind: ServiceKind; spot: Cell; dishAt: Cell }): void {
     const options = this.orderable().filter((r) => r.service === spot.kind);
     if (options.length === 0) return;
     const rng = this.h.rng();
+    const favorite = options.find((r) => r.id === c.favorite);
     c.stage = 'waiting';
     c.kind = spot.kind;
     c.spot = [...spot.spot];
     c.dishAt = [...spot.dishAt];
-    c.recipe = options[rng.int(0, options.length - 1)]!.id;
+    c.recipe = favorite && rng.chance(this.cfg.preferences.favoriteWeight) ? favorite.id : options[rng.int(0, options.length - 1)]!.id;
     c.until = this.now() + this.cfg.patienceMinutes;
     this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: c.recipe });
   }
@@ -332,7 +418,7 @@ export class CafeService {
     this.h.bus.emit('customer.left', { customerId: c.id, happy });
   }
 
-  /** Fim do dia: clientes vão embora (a louça em uso volta limpa) e os preparos param. */
+  /** Fim do dia: clientes vão embora (a louça em uso volta limpa), preparos param, o saco vai para o estoque e o gato fica em casa. */
   endOfDay(): void {
     const sv = this.st.service;
     for (const c of sv.customers) {
@@ -342,6 +428,8 @@ export class CafeService {
     sv.customers = [];
     sv.preps = [];
     sv.nextCustomerAt = null;
+    for (const h of this.st.hands.filter((x) => x.kind === 'heavy')) if (h.kind === 'heavy') this.storeItem(h.item);
+    this.st.hands = this.st.hands.filter((x) => !exclusive(x));
   }
 
   // ---------- Ações da personagem ----------
@@ -350,7 +438,10 @@ export class CafeService {
     return this.st.surfaces.find((s) => same(s.at, at));
   }
 
-  /** Começa a preparar, no equipamento, o pedido mais antigo que ele sabe fazer e que ninguém está fazendo. */
+  /**
+   * No equipamento: se ela traz a massa da etapa anterior, começa a próxima etapa; senão, começa a primeira etapa
+   * do pedido mais antigo que este equipamento sabe começar e que ninguém está fazendo.
+   */
   prepare(stationUid: string): ServiceResult {
     const equipment = this.equipmentOf(stationUid);
     const sv = this.st.service;
@@ -358,36 +449,62 @@ export class CafeService {
     if (sv.preps.some((p) => p.stationUid === stationUid)) return { ok: false, reason: 'station_busy' };
     const station = this.st.placed.find((p) => p.uid === stationUid)!;
     if (this.surfaceAt(station.at)) return { ok: false, reason: 'station_busy' };
-    // Pedidos ainda sem bebida: espera - (preparando + prontas nas mãos/superfícies).
+    // Massa trazida na mão.
+    const w = this.st.hands.findIndex((h) => h.kind === 'wip' && this.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
+    if (w >= 0) {
+      const [wip] = this.st.hands.splice(w, 1);
+      if (wip!.kind !== 'wip') return { ok: false, reason: 'nothing_to_prepare' };
+      const r = this.recipe(wip!.recipe)!;
+      sv.preps.push({ stationUid, recipe: r.id, step: wip!.step, quality: wip!.quality ?? 'simple', readyAt: this.now() + r.steps[wip!.step]!.minutes });
+      this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
+      this.handsChanged();
+      return { ok: true };
+    }
+    // Pedidos ainda sem nada a caminho: espera - (preparando + massas + prontos).
     const covered = (recipe: string) =>
       sv.preps.filter((p) => p.recipe === recipe).length +
-      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'drink' && i.recipe === recipe).length;
-    const waiting = sv.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.equipment === equipment);
-    const pending = waiting.find((c) => waiting.filter((w) => w.recipe === c.recipe).indexOf(c) >= covered(c.recipe!));
+      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length;
+    const waiting = sv.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
+    const pending = waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= covered(c.recipe!));
     if (!pending) return { ok: false, reason: 'nothing_to_prepare' };
     const r = this.recipe(pending.recipe!)!;
-    if (Object.entries(r.ingredients).some(([item, n]) => this.doses(item) < n)) return { ok: false, reason: 'no_ingredients' };
+    const ing = this.ingredientsFor(r);
+    if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
     if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
-    sv.preps.push({ stationUid, recipe: r.id, readyAt: this.now() + r.prepMinutes });
+    for (const [item, n] of ing.use) this.useDoses(item, n);
+    sv.preps.push({ stationUid, recipe: r.id, step: 0, quality: ing.quality, readyAt: this.now() + r.steps[0]!.minutes });
     this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
     return { ok: true };
   }
 
-  /** Progresso de um preparo (0 a 1), para a barra em cima do equipamento. */
+  /** Progresso de uma etapa (0 a 1), para a barra em cima do equipamento. */
   prepProgress(stationUid: string): number | undefined {
     const prep = this.st.service.preps.find((p) => p.stationUid === stationUid);
     const r = prep && this.recipe(prep.recipe);
     if (!prep || !r) return undefined;
-    return Math.min(1, Math.max(0, 1 - (prep.readyAt - this.now()) / r.prepMinutes));
+    const minutes = r.steps[prep.step]?.minutes ?? 1;
+    return Math.min(1, Math.max(0, 1 - (prep.readyAt - this.now()) / minutes));
+  }
+
+  /** Quanto cabe nas mãos agora (bandeja: só louça). */
+  private canHold(item: HandItem): ServiceProblem | null {
+    const hands = this.st.hands;
+    if (hands.some(exclusive) || (exclusive(item) && (hands.length > 0 || this.st.tray))) return 'hands_full';
+    if (this.st.tray) {
+      if (!onTray(item)) return 'not_on_tray';
+      return hands.length < this.carry.tray.capacity ? null : 'hands_full';
+    }
+    return hands.length < this.carry.carryCapacity ? null : 'hands_full';
   }
 
   pickUp(at: Cell): ServiceResult {
     const s = this.surfaceAt(at);
     if (!s) return { ok: false, reason: 'nothing_here' };
-    if (this.st.hands.length >= this.h.content.carry.carryCapacity) return { ok: false, reason: 'hands_full' };
+    const problem = this.canHold(s.item);
+    if (problem) return { ok: false, reason: problem };
     this.st.surfaces = this.st.surfaces.filter((x) => x !== s);
     this.st.hands.push(s.item);
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.handsChanged();
     return { ok: true };
   }
 
@@ -405,17 +522,18 @@ export class CafeService {
     return !!solid[at[1]] && solid[at[1]]![at[0]] === false;
   }
 
+  /** Solta o último objeto da mão (o gato e o saco têm ações próprias). */
   putDown(at: Cell, feet: readonly Cell[]): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
     if (!item) return { ok: false, reason: 'hands_empty' };
-    if (!this.canPutDown(at, feet)) return { ok: false, reason: 'cannot_put_here' };
+    if (exclusive(item) || !this.canPutDown(at, feet)) return { ok: false, reason: 'cannot_put_here' };
     this.st.hands.pop();
     this.st.surfaces.push({ at: [...at], item });
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.handsChanged();
     return { ok: true };
   }
 
-  /** Cliente ao alcance que está esperando o que ela tem na mão. */
+  /** Cliente ao alcance que está esperando algo que ela tem na mão. */
   customerToServe(feet: readonly Cell[]): Customer | undefined {
     const drinks = this.st.hands.filter((i) => i.kind === 'drink');
     return this.st.service.customers.find(
@@ -423,51 +541,109 @@ export class CafeService {
     );
   }
 
-  /** Entrega o pedido: o cliente paga e começa a consumir. */
+  /** Entrega o pedido: o cliente paga (premium paga mais) e, satisfeito, deixa gorjeta. */
   serve(customerId: string): ServiceResult {
     const c = this.st.service.customers.find((x) => x.id === customerId);
     if (!c || c.stage !== 'waiting') return { ok: false, reason: 'nothing_here' };
     const i = this.st.hands.findIndex((h) => h.kind === 'drink' && h.recipe === c.recipe);
     if (i < 0) return { ok: false, reason: 'wrong_order' };
-    this.st.hands.splice(i, 1);
+    const [served] = this.st.hands.splice(i, 1);
+    const quality: Quality = served!.kind === 'drink' ? served!.quality ?? 'simple' : 'simple';
     const r = this.recipe(c.recipe!)!;
+    const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
+    const satisfied = patienceLeft >= this.cfg.tipPatience && (!c.wantsPremium || quality === 'premium');
+    const price = this.priceOf(r.id, quality);
+    const tip = satisfied ? Math.max(1, Math.round(price * this.cfg.tipRate)) : 0;
     c.stage = 'drinking';
     c.until = this.now() + this.cfg.consumeMinutes[c.kind];
     this.st.service.served++;
-    this.h.addMoney(r.price, `sale:${r.id}`);
-    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price: r.price });
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.h.addMoney(price + tip, `sale:${r.id}`);
+    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality });
+    this.handsChanged();
     this.h.advanceStory();
     return { ok: true };
   }
+
+  // ---------- Pia ----------
 
   sinkNear(feet: readonly Cell[]): boolean {
     return near(feet, this.cfg.sink);
   }
 
-  /** Na pia: toda a louça suja das mãos volta limpa para o estoque. */
-  wash(): ServiceResult {
+  /** O que a pia faria com um E agora: receber a louça suja das mãos ou começar a lavar. */
+  sinkAction(): 'deposit' | 'wash' | null {
+    if (this.st.hands.some((h) => h.kind === 'dirty')) return 'deposit';
+    if (this.st.hands.length === 0 && !this.st.sink.washing && loadCount(this.st.sink.load) > 0) return 'wash';
+    return null;
+  }
+
+  /** Deixa na pia a louça suja das mãos (até a capacidade). */
+  depositDirty(): ServiceResult {
     const dirty = this.st.hands.filter((i) => i.kind === 'dirty');
     if (dirty.length === 0) return { ok: false, reason: 'hands_empty' };
-    for (const d of dirty) {
-      const v = vesselOf(d)!;
-      this.st.dishes[v] = (this.st.dishes[v] ?? 0) + 1;
+    let room = this.cfg.sinkCapacity - loadCount(this.st.sink.load);
+    if (room <= 0) return { ok: false, reason: 'sink_full' };
+    const kept: HandItem[] = [];
+    for (const h of this.st.hands) {
+      if (h.kind === 'dirty' && room > 0) {
+        this.st.sink.load[h.vessel] = (this.st.sink.load[h.vessel] ?? 0) + 1;
+        room--;
+      } else kept.push(h);
     }
-    this.st.hands = this.st.hands.filter((i) => i.kind !== 'dirty');
-    this.h.bus.emit('dish.washed', { count: dirty.length });
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.st.hands = kept;
+    this.h.bus.emit('sink.changed', { load: loadCount(this.st.sink.load) });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Começa a lavar o que está na pia (leva minutos por peça; ela pode fazer outra coisa enquanto isso). */
+  startWash(): ServiceResult {
+    const n = loadCount(this.st.sink.load);
+    if (n === 0) return { ok: false, reason: 'nothing_here' };
+    if (this.st.sink.washing) return { ok: false, reason: 'station_busy' };
+    this.st.sink.washing = { readyAt: this.now() + n * this.cfg.washMinutesPerDish, load: { ...this.st.sink.load } };
+    this.st.sink.load = emptyLoad();
+    this.h.bus.emit('sink.changed', { load: 0 });
+    return { ok: true };
+  }
+
+  washProgress(): number | undefined {
+    const w = this.st.sink.washing;
+    if (!w) return undefined;
+    const total = loadCount(w.load) * this.cfg.washMinutesPerDish;
+    return Math.min(1, Math.max(0, 1 - (w.readyAt - this.now()) / total));
+  }
+
+  sinkLoad(): number {
+    return loadCount(this.st.sink.load);
+  }
+
+  // ---------- Bandeja, mochila, peso e gato ----------
+
+  /** Pega ou guarda a bandeja (precisa tê-la na mochila; com ela, as mãos levam várias louças). */
+  toggleTray(): ServiceResult {
+    if (this.st.tray) {
+      if (this.st.hands.length > 0) return { ok: false, reason: 'hands_full' };
+      this.st.tray = false;
+    } else {
+      if ((this.st.inventory[this.carry.tray.item] ?? 0) < 1) return { ok: false, reason: 'no_tray' };
+      if (this.st.hands.some((h) => !onTray(h))) return { ok: false, reason: 'hands_full' };
+      this.st.tray = true;
+    }
+    this.handsChanged();
     return { ok: true };
   }
 
   /** Tira um item da mochila e põe na mão (ex.: petisco). */
   hold(itemId: string): ServiceResult {
-    if (this.st.hands.length >= this.h.content.carry.carryCapacity) return { ok: false, reason: 'hands_full' };
+    const problem = this.canHold({ kind: 'item', item: itemId });
+    if (problem) return { ok: false, reason: problem };
     if ((this.st.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'nothing_here' };
     const left = this.st.inventory[itemId]! - 1;
     if (left > 0) this.st.inventory[itemId] = left;
     else delete this.st.inventory[itemId];
     this.st.hands.push({ kind: 'item', item: itemId });
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.handsChanged();
     return { ok: true };
   }
 
@@ -477,8 +653,62 @@ export class CafeService {
     if (i < 0) return { ok: false, reason: 'hands_empty' };
     const [h] = this.st.hands.splice(i, 1);
     if (h!.kind === 'item') this.st.inventory[h!.item] = (this.st.inventory[h!.item] ?? 0) + 1;
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.handsChanged();
     return { ok: true };
+  }
+
+  /** Item pesado comprado: vai direto para as mãos (precisa estar com as mãos livres). */
+  carryHeavy(itemId: string): ServiceResult {
+    const problem = this.canHold({ kind: 'heavy', item: itemId });
+    if (problem) return { ok: false, reason: problem };
+    this.st.hands.push({ kind: 'heavy', item: itemId });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** No café, o saco vai para o estoque: vira as porções que ele rende (ex.: 5 rações). */
+  storeHeavy(): ServiceResult {
+    const i = this.st.hands.findIndex((h) => h.kind === 'heavy');
+    if (i < 0) return { ok: false, reason: 'hands_empty' };
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    const [h] = this.st.hands.splice(i, 1);
+    if (h!.kind === 'heavy') this.storeItem(h!.item);
+    this.h.bus.emit('heavy.stored', { itemId: h!.kind === 'heavy' ? h!.item : '' });
+    this.handsChanged();
+    this.h.advanceStory();
+    return { ok: true };
+  }
+
+  private storeItem(itemId: string): void {
+    const to = this.h.content.items[itemId]?.storesAs;
+    const id = to?.item ?? itemId;
+    this.st.inventory[id] = (this.st.inventory[id] ?? 0) + (to?.qty ?? 1);
+  }
+
+  /** Pega o gato no colo (mãos livres, sem bandeja). */
+  pickUpCat(catId: string): ServiceResult {
+    if (!this.st.cats[catId]?.sheltered) return { ok: false, reason: 'nothing_here' };
+    const problem = this.canHold({ kind: 'cat', catId });
+    if (problem) return { ok: false, reason: problem };
+    this.st.hands.push({ kind: 'cat', catId });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Põe o gato no chão (por enquanto, só dentro do café: o veterinário ainda não existe). */
+  putDownCat(): ServiceResult {
+    const i = this.st.hands.findIndex((h) => h.kind === 'cat');
+    if (i < 0) return { ok: false, reason: 'hands_empty' };
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    this.st.hands.splice(i, 1);
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** O gato que está no colo (para a cena não desenhar ele no chão). */
+  carriedCat(): string | undefined {
+    const h = this.st.hands.find((x) => x.kind === 'cat');
+    return h?.kind === 'cat' ? h.catId : undefined;
   }
 
   /** Dá ao gato o petisco que está na mão. */
@@ -487,12 +717,24 @@ export class CafeService {
     if (i < 0) return { ok: false, reason: 'not_a_treat' };
     this.st.hands.splice(i, 1);
     this.h.catAffection(catId, this.h.content.relationships.treatPoints);
-    this.h.bus.emit('hands.changed', { count: this.st.hands.length });
+    this.handsChanged();
     return { ok: true };
   }
 
   /** Velocidade da personagem com o que está nas mãos. */
   speed(): number {
-    return speedFactor(this.st.hands.length, this.h.content.carry);
+    return speedFactor(this.st.hands, this.st.tray, this.carry);
+  }
+
+  /** Quantos cabem nas mãos agora (para a interface). */
+  handsCapacity(): number {
+    return this.st.tray ? this.carry.tray.capacity : this.carry.carryCapacity;
   }
 }
+
+/** Nome da etapa atual de uma massa (para mostrar "Pão de queijo: forno"). */
+export function wipStepEquipment(r: RecipeDef | undefined, step: number): string | undefined {
+  return r?.steps[step]?.equipment;
+}
+
+export { loadCount };

@@ -231,7 +231,7 @@
       "id": "item.counter_left",
       "name": "Balcão (ponta esquerda)",
       "price": 20,
-      "tile": "counter_left",
+      "tile": "bar_balcao_esq",
       "tags": [
         "furniture",
         "counter",
@@ -242,7 +242,7 @@
       "id": "item.counter_mid",
       "name": "Balcão (meio)",
       "price": 15,
-      "tile": "counter_mid",
+      "tile": "bar_balcao_meio",
       "tags": [
         "furniture",
         "counter",
@@ -253,7 +253,7 @@
       "id": "item.counter_right",
       "name": "Balcão (ponta direita)",
       "price": 20,
-      "tile": "counter_right",
+      "tile": "bar_balcao_dir",
       "tags": [
         "furniture",
         "counter",
@@ -746,6 +746,131 @@
         "counter",
         "equipment",
         "blender"
+      ]
+    },
+    {
+      "id": "item.tray",
+      "name": "Bandeja",
+      "price": 20,
+      "kind": "tool",
+      "icon": "bandeja_vazia",
+      "tags": [
+        "tool",
+        "tray"
+      ]
+    },
+    {
+      "id": "item.cat_food_sack",
+      "name": "Saco de ração (5 porções)",
+      "price": 60,
+      "kind": "consumable",
+      "icon": "racao_simples",
+      "tags": [
+        "pet",
+        "heavy"
+      ],
+      "storesAs": {
+        "item": "item.cat_food_basic",
+        "qty": 5
+      }
+    },
+    {
+      "id": "item.litter_sack",
+      "name": "Saco de areia (4 trocas)",
+      "price": 40,
+      "kind": "consumable",
+      "icon": "areia",
+      "tags": [
+        "pet",
+        "heavy"
+      ],
+      "storesAs": {
+        "item": "item.cat_litter",
+        "qty": 4
+      }
+    },
+    {
+      "id": "item.flour",
+      "name": "Farinha",
+      "price": 12,
+      "kind": "consumable",
+      "icon": "farinha",
+      "servings": 10,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.eggs",
+      "name": "Ovos (dúzia)",
+      "price": 10,
+      "kind": "consumable",
+      "icon": "ovos",
+      "servings": 12,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.milk",
+      "name": "Leite",
+      "price": 8,
+      "kind": "consumable",
+      "icon": "leite",
+      "servings": 5,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.butter",
+      "name": "Manteiga",
+      "price": 9,
+      "kind": "consumable",
+      "icon": "manteiga",
+      "servings": 8,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.chocolate",
+      "name": "Chocolate",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "chocolate",
+      "servings": 8,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.stove",
+      "name": "Fogão",
+      "price": 120,
+      "tile": "eq_fogao",
+      "tags": [
+        "furniture",
+        "counter",
+        "equipment",
+        "stove"
+      ]
+    },
+    {
+      "id": "item.oven",
+      "name": "Forno",
+      "price": 160,
+      "tile": "eq_forno",
+      "tags": [
+        "furniture",
+        "counter",
+        "equipment",
+        "oven"
       ]
     }
   ]

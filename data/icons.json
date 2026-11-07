@@ -359,6 +359,26 @@
       "col": 8,
       "row": 0,
       "sheet": "fluxo"
+    },
+    "bandeja_vazia": {
+      "col": 9,
+      "row": 0,
+      "sheet": "fluxo"
+    },
+    "bandeja_1_itens": {
+      "col": 10,
+      "row": 0,
+      "sheet": "fluxo"
+    },
+    "bandeja_2_itens": {
+      "col": 11,
+      "row": 0,
+      "sheet": "fluxo"
+    },
+    "bandeja_3_itens": {
+      "col": 12,
+      "row": 0,
+      "sheet": "fluxo"
     }
   },
   "sheets": {
@@ -376,7 +396,7 @@
     },
     "fluxo": {
       "image": "assets/icons/fluxo_icones.png",
-      "columns": 9
+      "columns": 13
     }
   }
 }

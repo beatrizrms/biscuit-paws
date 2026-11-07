@@ -115,8 +115,21 @@ export class GameUi {
     const s = uiText.service;
     const recipeName = (id: string) => content.recipes[id]?.name ?? '';
     bus.on('prep.started', ({ recipeId }) => this.toast(s.prepStarted.replace('{name}', recipeName(recipeId))));
-    bus.on('prep.ready', ({ recipeId }) => this.toast(s.prepReady.replace('{name}', recipeName(recipeId))));
-    bus.on('customer.served', ({ recipeId, price }) => this.toast(s.served.replace('{price}', String(price)).replace('{name}', recipeName(recipeId))));
+    bus.on('prep.ready', ({ recipeId, final }) => {
+      if (final) return this.toast(s.prepReady.replace('{name}', recipeName(recipeId)));
+      const wip = this.session.state.surfaces.find((x) => x.item.kind === 'wip' && x.item.recipe === recipeId)?.item;
+      const eq = wip?.kind === 'wip' ? content.recipes[recipeId]?.steps[wip.step]?.equipment : undefined;
+      this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
+    });
+    bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    bus.on('heavy.stored', ({ itemId }) => {
+      const to = content.items[itemId]?.storesAs;
+      this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
+    });
+    bus.on('customer.served', ({ recipeId, price, tip, quality }) => {
+      const name = recipeName(recipeId) + (quality === 'premium' ? ` ${s.premium}` : '');
+      this.toast((tip > 0 ? s.servedTip : s.served).replace('{price}', String(price)).replace('{name}', name).replace('{tip}', String(tip)));
+    });
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
@@ -206,7 +219,10 @@ export class GameUi {
     if (sv.isOpen()) {
       items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity()))}</span></li>`);
     }
-    for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h)))}</span></li>`);
+    if (this.session.state.tray) items.push(`<li class="job"><span>${uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity()))}</span></li>`);
+    for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id))))}</span></li>`);
+    if (this.session.state.sink.washing) items.push(`<li class="job"><span>${uiText.service.sinkWashing}</span></li>`);
+    else if (sv.sinkLoad() > 0) items.push(`<li class="job"><span>${uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad()))}</span></li>`);
     const d = uiText.delivery;
     const next = this.session.nextArrival();
     if (next !== undefined) {

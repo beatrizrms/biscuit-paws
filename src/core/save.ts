@@ -3,10 +3,10 @@
 import type { HandItem } from './carry';
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 8;
+export const SAVE_SCHEMA_VERSION = 9;
 
-export interface SaveV8 extends GameState {
-  schemaVersion: 8;
+export interface SaveV9 extends GameState {
+  schemaVersion: 9;
   savedAt: string;
 }
 
@@ -48,10 +48,25 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     surfaces: [],
     service: { customers: [], preps: [], nextCustomerAt: null, nextCustomerId: 1, served: 0 },
   }),
+  /** v8 -> v9: bandeja, pia como estação, etapas de preparo e preferências dos clientes. */
+  8: (save) => {
+    const service = (save.service ?? {}) as { preps?: Record<string, unknown>[]; customers?: Record<string, unknown>[] };
+    return {
+      ...save,
+      schemaVersion: 9,
+      tray: false,
+      sink: { load: { cup: 0, glass: 0, plate: 0 }, washing: null },
+      service: {
+        ...service,
+        preps: (service.preps ?? []).map((p) => ({ step: 0, quality: 'simple', ...p })),
+        customers: (service.customers ?? []).map((c) => ({ favorite: null, wantsPremium: false, ...c })),
+      },
+    };
+  },
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV8 = { schemaVersion: 8, savedAt: now.toISOString(), ...state };
+  const save: SaveV9 = { schemaVersion: 9, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -86,7 +101,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV8>;
+  const v2 = save as unknown as Partial<SaveV9>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -96,7 +111,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
 
   // Bebida de receita que sumiu ou item que sumiu: o objeto da mão/superfície é ignorado.
   const knownHand = (h: HandItem) =>
-    h.kind === 'item' ? known.items.has(h.item) : h.kind === 'drink' ? known.recipes.has(h.recipe) : true;
+    h.kind === 'item' || h.kind === 'heavy' ? known.items.has(h.item) : h.kind === 'drink' || h.kind === 'wip' ? known.recipes.has(h.recipe) : h.kind === 'cat' ? known.cats.has(h.catId) : true;
   const inventory: Record<string, number> = {};
   for (const [id, qty] of Object.entries(v2.inventory ?? {})) {
     if (knownItem(id, 'inventário') && qty > 0) inventory[id] = qty;
@@ -156,6 +171,11 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       nextCustomerAt: v2.service?.nextCustomerAt ?? null,
       nextCustomerId: v2.service?.nextCustomerId ?? 1,
       served: v2.service?.served ?? 0,
+    },
+    tray: v2.tray === true,
+    sink: {
+      load: { cup: v2.sink?.load?.cup ?? 0, glass: v2.sink?.load?.glass ?? 0, plate: v2.sink?.load?.plate ?? 0 },
+      washing: v2.sink?.washing ? { readyAt: v2.sink.washing.readyAt, load: { ...v2.sink.washing.load } } : null,
     },
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
