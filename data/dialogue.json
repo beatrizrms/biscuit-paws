@@ -344,7 +344,23 @@
         },
         {
           "speaker": "Você",
-          "text": "Agora é oficial: o café está aberto. Das 9h às 18h, sempre que tiver algo no cardápio."
+          "text": "Ainda é só o começo: sem placa, com o básico. Mas já dá para ganhar um dinheirinho das 9h às 18h."
+        },
+        {
+          "speaker": "Você",
+          "text": "Quando o salão estiver todo reformado e a placa chegar, faço a inauguração de verdade."
+        }
+      ]
+    },
+    "dlg.inauguration": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Paredes novas, piso novo e a placa lá fora. Ficou lindo."
+        },
+        {
+          "speaker": "Você",
+          "text": "Biscuit Paws está oficialmente inaugurado!"
         }
       ]
     }

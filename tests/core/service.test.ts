@@ -206,14 +206,22 @@ describe('ciclo do pedido', () => {
     expect(sv.capacity()).toBe(5);
   });
 
-  it('o atendimento só abre depois das cadeiras, com cafeteira, mesa e cadeira, no horário', () => {
+  it('o atendimento abre no funcionamento parcial (cadeiras, cafeteira, mesa e cadeira), no horário', () => {
     const { sv, state } = openCafe();
+    expect(state.business).toBe('soft_open');
     expect(sv.isOpen()).toBe(true);
     state.time = 19 * 60;
     expect(sv.isOpen()).toBe(false);
     state.time = 10 * 60;
-    state.story.completed = state.story.completed.filter((b) => b !== 'story.chairs');
+    state.business = 'closed';
     expect(sv.isOpen()).toBe(false);
+  });
+
+  it('o negócio só avança: tirar a cadeira depois não fecha o café', () => {
+    const { session, state } = openCafe();
+    const chair = state.placed.find((p) => content.items[p.item]?.tags.includes('chair'))!;
+    expect(session.pickUp(chair.uid)).toEqual({ ok: true });
+    expect(state.business).toBe('soft_open');
   });
 
   it('pedido de mesa senta na cadeira ao lado da mesa e deixa o prato na mesa', () => {
@@ -270,7 +278,8 @@ describe('quest: o primeiro cliente', () => {
     sv.pickUp([7, 5]);
     sv.serve(state.service.customers[0]!.id);
     expect(state.flags['cafe.open']).toBe(true);
-    expect(session.goals()).toEqual([]);
+    // Depois do primeiro cliente vem a inauguração (reforma completa + placa).
+    expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
   });
 
   it('sem a mesa e a cadeira, a quest não aparece', () => {

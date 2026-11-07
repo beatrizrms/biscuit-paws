@@ -464,7 +464,10 @@
       "tile": "prop_lousa_cafe",
       "tags": [
         "facade"
-      ]
+      ],
+      "requires": {
+        "renovated": true
+      }
     },
     {
       "id": "item.coffee_beans_bag",

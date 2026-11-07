@@ -635,17 +635,48 @@ describe('relógio', () => {
 describe('lousa da porta (peça fixa)', () => {
   const chalkboardOnStreet = (session: GameSession) => session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard');
 
-  it('a rua começa sem a lousa; comprada no catálogo, aparece na porta', () => {
+  /** Reforma completa: acabamento em toda superfície obrigatória (data/business.json). */
+  const renovate = (session: GameSession) => {
+    for (const s of content.business.requiredSurfaces) session.state.finishes[s] = 'finish.test';
+  };
+
+  it('só dá para comprar a placa depois da reforma completa', () => {
     const { session } = newSession();
-    expect(chalkboardOnStreet(session)).toBe(false);
+    expect(session.buy('item.cafe_sign')).toEqual({ ok: false, reason: 'locked' });
+    renovate(session);
     const money = session.state.money;
     expect(session.buy('item.cafe_sign')).toEqual({ ok: true });
     expect(session.state.money).toBe(money - content.items['item.cafe_sign']!.price);
+  });
+
+  it('a rua só mostra a placa depois da inauguração (com a placa recebida)', () => {
+    const { session } = newSession();
+    renovate(session);
+    session.buy('item.cafe_sign');
+    expect(chalkboardOnStreet(session)).toBe(false); // funcionamento parcial: sem placa
+    session.state.business = 'inaugurated';
+    expect(chalkboardOnStreet(session)).toBe(true);
+  });
+
+  it('a inauguração: depois do primeiro cliente, reforma completa + placa; o negócio passa a inaugurado', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1));
+    state.business = 'soft_open';
+    const session = new GameSession(content, state);
+    const events: EventName[] = [];
+    session.bus.onAny((name) => events.push(name));
+    expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
+    renovate(session);
+    session.buy('item.cafe_sign');
+    expect(session.state.business).toBe('inaugurated');
+    expect(events).toContain('business.changed');
     expect(chalkboardOnStreet(session)).toBe(true);
   });
 
   it('compra uma vez só e não tem devolução', () => {
     const { session } = newSession();
+    renovate(session);
     session.buy('item.cafe_sign');
     expect(session.buy('item.cafe_sign')).toEqual({ ok: false, reason: 'already_owned' });
     expect(session.refund('item.cafe_sign').ok).toBe(false);
@@ -915,6 +946,8 @@ describe('correio: compras do catálogo chegam na porta', () => {
 
   it('a lousa (peça fixa) também vem pelo correio e só uma vez', () => {
     const { session } = inCafe();
+    for (const s of content.business.requiredSurfaces) session.state.finishes[s] = 'finish.test';
+    session.state.business = 'inaugurated';
     session.order('item.cafe_sign');
     expect(session.order('item.cafe_sign')).toEqual({ ok: false, reason: 'already_owned' });
     expect(session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard')).toBe(false);

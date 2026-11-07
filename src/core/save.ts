@@ -3,11 +3,12 @@
 import type { HandItem } from './carry';
 import { HOTBAR_SIZE, newHotbar } from './hotbar';
 import type { GameState } from './state';
+import { isBusinessStage } from './business';
 
-export const SAVE_SCHEMA_VERSION = 10;
+export const SAVE_SCHEMA_VERSION = 11;
 
-export interface SaveV10 extends GameState {
-  schemaVersion: 10;
+export interface SaveV11 extends GameState {
+  schemaVersion: 11;
   savedAt: string;
 }
 
@@ -66,10 +67,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   },
   /** v9 -> v10: barra de itens. Começa vazia; a vassoura (e outras ferramentas) entra sozinha ao abrir o jogo. */
   9: (save) => ({ ...save, schemaVersion: 10, hotbar: newHotbar() }),
+  /**
+   * v10 -> v11: estágio do negócio. Saves antigos começam "fechado"; ao abrir, a sessão avança sozinha
+   * para "funcionamento parcial" se o café já tem o mínimo (data/business.json). Inaugurar é um marco novo.
+   */
+  10: (save) => ({ ...save, schemaVersion: 11, business: 'closed' }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV10 = { schemaVersion: 10, savedAt: now.toISOString(), ...state };
+  const save: SaveV11 = { schemaVersion: 11, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -104,7 +110,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV10>;
+  const v2 = save as unknown as Partial<SaveV11>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -187,6 +193,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       }),
       active: Number.isInteger(v2.hotbar?.active) && v2.hotbar!.active >= 0 && v2.hotbar!.active < HOTBAR_SIZE ? v2.hotbar!.active : 0,
     },
+    business: isBusinessStage(v2.business) ? v2.business : 'closed',
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };

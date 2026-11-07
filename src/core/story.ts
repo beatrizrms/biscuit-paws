@@ -4,12 +4,15 @@ import type { Beat, Condition, ItemDef, StoryData } from './content';
 import type { DirtSpot } from './map';
 import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from './state';
 import { parseClock } from './time';
+import { isRenovated, stageAtLeast } from './business';
 
 /** O que as condições precisam saber além do estado. */
 export interface StoryContext {
   items: Record<string, ItemDef>;
   /** Sujeira do café (toda, limpa ou não). */
   dirt: DirtSpot[];
+  /** Superfícies que a reforma precisa (data/business.json). */
+  requiredSurfaces: readonly string[];
 }
 
 /** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda (saves antigos). */
@@ -54,6 +57,8 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
     const tagged = Object.values(ctx.items).filter((i) => i.tags.includes(c.deliveryTag));
     return tagged.reduce((n, i) => n + ownedCount(state, i.id) + deliveredCount(state, i.id, c.stage), 0) >= (c.gte ?? 1);
   }
+  if ('business' in c) return stageAtLeast(state.business, c.business);
+  if ('renovated' in c) return isRenovated(state.finishes, ctx.requiredSurfaces);
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }
 

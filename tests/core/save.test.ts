@@ -193,6 +193,24 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(state.hotbar.active).toBe(1);
   });
 
+  it('save_v11: guarda o estágio do negócio; valor estranho volta a "fechado"', () => {
+    const raw = readFileSync('tests/fixtures/save_v11.json', 'utf8');
+    expect(parseSave(raw, known).state.business).toBe('soft_open');
+    const broken = JSON.stringify({ ...JSON.parse(raw), business: 'aberto_demais' });
+    expect(parseSave(broken, known).state.business).toBe('closed');
+  });
+
+  it('save_v10 -> v11: começa fechado; com o mínimo no café, a sessão passa a funcionamento parcial', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v10.json', 'utf8'), known);
+    expect(state.business).toBe('closed');
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed = beats.slice(0, beats.indexOf('story.chairs') + 1);
+    state.placed.push({ uid: 'p90', item: 'item.counter_single', at: [7, 5] }, { uid: 'p91', item: 'item.coffee_machine', at: [7, 5] }, { uid: 'p92', item: 'item.table_round', at: [10, 8] }, { uid: 'p93', item: 'item.chair_front', at: [11, 8] });
+    const session = new GameSession(content, state);
+    session.start(false);
+    expect(session.state.business).toBe('soft_open');
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

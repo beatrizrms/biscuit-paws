@@ -5,6 +5,7 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
+import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import type { RelationshipsConfig } from './relationships';
@@ -128,7 +129,11 @@ export type Condition =
   /** O relógio marcado chegou (ex.: a hora da chegada da Gabi). */
   | { timer: string }
   /** Quantos itens com esta tag ela tem (na bolsa + posicionados). */
-  | { ownedTag: string; gte?: number };
+  | { ownedTag: string; gte?: number }
+  /** O negócio já chegou a este estágio (inaugurado também conta como funcionamento parcial). */
+  | { business: BusinessStage }
+  /** Reforma completa: toda superfície de data/business.json (requiredSurfaces) tem acabamento novo. */
+  | { renovated: true };
 
 export type Effect =
   | { dialogue: string }
@@ -145,7 +150,9 @@ export type Effect =
   /** Acerta o relógio (ex.: a chegada é às "08:00" do dia seguinte aos pensamentos). */
   | { setTime: string }
   /** Marca um relógio: daqui a `minutes` minutos de jogo (condição { timer }). */
-  | { startTimer: string; minutes: number };
+  | { startTimer: string; minutes: number }
+  /** Avança o negócio (ex.: a inauguração). Nunca volta. */
+  | { setBusiness: BusinessStage };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -243,6 +250,7 @@ export interface Content {
   service: ServiceConfig;
   carry: CarryConfig;
   delivery: DeliveryConfig;
+  business: BusinessData;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
@@ -275,6 +283,7 @@ export interface RawContent {
   jobs: JobsData;
   news: NewsData;
   delivery: DeliveryConfig;
+  business: BusinessData;
 }
 
 /** Correio (data/delivery.json). */
@@ -307,7 +316,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, business: raw.business };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -405,7 +414,8 @@ export function validateContent(raw: RawContent): string[] {
     const kind = item.kind ?? 'furniture';
     if (!['furniture', 'consumable', 'key', 'tool', 'fixture', 'gift'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
-    if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => (o.when as { received?: string } | undefined)?.received === item.id)))
+    // A condição pode estar dentro de all/any (ex.: a placa: inaugurado e recebida).
+    if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => JSON.stringify(o.when ?? {}).includes(`"received":"${item.id}"`))))
       err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { received })`);
     if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
@@ -482,6 +492,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('business' in c) {
+      if (!(BUSINESS_STAGES as readonly string[]).includes(c.business)) err(`${where}: estágio do negócio inválido "${c.business}"`);
     } else if ('placedTag' in c) {
       if (!itemTags.has(c.placedTag)) err(`${where}: nenhum item tem a tag "${c.placedTag}"`);
     } else if ('placed' in c || 'owned' in c) {
@@ -498,6 +510,8 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateRecipes(raw.recipes, raw.service, raw.carry, { items: itemIds, icons: new Set(Object.keys(raw.icons.icons)), itemTags }));
   for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
+  checkCondition('business: softOpenWhen', raw.business.softOpenWhen);
+  errors.push(...validateBusiness(raw.business, surfaceIds));
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
@@ -546,6 +560,7 @@ export function validateContent(raw: RawContent): string[] {
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
       if ('setTime' in effect && !/^\d{1,2}:\d{2}$/.test(effect.setTime)) err(`${where}: hora inválida "${effect.setTime}"`);
+      if ('setBusiness' in effect && !(BUSINESS_STAGES as readonly string[]).includes(effect.setBusiness)) err(`${where}: estágio do negócio inválido "${effect.setBusiness}"`);
       if ('startTimer' in effect && !(effect.minutes > 0)) err(`${where}: relógio "${effect.startTimer}" sem minutos`);
       if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
       if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);

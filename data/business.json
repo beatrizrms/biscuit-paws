@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: superfícies que precisam da reforma do pintor para poder inaugurar (condição { renovated: true }). A inauguração em si é o marco story.inauguration (efeito setBusiness).",
+  "softOpenWhen": {
+    "all": [
+      { "beat": "story.chairs" },
+      { "placed": "item.coffee_machine" },
+      { "placedTag": "table" },
+      { "placedTag": "chair" }
+    ]
+  },
+  "requiredSurfaces": ["surface.wallpaper", "surface.wainscot", "surface.hall_floor", "surface.counter_floor"]
+}

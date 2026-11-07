@@ -11,6 +11,7 @@ import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import { activeItem, assignToActive, fitsHotbar, HOTBAR_SIZE, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
+import { stageAtLeast, type BusinessStage } from './business';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -678,7 +679,7 @@ export class GameSession {
   }
 
   private storyContext(): StoryContext {
-    return { items: this.content.items, dirt: this.content.map.dirt ?? [] };
+    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces };
   }
 
   /** Superfícies que o pintor pode reformar. */
@@ -720,6 +721,14 @@ export class GameSession {
   }
 
   /** Compra um item: desconta o preço e põe no inventário. */
+  /** Avança o negócio (nunca volta: tirar a mesa depois não fecha o café). */
+  private setBusiness(stage: BusinessStage): void {
+    const from = this.state.business;
+    if (stageAtLeast(from, stage)) return;
+    this.state.business = stage;
+    this.bus.emit('business.changed', { from, to: stage });
+  }
+
   /** Por que este item não pode ser comprado agora (sem olhar o dinheiro), ou null. */
   private buyProblem(itemId: string): Extract<ActionResult, { ok: false }>['reason'] | null {
     const item = this.content.items[itemId];
@@ -878,6 +887,8 @@ export class GameSession {
    */
   private advanceStory(): void {
     for (let guard = 0; guard < 1000; guard++) {
+      // Fechado -> funcionamento parcial assim que o café tem o mínimo (data/business.json).
+      if (this.state.business === 'closed' && evaluate(this.content.business.softOpenWhen, this.state, this.storyContext())) this.setBusiness('soft_open');
       const ctx = this.storyContext();
       const next = activeBeats(this.content.story, this.state, ctx).find((b) => isBeatSatisfied(b, this.state, ctx));
       if (!next) return;
@@ -896,6 +907,7 @@ export class GameSession {
     else if ('endDay' in effect) this.endDay();
     else if ('setTime' in effect) this.state.time = parseClock(effect.setTime);
     else if ('startTimer' in effect) this.state.timers[effect.startTimer] = nowAbs(this.state) + effect.minutes;
+    else if ('setBusiness' in effect) this.setBusiness(effect.setBusiness);
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;

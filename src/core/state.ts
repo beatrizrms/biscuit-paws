@@ -5,6 +5,7 @@ import type { Vessel } from './recipes';
 import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
 import type { Cell } from './map';
 import { newHotbar, type HotbarState } from './hotbar';
+import type { BusinessStage } from './business';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -63,6 +64,8 @@ export interface GameState {
   hotbar: HotbarState;
   /** Pia (v9): louça suja esperando e a lavagem em andamento. */
   sink: SinkState;
+  /** Estágio do negócio (v11): fechado, funcionamento parcial (sem placa) ou inaugurado (com placa). Só avança. */
+  business: BusinessStage;
 }
 
 /** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
@@ -120,6 +123,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     tray: false,
     sink: { load: emptyLoad(), washing: null },
     hotbar: newHotbar(),
+    business: 'closed',
   };
 }
 

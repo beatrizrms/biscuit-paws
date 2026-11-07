@@ -492,6 +492,43 @@
           "setFlag": "cafe.open"
         }
       ]
+    },
+    {
+      "id": "story.inauguration",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "exclusive": true,
+      "goal": {
+        "title": "A inauguração",
+        "steps": [
+          {
+            "text": "Reformar o café inteiro com o pintor: papel de parede, lambri e os dois pisos.",
+            "when": {
+              "renovated": true
+            },
+            "devNote": "Superfícies em data/business.json (requiredSurfaces). O pintor está no catálogo (C)."
+          },
+          {
+            "text": "Encomendar a placa do café (catálogo) e abrir a caixa.",
+            "when": {
+              "received": "item.cafe_sign"
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "setBusiness": "inaugurated"
+        },
+        {
+          "setFlag": "cafe.inaugurated"
+        },
+        {
+          "dialogue": "dlg.inauguration"
+        }
+      ]
     }
   ]
 }

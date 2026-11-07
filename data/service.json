@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes. queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
+  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
   "menuSlots": 4,
   "maxCustomers": 6,
   "open": {
@@ -18,27 +18,7 @@
     "table": 40
   },
   "enabledWhen": {
-    "any": [
-      {
-        "flag": "cafe.open"
-      },
-      {
-        "all": [
-          {
-            "beat": "story.chairs"
-          },
-          {
-            "placed": "item.coffee_machine"
-          },
-          {
-            "placedTag": "table"
-          },
-          {
-            "placedTag": "chair"
-          }
-        ]
-      }
-    ]
+    "business": "soft_open"
   },
   "queue": [
     [

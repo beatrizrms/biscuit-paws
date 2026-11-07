@@ -1,6 +1,7 @@
 // Barramento de eventos tipado. Os nomes estão na tabela de docs/ARCHITECTURE.md.
 // Puro: sem Phaser, DOM ou window.
 import type { Cell } from './map';
+import type { BusinessStage } from './business';
 
 export interface GameEvents {
   'game.started': { isNew: boolean };
@@ -16,6 +17,8 @@ export interface GameEvents {
   'item.bought': { itemId: string; price: number };
   /** Carrinho do mercado mudou (count: unidades; total: moedas). */
   'cart.changed': { count: number; total: number };
+  /** O negócio mudou de estágio (fechado -> parcial -> inaugurado). */
+  'business.changed': { from: BusinessStage; to: BusinessStage };
   /** Pagou no caixa: tudo o que estava no carrinho. */
   'cart.checked_out': { lines: { itemId: string; qty: number }[]; total: number };
   'item.received': { itemId: string };

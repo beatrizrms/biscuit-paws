@@ -28,6 +28,7 @@ const raw: RawContent = {
   dayNight: read('data/daynight.json'),
   recipes: read('data/recipes.json'),
   service: read('data/service.json'),
+  business: read('data/business.json'),
   carry: read('data/carry.json'),
   emotes: read('data/emotes.json'),
   jobs: read('data/jobs.json'),
