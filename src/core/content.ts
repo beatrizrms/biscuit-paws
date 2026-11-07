@@ -9,7 +9,8 @@ import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
 /** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
-export type ItemKind = 'furniture' | 'consumable' | 'key' | 'tool';
+/** fixture: peça de lugar fixo (ex.: a lousa da porta). Compra uma vez e aparece sozinha no mapa. */
+export type ItemKind = 'furniture' | 'consumable' | 'key' | 'tool' | 'fixture';
 
 export interface ItemDef {
   id: string;
@@ -293,8 +294,10 @@ export function validateContent(raw: RawContent): string[] {
     if (itemIds.has(item.id)) err(`items: id repetido "${item.id}"`);
     itemIds.add(item.id);
     const kind = item.kind ?? 'furniture';
-    if (!['furniture', 'consumable', 'key', 'tool'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
+    if (!['furniture', 'consumable', 'key', 'tool', 'fixture'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
+    if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => (o.when as { owned?: string } | undefined)?.owned === item.id)))
+      err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { owned })`);
     if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
   }

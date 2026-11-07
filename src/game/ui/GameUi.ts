@@ -53,6 +53,7 @@ export class GameUi {
       <div class="toast" role="status"></div>
       <section class="panel catalog" aria-label="${uiText.catalogTitle}">
         <header><h2>${uiText.catalogTitle}</h2><button class="close" title="Fechar (C)">fechar</button></header>
+        <p class="online">${uiText.catalogOnline}</p>
         <div class="list"></div>
       </section>
       <div class="dialogue-layer">
@@ -277,7 +278,8 @@ export class GameUi {
       ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
           .map((s) => {
             const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
-            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${note}</span></li>`;
+            const count = s.progress && !s.done ? ` <span class="count">${s.progress[0]}/${s.progress[1]}</span>` : '';
+            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}</span></li>`;
           })
           .join('')}</ul>`
       : '';
@@ -302,14 +304,15 @@ export class GameUi {
           .filter((i) => uiText.catalogSections.find((s) => i.tags.includes(s.tag)) === section) // cada item numa seção só
           .map((i) => {
             const owned = state.inventory[i.id] ?? 0;
-            const disabled = owned === 0 && state.money < i.price;
+            const fixture = i.kind === 'fixture';
+            const disabled = (owned === 0 && state.money < i.price) || (fixture && owned > 0);
             const refund =
-              owned > 0
+              owned > 0 && !fixture
                 ? `<button class="refund" data-refund="${i.id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(i.id)}</button>`
                 : '';
             return `<div class="item-row"><button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
               <span>${esc(i.name)}</span><span class="price">${i.price}</span>
-              ${owned > 0 ? `<span class="owned">${owned} ${uiText.inBag}</span>` : ''}
+              ${owned > 0 ? `<span class="owned">${fixture ? uiText.installed : `${owned} ${uiText.inBag}`}</span>` : ''}
             </button>${refund}</div>`;
           })
           .join('');
@@ -368,6 +371,8 @@ export class GameUi {
       const result = this.session.buy(itemId);
       if (!result.ok) return this.problem(result.reason);
     }
+    // Peça fixa (a lousa): a entrega já instala no lugar dela, não há o que posicionar.
+    if (content.items[itemId]?.kind === 'fixture') return this.toast(uiText.fixtureDelivered);
     this.closeCatalog();
     this.handlers.onPlace(itemId);
   }

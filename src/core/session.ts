@@ -40,6 +40,7 @@ export type ActionResult =
         | 'not_sheltered'
         | 'no_food'
         | 'no_cat'
+        | 'already_owned'
         | PlaceProblem;
     };
 
@@ -241,9 +242,9 @@ export class GameSession {
     if (mapId !== this.content.map.id) {
       const other = this.content.maps[mapId];
       if (!other) throw new Error(`Mapa desconhecido: "${mapId}"`);
-      return other;
+      return { ...other, objects: this.visibleObjects(other) };
     }
-    const base = this.content.map;
+    const base = { ...this.content.map, objects: this.visibleObjects(this.content.map) };
     const legend = { ...base.legend };
     for (const surface of base.surfaces ?? []) {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
@@ -267,7 +268,7 @@ export class GameSession {
   /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
   refund(itemId: string): ActionResult {
     const refundable = this.content.items[itemId];
-    if (!refundable || ['key', 'tool'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!refundable || ['key', 'tool', 'fixture'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
     this.removeFromInventory(itemId);
     const amount = this.refundValue(itemId);
@@ -282,6 +283,11 @@ export class GameSession {
     return (this.content.map.dirt ?? []).filter((d) =>
       d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d),
     );
+  }
+
+  /** Objetos do mapa que aparecem agora (os com `when` só depois da condição). */
+  private visibleObjects(map: MapData): MapData['objects'] {
+    return map.objects.filter((o) => !o.when || evaluate(o.when as Condition, this.state, this.storyContext()));
   }
 
   /** Sujeira visível numa célula do café (ou undefined). */
@@ -355,6 +361,7 @@ export class GameSession {
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
     if (['key', 'tool'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
+    if (item.kind === 'fixture' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;

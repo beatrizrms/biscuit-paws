@@ -101,7 +101,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 
 - Tags com função: `food_bowl` (tigela onde se põe ração: E ou clique de perto), `food` (consumível que enche a tigela).
 - `requires` (opcional): condição para poder comprar. Os itens de gato têm `{ "flag": "has.cat" }` (só depois do primeiro gato).
-- `kind`: `furniture` (padrão; vai para o catálogo e precisa de `tile`), `consumable` (ração, remédio) ou `key` (não se compra nem se devolve).
+- `kind`: `furniture` (padrão; vai para o catálogo e precisa de `tile`), `consumable` (ração, remédio) ou `key` (não se compra nem se devolve). `fixture`: peça de lugar fixo (ex.: `item.cafe_sign`, a lousa): compra-se uma vez no catálogo, sem devolução, e aparece sozinha no mapa pelo objeto que tem `"when": { "owned": "item.id" }`.
 - `price`: preço de compra, em moedas (inteiro).
 - `tile`: nome no catálogo de tiles. A camada do tile (`floor`, `wall`, `object`) decide onde o móvel pode ficar.
 - Tags usadas hoje: `for:cats`, `for:guests`, `decor` (seções do catálogo, definidas em `data/ui_text.json`) e `table`, `chair` (contadas pela história).
@@ -113,7 +113,8 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
   "background": "#a9d4ea",                 // cor atrás do mapa (o céu da rua)
   "layers": { "floor": [...], "walls": [...], "overlay": [...] },   // overlay: por cima do piso (neve na calçada)
   "objects": [
-    { "id": "obj.bench", "tile": "prop_banco", "at": [5, 8], "overlay": "snow_prop_banco" }   // neve por cima, mesmo tamanho
+    { "id": "obj.bench", "tile": "prop_banco", "at": [5, 8], "overlay": "snow_prop_banco" },  // neve por cima, mesmo tamanho
+    { "id": "obj.chalkboard", "tile": "prop_lousa_cafe", "at": [16, 8], "when": { "owned": "item.cafe_sign" } }  // só depois de comprada
   ],
   "doors": [
     { "id": "door.cafe", "at": [17, 8], "to": "map.cafe_main", "spawn": [14, 4], "facing": "down" }

@@ -53,7 +53,15 @@ export function isBeatSatisfied(beat: Beat, state: GameState, ctx: StoryContext)
 export interface GoalView {
   beatId: string;
   title: string;
-  steps: { text: string; done: boolean; devNote?: string }[];
+  /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
+  steps: { text: string; done: boolean; devNote?: string; progress?: [number, number] }[];
+}
+
+/** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
+function progressOf(c: Condition, state: GameState, ctx: StoryContext): [number, number] | undefined {
+  if (!('cleaned' in c)) return undefined;
+  const spots = ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned));
+  return [spots.filter((d) => isCleaned(state, d)).length, spots.length];
 }
 
 /** Metas para mostrar no diário. */
@@ -63,6 +71,6 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
-      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, ctx), devNote: s.devNote })),
+      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, ctx), devNote: s.devNote, progress: progressOf(s.when, state, ctx) })),
     }));
 }

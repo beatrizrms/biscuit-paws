@@ -17,6 +17,10 @@
     {
       "tag": "decor",
       "title": "Decoração"
+    },
+    {
+      "tag": "facade",
+      "title": "Fachada"
     }
   ],
   "inBag": "na bolsa",
@@ -45,7 +49,8 @@
     "invalid_name": "Escolha um nome de 1 a 14 letras.",
     "not_sheltered": "Esse gatinho ainda não mora aqui.",
     "no_food": "Não tenho ração. O mercado fica ali na rua.",
-    "no_cat": "Ainda não tem gatinho para comer."
+    "no_cat": "Ainda não tem gatinho para comer.",
+    "already_owned": "Você já tem isso."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -73,5 +78,8 @@
   },
   "dayTransition": {
     "home": "Você foi para casa."
-  }
+  },
+  "catalogOnline": "Comprando online: a entrega chega aqui no café.",
+  "installed": "na porta",
+  "fixtureDelivered": "Entregue! Já está no lugar, lá fora na porta do café."
 }

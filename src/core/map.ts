@@ -23,6 +23,8 @@ export interface MapObject {
   at: Cell;
   /** Tile desenhado por cima, do mesmo tamanho (ex.: neve sobre o banco). */
   overlay?: string;
+  /** Só aparece quando a condição vale (ex.: a lousa depois de comprada). */
+  when?: DoorCondition;
 }
 
 /**

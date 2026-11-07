@@ -560,3 +560,36 @@ describe('relógio', () => {
     expect(session.state.time).toBe(7 * 60);
   });
 });
+
+describe('lousa da porta (peça fixa)', () => {
+  const chalkboardOnStreet = (session: GameSession) => session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard');
+
+  it('a rua começa sem a lousa; comprada no catálogo, aparece na porta', () => {
+    const { session } = newSession();
+    expect(chalkboardOnStreet(session)).toBe(false);
+    const money = session.state.money;
+    expect(session.buy('item.cafe_sign')).toEqual({ ok: true });
+    expect(session.state.money).toBe(money - content.items['item.cafe_sign']!.price);
+    expect(chalkboardOnStreet(session)).toBe(true);
+  });
+
+  it('compra uma vez só e não tem devolução', () => {
+    const { session } = newSession();
+    session.buy('item.cafe_sign');
+    expect(session.buy('item.cafe_sign')).toEqual({ ok: false, reason: 'already_owned' });
+    expect(session.refund('item.cafe_sign').ok).toBe(false);
+  });
+});
+
+describe('progresso da faxina na meta', () => {
+  it('conta as teias limpas', () => {
+    const { session } = newSession();
+    startOnStreet(session);
+    realtorTour(session);
+    const webs = () => session.goals()[0]!.steps[0]!;
+    const total = webs().progress![1];
+    expect(webs().progress).toEqual([0, total]);
+    session.clean('dirt.web_spider');
+    expect(webs().progress).toEqual([1, total]);
+  });
+});

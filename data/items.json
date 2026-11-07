@@ -1,50 +1,465 @@
 {
   "schemaVersion": 1,
   "items": [
-    { "id": "item.cat_food_basic", "name": "Ração simples", "price": 15, "kind": "consumable", "icon": "racao_simples", "tags": ["pet", "food"] },
-    { "id": "item.cat_food_premium", "name": "Ração premium", "price": 35, "kind": "consumable", "icon": "racao_premium", "tags": ["pet", "food"] },
-    { "id": "item.cat_treat_biscuit", "name": "Petisco de biscoito", "price": 8, "kind": "consumable", "icon": "petisco_biscoito", "tags": ["pet", "treat"] },
-    { "id": "item.cat_litter", "name": "Areia", "price": 12, "kind": "consumable", "icon": "areia", "tags": ["pet", "litter"] },
-
-    { "id": "item.broom", "name": "Vassoura", "price": 0, "kind": "tool", "iconImage": "assets/tools/vassoura_icone.png", "tags": ["tool"] },
-    { "id": "item.key_bakery", "name": "Chave da padaria", "price": 0, "kind": "key", "iconImage": "assets/npc/icone_chave.png", "tags": ["key"] },
-
-    { "id": "item.cat_bed", "name": "Caminha de gato", "price": 25, "tile": "cat_bed", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.water_bowl", "name": "Tigela de água", "price": 8, "tile": "water_bowl", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.food_bowl", "name": "Tigela de ração", "price": 8, "tile": "food_bowl", "tags": ["furniture", "for:cats", "food_bowl"], "requires": { "flag": "has.cat" } },
-    { "id": "item.yarn_balls", "name": "Novelos", "price": 6, "tile": "yarn_balls", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cushion_pink", "name": "Almofada rosa", "price": 10, "tile": "cushion_pink", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cushion_mint", "name": "Almofada menta", "price": 10, "tile": "cushion_mint", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cushion_sky", "name": "Almofada azul", "price": 10, "tile": "cushion_sky", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cushion_lav", "name": "Almofada lavanda", "price": 10, "tile": "cushion_lav", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cushion_butter", "name": "Almofada amarela", "price": 10, "tile": "cushion_butter", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
-    { "id": "item.scratch_post", "name": "Arranhador", "price": 35, "tile": "scratch_post", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cat_condo", "name": "Casinha de gato", "price": 140, "tile": "cat_condo", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.cat_tree", "name": "Árvore de gato", "price": 180, "tile": "cat_tree", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-
-    { "id": "item.counter_left", "name": "Balcão (ponta esquerda)", "price": 20, "tile": "counter_left", "tags": ["furniture", "counter"] },
-    { "id": "item.counter_mid", "name": "Balcão (meio)", "price": 15, "tile": "counter_mid", "tags": ["furniture", "counter"] },
-    { "id": "item.counter_right", "name": "Balcão (ponta direita)", "price": 20, "tile": "counter_right", "tags": ["furniture", "counter"] },
-    { "id": "item.counter_single", "name": "Balcão pequeno", "price": 25, "tile": "counter_single", "tags": ["furniture", "counter"] },
-    { "id": "item.counter_register", "name": "Balcão com caixa", "price": 45, "tile": "counter_register", "tags": ["furniture", "counter"] },
-    { "id": "item.display_case", "name": "Vitrine de doces", "price": 90, "tile": "display_case", "tags": ["furniture", "counter"] },
-
-    { "id": "item.table_round", "name": "Mesa redonda", "price": 30, "tile": "table_round", "tags": ["furniture", "for:guests", "table"] },
-    { "id": "item.chair_front", "name": "Cadeira (de frente)", "price": 15, "tile": "chair_front", "tags": ["furniture", "for:guests", "chair"] },
-    { "id": "item.chair_back", "name": "Cadeira (de costas)", "price": 15, "tile": "chair_back", "tags": ["furniture", "for:guests", "chair"] },
-    { "id": "item.sofa", "name": "Sofá menta", "price": 120, "tile": "sofa", "tags": ["furniture", "for:guests"] },
-    { "id": "item.bookshelf", "name": "Estante de livros", "price": 80, "tile": "bookshelf", "tags": ["furniture", "decor"] },
-
-    { "id": "item.plant_pot", "name": "Vaso de planta", "price": 20, "tile": "plant_pot", "tags": ["furniture", "decor", "plant"] },
-    { "id": "item.plant_tall", "name": "Planta alta", "price": 45, "tile": "plant_tall", "tags": ["furniture", "decor", "plant"] },
-    { "id": "item.cactus", "name": "Cacto", "price": 12, "tile": "cactus", "tags": ["furniture", "decor", "plant"] },
-    { "id": "item.flower_vase", "name": "Vaso de flores", "price": 14, "tile": "flower_vase", "tags": ["furniture", "decor", "plant"] },
-    { "id": "item.paw_rug", "name": "Tapete de patinhas", "price": 60, "tile": "floor_rug", "tags": ["furniture", "decor", "rug"] },
-
-    { "id": "item.menu_board", "name": "Quadro de cardápio", "price": 40, "tile": "menu_board", "tags": ["furniture", "decor", "wall"] },
-    { "id": "item.wall_clock", "name": "Relógio de gato", "price": 25, "tile": "wall_clock", "tags": ["furniture", "decor", "wall"] },
-    { "id": "item.picture_paw", "name": "Quadro de patinha", "price": 20, "tile": "picture_paw", "tags": ["furniture", "decor", "wall"] },
-    { "id": "item.wall_shelf", "name": "Prateleira", "price": 30, "tile": "wall_shelf", "tags": ["furniture", "decor", "wall"] },
-    { "id": "item.plant_hanging", "name": "Planta pendurada", "price": 18, "tile": "plant_hanging", "tags": ["furniture", "decor", "wall", "plant"] }
+    {
+      "id": "item.cat_food_basic",
+      "name": "Ração simples",
+      "price": 15,
+      "kind": "consumable",
+      "icon": "racao_simples",
+      "tags": [
+        "pet",
+        "food"
+      ]
+    },
+    {
+      "id": "item.cat_food_premium",
+      "name": "Ração premium",
+      "price": 35,
+      "kind": "consumable",
+      "icon": "racao_premium",
+      "tags": [
+        "pet",
+        "food"
+      ]
+    },
+    {
+      "id": "item.cat_treat_biscuit",
+      "name": "Petisco de biscoito",
+      "price": 8,
+      "kind": "consumable",
+      "icon": "petisco_biscoito",
+      "tags": [
+        "pet",
+        "treat"
+      ]
+    },
+    {
+      "id": "item.cat_litter",
+      "name": "Areia",
+      "price": 12,
+      "kind": "consumable",
+      "icon": "areia",
+      "tags": [
+        "pet",
+        "litter"
+      ]
+    },
+    {
+      "id": "item.broom",
+      "name": "Vassoura",
+      "price": 0,
+      "kind": "tool",
+      "iconImage": "assets/tools/vassoura_icone.png",
+      "tags": [
+        "tool"
+      ]
+    },
+    {
+      "id": "item.key_bakery",
+      "name": "Chave da padaria",
+      "price": 0,
+      "kind": "key",
+      "iconImage": "assets/npc/icone_chave.png",
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "item.cat_bed",
+      "name": "Caminha de gato",
+      "price": 25,
+      "tile": "cat_bed",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.water_bowl",
+      "name": "Tigela de água",
+      "price": 8,
+      "tile": "water_bowl",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.food_bowl",
+      "name": "Tigela de ração",
+      "price": 8,
+      "tile": "food_bowl",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "food_bowl"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.yarn_balls",
+      "name": "Novelos",
+      "price": 6,
+      "tile": "yarn_balls",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_pink",
+      "name": "Almofada rosa",
+      "price": 10,
+      "tile": "cushion_pink",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_mint",
+      "name": "Almofada menta",
+      "price": 10,
+      "tile": "cushion_mint",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_sky",
+      "name": "Almofada azul",
+      "price": 10,
+      "tile": "cushion_sky",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_lav",
+      "name": "Almofada lavanda",
+      "price": 10,
+      "tile": "cushion_lav",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_butter",
+      "name": "Almofada amarela",
+      "price": 10,
+      "tile": "cushion_butter",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.scratch_post",
+      "name": "Arranhador",
+      "price": 35,
+      "tile": "scratch_post",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cat_condo",
+      "name": "Casinha de gato",
+      "price": 140,
+      "tile": "cat_condo",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cat_tree",
+      "name": "Árvore de gato",
+      "price": 180,
+      "tile": "cat_tree",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.counter_left",
+      "name": "Balcão (ponta esquerda)",
+      "price": 20,
+      "tile": "counter_left",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.counter_mid",
+      "name": "Balcão (meio)",
+      "price": 15,
+      "tile": "counter_mid",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.counter_right",
+      "name": "Balcão (ponta direita)",
+      "price": 20,
+      "tile": "counter_right",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.counter_single",
+      "name": "Balcão pequeno",
+      "price": 25,
+      "tile": "counter_single",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.counter_register",
+      "name": "Balcão com caixa",
+      "price": 45,
+      "tile": "counter_register",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.display_case",
+      "name": "Vitrine de doces",
+      "price": 90,
+      "tile": "display_case",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.table_round",
+      "name": "Mesa redonda",
+      "price": 30,
+      "tile": "table_round",
+      "tags": [
+        "furniture",
+        "for:guests",
+        "table"
+      ]
+    },
+    {
+      "id": "item.chair_front",
+      "name": "Cadeira (de frente)",
+      "price": 15,
+      "tile": "chair_front",
+      "tags": [
+        "furniture",
+        "for:guests",
+        "chair"
+      ]
+    },
+    {
+      "id": "item.chair_back",
+      "name": "Cadeira (de costas)",
+      "price": 15,
+      "tile": "chair_back",
+      "tags": [
+        "furniture",
+        "for:guests",
+        "chair"
+      ]
+    },
+    {
+      "id": "item.sofa",
+      "name": "Sofá menta",
+      "price": 120,
+      "tile": "sofa",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.bookshelf",
+      "name": "Estante de livros",
+      "price": 80,
+      "tile": "bookshelf",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
+      "id": "item.plant_pot",
+      "name": "Vaso de planta",
+      "price": 20,
+      "tile": "plant_pot",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.plant_tall",
+      "name": "Planta alta",
+      "price": 45,
+      "tile": "plant_tall",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.cactus",
+      "name": "Cacto",
+      "price": 12,
+      "tile": "cactus",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.flower_vase",
+      "name": "Vaso de flores",
+      "price": 14,
+      "tile": "flower_vase",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.paw_rug",
+      "name": "Tapete de patinhas",
+      "price": 60,
+      "tile": "floor_rug",
+      "tags": [
+        "furniture",
+        "decor",
+        "rug"
+      ]
+    },
+    {
+      "id": "item.menu_board",
+      "name": "Quadro de cardápio",
+      "price": 40,
+      "tile": "menu_board",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.wall_clock",
+      "name": "Relógio de gato",
+      "price": 25,
+      "tile": "wall_clock",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.picture_paw",
+      "name": "Quadro de patinha",
+      "price": 20,
+      "tile": "picture_paw",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.wall_shelf",
+      "name": "Prateleira",
+      "price": 30,
+      "tile": "wall_shelf",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.plant_hanging",
+      "name": "Planta pendurada",
+      "price": 18,
+      "tile": "plant_hanging",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.cafe_sign",
+      "name": "Lousa do café",
+      "price": 45,
+      "kind": "fixture",
+      "tile": "prop_lousa_cafe",
+      "tags": [
+        "facade"
+      ]
+    }
   ]
 }

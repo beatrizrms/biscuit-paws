@@ -531,3 +531,6 @@
 .day-transition.open { opacity: 1; }
 .day-transition .home { margin: 0; font-style: italic; font-size: 11px; color: var(--cream2); }
 .day-transition .next { margin: 0; font-size: 16px; font-weight: bold; letter-spacing: 0.1em; }
+
+.hud-goals .count { font-style: normal; font-variant-numeric: tabular-nums; color: #8d78bd; }
+.catalog .online { margin: 0 0 4px; font-size: 7px; font-style: italic; color: var(--grey2); }
