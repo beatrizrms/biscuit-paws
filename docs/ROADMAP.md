@@ -42,13 +42,13 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Dia 2: ligação e visita da Gabi (com o Joca), conjunto de louças
 - [x] Dona Neusa entra no café (NPC)
 - [x] Mercado com matéria-prima (café, chá, frutas, despensa); receitas como dados
-- [ ] Preparar bebidas no balcão (receitas)
+- [x] Preparar bebidas no balcão (receitas; feito no Atendimento, Fase 1)
 - [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)
 - [x] Tela inicial (Home), menu principal, pausa; 3 slots + autosave com backup, exportar/importar, saves corrompidos; opções de som (2 canais)
 - [x] Criador de personagem (pacote personagem_principal) no Novo jogo: nome, aparência e 7 poses
-- [ ] Músicas e sons ambientes (canais prontos)
+- [ ] Músicas e sons ambientes (os canais e `data/audio.json` estão prontos; faltam os arquivos)
 - [x] Atendimento, Fase 1: quadro do cardápio (M), mochila (I), mãos, preparo com barra, clientes em pé, louça suja e pia, capacidade pela louça
-- [ ] Atendimento, Fase 2: bandeja, itens pesados, gato no veterinário, forno, pia como estação, qualidade e preferências
+- [x] Atendimento, Fase 2: bandeja, itens pesados, gato no colo, forno, pia como estação, qualidade e preferências (o veterinário ficou em item próprio)
 - [x] Usar itens da barra com animação (ração na tigela, petisco no gato); evolução das receitas por clientes atendidos
 - [ ] Veterinário: levar o gato no colo até a clínica (mapa, NPC e arte)
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
@@ -62,11 +62,11 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 
 ## Marco 1: gatos no café
-- [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
-- [ ] `data/cats.json` e entidade Gato (IA simples: vagar, descansar)
-- [ ] Gatos sentam em almofadas e caminhas
-- [ ] Evento `cat.sheltered`
-- [ ] Continuação da história: encontrar o gato que mia lá fora (`cat.first_found`)
+- [x] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
+- [x] `data/cats.json` e entidade Gato (IA simples: vagar, sentar, dormir)
+- [ ] Gatos procuram almofadas e caminhas para sentar e dormir (hoje sentam e dormem em qualquer lugar)
+- [x] Evento `cat.sheltered`
+- [x] Continuação da história: encontrar o gato que mia lá fora (feito no prólogo: "O miado", `story.meow`)
 
 ## Marco 2: dia, frio e abrigo
 - [x] Ciclo do dia (manhã, dia, noite)
@@ -77,24 +77,30 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 ## Marco 3: save e load
 - [x] Save versionado, migrações, fixture v1 (feito no Marco 0.5)
 - [x] Armazenamento via `src/platform/` (feito no Marco 0.5)
-- [ ] Vários slots e tela de "continuar / jogo novo"
+- [x] Vários slots e tela de "continuar / jogo novo" (feito na Home: 3 slots + autosave)
 
 ## Marco 4: clientes e café aberto
-- [ ] Clientes humanos, pedidos, servir, dinheiro e gorjeta
+- [x] Clientes humanos, pedidos, servir, dinheiro e gorjeta (feito no Atendimento)
 - [ ] Afeto do gato afeta paciência e gorjeta (`cat.affection_changed`)
 
 ## Marco 5: reforma e decoração
-- [ ] Loja abandonada -> reformada
+- [x] Loja abandonada -> reformada (pintor; a reforma completa libera a inauguração)
 - [x] Compra e posicionamento de móveis (feito no Marco 0.5)
 
 ## Marco 6: vizinhança
 - [ ] Vizinhos com preconceito que muda com o tempo
-- [ ] Vizinha idosa e a história da padaria
+- [ ] Vizinha idosa e a história da padaria (a Dona Neusa já aparece; falta o arco dela)
 
 ## Marco 7: empacotar para a Steam
 - [ ] Electron + integração Steamworks
-- [ ] Salvar em arquivos
-- [ ] Ícone, créditos, página da loja
+- [ ] Salvar em arquivos (a camada `src/platform/` já está pronta para a troca)
+- [ ] Ícone e página da loja (`CREDITS.md` já existe; declarar o uso de IA na arte)
+
+## Arte pendente
+- [ ] Moldura de botão e de painel (9 partes) e logo do título, para a Home e os menus
+- [ ] Arte da inauguração (hoje é só um diálogo)
+- [ ] Ícone do carrinho no HUD (hoje é texto)
+- [ ] Pose da personagem carregando saco pesado (o pacote não tem; o saco é desenhado na mão)
 
 ## Depois
 - Adoção de gatos (`adoption.completed`)
