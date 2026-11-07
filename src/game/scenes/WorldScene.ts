@@ -569,6 +569,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const it = this.session.interactionAt(this.playerCells(), target);
     if (it) {
       if ('shop' in it.action) this.ui.openShop(it.action.shop);
+      else if ('shelf' in it.action) this.ui.openShelf(it.action.shelf, it.action.tags);
       else this.ui.openNews('board');
       return true;
     }

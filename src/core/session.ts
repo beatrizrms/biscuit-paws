@@ -10,6 +10,7 @@ import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import { activeItem, assignToActive, fitsHotbar, HOTBAR_SIZE, syncHotbar } from './hotbar';
+import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -54,6 +55,8 @@ export type ActionResult =
         | 'hands_full'
         | 'nothing_here'
         | 'already_owned'
+        | 'cart_empty'
+        | 'one_heavy_per_trip'
         | PlaceProblem;
     };
 
@@ -62,6 +65,9 @@ export class GameSession {
 
   /** Atendimento do café: cardápio, pedidos, mãos, louça, clientes (service.ts). */
   readonly service: CafeService;
+
+  /** Carrinho do mercado (fora do save: nada foi pago ainda). */
+  readonly cart = new Cart();
 
   constructor(
     readonly content: Content,
@@ -201,6 +207,8 @@ export class GameSession {
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
     this.service.endOfDay();
+    this.cart.clear();
+    this.bus.emit('cart.changed', { count: 0, total: 0 });
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     this.advanceStory();
@@ -712,17 +720,29 @@ export class GameSession {
   }
 
   /** Compra um item: desconta o preço e põe no inventário. */
-  buy(itemId: string): ActionResult {
+  /** Por que este item não pode ser comprado agora (sem olhar o dinheiro), ou null. */
+  private buyProblem(itemId: string): Extract<ActionResult, { ok: false }>['reason'] | null {
     const item = this.content.items[itemId];
-    if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
+    if (!item || item.deprecated) return 'unknown_item';
     // Chave e presente não se compram; ferramenta só se tiver preço (ex.: a bandeja; a vassoura é presente).
-    if (['key', 'gift'].includes(item.kind ?? 'furniture') || (item.kind === 'tool' && !(item.price > 0))) return { ok: false, reason: 'unknown_item' };
-    if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
-    if (item.kind === 'fixture' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
-    if (item.kind === 'tool' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
+    if (['key', 'gift'].includes(item.kind ?? 'furniture') || (item.kind === 'tool' && !(item.price > 0))) return 'unknown_item';
+    if (!this.itemUnlocked(itemId)) return 'locked';
+    if ((item.kind === 'fixture' || item.kind === 'tool') && (this.state.inventory[itemId] ?? 0) > 0) return 'already_owned';
+    return null;
+  }
+
+  private isHeavy(itemId: string): boolean {
+    return this.content.items[itemId]?.tags.includes(this.content.carry.heavy.tag) ?? false;
+  }
+
+  /** Compra uma unidade na hora (usado pelos testes e pelo debug; no mercado a compra passa pelo carrinho). */
+  buy(itemId: string): ActionResult {
+    const problem = this.buyProblem(itemId);
+    if (problem) return { ok: false, reason: problem };
+    const item = this.content.items[itemId]!;
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     // Pesado (saco de ração, areia): vai direto para as mãos; precisa estar com elas livres.
-    const heavy = item.tags.includes(this.content.carry.heavy.tag);
+    const heavy = this.isHeavy(itemId);
     if (heavy) {
       const r = this.service.carryHeavy(itemId);
       if (!r.ok) return { ok: false, reason: r.reason === 'hands_full' ? 'hands_full' : 'unknown_item' };
@@ -739,6 +759,76 @@ export class GameSession {
     const placeOn = this.content.items[itemId]?.placeOn;
     if (!placeOn || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
     return 'no_free_counter';
+  }
+
+  // ---------- Carrinho do mercado ----------
+
+  /** Valor total do carrinho. */
+  cartTotal(): number {
+    return this.cart.total((id) => this.content.items[id]?.price ?? 0);
+  }
+
+  /** Quantos deste item cabem no carrinho: ferramenta e fixo só 1; pesado, um por viagem (vai nas mãos). */
+  private cartMax(itemId: string): number {
+    const kind = this.content.items[itemId]?.kind;
+    if (kind === 'tool' || kind === 'fixture' || this.isHeavy(itemId)) return 1;
+    return MAX_QTY_PER_ITEM;
+  }
+
+  private cartChanged(): void {
+    this.bus.emit('cart.changed', { count: this.cart.count(), total: this.cartTotal() });
+  }
+
+  /** Põe uma unidade no carrinho (o dinheiro só é conferido no caixa). */
+  addToCart(itemId: string): ActionResult {
+    const problem = this.buyProblem(itemId);
+    if (problem) return { ok: false, reason: problem };
+    if (this.cart.qty(itemId) >= this.cartMax(itemId)) return { ok: false, reason: this.isHeavy(itemId) ? 'one_heavy_per_trip' : 'already_owned' };
+    // Pesados ocupam as mãos sozinhos: um só por compra, de qualquer tipo.
+    if (this.isHeavy(itemId) && this.cart.countWhere((id) => this.isHeavy(id)) > 0) return { ok: false, reason: 'one_heavy_per_trip' };
+    this.cart.add(itemId, 1, this.cartMax(itemId));
+    this.cartChanged();
+    return { ok: true };
+  }
+
+  /** Tira uma unidade (ou todas, com `all`). */
+  removeFromCart(itemId: string, all = false): void {
+    this.cart.remove(itemId, all ? this.cart.qty(itemId) : 1);
+    this.cartChanged();
+  }
+
+  /** Quanto falta para pagar o carrinho (0 se o dinheiro basta). */
+  cartShortfall(): number {
+    return Math.max(0, this.cartTotal() - this.state.money);
+  }
+
+  /**
+   * Caixa: confere tudo e só então cobra e entrega (tudo ou nada).
+   * Sem dinheiro, nada muda: ela tira itens e tenta de novo.
+   */
+  checkout(): ActionResult {
+    if (this.cart.isEmpty()) return { ok: false, reason: 'cart_empty' };
+    for (const { itemId } of this.cart.lines()) {
+      const problem = this.buyProblem(itemId);
+      if (problem) return { ok: false, reason: problem };
+    }
+    if (this.cartShortfall() > 0) return { ok: false, reason: 'no_money' };
+    const heavy = this.cart.lines().find((l) => this.isHeavy(l.itemId));
+    if (heavy && this.service.holdProblem({ kind: 'heavy', item: heavy.itemId })) return { ok: false, reason: 'hands_full' };
+    const total = this.cartTotal();
+    const lines = this.cart.lines();
+    this.addMoney(-total, 'checkout');
+    for (const { itemId, qty } of lines) {
+      if (this.isHeavy(itemId)) this.service.carryHeavy(itemId);
+      else this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + qty;
+      const price = this.content.items[itemId]!.price;
+      for (let i = 0; i < qty; i++) this.bus.emit('item.bought', { itemId, price });
+    }
+    this.cart.clear();
+    this.bus.emit('cart.checked_out', { lines, total });
+    this.cartChanged();
+    this.advanceStory();
+    return { ok: true };
   }
 
   /** Diz se o item pode ficar em `at`, sem mudar nada. */

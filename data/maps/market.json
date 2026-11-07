@@ -501,6 +501,70 @@
       "action": {
         "board": true
       }
+    },
+    {
+      "id": "int.market_shelf_grocery",
+      "at": [
+        3,
+        3
+      ],
+      "reach": 2,
+      "action": {
+        "shelf": "shop.market",
+        "tags": [
+          "coffee",
+          "tea",
+          "pantry",
+          "bakery",
+          "tool"
+        ]
+      }
+    },
+    {
+      "id": "int.market_shelf_grocery_2",
+      "at": [
+        4,
+        6
+      ],
+      "reach": 2,
+      "action": {
+        "shelf": "shop.market",
+        "tags": [
+          "coffee",
+          "tea",
+          "pantry",
+          "bakery",
+          "tool"
+        ]
+      }
+    },
+    {
+      "id": "int.market_crates_fruit",
+      "at": [
+        4,
+        8
+      ],
+      "reach": 2,
+      "action": {
+        "shelf": "shop.market",
+        "tags": [
+          "fruit"
+        ]
+      }
+    },
+    {
+      "id": "int.market_shelf_pet",
+      "at": [
+        13,
+        3
+      ],
+      "reach": 2,
+      "action": {
+        "shelf": "shop.market",
+        "tags": [
+          "pet"
+        ]
+      }
     }
   ]
 }

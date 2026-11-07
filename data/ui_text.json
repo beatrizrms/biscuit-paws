@@ -79,7 +79,9 @@
     "not_at_home": "Aqui não. Só dentro do café.",
     "needs_counter": "Isso vai em cima de um balcão.",
     "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
-    "has_something_on_top": "Tire primeiro o que está em cima do balcão."
+    "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
+    "cart_empty": "O carrinho está vazio.",
+    "one_heavy_per_trip": "Só cabe um saco pesado por vez: as mãos ficam ocupadas."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -128,7 +130,21 @@
         "tag": "tool",
         "title": "Utensílios"
       }
-    ]
+    ],
+    "add": "pôr no carrinho",
+    "cartTitle": "Carrinho",
+    "cartLine": "{count} {items} · {total} moedas",
+    "itemOne": "item",
+    "itemMany": "itens",
+    "payAtCashier": "Pague no caixa.",
+    "cashierTitle": "Caixa",
+    "emptyCart": "O carrinho está vazio. Pegue os itens nas prateleiras.",
+    "pay": "Pagar {total} moedas",
+    "youHave": "Você tem {money} moedas.",
+    "missing": "Faltam {missing} moedas: tire alguns itens.",
+    "paid": "Compra feita! Tudo na mochila.",
+    "removeAll": "tirar",
+    "shelfTitle": "Prateleira"
   },
   "day": "Dia",
   "hearts": "corações",

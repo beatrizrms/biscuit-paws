@@ -516,6 +516,14 @@ export function validateContent(raw: RawContent): string[] {
   for (const m of raw.maps) {
     for (const it of m.interactions ?? []) {
       if ('shop' in it.action && !raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
+      if ('shelf' in it.action) {
+        const shop = raw.shops.shops[it.action.shelf];
+        if (!shop) err(`${m.id}: prateleira "${it.id}" de loja inexistente "${it.action.shelf}"`);
+        else {
+          const tags = it.action.tags;
+          if (!shop.items.some((id) => raw.items.items.find((x) => x.id === id)?.tags.some((t) => tags.includes(t)))) err(`${m.id}: prateleira "${it.id}" não tem nenhum item com as tags ${tags.join(', ')}`);
+        }
+      }
     }
   }
   for (const d of doorChecks) {

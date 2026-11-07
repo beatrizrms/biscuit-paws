@@ -62,6 +62,7 @@ export class GameUi {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
       <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-cart" hidden></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <section class="panel catalog" aria-label="${uiText.catalogTitle}">
@@ -74,6 +75,12 @@ export class GameUi {
       </div>`;
     const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
     this.money = $('.hud-money');
+    // Carrinho no HUD: aparece enquanto tem algo nele (mesmo fora do mercado, para lembrar de pagar).
+    const cartEl = $('.hud-cart');
+    session.bus.on('cart.changed', ({ count, total }) => {
+      cartEl.hidden = count === 0;
+      cartEl.textContent = `${uiText.shop.cartTitle}: ${count} · ${total}`;
+    });
     this.goals = $('.hud-goals');
     this.hint = $('.hint');
     this.toastEl = $('.toast');
@@ -99,7 +106,7 @@ export class GameUi {
     };
     this.cutscene = new CutsceneView(root, session, afterOverlay);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
-    this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.bought), (reason) => this.problem(reason as keyof typeof uiText.problems));
+    this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
     this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
     this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem);
@@ -330,9 +337,16 @@ export class GameUi {
     });
   }
 
+  /** Caixa do mercado: paga o carrinho. */
   openShop(shopId: string): void {
     this.closeCatalog();
-    this.shop.open(shopId);
+    this.shop.openCheckout(shopId);
+  }
+
+  /** Prateleira: põe itens no carrinho. */
+  openShelf(shopId: string, tags: string[]): void {
+    this.closeCatalog();
+    this.shop.openShelf(shopId, tags);
   }
 
   closeShop(): void {

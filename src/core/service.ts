@@ -489,6 +489,11 @@ export class CafeService {
   }
 
   /** Quanto cabe nas mãos agora (bandeja: só louça). */
+  /** Por que não dá para pegar `item` agora (mãos cheias...), ou null. */
+  holdProblem(item: HandItem): ServiceProblem | null {
+    return this.canHold(item);
+  }
+
   private canHold(item: HandItem): ServiceProblem | null {
     const hands = this.st.hands;
     if (hands.some(exclusive) || (exclusive(item) && (hands.length > 0 || this.st.tray))) return 'hands_full';

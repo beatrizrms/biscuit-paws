@@ -14,6 +14,10 @@ export interface GameEvents {
   'day.started': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
+  /** Carrinho do mercado mudou (count: unidades; total: moedas). */
+  'cart.changed': { count: number; total: number };
+  /** Pagou no caixa: tudo o que estava no carrinho. */
+  'cart.checked_out': { lines: { itemId: string; qty: number }[]; total: number };
   'item.received': { itemId: string };
   'item.placed': { itemId: string; uid: string; at: Cell };
   'item.picked_up': { itemId: string; uid: string };
