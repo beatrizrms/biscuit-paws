@@ -75,7 +75,7 @@
     },
     {
       "id": "obj.sink",
-      "tile": "ph_pia",
+      "tile": "eq_pia",
       "at": [
         0,
         3

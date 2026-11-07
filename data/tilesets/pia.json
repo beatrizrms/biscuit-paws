@@ -1,6 +1,6 @@
 {
  "tileSize": 32,
- "columns": 1,
+ "columns": 7,
  "rows": 1,
  "pieces": {
   "pia": {

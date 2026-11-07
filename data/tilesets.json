@@ -319,14 +319,6 @@
       }
     },
     {
-      "id": "placeholders",
-      "image": "assets/placeholders/placeholders.png",
-      "pieces": "placeholders.json",
-      "prefix": "ph_",
-      "layer": "object",
-      "solid": true
-    },
-    {
       "id": "coffee_maker",
       "image": "assets/equipment/cafeteira_spritesheet.png",
       "pieces": "cafeteira.json",
@@ -339,6 +331,23 @@
           1,
           4
         ]
+      }
+    },
+    {
+      "id": "sink",
+      "image": "assets/equipment/pia_sheet.png",
+      "pieces": "pia.json",
+      "prefix": "eq_",
+      "layer": "object",
+      "solid": true,
+      "animation": {
+        "columns": 7,
+        "work": [
+          2,
+          5
+        ],
+        "dirty": 1,
+        "clean": 6
       }
     }
   ]

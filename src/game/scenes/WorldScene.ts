@@ -567,7 +567,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     };
     const customer = sv.customerToServe(feet);
     if (customer && !target) return report(sv.serve(customer.id));
-    if (st.hands.some((h) => h.kind === 'dirty') && sv.sinkNear(feet) && (!target || (target[0] === this.session.content.service.sink[0] && target[1] === this.session.content.service.sink[1]))) return report(sv.wash());
+    if (st.hands.some((h) => h.kind === 'dirty') && sv.sinkNear(feet) && (!target || (target[0] === this.session.content.service.sink[0] && target[1] === this.session.content.service.sink[1]))) {
+      if (!this.sweeping) void this.playWash().then(() => report(sv.wash()));
+      return true;
+    }
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     if (st.hands.some((h) => h.kind === 'item')) {
       const cat = this.cats.find((c) => near(c.cell()));
@@ -589,6 +592,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
     }
     return false;
+  }
+
+  /** Lavando: a pia anima (quadros "lavando"), mostra a louça limpa e volta ao normal. Ela fica parada. */
+  private async playWash(): Promise<void> {
+    const sheet = (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[]; clean?: number } }[]).find((s) => s.id === 'sink');
+    if (!sheet?.animation) return;
+    this.sweeping = true;
+    const ts = this.map.tileSize;
+    const [c, r] = this.session.content.service.sink;
+    const key = 'anim:sink';
+    const [a, b] = sheet.animation.work as [number, number];
+    if (!this.anims.exists('sink-wash')) this.anims.create({ key: 'sink-wash', frames: this.anims.generateFrameNumbers(key, { start: a, end: b }), frameRate: 6, repeat: 1 });
+    const sprite = this.add.sprite(c * ts, r * ts, key, a).setOrigin(0).setDepth(ySortDepth((r + 1) * ts) + 1);
+    sprite.play('sink-wash');
+    await this.wait(1300);
+    sprite.stop();
+    if (sheet.animation.clean !== undefined) sprite.setFrame(sheet.animation.clean);
+    this.sweeping = false;
+    this.time.delayedCall(1200, () => sprite.destroy());
   }
 
   /** Itens deixados no café (bebidas prontas, louça suja) como ícones nas células. */
