@@ -183,10 +183,38 @@ Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem 
 ## Mundo (`data/world.json`)
 
 ```jsonc
-{ "schemaVersion": 1, "startMap": "map.street", "homeMap": "map.cafe_main" }
+{
+  "schemaVersion": 1,
+  "startMap": "map.street",
+  "homeMap": "map.cafe_main",
+  "season": "winter",                                  // estação atual (escolhe as cores do dia/noite)
+  "morning": { "map": "map.street", "spawn": [16, 9] }, // onde ela aparece de manhã, vindo de casa
+  "sleepMap": null                                      // onde dorme; null = em casa, fora do mapa
+}
 ```
 
 `startMap`: onde um jogo novo começa. `homeMap`: o café, único mapa onde dá para decorar e reformar.
+`sleepMap` é o ponto de extensão para o quartinho do café: hoje o fim do dia mostra "Você foi para casa." e ela amanhece em `morning`.
+
+## Dia e noite (`data/daynight.json`)
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "minutesPerSecond": 0.7,     // minutos de jogo por segundo real (o relógio para em falas, cenas e menus)
+  "dayStart": "07:00",         // hora em que ela chega de manhã
+  "passOut": "26:00",          // 2h da madrugada: o dia acaba sozinho
+  "indoorStrength": 0.35,      // mapas "indoor" recebem só 55% da cor
+  "keyframes": [{ "time": "07:00", "color": "#ffe8d0" }, { "time": "12:00", "color": "#ffffff" }],
+  "seasons": { "winter": { "keyframes": [...] } }   // troca as horas-chave numa estação (inverno: escurece cedo e mais frio)
+}
+```
+
+A cor do momento é interpolada entre as horas-chave (`src/core/time.ts`, `tintAt`) e pintada em MULTIPLY sobre o mundo.
+Horas depois da meia-noite usam 24+ (`"26:00"`). Cores pedidas: manhã `#ffe8d0`, meio-dia `#ffffff`, tarde `#ffd9a8`, entardecer `#c9a0c8`, noite `#4a5a9a` (nunca preto puro).
+
+No mapa: `"lighting": "outdoor" | "indoor"` e `"lights": [{ "at": [x, y], "radius": 46, "color": "#ffe2a0" }]`
+(posição em células, pode ter fração; raio em pixels). As luzes brilham com ADD e acendem conforme escurece.
 
 ## Folhas extras de tiles (`data/tilesets.json`)
 
@@ -260,7 +288,7 @@ Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ 
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
-Efeitos: `{ "endDay": true }` (fim do dia), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
+Efeitos: `{ "endDay": true }` (fim do dia), `{ "setTime": "08:00" }` (acerta o relógio), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
 
@@ -287,9 +315,10 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 
 ```jsonc
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "savedAt": "2026-12-01T10:00:00Z",
   "day": 3,
+  "time": 1050,                                      // v5: minutos desde 00:00 (17:30)
   "money": 120,
   "flags": { "met.old_neighbor": true },
   "inventory": { "item.cushion_pink": 1 },           // comprados e não posicionados
@@ -308,7 +337,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`). Fixtures: `tests/fixtures/save_v1.json` a `save_v4.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h). Fixtures: `tests/fixtures/save_v1.json` a `save_v5.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.

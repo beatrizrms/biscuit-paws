@@ -48,7 +48,7 @@ export class GameUi {
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
-      <div class="panel hud-money"><span class="day"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <section class="panel catalog" aria-label="${uiText.catalogTitle}">
@@ -188,6 +188,40 @@ export class GameUi {
       const under = points.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       el.classList.toggle('see-through', under);
     }
+  }
+
+  /** Hora no HUD (só mexe no texto quando muda). */
+  setClock(text: string): void {
+    const el = this.money.querySelector('.clock') as HTMLElement;
+    if (el.textContent !== text) el.textContent = text;
+  }
+
+  /** Fim do dia: "Você foi para casa." e o dia seguinte. Resolve sozinho ou com clique/tecla. */
+  showDayTransition(day: number): Promise<void> {
+    const el = document.createElement('div');
+    el.className = 'day-transition';
+    el.innerHTML = `<p class="home">${uiText.dayTransition.home}</p><p class="next">${uiText.day} ${day}</p>`;
+    this.root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('open'));
+    this.reveal = { el, done: () => undefined };
+    return new Promise((resolve) => {
+      let finished = false;
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        window.removeEventListener('keydown', done);
+        el.classList.remove('open');
+        window.setTimeout(() => {
+          el.remove();
+          this.reveal = null;
+          this.refresh();
+          resolve();
+        }, 400);
+      };
+      window.setTimeout(() => window.addEventListener('keydown', done), 400);
+      el.addEventListener('click', done);
+      window.setTimeout(done, 2600);
+    });
   }
 
   openShop(shopId: string): void {

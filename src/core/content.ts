@@ -3,7 +3,8 @@
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
-import { validateMap, type MapData, type SurfaceKind } from './map';
+import { validateMap, type Cell, type MapData, type SurfaceKind } from './map';
+import { validateDayNight, type DayNightConfig } from './time';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
@@ -102,7 +103,9 @@ export type Effect =
   /** Termina o dia (a protagonista vai para casa; amanhece no dia seguinte). */
   | { endDay: true }
   /** Roteiro no mundo (data/scripts.json): ex.: a corretora mostra a padaria. */
-  | { script: string };
+  | { script: string }
+  /** Acerta o relógio (ex.: a chegada é às "08:00" do dia seguinte aos pensamentos). */
+  | { setTime: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -146,6 +149,15 @@ export interface WorldData {
   schemaVersion: 1;
   startMap: string;
   homeMap: string;
+  /** Estação atual (dados de todas já existem; o prólogo é no inverno). */
+  season: string;
+  /** Onde ela aparece de manhã, vindo de casa. */
+  morning: { map: string; spawn: Cell };
+  /**
+   * Onde ela dorme. null = em casa, fora do mapa (transição "Você foi para casa").
+   * Ponto de extensão: quando o quartinho do café for destrancado, vira o id desse mapa.
+   */
+  sleepMap: string | null;
 }
 
 /** Todo o conteúdo que uma sessão de jogo precisa. */
@@ -171,6 +183,7 @@ export interface Content {
   icons: IconsData;
   npcs: Record<string, NpcDef>;
   scripts: Record<string, { steps: ScriptStep[] }>;
+  dayNight: DayNightConfig;
 }
 
 export interface RawContent {
@@ -190,6 +203,7 @@ export interface RawContent {
   icons: IconsData;
   npcs: NpcsData;
   scripts: ScriptsData;
+  dayNight: DayNightConfig;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -204,7 +218,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -228,6 +242,9 @@ export function validateContent(raw: RawContent): string[] {
   }
   if (!mapIds.has(raw.world.startMap)) err(`world: startMap "${raw.world.startMap}" não existe`);
   if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
+  if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
+  if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
+  errors.push(...validateDayNight(raw.dayNight));
   for (const m of raw.maps) {
     for (const door of m.doors ?? []) {
       const target = raw.maps.find((t) => t.id === door.to);
@@ -376,6 +393,7 @@ export function validateContent(raw: RawContent): string[] {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
+      if ('setTime' in effect && !/^\d{1,2}:\d{2}$/.test(effect.setTime)) err(`${where}: hora inválida "${effect.setTime}"`);
       if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
       if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);
     }

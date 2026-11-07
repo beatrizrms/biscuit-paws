@@ -2,10 +2,10 @@
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 
-export interface SaveV4 extends GameState {
-  schemaVersion: 4;
+export interface SaveV5 extends GameState {
+  schemaVersion: 5;
   savedAt: string;
 }
 
@@ -23,10 +23,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   2: (save) => ({ ...save, schemaVersion: 3, location: 'map.cafe_main', visited: ['map.street', 'map.cafe_main'], cleaned: ['*'] }),
   /** v3 -> v4: gatos com nome e mapa; corações entre pares. Saves antigos não tinham gatos. */
   3: (save) => ({ ...save, schemaVersion: 4, cats: {}, relationships: {} }),
+  /** v4 -> v5: hora do dia (ciclo dia/noite). Saves antigos ficam às 8h. */
+  4: (save) => ({ ...save, schemaVersion: 5, time: 8 * 60 }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV4 = { schemaVersion: 4, savedAt: now.toISOString(), ...state };
+  const save: SaveV5 = { schemaVersion: 5, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -59,7 +61,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV4>;
+  const v2 = save as unknown as Partial<SaveV5>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -80,6 +82,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
 
   const state: GameState = {
     day: v2.day ?? 1,
+    time: typeof v2.time === 'number' && v2.time >= 0 ? v2.time : 8 * 60,
     money: v2.money ?? 0,
     flags: { ...(v2.flags ?? {}) },
     inventory,

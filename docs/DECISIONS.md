@@ -119,3 +119,7 @@ Consequência: `data/scripts.json` + `ScriptRunner` (NPCs andam, acenam, falam; 
 ## 032. Varrer com a vassoura (nov/2026)
 Motivo: limpar com um clique seco não dava sensação de trabalho; o pacote traz a vassoura animada.
 Consequência: a corretora entrega `item.broom` (ferramenta). Clicar na sujeira de perto confere no núcleo (`cleanProblem`), toca a varrida (vassoura na mão, poeira, brilho, ~1,5 s, `data/tools.json`) e só então limpa. A personagem fica parada enquanto varre.
+
+## 033. Ciclo dia/noite por cor e luzes (nov/2026)
+Motivo: o prólogo precisa de noite de inverno; o dia precisa terminar (ir para casa) sem quarto ainda.
+Consequência: `data/daynight.json` com horas-chave e ajuste por estação (inverno escurece às 17h15 e é mais azul). Uma camada de cor em MULTIPLY cobre o mundo e as luzes do mapa (`lights`) somam brilho com ADD conforme escurece; mapas `indoor` recebem a cor mais fraca. O relógio anda 0,7 min por segundo, parado em falas e cenas. Às 2h o dia acaba sozinho. Fim do dia: tela "Você foi para casa." e ela amanhece na rua às 7h (`world.morning`); `world.sleepMap` é o gancho para o quartinho. Save v5 (`time`).

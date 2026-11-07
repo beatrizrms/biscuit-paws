@@ -70,5 +70,8 @@
   "hearts": "corações",
   "itemReveal": {
     "continue": "Espaço, Enter ou clique: continuar"
+  },
+  "dayTransition": {
+    "home": "Você foi para casa."
   }
 }

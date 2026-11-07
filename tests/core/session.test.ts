@@ -521,3 +521,42 @@ describe('alimentar e fim do dia', () => {
     expect(events.find((e) => e.name === 'day.ended')?.payload).toEqual({ day: 1 });
   });
 });
+
+describe('relógio', () => {
+  const { minutesPerSecond } = content.dayNight;
+
+  it('a chegada na rua é às 8h', () => {
+    const { session } = newSession();
+    startOnStreet(session);
+    expect(session.state.time).toBe(8 * 60);
+  });
+
+  it('o relógio anda conforme os segundos reais', () => {
+    const { session } = newSession();
+    session.state.time = 600;
+    session.tickClock(10);
+    expect(session.state.time).toBeCloseTo(600 + 10 * minutesPerSecond);
+  });
+
+  it('o fim do dia leva para a rua, de manhã, no dia seguinte', () => {
+    const { session, events } = newSession();
+    session.state.location = 'map.cafe_main';
+    session.state.time = 22 * 60;
+    session.endDay();
+    expect(session.state.day).toBe(2);
+    expect(session.state.time).toBe(7 * 60);
+    expect(session.location()).toBe(content.world.morning.map);
+    expect(session.morningSpawn()).toEqual(content.world.morning.spawn);
+    const names = events.map((e) => e.name);
+    expect(names.indexOf('day.ended')).toBeLessThan(names.indexOf('day.started'));
+    expect(events.find((e) => e.name === 'day.started')?.payload).toEqual({ day: 2 });
+  });
+
+  it('às 2h da madrugada ela desmaia de sono: o dia acaba sozinho', () => {
+    const { session } = newSession();
+    session.state.time = 26 * 60 - 1;
+    session.tickClock(5);
+    expect(session.state.day).toBe(2);
+    expect(session.state.time).toBe(7 * 60);
+  });
+});

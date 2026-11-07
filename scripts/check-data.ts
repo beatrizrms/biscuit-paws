@@ -25,6 +25,7 @@ const raw: RawContent = {
   icons: read('data/icons.json'),
   npcs: read('data/npcs.json'),
   scripts: read('data/scripts.json'),
+  dayNight: read('data/daynight.json'),
 };
 
 const errors = validateContent(raw);

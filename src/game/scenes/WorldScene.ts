@@ -12,6 +12,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom } from '../content';
+import { DayNightLayer } from '../DayNightLayer';
+import { formatClock, tintAt } from '../../core/time';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -37,6 +39,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
   private debugPanel?: DebugPanel;
   private changingMap = false;
+  private dayNight!: DayNightLayer;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
   private cats: CatSprite[] = [];
@@ -65,6 +68,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
+    this.dayNight = new DayNightLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.loadMap(this.session.location());
 
@@ -109,13 +113,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const cat = this.cats.find((c) => c.catId === catId);
       if (bowl && cat) cat.goEat([bowl.at[0], bowl.at[1] + 1], this.time.now);
     });
-    // Fim do dia: escurece e amanhece no café (por enquanto ela "vai para casa" só no texto).
-    this.session.bus.on('day.ended', () => {
+    // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
+    // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
+    this.session.bus.on('day.started', ({ day }) => {
+      this.changingMap = true;
       const cam = this.cameras.main;
       cam.fadeOut(400, 27, 33, 64);
-      cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-        this.loadMap(this.session.location());
+      cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, async () => {
+        await this.ui.showDayTransition(day);
+        this.loadMap(this.session.location(), this.session.morningSpawn(), 'down');
         cam.fadeIn(600, 27, 33, 64);
+        this.changingMap = false;
       });
     });
 
@@ -131,6 +139,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   update(): void {
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping;
+    // O relógio só anda quando ela está livre (pausa em falas, cenas, roteiros, menus).
+    if (!busy) this.session.tickClock(this.game.loop.delta / 1000);
+    this.updateDayNight();
     const input = this.autoWalk
       ? this.autoWalkInput()
       : busy
@@ -183,6 +194,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const height = this.map.rows * ts;
     this.physics.world.setBounds(0, 0, width, height);
 
+    this.dayNight.setLights(this.session.mapData(mapId).lights ?? [], this.map.tileSize);
     const cam = this.cameras.main;
     cam.setBackgroundColor(this.map.background ?? '#2b1d1a');
     cam.stopFollow();
@@ -365,6 +377,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const points = [toClient(this.player.x, this.player.y - 56), toClient(this.player.x, this.player.y)];
     if (p.event) points.push(toClient(p.worldX, p.worldY));
     this.ui.updateHudFade(points);
+  }
+
+  /** Cor do momento sobre o mundo e relógio no HUD. */
+  private updateDayNight(): void {
+    const data = this.session.mapData(this.map.id);
+    const t = this.session.state.time;
+    this.dayNight.update(tintAt(t, this.session.content.dayNight, this.session.content.world.season, data.lighting === 'indoor'));
+    this.ui.setClock(formatClock(t));
   }
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */

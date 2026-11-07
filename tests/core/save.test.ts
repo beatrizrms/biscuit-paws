@@ -100,6 +100,18 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/cat.lost_forever/);
   });
 
+  it('save_v4 migra para v5 às 8h da manhã', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v4.json', 'utf8'), known);
+    expect(state.time).toBe(8 * 60);
+  });
+
+  it('save_v5: guarda a hora do dia', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v5.json', 'utf8'), known);
+    expect(warnings).toEqual([]);
+    expect(state.day).toBe(2);
+    expect(state.time).toBe(17 * 60 + 30);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

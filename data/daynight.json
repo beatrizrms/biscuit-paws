@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Ciclo dia/noite. A arte não muda: uma cor MULTIPLY cobre o mundo, interpolada entre as horas-chave (time pode passar de 24:00 até passOut). Luzes dos mapas brilham com ADD conforme escurece. Interiores usam a cor mais fraca (indoorStrength: 0 = sem tinta, 1 = igual à rua).",
+  "minutesPerSecond": 0.7,
+  "dayStart": "07:00",
+  "passOut": "26:00",
+  "indoorStrength": 0.55,
+  "keyframes": [
+    { "time": "00:00", "color": "#4a5a9a" },
+    { "time": "05:30", "color": "#4a5a9a" },
+    { "time": "07:00", "color": "#ffe8d0" },
+    { "time": "12:00", "color": "#ffffff" },
+    { "time": "16:30", "color": "#ffd9a8" },
+    { "time": "18:30", "color": "#c9a0c8" },
+    { "time": "20:00", "color": "#4a5a9a" },
+    { "time": "26:00", "color": "#4a5a9a" }
+  ],
+  "seasons": {
+    "winter": {
+      "_comment": "Inverno: escurece mais cedo e a noite é mais fria (mais azul).",
+      "keyframes": [
+        { "time": "00:00", "color": "#3e4f9c" },
+        { "time": "06:00", "color": "#3e4f9c" },
+        { "time": "07:30", "color": "#ffe8d0" },
+        { "time": "12:00", "color": "#ffffff" },
+        { "time": "15:30", "color": "#ffd9a8" },
+        { "time": "17:15", "color": "#c9a0c8" },
+        { "time": "18:30", "color": "#3e4f9c" },
+        { "time": "26:00", "color": "#3e4f9c" }
+      ]
+    }
+  }
+}

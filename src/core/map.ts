@@ -7,6 +7,15 @@ export type Cell = [col: number, row: number];
 
 export type Facing = 'down' | 'left' | 'right' | 'up';
 
+/** Luz do mapa (acende com ADD quando escurece). */
+export interface MapLight {
+  at: [number, number];
+  /** Raio em pixels (padrão 48). */
+  radius?: number;
+  /** Cor da luz (padrão quente). */
+  color?: string;
+}
+
 export interface MapObject {
   id: string;
   tile: string;
@@ -74,6 +83,10 @@ export interface MapData {
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */
   background?: string;
+  /** Dia/noite: "outdoor" (padrão) recebe a cor inteira; "indoor", uma versão mais fraca. */
+  lighting?: 'outdoor' | 'indoor';
+  /** Luzes que acendem quando escurece (posição em células; pode ter fração). */
+  lights?: MapLight[];
   /** Superfícies que o pintor pode reformar (opcional). */
   surfaces?: SurfaceDef[];
 }

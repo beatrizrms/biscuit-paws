@@ -27,7 +27,7 @@ export async function openSession(
     }
   }
   const isNew = session === null;
-  session ??= new GameSession(content, newGameState(content.economy.startingMoney));
+  session ??= new GameSession(content, newGameState(content.economy.startingMoney, content.world.startMap));
 
   session.bus.onAny((name) => {
     if (name === 'dialogue.requested') return;

@@ -39,6 +39,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Água e ração: mercado (mercado_interior) e compra no caixa
 - [x] Alimentar e primeiro coração
 - [x] Cartão final e fim do dia
+- [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 
 ## Marco 1: gatos no café
@@ -49,10 +50,10 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Continuação da história: encontrar o gato que mia lá fora (`cat.first_found`)
 
 ## Marco 2: dia, frio e abrigo
-- [ ] Ciclo do dia (manhã, dia, noite)
+- [x] Ciclo do dia (manhã, dia, noite)
 - [ ] Rua curta com gatos de rua para encontrar e abrigar
 - [ ] Frio: gatos aquecidos x com frio; meta suave até a noite de Natal
-- [ ] `day.ended`
+- [x] `day.ended` / `day.started`
 
 ## Marco 3: save e load
 - [x] Save versionado, migrações, fixture v1 (feito no Marco 0.5)

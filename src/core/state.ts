@@ -11,6 +11,8 @@ export interface PlacedItem {
 
 export interface GameState {
   day: number;
+  /** Hora do dia, em minutos desde 00:00 (passa de 1440 de madrugada). */
+  time: number;
   money: number;
   flags: Record<string, boolean>;
   /** Itens comprados e ainda não posicionados: itemId -> quantidade. */
@@ -39,9 +41,10 @@ export interface CatState {
   map: string;
 }
 
-export function newGameState(startingMoney: number, startMap = 'map.street'): GameState {
+export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
   return {
     day: 1,
+    time,
     money: startingMoney,
     flags: {},
     inventory: {},

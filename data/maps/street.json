@@ -7,6 +7,17 @@
     "rows": 11
   },
   "background": "#a9d4ea",
+  "lighting": "outdoor",
+  "lights": [
+    { "at": [4,6.45], "radius": 46, "color": "#ffe2a0" },
+    { "at": [14,6.45], "radius": 46, "color": "#ffe2a0" },
+    { "at": [19,6.45], "radius": 46, "color": "#ffe2a0" },
+    { "at": [26,6.45], "radius": 46, "color": "#ffe2a0" },
+    { "at": [6.5, 4.2], "radius": 52, "color": "#ffd59a" },
+    { "at": [22, 4.2], "radius": 60, "color": "#ffd59a" },
+    { "at": [1.4, 3.9], "radius": 30, "color": "#ffd59a" },
+    { "at": [28.2, 3.9], "radius": 30, "color": "#ffd59a" }
+  ],
   "legend": {
     "A": "street_calcada_a",
     "B": "street_calcada_b",

@@ -67,6 +67,7 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 ### Mudar a história, as falas, os preços
 - `data/story.json`: marcos da história e metas do diário (condição -> efeito).
 - `data/dialogue.json`: falas.
+- `data/daynight.json`: cores do dia e da noite por hora e estação (o mapa diz se é `indoor` e onde ficam as `lights`).
 - `data/items.json`: móveis do catálogo, nomes e preços.
 - `data/maps/street.json`: a rua (fachadas, objetos, neve, porta do café). `data/world.json`: onde o jogo começa.
 - `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça.

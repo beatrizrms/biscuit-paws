@@ -15,6 +15,9 @@
       "act": 0,
       "effects": [
         {
+          "setTime": "08:00"
+        },
+        {
           "dialogue": "dlg.intro"
         }
       ],

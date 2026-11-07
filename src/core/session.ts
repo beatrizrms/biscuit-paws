@@ -2,6 +2,7 @@
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import type { Condition, Content, Effect } from './content';
 import { seenFlag } from './cutscene';
+import { parseClock } from './time';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
@@ -109,12 +110,31 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Fim do dia: ela vai para casa e amanhece no dia seguinte. */
+  /**
+   * Fim do dia: ela vai para casa (ou para o quartinho, quando existir: world.sleepMap)
+   * e amanhece no dia seguinte, chegando pela rua.
+   */
   endDay(): void {
     const day = this.state.day;
     this.state.day = day + 1;
+    this.state.time = parseClock(this.content.dayNight.dayStart);
+    const morning = this.content.world.morning;
+    this.state.location = morning.map;
+    if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.bus.emit('day.ended', { day });
+    this.bus.emit('day.started', { day: day + 1 });
     this.advanceStory();
+  }
+
+  /** Relógio: avança `seconds` reais (o jogo chama a cada quadro, quando nada está aberto). */
+  tickClock(seconds: number): void {
+    this.state.time += seconds * this.content.dayNight.minutesPerSecond;
+    if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay();
+  }
+
+  /** Ponto do dia seguinte onde ela aparece de manhã. */
+  morningSpawn(): Cell {
+    return this.content.world.morning.spawn;
   }
 
   // ---------- Gatos ----------
@@ -401,6 +421,7 @@ export class GameSession {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
     else if ('endDay' in effect) this.endDay();
+    else if ('setTime' in effect) this.state.time = parseClock(effect.setTime);
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;

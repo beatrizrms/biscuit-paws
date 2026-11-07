@@ -509,3 +509,25 @@
 .cs-phone.lock .badge-wrap .badge { position: absolute; width: 8px; height: 8px; top: -3px; right: -3px; }
 .cs-phone.lock .notification .text { display: flex; flex-direction: column; font-size: 7px; color: var(--ink); }
 .cs-phone.lock .notification b { color: var(--berry); font-size: 7.5px; }
+
+.hud-money .clock { margin-right: 6px; padding-right: 6px; border-right: 1px solid var(--cream3); font-variant-numeric: tabular-nums; }
+
+/* Fim do dia */
+.day-transition {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #1b2140;
+  color: var(--cream);
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.day-transition.open { opacity: 1; }
+.day-transition .home { margin: 0; font-style: italic; font-size: 11px; color: var(--cream2); }
+.day-transition .next { margin: 0; font-size: 16px; font-weight: bold; letter-spacing: 0.1em; }

@@ -69,6 +69,7 @@ cat-cafe-game/
 | `cat.sheltered` | gato é abrigado na loja (abre a caixa de nome) | `catId` |
 | `cat.named` | a jogadora deu nome ao gato | `catId, name` |
 | `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
+| `day.started` | amanheceu (ela chega de casa) | `day` |
 | `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou) |
 | `cat.fed` | um gato comeu da tigela | `catId, itemId, bowlUid` |
 | `customer.served` | cliente atendido | `customerId, tip` |
