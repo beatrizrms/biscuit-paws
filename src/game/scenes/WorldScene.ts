@@ -91,6 +91,21 @@ export class WorldScene extends Phaser.Scene {
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
+    this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
+    this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
+      const bowl = this.session.state.placed.find((p) => p.uid === bowlUid);
+      const cat = this.cats.find((c) => c.catId === catId);
+      if (bowl && cat) cat.goEat([bowl.at[0], bowl.at[1] + 1], this.time.now);
+    });
+    // Fim do dia: escurece e amanhece no café (por enquanto ela "vai para casa" só no texto).
+    this.session.bus.on('day.ended', () => {
+      const cam = this.cameras.main;
+      cam.fadeOut(400, 27, 33, 64);
+      cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.loadMap(this.session.location());
+        cam.fadeIn(600, 27, 33, 64);
+      });
+    });
 
     if (import.meta.env.DEV) {
       exposeDebug(this);
@@ -322,9 +337,27 @@ export class WorldScene extends Phaser.Scene {
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
     const it = this.session.interactionAt(this.playerCells(), target);
-    if (!it) return false;
-    this.ui.openShop(it.action.shop);
+    if (it) {
+      this.ui.openShop(it.action.shop);
+      return true;
+    }
+    // Tigela de ração por perto: enche e o gato vem comer.
+    const bowl = this.session.bowlNear(this.playerCells(), target);
+    if (!bowl) return false;
+    const result = this.session.feedFromBowl(bowl);
+    if (!result.ok) this.ui.problem(result.reason);
     return true;
+  }
+
+  /** Coraçãozinho que sobe e some em cima do gato. */
+  private floatHeart(catId: string): void {
+    const cat = this.cats.find((c) => c.catId === catId);
+    if (!cat) return;
+    const heart = this.add
+      .text(cat.x, cat.y - 30, '♥', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '16px', color: '#d97890' })
+      .setOrigin(0.5)
+      .setDepth(100_000);
+    this.tweens.add({ targets: heart, y: heart.y - 18, alpha: 0, duration: 1200, ease: 'Quad.easeOut', onComplete: () => heart.destroy() });
   }
 
   /** Nuvenzinha de poeira onde a sujeira foi limpa. */

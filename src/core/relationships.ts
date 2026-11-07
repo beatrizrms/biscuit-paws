@@ -8,6 +8,8 @@ export interface RelationshipsConfig {
   schemaVersion: 1;
   pointsPerHeart: number;
   maxHearts: number;
+  /** Pontos que o gato ganha ao comer da tigela. */
+  feedPoints: number;
 }
 
 /** Chave do par, sempre na mesma ordem em que foi pedida (quem sente -> por quem). */

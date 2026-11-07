@@ -103,3 +103,7 @@ Consequência: itens com `requires` (núcleo recusa a compra com `locked`; o cat
 ## 028. Mercado com caixa por interação (nov/2026)
 Motivo: no prólogo não há ração; ela precisa ir ao mercado. Também prepara o sistema de interação (veterinário, vizinhos, gatos).
 Consequência: `data/maps/market.json` convertido da cena do `mercado_interior` (20 x 12; entrada embaixo, porta com `direction: down`). Pontos de interação no mapa (tecla E ou clique de perto); o caixa abre a loja (`data/shops.json`) com ícones do `catalogo_compras`. Itens consumíveis (ração, petisco, areia) compram-se só ali. A câmera segue a personagem também na vertical quando o mapa é mais alto que a tela.
+
+## 029. Fim do prólogo: alimentar, coração, cartão e fim do dia (nov/2026)
+Motivo: fechar o prólogo como no roteiro, com o primeiro vínculo e o cartão "menos um gatinho...".
+Consequência: tigela de ração (tag `food_bowl`) usada com E ou clique de perto gasta uma ração (tag `food`) e dá `feedPoints` de afeto. O efeito `endDay` passa o dia (`day.ended`); por enquanto ela "vai para casa" só no texto e amanhece no café. Cenas pedidas durante uma fala esperam a fala acabar (fila única na interface). O cantinho quente do Ato 1 virou caminha + almofada (as tigelas são do prólogo).

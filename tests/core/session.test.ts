@@ -37,6 +37,16 @@ function startInCafe(session: GameSession) {
   expect(session.nameCat('cat.first_stray', 'Botinhas')).toEqual({ ok: true });
 }
 
+/** Do gatinho com nome até o fim do prólogo: tigelas, ração, alimentar, cartão final (dia 2). */
+function finishPrologue(session: GameSession) {
+  buyAndPlace(session, 'item.water_bowl', [13, 9]);
+  expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
+  buyAndPlace(session, 'item.food_bowl', [14, 9]);
+  const bowl = session.bowlNear([[14, 8]])!;
+  expect(session.feedFromBowl(bowl)).toEqual({ ok: true });
+  session.finishCutscene('cs.prologue_end');
+}
+
 /** Compra e posiciona; falha o teste se algo der errado. */
 function buyAndPlace(session: GameSession, itemId: string, at: [number, number]) {
   expect(session.buy(itemId)).toEqual({ ok: true });
@@ -99,8 +109,17 @@ describe('começo da história', () => {
     expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false, false]);
     expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    expect(session.goals().map((g) => g.title)).toEqual(['Hora de comer']);
+    // Alimentar: primeiro coração, cartão final e fim do dia.
+    expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: true });
+    expect(session.catHearts('cat.first_stray')).toBe(1);
+    session.finishCutscene('cs.prologue_end');
+    expect(session.state.day).toBe(2);
+    expect(session.state.flags['prologue.done']).toBe(true);
+    // Ato 1: caminha e almofada (as tigelas já vieram no prólogo).
     expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    buyAndPlace(session, 'item.cushion_pink', [11, 9]);
     expect(session.goals().map((g) => g.title)).toEqual(['Um lugar para sentar']);
 
     buyAndPlace(session, 'item.table_round', [4, 7]);
@@ -116,6 +135,7 @@ describe('começo da história', () => {
       'dlg.cleaned',
       'dlg.cat_named',
       'dlg.ready_to_feed',
+      'dlg.first_meal',
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
@@ -125,10 +145,9 @@ describe('começo da história', () => {
   it('recolher um móvel não desfaz um marco concluído', () => {
     const { session } = newSession();
     startInCafe(session);
-    session.buy('item.cat_food_basic');
+    finishPrologue(session);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
-    buyAndPlace(session, 'item.water_bowl', [13, 9]);
-    buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    buyAndPlace(session, 'item.cushion_pink', [11, 9]);
     const bed = session.state.placed.find((p) => p.item === 'item.cat_bed')!;
     expect(session.pickUp(bed.uid)).toEqual({ ok: true });
     expect(session.state.story.completed).toContain('story.warm_corner');
@@ -199,8 +218,8 @@ describe('pintor (reforma)', () => {
   it('a visita da Dona Lurdes libera o pintor', () => {
     const { session } = newSession();
     startInCafe(session);
-    session.buy('item.cat_food_basic');
-    for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.water_bowl', [13, 9]], ['item.food_bowl', [14, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
+    finishPrologue(session);
+    for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.cushion_mint', [11, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
       buyAndPlace(session, id, [at[0], at[1]]);
     }
     expect(session.painterUnlocked()).toBe(true);
@@ -440,5 +459,52 @@ describe('mercado', () => {
     expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     expect(session.state.inventory['item.cat_food_basic']).toBe(1);
     expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([false, true, false]);
+  });
+});
+
+describe('alimentar e fim do dia', () => {
+  it('sem ração na bolsa ou sem gato, a tigela não serve', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    const bowl = session.bowlNear([[14, 8]])!;
+    expect(session.feedFromBowl(bowl)).toEqual({ ok: false, reason: 'no_food' });
+    expect(session.feedFromBowl('p999')).toEqual({ ok: false, reason: 'not_found' });
+
+    const noCat = newSession();
+    noCat.session.enter('map.cafe_main');
+    noCat.session.buy('item.cat_food_basic');
+    buyAndPlace(noCat.session, 'item.food_bowl', [14, 9]);
+    expect(noCat.session.feedFromBowl(noCat.session.bowlNear([[14, 8]])!)).toEqual({ ok: false, reason: 'no_cat' });
+  });
+
+  it('a tigela só é achada de perto, dentro do café', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    expect(session.bowlNear([[14, 6]])).toBeUndefined();
+    expect(session.bowlNear([[13, 8]])).toBeDefined();
+    expect(session.bowlNear([[13, 8]], [2, 2])).toBeUndefined(); // clicou em outro lugar
+    session.enter('map.street');
+    expect(session.bowlNear([[13, 8]])).toBeUndefined();
+  });
+
+  it('comer gasta uma ração e dá um coração', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    session.buy('item.cat_food_basic');
+    session.buy('item.cat_food_basic');
+    buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    session.feedFromBowl(session.bowlNear([[14, 8]])!);
+    expect(session.state.inventory['item.cat_food_basic']).toBe(1);
+    expect(events.some((e) => e.name === 'cat.fed')).toBe(true);
+    expect(session.catHearts('cat.first_stray')).toBe(1);
+  });
+
+  it('o fim do dia passa para o dia seguinte e avisa', () => {
+    const { session, events } = newSession();
+    session.endDay();
+    expect(session.state.day).toBe(2);
+    expect(events.find((e) => e.name === 'day.ended')?.payload).toEqual({ day: 1 });
   });
 });

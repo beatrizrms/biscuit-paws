@@ -420,3 +420,5 @@
   background-repeat: no-repeat;
 }
 .catalog .name { display: flex; align-items: center; }
+
+.hud-money .day { margin-right: 4px; padding-right: 6px; border-right: 1px solid var(--cream3); color: var(--ink2); font-weight: normal; }

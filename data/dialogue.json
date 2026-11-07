@@ -41,7 +41,7 @@
       "lines": [
         {
           "speaker": "Você",
-          "text": "Pronto. Um cantinho quente, com água e comida."
+          "text": "Pronto. Um cantinho quente para {cat:cat.first_stray}."
         },
         {
           "speaker": "Você",
@@ -154,6 +154,26 @@
         {
           "speaker": "Você",
           "text": "Água fresquinha, ração na bolsa. Agora é só encher a tigela."
+        },
+        {
+          "speaker": "",
+          "text": "Chegue perto da tigela de ração e aperte E (ou clique nela)."
+        }
+      ]
+    },
+    "dlg.first_meal": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "{cat:cat.first_stray} come com vontade, ronronando alto."
+        },
+        {
+          "speaker": "",
+          "text": "Depois, se aninha perto dos seus pés, quentinho, de barriga cheia."
+        },
+        {
+          "speaker": "Você",
+          "text": "Bem-vindo, {cat:cat.first_stray}. Agora você tem casa."
         }
       ]
     }

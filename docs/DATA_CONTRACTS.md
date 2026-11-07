@@ -99,6 +99,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 }
 ```
 
+- Tags com função: `food_bowl` (tigela onde se põe ração: E ou clique de perto), `food` (consumível que enche a tigela).
 - `requires` (opcional): condição para poder comprar. Os itens de gato têm `{ "flag": "has.cat" }` (só depois do primeiro gato).
 - `kind`: `furniture` (padrão; vai para o catálogo e precisa de `tile`), `consumable` (ração, remédio) ou `key` (não se compra nem se devolve).
 - `price`: preço de compra, em moedas (inteiro).
@@ -248,7 +249,7 @@ Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ 
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
-Efeitos: `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
+Efeitos: `{ "endDay": true }` (fim do dia), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
 
@@ -265,7 +266,7 @@ Efeitos: `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveI
 
 ## Corações (`data/relationships.json`)
 
-`pointsPerHeart` e `maxHearts`. Os pontos ficam no save em `relationships`, por par (`"player|cat.first_stray": 120`); os corações são calculados. Serve para gato, vizinho, cliente e NPC↔gato.
+`pointsPerHeart`, `maxHearts` e `feedPoints` (pontos ao comer da tigela). Os pontos ficam no save em `relationships`, por par (`"player|cat.first_stray": 120`); os corações são calculados. Serve para gato, vizinho, cliente e NPC↔gato.
 
 ## Textos da interface (`data/ui_text.json`)
 

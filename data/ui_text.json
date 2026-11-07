@@ -43,7 +43,9 @@
     "too_far": "Preciso chegar mais perto.",
     "needs_repair": "Isso não sai com faxina. Só reformando.",
     "invalid_name": "Escolha um nome de 1 a 14 letras.",
-    "not_sheltered": "Esse gatinho ainda não mora aqui."
+    "not_sheltered": "Esse gatinho ainda não mora aqui.",
+    "no_food": "Não tenho ração. O mercado fica ali na rua.",
+    "no_cat": "Ainda não tem gatinho para comer."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -63,5 +65,7 @@
     "bought": "Comprado!",
     "inBag": "na bolsa",
     "close": "fechar"
-  }
+  },
+  "day": "Dia",
+  "hearts": "corações"
 }

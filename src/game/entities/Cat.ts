@@ -18,6 +18,7 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private goalUntil = 0;
   private lastProgressAt = 0;
   private lastDistance = Infinity;
+  private eatAfterWalk = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -56,6 +57,14 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /** Vai até a célula e senta lá por um tempo (ex.: comer na tigela). */
+  goEat(cell: Cell, now: number): void {
+    this.goal = { kind: 'walk', to: cell };
+    this.eatAfterWalk = true;
+    this.lastDistance = Infinity;
+    this.lastProgressAt = now;
+  }
+
   /** Chamar todo quadro. */
   tick(now: number): void {
     if (!this.goal || (this.goal.kind !== 'walk' && now >= this.goalUntil)) this.pickGoal(now);
@@ -69,7 +78,12 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
       const dist = Math.hypot(dx, dy);
       if (dist <= ARRIVE_PX) {
         this.setVelocity(0, 0);
-        this.pickGoal(now);
+        if (this.eatAfterWalk) {
+          this.eatAfterWalk = false;
+          this.goal = { kind: 'sit', seconds: 6 };
+          this.goalUntil = now + 6000;
+          this.play(`${catTexture(this.variant)}-sit`, true);
+        } else this.pickGoal(now);
       } else {
         this.setVelocity((dx / dist) * SPEED, (dy / dist) * SPEED);
         const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';

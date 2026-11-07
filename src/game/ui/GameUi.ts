@@ -32,6 +32,8 @@ export class GameUi {
   private cutscene!: CutsceneView;
   private naming!: NamingBox;
   private shop!: ShopPanel;
+  /** Cenas pedidas enquanto uma fala estava aberta: tocam quando a fala acabar. */
+  private pendingCutscenes: string[] = [];
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
   private hudPending = false;
   /** Meta mostrada agora (para animar o pensamento quando ela muda). */
@@ -45,7 +47,7 @@ export class GameUi {
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
-      <div class="panel hud-money"><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-money"><span class="day"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <section class="panel catalog" aria-label="${uiText.catalogTitle}">
@@ -85,6 +87,13 @@ export class GameUi {
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.bought), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
+    bus.on('cutscene.requested', ({ cutsceneId }) => {
+      if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
+      else this.cutscene.request(cutsceneId);
+    });
+    bus.on('cat.affection_changed', ({ catId, to }) => {
+      if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
+    });
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
     bus.on('money.changed', () => this.refresh(true));
     bus.onAny(() => this.refresh());
@@ -171,6 +180,7 @@ export class GameUi {
     }
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
+    (this.money.querySelector('.day') as HTMLElement).textContent = `${uiText.day} ${state.day}`;
     if (bumpMoney) {
       this.money.classList.remove('bump');
       void this.money.offsetWidth; // reinicia a animação
@@ -178,7 +188,7 @@ export class GameUi {
     }
 
     const goal = this.session.goals()[0];
-    const fill = (text: string) => text.replace(/{cat:([w.]+)}/g, (_, id: string) => this.session.catName(id));
+    const fill = (text: string) => this.fillNames(text);
     if (goal?.beatId !== this.shownGoal) {
       this.shownGoal = goal?.beatId;
       this.goals.classList.remove("new");
@@ -286,13 +296,16 @@ export class GameUi {
 
   private queueDialogue(dialogueId: string): void {
     const lines = content.dialogue.dialogues[dialogueId]?.lines ?? [];
-    // {cat:cat.id} vira o nome que a jogadora deu ao gato.
-    const fill = (text: string) => text.replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id));
-    this.dialogueQueue.push(...lines.map((l) => ({ speaker: fill(l.speaker), text: fill(l.text) })));
+    this.dialogueQueue.push(...lines.map((l) => ({ speaker: this.fillNames(l.speaker), text: this.fillNames(l.text) })));
     this.openDialogueIfFree();
   }
 
   /** Abre a caixa de fala se houver fala na fila e nada na frente (cena, caixa de nome). */
+  /** {cat:cat.id} nos textos vira o nome que a jogadora deu ao gato. */
+  private fillNames(text: string): string {
+    return text.replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id));
+  }
+
   private openDialogueIfFree(): void {
     if (this.dialogueQueue.length === 0 || this.dialogueLayer.classList.contains('open')) return;
     if (this.cutscene?.isOpen() || this.naming?.isOpen()) return; // abre quando elas fecharem
@@ -330,6 +343,8 @@ export class GameUi {
 
   private closeDialogue(): void {
     this.dialogueLayer.classList.remove('open');
+    // Cenas que esperavam esta fala acabar.
+    for (const id of this.pendingCutscenes.splice(0)) this.cutscene.request(id);
     if (this.hudPending) {
       this.hudPending = false;
       this.refresh(true);

@@ -350,3 +350,38 @@ test('mercado: entra pela rua, compra ração no caixa (E) e sai andando para ba
   await hold(page, 'ArrowDown', 600);
   await expect.poll(async () => (await player(page)).map).toBe('map.street');
 });
+
+test('fim do prólogo: E na tigela alimenta, coração, cartão final e dia 2', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await enterCafe(page);
+  await cleanCafe(page);
+  await adoptFirstCat(page);
+  await page.evaluate(() => {
+    const s = (window as unknown as { __biscuitPaws: { cafe: { session: { buy(id: string): unknown; place(id: string, at: [number, number]): unknown } } } }).__biscuitPaws.cafe.session;
+    s.buy('item.water_bowl');
+    s.place('item.water_bowl', [12, 7]);
+    s.buy('item.cat_food_basic');
+    s.buy('item.food_bowl');
+    s.place('item.food_bowl', [13, 7]);
+  });
+  await skipDialogue(page);
+  await expect(page.locator('.hud-goals')).toContainText('Hora de comer');
+
+  await teleport(page, 13, 8);
+  await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('♥');
+  await expect(page.locator('.dialogue')).toContainText('come com vontade');
+  // A fala termina e só então vem o cartão final (não abre por cima da fala).
+  await expect(page.locator('.cutscene')).not.toHaveClass(/open/);
+  for (let i = 0; i < 40 && !(await page.locator('.cutscene.open').count()); i++) {
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(40);
+  }
+  await expect(page.locator('.cs-card')).toContainText('MENOS UM GATINHO');
+  await page.screenshot({ path: testInfo.outputPath('17-cartao-final.png') });
+  await skipDialogue(page);
+  await expect(page.locator('.hud-money')).toContainText('Dia 2');
+  await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
+  await page.screenshot({ path: testInfo.outputPath('18-dia-2.png') });
+});

@@ -37,9 +37,9 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Compra e chave (porta trancada sem a chave)
 - [x] O miado: gatinho na porta, caixa de nome, ele entra e fica (itens de gato só depois dele)
 - [x] Água e ração: mercado (mercado_interior) e compra no caixa
-- [ ] Alimentar e primeiro coração
-- [ ] Cartão final e fim do dia
-- [ ] Ato 1 reorganizado (itens de gato só depois do gato)
+- [x] Alimentar e primeiro coração
+- [x] Cartão final e fim do dia
+- [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 
 ## Marco 1: gatos no café
 - [ ] Sprites dos gatos (Cosy Cats): andar, sentar, dormir

@@ -8,6 +8,8 @@ export interface GameEvents {
   'cat.sheltered': { catId: string };
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
+  'cat.fed': { catId: string; itemId: string; bowlUid: string };
+  'day.ended': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
   'item.received': { itemId: string };

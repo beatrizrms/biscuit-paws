@@ -10,7 +10,7 @@
 
     { "id": "item.cat_bed", "name": "Caminha de gato", "price": 25, "tile": "cat_bed", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
     { "id": "item.water_bowl", "name": "Tigela de água", "price": 8, "tile": "water_bowl", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
-    { "id": "item.food_bowl", "name": "Tigela de ração", "price": 8, "tile": "food_bowl", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
+    { "id": "item.food_bowl", "name": "Tigela de ração", "price": 8, "tile": "food_bowl", "tags": ["furniture", "for:cats", "food_bowl"], "requires": { "flag": "has.cat" } },
     { "id": "item.yarn_balls", "name": "Novelos", "price": 6, "tile": "yarn_balls", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },
     { "id": "item.cushion_pink", "name": "Almofada rosa", "price": 10, "tile": "cushion_pink", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },
     { "id": "item.cushion_mint", "name": "Almofada menta", "price": 10, "tile": "cushion_mint", "tags": ["furniture", "for:cats", "cushion"], "requires": { "flag": "has.cat" } },

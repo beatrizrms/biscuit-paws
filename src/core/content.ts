@@ -95,7 +95,9 @@ export type Effect =
   | { cutscene: string }
   | { giveItem: string }
   /** Abriga um gato no café (abre a caixa de nome). */
-  | { shelterCat: string };
+  | { shelterCat: string }
+  /** Termina o dia (a protagonista vai para casa; amanhece no dia seguinte). */
+  | { endDay: true };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */

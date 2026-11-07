@@ -29,15 +29,21 @@ Você ama gatos e comprou, com suas economias, uma padaria abandonada para trans
 4. **Noite:** fechar o dia, salvar, ver o que mudou.
 5. **Adoção** (fase posterior): clientes podem adotar gatos, o que gera um evento e uma lembrança.
 
-## Começo da história (Ato 1, "A chegada")
-Rascunho; os textos ficam em `data/dialogue.json` e os marcos em `data/story.json`.
-1. **Abertura:** dezembro, neve na Vila das Baunilhas, o bairro onde ela nasceu. Com as economias de uma vida, você compra a velha padaria da esquina, vazia. Sobram 150 moedas.
-2. **Um cantinho quente:** caminha, tigela de água e tigela de ração (para o gato que ainda vai chegar).
-3. **Um lugar para sentar:** uma mesa e duas cadeiras.
-4. **Dona Lurdes:** a vizinha idosa aparece, lembra da padaria do seu Antônio, desconfia dos gatos de rua, mas deixa 50 moedas "para o começo".
-5. **Um miado lá fora:** gancho para o Marco 1 (o primeiro gato).
+## Prólogo (decisões 026 a 029)
+Textos em `data/cutscenes.json` e `data/dialogue.json`; marcos em `data/story.json`.
+1. **Cena:** véspera de Natal; ela quer empreender e não sabe com o quê. Lembra da **Tekinha** (Misty), que virou um anjinho, e dos gatos no frio.
+2. **Cena:** o anúncio no celular: antiga padaria, preço de pechincha, na **Vila das Baunilhas**, onde ela nasceu.
+3. **Rua:** o lugar está horrível, mas o espaço é ótimo. Os vizinhos não gostam de gatos; ela decide mostrar o contrário. Compra e recebe a **chave**.
+4. **Café:** faxina (teias, poeira, cacos). Ouve um miado.
+5. **Porta:** o gatinho laranja (Marmalade) pede abrigo; a jogadora **escolhe o nome** (sugestão: Botinhas).
+6. **Água e comida:** tigela de água; sem ração, vai ao **mercado**; tigela de ração.
+7. **Alimentar:** ele come, primeiro **coração**.
+8. **Cartão:** "NESSA NOITE, MENOS UM GATINHO DORMIU COM FRIO E BARRIGA VAZIA." Ela vai para casa; **dia 2**.
 
-O dinheiro inicial é apertado de propósito: dá para cumprir o ato e sobra pouco para decorar.
+## Ato 1 (rascunho)
+1. **Um cantinho quente:** caminha e almofada para o gatinho.
+2. **Um lugar para sentar:** mesa e duas cadeiras.
+3. **Dona Lurdes:** lembra da padaria do seu Antônio, desconfia dos gatos, deixa 50 moedas e indica o sobrinho pintor (libera a reforma).
 
 ## Estações (em fases)
 - **Fase 1:** só o inverno natalino (história inicial).

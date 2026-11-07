@@ -171,30 +171,69 @@
       ]
     },
     {
+      "id": "story.first_meal",
+      "act": 0,
+      "after": [
+        "story.water_and_food"
+      ],
+      "goal": {
+        "title": "Hora de comer",
+        "steps": [
+          {
+            "text": "Encher a tigela de {cat:cat.first_stray}.",
+            "when": {
+              "flag": "fed.cat.first_stray"
+            },
+            "devNote": "Tecla E (ou clique) perto da tigela de ração, com ração na bolsa."
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.first_meal"
+        },
+        {
+          "cutscene": "cs.prologue_end"
+        }
+      ]
+    },
+    {
+      "id": "story.prologue_end",
+      "act": 0,
+      "after": [
+        "story.first_meal"
+      ],
+      "when": {
+        "flag": "seen.cs.prologue_end"
+      },
+      "effects": [
+        {
+          "setFlag": "prologue.done"
+        },
+        {
+          "endDay": true
+        }
+      ]
+    },
+    {
       "id": "story.warm_corner",
       "act": 1,
       "after": [
-        "story.water_and_food"
+        "story.prologue_end"
       ],
       "goal": {
         "title": "Um cantinho quente",
         "steps": [
           {
-            "text": "Preciso de uma caminha macia...",
+            "text": "Uma caminha macia para {cat:cat.first_stray}.",
             "when": {
               "placed": "item.cat_bed"
             }
           },
           {
-            "text": "...uma tigela de água...",
+            "text": "E uma almofada, para os cochilos da tarde.",
             "when": {
-              "placed": "item.water_bowl"
-            }
-          },
-          {
-            "text": "...e ração, claro.",
-            "when": {
-              "placed": "item.food_bowl"
+              "placedTag": "cushion"
             }
           }
         ]

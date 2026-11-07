@@ -5,11 +5,19 @@ import { seenFlag } from './cutscene';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import { interactionNear, type Cell, type MapData, type MapDoor, type MapInteraction, type SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
 import type { GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
-import { cellsOf, type DirtSpot } from './map';
+import {
+  cellsOf,
+  interactionNear,
+  type Cell,
+  type DirtSpot,
+  type MapData,
+  type MapDoor,
+  type MapInteraction,
+  type SurfaceDef,
+} from './map';
 
 export type ActionResult =
   | { ok: true }
@@ -29,6 +37,8 @@ export type ActionResult =
         | 'needs_repair'
         | 'invalid_name'
         | 'not_sheltered'
+        | 'no_food'
+        | 'no_cat'
         | PlaceProblem;
     };
 
@@ -69,6 +79,42 @@ export class GameSession {
   /** Itens à venda numa loja (na ordem dos dados). */
   shopItems(shopId: string): string[] {
     return this.content.shops[shopId]?.items ?? [];
+  }
+
+  /** Tigela de ração posicionada ao alcance dos pés (`target`: só a célula clicada). */
+  bowlNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+    if (!this.atHome()) return undefined;
+    const { catalog, items } = this.content;
+    const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+    return this.state.placed.find((p) => {
+      const item = items[p.item];
+      if (!item?.tags.includes('food_bowl') || !item.tile) return false;
+      const cells = cellsOf(p.at, catalog.tiles[item.tile]!);
+      if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
+      return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
+    })?.uid;
+  }
+
+  /** Enche a tigela com uma ração da bolsa e um gato do café come (ganha corações). */
+  feedFromBowl(bowlUid: string): ActionResult {
+    if (!this.state.placed.some((p) => p.uid === bowlUid)) return { ok: false, reason: 'not_found' };
+    const food = Object.values(this.content.items).find((i) => i.tags.includes('food') && (this.state.inventory[i.id] ?? 0) > 0);
+    if (!food) return { ok: false, reason: 'no_food' };
+    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id);
+    if (!catId) return { ok: false, reason: 'no_cat' };
+    this.removeFromInventory(food.id);
+    this.state.flags[`fed.${catId}`] = true;
+    this.bus.emit('cat.fed', { catId, itemId: food.id, bowlUid });
+    this.addCatAffection(catId, this.content.relationships.feedPoints);
+    return { ok: true };
+  }
+
+  /** Fim do dia: ela vai para casa e amanhece no dia seguinte. */
+  endDay(): void {
+    const day = this.state.day;
+    this.state.day = day + 1;
+    this.bus.emit('day.ended', { day });
+    this.advanceStory();
   }
 
   // ---------- Gatos ----------
@@ -327,6 +373,7 @@ export class GameSession {
   private applyEffect(effect: Effect): void {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
+    else if ('endDay' in effect) this.endDay();
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;
       this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id };

@@ -40,7 +40,6 @@ export class CutsceneView {
         this.advance();
       }
     });
-    session.bus.on('cutscene.requested', ({ cutsceneId }) => this.request(cutsceneId));
   }
 
   /** Modo debug: fecha a cena atual e as da fila, como se tivessem terminado. */
@@ -54,7 +53,8 @@ export class CutsceneView {
     return this.playing !== null;
   }
 
-  private request(id: string): void {
+  /** Toca a cena (ou põe na fila, se outra estiver tocando). */
+  request(id: string): void {
     this.queue.push(id);
     if (!this.playing) this.next();
   }
