@@ -1,0 +1,503 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge, brick, mix). Novo cômodo: área livre no mapa + entrada aqui.",
+  "rooms": [
+    {
+      "id": "room.hall",
+      "name": "Salão",
+      "initial": "abandoned",
+      "area": {
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          15,
+          10
+        ]
+      },
+      "restore": {
+        "when": {
+          "renovated": true
+        }
+      },
+      "capacity": {
+        "cats": 4,
+        "customers": 8
+      },
+      "features": [
+        "service"
+      ]
+    },
+    {
+      "id": "room.back_room",
+      "name": "Quartinho",
+      "initial": "locked",
+      "area": {
+        "from": [
+          17,
+          0
+        ],
+        "to": [
+          24,
+          10
+        ]
+      },
+      "discover": {
+        "trigger": "neighbor_tells",
+        "when": {
+          "beat": "story.first_customer"
+        },
+        "dialogue": "dlg.room_back_found",
+        "highlight": "door.back_room"
+      },
+      "unlock": {
+        "cost": 200,
+        "beats": [
+          "story.first_customer"
+        ],
+        "label": "Abrir a passagem para o quartinho",
+        "dialogue": "dlg.room_back_opened"
+      },
+      "restore": {
+        "cost": 150,
+        "dirtTag": "back_room",
+        "label": "Terminar a reforma do quartinho",
+        "dialogue": "dlg.room_back_restored"
+      },
+      "capacity": {
+        "cats": 3,
+        "customers": 0
+      },
+      "features": [
+        "sleep"
+      ],
+      "sleep": {
+        "bed": [
+          18,
+          4
+        ],
+        "wake": [
+          20,
+          6
+        ]
+      },
+      "look": {
+        "legendByState": {
+          "restored": {
+            "q": "wall_dots_cream",
+            "w": "wall_wainscot",
+            "f": "floor_wood_b"
+          }
+        },
+        "objects": [
+          {
+            "id": "obj.back_room_window",
+            "tile": "window",
+            "at": [
+              20,
+              0
+            ]
+          }
+        ],
+        "objectsByState": {
+          "restored": [
+            {
+              "id": "obj.back_room_bed",
+              "tile": "room_cama_quartinho",
+              "at": [
+                18,
+                4
+              ]
+            },
+            {
+              "id": "obj.back_room_cushion",
+              "tile": "cushion_lav",
+              "at": [
+                23,
+                9
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "room.backyard",
+      "name": "Quintal secreto",
+      "initial": "locked",
+      "area": {
+        "from": [
+          26,
+          0
+        ],
+        "to": [
+          43,
+          10
+        ]
+      },
+      "outdoor": true,
+      "discover": {
+        "trigger": "cat_leads",
+        "when": {
+          "room": "room.back_room",
+          "atLeast": "abandoned"
+        },
+        "dialogue": "dlg.room_backyard_found",
+        "highlight": "door.backyard"
+      },
+      "unlock": {
+        "label": "Abrir o cadeado",
+        "dialogue": "dlg.room_backyard_opened"
+      },
+      "restore": {
+        "cost": 120,
+        "dirtTag": "backyard",
+        "label": "Terminar a reforma do quintal",
+        "dialogue": "dlg.room_backyard_restored"
+      },
+      "capacity": {
+        "cats": 6,
+        "customers": 0
+      },
+      "features": [
+        "playground"
+      ],
+      "variant": "hedge",
+      "variants": {
+        "hedge": {
+          "legendByState": {
+            "restored": {
+              "g": "yard_grama_a",
+              "s": "yard_pedra_a"
+            }
+          },
+          "objects": [
+            {
+              "id": "obj.yard_sky_a",
+              "tile": "yard_fundo_ceu_telhados",
+              "at": [
+                26,
+                0
+              ]
+            },
+            {
+              "id": "obj.yard_sky_b",
+              "tile": "yard_fundo_ceu_telhados",
+              "at": [
+                32,
+                0
+              ]
+            },
+            {
+              "id": "obj.yard_sky_c",
+              "tile": "yard_fundo_ceu_telhados",
+              "at": [
+                38,
+                0
+              ]
+            }
+          ],
+          "objectsByState": {
+            "restored": [
+              {
+                "id": "obj.yard_lights",
+                "tile": "yard_luzinhas_fio",
+                "at": [
+                  34,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_lamp_wall_a",
+                "tile": "yard_luminaria_parede_sebe",
+                "at": [
+                  30,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_lamp_wall_b",
+                "tile": "yard_luminaria_parede_sebe",
+                "at": [
+                  39,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_oven",
+                "tile": "yard_bancada_forno_pedra",
+                "at": [
+                  27,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_table",
+                "tile": "yard_mesa_redonda_branca",
+                "at": [
+                  28,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_chair",
+                "tile": "yard_cadeira_vime",
+                "at": [
+                  30,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_pot_a",
+                "tile": "yard_vaso_arvore_a",
+                "at": [
+                  33,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_pot_b",
+                "tile": "yard_vaso_arvore_b",
+                "at": [
+                  37,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_bench",
+                "tile": "yard_banco_rustico_vasos",
+                "at": [
+                  41,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_floor_lamp",
+                "tile": "yard_lampada_chao",
+                "at": [
+                  35,
+                  6
+                ]
+              }
+            ]
+          }
+        },
+        "brick": {
+          "legend": {
+            "k": "brick_tijolo_topo",
+            "m": "brick_tijolo_meio_a",
+            "T": "brick_tijolo_meio_b",
+            "B": "brick_tijolo_base",
+            "L": "brick_tijolo_meio_a",
+            "g": "brick_grama_b",
+            "s": "brick_pedra_irregular_b"
+          },
+          "legendByState": {
+            "restored": {
+              "g": "brick_grama_a",
+              "s": "brick_pedra_irregular_a"
+            }
+          },
+          "objects": [
+            {
+              "id": "obj.yard_pillar_a",
+              "tile": "brick_pilar_branco",
+              "at": [
+                31,
+                1
+              ]
+            },
+            {
+              "id": "obj.yard_pillar_b",
+              "tile": "brick_pilar_branco",
+              "at": [
+                37,
+                1
+              ]
+            }
+          ],
+          "objectsByState": {
+            "restored": [
+              {
+                "id": "obj.yard_moon_window",
+                "tile": "brick_janela_lua",
+                "at": [
+                  33,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_wall_pot",
+                "tile": "brick_vaso_parede",
+                "at": [
+                  29,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_topiary",
+                "tile": "brick_topiaria_redonda",
+                "at": [
+                  27,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_flowers",
+                "tile": "brick_canteiro_azul",
+                "at": [
+                  35,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_bush",
+                "tile": "brick_arbusto_lima",
+                "at": [
+                  40,
+                  9
+                ]
+              },
+              {
+                "id": "obj.yard_tree",
+                "tile": "brick_arvore_grande_a",
+                "at": [
+                  40,
+                  4
+                ]
+              }
+            ]
+          }
+        },
+        "mix": {
+          "legend": {
+            "k": "brick_tijolo_topo",
+            "m": "brick_tijolo_meio_a",
+            "T": "brick_tijolo_meio_b",
+            "B": "brick_tijolo_base",
+            "L": "brick_tijolo_meio_a"
+          },
+          "legendByState": {
+            "restored": {
+              "g": "yard_grama_a",
+              "s": "yard_pedra_a"
+            }
+          },
+          "objects": [
+            {
+              "id": "obj.yard_pillar_a",
+              "tile": "brick_pilar_branco",
+              "at": [
+                31,
+                1
+              ]
+            },
+            {
+              "id": "obj.yard_pillar_b",
+              "tile": "brick_pilar_branco",
+              "at": [
+                37,
+                1
+              ]
+            }
+          ],
+          "objectsByState": {
+            "restored": [
+              {
+                "id": "obj.yard_lights",
+                "tile": "yard_luzinhas_fio",
+                "at": [
+                  34,
+                  2
+                ]
+              },
+              {
+                "id": "obj.yard_oven",
+                "tile": "yard_bancada_forno_pedra",
+                "at": [
+                  27,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_table",
+                "tile": "yard_mesa_redonda_branca",
+                "at": [
+                  28,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_chair",
+                "tile": "yard_cadeira_vime",
+                "at": [
+                  30,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_topiary",
+                "tile": "brick_topiaria_redonda",
+                "at": [
+                  41,
+                  4
+                ]
+              },
+              {
+                "id": "obj.yard_floor_lamp",
+                "tile": "yard_lampada_chao",
+                "at": [
+                  35,
+                  6
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "doors": [
+    {
+      "id": "door.back_room",
+      "at": [
+        16,
+        7
+      ],
+      "from": "room.hall",
+      "to": "room.back_room",
+      "initial": "hidden",
+      "tiles": {
+        "hidden": "room_parede_divisoria",
+        "locked": "room_porta_fechada"
+      },
+      "lockedDialogue": "dlg.door_back_room_locked"
+    },
+    {
+      "id": "door.backyard",
+      "at": [
+        25,
+        7
+      ],
+      "from": "room.back_room",
+      "to": "room.backyard",
+      "initial": "hidden",
+      "requires": {
+        "item": "item.key_backyard"
+      },
+      "consumesItem": true,
+      "tiles": {
+        "hidden": "room_parede_divisoria",
+        "locked": "room_porta_cadeado"
+      },
+      "lockedDialogue": "dlg.door_backyard_locked"
+    }
+  ],
+  "playground": {
+    "room": "room.backyard",
+    "tag": "playground",
+    "minCats": 10,
+    "pointsPerModulePerDay": 2
+  }
+}

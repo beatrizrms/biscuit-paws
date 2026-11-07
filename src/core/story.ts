@@ -5,6 +5,7 @@ import type { DirtSpot } from './map';
 import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from './state';
 import { parseClock } from './time';
 import { isRenovated, stageAtLeast } from './business';
+import { atLeast as roomAtLeast, roomState, type RoomsData } from './rooms';
 
 /** O que as condições precisam saber além do estado. */
 export interface StoryContext {
@@ -13,11 +14,13 @@ export interface StoryContext {
   dirt: DirtSpot[];
   /** Superfícies que a reforma precisa (data/business.json). */
   requiredSurfaces: readonly string[];
+  /** Cômodos (estado inicial de quem o save ainda não mudou). */
+  rooms: RoomsData;
 }
 
-/** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda (saves antigos). */
+/** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda a do salão (saves antigos; cômodos novos não contam). */
 export function isCleaned(state: GameState, d: DirtSpot): boolean {
-  return state.cleaned.includes(d.id) || state.cleaned.includes('*');
+  return state.cleaned.includes(d.id) || (state.cleaned.includes('*') && !d.tags.includes('room'));
 }
 
 export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boolean {
@@ -59,6 +62,8 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   }
   if ('business' in c) return stageAtLeast(state.business, c.business);
   if ('renovated' in c) return isRenovated(state.finishes, ctx.requiredSurfaces);
+  if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
+  if ('cats' in c) return Object.values(state.cats).filter((x) => x.sheltered).length >= c.cats.gte;
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }
 

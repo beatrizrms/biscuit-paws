@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo).",
+  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo). backyard_hedge / backyard_brick: quintal secreto (variantes A e B; npm run backyard). rooms_placeholder: provisórios dos cômodos, desenhados por código.",
   "sheets": [
     {
       "id": "street_ground",
@@ -429,6 +429,172 @@
         },
         "porta_consultorio": {
           "layer": "wall",
+          "solid": false
+        }
+      }
+    },
+    {
+      "id": "backyard_hedge",
+      "image": "assets/env/backyard/tile_backyard_hedge.png",
+      "pieces": "quintal_sebe.json",
+      "prefix": "yard_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "grama_a": {
+          "layer": "floor",
+          "solid": false
+        },
+        "grama_b": {
+          "layer": "floor",
+          "solid": false
+        },
+        "grama_c": {
+          "layer": "floor",
+          "solid": false
+        },
+        "pedra_a": {
+          "layer": "floor",
+          "solid": false
+        },
+        "pedra_b": {
+          "layer": "floor",
+          "solid": false
+        },
+        "sebe_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "sebe_meio_a": {
+          "layer": "wall",
+          "solid": true
+        },
+        "sebe_meio_b": {
+          "layer": "wall",
+          "solid": true
+        },
+        "sebe_base": {
+          "layer": "wall",
+          "solid": true
+        },
+        "sebe_lateral": {
+          "layer": "wall",
+          "solid": true
+        },
+        "sebe_lateral_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "fundo_ceu_telhados": {
+          "layer": "wall",
+          "solid": false
+        },
+        "luminaria_parede_sebe": {
+          "layer": "wall",
+          "solid": false
+        },
+        "luzinhas_fio": {
+          "layer": "wall",
+          "solid": false
+        },
+        "pergola_cobertura": {
+          "layer": "object",
+          "solid": false
+        },
+        "brilho_quente_64": {
+          "layer": "object",
+          "solid": false
+        },
+        "brilho_quente_32": {
+          "layer": "object",
+          "solid": false
+        }
+      }
+    },
+    {
+      "id": "backyard_brick",
+      "image": "assets/env/backyard/tile_backyard_brick.png",
+      "pieces": "quintal_tijolo.json",
+      "prefix": "brick_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "grama_a": {
+          "layer": "floor",
+          "solid": false
+        },
+        "grama_b": {
+          "layer": "floor",
+          "solid": false
+        },
+        "pedra_irregular_a": {
+          "layer": "floor",
+          "solid": false
+        },
+        "pedra_irregular_b": {
+          "layer": "floor",
+          "solid": false
+        },
+        "pedra_irregular_c": {
+          "layer": "floor",
+          "solid": false
+        },
+        "tijolo_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "tijolo_meio_a": {
+          "layer": "wall",
+          "solid": true
+        },
+        "tijolo_meio_b": {
+          "layer": "wall",
+          "solid": true
+        },
+        "tijolo_base": {
+          "layer": "wall",
+          "solid": true
+        },
+        "pilar_branco": {
+          "layer": "wall",
+          "solid": false
+        },
+        "janela_lua": {
+          "layer": "wall",
+          "solid": false
+        },
+        "vaso_parede": {
+          "layer": "wall",
+          "solid": false
+        },
+        "raios_de_sol": {
+          "layer": "object",
+          "solid": false
+        }
+      }
+    },
+    {
+      "id": "rooms_placeholder",
+      "image": "assets/interiors/cafe/tile_rooms_placeholder.png",
+      "pieces": "comodos_provisorio.json",
+      "prefix": "room_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "parede_divisoria": {
+          "layer": "wall",
+          "solid": true
+        },
+        "folhas_secas": {
+          "layer": "floor",
+          "solid": false
+        },
+        "mato": {
+          "layer": "floor",
+          "solid": false
+        },
+        "cama_ao_sol": {
+          "layer": "object",
           "solid": false
         }
       }

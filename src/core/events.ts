@@ -21,12 +21,17 @@ export interface GameEvents {
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };
   /** reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia). */
-  'day.ended': { day: number; reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number };
+  'day.ended': { day: number; reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number };
   'day.started': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
   /** Carrinho do mercado mudou (count: unidades; total: moedas). */
   'cart.changed': { count: number; total: number };
+  /** Cômodos: descoberto (com o gatilho e a porta a destacar), aberto, reformado; passagem trancada. */
+  'room.discovered': { roomId: string; trigger: string; highlight: string | null };
+  'room.opened': { roomId: string };
+  'room.restored': { roomId: string };
+  'door.blocked': { doorId: string };
   /** O negócio mudou de estágio (fechado -> parcial -> inaugurado). */
   'business.changed': { from: BusinessStage; to: BusinessStage };
   /** Pagou no caixa: tudo o que estava no carrinho. */

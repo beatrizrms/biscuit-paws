@@ -424,6 +424,98 @@
           "text": "{cat:cat.first_stray} voltou a ser ele mesmo! Preciso agradecer a Fernanda."
         }
       ]
+    },
+    "dlg.room_back_found": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A Dona Neusa comentou que o seu Antônio tinha um quartinho atrás desta parede..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Olha ali: dá para ver o contorno de uma porta. Com uma obra, dá para abrir a passagem (catálogo, Obras)."
+        }
+      ]
+    },
+    "dlg.room_back_opened": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A passagem está aberta! O quartinho está cheio de pó e de tralha coberta por um lençol."
+        }
+      ]
+    },
+    "dlg.door_back_room_locked": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Ainda é só uma porta velha emperrada. Preciso pagar a obra para abrir (catálogo, Obras)."
+        }
+      ]
+    },
+    "dlg.room_back_restored": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "O quartinho ficou uma graça. Dá até para dormir aqui depois de um dia longo!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Quando for tarde, é só deitar na cama: não preciso mais ir para casa."
+        }
+      ]
+    },
+    "dlg.room_backyard_found": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "O {cat:cat.first_stray} não para de miar para aquela porta no fundo..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Tem um cadeado velho! O que será que tem do outro lado?"
+        }
+      ]
+    },
+    "dlg.door_backyard_locked": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Trancada com cadeado. A chave deve estar em algum lugar por aqui."
+        }
+      ]
+    },
+    "dlg.key_backyard_found": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Embaixo do lençol... uma chave enferrujada! Deve ser do cadeado."
+        }
+      ]
+    },
+    "dlg.room_backyard_opened": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Um quintal escondido! Tomado de folhas e mato, mas é enorme."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Depois de limpar e reformar, vira um paraíso para os gatos."
+        }
+      ]
+    },
+    "dlg.room_backyard_restored": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "O quintal está lindo. Os gatos vão adorar tomar sol aqui."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Com 10 gatos no abrigo, dá para montar um playground (catálogo)."
+        }
+      ]
     }
   }
 }

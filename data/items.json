@@ -896,6 +896,166 @@
         "pet",
         "medicine"
       ]
+    },
+    {
+      "id": "item.key_backyard",
+      "name": "Chave enferrujada",
+      "price": 0,
+      "kind": "key",
+      "iconImage": "assets/icons/items/icon_key.png",
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "item.playground_tunnel",
+      "name": "Túnel de gato",
+      "price": 45,
+      "tile": "room_tunel",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "item.playground_house",
+      "name": "Casinha de gato",
+      "price": 60,
+      "tile": "room_casinha",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "item.playground_log",
+      "name": "Tora de arranhar",
+      "price": 35,
+      "tile": "room_tora",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "item.playground_sun_bed",
+      "name": "Cama ao sol",
+      "price": 40,
+      "tile": "room_cama_ao_sol",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "item.playground_bowl",
+      "name": "Tigela do quintal",
+      "price": 15,
+      "tile": "water_bowl",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "item.playground_cat_tree",
+      "name": "Árvore de gato do quintal",
+      "price": 90,
+      "tile": "cat_tree",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "playground"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "all": [
+          {
+            "room": "room.backyard",
+            "atLeast": "restored"
+          },
+          {
+            "cats": {
+              "gte": 10
+            }
+          }
+        ]
+      }
     }
   ]
 }

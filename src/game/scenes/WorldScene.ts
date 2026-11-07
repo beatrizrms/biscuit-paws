@@ -88,7 +88,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private vanBusy = false;
   private vanObjects: Phaser.GameObjects.GameObject[] = [];
   private jobIcons: Phaser.GameObjects.Image[] = [];
-  private lastDay: { reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number } | null = null;
+  private lastDay: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
   private scripts!: ScriptRunner;

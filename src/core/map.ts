@@ -39,6 +39,9 @@ export interface DirtSpot {
   at: Cell;
   tags: string[];
   clearedBy?: string;
+  /** Embaixo dela tem um item (ex.: a chave do quintal): limpar entrega o item, com esta fala. */
+  gives?: string;
+  foundDialogue?: string;
 }
 
 /** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */
@@ -47,8 +50,8 @@ export interface MapInteraction {
   at: Cell;
   /** Distância máxima (em células) entre os pés da personagem e `at`. */
   reach?: number;
-  /** shop: o caixa (paga o carrinho); shelf: prateleira da loja (só os itens com estas tags vão para o carrinho); board: mural de pedidos; vet: a consulta na clínica. */
-  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true };
+  /** shop: o caixa (paga o carrinho); shelf: prateleira da loja (só os itens com estas tags vão para o carrinho); board: mural de pedidos; vet: a consulta na clínica; door: passagem entre cômodos; sleep: a cama do quartinho. */
+  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true } | { door: string } | { sleep: string };
 }
 
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */

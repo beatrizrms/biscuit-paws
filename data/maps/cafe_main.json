@@ -3,41 +3,52 @@
   "id": "map.cafe_main",
   "tileSize": 32,
   "size": {
-    "cols": 16,
+    "cols": 44,
     "rows": 11
   },
   "legend": {
     "P": "wall_stripe_old",
     "R": "wall_wainscot_old",
     "X": "floor_wood_old",
-    "M": "floor_check_old"
+    "M": "floor_check_old",
+    "D": "room_parede_divisoria",
+    "q": "wall_stripe_old",
+    "w": "wall_wainscot_old",
+    "f": "floor_wood_old",
+    "k": "yard_sebe_meio_a",
+    "m": "yard_sebe_meio_b",
+    "T": "yard_sebe_topo",
+    "B": "yard_sebe_base",
+    "L": "yard_sebe_lateral",
+    "g": "yard_grama_c",
+    "s": "yard_pedra_b"
   },
   "layers": {
     "floor": [
-      "................",
-      "................",
-      "................",
-      "XXXXXXXXMMMMMMMM",
-      "XXXXXXXXMMMMMMMM",
-      "MMMMMMMMMMMMMMMM",
-      "MMMMMMMMMMMMMMMM",
-      "MMMMMMMMMMMMMMMM",
-      "MMMMMMMMMMMMMMMM",
-      "MMMMMMMMMMMMMMMM",
-      "MMMMMMMMMMMMMMMM"
+      "............................................",
+      "............................................",
+      "............................................",
+      "XXXXXXXXMMMMMMMM.ffffffff...................",
+      "XXXXXXXXMMMMMMMM.ffffffff.ssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMM.ffffffff.ssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMM.ffffffff.ssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMMffffffffffssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMM.ffffffff.ssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMM.ffffffff.ssssssgggggggggggg",
+      "MMMMMMMMMMMMMMMM.ffffffff.ssssssgggggggggggg"
     ],
     "walls": [
-      "PPPPPPPPPPPPPPPP",
-      "PPPPPPPPPPPPPPPP",
-      "RRRRRRRRRRRRRRRR",
-      "................",
-      "................",
-      "................",
-      "................",
-      "................",
-      "................",
-      "................",
-      "................"
+      "PPPPPPPPPPPPPPPPDqqqqqqqqDkkkkkkkkkkkkkkkkkk",
+      "PPPPPPPPPPPPPPPPDqqqqqqqqDmmmmmmmmmmmmmmmmmm",
+      "RRRRRRRRRRRRRRRRDwwwwwwwwDTTTTTTTTTTTTTTTTTL",
+      "................D........DBBBBBBBBBBBBBBBBBL",
+      "................D........D.................L",
+      "................D........D.................L",
+      "................D........D.................L",
+      "...........................................L",
+      "................D........D.................L",
+      "................D........D.................L",
+      "................D........D.................L"
     ]
   },
   "objects": [
@@ -339,6 +350,140 @@
         "repair"
       ],
       "clearedBy": "surface.hall_floor"
+    },
+    {
+      "id": "dirt.back_room_web_left",
+      "tile": "dirt_teia_canto_grande_esq",
+      "at": [
+        17,
+        0
+      ],
+      "tags": [
+        "room",
+        "back_room"
+      ]
+    },
+    {
+      "id": "dirt.back_room_web_right",
+      "tile": "dirt_teia_canto_grande_dir",
+      "at": [
+        23,
+        0
+      ],
+      "tags": [
+        "room",
+        "back_room"
+      ]
+    },
+    {
+      "id": "dirt.back_room_dust",
+      "tile": "dirt_poeira_densa",
+      "at": [
+        21,
+        8
+      ],
+      "tags": [
+        "room",
+        "back_room"
+      ]
+    },
+    {
+      "id": "dirt.back_room_papers",
+      "tile": "dirt_papeis_chao",
+      "at": [
+        18,
+        9
+      ],
+      "tags": [
+        "room",
+        "back_room"
+      ]
+    },
+    {
+      "id": "dirt.back_room_junk",
+      "tile": "dirt_lencol_sobre_movel",
+      "at": [
+        19,
+        5
+      ],
+      "tags": [
+        "room",
+        "back_room"
+      ],
+      "gives": "item.key_backyard",
+      "foundDialogue": "dlg.key_backyard_found"
+    },
+    {
+      "id": "dirt.backyard_leaves_a",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        28,
+        5
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_b",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        36,
+        9
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_c",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        41,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_weeds_a",
+      "tile": "room_mato",
+      "at": [
+        33,
+        5
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_weeds_b",
+      "tile": "room_mato",
+      "at": [
+        39,
+        8
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_weeds_c",
+      "tile": "room_mato",
+      "at": [
+        30,
+        9
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
     }
   ],
   "surfaces": [

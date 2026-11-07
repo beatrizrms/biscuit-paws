@@ -23,18 +23,19 @@ function tinyMap(objects: MapData['objects'] = []): MapData {
 }
 
 describe('cafe_main.json', () => {
-  it('é válido e tem 16 x 11', () => {
+  it('é válido: salão 16 x 11 + quartinho e quintal à direita (44 x 11)', () => {
     expect(validateMap(cafe, catalog)).toEqual([]);
-    expect(cafe.size).toEqual({ cols: 16, rows: 11 });
+    expect(cafe.size).toEqual({ cols: 44, rows: 11 });
   });
 
-  it('é a loja velha e vazia: só paredes sólidas e a pia velha no canto, nenhum móvel nem balcão', () => {
+  it('o salão é a loja velha e vazia: só paredes sólidas e a pia velha no canto, nenhum móvel nem balcão', () => {
     const { solid } = resolveMap(cafe, catalog);
-    for (let r = 0; r <= 2; r++) expect(solid[r]!.every(Boolean)).toBe(true);
-    expect(solid[3]![0]).toBe(true); // a pia
-    for (let r = 3; r < 11; r++) expect(solid[r]!.some((s, c) => s && !(r === 3 && c === 0))).toBe(false);
+    const hall = solid.map((line) => line.slice(0, 16));
+    for (let r = 0; r <= 2; r++) expect(hall[r]!.every(Boolean)).toBe(true);
+    expect(hall[3]![0]).toBe(true); // a pia
+    for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c === 0))).toBe(false);
     expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'eq_pia']));
-    expect(Object.values(cafe.legend).every((name) => name.endsWith('_old'))).toBe(true);
+    for (const letter of ['P', 'R', 'X', 'M']) expect(cafe.legend[letter]!.endsWith('_old')).toBe(true);
   });
 
   it('pisos e paredes velhos usam variações, sempre as mesmas por célula', () => {

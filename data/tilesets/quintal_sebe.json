@@ -1,0 +1,169 @@
+{
+ "tileSize": 32,
+ "columns": 16,
+ "rows": 7,
+ "pieces": {
+  "sebe_topo": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "sebe_meio_a": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "sebe_meio_b": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "sebe_base": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "sebe_lateral": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "sebe_lateral_topo": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "fundo_ceu_telhados": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "vaso_arvore_a": {
+   "col": 12,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "vaso_arvore_b": {
+   "col": 13,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "vaso_baixo_flores": {
+   "col": 14,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "luminaria_parede_sebe": {
+   "col": 15,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banco_rustico_vasos": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "mesa_redonda_branca": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "cadeira_vime": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "banquinho_ceramica": {
+   "col": 5,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "bancada_forno_pedra": {
+   "col": 6,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "espreguicadeira": {
+   "col": 8,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "luzinhas_fio": {
+   "col": 10,
+   "row": 3,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "lampada_chao": {
+   "col": 13,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "grama_a": {
+   "col": 14,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "grama_b": {
+   "col": 15,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "grama_c": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pedra_a": {
+   "col": 1,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pedra_b": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pergola_cobertura": {
+   "col": 3,
+   "row": 5,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "brilho_quente_64": {
+   "col": 6,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "brilho_quente_32": {
+   "col": 8,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

@@ -91,7 +91,11 @@
     "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "cart_empty": "O carrinho está vazio.",
-    "one_heavy_per_trip": "Só cabe um saco pesado por vez: as mãos ficam ocupadas."
+    "one_heavy_per_trip": "Só cabe um saco pesado por vez: as mãos ficam ocupadas.",
+    "room_closed": "Esse cômodo ainda não está aberto.",
+    "wrong_room": "Isso só vai no quintal.",
+    "blocks_door": "Aí fica na frente da passagem.",
+    "too_early": "Ainda é cedo para dormir."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -166,7 +170,8 @@
     "passOut": "Você desmaiou de cansaço... e acordou tarde.",
     "story": "Você foi para casa.",
     "earned": "Moedas ganhas",
-    "jobs": "Pedidos feitos"
+    "jobs": "Pedidos feitos",
+    "sleep": "Você dormiu no quartinho do café."
   },
   "catalogOnline": "Comprando online: chega pelo correio, na porta do café, em 1 hora.",
   "installed": "na porta",
@@ -336,5 +341,21 @@
     "sinkLoad": "Pia: {n} para lavar",
     "sinkWashing": "Pia: lavando"
   },
-  "playerFallback": "Você"
+  "playerFallback": "Você",
+  "rooms": {
+    "title": "Obras",
+    "hint": "Abrir cômodos e terminar reformas.",
+    "open": "abrir",
+    "restore": "reformar",
+    "needsMoney": "falta dinheiro",
+    "needsBeat": "ainda não dá",
+    "needsCats": "precisa de mais gatos",
+    "needsItem": "precisa da chave",
+    "stillDirty": "limpe antes ({n} sujeiras)",
+    "cats": "Gatos no abrigo: {n} de {max}",
+    "sleepQuestion": "Dormir no café até amanhã?",
+    "sleepYes": "Dormir",
+    "sleepNo": "Ainda não",
+    "goHomeSleep": "Agora eu durmo no quartinho do café (a cama, depois das {time})."
+  }
 }

@@ -328,7 +328,7 @@ export class GameUi {
   }
 
   /** Fim do dia: "Você foi para casa." e o dia seguinte. Resolve sozinho ou com clique/tecla. */
-  showDayTransition(day: number, summary?: { reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number }): Promise<void> {
+  showDayTransition(day: number, summary?: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number }): Promise<void> {
     const el = document.createElement('div');
     el.className = 'day-transition';
     const t = uiText.dayTransition;

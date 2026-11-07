@@ -308,7 +308,8 @@ describe('quest: o primeiro cliente', () => {
     sv.serve(state.service.customers[0]!.id);
     expect(state.flags['cafe.open']).toBe(true);
     // Depois do primeiro cliente vem a inauguração (reforma completa + placa).
-    expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
+    // Depois do primeiro cliente, o quartinho aparece (missão paralela).
+    expect(session.goals().map((g) => g.title)).toEqual(['O quartinho dos fundos', 'A inauguração']);
   });
 
   it('sem a mesa e a cadeira, a quest não aparece', () => {

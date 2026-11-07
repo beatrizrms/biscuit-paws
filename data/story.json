@@ -557,6 +557,94 @@
       ]
     },
     {
+      "id": "story.back_room",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "room": "room.back_room",
+        "atLeast": "discovered"
+      },
+      "goal": {
+        "title": "O quartinho dos fundos",
+        "steps": [
+          {
+            "text": "Pagar a obra para abrir a passagem (catálogo, Obras).",
+            "when": {
+              "room": "room.back_room",
+              "atLeast": "abandoned"
+            }
+          },
+          {
+            "text": "Limpar o quartinho.",
+            "when": {
+              "cleaned": "back_room"
+            }
+          },
+          {
+            "text": "Terminar a reforma (catálogo, Obras).",
+            "when": {
+              "room": "room.back_room",
+              "atLeast": "restored"
+            }
+          }
+        ]
+      },
+      "effects": []
+    },
+    {
+      "id": "story.backyard",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "room": "room.backyard",
+        "atLeast": "discovered"
+      },
+      "goal": {
+        "title": "O quintal secreto",
+        "steps": [
+          {
+            "text": "Achar a chave do cadeado.",
+            "when": {
+              "any": [
+                {
+                  "received": "item.key_backyard"
+                },
+                {
+                  "room": "room.backyard",
+                  "atLeast": "abandoned"
+                }
+              ]
+            }
+          },
+          {
+            "text": "Abrir a porta com a chave (E na porta).",
+            "when": {
+              "room": "room.backyard",
+              "atLeast": "abandoned"
+            }
+          },
+          {
+            "text": "Limpar o quintal (folhas e mato).",
+            "when": {
+              "cleaned": "backyard"
+            }
+          },
+          {
+            "text": "Terminar a reforma (catálogo, Obras).",
+            "when": {
+              "room": "room.backyard",
+              "atLeast": "restored"
+            }
+          }
+        ]
+      },
+      "effects": []
+    },
+    {
       "id": "story.inauguration",
       "act": 2,
       "after": [

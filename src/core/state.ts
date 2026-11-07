@@ -8,6 +8,7 @@ import type { CatSickness } from './health';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
+import type { DoorState, RoomState } from './rooms';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -75,6 +76,9 @@ export interface GameState {
    * appearance null = a padrão dos dados (saves de antes do criador).
    */
   player: PlayerState;
+  /** Cômodos (v14): estado de cada um e das passagens; o que não está aqui vale o `initial` de data/rooms.json. */
+  rooms: Record<string, RoomState>;
+  doors: Record<string, DoorState>;
 }
 
 export interface PlayerState {
@@ -146,6 +150,8 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     business: 'closed',
     player: { name: '', appearance: null },
     debt: 0,
+    rooms: {},
+    doors: {},
   };
 }
 

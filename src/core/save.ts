@@ -5,11 +5,12 @@ import { HOTBAR_SIZE, newHotbar } from './hotbar';
 import type { GameState } from './state';
 import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
+import { normalizeRoomsState, type RoomsData } from './rooms';
 
-export const SAVE_SCHEMA_VERSION = 13;
+export const SAVE_SCHEMA_VERSION = 14;
 
-export interface SaveV13 extends GameState {
-  schemaVersion: 13;
+export interface SaveV14 extends GameState {
+  schemaVersion: 14;
   savedAt: string;
 }
 
@@ -85,10 +86,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     cats: Object.fromEntries(Object.entries((save.cats ?? {}) as Record<string, object>).map(([id, c]) => [id, { shelteredOn: 1, health: 80, sickness: null, ...c }])),
     debt: 0,
   }),
+  /** v13 -> v14: cômodos e passagens. Saves antigos: tudo no estado inicial dos dados (o salão como estiver). */
+  13: (save) => ({ ...save, schemaVersion: 14, rooms: {}, doors: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV13 = { schemaVersion: 13, savedAt: now.toISOString(), ...state };
+  const save: SaveV14 = { schemaVersion: 14, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -112,6 +115,8 @@ export interface KnownIds {
   startMap: string;
   /** Opções da aparência (escolha que sumiu volta ao padrão). */
   character: CharacterData;
+  /** Cômodos e passagens (estado que sumiu volta ao inicial). */
+  rooms: RoomsData;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -127,7 +132,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV13>;
+  const v2 = save as unknown as Partial<SaveV14>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -224,6 +229,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       name: typeof v2.player?.name === 'string' ? cleanPlayerName(v2.player.name) : '',
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
     },
+    ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
@@ -241,6 +247,7 @@ export function knownIds(content: {
   world: { startMap: string };
   character: CharacterData;
   health: { diseases: { id: string }[] };
+  rooms: RoomsData;
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -253,5 +260,6 @@ export function knownIds(content: {
     diseases: new Set(content.health.diseases.map((d) => d.id)),
     startMap: content.world.startMap,
     character: content.character,
+    rooms: content.rooms,
   };
 }

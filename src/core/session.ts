@@ -14,6 +14,23 @@ import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } f
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
+import {
+  activeFeatures,
+  catCapacity,
+  doorState,
+  inArea,
+  isOpen,
+  openProblem,
+  resolvedLook,
+  restoreProblem,
+  roomAt,
+  roomState,
+  type DoorState,
+  type OpenProblem,
+  type RestoreProblem,
+  type RoomDef,
+  type RoomState,
+} from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -97,6 +114,7 @@ export type ActionResult =
         | 'hands_full'
         | 'nothing_here'
         | 'already_owned'
+        | 'too_early'
         | 'cart_empty'
         | 'one_heavy_per_trip'
         | PlaceProblem;
@@ -324,10 +342,10 @@ export class GameSession {
   }
 
   /**
-   * Fim do dia: ela vai para casa (ou para o quartinho, quando existir: world.sleepMap)
-   * e amanhece no dia seguinte, chegando pela rua.
+   * Fim do dia: ela vai para casa e amanhece chegando pela rua; com o quartinho reformado
+   * ("sleep"), ela dorme no café e acorda lá (inclusive quando desmaia).
    */
-  endDay(reason: 'home' | 'passOut' | 'story' = 'story'): void {
+  endDay(reason: 'home' | 'passOut' | 'story' | 'sleep' = 'story'): void {
     const day = this.state.day;
     const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
     // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
@@ -338,7 +356,9 @@ export class GameSession {
     this.state.day = day + 1;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
     this.state.today = { earned: 0, jobs: 0 };
-    const morning = this.content.world.morning;
+    this.playgroundDay();
+    const sleepRoom = this.sleepRoom();
+    const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
@@ -614,9 +634,162 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Ponto do dia seguinte onde ela aparece de manhã. */
+  /** Ponto do dia seguinte onde ela aparece de manhã (no quartinho, se dormiu no café). */
   morningSpawn(): Cell {
+    const room = this.sleepRoom();
+    if (room?.sleep && this.state.location === this.content.map.id) return room.sleep.wake;
     return this.content.world.morning.spawn;
+  }
+
+  // ---------- Cômodos (data/rooms.json) ----------
+
+  roomState(roomId: string): RoomState {
+    return roomState(this.content.rooms, this.state, roomId);
+  }
+
+  doorState(doorId: string): DoorState {
+    return doorState(this.content.rooms, this.state, doorId);
+  }
+
+  rooms(): RoomDef[] {
+    return this.content.rooms.rooms;
+  }
+
+  /** Quantos gatos cabem: soma dos cômodos abertos. */
+  catCapacity(): number {
+    return catCapacity(this.content.rooms, this.state);
+  }
+
+  /** Cabe mais um gato no abrigo? (gatos de rua; os da história sempre entram.) */
+  canShelterMoreCats(): boolean {
+    return this.shelteredCats().length < this.catCapacity();
+  }
+
+  /** O cômodo com "sleep" restaurado (ela dorme no café), se houver. */
+  sleepRoom(): RoomDef | undefined {
+    if (!activeFeatures(this.content.rooms, this.state).has('sleep')) return undefined;
+    return this.content.rooms.rooms.find((r) => r.features?.includes('sleep') && this.roomState(r.id) === 'restored');
+  }
+
+  /** Sujeiras ainda visíveis de um cômodo (a tag de restore.dirtTag). */
+  roomDirtLeft(roomId: string): number {
+    const tag = this.content.rooms.rooms.find((r) => r.id === roomId)?.restore?.dirtTag;
+    return tag ? this.visibleDirt().filter((d) => d.tags.includes(tag)).length : 0;
+  }
+
+  /** Descobre um cômodo: ele aparece (sai do escuro) e a passagem vira uma porta fechada. Com o momento (fala + destaque). */
+  discoverRoom(roomId: string): void {
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId);
+    if (!room || this.roomState(roomId) !== 'locked') return;
+    this.state.rooms[roomId] = 'discovered';
+    for (const d of this.content.rooms.doors) if (d.to === roomId && this.doorState(d.id) === 'hidden') this.state.doors[d.id] = 'locked';
+    if (room.discover?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.discover.dialogue });
+    this.bus.emit('room.discovered', { roomId, trigger: room.discover?.trigger ?? 'renovation', highlight: room.discover?.highlight ?? null });
+  }
+
+  /** Por que não dá para abrir este cômodo agora (ou null). */
+  openRoomProblem(roomId: string): OpenProblem | null {
+    return openProblem(this.content.rooms, this.state, roomId, {
+      money: this.state.money,
+      cats: this.shelteredCats().length,
+      beats: this.state.story.completed,
+      has: (item) => (this.state.inventory[item] ?? 0) > 0,
+    });
+  }
+
+  /** Abre o cômodo (obra paga e/ou chave usada): as portas abrem e ele fica "abandonado" (sujo). */
+  openRoom(roomId: string): ActionResult & { problem?: OpenProblem } {
+    const problem = this.openRoomProblem(roomId);
+    if (problem) return { ok: false, reason: 'locked', problem };
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId)!;
+    const cost = room.unlock?.cost ?? 0;
+    if (cost > 0) this.addMoney(-cost, `room:${roomId}`);
+    for (const d of this.content.rooms.doors.filter((x) => x.to === roomId)) {
+      this.state.doors[d.id] = 'open';
+      if (d.requires?.item && d.consumesItem) this.removeFromInventory(d.requires.item);
+    }
+    this.state.rooms[roomId] = 'abandoned';
+    if (room.unlock?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.unlock.dialogue });
+    this.bus.emit('room.opened', { roomId });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** E numa passagem fechada: com o item (chave), abre; sem, a fala de trancada. */
+  useRoomDoor(doorId: string): ActionResult & { problem?: OpenProblem } {
+    const door = this.content.rooms.doors.find((d) => d.id === doorId);
+    if (!door || this.doorState(doorId) !== 'locked') return { ok: false, reason: 'not_found' };
+    // Porta de obra (sem item): abre pelo catálogo; porta com item: abre aqui, se ela tiver o item.
+    const problem = door.requires?.item ? this.openRoomProblem(door.to) : 'needs_money';
+    if (problem) {
+      if (door.lockedDialogue) this.bus.emit('dialogue.requested', { dialogueId: door.lockedDialogue });
+      this.bus.emit('door.blocked', { doorId });
+      return { ok: false, reason: 'locked', problem };
+    }
+    return this.openRoom(door.to);
+  }
+
+  /** Por que não dá para terminar a reforma agora (ou null). */
+  restoreRoomProblem(roomId: string): RestoreProblem | null {
+    return restoreProblem(this.content.rooms, this.state, roomId, { money: this.state.money, dirty: this.roomDirtLeft(roomId) });
+  }
+
+  /** Termina a reforma (limpo + obra paga): o visual muda e as funcionalidades ligam. */
+  restoreRoom(roomId: string): ActionResult & { problem?: RestoreProblem } {
+    const problem = this.restoreRoomProblem(roomId);
+    if (problem) return { ok: false, reason: 'locked', problem };
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId)!;
+    const cost = room.restore?.cost ?? 0;
+    if (cost > 0) this.addMoney(-cost, `restore:${roomId}`);
+    this.markRestored(room);
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  private markRestored(room: RoomDef): void {
+    this.state.rooms[room.id] = 'restored';
+    if (room.restore?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.restore.dialogue });
+    this.bus.emit('room.restored', { roomId: room.id });
+  }
+
+  /** Descobertas e reformas automáticas (condições dos dados). Diz se mudou algo. */
+  private advanceRooms(): boolean {
+    let changed = false;
+    const ctx = this.storyContext();
+    for (const room of this.content.rooms.rooms) {
+      const s = this.roomState(room.id);
+      if (s === 'locked' && room.discover?.when && evaluate(room.discover.when, this.state, ctx)) {
+        this.discoverRoom(room.id);
+        changed = true;
+      } else if (s === 'abandoned' && room.restore?.when && evaluate(room.restore.when, this.state, ctx)) {
+        this.markRestored(room);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  /** Cômodo aberto onde a célula fica (paredes e portas: nenhum). */
+  roomAt(cell: Cell): RoomDef | undefined {
+    return roomAt(this.content.rooms, cell);
+  }
+
+  /** Dorme no café (a cama do quartinho, depois do horário de ir para casa). */
+  sleepInCafe(): ActionResult {
+    if (!this.sleepRoom()) return { ok: false, reason: 'locked' };
+    if (!this.canGoHome()) return { ok: false, reason: 'too_early' };
+    this.endDay('sleep');
+    return { ok: true };
+  }
+
+  /** Playground: cada módulo posicionado no quintal reformado dá afeto a todos os gatos, por dia. */
+  private playgroundDay(): void {
+    const pg = this.content.rooms.playground;
+    const room = this.content.rooms.rooms.find((r) => r.id === pg.room);
+    if (!room || this.roomState(room.id) !== 'restored') return;
+    const modules = this.state.placed.filter((p) => this.content.items[p.item]?.tags.includes(pg.tag) && inArea(room, p.at)).length;
+    if (modules === 0) return;
+    for (const catId of this.shelteredCats()) this.addCatAffection(catId, modules * pg.pointsPerModulePerDay);
   }
 
   // ---------- Gatos ----------
@@ -898,8 +1071,13 @@ export class GameSession {
       if (!other) throw new Error(`Mapa desconhecido: "${mapId}"`);
       return { ...other, objects: [...this.visibleObjects(other), ...this.jobMarkers(mapId)] };
     }
-    const base = { ...this.content.map, objects: [...this.visibleObjects(this.content.map), ...this.jobMarkers(mapId)] };
-    const legend = { ...base.legend };
+    const rooms = this.roomsMapParts();
+    const base = {
+      ...this.content.map,
+      objects: [...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId)],
+      interactions: [...(this.content.map.interactions ?? []), ...rooms.interactions],
+    };
+    const legend = { ...base.legend, ...rooms.legend };
     for (const surface of base.surfaces ?? []) {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
       if (finish) legend[surface.legend] = finish.tile;
@@ -932,11 +1110,37 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Sujeira do café que ainda aparece (a limpa e a de superfícies reformadas somem). */
+  /** O que os cômodos põem no mapa do café: tiles por estado/variante, objetos, portas e interações (porta, cama). */
+  private roomsMapParts(): { legend: Record<string, string>; objects: MapData['objects']; interactions: MapInteraction[] } {
+    const legend: Record<string, string> = {};
+    const objects: MapData['objects'] = [];
+    const interactions: MapInteraction[] = [];
+    for (const room of this.content.rooms.rooms) {
+      const s = this.roomState(room.id);
+      const look = resolvedLook(room, s);
+      Object.assign(legend, look.legend);
+      objects.push(...look.objects);
+      if (s === 'restored' && room.features?.includes('sleep') && room.sleep) {
+        interactions.push({ id: `int.sleep.${room.id}`, at: room.sleep.bed, reach: 1, action: { sleep: room.id } });
+      }
+    }
+    for (const door of this.content.rooms.doors) {
+      const s = this.doorState(door.id);
+      if (s === 'open') continue;
+      objects.push({ id: `obj.${door.id}`, tile: s === 'hidden' ? door.tiles.hidden : door.tiles.locked, at: door.at });
+      if (s === 'locked') interactions.push({ id: `int.${door.id}`, at: door.at, reach: 1, action: { door: door.id } });
+    }
+    return { legend, objects, interactions };
+  }
+
+  /** Sujeira do café que ainda aparece (a limpa, a de superfícies reformadas e a de cômodos fechados somem). */
   visibleDirt(): DirtSpot[] {
-    return (this.content.map.dirt ?? []).filter((d) =>
-      d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d),
-    );
+    return (this.content.map.dirt ?? []).filter((d) => {
+      // Cômodo ainda fechado: a sujeira dele não aparece nem se limpa.
+      const room = this.roomAt(d.at);
+      if (room && !isOpen(this.roomState(room.id))) return false;
+      return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
+    });
   }
 
   /** Marcadores dos pontos de pedido pendentes (ex.: montes de neve a varrer). */
@@ -969,6 +1173,12 @@ export class GameSession {
     const d = this.visibleDirt().find((x) => x.id === dirtId)!;
     this.state.cleaned.push(d.id);
     this.bus.emit('dirt.cleaned', { dirtId: d.id });
+    // Embaixo dela tinha algo (ex.: a chave do quintal).
+    if (d.gives) {
+      this.state.inventory[d.gives] = (this.state.inventory[d.gives] ?? 0) + 1;
+      this.bus.emit('item.received', { itemId: d.gives });
+      if (d.foundDialogue) this.bus.emit('dialogue.requested', { dialogueId: d.foundDialogue });
+    }
     this.advanceStory();
     return { ok: true };
   }
@@ -987,7 +1197,7 @@ export class GameSession {
   }
 
   private storyContext(): StoryContext {
-    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces };
+    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces, rooms: this.content.rooms };
   }
 
   /** Superfícies que o pintor pode reformar. */
@@ -1154,6 +1364,15 @@ export class GameSession {
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
     if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    const cells = cellsOf(at, def);
+    const roomsOf = cells.map((c) => this.roomAt(c));
+    if (roomsOf.some((r) => !r)) return 'out_of_bounds'; // fora do mapa, ou na parede entre cômodos
+    if (roomsOf.some((r) => !isOpen(this.roomState(r!.id)))) return 'room_closed';
+    const only = this.content.items[itemId]?.room;
+    if (only && roomsOf.some((r) => r!.id !== only)) return 'wrong_room';
+    // A passagem e as células dos dois lados ficam livres.
+    const doorCells = this.content.rooms.doors.flatMap((d): Cell[] => [d.at, [d.at[0] - 1, d.at[1]], [d.at[0] + 1, d.at[1]]]);
+    if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
   }
 
@@ -1195,6 +1414,7 @@ export class GameSession {
    */
   private advanceStory(): void {
     for (let guard = 0; guard < 1000; guard++) {
+      if (this.advanceRooms()) continue;
       // Fechado -> funcionamento parcial assim que o café tem o mínimo (data/business.json).
       if (this.state.business === 'closed' && evaluate(this.content.business.softOpenWhen, this.state, this.storyContext())) this.setBusiness('soft_open');
       const ctx = this.storyContext();
@@ -1216,6 +1436,7 @@ export class GameSession {
     else if ('setTime' in effect) this.state.time = parseClock(effect.setTime);
     else if ('startTimer' in effect) this.state.timers[effect.startTimer] = nowAbs(this.state) + effect.minutes;
     else if ('setBusiness' in effect) this.setBusiness(effect.setBusiness);
+    else if ('discoverRoom' in effect) this.discoverRoom(effect.discoverRoom);
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;

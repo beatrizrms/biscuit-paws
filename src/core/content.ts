@@ -6,6 +6,7 @@ import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type Scr
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
 import { validateCharacter, type CharacterData } from './appearance';
+import { ROOM_STATES, validateRooms, type RoomsData, type RoomState } from './rooms';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
@@ -40,6 +41,8 @@ export interface ItemDef {
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
   placeOn?: string;
+  /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
+  room?: string;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
   storesAs?: { item: string; qty: number };
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
@@ -141,7 +144,11 @@ export type Condition =
   /** O negócio já chegou a este estágio (inaugurado também conta como funcionamento parcial). */
   | { business: BusinessStage }
   /** Reforma completa: toda superfície de data/business.json (requiredSurfaces) tem acabamento novo. */
-  | { renovated: true };
+  | { renovated: true }
+  /** O cômodo já chegou a este estado (data/rooms.json). */
+  | { room: string; atLeast: RoomState }
+  /** Gatos abrigados. */
+  | { cats: { gte: number } };
 
 export type Effect =
   | { dialogue: string }
@@ -162,7 +169,9 @@ export type Effect =
   /** Marca um relógio: daqui a `minutes` minutos de jogo (condição { timer }). */
   | { startTimer: string; minutes: number }
   /** Avança o negócio (ex.: a inauguração). Nunca volta. */
-  | { setBusiness: BusinessStage };
+  | { setBusiness: BusinessStage }
+  /** Descobre um cômodo (com o momento dele: fala + destaque). Ex.: um vizinho conta. */
+  | { discoverRoom: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -263,6 +272,7 @@ export interface Content {
   health: HealthConfig;
   business: BusinessData;
   character: CharacterData;
+  rooms: RoomsData;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
@@ -298,6 +308,7 @@ export interface RawContent {
   health: HealthConfig;
   business: BusinessData;
   character: CharacterData;
+  rooms: RoomsData;
 }
 
 /** Correio (data/delivery.json). */
@@ -330,7 +341,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, business: raw.business, character: raw.character };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, business: raw.business, character: raw.character, rooms: raw.rooms };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -509,6 +520,9 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('room' in c) {
+      if (!raw.rooms.rooms.some((r) => r.id === c.room)) err(`${where}: cômodo inexistente "${c.room}"`);
+      if (!(ROOM_STATES as readonly string[]).includes(c.atLeast)) err(`${where}: estado de cômodo inválido "${c.atLeast}"`);
     } else if ('business' in c) {
       if (!(BUSINESS_STAGES as readonly string[]).includes(c.business)) err(`${where}: estágio do negócio inválido "${c.business}"`);
     } else if ('placedTag' in c) {
@@ -528,8 +542,28 @@ export function validateContent(raw: RawContent): string[] {
   for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
   checkCondition('business: softOpenWhen', raw.business.softOpenWhen);
+  for (const r of raw.rooms.rooms) {
+    if (r.discover?.when) checkCondition(`rooms: "${r.id}" discover`, r.discover.when);
+    if (r.restore?.when) checkCondition(`rooms: "${r.id}" restore`, r.restore.when);
+  }
   errors.push(...validateBusiness(raw.business, surfaceIds));
   errors.push(...validateCharacter(raw.character));
+  errors.push(
+    ...validateRooms(raw.rooms, {
+      cols: home?.size.cols ?? 0,
+      rows: home?.size.rows ?? 0,
+      items: itemIds,
+      tiles: new Set(Object.keys(raw.catalog.tiles)),
+      dialogues: dialogueIds,
+      beats: beatIds,
+      dirtTags: new Set((home?.dirt ?? []).flatMap((d) => d.tags)),
+    }),
+  );
+  for (const item of raw.items.items) if (item.room && !raw.rooms.rooms.some((r) => r.id === item.room)) err(`items: "${item.id}" só vai em cômodo inexistente "${item.room}"`);
+  for (const d of home?.dirt ?? []) {
+    if (d.gives && !itemIds.has(d.gives)) err(`mapa: sujeira "${d.id}" esconde item inexistente "${d.gives}"`);
+    if (d.foundDialogue && !dialogueIds.has(d.foundDialogue)) err(`mapa: sujeira "${d.id}" com fala inexistente "${d.foundDialogue}"`);
+  }
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
@@ -578,6 +612,7 @@ export function validateContent(raw: RawContent): string[] {
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
       if ('setTime' in effect && !/^\d{1,2}:\d{2}$/.test(effect.setTime)) err(`${where}: hora inválida "${effect.setTime}"`);
+      if ('discoverRoom' in effect && !raw.rooms.rooms.some((r) => r.id === effect.discoverRoom)) err(`${where}: cômodo inexistente "${effect.discoverRoom}"`);
       if ('setBusiness' in effect && !(BUSINESS_STAGES as readonly string[]).includes(effect.setBusiness)) err(`${where}: estágio do negócio inválido "${effect.setBusiness}"`);
       if ('startTimer' in effect && !(effect.minutes > 0)) err(`${where}: relógio "${effect.startTimer}" sem minutos`);
       if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
