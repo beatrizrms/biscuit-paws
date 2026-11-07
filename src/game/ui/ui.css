@@ -474,3 +474,38 @@
 /* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
 .hud-goals, .hud-money { transition: opacity 0.2s; }
 .hud-goals.see-through, .hud-money.see-through { opacity: 0.18; }
+
+/* Transições suaves entre o que aparece na cena (gato, celular...) */
+.cs-stage > * { animation: cs-in 0.6s ease-out; }
+@keyframes cs-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* Celular: tela de bloqueio vibrando com a notificação */
+.cs-phone.lock { animation: cs-in 0.6s ease-out, phone-buzz 1.6s ease-in-out 0.6s infinite; }
+@keyframes phone-buzz {
+  0%, 60%, 100% { transform: translateX(0); }
+  64% { transform: translateX(-3px) rotate(-1.5deg); }
+  68% { transform: translateX(3px) rotate(1.5deg); }
+  72% { transform: translateX(-3px) rotate(-1.5deg); }
+  76% { transform: translateX(2px) rotate(1deg); }
+  80% { transform: translateX(0); }
+}
+.cs-phone.lock .screen { align-items: center; background: linear-gradient(#2d2433, #3b2a40); }
+.cs-phone.lock .clock { margin-top: 18px; color: var(--cream); font-size: 26px; font-weight: bold; letter-spacing: 0.04em; }
+.cs-phone.lock .date { color: var(--pink2); font-size: 8px; margin-bottom: 14px; }
+.cs-phone.lock .notification {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  background: #fff4e0ee;
+  border-radius: 6px;
+  animation: notif-in 0.5s ease-out 0.4s both;
+}
+@keyframes notif-in { from { opacity: 0; transform: translateY(-10px); } }
+.cs-phone.lock .badge-wrap { position: relative; flex: none; }
+.cs-phone.lock .badge-wrap img { width: 18px; height: 18px; image-rendering: pixelated; display: block; }
+.cs-phone.lock .badge-wrap .badge { position: absolute; width: 8px; height: 8px; top: -3px; right: -3px; }
+.cs-phone.lock .notification .text { display: flex; flex-direction: column; font-size: 7px; color: var(--ink); }
+.cs-phone.lock .notification b { color: var(--berry); font-size: 7.5px; }

@@ -122,6 +122,21 @@ export class CutsceneView {
     const [w, h] = phone.size;
     const s = phone.screen;
     const icon = step.appIcon ? phone.apps[step.appIcon] : undefined;
+    if (step.mode === 'lock') {
+      // Tela de bloqueio: hora, data e a notificação chegando (o celular vibra).
+      return `<div class="cs-phone lock" style="width:${w}px;height:${h}px">
+        <div class="screen" style="left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px">
+          <img class="status" src="${phone.status}" alt="" />
+          <div class="clock">${esc(step.time ?? '')}</div>
+          <div class="date">${esc(step.date ?? '')}</div>
+          <div class="notification">
+            <span class="badge-wrap">${icon ? `<img src="${icon}" alt="" />` : ''}<img class="badge" src="${phone.notification}" alt="" /></span>
+            <span class="text"><b>${esc(step.app)}</b><span>${esc(step.title)}</span></span>
+          </div>
+        </div>
+        <img class="frame" src="${phone.frame}" alt="" />
+      </div>`;
+    }
     return `<div class="cs-phone" style="width:${w}px;height:${h}px">
       <div class="screen" style="left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px">
         <img class="status" src="${phone.status}" alt="" />

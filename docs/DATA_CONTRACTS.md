@@ -145,6 +145,7 @@ Condição de história: `{ "cleaned": "web" }` = toda a sujeira com essa tag (d
     { "type": "text", "speaker": "", "text": "Véspera de Natal..." },
     { "type": "cat", "cat": "cat.tekinha", "animation": "sleep", "caption": "Tekinha" },
     { "type": "hide" },
+    { "type": "phone", "mode": "lock", "app": "Classificados", "title": "VENDE-SE...", "lines": [], "time": "23:47", "date": "Quarta-feira, 24 de dezembro" },  // tela de bloqueio com notificação
     { "type": "phone", "app": "Classificados", "title": "VENDE-SE...", "lines": ["..."] },
     { "type": "card", "text": "NESSA NOITE..." }
   ]

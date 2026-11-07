@@ -5,7 +5,19 @@ export type CutsceneStep =
   | { type: 'text'; speaker: string; text: string }
   | { type: 'cat'; cat: string; animation: string; caption?: string }
   | { type: 'hide' }
-  | { type: 'phone'; app: string; title: string; lines: string[]; /** Ícone do app (chave em data/phone.json: apps). */ appIcon?: string }
+  | {
+      type: 'phone';
+      app: string;
+      title: string;
+      lines: string[];
+      /** Ícone do app (chave em data/phone.json: apps). */
+      appIcon?: string;
+      /** "lock": tela de bloqueio vibrando com a notificação; "app" (padrão): o anúncio aberto. */
+      mode?: 'lock' | 'app';
+      /** Hora e data da tela de bloqueio. */
+      time?: string;
+      date?: string;
+    }
   | { type: 'card'; text: string };
 
 export interface CutsceneDef {
@@ -38,7 +50,7 @@ export function validateCutscenes(data: CutscenesData, catIds: ReadonlySet<strin
         if (!catIds.has(step.cat)) errors.push(`${where} passo ${i}: gato inexistente "${step.cat}"`);
         if (!animations.has(step.animation)) errors.push(`${where} passo ${i}: animação inexistente "${step.animation}"`);
       }
-      if (step.type === 'phone' && step.lines.length === 0) errors.push(`${where} passo ${i}: anúncio sem texto`);
+      if (step.type === 'phone' && step.mode !== 'lock' && step.lines.length === 0) errors.push(`${where} passo ${i}: anúncio sem texto`);
     });
   }
   return errors;

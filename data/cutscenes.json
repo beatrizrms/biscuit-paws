@@ -42,6 +42,26 @@
         },
         {
           "type": "phone",
+          "mode": "lock",
+          "app": "Classificados",
+          "appIcon": "classificados",
+          "title": "VENDE-SE: antiga padaria",
+          "lines": [],
+          "time": "23:47",
+          "date": "Quarta-feira, 24 de dezembro"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Bzzz. O celular vibra em cima da mesa. Uma notificação, a essa hora?"
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "\"Vende-se: antiga padaria\"... Deixa eu ver."
+        },
+        {
+          "type": "phone",
           "app": "Classificados",
           "title": "VENDE-SE: antiga padaria",
           "lines": [
