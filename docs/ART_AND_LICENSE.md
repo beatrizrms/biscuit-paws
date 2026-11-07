@@ -22,7 +22,7 @@ Consequências para o projeto:
 4. Os termos dos pacotes Cosy Cats e Cosy UI Kit ainda precisam ser lidos antes de usá-los.
 
 ## Folha de tiles
-`public/assets/tiles/cat-cafe-tileset.png`: 8 colunas x 11 linhas de 32 x 32 px (256 x 352).
+`public/assets/interiors/cafe/tile_cafe.png` (no pacote: `tiles/cat-cafe-tileset.png`): 8 colunas x 11 linhas de 32 x 32 px (256 x 352).
 Coluna e linha contam a partir de 0. O índice do quadro no Phaser é `linha * 8 + coluna`.
 
 ## Catálogo (gerado de `tiles.csv`)
@@ -94,10 +94,10 @@ Ficam sem colisão: chão, tapete, capacho, cadeiras, almofadas, caminha, tigela
 
 Comidas e bebidas têm fundo transparente e ficam centradas no tile: colocar sobre balcão/mesa numa camada de decoração.
 
-## Personagem (folha provisória)
-`public/assets/characters/mulher_placeholder_32x64.png`: 128 x 256 px, quadros de **32 x 64**, 4 colunas x 4 linhas.
+## Personagem
+Camadas do pacote `personagem_principal` em `public/assets/characters/player/` (decisão 045): folhas 128 x 256, quadros de **32 x 64**, 4 colunas x 4 linhas.
 Linhas (de cima para baixo): `down`, `left`, `right`, `up`. Cada linha tem 4 quadros de caminhada.
-Animação: 8 quadros por segundo; parada = primeiro quadro da direção atual.
+A folha provisória antiga (`mulher_placeholder_32x64.png`) saiu do jogo e está guardada em `assets/_fora_do_jogo/characters/`.
 Humanos na grade de 32 px devem ter 32 x 48 ou 32 x 64.
 
 ## Lacunas de arte (decidir depois)
@@ -117,7 +117,7 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 (nada é desenhado do zero, para manter o traço e a paleta do leckie1989):
 
 - Lista em `data/tiles.worn.json`: nome novo, tile de origem, estilo de desgaste, número de variações e pesos.
-- `npm run art` (roda junto com `npm run dev` e `npm run build`) gera `public/assets/tiles/cat-cafe-tileset-ext.png`:
+- `npm run art` (roda junto com `npm run dev` e `npm run build`) gera `public/assets/interiors/cafe/tile_cafe_worn.png`:
   a folha original + linhas novas embaixo. **Também fica fora do Git** (é obra derivada; a licença proíbe redistribuir).
 - O desgaste usa só cores da paleta Cosy e semente fixa (sai igual toda vez).
 - Cada célula do mapa escolhe uma variação pelos pesos (a 0 é a mais leve), para o chão velho não virar padrão repetido.
@@ -125,22 +125,25 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 ## Pacotes gerados por IA (decisão 020)
 | Pacote | Origem | Uso |
 | --- | --- | --- |
-| Rua e vila, 4 estações (`assets/rua_estacoes_tilesets`) | gerado por código/IA na paleta do Cat Cafe | Rua do café (hoje: inverno) |
-| Sujeira do café abandonado (`assets/sujeira_cafe_abandonado`) | gerado por código/IA na paleta do Cat Cafe | Teias, poeira e manchas no café velho |
-| Gabi e o Joca (`assets/gabi_e_joca`) | gerado por IA na paleta Cosy | NPCs do dia 2: folha 32x64 da Gabi (4x5), retrato 64x64, GIF com a caixa (ainda não usado); Joca, spitz 32x32 (4 colunas, 6 linhas) |
-| Senhorinha (`assets/senhorinha`) | gerado por IA na paleta Cosy | Dona Lurdes: folha 32x64 (4x5) e retrato 64x64. Chegou ampliada 4x pelo chat; reduzida ao tamanho real por amostragem (o original ampliado fica junto) |
-| Matéria-prima (`assets/materia_prima`) | gerado por código/IA na paleta Cosy | 19 ícones 32x32 vendidos no mercado (café, chá, frutas, polpas, despensa) |
-| Itens e bebidas (`assets/itens_bebidas`) | gerado por código/IA na paleta Cosy | Ícones de bebidas (receitas), caixas, presente (conjunto de louças) e balões 16x16 (!, coração, +1) |
-| Clientes (`assets/clientes`) | gerado por código/IA na paleta Cosy | 10 clientes, folhas 128x256 (32x64, 4 direções x 4 quadros) |
-| Personagem principal (`assets/personagem_principal`) | gerado por código/IA na paleta Cosy | Importado por `npm run character` (`scripts/import-character.ts`) para `public/assets/characters/player/`: camadas 128x256 (corpo, olhos, calçado, calça, camisa, cabelo, acessórios) e 7 poses (bandeja, gato, varrer, limpar mesa, operar, mexer, lavar). O script confere se existe todo arquivo que alguma combinação usa |
-| Fluxo do café, onda 1 (`assets/fluxo_cafe_onda1`) | gerado por código/IA na paleta Cosy | Importado por `scripts/import-fluxo.ts`: cafeteira, balões do pedido, barra de progresso, quadro do cardápio (4/6/8), esgotado, moeda, louça 16x16 e ícones de comida e remédio. Bandeja e personagem carregando ficam para a Fase 2 |
-| Louça (`assets/louca`) | gerado por IA na paleta Cosy | 18 ícones 32x32 (reduzidos de 4x, peça por peça): xícara, prato, tigela, copo, copo alto, caneca e pilhas, limpos e sujos. Em uso: xícara, copo e prato |
-| Pia (`assets/pia`) | gerado por IA/código na paleta Cosy | Pia 32x32: vazia, com louça, lavando (4 quadros) e louça limpa |
-| Equipamentos (`assets/equipamentos`) | gerado por IA na paleta Cosy | Bule, liquidificador, espremedor, fogão e forno, 6 quadros 32x32 cada (parado, trabalhando, pronto); reduzido de uma imagem ampliada 4x. Em uso: bule e liquidificador |
-| Cozinha e café (`assets/cozinha_cafe`) | gerado por IA na paleta Cosy | A imagem veio sem escala única; a cafeteira (6 quadros) foi extraída da região em que o pixel é 3x3. O resto espera o PNG original |
-| Correio (`assets/correio`) | gerado por IA na paleta Cosy | Entregadora (folha 32x64 4x5 e retrato 64x64, reduzidos de uma imagem ampliada 4x) e furgão de lado (188x107, reduzido de 2x). Vista de frente e de trás ainda não usadas |
-| Vassoura nova (`assets/vassoura_nova`) | gerado por IA na paleta Cosy | Vassoura 32x32 nos pés da personagem, poeira e brilho (substitui a do pacote da corretora) |
+| Rua e vila, 4 estações (`assets/_originais_pacotes/rua_estacoes_tilesets`) | gerado por código/IA na paleta do Cat Cafe | Rua do café (hoje: inverno) |
+| Sujeira do café abandonado (`assets/_originais_pacotes/sujeira_cafe_abandonado`) | gerado por código/IA na paleta do Cat Cafe | Teias, poeira e manchas no café velho |
+| Gabi e o Joca (`assets/_originais_pacotes/gabi_e_joca`) | gerado por IA na paleta Cosy | NPCs do dia 2: folha 32x64 da Gabi (4x5), retrato 64x64, GIF com a caixa (ainda não usado); Joca, spitz 32x32 (4 colunas, 6 linhas) |
+| Senhorinha (`assets/_originais_pacotes/senhorinha`) | gerado por IA na paleta Cosy | Dona Neusa: folha 32x64 (4x5) e retrato 64x64. Chegou ampliada 4x pelo chat; reduzida ao tamanho real por amostragem (o original ampliado fica junto) |
+| Matéria-prima (`assets/_originais_pacotes/materia_prima`) | gerado por código/IA na paleta Cosy | 19 ícones 32x32 vendidos no mercado (café, chá, frutas, polpas, despensa) |
+| Itens e bebidas (`assets/_originais_pacotes/itens_bebidas`) | gerado por código/IA na paleta Cosy | Ícones de bebidas (receitas), caixas, presente (conjunto de louças) e balões 16x16 (!, coração, +1) |
+| Clientes (`assets/_originais_pacotes/clientes`) | gerado por código/IA na paleta Cosy | 10 clientes, folhas 128x256 (32x64, 4 direções x 4 quadros) |
+| Personagem principal (`assets/_originais_pacotes/personagem_principal`) | gerado por código/IA na paleta Cosy | Importado por `npm run character` (`scripts/import-character.ts`) para `public/assets/characters/player/`: camadas 128x256 (corpo, olhos, calçado, calça, camisa, cabelo, acessórios) e 7 poses (bandeja, gato, varrer, limpar mesa, operar, mexer, lavar). O script confere se existe todo arquivo que alguma combinação usa |
+| Fluxo do café, onda 1 (`assets/_originais_pacotes/fluxo_cafe_onda1`) | gerado por código/IA na paleta Cosy | Importado por `scripts/import-fluxo.ts`: cafeteira, balões do pedido, barra de progresso, quadro do cardápio (4/6/8), esgotado, moeda, louça 16x16 e ícones de comida e remédio. Bandeja e personagem carregando ficam para a Fase 2 |
+| Louça (`assets/_originais_pacotes/louca`) | gerado por IA na paleta Cosy | 18 ícones 32x32 (reduzidos de 4x, peça por peça): xícara, prato, tigela, copo, copo alto, caneca e pilhas, limpos e sujos. Em uso: xícara, copo e prato |
+| Pia (`assets/_originais_pacotes/pia`) | gerado por IA/código na paleta Cosy | Pia 32x32: vazia, com louça, lavando (4 quadros) e louça limpa |
+| Equipamentos (`assets/_originais_pacotes/equipamentos`) | gerado por IA na paleta Cosy | Bule, liquidificador, espremedor, fogão e forno, 6 quadros 32x32 cada (parado, trabalhando, pronto); reduzido de uma imagem ampliada 4x. Em uso: bule e liquidificador |
+| Cozinha e café (`assets/_originais_pacotes/cozinha_cafe`) | gerado por IA na paleta Cosy | A imagem veio sem escala única; a cafeteira (6 quadros) foi extraída da região em que o pixel é 3x3. O resto espera o PNG original |
+| Correio (`assets/_originais_pacotes/correio`) | gerado por IA na paleta Cosy | Entregadora (folha 32x64 4x5 e retrato 64x64, reduzidos de uma imagem ampliada 4x) e furgão de lado (188x107, reduzido de 2x). Vista de frente e de trás ainda não usadas |
+| Vassoura nova (`assets/_originais_pacotes/vassoura_nova`) | gerado por IA na paleta Cosy | Vassoura 32x32 nos pés da personagem, poeira e brilho (substitui a do pacote da corretora) |
 
 Regras desses pacotes (LEIA-ME de cada um): uso no nosso jogo, pessoal ou comercial; **não redistribuir**; **declarar o uso de IA na página da Steam**.
-Arquivos usados hoje: `public/assets/street/winter/*.png`, `public/assets/dirt/sujeira_tileset.png` (fora do Git). Os JSONs de peças (nomes e posições) ficam em `data/tilesets/`.
-Em uso também: `assets/mercado_interior/` (mapa do mercado, convertido para `data/maps/market.json`), `assets/catalogo_compras/` (ícones), `assets/Cosy-Cats-32x32/` (leckie1989, mesma licença do Cat Cafe: Pebble = Tekinha, Marmalade = o gatinho de rua). Também: `assets/celular/` (moldura ameixa e ícones do anúncio, `data/phone.json`). Ainda não usados: `assets/opcoes_fachada.png`, `assets/quintal_secreto/`, `assets/tilesets_expansao/`.
+Arquivos usados hoje: `public/assets/env/street/winter/*.png`, `public/assets/objects/dirt/tile_dirt.png` (fora do Git). Os JSONs de peças (nomes e posições) ficam em `data/tilesets/`.
+Em uso também (originais em `assets/_originais_pacotes/`): `mercado_interior/` (mapa do mercado, convertido para `data/maps/market.json`), `catalogo_compras/` (ícones), `Cosy-Cats-32x32/` (leckie1989, mesma licença do Cat Cafe: Pebble = Tekinha, Marmalade = o gatinho de rua). Também: `celular/` (moldura ameixa e ícones do anúncio, `data/phone.json`). Ainda não usados: `opcoes_fachada.png`, `quintal_secreto/`, `tilesets_expansao/`.
+
+## Organização das pastas e nomes
+Auditoria em `docs/ASSET_AUDIT.md`; estrutura, convenção de nomes (inglês, `prefixo_assunto_estado_estação`), checklist para novos assets e o mapa da migração em `docs/ASSET_REORGANIZATION.md`. Arquivos que saíram da pasta do jogo sem uso ficam guardados em `assets/_fora_do_jogo/`. Itens de fato pequenos (louça nas mesas, moeda, ícones pequenos) podem ser 16x16 (decisão 046).

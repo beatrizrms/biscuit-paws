@@ -420,7 +420,7 @@ Depois do prólogo, o balão mostra "hoje": comida para cada gato do café (uma 
   "door": { "map": "map.street", "at": [15, 8] },   // pilha na porta do café (rua)
   "inside": { "at": [15, 4] },                     // pilha dentro do salão
   "carrier": "npc.mail_carrier",
-  "van": { "left": "assets/vehicles/furgao_esquerda.png", "right": "assets/vehicles/furgao_direita.png" }
+  "van": { "left": "assets/objects/vehicles/obj_van_left.png", "right": "assets/objects/vehicles/obj_van_right.png" }
 }
 ```
 

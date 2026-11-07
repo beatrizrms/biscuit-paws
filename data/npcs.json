@@ -5,8 +5,8 @@
     {
       "id": "npc.realtor",
       "name": "Corretora",
-      "sheet": "assets/npc/corretora_spritesheet.png",
-      "portrait": "assets/npc/corretora_retrato_64.png",
+      "sheet": "assets/characters/npcs/npc_realtor.png",
+      "portrait": "assets/characters/npcs/npc_realtor_portrait.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -33,8 +33,8 @@
     {
       "id": "npc.gabi",
       "name": "Gabi",
-      "sheet": "assets/npc/gabi_spritesheet.png",
-      "portrait": "assets/npc/gabi_retrato_64.png",
+      "sheet": "assets/characters/npcs/npc_gabi.png",
+      "portrait": "assets/characters/npcs/npc_gabi_portrait.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -61,7 +61,7 @@
     {
       "id": "npc.joca",
       "name": "Joca",
-      "sheet": "assets/npc/spitz_spritesheet.png",
+      "sheet": "assets/characters/npcs/npc_joca.png",
       "frameWidth": 32,
       "frameHeight": 32,
       "columns": 4,
@@ -92,8 +92,8 @@
     {
       "id": "npc.neusa",
       "name": "Dona Neusa",
-      "sheet": "assets/npc/senhorinha_spritesheet.png",
-      "portrait": "assets/npc/senhorinha_retrato_64.png",
+      "sheet": "assets/characters/npcs/npc_neusa.png",
+      "portrait": "assets/characters/npcs/npc_neusa_portrait.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -120,8 +120,8 @@
     {
       "id": "npc.mail_carrier",
       "name": "Entregadora",
-      "sheet": "assets/npc/entregadora_spritesheet.png",
-      "portrait": "assets/npc/entregadora_retrato_64.png",
+      "sheet": "assets/characters/npcs/npc_mail_carrier.png",
+      "portrait": "assets/characters/npcs/npc_mail_carrier_portrait.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -148,7 +148,7 @@
     {
       "id": "npc.customer_01",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_01_homem_negro_barba_oculos.png",
+      "sheet": "assets/characters/customers/npc_customer_01.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -164,7 +164,7 @@
     {
       "id": "npc.customer_02",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_02_mulher_negra_black_power.png",
+      "sheet": "assets/characters/customers/npc_customer_02.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -180,7 +180,7 @@
     {
       "id": "npc.customer_03",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_03_homem_ruivo_bone.png",
+      "sheet": "assets/characters/customers/npc_customer_03.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -196,7 +196,7 @@
     {
       "id": "npc.customer_04",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_04_mulher_asiatica_cabelo_longo.png",
+      "sheet": "assets/characters/customers/npc_customer_04.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -212,7 +212,7 @@
     {
       "id": "npc.customer_05",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_05_homem_asiatico_oculos_escritorio.png",
+      "sheet": "assets/characters/customers/npc_customer_05.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -228,7 +228,7 @@
     {
       "id": "npc.customer_06",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_06_mulher_loira_rabo_esportiva.png",
+      "sheet": "assets/characters/customers/npc_customer_06.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -244,7 +244,7 @@
     {
       "id": "npc.customer_07",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_07_homem_idoso_grisalho_bigode.png",
+      "sheet": "assets/characters/customers/npc_customer_07.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -260,7 +260,7 @@
     {
       "id": "npc.customer_08",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_08_mulher_latina_cacheada.png",
+      "sheet": "assets/characters/customers/npc_customer_08.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -276,7 +276,7 @@
     {
       "id": "npc.customer_09",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_09_homem_pardo_careca_barba_xadrez.png",
+      "sheet": "assets/characters/customers/npc_customer_09.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
@@ -292,7 +292,7 @@
     {
       "id": "npc.customer_10",
       "name": "Cliente",
-      "sheet": "assets/npc/clientes/cliente_10_mulher_hijab_vestido.png",
+      "sheet": "assets/characters/customers/npc_customer_10.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,

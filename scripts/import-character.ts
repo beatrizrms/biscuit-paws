@@ -5,7 +5,7 @@
 import { cpSync, existsSync, readFileSync } from 'node:fs';
 import { allWalkFiles, layerFiles, POSES, type Appearance, type CharacterData } from '../src/core/appearance';
 
-const SRC = 'assets/personagem_principal/personagem_principal';
+const SRC = 'assets/_originais_pacotes/personagem_principal/personagem_principal';
 const data = JSON.parse(readFileSync('data/character.json', 'utf8')) as CharacterData;
 const OUT = `public/${data.basePath}`;
 

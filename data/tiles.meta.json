@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sheet": { "image": "assets/tiles/cat-cafe-tileset.png", "tileSize": 32, "columns": 8, "rows": 11 },
+  "sheet": { "image": "assets/interiors/cafe/tile_cafe.png", "tileSize": 32, "columns": 8, "rows": 11 },
   "_comment": "Nossas decisões sobre cada tile do pacote. solid: bloqueia a personagem. layer: floor (plano, embaixo de tudo), wall (preso à parede), object (y-sort).",
   "tiles": {
     "floor_wood_a":     { "solid": false, "layer": "floor" },

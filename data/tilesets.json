@@ -4,7 +4,7 @@
   "sheets": [
     {
       "id": "street_ground",
-      "image": "assets/street/winter/chao_winter.png",
+      "image": "assets/env/street/winter/tile_street_ground_winter.png",
       "pieces": "chao_winter.json",
       "prefix": "street_",
       "layer": "floor",
@@ -29,7 +29,7 @@
     },
     {
       "id": "street_ground_snow",
-      "image": "assets/street/winter/neve_chao_winter.png",
+      "image": "assets/env/street/winter/tile_street_ground_snow_winter.png",
       "pieces": "neve_chao_winter.json",
       "prefix": "snow_street_",
       "layer": "floor",
@@ -37,7 +37,7 @@
     },
     {
       "id": "street_facades",
-      "image": "assets/street/winter/fachadas_winter.png",
+      "image": "assets/env/street/winter/tile_street_facades_winter.png",
       "pieces": "fachadas_winter.json",
       "prefix": "facade_",
       "layer": "wall",
@@ -45,7 +45,7 @@
     },
     {
       "id": "street_facades_snow",
-      "image": "assets/street/winter/neve_fachadas_winter.png",
+      "image": "assets/env/street/winter/tile_street_facades_snow_winter.png",
       "pieces": "neve_fachadas_winter.json",
       "prefix": "snow_facade_",
       "layer": "wall",
@@ -53,7 +53,7 @@
     },
     {
       "id": "street_props",
-      "image": "assets/street/winter/objetos_winter.png",
+      "image": "assets/env/street/winter/tile_street_props_winter.png",
       "pieces": "objetos_winter.json",
       "prefix": "prop_",
       "layer": "object",
@@ -84,7 +84,7 @@
     },
     {
       "id": "street_props_snow",
-      "image": "assets/street/winter/neve_objetos_winter.png",
+      "image": "assets/env/street/winter/tile_street_props_snow_winter.png",
       "pieces": "neve_objetos_winter.json",
       "prefix": "snow_prop_",
       "layer": "object",
@@ -92,7 +92,7 @@
     },
     {
       "id": "snow_piles",
-      "image": "assets/street/winter/neve_monte_winter.png",
+      "image": "assets/env/street/winter/tile_street_snow_piles_winter.png",
       "pieces": "neve_monte_winter.json",
       "prefix": "snow_",
       "layer": "object",
@@ -100,7 +100,7 @@
     },
     {
       "id": "dirt",
-      "image": "assets/dirt/sujeira_tileset.png",
+      "image": "assets/objects/dirt/tile_dirt.png",
       "pieces": "sujeira_tileset.json",
       "prefix": "dirt_",
       "layer": "floor",
@@ -149,7 +149,7 @@
     },
     {
       "id": "market",
-      "image": "assets/market/mercado_interior_tileset.png",
+      "image": "assets/interiors/market/tile_market.png",
       "pieces": "mercado_interior_tileset.json",
       "prefix": "market_",
       "layer": "object",
@@ -305,7 +305,7 @@
     },
     {
       "id": "equipment",
-      "image": "assets/equipment/equipamentos_spritesheet.png",
+      "image": "assets/objects/equipment/anim_kitchen_equipment.png",
       "pieces": "equipamentos.json",
       "prefix": "eq_",
       "layer": "object",
@@ -320,7 +320,7 @@
     },
     {
       "id": "coffee_maker",
-      "image": "assets/equipment/cafeteira_spritesheet.png",
+      "image": "assets/objects/equipment/anim_coffee_maker.png",
       "pieces": "cafeteira.json",
       "prefix": "eq_",
       "layer": "object",
@@ -335,7 +335,7 @@
     },
     {
       "id": "sink",
-      "image": "assets/equipment/pia_sheet.png",
+      "image": "assets/objects/equipment/anim_sink.png",
       "pieces": "pia.json",
       "prefix": "eq_",
       "layer": "object",
@@ -352,7 +352,7 @@
     },
     {
       "id": "counters",
-      "image": "assets/fluxo/balcoes.png",
+      "image": "assets/objects/furniture/tile_counter_wood.png",
       "pieces": "balcoes.json",
       "prefix": "bar_",
       "layer": "object",

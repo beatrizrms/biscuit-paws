@@ -53,7 +53,7 @@
       "name": "Vassoura",
       "price": 0,
       "kind": "tool",
-      "iconImage": "assets/tools/vassoura_icone.png",
+      "iconImage": "assets/icons/items/icon_broom.png",
       "tags": [
         "tool"
       ]
@@ -63,7 +63,7 @@
       "name": "Chave da padaria",
       "price": 0,
       "kind": "key",
-      "iconImage": "assets/npc/icone_chave.png",
+      "iconImage": "assets/icons/items/icon_key.png",
       "tags": [
         "key"
       ]

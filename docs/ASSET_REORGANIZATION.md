@@ -1,6 +1,6 @@
 # Proposta de reorganização dos assets: Biscuit Paws
 
-> Data: 2026-11-07. **Proposta, nada aplicado.** Base: [ASSET_AUDIT.md](ASSET_AUDIT.md).
+> Data: 2026-11-07. **Aplicado em 2026-11-07** (decisão 046), exceto o passo 2 (IDs `art.*`), que fica para outro pedido. Base: [ASSET_AUDIT.md](ASSET_AUDIT.md).
 > Para aplicar: aprovar este documento (e as decisões da seção 0), salvar o script da seção 6 em `scripts/migrate-assets.ts`, rodar em simulação, revisar, rodar com `--apply`.
 
 ## 0. Decisões antes de aplicar

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "_comment": "Vassoura (pacote vassoura_nova, gerado por IA na paleta Cosy). Quadros 32x32 em linha. O quadro cobre a metade de baixo da personagem (32x64): fica nos pés dela; virada para a esquerda, espelha. use: animação de usar um item da barra (ícone na mão): pegar, levar até o alvo, despejar (ração: grãos caindo) ou dar (petisco). Tempos em ms; grainColor: cor dos grãos (paleta Cosy). Placeholder até existir a pose \"despejar\".",
   "broom": {
-    "image": "assets/tools/vassoura_v2_spritesheet.png",
+    "image": "assets/objects/tools/anim_broom.png",
     "sweepMs": 1500,
     "sweepFps": 6,
     "frames": {

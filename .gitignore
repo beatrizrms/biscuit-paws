@@ -9,6 +9,10 @@ public/assets/
 assets/
 *.png
 *.zip
+*.gif
+*.ogg
+*.mp3
+*.wav
 
 # Gerado por npm run tiles
 data/tiles.json

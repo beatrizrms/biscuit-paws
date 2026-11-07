@@ -1,5 +1,5 @@
 // npm run art: gera as versões "velhas" de tiles do pacote (data/tiles.worn.json)
-// e grava a folha estendida (original + linhas novas) em public/assets/tiles/.
+// e grava a folha estendida (original + linhas novas) em public/assets/interiors/cafe/ (caminhos em data/tiles.meta.json e data/tiles.worn.json).
 // A licença do pacote permite modificar os assets; o resultado continua fora do Git.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';

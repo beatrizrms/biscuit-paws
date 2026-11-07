@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "_comment": "Celular das cenas (pacote celular, gerado por IA na paleta Cosy). A moldura tem a tela transparente: o conteúdo vai por baixo, na área 'screen'.",
-  "frame": "assets/phone/celular_ameixa_tela_transparente.png",
+  "frame": "assets/ui/phone/ui_phone_frame_plum.png",
   "size": [160, 256],
   "screen": { "x": 10, "y": 18, "w": 140, "h": 224 },
-  "status": "assets/phone/status_sinal_wifi_bateria.png",
-  "notification": "assets/phone/notificacao_bolinha.png",
-  "apps": { "classificados": "assets/phone/app_classificados.png" }
+  "status": "assets/ui/phone/ui_phone_status.png",
+  "notification": "assets/ui/phone/ui_phone_notification.png",
+  "apps": { "classificados": "assets/ui/phone/ui_phone_app_classifieds.png" }
 }

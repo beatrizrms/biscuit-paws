@@ -48,17 +48,17 @@
     }
   ],
   "variants": {
-    "biscuit": "assets/cats/biscuit.png",
-    "custard": "assets/cats/custard.png",
-    "domino": "assets/cats/domino.png",
-    "freckle": "assets/cats/freckle.png",
-    "hazel": "assets/cats/hazel.png",
-    "marmalade": "assets/cats/marmalade.png",
-    "midnight": "assets/cats/midnight.png",
-    "misty": "assets/cats/misty.png",
-    "patches": "assets/cats/patches.png",
-    "pebble": "assets/cats/pebble.png",
-    "snowdrop": "assets/cats/snowdrop.png",
-    "toffee": "assets/cats/toffee.png"
+    "biscuit": "assets/characters/cats/cat_biscuit.png",
+    "custard": "assets/characters/cats/cat_custard.png",
+    "domino": "assets/characters/cats/cat_domino.png",
+    "freckle": "assets/characters/cats/cat_freckle.png",
+    "hazel": "assets/characters/cats/cat_hazel.png",
+    "marmalade": "assets/characters/cats/cat_marmalade.png",
+    "midnight": "assets/characters/cats/cat_midnight.png",
+    "misty": "assets/characters/cats/cat_misty.png",
+    "patches": "assets/characters/cats/cat_patches.png",
+    "pebble": "assets/characters/cats/cat_pebble.png",
+    "snowdrop": "assets/characters/cats/cat_snowdrop.png",
+    "toffee": "assets/characters/cats/cat_toffee.png"
   }
 }

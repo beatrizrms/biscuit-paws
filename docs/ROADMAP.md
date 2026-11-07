@@ -18,7 +18,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Dinheiro inicial (`data/economy.json`) e catálogo de móveis com preços (`data/items.json`)
 - [x] Comprar, posicionar (piso, parede, objeto) e recolher móveis
 - [x] Motor da história (`data/story.json`) com metas no diário e falas (`data/dialogue.json`)
-- [x] Primeiro ato: cantinho quente -> lugar para sentar -> visita da Dona Lurdes -> miado lá fora
+- [x] Primeiro ato: cantinho quente -> lugar para sentar -> visita da Dona Neusa -> miado lá fora
 - [x] Save automático (antecipado do Marco 3)
 - [x] Loja começa velha (tiles gerados do pacote) e sem balcão; balcão vendido em peças
 - [x] Pintor: escolher piso e papel de parede (loja velha -> reformada); save v2
@@ -27,7 +27,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Rua do café (inverno) com fachadas, objetos e neve; o jogo começa nela
 - [x] Portas entre a rua e o café; câmera segue a personagem
 - [x] Metas como subconsciente (balão de pensamento, 1ª pessoa)
-- [x] Pintor liberado pela Dona Lurdes; devolução de itens da bolsa
+- [x] Pintor liberado pela Dona Neusa; devolução de itens da bolsa
 - [x] Sujeira no café velho: faxina por clique; manchas e rachaduras saem com a reforma
 - [ ] Outras estações da rua (dados já preparados)
 
@@ -40,7 +40,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Alimentar e primeiro coração
 - [x] Cartão final e fim do dia
 - [x] Dia 2: ligação e visita da Gabi (com o Joca), conjunto de louças
-- [x] Dona Lurdes entra no café (NPC)
+- [x] Dona Neusa entra no café (NPC)
 - [x] Mercado com matéria-prima (café, chá, frutas, despensa); receitas como dados
 - [ ] Preparar bebidas no balcão (receitas)
 - [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)

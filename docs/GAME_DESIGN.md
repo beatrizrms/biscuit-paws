@@ -44,7 +44,7 @@ Textos em `data/cutscenes.json` e `data/dialogue.json`; marcos em `data/story.js
 ## Ato 1 (rascunho)
 1. **Um cantinho quente:** caminha e almofada para o gatinho.
 2. **Um lugar para sentar:** mesa e duas cadeiras.
-3. **Dona Lurdes:** lembra da padaria do seu Antônio, desconfia dos gatos, deixa 50 moedas e indica o sobrinho pintor (libera a reforma).
+3. **Dona Neusa:** lembra da padaria do seu Antônio, desconfia dos gatos, deixa 50 moedas e indica o sobrinho pintor (libera a reforma).
 
 ## Estações (em fases)
 - **Fase 1:** só o inverno natalino (história inicial).

@@ -20,7 +20,7 @@
   },
   "carrier": "npc.mail_carrier",
   "van": {
-    "left": "assets/vehicles/furgao_esquerda.png",
-    "right": "assets/vehicles/furgao_direita.png"
+    "left": "assets/objects/vehicles/obj_van_left.png",
+    "right": "assets/objects/vehicles/obj_van_right.png"
   }
 }

@@ -7,12 +7,12 @@ Estado atual: **Marco 0.5, a chegada.** Você compra a velha padaria vazia (sem 
 
 ## Antes de rodar: a arte
 
-A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`). Copie os arquivos para:
+A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`). Os pacotes ficam intactos em `assets/_originais_pacotes/<pacote>/`; o jogo carrega só `public/assets/`, organizado por função (`env/`, `interiors/`, `objects/`, `characters/`, `ui/`, `icons/`), com nomes no padrão de `docs/ASSET_REORGANIZATION.md`. Copie os arquivos para:
 
 | Arquivo | Destino |
 | --- | --- |
-| `cat-cafe-tileset.png` (pacote Cat Cafe 32x32, pasta `tiles/`) | `public/assets/tiles/cat-cafe-tileset.png` |
-| pacote `personagem_principal` (zip) | `assets/personagem_principal/`, depois rode `npm run character` (copia para `public/assets/characters/player/` e confere os arquivos) |
+| `cat-cafe-tileset.png` (pacote Cat Cafe 32x32, pasta `tiles/`) | `public/assets/interiors/cafe/tile_cafe.png` |
+| pacote `personagem_principal` (zip) | `assets/_originais_pacotes/personagem_principal/`, depois rode `npm run character` (copia para `public/assets/characters/player/` e confere os arquivos) |
 
 ## Comandos
 

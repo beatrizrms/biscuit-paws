@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "_comment": "Ícones 32x32. \"image\": folha padrão (catalogo_compras). \"sheets\": outras folhas (matéria-prima, bebidas); o ícone diz a folha em \"sheet\". Nomes = nomes dos pacotes. Todos gerados por IA na paleta Cosy.",
-  "image": "assets/icons/catalogo_icones.png",
+  "image": "assets/icons/sheets/icon_sheet_shop.png",
   "tileSize": 32,
   "columns": 5,
   "icons": {
@@ -383,19 +383,19 @@
   },
   "sheets": {
     "materia_prima": {
-      "image": "assets/icons/materia_prima_tileset.png",
+      "image": "assets/icons/sheets/icon_sheet_ingredients.png",
       "columns": 6
     },
     "bebidas": {
-      "image": "assets/icons/itens_bebidas_tileset.png",
+      "image": "assets/icons/sheets/icon_sheet_drinks.png",
       "columns": 6
     },
     "louca": {
-      "image": "assets/icons/louca_tileset.png",
+      "image": "assets/icons/sheets/icon_sheet_dishes.png",
       "columns": 8
     },
     "fluxo": {
-      "image": "assets/icons/fluxo_icones.png",
+      "image": "assets/icons/sheets/icon_sheet_food.png",
       "columns": 13
     }
   }
