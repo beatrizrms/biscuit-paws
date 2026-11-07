@@ -5,6 +5,7 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
+import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
@@ -28,6 +29,10 @@ export interface ItemDef {
   icon?: string;
   /** Imagem própria do ícone (ex.: a chave), quando não está na folha de ícones. */
   iconImage?: string;
+  /** Ingredientes: doses que um pacote rende (padrão 1). */
+  servings?: number;
+  /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
+  dishes?: Partial<Record<Vessel, number>>;
   tags: string[];
   deprecated?: boolean;
 }
@@ -102,6 +107,10 @@ export type Condition =
   | { clock: { gte: string } }
   /** A personagem está neste mapa agora. */
   | { location: string }
+  /** Receitas no quadro do cardápio. */
+  | { menu: { gte: number } }
+  /** Clientes atendidos (no jogo todo). */
+  | { served: { gte: number } }
   /** Já está com ela (caixa aberta: na bolsa ou posicionado). Encomendas não contam. */
   | { received: string }
   /** Entregas deste item que já chegaram a uma etapa ("door": na porta; "inside": dentro do café). Abertas contam. */
@@ -221,6 +230,8 @@ export interface Content {
   scripts: Record<string, { steps: ScriptStep[] }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
+  service: ServiceConfig;
+  carry: CarryConfig;
   delivery: DeliveryConfig;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
@@ -228,18 +239,6 @@ export interface Content {
   news: NewsData;
 }
 
-/** Receita de bebida (data/recipes.json). */
-export interface RecipeDef {
-  id: string;
-  name: string;
-  icon: string;
-  ingredients: Record<string, number>;
-}
-
-export interface RecipesData {
-  schemaVersion: 1;
-  recipes: RecipeDef[];
-}
 
 export interface RawContent {
   catalog: TileCatalog;
@@ -260,6 +259,8 @@ export interface RawContent {
   scripts: ScriptsData;
   dayNight: DayNightConfig;
   recipes: RecipesData;
+  service: ServiceConfig;
+  carry: CarryConfig;
   emotes: { frames: Record<string, unknown> };
   jobs: JobsData;
   news: NewsData;
@@ -296,7 +297,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -474,14 +475,11 @@ export function validateContent(raw: RawContent): string[] {
     if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
     if (item.icon && !raw.icons.icons[item.icon]) err(`items: "${item.id}" usa ícone inexistente "${item.icon}"`);
   }
-  for (const r of raw.recipes.recipes) {
-    if (!r.id.startsWith('recipe.')) err(`recipes: id "${r.id}" deve começar com "recipe."`);
-    if (!raw.icons.icons[r.icon]) err(`recipes: "${r.id}" usa ícone inexistente "${r.icon}"`);
-    if (Object.keys(r.ingredients).length === 0) err(`recipes: "${r.id}" sem ingredientes`);
-    for (const [item, n] of Object.entries(r.ingredients)) {
-      if (!itemIds.has(item)) err(`recipes: "${r.id}" usa item inexistente "${item}"`);
-      if (!Number.isInteger(n) || n < 1) err(`recipes: "${r.id}" quantidade inválida de "${item}"`);
-    }
+  errors.push(...validateRecipes(raw.recipes, raw.service, raw.carry, { items: itemIds, icons: new Set(Object.keys(raw.icons.icons)), itemTags }));
+  for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
+  checkCondition('service: enabledWhen', raw.service.enabledWhen);
+  for (const item of raw.items.items) {
+    if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
   }
   for (const [id, icon] of Object.entries(raw.icons.icons)) {
     if (icon.sheet && !raw.icons.sheets?.[icon.sheet]) err(`icons: "${id}" usa folha inexistente "${icon.sheet}"`);

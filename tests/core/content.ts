@@ -28,6 +28,8 @@ export function rawContent(): RawContent {
     scripts: read('data/scripts.json'),
     dayNight: read('data/daynight.json'),
     recipes: read('data/recipes.json'),
+    service: read('data/service.json'),
+    carry: read('data/carry.json'),
     emotes: read('data/emotes.json'),
     jobs: read('data/jobs.json'),
     news: read('data/news.json'),

@@ -275,7 +275,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Precisava sim. Boa sorte no novo empreendimento! Quero ser a primeira cliente."
+          "text": "Precisava sim. Boa sorte no novo empreendimento! Volto pra tomar um café quando abrir."
         },
         {
           "speaker": "Gabi",
@@ -333,6 +333,18 @@
         {
           "speaker": "Você",
           "text": "Mesas e cadeiras. Já parece um café de verdade."
+        }
+      ]
+    },
+    "dlg.first_customer_done": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Meu primeiro cliente! E ele foi embora sorrindo."
+        },
+        {
+          "speaker": "Você",
+          "text": "Agora é oficial: o café está aberto. Das 9h às 18h, sempre que tiver algo no cardápio."
         }
       ]
     }

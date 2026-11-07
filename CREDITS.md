@@ -7,7 +7,7 @@
 
 - Rua e vila (4 estações) e sujeira do café abandonado: arte gerada por IA na paleta do Cat Cafe (uso declarado na página da Steam).
 - Cosy Cats 32x32, Leckie Pixel Studio (leckie1989): https://leckie1989.itch.io/cosy-cats-32x32-animated-cat-sprites
-- NPCs (corretora, Gabi, Joca, Dona Neusa, entregadora), furgão do correio, celular, catálogo de compras, mercado, matéria-prima, bebidas e vassoura: arte gerada por IA na paleta Cosy (uso declarado na página da Steam).
+- NPCs (corretora, Gabi, Joca, Dona Neusa, entregadora), furgão do correio, equipamentos de cozinha, celular, catálogo de compras, mercado, matéria-prima, bebidas e vassoura: arte gerada por IA na paleta Cosy (uso declarado na página da Steam).
 
 ## Planejados (marcos futuros)
 - Cosy UI Kit: https://leckie1989.itch.io/cosy-ui-kit-soft-pixel-interface

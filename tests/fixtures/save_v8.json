@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 8,
+  "savedAt": "2026-11-12T14:00:00.000Z",
+  "day": 3,
+  "money": 100,
+  "flags": {
+    "bought.old_bakery": true,
+    "has.cat": true,
+    "dishes.stocked.item.dishes_set": true
+  },
+  "inventory": {
+    "item.key_bakery": 1,
+    "item.parcel": 1,
+    "item.dishes_set": 1,
+    "item.coffee_ground": 1
+  },
+  "placed": [],
+  "nextUid": 1,
+  "story": {
+    "completed": [
+      "story.prologue_thoughts",
+      "story.intro",
+      "story.enter_bakery",
+      "story.cleanup",
+      "story.meow",
+      "story.cat_named"
+    ],
+    "completedOn": {
+      "story.cat_named": 1
+    }
+  },
+  "cats": {
+    "cat.first_stray": {
+      "sheltered": true,
+      "name": "Pipoca",
+      "map": "map.cafe_main"
+    }
+  },
+  "relationships": {
+    "player|cat.first_stray": 120
+  },
+  "finishes": {},
+  "location": "map.street",
+  "visited": [
+    "map.street",
+    "map.cafe_main"
+  ],
+  "cleaned": [
+    "*"
+  ],
+  "time": 600,
+  "timers": {
+    "gabi.arrival": 5010
+  },
+  "today": {
+    "earned": 25,
+    "jobs": 1
+  },
+  "jobs": {
+    "active": [
+      "job.delivery",
+      "job.removed_from_game"
+    ],
+    "progress": {
+      "job.delivery": [
+        "pt.parcel_pickup"
+      ]
+    },
+    "doneOn": {
+      "job.market_shelves": 3
+    }
+  },
+  "deliveries": [
+    {
+      "uid": "d40",
+      "item": "item.table_round",
+      "stage": "door",
+      "arrivesAt": 4980
+    },
+    {
+      "uid": "d41",
+      "item": "item.cactus",
+      "stage": "shipping",
+      "arrivesAt": 5020
+    },
+    {
+      "uid": "d42",
+      "item": "item.lamp_removed_from_game",
+      "stage": "inside",
+      "arrivesAt": 4920
+    }
+  ],
+  "menu": [
+    "recipe.black_coffee",
+    "recipe.removed_from_game"
+  ],
+  "pantryOpen": {
+    "item.coffee_ground": 7
+  },
+  "dishes": {
+    "cup": 1,
+    "glass": 2,
+    "plate": 2
+  },
+  "hands": [
+    {
+      "kind": "dirty",
+      "vessel": "cup"
+    }
+  ],
+  "surfaces": [
+    {
+      "at": [
+        3,
+        4
+      ],
+      "item": {
+        "kind": "drink",
+        "recipe": "recipe.black_coffee",
+        "vessel": "cup"
+      }
+    },
+    {
+      "at": [
+        4,
+        4
+      ],
+      "item": {
+        "kind": "drink",
+        "recipe": "recipe.removed_from_game",
+        "vessel": "cup"
+      }
+    }
+  ],
+  "service": {
+    "customers": [
+      {
+        "id": "c3",
+        "look": 1,
+        "stage": "waiting",
+        "kind": "standing",
+        "spot": [
+          3,
+          5
+        ],
+        "dishAt": [
+          3,
+          4
+        ],
+        "recipe": "recipe.black_coffee",
+        "until": 5020
+      }
+    ],
+    "preps": [],
+    "nextCustomerAt": 5040,
+    "nextCustomerId": 4,
+    "served": 2
+  }
+}

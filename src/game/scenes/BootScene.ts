@@ -6,6 +6,7 @@ import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 import { catTexture } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
+import { iconSheetKey } from '../icons';
 
 export const TEXTURE = { player: 'player' } as const;
 
@@ -31,6 +32,10 @@ export class BootScene extends Phaser.Scene {
     this.load.image('broom', broom.image);
     this.load.image('emotes', emotes.image);
     this.load.image('van_left', content.delivery.van.left);
+    // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.
+    this.load.image(iconSheetKey(), content.icons.image);
+    for (const [id, sheet] of Object.entries(content.icons.sheets ?? {})) this.load.image(iconSheetKey(id), sheet.image);
+    this.load.spritesheet('equipment', 'assets/equipment/equipamentos_spritesheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.image('van_right', content.delivery.van.right);
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,

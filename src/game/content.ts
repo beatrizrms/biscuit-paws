@@ -19,6 +19,8 @@ import npcsJson from '../../data/npcs.json';
 import scriptsJson from '../../data/scripts.json';
 import dayNightJson from '../../data/daynight.json';
 import recipesJson from '../../data/recipes.json';
+import serviceJson from '../../data/service.json';
+import carryJson from '../../data/carry.json';
 import emotesJson from '../../data/emotes.json';
 import jobsJson from '../../data/jobs.json';
 import newsJson from '../../data/news.json';
@@ -47,6 +49,8 @@ export const content: Content = buildContent({
   scripts: scriptsJson,
   dayNight: dayNightJson,
   recipes: recipesJson,
+  service: serviceJson,
+  carry: carryJson,
   emotes: emotesJson,
   jobs: jobsJson,
   news: newsJson,

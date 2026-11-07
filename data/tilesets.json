@@ -302,6 +302,22 @@
           "solid": true
         }
       }
+    },
+    {
+      "id": "equipment",
+      "image": "assets/equipment/equipamentos_spritesheet.png",
+      "pieces": "equipamentos.json",
+      "prefix": "eq_",
+      "layer": "object",
+      "solid": true
+    },
+    {
+      "id": "placeholders",
+      "image": "assets/placeholders/placeholders.png",
+      "pieces": "placeholders.json",
+      "prefix": "ph_",
+      "layer": "object",
+      "solid": true
     }
   ]
 }

@@ -172,7 +172,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   // Na rua o catálogo não abre (o roteiro da corretora termina dentro do café: volta para a rua).
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.street'));
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog:not(.shop):not(.news)')).not.toHaveClass(/open/);
+  await expect(page.locator('section.catalog[aria-label]')).not.toHaveClass(/open/);
   await expect(page.locator('.toast')).toContainText('lá dentro');
   await enterCafe(page);
   await cleanCafe(page);
@@ -216,7 +216,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('Escape');
   await expect(page.locator('.hint')).toContainText('catálogo'); // voltou a andar
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog:not(.shop):not(.news)')).toHaveClass(/open/);
+  await expect(page.locator('section.catalog[aria-label]')).toHaveClass(/open/);
   await expect(page.locator('[data-item="item.water_bowl"] .owned')).toBeVisible();
 });
 
@@ -439,4 +439,59 @@ test('corretora: aparece na rua, leva para dentro e a chave aparece no centro da
   const key = await page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { inventory: Record<string, number> } } } }).__biscuitPaws.cafe.sessionState().inventory['item.key_bakery']);
   expect(key).toBe(1);
   await expect(page.locator('.hud-goals')).toContainText('Uma boa faxina');
+});
+
+test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suja e pia', async ({ page }) => {
+  test.setTimeout(90_000);
+  await openGame(page);
+  await skipDialogue(page);
+  // Atalho: tudo até as cadeiras, com balcão, cafeteira, mesa, cadeira, louça da Gabi e café.
+  await page.evaluate(() => {
+    type W = { session: { content: { story: { beats: { id: string }[] } }; state: Record<string, unknown> & { story: { completed: string[] }; flags: Record<string, boolean>; cats: Record<string, unknown>; money: number; time: number; cleaned: string[] }; buy(id: string): unknown; place(id: string, at: [number, number]): unknown; receiveItem(id: string): void }; goTo(m: string, at?: [number, number]): void };
+    const w = (window as unknown as { __biscuitPaws: { cafe: W } }).__biscuitPaws.cafe;
+    const s = w.session;
+    const beats = s.content.story.beats;
+    s.state.story.completed = beats.slice(0, beats.findIndex((b) => b.id === 'story.chairs') + 1).map((b) => b.id);
+    Object.assign(s.state.flags, { 'prologue.done': true, 'has.cat': true, 'seen.scr.gabi_visit': true });
+    s.state.cleaned = ['*'];
+    s.state.money = 400;
+    s.state.time = 9 * 60;
+    for (const [id, at] of [['item.counter_single', [4, 5]], ['item.coffee_machine', [7, 5]], ['item.table_round', [10, 8]], ['item.chair_front', [11, 8]]] as const) {
+      s.buy(id);
+      s.place(id, [at[0], at[1]]);
+    }
+    s.receiveItem('item.dishes_set');
+    s.buy('item.coffee_ground');
+    s.buy('item.paper_filter');
+    w.goTo('map.cafe_main', [6, 7]);
+  });
+  await skipDialogue(page);
+  await expect(page.locator('.hud-goals')).toContainText('O primeiro cliente');
+  await page.keyboard.press('m');
+  await page.locator('[data-recipe="recipe.black_coffee"]').click();
+  await page.keyboard.press('m');
+  const advance = (m: number) =>
+    page.evaluate((m) => {
+      const s = (window as unknown as { __biscuitPaws: { cafe: { session: { tickClock(x: number): void; content: { dayNight: { minutesPerSecond: number } } } } } }).__biscuitPaws.cafe.session;
+      for (let i = 0; i < m; i++) s.tickClock(1 / s.content.dayNight.minutesPerSecond);
+    }, m);
+  await advance(6);
+  await expect(page.locator('.hud-goals')).toContainText('Atendimento: 1');
+  await teleport(page, 7, 6);
+  await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('Preparando');
+  await advance(11);
+  await page.keyboard.press('e');
+  await expect(page.locator('.hud-goals')).toContainText('Nas mãos: Café preto');
+  await teleport(page, 5, 6);
+  await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('+12');
+  await skipDialogue(page);
+  await advance(22);
+  await teleport(page, 4, 6);
+  await page.keyboard.press('e');
+  await expect(page.locator('.hud-goals')).toContainText('Xícara suja');
+  await teleport(page, 1, 4);
+  await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('Louça lavada');
 });

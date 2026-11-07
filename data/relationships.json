@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
-  "_comment": "Corações: pontos por coração e máximo; feedPoints = pontos ao comer da tigela. Serve para gatos, vizinhos e clientes.",
+  "_comment": "Corações: pontos por coração e máximo; feedPoints = pontos ao comer da tigela; treatPoints = pontos por petisco dado na mão. Serve para gatos, vizinhos e clientes.",
   "pointsPerHeart": 100,
   "maxHearts": 10,
-  "feedPoints": 100
+  "feedPoints": 100,
+  "treatPoints": 40
 }

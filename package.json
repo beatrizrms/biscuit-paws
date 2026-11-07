@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "tiles": "tsx scripts/build-tiles.ts",
-    "art": "tsx scripts/build-worn-tiles.ts",
+    "art": "tsx scripts/build-worn-tiles.ts && tsx scripts/build-placeholders.ts",
     "predev": "npm run tiles && npm run art",
     "dev": "vite",
     "prebuild": "npm run check && npm run art",

@@ -1,11 +1,12 @@
 // Save versionado com migrações. Puro: sem Phaser, DOM ou window.
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
+import type { HandItem } from './carry';
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 7;
+export const SAVE_SCHEMA_VERSION = 8;
 
-export interface SaveV7 extends GameState {
-  schemaVersion: 7;
+export interface SaveV8 extends GameState {
+  schemaVersion: 8;
   savedAt: string;
 }
 
@@ -36,10 +37,21 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   }),
   /** v6 -> v7: compras do catálogo chegam pelo correio. Saves antigos não têm entregas. */
   6: (save) => ({ ...save, schemaVersion: 7, deliveries: [] }),
+  /** v7 -> v8: cardápio, doses abertas, louça, mãos, superfícies e atendimento. A louça da Gabi entra no estoque ao abrir o jogo. */
+  7: (save) => ({
+    ...save,
+    schemaVersion: 8,
+    menu: [],
+    pantryOpen: {},
+    dishes: { cup: 0, glass: 0, plate: 0 },
+    hands: [],
+    surfaces: [],
+    service: { customers: [], preps: [], nextCustomerAt: null, nextCustomerId: 1, served: 0 },
+  }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV7 = { schemaVersion: 7, savedAt: now.toISOString(), ...state };
+  const save: SaveV8 = { schemaVersion: 8, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -56,6 +68,7 @@ export interface KnownIds {
   maps: ReadonlySet<string>;
   cats: ReadonlySet<string>;
   jobs: ReadonlySet<string>;
+  recipes: ReadonlySet<string>;
   /** Onde começar se o local salvo não existir mais. */
   startMap: string;
 }
@@ -73,7 +86,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV7>;
+  const v2 = save as unknown as Partial<SaveV8>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -81,6 +94,9 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     return false;
   };
 
+  // Bebida de receita que sumiu ou item que sumiu: o objeto da mão/superfície é ignorado.
+  const knownHand = (h: HandItem) =>
+    h.kind === 'item' ? known.items.has(h.item) : h.kind === 'drink' ? known.recipes.has(h.recipe) : true;
   const inventory: Record<string, number> = {};
   for (const [id, qty] of Object.entries(v2.inventory ?? {})) {
     if (knownItem(id, 'inventário') && qty > 0) inventory[id] = qty;
@@ -125,6 +141,22 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       doneOn: Object.fromEntries(Object.entries(v2.jobs?.doneOn ?? {}).filter(([id]) => known.jobs.has(id))),
     },
     deliveries: (v2.deliveries ?? []).filter((d) => knownItem(d.item, `entrega ${d.uid}`)).map((d) => ({ ...d })),
+    menu: (v2.menu ?? []).filter((id) => {
+      if (known.recipes.has(id)) return true;
+      warnings.push(`cardápio: receita "${id}" não existe mais; saiu do quadro`);
+      return false;
+    }),
+    pantryOpen: Object.fromEntries(Object.entries(v2.pantryOpen ?? {}).filter(([id]) => known.items.has(id))),
+    dishes: { cup: v2.dishes?.cup ?? 0, glass: v2.dishes?.glass ?? 0, plate: v2.dishes?.plate ?? 0 },
+    hands: (v2.hands ?? []).filter((h) => knownHand(h)),
+    surfaces: (v2.surfaces ?? []).filter((s) => knownHand(s.item)).map((s) => ({ at: [s.at[0], s.at[1]] as [number, number], item: s.item })),
+    service: {
+      customers: (v2.service?.customers ?? []).filter((c) => !c.recipe || known.recipes.has(c.recipe)),
+      preps: (v2.service?.preps ?? []).filter((p) => known.recipes.has(p.recipe)),
+      nextCustomerAt: v2.service?.nextCustomerAt ?? null,
+      nextCustomerId: v2.service?.nextCustomerId ?? 1,
+      served: v2.service?.served ?? 0,
+    },
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
@@ -138,6 +170,7 @@ export function knownIds(content: {
   maps: Record<string, unknown>;
   cats: Record<string, unknown>;
   jobs: Record<string, unknown>;
+  recipes: Record<string, unknown>;
   world: { startMap: string };
 }): KnownIds {
   return {
@@ -147,6 +180,7 @@ export function knownIds(content: {
     maps: new Set(Object.keys(content.maps)),
     cats: new Set(Object.keys(content.cats)),
     jobs: new Set(Object.keys(content.jobs)),
+    recipes: new Set(Object.keys(content.recipes)),
     startMap: content.world.startMap,
   };
 }

@@ -1,0 +1,42 @@
+{
+ "tileSize": 32,
+ "columns": 6,
+ "rows": 5,
+ "pieces": {
+  "bule": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 0
+  },
+  "liquidificador": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 6
+  },
+  "espremedor": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 12
+  },
+  "fogao": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 18
+  },
+  "forno": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 24
+  }
+ }
+}

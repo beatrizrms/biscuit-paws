@@ -27,6 +27,14 @@ export interface GameEvents {
   'script.requested': { scriptId: string };
   'script.finished': { scriptId: string };
   'job.accepted': { jobId: string };
+  'menu.changed': { menu: string[] };
+  'prep.started': { stationUid: string; recipeId: string };
+  'prep.ready': { stationUid: string; recipeId: string };
+  'customer.arrived': { customerId: string; recipeId: string | null };
+  'customer.served': { customerId: string; recipeId: string; price: number };
+  'customer.left': { customerId: string; happy: boolean };
+  'hands.changed': { count: number };
+  'dish.washed': { count: number };
   'delivery.ordered': { deliveryId: string; itemId: string; arrivesAt: number };
   'delivery.arrived': { deliveryId: string; itemId: string };
   'delivery.picked_up': { count: number };

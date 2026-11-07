@@ -67,6 +67,7 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 ### Mudar a história, as falas, os preços
 - `data/story.json`: marcos da história e metas do diário (condição -> efeito).
 - `data/dialogue.json`: falas.
+- `data/recipes.json`, `data/service.json`, `data/carry.json`: receitas, atendimento e mãos (tecla M: quadro do cardápio; I: mochila).
 - `data/delivery.json`: correio (compras do catálogo chegam em 1h na porta do café).
 - `data/jobs.json` e `data/news.json`: pedidos da vila (bicos) e o jornal "Vila Hoje" do celular (tecla P).
 - `data/daynight.json`: cores do dia e da noite por hora e estação (o mapa diz se é `indoor` e onde ficam as `lights`).

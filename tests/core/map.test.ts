@@ -28,11 +28,12 @@ describe('cafe_main.json', () => {
     expect(cafe.size).toEqual({ cols: 16, rows: 11 });
   });
 
-  it('é a loja velha e vazia: só paredes sólidas, nenhum móvel nem balcão', () => {
+  it('é a loja velha e vazia: só paredes sólidas e a pia velha no canto, nenhum móvel nem balcão', () => {
     const { solid } = resolveMap(cafe, catalog);
     for (let r = 0; r <= 2; r++) expect(solid[r]!.every(Boolean)).toBe(true);
-    for (let r = 3; r < 11; r++) expect(solid[r]!.some(Boolean)).toBe(false);
-    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat']));
+    expect(solid[3]![0]).toBe(true); // a pia
+    for (let r = 3; r < 11; r++) expect(solid[r]!.some((s, c) => s && !(r === 3 && c === 0))).toBe(false);
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'ph_pia']));
     expect(Object.values(cafe.legend).every((name) => name.endsWith('_old'))).toBe(true);
   });
 

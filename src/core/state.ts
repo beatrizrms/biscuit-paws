@@ -1,5 +1,8 @@
 // Estado do jogo: só IDs, números, booleanos e textos simples (é o que vai para o save).
 // Puro: sem Phaser, DOM ou window.
+import type { HandItem, SurfaceItem } from './carry';
+import type { Vessel } from './recipes';
+import { newServiceState, type ServiceState } from './service';
 import type { Cell } from './map';
 
 export interface PlacedItem {
@@ -41,6 +44,18 @@ export interface GameState {
   jobs: { active: string[]; progress: Record<string, string[]>; doneOn: Record<string, number> };
   /** Compras do catálogo pelo correio (v7): a caminho, na porta, nas mãos dela ou dentro do café. */
   deliveries: Delivery[];
+  /** Quadro do cardápio (v8): receitas, na ordem dos slots. */
+  menu: string[];
+  /** Doses que sobraram do pacote aberto de cada ingrediente (v8). Os fechados ficam em inventory. */
+  pantryOpen: Record<string, number>;
+  /** Louça limpa no estoque (v8): xícaras, copos, pratos. A suja está nas mãos ou nas superfícies. */
+  dishes: Record<Vessel, number>;
+  /** O que está nas mãos (v8). */
+  hands: HandItem[];
+  /** O que foi deixado em balcões, mesas, equipamentos ou no chão do café (v8). */
+  surfaces: SurfaceItem[];
+  /** Atendimento (v8): clientes, preparos e o total atendido. */
+  service: ServiceState;
 }
 
 /** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
@@ -89,6 +104,12 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     today: { earned: 0, jobs: 0 },
     jobs: { active: [], progress: {}, doneOn: {} },
     deliveries: [],
+    menu: [],
+    pantryOpen: {},
+    dishes: { cup: 0, glass: 0, plate: 0 },
+    hands: [],
+    surfaces: [],
+    service: newServiceState(),
   };
 }
 

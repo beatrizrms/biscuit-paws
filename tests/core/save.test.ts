@@ -140,6 +140,26 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/item.lamp_removed_from_game/);
   });
 
+  it('save_v7 migra para v8 sem cardápio, mãos vazias e atendimento zerado', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v7.json', 'utf8'), known);
+    expect(state.menu).toEqual([]);
+    expect(state.hands).toEqual([]);
+    expect(state.dishes).toEqual({ cup: 0, glass: 0, plate: 0 });
+    expect(state.service.customers).toEqual([]);
+  });
+
+  it('save_v8: guarda cardápio, doses, louça, mãos, superfícies e clientes; receita que sumiu é ignorada', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v8.json', 'utf8'), known);
+    expect(state.menu).toEqual(['recipe.black_coffee']);
+    expect(state.pantryOpen).toEqual({ 'item.coffee_ground': 7 });
+    expect(state.dishes).toEqual({ cup: 1, glass: 2, plate: 2 });
+    expect(state.hands).toEqual([{ kind: 'dirty', vessel: 'cup' }]);
+    expect(state.surfaces).toHaveLength(1);
+    expect(state.service.customers.map((c) => c.id)).toEqual(['c3']);
+    expect(state.service.served).toBe(2);
+    expect(warnings.join()).toMatch(/recipe.removed_from_game/);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

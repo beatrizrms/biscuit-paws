@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Atendimento. menuSlots: itens no quadro. maxCustomers: teto (a louça que não está suja também limita). enabledWhen: quando entram clientes (depois das cadeiras, com cafeteira, mesa e cadeira; depois do primeiro cliente, flag cafe.open). queue: fila na entrada. sink: pia. equipment: chave -> tag do móvel. Clientes provisórios: o sprite da personagem tingido com customerTints.",
+  "menuSlots": 4,
+  "maxCustomers": 6,
+  "open": {
+    "from": "09:00",
+    "until": "18:00"
+  },
+  "firstArrivalMinutes": 5,
+  "arrivalEveryMinutes": [
+    25,
+    50
+  ],
+  "patienceMinutes": 90,
+  "consumeMinutes": {
+    "standing": 20,
+    "table": 40
+  },
+  "enabledWhen": {
+    "any": [
+      {
+        "flag": "cafe.open"
+      },
+      {
+        "all": [
+          {
+            "beat": "story.chairs"
+          },
+          {
+            "placed": "item.coffee_machine"
+          },
+          {
+            "placedTag": "table"
+          },
+          {
+            "placedTag": "chair"
+          }
+        ]
+      }
+    ]
+  },
+  "queue": [
+    [
+      13,
+      5
+    ],
+    [
+      12,
+      5
+    ]
+  ],
+  "sink": [
+    0,
+    3
+  ],
+  "equipment": {
+    "coffee_machine": {
+      "name": "Cafeteira",
+      "tag": "coffee_machine"
+    },
+    "teapot": {
+      "name": "Bule",
+      "tag": "teapot"
+    },
+    "blender": {
+      "name": "Liquidificador",
+      "tag": "blender"
+    }
+  },
+  "surfaceTags": [
+    "bar",
+    "table"
+  ],
+  "standingTag": "bar",
+  "tableTag": "table",
+  "chairTag": "chair",
+  "vessels": {
+    "cup": {
+      "name": "Xícara",
+      "icon": "cafe_preto"
+    },
+    "glass": {
+      "name": "Copo",
+      "icon": "suco_laranja"
+    },
+    "plate": {
+      "name": "Prato",
+      "icon": "caixa_presente_laco"
+    }
+  },
+  "customerTints": [
+    "#f6c6c6",
+    "#c6dcf6",
+    "#cfe9c6",
+    "#f3e0b0",
+    "#dcc8f0"
+  ]
+}

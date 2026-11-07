@@ -7,6 +7,8 @@ import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
+import { MenuBoardPanel } from './MenuBoardPanel';
+import { BackpackPanel, handItemName } from './BackpackPanel';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -38,6 +40,8 @@ export class GameUi {
   private naming!: NamingBox;
   private shop!: ShopPanel;
   private news!: NewsPanel;
+  private menuBoard!: MenuBoardPanel;
+  private backpack!: BackpackPanel;
   /** Caixas que já chegaram mas a entregadora ainda está trazendo (a cena avisa). */
   private parcelsOnTheWay = 0;
   /** Cenas pedidas enquanto uma fala estava aberta: tocam quando a fala acabar. */
@@ -94,6 +98,9 @@ export class GameUi {
     this.cutscene = new CutsceneView(root, session, afterOverlay);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.bought), (reason) => this.problem(reason as keyof typeof uiText.problems));
+    const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
+    this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
+    this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem);
     this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
@@ -105,6 +112,13 @@ export class GameUi {
       if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
+    const s = uiText.service;
+    const recipeName = (id: string) => content.recipes[id]?.name ?? '';
+    bus.on('prep.started', ({ recipeId }) => this.toast(s.prepStarted.replace('{name}', recipeName(recipeId))));
+    bus.on('prep.ready', ({ recipeId }) => this.toast(s.prepReady.replace('{name}', recipeName(recipeId))));
+    bus.on('customer.served', ({ recipeId, price }) => this.toast(s.served.replace('{price}', String(price)).replace('{name}', recipeName(recipeId))));
+    bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
+    bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
@@ -115,7 +129,7 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.reveal !== null;
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.reveal !== null;
   }
 
   /** O relógio para só em falas, cenas, caixa de nome e transições (menus não param o tempo). */
@@ -188,6 +202,11 @@ export class GameUi {
       const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
       items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
+    const sv = this.session.service;
+    if (sv.isOpen()) {
+      items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity()))}</span></li>`);
+    }
+    for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h)))}</span></li>`);
     const d = uiText.delivery;
     const next = this.session.nextArrival();
     if (next !== undefined) {
@@ -295,6 +314,25 @@ export class GameUi {
   closeShop(): void {
     this.shop.close();
     this.news.close();
+    this.menuBoard.close();
+    this.backpack.close();
+  }
+
+  /** Quadro do cardápio (M) e mochila (I): abre um, fecha os outros. */
+  openMenuBoard(): void {
+    this.closeCatalog();
+    this.closeShop();
+    this.menuBoard.show();
+  }
+
+  openBackpack(): void {
+    this.closeCatalog();
+    this.closeShop();
+    this.backpack.show();
+  }
+
+  isPanelOpen(): boolean {
+    return this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen();
   }
 
   /** A entregadora ainda está trazendo estas caixas (o balão só conta as que já estão na porta). */

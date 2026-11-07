@@ -145,3 +145,7 @@ Consequência:
 ## 037. Compras do catálogo chegam pelo correio (nov/2026)
 Motivo: pedido da desenvolvedora; comprar e posicionar na hora não combinava com "comprando online".
 Consequência: `data/delivery.json`; o catálogo encomenda (1h, das 9h às 18h, no máximo 3 caixas a caminho ou na porta). O furgão e a entregadora (pacote `correio`, gerado por IA na paleta Cosy; a folha veio ampliada 4x e o furgão 2x, reduzidos por amostragem) deixam as caixas empilhadas na porta; ela pega, leva para dentro e abre uma de cada vez. A Dona Neusa vem quando a caixa da cafeteira entra no café; a Gabi liga quando as duas mesas chegam na porta. Condições `received`, `delivery`, `deliveryTag`; `owned` conta encomendas. Save v7.
+
+## 038. Atendimento, Fase 1: cardápio, mãos e louça (nov/2026)
+Motivo: pedido da desenvolvedora (cardápio e itens carregáveis, em duas fases).
+Consequência: `src/core/recipes.ts` (tipos e validação), `carry.ts` (mãos), `service.ts` (CafeService: cardápio, pedidos, preparo, louça, clientes; puro, com RNG com semente). Chá com bule e suco com liquidificador (pacote `equipamentos`, gerado por IA na paleta Cosy, 6 quadros animados); pia é um placeholder gerado por código (`npm run art`). A louça da Gabi são 6 peças no total. O primeiro cliente só vem depois das cadeiras, com cafeteira, mesa e cadeira; a quest "O primeiro cliente" abre o café (`cafe.open`). Clientes provisórios: o sprite da personagem tingido. Doses por pacote (`servings`). Save v8.

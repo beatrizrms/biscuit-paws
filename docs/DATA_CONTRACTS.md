@@ -348,7 +348,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio). Fixtures: `tests/fixtures/save_v1.json` a `save_v7.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento). Fixtures: `tests/fixtures/save_v1.json` a `save_v8.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.
@@ -417,3 +417,33 @@ Depois do prólogo, o balão mostra "hoje": comida para cada gato do café (uma 
 ```
 
 Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o furgão e a entregadora aparecem se ela estiver na rua). Etapas: `shipping` -> `door` (E perto da pilha: pega todas) -> `carried` (caixas na cabeça) -> `inside` (ao entrar no café) -> abrir (E na pilha do salão): o item vai para a bolsa e, se for móvel, já para a mão. Compras no caixa do mercado continuam na hora.
+
+## Atendimento (Fase 1): receitas, cardápio, mãos e louça
+
+`data/recipes.json` (schemaVersion 2):
+
+```jsonc
+{
+  "id": "recipe.black_coffee", "name": "Café preto", "icon": "cafe_preto",
+  "ingredients": { "item.coffee_ground": 1, "item.paper_filter": 1 },   // doses
+  "equipment": "coffee_machine",        // chave em service.json: equipment (cafeteira, bule, liquidificador)
+  "vessel": "cup",                      // cup (xícara), glass (copo), plate (prato)
+  "service": "standing",                // standing: em pé no balcão (xícara/copo); table: mesa + cadeira + prato
+  "prepMinutes": 10, "price": 12,
+  "unlock": { "flag": "recipe.cafe_latte" }   // opcional: condição para aparecer no quadro
+}
+```
+
+`data/service.json`: `menuSlots` (4), `maxCustomers` (6), horário (`open`), chegada (`firstArrivalMinutes`, `arrivalEveryMinutes`), `patienceMinutes`, `consumeMinutes`, `enabledWhen` (condição: depois das cadeiras, com cafeteira + mesa + cadeira; ou `cafe.open`), `queue` (células da fila), `sink` (pia), `equipment` (chave -> tag do móvel), `standingTag` (`bar`: balcões onde o cliente fica em pé), `tableTag`, `chairTag`, `surfaceTags`, `vessels` (nome e ícone), `customerTints` (clientes provisórios).
+
+`data/carry.json`: `carryCapacity` (1 na Fase 1) e `speedPenaltyPerItem`.
+
+Itens: `servings` (doses por pacote; pó de café 10) e `dishes` (conjunto de louça: `item.dishes_set` = 2 xícaras + 2 copos + 2 pratos, 6 no total).
+
+Regras:
+- **Esgotado**: falta equipamento posicionado, dose de ingrediente ou louça limpa livre. Aparece no quadro e não é pedido.
+- **Capacidade** = mínimo entre `maxCustomers` e a louça que não está suja (limpa + em uso).
+- **Ciclo**: cliente chega (em pé na frente de um balcão `bar`, ou na fila) e pede algo do quadro -> E no equipamento prepara o pedido mais antigo (barra de progresso; ingredientes e louça saem quando fica pronto) -> E pega -> E perto do cliente entrega (ele paga) -> consome -> deixa a louça suja no balcão (ou na mesa) -> E pega -> E na pia lava (volta para o estoque limpo).
+- **Mãos x mochila**: mochila = `inventory` (abstrato, tecla I). Mãos = `hands` (bebida, louça suja, item como petisco). Soltar: balcão, mesa, equipamento ou chão livre, ao lado dela, uma coisa por célula.
+
+Condições novas: `{ "menu": { "gte": 1 } }` (receitas no quadro), `{ "served": { "gte": 1 } }` (clientes atendidos).

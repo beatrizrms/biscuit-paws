@@ -10,6 +10,8 @@ export interface RelationshipsConfig {
   maxHearts: number;
   /** Pontos que o gato ganha ao comer da tigela. */
   feedPoints: number;
+  /** Pontos por petisco dado na mão. */
+  treatPoints: number;
 }
 
 /** Chave do par, sempre na mesma ordem em que foi pedida (quem sente -> por quem). */

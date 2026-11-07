@@ -1,0 +1,97 @@
+// Mochila: o inventário abstrato (ingredientes em doses, coisas de gato, chaves, presentes), a louça limpa
+// e o que está nas mãos. Petisco: "segurar" põe na mão; "guardar" devolve.
+import type { HandItem } from '../../core/carry';
+import type { GameSession } from '../../core/session';
+import { VESSELS } from '../../core/recipes';
+import { content, uiText } from '../content';
+import { iconHtml } from './ShopPanel';
+
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/** Nome de um objeto da mão (bebida, louça suja, item). */
+export function handItemName(h: HandItem): string {
+  if (h.kind === 'drink') return content.recipes[h.recipe]?.name ?? '';
+  if (h.kind === 'dirty') return uiText.backpack.dirty.replace('{name}', content.service.vessels[h.vessel].name);
+  return content.items[h.item]?.name ?? '';
+}
+
+export class BackpackPanel {
+  private el: HTMLElement;
+  private body: HTMLElement;
+  private open = false;
+
+  constructor(
+    root: HTMLElement,
+    private session: GameSession,
+    private onChange: () => void,
+    private onProblem: (reason: string) => void,
+  ) {
+    this.el = document.createElement('section');
+    this.el.className = 'panel catalog backpack';
+    this.el.innerHTML = `<header><h2>${uiText.backpack.title}</h2><button class="close">${uiText.backpack.close}</button></header><div class="list"></div>`;
+    root.appendChild(this.el);
+    this.body = this.el.querySelector('.list') as HTMLElement;
+    (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
+    session.bus.onAny(() => this.render());
+  }
+
+  isOpen(): boolean {
+    return this.open;
+  }
+
+  show(): void {
+    this.open = true;
+    this.render();
+    this.el.classList.add('open');
+    this.onChange();
+  }
+
+  close(): void {
+    if (!this.open) return;
+    this.open = false;
+    this.el.classList.remove('open');
+    this.onChange();
+  }
+
+  private render(): void {
+    if (!this.open) return;
+    const t = uiText.backpack;
+    const st = this.session.state;
+    const sv = this.session.service;
+    const ids = new Set([...Object.keys(st.inventory), ...Object.keys(st.pantryOpen)]);
+    const abstract = [...ids].map((id) => content.items[id]).filter((i) => i && (i.kind ?? 'furniture') !== 'furniture' && i.kind !== 'fixture');
+    const row = (id: string) => {
+      const item = content.items[id]!;
+      const packs = st.inventory[id] ?? 0;
+      const servings = item.servings ?? 1;
+      const amount = servings > 1 ? t.doses.replace('{n}', String(sv.doses(id))) : `x${packs}`;
+      const hold = item.tags.includes('treat') && packs > 0 ? `<button data-hold="${id}">${t.hold}</button>` : '';
+      return `<div class="recipe"><span class="name">${iconHtml(item.icon)}<b>${esc(item.name)}</b></span><span class="desc">${amount}</span>${hold}</div>`;
+    };
+    const ingredients = abstract.filter((i) => i!.tags.includes('ingredient'));
+    const others = abstract.filter((i) => !i!.tags.includes('ingredient'));
+    const furniture = Object.entries(st.inventory).filter(([id]) => (content.items[id]?.kind ?? 'furniture') === 'furniture').reduce((n, [, q]) => n + q, 0);
+    const dishes = VESSELS.map((v) => `${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b>`).join(' · ');
+    const hands = st.hands.length
+      ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
+      : `<p class="empty">${t.handsEmpty}</p>`;
+    this.body.innerHTML = `
+      <h3>${t.hands}</h3>${hands}
+      <h3>${t.dishes}</h3><p class="dishes">${dishes}</p>
+      <h3>${t.ingredients}</h3>${ingredients.map((i) => row(i!.id)).join('') || `<p class="empty">${t.none}</p>`}
+      <h3>${t.others}</h3>${others.map((i) => row(i!.id)).join('') || `<p class="empty">${t.none}</p>`}
+      ${furniture ? `<p class="empty">${t.furniture.replace('{n}', String(furniture))}</p>` : ''}`;
+    this.body.querySelectorAll<HTMLButtonElement>('[data-hold]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const r = sv.hold(b.dataset.hold!);
+        if (!r.ok) this.onProblem(r.reason);
+      }),
+    );
+    this.body.querySelectorAll<HTMLButtonElement>('[data-stow]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const r = sv.stow();
+        if (!r.ok) this.onProblem(r.reason);
+      }),
+    );
+  }
+}

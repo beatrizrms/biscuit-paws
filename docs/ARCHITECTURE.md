@@ -79,7 +79,13 @@ cat-cafe-game/
 | `job.progress` | ela fez um ponto de um pedido | `jobId, pointId` |
 | `job.completed` | pedido concluído e pago | `jobId, reward` |
 | `cat.fed` | um gato comeu da tigela | `catId, itemId, bowlUid` |
-| `customer.served` | cliente atendido | `customerId, tip` |
+| `customer.arrived` | cliente entrou (na fila: `recipeId` null) | `customerId, recipeId` |
+| `customer.served` | pedido entregue: o cliente paga | `customerId, recipeId, price` |
+| `customer.left` | cliente foi embora (`happy`: foi atendido) | `customerId, happy` |
+| `menu.changed` | quadro do cardápio mudou | `menu` |
+| `prep.started` / `prep.ready` | preparo começou / bebida pronta no equipamento | `stationUid, recipeId` |
+| `hands.changed` | algo entrou ou saiu das mãos | `count` |
+| `dish.washed` | louça suja lavada na pia | `count` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |
 | `game.started` | sessão começou (jogo novo ou carregado) | `isNew` |
 | `map.entered` | a personagem entrou num mapa (porta) | `mapId` |

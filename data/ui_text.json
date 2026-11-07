@@ -8,7 +8,7 @@
     },
     {
       "tag": "counter",
-      "title": "Balcão"
+      "title": "Balcão e equipamentos"
     },
     {
       "tag": "for:guests",
@@ -25,7 +25,7 @@
   ],
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · E: interagir · clique: varrer · C (no café): catálogo · P: celular",
+  "hintWalk": "Setas/WASD: andar · E: interagir · C: catálogo · M: cardápio · I: mochila · P: celular",
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -57,7 +57,18 @@
     "job_unavailable": "Esse pedido não está disponível agora.",
     "missing_item": "Você precisa estar com a caixa.",
     "door_full": "Já tem caixas demais a caminho ou na porta. Retire as compras da porta antes de comprar mais.",
-    "nothing_here": "Não tem caixa aqui."
+    "nothing_here": "Não tem caixa aqui.",
+    "not_unlocked": "Essa receita ainda não está liberada.",
+    "menu_full": "O quadro está cheio. Tire uma receita antes.",
+    "hands_full": "Suas mãos estão ocupadas.",
+    "hands_empty": "Você não está segurando nada.",
+    "nothing_to_prepare": "Nenhum pedido para este equipamento agora.",
+    "station_busy": "O equipamento está ocupado. Pegue o que está pronto primeiro.",
+    "no_ingredients": "Faltam ingredientes (o mercado vende).",
+    "no_vessel": "Não tem louça limpa. Lave na pia.",
+    "cannot_put_here": "Não dá para soltar aqui.",
+    "wrong_order": "Não foi isso que o cliente pediu.",
+    "not_a_treat": "Pegue um petisco na mochila (I) primeiro."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -154,5 +165,45 @@
     "atDoor": "Caixas na porta do café: {n}",
     "carried": "Levando {n} caixa(s) para dentro",
     "inside": "Caixas para abrir no salão (E): {n}"
+  },
+  "menuBoard": {
+    "title": "Quadro do cardápio",
+    "close": "fechar",
+    "slots": "No quadro ({n}/{max})",
+    "recipes": "Receitas",
+    "add": "pôr no quadro",
+    "remove": "tirar",
+    "emptySlot": "Espaço vazio",
+    "noRecipes": "Nenhuma outra receita liberada.",
+    "available": "Disponível",
+    "locked": "Bloqueada",
+    "soldOut": "Esgotado: {why}",
+    "missingEquipment": "falta {name}",
+    "missingIngredients": "faltam ingredientes",
+    "missingVessel": "sem {name} limpo(a)"
+  },
+  "backpack": {
+    "title": "Mochila",
+    "close": "fechar",
+    "hands": "Nas mãos",
+    "handsEmpty": "Mãos livres.",
+    "dishes": "Louça limpa",
+    "ingredients": "Ingredientes",
+    "others": "Outros",
+    "none": "Nada por aqui.",
+    "doses": "{n} doses",
+    "hold": "segurar",
+    "stow": "guardar",
+    "dirty": "{name} suja",
+    "furniture": "Móveis guardados: {n} (posicione pelo catálogo, C)."
+  },
+  "service": {
+    "prepStarted": "Preparando: {name}",
+    "prepReady": "{name} pronto!",
+    "served": "+{price} ({name})",
+    "left": "Um cliente cansou de esperar e foi embora.",
+    "washed": "Louça lavada.",
+    "open": "Atendimento: {n}/{cap} clientes",
+    "hands": "Nas mãos: {name}"
   }
 }

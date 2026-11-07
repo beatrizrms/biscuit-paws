@@ -144,6 +144,22 @@
           19
         ]
       }
+    },
+    {
+      "id": "npc.customer",
+      "name": "Cliente",
+      "sheet": "assets/characters/mulher_placeholder_32x64.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
     }
   ]
 }

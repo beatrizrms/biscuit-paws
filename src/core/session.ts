@@ -5,6 +5,7 @@ import { seenFlag } from './cutscene';
 import { parseClock } from './time';
 import { newsForDay, type JobDef, type JobPoint, type NewsItem } from './jobs';
 import { createRng } from './rng';
+import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
@@ -56,13 +57,31 @@ export type ActionResult =
 export class GameSession {
   readonly bus = new EventBus();
 
+  /** Atendimento do café: cardápio, pedidos, mãos, louça, clientes (service.ts). */
+  readonly service: CafeService;
+
   constructor(
     readonly content: Content,
     readonly state: GameState,
-  ) {}
+  ) {
+    let rngCalls = 0;
+    this.service = new CafeService({
+      state,
+      content,
+      bus: this.bus,
+      rng: () => createRng(state.day * 1009 + state.service.nextCustomerId * 97 + rngCalls++),
+      homeMap: () => this.mapData(this.content.map.id),
+      evaluate: (c) => evaluate(c, this.state, this.storyContext()),
+      addMoney: (delta, reason) => this.addMoney(delta, reason),
+      advanceStory: () => this.advanceStory(),
+      catAffection: (catId, points) => this.addCatAffection(catId, points),
+    });
+  }
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
   start(isNew: boolean): void {
+    // Saves de antes da v8: a louça que ela já ganhou entra no estoque.
+    for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
     this.bus.emit('game.started', { isNew });
     this.advanceStory();
   }
@@ -140,6 +159,7 @@ export class GameSession {
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
+    this.service.endOfDay();
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     this.advanceStory();
@@ -153,6 +173,7 @@ export class GameSession {
     // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) {
       this.deliverArrived();
+      this.service.tick();
       this.advanceStory();
     }
   }
@@ -450,6 +471,7 @@ export class GameSession {
   /** Recebe um item (história ou roteiro): vai para a bolsa. */
   receiveItem(itemId: string): void {
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.service.stockDishes(itemId);
     this.bus.emit('item.received', { itemId });
     this.advanceStory();
   }

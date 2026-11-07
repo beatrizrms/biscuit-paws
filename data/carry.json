@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Mãos: quantos objetos ela carrega e quanto cada um a deixa mais lenta. Fase 2: bandeja (3 a 4 louças), itens pesados.",
+  "carryCapacity": 1,
+  "speedPenaltyPerItem": 0.1
+}

@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "_comment": "Receitas das bebidas (do LEIA-ME do pacote materia_prima). Ainda sem mecânica: servem de dado para o preparo no balcão. ingredients: item -> quantidade.",
+  "schemaVersion": 2,
+  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings` doses, em items.json). equipment: chave em service.json. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). prepMinutes: minutos de jogo. price: venda. unlock: condição para aparecer no quadro.",
   "recipes": [
     {
       "id": "recipe.black_coffee",
@@ -9,7 +9,39 @@
       "ingredients": {
         "item.coffee_ground": 1,
         "item.paper_filter": 1
-      }
+      },
+      "equipment": "coffee_machine",
+      "vessel": "cup",
+      "service": "standing",
+      "prepMinutes": 10,
+      "price": 12
+    },
+    {
+      "id": "recipe.black_tea",
+      "name": "Chá preto",
+      "icon": "cha_preto",
+      "ingredients": {
+        "item.tea_black_bag": 1
+      },
+      "equipment": "teapot",
+      "vessel": "cup",
+      "service": "standing",
+      "prepMinutes": 8,
+      "price": 8
+    },
+    {
+      "id": "recipe.orange_juice",
+      "name": "Suco de laranja",
+      "icon": "suco_laranja",
+      "ingredients": {
+        "item.pulp_orange": 1,
+        "item.sugar": 1
+      },
+      "equipment": "blender",
+      "vessel": "glass",
+      "service": "standing",
+      "prepMinutes": 6,
+      "price": 10
     },
     {
       "id": "recipe.cafe_latte",
@@ -19,14 +51,14 @@
         "item.coffee_ground": 1,
         "item.paper_filter": 1,
         "item.milk_powder": 1
-      }
-    },
-    {
-      "id": "recipe.black_tea",
-      "name": "Chá preto",
-      "icon": "cha_preto",
-      "ingredients": {
-        "item.tea_black_bag": 1
+      },
+      "equipment": "coffee_machine",
+      "vessel": "cup",
+      "service": "standing",
+      "prepMinutes": 12,
+      "price": 15,
+      "unlock": {
+        "flag": "recipe.cafe_latte"
       }
     },
     {
@@ -35,15 +67,14 @@
       "icon": "cha_verde",
       "ingredients": {
         "item.tea_green_bag": 1
-      }
-    },
-    {
-      "id": "recipe.orange_juice",
-      "name": "Suco de laranja",
-      "icon": "suco_laranja",
-      "ingredients": {
-        "item.pulp_orange": 1,
-        "item.sugar": 1
+      },
+      "equipment": "teapot",
+      "vessel": "cup",
+      "service": "standing",
+      "prepMinutes": 8,
+      "price": 9,
+      "unlock": {
+        "flag": "recipe.green_tea"
       }
     },
     {
@@ -53,6 +84,14 @@
       "ingredients": {
         "item.pulp_strawberry": 1,
         "item.sugar": 1
+      },
+      "equipment": "blender",
+      "vessel": "glass",
+      "service": "standing",
+      "prepMinutes": 6,
+      "price": 11,
+      "unlock": {
+        "flag": "recipe.strawberry_juice"
       }
     },
     {
@@ -62,6 +101,14 @@
       "ingredients": {
         "item.pulp_lemon": 1,
         "item.sugar": 1
+      },
+      "equipment": "blender",
+      "vessel": "glass",
+      "service": "standing",
+      "prepMinutes": 6,
+      "price": 10,
+      "unlock": {
+        "flag": "recipe.lemonade"
       }
     }
   ]

@@ -436,6 +436,62 @@
       "start": {
         "flag": "seen.scr.gabi_visit"
       }
+    },
+    {
+      "id": "story.first_customer",
+      "act": 1,
+      "after": [
+        "story.chairs"
+      ],
+      "exclusive": true,
+      "start": {
+        "all": [
+          {
+            "placed": "item.coffee_machine"
+          },
+          {
+            "placedTag": "table"
+          },
+          {
+            "placedTag": "chair"
+          }
+        ]
+      },
+      "goal": {
+        "title": "O primeiro cliente",
+        "steps": [
+          {
+            "text": "Um balcão para servir em pé.",
+            "when": {
+              "placedTag": "bar"
+            }
+          },
+          {
+            "text": "Montar o cardápio no quadro (tecla M).",
+            "when": {
+              "menu": {
+                "gte": 1
+              }
+            }
+          },
+          {
+            "text": "Atender o primeiro cliente: preparar, entregar e lavar a louça.",
+            "when": {
+              "served": {
+                "gte": 1
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.first_customer_done"
+        },
+        {
+          "setFlag": "cafe.open"
+        }
+      ]
     }
   ]
 }

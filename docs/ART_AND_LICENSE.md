@@ -131,6 +131,8 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 | Senhorinha (`assets/senhorinha`) | gerado por IA na paleta Cosy | Dona Lurdes: folha 32x64 (4x5) e retrato 64x64. Chegou ampliada 4x pelo chat; reduzida ao tamanho real por amostragem (o original ampliado fica junto) |
 | Matéria-prima (`assets/materia_prima`) | gerado por código/IA na paleta Cosy | 19 ícones 32x32 vendidos no mercado (café, chá, frutas, polpas, despensa) |
 | Itens e bebidas (`assets/itens_bebidas`) | gerado por código/IA na paleta Cosy | Ícones de bebidas (receitas), caixas, presente (conjunto de louças) e balões 16x16 (!, coração, +1) |
+| Equipamentos (`assets/equipamentos`) | gerado por IA na paleta Cosy | Bule, liquidificador, espremedor, fogão e forno, 6 quadros 32x32 cada (parado, trabalhando, pronto); reduzido de uma imagem ampliada 4x. Em uso: bule e liquidificador |
+| Cozinha e café (`assets/cozinha_cafe`) | gerado por IA na paleta Cosy | Ainda não usado: a imagem veio sem escala exata; esperando o PNG original |
 | Correio (`assets/correio`) | gerado por IA na paleta Cosy | Entregadora (folha 32x64 4x5 e retrato 64x64, reduzidos de uma imagem ampliada 4x) e furgão de lado (188x107, reduzido de 2x). Vista de frente e de trás ainda não usadas |
 | Vassoura nova (`assets/vassoura_nova`) | gerado por IA na paleta Cosy | Vassoura 32x32 nos pés da personagem, poeira e brilho (substitui a do pacote da corretora) |
 

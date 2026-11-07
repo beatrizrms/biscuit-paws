@@ -9,6 +9,8 @@ const DIRECTIONS = playerJson.directions as Direction[];
 /** A jogadora. A posição (x, y) é o meio da base dos pés. */
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private facing: Direction = 'down';
+  /** Multiplica a velocidade (ex.: carregando coisas). */
+  speedFactor = 1;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, TEXTURE.player, 0);
@@ -42,7 +44,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   move(input: InputState): void {
-    const m = movementFromInput(input, playerJson.speed, this.facing);
+    const m = movementFromInput(input, playerJson.speed * this.speedFactor, this.facing);
     this.facing = m.facing;
     this.setVelocity(m.vx, m.vy);
     if (m.moving) this.anims.play(`player-walk-${m.facing}`, true);
@@ -50,6 +52,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /** Vira para uma direção (parada). */
+  /** Para onde ela está olhando. */
+  facingDirection(): Direction {
+    return this.facing;
+  }
+
   face(direction: Direction): void {
     this.facing = direction;
     this.setVelocity(0, 0);

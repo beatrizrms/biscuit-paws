@@ -6,6 +6,9 @@ import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
 import { CatSprite } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
+import { CustomerSprite } from '../entities/Customer';
+import { iconFrame } from '../icons';
+import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
@@ -49,6 +52,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** "Esperar": o relógio corre depressa até este momento absoluto. */
   private waitUntilAbs: number | null = null;
   private parcelImages: Phaser.GameObjects.Image[] = [];
+  private surfaceIcons: Phaser.GameObjects.Image[] = [];
+  private handIcons: Phaser.GameObjects.Image[] = [];
+  private handsKey = '';
+  private prepGfx!: Phaser.GameObjects.Graphics;
+  private equipAnims = new Map<string, Phaser.GameObjects.Sprite>();
+  private customerViews = new Map<string, CustomerSprite>();
+  private customersFresh = true;
   private carriedImages: Phaser.GameObjects.Image[] = [];
   /** Caixas que chegaram e ainda não foram deixadas pela entregadora (animação na rua). */
   private arriving = 0;
@@ -84,6 +94,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
+    this.prepGfx = this.add.graphics().setDepth(99_400);
     this.scripts = new ScriptRunner(this.session, this);
     this.loadMap(this.session.location());
 
@@ -108,11 +119,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
     this.input.keyboard!.on('keydown-E', () => {
-      if (this.ui.isShopOpen() || this.ui.isNewsOpen()) return this.ui.closeShop();
+      if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       this.interact();
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
+    // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
+    this.input.keyboard!.on('keydown-M', () => {
+      if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
+      if (!this.session.atHome()) return this.ui.toastText('notHome');
+      this.ui.openMenuBoard();
+    });
+    this.input.keyboard!.on('keydown-I', () => {
+      if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
+      this.ui.openBackpack();
+    });
     this.input.keyboard!.on('keydown-P', () => {
       if (this.ui.isNewsOpen()) return this.ui.closeShop();
       if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
@@ -139,6 +160,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
+    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
@@ -189,6 +211,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           left: k.left.isDown || k.a.isDown,
           right: k.right.isDown || k.d.isDown,
         };
+    this.player.speedFactor = this.session.service.speed();
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) cat.tick(this.time.now);
@@ -199,6 +222,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     if (this.placing) this.refreshGhost();
     this.updateCarried();
+    this.updateService();
 
     // Direção em que ela está andando (uma só): as portas pedem uma direção (para cima, ou para baixo na saída do mercado).
     const moving = input.up && !input.down ? 'up' : input.down && !input.up ? 'down' : input.left && !input.right ? 'left' : input.right && !input.left ? 'right' : null;
@@ -260,6 +284,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.refreshJobPoints();
     this.stopVan();
     this.refreshParcels();
+    this.clearCustomers();
+    this.refreshSurfaces();
   }
 
   /** Na porta do café, à tarde: encerrar o dia ou só sair para a rua. */
@@ -441,6 +467,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
+    if (this.session.atHome() && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
     if (point) {
       if (point.action === 'sweep') {
@@ -517,6 +544,178 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         return icon;
       });
+  }
+
+  // ---------- Atendimento ----------
+
+  /** Célula na frente dela (para soltar o que está nas mãos). */
+  private facingCell(): Cell {
+    const [c, r] = this.feetCell();
+    const d = this.player.facingDirection();
+    return d === 'up' ? [c, r - 1] : d === 'down' ? [c, r + 1] : d === 'left' ? [c - 1, r] : [c + 1, r];
+  }
+
+  /** E ou clique no café: entregar, lavar, dar ao gato, preparar/pegar no equipamento, pegar ou soltar. */
+  private serviceInteract(target?: Cell): boolean {
+    const sv = this.session.service;
+    const st = this.session.state;
+    const feet = this.playerCells();
+    const report = (r: { ok: true } | { ok: false; reason: string }) => {
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      return true;
+    };
+    const customer = sv.customerToServe(feet);
+    if (customer && !target) return report(sv.serve(customer.id));
+    if (st.hands.some((h) => h.kind === 'dirty') && sv.sinkNear(feet) && (!target || (target[0] === this.session.content.service.sink[0] && target[1] === this.session.content.service.sink[1]))) return report(sv.wash());
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    if (st.hands.some((h) => h.kind === 'item')) {
+      const cat = this.cats.find((c) => near(c.cell()));
+      if (cat && !target) return report(sv.giveToCat(cat.catId));
+    }
+    // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
+    const stations = Object.keys(this.session.content.service.equipment).flatMap((eq) => sv.stationsFor(eq));
+    const station = stations.find((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
+    if (station && st.hands.length === 0) {
+      if (sv.surfaceAt(station.at)) return report(sv.pickUp(station.at));
+      return report(sv.prepare(station.uid));
+    }
+    // Pegar de uma superfície (a clicada ou a mais perto).
+    const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
+    if (surface && near(surface.at) && st.hands.length < this.session.content.carry.carryCapacity) return report(sv.pickUp(surface.at));
+    // Soltar: na célula clicada ou na da frente.
+    if (st.hands.length > 0) {
+      const at = target ?? this.facingCell();
+      if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
+    }
+    return false;
+  }
+
+  /** Itens deixados no café (bebidas prontas, louça suja) como ícones nas células. */
+  private refreshSurfaces(): void {
+    this.surfaceIcons.forEach((i) => i.destroy());
+    this.surfaceIcons = [];
+    if (!this.session.atHome()) return;
+    const ts = this.map.tileSize;
+    for (const s of this.session.state.surfaces) {
+      const img = this.handItemImage(s.item);
+      if (!img) continue;
+      // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente.
+      const base = (s.at[1] + 1) * ts;
+      img.setPosition((s.at[0] + 0.5) * ts, base - 10).setOrigin(0.5, 1).setScale(0.6).setDepth(ySortDepth(base) + 5);
+      this.surfaceIcons.push(img);
+    }
+  }
+
+  /** Imagem do que está na mão (bebida: ícone da receita; louça suja: ícone apagado; item: ícone do item). */
+  private handItemImage(item: HandItem): Phaser.GameObjects.Image | undefined {
+    const icon =
+      item.kind === 'drink'
+        ? this.session.content.recipes[item.recipe]?.icon
+        : item.kind === 'dirty'
+          ? this.session.content.service.vessels[item.vessel].icon
+          : this.session.content.items[item.item]?.icon;
+    const f = icon ? iconFrame(this, icon) : undefined;
+    if (!f) return undefined;
+    const img = this.add.image(0, 0, f.key, f.frame);
+    if (item.kind === 'dirty') img.setTint(0x9c8f8a);
+    return img;
+  }
+
+  /** A cada quadro: o que ela carrega, barras de preparo, equipamentos animados e os clientes. */
+  private updateService(): void {
+    const st = this.session.state;
+    const sv = this.session.service;
+    // Mãos: o ícone vai na frente dela.
+    const key = JSON.stringify(st.hands);
+    if (key !== this.handsKey) {
+      this.handsKey = key;
+      this.handIcons.forEach((i) => i.destroy());
+      this.handIcons = st.hands.map((h) => this.handItemImage(h)).filter((i): i is Phaser.GameObjects.Image => !!i).map((i) => i.setScale(0.55).setOrigin(0.5, 1));
+    }
+    const dir = this.player.facingDirection();
+    const dx = dir === 'left' ? -9 : dir === 'right' ? 9 : 0;
+    this.handIcons.forEach((img, i) => img.setPosition(this.player.x + dx, this.player.y - 18 - i * 8).setDepth(this.player.depth + (dir === 'up' ? -1 : 2)));
+    if (!this.session.atHome()) return;
+    // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
+    const ts = this.map.tileSize;
+    this.prepGfx.clear();
+    const working = new Set<string>();
+    for (const prep of st.service.preps) {
+      const placed = st.placed.find((p) => p.uid === prep.stationUid);
+      const progress = sv.prepProgress(prep.stationUid);
+      if (!placed || progress === undefined) continue;
+      working.add(placed.uid);
+      const x = placed.at[0] * ts + 4;
+      const y = placed.at[1] * ts - 6;
+      this.prepGfx.fillStyle(0x5a4048, 1).fillRect(x - 1, y - 1, 26, 6);
+      this.prepGfx.fillStyle(0xf3e6d8, 1).fillRect(x, y, 24, 4);
+      this.prepGfx.fillStyle(0xe58fa6, 1).fillRect(x, y, Math.round(24 * progress), 4);
+      if (!this.equipAnims.has(placed.uid)) {
+        const def = this.session.content.catalog.tiles[this.session.content.items[placed.item]?.tile ?? ''];
+        if (def?.sheet === 'equipment') {
+          const first = def.row * 6 + 1;
+          const anim = `equip-work-${def.row}`;
+          if (!this.anims.exists(anim)) this.anims.create({ key: anim, frames: this.anims.generateFrameNumbers('equipment', { start: first, end: first + 3 }), frameRate: 6, repeat: -1 });
+          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts, 'equipment', first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 1);
+          sprite.play(anim);
+          this.equipAnims.set(placed.uid, sprite);
+        }
+      }
+    }
+    for (const [uid, sprite] of this.equipAnims) {
+      if (working.has(uid)) continue;
+      sprite.destroy();
+      this.equipAnims.delete(uid);
+    }
+    this.syncCustomers();
+  }
+
+  /** Clientes: cria quem chegou (entra pela porta), anda até o lugar, balão do pedido; quem saiu vai embora. */
+  private syncCustomers(): void {
+    const cfg = this.session.content.service;
+    const def = this.session.content.npcs['npc.customer'];
+    if (!def) return;
+    const ts = this.map.tileSize;
+    const door: Cell = [14, 4];
+    const alive = new Set<string>();
+    for (const c of this.session.state.service.customers) {
+      alive.add(c.id);
+      let view = this.customerViews.get(c.id);
+      if (!view) {
+        const tint = Phaser.Display.Color.HexStringToColor(cfg.customerTints[c.look % cfg.customerTints.length]!).color;
+        // Recém-chegado entra pela porta; ao abrir o café (trocar de mapa), já aparece no lugar.
+        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, tint, ts);
+        this.customerViews.set(c.id, view);
+        if (!this.customersFresh) void view.walkTo(c.spot, true);
+      } else if (view.target[0] !== c.spot[0] || view.target[1] !== c.spot[1]) void view.walkTo(c.spot, true);
+      const shown = c.stage === 'waiting' ? c.recipe : c.stage === 'queue' ? null : undefined;
+      if (view.shownRecipe !== shown) {
+        view.shownRecipe = shown;
+        view.showOrder(shown ? this.session.content.recipes[shown]?.icon : shown);
+      }
+      view.update();
+    }
+    this.customersFresh = false;
+    for (const [id, view] of this.customerViews) {
+      if (alive.has(id) || view.leaving) {
+        if (view.leaving) view.update();
+        continue;
+      }
+      view.leaving = true;
+      view.showOrder(undefined);
+      void view.walkTo(door).then(() => (view.sprite.active ? view.sprite.leave() : undefined)).then(() => {
+        view.destroy();
+        this.customerViews.delete(id);
+      });
+    }
+  }
+
+  private clearCustomers(): void {
+    this.customerViews.forEach((v) => v.destroy());
+    this.customerViews.clear();
+    this.equipAnims.forEach((s) => s.destroy());
+    this.equipAnims.clear();
+    this.customersFresh = true;
   }
 
   /** Pilhas de caixas: na porta do café (rua) e dentro do salão. Até 3, uma em cima da outra. */

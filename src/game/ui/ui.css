@@ -593,3 +593,15 @@
 .day-transition .summary { margin: 6px 0 4px; padding: 0; list-style: none; font-size: 9px; text-align: center; color: var(--cream2); }
 .day-transition .summary li { margin: 1px 0; }
 .day-transition .summary .hearts { color: #e58fa6; }
+
+/* Quadro do cardápio e mochila */
+.catalog.menu-board .recipe, .catalog.backpack .recipe { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: 8px; }
+.catalog.menu-board .recipe .name, .catalog.backpack .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 9px; }
+.catalog.menu-board .recipe .price { margin-left: auto; font-weight: bold; }
+.catalog.menu-board .recipe .desc, .catalog.backpack .recipe .desc { color: var(--grey2); font-size: 7px; }
+.catalog.menu-board .recipe .status { font-size: 7px; color: #4f8a64; }
+.catalog.menu-board .recipe.sold-out .status { color: #c0596a; font-weight: bold; }
+.catalog.menu-board .recipe button, .catalog.backpack .recipe button { align-self: flex-end; padding: 1px 8px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
+.catalog.menu-board .slot-empty { font-style: italic; color: var(--grey2); background: transparent; border: 1px dashed var(--cream3); }
+.catalog.backpack .dishes { margin: 0 0 4px; font-size: 8px; }
+.catalog.backpack .empty, .catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
