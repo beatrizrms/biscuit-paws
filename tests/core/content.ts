@@ -27,6 +27,8 @@ export function rawContent(): RawContent {
     npcs: read('data/npcs.json'),
     scripts: read('data/scripts.json'),
     dayNight: read('data/daynight.json'),
+    recipes: read('data/recipes.json'),
+    emotes: read('data/emotes.json'),
   };
 }
 

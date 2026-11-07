@@ -122,6 +122,20 @@ export class CutsceneView {
     const [w, h] = phone.size;
     const s = phone.screen;
     const icon = step.appIcon ? phone.apps[step.appIcon] : undefined;
+    if (step.mode === 'call') {
+      // Ligação: retrato de quem liga, nome e "chamando...".
+      const caller = step.caller ? content.npcs[step.caller] : undefined;
+      return `<div class="cs-phone call" style="width:${w}px;height:${h}px">
+        <div class="screen" style="left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px">
+          <img class="status" src="${phone.status}" alt="" />
+          ${caller?.portrait ? `<img class="caller" src="${caller.portrait}" alt="" />` : ''}
+          <div class="name">${esc(step.app)}</div>
+          <div class="calling">${esc(step.title)}</div>
+          <div class="buttons"><span class="decline"></span><span class="accept"></span></div>
+        </div>
+        <img class="frame" src="${phone.frame}" alt="" />
+      </div>`;
+    }
     if (step.mode === 'lock') {
       // Tela de bloqueio: hora, data e a notificação chegando (o celular vibra).
       return `<div class="cs-phone lock" style="width:${w}px;height:${h}px">

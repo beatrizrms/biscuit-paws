@@ -13,7 +13,9 @@ export type CutsceneStep =
       /** Ícone do app (chave em data/phone.json: apps). */
       appIcon?: string;
       /** "lock": tela de bloqueio vibrando com a notificação; "app" (padrão): o anúncio aberto. */
-      mode?: 'lock' | 'app';
+      mode?: 'lock' | 'app' | 'call';
+      /** Quem liga (modo "call"): NPC com retrato. */
+      caller?: string;
       /** Hora e data da tela de bloqueio. */
       time?: string;
       date?: string;
@@ -50,7 +52,8 @@ export function validateCutscenes(data: CutscenesData, catIds: ReadonlySet<strin
         if (!catIds.has(step.cat)) errors.push(`${where} passo ${i}: gato inexistente "${step.cat}"`);
         if (!animations.has(step.animation)) errors.push(`${where} passo ${i}: animação inexistente "${step.animation}"`);
       }
-      if (step.type === 'phone' && step.mode !== 'lock' && step.lines.length === 0) errors.push(`${where} passo ${i}: anúncio sem texto`);
+      if (step.type === 'phone' && step.mode === 'call' && !step.caller) errors.push(`${where} passo ${i}: ligação sem caller`);
+      if (step.type === 'phone' && step.mode !== 'lock' && step.mode !== 'call' && step.lines.length === 0) errors.push(`${where} passo ${i}: anúncio sem texto`);
     });
   }
   return errors;

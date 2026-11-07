@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import playerJson from '../../../data/player.json';
 import { LocalStorage } from '../../platform/localStorage';
-import { broom, content } from '../content';
+import { broom, content, emotes } from '../content';
 import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 import { catTexture } from '../entities/Cat';
@@ -29,6 +29,7 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });
     }
     this.load.image('broom', broom.image);
+    this.load.image('emotes', emotes.image);
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,
       frameHeight: playerJson.frameHeight,
@@ -39,6 +40,8 @@ export class BootScene extends Phaser.Scene {
     // Quadros da vassoura (tamanhos diferentes na mesma folha).
     const tex = this.textures.get('broom');
     for (const [name, [x, y, w, h]] of Object.entries(broom.frames)) tex.add(name, 0, x, y, w, h);
+    const emoteTex = this.textures.get('emotes');
+    for (const [name, [x, y, w, h]] of Object.entries(emotes.frames)) emoteTex.add(name, 0, x, y, w, h);
     // ?novo na URL começa um jogo novo (apaga o save).
     const forceNew = new URLSearchParams(window.location.search).has('novo');
     const { session, isNew } = await openSession(new LocalStorage(), saveSlot(), forceNew);

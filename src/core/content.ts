@@ -10,7 +10,8 @@ import type { TileCatalog } from './tiles';
 
 /** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
 /** fixture: peça de lugar fixo (ex.: a lousa da porta). Compra uma vez e aparece sozinha no mapa. */
-export type ItemKind = 'furniture' | 'consumable' | 'key' | 'tool' | 'fixture';
+/** gift: presente da história (não se compra nem se devolve). */
+export type ItemKind = 'furniture' | 'consumable' | 'key' | 'tool' | 'fixture' | 'gift';
 
 export interface ItemDef {
   id: string;
@@ -42,7 +43,9 @@ export interface IconsData {
   image: string;
   tileSize: number;
   columns: number;
-  icons: Record<string, { col: number; row: number }>;
+  /** Outras folhas de ícones (o ícone aponta com `sheet`). */
+  sheets?: Record<string, { image: string; columns: number }>;
+  icons: Record<string, { col: number; row: number; sheet?: string }>;
 }
 
 export interface ItemsData {
@@ -91,7 +94,13 @@ export type Condition =
   | { catNamed: string }
   /** Toda a sujeira do café com esta tag (das que saem com faxina) já foi limpa. */
   | { cleaned: string }
-  | { money: { gte: number } };
+  | { money: { gte: number } }
+  /** A partir de um dia (ex.: { gte: 2 }). */
+  | { day: { gte: number } }
+  /** A partir de uma hora do dia ("08:30"). */
+  | { clock: { gte: string } }
+  /** A personagem está neste mapa agora. */
+  | { location: string };
 
 export type Effect =
   | { dialogue: string }
@@ -185,6 +194,20 @@ export interface Content {
   npcs: Record<string, NpcDef>;
   scripts: Record<string, { steps: ScriptStep[] }>;
   dayNight: DayNightConfig;
+  recipes: Record<string, RecipeDef>;
+}
+
+/** Receita de bebida (data/recipes.json). */
+export interface RecipeDef {
+  id: string;
+  name: string;
+  icon: string;
+  ingredients: Record<string, number>;
+}
+
+export interface RecipesData {
+  schemaVersion: 1;
+  recipes: RecipeDef[];
 }
 
 export interface RawContent {
@@ -205,6 +228,8 @@ export interface RawContent {
   npcs: NpcsData;
   scripts: ScriptsData;
   dayNight: DayNightConfig;
+  recipes: RecipesData;
+  emotes: { frames: Record<string, unknown> };
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -219,7 +244,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])) };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -281,6 +306,8 @@ export function validateContent(raw: RawContent): string[] {
       maps: new Set(raw.maps.map((m) => m.id)),
       dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
       items: new Set(raw.items.items.map((i) => i.id)),
+      cats: catIds,
+      balloons: new Set(Object.keys(raw.emotes.frames)),
       npcAnims: (id) => new Set(Object.keys(raw.npcs.npcs.find((n) => n.id === id)?.extras ?? {})),
     }),
   );
@@ -294,7 +321,7 @@ export function validateContent(raw: RawContent): string[] {
     if (itemIds.has(item.id)) err(`items: id repetido "${item.id}"`);
     itemIds.add(item.id);
     const kind = item.kind ?? 'furniture';
-    if (!['furniture', 'consumable', 'key', 'tool', 'fixture'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
+    if (!['furniture', 'consumable', 'key', 'tool', 'fixture', 'gift'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
     if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => (o.when as { owned?: string } | undefined)?.owned === item.id)))
       err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { owned })`);
@@ -352,6 +379,10 @@ export function validateContent(raw: RawContent): string[] {
       if (!(home?.dirt ?? []).some((d) => !d.clearedBy && d.tags.includes(c.cleaned))) err(`${where}: nenhuma sujeira com a tag "${c.cleaned}"`);
     } else if ('catNamed' in c) {
       if (!catIds.has(c.catNamed)) err(`${where}: gato inexistente "${c.catNamed}"`);
+    } else if ('location' in c) {
+      if (!mapIds.has(c.location)) err(`${where}: mapa inexistente "${c.location}"`);
+    } else if ('clock' in c) {
+      if (!/^\d{1,2}:\d{2}$/.test(c.clock.gte)) err(`${where}: hora inválida "${c.clock.gte}"`);
     } else if ('visited' in c) {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
@@ -367,6 +398,18 @@ export function validateContent(raw: RawContent): string[] {
   for (const item of raw.items.items) {
     if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
     if (item.icon && !raw.icons.icons[item.icon]) err(`items: "${item.id}" usa ícone inexistente "${item.icon}"`);
+  }
+  for (const r of raw.recipes.recipes) {
+    if (!r.id.startsWith('recipe.')) err(`recipes: id "${r.id}" deve começar com "recipe."`);
+    if (!raw.icons.icons[r.icon]) err(`recipes: "${r.id}" usa ícone inexistente "${r.icon}"`);
+    if (Object.keys(r.ingredients).length === 0) err(`recipes: "${r.id}" sem ingredientes`);
+    for (const [item, n] of Object.entries(r.ingredients)) {
+      if (!itemIds.has(item)) err(`recipes: "${r.id}" usa item inexistente "${item}"`);
+      if (!Number.isInteger(n) || n < 1) err(`recipes: "${r.id}" quantidade inválida de "${item}"`);
+    }
+  }
+  for (const [id, icon] of Object.entries(raw.icons.icons)) {
+    if (icon.sheet && !raw.icons.sheets?.[icon.sheet]) err(`icons: "${id}" usa folha inexistente "${icon.sheet}"`);
   }
   for (const [id, shop] of Object.entries(raw.shops.shops)) {
     if (!id.startsWith('shop.')) err(`shops: id "${id}" deve começar com "shop."`);

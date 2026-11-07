@@ -65,6 +65,15 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     this.lastProgressAt = now;
   }
 
+  /** Senta e fica parado por um tempo (ex.: enquanto o Joca fareja). */
+  stay(ms: number, now: number): void {
+    this.setVelocity(0, 0);
+    this.eatAfterWalk = false;
+    this.goal = { kind: 'sit', seconds: ms / 1000 };
+    this.goalUntil = now + ms;
+    this.play(`${catTexture(this.variant)}-sit`, true);
+  }
+
   /** Chamar todo quadro. */
   tick(now: number): void {
     if (!this.goal || (this.goal.kind !== 'walk' && now >= this.goalUntil)) this.pickGoal(now);

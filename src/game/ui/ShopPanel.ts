@@ -48,17 +48,24 @@ export class ShopPanel {
   private render(): void {
     if (!this.shopId) return;
     const { state } = this.session;
-    this.list.innerHTML = this.session
-      .shopItems(this.shopId)
-      .map((id) => {
-        const item = content.items[id]!;
-        const owned = state.inventory[id] ?? 0;
-        return `<button class="row" data-buy="${id}" ${state.money < item.price ? 'disabled' : ''}>
+    const ids = this.session.shopItems(this.shopId);
+    const row = (id: string) => {
+      const item = content.items[id]!;
+      const owned = state.inventory[id] ?? 0;
+      return `<button class="row" data-buy="${id}" ${state.money < item.price ? 'disabled' : ''}>
           <span class="name">${iconHtml(item.icon)}${item.name}</span><span class="price">${item.price}</span>
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
         </button>`;
-      })
-      .join('');
+    };
+    // Seções pela primeira tag que bate (ui_text: shop.sections); o resto vai no fim, sem título.
+    const sectionOf = (id: string) => uiText.shop.sections.find((s) => content.items[id]!.tags.includes(s.tag));
+    this.list.innerHTML =
+      uiText.shop.sections
+        .map((s) => {
+          const rows = ids.filter((id) => sectionOf(id) === s).map(row).join('');
+          return rows ? `<h3>${s.title}</h3>${rows}` : '';
+        })
+        .join('') + ids.filter((id) => !sectionOf(id)).map(row).join('');
     this.list.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach((btn) =>
       btn.addEventListener('click', () => {
         const result = this.session.buy(btn.dataset.buy!);
@@ -70,12 +77,15 @@ export class ShopPanel {
 }
 
 /** Ícone do item, recortado da folha de ícones (CSS, sem suavizar). */
-export function iconHtml(icon: string | undefined): string {
+export function iconHtml(icon: string | undefined, px = ICON_PX): string {
   const icons = content.icons;
   const pos = icon ? icons.icons[icon] : undefined;
   if (!pos) return '';
-  const scale = ICON_PX / icons.tileSize;
-  return `<span class="icon" style="background-image:url(${icons.image});background-size:${icons.columns * ICON_PX}px auto;background-position:${
+  const sheet = pos.sheet ? icons.sheets?.[pos.sheet] : undefined;
+  const image = sheet?.image ?? icons.image;
+  const columns = sheet?.columns ?? icons.columns;
+  const scale = px / icons.tileSize;
+  return `<span class="icon" style="width:${px}px;height:${px}px;background-image:url(${image});background-size:${columns * px}px auto;background-position:${
     -pos.col * icons.tileSize * scale
   }px ${-pos.row * icons.tileSize * scale}px"></span>`;
 }

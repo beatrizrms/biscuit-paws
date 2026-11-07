@@ -8,7 +8,26 @@
         "item.cat_food_basic",
         "item.cat_food_premium",
         "item.cat_treat_biscuit",
-        "item.cat_litter"
+        "item.cat_litter",
+        "item.coffee_beans_bag",
+        "item.coffee_beans_loose",
+        "item.coffee_ground",
+        "item.paper_filter",
+        "item.tea_black_box",
+        "item.tea_green_box",
+        "item.tea_chamomile_box",
+        "item.tea_black_bag",
+        "item.tea_green_bag",
+        "item.tea_leaves_tin",
+        "item.orange",
+        "item.strawberry",
+        "item.lemon",
+        "item.pulp_orange",
+        "item.pulp_strawberry",
+        "item.pulp_lemon",
+        "item.sugar",
+        "item.honey",
+        "item.milk_powder"
       ]
     }
   }

@@ -3,6 +3,7 @@
 import type { Beat, Condition, ItemDef, StoryData } from './content';
 import type { DirtSpot } from './map';
 import { ownedCount, placedCount, type GameState } from './state';
+import { parseClock } from './time';
 
 /** O que as condições precisam saber além do estado. */
 export interface StoryContext {
@@ -32,6 +33,9 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('placed' in c) return placedCount(state, c.placed) >= (c.gte ?? 1);
   if ('owned' in c) return ownedCount(state, c.owned) >= (c.gte ?? 1);
   if ('money' in c) return state.money >= c.money.gte;
+  if ('day' in c) return state.day >= c.day.gte;
+  if ('clock' in c) return state.time >= parseClock(c.clock.gte);
+  if ('location' in c) return state.location === c.location;
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }
 

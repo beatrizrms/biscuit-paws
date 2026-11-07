@@ -460,6 +460,226 @@
       "tags": [
         "facade"
       ]
+    },
+    {
+      "id": "item.coffee_beans_bag",
+      "name": "Café em grãos (saco)",
+      "price": 28,
+      "kind": "consumable",
+      "icon": "graos_cafe_saco",
+      "tags": [
+        "ingredient",
+        "coffee"
+      ]
+    },
+    {
+      "id": "item.coffee_beans_loose",
+      "name": "Café em grãos a granel",
+      "price": 12,
+      "kind": "consumable",
+      "icon": "graos_cafe_soltos",
+      "tags": [
+        "ingredient",
+        "coffee"
+      ]
+    },
+    {
+      "id": "item.coffee_ground",
+      "name": "Pó de café",
+      "price": 18,
+      "kind": "consumable",
+      "icon": "po_cafe_pacote",
+      "tags": [
+        "ingredient",
+        "coffee"
+      ]
+    },
+    {
+      "id": "item.paper_filter",
+      "name": "Filtros de papel",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "filtro_papel",
+      "tags": [
+        "ingredient",
+        "coffee"
+      ]
+    },
+    {
+      "id": "item.tea_black_box",
+      "name": "Chá preto (caixa)",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "cha_preto_caixa",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.tea_green_box",
+      "name": "Chá verde (caixa)",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "cha_verde_caixa",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.tea_chamomile_box",
+      "name": "Chá de camomila (caixa)",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "cha_camomila_caixa",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.tea_black_bag",
+      "name": "Saquinho de chá preto",
+      "price": 3,
+      "kind": "consumable",
+      "icon": "saquinho_cha_preto",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.tea_green_bag",
+      "name": "Saquinho de chá verde",
+      "price": 3,
+      "kind": "consumable",
+      "icon": "saquinho_cha_verde",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.tea_leaves_tin",
+      "name": "Lata de folhas de chá",
+      "price": 22,
+      "kind": "consumable",
+      "icon": "lata_folhas_cha",
+      "tags": [
+        "ingredient",
+        "tea"
+      ]
+    },
+    {
+      "id": "item.orange",
+      "name": "Laranja",
+      "price": 3,
+      "kind": "consumable",
+      "icon": "fruta_laranja",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.strawberry",
+      "name": "Morango",
+      "price": 4,
+      "kind": "consumable",
+      "icon": "fruta_morango",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.lemon",
+      "name": "Limão",
+      "price": 2,
+      "kind": "consumable",
+      "icon": "fruta_limao",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.pulp_orange",
+      "name": "Polpa de laranja",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "polpa_laranja",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.pulp_strawberry",
+      "name": "Polpa de morango",
+      "price": 7,
+      "kind": "consumable",
+      "icon": "polpa_morango",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.pulp_lemon",
+      "name": "Polpa de limão",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "polpa_limao",
+      "tags": [
+        "ingredient",
+        "fruit"
+      ]
+    },
+    {
+      "id": "item.sugar",
+      "name": "Açúcar",
+      "price": 5,
+      "kind": "consumable",
+      "icon": "acucar_pacote",
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.honey",
+      "name": "Mel",
+      "price": 15,
+      "kind": "consumable",
+      "icon": "mel_pote",
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.milk_powder",
+      "name": "Leite em pó",
+      "price": 12,
+      "kind": "consumable",
+      "icon": "leite_po_lata",
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.dishes_set",
+      "name": "Conjunto de louças",
+      "price": 0,
+      "kind": "gift",
+      "icon": "caixa_presente_laco",
+      "tags": [
+        "gift",
+        "dishes"
+      ]
     }
   ]
 }

@@ -418,10 +418,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.sweeping = true;
     const left = x < this.player.x;
     this.player.face(left ? 'left' : 'right');
-    const [hx, hy] = broom.handle;
+    // O quadro cobre a metade de baixo da personagem (mão no meio do corpo, cerdas no chão).
     const tool = this.add
-      .image(this.player.x + (left ? -6 : 6), this.player.y - 28, 'broom', 'varrer_1')
-      .setOrigin(hx / 64, hy / 64)
+      .image(this.player.x, this.player.y, 'broom', 'varrer_1')
+      .setOrigin(0.5, 1)
       .setFlipX(left)
       .setDepth(this.player.depth + 1);
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
@@ -526,6 +526,64 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   wait(ms: number): Promise<void> {
     return new Promise((resolve) => this.time.delayedCall(ms, resolve));
+  }
+
+  /** O gato vem até a célula e senta (desiste depois de alguns segundos, se algo bloquear). */
+  async catWalk(catId: string, [c, r]: Cell): Promise<void> {
+    const cat = this.cats.find((x) => x.catId === catId);
+    if (!cat) return;
+    cat.goEat([c, r], this.time.now);
+    for (let t = 0; t < 5000; t += 100) {
+      const [cc, cr] = cat.cell();
+      if (cc === c && cr === r) break;
+      await this.wait(100);
+    }
+  }
+
+  /** O NPC vai até o lado do gato (o lado livre mais perto) e fica de frente para ele. */
+  async npcToCat(npcId: string, catId: string): Promise<void> {
+    const npc = this.npcs.get(npcId);
+    const cat = this.cats.find((c) => c.catId === catId);
+    if (!npc || !cat) return;
+    cat.stay(9000, this.time.now);
+    const [cc, cr] = cat.cell();
+    const solid = this.map.solid;
+    const free = ([c, r]: Cell) => r >= 0 && c >= 0 && r < solid.length && c < solid[0]!.length && !solid[r]![c];
+    const ts = this.map.tileSize;
+    const options: { cell: Cell; face: Facing }[] = [
+      { cell: [cc - 1, cr], face: 'right' },
+      { cell: [cc + 1, cr], face: 'left' },
+      { cell: [cc, cr + 1], face: 'up' },
+      { cell: [cc, cr - 1], face: 'down' },
+    ];
+    const pick = options
+      .filter((o) => free(o.cell))
+      .sort((a, b) => Math.hypot(a.cell[0] * ts - npc.x, a.cell[1] * ts - npc.y) - Math.hypot(b.cell[0] * ts - npc.x, b.cell[1] * ts - npc.y))[0];
+    if (!pick) return;
+    await npc.walkTo(pick.cell);
+    npc.face(pick.face);
+    cat.setFlipX(pick.face === 'left');
+  }
+
+  /** Balão de emoção que sobe um pouco em cima de alguém ("player", NPC ou gato). */
+  emote(who: string, balloon: string, ms: number): Promise<void> {
+    const target: { x: number; y: number; top: number } | undefined =
+      who === 'player'
+        ? { x: this.player.x, y: this.player.y, top: 60 }
+        : this.npcs.has(who)
+          ? { x: this.npcs.get(who)!.x, y: this.npcs.get(who)!.y, top: this.npcs.get(who)!.def.frameHeight - 2 }
+          : (() => {
+              const cat = this.cats.find((c) => c.catId === who);
+              return cat ? { x: cat.x, y: cat.y, top: 26 } : undefined;
+            })();
+    if (!target) return Promise.resolve();
+    const icon = this.add.image(target.x + 6, target.y - target.top, 'emotes', balloon).setOrigin(0.5, 1).setDepth(100_000);
+    this.tweens.add({ targets: icon, y: icon.y - 4, duration: 300, ease: 'Quad.easeOut' });
+    return new Promise((resolve) =>
+      this.time.delayedCall(ms, () => {
+        this.tweens.add({ targets: icon, alpha: 0, duration: 200, onComplete: () => (icon.destroy(), resolve()) });
+      }),
+    );
   }
 
   /** Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). */

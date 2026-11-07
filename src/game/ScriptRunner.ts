@@ -19,6 +19,9 @@ export interface ScriptStage {
   /** Resolve quando nenhuma fala/cena/caixa estiver aberta. */
   untilIdle(): Promise<void>;
   wait(ms: number): Promise<void>;
+  npcToCat(npcId: string, catId: string): Promise<void>;
+  catWalk(catId: string, to: Cell): Promise<void>;
+  emote(who: string, balloon: string, ms: number): Promise<void>;
 }
 
 export class ScriptRunner {
@@ -68,5 +71,8 @@ export class ScriptRunner {
     else if ('showItem' in step) await s.showItem(step.showItem);
     else if ('giveItem' in step) this.session.receiveItem(step.giveItem);
     else if ('wait' in step) await s.wait(step.wait);
+    else if ('catWalk' in step) await s.catWalk(step.catWalk, step.to);
+    else if ('npcToCat' in step) await s.npcToCat(step.npcToCat, step.cat);
+    else if ('emote' in step) await s.emote(step.emote, step.balloon, step.ms ?? 1200);
   }
 }

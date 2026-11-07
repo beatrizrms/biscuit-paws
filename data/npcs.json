@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "NPCs humanos. Folhas 32x64 (pés na base). walk: linha de cada direção (4 quadros). extras: nome -> quadros.",
+  "_comment": "NPCs. Folhas com pés na base (humanos 32x64, o Joca 32x32). walk: linha de cada direção (4 quadros). extras: nome -> quadros.",
   "npcs": [
     {
       "id": "npc.realtor",
@@ -26,6 +26,93 @@
           18
         ],
         "prancheta": [
+          19
+        ]
+      }
+    },
+    {
+      "id": "npc.gabi",
+      "name": "Gabi",
+      "sheet": "assets/npc/gabi_spritesheet.png",
+      "portrait": "assets/npc/gabi_retrato_64.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [
+          16,
+          17
+        ],
+        "segurando_cafe": [
+          18
+        ],
+        "segurando_caixa": [
+          19
+        ]
+      }
+    },
+    {
+      "id": "npc.joca",
+      "name": "Joca",
+      "sheet": "assets/npc/spitz_spritesheet.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "sentado": [
+          16
+        ],
+        "latindo": [
+          17,
+          18
+        ],
+        "dormindo": [
+          19,
+          20
+        ],
+        "latindo_lado": [
+          21
+        ]
+      }
+    },
+    {
+      "id": "npc.lurdes",
+      "name": "Dona Lurdes",
+      "sheet": "assets/npc/senhorinha_spritesheet.png",
+      "portrait": "assets/npc/senhorinha_retrato_64.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 6,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [
+          16,
+          17
+        ],
+        "segurando_cafe": [
+          18
+        ],
+        "segurando_bolsa": [
           19
         ]
       }

@@ -69,7 +69,29 @@
     "buy": "comprar",
     "bought": "Comprado!",
     "inBag": "na bolsa",
-    "close": "fechar"
+    "close": "fechar",
+    "sections": [
+      {
+        "tag": "pet",
+        "title": "Para os gatos"
+      },
+      {
+        "tag": "coffee",
+        "title": "Café"
+      },
+      {
+        "tag": "tea",
+        "title": "Chá"
+      },
+      {
+        "tag": "fruit",
+        "title": "Frutas e polpas"
+      },
+      {
+        "tag": "pantry",
+        "title": "Despensa"
+      }
+    ]
   },
   "day": "Dia",
   "hearts": "corações",
@@ -81,5 +103,8 @@
   },
   "catalogOnline": "Comprando online: a entrega chega aqui no café.",
   "installed": "na porta",
-  "fixtureDelivered": "Entregue! Já está no lugar, lá fora na porta do café."
+  "fixtureDelivered": "Entregue! Já está no lugar, lá fora na porta do café.",
+  "phone": {
+    "calling": "chamando..."
+  }
 }

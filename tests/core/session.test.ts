@@ -112,7 +112,7 @@ describe('começo da história', () => {
   });
 
   it('o primeiro ato inteiro dá para fazer com o dinheiro inicial', () => {
-    const { session, dialogues } = newSession();
+    const { session, dialogues, events } = newSession();
     startInCafe(session);
 
     // Água e comida: tigela de água, ração do mercado, tigela de ração.
@@ -148,8 +148,9 @@ describe('começo da história', () => {
       'dlg.ready_to_feed',
       'dlg.first_meal',
       'dlg.warm_corner_done',
-      'dlg.neighbor_visit',
     ]);
+    // A Dona Lurdes entra no café (roteiro) com a fala dela.
+    expect(events.some((e) => e.name === 'script.requested' && (e.payload as { scriptId: string }).scriptId === 'scr.lurdes_visit')).toBe(true);
     expect(session.goals()).toEqual([]); // o Ato 1 reorganizado vem depois do prólogo
   });
 
@@ -591,5 +592,54 @@ describe('progresso da faxina na meta', () => {
     expect(webs().progress).toEqual([0, total]);
     session.clean('dirt.web_spider');
     expect(webs().progress).toEqual([1, total]);
+  });
+});
+
+describe('dia 2: a Gabi', () => {
+  const requested = (events: { name: EventName; payload: unknown }[], name: EventName, key: string) =>
+    events.filter((e) => e.name === name).map((e) => (e.payload as Record<string, string>)[key]);
+
+  it('liga de manhã, chega no café às 8h30 e dá o conjunto de louças', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    expect(session.state.day).toBe(2);
+    expect(session.location()).toBe('map.street');
+    // 7h: ainda não ligou.
+    expect(requested(events, 'cutscene.requested', 'cutsceneId')).not.toContain('cs.gabi_call');
+    session.tickClock(15 / content.dayNight.minutesPerSecond + 1); // ~7h16
+    expect(requested(events, 'cutscene.requested', 'cutsceneId')).toContain('cs.gabi_call');
+    session.finishCutscene('cs.gabi_call');
+    expect(session.goals()[0]!.title).toBe('A visita da Gabi');
+    // Às 8h30 na rua, ela ainda não vem: precisa estar no café.
+    session.state.time = 8 * 60 + 40;
+    session.tickClock(2);
+    expect(requested(events, 'script.requested', 'scriptId')).not.toContain('scr.gabi_visit');
+    session.enter('map.cafe_main');
+    expect(requested(events, 'script.requested', 'scriptId')).toContain('scr.gabi_visit');
+    // O roteiro entrega o presente.
+    session.receiveItem('item.dishes_set');
+    session.finishScript('scr.gabi_visit');
+    expect(session.state.inventory['item.dishes_set']).toBe(1);
+  });
+
+  it('o presente não se compra nem se devolve', () => {
+    const { session } = newSession();
+    expect(session.buy('item.dishes_set').ok).toBe(false);
+    session.receiveItem('item.dishes_set');
+    expect(session.refund('item.dishes_set').ok).toBe(false);
+  });
+});
+
+describe('mercado: matéria-prima', () => {
+  it('vende a matéria-prima (café, chá, frutas, despensa) e as receitas usam só itens do mercado', () => {
+    const { session } = newSession();
+    const sold = new Set(session.shopItems('shop.market'));
+    const ingredients = Object.values(content.items).filter((i) => i.tags.includes('ingredient'));
+    expect(ingredients.length).toBe(19);
+    for (const i of ingredients) expect(sold.has(i.id)).toBe(true);
+    for (const r of Object.values(content.recipes)) for (const id of Object.keys(r.ingredients)) expect(sold.has(id)).toBe(true);
+    expect(session.buy('item.coffee_ground')).toEqual({ ok: true });
+    expect(session.state.inventory['item.coffee_ground']).toBe(1);
   });
 });

@@ -17,7 +17,13 @@ export type ScriptStep =
   /** Mostra um item grande no centro da tela (ex.: a chave). */
   | { showItem: string }
   | { giveItem: string }
-  | { wait: number };
+  | { wait: number }
+  /** O NPC vai até o lado do gato (o gato fica sentado esperando). Ex.: o Joca fareja o gatinho. */
+  | { npcToCat: string; cat: string }
+  /** O gato vem até a célula e senta (espera chegar, no máximo alguns segundos). */
+  | { catWalk: string; to: Cell }
+  /** Balão de emoção em cima de alguém: "player", um NPC ou um gato. */
+  | { emote: string; balloon: string; ms?: number };
 
 export interface ScriptsData {
   schemaVersion: 1;
@@ -49,6 +55,8 @@ export interface ScriptRefs {
   maps: ReadonlySet<string>;
   dialogues: ReadonlySet<string>;
   items: ReadonlySet<string>;
+  cats: ReadonlySet<string>;
+  balloons: ReadonlySet<string>;
   npcAnims: (npcId: string) => ReadonlySet<string>;
 }
 
@@ -77,6 +85,14 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
       } else if ('enter' in step) {
         if (!refs.maps.has(step.enter)) errors.push(`${where(i)}: mapa inexistente "${step.enter}"`);
         step.npcs?.forEach((n) => npc(n.npc));
+      } else if ('npcToCat' in step) {
+        npc(step.npcToCat);
+        if (!refs.cats.has(step.cat)) errors.push(`${where(i)}: gato inexistente "${step.cat}"`);
+      } else if ('catWalk' in step) {
+        if (!refs.cats.has(step.catWalk)) errors.push(`${where(i)}: gato inexistente "${step.catWalk}"`);
+      } else if ('emote' in step) {
+        if (step.emote !== 'player' && !refs.npcs.has(step.emote) && !refs.cats.has(step.emote)) errors.push(`${where(i)}: ninguém chamado "${step.emote}"`);
+        if (!refs.balloons.has(step.balloon)) errors.push(`${where(i)}: balão inexistente "${step.balloon}"`);
       } else if ('showItem' in step || 'giveItem' in step) {
         const item = 'showItem' in step ? step.showItem : step.giveItem;
         if (!refs.items.has(item)) errors.push(`${where(i)}: item inexistente "${item}"`);

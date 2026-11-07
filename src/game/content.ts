@@ -18,6 +18,8 @@ import iconsJson from '../../data/icons.json';
 import npcsJson from '../../data/npcs.json';
 import scriptsJson from '../../data/scripts.json';
 import dayNightJson from '../../data/daynight.json';
+import recipesJson from '../../data/recipes.json';
+import emotesJson from '../../data/emotes.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -41,14 +43,18 @@ export const content: Content = buildContent({
   npcs: npcsJson,
   scripts: scriptsJson,
   dayNight: dayNightJson,
+  recipes: recipesJson,
+  emotes: emotesJson,
 } as unknown as RawContent);
+
+/** Balões de emoção (16x16) sobre personagens, gatos e NPCs. */
+export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]> };
 
 export const uiText = uiTextJson;
 
 /** Vassoura (quadros e tempos). */
 export const broom = toolsJson.broom as unknown as {
   image: string;
-  handle: [number, number];
   sweepMs: number;
   sweepFps: number;
   frames: Record<string, [number, number, number, number]>;

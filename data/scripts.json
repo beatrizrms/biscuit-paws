@@ -107,6 +107,203 @@
           "npcLeave": "npc.realtor"
         }
       ]
+    },
+    "scr.gabi_visit": {
+      "steps": [
+        {
+          "wait": 400
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            4
+          ],
+          "facing": "down"
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            13,
+            6
+          ]
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            4
+          ],
+          "facing": "down"
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "playerWalk": [
+            11,
+            7
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "dialogue": "dlg.gabi_arrives"
+        },
+        {
+          "catWalk": "cat.first_stray",
+          "to": [
+            11,
+            5
+          ]
+        },
+        {
+          "npcToCat": "npc.joca",
+          "cat": "cat.first_stray"
+        },
+        {
+          "emote": "npc.joca",
+          "balloon": "exclamation",
+          "ms": 900
+        },
+        {
+          "npcAnim": "npc.joca",
+          "anim": "sentado",
+          "ms": 400
+        },
+        {
+          "emote": "cat.first_stray",
+          "balloon": "heart",
+          "ms": 1100
+        },
+        {
+          "dialogue": "dlg.gabi_dogs"
+        },
+        {
+          "npcAnim": "npc.gabi",
+          "anim": "segurando_caixa",
+          "ms": 700
+        },
+        {
+          "showItem": "item.dishes_set"
+        },
+        {
+          "giveItem": "item.dishes_set"
+        },
+        {
+          "dialogue": "dlg.gabi_bye"
+        },
+        {
+          "npcAnim": "npc.gabi",
+          "anim": "acenar",
+          "ms": 1200
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            4
+          ]
+        },
+        {
+          "npcLeave": "npc.joca"
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            4
+          ]
+        },
+        {
+          "npcLeave": "npc.gabi"
+        }
+      ]
+    },
+    "scr.lurdes_visit": {
+      "steps": [
+        {
+          "dialogue": "dlg.neighbor_knock"
+        },
+        {
+          "npcSpawn": "npc.lurdes",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            4
+          ],
+          "facing": "down"
+        },
+        {
+          "npcWalk": "npc.lurdes",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.lurdes",
+          "to": [
+            12,
+            6
+          ]
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "dialogue": "dlg.neighbor_visit"
+        },
+        {
+          "npcAnim": "npc.lurdes",
+          "anim": "segurando_bolsa",
+          "ms": 900
+        },
+        {
+          "emote": "player",
+          "balloon": "plus1",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.neighbor_coins"
+        },
+        {
+          "npcAnim": "npc.lurdes",
+          "anim": "acenar",
+          "ms": 1200
+        },
+        {
+          "npcWalk": "npc.lurdes",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.lurdes",
+          "to": [
+            14,
+            4
+          ]
+        },
+        {
+          "npcLeave": "npc.lurdes"
+        }
+      ]
     }
   }
 }

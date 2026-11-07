@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Receitas das bebidas (do LEIA-ME do pacote materia_prima). Ainda sem mecânica: servem de dado para o preparo no balcão. ingredients: item -> quantidade.",
+  "recipes": [
+    {
+      "id": "recipe.black_coffee",
+      "name": "Café preto",
+      "icon": "cafe_preto",
+      "ingredients": {
+        "item.coffee_ground": 1,
+        "item.paper_filter": 1
+      }
+    },
+    {
+      "id": "recipe.cafe_latte",
+      "name": "Café com leite",
+      "icon": "cafe_com_leite_gato",
+      "ingredients": {
+        "item.coffee_ground": 1,
+        "item.paper_filter": 1,
+        "item.milk_powder": 1
+      }
+    },
+    {
+      "id": "recipe.black_tea",
+      "name": "Chá preto",
+      "icon": "cha_preto",
+      "ingredients": {
+        "item.tea_black_bag": 1
+      }
+    },
+    {
+      "id": "recipe.green_tea",
+      "name": "Chá verde",
+      "icon": "cha_verde",
+      "ingredients": {
+        "item.tea_green_bag": 1
+      }
+    },
+    {
+      "id": "recipe.orange_juice",
+      "name": "Suco de laranja",
+      "icon": "suco_laranja",
+      "ingredients": {
+        "item.pulp_orange": 1,
+        "item.sugar": 1
+      }
+    },
+    {
+      "id": "recipe.strawberry_juice",
+      "name": "Suco de morango",
+      "icon": "suco_morango",
+      "ingredients": {
+        "item.pulp_strawberry": 1,
+        "item.sugar": 1
+      }
+    },
+    {
+      "id": "recipe.lemonade",
+      "name": "Suco de limão",
+      "icon": "suco_limao",
+      "ingredients": {
+        "item.pulp_lemon": 1,
+        "item.sugar": 1
+      }
+    }
+  ]
+}

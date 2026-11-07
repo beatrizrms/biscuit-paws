@@ -129,8 +129,11 @@ export class GameSession {
 
   /** Relógio: avança `seconds` reais (o jogo chama a cada quadro, quando nada está aberto). */
   tickClock(seconds: number): void {
+    const before = Math.floor(this.state.time);
     this.state.time += seconds * this.content.dayNight.minutesPerSecond;
     if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay();
+    // A cada minuto de jogo a história olha de novo (marcos com hora marcada, ex.: a visita da Gabi).
+    else if (Math.floor(this.state.time) !== before) this.advanceStory();
   }
 
   /** Ponto do dia seguinte onde ela aparece de manhã. */
@@ -268,7 +271,7 @@ export class GameSession {
   /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
   refund(itemId: string): ActionResult {
     const refundable = this.content.items[itemId];
-    if (!refundable || ['key', 'tool', 'fixture'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!refundable || ['key', 'tool', 'fixture', 'gift'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
     this.removeFromInventory(itemId);
     const amount = this.refundValue(itemId);
@@ -359,7 +362,7 @@ export class GameSession {
   buy(itemId: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
-    if (['key', 'tool'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (item.kind === 'fixture' && (this.state.inventory[itemId] ?? 0) > 0) return { ok: false, reason: 'already_owned' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };

@@ -40,40 +40,29 @@
     "dlg.neighbor_visit": {
       "lines": [
         {
-          "speaker": "",
-          "text": "Toc, toc. Uma senhora de cachecol vermelho espia pela porta."
+          "speaker": "Dona Lurdes",
+          "text": "Então é verdade! Alguém abriu a padaria do seu Antônio.",
+          "npc": "npc.lurdes"
         },
         {
           "speaker": "Dona Lurdes",
-          "text": "Então é verdade! Alguém abriu a padaria do seu Antônio."
+          "text": "Eu comprava pão aqui todo dia, sabia? Faz tanto tempo...",
+          "npc": "npc.lurdes"
         },
         {
           "speaker": "Dona Lurdes",
-          "text": "Eu comprava pão aqui todo dia, sabia? Faz tanto tempo..."
+          "text": "Gatos, é? Hmm. Os de rua vivem revirando o meu lixo.",
+          "npc": "npc.lurdes"
         },
         {
           "speaker": "Dona Lurdes",
-          "text": "Gatos, é? Hmm. Os de rua vivem revirando o meu lixo."
+          "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida.",
+          "npc": "npc.lurdes"
         },
         {
           "speaker": "Dona Lurdes",
-          "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida."
-        },
-        {
-          "speaker": "Dona Lurdes",
-          "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor. Diga que fui eu que mandei."
-        },
-        {
-          "speaker": "",
-          "text": "Dona Lurdes deixou 50 moedas no balcão."
-        },
-        {
-          "speaker": "",
-          "text": "Agora o pintor aparece no catálogo (C), na seção Reforma."
-        },
-        {
-          "speaker": "",
-          "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
+          "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor. Diga que fui eu que mandei.",
+          "npc": "npc.lurdes"
         }
       ]
     },
@@ -220,6 +209,89 @@
           "speaker": "Corretora",
           "npc": "npc.realtor",
           "text": "Ah! Deixei uma vassoura para você. Vai precisar!"
+        }
+      ]
+    },
+    "dlg.gabi_arrives": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Cheguei! Nossa... dá pra ver que tem muito potencial aqui, hein?"
+        },
+        {
+          "speaker": "Você",
+          "text": "Ainda tá no começo, mas já tá bem mais limpinho que ontem."
+        },
+        {
+          "speaker": "",
+          "text": "O Joca sai na frente, farejando tudo."
+        }
+      ]
+    },
+    "dlg.gabi_dogs": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Joca, devagar! Ele só quer conhecer."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Vou ser sincera: eu gosto mais de cachorrinhos..."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "...mas o {cat:cat.first_stray} é uma gracinha. Olha essa carinha!"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Ah, eu trouxe uma coisinha pra ajudar na abertura do salão."
+        }
+      ]
+    },
+    "dlg.gabi_bye": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Gabi, não precisava! Vai ser perfeito pra servir os clientes."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Precisava sim. Boa sorte no novo empreendimento! Quero ser a primeira cliente."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Vem, Joca. Tchau, {cat:cat.first_stray}!"
+        }
+      ]
+    },
+    "dlg.neighbor_knock": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Toc, toc. Uma senhora de cachecol vermelho espia pela porta."
+        }
+      ]
+    },
+    "dlg.neighbor_coins": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Dona Lurdes deixou 50 moedas no balcão."
+        },
+        {
+          "speaker": "",
+          "text": "Agora o pintor aparece no catálogo (C), na seção Reforma."
+        },
+        {
+          "speaker": "",
+          "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
         }
       ]
     }

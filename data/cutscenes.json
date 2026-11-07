@@ -128,6 +128,56 @@
           "text": "Entra. Aqui dentro está mais quente."
         }
       ]
+    },
+    "cs.gabi_call": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Gabi",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.gabi"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Gabi."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Gabi! Bom dia!"
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Bom dia, sumida! Que história é essa de que você comprou uma loja?"
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "É verdade! Uma padaria velha aqui na Vila das Baunilhas. Vou abrir um café... com gatinhos."
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Com gatos?! Quero saber de tudo. Vou passar aí mais tarde pra conhecer!"
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Levo o Joca, tá? Ele adora passear."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "Claro! Te espero no café."
+        },
+        {
+          "type": "hide"
+        }
+      ]
     }
   }
 }

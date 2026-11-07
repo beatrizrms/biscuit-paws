@@ -219,6 +219,61 @@
       ]
     },
     {
+      "id": "story.gabi_call",
+      "act": 1,
+      "after": [
+        "story.prologue_end"
+      ],
+      "when": {
+        "all": [
+          {
+            "day": {
+              "gte": 2
+            }
+          },
+          {
+            "clock": {
+              "gte": "07:15"
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.gabi_call"
+        }
+      ]
+    },
+    {
+      "id": "story.gabi_visit",
+      "act": 1,
+      "after": [
+        "story.gabi_call"
+      ],
+      "goal": {
+        "title": "A visita da Gabi",
+        "steps": [
+          {
+            "text": "Esperar a Gabi no café.",
+            "when": {
+              "location": "map.cafe_main"
+            },
+            "devNote": "Ela chega a partir das 08:30, com a personagem dentro do café."
+          }
+        ]
+      },
+      "when": {
+        "clock": {
+          "gte": "08:30"
+        }
+      },
+      "effects": [
+        {
+          "script": "scr.gabi_visit"
+        }
+      ]
+    },
+    {
       "id": "story.warm_corner",
       "act": 1,
       "after": [
@@ -273,7 +328,7 @@
       },
       "effects": [
         {
-          "dialogue": "dlg.neighbor_visit"
+          "script": "scr.lurdes_visit"
         },
         {
           "setFlag": "met.old_neighbor"

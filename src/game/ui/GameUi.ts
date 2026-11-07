@@ -4,7 +4,7 @@ import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
-import { ShopPanel } from './ShopPanel';
+import { iconHtml, ShopPanel } from './ShopPanel';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -153,7 +153,7 @@ export class GameUi {
     const item = content.items[itemId];
     const el = document.createElement('div');
     el.className = 'item-reveal';
-    const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : '';
+    const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : iconHtml(item?.icon, 64);
     el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${uiText.itemReveal.continue}</div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));

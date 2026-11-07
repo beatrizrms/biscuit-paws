@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Ícones do pacote catalogo_compras (gerado por IA na paleta Cosy). Nomes = arquivos do pacote.",
+  "_comment": "Ícones 32x32. \"image\": folha padrão (catalogo_compras). \"sheets\": outras folhas (matéria-prima, bebidas); o ícone diz a folha em \"sheet\". Nomes = nomes dos pacotes. Todos gerados por IA na paleta Cosy.",
   "image": "assets/icons/catalogo_icones.png",
   "tileSize": 32,
   "columns": 5,
@@ -64,6 +64,176 @@
     "ovos": {
       "col": 4,
       "row": 2
+    },
+    "graos_cafe_saco": {
+      "col": 0,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "graos_cafe_soltos": {
+      "col": 1,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "po_cafe_pacote": {
+      "col": 2,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "filtro_papel": {
+      "col": 3,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "cha_preto_caixa": {
+      "col": 4,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "cha_verde_caixa": {
+      "col": 5,
+      "row": 0,
+      "sheet": "materia_prima"
+    },
+    "cha_camomila_caixa": {
+      "col": 0,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "saquinho_cha_preto": {
+      "col": 1,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "saquinho_cha_verde": {
+      "col": 2,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "lata_folhas_cha": {
+      "col": 3,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "fruta_laranja": {
+      "col": 4,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "fruta_morango": {
+      "col": 5,
+      "row": 1,
+      "sheet": "materia_prima"
+    },
+    "fruta_limao": {
+      "col": 0,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "polpa_laranja": {
+      "col": 1,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "polpa_morango": {
+      "col": 2,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "polpa_limao": {
+      "col": 3,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "acucar_pacote": {
+      "col": 4,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "mel_pote": {
+      "col": 5,
+      "row": 2,
+      "sheet": "materia_prima"
+    },
+    "leite_po_lata": {
+      "col": 0,
+      "row": 3,
+      "sheet": "materia_prima"
+    },
+    "cafe_preto": {
+      "col": 0,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "cafe_com_leite_gato": {
+      "col": 1,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "cha_preto": {
+      "col": 2,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "cha_verde": {
+      "col": 3,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "bule_cha": {
+      "col": 4,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "cafe_para_viagem": {
+      "col": 5,
+      "row": 0,
+      "sheet": "bebidas"
+    },
+    "suco_laranja": {
+      "col": 0,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "suco_morango": {
+      "col": 1,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "suco_limao": {
+      "col": 2,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "caixa_entrega_fechada": {
+      "col": 3,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "caixa_entrega_aberta": {
+      "col": 4,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "caixa_presente_laco": {
+      "col": 5,
+      "row": 1,
+      "sheet": "bebidas"
+    },
+    "caixas_empilhadas": {
+      "col": 0,
+      "row": 2,
+      "sheet": "bebidas"
+    }
+  },
+  "sheets": {
+    "materia_prima": {
+      "image": "assets/icons/materia_prima_tileset.png",
+      "columns": 6
+    },
+    "bebidas": {
+      "image": "assets/icons/itens_bebidas_tileset.png",
+      "columns": 6
     }
   }
 }
