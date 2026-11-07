@@ -159,6 +159,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const n = Number(e.key);
       if (!Number.isInteger(n) || n < 1 || n > HOTBAR_SIZE) return;
       if (this.ui.isBusy() && !this.ui.isPanelOpen()) return;
+      if (this.ui.backpackNumberKey(n)) return;
       this.session.selectHotbarSlot(n - 1);
     });
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {

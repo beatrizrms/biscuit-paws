@@ -9,7 +9,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import { activeItem, assignToActive, fitsHotbar, HOTBAR_SIZE, syncHotbar } from './hotbar';
+import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
@@ -89,8 +89,10 @@ export class GameSession {
       advanceStory: () => this.advanceStory(),
       catAffection: (catId, points) => this.addCatAffection(catId, points),
     });
-    // Ferramenta nova (a vassoura da corretora...) vai sozinha para a barra, venha de onde vier.
-    syncHotbar(state.hotbar, state.inventory, content.items);
+    // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
+    // para a barra, venha de onde vier. O que ela tirou da barra de propósito não volta sozinho.
+    if (state.hotbar.slots.every((s) => s === null)) syncHotbar(state.hotbar, state.inventory, content.items); // save sem barra (v9)
+    this.ownedIds = this.ownedNow();
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
@@ -107,8 +109,18 @@ export class GameSession {
 
   // ---------- Barra de itens ----------
 
+  /** Itens que ela tinha no último evento (para achar os que acabaram de chegar). */
+  private ownedIds = new Set<string>();
+
+  private ownedNow(): Set<string> {
+    return new Set(Object.keys(this.state.inventory).filter((id) => (this.state.inventory[id] ?? 0) > 0));
+  }
+
   private syncHotbar(): void {
-    if (syncHotbar(this.state.hotbar, this.state.inventory, this.content.items)) this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
+    const now = this.ownedNow();
+    const arrived = [...now].filter((id) => !this.ownedIds.has(id));
+    this.ownedIds = now;
+    if (arrived.length && syncHotbar(this.state.hotbar, this.state.inventory, this.content.items, arrived)) this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
   }
 
   /** Item no espaço ativo da barra (o que ela usa para agir), se ainda tiver. */
@@ -126,18 +138,32 @@ export class GameSession {
 
   /** Escolhe o espaço ativo (0 a HOTBAR_SIZE - 1). */
   selectHotbarSlot(slot: number): void {
-    if (!Number.isInteger(slot) || slot < 0 || slot >= HOTBAR_SIZE || slot === this.state.hotbar.active) return;
+    if (!isSlot(slot) || slot === this.state.hotbar.active) return;
     this.state.hotbar.active = slot;
     this.bus.emit('hotbar.changed', { active: slot });
   }
 
-  /** Põe um item da mochila no espaço ativo (troca de lugar se já estava na barra). */
-  assignToHotbar(itemId: string): ActionResult {
-    if (!fitsHotbar(this.content.items[itemId])) return { ok: false, reason: 'unknown_item' };
+  /** Põe um item da mochila num espaço da barra (padrão: o ativo). Se já estava na barra, troca de lugar. */
+  assignToHotbar(itemId: string, slot = this.state.hotbar.active): ActionResult {
+    if (!fitsHotbar(this.content.items[itemId]) || !isSlot(slot)) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
-    assignToActive(this.state.hotbar, itemId);
+    assignToSlot(this.state.hotbar, slot, itemId);
     this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
     return { ok: true };
+  }
+
+  /** Tira o item de um espaço da barra (ele continua na mochila). */
+  clearHotbarSlot(slot: number): void {
+    if (!isSlot(slot) || this.state.hotbar.slots[slot] === null) return;
+    this.state.hotbar.slots[slot] = null;
+    this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
+  }
+
+  /** Troca dois espaços da barra (arrastar um sobre o outro). */
+  moveHotbarSlot(from: number, to: number): void {
+    if (!isSlot(from) || !isSlot(to) || from === to) return;
+    swapSlots(this.state.hotbar, from, to);
+    this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
   }
 
   /** Falta a ferramenta da ação no espaço ativo? */

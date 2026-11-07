@@ -161,6 +161,7 @@
 /* Aviso rápido */
 .toast {
   position: absolute;
+  z-index: 3; /* por cima dos painéis (mochila, catálogo) */
   top: 40px;
   left: 50%;
   transform: translateX(-50%);
@@ -630,18 +631,15 @@
 .day-transition .summary .hearts { color: #e58fa6; }
 
 /* Quadro do cardápio e mochila */
-.catalog.menu-board .recipe, .catalog.backpack .recipe { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: 8px; }
-.catalog.menu-board .recipe .name, .catalog.backpack .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 9px; }
+.catalog.menu-board .recipe { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: 8px; }
+.catalog.menu-board .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 9px; }
 .catalog.menu-board .recipe .price { margin-left: auto; font-weight: bold; }
-.catalog.menu-board .recipe .desc, .catalog.backpack .recipe .desc { color: var(--grey2); font-size: 7px; }
+.catalog.menu-board .recipe .desc { color: var(--grey2); font-size: 7px; }
 .catalog.menu-board .recipe .status { font-size: 7px; color: #4f8a64; }
 .catalog.menu-board .recipe.sold-out .status { color: #c0596a; font-weight: bold; }
-.catalog.menu-board .recipe button, .catalog.backpack .recipe button { align-self: flex-end; padding: 1px 8px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
+.catalog.menu-board .recipe button { align-self: flex-end; padding: 1px 8px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
+.catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
 .catalog.menu-board .slot-empty { font-style: italic; color: var(--grey2); background: transparent; border: 1px dashed var(--cream3); }
-.catalog.backpack .dishes { margin: 0 0 4px; font-size: 8px; }
-.catalog.backpack .empty, .catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
-.catalog.backpack .dishes { display: flex; flex-wrap: wrap; gap: 6px; }
-.catalog.backpack .vessel { display: inline-flex; align-items: center; gap: 2px; }
 
 /* Quadro do cardápio desenhado (pacote Fluxo do café) */
 .catalog.menu-board .board { position: relative; flex: none; margin: 0 auto 6px; background-size: 100% 100%; image-rendering: pixelated; }
@@ -651,19 +649,6 @@
 .catalog.menu-board .board .slot-price { position: absolute; display: flex; align-items: center; justify-content: flex-end; font-size: 6px; font-weight: bold; color: #f3e6c8; }
 .catalog .list { overflow-anchor: none; }
 
-/* Mochila em grade: clicar num item põe no espaço ativo da barra */
-.catalog.backpack .bp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
-.catalog.backpack .bp-item { display: flex; flex-direction: column; gap: 2px; }
-.catalog.backpack .bp-item > button[data-assign], .catalog.backpack .bp-item > button[data-place] { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px 3px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--cream2); font: inherit; cursor: pointer; }
-.catalog.backpack .bp-item > button[data-assign]:hover, .catalog.backpack .bp-item > button[data-place]:hover:not(:disabled) { border-color: var(--butter3); }
-.catalog.backpack .bp-item > button[data-place]:disabled { cursor: default; opacity: 0.85; }
-.catalog.backpack .tile-thumb { display: inline-block; image-rendering: pixelated; background-repeat: no-repeat; }
-.catalog.backpack .bp-item.active > button[data-assign] { border: 2px solid var(--butter3); background: var(--cream); }
-.catalog.backpack .bp-item .icon { image-rendering: pixelated; }
-.catalog.backpack .bp-name { font-size: 7px; text-align: center; line-height: 1.1; }
-.catalog.backpack .bp-amount { font-size: 6.5px; color: var(--grey2); }
-.catalog.backpack .slot-no { position: absolute; top: 1px; left: 3px; font-size: 6px; font-weight: bold; color: var(--wood3); }
-.catalog.backpack .bp-item > button:not([data-assign]):not([data-place]) { padding: 1px 4px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
 
 /* Carrinho do mercado: prateleira (+/−) e caixa (total, pagar) */
 .catalog .cart-row { grid-template-columns: 1fr auto auto; align-items: center; gap: 4px; cursor: default; }
@@ -703,3 +688,31 @@
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 3px 5px; font-size: 7.5px; line-height: 1.35; background: var(--cream2); border-radius: 3px; }
 .catalog.shop .list { overflow-x: hidden; }
 .catalog .cart-row { box-sizing: border-box; }
+
+/* Mochila (I): no centro, barra em cima e grade embaixo, espaços do tamanho dos da barra */
+.catalog.backpack { left: 50%; right: auto; top: 34px; bottom: auto; width: 236px; transform: translateX(-50%); }
+.catalog.backpack .list { overflow: visible; }
+.catalog.backpack .bp-strip { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 4px; margin-bottom: 2px; border-radius: 4px; background: var(--cream2); font-size: 7px; }
+.catalog.backpack .bp-strip button { padding: 0 5px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
+.catalog.backpack .dishes { display: inline-flex; align-items: center; gap: 4px; }
+.catalog.backpack .vessel { display: inline-flex; align-items: center; gap: 1px; }
+.catalog.backpack .bp-row { display: grid; grid-template-columns: repeat(8, 24px); gap: 3px; }
+.catalog.backpack .bp-slot { position: relative; width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; background: var(--cream2); border: 1px solid var(--cream3); border-radius: 3px; font: inherit; cursor: pointer; }
+.catalog.backpack span.bp-slot { cursor: default; opacity: 0.6; }
+.catalog.backpack .bp-slot.active { border: 2px solid var(--butter2); background: var(--cream); }
+.catalog.backpack .bp-slot.selected { box-shadow: 0 0 0 1px var(--pink3); }
+.catalog.backpack .bp-slot:hover:not(.is-empty) { border-color: var(--butter3); }
+.catalog.backpack .bp-slot .icon { image-rendering: pixelated; pointer-events: none; }
+.catalog.backpack .bp-slot .key { position: absolute; top: 0; left: 1px; font-size: 5px; line-height: 1; color: var(--ink2); }
+.catalog.backpack .bp-slot .count { position: absolute; bottom: 0; right: 1px; font-size: 5.5px; line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
+.catalog.backpack .tile-thumb { display: inline-block; background-repeat: no-repeat; }
+.catalog.backpack .bp-detail { display: flex; align-items: center; gap: 5px; margin-top: 5px; padding: 4px 5px; min-height: 30px; border-radius: 4px; background: var(--cream2); font-size: 7.5px; }
+.catalog.backpack .bp-detail-icon { flex: none; display: flex; }
+.catalog.backpack .bp-detail-text { flex: 1; line-height: 1.3; }
+.catalog.backpack .bp-detail-text .amount { color: var(--grey2); }
+.catalog.backpack .bp-detail-text .purpose { color: var(--ink2); }
+.catalog.backpack .bp-detail-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.catalog.backpack .bp-detail-actions button { padding: 1px 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; white-space: nowrap; }
+.catalog.backpack .bp-detail-actions button:disabled { opacity: 0.5; cursor: default; }
+.catalog.backpack .bp-detail-actions .why { font-size: 6.5px; color: var(--grey2); }
+.catalog.backpack .bp-hint { margin: 5px 0 0; font-size: 7px; font-style: italic; color: var(--grey2); }

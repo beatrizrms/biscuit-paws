@@ -336,8 +336,10 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
 
   // Vai até a porta de dentro e sobe: em vez de sair, vem a cena.
   await teleport(page, 14, 4);
-  await hold(page, 'ArrowUp', 700);
-  await expect(page.locator('.cutscene')).toHaveClass(/open/);
+  // Segura a seta até a cena abrir (tempo fixo falha com a máquina carregada: quadros lentos, ela anda menos).
+  await page.keyboard.down('ArrowUp');
+  await expect(page.locator('.cutscene')).toHaveClass(/open/, { timeout: 8000 });
+  await page.keyboard.up('ArrowUp');
   expect((await player(page)).map).toBe('map.cafe_main');
   await skipDialogue(page);
 

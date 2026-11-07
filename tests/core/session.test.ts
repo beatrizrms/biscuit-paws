@@ -1026,6 +1026,27 @@ describe('barra de itens', () => {
     expect(events.some((e) => e.name === 'hotbar.changed')).toBe(true);
   });
 
+  it('pôr num espaço escolhido, trocar dois espaços e tirar da barra', () => {
+    const { session } = newSession();
+    session.buy('item.cat_food_basic');
+    expect(session.assignToHotbar('item.cat_food_basic', 5)).toEqual({ ok: true });
+    expect(session.state.hotbar.slots[5]).toBe('item.cat_food_basic');
+    expect(session.state.hotbar.slots[1]).toBeNull(); // saiu do espaço onde tinha entrado sozinha
+    session.moveHotbarSlot(0, 5);
+    expect([session.state.hotbar.slots[0], session.state.hotbar.slots[5]]).toEqual(['item.cat_food_basic', 'item.broom']);
+    session.clearHotbarSlot(5);
+    expect(session.state.hotbar.slots).not.toContain('item.broom');
+    expect(session.state.inventory['item.broom']).toBe(1); // continua na mochila
+  });
+
+  it('o que ela tirou da barra não volta sozinho; item novo entra', () => {
+    const { session } = newSession();
+    session.clearHotbarSlot(0);
+    session.buy('item.cat_food_basic');
+    expect(session.state.hotbar.slots).not.toContain('item.broom');
+    expect(session.state.hotbar.slots).toContain('item.cat_food_basic');
+  });
+
   it('móvel e item que ela não tem não vão para a barra', () => {
     const { session } = newSession();
     expect(session.buy('item.cactus')).toEqual({ ok: true });

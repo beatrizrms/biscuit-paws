@@ -1,6 +1,9 @@
-// Mochila: o inventário abstrato (ingredientes em doses, coisas de gato, chaves, presentes) em grade de ícones,
-// a louça limpa e o que está nas mãos. Clicar num item põe no espaço ativo da barra. Petisco: "segurar" põe na mão.
+// Mochila (tecla I): painel no centro com a barra (1 a 8) em cima e a grade da mochila embaixo, só ícones e quantidade.
+// Selecionar um item mostra o nome, para que serve e as ações numa linha de detalhes. Para pôr na barra: arrastar
+// até um espaço, clicar no espaço com o item selecionado ou apertar 1 a 8. Arrastar da barra para a grade tira da barra.
 import type { HandItem } from '../../core/carry';
+import type { ItemDef } from '../../core/content';
+import { fitsHotbar } from '../../core/hotbar';
 import type { GameSession } from '../../core/session';
 import { VESSELS } from '../../core/recipes';
 import { content, uiText } from '../content';
@@ -9,6 +12,9 @@ import { iconHtml } from './ShopPanel';
 import { tileThumbHtml } from '../icons';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/** Espaços da grade da mochila (cresce de 8 em 8 se ela tiver mais coisas). */
+const BAG_SLOTS = 16;
 
 /** Nome de um objeto da mão (bebida, louça suja, item). */
 export function handItemName(h: HandItem, catName: (id: string) => string = (id) => content.cats[id]?.name ?? ''): string {
@@ -22,10 +28,37 @@ export function handItemName(h: HandItem, catName: (id: string) => string = (id)
   return content.items[h.item]?.name ?? '';
 }
 
+const isFurniture = (item: ItemDef | undefined) => (item?.kind ?? 'furniture') === 'furniture';
+
+/** Ordem na grade: ferramentas, itens de usar, o resto, ingredientes e, por último, móveis. */
+function bagOrder(item: ItemDef): number {
+  if (item.kind === 'tool') return 0;
+  if (item.use) return 1;
+  if (isFurniture(item)) return 4;
+  return item.tags.includes('ingredient') ? 3 : 2;
+}
+
+/** Para que serve (linha de detalhes). */
+function purpose(item: ItemDef): string {
+  const d = uiText.backpack.purpose;
+  if (item.id === content.world.tools.sweep) return d.sweep;
+  if (item.id === content.carry.tray.item) return d.tray;
+  if (item.use === 'food_bowl') return d.food;
+  if (item.use === 'cat') return d.treat;
+  if (isFurniture(item)) return d.furniture;
+  if (item.tags.includes('ingredient')) return d.ingredient;
+  if (item.kind === 'key') return d.key;
+  if (item.tags.includes('job')) return d.job;
+  return d.other;
+}
+
+type Selection = { from: 'bag'; id: string } | { from: 'bar'; slot: number } | null;
+
 export class BackpackPanel {
   private el: HTMLElement;
   private body: HTMLElement;
   private open = false;
+  private selected: Selection = null;
 
   constructor(
     root: HTMLElement,
@@ -40,6 +73,12 @@ export class BackpackPanel {
     root.appendChild(this.el);
     this.body = this.el.querySelector('.list') as HTMLElement;
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
+    this.body.addEventListener('click', (e) => this.onClick(e));
+    this.body.addEventListener('dragstart', (e) => this.onDragStart(e));
+    this.body.addEventListener('dragover', (e) => {
+      if ((e.target as HTMLElement).closest('[data-bar], .bp-bag')) e.preventDefault();
+    });
+    this.body.addEventListener('drop', (e) => this.onDrop(e));
     session.bus.onAny(() => this.render());
   }
 
@@ -49,6 +88,7 @@ export class BackpackPanel {
 
   show(): void {
     this.open = true;
+    this.selected = null;
     this.render();
     this.el.classList.add('open');
     this.onChange();
@@ -61,78 +101,179 @@ export class BackpackPanel {
     this.onChange();
   }
 
+  /** Tecla 1 a 8 com a mochila aberta e um item selecionado: vai para aquele espaço. Devolve se usou a tecla. */
+  numberKey(n: number): boolean {
+    const id = this.selectedItem();
+    if (!this.open || this.selected?.from !== 'bag' || !id || !fitsHotbar(content.items[id])) return false;
+    this.assign(id, n - 1);
+    return true;
+  }
+
+  /** Onde "pôr na barra" coloca: o primeiro espaço vazio (ou com item que acabou); sem nenhum, o ativo. */
+  private freeSlot(): number {
+    const { slots, active } = this.session.state.hotbar;
+    const free = slots.findIndex((id) => !this.owned(id));
+    return free >= 0 ? free : active;
+  }
+
+  private selectedItem(): string | null {
+    const s = this.selected;
+    if (!s) return null;
+    return s.from === 'bag' ? s.id : this.session.state.hotbar.slots[s.slot] ?? null;
+  }
+
+  private owned(id: string | null): id is string {
+    const st = this.session.state;
+    return !!id && ((st.inventory[id] ?? 0) > 0 || (st.pantryOpen[id] ?? 0) > 0);
+  }
+
+  private assign(itemId: string, slot: number): void {
+    const r = this.session.assignToHotbar(itemId, slot);
+    if (!r.ok) return this.onProblem(r.reason);
+    this.selected = { from: 'bar', slot };
+    this.render();
+  }
+
+  private onClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement;
+    const bar = target.closest<HTMLElement>('[data-bar]');
+    const bag = target.closest<HTMLElement>('[data-bag]');
+    const act = target.closest<HTMLButtonElement>('button[data-act]');
+    const sv = this.session.service;
+    if (act) {
+      const id = this.selectedItem();
+      const report = (r: { ok: boolean; reason?: string }) => !r.ok && r.reason && this.onProblem(r.reason);
+      switch (act.dataset.act) {
+        case 'to-bar':
+          if (id) this.assign(id, this.freeSlot());
+          return;
+        case 'off-bar':
+          if (this.selected?.from === 'bar') this.session.clearHotbarSlot(this.selected.slot);
+          this.selected = id ? { from: 'bag', id } : null;
+          return this.render();
+        case 'place':
+          if (!id) return;
+          this.close();
+          return this.onPlace(id);
+        case 'hold':
+          if (id) report(sv.hold(id));
+          return;
+        case 'tray':
+          return void report(sv.toggleTray());
+        case 'stow':
+          return void report(sv.stow());
+      }
+      return;
+    }
+    if (bar) {
+      const slot = Number(bar.dataset.bar);
+      // Com um item da mochila selecionado, clicar num espaço da barra põe ele ali.
+      const picked = this.selected?.from === 'bag' ? this.selected.id : null;
+      if (picked && fitsHotbar(content.items[picked])) return this.assign(picked, slot);
+      this.session.selectHotbarSlot(slot);
+      this.selected = { from: 'bar', slot };
+      return this.render();
+    }
+    if (bag?.dataset.bag) {
+      this.selected = { from: 'bag', id: bag.dataset.bag };
+      this.render();
+    }
+  }
+
+  private onDragStart(e: DragEvent): void {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-bar], [data-bag]');
+    if (!el || !e.dataTransfer) return;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', el.dataset.bar !== undefined ? `bar:${el.dataset.bar}` : `bag:${el.dataset.bag}`);
+  }
+
+  private onDrop(e: DragEvent): void {
+    e.preventDefault();
+    const data = e.dataTransfer?.getData('text/plain') ?? '';
+    const [from, value] = [data.slice(0, 3), data.slice(4)];
+    const bar = (e.target as HTMLElement).closest<HTMLElement>('[data-bar]');
+    if (bar) {
+      const slot = Number(bar.dataset.bar);
+      if (from === 'bar') {
+        this.session.moveHotbarSlot(Number(value), slot);
+        this.selected = { from: 'bar', slot };
+        return this.render();
+      }
+      if (from === 'bag' && fitsHotbar(content.items[value])) return this.assign(value, slot);
+      return;
+    }
+    // Da barra de volta para a mochila: sai da barra (o item continua na mochila).
+    if (from === 'bar' && (e.target as HTMLElement).closest('.bp-bag')) {
+      const id = this.session.state.hotbar.slots[Number(value)];
+      this.session.clearHotbarSlot(Number(value));
+      this.selected = id ? { from: 'bag', id } : null;
+      this.render();
+    }
+  }
+
+  private slotHtml(id: string | null, attrs: string, active: boolean, key?: number): string {
+    const st = this.session.state;
+    const sv = this.session.service;
+    const item = this.owned(id) ? content.items[id] : undefined;
+    const servings = item?.servings ?? 1;
+    const qty = !item ? 0 : servings > 1 ? sv.doses(item.id) : st.inventory[item.id] ?? 0;
+    const icon = !item ? '' : isFurniture(item) ? tileThumbHtml(item.tile, 18) : itemIconHtml(item, 18);
+    const sel = item && this.selectedItem() === item.id ? ' selected' : '';
+    const label = item ? ` title="${esc(item.name)}" draggable="true"` : '';
+    return `<button class="bp-slot${active ? ' active' : ''}${sel}${item ? '' : ' is-empty'}" ${attrs}${label}>${
+      key !== undefined ? `<span class="key">${key}</span>` : ''
+    }${icon}${qty > 1 ? `<span class="count">${qty}</span>` : ''}</button>`;
+  }
+
+  private detailHtml(): string {
+    const t = uiText.backpack;
+    const id = this.selectedItem();
+    const item = this.owned(id) ? content.items[id] : undefined;
+    if (!item) return `<p class="bp-hint">${t.gridHint}</p>`;
+    const st = this.session.state;
+    const sv = this.session.service;
+    const servings = item.servings ?? 1;
+    const amount = servings > 1 ? t.doses.replace('{n}', String(sv.doses(item.id))) : `x${st.inventory[item.id] ?? 0}`;
+    const onBar = st.hotbar.slots.indexOf(item.id);
+    const buttons: string[] = [];
+    if (isFurniture(item)) {
+      const why = this.session.missingHost(item.id);
+      const away = !this.session.atHome();
+      buttons.push(`<button data-act="place" ${why || away ? 'disabled' : ''}>${t.place}</button>`);
+      if (why) buttons.push(`<span class="why">${t.needsCounter}</span>`);
+      else if (away) buttons.push(`<span class="why">${t.placeAtHome}</span>`);
+    } else if (fitsHotbar(item)) {
+      if (onBar >= 0) buttons.push(`<button data-act="off-bar">${t.offBar}</button>`);
+      else buttons.push(`<button data-act="to-bar">${t.toBar.replace('{n}', String(this.freeSlot() + 1))}</button>`);
+    }
+    if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
+    if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);
+    return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22) : itemIconHtml(item, 22)}</span>
+      <span class="bp-detail-text"><b>${esc(item.name)}</b> <span class="amount">${amount}</span><br /><span class="purpose">${esc(purpose(item))}</span></span>
+      <span class="bp-detail-actions">${buttons.join('')}</span></div>`;
+  }
+
   private render(): void {
     if (!this.open) return;
     const t = uiText.backpack;
     const st = this.session.state;
-    const sv = this.session.service;
-    const ids = new Set([...Object.keys(st.inventory), ...Object.keys(st.pantryOpen)]);
-    const abstract = [...ids].map((id) => content.items[id]).filter((i) => i && (i.kind ?? 'furniture') !== 'furniture' && i.kind !== 'fixture');
-    const active = this.session.activeItem();
-    const tile = (id: string) => {
-      const item = content.items[id]!;
-      const packs = st.inventory[id] ?? 0;
-      const servings = item.servings ?? 1;
-      const amount = servings > 1 ? t.doses.replace('{n}', String(sv.doses(id))) : `x${packs}`;
-      const onBar = st.hotbar.slots.indexOf(id);
-      const hold = item.tags.includes('treat') && packs > 0
-        ? `<button data-hold="${id}">${t.hold}</button>`
-        : id === content.carry.tray.item && packs > 0
-          ? `<button data-tray>${st.tray ? t.stowTray : t.useTray}</button>`
-          : '';
-      const slot = onBar >= 0 ? `<span class="slot-no">${onBar + 1}</span>` : '';
-      return `<div class="bp-item${id === active ? ' active' : ''}"><button data-assign="${id}" title="${esc(item.name)}" ${packs > 0 ? '' : 'disabled'}>${slot}${itemIconHtml(item, 20)}<span class="bp-name">${esc(item.name)}</span><span class="bp-amount">${amount}</span></button>${hold}</div>`;
-    };
-    // Ferramentas primeiro, depois o resto, e os ingredientes no fim.
-    const order = (i: (typeof abstract)[number]) => (i!.kind === 'tool' ? 0 : i!.tags.includes('ingredient') ? 2 : 1);
-    const sorted = [...abstract].sort((a, b) => order(a) - order(b));
-    // Móveis guardados (ex.: a cafeteira sem balcão livre): com desenho e "posicionar" (só dentro do café).
-    const furniture = Object.entries(st.inventory).filter(([id, q]) => q > 0 && (content.items[id]?.kind ?? 'furniture') === 'furniture');
-    const furnitureTile = ([id, q]: [string, number]) => {
-      const item = content.items[id]!;
-      const why = this.session.missingHost(id);
-      const note = why ? `<span class="bp-amount">${esc(t.needsCounter)}</span>` : '';
-      return `<div class="bp-item"><button data-place="${id}" title="${esc(item.name)}" ${why || !this.session.atHome() ? 'disabled' : ''}>${tileThumbHtml(item.tile, 20)}<span class="bp-name">${esc(item.name)}</span><span class="bp-amount">x${q}</span>${note}</button></div>`;
-    };
-    const dishes = VESSELS.map((v) => `<span class="vessel">${iconHtml(content.service.vessels[v].icon)}${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b></span>`).join('');
+    if (this.selected && !this.owned(this.selectedItem())) this.selected = null;
+    // Faixa de cima: o que está nas mãos e a louça limpa.
     const hands = st.hands.length
-      ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h, (id) => this.session.catName(id)))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
-      : `<p class="empty">${t.handsEmpty}</p>`;
+      ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '')
+      : t.handsEmpty;
+    const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
+    // A barra (mesmos espaços da barra de baixo da tela).
+    const bar = st.hotbar.slots.map((id, i) => this.slotHtml(id, `data-bar="${i}"`, i === st.hotbar.active, i + 1)).join('');
+    // A mochila: tudo o que ela tem e não está na barra.
+    const ids = [...new Set([...Object.keys(st.inventory), ...Object.keys(st.pantryOpen)])].filter((id) => this.owned(id) && !st.hotbar.slots.includes(id) && content.items[id] && content.items[id]!.kind !== 'fixture');
+    ids.sort((a, b) => bagOrder(content.items[a]!) - bagOrder(content.items[b]!));
+    const total = Math.max(BAG_SLOTS, Math.ceil(ids.length / 8) * 8);
+    const bag = Array.from({ length: total }, (_, i) => (ids[i] ? this.slotHtml(ids[i]!, `data-bag="${ids[i]}"`, false) : `<span class="bp-slot is-empty"></span>`)).join('');
     this.body.innerHTML = `
-      <h3>${t.hands}</h3>${hands}
-      <h3>${t.dishes}</h3><p class="dishes">${dishes}</p>
-      <h3>${t.items}</h3><p class="empty">${t.gridHint.replace('{n}', String(st.hotbar.active + 1))}</p>
-      <div class="bp-grid">${sorted.map((i) => tile(i!.id)).join('') || `<p class="empty">${t.none}</p>`}</div>
-      ${furniture.length ? `<h3>${t.furnitureTitle}</h3><p class="empty">${t.furnitureHint}</p><div class="bp-grid">${furniture.map(furnitureTile).join('')}</div>` : ''}`;
-    this.body.querySelectorAll<HTMLButtonElement>('[data-place]').forEach((b) =>
-      b.addEventListener('click', () => {
-        this.close();
-        this.onPlace(b.dataset.place!);
-      }),
-    );
-    this.body.querySelectorAll<HTMLButtonElement>('[data-assign]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const r = this.session.assignToHotbar(b.dataset.assign!);
-        if (!r.ok) this.onProblem(r.reason);
-      }),
-    );
-    this.body.querySelectorAll<HTMLButtonElement>('[data-hold]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const r = sv.hold(b.dataset.hold!);
-        if (!r.ok) this.onProblem(r.reason);
-      }),
-    );
-    this.body.querySelectorAll<HTMLButtonElement>('[data-tray]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const r = sv.toggleTray();
-        if (!r.ok) this.onProblem(r.reason);
-      }),
-    );
-    this.body.querySelectorAll<HTMLButtonElement>('[data-stow]').forEach((b) =>
-      b.addEventListener('click', () => {
-        const r = sv.stow();
-        if (!r.ok) this.onProblem(r.reason);
-      }),
-    );
+      <div class="bp-strip"><span><b>${t.hands}:</b> ${hands}</span><span class="dishes"><b>${t.dishes}:</b> ${dishes}</span></div>
+      <h3>${t.bar}</h3><div class="bp-row">${bar}</div>
+      <h3>${t.bag}</h3><div class="bp-row bp-bag">${bag}</div>
+      ${this.detailHtml()}`;
   }
 }

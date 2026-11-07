@@ -240,15 +240,29 @@
     "hold": "segurar",
     "stow": "guardar",
     "dirty": "{name} suja",
-    "furnitureTitle": "Móveis guardados",
-    "furnitureHint": "Clique para posicionar no café.",
+    "bar": "Barra (1 a 8)",
+    "bag": "Mochila",
+    "place": "posicionar",
+    "placeAtHome": "só dentro do café",
+    "toBar": "pôr na barra ({n})",
+    "offBar": "tirar da barra",
     "needsCounter": "precisa de balcão",
+    "purpose": {
+      "sweep": "Varre a sujeira do café e a neve da rua.",
+      "tray": "Leva até 3 louças de uma vez.",
+      "food": "Enche a tigela do gato.",
+      "treat": "Um agrado para o gato (mais carinho).",
+      "furniture": "Móvel guardado: posicione no café.",
+      "ingredient": "Ingrediente da cozinha.",
+      "key": "Abre uma porta.",
+      "job": "Parte de um pedido da vila.",
+      "other": "Guardado na mochila."
+    },
     "useTray": "usar bandeja",
     "stowTray": "guardar bandeja",
     "wip": "{name} ({equipment})",
     "cat": "{name} no colo",
-    "items": "Itens",
-    "gridHint": "Clique num item para pôr no espaço ativo da barra ({n})."
+    "gridHint": "Selecione um item para ver o que ele faz. Para pôr na barra: arraste até um espaço, ou selecione e aperte 1 a 8."
   },
   "service": {
     "prepStarted": "Preparando: {name}",

@@ -29,9 +29,15 @@ const owned = (inventory: Record<string, number>, id: string | null) => !!id && 
  * Ferramenta ou item com uso novo vai sozinho para o primeiro espaço livre (vazio ou com item que acabou).
  * Devolve se mudou algo.
  */
-export function syncHotbar(bar: HotbarState, inventory: Record<string, number>, items: Record<string, ItemDef>): boolean {
+export function syncHotbar(
+  bar: HotbarState,
+  inventory: Record<string, number>,
+  items: Record<string, ItemDef>,
+  /** Só estes (os que acabaram de chegar); sem lista, todos os que ela tem. */
+  only?: Iterable<string>,
+): boolean {
   let changed = false;
-  for (const id of Object.keys(inventory)) {
+  for (const id of only ?? Object.keys(inventory)) {
     if (!owned(inventory, id) || !autoSlotted(items[id]) || bar.slots.includes(id)) continue;
     const free = bar.slots.findIndex((s) => !owned(inventory, s));
     if (free < 0) break;
@@ -47,9 +53,16 @@ export function activeItem(bar: HotbarState, inventory: Record<string, number>):
   return owned(inventory, id) ? id : null;
 }
 
-/** Põe o item no espaço ativo. Se ele já estava em outro espaço, os dois trocam de lugar. */
-export function assignToActive(bar: HotbarState, itemId: string): void {
+/** Põe o item num espaço. Se ele já estava em outro espaço, os dois trocam de lugar. */
+export function assignToSlot(bar: HotbarState, slot: number, itemId: string): void {
   const from = bar.slots.indexOf(itemId);
-  if (from >= 0) bar.slots[from] = bar.slots[bar.active] ?? null;
-  bar.slots[bar.active] = itemId;
+  if (from >= 0) bar.slots[from] = bar.slots[slot] ?? null;
+  bar.slots[slot] = itemId;
 }
+
+/** Troca o conteúdo de dois espaços (arrastar dentro da barra). */
+export function swapSlots(bar: HotbarState, a: number, b: number): void {
+  [bar.slots[a], bar.slots[b]] = [bar.slots[b] ?? null, bar.slots[a] ?? null];
+}
+
+export const isSlot = (slot: number) => Number.isInteger(slot) && slot >= 0 && slot < HOTBAR_SIZE;

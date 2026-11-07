@@ -43,6 +43,10 @@ export class GameUi {
   private news!: NewsPanel;
   private menuBoard!: MenuBoardPanel;
   private backpack!: BackpackPanel;
+  /** Tecla 1 a 8 com a mochila aberta e um item selecionado: põe ele naquele espaço da barra. */
+  backpackNumberKey(n: number): boolean {
+    return this.backpack.numberKey(n);
+  }
   private hotbar!: Hotbar;
   /** Caixas que já chegaram mas a entregadora ainda está trazendo (a cena avisa). */
   private parcelsOnTheWay = 0;
