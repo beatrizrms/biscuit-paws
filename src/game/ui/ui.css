@@ -607,3 +607,11 @@
 .catalog.backpack .empty, .catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
 .catalog.backpack .dishes { display: flex; flex-wrap: wrap; gap: 6px; }
 .catalog.backpack .vessel { display: inline-flex; align-items: center; gap: 2px; }
+
+/* Quadro do cardápio desenhado (pacote Fluxo do café) */
+.catalog.menu-board .board { position: relative; flex: none; margin: 0 auto 6px; background-size: 100% 100%; image-rendering: pixelated; }
+.catalog.menu-board .board .slot-icon { position: absolute; display: flex; align-items: center; justify-content: center; }
+.catalog.menu-board .board .slot-icon .veil { position: absolute; inset: -6%; width: 112%; height: 112%; image-rendering: pixelated; }
+.catalog.menu-board .board .slot-icon .mark { position: absolute; left: -18%; top: 30%; width: 136%; image-rendering: pixelated; }
+.catalog.menu-board .board .slot-price { position: absolute; display: flex; align-items: center; justify-content: flex-end; font-size: 6px; font-weight: bold; color: #f3e6c8; }
+.catalog .list { overflow-anchor: none; }

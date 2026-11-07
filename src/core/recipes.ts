@@ -64,8 +64,8 @@ export interface ServiceConfig {
   chairTag: string;
   /** Louça: nome e ícones (limpa e suja). */
   vessels: Record<Vessel, { name: string; icon: string; dirtyIcon: string }>;
-  /** Cores dos clientes provisórios (o sprite é o da personagem, tingido). */
-  customerTints: string[];
+  /** NPCs que podem aparecer como cliente (sorteados). */
+  customerLooks: string[];
 }
 
 export interface CarryConfig {
@@ -117,7 +117,7 @@ export function validateRecipes(
     const def = service.vessels[v];
     if (!def || !refs.icons.has(def.icon) || !refs.icons.has(def.dirtyIcon)) errors.push(`service: louça "${v}" sem ícones válidos (limpa e suja)`);
   }
-  if (service.customerTints.length === 0) errors.push('service: customerTints vazio');
+  if (service.customerLooks.length === 0) errors.push('service: customerLooks vazio');
   if (!(carry.carryCapacity >= 1) || !(carry.speedPenaltyPerItem >= 0)) errors.push('carry: carryCapacity >= 1 e speedPenaltyPerItem >= 0');
   return errors;
 }

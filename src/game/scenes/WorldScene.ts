@@ -16,7 +16,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, uiText } from '../content';
+import { broom, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { formatClock, tintAt } from '../../core/time';
 
@@ -56,8 +56,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private surfaceIcons: Phaser.GameObjects.Image[] = [];
   private handIcons: Phaser.GameObjects.Image[] = [];
   private handsKey = '';
-  private prepGfx!: Phaser.GameObjects.Graphics;
   private equipAnims = new Map<string, Phaser.GameObjects.Sprite>();
+  private progressBars = new Map<string, Phaser.GameObjects.Image>();
   private customerViews = new Map<string, CustomerSprite>();
   private customersFresh = true;
   private carriedImages: Phaser.GameObjects.Image[] = [];
@@ -95,7 +95,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
-    this.prepGfx = this.add.graphics().setDepth(99_400);
     this.scripts = new ScriptRunner(this.session, this);
     this.loadMap(this.session.location());
 
@@ -162,6 +161,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    this.session.bus.on('customer.served', ({ customerId, price }) => {
+      const view = this.customerViews.get(customerId);
+      if (!view) return;
+      const x = view.sprite.x;
+      const y = view.sprite.y - 66;
+      const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
+      const label = this.add.text(x + 2, y, `+${price}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
+      this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
+    });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
@@ -624,13 +632,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!img) continue;
       // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente.
       const base = (s.at[1] + 1) * ts;
-      img.setPosition((s.at[0] + 0.5) * ts, base - 10).setOrigin(0.5, 1).setScale(0.6).setDepth(ySortDepth(base) + 5);
+      img.setPosition((s.at[0] + 0.5) * ts, base - 12).setOrigin(0.5, 1).setScale(s.item.kind === 'item' ? 0.6 : 1).setDepth(ySortDepth(base) + 5);
       this.surfaceIcons.push(img);
     }
   }
 
   /** Imagem do que está na mão (bebida: ícone da receita; louça suja: ícone apagado; item: ícone do item). */
   private handItemImage(item: HandItem): Phaser.GameObjects.Image | undefined {
+    // Bebida e louça suja: a louça 16x16 do pacote (cheia ou suja), no tamanho de verdade.
+    if (item.kind !== 'item') {
+      const d = serviceArt.dishes;
+      const row = d.rows[item.vessel];
+      if (row !== undefined) return this.add.image(0, 0, 'dishes16', row * 3 + (item.kind === 'drink' ? d.cols.full : d.cols.dirty));
+    }
     const icon =
       item.kind === 'drink'
         ? this.session.content.recipes[item.recipe]?.icon
@@ -651,7 +665,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
-      this.handIcons = st.hands.map((h) => this.handItemImage(h)).filter((i): i is Phaser.GameObjects.Image => !!i).map((i) => i.setScale(0.55).setOrigin(0.5, 1));
+      this.handIcons = st.hands.map((h) => this.handItemImage(h)).filter((i): i is Phaser.GameObjects.Image => !!i).map((i, n) => i.setScale(st.hands[n]?.kind === 'item' ? 0.55 : 1).setOrigin(0.5, 1));
     }
     const dir = this.player.facingDirection();
     const dx = dir === 'left' ? -9 : dir === 'right' ? 9 : 0;
@@ -659,18 +673,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.session.atHome()) return;
     // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
     const ts = this.map.tileSize;
-    this.prepGfx.clear();
     const working = new Set<string>();
     for (const prep of st.service.preps) {
       const placed = st.placed.find((p) => p.uid === prep.stationUid);
       const progress = sv.prepProgress(prep.stationUid);
       if (!placed || progress === undefined) continue;
       working.add(placed.uid);
-      const x = placed.at[0] * ts + 4;
-      const y = placed.at[1] * ts - 6;
-      this.prepGfx.fillStyle(0x5a4048, 1).fillRect(x - 1, y - 1, 26, 6);
-      this.prepGfx.fillStyle(0xf3e6d8, 1).fillRect(x, y, 24, 4);
-      this.prepGfx.fillStyle(0xe58fa6, 1).fillRect(x, y, Math.round(24 * progress), 4);
+      const frame = Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)));
+      let bar = this.progressBars.get(placed.uid);
+      if (!bar) {
+        bar = this.add.image((placed.at[0] + 0.5) * ts, placed.at[1] * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+        this.progressBars.set(placed.uid, bar);
+      }
+      bar.setTexture(`progress_${frame}`);
       if (!this.equipAnims.has(placed.uid)) {
         const def = this.session.content.catalog.tiles[this.session.content.items[placed.item]?.tile ?? ''];
         // Folhas com "animation" em data/tilesets.json: quadros do preparo (bule, liquidificador, cafeteira...).
@@ -692,14 +707,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       sprite.destroy();
       this.equipAnims.delete(uid);
     }
+    for (const [uid, bar] of this.progressBars) {
+      if (working.has(uid)) continue;
+      bar.destroy();
+      this.progressBars.delete(uid);
+    }
     this.syncCustomers();
   }
 
   /** Clientes: cria quem chegou (entra pela porta), anda até o lugar, balão do pedido; quem saiu vai embora. */
   private syncCustomers(): void {
     const cfg = this.session.content.service;
-    const def = this.session.content.npcs['npc.customer'];
-    if (!def) return;
     const ts = this.map.tileSize;
     const door: Cell = [14, 4];
     const alive = new Set<string>();
@@ -707,9 +725,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       alive.add(c.id);
       let view = this.customerViews.get(c.id);
       if (!view) {
-        const tint = Phaser.Display.Color.HexStringToColor(cfg.customerTints[c.look % cfg.customerTints.length]!).color;
+        const def = this.session.content.npcs[cfg.customerLooks[c.look % cfg.customerLooks.length]!];
+        if (!def) continue;
         // Recém-chegado entra pela porta; ao abrir o café (trocar de mapa), já aparece no lugar.
-        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, tint, ts);
+        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts);
         this.customerViews.set(c.id, view);
         if (!this.customersFresh) void view.walkTo(c.spot, true);
       } else if (view.target[0] !== c.spot[0] || view.target[1] !== c.spot[1]) void view.walkTo(c.spot, true);
@@ -717,6 +736,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (view.shownRecipe !== shown) {
         view.shownRecipe = shown;
         view.showOrder(shown ? this.session.content.recipes[shown]?.icon : shown);
+      }
+      if (c.stage === 'waiting') {
+        const left = (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes;
+        const b = serviceArt.bubble;
+        view.setMood(left < b.furiousBelow ? 'furious' : left < b.impatientBelow ? 'impatient' : 'normal');
       }
       view.update();
     }
@@ -740,6 +764,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.customerViews.clear();
     this.equipAnims.forEach((s) => s.destroy());
     this.equipAnims.clear();
+    this.progressBars.forEach((b) => b.destroy());
+    this.progressBars.clear();
     this.customersFresh = true;
   }
 

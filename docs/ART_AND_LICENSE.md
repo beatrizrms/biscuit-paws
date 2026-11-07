@@ -131,6 +131,8 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 | Senhorinha (`assets/senhorinha`) | gerado por IA na paleta Cosy | Dona Lurdes: folha 32x64 (4x5) e retrato 64x64. Chegou ampliada 4x pelo chat; reduzida ao tamanho real por amostragem (o original ampliado fica junto) |
 | Matéria-prima (`assets/materia_prima`) | gerado por código/IA na paleta Cosy | 19 ícones 32x32 vendidos no mercado (café, chá, frutas, polpas, despensa) |
 | Itens e bebidas (`assets/itens_bebidas`) | gerado por código/IA na paleta Cosy | Ícones de bebidas (receitas), caixas, presente (conjunto de louças) e balões 16x16 (!, coração, +1) |
+| Clientes (`assets/clientes`) | gerado por código/IA na paleta Cosy | 10 clientes, folhas 128x256 (32x64, 4 direções x 4 quadros) |
+| Fluxo do café, onda 1 (`assets/fluxo_cafe_onda1`) | gerado por código/IA na paleta Cosy | Importado por `scripts/import-fluxo.ts`: cafeteira, balões do pedido, barra de progresso, quadro do cardápio (4/6/8), esgotado, moeda, louça 16x16 e ícones de comida e remédio. Bandeja e personagem carregando ficam para a Fase 2 |
 | Louça (`assets/louca`) | gerado por IA na paleta Cosy | 18 ícones 32x32 (reduzidos de 4x, peça por peça): xícara, prato, tigela, copo, copo alto, caneca e pilhas, limpos e sujos. Em uso: xícara, copo e prato |
 | Pia (`assets/pia`) | gerado por IA/código na paleta Cosy | Pia 32x32: vazia, com louça, lavando (4 quadros) e louça limpa |
 | Equipamentos (`assets/equipamentos`) | gerado por IA na paleta Cosy | Bule, liquidificador, espremedor, fogão e forno, 6 quadros 32x32 cada (parado, trabalhando, pronto); reduzido de uma imagem ampliada 4x. Em uso: bule e liquidificador |

@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Arte do atendimento (pacote Fluxo do café, onda 1; importado por scripts/import-fluxo.ts). Só a interface usa. boards: quadro do cardápio por número de slots (posições do ícone e do preço). bubble: balão do pedido (ícone em iconSlot); impatientBelow/furiousBelow: fração da paciência. dishes: louça 16x16 no mundo (linhas por louça, colunas por estado).",
+  "boards": {
+    "4": {
+      "image": "assets/fluxo/ui/cardapio_4_slots.png",
+      "size": [
+        192,
+        84
+      ],
+      "slots": [
+        {
+          "icon": [
+            14,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            25,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            58,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            69,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            102,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            113,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            146,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            157,
+            63,
+            22,
+            9
+          ]
+        }
+      ]
+    },
+    "6": {
+      "image": "assets/fluxo/ui/cardapio_6_slots.png",
+      "size": [
+        148,
+        138
+      ],
+      "slots": [
+        {
+          "icon": [
+            14,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            25,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            58,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            69,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            102,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            113,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            14,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            25,
+            117,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            58,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            69,
+            117,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            102,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            113,
+            117,
+            22,
+            9
+          ]
+        }
+      ]
+    },
+    "8": {
+      "image": "assets/fluxo/ui/cardapio_8_slots.png",
+      "size": [
+        192,
+        138
+      ],
+      "slots": [
+        {
+          "icon": [
+            14,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            25,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            58,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            69,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            102,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            113,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            146,
+            26,
+            32,
+            32
+          ],
+          "price": [
+            157,
+            63,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            14,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            25,
+            117,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            58,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            69,
+            117,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            102,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            113,
+            117,
+            22,
+            9
+          ]
+        },
+        {
+          "icon": [
+            146,
+            80,
+            32,
+            32
+          ],
+          "price": [
+            157,
+            117,
+            22,
+            9
+          ]
+        }
+      ]
+    }
+  },
+  "soldOut": {
+    "veil": "assets/fluxo/ui/slot_esgotado_veu.png",
+    "mark": "assets/fluxo/ui/marca_esgotado.png"
+  },
+  "bubble": {
+    "normal": "assets/fluxo/ui/balao_pedido.png",
+    "impatient": "assets/fluxo/ui/balao_pedido_impaciente.png",
+    "furious": "assets/fluxo/ui/balao_pedido_furioso.png",
+    "iconSlot": [
+      4,
+      3,
+      32,
+      32
+    ],
+    "impatientBelow": 0.5,
+    "furiousBelow": 0.2,
+    "waiting": [
+      "assets/fluxo/ui/balao_aguardando_1.png",
+      "assets/fluxo/ui/balao_aguardando_2.png",
+      "assets/fluxo/ui/balao_aguardando_3.png"
+    ]
+  },
+  "progress": [
+    "assets/fluxo/ui/barra_progresso_0.png",
+    "assets/fluxo/ui/barra_progresso_1.png",
+    "assets/fluxo/ui/barra_progresso_2.png",
+    "assets/fluxo/ui/barra_progresso_3.png",
+    "assets/fluxo/ui/barra_progresso_4.png",
+    "assets/fluxo/ui/barra_progresso_5.png",
+    "assets/fluxo/ui/barra_progresso_6.png",
+    "assets/fluxo/ui/barra_progresso_7.png",
+    "assets/fluxo/ui/barra_progresso_8.png"
+  ],
+  "coin": "assets/fluxo/ui/moeda_16.png",
+  "dishes": {
+    "image": "assets/fluxo/louca_16.png",
+    "tile": 16,
+    "rows": {
+      "cup": 0,
+      "plate": 1,
+      "glass": 2
+    },
+    "cols": {
+      "clean": 0,
+      "full": 1,
+      "dirty": 2
+    }
+  }
+}

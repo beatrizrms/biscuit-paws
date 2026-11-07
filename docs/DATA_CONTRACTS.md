@@ -447,3 +447,5 @@ Regras:
 - **Mãos x mochila**: mochila = `inventory` (abstrato, tecla I). Mãos = `hands` (bebida, louça suja, item como petisco). Soltar: balcão, mesa, equipamento ou chão livre, ao lado dela, uma coisa por célula.
 
 Condições novas: `{ "menu": { "gte": 1 } }` (receitas no quadro), `{ "served": { "gte": 1 } }` (clientes atendidos).
+
+Arte do atendimento (`data/service_art.json`, só a interface usa): quadro do cardápio por número de slots (imagem + posição do ícone e do preço de cada slot), véu e marca de esgotado, balão do pedido (normal, impaciente abaixo de `impatientBelow` da paciência, furioso abaixo de `furiousBelow`; ícone no `iconSlot`), balão "aguardando" (fila), barra de progresso (9 quadros), moeda e louça 16x16 no mundo (linha por louça, coluna limpa/cheia/suja). Os arquivos vêm de `scripts/import-fluxo.ts`. Clientes: `service.json: customerLooks` (NPCs `npc.customer_01..10`).

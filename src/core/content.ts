@@ -478,6 +478,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateRecipes(raw.recipes, raw.service, raw.carry, { items: itemIds, icons: new Set(Object.keys(raw.icons.icons)), itemTags }));
   for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
+  for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
   }

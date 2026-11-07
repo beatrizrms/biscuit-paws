@@ -21,6 +21,7 @@ import dayNightJson from '../../data/daynight.json';
 import recipesJson from '../../data/recipes.json';
 import serviceJson from '../../data/service.json';
 import carryJson from '../../data/carry.json';
+import serviceArtJson from '../../data/service_art.json';
 import emotesJson from '../../data/emotes.json';
 import jobsJson from '../../data/jobs.json';
 import newsJson from '../../data/news.json';
@@ -56,6 +57,16 @@ export const content: Content = buildContent({
   news: newsJson,
   delivery: deliveryJson,
 } as unknown as RawContent);
+
+/** Arte do atendimento (quadro, balões, barra, louça no mundo, moeda). */
+export const serviceArt = serviceArtJson as unknown as {
+  boards: Record<string, { image: string; size: [number, number]; slots: { icon: [number, number, number, number]; price: [number, number, number, number] }[] }>;
+  soldOut: { veil: string; mark: string };
+  bubble: { normal: string; impatient: string; furious: string; iconSlot: [number, number, number, number]; impatientBelow: number; furiousBelow: number; waiting: string[] };
+  progress: string[];
+  coin: string;
+  dishes: { image: string; tile: number; rows: Record<string, number>; cols: Record<'clean' | 'full' | 'dirty', number> };
+};
 
 /** Balões de emoção (16x16) sobre personagens, gatos e NPCs. */
 export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]> };

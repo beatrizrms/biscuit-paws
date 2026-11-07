@@ -13,7 +13,7 @@ import { parseClock } from './time';
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
   id: string;
-  /** Índice da cor (service.json: customerTints). */
+  /** Índice do visual (service.json: customerLooks). */
   look: number;
   stage: 'queue' | 'waiting' | 'drinking';
   kind: ServiceKind;
@@ -291,7 +291,7 @@ export class CafeService {
     const rng = this.h.rng();
     const c: Customer = {
       id: `c${sv.nextCustomerId++}`,
-      look: rng.int(0, this.cfg.customerTints.length - 1),
+      look: rng.int(0, this.cfg.customerLooks.length - 1),
       stage: 'queue',
       kind: 'standing',
       spot: [...(queueFree[0] ?? this.cfg.queue[0]!)],

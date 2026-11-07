@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import playerJson from '../../../data/player.json';
 import { LocalStorage } from '../../platform/localStorage';
-import { broom, content, emotes } from '../content';
+import { broom, content, emotes, serviceArt } from '../content';
 import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 import { catTexture } from '../entities/Cat';
@@ -36,6 +36,11 @@ export class BootScene extends Phaser.Scene {
     // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.
     this.load.image(iconSheetKey(), content.icons.image);
     for (const [id, sheet] of Object.entries(content.icons.sheets ?? {})) this.load.image(iconSheetKey(id), sheet.image);
+    const art = serviceArt;
+    for (const [k, path] of Object.entries({ bubble_normal: art.bubble.normal, bubble_impatient: art.bubble.impatient, bubble_furious: art.bubble.furious, coin16: art.coin })) this.load.image(k, path);
+    art.bubble.waiting.forEach((p, i) => this.load.image(`bubble_wait_${i}`, p));
+    art.progress.forEach((p, i) => this.load.image(`progress_${i}`, p));
+    this.load.spritesheet('dishes16', art.dishes.image, { frameWidth: art.dishes.tile, frameHeight: art.dishes.tile });
     for (const sheet of tilesetsJson.sheets) {
       if ('animation' in sheet) this.load.spritesheet(`anim:${sheet.id}`, sheet.image, { frameWidth: 32, frameHeight: 32 });
     }

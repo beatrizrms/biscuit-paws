@@ -146,9 +146,153 @@
       }
     },
     {
-      "id": "npc.customer",
+      "id": "npc.customer_01",
       "name": "Cliente",
-      "sheet": "assets/characters/mulher_placeholder_32x64.png",
+      "sheet": "assets/npc/clientes/cliente_01_homem_negro_barba_oculos.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_02",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_02_mulher_negra_black_power.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_03",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_03_homem_ruivo_bone.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_04",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_04_mulher_asiatica_cabelo_longo.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_05",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_05_homem_asiatico_oculos_escritorio.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_06",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_06_mulher_loira_rabo_esportiva.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_07",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_07_homem_idoso_grisalho_bigode.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_08",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_08_mulher_latina_cacheada.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_09",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_09_homem_pardo_careca_barba_xadrez.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {}
+    },
+    {
+      "id": "npc.customer_10",
+      "name": "Cliente",
+      "sheet": "assets/npc/clientes/cliente_10_mulher_hijab_vestido.png",
       "frameWidth": 32,
       "frameHeight": 64,
       "columns": 4,
