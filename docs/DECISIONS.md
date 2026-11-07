@@ -115,3 +115,7 @@ Consequência: `cat.tekinha` passa da variante `misty` para `pebble` (Cosy Cats)
 ## 031. A corretora entrega a chave; roteiros no mundo (nov/2026)
 Motivo: a compra precisava acontecer em cena, com uma pessoa, e não só em narração.
 Consequência: `data/scripts.json` + `ScriptRunner` (NPCs andam, acenam, falam; todos entram com fade; item grande no centro). Primeiro NPC: a corretora (pacote `corretora_e_vassoura`, gerado por IA). A chave vem do roteiro, não mais da fala de chegada. O marco `story.enter_bakery` (id mantido) agora conclui quando o roteiro termina.
+
+## 032. Varrer com a vassoura (nov/2026)
+Motivo: limpar com um clique seco não dava sensação de trabalho; o pacote traz a vassoura animada.
+Consequência: a corretora entrega `item.broom` (ferramenta). Clicar na sujeira de perto confere no núcleo (`cleanProblem`), toca a varrida (vassoura na mão, poeira, brilho, ~1,5 s, `data/tools.json`) e só então limpa. A personagem fica parada enquanto varre.

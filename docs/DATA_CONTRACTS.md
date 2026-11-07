@@ -176,6 +176,7 @@ Roteiro = lista de passos executados em ordem; cada um espera o anterior termina
 `dialogue` (espera a fala fechar), `enter` (fade para outro mapa levando a personagem e NPCs), `showItem` (item grande no centro), `giveItem`, `wait`.
 A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
 NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`).
+A vassoura fica em `data/tools.json` (quadros, ponto do cabo, tempo de varrer).
 Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem se devolve).
 
 ## Mundo (`data/world.json`)

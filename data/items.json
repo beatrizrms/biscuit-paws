@@ -6,6 +6,7 @@
     { "id": "item.cat_treat_biscuit", "name": "Petisco de biscoito", "price": 8, "kind": "consumable", "icon": "petisco_biscoito", "tags": ["pet", "treat"] },
     { "id": "item.cat_litter", "name": "Areia", "price": 12, "kind": "consumable", "icon": "areia", "tags": ["pet", "litter"] },
 
+    { "id": "item.broom", "name": "Vassoura", "price": 0, "kind": "tool", "iconImage": "assets/tools/vassoura_icone.png", "tags": ["tool"] },
     { "id": "item.key_bakery", "name": "Chave da padaria", "price": 0, "kind": "key", "iconImage": "assets/npc/icone_chave.png", "tags": ["key"] },
 
     { "id": "item.cat_bed", "name": "Caminha de gato", "price": 25, "tile": "cat_bed", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },

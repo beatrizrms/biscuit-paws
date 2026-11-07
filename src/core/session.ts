@@ -277,18 +277,26 @@ export class GameSession {
    * `reach` células de alguma célula da sujeira.
    */
   clean(dirtId: string, from: readonly Cell[] = [], reach = 2): ActionResult {
-    const d = this.visibleDirt().find((x) => x.id === dirtId);
-    if (!d) return { ok: false, reason: 'not_found' };
-    if (d.clearedBy) return { ok: false, reason: 'needs_repair' };
-    const def = this.content.catalog.tiles[d.tile]!;
-    if (from.length > 0) {
-      const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
-      if (!near) return { ok: false, reason: 'too_far' };
-    }
+    const problem = this.cleanProblem(dirtId, from, reach);
+    if (problem) return { ok: false, reason: problem };
+    const d = this.visibleDirt().find((x) => x.id === dirtId)!;
     this.state.cleaned.push(d.id);
     this.bus.emit('dirt.cleaned', { dirtId: d.id });
     this.advanceStory();
     return { ok: true };
+  }
+
+  /** Por que não dá para limpar agora (ou null): a interface confere antes de varrer. */
+  cleanProblem(dirtId: string, from: readonly Cell[] = [], reach = 2): 'not_found' | 'needs_repair' | 'too_far' | null {
+    const d = this.visibleDirt().find((x) => x.id === dirtId);
+    if (!d) return 'not_found';
+    if (d.clearedBy) return 'needs_repair';
+    const def = this.content.catalog.tiles[d.tile]!;
+    if (from.length > 0) {
+      const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
+      if (!near) return 'too_far';
+    }
+    return null;
   }
 
   private storyContext(): StoryContext {

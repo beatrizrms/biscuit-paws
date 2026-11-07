@@ -87,6 +87,9 @@
           "dialogue": "dlg.realtor_bye"
         },
         {
+          "giveItem": "item.broom"
+        },
+        {
           "npcWalk": "npc.realtor",
           "to": [
             15,

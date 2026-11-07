@@ -85,7 +85,7 @@
         },
         {
           "speaker": "",
-          "text": "Clique na sujeira perto de você para limpar. Para sair, vá até a porta e siga em frente."
+          "text": "Clique na sujeira perto de você para varrer. Para sair, vá até a porta e siga em frente."
         }
       ]
     },
@@ -215,6 +215,11 @@
           "speaker": "Corretora",
           "npc": "npc.realtor",
           "text": "Seja muito feliz aqui. E boa sorte com a vizinhança!"
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Ah! Deixei uma vassoura para você. Vai precisar!"
         }
       ]
     }

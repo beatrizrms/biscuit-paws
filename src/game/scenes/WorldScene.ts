@@ -11,6 +11,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
+import { broom } from '../content';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -36,6 +37,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
   private debugPanel?: DebugPanel;
   private changingMap = false;
+  /** Varrendo (a jogadora fica parada até terminar). */
+  private sweeping = false;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
   private scripts!: ScriptRunner;
@@ -127,7 +130,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning();
+    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping;
     const input = this.autoWalk
       ? this.autoWalkInput()
       : busy
@@ -336,10 +339,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!pointer.rightButtonDown()) {
       // Clique: limpar a sujeira (de perto).
       const dirt = this.session.dirtAt(this.cellAt(pointer));
-      if (!dirt) return;
-      const result = this.session.clean(dirt.id, this.playerCells());
-      if (!result.ok) return this.ui.problem(result.reason);
-      this.puff(pointer.worldX, pointer.worldY);
+      if (!dirt || this.sweeping) return;
+      const problem = this.session.cleanProblem(dirt.id, this.playerCells());
+      if (problem) return this.ui.problem(problem);
+      void this.sweep(dirt.id, pointer.worldX, pointer.worldY);
       return;
     }
     {
@@ -377,22 +380,33 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.tweens.add({ targets: heart, y: heart.y - 18, alpha: 0, duration: 1200, ease: 'Quad.easeOut', onComplete: () => heart.destroy() });
   }
 
-  /** Nuvenzinha de poeira onde a sujeira foi limpa. */
-  private puff(x: number, y: number): void {
-    for (let i = 0; i < 6; i++) {
-      const dot = this.add.circle(x, y, 2 + (i % 3), 0xfff4e0, 0.9).setDepth(GHOST_DEPTH);
-      const angle = (i / 6) * Math.PI * 2;
-      this.tweens.add({
-        targets: dot,
-        x: x + Math.cos(angle) * 12,
-        y: y + Math.sin(angle) * 12 - 6,
-        alpha: 0,
-        scale: 0.4,
-        duration: 380,
-        ease: "Quad.easeOut",
-        onComplete: () => dot.destroy(),
-      });
+  /** Varre: vassoura na mão balançando, poeira subindo, brilho no fim; aí a sujeira some. */
+  private async sweep(dirtId: string, x: number, y: number): Promise<void> {
+    this.sweeping = true;
+    const left = x < this.player.x;
+    this.player.face(left ? 'left' : 'right');
+    const [hx, hy] = broom.handle;
+    const tool = this.add
+      .image(this.player.x + (left ? -6 : 6), this.player.y - 28, 'broom', 'varrer_1')
+      .setOrigin(hx / 64, hy / 64)
+      .setFlipX(left)
+      .setDepth(this.player.depth + 1);
+    const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
+    const frameMs = 1000 / broom.sweepFps;
+    for (let t = 0, i = 0; t < broom.sweepMs; t += frameMs, i++) {
+      tool.setFrame(i % 2 === 0 ? 'varrer_1' : 'varrer_2');
+      dust.setFrame(`poeira_${(i % 3) + 1}`);
+      await this.wait(frameMs);
     }
+    tool.destroy();
+    for (const f of ['brilho_1', 'brilho_2', 'brilho_3']) {
+      dust.setFrame(f);
+      await this.wait(90);
+    }
+    dust.destroy();
+    this.sweeping = false;
+    const result = this.session.clean(dirtId, this.playerCells());
+    if (!result.ok) this.ui.problem(result.reason);
   }
 
   private ghostDef() {

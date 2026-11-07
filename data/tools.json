@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Vassoura (pacote corretora_e_vassoura): quadros na folha (x, y, w, h). Cabo preso na mão em handle (pixels do quadro).",
+  "broom": {
+    "image": "assets/tools/vassoura_spritesheet.png",
+    "handle": [
+      36,
+      4
+    ],
+    "sweepMs": 1500,
+    "sweepFps": 6,
+    "frames": {
+      "parada": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "varrer_1": [
+        64,
+        0,
+        64,
+        64
+      ],
+      "varrer_2": [
+        128,
+        0,
+        64,
+        64
+      ],
+      "poeira_1": [
+        0,
+        64,
+        32,
+        32
+      ],
+      "poeira_2": [
+        32,
+        64,
+        32,
+        32
+      ],
+      "poeira_3": [
+        64,
+        64,
+        32,
+        32
+      ],
+      "brilho_1": [
+        96,
+        64,
+        32,
+        32
+      ],
+      "brilho_2": [
+        128,
+        64,
+        32,
+        32
+      ],
+      "brilho_3": [
+        160,
+        64,
+        32,
+        32
+      ]
+    }
+  }
+}
