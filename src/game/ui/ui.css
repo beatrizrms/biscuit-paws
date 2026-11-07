@@ -605,3 +605,5 @@
 .catalog.menu-board .slot-empty { font-style: italic; color: var(--grey2); background: transparent; border: 1px dashed var(--cream3); }
 .catalog.backpack .dishes { margin: 0 0 4px; font-size: 8px; }
 .catalog.backpack .empty, .catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
+.catalog.backpack .dishes { display: flex; flex-wrap: wrap; gap: 6px; }
+.catalog.backpack .vessel { display: inline-flex; align-items: center; gap: 2px; }

@@ -224,6 +224,96 @@
       "col": 0,
       "row": 2,
       "sheet": "bebidas"
+    },
+    "xicara_limpa": {
+      "col": 0,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "xicara_suja": {
+      "col": 1,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "prato_limpo": {
+      "col": 2,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "prato_sujo": {
+      "col": 3,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "tigela_limpa": {
+      "col": 4,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "tigela_suja": {
+      "col": 5,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "copo_limpo": {
+      "col": 6,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "copo_sujo": {
+      "col": 7,
+      "row": 0,
+      "sheet": "louca"
+    },
+    "copo_alto_limpo": {
+      "col": 0,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "copo_alto_sujo": {
+      "col": 1,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "caneca_limpa": {
+      "col": 2,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "caneca_suja": {
+      "col": 3,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "pilha_baixa_limpa": {
+      "col": 4,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "pilha_baixa_suja": {
+      "col": 5,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "pilha_media_limpa": {
+      "col": 6,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "pilha_media_suja": {
+      "col": 7,
+      "row": 1,
+      "sheet": "louca"
+    },
+    "pilha_alta_limpa": {
+      "col": 0,
+      "row": 2,
+      "sheet": "louca"
+    },
+    "pilha_alta_suja": {
+      "col": 1,
+      "row": 2,
+      "sheet": "louca"
     }
   },
   "sheets": {
@@ -234,6 +324,10 @@
     "bebidas": {
       "image": "assets/icons/itens_bebidas_tileset.png",
       "columns": 6
+    },
+    "louca": {
+      "image": "assets/icons/louca_tileset.png",
+      "columns": 8
     }
   }
 }

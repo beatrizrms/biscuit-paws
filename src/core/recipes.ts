@@ -62,7 +62,8 @@ export interface ServiceConfig {
   standingTag: string;
   tableTag: string;
   chairTag: string;
-  vessels: Record<Vessel, { name: string; icon: string }>;
+  /** Louça: nome e ícones (limpa e suja). */
+  vessels: Record<Vessel, { name: string; icon: string; dirtyIcon: string }>;
   /** Cores dos clientes provisórios (o sprite é o da personagem, tingido). */
   customerTints: string[];
 }
@@ -112,7 +113,10 @@ export function validateRecipes(
   for (const tag of [service.standingTag, service.tableTag, service.chairTag, ...service.surfaceTags]) {
     if (!refs.itemTags.has(tag)) errors.push(`service: nenhum item tem a tag "${tag}"`);
   }
-  for (const v of VESSELS) if (!service.vessels[v] || !refs.icons.has(service.vessels[v].icon)) errors.push(`service: louça "${v}" sem ícone válido`);
+  for (const v of VESSELS) {
+    const def = service.vessels[v];
+    if (!def || !refs.icons.has(def.icon) || !refs.icons.has(def.dirtyIcon)) errors.push(`service: louça "${v}" sem ícones válidos (limpa e suja)`);
+  }
   if (service.customerTints.length === 0) errors.push('service: customerTints vazio');
   if (!(carry.carryCapacity >= 1) || !(carry.speedPenaltyPerItem >= 0)) errors.push('carry: carryCapacity >= 1 e speedPenaltyPerItem >= 0');
   return errors;

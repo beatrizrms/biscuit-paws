@@ -635,13 +635,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       item.kind === 'drink'
         ? this.session.content.recipes[item.recipe]?.icon
         : item.kind === 'dirty'
-          ? this.session.content.service.vessels[item.vessel].icon
+          ? this.session.content.service.vessels[item.vessel].dirtyIcon
           : this.session.content.items[item.item]?.icon;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
-    const img = this.add.image(0, 0, f.key, f.frame);
-    if (item.kind === 'dirty') img.setTint(0x9c8f8a);
-    return img;
+    return this.add.image(0, 0, f.key, f.frame);
   }
 
   /** A cada quadro: o que ela carrega, barras de preparo, equipamentos animados e os clientes. */

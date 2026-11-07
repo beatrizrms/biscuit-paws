@@ -71,7 +71,7 @@ export class BackpackPanel {
     const ingredients = abstract.filter((i) => i!.tags.includes('ingredient'));
     const others = abstract.filter((i) => !i!.tags.includes('ingredient'));
     const furniture = Object.entries(st.inventory).filter(([id]) => (content.items[id]?.kind ?? 'furniture') === 'furniture').reduce((n, [, q]) => n + q, 0);
-    const dishes = VESSELS.map((v) => `${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b>`).join(' · ');
+    const dishes = VESSELS.map((v) => `<span class="vessel">${iconHtml(content.service.vessels[v].icon)}${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b></span>`).join('');
     const hands = st.hands.length
       ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
       : `<p class="empty">${t.handsEmpty}</p>`;

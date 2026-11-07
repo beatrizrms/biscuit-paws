@@ -78,15 +78,18 @@
   "vessels": {
     "cup": {
       "name": "Xícara",
-      "icon": "cafe_preto"
+      "icon": "xicara_limpa",
+      "dirtyIcon": "xicara_suja"
     },
     "glass": {
       "name": "Copo",
-      "icon": "suco_laranja"
+      "icon": "copo_limpo",
+      "dirtyIcon": "copo_sujo"
     },
     "plate": {
       "name": "Prato",
-      "icon": "caixa_presente_laco"
+      "icon": "prato_limpo",
+      "dirtyIcon": "prato_sujo"
     }
   },
   "customerTints": [
