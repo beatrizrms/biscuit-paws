@@ -190,3 +190,12 @@ describe('salão e save', () => {
     expect(state.doors).toEqual({});
   });
 });
+
+describe('saves antigos ("*" = salão todo limpo)', () => {
+  it('a virada do dia não marca como limpa a sujeira dos cômodos novos', () => {
+    const { session, state } = afterFirstCustomer();
+    state.cleaned = ['*'];
+    session.endDay('home');
+    expect(state.cleaned.some((id) => id.startsWith('dirt.back_room') || id.startsWith('dirt.backyard'))).toBe(false);
+  });
+});

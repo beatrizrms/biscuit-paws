@@ -27,6 +27,7 @@ import { t } from '../i18n';
 import { formatClock, tintAt } from '../../core/time';
 import { catPropColor, type Pose } from '../../core/appearance';
 import { poseTexture } from '../playerLook';
+import { RoomView } from '../rooms/RoomView';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -62,6 +63,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private debugPanel?: DebugPanel;
   private changingMap = false;
   private dayNight!: DayNightLayer;
+  /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
+  private roomView: RoomView | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
   /** Tocando a animação de usar um item da barra (ração na tigela, petisco no gato). */
@@ -183,6 +186,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
+    // Cômodos: o mapa, a câmera (só o que ela conhece) e a luz do quintal mudam; descobrir tem um momento.
+    for (const ev of ['room.opened', 'room.restored'] as const) this.session.bus.on(ev, () => this.session.atHome() && this.refreshRooms());
+    this.session.bus.on('room.discovered', ({ trigger, highlight }) => {
+      if (!this.session.atHome()) return;
+      this.refreshRooms();
+      if (highlight) void this.discoveryMoment(highlight, trigger);
+    });
+    this.session.bus.on('item.received', ({ itemId }) => {
+      // A chave achada na sujeira: destaca a porta que ela abre.
+      const door = this.session.content.rooms.doors.find((d) => d.requires?.item === itemId);
+      if (door && this.session.atHome()) this.roomView?.highlight(door.at);
+    });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
     for (const ev of ['job.accepted', 'job.progress', 'job.completed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
@@ -328,22 +343,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.dayNight.setLights(this.session.mapData(mapId).lights ?? [], this.map.tileSize);
     const cam = this.cameras.main;
     cam.setBackgroundColor(this.map.background ?? '#2b1d1a');
-    cam.stopFollow();
-    if (width <= GAME_WIDTH && height <= GAME_HEIGHT) {
-      cam.removeBounds();
-      cam.centerOn(width / 2, height / 2);
-    } else {
-      // Mapa maior que a tela: a câmera segue a personagem. Se sobrar largura, centraliza;
-      // se sobrar altura, a sobra fica em cima (céu), nunca embaixo do chão.
-      const bx = width < GAME_WIDTH ? (width - GAME_WIDTH) / 2 : 0;
-      const by = height < GAME_HEIGHT ? height - GAME_HEIGHT : 0;
-      cam.setBounds(bx, by, Math.max(width, GAME_WIDTH), Math.max(height, GAME_HEIGHT));
-      cam.startFollow(this.player, true);
-    }
-
     const [col, row] = spawn ?? this.map.spawn;
     this.placePlayer(col, row);
     this.player.face(facing);
+    this.applyCamera();
 
     // Gatos que moram neste mapa.
     for (const catId of this.session.shelteredCats()) {
@@ -358,9 +361,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.refreshSurfaces();
   }
 
-  /** Na porta do café, à tarde: encerrar o dia ou só sair para a rua. */
+  /** Na cama do quartinho: dormir no café (depois do horário de ir para casa). */
+  private askSleep(): void {
+    if (!this.session.canGoHome()) return this.ui.problem('too_early');
+    const r = uiText.rooms;
+    void this.ui.confirm(r.sleepQuestion, r.sleepYes, r.sleepNo).then((yes) => {
+      if (yes) this.session.sleepInCafe();
+    });
+  }
+
+  /** Na porta do café, à tarde: encerrar o dia ou só sair para a rua. Com o quartinho, ela dorme no café. */
   private askGoHome(door: MapDoor): void {
     this.doorLocked = true;
+    if (this.session.sleepRoom()) {
+      this.ui.toast(uiText.rooms.goHomeSleep.replace('{time}', this.session.content.dayNight.goHomeFrom));
+      return this.useDoor(door);
+    }
     const t = uiText.goHome;
     void this.ui.confirm(t.question, t.yes, t.no).then((yes) => {
       if (yes) this.session.goHome();
@@ -403,6 +419,63 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.solidCollider = this.physics.add.collider(this.player, this.solids);
     this.catColliders.forEach((c) => c.destroy());
     this.catColliders = this.cats.map((cat) => this.physics.add.collider(cat, this.solids!));
+    this.roomView ??= new RoomView(this, this.session, ts);
+    this.roomView.refresh(mapId === this.session.content.map.id);
+  }
+
+  /** Cômodos mudaram: mapa, escuro, câmera e luz de fora. */
+  private refreshRooms(): void {
+    this.buildMap();
+    this.applyCamera();
+  }
+
+  /**
+   * Câmera: em mapa maior que a tela, segue a personagem. No café, só até onde ela conhece (os cômodos
+   * descobertos); andar entre cômodos é contínuo (sem fade: o fade fica só na porta da fachada).
+   */
+  private applyCamera(): void {
+    const ts = this.map.tileSize;
+    const home = this.map.id === this.session.content.map.id;
+    const area = (home && this.roomView?.cameraArea()) || { x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts };
+    const cam = this.cameras.main;
+    this.dayNight.setOutdoorAreas(home ? (this.roomView?.outdoorAreas() ?? []) : []);
+    if (area.w <= GAME_WIDTH && area.h <= GAME_HEIGHT) {
+      cam.stopFollow();
+      cam.removeBounds();
+      cam.centerOn(area.x + area.w / 2, area.y + area.h / 2);
+      return;
+    }
+    // Se sobrar largura, centraliza; se sobrar altura, a sobra fica em cima (céu), nunca embaixo do chão.
+    const bx = area.w < GAME_WIDTH ? area.x + (area.w - GAME_WIDTH) / 2 : area.x;
+    const by = area.h < GAME_HEIGHT ? area.y + area.h - GAME_HEIGHT : area.y;
+    cam.setBounds(bx, by, Math.max(area.w, GAME_WIDTH), Math.max(area.h, GAME_HEIGHT));
+    cam.startFollow(this.player, true);
+  }
+
+  /** Momento da descoberta: a câmera vai até a porta, ela pulsa; o gato leva até lá (cat_leads). */
+  private async discoveryMoment(doorId: string, trigger: string): Promise<void> {
+    const door = this.session.content.rooms.doors.find((d) => d.id === doorId);
+    if (!door) return;
+    const ts = this.map.tileSize;
+    const [c, r] = door.at;
+    if (trigger === 'cat_leads') {
+      // O gato do café aparece sentado na frente da porta e mia para ela.
+      const cat = this.cats.find((x) => x.visible);
+      if (cat) {
+        cat.setPosition((c - 1) * ts + ts / 2, (r + 1) * ts - 6);
+        (cat.body as Phaser.Physics.Arcade.Body).reset(cat.x, cat.y);
+        cat.stay(4000, this.time.now);
+        void this.emote(cat.catId, 'exclamation', 1400);
+      }
+    }
+    const cam = this.cameras.main;
+    cam.stopFollow();
+    cam.pan(c * ts + ts / 2, r * ts + ts / 2, 600, 'Sine.easeInOut');
+    this.roomView?.highlight(door.at);
+    await this.wait(2200);
+    cam.pan(this.player.x, this.player.y - ts, 500, 'Sine.easeInOut');
+    await this.wait(520);
+    this.applyCamera();
   }
 
   /** Põe um gato no mapa atual, perto de `near` (ou num lugar livre qualquer). */
@@ -533,9 +606,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Cor do momento sobre o mundo e relógio no HUD. */
   private updateDayNight(): void {
-    const data = this.session.mapData(this.map.id);
+    const { content } = this.session;
+    const indoor = content.maps[this.map.id]?.lighting === 'indoor';
     const t = this.session.state.time;
-    this.dayNight.update(tintAt(t, this.session.content.dayNight, this.session.content.world.season, data.lighting === 'indoor'));
+    const color = tintAt(t, content.dayNight, content.world.season, indoor);
+    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, content.world.season, false) : undefined);
     this.ui.setClock(formatClock(t));
   }
 
@@ -583,6 +658,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if ('shop' in it.action) this.ui.openShop(it.action.shop);
       else if ('shelf' in it.action) this.ui.openShelf(it.action.shelf, it.action.tags);
       else if ('vet' in it.action) this.ui.openConsult();
+      else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
+      else if ('sleep' in it.action) this.askSleep();
       else this.ui.openNews('board');
       return true;
     }

@@ -89,6 +89,13 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Loja abandonada -> reformada (pintor; a reforma completa libera a inauguração)
 - [x] Compra e posicionamento de móveis (feito no Marco 0.5)
 
+## Expansão do café
+- [x] Cômodos por dados (`data/rooms.json`): planta contínua, descoberta com momento, obra, limpeza e reforma; save v13
+- [x] Quartinho: dormir no café
+- [x] Quintal secreto: chave, porta com cadeado, variantes de visual, luz de fora
+- [ ] Playground no quintal com gatos de verdade usando os módulos (hoje: afeto diário; falta a IA dos gatos ir até eles)
+- [ ] Cozinha, sótão e porão (dados prontos para entrar)
+
 ## Marco 6: vizinhança
 - [ ] Vizinhos com preconceito que muda com o tempo
 - [ ] Vizinha idosa e a história da padaria (a Dona Neusa já aparece; falta o arco dela)

@@ -7,6 +7,7 @@
     "tiles": "tsx scripts/build-tiles.ts",
     "art": "tsx scripts/build-worn-tiles.ts",
     "character": "tsx scripts/import-character.ts",
+    "backyard": "tsx scripts/import-backyard.ts",
     "predev": "npm run tiles && npm run art",
     "dev": "vite",
     "prebuild": "npm run check && npm run art",

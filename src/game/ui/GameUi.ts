@@ -541,7 +541,7 @@ export class GameUi {
           .join('');
         return rows ? `<h3>${esc(section.title)}</h3>${rows}` : '';
       })
-      .join('') + this.renderRenovation();
+      .join('') + this.renderRooms() + this.renderRenovation();
     this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-item]').forEach((btn) =>
       btn.addEventListener('click', () => this.pick(btn.dataset.item!)),
     );
@@ -552,9 +552,45 @@ export class GameUi {
         this.toast(uiText.refunded);
       }),
     );
+    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-room]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.room!;
+        const result = btn.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
+        if (!result.ok) return this.problem(result.reason);
+        this.closeCatalog();
+      }),
+    );
     this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-finish]').forEach((btn) =>
       btn.addEventListener('click', () => this.paint(btn.dataset.surface!, btn.dataset.finish!)),
     );
+  }
+
+  /** Obras dos cômodos (data/rooms.json): abrir os descobertos e terminar a reforma dos abertos. E quantos gatos cabem. */
+  private renderRooms(): string {
+    const r = uiText.rooms;
+    const why: Record<string, string> = { needs_money: r.needsMoney, needs_beat: r.needsBeat, needs_cats: r.needsCats, needs_item: r.needsItem };
+    const rows = this.session
+      .rooms()
+      .map((room) => {
+        const s = this.session.roomState(room.id);
+        if (s === 'discovered' && (room.unlock?.cost ?? 0) > 0) {
+          const p = this.session.openRoomProblem(room.id);
+          return `<button class="row" data-room="${room.id}" data-work="open" ${p ? 'disabled' : ''}>
+            <span>${esc(room.unlock?.label ?? room.name)}</span><span class="price">${room.unlock?.cost}</span>
+            ${p ? `<span class="owned">${esc(why[p] ?? '')}</span>` : ''}</button>`;
+        }
+        if (s === 'abandoned' && room.restore && !room.restore.when) {
+          const p = this.session.restoreRoomProblem(room.id);
+          const note = p === 'still_dirty' ? r.stillDirty.replace('{n}', String(this.session.roomDirtLeft(room.id))) : p === 'needs_money' ? r.needsMoney : '';
+          return `<button class="row" data-room="${room.id}" data-work="restore" ${p ? 'disabled' : ''}>
+            <span>${esc(room.restore.label ?? room.name)}</span><span class="price">${room.restore.cost ?? 0}</span>
+            ${note ? `<span class="owned">${esc(note)}</span>` : ''}</button>`;
+        }
+        return '';
+      })
+      .join('');
+    const cats = `<p class="note">${esc(r.cats.replace('{n}', String(this.session.shelteredCats().length)).replace('{max}', String(this.session.catCapacity())))}</p>`;
+    return rows ? `<h3>${esc(r.title)}</h3><p class="note">${esc(r.hint)}</p>${rows}${cats}` : cats;
   }
 
   /** Seção do pintor: para cada superfície, os acabamentos que servem nela. */

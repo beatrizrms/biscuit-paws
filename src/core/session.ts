@@ -401,9 +401,9 @@ export class GameSession {
     const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
     const clean = daily.filter((d) => isCleaned(this.state, d));
     if (clean.length === 0) return;
-    // "*" (saves antigos: tudo limpo) vira a lista de verdade antes de sujar de novo.
+    // "*" (saves antigos: tudo limpo) vira a lista de verdade antes de sujar de novo (só o salão: cômodos novos começam sujos).
     if (this.state.cleaned.includes('*')) {
-      this.state.cleaned = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy).map((d) => d.id);
+      this.state.cleaned = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && !d.tags.includes('room')).map((d) => d.id);
     }
     const rng = createRng(this.state.day * 31 + 7);
     // Sorteio estável (Fisher-Yates com a semente do dia).
@@ -1121,7 +1121,7 @@ export class GameSession {
       Object.assign(legend, look.legend);
       objects.push(...look.objects);
       if (s === 'restored' && room.features?.includes('sleep') && room.sleep) {
-        interactions.push({ id: `int.sleep.${room.id}`, at: room.sleep.bed, reach: 1, action: { sleep: room.id } });
+        interactions.push({ id: `int.sleep.${room.id}`, at: room.sleep.bed, reach: 2, action: { sleep: room.id } });
       }
     }
     for (const door of this.content.rooms.doors) {

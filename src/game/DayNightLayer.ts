@@ -7,6 +7,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from './screen';
 
 const TINT_DEPTH = 150_000;
 const LIGHT_DEPTH = 150_001;
+const OUTDOOR_DEPTH = 150_000.5;
 const LIGHT_TEXTURE = 'daynight-light';
 const LIGHT_PX = 128;
 const DEFAULT_RADIUS = 48;
@@ -15,7 +16,9 @@ const DEFAULT_COLOR = '#ffe2a0';
 export class DayNightLayer {
   private tint: Phaser.GameObjects.Rectangle;
   private lights: Phaser.GameObjects.Image[] = [];
-  private lastColor = -1;
+  /** Áreas ao ar livre dentro de um mapa interno (ex.: o quintal do café): luz de fora por cima da de dentro. */
+  private outdoor: Phaser.GameObjects.Rectangle[] = [];
+  private lastKey = '';
 
   constructor(private scene: Phaser.Scene) {
     this.tint = scene.add
@@ -54,12 +57,28 @@ export class DayNightLayer {
     );
   }
 
-  /** Aplica a cor do momento; as luzes acendem conforme escurece. */
-  update(color: RGB): void {
-    const hex = rgbToHex(color);
-    if (hex === this.lastColor) return;
-    this.lastColor = hex;
-    this.tint.setFillStyle(hex);
+  /** Retângulos (pixels do mundo) que recebem a luz de fora; [] tira. */
+  setOutdoorAreas(rects: readonly { x: number; y: number; w: number; h: number }[]): void {
+    this.outdoor.forEach((r) => r.destroy());
+    this.outdoor = rects.map((r) =>
+      this.scene.add.rectangle(r.x, r.y, r.w, r.h, 0xffffff).setOrigin(0).setDepth(OUTDOOR_DEPTH).setBlendMode(Phaser.BlendModes.MULTIPLY),
+    );
+    this.lastKey = '';
+  }
+
+  /**
+   * Aplica a cor do momento; as luzes acendem conforme escurece. `outdoor`: a cor de fora, para as áreas ao ar livre
+   * (a camada delas multiplica a diferença, então o resultado nelas é a cor de fora).
+   */
+  update(color: RGB, outdoor?: RGB): void {
+    const key = `${color.join()}|${outdoor?.join() ?? ''}`;
+    if (key === this.lastKey) return;
+    this.lastKey = key;
+    this.tint.setFillStyle(rgbToHex(color));
+    if (outdoor) {
+      const ratio = [0, 1, 2].map((i) => Math.min(255, Math.round((outdoor[i]! / Math.max(1, color[i]!)) * 255))) as RGB;
+      for (const r of this.outdoor) r.setFillStyle(rgbToHex(ratio));
+    }
     const dark = darkness(color);
     for (const l of this.lights) l.setAlpha(dark);
   }
