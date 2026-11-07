@@ -144,6 +144,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) cat.tick(this.time.now);
+    this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {
       this.waiters.splice(this.waiters.indexOf(w), 1);
       w.resolve();
@@ -352,6 +353,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.session.pickUp(placed.uid);
       this.startPlacing(placed.item);
     }
+  }
+
+  /** Pontos do mundo que não podem ficar escondidos pelo HUD: o mouse e a personagem (cabeça e pés). */
+  private fadeHudOverWorld(): void {
+    const rect = this.game.canvas.getBoundingClientRect();
+    const zoom = rect.width / GAME_WIDTH;
+    const view = this.cameras.main.worldView;
+    const toClient = (x: number, y: number) => ({ x: rect.left + (x - view.x) * zoom, y: rect.top + (y - view.y) * zoom });
+    const p = this.input.activePointer;
+    const points = [toClient(this.player.x, this.player.y - 56), toClient(this.player.x, this.player.y)];
+    if (p.event) points.push(toClient(p.worldX, p.worldY));
+    this.ui.updateHudFade(points);
   }
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */

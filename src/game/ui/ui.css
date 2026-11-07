@@ -470,3 +470,7 @@
 @keyframes item-pop { 0% { transform: scale(0.3) rotate(-20deg); } 70% { transform: scale(1.12) rotate(4deg); } }
 .item-reveal strong { color: var(--cream); font-size: 13px; letter-spacing: 0.05em; text-shadow: 0 2px 0 #00000077; }
 .item-reveal .hint { position: absolute; bottom: 8px; font-size: 7px; color: #ffffff88; }
+
+/* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
+.hud-goals, .hud-money { transition: opacity 0.2s; }
+.hud-goals.see-through, .hud-money.see-through { opacity: 0.18; }

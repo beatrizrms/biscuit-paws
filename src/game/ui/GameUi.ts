@@ -178,6 +178,18 @@ export class GameUi {
     });
   }
 
+  /**
+   * O balão de pensamento e o painel do dinheiro ficam quase transparentes quando algum
+   * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
+   */
+  updateHudFade(points: readonly { x: number; y: number }[]): void {
+    for (const el of [this.goals, this.money]) {
+      const r = el.getBoundingClientRect();
+      const under = points.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
+      el.classList.toggle('see-through', under);
+    }
+  }
+
   openShop(shopId: string): void {
     this.closeCatalog();
     this.shop.open(shopId);
