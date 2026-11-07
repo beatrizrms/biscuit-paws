@@ -2,7 +2,7 @@
 // Só apresenta: quando a cena acaba, avisa a sessão (finishCutscene), que segue a história.
 import type { CutsceneDef, CutsceneStep } from '../../core/cutscene';
 import type { GameSession } from '../../core/session';
-import { content, uiText } from '../content';
+import { content, phone, uiText } from '../content';
 
 const TYPE_SPEED_MS = 26;
 const CAT_SCALE = 5;
@@ -109,16 +109,27 @@ export class CutsceneView {
         this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption);
         break;
       case 'phone':
-        this.stage.innerHTML = `
-          <div class="cs-phone">
-            <div class="app">${esc(step.app)}</div>
-            <div class="ad"><strong>${esc(step.title)}</strong>${step.lines.map((l) => `<span>${esc(l)}</span>`).join('')}</div>
-          </div>`;
+        this.stage.innerHTML = this.phoneHtml(step);
         break;
       case 'hide':
         this.stage.innerHTML = '';
         break;
     }
+  }
+
+  /** O celular do pacote: conteúdo por baixo, na área da tela; a moldura por cima. */
+  private phoneHtml(step: Extract<CutsceneStep, { type: 'phone' }>): string {
+    const [w, h] = phone.size;
+    const s = phone.screen;
+    const icon = step.appIcon ? phone.apps[step.appIcon] : undefined;
+    return `<div class="cs-phone" style="width:${w}px;height:${h}px">
+      <div class="screen" style="left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px">
+        <img class="status" src="${phone.status}" alt="" />
+        <div class="app">${icon ? `<img src="${icon}" alt="" />` : ''}<span>${esc(step.app)}</span></div>
+        <div class="ad"><strong>${esc(step.title)}</strong>${step.lines.map((l) => `<span>${esc(l)}</span>`).join('')}</div>
+      </div>
+      <img class="frame" src="${phone.frame}" alt="" />
+    </div>`;
   }
 
   /** Um gato animado com os quadros da folha do Cosy Cats (CSS, sem Phaser). */

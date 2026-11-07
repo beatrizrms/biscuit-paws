@@ -17,6 +17,7 @@ import shopsJson from '../../data/shops.json';
 import iconsJson from '../../data/icons.json';
 import npcsJson from '../../data/npcs.json';
 import scriptsJson from '../../data/scripts.json';
+import phoneJson from '../../data/phone.json';
 import marketJson from '../../data/maps/market.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
@@ -40,3 +41,6 @@ export const content: Content = buildContent({
 } as unknown as RawContent);
 
 export const uiText = uiTextJson;
+
+/** Celular das cenas (moldura e ícones). */
+export const phone = phoneJson as unknown as { frame: string; size: [number, number]; screen: { x: number; y: number; w: number; h: number }; status: string; notification: string; apps: Record<string, string> };

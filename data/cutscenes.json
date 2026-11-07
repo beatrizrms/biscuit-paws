@@ -48,7 +48,8 @@
             "Vila das Baunilhas",
             "Ponto antigo, precisa de reforma.",
             "Preço de pechincha!"
-          ]
+          ],
+          "appIcon": "classificados"
         },
         {
           "type": "text",

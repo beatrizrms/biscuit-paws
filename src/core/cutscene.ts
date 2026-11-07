@@ -5,7 +5,7 @@ export type CutsceneStep =
   | { type: 'text'; speaker: string; text: string }
   | { type: 'cat'; cat: string; animation: string; caption?: string }
   | { type: 'hide' }
-  | { type: 'phone'; app: string; title: string; lines: string[] }
+  | { type: 'phone'; app: string; title: string; lines: string[]; /** Ícone do app (chave em data/phone.json: apps). */ appIcon?: string }
   | { type: 'card'; text: string };
 
 export interface CutsceneDef {
