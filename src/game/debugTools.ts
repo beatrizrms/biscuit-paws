@@ -1,7 +1,6 @@
 // Ferramentas do modo debug. Carregado sob demanda (import dinâmico) só em `npm run dev`,
 // então nada disto entra no build de produção.
-import { LocalStorage } from '../platform/localStorage';
-import { saveSlot, setDebug } from './debug';
+import { setDebug } from './debug';
 import type { WorldScene } from './scenes/WorldScene';
 import { DebugPanel } from './ui/DebugPanel';
 import './ui/debug.css';
@@ -27,7 +26,8 @@ export function attachDebugTools(scene: WorldScene, root: HTMLElement): DebugPan
       return world.drawDebug;
     },
     toggleGrid: () => grid.setVisible(!grid.visible).visible,
-    newGame: () => void new LocalStorage().remove(saveSlot()).then(() => window.location.reload()),
+    // Jogo novo no slot 1 do debug (a URL ?novo pula a Home).
+    newGame: () => (window.location.href = `${window.location.pathname}?novo`),
     turnOff: () => setDebug(false),
   });
 }

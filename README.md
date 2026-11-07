@@ -37,7 +37,9 @@ Controles:
 - **Botão direito num móvel:** recolher e mudar de lugar
 - **Espaço / Enter / clique:** avançar as falas
 
-Para começar um jogo novo, abra `http://localhost:5173/?novo`.
+O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
+
+Atalhos para testar (pulam a Home): `http://localhost:5173/?novo` começa um jogo novo no slot 1; `?jogar` continua o save mais recente (ou começa um novo).
 
 ### Modo debug (só em `npm run dev`)
 **F9** liga e desliga (ou abra `?debug=1`). Aparece um painel com: +100 moedas, pular falas, ver as caixas de colisão,

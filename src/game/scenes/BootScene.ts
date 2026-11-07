@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import playerJson from '../../../data/player.json';
-import { LocalStorage } from '../../platform/localStorage';
 import { broom, content, emotes, serviceArt } from '../content';
-import { saveSlot } from '../debug';
-import { openSession } from '../saveGame';
+import { preloadAudio } from '../audio/AudioManager';
+import { t } from '../i18n';
+import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
+import { initServices } from '../services';
+import { startGame } from '../startGame';
 import { catTexture } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
@@ -11,13 +13,27 @@ import tilesetsJson from '../../../data/tilesets.json';
 
 export const TEXTURE = { player: 'player' } as const;
 
-/** Carrega a arte e o save, e passa para o mundo. Cada folha do catálogo vira uma textura com o id dela. */
+/**
+ * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
+ * Atalhos de teste na URL: ?novo começa um jogo novo no slot 1; ?jogar continua o save mais recente (ou começa um novo).
+ * Cada folha do catálogo vira uma textura com o id dela.
+ */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
   }
 
   preload(): void {
+    // Barra de carregamento (desenhada, sem arte).
+    const w = 220;
+    const x = (GAME_WIDTH - w) / 2;
+    const y = GAME_HEIGHT / 2;
+    this.add.text(GAME_WIDTH / 2, y - 16, t('boot.loading'), { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', color: '#fff4e0' }).setOrigin(0.5);
+    this.add.rectangle(x - 2, y - 2, w + 4, 12, 0x5a4048).setOrigin(0);
+    this.add.rectangle(x, y, w, 8, 0xf3e6d8).setOrigin(0);
+    const bar = this.add.rectangle(x, y, 1, 8, 0xe58fa6).setOrigin(0);
+    this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => bar.setSize(Math.max(1, Math.round(w * p)), 8));
+    preloadAudio(this.load);
     const { sheets, tileSize } = content.catalog;
     for (const [id, sheet] of Object.entries(sheets)) {
       this.load.spritesheet(id, sheet.image, { frameWidth: tileSize, frameHeight: tileSize });
@@ -58,9 +74,18 @@ export class BootScene extends Phaser.Scene {
     for (const [name, [x, y, w, h]] of Object.entries(broom.frames)) tex.add(name, 0, x, y, w, h);
     const emoteTex = this.textures.get('emotes');
     for (const [name, [x, y, w, h]] of Object.entries(emotes.frames)) emoteTex.add(name, 0, x, y, w, h);
-    // ?novo na URL começa um jogo novo (apaga o save).
-    const forceNew = new URLSearchParams(window.location.search).has('novo');
-    const { session, isNew } = await openSession(new LocalStorage(), saveSlot(), forceNew);
-    this.scene.start('World', { session, isNew });
+    const { saves } = await initServices(this.game);
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('novo')) {
+      await startGame(this, { mode: 'new', slot: 'slot1' });
+      return;
+    }
+    if (params.has('jogar')) {
+      const recent = await saves.mostRecent();
+      const r = recent ? await startGame(this, { mode: 'load', from: recent }) : { ok: false as const, error: '' };
+      if (!r.ok) await startGame(this, { mode: 'new', slot: 'slot1' });
+      return;
+    }
+    this.scene.start('MainMenu');
   }
 }

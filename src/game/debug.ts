@@ -29,9 +29,3 @@ export function setDebug(on: boolean): void {
   if (on) url.searchParams.set('debug', '1');
   window.location.href = url.toString();
 }
-
-/** Slot de save de cada modo. */
-export function saveSlot(): string {
-  // Slot próprio do debug. Não pode ser "debug": essa chave já guarda se o modo está ligado.
-  return isDebugOn() ? 'slot-debug' : 'slot1';
-}

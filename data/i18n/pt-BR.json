@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Textos da tela inicial, menus, saves e opções (pt-BR). Outro idioma: copie este arquivo como <locale>.json e troque data/game.json: locale. {nome} vira o valor passado.",
+  "boot": {
+    "loading": "Carregando..."
+  },
+  "home": {
+    "tapToStart": "Toque ou clique para começar",
+    "continue": "Continuar",
+    "newGame": "Novo jogo",
+    "load": "Carregar / recuperar saves",
+    "options": "Opções",
+    "credits": "Créditos",
+    "noSave": "Nenhum save ainda",
+    "hint": "Setas: escolher · Enter: confirmar · Esc: voltar"
+  },
+  "slot": {
+    "slot1": "Slot 1",
+    "slot2": "Slot 2",
+    "slot3": "Slot 3",
+    "auto": "Autosave",
+    "empty": "vazio",
+    "corrupt": "corrompido",
+    "summary": "Dia {day} · {time} · {money} moedas · {cats} gato(s)",
+    "savedAt": "salvo em {date}",
+    "backup": "tem backup"
+  },
+  "slots": {
+    "titleLoad": "Saves",
+    "titleNew": "Novo jogo: escolha o slot",
+    "play": "jogar",
+    "useSlot": "começar aqui",
+    "restore": "restaurar backup",
+    "export": "exportar",
+    "import": "importar",
+    "delete": "apagar",
+    "back": "voltar",
+    "corruptHelp": "Não deu para ler este save. Restaure o backup ou apague o slot.",
+    "importInvalid": "Esse arquivo não é um save válido: {error}",
+    "importOk": "Save importado no {slot}.",
+    "restored": "Backup restaurado no {slot}.",
+    "deleted": "{slot} apagado.",
+    "exported": "Save do {slot} exportado."
+  },
+  "confirm": {
+    "yes": "Sim",
+    "no": "Não",
+    "overwrite": "O {slot} já tem um save. Começar um jogo novo e apagar esse save?",
+    "delete": "Apagar o {slot}? Isso não tem volta (o backup também é apagado).",
+    "restore": "Trocar o {slot} pelo backup? O save atual vira o novo backup.",
+    "importOver": "O {slot} já tem um save. Trocar pelo arquivo importado? O atual vira backup.",
+    "toMenu": "Voltar ao menu? O jogo é salvo antes."
+  },
+  "options": {
+    "title": "Opções",
+    "music": "Música",
+    "ambient": "Sons ambientes",
+    "on": "ligado",
+    "off": "desligado",
+    "volume": "volume",
+    "noFiles": "Ainda não há arquivos de som: os canais estão prontos e mudos.",
+    "close": "fechar"
+  },
+  "credits": {
+    "title": "Créditos",
+    "lines": [
+      "Um jogo de Beatriz",
+      "Arte: Cat Cafe e Cosy Cats, Leckie Pixel Studio (leckie1989)",
+      "Arte gerada por IA na paleta Cosy (rua, sujeira, personagens, interface, equipamentos)",
+      "Feito com Phaser 3, TypeScript e Vite",
+      "Lista completa em CREDITS.md"
+    ],
+    "close": "fechar"
+  },
+  "pause": {
+    "title": "Pausa",
+    "resume": "Continuar",
+    "options": "Opções",
+    "save": "Salvar",
+    "toMenu": "Voltar ao menu",
+    "saved": "Jogo salvo no {slot}."
+  }
+}

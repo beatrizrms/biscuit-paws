@@ -351,7 +351,9 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento). Fixtures: `tests/fixtures/save_v1.json` a `save_v8.json`.
 
 Regras:
-- Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.
+- Hoje o save fica no `localStorage`, via `src/platform/`: slots `biscuit-paws:slot1..slot3` (manuais) e `biscuit-paws:auto` (autosave), cada um com backup da versão anterior em `<slot>.bak`; `auto.origin` (de qual slot manual veio o autosave) e `current-slot`. O modo debug usa os mesmos nomes com prefixo `debug-`. `?novo` na URL começa um jogo novo no slot 1 (pula a Home); `?jogar` continua o mais recente.
+- Quando grava: autosave a cada mudança (no máximo 1 a cada 1,5 s, e na hora de fechar a página); o slot manual no fim de cada dia e no "Salvar" da pausa. A versão do save continua no campo `schemaVersion` (decisão: não renomear para `saveVersion`).
+- Save corrompido não trava: a tela de saves mostra "corrompido" e oferece restaurar o backup ou apagar. Importar (arquivo .json) passa pela mesma validação e migrações (`src/core/saveSlots.ts: readSave`).
 - Só IDs e números/booleanos/strings simples.
 - Mudou algo: suba `schemaVersion`, escreva `migrate_vN_to_vN+1`, guarde um fixture da versão antiga em `tests/fixtures/`.
 - IDs que sumirem dos dados de conteúdo não podem quebrar o carregamento: ignore e registre um aviso.
@@ -393,7 +395,7 @@ Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "
 }
 ```
 
-Ponto: `press` (E ou clique de perto) ou `sweep` (varre com a vassoura). `marker`: tile desenhado enquanto o ponto está pendente. `gives`/`takes`: item recebido/entregue (itens com a tag `job` somem no fim do dia). Os passos vão em ordem; os pontos de um passo, em qualquer ordem. Pedido pela metade não passa para o dia seguinte.
+Ponto: `press` (E ou clique de perto) ou `sweep` (varre com a vassoura). `marker`: tile desenhado enquanto o ponto está pendente. `gives`/`takes`: item recebido/entregue (itens com a tag `job` somem no fim do dia). Os passos vão em ordem; os pontos de um passo, em qualquer ordem. Pedido pela metade não passa para o dia seguinte. O `npm run check` exige que todo ponto (ou um vizinho dele) seja alcançável a pé a partir do spawn do mapa: cuidado com dois objetos sólidos que só se tocam na diagonal, porque eles fecham a passagem.
 Aceitar: no celular (tecla P, app "Vila Hoje") ou no mural do mercado (interação `{ "action": { "board": true } }`).
 
 Jornal: `{ "id": "news.x", "headline": "...", "text": "...", "day": 2 }` (fixa num dia) ou `"fromDay": 4` (sorteio: uma por dia, sempre a mesma para aquele dia).
@@ -450,4 +452,11 @@ Condições novas: `{ "menu": { "gte": 1 } }` (receitas no quadro), `{ "served":
 
 Arte do atendimento (`data/service_art.json`, só a interface usa): quadro do cardápio por número de slots (imagem + posição do ícone e do preço de cada slot), véu e marca de esgotado, balão do pedido (normal, impaciente abaixo de `impatientBelow` da paciência, furioso abaixo de `furiousBelow`; ícone no `iconSlot`), balão "aguardando" (fila), barra de progresso (9 quadros), moeda e louça 16x16 no mundo (linha por louça, coluna limpa/cheia/suja). Os arquivos vêm de `scripts/import-fluxo.ts`. Clientes: `service.json: customerLooks` (NPCs `npc.customer_01..10`).
 
-Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidificador, fogão, forno) — só pode ser posicionado numa célula com um balcão (tag `bar`) livre; é desenhado `world.counterLift` pixels acima (no tampo). O balcão com algo em cima não pode ser recolhido e não vira lugar de cliente em pé.
+Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidificador, fogão, forno) — só pode ser posicionado numa célula com um balcão (tag `bar`) livre; é desenhado `world.counterLift` pixels acima (no tampo). O balcão com algo em cima não pode ser recolhido e não vira lugar de cliente em pé. Sem nenhum balcão livre, o item nem vai para a mão: fica na mochila com um aviso.
+
+## Home, textos, som e configurações
+
+- `data/game.json`: `title` (o nome mostrado na Home) e `locale`.
+- `data/i18n/pt-BR.json`: textos da Home, saves, opções, créditos e pausa. Outro idioma: outro arquivo com as mesmas chaves (`t("home.continue")`, com `{nome}` para valores).
+- `data/audio.json`: dois canais, `music` e `ambient`; cada faixa tem `file` (caminho em public/, `null` = ainda sem arquivo: o canal fica pronto e mudo) e `loop`. `scenes`: música e ambiente da Home e de cada mapa. `fadeMs`: transição.
+- Configurações de som (`biscuit-paws:settings`, à parte do save, valem para todos os slots): `{ version, music: { on, volume }, ambient: { on, volume } }`. Aplicadas já na Home. O áudio só toca depois do primeiro toque/clique (o navegador exige).

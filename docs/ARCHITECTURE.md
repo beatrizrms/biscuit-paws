@@ -8,7 +8,7 @@ Objetivo: o jogo pode crescer por anos sem quebrar saves nem o código antigo.
 data/            conteúdo em JSON (mapas, gatos, itens, falas)
 src/core/        regras puras, sem Phaser/DOM/window
 src/game/        Phaser: cenas, sprites, entrada, animação
-src/platform/    armazenamento e saída (navegador hoje, Electron/Steam depois)
+src/platform/    armazenamento, arquivos (exportar/importar save) e saída (navegador hoje, Electron/Steam depois)
 tests/           unitários (core) + fumaça visual (Playwright)
 scripts/         validadores e geradores (catálogo de tiles, check do mapa)
 ```

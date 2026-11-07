@@ -142,12 +142,15 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.reveal !== null;
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.reveal !== null || this.paused;
   }
+
+  /** Menu de pausa aberto (o mundo para e o relógio também). */
+  paused = false;
 
   /** O relógio para só em falas, cenas, caixa de nome e transições (menus não param o tempo). */
   pausesClock(): boolean {
-    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null;
+    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null || this.paused;
   }
 
   isDialogueOpen(): boolean {

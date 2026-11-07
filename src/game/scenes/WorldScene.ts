@@ -18,6 +18,11 @@ import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
+import type { ManualSlot } from '../../core/saveSlots';
+import { services } from '../services';
+import { saveNow } from '../startGame';
+import { openPause } from '../ui/menu/PauseMenu';
+import { t } from '../i18n';
 import { formatClock, tintAt } from '../../core/time';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
@@ -37,6 +42,8 @@ const NO_INPUT = { up: false, down: false, left: false, right: false };
 export class WorldScene extends Phaser.Scene implements ScriptStage {
   session!: GameSession;
   private isNew = false;
+  /** Slot manual desta partida (o autosave lembra dele). */
+  private slot: ManualSlot = 'slot1';
   ui!: GameUi;
   private player!: Player;
   private keys!: Keys;
@@ -88,9 +95,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     super('World');
   }
 
-  init(data: { session: GameSession; isNew: boolean }): void {
+  init(data: { session: GameSession; isNew: boolean; slot: ManualSlot }): void {
     this.session = data.session;
     this.isNew = data.isNew;
+    this.slot = data.slot;
   }
 
   create(): void {
@@ -116,10 +124,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     this.input.keyboard!.on('keydown-ESC', () => {
       if (this.placing) this.cancelPlacing();
-      else {
+      else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
         this.ui.closeCatalog();
         this.ui.closeShop();
-      }
+      } else if (!this.ui.isBusy() && !this.changingMap && !this.scripts.isRunning()) this.openPause();
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
     this.input.keyboard!.on('keydown-E', () => {
@@ -204,7 +212,30 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         void import('../debugTools').then((m) => (this.debugPanel = m.attachDebugTools(this, uiRoot)));
       }
     }
+    // Música e ambiente de cada lugar (data/audio.json).
+    const { audio } = services();
+    audio.playScene(this.session.location());
+    this.session.bus.on('map.entered', ({ mapId }) => audio.playScene(mapId));
     this.session.start(this.isNew);
+  }
+
+  /** Pausa: Continuar, Opções, Salvar, Voltar ao menu (salva antes). */
+  private openPause(): void {
+    this.ui.paused = true;
+    openPause(document.getElementById('ui')!, {
+      save: async () => {
+        await saveNow(this.session, this.slot);
+        return t(`slot.${this.slot}`);
+      },
+      toMenu: async () => {
+        await saveNow(this.session, this.slot);
+        services().audio.fadeOutAll();
+        this.cameras.main.fadeOut(400, 27, 33, 64);
+        // Recarrega sem os atalhos da URL: volta à Home com tudo limpo.
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (window.location.href = window.location.pathname));
+      },
+      onClose: () => (this.ui.paused = false),
+    });
   }
 
   update(): void {

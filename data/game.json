@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Título e idioma do jogo (configuráveis). Os textos ficam em data/i18n/<locale>.json.",
+  "title": "Biscuit Paws",
+  "locale": "pt-BR"
+}

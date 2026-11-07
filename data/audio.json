@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Áudio em dois canais: music (música de fundo) e ambient (vento, neve, rua, passos...). file: caminho em public/ (null = ainda sem arquivo; o canal fica pronto e mudo). loop: tocar em repetição. fadeMs: transição ao trocar de faixa ou ligar/desligar.",
+  "fadeMs": 800,
+  "music": {
+    "home": { "file": null, "loop": true },
+    "street": { "file": null, "loop": true },
+    "cafe": { "file": null, "loop": true }
+  },
+  "ambient": {
+    "winter_wind": { "file": null, "loop": true },
+    "snow": { "file": null, "loop": true },
+    "street": { "file": null, "loop": true },
+    "steps": { "file": null, "loop": false }
+  },
+  "scenes": {
+    "home": { "music": "home", "ambient": "winter_wind" },
+    "map.street": { "music": "street", "ambient": "street" },
+    "map.market": { "music": "street", "ambient": null },
+    "map.cafe_main": { "music": "cafe", "ambient": null }
+  }
+}

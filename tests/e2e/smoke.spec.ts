@@ -32,7 +32,8 @@ const COUNTER_BASE = 5 * TILE; // balcão na linha 4
 async function openGame(page: Page): Promise<void> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  // ?jogar pula a Home: continua o save mais recente ou começa um novo (contexto limpo: sempre novo).
+  await page.goto('/?jogar');
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   expect(errors).toEqual([]);
 }
@@ -318,6 +319,7 @@ test('faxina: clicar na sujeira de perto limpa; de longe, pede para chegar perto
 });
 
 test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no café', async ({ page }, testInfo) => {
+  test.setTimeout(60_000); // limpar o café inteiro + a cena do miado passa dos 30 s
   await openGame(page);
   await skipDialogue(page);
   await enterCafe(page);
