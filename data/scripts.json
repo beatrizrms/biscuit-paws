@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait. Ao terminar, flag seen.<id>.",
+  "scripts": {
+    "scr.realtor_tour": {
+      "steps": [
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.street",
+          "at": [
+            23,
+            9
+          ],
+          "facing": "left"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            18,
+            9
+          ]
+        },
+        {
+          "npcAnim": "npc.realtor",
+          "anim": "acenar",
+          "ms": 1400
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "dialogue": "dlg.realtor_greeting"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            17,
+            9
+          ]
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            17,
+            8
+          ]
+        },
+        {
+          "playerWalk": [
+            16,
+            9
+          ]
+        },
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            13,
+            5
+          ],
+          "facing": "right",
+          "npcs": [
+            {
+              "npc": "npc.realtor",
+              "at": [
+                15,
+                5
+              ],
+              "facing": "left"
+            }
+          ]
+        },
+        {
+          "dialogue": "dlg.realtor_tour"
+        },
+        {
+          "npcAnim": "npc.realtor",
+          "anim": "segurando_chaves",
+          "ms": 600
+        },
+        {
+          "showItem": "item.key_bakery"
+        },
+        {
+          "giveItem": "item.key_bakery"
+        },
+        {
+          "dialogue": "dlg.realtor_bye"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            15,
+            4
+          ]
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            4
+          ]
+        },
+        {
+          "npcLeave": "npc.realtor"
+        }
+      ]
+    }
+  }
+}

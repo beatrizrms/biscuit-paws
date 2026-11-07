@@ -5,6 +5,7 @@ import { content } from '../content';
 import { saveSlot } from '../debug';
 import { openSession } from '../saveGame';
 import { catTexture } from '../entities/Cat';
+import { npcTexture } from '../entities/Npc';
 
 export const TEXTURE = { player: 'player' } as const;
 
@@ -23,6 +24,9 @@ export class BootScene extends Phaser.Scene {
     const sprites = content.catSprites;
     for (const variant of new Set(Object.values(content.cats).filter((c) => !c.memory).map((c) => c.variant))) {
       this.load.spritesheet(catTexture(variant), sprites.variants[variant]!, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
+    }
+    for (const npc of Object.values(content.npcs)) {
+      this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });
     }
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,

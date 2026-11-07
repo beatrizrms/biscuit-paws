@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "_comment": "NPCs humanos. Folhas 32x64 (pés na base). walk: linha de cada direção (4 quadros). extras: nome -> quadros.",
+  "npcs": [
+    {
+      "id": "npc.realtor",
+      "name": "Corretora",
+      "sheet": "assets/npc/corretora_spritesheet.png",
+      "portrait": "assets/npc/corretora_retrato_64.png",
+      "frameWidth": 32,
+      "frameHeight": 64,
+      "columns": 4,
+      "fps": 8,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [
+          16,
+          17
+        ],
+        "segurando_chaves": [
+          18
+        ],
+        "prancheta": [
+          19
+        ]
+      }
+    }
+  ]
+}

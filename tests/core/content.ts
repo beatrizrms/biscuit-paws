@@ -24,6 +24,8 @@ export function rawContent(): RawContent {
     relationships: read('data/relationships.json'),
     shops: read('data/shops.json'),
     icons: read('data/icons.json'),
+    npcs: read('data/npcs.json'),
+    scripts: read('data/scripts.json'),
   };
 }
 

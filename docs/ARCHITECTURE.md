@@ -86,6 +86,8 @@ cat-cafe-game/
 | `story.beat_completed` | marco da história concluído | `beatId` |
 | `dialogue.requested` | o core pede para mostrar uma fala | `dialogueId` |
 | `cutscene.requested` | o core pede para mostrar uma cena sem mapa | `cutsceneId` |
+| `script.requested` | o core pede um roteiro no mundo (NPCs andam, falam...) | `scriptId` |
+| `script.finished` | o roteiro terminou (marca `seen.<id>`) | `scriptId` |
 | `cutscene.finished` | a cena terminou (marca a flag `seen.<id>`) | `cutsceneId` |
 
 Nomes novos entram nesta tabela antes de serem usados.

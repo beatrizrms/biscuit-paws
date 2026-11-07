@@ -67,5 +67,8 @@
     "close": "fechar"
   },
   "day": "Dia",
-  "hearts": "corações"
+  "hearts": "corações",
+  "itemReveal": {
+    "continue": "Espaço, Enter ou clique: continuar"
+  }
 }

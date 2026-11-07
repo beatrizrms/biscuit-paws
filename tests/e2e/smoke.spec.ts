@@ -39,11 +39,17 @@ async function openGame(page: Page): Promise<void> {
 
 /** Passa todas as cenas e falas abertas (a abertura da história bloqueia o movimento). */
 async function skipDialogue(page: Page): Promise<void> {
-  const busy = () =>
-    page.evaluate(() => !!document.querySelector('.dialogue-layer.open, .cutscene.open'));
-  for (let i = 0; i < 80 && (await busy()); i++) {
-    await page.keyboard.press('Space');
-    await page.waitForTimeout(30);
+  const overlay = () => page.evaluate(() => !!document.querySelector('.dialogue-layer.open, .cutscene.open, .item-reveal'));
+  const scripting = () =>
+    page.evaluate(() => (window as unknown as { __biscuitPaws?: { cafe: { isScriptRunning(): boolean } } }).__biscuitPaws?.cafe.isScriptRunning() ?? false);
+  // Passa falas e cenas; durante um roteiro (a corretora andando), espera.
+  // Só termina depois de alguns instantes seguidos sem nada aberto (uma fala pode abrir logo após um roteiro).
+  for (let i = 0, quiet = 0; i < 400 && quiet < 5; i++) {
+    if (await overlay()) {
+      quiet = 0;
+      await page.keyboard.press('Space');
+    } else quiet = (await scripting()) ? 0 : quiet + 1;
+    await page.waitForTimeout(40);
   }
   await expect(page.locator('.dialogue-layer')).not.toHaveClass(/open/);
   await expect(page.locator('.cutscene')).not.toHaveClass(/open/);
@@ -163,7 +169,8 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-money')).toContainText('150');
   await page.screenshot({ path: testInfo.outputPath('05-abertura.png') });
   await skipDialogue(page);
-  // Na rua o catálogo não abre.
+  // Na rua o catálogo não abre (o roteiro da corretora termina dentro do café: volta para a rua).
+  await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.street'));
   await page.keyboard.press('c');
   await expect(page.locator('.catalog:not(.shop)')).not.toHaveClass(/open/);
   await expect(page.locator('.toast')).toContainText('lá dentro');
@@ -249,6 +256,8 @@ test('rua: anda até a porta da padaria, entra e sai sem ficar indo e voltando',
   await openGame(page);
   expect((await player(page)).map).toBe('map.street');
   await skipDialogue(page);
+  // O roteiro da corretora termina dentro do café: volta para a rua, no ponto de partida.
+  await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.street'));
   await page.screenshot({ path: testInfo.outputPath('09-rua.png') });
 
   // Spawn na coluna 15; a porta do café fica na coluna 17 (andar para cima na calçada).
@@ -384,4 +393,34 @@ test('fim do prólogo: E na tigela alimenta, coração, cartão final e dia 2', 
   await expect(page.locator('.hud-money')).toContainText('Dia 2');
   await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
   await page.screenshot({ path: testInfo.outputPath('18-dia-2.png') });
+});
+
+test('corretora: aparece na rua, leva para dentro e a chave aparece no centro da tela', async ({ page }, testInfo) => {
+  test.setTimeout(90_000); // a cena inteira (andar, falas, entrar) leva mais que o padrão
+  await openGame(page);
+  // Passa só a cena do Natal e a fala da chegada.
+  for (let i = 0; i < 120; i++) {
+    const text = await page.evaluate(() => document.querySelector('.dialogue-layer.open .text')?.textContent ?? null);
+    if (text?.includes('Eu vou mostrar')) break;
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(40);
+  }
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Space');
+  // A corretora fala com retrato.
+  await expect(page.locator('.dialogue.with-portrait')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.dialogue .speaker')).toHaveText('Corretora');
+  await page.screenshot({ path: testInfo.outputPath('19-corretora.png') });
+  // Segue até a chave no centro.
+  for (let i = 0; i < 300 && !(await page.locator('.item-reveal.open').count()); i++) {
+    if (await page.locator('.dialogue-layer.open').count()) await page.keyboard.press('Space');
+    await page.waitForTimeout(60);
+  }
+  await expect(page.locator('.item-reveal')).toContainText('Chave da padaria');
+  expect((await player(page)).map).toBe('map.cafe_main');
+  await page.screenshot({ path: testInfo.outputPath('20-chave.png') });
+  await skipDialogue(page);
+  const key = await page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { inventory: Record<string, number> } } } }).__biscuitPaws.cafe.sessionState().inventory['item.key_bakery']);
+  expect(key).toBe(1);
+  await expect(page.locator('.hud-goals')).toContainText('Uma boa faxina');
 });

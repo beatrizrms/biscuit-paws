@@ -22,6 +22,8 @@ export interface GameEvents {
   'dialogue.requested': { dialogueId: string };
   'cutscene.requested': { cutsceneId: string };
   'cutscene.finished': { cutsceneId: string };
+  'script.requested': { scriptId: string };
+  'script.finished': { scriptId: string };
 }
 
 export type EventName = keyof GameEvents;

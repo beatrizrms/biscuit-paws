@@ -422,3 +422,50 @@
 .catalog .name { display: flex; align-items: center; }
 
 .hud-money .day { margin-right: 4px; padding-right: 6px; border-right: 1px solid var(--cream3); color: var(--ink2); font-weight: normal; }
+
+/* Retrato de quem fala (NPC) */
+.dialogue .portrait { display: none; }
+.dialogue.with-portrait { padding-left: 62px; }
+.dialogue.with-portrait .portrait {
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 44px;
+  height: 44px;
+  image-rendering: pixelated;
+  border: 2px solid var(--wood3);
+  border-radius: 4px;
+  background: var(--cream2);
+}
+
+/* Item grande no centro (a chave) */
+.item-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  background: #2b1d1a99;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.item-reveal.open { opacity: 1; }
+.item-reveal .rays {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  background: repeating-conic-gradient(#f8d87755 0deg 10deg, transparent 10deg 30deg);
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  animation: rays-spin 8s linear infinite;
+}
+@keyframes rays-spin { to { transform: rotate(360deg); } }
+.item-reveal .item-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.item-reveal img { width: 96px; height: 96px; image-rendering: pixelated; animation: item-pop 0.5s ease-out; }
+@keyframes item-pop { 0% { transform: scale(0.3) rotate(-20deg); } 70% { transform: scale(1.12) rotate(4deg); } }
+.item-reveal strong { color: var(--cream); font-size: 13px; letter-spacing: 0.05em; text-shadow: 0 2px 0 #00000077; }
+.item-reveal .hint { position: absolute; bottom: 8px; font-size: 7px; color: #ffffff88; }

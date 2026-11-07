@@ -169,6 +169,15 @@ No mapa, `"interactions": [{ "id": "int.market_cashier", "at": [13, 9], "reach":
 tecla **E** perto (até `reach` células) ou clique na célula abre a loja.
 Portas aceitam `"direction"` (padrão `up`): a saída do mercado é `down` (a frente do cômodo é aberta).
 
+## Roteiros e NPCs (`data/scripts.json`, `data/npcs.json`)
+
+Roteiro = lista de passos executados em ordem; cada um espera o anterior terminar:
+`npcSpawn`, `npcWalk`, `npcAnim` (extras do NPC: acenar, segurando_chaves...), `npcFace`, `npcLeave`, `playerWalk`, `playerFace`,
+`dialogue` (espera a fala fechar), `enter` (fade para outro mapa levando a personagem e NPCs), `showItem` (item grande no centro), `giveItem`, `wait`.
+A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
+NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`).
+Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem se devolve).
+
 ## Mundo (`data/world.json`)
 
 ```jsonc

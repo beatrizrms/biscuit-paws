@@ -2,12 +2,13 @@
 // Puro: sem Phaser, DOM ou window.
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
+import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { validateMap, type MapData, type SurfaceKind } from './map';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
 /** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
-export type ItemKind = 'furniture' | 'consumable' | 'key';
+export type ItemKind = 'furniture' | 'consumable' | 'key' | 'tool';
 
 export interface ItemDef {
   id: string;
@@ -21,6 +22,8 @@ export interface ItemDef {
   requires?: Condition;
   /** Ícone (data/icons.json), para itens que não são móveis. */
   icon?: string;
+  /** Imagem própria do ícone (ex.: a chave), quando não está na folha de ícones. */
+  iconImage?: string;
   tags: string[];
   deprecated?: boolean;
 }
@@ -97,7 +100,9 @@ export type Effect =
   /** Abriga um gato no café (abre a caixa de nome). */
   | { shelterCat: string }
   /** Termina o dia (a protagonista vai para casa; amanhece no dia seguinte). */
-  | { endDay: true };
+  | { endDay: true }
+  /** Roteiro no mundo (data/scripts.json): ex.: a corretora mostra a padaria. */
+  | { script: string };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -127,6 +132,8 @@ export interface StoryData {
 export interface DialogueLine {
   speaker: string;
   text: string;
+  /** NPC que fala (mostra o retrato dele). */
+  npc?: string;
 }
 
 export interface DialogueData {
@@ -162,6 +169,8 @@ export interface Content {
   relationships: RelationshipsConfig;
   shops: ShopsData['shops'];
   icons: IconsData;
+  npcs: Record<string, NpcDef>;
+  scripts: Record<string, { steps: ScriptStep[] }>;
 }
 
 export interface RawContent {
@@ -179,6 +188,8 @@ export interface RawContent {
   relationships: RelationshipsConfig;
   shops: ShopsData;
   icons: IconsData;
+  npcs: NpcsData;
+  scripts: ScriptsData;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -192,7 +203,8 @@ export function buildContent(raw: RawContent): Content {
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
-    shops: raw.shops.shops, icons: raw.icons };
+    shops: raw.shops.shops, icons: raw.icons,
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -242,6 +254,21 @@ export function validateContent(raw: RawContent): string[] {
   const animations = new Set(raw.catSprites.animations.map((a) => a.name));
   errors.push(...validateCutscenes(raw.cutscenes, catIds, animations));
   const cutsceneIds = new Set(Object.keys(raw.cutscenes.cutscenes));
+  const npcIds = new Set(raw.npcs.npcs.map((n) => n.id));
+  const scriptIds = new Set(Object.keys(raw.scripts.scripts));
+  for (const n of raw.npcs.npcs) if (!n.id.startsWith('npc.')) err(`npc: id "${n.id}" deve começar com "npc."`);
+  errors.push(
+    ...validateScripts(raw.scripts, {
+      npcs: npcIds,
+      maps: new Set(raw.maps.map((m) => m.id)),
+      dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
+      items: new Set(raw.items.items.map((i) => i.id)),
+      npcAnims: (id) => new Set(Object.keys(raw.npcs.npcs.find((n) => n.id === id)?.extras ?? {})),
+    }),
+  );
+  for (const [id, d] of Object.entries(raw.dialogue.dialogues)) {
+    for (const l of d.lines) if (l.npc && !npcIds.has(l.npc)) err(`dialogue "${id}": NPC inexistente "${l.npc}"`);
+  }
 
   const itemIds = new Set<string>();
   for (const item of raw.items.items) {
@@ -249,7 +276,7 @@ export function validateContent(raw: RawContent): string[] {
     if (itemIds.has(item.id)) err(`items: id repetido "${item.id}"`);
     itemIds.add(item.id);
     const kind = item.kind ?? 'furniture';
-    if (!['furniture', 'consumable', 'key'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
+    if (!['furniture', 'consumable', 'key', 'tool'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
     if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
@@ -349,6 +376,7 @@ export function validateContent(raw: RawContent): string[] {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
+      if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
       if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);
     }
   }

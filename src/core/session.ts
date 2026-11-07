@@ -168,6 +168,25 @@ export class GameSession {
     if (door.locked) this.bus.emit('dialogue.requested', { dialogueId: door.locked });
   }
 
+  /** Recebe um item (história ou roteiro): vai para a bolsa. */
+  receiveItem(itemId: string): void {
+    this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.bus.emit('item.received', { itemId });
+    this.advanceStory();
+  }
+
+  /** Pede uma fala (roteiros usam isto). */
+  say(dialogueId: string): void {
+    this.bus.emit('dialogue.requested', { dialogueId });
+  }
+
+  /** O jogo terminou um roteiro: marca `seen.<id>` e segue a história. */
+  finishScript(scriptId: string): void {
+    this.state.flags[seenFlag(scriptId)] = true;
+    this.bus.emit('script.finished', { scriptId });
+    this.advanceStory();
+  }
+
   /** A interface terminou de mostrar uma cena: marca `seen.<id>` e segue a história. */
   finishCutscene(cutsceneId: string): void {
     this.state.flags[seenFlag(cutsceneId)] = true;
@@ -228,7 +247,7 @@ export class GameSession {
   /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
   refund(itemId: string): ActionResult {
     const refundable = this.content.items[itemId];
-    if (!refundable || (refundable.kind ?? 'furniture') === 'key') return { ok: false, reason: 'unknown_item' };
+    if (!refundable || ['key', 'tool'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
     this.removeFromInventory(itemId);
     const amount = this.refundValue(itemId);
@@ -306,7 +325,7 @@ export class GameSession {
   buy(itemId: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
-    if ((item.kind ?? 'furniture') === 'key') return { ok: false, reason: 'unknown_item' };
+    if (['key', 'tool'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
@@ -374,14 +393,12 @@ export class GameSession {
     if ('dialogue' in effect) this.bus.emit('dialogue.requested', { dialogueId: effect.dialogue });
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
     else if ('endDay' in effect) this.endDay();
+    else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;
       this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id };
       this.bus.emit('cat.sheltered', { catId: id });
-    } else if ('giveItem' in effect) {
-      this.state.inventory[effect.giveItem] = (this.state.inventory[effect.giveItem] ?? 0) + 1;
-      this.bus.emit('item.received', { itemId: effect.giveItem });
-    }
+    } else if ('giveItem' in effect) this.receiveItem(effect.giveItem);
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
     else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
   }

@@ -25,7 +25,8 @@ export class GameUi {
   private catalog: HTMLElement;
   private catalogList: HTMLElement;
 
-  private dialogueQueue: { speaker: string; text: string }[] = [];
+  private dialogueQueue: { speaker: string; text: string; npc?: string }[] = [];
+  private reveal: { el: HTMLElement; done: () => void } | null = null;
   private typing: { full: string; shown: number; timer: number } | null = null;
   private toastTimer = 0;
   private hintMode: HintMode = 'walk';
@@ -55,7 +56,7 @@ export class GameUi {
         <div class="list"></div>
       </section>
       <div class="dialogue-layer">
-        <div class="panel dialogue"><span class="speaker"></span><span class="text"></span><span class="more">▼</span></div>
+        <div class="panel dialogue"><img class="portrait" alt="" /><span class="speaker"></span><span class="text"></span><span class="more">▼</span></div>
       </div>`;
     const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
     this.money = $('.hud-money');
@@ -102,7 +103,7 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen();
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.reveal !== null;
   }
 
   isDialogueOpen(): boolean {
@@ -144,6 +145,37 @@ export class GameUi {
 
   problem(reason: keyof typeof uiText.problems): void {
     this.toast(uiText.problems[reason] ?? reason);
+  }
+
+  /** Mostra um item grande no centro da tela (ex.: a chave). Resolve quando a jogadora continuar. */
+  showItem(itemId: string): Promise<void> {
+    const item = content.items[itemId];
+    const el = document.createElement('div');
+    el.className = 'item-reveal';
+    const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : '';
+    el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${uiText.itemReveal.continue}</div>`;
+    this.root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('open'));
+    return new Promise((resolve) => {
+      const done = () => {
+        if (!this.reveal) return;
+        this.reveal = null;
+        window.removeEventListener('keydown', onKey);
+        el.remove();
+        this.refresh();
+        resolve();
+      };
+      const onKey = (e: KeyboardEvent) => {
+        if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          done();
+        }
+      };
+      // Pequena espera: o mesmo Espaço que fechou a fala anterior não fecha a chave na hora.
+      window.setTimeout(() => window.addEventListener('keydown', onKey), 250);
+      el.addEventListener('click', done);
+      this.reveal = { el, done };
+    });
   }
 
   openShop(shopId: string): void {
@@ -296,7 +328,7 @@ export class GameUi {
 
   private queueDialogue(dialogueId: string): void {
     const lines = content.dialogue.dialogues[dialogueId]?.lines ?? [];
-    this.dialogueQueue.push(...lines.map((l) => ({ speaker: this.fillNames(l.speaker), text: this.fillNames(l.text) })));
+    this.dialogueQueue.push(...lines.map((l) => ({ speaker: this.fillNames(l.speaker), text: this.fillNames(l.text), npc: l.npc })));
     this.openDialogueIfFree();
   }
 
@@ -326,6 +358,10 @@ export class GameUi {
     const line = this.dialogueQueue.shift();
     if (!line) return this.closeDialogue();
     (this.dialogueBox.querySelector('.speaker') as HTMLElement).textContent = line.speaker;
+    const portrait = this.dialogueBox.querySelector('.portrait') as HTMLImageElement;
+    const npcPortrait = line.npc ? content.npcs[line.npc]?.portrait : undefined;
+    this.dialogueBox.classList.toggle('with-portrait', !!npcPortrait);
+    if (npcPortrait) portrait.src = npcPortrait;
     this.dialogueBox.classList.toggle('narrator', line.speaker === uiText.narrator);
     textEl.textContent = '';
     const typing = { full: line.text, shown: 0, timer: 0 };

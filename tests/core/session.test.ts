@@ -28,10 +28,17 @@ function startOnStreet(session: GameSession) {
   session.finishCutscene('cs.prologue_thoughts');
 }
 
-/** Começa um jogo novo (na rua), entra no café, faz a faxina e recebe o gatinho (com nome). */
+/** O que o roteiro da corretora faz na sessão: entra no café, entrega a chave e termina. */
+function realtorTour(session: GameSession) {
+  session.enter('map.cafe_main');
+  session.receiveItem('item.key_bakery');
+  session.finishScript('scr.realtor_tour');
+}
+
+/** Começa um jogo novo (na rua), a corretora mostra o café, faxina e o gatinho (com nome). */
 function startInCafe(session: GameSession) {
   startOnStreet(session);
-  session.enter('map.cafe_main');
+  realtorTour(session);
   cleanAll(session);
   session.finishCutscene('cs.meow_door');
   expect(session.nameCat('cat.first_stray', 'Botinhas')).toEqual({ ok: true });
@@ -65,24 +72,28 @@ describe('começo da história', () => {
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }]);
   });
 
-  it('um jogo novo começa na rua, com pouco dinheiro, a abertura e o pensamento de entrar', () => {
-    const { session, dialogues } = newSession();
+  it('um jogo novo começa na rua: a fala de chegada e, em seguida, o roteiro da corretora', () => {
+    const { session, dialogues, events } = newSession();
     startOnStreet(session);
     expect(session.location()).toBe('map.street');
     expect(session.atHome()).toBe(false);
     expect(session.state.money).toBe(150);
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }]);
-    expect(session.state.flags['bought.old_bakery']).toBe(true);
-    expect(session.goals().map((g) => g.title)).toEqual(['A velha padaria']);
+    expect(events.filter((e) => e.name === 'script.requested').map((e) => e.payload)).toEqual([{ scriptId: 'scr.realtor_tour' }]);
+    expect(session.state.flags['bought.old_bakery']).toBeUndefined(); // só compra lá dentro
+    expect(session.state.inventory['item.key_bakery']).toBeUndefined();
   });
 
-  it('entrar no café pela primeira vez mostra o interior e a próxima meta', () => {
+  it('a corretora leva para dentro e entrega a chave; depois vem o interior e a faxina', () => {
     const { session, dialogues, events } = newSession();
     startOnStreet(session);
-    session.enter('map.cafe_main');
+    realtorTour(session);
     expect(session.atHome()).toBe(true);
     expect(session.state.visited).toEqual(['map.street', 'map.cafe_main']);
     expect(events.some((e) => e.name === 'map.entered')).toBe(true);
+    expect(session.state.inventory['item.key_bakery']).toBe(1);
+    expect(session.state.flags['bought.old_bakery']).toBe(true);
+    expect(session.state.flags['seen.scr.realtor_tour']).toBe(true);
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }, { dialogueId: 'dlg.inside' }]);
     expect(session.goals().map((g) => g.title)).toEqual(['Uma boa faxina']);
     // Sair e voltar não repete a fala.
@@ -284,7 +295,7 @@ describe('faxina', () => {
   it('limpar as teias e o chão conclui a faxina e libera o cantinho quente', () => {
     const { session, dialogues } = newSession();
     startOnStreet(session);
-    session.enter('map.cafe_main');
+    realtorTour(session);
     const webs = session.visibleDirt().filter((d) => d.tags.includes('web'));
     webs.forEach((d) => session.clean(d.id));
     expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
@@ -329,14 +340,16 @@ describe('faxina', () => {
 describe('chave e portas', () => {
   const streetDoor = () => content.maps['map.street']!.doors!.find((d) => d.id === 'door.cafe')!;
 
-  it('a porta da padaria fica trancada até ela receber a chave na compra', () => {
+  it('a porta da padaria fica trancada até a corretora entregar a chave', () => {
     const { session, dialogues } = newSession();
     session.start(true);
     expect(session.canUseDoor(streetDoor())).toBe(false);
     session.doorLocked(streetDoor());
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.door_locked_bakery' }]);
 
-    session.finishCutscene('cs.prologue_thoughts'); // chegada + compra
+    session.finishCutscene('cs.prologue_thoughts'); // chegada
+    expect(session.state.inventory['item.key_bakery']).toBeUndefined();
+    realtorTour(session); // a corretora entrega a chave
     expect(session.state.inventory['item.key_bakery']).toBe(1);
     expect(session.canUseDoor(streetDoor())).toBe(true);
   });
@@ -361,7 +374,7 @@ describe('o gatinho na porta', () => {
     const s = newSession(false);
     s.session.start(true);
     s.session.finishCutscene('cs.prologue_thoughts');
-    s.session.enter('map.cafe_main');
+    realtorTour(s.session);
     cleanAll(s.session);
     return s;
   }

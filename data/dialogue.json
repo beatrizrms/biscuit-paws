@@ -16,24 +16,12 @@
           "text": "Está horrível. Mas olha o tamanho desse espaço!"
         },
         {
-          "speaker": "Você",
-          "text": "Vai virar um café. Um café com gatos."
-        },
-        {
           "speaker": "",
           "text": "Um vizinho passa e torce o nariz para a vitrine. Por aqui, ninguém gosta muito de gatos: são tantos na rua..."
         },
         {
           "speaker": "Você",
           "text": "Quem conhece um gato de verdade passa a amar. Eu vou mostrar."
-        },
-        {
-          "speaker": "",
-          "text": "Você assina os papéis com o antigo dono e recebe a chave. É sua."
-        },
-        {
-          "speaker": "",
-          "text": "Ande com as setas ou WASD. Para entrar, vá até a porta e siga para cima."
         }
       ]
     },
@@ -92,16 +80,12 @@
     "dlg.inside": {
       "lines": [
         {
-          "speaker": "",
-          "text": "Lá dentro, o forno está frio e as prateleiras, vazias. Teias, poeira, um balde pegando goteira..."
-        },
-        {
           "speaker": "Você",
-          "text": "Antes de qualquer coisa: uma boa faxina."
+          "text": "Minha padaria. Antes de qualquer coisa: uma boa faxina."
         },
         {
           "speaker": "",
-          "text": "Clique na sujeira perto de você para limpar."
+          "text": "Clique na sujeira perto de você para limpar. Para sair, vá até a porta e siga em frente."
         }
       ]
     },
@@ -174,6 +158,63 @@
         {
           "speaker": "Você",
           "text": "Bem-vindo, {cat:cat.first_stray}. Agora você tem casa."
+        }
+      ]
+    },
+    "dlg.realtor_greeting": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Bom dia! Você deve ser a interessada na padaria!"
+        },
+        {
+          "speaker": "Você",
+          "text": "Sou eu! Vim assim que vi o anúncio."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Ela está um pouquinho... abandonada. Mas venha, vou te mostrar por dentro."
+        }
+      ]
+    },
+    "dlg.realtor_tour": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Lá dentro, o forno está frio e as prateleiras, vazias. Teias, poeira, um balde pegando goteira..."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Faz anos que ninguém cuida daqui. Mas a estrutura é boa, e o espaço é enorme."
+        },
+        {
+          "speaker": "Você",
+          "text": "Está terrível... mas eu consigo ver: mesas, almofadas, gatinhos dormindo ao sol."
+        },
+        {
+          "speaker": "Você",
+          "text": "Eu vou comprar!"
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Que maravilha! Então é só assinar aqui... e aqui."
+        },
+        {
+          "speaker": "",
+          "text": "Você assina os papéis. A corretora sorri e estende a mão."
+        }
+      ]
+    },
+    "dlg.realtor_bye": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Seja muito feliz aqui. E boa sorte com a vizinhança!"
         }
       ]
     }

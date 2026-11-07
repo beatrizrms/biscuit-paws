@@ -4,6 +4,8 @@ import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
 import { CatSprite } from '../entities/Cat';
+import { NpcSprite } from '../entities/Npc';
+import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
@@ -22,7 +24,7 @@ const NO_INPUT = { up: false, down: false, left: false, right: false };
  * O mundo: desenha o mapa onde a personagem está (rua, café...), move a jogadora,
  * troca de mapa pelas portas e, dentro do café, cuida do modo de posicionar móveis.
  */
-export class WorldScene extends Phaser.Scene {
+export class WorldScene extends Phaser.Scene implements ScriptStage {
   session!: GameSession;
   private isNew = false;
   ui!: GameUi;
@@ -35,6 +37,12 @@ export class WorldScene extends Phaser.Scene {
   private debugPanel?: DebugPanel;
   private changingMap = false;
   private cats: CatSprite[] = [];
+  private npcs = new Map<string, NpcSprite>();
+  private scripts!: ScriptRunner;
+  /** Esperas dos roteiros: resolvem quando a condição vale (conferido a cada quadro). */
+  private waiters: { until: () => boolean; resolve: () => void }[] = [];
+  /** Caminhada da jogadora guiada por roteiro. */
+  private autoWalk: { x: number; y: number; resolve: () => void } | null = null;
   private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
   private doorLocked = false;
@@ -54,6 +62,7 @@ export class WorldScene extends Phaser.Scene {
     this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
+    this.scripts = new ScriptRunner(this.session, this);
     this.loadMap(this.session.location());
 
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -118,8 +127,10 @@ export class WorldScene extends Phaser.Scene {
 
   update(): void {
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap;
-    const input = busy
+    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning();
+    const input = this.autoWalk
+      ? this.autoWalkInput()
+      : busy
       ? NO_INPUT
       : {
           up: k.up.isDown || k.w.isDown,
@@ -130,13 +141,17 @@ export class WorldScene extends Phaser.Scene {
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) cat.tick(this.time.now);
+    for (const w of this.waiters.filter((x) => x.until())) {
+      this.waiters.splice(this.waiters.indexOf(w), 1);
+      w.resolve();
+    }
     if (this.placing) this.refreshGhost();
 
     // Direção em que ela está andando (uma só): as portas pedem uma direção (para cima, ou para baixo na saída do mercado).
     const moving = input.up && !input.down ? 'up' : input.down && !input.up ? 'down' : input.left && !input.right ? 'left' : input.right && !input.left ? 'right' : null;
     if (!moving && !this.changingMap) this.doorLocked = false;
     const door = doorAt(this.map, this.feetCell(), moving);
-    if (door && !this.placing && !this.doorLocked) {
+    if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door)) this.useDoor(door);
       else {
@@ -156,6 +171,8 @@ export class WorldScene extends Phaser.Scene {
     this.catColliders = [];
     this.cats.forEach((c) => c.destroy());
     this.cats = [];
+    this.npcs.forEach((n) => n.destroy());
+    this.npcs.clear();
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -399,7 +416,92 @@ export class WorldScene extends Phaser.Scene {
     return cells;
   }
 
+  // ---------- Roteiros (ScriptStage) ----------
+
+  spawnNpc(npcId: string, [c, r]: Cell, facing: Facing = 'down'): void {
+    const def = this.session.content.npcs[npcId];
+    if (!def) return;
+    this.npcs.get(npcId)?.destroy();
+    const ts = this.map.tileSize;
+    const npc = new NpcSprite(this, def, c * ts + ts / 2, (r + 1) * ts - 4, ts);
+    npc.face(facing);
+    this.npcs.set(npcId, npc);
+  }
+
+  async npcWalk(npcId: string, to: Cell): Promise<void> {
+    await this.npcs.get(npcId)?.walkTo(to);
+  }
+
+  async npcAct(npcId: string, anim: string, ms: number): Promise<void> {
+    await this.npcs.get(npcId)?.act(anim, ms);
+  }
+
+  npcFace(npcId: string, facing: Facing): void {
+    this.npcs.get(npcId)?.face(facing);
+  }
+
+  async npcLeave(npcId: string): Promise<void> {
+    const npc = this.npcs.get(npcId);
+    this.npcs.delete(npcId);
+    await npc?.leave();
+  }
+
+  playerWalk([c, r]: Cell): Promise<void> {
+    const ts = this.map.tileSize;
+    return new Promise((resolve) => (this.autoWalk = { x: c * ts + ts / 2, y: (r + 1) * ts - 8, resolve }));
+  }
+
+  playerFace(facing: Facing): void {
+    this.player.face(facing);
+  }
+
+  enter(mapId: string, spawn: Cell, facing: Facing, npcs: { npc: string; at: Cell; facing?: Facing }[]): Promise<void> {
+    return new Promise((resolve) => {
+      const cam = this.cameras.main;
+      cam.fadeOut(FADE_MS * 2, 43, 29, 26);
+      cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.session.enter(mapId);
+        this.loadMap(mapId, spawn, facing);
+        npcs.forEach((n) => this.spawnNpc(n.npc, n.at, n.facing));
+        cam.fadeIn(FADE_MS * 2, 43, 29, 26);
+        cam.once(Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE, () => resolve());
+      });
+    });
+  }
+
+  showItem(itemId: string): Promise<void> {
+    return this.ui.showItem(itemId);
+  }
+
+  untilIdle(): Promise<void> {
+    return new Promise((resolve) => this.waiters.push({ until: () => !this.ui.isBusy() && !this.changingMap, resolve }));
+  }
+
+  wait(ms: number): Promise<void> {
+    return new Promise((resolve) => this.time.delayedCall(ms, resolve));
+  }
+
+  /** Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). */
+  private autoWalkInput(): { up: boolean; down: boolean; left: boolean; right: boolean } {
+    const t = this.autoWalk!;
+    const dx = t.x - this.player.x;
+    const dy = t.y - this.player.y;
+    if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+      this.autoWalk = null;
+      t.resolve();
+      return NO_INPUT;
+    }
+    if (Math.abs(dx) > 1.5) return { up: false, down: false, left: dx < 0, right: dx > 0 };
+    return { up: dy < 0, down: dy > 0, left: false, right: false };
+  }
+
   // ---------- Para testes e depuração ----------
+
+  isScriptRunning(): boolean {
+    return this.scripts.isRunning();
+  }
+
 
   playerState(): { x: number; y: number; depth: number; map: string } {
     return { x: this.player.x, y: this.player.y, depth: this.player.depth, map: this.map.id };

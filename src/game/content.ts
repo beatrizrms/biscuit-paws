@@ -15,6 +15,8 @@ import cutscenesJson from '../../data/cutscenes.json';
 import relationshipsJson from '../../data/relationships.json';
 import shopsJson from '../../data/shops.json';
 import iconsJson from '../../data/icons.json';
+import npcsJson from '../../data/npcs.json';
+import scriptsJson from '../../data/scripts.json';
 import marketJson from '../../data/maps/market.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
@@ -33,6 +35,8 @@ export const content: Content = buildContent({
   relationships: relationshipsJson,
   shops: shopsJson,
   icons: iconsJson,
+  npcs: npcsJson,
+  scripts: scriptsJson,
 } as unknown as RawContent);
 
 export const uiText = uiTextJson;

@@ -16,12 +16,6 @@
       "effects": [
         {
           "dialogue": "dlg.intro"
-        },
-        {
-          "setFlag": "bought.old_bakery"
-        },
-        {
-          "giveItem": "item.key_bakery"
         }
       ],
       "after": [
@@ -32,28 +26,34 @@
       }
     },
     {
-      "id": "story.enter_bakery",
-      "act": 1,
+      "id": "story.realtor_tour",
+      "act": 0,
       "after": [
         "story.intro"
       ],
-      "goal": {
-        "title": "A velha padaria",
-        "steps": [
-          {
-            "text": "Preciso ver como está lá dentro.",
-            "when": {
-              "visited": "map.cafe_main"
-            },
-            "devNote": "Porta do café: coluna 17 da rua, andar para cima."
-          }
-        ]
-      },
       "effects": [
+        {
+          "script": "scr.realtor_tour"
+        }
+      ]
+    },
+    {
+      "id": "story.enter_bakery",
+      "act": 1,
+      "after": [
+        "story.realtor_tour"
+      ],
+      "effects": [
+        {
+          "setFlag": "bought.old_bakery"
+        },
         {
           "dialogue": "dlg.inside"
         }
-      ]
+      ],
+      "when": {
+        "flag": "seen.scr.realtor_tour"
+      }
     },
     {
       "id": "story.cleanup",

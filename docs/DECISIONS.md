@@ -111,3 +111,7 @@ Consequência: tigela de ração (tag `food_bowl`) usada com E ou clique de pert
 ## 030. Tekinha usa o Pebble (nov/2026)
 Motivo: pedido da desenvolvedora (lembra mais a gatinha dela).
 Consequência: `cat.tekinha` passa da variante `misty` para `pebble` (Cosy Cats). A decisão 026 continua valendo no resto.
+
+## 031. A corretora entrega a chave; roteiros no mundo (nov/2026)
+Motivo: a compra precisava acontecer em cena, com uma pessoa, e não só em narração.
+Consequência: `data/scripts.json` + `ScriptRunner` (NPCs andam, acenam, falam; todos entram com fade; item grande no centro). Primeiro NPC: a corretora (pacote `corretora_e_vassoura`, gerado por IA). A chave vem do roteiro, não mais da fala de chegada. O marco `story.enter_bakery` (id mantido) agora conclui quando o roteiro termina.

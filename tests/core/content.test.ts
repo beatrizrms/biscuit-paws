@@ -62,3 +62,25 @@ describe('cenas e gatos', () => {
     expect(validateContent(raw).join()).toMatch(/cutscene "cs.prologue_end": texto da jogadora/);
   });
 });
+
+describe('roteiros e NPCs', () => {
+  it('acusa NPC, animação, mapa, fala e item inexistentes no roteiro', () => {
+    const raw = rawContent();
+    raw.scripts.scripts['scr.broken'] = { steps: [
+      { npcSpawn: 'npc.nope', map: 'map.lua', at: [0, 0] },
+      { npcAnim: 'npc.realtor', anim: 'dançar', ms: 100 },
+      { dialogue: 'dlg.nope' },
+      { showItem: 'item.nope' },
+    ] };
+    raw.story.beats.push({ id: 'story.broken_script', act: 0, effects: [{ script: 'scr.nope' }] });
+    raw.dialogue.dialogues['dlg.intro']!.lines[0]!.npc = 'npc.ghost';
+    const errors = validateContent(raw).join('\n');
+    expect(errors).toMatch(/NPC inexistente "npc.nope"/);
+    expect(errors).toMatch(/mapa inexistente "map.lua"/);
+    expect(errors).toMatch(/animação "dançar" não existe/);
+    expect(errors).toMatch(/fala inexistente "dlg.nope"/);
+    expect(errors).toMatch(/item inexistente "item.nope"/);
+    expect(errors).toMatch(/roteiro inexistente "scr.nope"/);
+    expect(errors).toMatch(/NPC inexistente "npc.ghost"/);
+  });
+});
