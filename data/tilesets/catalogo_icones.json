@@ -1,0 +1,98 @@
+{
+ "schemaVersion": 1,
+ "tileSize": 32,
+ "columns": 5,
+ "rows": 3,
+ "items": {
+  "areia": {
+   "nome": "Areia",
+   "col": 0,
+   "row": 0,
+   "first_tile_id": 0
+  },
+  "caixa_areia": {
+   "nome": "Caixa de areia",
+   "col": 1,
+   "row": 0,
+   "first_tile_id": 1
+  },
+  "racao_simples": {
+   "nome": "Ração simples",
+   "col": 2,
+   "row": 0,
+   "first_tile_id": 2
+  },
+  "racao_premium": {
+   "nome": "Ração premium",
+   "col": 3,
+   "row": 0,
+   "first_tile_id": 3
+  },
+  "petisco_biscoito": {
+   "nome": "Petisco biscoito",
+   "col": 4,
+   "row": 0,
+   "first_tile_id": 4
+  },
+  "farinha": {
+   "nome": "Farinha",
+   "col": 0,
+   "row": 1,
+   "first_tile_id": 5
+  },
+  "oleo": {
+   "nome": "Óleo",
+   "col": 1,
+   "row": 1,
+   "first_tile_id": 6
+  },
+  "sal": {
+   "nome": "Sal",
+   "col": 2,
+   "row": 1,
+   "first_tile_id": 7
+  },
+  "calabresa": {
+   "nome": "Calabresa",
+   "col": 3,
+   "row": 1,
+   "first_tile_id": 8
+  },
+  "carne": {
+   "nome": "Carne",
+   "col": 4,
+   "row": 1,
+   "first_tile_id": 9
+  },
+  "frango": {
+   "nome": "Frango",
+   "col": 0,
+   "row": 2,
+   "first_tile_id": 10
+  },
+  "chocolate": {
+   "nome": "Chocolate",
+   "col": 1,
+   "row": 2,
+   "first_tile_id": 11
+  },
+  "manteiga": {
+   "nome": "Manteiga",
+   "col": 2,
+   "row": 2,
+   "first_tile_id": 12
+  },
+  "leite": {
+   "nome": "Leite",
+   "col": 3,
+   "row": 2,
+   "first_tile_id": 13
+  },
+  "ovos": {
+   "nome": "Ovos",
+   "col": 4,
+   "row": 2,
+   "first_tile_id": 14
+  }
+ }
+}

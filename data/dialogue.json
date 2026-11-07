@@ -145,7 +145,15 @@
         },
         {
           "speaker": "",
-          "text": "Aperte C para abrir o catálogo. Clique para posicionar um móvel e use o botão direito para recolhê-lo."
+          "text": "Aperte C para abrir o catálogo. O mercado fica ali na rua: no caixa, aperte E."
+        }
+      ]
+    },
+    "dlg.ready_to_feed": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Água fresquinha, ração na bolsa. Agora é só encher a tigela."
         }
       ]
     }

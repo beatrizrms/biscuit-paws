@@ -28,6 +28,15 @@ export interface DirtSpot {
   clearedBy?: string;
 }
 
+/** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */
+export interface MapInteraction {
+  id: string;
+  at: Cell;
+  /** Distância máxima (em células) entre os pés da personagem e `at`. */
+  reach?: number;
+  action: { shop: string };
+}
+
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */
 export interface MapDoor {
   id: string;
@@ -36,6 +45,8 @@ export interface MapDoor {
   spawn: Cell;
   /** Para onde a personagem olha ao chegar. */
   facing?: Facing;
+  /** Para onde é preciso andar para atravessar (padrão: up). Ex.: a entrada do mercado é embaixo. */
+  direction?: Facing;
   /** Condição para passar (ex.: { "owned": "item.key_bakery" }). Sem ela, a porta está sempre aberta. */
   requires?: DoorCondition;
   /** Fala mostrada quando está trancada. */
@@ -58,6 +69,7 @@ export interface MapData {
   objects: MapObject[];
   spawn: { player: Cell };
   doors?: MapDoor[];
+  interactions?: MapInteraction[];
   /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */
@@ -97,6 +109,7 @@ export interface ResolvedMap {
   solid: boolean[][];
   spawn: Cell;
   doors: MapDoor[];
+  interactions: MapInteraction[];
   background?: string;
 }
 
@@ -210,6 +223,9 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
     else if (!inBounds(...d.at) || !inBounds(d.at[0] + def.w - 1, d.at[1] + def.h - 1)) err(`sujeira "${d.id}" sai do mapa`);
   }
 
+  // Interações
+  for (const it of map.interactions ?? []) if (!inBounds(...it.at)) err(`interação "${it.id}" fora do mapa`);
+
   // Portas
   const doorIds = new Set<string>();
   for (const door of map.doors ?? []) {
@@ -282,6 +298,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     solid: solidGrid(map, catalog),
     spawn: map.spawn.player,
     doors: map.doors ?? [],
+    interactions: map.interactions ?? [],
     background: map.background,
   };
 }
@@ -332,10 +349,24 @@ function baseSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   );
 }
 
-/** Porta que a personagem ativa ao andar para cima na célula dos pés (ou undefined). */
-export function doorAt(map: Pick<ResolvedMap, 'doors'>, [col, row]: Cell, movingUp: boolean): MapDoor | undefined {
-  if (!movingUp) return undefined;
-  return map.doors.find((d) => d.at[0] === col && d.at[1] === row);
+/** Porta que a personagem ativa ao andar na direção da porta, na célula dos pés (ou undefined). */
+export function doorAt(map: Pick<ResolvedMap, 'doors'>, [col, row]: Cell, moving: Facing | null): MapDoor | undefined {
+  if (!moving) return undefined;
+  return map.doors.find((d) => d.at[0] === col && d.at[1] === row && (d.direction ?? 'up') === moving);
+}
+
+/** Interação ao alcance dos pés (a mais perto), ou undefined. `target`: só esta célula (clique). */
+export function interactionNear(
+  map: Pick<ResolvedMap, 'interactions'>,
+  feet: readonly Cell[],
+  target?: Cell,
+): MapInteraction | undefined {
+  const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+  return map.interactions
+    .filter((i) => !target || (i.at[0] === target[0] && i.at[1] === target[1]))
+    .map((i) => ({ i, d: Math.min(...feet.map((f) => dist(f, i.at))) }))
+    .filter(({ i, d }) => d <= (i.reach ?? 1))
+    .sort((a, b) => a.d - b.d)[0]?.i;
 }
 
 /** Tiles com várias versões: cada célula usa uma, sempre a mesma (sem guardar nada no save). */

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Ícones do pacote catalogo_compras (gerado por IA na paleta Cosy). Nomes = arquivos do pacote.",
+  "image": "assets/icons/catalogo_icones.png",
+  "tileSize": 32,
+  "columns": 5,
+  "icons": {
+    "areia": {
+      "col": 0,
+      "row": 0
+    },
+    "caixa_areia": {
+      "col": 1,
+      "row": 0
+    },
+    "racao_simples": {
+      "col": 2,
+      "row": 0
+    },
+    "racao_premium": {
+      "col": 3,
+      "row": 0
+    },
+    "petisco_biscoito": {
+      "col": 4,
+      "row": 0
+    },
+    "farinha": {
+      "col": 0,
+      "row": 1
+    },
+    "oleo": {
+      "col": 1,
+      "row": 1
+    },
+    "sal": {
+      "col": 2,
+      "row": 1
+    },
+    "calabresa": {
+      "col": 3,
+      "row": 1
+    },
+    "carne": {
+      "col": 4,
+      "row": 1
+    },
+    "frango": {
+      "col": 0,
+      "row": 2
+    },
+    "chocolate": {
+      "col": 1,
+      "row": 2
+    },
+    "manteiga": {
+      "col": 2,
+      "row": 2
+    },
+    "leite": {
+      "col": 3,
+      "row": 2
+    },
+    "ovos": {
+      "col": 4,
+      "row": 2
+    }
+  }
+}

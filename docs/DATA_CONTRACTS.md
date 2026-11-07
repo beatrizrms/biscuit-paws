@@ -157,6 +157,17 @@ A história dispara com o efeito `{ "cutscene": "cs.id" }`. Ao terminar, a flag 
 `id` é permanente; o nome escolhido pela jogadora fica no save. Gatos sem `name` fixo precisam de `nameSuggestions` (caixa de nome ao abrigar).
 `variant`: folha do Cosy Cats (`cat_sprites.json`: 6 colunas x 7 linhas de 32x32; animações sit, walk_*, sleep, play). `memory: true`: só aparece em lembranças (Tekinha).
 
+## Lojas e ícones (`data/shops.json`, `data/icons.json`)
+
+```jsonc
+{ "schemaVersion": 1, "shops": { "shop.market": { "name": "Mercado da Vila", "items": ["item.cat_food_basic", "..."] } } }
+```
+
+O preço vem de `items.json`. Itens consumíveis têm `icon` (nome em `data/icons.json`, folha do pacote `catalogo_compras`).
+No mapa, `"interactions": [{ "id": "int.market_cashier", "at": [13, 9], "reach": 2, "action": { "shop": "shop.market" } }]`:
+tecla **E** perto (até `reach` células) ou clique na célula abre a loja.
+Portas aceitam `"direction"` (padrão `up`): a saída do mercado é `down` (a frente do cômodo é aberta).
+
 ## Mundo (`data/world.json`)
 
 ```jsonc

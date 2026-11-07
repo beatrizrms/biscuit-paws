@@ -13,11 +13,14 @@ import catsJson from '../../data/cats.json';
 import catSpritesJson from '../../data/cat_sprites.json';
 import cutscenesJson from '../../data/cutscenes.json';
 import relationshipsJson from '../../data/relationships.json';
+import shopsJson from '../../data/shops.json';
+import iconsJson from '../../data/icons.json';
+import marketJson from '../../data/maps/market.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  maps: [cafeJson, streetJson],
+  maps: [cafeJson, streetJson, marketJson],
   world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
@@ -28,6 +31,8 @@ export const content: Content = buildContent({
   catSprites: catSpritesJson,
   cutscenes: cutscenesJson,
   relationships: relationshipsJson,
+  shops: shopsJson,
+  icons: iconsJson,
 } as unknown as RawContent);
 
 export const uiText = uiTextJson;

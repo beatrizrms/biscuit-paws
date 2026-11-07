@@ -4,6 +4,7 @@ import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
+import { ShopPanel } from './ShopPanel';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -30,6 +31,7 @@ export class GameUi {
   private hintMode: HintMode = 'walk';
   private cutscene!: CutsceneView;
   private naming!: NamingBox;
+  private shop!: ShopPanel;
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
   private hudPending = false;
   /** Meta mostrada agora (para animar o pensamento quando ela muda). */
@@ -80,6 +82,7 @@ export class GameUi {
     };
     this.cutscene = new CutsceneView(root, session, afterOverlay);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
+    this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.bought), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
@@ -90,7 +93,7 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen();
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen();
   }
 
   isDialogueOpen(): boolean {
@@ -134,6 +137,19 @@ export class GameUi {
     this.toast(uiText.problems[reason] ?? reason);
   }
 
+  openShop(shopId: string): void {
+    this.closeCatalog();
+    this.shop.open(shopId);
+  }
+
+  closeShop(): void {
+    this.shop.close();
+  }
+
+  isShopOpen(): boolean {
+    return this.shop.isOpen();
+  }
+
   /** Para testes e debug: confirma a caixa de nome com o nome sugerido. */
   confirmNaming(): void {
     this.naming.confirm();
@@ -162,6 +178,7 @@ export class GameUi {
     }
 
     const goal = this.session.goals()[0];
+    const fill = (text: string) => text.replace(/{cat:([w.]+)}/g, (_, id: string) => this.session.catName(id));
     if (goal?.beatId !== this.shownGoal) {
       this.shownGoal = goal?.beatId;
       this.goals.classList.remove("new");
@@ -169,10 +186,10 @@ export class GameUi {
       this.goals.classList.add("new");
     }
     this.goals.innerHTML = goal
-      ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(goal.title)}</h3><ul>${goal.steps
+      ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
           .map((s) => {
             const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
-            return `<li class="${s.done ? 'done' : ''}"><span>${esc(s.text)}${note}</span></li>`;
+            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${note}</span></li>`;
           })
           .join('')}</ul>`
       : '';

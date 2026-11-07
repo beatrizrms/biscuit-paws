@@ -70,7 +70,16 @@ export class WorldScene extends Phaser.Scene {
     });
     this.input.keyboard!.on('keydown-ESC', () => {
       if (this.placing) this.cancelPlacing();
-      else this.ui.closeCatalog();
+      else {
+        this.ui.closeCatalog();
+        this.ui.closeShop();
+      }
+    });
+    // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
+    this.input.keyboard!.on('keydown-E', () => {
+      if (this.ui.isShopOpen()) return this.ui.closeShop();
+      if (this.ui.isBusy()) return;
+      this.interact();
     });
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
@@ -108,8 +117,10 @@ export class WorldScene extends Phaser.Scene {
     for (const cat of this.cats) cat.tick(this.time.now);
     if (this.placing) this.refreshGhost();
 
-    if (!input.up && !this.changingMap) this.doorLocked = false;
-    const door = doorAt(this.map, this.feetCell(), input.up && !input.down);
+    // Direção em que ela está andando (uma só): as portas pedem uma direção (para cima, ou para baixo na saída do mercado).
+    const moving = input.up && !input.down ? 'up' : input.down && !input.up ? 'down' : input.left && !input.right ? 'left' : input.right && !input.left ? 'right' : null;
+    if (!moving && !this.changingMap) this.doorLocked = false;
+    const door = doorAt(this.map, this.feetCell(), moving);
     if (door && !this.placing && !this.doorLocked) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door)) this.useDoor(door);
@@ -139,13 +150,15 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBackgroundColor(this.map.background ?? '#2b1d1a');
     cam.stopFollow();
-    if (width <= GAME_WIDTH) {
+    if (width <= GAME_WIDTH && height <= GAME_HEIGHT) {
       cam.removeBounds();
       cam.centerOn(width / 2, height / 2);
     } else {
-      // Mapa mais largo que a tela: a câmera segue a personagem na horizontal.
-      // Sobra de altura fica em cima (céu), nunca embaixo do chão.
-      cam.setBounds(0, height - GAME_HEIGHT, width, GAME_HEIGHT);
+      // Mapa maior que a tela: a câmera segue a personagem. Se sobrar largura, centraliza;
+      // se sobrar altura, a sobra fica em cima (céu), nunca embaixo do chão.
+      const bx = width < GAME_WIDTH ? (width - GAME_WIDTH) / 2 : 0;
+      const by = height < GAME_HEIGHT ? height - GAME_HEIGHT : 0;
+      cam.setBounds(bx, by, Math.max(width, GAME_WIDTH), Math.max(height, GAME_HEIGHT));
       cam.startFollow(this.player, true);
     }
 
@@ -276,7 +289,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.ui.isBusy() || !this.session.atHome()) return;
+    if (this.ui.isBusy()) return;
+    if (!pointer.rightButtonDown() && !this.placing && this.interact(this.cellAt(pointer))) return;
+    if (!this.session.atHome()) return;
     if (this.placing) {
       if (pointer.rightButtonDown()) return this.cancelPlacing();
       this.moveGhost(pointer);
@@ -302,6 +317,14 @@ export class WorldScene extends Phaser.Scene {
       this.session.pickUp(placed.uid);
       this.startPlacing(placed.item);
     }
+  }
+
+  /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
+  private interact(target?: Cell): boolean {
+    const it = this.session.interactionAt(this.playerCells(), target);
+    if (!it) return false;
+    this.ui.openShop(it.action.shop);
+    return true;
   }
 
   /** Nuvenzinha de poeira onde a sujeira foi limpa. */

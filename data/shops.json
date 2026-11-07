@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Lojas: o que cada caixa vende. Preço vem de data/items.json.",
+  "shops": {
+    "shop.market": {
+      "name": "Mercado da Vila",
+      "items": [
+        "item.cat_food_basic",
+        "item.cat_food_premium",
+        "item.cat_treat_biscuit",
+        "item.cat_litter"
+      ]
+    }
+  }
+}

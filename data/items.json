@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
   "items": [
+    { "id": "item.cat_food_basic", "name": "Ração simples", "price": 15, "kind": "consumable", "icon": "racao_simples", "tags": ["pet", "food"] },
+    { "id": "item.cat_food_premium", "name": "Ração premium", "price": 35, "kind": "consumable", "icon": "racao_premium", "tags": ["pet", "food"] },
+    { "id": "item.cat_treat_biscuit", "name": "Petisco de biscoito", "price": 8, "kind": "consumable", "icon": "petisco_biscoito", "tags": ["pet", "treat"] },
+    { "id": "item.cat_litter", "name": "Areia", "price": 12, "kind": "consumable", "icon": "areia", "tags": ["pet", "litter"] },
+
     { "id": "item.key_bakery", "name": "Chave da padaria", "price": 0, "kind": "key", "tags": ["key"] },
 
     { "id": "item.cat_bed", "name": "Caminha de gato", "price": 25, "tile": "cat_bed", "tags": ["furniture", "for:cats"], "requires": { "flag": "has.cat" } },

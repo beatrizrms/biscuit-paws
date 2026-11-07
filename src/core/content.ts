@@ -19,8 +19,25 @@ export interface ItemDef {
   tile?: string;
   /** Condição para poder comprar (ex.: itens de gato só depois de ter um gato). */
   requires?: Condition;
+  /** Ícone (data/icons.json), para itens que não são móveis. */
+  icon?: string;
   tags: string[];
   deprecated?: boolean;
+}
+
+/** Lojas (data/shops.json): o que cada uma vende. */
+export interface ShopsData {
+  schemaVersion: 1;
+  shops: Record<string, { name: string; items: string[] }>;
+}
+
+/** Ícones dos itens (data/icons.json, do pacote catalogo_compras). */
+export interface IconsData {
+  schemaVersion: 1;
+  image: string;
+  tileSize: number;
+  columns: number;
+  icons: Record<string, { col: number; row: number }>;
 }
 
 export interface ItemsData {
@@ -141,6 +158,8 @@ export interface Content {
   catSprites: CatSpritesData;
   cutscenes: Record<string, CutsceneDef>;
   relationships: RelationshipsConfig;
+  shops: ShopsData['shops'];
+  icons: IconsData;
 }
 
 export interface RawContent {
@@ -156,6 +175,8 @@ export interface RawContent {
   catSprites: CatSpritesData;
   cutscenes: CutscenesData;
   relationships: RelationshipsConfig;
+  shops: ShopsData;
+  icons: IconsData;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -168,7 +189,8 @@ export function buildContent(raw: RawContent): Content {
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
-    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships };
+    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
+    shops: raw.shops.shops, icons: raw.icons };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -179,6 +201,9 @@ const DEV_MARKERS = /\b(TODO|FIXME|WIP)\b/; // só em maiúsculas: "todo dia" é
 export function validateContent(raw: RawContent): string[] {
   const errors = raw.maps.flatMap((m) => validateMap(m, raw.catalog));
   const err = (msg: string) => errors.push(msg);
+  const playerText = (where: string, text: string) => {
+    if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
+  };
 
   // Mapas e portas
   const mapIds = new Set<string>();
@@ -290,7 +315,20 @@ export function validateContent(raw: RawContent): string[] {
     }
   };
 
-  for (const item of raw.items.items) if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
+  for (const item of raw.items.items) {
+    if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
+    if (item.icon && !raw.icons.icons[item.icon]) err(`items: "${item.id}" usa ícone inexistente "${item.icon}"`);
+  }
+  for (const [id, shop] of Object.entries(raw.shops.shops)) {
+    if (!id.startsWith('shop.')) err(`shops: id "${id}" deve começar com "shop."`);
+    playerText(`shop "${id}"`, shop.name);
+    for (const item of shop.items) if (!itemIds.has(item)) err(`shops: "${id}" vende item inexistente "${item}"`);
+  }
+  for (const m of raw.maps) {
+    for (const it of m.interactions ?? []) {
+      if (!raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
+    }
+  }
   for (const d of doorChecks) {
     if (d.intercept) {
       checkCondition(d.where, d.intercept.when);
@@ -313,10 +351,7 @@ export function validateContent(raw: RawContent): string[] {
     }
   }
 
-  // Textos que a jogadora vê não podem ter notas de desenvolvimento.
-  const playerText = (where: string, text: string) => {
-    if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
-  };
+  // Textos que a jogadora vê não podem ter notas de desenvolvimento (playerText, declarado no início).
   raw.items.items.forEach((i) => playerText(`item "${i.id}"`, i.name));
   raw.finishes.finishes.forEach((f) => playerText(`finish "${f.id}"`, f.name));
   (home?.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));

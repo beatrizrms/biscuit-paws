@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
+import { doorAt } from '../../src/core/map';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -93,10 +94,13 @@ describe('começo da história', () => {
     const { session, dialogues } = newSession();
     startInCafe(session);
 
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    // Água e comida: tigela de água, ração do mercado, tigela de ração.
     buyAndPlace(session, 'item.water_bowl', [13, 9]);
-    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, true, false]);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false, false]);
+    expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
     expect(session.goals().map((g) => g.title)).toEqual(['Um lugar para sentar']);
 
     buyAndPlace(session, 'item.table_round', [4, 7]);
@@ -111,6 +115,7 @@ describe('começo da história', () => {
       'dlg.inside',
       'dlg.cleaned',
       'dlg.cat_named',
+      'dlg.ready_to_feed',
       'dlg.warm_corner_done',
       'dlg.neighbor_visit',
     ]);
@@ -120,6 +125,7 @@ describe('começo da história', () => {
   it('recolher um móvel não desfaz um marco concluído', () => {
     const { session } = newSession();
     startInCafe(session);
+    session.buy('item.cat_food_basic');
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     buyAndPlace(session, 'item.water_bowl', [13, 9]);
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
@@ -193,6 +199,7 @@ describe('pintor (reforma)', () => {
   it('a visita da Dona Lurdes libera o pintor', () => {
     const { session } = newSession();
     startInCafe(session);
+    session.buy('item.cat_food_basic');
     for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.water_bowl', [13, 9]], ['item.food_bowl', [14, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
       buyAndPlace(session, id, [at[0], at[1]]);
     }
@@ -378,7 +385,7 @@ describe('o gatinho na porta', () => {
     expect(session.nameCat('cat.first_stray', '  Pipoca  ')).toEqual({ ok: true });
     expect(session.catName('cat.first_stray')).toBe('Pipoca');
     expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cat_named' });
-    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
+    expect(session.goals().map((g) => g.title)).toEqual(['Água e comida']);
   });
 
   it('não dá nome a gato que não mora aqui; a Tekinha tem nome fixo', () => {
@@ -403,5 +410,35 @@ describe('corações', () => {
     expect(session.catHearts('cat.first_stray')).toBe(10);
     session.addCatAffection('cat.first_stray', -99_999);
     expect(session.catHearts('cat.first_stray')).toBe(0);
+  });
+});
+
+describe('mercado', () => {
+  it('a porta do mercado leva para dentro; a saída é andando para baixo', () => {
+    const street = content.maps['map.street']!;
+    const market = content.maps['map.market']!;
+    const resolved = (m: typeof street) => ({ doors: m.doors ?? [] });
+    expect(doorAt(resolved(street), [24, 8], 'up')?.to).toBe('map.market');
+    expect(doorAt(resolved(market), [10, 11], 'up')).toBeUndefined();
+    expect(doorAt(resolved(market), [10, 11], 'down')?.to).toBe('map.street');
+  });
+
+  it('o caixa abre a loja de perto (E) ou clicando nele de perto', () => {
+    const { session } = newSession();
+    session.enter('map.market');
+    expect(session.interactionAt([[13, 11]])?.action).toEqual({ shop: 'shop.market' });
+    expect(session.interactionAt([[13, 11]], [13, 9])?.id).toBe('int.market_cashier');
+    expect(session.interactionAt([[3, 11]])).toBeUndefined(); // longe
+    expect(session.interactionAt([[13, 11]], [12, 5])).toBeUndefined(); // clicou em outra coisa
+  });
+
+  it('compra ração no caixa: vai para a bolsa e marca o passo da meta', () => {
+    const { session } = newSession(false);
+    startInCafe(session);
+    expect(session.goals()[0]!.title).toBe('Água e comida');
+    expect(session.shopItems('shop.market')).toContain('item.cat_food_basic');
+    expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
+    expect(session.state.inventory['item.cat_food_basic']).toBe(1);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([false, true, false]);
   });
 });

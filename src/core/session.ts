@@ -5,7 +5,7 @@ import { seenFlag } from './cutscene';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import type { Cell, MapData, MapDoor, SurfaceDef } from './map';
+import { interactionNear, type Cell, type MapData, type MapDoor, type MapInteraction, type SurfaceDef } from './map';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
 import type { GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -58,6 +58,17 @@ export class GameSession {
     if (!i || !evaluate(i.when as Condition, this.state, this.storyContext())) return undefined;
     this.bus.emit('cutscene.requested', { cutsceneId: i.cutscene });
     return i.cutscene;
+  }
+
+  /** Interação ao alcance no mapa atual (`target`: só a célula clicada). */
+  interactionAt(feet: readonly Cell[], target?: Cell): MapInteraction | undefined {
+    const map = this.mapData(this.state.location);
+    return interactionNear({ interactions: map.interactions ?? [] }, feet, target);
+  }
+
+  /** Itens à venda numa loja (na ordem dos dados). */
+  shopItems(shopId: string): string[] {
+    return this.content.shops[shopId]?.items ?? [];
   }
 
   // ---------- Gatos ----------

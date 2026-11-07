@@ -130,4 +130,4 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 
 Regras desses pacotes (LEIA-ME de cada um): uso no nosso jogo, pessoal ou comercial; **não redistribuir**; **declarar o uso de IA na página da Steam**.
 Arquivos usados hoje: `public/assets/street/winter/*.png`, `public/assets/dirt/sujeira_tileset.png` (fora do Git). Os JSONs de peças (nomes e posições) ficam em `data/tilesets/`.
-Ainda não usados: `assets/opcoes_fachada.png` (referência das fachadas), `assets/mercado_interior/`, `assets/Cosy-Cats-32x32/` (Marco 1; ler a licença antes).
+Em uso também: `assets/mercado_interior/` (mapa do mercado, convertido para `data/maps/market.json`), `assets/catalogo_compras/` (ícones), `assets/Cosy-Cats-32x32/` (leckie1989, mesma licença do Cat Cafe: Misty = Tekinha, Marmalade = o gatinho de rua). Ainda não usados: `assets/opcoes_fachada.png`, `assets/quintal_secreto/`, `assets/tilesets_expansao/`.

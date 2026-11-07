@@ -88,6 +88,7 @@
     "player": [15, 9]
   },
   "doors": [
+    { "id": "door.market", "at": [24, 8], "to": "map.market", "spawn": [10, 10], "facing": "up" },
     {
       "id": "door.cafe",
       "at": [17, 8],

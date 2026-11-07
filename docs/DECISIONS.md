@@ -99,3 +99,7 @@ Consequência: `data/cutscenes.json` + `CutsceneView` (HTML por cima do jogo, mu
 ## 027. Itens de gato só depois do primeiro gato; gatos andam sozinhos (nov/2026)
 Motivo: comprar caminha e tigelas antes de existir gato não fazia sentido na história.
 Consequência: itens com `requires` (núcleo recusa a compra com `locked`; o catálogo esconde). A porta de dentro tem `intercept`: depois da faxina mostra o gatinho (`cs.meow_door`), que é abrigado, recebe nome (caixa com sugestão) e passeia pelo café (`nextCatGoal` no núcleo, com RNG). Corações genéricos por par (`relationships`). Save v4.
+
+## 028. Mercado com caixa por interação (nov/2026)
+Motivo: no prólogo não há ração; ela precisa ir ao mercado. Também prepara o sistema de interação (veterinário, vizinhos, gatos).
+Consequência: `data/maps/market.json` convertido da cena do `mercado_interior` (20 x 12; entrada embaixo, porta com `direction: down`). Pontos de interação no mapa (tecla E ou clique de perto); o caixa abre a loja (`data/shops.json`) com ícones do `catalogo_compras`. Itens consumíveis (ração, petisco, areia) compram-se só ali. A câmera segue a personagem também na vertical quando o mapa é mais alto que a tela.

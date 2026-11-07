@@ -21,6 +21,8 @@ const raw: RawContent = {
   catSprites: read('data/cat_sprites.json'),
   cutscenes: read('data/cutscenes.json'),
   relationships: read('data/relationships.json'),
+  shops: read('data/shops.json'),
+  icons: read('data/icons.json'),
 };
 
 const errors = validateContent(raw);

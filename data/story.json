@@ -128,10 +128,53 @@
       ]
     },
     {
+      "id": "story.water_and_food",
+      "act": 0,
+      "after": [
+        "story.cat_named"
+      ],
+      "goal": {
+        "title": "Água e comida",
+        "steps": [
+          {
+            "text": "Uma tigela de água para {cat:cat.first_stray}.",
+            "when": {
+              "placed": "item.water_bowl"
+            }
+          },
+          {
+            "text": "Não tenho ração... preciso ir ao mercado.",
+            "when": {
+              "any": [
+                {
+                  "owned": "item.cat_food_basic"
+                },
+                {
+                  "owned": "item.cat_food_premium"
+                }
+              ]
+            },
+            "devNote": "Mercado: porta na coluna 24 da rua; caixa em (13,9), tecla E."
+          },
+          {
+            "text": "E uma tigela para a ração.",
+            "when": {
+              "placed": "item.food_bowl"
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.ready_to_feed"
+        }
+      ]
+    },
+    {
       "id": "story.warm_corner",
       "act": 1,
       "after": [
-        "story.cat_named"
+        "story.water_and_food"
       ],
       "goal": {
         "title": "Um cantinho quente",

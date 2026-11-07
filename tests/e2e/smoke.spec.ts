@@ -165,16 +165,16 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await skipDialogue(page);
   // Na rua o catálogo não abre.
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog')).not.toHaveClass(/open/);
+  await expect(page.locator('.catalog:not(.shop)')).not.toHaveClass(/open/);
   await expect(page.locator('.toast')).toContainText('lá dentro');
   await enterCafe(page);
   await cleanCafe(page);
   await adoptFirstCat(page);
 
   await page.keyboard.press('c');
-  await page.locator('[data-item="item.cat_bed"]').click();
+  await page.locator('[data-item="item.water_bowl"]').click();
   await clickCell(page, 12, 9);
-  await expect(page.locator('.hud-money')).toContainText('125');
+  await expect(page.locator('.hud-money')).toContainText('142');
   await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('06-caminha.png') });
 
@@ -182,7 +182,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.reload();
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   await expect(page.locator('.dialogue-layer')).not.toHaveClass(/open/);
-  await expect(page.locator('.hud-money')).toContainText('125');
+  await expect(page.locator('.hud-money')).toContainText('142');
   await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
 
   // Botão direito recolhe e pega na mão; Esc cancela e o item volta para a bolsa.
@@ -193,8 +193,8 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('Escape');
   await expect(page.locator('.hint')).toContainText('catálogo'); // voltou a andar
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog')).toHaveClass(/open/);
-  await expect(page.locator('[data-item="item.cat_bed"] .owned')).toBeVisible();
+  await expect(page.locator('.catalog:not(.shop)')).toHaveClass(/open/);
+  await expect(page.locator('[data-item="item.water_bowl"] .owned')).toBeVisible();
 });
 
 test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ page }, testInfo) => {
@@ -330,4 +330,23 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   await page.keyboard.press('c');
   await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('15-gato-no-cafe.png') });
+});
+
+test('mercado: entra pela rua, compra ração no caixa (E) e sai andando para baixo', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.market'));
+  expect((await player(page)).map).toBe('map.market');
+  await teleport(page, 13, 11); // de frente para o balcão do caixa
+  await page.keyboard.press('e');
+  await expect(page.locator('.shop')).toHaveClass(/open/);
+  await page.locator('[data-buy="item.cat_food_basic"]').click();
+  await expect(page.locator('.hud-money')).toContainText('135');
+  await expect(page.locator('[data-buy="item.cat_food_basic"] .owned')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('16-mercado.png') });
+  await page.keyboard.press('e'); // E fecha a loja
+  await expect(page.locator('.shop')).not.toHaveClass(/open/);
+  await teleport(page, 10, 10);
+  await hold(page, 'ArrowDown', 600);
+  await expect.poll(async () => (await player(page)).map).toBe('map.street');
 });
