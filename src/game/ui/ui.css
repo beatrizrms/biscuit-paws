@@ -683,7 +683,7 @@
 }
 .catalog .cart-bar:empty { display: none; }
 .catalog .cart-bar .total { font-weight: bold; }
-.catalog .cart-bar .hint, .catalog .cart-bar .have { font-size: 7.5px; color: var(--ink2); }
+.catalog .cart-bar .cart-hint, .catalog .cart-bar .have { font-size: 7.5px; color: var(--ink2); }
 .catalog .cart-bar .missing { flex-basis: 100%; font-size: 8px; color: var(--pink3); font-weight: bold; }
 .catalog .cart-bar .pay {
   margin-left: auto; padding: 2px 8px; font: inherit; font-weight: bold;
@@ -699,3 +699,5 @@
 
 /* Capacidade no quadro do cardápio */
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 3px 5px; font-size: 7.5px; line-height: 1.35; background: var(--cream2); border-radius: 3px; }
+.catalog.shop .list { overflow-x: hidden; }
+.catalog .cart-row { box-sizing: border-box; }

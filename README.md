@@ -37,6 +37,8 @@ Controles:
 - **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)
 - **Botão direito num móvel:** recolher e mudar de lugar
 - **Espaço / Enter / clique:** avançar as falas
+- **Mercado:** **E** numa prateleira põe itens no carrinho (+/−); **E** no caixa mostra o total e paga. Sair sem pagar não cobra nada (o carrinho fica até dormir).
+- **M:** quadro do cardápio, com quantos clientes cabem (lugares e louça).
 
 O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
 

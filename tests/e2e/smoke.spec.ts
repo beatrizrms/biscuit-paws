@@ -359,20 +359,34 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   await page.screenshot({ path: testInfo.outputPath('15-gato-no-cafe.png') });
 });
 
-test('mercado: entra pela rua, compra ração no caixa (E) e sai andando para baixo', async ({ page }, testInfo) => {
+test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando para baixo', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.market'));
   expect((await player(page)).map).toBe('map.market');
-  await teleport(page, 13, 11); // de frente para o balcão do caixa
+  // Prateleira pet: põe 2 rações no carrinho; nada é cobrado ainda.
+  await teleport(page, 13, 4);
   await page.keyboard.press('e');
   await expect(page.locator('.shop')).toHaveClass(/open/);
-  await page.locator('[data-buy="item.cat_food_basic"]').click();
-  await expect(page.locator('.hud-money')).toContainText('135');
-  await expect(page.locator('[data-buy="item.cat_food_basic"] .owned')).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath('16-mercado.png') });
-  await page.keyboard.press('e'); // E fecha a loja
+  const add = page.locator('[data-row="item.cat_food_basic"] [data-act="add"]');
+  await add.click();
+  await add.click();
+  await expect(page.locator('[data-row="item.cat_food_basic"] .n')).toHaveText('2');
+  await expect(page.locator('.cart-bar .total')).toContainText('2 itens · 30 moedas');
+  await expect(page.locator('.hud-money')).toContainText('150');
+  await expect(page.locator('.hud-cart')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('16-mercado-prateleira.png') });
+  await page.keyboard.press('e'); // E fecha
   await expect(page.locator('.shop')).not.toHaveClass(/open/);
+  // Caixa: mostra o total e cobra.
+  await teleport(page, 13, 11); // de frente para o balcão do caixa
+  await page.keyboard.press('e');
+  await expect(page.locator('.shop.checkout')).toHaveClass(/open/);
+  await page.screenshot({ path: testInfo.outputPath('17-mercado-caixa.png') });
+  await page.locator('.cart-bar .pay').click();
+  await expect(page.locator('.hud-money')).toContainText('120');
+  await expect(page.locator('.shop')).not.toHaveClass(/open/);
+  await expect(page.locator('.hud-cart')).toBeHidden();
   await teleport(page, 10, 10);
   await hold(page, 'ArrowDown', 600);
   await expect.poll(async () => (await player(page)).map).toBe('map.street');

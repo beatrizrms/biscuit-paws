@@ -114,7 +114,7 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
   "layers": { "floor": [...], "walls": [...], "overlay": [...] },   // overlay: por cima do piso (neve na calçada)
   "objects": [
     { "id": "obj.bench", "tile": "prop_banco", "at": [5, 8], "overlay": "snow_prop_banco" },  // neve por cima, mesmo tamanho
-    { "id": "obj.chalkboard", "tile": "prop_lousa_cafe", "at": [16, 8], "when": { "received": "item.cafe_sign" } }  // só depois de chegar e ser aberta
+    { "id": "obj.chalkboard", "tile": "prop_lousa_cafe", "at": [16, 8], "when": { "all": [{ "business": "inaugurated" }, { "received": "item.cafe_sign" }] } }  // só depois da inauguração
   ],
   "doors": [
     { "id": "door.cafe", "at": [17, 8], "to": "map.cafe_main", "spawn": [14, 4], "facing": "down" }
@@ -167,8 +167,11 @@ A história dispara com o efeito `{ "cutscene": "cs.id" }`. Ao terminar, a flag 
 ```
 
 O preço vem de `items.json`. Itens consumíveis têm `icon` (nome em `data/icons.json`, folha do pacote `catalogo_compras`).
-No mapa, `"interactions": [{ "id": "int.market_cashier", "at": [13, 9], "reach": 2, "action": { "shop": "shop.market" } }]`:
-tecla **E** perto (até `reach` células) ou clique na célula abre a loja.
+No mapa, `"interactions"`, com tecla **E** perto (até `reach` células) ou clique na célula:
+- `{ "shelf": "shop.market", "tags": ["pet"] }`: **prateleira**. Mostra os itens da loja com essas tags, com `+`/`−` para pôr no **carrinho**. Nada é cobrado.
+- `{ "shop": "shop.market" }`: **caixa**. Mostra o carrinho, o total de itens e de moedas, o dinheiro dela e o botão de pagar. Sem dinheiro, avisa quanto falta (o botão fica desligado) e dá para tirar itens ali.
+
+Carrinho (`src/core/cart.ts` + `session.addToCart/removeFromCart/checkout`): a compra é tudo ou nada, no caixa. Ferramenta e peça fixa: 1 só; saco pesado: 1 por compra (vai para as mãos, que precisam estar livres). O carrinho **fica** ao sair do mercado (dá para buscar dinheiro e voltar; o HUD lembra "Carrinho: n · total"), **esvazia ao dormir** e **não vai para o save** (nada foi pago). Eventos `cart.changed` e `cart.checked_out`; cada unidade paga também emite `item.bought`.
 Portas aceitam `"direction"` (padrão `up`): a saída do mercado é `down` (a frente do cômodo é aberta).
 
 ## Roteiros e NPCs (`data/scripts.json`, `data/npcs.json`)
@@ -349,7 +352,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento) -> **v9** (`tray`, `sink`, etapas de preparo e preferências) -> **v10** (`hotbar`: 8 espaços com IDs de itens e o espaço ativo; o migrador põe a barra vazia e a vassoura entra sozinha ao abrir). Fixtures: `tests/fixtures/save_v1.json` a `save_v10.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento) -> **v9** (`tray`, `sink`, etapas de preparo e preferências) -> **v10** (`hotbar`: 8 espaços com IDs de itens e o espaço ativo; o migrador põe a barra vazia e a vassoura entra sozinha ao abrir) -> **v11** (`business`: `closed` | `soft_open` | `inaugurated`; o migrador põe `closed` e, ao abrir, a sessão passa para `soft_open` se o café já tem o mínimo). Fixtures: `tests/fixtures/save_v1.json` a `save_v11.json`.
 
 Barra de itens (`src/core/hotbar.ts`): vão para a barra itens da mochila que não são móveis nem fixos. Ferramenta (`kind: "tool"`) entra sozinha no primeiro espaço livre. Item que acabou deixa o espaço vazio na tela. `world.tools.sweep` diz qual item precisa estar no espaço ativo para varrer sujeira e neve (sem ele: `needs_broom`).
 
@@ -433,21 +436,21 @@ Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o fur
   "ingredients": { "item.coffee_ground": 1, "item.paper_filter": 1 },   // doses
   "equipment": "coffee_machine",        // chave em service.json: equipment (cafeteira, bule, liquidificador)
   "vessel": "cup",                      // cup (xícara), glass (copo), plate (prato)
-  "service": "standing",                // standing: em pé no balcão (xícara/copo); table: mesa + cadeira + prato
+  // a louça (vessel) diz onde é servida: service.json, servedAt
   "prepMinutes": 10, "price": 12,
   "unlock": { "flag": "recipe.cafe_latte" }   // opcional: condição para aparecer no quadro
 }
 ```
 
-`data/service.json`: `menuSlots` (4), `maxCustomers` (6), horário (`open`), chegada (`firstArrivalMinutes`, `arrivalEveryMinutes`), `patienceMinutes`, `consumeMinutes`, `enabledWhen` (condição: depois das cadeiras, com cafeteira + mesa + cadeira; ou `cafe.open`), `queue` (células da fila), `sink` (pia), `equipment` (chave -> tag do móvel), `standingTag` (`bar`: balcões onde o cliente fica em pé), `tableTag`, `chairTag`, `surfaceTags`, `vessels` (nome e ícone), `customerTints` (clientes provisórios).
+`data/service.json`: `menuSlots` (4), `servedAt` (onde cada louça pode ser servida: xícara e copo `["standing", "table"]`, prato `["table"]`), horário (`open`), chegada (`firstArrivalMinutes`, `arrivalEveryMinutes`), `patienceMinutes`, `consumeMinutes`, `enabledWhen` (`{ "business": "soft_open" }`: a partir do funcionamento parcial), `queue` (células da fila), `sink` (pia), `equipment` (chave -> tag do móvel), `standingTag` (`bar`: balcões onde o cliente fica em pé), `tableTag`, `chairTag`, `surfaceTags`, `vessels` (nome e ícone), `customerTints` (clientes provisórios).
 
 `data/carry.json`: `carryCapacity` (1 na Fase 1) e `speedPenaltyPerItem`.
 
-Itens: `servings` (doses por pacote; pó de café 10) e `dishes` (conjunto de louça: `item.dishes_set` = 2 xícaras + 2 copos + 2 pratos, 6 no total).
+Itens: `servings` (doses por pacote; pó de café 10) e `dishes` (conjunto de louça: `item.dishes_set`, presente da Gabi = 6 xícaras + 6 copos + 6 pratos).
 
 Regras:
 - **Esgotado**: falta equipamento posicionado, dose de ingrediente ou louça limpa livre. Aparece no quadro e não é pedido.
-- **Capacidade** = mínimo entre `maxCustomers` e a louça que não está suja (limpa + em uso).
+- **Capacidade** (`src/core/capacity.ts`), sem teto fixo: cada cliente ocupa um lugar (em pé na frente de um balcão, ou cadeira junto de mesa) e uma peça de louça. Quem fica em pé só usa louça servida em pé (beber: xícara ou copo); quem senta usa qualquer uma servida na mesa (comer: prato só sentado). Louça contada por tipo: limpa + já servida (a suja não conta), só a das receitas do quadro (quadro vazio: toda). O resultado diz o total, o máximo em pé, o máximo sentado e se dá para comer; aparece no quadro do cardápio (M). Lotado, quem chega espera na fila.
 - **Ciclo**: cliente chega (em pé na frente de um balcão `bar`, ou na fila) e pede algo do quadro -> E no equipamento prepara o pedido mais antigo (barra de progresso; ingredientes e louça saem quando fica pronto) -> E pega -> E perto do cliente entrega (ele paga) -> consome -> deixa a louça suja no balcão (ou na mesa) -> E pega -> E na pia lava (volta para o estoque limpo).
 - **Mãos x mochila**: mochila = `inventory` (abstrato, tecla I). Mãos = `hands` (bebida, louça suja, item como petisco). Soltar: balcão, mesa, equipamento ou chão livre, ao lado dela, uma coisa por célula.
 
@@ -463,3 +466,19 @@ Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidif
 - `data/i18n/pt-BR.json`: textos da Home, saves, opções, créditos e pausa. Outro idioma: outro arquivo com as mesmas chaves (`t("home.continue")`, com `{nome}` para valores).
 - `data/audio.json`: dois canais, `music` e `ambient`; cada faixa tem `file` (caminho em public/, `null` = ainda sem arquivo: o canal fica pronto e mudo) e `loop`. `scenes`: música e ambiente da Home e de cada mapa. `fadeMs`: transição.
 - Configurações de som (`biscuit-paws:settings`, à parte do save, valem para todos os slots): `{ version, music: { on, volume }, ambient: { on, volume } }`. Aplicadas já na Home. O áudio só toca depois do primeiro toque/clique (o navegador exige).
+
+## Negócio: estágios e inauguração (`data/business.json`)
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "softOpenWhen": { "all": [{ "beat": "story.chairs" }, { "placed": "item.coffee_machine" }, { "placedTag": "table" }, { "placedTag": "chair" }] },
+  "requiredSurfaces": ["surface.wallpaper", "surface.wainscot", "surface.hall_floor", "surface.counter_floor"]
+}
+```
+
+- `state.business` (save v11): `closed` (fechado) -> `soft_open` (funcionamento parcial: atende com o mínimo e já ganha dinheiro, **sem placa**) -> `inaugurated` (com placa). Só avança: tirar a mesa depois não fecha o café. Evento `business.changed`.
+- `closed` -> `soft_open`: sozinho, quando `softOpenWhen` vale (a sessão confere sempre que a história é reavaliada).
+- `soft_open` -> `inaugurated`: efeito `{ "setBusiness": "inaugurated" }`, do marco `story.inauguration` (depois do primeiro cliente). As metas são: reforma completa (`{ "renovated": true }`: toda superfície de `requiredSurfaces` com acabamento do pintor) e a placa recebida.
+- A placa (`item.cafe_sign`) tem `"requires": { "renovated": true }`: só aparece à venda depois da reforma. Na fachada, a lousa só aparece inaugurado.
+- Condições: `{ "business": "soft_open" }` (já chegou a esse estágio; inaugurado conta) e `{ "renovated": true }`.

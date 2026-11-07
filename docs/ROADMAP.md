@@ -52,6 +52,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
 - [x] Barra de itens (1 a 8) e mochila em grade; varrer exige a vassoura ativa
+- [x] Carrinho no mercado (prateleiras + caixa), estágios do negócio (parcial -> inauguração com placa), capacidade por lugares e louça
 - [x] Mais pedidos diários (8): entregas com a caixa visível, neve no mercado, caixotes
 - [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
 - [ ] Gatos de rua anunciados no jornal (Marco 2)

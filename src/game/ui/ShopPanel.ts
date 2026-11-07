@@ -126,7 +126,7 @@ export class ShopPanel {
           return rows ? `<h3>${s.title}</h3>${rows}` : '';
         })
         .join('') + ids.filter((id) => !sectionOf(id)).map(row).join('');
-    this.bar.innerHTML = `<span class="total">${this.cartLine()}</span><span class="hint">${uiText.shop.payAtCashier}</span>`;
+    this.bar.innerHTML = `<span class="total">${this.cartLine()}</span><span class="cart-hint">${uiText.shop.payAtCashier}</span>`;
   }
 
   private renderCheckout(): void {

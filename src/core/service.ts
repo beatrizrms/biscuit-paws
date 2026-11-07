@@ -273,7 +273,7 @@ export class CafeService {
 
   /**
    * Quantos clientes cabem agora e de que forma: lugares (em pé e assentos) e louça que não está suja
-   * (limpa + já servida), contadas por tipo. Só conta a louça que o cardápio de agora usa.
+   * (limpa + já servida), contadas por tipo. Só conta a louça que as receitas do quadro usam.
    */
   capacity(): CapacityView {
     const vessels: Record<Vessel, number> = { cup: 0, glass: 0, plate: 0 };
@@ -289,7 +289,8 @@ export class CafeService {
       standingSpots: spots.filter((s) => s.kind === 'standing').length,
       seats: spots.filter((s) => s.kind === 'table').length,
       servedAt: this.cfg.servedAt,
-      menuVessels: new Set(this.orderable().map((r) => r.vessel)),
+      // Louça das receitas do quadro (esgotar ingrediente não muda a capacidade); quadro vazio: toda a louça.
+      menuVessels: new Set(this.st.menu.length > 0 ? this.st.menu.flatMap((id) => this.recipe(id)?.vessel ?? []) : VESSELS),
     });
   }
 

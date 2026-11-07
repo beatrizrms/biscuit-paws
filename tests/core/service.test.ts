@@ -204,7 +204,8 @@ describe('ciclo do pedido', () => {
   it('capacidade: lugares e louça do cardápio; louça suja não conta', () => {
     const { sv, state } = openCafe();
     expect(state.dishes).toEqual({ cup: 6, glass: 6, plate: 6 }); // presente da Gabi
-    expect(sv.capacity().total).toBe(0); // cardápio vazio
+    // Quadro vazio: conta toda a louça (prato inclusive: a cadeira serve para comer).
+    expect(sv.capacity()).toEqual({ total: 2, standing: 1, seated: 1, canEat: true });
     sv.toggleMenu('recipe.black_coffee');
     // 1 lugar em pé no balcão + 1 cadeira na mesa; café pode ser tomado nos dois.
     expect(sv.capacity()).toEqual({ total: 2, standing: 1, seated: 1, canEat: false });

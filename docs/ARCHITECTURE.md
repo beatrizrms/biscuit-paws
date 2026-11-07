@@ -93,6 +93,9 @@ cat-cafe-game/
 | `map.entered` | a personagem entrou num mapa (porta) | `mapId` |
 | `money.changed` | dinheiro mudou | `from, to, reason` |
 | `item.bought` | item comprado (vai para o inventário) | `itemId, price` |
+| `cart.changed` | carrinho do mercado mudou | `count, total` |
+| `cart.checked_out` | pagou no caixa | `lines, total` |
+| `business.changed` | negócio mudou de estágio | `from, to` |
 | `item.received` | a história deu um item (ex.: a chave) | `itemId` |
 | `item.placed` | móvel posicionado no café | `itemId, uid, at` |
 | `item.picked_up` | móvel recolhido de volta ao inventário | `itemId, uid` |
