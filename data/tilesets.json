@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git).",
+  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo).",
   "sheets": [
     {
       "id": "street_ground",
@@ -309,7 +309,14 @@
       "pieces": "equipamentos.json",
       "prefix": "eq_",
       "layer": "object",
-      "solid": true
+      "solid": true,
+      "animation": {
+        "columns": 6,
+        "work": [
+          1,
+          4
+        ]
+      }
     },
     {
       "id": "placeholders",
@@ -318,6 +325,21 @@
       "prefix": "ph_",
       "layer": "object",
       "solid": true
+    },
+    {
+      "id": "coffee_maker",
+      "image": "assets/equipment/cafeteira_spritesheet.png",
+      "pieces": "cafeteira.json",
+      "prefix": "eq_",
+      "layer": "object",
+      "solid": true,
+      "animation": {
+        "columns": 6,
+        "work": [
+          1,
+          4
+        ]
+      }
     }
   ]
 }

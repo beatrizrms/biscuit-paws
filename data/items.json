@@ -706,7 +706,7 @@
       "id": "item.coffee_machine",
       "name": "Cafeteira",
       "price": 180,
-      "tile": "coffee_machine",
+      "tile": "eq_cafeteira",
       "tags": [
         "furniture",
         "counter",

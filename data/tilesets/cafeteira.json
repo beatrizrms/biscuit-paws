@@ -1,0 +1,14 @@
+{
+ "tileSize": 32,
+ "columns": 6,
+ "rows": 1,
+ "pieces": {
+  "cafeteira": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 0
+  }
+ }
+}

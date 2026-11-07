@@ -8,6 +8,7 @@ import { CatSprite } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
+import tilesetsJson from '../../../data/tilesets.json';
 import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
@@ -652,11 +653,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.prepGfx.fillStyle(0xe58fa6, 1).fillRect(x, y, Math.round(24 * progress), 4);
       if (!this.equipAnims.has(placed.uid)) {
         const def = this.session.content.catalog.tiles[this.session.content.items[placed.item]?.tile ?? ''];
-        if (def?.sheet === 'equipment') {
-          const first = def.row * 6 + 1;
-          const anim = `equip-work-${def.row}`;
-          if (!this.anims.exists(anim)) this.anims.create({ key: anim, frames: this.anims.generateFrameNumbers('equipment', { start: first, end: first + 3 }), frameRate: 6, repeat: -1 });
-          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts, 'equipment', first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 1);
+        // Folhas com "animation" em data/tilesets.json: quadros do preparo (bule, liquidificador, cafeteira...).
+        const sheet = def && (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[] } }[]).find((s) => s.id === def.sheet);
+        if (def && sheet?.animation) {
+          const { columns, work } = sheet.animation;
+          const key = `anim:${sheet.id}`;
+          const first = def.row * columns + work[0]!;
+          const anim = `work-${sheet.id}-${def.row}`;
+          if (!this.anims.exists(anim)) this.anims.create({ key: anim, frames: this.anims.generateFrameNumbers(key, { start: first, end: def.row * columns + work[1]! }), frameRate: 6, repeat: -1 });
+          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts, key, first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 1);
           sprite.play(anim);
           this.equipAnims.set(placed.uid, sprite);
         }
