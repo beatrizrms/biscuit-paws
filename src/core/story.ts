@@ -2,7 +2,7 @@
 // Puro: sem Phaser, DOM ou window. Quem aplica os efeitos é a GameSession.
 import type { Beat, Condition, ItemDef, StoryData } from './content';
 import type { DirtSpot } from './map';
-import { nowAbs, ownedCount, placedCount, type GameState } from './state';
+import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from './state';
 import { parseClock } from './time';
 
 /** O que as condições precisam saber além do estado. */
@@ -31,7 +31,8 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
     return count >= (c.gte ?? 1);
   }
   if ('placed' in c) return placedCount(state, c.placed) >= (c.gte ?? 1);
-  if ('owned' in c) return ownedCount(state, c.owned) >= (c.gte ?? 1);
+  // Comprado = na bolsa, posicionado ou já encomendado pelo correio.
+  if ('owned' in c) return ownedCount(state, c.owned) + deliveredCount(state, c.owned) >= (c.gte ?? 1);
   if ('money' in c) return state.money >= c.money.gte;
   if ('day' in c) return state.day >= c.day.gte;
   if ('clock' in c) return state.time >= parseClock(c.clock.gte);
@@ -43,7 +44,13 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('timer' in c) return state.timers[c.timer] !== undefined && nowAbs(state) >= state.timers[c.timer]!;
   if ('ownedTag' in c) {
     const tagged = Object.values(ctx.items).filter((i) => i.tags.includes(c.ownedTag));
-    return tagged.reduce((n, i) => n + ownedCount(state, i.id), 0) >= (c.gte ?? 1);
+    return tagged.reduce((n, i) => n + ownedCount(state, i.id) + deliveredCount(state, i.id), 0) >= (c.gte ?? 1);
+  }
+  if ('received' in c) return ownedCount(state, c.received) >= 1;
+  if ('delivery' in c) return ownedCount(state, c.delivery) + deliveredCount(state, c.delivery, c.stage) >= (c.gte ?? 1);
+  if ('deliveryTag' in c) {
+    const tagged = Object.values(ctx.items).filter((i) => i.tags.includes(c.deliveryTag));
+    return tagged.reduce((n, i) => n + ownedCount(state, i.id) + deliveredCount(state, i.id, c.stage), 0) >= (c.gte ?? 1);
   }
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }

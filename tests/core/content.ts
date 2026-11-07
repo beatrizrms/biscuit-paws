@@ -31,6 +31,7 @@ export function rawContent(): RawContent {
     emotes: read('data/emotes.json'),
     jobs: read('data/jobs.json'),
     news: read('data/news.json'),
+    delivery: read('data/delivery.json'),
   };
 }
 

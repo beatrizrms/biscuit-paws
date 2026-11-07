@@ -810,3 +810,108 @@ describe('passagem dos dias e rotina', () => {
     expect(dust()).toBe(content.world.dailyDirt);
   });
 });
+
+describe('correio: compras do catálogo chegam na porta', () => {
+  const minutes = (m: number) => m / content.dayNight.minutesPerSecond;
+  const inCafe = () => {
+    const ctx = newSession();
+    startInCafe(ctx.session);
+    ctx.session.state.time = 10 * 60;
+    return ctx;
+  };
+
+  it('encomendar desconta na hora e a caixa chega 1h depois na porta', () => {
+    const { session, events } = inCafe();
+    const money = session.state.money;
+    expect(session.order('item.cactus')).toEqual({ ok: true });
+    expect(session.state.money).toBe(money - content.items['item.cactus']!.price);
+    expect(session.state.inventory['item.cactus']).toBeUndefined();
+    expect(session.nextArrival()).toBe(session.state.day * 1440 + 11 * 60);
+    session.tickClock(minutes(59));
+    expect(session.deliveriesAt('door')).toBe(0);
+    session.tickClock(minutes(2));
+    expect(session.deliveriesAt('door')).toBe(1);
+    expect(events.some((e) => e.name === 'delivery.arrived')).toBe(true);
+  });
+
+  it('fora do horário do correio, chega no dia seguinte às 9h', () => {
+    const { session } = inCafe();
+    session.state.time = 17 * 60 + 30;
+    session.order('item.cactus');
+    expect(session.nextArrival()).toBe((session.state.day + 1) * 1440 + 9 * 60);
+  });
+
+  it('no máximo 3 caixas a caminho ou na porta; depois de retirar, pode comprar de novo', () => {
+    const { session } = inCafe();
+    session.addMoney(500, 'test');
+    for (let i = 0; i < 3; i++) expect(session.order('item.cactus')).toEqual({ ok: true });
+    expect(session.order('item.cactus')).toEqual({ ok: false, reason: 'door_full' });
+    session.tickClock(minutes(61));
+    session.enter('map.street');
+    session.pickUpParcels();
+    expect(session.order('item.cactus')).toEqual({ ok: true });
+  });
+
+  it('pega na porta, leva para dentro e abre uma de cada vez: o item vai para a bolsa', () => {
+    const { session } = inCafe();
+    session.addMoney(500, 'test');
+    session.order('item.cactus');
+    session.order('item.plant_pot');
+    session.tickClock(minutes(61));
+    session.enter('map.street');
+    const door = content.delivery.door.at;
+    expect(session.parcelsNear([[door[0], door[1] + 1]])).toBe('door');
+    expect(session.pickUpParcels()).toEqual({ ok: true });
+    expect(session.deliveriesAt('carried')).toBe(2);
+    session.enter('map.cafe_main');
+    expect(session.deliveriesAt('inside')).toBe(2);
+    const inside = content.delivery.inside.at;
+    expect(session.parcelsNear([[inside[0], inside[1] + 1]])).toBe('inside');
+    expect(session.unpackParcel()).toEqual({ ok: true, itemId: 'item.cactus' });
+    expect(session.state.inventory['item.cactus']).toBe(1);
+    expect(session.unpackParcel()).toEqual({ ok: true, itemId: 'item.plant_pot' });
+    expect(session.unpackParcel()).toEqual({ ok: false, reason: 'nothing_here' });
+  });
+
+  it('a lousa (peça fixa) também vem pelo correio e só uma vez', () => {
+    const { session } = inCafe();
+    session.order('item.cafe_sign');
+    expect(session.order('item.cafe_sign')).toEqual({ ok: false, reason: 'already_owned' });
+    expect(session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard')).toBe(false);
+    session.tickClock(minutes(61));
+    session.enter('map.street');
+    session.pickUpParcels();
+    session.enter('map.cafe_main');
+    session.unpackParcel();
+    expect(session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard')).toBe(true);
+  });
+
+  it('Dona Neusa vem quando a cafeteira entra no café; a Gabi liga quando as mesas chegam na porta', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    session.enter('map.cafe_main');
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    session.addMoney(1000, 'test');
+    const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
+    const called = () => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.gabi_call');
+    session.state.time = 10 * 60;
+    session.order('item.coffee_machine');
+    // Encomendou: o passo "encomendar" vale, mas a Dona Neusa espera a caixa entrar.
+    expect(session.goals()[0]!.steps.every((s) => s.done)).toBe(true);
+    session.tickClock(minutes(61));
+    expect(scripts()).not.toContain('scr.neusa_visit');
+    session.enter('map.street');
+    session.pickUpParcels();
+    session.enter('map.cafe_main');
+    expect(scripts()).toContain('scr.neusa_visit');
+    // Dia seguinte: mesas pelo correio.
+    session.endDay('home');
+    session.state.time = 10 * 60;
+    session.order('item.table_round');
+    session.order('item.table_round');
+    expect(called()).toBe(false);
+    session.tickClock(minutes(61));
+    expect(called()).toBe(true);
+  });
+});

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { doorAt, resolveMap, solidRects, type Cell, type Facing, type MapDoor, type ResolvedMap } from '../../core/map';
+import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type ResolvedMap } from '../../core/map';
+import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
@@ -45,7 +46,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
   /** "Esperar": o relógio corre depressa até a meta de espera concluir. */
-  private fastWait = false;
+  /** "Esperar": o relógio corre depressa até este momento absoluto. */
+  private waitUntilAbs: number | null = null;
+  private parcelImages: Phaser.GameObjects.Image[] = [];
+  private carriedImages: Phaser.GameObjects.Image[] = [];
+  /** Caixas que chegaram e ainda não foram deixadas pela entregadora (animação na rua). */
+  private arriving = 0;
+  private vanQueue: string[] = [];
+  private vanBusy = false;
+  private vanObjects: Phaser.GameObjects.GameObject[] = [];
   private jobIcons: Phaser.GameObjects.Image[] = [];
   private lastDay: { reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
@@ -71,7 +80,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   create(): void {
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: () => (this.fastWait = true) }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -121,6 +130,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
     for (const ev of ['job.accepted', 'job.progress', 'job.completed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
+    // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
+    this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
+      if (this.session.location() === this.session.content.delivery.door.map) {
+        this.arriving++;
+        this.vanQueue.push(deliveryId);
+        void this.playVan();
+      } else this.ui.toast(uiText.delivery.arrivedAway);
+    });
+    for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
@@ -135,7 +153,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const cam = this.cameras.main;
       cam.fadeOut(400, 27, 33, 64);
       cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, async () => {
-        this.fastWait = false;
+        this.waitUntilAbs = null;
         await this.ui.showDayTransition(day, this.lastDay ?? undefined);
         this.loadMap(this.session.location(), this.session.morningSpawn(), 'down');
         cam.fadeIn(600, 27, 33, 64);
@@ -156,10 +174,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   update(): void {
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping;
-    if (this.fastWait && this.session.waitTarget() === undefined) this.fastWait = false;
+    if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping;
-    if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.fastWait ? WAIT_SPEED : 1));
+    if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.waitUntilAbs !== null ? WAIT_SPEED : 1));
     this.updateDayNight();
     const input = this.autoWalk
       ? this.autoWalkInput()
@@ -180,6 +198,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       w.resolve();
     }
     if (this.placing) this.refreshGhost();
+    this.updateCarried();
 
     // Direção em que ela está andando (uma só): as portas pedem uma direção (para cima, ou para baixo na saída do mercado).
     const moving = input.up && !input.down ? 'up' : input.down && !input.up ? 'down' : input.left && !input.right ? 'left' : input.right && !input.left ? 'right' : null;
@@ -239,6 +258,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
     }
     this.refreshJobPoints();
+    this.stopVan();
+    this.refreshParcels();
   }
 
   /** Na porta do café, à tarde: encerrar o dia ou só sair para a rua. */
@@ -429,6 +450,23 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.doJobPoint(point.id);
       return true;
     }
+    const parcels = this.session.parcelsNear(this.playerCells(), target);
+    if (parcels === 'door') {
+      const result = this.session.pickUpParcels();
+      if (!result.ok) this.ui.problem(result.reason);
+      return true;
+    }
+    if (parcels === 'inside') {
+      const result = this.session.unpackParcel();
+      if (!result.ok) {
+        this.ui.problem(result.reason);
+        return true;
+      }
+      // Móvel: já vai para a mão, para posicionar (Esc guarda na bolsa).
+      const kind = this.session.content.items[result.itemId]?.kind ?? 'furniture';
+      if (kind === 'furniture') this.startPlacing(result.itemId);
+      return true;
+    }
     const it = this.session.interactionAt(this.playerCells(), target);
     if (it) {
       if ('shop' in it.action) this.ui.openShop(it.action.shop);
@@ -479,6 +517,86 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         return icon;
       });
+  }
+
+  /** Pilhas de caixas: na porta do café (rua) e dentro do salão. Até 3, uma em cima da outra. */
+  private refreshParcels(): void {
+    this.ui.setParcelsOnTheWay(this.arriving);
+    this.parcelImages.forEach((i) => i.destroy());
+    this.parcelImages = [];
+    const cfg = this.session.content.delivery;
+    const stack = (at: Cell, count: number) => {
+      const ts = this.map.tileSize;
+      const bottom = (at[1] + 1) * ts - 2;
+      for (let i = 0; i < Math.min(count, cfg.maxPending); i++) {
+        this.parcelImages.push(this.add.image((at[0] + 0.5) * ts, bottom - i * 11, 'emotes', 'parcel').setOrigin(0.5, 1).setDepth(ySortDepth(bottom) + i));
+      }
+    };
+    const loc = this.session.location();
+    if (loc === cfg.door.map) stack(cfg.door.at, this.session.deliveriesAt('door') - this.arriving);
+    if (this.session.atHome()) stack(cfg.inside.at, this.session.deliveriesAt('inside'));
+  }
+
+  /** As caixas que ela carrega aparecem em cima da cabeça. */
+  private updateCarried(): void {
+    const n = Math.min(this.session.deliveriesAt('carried'), 3);
+    while (this.carriedImages.length > n) this.carriedImages.pop()!.destroy();
+    while (this.carriedImages.length < n) this.carriedImages.push(this.add.image(0, 0, 'emotes', 'parcel').setOrigin(0.5, 1).setScale(0.75));
+    this.carriedImages.forEach((img, i) => img.setPosition(this.player.x, this.player.y - 48 - i * 7).setDepth(this.player.depth + 1 + i));
+  }
+
+  /** Furgão do correio: chega pela rua, a entregadora deixa a caixa na porta e vai embora. Uma de cada vez. */
+  private async playVan(): Promise<void> {
+    if (this.vanBusy) return;
+    this.vanBusy = true;
+    const cfg = this.session.content.delivery;
+    const ts = this.map.tileSize;
+    const [dc, dr] = cfg.door.at;
+    while (this.vanQueue.length > 0 && this.session.location() === cfg.door.map) {
+      this.vanQueue.shift();
+      const roadY = this.map.rows * ts - 4;
+      // Para um pouco depois da porta, para não esconder a entregadora nem a pilha.
+      const stopX = (dc + 6.5) * ts;
+      const van = this.add.image(this.map.cols * ts + 120, roadY, 'van_left').setOrigin(0.5, 1).setDepth(ySortDepth(roadY));
+      this.vanObjects.push(van);
+      await this.tweenTo(van, stopX, 1600);
+      const def = this.session.content.npcs[cfg.carrier]!;
+      const carrier = new NpcSprite(this, def, (dc + 4) * ts + ts / 2, (dr + 2) * ts - 4, ts);
+      this.vanObjects.push(carrier);
+      carrier.setAlpha(0);
+      this.tweens.add({ targets: carrier, alpha: 1, duration: 250 });
+      await carrier.walkTo([dc, dr + 1]);
+      carrier.face('up');
+      // Deixa todas as caixas que chegaram até agora, uma em cima da outra (uma viagem só).
+      while (this.arriving > 0 && carrier.active) {
+        await carrier.act('segurando_pacote', 500);
+        this.arriving--;
+        this.refreshParcels();
+      }
+      if (!carrier.active) break;
+      this.vanQueue = [];
+      carrier.face('down');
+      await this.wait(250);
+      await carrier.walkTo([dc + 4, dr + 1]);
+      await carrier.leave();
+      if (!van.active) break;
+      await this.tweenTo(van, -120, 1600);
+      van.destroy();
+      this.vanObjects = [];
+    }
+    this.vanBusy = false;
+  }
+
+  private tweenTo(obj: Phaser.GameObjects.Image, x: number, ms: number): Promise<void> {
+    return new Promise((resolve) => this.tweens.add({ targets: obj, x, duration: ms, ease: 'Sine.easeInOut', onComplete: () => resolve() }));
+  }
+
+  /** Saiu da rua no meio da entrega: some com o furgão; as caixas já estão na porta. */
+  private stopVan(): void {
+    this.vanObjects.forEach((o) => o.destroy());
+    this.vanObjects = [];
+    this.vanQueue = [];
+    this.arriving = 0;
   }
 
   /** Animação de varrer (vassoura, poeira, brilho), sem mudar nada no jogo. */

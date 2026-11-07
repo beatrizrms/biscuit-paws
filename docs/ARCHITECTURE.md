@@ -71,6 +71,10 @@ cat-cafe-game/
 | `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
 | `day.started` | amanheceu (ela chega de casa) | `day` |
 | `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou), `reason` (`home`, `passOut`, `story`), `earned`, `jobs` (resumo do dia) |
+| `delivery.ordered` | compra no catálogo: vai pelo correio | `deliveryId, itemId, arrivesAt` |
+| `delivery.arrived` | a caixa chegou na porta do café | `deliveryId, itemId` |
+| `delivery.picked_up` | ela pegou as caixas da porta | `count` |
+| `delivery.unpacked` | ela abriu uma caixa dentro do café | `deliveryId, itemId` |
 | `job.accepted` | a jogadora aceitou um pedido da vila | `jobId` |
 | `job.progress` | ela fez um ponto de um pedido | `jobId, pointId` |
 | `job.completed` | pedido concluído e pago | `jobId, reward` |

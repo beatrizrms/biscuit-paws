@@ -55,7 +55,9 @@
     "unknown_job": "Pedido desconhecido.",
     "job_full": "Um pedido de cada vez. Termine o que você aceitou.",
     "job_unavailable": "Esse pedido não está disponível agora.",
-    "missing_item": "Você precisa estar com a caixa."
+    "missing_item": "Você precisa estar com a caixa.",
+    "door_full": "Já tem caixas demais a caminho ou na porta. Retire as compras da porta antes de comprar mais.",
+    "nothing_here": "Não tem caixa aqui."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -110,9 +112,8 @@
     "earned": "Moedas ganhas",
     "jobs": "Pedidos feitos"
   },
-  "catalogOnline": "Comprando online: a entrega chega aqui no café.",
+  "catalogOnline": "Comprando online: chega pelo correio, na porta do café, em 1 hora.",
   "installed": "na porta",
-  "fixtureDelivered": "Entregue! Já está no lugar, lá fora na porta do café.",
   "phone": {
     "calling": "chamando..."
   },
@@ -140,5 +141,18 @@
     "question": "Encerrar o dia e ir para casa?",
     "yes": "Ir para casa",
     "no": "Ainda não"
+  },
+  "delivery": {
+    "ordered": "Pedido feito! Chega às {time} na porta do café.",
+    "orderedTomorrow": "Pedido feito! O correio entrega amanhã às {time}.",
+    "arrivedAway": "Chegou uma entrega na porta do café!",
+    "pickedUp": "Você pegou as caixas. Leve para dentro do café.",
+    "unpacked": "Abriu a caixa: {item}",
+    "onTheWay": "a caminho",
+    "shipping": "Entrega chega às {time}",
+    "shippingTomorrow": "Entrega chega amanhã às {time}",
+    "atDoor": "Caixas na porta do café: {n}",
+    "carried": "Levando {n} caixa(s) para dentro",
+    "inside": "Caixas para abrir no salão (E): {n}"
   }
 }

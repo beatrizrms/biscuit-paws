@@ -102,6 +102,12 @@ export type Condition =
   | { clock: { gte: string } }
   /** A personagem está neste mapa agora. */
   | { location: string }
+  /** Já está com ela (caixa aberta: na bolsa ou posicionado). Encomendas não contam. */
+  | { received: string }
+  /** Entregas deste item que já chegaram a uma etapa ("door": na porta; "inside": dentro do café). Abertas contam. */
+  | { delivery: string; stage: 'door' | 'carried' | 'inside'; gte?: number }
+  /** O mesmo, por tag (ex.: as duas mesas chegaram). */
+  | { deliveryTag: string; stage: 'door' | 'carried' | 'inside'; gte?: number }
   /** O marco já terminou num dia anterior (começa no dia seguinte). */
   | { nextDay: string }
   /** O relógio marcado chegou (ex.: a hora da chegada da Gabi). */
@@ -215,6 +221,7 @@ export interface Content {
   scripts: Record<string, { steps: ScriptStep[] }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
+  delivery: DeliveryConfig;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
@@ -256,6 +263,25 @@ export interface RawContent {
   emotes: { frames: Record<string, unknown> };
   jobs: JobsData;
   news: NewsData;
+  delivery: DeliveryConfig;
+}
+
+/** Correio (data/delivery.json). */
+export interface DeliveryConfig {
+  schemaVersion: 1;
+  /** Minutos de jogo entre o pedido e a chegada. */
+  minutes: number;
+  /** O correio só entrega nesse horário; fora dele, chega no dia seguinte, em `from`. */
+  from: string;
+  until: string;
+  /** Quantas compras podem estar a caminho ou na porta (depois disso, o catálogo pede para retirar). */
+  maxPending: number;
+  /** Onde as caixas ficam empilhadas na rua e dentro do café. */
+  door: { map: string; at: Cell };
+  inside: { at: Cell };
+  /** NPC que entrega e o furgão (vistas de lado). */
+  carrier: string;
+  van: { left: string; right: string };
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -270,7 +296,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -296,6 +322,13 @@ export function validateContent(raw: RawContent): string[] {
   if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
   for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);
+  {
+    const dv = raw.delivery;
+    if (!(dv.minutes > 0) || !(dv.maxPending >= 1)) err('delivery: minutes e maxPending precisam ser positivos');
+    errors.push(...validateDayNight({ ...raw.dayNight, dayStart: dv.from, passOut: dv.until }).filter((e) => e.includes('hora inválida')).map((e) => `delivery: ${e}`));
+    if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
+    if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
+  }
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
@@ -351,8 +384,8 @@ export function validateContent(raw: RawContent): string[] {
     const kind = item.kind ?? 'furniture';
     if (!['furniture', 'consumable', 'key', 'tool', 'fixture', 'gift'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
-    if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => (o.when as { owned?: string } | undefined)?.owned === item.id)))
-      err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { owned })`);
+    if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => (o.when as { received?: string } | undefined)?.received === item.id)))
+      err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { received })`);
     if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
   }
@@ -414,6 +447,12 @@ export function validateContent(raw: RawContent): string[] {
       if (!itemTags.has(c.ownedTag)) err(`${where}: nenhum item tem a tag "${c.ownedTag}"`);
     } else if ('timer' in c) {
       if (!timerIds.has(c.timer)) err(`${where}: nenhum efeito marca o relógio "${c.timer}"`);
+    } else if ('received' in c) {
+      if (!itemIds.has(c.received)) err(`${where}: item inexistente "${c.received}"`);
+    } else if ('delivery' in c) {
+      if (!itemIds.has(c.delivery)) err(`${where}: item inexistente "${c.delivery}"`);
+    } else if ('deliveryTag' in c) {
+      if (!itemTags.has(c.deliveryTag)) err(`${where}: nenhum item tem a tag "${c.deliveryTag}"`);
     } else if ('location' in c) {
       if (!mapIds.has(c.location)) err(`${where}: mapa inexistente "${c.location}"`);
     } else if ('clock' in c) {

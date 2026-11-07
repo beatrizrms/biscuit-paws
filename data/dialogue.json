@@ -50,7 +50,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Vi o entregador trazendo uma cafeteira novinha aqui pra dentro..."
+          "text": "Vi a moça do correio deixando uma caixa enorme aqui na porta... É uma cafeteira?"
         },
         {
           "speaker": "Dona Neusa",
@@ -312,7 +312,7 @@
       "lines": [
         {
           "speaker": "Você",
-          "text": "Uma cafeteira de verdade! O cheiro de café já faz isto aqui parecer um café."
+          "text": "A cafeteira chegou! Só de olhar, isto aqui já parece um café de verdade."
         }
       ]
     },

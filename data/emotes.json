@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Balões 16x16 (pacote itens_bebidas, gerado por IA na paleta Cosy): canto de cima à esquerda de cada bloco 32x32. Quadro: [x, y, w, h].",
+  "_comment": "Quadros do pacote itens_bebidas (gerado por IA na paleta Cosy): balões 16x16 no canto de cada bloco e a caixa do correio (parcel, 32x32). Quadro: [x, y, w, h].",
   "image": "assets/icons/itens_bebidas_tileset.png",
   "frames": {
     "exclamation": [
@@ -20,6 +20,12 @@
       64,
       16,
       16
+    ],
+    "parcel": [
+      96,
+      32,
+      32,
+      32
     ]
   }
 }

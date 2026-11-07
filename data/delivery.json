@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Correio: compras do catálogo chegam em `minutes` minutos de jogo, entre `from` e `until` (fora disso, no dia seguinte, em `from`). maxPending: caixas a caminho + na porta antes de o catálogo pedir para retirar. door: pilha na rua (porta do café); inside: pilha dentro do café. Arte: pacote correio (gerado por IA na paleta Cosy).",
+  "minutes": 60,
+  "from": "09:00",
+  "until": "18:00",
+  "maxPending": 3,
+  "door": {
+    "map": "map.street",
+    "at": [
+      15,
+      8
+    ]
+  },
+  "inside": {
+    "at": [
+      15,
+      4
+    ]
+  },
+  "carrier": "npc.mail_carrier",
+  "van": {
+    "left": "assets/vehicles/furgao_esquerda.png",
+    "right": "assets/vehicles/furgao_direita.png"
+  }
+}

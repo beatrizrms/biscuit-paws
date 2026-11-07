@@ -27,6 +27,10 @@ export interface GameEvents {
   'script.requested': { scriptId: string };
   'script.finished': { scriptId: string };
   'job.accepted': { jobId: string };
+  'delivery.ordered': { deliveryId: string; itemId: string; arrivesAt: number };
+  'delivery.arrived': { deliveryId: string; itemId: string };
+  'delivery.picked_up': { count: number };
+  'delivery.unpacked': { deliveryId: string; itemId: string };
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };
 }

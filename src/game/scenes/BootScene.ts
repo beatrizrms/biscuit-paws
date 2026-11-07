@@ -30,6 +30,8 @@ export class BootScene extends Phaser.Scene {
     }
     this.load.image('broom', broom.image);
     this.load.image('emotes', emotes.image);
+    this.load.image('van_left', content.delivery.van.left);
+    this.load.image('van_right', content.delivery.van.right);
     this.load.spritesheet(TEXTURE.player, playerJson.sheet, {
       frameWidth: playerJson.frameWidth,
       frameHeight: playerJson.frameHeight,

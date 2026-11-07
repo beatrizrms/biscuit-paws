@@ -39,6 +39,20 @@ export interface GameState {
   today: { earned: number; jobs: number };
   /** Pedidos da vila (v6): aceitos agora, pontos já feitos e o último dia em que cada um foi concluído. */
   jobs: { active: string[]; progress: Record<string, string[]>; doneOn: Record<string, number> };
+  /** Compras do catálogo pelo correio (v7): a caminho, na porta, nas mãos dela ou dentro do café. */
+  deliveries: Delivery[];
+}
+
+/** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
+export const DELIVERY_STAGES = ['shipping', 'door', 'carried', 'inside'] as const;
+export type DeliveryStage = (typeof DELIVERY_STAGES)[number];
+
+export interface Delivery {
+  uid: string;
+  item: string;
+  stage: DeliveryStage;
+  /** Momento absoluto (nowAbs) em que chega na porta. */
+  arrivesAt: number;
 }
 
 /** Momento absoluto do jogo, em minutos: cresce sempre (dia * 1440 + hora; a madrugada passa de 1440). */
@@ -74,12 +88,19 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     timers: {},
     today: { earned: 0, jobs: 0 },
     jobs: { active: [], progress: {}, doneOn: {} },
+    deliveries: [],
   };
 }
 
 /** Quantos deste item estão posicionados no café. */
 export function placedCount(state: GameState, itemId: string): number {
   return state.placed.filter((p) => p.item === itemId).length;
+}
+
+/** Quantos deste item estão em entregas numa etapa igual ou depois de `from`. */
+export function deliveredCount(state: GameState, itemId: string, from: DeliveryStage = 'shipping'): number {
+  const min = DELIVERY_STAGES.indexOf(from);
+  return state.deliveries.filter((d) => d.item === itemId && DELIVERY_STAGES.indexOf(d.stage) >= min).length;
 }
 
 /** Quantos deste item a jogadora tem (no inventário + posicionados). */

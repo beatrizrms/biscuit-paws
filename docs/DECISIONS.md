@@ -141,3 +141,7 @@ Consequência:
 - Pedidos da vila em dados (`data/jobs.json`), jornal "Vila Hoje" no celular (`data/news.json`) e mural no mercado.
 - Dia mais curto (1,2 min/s, ~16 min), ir para casa na porta do café depois das 17h, resumo do dia, desmaio às 2h acorda às 10h. Só falas, cenas e transições pausam o relógio; catálogo, loja e celular não (era um dos motivos da espera da Gabi parecer travada).
 - Rotina: comida uma vez por dia e poeira que volta. Save v6.
+
+## 037. Compras do catálogo chegam pelo correio (nov/2026)
+Motivo: pedido da desenvolvedora; comprar e posicionar na hora não combinava com "comprando online".
+Consequência: `data/delivery.json`; o catálogo encomenda (1h, das 9h às 18h, no máximo 3 caixas a caminho ou na porta). O furgão e a entregadora (pacote `correio`, gerado por IA na paleta Cosy; a folha veio ampliada 4x e o furgão 2x, reduzidos por amostragem) deixam as caixas empilhadas na porta; ela pega, leva para dentro e abre uma de cada vez. A Dona Neusa vem quando a caixa da cafeteira entra no café; a Gabi liga quando as duas mesas chegam na porta. Condições `received`, `delivery`, `deliveryTag`; `owned` conta encomendas. Save v7.

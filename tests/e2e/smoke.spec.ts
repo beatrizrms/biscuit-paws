@@ -178,10 +178,26 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await cleanCafe(page);
   await adoptFirstCat(page);
 
+  // Catálogo: encomenda pelo correio (chega em 1h na porta do café).
   await page.keyboard.press('c');
   await page.locator('[data-item="item.water_bowl"]').click();
-  await clickCell(page, 12, 9);
+  await expect(page.locator('.toast')).toContainText('Pedido feito');
   await expect(page.locator('.hud-money')).toContainText('142');
+  await page.keyboard.press('c');
+  // O relógio passa 1h; ela pega a caixa na porta e leva para dentro.
+  await page.evaluate(() => {
+    const w = (window as unknown as { __biscuitPaws: { cafe: { session: { tickClock(s: number): void; enter(m: string): void; pickUpParcels(): unknown; content: { dayNight: { minutesPerSecond: number } } }; goTo(m: string): void } } }).__biscuitPaws.cafe;
+    w.session.tickClock(61 / w.session.content.dayNight.minutesPerSecond);
+    w.goTo('map.street');
+    w.session.pickUpParcels();
+    w.goTo('map.cafe_main');
+  });
+  await skipDialogue(page);
+  // Abre a caixa no salão (E perto da pilha): o item vai para a mão.
+  await teleport(page, 14, 5);
+  await page.keyboard.press('e');
+  await expect(page.locator('.hint')).toContainText('cancelar');
+  await clickCell(page, 12, 9);
   await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('06-caminha.png') });
 

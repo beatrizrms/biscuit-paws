@@ -2,10 +2,10 @@
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 6;
+export const SAVE_SCHEMA_VERSION = 7;
 
-export interface SaveV6 extends GameState {
-  schemaVersion: 6;
+export interface SaveV7 extends GameState {
+  schemaVersion: 7;
   savedAt: string;
 }
 
@@ -34,10 +34,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     today: { earned: 0, jobs: 0 },
     jobs: { active: [], progress: {}, doneOn: {} },
   }),
+  /** v6 -> v7: compras do catálogo chegam pelo correio. Saves antigos não têm entregas. */
+  6: (save) => ({ ...save, schemaVersion: 7, deliveries: [] }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV6 = { schemaVersion: 6, savedAt: now.toISOString(), ...state };
+  const save: SaveV7 = { schemaVersion: 7, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -71,7 +73,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV6>;
+  const v2 = save as unknown as Partial<SaveV7>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -122,6 +124,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       progress: Object.fromEntries(Object.entries(v2.jobs?.progress ?? {}).filter(([id]) => known.jobs.has(id))),
       doneOn: Object.fromEntries(Object.entries(v2.jobs?.doneOn ?? {}).filter(([id]) => known.jobs.has(id))),
     },
+    deliveries: (v2.deliveries ?? []).filter((d) => knownItem(d.item, `entrega ${d.uid}`)).map((d) => ({ ...d })),
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };

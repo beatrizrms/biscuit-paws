@@ -9,7 +9,7 @@ import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
-import { nowAbs, type GameState } from './state';
+import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
@@ -47,6 +47,8 @@ export type ActionResult =
         | 'job_full'
         | 'job_unavailable'
         | 'missing_item'
+        | 'door_full'
+        | 'nothing_here'
         | 'already_owned'
         | PlaceProblem;
     };
@@ -148,8 +150,11 @@ export class GameSession {
     const before = Math.floor(this.state.time);
     this.state.time += seconds * this.content.dayNight.minutesPerSecond;
     if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
-    // A cada minuto de jogo a história olha de novo (marcos com hora marcada, ex.: a visita da Gabi).
-    else if (Math.floor(this.state.time) !== before) this.advanceStory();
+    // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
+    else if (Math.floor(this.state.time) !== before) {
+      this.deliverArrived();
+      this.advanceStory();
+    }
   }
 
   /** Já dá para encerrar o dia na porta do café? */
@@ -195,6 +200,95 @@ export class GameSession {
     const back = this.content.world.dailyDirt;
     if (left > 0 || this.state.day > 2) out.push({ kind: 'sweep', done: left === 0, progress: [Math.max(0, back - left), back] });
     return out;
+  }
+
+  // ---------- Correio ----------
+
+  /** Compra no catálogo: desconta já e a caixa chega na porta do café depois (data/delivery.json). */
+  order(itemId: string): ActionResult {
+    const item = this.content.items[itemId];
+    if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
+    if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
+    if (item.kind === 'fixture' && ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId))) {
+      return { ok: false, reason: 'already_owned' };
+    }
+    if (this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
+    if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
+    this.addMoney(-item.price, `order:${itemId}`);
+    const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)) };
+    this.state.deliveries.push(delivery);
+    this.bus.emit('delivery.ordered', { deliveryId: delivery.uid, itemId, arrivesAt: delivery.arrivesAt });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Quando chega um pedido feito agora: `minutes` depois, dentro do horário do correio (senão, amanhã cedo). */
+  private arrivalFor(now: number): number {
+    const cfg = this.content.delivery;
+    const at = now + cfg.minutes;
+    const day = Math.floor(at / 1440);
+    const clock = at - day * 1440;
+    if (clock < parseClock(cfg.from)) return day * 1440 + parseClock(cfg.from);
+    if (clock > parseClock(cfg.until)) return (day + 1) * 1440 + parseClock(cfg.from);
+    return at;
+  }
+
+  /** Caixas a caminho ou esperando na porta (o limite do catálogo). */
+  pendingDeliveries(): number {
+    return this.state.deliveries.filter((d) => d.stage === 'shipping' || d.stage === 'door').length;
+  }
+
+  /** Quantas entregas estão numa etapa (opcional: só de um item). */
+  deliveriesAt(stage: DeliveryStage, itemId?: string): number {
+    return this.state.deliveries.filter((d) => d.stage === stage && (!itemId || d.item === itemId)).length;
+  }
+
+  /** Próxima chegada (momento absoluto), se houver algo a caminho. */
+  nextArrival(): number | undefined {
+    const times = this.state.deliveries.filter((d) => d.stage === 'shipping').map((d) => d.arrivesAt);
+    return times.length ? Math.min(...times) : undefined;
+  }
+
+  /** O que já deu a hora chega na porta. */
+  private deliverArrived(): void {
+    const now = nowAbs(this.state);
+    for (const d of this.state.deliveries) {
+      if (d.stage !== 'shipping' || d.arrivesAt > now) continue;
+      d.stage = 'door';
+      this.bus.emit('delivery.arrived', { deliveryId: d.uid, itemId: d.item });
+    }
+  }
+
+  /** Perto da porta do café (na rua), com caixas esperando? */
+  parcelsNear(feet: readonly Cell[], target?: Cell): 'door' | 'inside' | undefined {
+    const cfg = this.content.delivery;
+    const near = (at: Cell) =>
+      (!target || (target[0] === at[0] && target[1] === at[1])) && feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    if (this.state.location === cfg.door.map && this.deliveriesAt('door') > 0 && near(cfg.door.at)) return 'door';
+    if (this.atHome() && this.deliveriesAt('inside') > 0 && near(cfg.inside.at)) return 'inside';
+    return undefined;
+  }
+
+  /** Pega todas as caixas da porta (ela leva nos braços até entrar no café). */
+  pickUpParcels(): ActionResult {
+    const here = this.state.deliveries.filter((d) => d.stage === 'door');
+    if (here.length === 0) return { ok: false, reason: 'nothing_here' };
+    for (const d of here) d.stage = 'carried';
+    this.bus.emit('delivery.picked_up', { count: here.length });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Abre uma caixa dentro do café: o item vai para a bolsa (a interface já põe na mão para posicionar). */
+  unpackParcel(): { ok: true; itemId: string } | { ok: false; reason: 'nothing_here' } {
+    const i = this.state.deliveries.findIndex((d) => d.stage === 'inside');
+    if (i < 0 || !this.atHome()) return { ok: false, reason: 'nothing_here' };
+    const [d] = this.state.deliveries.splice(i, 1);
+    this.state.inventory[d!.item] = (this.state.inventory[d!.item] ?? 0) + 1;
+    this.bus.emit('delivery.unpacked', { deliveryId: d!.uid, itemId: d!.item });
+    this.advanceStory();
+    return { ok: true, itemId: d!.item };
   }
 
   // ---------- Pedidos da vila ----------
@@ -394,6 +488,8 @@ export class GameSession {
     if (!this.content.maps[mapId]) throw new Error(`Mapa desconhecido: "${mapId}"`);
     this.state.location = mapId;
     if (!this.state.visited.includes(mapId)) this.state.visited.push(mapId);
+    // As caixas que ela carrega entram no café com ela.
+    if (mapId === this.content.map.id) for (const d of this.state.deliveries) if (d.stage === 'carried') d.stage = 'inside';
     this.bus.emit('map.entered', { mapId });
     this.advanceStory();
   }

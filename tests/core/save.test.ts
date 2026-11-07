@@ -129,6 +129,17 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/job.removed_from_game/);
   });
 
+  it('save_v6 migra para v7 sem entregas', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v6.json', 'utf8'), known);
+    expect(state.deliveries).toEqual([]);
+  });
+
+  it('save_v7: guarda as entregas; item que sumiu é ignorado', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v7.json', 'utf8'), known);
+    expect(state.deliveries.map((d) => [d.item, d.stage])).toEqual([['item.table_round', 'door'], ['item.cactus', 'shipping']]);
+    expect(warnings.join()).toMatch(/item.lamp_removed_from_game/);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

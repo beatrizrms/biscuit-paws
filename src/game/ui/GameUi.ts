@@ -15,8 +15,8 @@ const TYPE_SPEED_MS = 22;
 export interface UiHandlers {
   /** A jogadora escolheu um item que já está na bolsa: começar a posicionar. */
   onPlace(itemId: string): void;
-  /** "Esperar": o relógio corre depressa até a meta que só espera o tempo. */
-  onWait(): void;
+  /** "Esperar": o relógio corre depressa até o momento `until` (absoluto). */
+  onWait(until: number): void;
 }
 
 export class GameUi {
@@ -38,6 +38,8 @@ export class GameUi {
   private naming!: NamingBox;
   private shop!: ShopPanel;
   private news!: NewsPanel;
+  /** Caixas que já chegaram mas a entregadora ainda está trazendo (a cena avisa). */
+  private parcelsOnTheWay = 0;
   /** Cenas pedidas enquanto uma fala estava aberta: tocam quando a fala acabar. */
   private pendingCutscenes: string[] = [];
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
@@ -103,6 +105,8 @@ export class GameUi {
       if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
+    bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
+    bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
     bus.onAny(() => this.refresh());
@@ -160,7 +164,17 @@ export class GameUi {
     this.toast(uiText.problems[reason] ?? reason);
   }
 
-  /** Rotina do dia e pedido em andamento, embaixo da meta no balão. */
+  private waitButton(until: number): string {
+    return `<button class="wait" data-until="${until}" title="${uiText.waitTitle}">${uiText.wait}</button>`;
+  }
+
+  /** Hora de um momento absoluto, dizendo se é amanhã. */
+  private clockOf(at: number): { time: string; tomorrow: boolean } {
+    const t = at - this.session.state.day * 1440;
+    return { time: formatClock(t >= 1440 ? t - 1440 : t, 5), tomorrow: t >= 1440 };
+  }
+
+  /** Rotina do dia, pedido em andamento e entregas, embaixo da meta no balão. */
   private extrasHtml(): string {
     const c = uiText.chores;
     const items = this.session.chores().map((ch) => {
@@ -174,6 +188,17 @@ export class GameUi {
       const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
       items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
+    const d = uiText.delivery;
+    const next = this.session.nextArrival();
+    if (next !== undefined) {
+      const { time, tomorrow } = this.clockOf(next);
+      items.push(`<li class="job"><span>${(tomorrow ? d.shippingTomorrow : d.shipping).replace('{time}', time)}${this.waitButton(next)}</span></li>`);
+    }
+    const n = (stage: 'door' | 'carried' | 'inside') => this.session.deliveriesAt(stage);
+    const atDoor = n('door') - this.parcelsOnTheWay;
+    if (atDoor > 0) items.push(`<li class="job"><span>${d.atDoor.replace('{n}', String(atDoor))}</span></li>`);
+    if (n('carried')) items.push(`<li class="job"><span>${d.carried.replace('{n}', String(n('carried')))}</span></li>`);
+    if (n('inside')) items.push(`<li class="job"><span>${d.inside.replace('{n}', String(n('inside')))}</span></li>`);
     return items.length ? `<h4>${c.title}</h4><ul class="chores">${items.join('')}</ul>` : '';
   }
 
@@ -272,6 +297,13 @@ export class GameUi {
     this.news.close();
   }
 
+  /** A entregadora ainda está trazendo estas caixas (o balão só conta as que já estão na porta). */
+  setParcelsOnTheWay(n: number): void {
+    if (n === this.parcelsOnTheWay) return;
+    this.parcelsOnTheWay = n;
+    this.refresh();
+  }
+
   /** Celular ("Vila Hoje") ou mural do mercado. */
   openNews(mode: 'phone' | 'board'): void {
     this.closeCatalog();
@@ -356,13 +388,13 @@ export class GameUi {
           .map((s) => {
             const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
             const count = s.progress && !s.done ? ` <span class="count">${s.progress[0]}/${s.progress[1]}</span>` : '';
-            const wait = s.waitUntil !== undefined && !s.done ? `<button class="wait" title="${uiText.waitTitle}">${uiText.wait}</button>` : '';
+            const wait = s.waitUntil !== undefined && !s.done ? this.waitButton(s.waitUntil) : '';
             return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}${wait}</span></li>`;
           })
           .join('')}</ul>`
       : extra ? `<h2>${uiText.goalsTitle}</h2>` : '') + extra;
 
-    this.goals.querySelector('.wait')?.addEventListener('click', () => this.handlers.onWait());
+    this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.isCatalogOpen()) this.renderCatalog();
     this.renderHint();
   }
@@ -384,7 +416,8 @@ export class GameUi {
           .map((i) => {
             const owned = state.inventory[i.id] ?? 0;
             const fixture = i.kind === 'fixture';
-            const disabled = (owned === 0 && state.money < i.price) || (fixture && owned > 0);
+            const coming = state.deliveries.filter((d) => d.item === i.id).length;
+            const disabled = (owned === 0 && state.money < i.price) || (fixture && (owned > 0 || coming > 0));
             const refund =
               owned > 0 && !fixture
                 ? `<button class="refund" data-refund="${i.id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(i.id)}</button>`
@@ -392,6 +425,7 @@ export class GameUi {
             return `<div class="item-row"><button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
               <span>${esc(i.name)}</span><span class="price">${i.price}</span>
               ${owned > 0 ? `<span class="owned">${fixture ? uiText.installed : `${owned} ${uiText.inBag}`}</span>` : ''}
+              ${coming > 0 ? `<span class="owned coming">${coming} ${uiText.delivery.onTheWay}</span>` : ''}
             </button>${refund}</div>`;
           })
           .join('');
@@ -446,14 +480,18 @@ export class GameUi {
 
   /** Item da bolsa: posiciona. Senão: compra e posiciona. */
   private pick(itemId: string): void {
-    if ((this.session.state.inventory[itemId] ?? 0) === 0) {
-      const result = this.session.buy(itemId);
-      if (!result.ok) return this.problem(result.reason);
+    // Já na bolsa (caixa aberta): posicionar. Senão, encomendar: chega pelo correio.
+    if ((this.session.state.inventory[itemId] ?? 0) > 0 && content.items[itemId]?.kind !== 'fixture') {
+      this.closeCatalog();
+      this.handlers.onPlace(itemId);
+      return;
     }
-    // Peça fixa (a lousa): a entrega já instala no lugar dela, não há o que posicionar.
-    if (content.items[itemId]?.kind === 'fixture') return this.toast(uiText.fixtureDelivered);
-    this.closeCatalog();
-    this.handlers.onPlace(itemId);
+    const result = this.session.order(itemId);
+    if (!result.ok) return this.problem(result.reason);
+    const last = this.session.state.deliveries[this.session.state.deliveries.length - 1]!;
+    const { time, tomorrow } = this.clockOf(last.arrivesAt);
+    this.toast((tomorrow ? uiText.delivery.orderedTomorrow : uiText.delivery.ordered).replace('{time}', time));
+    this.renderCatalog();
   }
 
   private queueDialogue(dialogueId: string): void {

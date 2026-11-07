@@ -44,6 +44,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Mercado com matéria-prima (café, chá, frutas, despensa); receitas como dados
 - [ ] Preparar bebidas no balcão (receitas)
 - [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)
+- [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
 - [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
 - [ ] Gatos de rua anunciados no jornal (Marco 2)

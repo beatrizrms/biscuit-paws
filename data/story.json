@@ -278,7 +278,7 @@
             }
           },
           {
-            "text": "Comprar a cafeteira no catálogo (C).",
+            "text": "Encomendar a cafeteira pelo catálogo (C).",
             "when": {
               "owned": "item.coffee_machine"
             }
@@ -301,7 +301,11 @@
         {
           "addMoney": 50
         }
-      ]
+      ],
+      "when": {
+        "delivery": "item.coffee_machine",
+        "stage": "inside"
+      }
     },
     {
       "id": "story.tables",
@@ -333,7 +337,7 @@
             }
           },
           {
-            "text": "Comprar duas mesas no catálogo (C).",
+            "text": "Encomendar duas mesas pelo catálogo (C).",
             "when": {
               "ownedTag": "table",
               "gte": 2
@@ -341,7 +345,12 @@
           }
         ]
       },
-      "effects": []
+      "effects": [],
+      "when": {
+        "deliveryTag": "table",
+        "stage": "door",
+        "gte": 2
+      }
     },
     {
       "id": "story.gabi_call",
@@ -411,7 +420,7 @@
         "title": "Cadeiras",
         "steps": [
           {
-            "text": "Duas cadeiras para as mesas.",
+            "text": "Encomendar duas cadeiras para as mesas.",
             "when": {
               "ownedTag": "chair",
               "gte": 2
