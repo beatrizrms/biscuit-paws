@@ -39,6 +39,10 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Água e ração: mercado (mercado_interior) e compra no caixa
 - [x] Alimentar e primeiro coração
 - [x] Cartão final e fim do dia
+- [x] Dia 2: ligação e visita da Gabi (com o Joca), conjunto de louças
+- [x] Dona Lurdes entra no café (NPC)
+- [x] Mercado com matéria-prima (café, chá, frutas, despensa); receitas como dados
+- [ ] Preparar bebidas no balcão (receitas)
 - [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 

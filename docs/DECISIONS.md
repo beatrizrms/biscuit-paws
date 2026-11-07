@@ -127,3 +127,7 @@ Consequência: `data/daynight.json` com horas-chave e ajuste por estação (inve
 ## 034. A lousa da porta é comprada no catálogo online (nov/2026)
 Motivo: pedido da desenvolvedora; a loja velha não deveria já ter a lousa do café.
 Consequência: a lousa saiu da rua e virou `item.cafe_sign` (kind `fixture`, seção "Fachada"). Comprada, aparece sozinha na porta (objeto do mapa com `when`). O catálogo diz que é compra online e a entrega chega no café. A meta da faxina mostra quantas teias e sujeiras faltam (ex.: 1/4).
+
+## 035. Dia 2: a Gabi e o Joca; Dona Lurdes em cena (nov/2026)
+Motivo: pedido da desenvolvedora (mais marcos no dia 2) e novos pacotes de arte.
+Consequência: marcos `story.gabi_call` (7h15 do dia 2, ligação no celular) e `story.gabi_visit` (a partir das 8h30, com ela no café): o Joca fareja o gatinho e a Gabi dá o conjunto de louças (`item.dishes_set`, kind `gift`). Condições `day`, `clock`, `location`. A Dona Lurdes deixou de ser só texto: entra no café por roteiro (`scr.lurdes_visit`). O mercado vende 19 itens de matéria-prima; as receitas ficam em `data/recipes.json` para o preparo futuro. Vassoura trocada pela do pacote `vassoura_nova`.

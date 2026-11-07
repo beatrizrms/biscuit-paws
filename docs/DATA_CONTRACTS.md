@@ -289,6 +289,8 @@ Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ 
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
+Condições do relógio e do lugar: `{ "day": { "gte": 2 } }`, `{ "clock": { "gte": "08:30" } }`, `{ "location": "map.cafe_main" }` (o relógio reavalia a história a cada minuto de jogo).
+
 Efeitos: `{ "endDay": true }` (fim do dia), `{ "setTime": "08:00" }` (acerta o relógio), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
@@ -345,3 +347,19 @@ Regras:
 - Só IDs e números/booleanos/strings simples.
 - Mudou algo: suba `schemaVersion`, escreva `migrate_vN_to_vN+1`, guarde um fixture da versão antiga em `tests/fixtures/`.
 - IDs que sumirem dos dados de conteúdo não podem quebrar o carregamento: ignore e registre um aviso.
+
+## Receitas (`data/recipes.json`)
+
+```jsonc
+{ "id": "recipe.black_coffee", "name": "Café preto", "icon": "cafe_preto", "ingredients": { "item.coffee_ground": 1, "item.paper_filter": 1 } }
+```
+
+Ainda sem mecânica de preparo: os ingredientes são itens `consumable` com a tag `ingredient` (vendidos no mercado, em seções pela tag `coffee`, `tea`, `fruit`, `pantry`; títulos em `ui_text.shop.sections`).
+
+## Ícones (`data/icons.json`) e balões (`data/emotes.json`)
+
+Ícone: `{ "col": 0, "row": 0, "sheet": "materia_prima" }`; sem `sheet`, usa a folha padrão (`image`). Folhas extras em `sheets`.
+Balões 16x16 (`exclamation`, `heart`, `plus1`) usados nos roteiros: `{ "emote": "npc.joca" | "player" | "cat.id", "balloon": "heart", "ms": 1100 }`.
+Outros passos de roteiro: `{ "catWalk": "cat.id", "to": [11, 5] }` (o gato vem e senta) e `{ "npcToCat": "npc.joca", "cat": "cat.id" }` (o NPC vai até o lado do gato).
+Itens `kind: "gift"`: presentes da história (ex.: `item.dishes_set`, da Gabi); não se compram nem se devolvem.
+Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "title": "chamando...", "caller": "npc.gabi", "lines": [] }`.

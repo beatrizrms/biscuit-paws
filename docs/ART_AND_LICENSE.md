@@ -127,6 +127,11 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 | --- | --- | --- |
 | Rua e vila, 4 estações (`assets/rua_estacoes_tilesets`) | gerado por código/IA na paleta do Cat Cafe | Rua do café (hoje: inverno) |
 | Sujeira do café abandonado (`assets/sujeira_cafe_abandonado`) | gerado por código/IA na paleta do Cat Cafe | Teias, poeira e manchas no café velho |
+| Gabi e o Joca (`assets/gabi_e_joca`) | gerado por IA na paleta Cosy | NPCs do dia 2: folha 32x64 da Gabi (4x5), retrato 64x64, GIF com a caixa (ainda não usado); Joca, spitz 32x32 (4 colunas, 6 linhas) |
+| Senhorinha (`assets/senhorinha`) | gerado por IA na paleta Cosy | Dona Lurdes: folha 32x64 (4x5) e retrato 64x64. Chegou ampliada 4x pelo chat; reduzida ao tamanho real por amostragem (o original ampliado fica junto) |
+| Matéria-prima (`assets/materia_prima`) | gerado por código/IA na paleta Cosy | 19 ícones 32x32 vendidos no mercado (café, chá, frutas, polpas, despensa) |
+| Itens e bebidas (`assets/itens_bebidas`) | gerado por código/IA na paleta Cosy | Ícones de bebidas (receitas), caixas, presente (conjunto de louças) e balões 16x16 (!, coração, +1) |
+| Vassoura nova (`assets/vassoura_nova`) | gerado por IA na paleta Cosy | Vassoura 32x32 nos pés da personagem, poeira e brilho (substitui a do pacote da corretora) |
 
 Regras desses pacotes (LEIA-ME de cada um): uso no nosso jogo, pessoal ou comercial; **não redistribuir**; **declarar o uso de IA na página da Steam**.
 Arquivos usados hoje: `public/assets/street/winter/*.png`, `public/assets/dirt/sujeira_tileset.png` (fora do Git). Os JSONs de peças (nomes e posições) ficam em `data/tilesets/`.
