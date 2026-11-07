@@ -47,11 +47,17 @@ describe('receitas e cardápio', () => {
     const session = new GameSession(content, state);
     const sv = session.service;
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('equipment');
+    // Sem balcão: nem dá para pôr a cafeteira na mão.
+    expect(session.missingHost('item.coffee_machine')).toBe('no_free_counter');
+    expect(session.missingHost('item.counter_single')).toBeNull();
     session.buy('item.counter_single');
     session.place('item.counter_single', [7, 5]);
     session.buy('item.coffee_machine');
     expect(session.place('item.coffee_machine', [8, 5])).toEqual({ ok: false, reason: 'needs_counter' });
+    expect(session.missingHost('item.coffee_machine')).toBeNull();
     expect(session.place('item.coffee_machine', [7, 5])).toEqual({ ok: true });
+    // Único balcão ocupado: o bule também não tem onde ir.
+    expect(session.missingHost('item.teapot')).toBe('no_free_counter');
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
     session.buy('item.coffee_ground');
     session.buy('item.paper_filter');

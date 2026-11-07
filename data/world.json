@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "startMap: onde um jogo novo começa. homeMap: o café. season: estação atual. morning: onde ela aparece de manhã, vindo de casa. sleepMap: onde dorme (null = em casa, fora do mapa; ponto de extensão para o quartinho do café). goHomeDoors: portas do café onde ela pode encerrar o dia (a partir de daynight.goHomeFrom). dailyDirt: quantas poeiras voltam a cada manhã.",
+  "_comment": "startMap: onde um jogo novo começa. homeMap: o café. season: estação atual. morning: onde ela aparece de manhã, vindo de casa. sleepMap: onde dorme (null = em casa, fora do mapa; ponto de extensão para o quartinho do café). goHomeDoors: portas do café onde ela pode encerrar o dia (a partir de daynight.goHomeFrom). dailyDirt: quantas poeiras voltam a cada manhã. tools: ação -> item que precisa estar ativo na barra (sweep = varrer sujeira e neve).",
   "startMap": "map.street",
   "homeMap": "map.cafe_main",
   "season": "winter",
@@ -16,5 +16,8 @@
     "door.street"
   ],
   "dailyDirt": 2,
-  "counterLift": 14
+  "counterLift": 14,
+  "tools": {
+    "sweep": "item.broom"
+  }
 }

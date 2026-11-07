@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type ResolvedMap } from '../../core/map';
+import { HOTBAR_SIZE } from '../../core/hotbar';
 import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
@@ -150,6 +151,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isNewsOpen()) return this.ui.closeShop();
       if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
       this.ui.openNews('phone');
+    });
+    // Barra de itens: 1 a 8 escolhem o espaço (também com a mochila aberta); a roda do mouse passa de um em um.
+    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (!Number.isInteger(n) || n < 1 || n > HOTBAR_SIZE) return;
+      if (this.ui.isBusy() && !this.ui.isPanelOpen()) return;
+      this.session.selectHotbarSlot(n - 1);
+    });
+    this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+      if (this.ui.isBusy() || this.placing || dy === 0) return;
+      const { active } = this.session.state.hotbar;
+      this.session.selectHotbarSlot((active + (dy > 0 ? 1 : -1) + HOTBAR_SIZE) % HOTBAR_SIZE);
     });
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
@@ -417,6 +430,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   private startPlacing(itemId: string): void {
     this.cancelPlacing();
+    // Sem balcão livre: não entra no modo de posicionar (todo clique daria erro); fica na mochila.
+    const missing = this.session.missingHost(itemId);
+    if (missing) return this.ui.problem(missing);
     const { catalog, items } = this.session.content;
     const def = catalog.tiles[items[itemId]!.tile ?? '']!;
     const ghosts: Phaser.GameObjects.Image[] = [];
@@ -497,9 +513,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const view = this.cameras.main.worldView;
     const toClient = (x: number, y: number) => ({ x: rect.left + (x - view.x) * zoom, y: rect.top + (y - view.y) * zoom });
     const p = this.input.activePointer;
-    const points = [toClient(this.player.x, this.player.y - 56), toClient(this.player.x, this.player.y)];
+    const feet = toClient(this.player.x, this.player.y);
+    const points = [toClient(this.player.x, this.player.y - 56), feet];
     if (p.event) points.push(toClient(p.worldX, p.worldY));
-    this.ui.updateHudFade(points);
+    this.ui.updateHudFade(points, feet);
   }
 
   /** Cor do momento sobre o mundo e relógio no HUD. */
@@ -515,11 +532,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.session.atHome() && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
     if (point) {
+      const problem = this.session.jobPointProblem(point.id);
+      if (problem) {
+        this.ui.problem(problem);
+        return true;
+      }
       if (point.action === 'sweep') {
         if (this.sweeping) return true;
         const ts = this.map.tileSize;
         void this.playSweep((point.at[0] + 0.5) * ts, (point.at[1] + 0.5) * ts).then(() => this.doJobPoint(point.id));
       } else this.doJobPoint(point.id);
+      return true;
+    }
+    // Clique num ponto de pedido de longe: avisa em vez de não fazer nada.
+    if (target && this.session.jobPointAt(target)) {
+      this.ui.problem('too_far');
       return true;
     }
     const parcels = this.session.parcelsNear(this.playerCells(), target);
@@ -576,7 +603,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!result.ok) this.ui.problem(result.reason);
   }
 
-  /** Pontos de pedido pendentes neste mapa: marcadores (redesenha o mapa) e um "!" em cima dos sem marcador. */
+  /** Pontos de pedido pendentes neste mapa: marcadores (redesenha o mapa), o quadro do ponto (a caixa) ou um "!". */
   private refreshJobPoints(rebuild = false): void {
     if (rebuild) this.buildMap();
     this.jobIcons.forEach((i) => i.destroy());
@@ -585,6 +612,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       .pendingJobPoints()
       .filter((p) => !p.marker)
       .map((p) => {
+        if (p.sprite) {
+          // Fica no chão da célula, como as caixas do correio.
+          const bottom = (p.at[1] + 1) * ts - 2;
+          return this.add.image((p.at[0] + 0.5) * ts, bottom, 'emotes', p.sprite).setOrigin(0.5, 1).setDepth(ySortDepth(bottom));
+        }
         const icon = this.add.image((p.at[0] + 0.5) * ts, p.at[1] * ts - 2, 'emotes', 'exclamation').setOrigin(0.5, 1).setDepth(99_000);
         this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         return icon;
@@ -919,12 +951,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.session.atHome()) stack(cfg.inside.at, this.session.deliveriesAt('inside'));
   }
 
-  /** As caixas que ela carrega aparecem em cima da cabeça. */
+  /** As caixas que ela carrega aparecem em cima da cabeça: as do correio e itens com carrySprite (a caixa de uma entrega). */
   private updateCarried(): void {
-    const n = Math.min(this.session.deliveriesAt('carried'), 3);
-    while (this.carriedImages.length > n) this.carriedImages.pop()!.destroy();
-    while (this.carriedImages.length < n) this.carriedImages.push(this.add.image(0, 0, 'emotes', 'parcel').setOrigin(0.5, 1).setScale(0.75));
-    this.carriedImages.forEach((img, i) => img.setPosition(this.player.x, this.player.y - 48 - i * 7).setDepth(this.player.depth + 1 + i));
+    const { inventory } = this.session.state;
+    const items = this.session.content.items;
+    const frames = [
+      ...Array<string>(this.session.deliveriesAt('carried')).fill('parcel'),
+      ...Object.entries(inventory).flatMap(([id, qty]) => (items[id]?.carrySprite ? Array<string>(qty).fill(items[id]!.carrySprite!) : [])),
+    ].slice(0, 3);
+    while (this.carriedImages.length > frames.length) this.carriedImages.pop()!.destroy();
+    while (this.carriedImages.length < frames.length) this.carriedImages.push(this.add.image(0, 0, 'emotes', 'parcel').setOrigin(0.5, 1).setScale(0.75));
+    this.carriedImages.forEach((img, i) => {
+      if (img.frame.name !== frames[i]) img.setFrame(frames[i]!);
+      img.setPosition(this.player.x, this.player.y - 48 - i * 7).setDepth(this.player.depth + 1 + i);
+    });
   }
 
   /** Furgão do correio: chega pela rua, a entregadora deixa a caixa na porta e vai embora. Uma de cada vez. */

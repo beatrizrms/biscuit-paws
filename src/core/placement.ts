@@ -4,7 +4,7 @@ import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import type { PlacedItem } from './state';
 import type { TileCatalog, TileDef, TileLayer } from './tiles';
 
-export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked' | 'needs_counter' | 'has_something_on_top';
+export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked' | 'needs_counter' | 'no_free_counter' | 'has_something_on_top';
 
 export const PLACED_PREFIX = 'placed.';
 
@@ -35,6 +35,11 @@ export function placeOnProblem(placed: readonly PlacedItem[], items: Record<stri
   const host = hostAt(placed, items, tag, at);
   if (!host) return 'needs_counter';
   return itemOnTop(placed, items, host) ? 'occupied' : null;
+}
+
+/** Existe algum apoio com a tag livre (sem nada em cima)? Se não, nem adianta pôr na mão. */
+export function hasFreeHost(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string): boolean {
+  return placed.some((p) => !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag) && !itemOnTop(placed, items, p));
 }
 
 /**

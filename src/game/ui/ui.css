@@ -123,6 +123,41 @@
   text-shadow: 0 1px 0 var(--ink);
 }
 
+/* Barra de itens (teclas 1 a 8): o espaço ativo tem moldura amarela */
+.hotbar {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: #3b2a32cc;
+  border: 1px solid var(--wood4);
+  border-radius: 5px;
+  pointer-events: auto;
+}
+/* Some durante falas e cenas (a caixa de fala ocupa o mesmo lugar). */
+.dialogue-layer.open ~ .hotbar, .cutscene.open ~ .hotbar { display: none; }
+.hotbar.top { bottom: auto; top: 4px; }
+.hotbar .slot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream2);
+  border: 1px solid var(--cream3);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.hotbar .slot.active { border: 2px solid var(--butter2); box-shadow: 0 0 0 1px var(--butter3); background: var(--cream); }
+.hotbar .slot .icon { image-rendering: pixelated; }
+.hotbar .key { position: absolute; top: 0; left: 1px; font-size: 5px; line-height: 1; color: var(--ink2); }
+.hotbar .count { position: absolute; bottom: 0; right: 1px; font-size: 5.5px; line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
+
 /* Aviso rápido */
 .toast {
   position: absolute;
@@ -615,3 +650,15 @@
 .catalog.menu-board .board .slot-icon .mark { position: absolute; left: -18%; top: 30%; width: 136%; image-rendering: pixelated; }
 .catalog.menu-board .board .slot-price { position: absolute; display: flex; align-items: center; justify-content: flex-end; font-size: 6px; font-weight: bold; color: #f3e6c8; }
 .catalog .list { overflow-anchor: none; }
+
+/* Mochila em grade: clicar num item põe no espaço ativo da barra */
+.catalog.backpack .bp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
+.catalog.backpack .bp-item { display: flex; flex-direction: column; gap: 2px; }
+.catalog.backpack .bp-item > button[data-assign] { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px 3px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--cream2); font: inherit; cursor: pointer; }
+.catalog.backpack .bp-item > button[data-assign]:hover { border-color: var(--butter3); }
+.catalog.backpack .bp-item.active > button[data-assign] { border: 2px solid var(--butter3); background: var(--cream); }
+.catalog.backpack .bp-item .icon { image-rendering: pixelated; }
+.catalog.backpack .bp-name { font-size: 7px; text-align: center; line-height: 1.1; }
+.catalog.backpack .bp-amount { font-size: 6.5px; color: var(--grey2); }
+.catalog.backpack .slot-no { position: absolute; top: 1px; left: 3px; font-size: 6px; font-weight: bold; color: var(--wood3); }
+.catalog.backpack .bp-item > button:not([data-assign]) { padding: 1px 4px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }

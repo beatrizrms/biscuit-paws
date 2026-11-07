@@ -43,6 +43,7 @@ export interface GameEvents {
   'delivery.unpacked': { deliveryId: string; itemId: string };
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };
+  'hotbar.changed': { active: number };
 }
 
 export type EventName = keyof GameEvents;

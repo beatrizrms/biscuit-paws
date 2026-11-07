@@ -9,6 +9,7 @@ import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
+import { Hotbar } from './Hotbar';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -42,6 +43,7 @@ export class GameUi {
   private news!: NewsPanel;
   private menuBoard!: MenuBoardPanel;
   private backpack!: BackpackPanel;
+  private hotbar!: Hotbar;
   /** Caixas que já chegaram mas a entregadora ainda está trazendo (a cena avisa). */
   private parcelsOnTheWay = 0;
   /** Cenas pedidas enquanto uma fala estava aberta: tocam quando a fala acabar. */
@@ -101,6 +103,7 @@ export class GameUi {
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
     this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
     this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem);
+    this.hotbar = new Hotbar(root, session);
     this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
@@ -275,12 +278,14 @@ export class GameUi {
    * O balão de pensamento e o painel do dinheiro ficam quase transparentes quando algum
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
-  updateHudFade(points: readonly { x: number; y: number }[]): void {
+  updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }): void {
     for (const el of [this.goals, this.money]) {
       const r = el.getBoundingClientRect();
       const under = points.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       el.classList.toggle('see-through', under);
     }
+    const root = this.root.getBoundingClientRect();
+    this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
   }
 
   /** Hora no HUD (só mexe no texto quando muda). */

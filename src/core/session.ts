@@ -9,7 +9,8 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import { itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { activeItem, assignToActive, fitsHotbar, HOTBAR_SIZE, syncHotbar } from './hotbar';
+import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -31,6 +32,7 @@ export type ActionResult =
         | 'unknown_item'
         | 'no_money'
         | 'not_in_inventory'
+        | 'needs_broom'
         | 'not_found'
         | 'unknown_surface'
         | 'unknown_finish'
@@ -78,6 +80,11 @@ export class GameSession {
       advanceStory: () => this.advanceStory(),
       catAffection: (catId, points) => this.addCatAffection(catId, points),
     });
+    // Ferramenta nova (a vassoura da corretora...) vai sozinha para a barra, venha de onde vier.
+    syncHotbar(state.hotbar, state.inventory, content.items);
+    this.bus.onAny((name) => {
+      if (name !== 'hotbar.changed') this.syncHotbar();
+    });
   }
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
@@ -86,6 +93,38 @@ export class GameSession {
     for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
     this.bus.emit('game.started', { isNew });
     this.advanceStory();
+  }
+
+  // ---------- Barra de itens ----------
+
+  private syncHotbar(): void {
+    if (syncHotbar(this.state.hotbar, this.state.inventory, this.content.items)) this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
+  }
+
+  /** Item no espaço ativo da barra (o que ela usa para agir), se ainda tiver. */
+  activeItem(): string | null {
+    return activeItem(this.state.hotbar, this.state.inventory);
+  }
+
+  /** Escolhe o espaço ativo (0 a HOTBAR_SIZE - 1). */
+  selectHotbarSlot(slot: number): void {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= HOTBAR_SIZE || slot === this.state.hotbar.active) return;
+    this.state.hotbar.active = slot;
+    this.bus.emit('hotbar.changed', { active: slot });
+  }
+
+  /** Põe um item da mochila no espaço ativo (troca de lugar se já estava na barra). */
+  assignToHotbar(itemId: string): ActionResult {
+    if (!fitsHotbar(this.content.items[itemId])) return { ok: false, reason: 'unknown_item' };
+    if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
+    assignToActive(this.state.hotbar, itemId);
+    this.bus.emit('hotbar.changed', { active: this.state.hotbar.active });
+    return { ok: true };
+  }
+
+  /** Falta a ferramenta da ação no espaço ativo? */
+  private toolProblem(action: 'sweep'): 'needs_broom' | null {
+    return this.activeItem() === this.content.world.tools[action] ? null : 'needs_broom';
   }
 
   /** O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato) */
@@ -381,6 +420,16 @@ export class GameSession {
   }
 
   /** Ponto de pedido ao alcance dos pés (`target`: só a célula clicada). */
+  /** Ponto de pedido pendente exatamente nesta célula (perto ou não). */
+  jobPointAt([c, r]: Cell): JobPoint | undefined {
+    return this.pendingJobPoints().find((p) => p.at[0] === c && p.at[1] === r);
+  }
+
+  /** Por que ela não pode fazer este ponto agora (ou null): a interface confere antes de tocar a varrida. */
+  jobPointProblem(pointId: string): 'needs_broom' | null {
+    return this.content.jobPoints[pointId]?.action === 'sweep' ? this.toolProblem('sweep') : null;
+  }
+
   jobPointNear(feet: readonly Cell[], target?: Cell): JobPoint | undefined {
     const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
     return this.pendingJobPoints()
@@ -395,6 +444,10 @@ export class GameSession {
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
     const point = this.content.jobPoints[pointId];
     if (!job || !point) return { ok: false, reason: 'not_found' };
+    if (point.action === 'sweep') {
+      const problem = this.toolProblem('sweep');
+      if (problem) return { ok: false, reason: problem };
+    }
     if (point.takes) {
       if ((this.state.inventory[point.takes] ?? 0) < 1) return { ok: false, reason: 'missing_item' };
       this.removeFromInventory(point.takes);
@@ -604,7 +657,7 @@ export class GameSession {
   }
 
   /** Por que não dá para limpar agora (ou null): a interface confere antes de varrer. */
-  cleanProblem(dirtId: string, from: readonly Cell[] = [], reach = 2): 'not_found' | 'needs_repair' | 'too_far' | null {
+  cleanProblem(dirtId: string, from: readonly Cell[] = [], reach = 2): 'not_found' | 'needs_repair' | 'too_far' | 'needs_broom' | null {
     const d = this.visibleDirt().find((x) => x.id === dirtId);
     if (!d) return 'not_found';
     if (d.clearedBy) return 'needs_repair';
@@ -613,7 +666,7 @@ export class GameSession {
       const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
       if (!near) return 'too_far';
     }
-    return null;
+    return this.toolProblem('sweep');
   }
 
   private storyContext(): StoryContext {
@@ -679,6 +732,13 @@ export class GameSession {
     this.bus.emit('item.bought', { itemId, price: item.price });
     this.advanceStory();
     return { ok: true };
+  }
+
+  /** Item que vai em cima de algo (ex.: bule no balcão) sem nenhum apoio livre no café: não dá para posicionar agora. */
+  missingHost(itemId: string): PlaceProblem | null {
+    const placeOn = this.content.items[itemId]?.placeOn;
+    if (!placeOn || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    return 'no_free_counter';
   }
 
   /** Diz se o item pode ficar em `at`, sem mudar nada. */

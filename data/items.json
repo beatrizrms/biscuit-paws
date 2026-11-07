@@ -723,7 +723,8 @@
       "icon": "caixa_entrega_fechada",
       "tags": [
         "job"
-      ]
+      ],
+      "carrySprite": "parcel"
     },
     {
       "id": "item.teapot",

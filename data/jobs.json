@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer; marker = tile desenhado enquanto pendente; gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer; marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
   "maxActive": 1,
   "points": [
     {
@@ -68,7 +68,8 @@
         7
       ],
       "action": "press",
-      "gives": "item.parcel"
+      "gives": "item.parcel",
+      "sprite": "parcel"
     },
     {
       "id": "pt.parcel_dropoff",
@@ -113,6 +114,114 @@
       "map": "map.street",
       "at": [
         28,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.parcel_pickup_house_a",
+      "map": "map.market",
+      "at": [
+        18,
+        7
+      ],
+      "action": "press",
+      "sprite": "parcel",
+      "gives": "item.parcel"
+    },
+    {
+      "id": "pt.parcel_dropoff_house_a",
+      "map": "map.street",
+      "at": [
+        2,
+        8
+      ],
+      "action": "press",
+      "takes": "item.parcel"
+    },
+    {
+      "id": "pt.parcel_pickup_house_c",
+      "map": "map.market",
+      "at": [
+        18,
+        7
+      ],
+      "action": "press",
+      "sprite": "parcel",
+      "gives": "item.parcel"
+    },
+    {
+      "id": "pt.parcel_dropoff_house_c",
+      "map": "map.street",
+      "at": [
+        28,
+        8
+      ],
+      "action": "press",
+      "takes": "item.parcel"
+    },
+    {
+      "id": "pt.snow_market_1",
+      "map": "map.street",
+      "at": [
+        20,
+        9
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.snow_market_2",
+      "map": "map.street",
+      "at": [
+        23,
+        9
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.snow_market_3",
+      "map": "map.street",
+      "at": [
+        24,
+        9
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.crate_apples",
+      "map": "map.market",
+      "at": [
+        2,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.crate_greens",
+      "map": "map.market",
+      "at": [
+        4,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.crate_bananas",
+      "map": "map.market",
+      "at": [
+        6,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.crate_tomatoes",
+      "map": "map.market",
+      "at": [
+        7,
         8
       ],
       "action": "press"
@@ -208,6 +317,103 @@
             "pt.flyer_furniture",
             "pt.flyer_house_b",
             "pt.flyer_house_c"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.parcel_house_a",
+      "title": "Encomenda para a casa de tijolos",
+      "giver": "Seu Ademir, do mercado",
+      "description": "Chegou uma encomenda para a casa de tijolos, no começo da rua.",
+      "location": "map.market",
+      "reward": 30,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "points": [
+            "pt.parcel_pickup_house_a"
+          ]
+        },
+        {
+          "text": "Entregar a caixa na porta da casa de tijolos (começo da rua).",
+          "points": [
+            "pt.parcel_dropoff_house_a"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.parcel_house_c",
+      "title": "Encomenda para a casa do fim da rua",
+      "giver": "Seu Ademir, do mercado",
+      "description": "Uma caixa pesada para a casa do fim da rua, depois do mercado.",
+      "location": "map.market",
+      "reward": 30,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "points": [
+            "pt.parcel_pickup_house_c"
+          ]
+        },
+        {
+          "text": "Entregar a caixa na porta da casa do fim da rua.",
+          "points": [
+            "pt.parcel_dropoff_house_c"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.clear_snow_market",
+      "title": "Neve na porta do mercado",
+      "giver": "Seu Ademir, do mercado",
+      "description": "A neve da noite tampou a entrada do mercado. Leve a vassoura!",
+      "location": "map.street",
+      "reward": 25,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Varrer 3 montes de neve na frente do mercado.",
+          "points": [
+            "pt.snow_market_1",
+            "pt.snow_market_2",
+            "pt.snow_market_3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.market_crates",
+      "title": "Arrumar os caixotes",
+      "giver": "Seu Ademir, do mercado",
+      "description": "As frutas e verduras chegaram e os caixotes estão uma bagunça.",
+      "location": "map.market",
+      "reward": 20,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Arrumar 4 caixotes de frutas e verduras.",
+          "points": [
+            "pt.crate_apples",
+            "pt.crate_greens",
+            "pt.crate_bananas",
+            "pt.crate_tomatoes"
           ]
         }
       ]

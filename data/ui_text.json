@@ -25,7 +25,10 @@
   ],
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · E: interagir · C: catálogo · M: cardápio · I: mochila · P: celular",
+  "hintWalk": "Setas/WASD: andar · E: interagir · 1–8: barra · C: catálogo · M: cardápio · I: mochila · P: celular",
+  "hotbar": {
+    "label": "Barra de itens"
+  },
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -45,6 +48,7 @@
     "already_painted": "Já está assim.",
     "locked": "Ainda não conheço um pintor.",
     "too_far": "Preciso chegar mais perto.",
+    "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
     "needs_repair": "Isso não sai com faxina. Só reformando.",
     "invalid_name": "Escolha um nome de 1 a 14 letras.",
     "not_sheltered": "Esse gatinho ainda não mora aqui.",
@@ -74,6 +78,7 @@
     "sink_full": "A pia está cheia. Lave antes de pôr mais.",
     "not_at_home": "Aqui não. Só dentro do café.",
     "needs_counter": "Isso vai em cima de um balcão.",
+    "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
     "has_something_on_top": "Tire primeiro o que está em cima do balcão."
   },
   "renovationTitle": "Reforma (pintor)",
@@ -204,8 +209,6 @@
     "hands": "Nas mãos",
     "handsEmpty": "Mãos livres.",
     "dishes": "Louça limpa",
-    "ingredients": "Ingredientes",
-    "others": "Outros",
     "none": "Nada por aqui.",
     "doses": "{n} doses",
     "hold": "segurar",
@@ -215,7 +218,9 @@
     "useTray": "usar bandeja",
     "stowTray": "guardar bandeja",
     "wip": "{name} ({equipment})",
-    "cat": "{name} no colo"
+    "cat": "{name} no colo",
+    "items": "Itens",
+    "gridHint": "Clique num item para pôr no espaço ativo da barra ({n})."
   },
   "service": {
     "prepStarted": "Preparando: {name}",

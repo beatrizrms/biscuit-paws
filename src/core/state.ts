@@ -4,6 +4,7 @@ import type { HandItem, SurfaceItem } from './carry';
 import type { Vessel } from './recipes';
 import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
 import type { Cell } from './map';
+import { newHotbar, type HotbarState } from './hotbar';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -58,6 +59,8 @@ export interface GameState {
   service: ServiceState;
   /** Está segurando a bandeja (v9). */
   tray: boolean;
+  /** Barra de itens e o espaço ativo (v10). */
+  hotbar: HotbarState;
   /** Pia (v9): louça suja esperando e a lavagem em andamento. */
   sink: SinkState;
 }
@@ -116,6 +119,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     service: newServiceState(),
     tray: false,
     sink: { load: emptyLoad(), washing: null },
+    hotbar: newHotbar(),
   };
 }
 

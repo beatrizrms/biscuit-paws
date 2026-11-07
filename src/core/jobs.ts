@@ -15,6 +15,8 @@ export interface JobPoint {
   action: 'press' | 'sweep';
   /** Tile desenhado no ponto enquanto ele estiver pendente (ex.: monte de neve). */
   marker?: string;
+  /** Quadro de data/emotes.json desenhado no ponto enquanto pendente, no lugar do "!" (ex.: a caixa para pegar). */
+  sprite?: string;
   /** Item que ela recebe ao fazer o ponto (ex.: a caixa da entrega). */
   gives?: string;
   /** Item que ela entrega ao fazer o ponto (precisa ter). */
@@ -82,7 +84,7 @@ export function newsForDay(data: NewsData, day: number): NewsItem[] {
 export function validateJobs(
   jobs: JobsData,
   news: NewsData,
-  refs: { maps: ReadonlySet<string>; items: ReadonlySet<string>; tiles: ReadonlySet<string> },
+  refs: { maps: ReadonlySet<string>; items: ReadonlySet<string>; tiles: ReadonlySet<string>; sprites: ReadonlySet<string> },
 ): string[] {
   const errors: string[] = [];
   if (!(jobs.maxActive >= 1)) errors.push('jobs: maxActive precisa ser 1 ou mais');
@@ -95,6 +97,7 @@ export function validateJobs(
     if (!refs.maps.has(p.map)) errors.push(`${where}: mapa inexistente "${p.map}"`);
     if (!['press', 'sweep'].includes(p.action)) errors.push(`${where}: ação inválida "${p.action}"`);
     if (p.marker && !refs.tiles.has(p.marker)) errors.push(`${where}: tile inexistente "${p.marker}"`);
+    if (p.sprite && !refs.sprites.has(p.sprite)) errors.push(`${where}: quadro inexistente em emotes.json "${p.sprite}"`);
     for (const item of [p.gives, p.takes]) if (item && !refs.items.has(item)) errors.push(`${where}: item inexistente "${item}"`);
   }
   const jobIds = new Set<string>();

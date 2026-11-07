@@ -357,6 +357,24 @@ export function solidRects(solid: boolean[][]): Rect[] {
   return rects;
 }
 
+/** Células livres alcançáveis a pé a partir de `start` (passos em 4 direções; diagonal entre dois sólidos não passa). */
+export function reachableCells(solid: boolean[][], [sc, sr]: Cell): boolean[][] {
+  const seen = solid.map((line) => line.map(() => false));
+  const free = (c: number, r: number) => solid[r]?.[c] === false && !seen[r]![c];
+  if (!free(sc, sr)) return seen;
+  const queue: Cell[] = [[sc, sr]];
+  seen[sr]![sc] = true;
+  while (queue.length > 0) {
+    const [c, r] = queue.shift()!;
+    for (const [nc, nr] of [[c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]] as Cell[]) {
+      if (!free(nc, nr)) continue;
+      seen[nr]![nc] = true;
+      queue.push([nc, nr]);
+    }
+  }
+  return seen;
+}
+
 /** Células sólidas das grades: paredes sólidas e pisos sólidos (asfalto, água). */
 function baseSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   const { cols, rows } = map.size;

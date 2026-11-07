@@ -11,6 +11,8 @@ function newSession(withCat = true) {
   const state = newGameState(content.economy.startingMoney);
   // A maioria dos testes compra itens de gato: libera direto (o fluxo do gato tem testes próprios).
   if (withCat) state.flags['has.cat'] = true;
+  // A vassoura da corretora (o roteiro não roda nos testes): já entra ativa no primeiro espaço da barra.
+  state.inventory['item.broom'] = 1;
   const session = new GameSession(content, state);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
@@ -239,7 +241,7 @@ describe('dinheiro e inventário', () => {
     events.length = 0;
     expect(session.buy('item.cat_bed')).toEqual({ ok: true });
     expect(session.state.money).toBe(125);
-    expect(session.state.inventory).toEqual({ 'item.cat_bed': 1 });
+    expect(session.state.inventory).toEqual({ 'item.broom': 1, 'item.cat_bed': 1 });
     expect(events.map((e) => e.name)).toEqual(['money.changed', 'item.bought']);
   });
 
@@ -263,7 +265,7 @@ describe('dinheiro e inventário', () => {
     buyAndPlace(session, 'item.cactus', [10, 8]);
     expect(session.state.placed[0]!.uid).toBe('p1');
     expect(session.pickUp('p1')).toEqual({ ok: true });
-    expect(session.state.inventory).toEqual({ 'item.cactus': 1 });
+    expect(session.state.inventory).toEqual({ 'item.broom': 1, 'item.cactus': 1 });
     expect(session.place('item.cactus', [10, 8])).toEqual({ ok: true });
     expect(session.state.placed[0]!.uid).toBe('p2');
   });
@@ -345,7 +347,7 @@ describe('devolução', () => {
     expect(session.state.money).toBe(30);
     expect(session.refund('item.sofa')).toEqual({ ok: true });
     expect(session.state.money).toBe(150);
-    expect(session.state.inventory).toEqual({});
+    expect(session.state.inventory).toEqual({ 'item.broom': 1 });
     expect(events.map((e) => e.name)).toEqual(['money.changed', 'item.refunded']);
   });
 
@@ -699,7 +701,7 @@ describe('pedidos da vila', () => {
   it('só aparecem depois do prólogo', () => {
     const { session } = newSession();
     expect(session.availableJobs()).toEqual([]);
-    expect(afterPrologue().session.availableJobs().length).toBe(4);
+    expect(afterPrologue().session.availableJobs().length).toBe(8);
   });
 
   it('um de cada vez; paga ao concluir e conta no resumo do dia', () => {
@@ -750,6 +752,44 @@ describe('pedidos da vila', () => {
     expect(snow()).toBe(3);
     session.doJobPoint('pt.snow_1');
     expect(snow()).toBe(2);
+  });
+
+  it('varrer a neve exige a vassoura ativa; o ponto é achado mesmo de longe', () => {
+    const { session } = afterPrologue();
+    session.acceptJob('job.clear_snow');
+    expect(session.jobPointAt([7, 9])?.id).toBe('pt.snow_2');
+    expect(session.jobPointNear([[15, 9]], [7, 9])).toBeUndefined();
+    session.selectHotbarSlot(5);
+    expect(session.jobPointProblem('pt.snow_2')).toBe('needs_broom');
+    expect(session.doJobPoint('pt.snow_2')).toEqual({ ok: false, reason: 'needs_broom' });
+    session.selectHotbarSlot(0);
+    expect(session.doJobPoint('pt.snow_2')).toEqual({ ok: true });
+  });
+
+  it('as entregas: a caixa vai da coleta no mercado até a porta da casa', () => {
+    const { session } = afterPrologue();
+    for (const [job, pickup, dropoff] of [
+      ['job.parcel_house_a', 'pt.parcel_pickup_house_a', 'pt.parcel_dropoff_house_a'],
+      ['job.parcel_house_c', 'pt.parcel_pickup_house_c', 'pt.parcel_dropoff_house_c'],
+    ] as const) {
+      expect(session.acceptJob(job)).toEqual({ ok: true });
+      expect(session.doJobPoint(dropoff)).toEqual({ ok: false, reason: 'not_found' });
+      expect(session.doJobPoint(pickup)).toEqual({ ok: true });
+      expect(session.state.inventory['item.parcel']).toBe(1);
+      expect(content.items['item.parcel']!.carrySprite).toBe('parcel');
+      expect(session.doJobPoint(dropoff)).toEqual({ ok: true });
+      expect(session.state.inventory['item.parcel'] ?? 0).toBe(0);
+      expect(session.activeJobs()).toEqual([]);
+    }
+  });
+
+  it('a cafeteira (com o balcão) cabe em um dia de pedidos, mesmo sem fazer todos', () => {
+    const { session } = afterPrologue();
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    const total = Object.values(content.jobs).reduce((n, j) => n + j.reward, 0);
+    const needed = content.items['item.coffee_machine']!.price + content.items['item.counter_single']!.price;
+    // Folga: dá para pular dois pedidos do dia (ou comprar mais ração) e ainda chegar lá.
+    expect(session.state.money + total).toBeGreaterThanOrEqual(needed + 50);
   });
 
   it('o jornal tem notícias marcadas para o dia e um sorteio estável depois', () => {
@@ -913,5 +953,43 @@ describe('correio: compras do catálogo chegam na porta', () => {
     expect(called()).toBe(false);
     session.tickClock(minutes(61));
     expect(called()).toBe(true);
+  });
+});
+
+describe('barra de itens', () => {
+  it('a vassoura entra sozinha no primeiro espaço e fica ativa', () => {
+    const { session } = newSession();
+    expect(session.state.hotbar.slots[0]).toBe('item.broom');
+    expect(session.activeItem()).toBe('item.broom');
+  });
+
+  it('varrer sujeira exige a vassoura ativa', () => {
+    const { session } = newSession();
+    startOnStreet(session);
+    realtorTour(session);
+    const dirt = session.visibleDirt().find((d) => !d.clearedBy)!;
+    session.selectHotbarSlot(3);
+    expect(session.activeItem()).toBeNull();
+    expect(session.clean(dirt.id)).toEqual({ ok: false, reason: 'needs_broom' });
+    session.selectHotbarSlot(0);
+    expect(session.clean(dirt.id)).toEqual({ ok: true });
+  });
+
+  it('pôr um item no espaço ativo troca de lugar com o que já estava na barra', () => {
+    const { session, events } = newSession();
+    expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
+    session.selectHotbarSlot(2);
+    expect(session.assignToHotbar('item.cat_food_basic')).toEqual({ ok: true });
+    expect(session.assignToHotbar('item.broom')).toEqual({ ok: true });
+    expect(session.state.hotbar.slots.slice(0, 3)).toEqual(['item.cat_food_basic', null, 'item.broom']);
+    expect(session.activeItem()).toBe('item.broom');
+    expect(events.some((e) => e.name === 'hotbar.changed')).toBe(true);
+  });
+
+  it('móvel e item que ela não tem não vão para a barra', () => {
+    const { session } = newSession();
+    expect(session.buy('item.cactus')).toEqual({ ok: true });
+    expect(session.assignToHotbar('item.cactus')).toEqual({ ok: false, reason: 'unknown_item' });
+    expect(session.assignToHotbar('item.cat_food_basic')).toEqual({ ok: false, reason: 'not_in_inventory' });
   });
 });

@@ -179,7 +179,7 @@ Roteiro = lista de passos executados em ordem; cada um espera o anterior termina
 A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
 NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`).
 A vassoura fica em `data/tools.json` (quadros, ponto do cabo, tempo de varrer).
-Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem se devolve).
+Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem se devolve) e `carrySprite` (quadro de `data/emotes.json` desenhado acima da cabeça dela enquanto tiver o item; ex.: a caixa de uma entrega).
 
 ## Mundo (`data/world.json`)
 
@@ -344,11 +344,14 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
   "relationships": { "player|cat.first_stray": 120 },                                     // v4
   "location": "map.street",                                  // v3: onde a personagem está
   "visited": ["map.street", "map.cafe_main"],                 // v3: mapas onde já entrou
-  "cleaned": ["dirt.web_window_left"]                         // v3: sujeiras já limpas ("*" = todas)
+  "cleaned": ["dirt.web_window_left"],                        // v3: sujeiras já limpas ("*" = todas)
+  "hotbar": { "slots": ["item.broom", null, null, null, null, null, null, null], "active": 0 }  // v10: barra de itens
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento). Fixtures: `tests/fixtures/save_v1.json` a `save_v8.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento) -> **v9** (`tray`, `sink`, etapas de preparo e preferências) -> **v10** (`hotbar`: 8 espaços com IDs de itens e o espaço ativo; o migrador põe a barra vazia e a vassoura entra sozinha ao abrir). Fixtures: `tests/fixtures/save_v1.json` a `save_v10.json`.
+
+Barra de itens (`src/core/hotbar.ts`): vão para a barra itens da mochila que não são móveis nem fixos. Ferramenta (`kind: "tool"`) entra sozinha no primeiro espaço livre. Item que acabou deixa o espaço vazio na tela. `world.tools.sweep` diz qual item precisa estar no espaço ativo para varrer sujeira e neve (sem ele: `needs_broom`).
 
 Regras:
 - Hoje o save fica no `localStorage`, via `src/platform/`: slots `biscuit-paws:slot1..slot3` (manuais) e `biscuit-paws:auto` (autosave), cada um com backup da versão anterior em `<slot>.bak`; `auto.origin` (de qual slot manual veio o autosave) e `current-slot`. O modo debug usa os mesmos nomes com prefixo `debug-`. `?novo` na URL começa um jogo novo no slot 1 (pula a Home); `?jogar` continua o mais recente.
@@ -395,7 +398,7 @@ Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "
 }
 ```
 
-Ponto: `press` (E ou clique de perto) ou `sweep` (varre com a vassoura). `marker`: tile desenhado enquanto o ponto está pendente. `gives`/`takes`: item recebido/entregue (itens com a tag `job` somem no fim do dia). Os passos vão em ordem; os pontos de um passo, em qualquer ordem. Pedido pela metade não passa para o dia seguinte. O `npm run check` exige que todo ponto (ou um vizinho dele) seja alcançável a pé a partir do spawn do mapa: cuidado com dois objetos sólidos que só se tocam na diagonal, porque eles fecham a passagem.
+Ponto: `press` (E ou clique de perto) ou `sweep` (varre com a vassoura). `marker`: tile desenhado enquanto o ponto está pendente. `sprite`: quadro de `data/emotes.json` desenhado no chão do ponto no lugar do "!" (ex.: a caixa para pegar no estoque). `gives`/`takes`: item recebido/entregue (itens com a tag `job` somem no fim do dia). Os passos vão em ordem; os pontos de um passo, em qualquer ordem. Pedido pela metade não passa para o dia seguinte. O `npm run check` exige que todo ponto (ou um vizinho dele) seja alcançável a pé a partir do spawn do mapa: cuidado com dois objetos sólidos que só se tocam na diagonal, porque eles fecham a passagem.
 Aceitar: no celular (tecla P, app "Vila Hoje") ou no mural do mercado (interação `{ "action": { "board": true } }`).
 
 Jornal: `{ "id": "news.x", "headline": "...", "text": "...", "day": 2 }` (fixa num dia) ou `"fromDay": 4` (sorteio: uma por dia, sempre a mesma para aquele dia).

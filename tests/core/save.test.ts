@@ -177,6 +177,22 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(state.service.customers[0]).toMatchObject({ favorite: 'recipe.black_coffee', wantsPremium: true });
   });
 
+  it('save_v9: migra para v10 com a barra vazia; a vassoura entra sozinha ao abrir', () => {
+    const save = JSON.parse(readFileSync('tests/fixtures/save_v9.json', 'utf8'));
+    save.inventory = { ...save.inventory, 'item.broom': 1 };
+    const { state } = parseSave(JSON.stringify(save), known);
+    expect(state.hotbar).toEqual({ slots: Array(8).fill(null), active: 0 });
+    const session = new GameSession(content, state);
+    expect(session.state.hotbar.slots[0]).toBe('item.broom');
+    expect(session.activeItem()).toBe('item.broom');
+  });
+
+  it('save_v10: guarda a barra; item que sumiu deixa o espaço vazio', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v10.json', 'utf8'), known);
+    expect(state.hotbar.slots.slice(0, 3)).toEqual(['item.broom', null, null]);
+    expect(state.hotbar.active).toBe(1);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

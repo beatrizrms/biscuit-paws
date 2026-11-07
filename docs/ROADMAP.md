@@ -51,6 +51,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Atendimento, Fase 2: bandeja, itens pesados, gato no veterinário, forno, pia como estação, qualidade e preferências
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
+- [x] Barra de itens (1 a 8) e mochila em grade; varrer exige a vassoura ativa
+- [x] Mais pedidos diários (8): entregas com a caixa visível, neve no mercado, caixotes
 - [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
 - [ ] Gatos de rua anunciados no jornal (Marco 2)
 - [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")

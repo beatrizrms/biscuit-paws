@@ -3,7 +3,7 @@
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
-import { validateMap, type Cell, type MapData, type SurfaceKind } from './map';
+import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
@@ -29,6 +29,8 @@ export interface ItemDef {
   icon?: string;
   /** Imagem própria do ícone (ex.: a chave), quando não está na folha de ícones. */
   iconImage?: string;
+  /** Quadro de data/emotes.json desenhado acima da cabeça dela enquanto tiver o item (ex.: a caixa de uma entrega). */
+  carrySprite?: string;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
@@ -204,6 +206,8 @@ export interface WorldData {
   dailyDirt: number;
   /** Pixels que um equipamento sobe quando está em cima do balcão. */
   counterLift?: number;
+  /** Ação -> item que precisa estar ativo na barra (sweep: varrer sujeira e neve). */
+  tools: { sweep: string };
   /**
    * Onde ela dorme. null = em casa, fora do mapa (transição "Você foi para casa").
    * Ponto de extensão: quando o quartinho do café for destrancado, vira o id desse mapa.
@@ -327,6 +331,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   if (!mapIds.has(raw.world.startMap)) err(`world: startMap "${raw.world.startMap}" não existe`);
   if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
+  if (!raw.items.items.some((i) => i.id === raw.world.tools?.sweep && i.kind === 'tool')) err(`world: tools.sweep "${raw.world.tools?.sweep}" não é uma ferramenta (kind "tool") de items.json`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
   for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);
   {
@@ -336,7 +341,16 @@ export function validateContent(raw: RawContent): string[] {
     if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
   }
-  errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)) }));
+  errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
+  for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
+  // Todo ponto de pedido precisa ser alcançável a pé a partir do spawn do mapa (ele ou um vizinho).
+  for (const p of raw.jobs.points) {
+    const m = raw.maps.find((x) => x.id === p.map);
+    if (!m) continue;
+    const reach = reachableCells(solidGrid(m, raw.catalog), m.spawn.player);
+    const [c, r] = p.at;
+    if (![[c, r], [c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]].some(([x, y]) => reach[y!]?.[x!])) err(`jobs: ponto "${p.id}" em (${c},${r}) de "${p.map}" não dá para alcançar a pé`);
+  }
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
   for (const m of raw.maps) {

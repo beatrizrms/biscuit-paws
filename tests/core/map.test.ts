@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { resolveMap, solidRects, validateMap, type MapData } from '../../src/core/map';
+import { reachableCells, resolveMap, solidRects, validateMap, type MapData } from '../../src/core/map';
 import { getTile } from '../../src/core/tiles';
 import { variantAt } from '../../src/core/map';
 import { loadContent } from './content';
@@ -148,5 +148,25 @@ describe('solidRects', () => {
       { col: 0, row: 0, w: 2, h: 1 },
       { col: 3, row: 0, w: 1, h: 1 },
     ]);
+  });
+});
+
+describe('reachableCells', () => {
+  it('anda em 4 direções e não passa pela diagonal entre dois sólidos', () => {
+    // Igual ao vaso + caixa de correio da rua: sólidos só se tocando na diagonal fecham a passagem.
+    const solid = [
+      [false, true, false],
+      [false, false, true],
+    ];
+    const seen = reachableCells(solid, [2, 0]);
+    expect(seen).toEqual([
+      [false, false, true],
+      [false, false, false],
+    ]);
+    expect(reachableCells(solid, [0, 0])[1]).toEqual([true, true, false]);
+  });
+
+  it('partindo de célula sólida, nada é alcançável', () => {
+    expect(reachableCells([[true, false]], [0, 0])).toEqual([[false, false]]);
   });
 });
