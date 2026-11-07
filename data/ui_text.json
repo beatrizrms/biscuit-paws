@@ -25,7 +25,7 @@
   ],
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · porta: siga em frente · E: interagir · clique: varrer · C (no café): catálogo",
+  "hintWalk": "Setas/WASD: andar · E: interagir · clique: varrer · C (no café): catálogo · P: celular",
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -50,7 +50,12 @@
     "not_sheltered": "Esse gatinho ainda não mora aqui.",
     "no_food": "Não tenho ração. O mercado fica ali na rua.",
     "no_cat": "Ainda não tem gatinho para comer.",
-    "already_owned": "Você já tem isso."
+    "already_owned": "Você já tem isso.",
+    "already_fed": "Já comeu hoje. Amanhã tem mais!",
+    "unknown_job": "Pedido desconhecido.",
+    "job_full": "Um pedido de cada vez. Termine o que você aceitou.",
+    "job_unavailable": "Esse pedido não está disponível agora.",
+    "missing_item": "Você precisa estar com a caixa."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -99,12 +104,41 @@
     "continue": "Espaço, Enter ou clique: continuar"
   },
   "dayTransition": {
-    "home": "Você foi para casa."
+    "home": "Você foi para casa.",
+    "passOut": "Você desmaiou de cansaço... e acordou tarde.",
+    "story": "Você foi para casa.",
+    "earned": "Moedas ganhas",
+    "jobs": "Pedidos feitos"
   },
   "catalogOnline": "Comprando online: a entrega chega aqui no café.",
   "installed": "na porta",
   "fixtureDelivered": "Entregue! Já está no lugar, lá fora na porta do café.",
   "phone": {
     "calling": "chamando..."
+  },
+  "wait": "Esperar ⏩",
+  "waitTitle": "O tempo passa depressa até a hora marcada",
+  "news": {
+    "close": "fechar",
+    "boardTitle": "Mural de pedidos",
+    "jobsTitle": "Pedidos da vila",
+    "accept": "aceitar",
+    "inProgress": "em andamento",
+    "oneAtATime": "Um pedido de cada vez",
+    "noJobs": "Nenhum pedido por hoje. Volte amanhã!",
+    "arrived": "Bzz! Chegou o Vila Hoje no celular (P).",
+    "accepted": "Pedido aceito",
+    "done": "Pedido concluído"
+  },
+  "chores": {
+    "title": "hoje",
+    "feed": "Comida para {cat}",
+    "sweep": "Varrer a poeira do dia",
+    "job": "Pedido"
+  },
+  "goHome": {
+    "question": "Encerrar o dia e ir para casa?",
+    "yes": "Ir para casa",
+    "no": "Ainda não"
   }
 }

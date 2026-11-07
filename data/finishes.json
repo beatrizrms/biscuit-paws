@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "unlockFlag: o pintor só aparece depois que esta flag existir (a Dona Lurdes indica o pintor).",
+  "_comment": "unlockFlag: o pintor só aparece depois que esta flag existir (a Dona Neusa indica o pintor).",
   "unlockFlag": "painter.available",
   "finishes": [
     { "id": "finish.wood_parquet", "name": "Taco de madeira", "tile": "floor_wood_a", "kind": "floor", "price": 60 },

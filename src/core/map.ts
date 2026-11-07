@@ -45,7 +45,8 @@ export interface MapInteraction {
   at: Cell;
   /** Distância máxima (em células) entre os pés da personagem e `at`. */
   reach?: number;
-  action: { shop: string };
+  /** shop: abre a loja; board: abre o mural de pedidos da vila. */
+  action: { shop: string } | { board: true };
 }
 
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */

@@ -2,7 +2,7 @@
 // Puro: sem Phaser, DOM ou window. Quem aplica os efeitos é a GameSession.
 import type { Beat, Condition, ItemDef, StoryData } from './content';
 import type { DirtSpot } from './map';
-import { ownedCount, placedCount, type GameState } from './state';
+import { nowAbs, ownedCount, placedCount, type GameState } from './state';
 import { parseClock } from './time';
 
 /** O que as condições precisam saber além do estado. */
@@ -36,16 +36,34 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('day' in c) return state.day >= c.day.gte;
   if ('clock' in c) return state.time >= parseClock(c.clock.gte);
   if ('location' in c) return state.location === c.location;
+  if ('nextDay' in c) {
+    if (!state.story.completed.includes(c.nextDay)) return false;
+    return state.day > (state.story.completedOn[c.nextDay] ?? 0);
+  }
+  if ('timer' in c) return state.timers[c.timer] !== undefined && nowAbs(state) >= state.timers[c.timer]!;
+  if ('ownedTag' in c) {
+    const tagged = Object.values(ctx.items).filter((i) => i.tags.includes(c.ownedTag));
+    return tagged.reduce((n, i) => n + ownedCount(state, i.id), 0) >= (c.gte ?? 1);
+  }
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }
 
 const isCompleted = (beat: Beat, state: GameState) => state.story.completed.includes(beat.id);
 
-/** Marcos liberados (todos os "after" concluídos) e ainda não concluídos, na ordem do arquivo. */
-export function activeBeats(story: StoryData, state: GameState): Beat[] {
-  return story.beats.filter(
-    (b) => !isCompleted(b, state) && (b.after ?? []).every((dep) => state.story.completed.includes(dep)),
-  );
+/**
+ * Marcos ativos, na ordem do arquivo: não concluídos, com todos os "after" concluídos e o "start" valendo.
+ * Um marco exclusivo ativo segura os seguintes (uma quest por vez).
+ */
+export function activeBeats(story: StoryData, state: GameState, ctx: StoryContext): Beat[] {
+  const active: Beat[] = [];
+  for (const b of story.beats) {
+    if (isCompleted(b, state)) continue;
+    if (!(b.after ?? []).every((dep) => state.story.completed.includes(dep))) continue;
+    if (b.start && !evaluate(b.start, state, ctx)) continue;
+    active.push(b);
+    if (b.exclusive) break;
+  }
+  return active;
 }
 
 /** Um marco ativo termina quando a condição e todos os passos da meta valem. */
@@ -58,7 +76,8 @@ export interface GoalView {
   beatId: string;
   title: string;
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
-  steps: { text: string; done: boolean; devNote?: string; progress?: [number, number] }[];
+  /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
+  steps: { text: string; done: boolean; devNote?: string; progress?: [number, number]; waitUntil?: number }[];
 }
 
 /** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
@@ -70,11 +89,17 @@ function progressOf(c: Condition, state: GameState, ctx: StoryContext): [number,
 
 /** Metas para mostrar no diário. */
 export function currentGoals(story: StoryData, state: GameState, ctx: StoryContext): GoalView[] {
-  return activeBeats(story, state)
+  return activeBeats(story, state, ctx)
     .filter((b) => b.goal)
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
-      steps: b.goal!.steps.map((s) => ({ text: s.text, done: evaluate(s.when, state, ctx), devNote: s.devNote, progress: progressOf(s.when, state, ctx) })),
+      steps: b.goal!.steps.map((s) => ({
+        text: s.text,
+        done: evaluate(s.when, state, ctx),
+        devNote: s.devNote,
+        progress: progressOf(s.when, state, ctx),
+        waitUntil: 'timer' in s.when ? state.timers[s.when.timer] : undefined,
+      })),
     }));
 }

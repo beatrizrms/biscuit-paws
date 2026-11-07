@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Jornal do celular. day: só naquele dia. fromDay: entra no sorteio a partir daquele dia (um por dia, sempre o mesmo para o dia).",
+  "app": "Vila Hoje",
+  "items": [
+    {
+      "id": "news.coldest_night",
+      "day": 2,
+      "headline": "Noite mais fria do ano na Vila",
+      "text": "Os termômetros marcaram quatro graus negativos. Moradores reclamam dos gatos de rua dormindo embaixo dos carros e nos degraus das lojas."
+    },
+    {
+      "id": "news.bakery_sold",
+      "day": 2,
+      "headline": "Padaria do seu Antônio tem nova dona",
+      "text": "A antiga padaria da rua principal, fechada há anos, foi vendida. A nova dona não quis dizer o que vai abrir lá."
+    },
+    {
+      "id": "news.market_help",
+      "day": 3,
+      "headline": "Mercado da Vila procura ajudantes",
+      "text": "Com o movimento de fim de ano, o Seu Ademir paga por pequenos serviços. Os pedidos estão no mural do mercado e aqui no Vila Hoje."
+    },
+    {
+      "id": "news.snow_back",
+      "fromDay": 4,
+      "headline": "A neve volta amanhã",
+      "text": "A previsão é de mais neve no fim de semana. Bom dia para um chocolate quente."
+    },
+    {
+      "id": "news.orange_cat",
+      "fromDay": 4,
+      "headline": "Gato laranja é visto no banco da praça",
+      "text": "Um gato laranja e gordinho virou atração: dorme todas as tardes no mesmo banco, sem se importar com a neve."
+    },
+    {
+      "id": "news.book_swap",
+      "fromDay": 4,
+      "headline": "Feira de troca de livros",
+      "text": "No sábado, a biblioteca da Vila faz a feira de troca de livros. Leve um, traga outro."
+    },
+    {
+      "id": "news.boxes_tip",
+      "fromDay": 4,
+      "headline": "Dica da semana",
+      "text": "Gatos adoram caixas de papelão. Ninguém sabe explicar, mas todo mundo já viu."
+    }
+  ]
+}

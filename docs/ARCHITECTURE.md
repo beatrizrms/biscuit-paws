@@ -70,7 +70,10 @@ cat-cafe-game/
 | `cat.named` | a jogadora deu nome ao gato | `catId, name` |
 | `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
 | `day.started` | amanheceu (ela chega de casa) | `day` |
-| `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou) |
+| `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou), `reason` (`home`, `passOut`, `story`), `earned`, `jobs` (resumo do dia) |
+| `job.accepted` | a jogadora aceitou um pedido da vila | `jobId` |
+| `job.progress` | ela fez um ponto de um pedido | `jobId, pointId` |
+| `job.completed` | pedido concluído e pago | `jobId, reward` |
 | `cat.fed` | um gato comeu da tigela | `catId, itemId, bowlUid` |
 | `customer.served` | cliente atendido | `customerId, tip` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |

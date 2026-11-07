@@ -131,3 +131,13 @@ Consequência: a lousa saiu da rua e virou `item.cafe_sign` (kind `fixture`, se�
 ## 035. Dia 2: a Gabi e o Joca; Dona Lurdes em cena (nov/2026)
 Motivo: pedido da desenvolvedora (mais marcos no dia 2) e novos pacotes de arte.
 Consequência: marcos `story.gabi_call` (7h15 do dia 2, ligação no celular) e `story.gabi_visit` (a partir das 8h30, com ela no café): o Joca fareja o gatinho e a Gabi dá o conjunto de louças (`item.dishes_set`, kind `gift`). Condições `day`, `clock`, `location`. A Dona Lurdes deixou de ser só texto: entra no café por roteiro (`scr.lurdes_visit`). O mercado vende 19 itens de matéria-prima; as receitas ficam em `data/recipes.json` para o preparo futuro. Vassoura trocada pela do pacote `vassoura_nova`.
+
+## 036. Primeiros dias: uma quest por vez, dinheiro com pedidos da vila (nov/2026)
+Motivo: pedido da desenvolvedora. Os gatos entram pela história desde o anúncio; o dinheiro tem que vir aos poucos; uma coisa por vez no começo; a espera da Gabi não podia depender de uma ação impossível.
+Consequência:
+- O anúncio fala da "grande população de gatos" e ela deduz o problema; a fala do vizinho saiu da chegada.
+- Ordem: cantinho quente (só a caminha) -> cafeteira (180) -> Dona Neusa (ex-Lurdes: `npc.neusa`, `scr.neusa_visit`; ela dá 50 e indica o pintor) -> no dia seguinte, mesas (60 cada) -> a Gabi liga e chega 90 min depois (`startTimer` + `{ timer }`, botão "Esperar"; chega onde ela estiver) -> cadeiras (sem evento).
+- Marcos `exclusive` e `start`; condições `nextDay`, `timer`, `ownedTag`. `story.first_seats` e `npc.lurdes`/`scr.lurdes_visit` foram aposentados (nunca reaproveitar esses ids).
+- Pedidos da vila em dados (`data/jobs.json`), jornal "Vila Hoje" no celular (`data/news.json`) e mural no mercado.
+- Dia mais curto (1,2 min/s, ~16 min), ir para casa na porta do café depois das 17h, resumo do dia, desmaio às 2h acorda às 10h. Só falas, cenas e transições pausam o relógio; catálogo, loja e celular não (era um dos motivos da espera da Gabi parecer travada).
+- Rotina: comida uma vez por dia e poeira que volta. Save v6.

@@ -65,7 +65,7 @@
           "app": "Classificados",
           "title": "VENDE-SE: antiga padaria",
           "lines": [
-            "Vila das Baunilhas",
+            "Vila das Baunilhas, conhecida pela sua grande população de gatos.",
             "Ponto antigo, precisa de reforma.",
             "Preço de pechincha!"
           ],
@@ -75,6 +75,16 @@
           "type": "text",
           "speaker": "Você",
           "text": "A Vila das Baunilhas... o bairro onde eu nasci."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "\"Grande população de gatos\"... Gatos de rua, isso sim. Passando frio nessa neve."
+        },
+        {
+          "type": "text",
+          "speaker": "Você",
+          "text": "E duvido que a vizinhança goste muito deles."
         },
         {
           "type": "text",
@@ -162,7 +172,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Com gatos?! Quero saber de tudo. Vou passar aí mais tarde pra conhecer!"
+          "text": "Com gatos?! Quero saber de tudo. Daqui a pouco eu passo aí pra conhecer!"
         },
         {
           "type": "text",

@@ -5,6 +5,7 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { validateMap, type Cell, type MapData, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
+import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
@@ -100,7 +101,13 @@ export type Condition =
   /** A partir de uma hora do dia ("08:30"). */
   | { clock: { gte: string } }
   /** A personagem está neste mapa agora. */
-  | { location: string };
+  | { location: string }
+  /** O marco já terminou num dia anterior (começa no dia seguinte). */
+  | { nextDay: string }
+  /** O relógio marcado chegou (ex.: a hora da chegada da Gabi). */
+  | { timer: string }
+  /** Quantos itens com esta tag ela tem (na bolsa + posicionados). */
+  | { ownedTag: string; gte?: number };
 
 export type Effect =
   | { dialogue: string }
@@ -115,7 +122,9 @@ export type Effect =
   /** Roteiro no mundo (data/scripts.json): ex.: a corretora mostra a padaria. */
   | { script: string }
   /** Acerta o relógio (ex.: a chegada é às "08:00" do dia seguinte aos pensamentos). */
-  | { setTime: string };
+  | { setTime: string }
+  /** Marca um relógio: daqui a `minutes` minutos de jogo (condição { timer }). */
+  | { startTimer: string; minutes: number };
 
 export interface GoalStep {
   /** Texto que a jogadora vê. */
@@ -130,6 +139,13 @@ export interface Beat {
   act: number;
   /** Marcos que precisam estar concluídos antes deste começar. */
   after?: string[];
+  /** Condição para o marco COMEÇAR (aparecer no balão). Ex.: { nextDay: "story.x" }. */
+  start?: Condition;
+  /**
+   * Exclusivo: enquanto estiver ativo, os marcos seguintes do arquivo não começam
+   * (uma quest por vez, nos primeiros dias). Sem a flag, marcos correm em paralelo.
+   */
+  exclusive?: boolean;
   /** Condição extra para concluir. Se houver meta, todos os passos também precisam valer. */
   when?: Condition;
   /** Meta visível no diário enquanto o marco estiver ativo. */
@@ -163,6 +179,10 @@ export interface WorldData {
   season: string;
   /** Onde ela aparece de manhã, vindo de casa. */
   morning: { map: string; spawn: Cell };
+  /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
+  goHomeDoors: string[];
+  /** Quantas poeiras do café voltam a cada manhã (rotina de varrer). */
+  dailyDirt: number;
   /**
    * Onde ela dorme. null = em casa, fora do mapa (transição "Você foi para casa").
    * Ponto de extensão: quando o quartinho do café for destrancado, vira o id desse mapa.
@@ -195,6 +215,10 @@ export interface Content {
   scripts: Record<string, { steps: ScriptStep[] }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
+  jobs: Record<string, JobDef>;
+  jobPoints: Record<string, JobPoint>;
+  maxActiveJobs: number;
+  news: NewsData;
 }
 
 /** Receita de bebida (data/recipes.json). */
@@ -230,6 +254,8 @@ export interface RawContent {
   dayNight: DayNightConfig;
   recipes: RecipesData;
   emotes: { frames: Record<string, unknown> };
+  jobs: JobsData;
+  news: NewsData;
 }
 
 export function buildContent(raw: RawContent): Content {
@@ -244,7 +270,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])) };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -269,6 +295,8 @@ export function validateContent(raw: RawContent): string[] {
   if (!mapIds.has(raw.world.startMap)) err(`world: startMap "${raw.world.startMap}" não existe`);
   if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
+  for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);
+  errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
   for (const m of raw.maps) {
@@ -371,6 +399,7 @@ export function validateContent(raw: RawContent): string[] {
     beatIds.add(beat.id);
   }
 
+  const timerIds = new Set(raw.story.beats.flatMap((b) => b.effects.flatMap((e) => ('startTimer' in e ? [e.startTimer] : []))));
   const checkCondition = (where: string, c: Condition): void => {
     if ('all' in c) c.all.forEach((x) => checkCondition(where, x));
     else if ('any' in c) c.any.forEach((x) => checkCondition(where, x));
@@ -379,6 +408,12 @@ export function validateContent(raw: RawContent): string[] {
       if (!(home?.dirt ?? []).some((d) => !d.clearedBy && d.tags.includes(c.cleaned))) err(`${where}: nenhuma sujeira com a tag "${c.cleaned}"`);
     } else if ('catNamed' in c) {
       if (!catIds.has(c.catNamed)) err(`${where}: gato inexistente "${c.catNamed}"`);
+    } else if ('nextDay' in c) {
+      if (!beatIds.has(c.nextDay)) err(`${where}: marco inexistente "${c.nextDay}"`);
+    } else if ('ownedTag' in c) {
+      if (!itemTags.has(c.ownedTag)) err(`${where}: nenhum item tem a tag "${c.ownedTag}"`);
+    } else if ('timer' in c) {
+      if (!timerIds.has(c.timer)) err(`${where}: nenhum efeito marca o relógio "${c.timer}"`);
     } else if ('location' in c) {
       if (!mapIds.has(c.location)) err(`${where}: mapa inexistente "${c.location}"`);
     } else if ('clock' in c) {
@@ -395,6 +430,7 @@ export function validateContent(raw: RawContent): string[] {
     }
   };
 
+  for (const job of raw.jobs.jobs) if (job.available) checkCondition(`jobs: "${job.id}"`, job.available as Condition);
   for (const item of raw.items.items) {
     if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
     if (item.icon && !raw.icons.icons[item.icon]) err(`items: "${item.id}" usa ícone inexistente "${item.icon}"`);
@@ -418,7 +454,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   for (const m of raw.maps) {
     for (const it of m.interactions ?? []) {
-      if (!raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
+      if ('shop' in it.action && !raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
     }
   }
   for (const d of doorChecks) {
@@ -434,12 +470,14 @@ export function validateContent(raw: RawContent): string[] {
     const where = `story "${beat.id}"`;
     for (const dep of beat.after ?? []) if (!beatIds.has(dep)) err(`${where}: "after" aponta para "${dep}", que não existe`);
     if (beat.when) checkCondition(where, beat.when);
+    if (beat.start) checkCondition(where, beat.start);
     beat.goal?.steps.forEach((s) => checkCondition(where, s.when));
     for (const effect of beat.effects) {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
       if ('giveItem' in effect && !itemIds.has(effect.giveItem)) err(`${where}: item inexistente "${effect.giveItem}"`);
       if ('setTime' in effect && !/^\d{1,2}:\d{2}$/.test(effect.setTime)) err(`${where}: hora inválida "${effect.setTime}"`);
+      if ('startTimer' in effect && !(effect.minutes > 0)) err(`${where}: relógio "${effect.startTimer}" sem minutos`);
       if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
       if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);
     }

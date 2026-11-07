@@ -2,10 +2,10 @@
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import type { GameState } from './state';
 
-export const SAVE_SCHEMA_VERSION = 5;
+export const SAVE_SCHEMA_VERSION = 6;
 
-export interface SaveV5 extends GameState {
-  schemaVersion: 5;
+export interface SaveV6 extends GameState {
+  schemaVersion: 6;
   savedAt: string;
 }
 
@@ -25,10 +25,19 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   3: (save) => ({ ...save, schemaVersion: 4, cats: {}, relationships: {} }),
   /** v4 -> v5: hora do dia (ciclo dia/noite). Saves antigos ficam às 8h. */
   4: (save) => ({ ...save, schemaVersion: 5, time: 8 * 60 }),
+  /** v5 -> v6: dia em que cada marco terminou, relógios da história, resumo do dia e pedidos da vila. */
+  5: (save) => ({
+    ...save,
+    schemaVersion: 6,
+    story: { ...(save.story as object), completedOn: {} },
+    timers: {},
+    today: { earned: 0, jobs: 0 },
+    jobs: { active: [], progress: {}, doneOn: {} },
+  }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV5 = { schemaVersion: 5, savedAt: now.toISOString(), ...state };
+  const save: SaveV6 = { schemaVersion: 6, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -44,6 +53,7 @@ export interface KnownIds {
   surfaces: ReadonlySet<string>;
   maps: ReadonlySet<string>;
   cats: ReadonlySet<string>;
+  jobs: ReadonlySet<string>;
   /** Onde começar se o local salvo não existir mais. */
   startMap: string;
 }
@@ -61,7 +71,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV5>;
+  const v2 = save as unknown as Partial<SaveV6>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -88,7 +98,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     inventory,
     placed: (v2.placed ?? []).filter((p) => knownItem(p.item, `móvel ${p.uid}`)).map((p) => ({ ...p, at: [p.at[0], p.at[1]] })),
     nextUid: v2.nextUid ?? 1,
-    story: { completed: [...(v2.story?.completed ?? [])] },
+    story: { completed: [...(v2.story?.completed ?? [])], completedOn: { ...(v2.story?.completedOn ?? {}) } },
     cats: Object.fromEntries(
       Object.entries(v2.cats ?? {}).filter(([id]) => {
         if (known.cats.has(id)) return true;
@@ -101,6 +111,17 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     location: v2.location && known.maps.has(v2.location) ? v2.location : known.startMap,
     visited: (v2.visited ?? []).filter((m) => known.maps.has(m)),
     cleaned: [...(v2.cleaned ?? [])],
+    timers: { ...(v2.timers ?? {}) },
+    today: { earned: v2.today?.earned ?? 0, jobs: v2.today?.jobs ?? 0 },
+    jobs: {
+      active: (v2.jobs?.active ?? []).filter((id) => {
+        if (known.jobs.has(id)) return true;
+        warnings.push(`pedido "${id}" não existe mais; ignorado`);
+        return false;
+      }),
+      progress: Object.fromEntries(Object.entries(v2.jobs?.progress ?? {}).filter(([id]) => known.jobs.has(id))),
+      doneOn: Object.fromEntries(Object.entries(v2.jobs?.doneOn ?? {}).filter(([id]) => known.jobs.has(id))),
+    },
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
@@ -113,6 +134,7 @@ export function knownIds(content: {
   map: { surfaces?: { id: string }[] };
   maps: Record<string, unknown>;
   cats: Record<string, unknown>;
+  jobs: Record<string, unknown>;
   world: { startMap: string };
 }): KnownIds {
   return {
@@ -121,6 +143,7 @@ export function knownIds(content: {
     surfaces: new Set((content.map.surfaces ?? []).map((s) => s.id)),
     maps: new Set(Object.keys(content.maps)),
     cats: new Set(Object.keys(content.cats)),
+    jobs: new Set(Object.keys(content.jobs)),
     startMap: content.world.startMap,
   };
 }

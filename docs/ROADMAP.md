@@ -43,6 +43,10 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Dona Lurdes entra no café (NPC)
 - [x] Mercado com matéria-prima (café, chá, frutas, despensa); receitas como dados
 - [ ] Preparar bebidas no balcão (receitas)
+- [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)
+- [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
+- [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
+- [ ] Gatos de rua anunciados no jornal (Marco 2)
 - [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 

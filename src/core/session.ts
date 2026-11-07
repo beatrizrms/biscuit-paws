@@ -3,11 +3,13 @@
 import type { Condition, Content, Effect } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
+import { newsForDay, type JobDef, type JobPoint, type NewsItem } from './jobs';
+import { createRng } from './rng';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import { placedItemAt, placementProblem, withPlaced, type PlaceProblem } from './placement';
-import type { GameState } from './state';
+import { nowAbs, type GameState } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
@@ -40,6 +42,11 @@ export type ActionResult =
         | 'not_sheltered'
         | 'no_food'
         | 'no_cat'
+        | 'already_fed'
+        | 'unknown_job'
+        | 'job_full'
+        | 'job_unavailable'
+        | 'missing_item'
         | 'already_owned'
         | PlaceProblem;
     };
@@ -100,12 +107,14 @@ export class GameSession {
   /** Enche a tigela com uma ração da bolsa e um gato do café come (ganha corações). */
   feedFromBowl(bowlUid: string): ActionResult {
     if (!this.state.placed.some((p) => p.uid === bowlUid)) return { ok: false, reason: 'not_found' };
+    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id);
+    if (catId && this.state.cats[catId]!.fedOn === this.state.day) return { ok: false, reason: 'already_fed' };
     const food = Object.values(this.content.items).find((i) => i.tags.includes('food') && (this.state.inventory[i.id] ?? 0) > 0);
     if (!food) return { ok: false, reason: 'no_food' };
-    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id);
     if (!catId) return { ok: false, reason: 'no_cat' };
     this.removeFromInventory(food.id);
     this.state.flags[`fed.${catId}`] = true;
+    this.state.cats[catId]!.fedOn = this.state.day;
     this.bus.emit('cat.fed', { catId, itemId: food.id, bowlUid });
     this.addCatAffection(catId, this.content.relationships.feedPoints);
     return { ok: true };
@@ -115,14 +124,21 @@ export class GameSession {
    * Fim do dia: ela vai para casa (ou para o quartinho, quando existir: world.sleepMap)
    * e amanhece no dia seguinte, chegando pela rua.
    */
-  endDay(): void {
+  endDay(reason: 'home' | 'passOut' | 'story' = 'story'): void {
     const day = this.state.day;
+    const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
+    // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
+    this.state.jobs.active = [];
+    this.state.jobs.progress = {};
+    for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
     this.state.day = day + 1;
-    this.state.time = parseClock(this.content.dayNight.dayStart);
+    this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
+    this.state.today = { earned: 0, jobs: 0 };
     const morning = this.content.world.morning;
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
-    this.bus.emit('day.ended', { day });
+    this.dirtComesBack();
+    this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     this.advanceStory();
   }
@@ -131,9 +147,154 @@ export class GameSession {
   tickClock(seconds: number): void {
     const before = Math.floor(this.state.time);
     this.state.time += seconds * this.content.dayNight.minutesPerSecond;
-    if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay();
+    if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
     // A cada minuto de jogo a história olha de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) this.advanceStory();
+  }
+
+  /** Já dá para encerrar o dia na porta do café? */
+  canGoHome(): boolean {
+    return this.state.time >= parseClock(this.content.dayNight.goHomeFrom);
+  }
+
+  /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
+  goHome(): void {
+    if (this.canGoHome()) this.endDay('home');
+  }
+
+  /** De manhã, um pouco da poeira do café volta (depois do prólogo): a rotina de varrer. */
+  private dirtComesBack(): void {
+    if (!this.state.flags['prologue.done']) return;
+    const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
+    const clean = daily.filter((d) => isCleaned(this.state, d));
+    if (clean.length === 0) return;
+    // "*" (saves antigos: tudo limpo) vira a lista de verdade antes de sujar de novo.
+    if (this.state.cleaned.includes('*')) {
+      this.state.cleaned = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy).map((d) => d.id);
+    }
+    const rng = createRng(this.state.day * 31 + 7);
+    // Sorteio estável (Fisher-Yates com a semente do dia).
+    const pool = [...clean];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = rng.int(0, i);
+      [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+    }
+    const back = pool.slice(0, this.content.world.dailyDirt);
+    this.state.cleaned = this.state.cleaned.filter((id) => !back.some((d) => d.id === id));
+  }
+
+  /** Rotina do dia, depois do prólogo: comida para cada gato do café e a poeira que voltou. */
+  chores(): { kind: 'feed' | 'sweep'; catId?: string; done: boolean; progress?: [number, number] }[] {
+    if (!this.state.flags['prologue.done']) return [];
+    const out: { kind: 'feed' | 'sweep'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
+    for (const id of this.shelteredCats()) {
+      if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
+    }
+    const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
+    const left = daily.filter((d) => !isCleaned(this.state, d)).length;
+    const back = this.content.world.dailyDirt;
+    if (left > 0 || this.state.day > 2) out.push({ kind: 'sweep', done: left === 0, progress: [Math.max(0, back - left), back] });
+    return out;
+  }
+
+  // ---------- Pedidos da vila ----------
+
+  /** Notícias do dia no "Vila Hoje". */
+  news(): NewsItem[] {
+    return newsForDay(this.content.news, this.state.day);
+  }
+
+  /** Pedidos que dá para aceitar agora. */
+  availableJobs(): JobDef[] {
+    return Object.values(this.content.jobs).filter((j) => !this.state.jobs.active.includes(j.id) && this.jobOpen(j));
+  }
+
+  /** Pedidos aceitos, em andamento. */
+  activeJobs(): JobDef[] {
+    return this.state.jobs.active.map((id) => this.content.jobs[id]).filter((j): j is JobDef => !!j);
+  }
+
+  private jobOpen(job: JobDef): boolean {
+    if (job.available && !evaluate(job.available as Condition, this.state, this.storyContext())) return false;
+    const last = this.state.jobs.doneOn[job.id];
+    return job.repeat === 'daily' ? last !== this.state.day : last === undefined;
+  }
+
+  acceptJob(jobId: string): ActionResult {
+    const job = this.content.jobs[jobId];
+    if (!job) return { ok: false, reason: 'unknown_job' };
+    if (this.state.jobs.active.includes(jobId) || !this.jobOpen(job)) return { ok: false, reason: 'job_unavailable' };
+    if (this.state.jobs.active.length >= this.content.maxActiveJobs) return { ok: false, reason: 'job_full' };
+    this.state.jobs.active.push(jobId);
+    this.state.jobs.progress[jobId] = [];
+    this.bus.emit('job.accepted', { jobId });
+    return { ok: true };
+  }
+
+  /** Índice do passo atual de um pedido aceito (= número de passos quando acabou). */
+  jobStep(jobId: string): number {
+    const job = this.content.jobs[jobId];
+    if (!job) return 0;
+    const done = new Set(this.state.jobs.progress[jobId] ?? []);
+    const i = job.steps.findIndex((s) => !s.points.every((p) => done.has(p)));
+    return i === -1 ? job.steps.length : i;
+  }
+
+  /** Quanto do passo atual já foi feito: [feitos, total]. */
+  jobStepProgress(jobId: string): [number, number] {
+    const step = this.content.jobs[jobId]?.steps[this.jobStep(jobId)];
+    if (!step) return [0, 0];
+    const done = new Set(this.state.jobs.progress[jobId] ?? []);
+    return [step.points.filter((p) => done.has(p)).length, step.points.length];
+  }
+
+  /** Pontos pendentes num mapa (do passo atual de cada pedido aceito). */
+  pendingJobPoints(mapId = this.state.location): JobPoint[] {
+    const out: JobPoint[] = [];
+    for (const job of this.activeJobs()) {
+      const step = job.steps[this.jobStep(job.id)];
+      if (!step) continue;
+      const done = new Set(this.state.jobs.progress[job.id] ?? []);
+      for (const id of step.points) {
+        const p = this.content.jobPoints[id];
+        if (p && p.map === mapId && !done.has(id)) out.push(p);
+      }
+    }
+    return out;
+  }
+
+  /** Ponto de pedido ao alcance dos pés (`target`: só a célula clicada). */
+  jobPointNear(feet: readonly Cell[], target?: Cell): JobPoint | undefined {
+    const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+    return this.pendingJobPoints()
+      .filter((p) => !target || (p.at[0] === target[0] && p.at[1] === target[1]))
+      .map((p) => ({ p, d: Math.min(...feet.map((f) => dist(f, p.at))) }))
+      .filter(({ p, d }) => d <= (p.reach ?? 1))
+      .sort((a, b) => a.d - b.d)[0]?.p;
+  }
+
+  /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
+  doJobPoint(pointId: string): ActionResult {
+    const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
+    const point = this.content.jobPoints[pointId];
+    if (!job || !point) return { ok: false, reason: 'not_found' };
+    if (point.takes) {
+      if ((this.state.inventory[point.takes] ?? 0) < 1) return { ok: false, reason: 'missing_item' };
+      this.removeFromInventory(point.takes);
+    }
+    if (point.gives) this.state.inventory[point.gives] = (this.state.inventory[point.gives] ?? 0) + 1;
+    (this.state.jobs.progress[job.id] ??= []).push(pointId);
+    this.bus.emit('job.progress', { jobId: job.id, pointId });
+    if (this.jobStep(job.id) >= job.steps.length) {
+      this.state.jobs.active = this.state.jobs.active.filter((id) => id !== job.id);
+      delete this.state.jobs.progress[job.id];
+      this.state.jobs.doneOn[job.id] = this.state.day;
+      this.state.today.jobs++;
+      this.addMoney(job.reward, `job:${job.id}`);
+      this.bus.emit('job.completed', { jobId: job.id, reward: job.reward });
+    }
+    this.advanceStory();
+    return { ok: true };
   }
 
   /** Ponto do dia seguinte onde ela aparece de manhã. */
@@ -245,9 +406,9 @@ export class GameSession {
     if (mapId !== this.content.map.id) {
       const other = this.content.maps[mapId];
       if (!other) throw new Error(`Mapa desconhecido: "${mapId}"`);
-      return { ...other, objects: this.visibleObjects(other) };
+      return { ...other, objects: [...this.visibleObjects(other), ...this.jobMarkers(mapId)] };
     }
-    const base = { ...this.content.map, objects: this.visibleObjects(this.content.map) };
+    const base = { ...this.content.map, objects: [...this.visibleObjects(this.content.map), ...this.jobMarkers(mapId)] };
     const legend = { ...base.legend };
     for (const surface of base.surfaces ?? []) {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
@@ -286,6 +447,13 @@ export class GameSession {
     return (this.content.map.dirt ?? []).filter((d) =>
       d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d),
     );
+  }
+
+  /** Marcadores dos pontos de pedido pendentes (ex.: montes de neve a varrer). */
+  private jobMarkers(mapId: string): MapData['objects'] {
+    return this.pendingJobPoints(mapId)
+      .filter((p) => p.marker)
+      .map((p) => ({ id: `marker.${p.id}`, tile: p.marker!, at: p.at }));
   }
 
   /** Objetos do mapa que aparecem agora (os com `when` só depois da condição). */
@@ -358,6 +526,18 @@ export class GameSession {
     return currentGoals(this.content.story, this.state, this.storyContext());
   }
 
+  /** Se a meta ativa só espera o relógio (ex.: a Gabi chegar), o momento em que ela conclui. */
+  waitTarget(): number | undefined {
+    for (const g of this.goals()) for (const s of g.steps) if (!s.done && s.waitUntil !== undefined) return s.waitUntil;
+    return undefined;
+  }
+
+  /** Hora (do dia) de um relógio da história, para mostrar ("A Gabi chega às 10:40"). */
+  timerClock(id: string): number | undefined {
+    const at = this.state.timers[id];
+    return at === undefined ? undefined : at - this.state.day * 1440;
+  }
+
   /** Compra um item: desconta o preço e põe no inventário. */
   buy(itemId: string): ActionResult {
     const item = this.content.items[itemId];
@@ -417,9 +597,11 @@ export class GameSession {
    */
   private advanceStory(): void {
     for (let guard = 0; guard < 1000; guard++) {
-      const next = activeBeats(this.content.story, this.state).find((b) => isBeatSatisfied(b, this.state, this.storyContext()));
+      const ctx = this.storyContext();
+      const next = activeBeats(this.content.story, this.state, ctx).find((b) => isBeatSatisfied(b, this.state, ctx));
       if (!next) return;
       this.state.story.completed.push(next.id);
+      this.state.story.completedOn[next.id] = this.state.day;
       // Efeitos antes do aviso: quem escuta já sabe que uma fala foi aberta (o HUD espera ela acabar).
       next.effects.forEach((e) => this.applyEffect(e));
       this.bus.emit('story.beat_completed', { beatId: next.id });
@@ -432,6 +614,7 @@ export class GameSession {
     else if ('cutscene' in effect) this.bus.emit('cutscene.requested', { cutsceneId: effect.cutscene });
     else if ('endDay' in effect) this.endDay();
     else if ('setTime' in effect) this.state.time = parseClock(effect.setTime);
+    else if ('startTimer' in effect) this.state.timers[effect.startTimer] = nowAbs(this.state) + effect.minutes;
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;
@@ -446,6 +629,8 @@ export class GameSession {
   addMoney(delta: number, reason: string): void {
     const from = this.state.money;
     this.state.money = from + delta;
+    // Resumo do dia: o que ela ganhou (devoluções não contam).
+    if (delta > 0 && !reason.startsWith('refund')) this.state.today.earned += delta;
     this.bus.emit('money.changed', { from, to: this.state.money, reason });
   }
 

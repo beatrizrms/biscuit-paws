@@ -90,8 +90,8 @@
       }
     },
     {
-      "id": "npc.lurdes",
-      "name": "Dona Lurdes",
+      "id": "npc.neusa",
+      "name": "Dona Neusa",
       "sheet": "assets/npc/senhorinha_spritesheet.png",
       "portrait": "assets/npc/senhorinha_retrato_64.png",
       "frameWidth": 32,

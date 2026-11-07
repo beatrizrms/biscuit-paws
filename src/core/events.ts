@@ -9,7 +9,8 @@ export interface GameEvents {
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };
-  'day.ended': { day: number };
+  /** reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia). */
+  'day.ended': { day: number; reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number };
   'day.started': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };
@@ -25,6 +26,9 @@ export interface GameEvents {
   'cutscene.finished': { cutsceneId: string };
   'script.requested': { scriptId: string };
   'script.finished': { scriptId: string };
+  'job.accepted': { jobId: string };
+  'job.progress': { jobId: string; pointId: string };
+  'job.completed': { jobId: string; reward: number };
 }
 
 export type EventName = keyof GameEvents;

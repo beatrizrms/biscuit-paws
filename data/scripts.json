@@ -111,6 +111,15 @@
     "scr.gabi_visit": {
       "steps": [
         {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            7
+          ],
+          "facing": "right",
+          "ifAway": true
+        },
+        {
           "wait": 400
         },
         {
@@ -232,13 +241,13 @@
         }
       ]
     },
-    "scr.lurdes_visit": {
+    "scr.neusa_visit": {
       "steps": [
         {
           "dialogue": "dlg.neighbor_knock"
         },
         {
-          "npcSpawn": "npc.lurdes",
+          "npcSpawn": "npc.neusa",
           "map": "map.cafe_main",
           "at": [
             14,
@@ -247,14 +256,14 @@
           "facing": "down"
         },
         {
-          "npcWalk": "npc.lurdes",
+          "npcWalk": "npc.neusa",
           "to": [
             14,
             6
           ]
         },
         {
-          "npcWalk": "npc.lurdes",
+          "npcWalk": "npc.neusa",
           "to": [
             12,
             6
@@ -269,7 +278,7 @@
           "dialogue": "dlg.neighbor_visit"
         },
         {
-          "npcAnim": "npc.lurdes",
+          "npcAnim": "npc.neusa",
           "anim": "segurando_bolsa",
           "ms": 900
         },
@@ -282,26 +291,26 @@
           "dialogue": "dlg.neighbor_coins"
         },
         {
-          "npcAnim": "npc.lurdes",
+          "npcAnim": "npc.neusa",
           "anim": "acenar",
           "ms": 1200
         },
         {
-          "npcWalk": "npc.lurdes",
+          "npcWalk": "npc.neusa",
           "to": [
             14,
             6
           ]
         },
         {
-          "npcWalk": "npc.lurdes",
+          "npcWalk": "npc.neusa",
           "to": [
             14,
             4
           ]
         },
         {
-          "npcLeave": "npc.lurdes"
+          "npcLeave": "npc.neusa"
         }
       ]
     }

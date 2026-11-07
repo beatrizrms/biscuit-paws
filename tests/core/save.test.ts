@@ -112,6 +112,23 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(state.time).toBe(17 * 60 + 30);
   });
 
+  it('save_v5 migra para v6 sem pedidos e sem relógios', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v5.json', 'utf8'), known);
+    expect(state.timers).toEqual({});
+    expect(state.today).toEqual({ earned: 0, jobs: 0 });
+    expect(state.jobs).toEqual({ active: [], progress: {}, doneOn: {} });
+    expect(state.story.completedOn).toEqual({});
+  });
+
+  it('save_v6: guarda pedidos, relógios e o resumo do dia; pedido que sumiu é ignorado', () => {
+    const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v6.json', 'utf8'), known);
+    expect(state.jobs.active).toEqual(['job.delivery']);
+    expect(state.jobs.progress).toEqual({ 'job.delivery': ['pt.parcel_pickup'] });
+    expect(state.timers['gabi.arrival']).toBe(3 * 1440 + 690);
+    expect(state.today).toEqual({ earned: 25, jobs: 1 });
+    expect(warnings.join()).toMatch(/job.removed_from_game/);
+  });
+
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v2.json', 'utf8'), known);
     expect(state.finishes).toEqual({ 'surface.hall_floor': 'finish.check_pink' });

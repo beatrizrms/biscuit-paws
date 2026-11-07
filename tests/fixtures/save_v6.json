@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 6,
+  "savedAt": "2026-11-10T15:00:00.000Z",
+  "day": 3,
+  "money": 100,
+  "flags": {
+    "bought.old_bakery": true,
+    "has.cat": true
+  },
+  "inventory": {
+    "item.key_bakery": 1,
+    "item.parcel": 1
+  },
+  "placed": [],
+  "nextUid": 1,
+  "story": {
+    "completed": [
+      "story.prologue_thoughts",
+      "story.intro",
+      "story.enter_bakery",
+      "story.cleanup",
+      "story.meow",
+      "story.cat_named"
+    ],
+    "completedOn": {
+      "story.cat_named": 1
+    }
+  },
+  "cats": {
+    "cat.first_stray": {
+      "sheltered": true,
+      "name": "Pipoca",
+      "map": "map.cafe_main"
+    }
+  },
+  "relationships": {
+    "player|cat.first_stray": 120
+  },
+  "finishes": {},
+  "location": "map.street",
+  "visited": [
+    "map.street",
+    "map.cafe_main"
+  ],
+  "cleaned": [
+    "*"
+  ],
+  "time": 600,
+  "timers": {
+    "gabi.arrival": 5010
+  },
+  "today": {
+    "earned": 25,
+    "jobs": 1
+  },
+  "jobs": {
+    "active": [
+      "job.delivery",
+      "job.removed_from_game"
+    ],
+    "progress": {
+      "job.delivery": [
+        "pt.parcel_pickup"
+      ]
+    },
+    "doneOn": {
+      "job.market_shelves": 3
+    }
+  }
+}

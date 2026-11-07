@@ -172,7 +172,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   // Na rua o catálogo não abre (o roteiro da corretora termina dentro do café: volta para a rua).
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.street'));
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog:not(.shop)')).not.toHaveClass(/open/);
+  await expect(page.locator('.catalog:not(.shop):not(.news)')).not.toHaveClass(/open/);
   await expect(page.locator('.toast')).toContainText('lá dentro');
   await enterCafe(page);
   await cleanCafe(page);
@@ -200,7 +200,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('Escape');
   await expect(page.locator('.hint')).toContainText('catálogo'); // voltou a andar
   await page.keyboard.press('c');
-  await expect(page.locator('.catalog:not(.shop)')).toHaveClass(/open/);
+  await expect(page.locator('.catalog:not(.shop):not(.news)')).toHaveClass(/open/);
   await expect(page.locator('[data-item="item.water_bowl"] .owned')).toBeVisible();
 });
 

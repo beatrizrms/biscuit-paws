@@ -9,6 +9,10 @@ export interface DayNightConfig {
   dayStart: string;
   /** Hora em que ela vai para casa de qualquer jeito ("26:00" = 2h da manhã). */
   passOut: string;
+  /** A partir desta hora ela pode encerrar o dia na porta do café ("17:00"). */
+  goHomeFrom: string;
+  /** Se desmaiar de sono, o dia seguinte começa mais tarde ("10:00"). */
+  wakeAfterPassOut: string;
   /** Interiores: 0 = sem tinta, 1 = igual à rua. */
   indoorStrength: number;
   keyframes: { time: string; color: string }[];
@@ -80,6 +84,8 @@ export function validateDayNight(config: DayNightConfig): string[] {
   };
   check('dayStart', config.dayStart);
   check('passOut', config.passOut);
+  check('goHomeFrom', config.goHomeFrom);
+  check('wakeAfterPassOut', config.wakeAfterPassOut);
   const lists = [config.keyframes, ...Object.values(config.seasons ?? {}).map((s) => s.keyframes ?? [])];
   for (const list of lists) {
     for (const k of list) {

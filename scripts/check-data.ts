@@ -28,6 +28,8 @@ const raw: RawContent = {
   dayNight: read('data/daynight.json'),
   recipes: read('data/recipes.json'),
   emotes: read('data/emotes.json'),
+  jobs: read('data/jobs.json'),
+  news: read('data/news.json'),
 };
 
 const errors = validateContent(raw);

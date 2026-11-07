@@ -17,7 +17,11 @@
         },
         {
           "speaker": "",
-          "text": "Um vizinho passa e torce o nariz para a vitrine. Por aqui, ninguém gosta muito de gatos: são tantos na rua..."
+          "text": "Pegadinhas de gato pela neve, na calçada inteira. O anúncio não exagerou."
+        },
+        {
+          "speaker": "Você",
+          "text": "Tanto gatinho na rua, nesse frio... e aposto que os vizinhos vivem reclamando deles."
         },
         {
           "speaker": "Você",
@@ -33,36 +37,45 @@
         },
         {
           "speaker": "Você",
-          "text": "Agora, um lugar para as pessoas sentarem. Todo café precisa de uma mesa."
+          "text": "Agora, o mais importante: um café sem cafeteira não é café."
+        },
+        {
+          "speaker": "Você",
+          "text": "Só que cafeteira custa caro... Vou ver se a vila tem algum serviço para mim. O mercado deve ter."
         }
       ]
     },
     "dlg.neighbor_visit": {
       "lines": [
         {
-          "speaker": "Dona Lurdes",
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Vi o entregador trazendo uma cafeteira novinha aqui pra dentro..."
+        },
+        {
+          "speaker": "Dona Neusa",
           "text": "Então é verdade! Alguém abriu a padaria do seu Antônio.",
-          "npc": "npc.lurdes"
+          "npc": "npc.neusa"
         },
         {
-          "speaker": "Dona Lurdes",
+          "speaker": "Dona Neusa",
           "text": "Eu comprava pão aqui todo dia, sabia? Faz tanto tempo...",
-          "npc": "npc.lurdes"
+          "npc": "npc.neusa"
         },
         {
-          "speaker": "Dona Lurdes",
+          "speaker": "Dona Neusa",
           "text": "Gatos, é? Hmm. Os de rua vivem revirando o meu lixo.",
-          "npc": "npc.lurdes"
+          "npc": "npc.neusa"
         },
         {
-          "speaker": "Dona Lurdes",
+          "speaker": "Dona Neusa",
           "text": "Mas tome, para o seu começo. Este lugar merece voltar a ter vida.",
-          "npc": "npc.lurdes"
+          "npc": "npc.neusa"
         },
         {
-          "speaker": "Dona Lurdes",
+          "speaker": "Dona Neusa",
           "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor. Diga que fui eu que mandei.",
-          "npc": "npc.lurdes"
+          "npc": "npc.neusa"
         }
       ]
     },
@@ -283,7 +296,7 @@
       "lines": [
         {
           "speaker": "",
-          "text": "Dona Lurdes deixou 50 moedas no balcão."
+          "text": "Dona Neusa deixou 50 moedas no balcão."
         },
         {
           "speaker": "",
@@ -292,6 +305,34 @@
         {
           "speaker": "",
           "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
+        }
+      ]
+    },
+    "dlg.coffee_ready": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Uma cafeteira de verdade! O cheiro de café já faz isto aqui parecer um café."
+        }
+      ]
+    },
+    "dlg.tables_wanted": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Bom dia, {cat:cat.first_stray}! Hoje é dia de pensar nos clientes."
+        },
+        {
+          "speaker": "Você",
+          "text": "Ninguém toma café em pé. Preciso de mesas."
+        }
+      ]
+    },
+    "dlg.chairs_done": {
+      "lines": [
+        {
+          "speaker": "Você",
+          "text": "Mesas e cadeiras. Já parece um café de verdade."
         }
       ]
     }

@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer; marker = tile desenhado enquanto pendente; gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
+  "maxActive": 1,
+  "points": [
+    {
+      "id": "pt.shelf_1",
+      "map": "map.market",
+      "at": [
+        1,
+        5
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.shelf_2",
+      "map": "map.market",
+      "at": [
+        4,
+        5
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.shelf_3",
+      "map": "map.market",
+      "at": [
+        13,
+        5
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.snow_1",
+      "map": "map.street",
+      "at": [
+        7,
+        8
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.snow_2",
+      "map": "map.street",
+      "at": [
+        7,
+        9
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.snow_3",
+      "map": "map.street",
+      "at": [
+        9,
+        9
+      ],
+      "action": "sweep",
+      "marker": "snow_monte_neve"
+    },
+    {
+      "id": "pt.parcel_pickup",
+      "map": "map.market",
+      "at": [
+        18,
+        7
+      ],
+      "action": "press",
+      "gives": "item.parcel"
+    },
+    {
+      "id": "pt.parcel_dropoff",
+      "map": "map.street",
+      "at": [
+        8,
+        8
+      ],
+      "action": "press",
+      "takes": "item.parcel"
+    },
+    {
+      "id": "pt.flyer_house_a",
+      "map": "map.street",
+      "at": [
+        2,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.flyer_furniture",
+      "map": "map.street",
+      "at": [
+        8,
+        8
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.flyer_house_b",
+      "map": "map.street",
+      "at": [
+        12,
+        8
+      ],
+      "action": "press",
+      "reach": 2
+    },
+    {
+      "id": "pt.flyer_house_c",
+      "map": "map.street",
+      "at": [
+        28,
+        8
+      ],
+      "action": "press"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "job.market_shelves",
+      "title": "Arrumar as prateleiras",
+      "giver": "Seu Ademir, do mercado",
+      "description": "Depois das festas, as prateleiras ficaram uma bagunça. Ele paga por uma arrumada.",
+      "location": "map.market",
+      "reward": 25,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Arrumar 3 prateleiras do mercado.",
+          "points": [
+            "pt.shelf_1",
+            "pt.shelf_2",
+            "pt.shelf_3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.clear_snow",
+      "title": "Tirar a neve da calçada",
+      "giver": "Loja de Móveis",
+      "description": "A neve acumulou na frente da loja e ninguém consegue entrar. Leve a vassoura!",
+      "location": "map.street",
+      "reward": 30,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Varrer 3 montes de neve na frente da loja de móveis.",
+          "points": [
+            "pt.snow_1",
+            "pt.snow_2",
+            "pt.snow_3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.delivery",
+      "title": "Entrega para a loja de móveis",
+      "giver": "Seu Ademir, do mercado",
+      "description": "Uma caixa de encomendas precisa chegar à loja de móveis, aqui na rua.",
+      "location": "map.market",
+      "reward": 35,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "points": [
+            "pt.parcel_pickup"
+          ]
+        },
+        {
+          "text": "Entregar a caixa na porta da loja de móveis.",
+          "points": [
+            "pt.parcel_dropoff"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.flyers",
+      "title": "Panfletos de ofertas",
+      "giver": "Seu Ademir, do mercado",
+      "description": "As ofertas da semana precisam chegar às portas da rua.",
+      "location": "map.street",
+      "reward": 20,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Deixar um panfleto em 4 portas da rua.",
+          "points": [
+            "pt.flyer_house_a",
+            "pt.flyer_furniture",
+            "pt.flyer_house_b",
+            "pt.flyer_house_c"
+          ]
+        }
+      ]
+    }
+  ]
+}

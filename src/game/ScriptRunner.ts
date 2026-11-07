@@ -67,7 +67,10 @@ export class ScriptRunner {
     else if ('dialogue' in step) {
       this.session.say(step.dialogue);
       await s.untilIdle();
-    } else if ('enter' in step) await s.enter(step.enter, step.spawn, step.facing ?? 'down', step.npcs ?? []);
+    } else if ('enter' in step) {
+      // ifAway: só leva a personagem se ela estiver em outro lugar (ex.: a Gabi chegou e ela está no mercado).
+      if (!step.ifAway || this.session.location() !== step.enter) await s.enter(step.enter, step.spawn, step.facing ?? 'down', step.npcs ?? []);
+    }
     else if ('showItem' in step) await s.showItem(step.showItem);
     else if ('giveItem' in step) this.session.receiveItem(step.giveItem);
     else if ('wait' in step) await s.wait(step.wait);

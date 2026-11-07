@@ -19,7 +19,8 @@ export interface GameState {
   inventory: Record<string, number>;
   placed: PlacedItem[];
   nextUid: number;
-  story: { completed: string[] };
+  /** Marcos concluídos e o dia em que cada um terminou (v6). */
+  story: { completed: string[]; completedOn: Record<string, number> };
   /** Gatos abrigados: nome escolhido e mapa onde vivem. */
   cats: Record<string, CatState>;
   /** Corações entre pares ("player|cat.x", "npc.y|cat.x"...): pontos acumulados. */
@@ -32,6 +33,17 @@ export interface GameState {
   visited: string[];
   /** Sujeiras do café já limpas (ids). */
   cleaned: string[];
+  /** Relógios marcados pela história (v6): id -> momento absoluto (ver nowAbs). Ex.: a chegada da Gabi. */
+  timers: Record<string, number>;
+  /** Resumo do dia em andamento (v6): moedas ganhas e pedidos feitos. */
+  today: { earned: number; jobs: number };
+  /** Pedidos da vila (v6): aceitos agora, pontos já feitos e o último dia em que cada um foi concluído. */
+  jobs: { active: string[]; progress: Record<string, string[]>; doneOn: Record<string, number> };
+}
+
+/** Momento absoluto do jogo, em minutos: cresce sempre (dia * 1440 + hora; a madrugada passa de 1440). */
+export function nowAbs(state: Pick<GameState, 'day' | 'time'>): number {
+  return state.day * 1440 + state.time;
 }
 
 export interface CatState {
@@ -39,6 +51,8 @@ export interface CatState {
   /** Nome dado pela jogadora (vazio até ela escolher). */
   name: string;
   map: string;
+  /** Último dia em que comeu (v6; rotina diária). */
+  fedOn?: number;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -50,13 +64,16 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     inventory: {},
     placed: [],
     nextUid: 1,
-    story: { completed: [] },
+    story: { completed: [], completedOn: {} },
     cats: {},
     relationships: {},
     finishes: {},
     location: startMap,
     visited: [startMap],
     cleaned: [],
+    timers: {},
+    today: { earned: 0, jobs: 0 },
+    jobs: { active: [], progress: {}, doneOn: {} },
   };
 }
 

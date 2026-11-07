@@ -20,6 +20,8 @@ import scriptsJson from '../../data/scripts.json';
 import dayNightJson from '../../data/daynight.json';
 import recipesJson from '../../data/recipes.json';
 import emotesJson from '../../data/emotes.json';
+import jobsJson from '../../data/jobs.json';
+import newsJson from '../../data/news.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -45,6 +47,8 @@ export const content: Content = buildContent({
   dayNight: dayNightJson,
   recipes: recipesJson,
   emotes: emotesJson,
+  jobs: jobsJson,
+  news: newsJson,
 } as unknown as RawContent);
 
 /** Balões de emoção (16x16) sobre personagens, gatos e NPCs. */

@@ -11,7 +11,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom } from '../content';
+import { broom, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { formatClock, tintAt } from '../../core/time';
 
@@ -21,6 +21,8 @@ const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
 const GHOST_DEPTH = 100_000;
 const FADE_MS = 160;
+/** Quantas vezes o relógio corre mais rápido ao "Esperar". */
+const WAIT_SPEED = 40;
 const NO_INPUT = { up: false, down: false, left: false, right: false };
 
 /**
@@ -42,6 +44,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dayNight!: DayNightLayer;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
+  /** "Esperar": o relógio corre depressa até a meta de espera concluir. */
+  private fastWait = false;
+  private jobIcons: Phaser.GameObjects.Image[] = [];
+  private lastDay: { reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
   private scripts!: ScriptRunner;
@@ -65,7 +71,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   create(): void {
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id) }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: () => (this.fastWait = true) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -93,9 +99,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
     this.input.keyboard!.on('keydown-E', () => {
-      if (this.ui.isShopOpen()) return this.ui.closeShop();
+      if (this.ui.isShopOpen() || this.ui.isNewsOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       this.interact();
+    });
+    // P: o celular ("Vila Hoje"), depois do prólogo.
+    this.input.keyboard!.on('keydown-P', () => {
+      if (this.ui.isNewsOpen()) return this.ui.closeShop();
+      if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
+      this.ui.openNews('phone');
     });
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
@@ -106,6 +118,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
+    // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
+    for (const ev of ['job.accepted', 'job.progress', 'job.completed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
@@ -120,10 +135,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const cam = this.cameras.main;
       cam.fadeOut(400, 27, 33, 64);
       cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, async () => {
-        await this.ui.showDayTransition(day);
+        this.fastWait = false;
+        await this.ui.showDayTransition(day, this.lastDay ?? undefined);
         this.loadMap(this.session.location(), this.session.morningSpawn(), 'down');
         cam.fadeIn(600, 27, 33, 64);
         this.changingMap = false;
+        if (this.session.state.flags['prologue.done']) this.ui.toast(uiText.news.arrived);
       });
     });
 
@@ -139,8 +156,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   update(): void {
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping;
-    // O relógio só anda quando ela está livre (pausa em falas, cenas, roteiros, menus).
-    if (!busy) this.session.tickClock(this.game.loop.delta / 1000);
+    if (this.fastWait && this.session.waitTarget() === undefined) this.fastWait = false;
+    // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
+    const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping;
+    if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.fastWait ? WAIT_SPEED : 1));
     this.updateDayNight();
     const input = this.autoWalk
       ? this.autoWalkInput()
@@ -168,6 +187,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const door = doorAt(this.map, this.feetCell(), moving);
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
       else if (this.session.canUseDoor(door)) this.useDoor(door);
       else {
         this.doorLocked = true; // avisa uma vez por aperto
@@ -218,6 +238,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const catId of this.session.shelteredCats()) {
       if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
     }
+    this.refreshJobPoints();
+  }
+
+  /** Na porta do café, à tarde: encerrar o dia ou só sair para a rua. */
+  private askGoHome(door: MapDoor): void {
+    this.doorLocked = true;
+    const t = uiText.goHome;
+    void this.ui.confirm(t.question, t.yes, t.no).then((yes) => {
+      if (yes) this.session.goHome();
+      else this.useDoor(door);
+    });
   }
 
   private useDoor(door: MapDoor): void {
@@ -389,9 +420,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
+    const point = this.session.jobPointNear(this.playerCells(), target);
+    if (point) {
+      if (point.action === 'sweep') {
+        if (this.sweeping) return true;
+        const ts = this.map.tileSize;
+        void this.playSweep((point.at[0] + 0.5) * ts, (point.at[1] + 0.5) * ts).then(() => this.doJobPoint(point.id));
+      } else this.doJobPoint(point.id);
+      return true;
+    }
     const it = this.session.interactionAt(this.playerCells(), target);
     if (it) {
-      this.ui.openShop(it.action.shop);
+      if ('shop' in it.action) this.ui.openShop(it.action.shop);
+      else this.ui.openNews('board');
       return true;
     }
     // Tigela de ração por perto: enche e o gato vem comer.
@@ -415,6 +456,33 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Varre: vassoura na mão balançando, poeira subindo, brilho no fim; aí a sujeira some. */
   private async sweep(dirtId: string, x: number, y: number): Promise<void> {
+    await this.playSweep(x, y);
+    const result = this.session.clean(dirtId, this.playerCells());
+    if (!result.ok) this.ui.problem(result.reason);
+  }
+
+  private doJobPoint(pointId: string): void {
+    const result = this.session.doJobPoint(pointId);
+    if (!result.ok) this.ui.problem(result.reason);
+  }
+
+  /** Pontos de pedido pendentes neste mapa: marcadores (redesenha o mapa) e um "!" em cima dos sem marcador. */
+  private refreshJobPoints(rebuild = false): void {
+    if (rebuild) this.buildMap();
+    this.jobIcons.forEach((i) => i.destroy());
+    const ts = this.map.tileSize;
+    this.jobIcons = this.session
+      .pendingJobPoints()
+      .filter((p) => !p.marker)
+      .map((p) => {
+        const icon = this.add.image((p.at[0] + 0.5) * ts, p.at[1] * ts - 2, 'emotes', 'exclamation').setOrigin(0.5, 1).setDepth(99_000);
+        this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        return icon;
+      });
+  }
+
+  /** Animação de varrer (vassoura, poeira, brilho), sem mudar nada no jogo. */
+  private async playSweep(x: number, y: number): Promise<void> {
     this.sweeping = true;
     const left = x < this.player.x;
     this.player.face(left ? 'left' : 'right');
@@ -438,8 +506,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     dust.destroy();
     this.sweeping = false;
-    const result = this.session.clean(dirtId, this.playerCells());
-    if (!result.ok) this.ui.problem(result.reason);
   }
 
   private ghostDef() {

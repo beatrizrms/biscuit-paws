@@ -8,7 +8,8 @@
         {
           "cutscene": "cs.prologue_thoughts"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.intro",
@@ -26,7 +27,8 @@
       ],
       "when": {
         "flag": "seen.cs.prologue_thoughts"
-      }
+      },
+      "exclusive": true
     },
     {
       "id": "story.realtor_tour",
@@ -38,7 +40,8 @@
         {
           "script": "scr.realtor_tour"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.enter_bakery",
@@ -56,7 +59,8 @@
       ],
       "when": {
         "flag": "seen.scr.realtor_tour"
-      }
+      },
+      "exclusive": true
     },
     {
       "id": "story.cleanup",
@@ -86,7 +90,8 @@
         {
           "dialogue": "dlg.cleaned"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.meow",
@@ -113,7 +118,8 @@
         {
           "setFlag": "has.cat"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.cat_named",
@@ -128,7 +134,8 @@
         {
           "dialogue": "dlg.cat_named"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.water_and_food",
@@ -171,7 +178,8 @@
         {
           "dialogue": "dlg.ready_to_feed"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.first_meal",
@@ -198,7 +206,8 @@
         {
           "cutscene": "cs.prologue_end"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
       "id": "story.prologue_end",
@@ -216,62 +225,8 @@
         {
           "endDay": true
         }
-      ]
-    },
-    {
-      "id": "story.gabi_call",
-      "act": 1,
-      "after": [
-        "story.prologue_end"
       ],
-      "when": {
-        "all": [
-          {
-            "day": {
-              "gte": 2
-            }
-          },
-          {
-            "clock": {
-              "gte": "07:15"
-            }
-          }
-        ]
-      },
-      "effects": [
-        {
-          "cutscene": "cs.gabi_call"
-        }
-      ]
-    },
-    {
-      "id": "story.gabi_visit",
-      "act": 1,
-      "after": [
-        "story.gabi_call"
-      ],
-      "goal": {
-        "title": "A visita da Gabi",
-        "steps": [
-          {
-            "text": "Esperar a Gabi no café.",
-            "when": {
-              "location": "map.cafe_main"
-            },
-            "devNote": "Ela chega a partir das 08:30, com a personagem dentro do café."
-          }
-        ]
-      },
-      "when": {
-        "clock": {
-          "gte": "08:30"
-        }
-      },
-      "effects": [
-        {
-          "script": "scr.gabi_visit"
-        }
-      ]
+      "exclusive": true
     },
     {
       "id": "story.warm_corner",
@@ -287,12 +242,6 @@
             "when": {
               "placed": "item.cat_bed"
             }
-          },
-          {
-            "text": "E uma almofada, para os cochilos da tarde.",
-            "when": {
-              "placedTag": "cushion"
-            }
           }
         ]
       },
@@ -300,35 +249,48 @@
         {
           "dialogue": "dlg.warm_corner_done"
         }
-      ]
+      ],
+      "exclusive": true
     },
     {
-      "id": "story.first_seats",
+      "id": "story.coffee_machine",
       "act": 1,
       "after": [
         "story.warm_corner"
       ],
+      "exclusive": true,
       "goal": {
-        "title": "Um lugar para sentar",
+        "title": "Uma cafeteira",
         "steps": [
           {
-            "text": "Uma mesa, para começar.",
+            "text": "Juntar 180 moedas com pedidos da vila (mural do mercado ou celular, tecla P).",
             "when": {
-              "placedTag": "table"
+              "any": [
+                {
+                  "money": {
+                    "gte": 180
+                  }
+                },
+                {
+                  "owned": "item.coffee_machine"
+                }
+              ]
             }
           },
           {
-            "text": "Duas cadeiras. Uma para cada xícara.",
+            "text": "Comprar a cafeteira no catálogo (C).",
             "when": {
-              "placedTag": "chair",
-              "gte": 2
+              "owned": "item.coffee_machine"
             }
           }
         ]
       },
       "effects": [
         {
-          "script": "scr.lurdes_visit"
+          "dialogue": "dlg.coffee_ready"
+        },
+        {
+          "script": "scr.neusa_visit"
         },
         {
           "setFlag": "met.old_neighbor"
@@ -340,6 +302,131 @@
           "addMoney": 50
         }
       ]
+    },
+    {
+      "id": "story.tables",
+      "act": 1,
+      "after": [
+        "story.coffee_machine"
+      ],
+      "start": {
+        "nextDay": "story.coffee_machine"
+      },
+      "exclusive": true,
+      "goal": {
+        "title": "Mesas para o salão",
+        "steps": [
+          {
+            "text": "Juntar 120 moedas para duas mesas.",
+            "when": {
+              "any": [
+                {
+                  "money": {
+                    "gte": 120
+                  }
+                },
+                {
+                  "ownedTag": "table",
+                  "gte": 2
+                }
+              ]
+            }
+          },
+          {
+            "text": "Comprar duas mesas no catálogo (C).",
+            "when": {
+              "ownedTag": "table",
+              "gte": 2
+            }
+          }
+        ]
+      },
+      "effects": []
+    },
+    {
+      "id": "story.gabi_call",
+      "act": 1,
+      "after": [
+        "story.tables"
+      ],
+      "when": {
+        "all": [
+          {
+            "clock": {
+              "gte": "07:15"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.gabi_call"
+        },
+        {
+          "startTimer": "gabi.arrival",
+          "minutes": 90
+        }
+      ],
+      "exclusive": true
+    },
+    {
+      "id": "story.gabi_visit",
+      "act": 1,
+      "after": [
+        "story.gabi_call"
+      ],
+      "goal": {
+        "title": "A visita da Gabi",
+        "steps": [
+          {
+            "text": "A Gabi chega às {timer:gabi.arrival}.",
+            "when": {
+              "timer": "gabi.arrival"
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.gabi_visit"
+        }
+      ],
+      "exclusive": true
+    },
+    {
+      "id": "story.chairs",
+      "act": 1,
+      "after": [
+        "story.gabi_visit"
+      ],
+      "exclusive": true,
+      "goal": {
+        "title": "Cadeiras",
+        "steps": [
+          {
+            "text": "Duas cadeiras para as mesas.",
+            "when": {
+              "ownedTag": "chair",
+              "gte": 2
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.chairs_done"
+        }
+      ],
+      "start": {
+        "flag": "seen.scr.gabi_visit"
+      }
     }
   ]
 }

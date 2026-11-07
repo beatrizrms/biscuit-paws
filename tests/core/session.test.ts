@@ -54,6 +54,14 @@ function finishPrologue(session: GameSession) {
   session.finishCutscene('cs.prologue_end');
 }
 
+/** Aceita um pedido da vila e faz todos os pontos, passo a passo. */
+function doJob(session: GameSession, jobId: string) {
+  expect(session.acceptJob(jobId)).toEqual({ ok: true });
+  const job = content.jobs[jobId]!;
+  for (const step of job.steps) for (const p of step.points) expect(session.doJobPoint(p)).toEqual({ ok: true });
+  expect(session.activeJobs()).toEqual([]);
+}
+
 /** Compra e posiciona; falha o teste se algo der errado. */
 function buyAndPlace(session: GameSession, itemId: string, at: [number, number]) {
   expect(session.buy(itemId)).toEqual({ ok: true });
@@ -111,8 +119,8 @@ describe('começo da história', () => {
     expect(() => session.enter('map.lua')).toThrow(/desconhecido/);
   });
 
-  it('o primeiro ato inteiro dá para fazer com o dinheiro inicial', () => {
-    const { session, dialogues, events } = newSession();
+  it('o prólogo inteiro dá para fazer com o dinheiro inicial', () => {
+    const { session, dialogues } = newSession();
     startInCafe(session);
 
     // Água e comida: tigela de água, ração do mercado, tigela de ração.
@@ -127,19 +135,6 @@ describe('começo da história', () => {
     session.finishCutscene('cs.prologue_end');
     expect(session.state.day).toBe(2);
     expect(session.state.flags['prologue.done']).toBe(true);
-    // Ato 1: caminha e almofada (as tigelas já vieram no prólogo).
-    expect(session.goals().map((g) => g.title)).toEqual(['Um cantinho quente']);
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
-    buyAndPlace(session, 'item.cushion_pink', [11, 9]);
-    expect(session.goals().map((g) => g.title)).toEqual(['Um lugar para sentar']);
-
-    buyAndPlace(session, 'item.table_round', [4, 7]);
-    buyAndPlace(session, 'item.chair_front', [3, 7]);
-    const moneyBeforeNeighbor = session.state.money;
-    buyAndPlace(session, 'item.chair_back', [5, 7]);
-
-    expect(session.state.flags['met.old_neighbor']).toBe(true);
-    expect(session.state.money).toBe(moneyBeforeNeighbor - 15 + 50);
     expect(dialogues().map((d) => (d as { dialogueId: string }).dialogueId)).toEqual([
       'dlg.intro',
       'dlg.inside',
@@ -147,11 +142,82 @@ describe('começo da história', () => {
       'dlg.cat_named',
       'dlg.ready_to_feed',
       'dlg.first_meal',
-      'dlg.warm_corner_done',
     ]);
-    // A Dona Lurdes entra no café (roteiro) com a fala dela.
-    expect(events.some((e) => e.name === 'script.requested' && (e.payload as { scriptId: string }).scriptId === 'scr.lurdes_visit')).toBe(true);
-    expect(session.goals()).toEqual([]); // o Ato 1 reorganizado vem depois do prólogo
+  });
+
+  it('os primeiros dias: uma quest por vez, dinheiro com pedidos, Dona Neusa pela cafeteira, Gabi pelas mesas', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    const titles = () => session.goals().map((g) => g.title);
+    const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
+    const cutscenes = () => events.filter((e) => e.name === 'cutscene.requested').map((e) => (e.payload as { cutsceneId: string }).cutsceneId);
+
+    // Dia 2: só a caminha (sem almofada), e só uma quest aparece.
+    expect(titles()).toEqual(['Um cantinho quente']);
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    expect(titles()).toEqual(['Uma cafeteira']);
+    // A cafeteira não cabe no dinheiro: precisa dos pedidos da vila.
+    expect(session.state.money).toBeLessThan(180);
+    expect(session.buy('item.coffee_machine')).toEqual({ ok: false, reason: 'no_money' });
+    for (const job of ['job.market_shelves', 'job.clear_snow', 'job.delivery', 'job.flyers']) doJob(session, job);
+    expect(session.state.money).toBeGreaterThanOrEqual(180);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
+    expect(scripts()).not.toContain('scr.neusa_visit');
+    // Comprar a cafeteira traz a Dona Neusa (e o pintor).
+    expect(session.buy('item.coffee_machine')).toEqual({ ok: true });
+    expect(scripts()).toContain('scr.neusa_visit');
+    expect(session.painterUnlocked()).toBe(true);
+    // As mesas só no dia seguinte.
+    expect(titles()).toEqual([]);
+    session.endDay('home');
+    expect(titles()).toEqual(['Mesas para o salão']);
+    // Dia 3: comprar as mesas faz a Gabi ligar (ela já está com dinheiro dos pedidos).
+    for (const job of ['job.market_shelves', 'job.clear_snow', 'job.delivery', 'job.flyers']) doJob(session, job);
+    session.state.time = 9 * 60;
+    expect(session.buy('item.table_round')).toEqual({ ok: true });
+    expect(cutscenes()).not.toContain('cs.gabi_call');
+    expect(session.buy('item.table_round')).toEqual({ ok: true });
+    expect(cutscenes()).toContain('cs.gabi_call');
+    session.finishCutscene('cs.gabi_call');
+    // Espera com hora marcada: a meta diz a hora e conclui sozinha pelo relógio, em qualquer lugar.
+    expect(titles()).toEqual(['A visita da Gabi']);
+    expect(session.timerClock('gabi.arrival')).toBe(9 * 60 + 90);
+    expect(session.waitTarget()).toBeDefined();
+    session.enter('map.market');
+    session.tickClock(89 / content.dayNight.minutesPerSecond);
+    expect(scripts()).not.toContain('scr.gabi_visit');
+    session.tickClock(2 / content.dayNight.minutesPerSecond);
+    expect(scripts()).toContain('scr.gabi_visit');
+    expect(session.waitTarget()).toBeUndefined();
+    // Durante a visita, nada novo aparece: as cadeiras só depois que a Gabi vai embora.
+    expect(titles()).toEqual([]);
+    session.finishScript('scr.gabi_visit');
+    // Cadeiras: quest à parte, sem evento.
+    expect(titles()).toEqual(['Cadeiras']);
+    const before = events.length;
+    buyAndPlace(session, 'item.chair_front', [3, 7]);
+    buyAndPlace(session, 'item.chair_back', [5, 7]);
+    expect(titles()).toEqual([]);
+    expect(events.slice(before).some((e) => e.name === 'script.requested' || e.name === 'cutscene.requested')).toBe(false);
+  });
+
+  it('a Gabi não liga de noite: se as mesas forem compradas tarde, liga na manhã seguinte', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    session.addMoney(1000, 'test');
+    session.buy('item.coffee_machine');
+    session.endDay('home');
+    session.state.time = 20 * 60;
+    session.buy('item.table_round');
+    session.buy('item.table_round');
+    const called = () => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.gabi_call');
+    expect(called()).toBe(false);
+    session.endDay('home');
+    session.tickClock(16 / content.dayNight.minutesPerSecond);
+    expect(called()).toBe(true);
   });
 
   it('recolher um móvel não desfaz um marco concluído', () => {
@@ -227,13 +293,14 @@ describe('pintor (reforma)', () => {
     expect(session.state.money).toBe(150);
   });
 
-  it('a visita da Dona Lurdes libera o pintor', () => {
+  it('a visita da Dona Neusa (pela cafeteira) libera o pintor', () => {
     const { session } = newSession();
     startInCafe(session);
     finishPrologue(session);
-    for (const [id, at] of [['item.cat_bed', [12, 9]], ['item.cushion_mint', [11, 9]], ['item.table_round', [4, 7]], ['item.chair_front', [3, 7]], ['item.chair_back', [5, 7]]] as const) {
-      buyAndPlace(session, id, [at[0], at[1]]);
-    }
+    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    expect(session.painterUnlocked()).toBe(false);
+    session.addMoney(500, 'test');
+    session.buy('item.coffee_machine');
     expect(session.painterUnlocked()).toBe(true);
   });
 
@@ -519,7 +586,7 @@ describe('alimentar e fim do dia', () => {
     const { session, events } = newSession();
     session.endDay();
     expect(session.state.day).toBe(2);
-    expect(events.find((e) => e.name === 'day.ended')?.payload).toEqual({ day: 1 });
+    expect(events.find((e) => e.name === 'day.ended')?.payload).toEqual({ day: 1, reason: 'story', earned: 0, jobs: 0 });
   });
 });
 
@@ -558,7 +625,8 @@ describe('relógio', () => {
     session.state.time = 26 * 60 - 1;
     session.tickClock(5);
     expect(session.state.day).toBe(2);
-    expect(session.state.time).toBe(7 * 60);
+    // Desmaiou: acorda tarde.
+    expect(session.state.time).toBe(10 * 60);
   });
 });
 
@@ -599,30 +667,6 @@ describe('dia 2: a Gabi', () => {
   const requested = (events: { name: EventName; payload: unknown }[], name: EventName, key: string) =>
     events.filter((e) => e.name === name).map((e) => (e.payload as Record<string, string>)[key]);
 
-  it('liga de manhã, chega no café às 8h30 e dá o conjunto de louças', () => {
-    const { session, events } = newSession();
-    startInCafe(session);
-    finishPrologue(session);
-    expect(session.state.day).toBe(2);
-    expect(session.location()).toBe('map.street');
-    // 7h: ainda não ligou.
-    expect(requested(events, 'cutscene.requested', 'cutsceneId')).not.toContain('cs.gabi_call');
-    session.tickClock(15 / content.dayNight.minutesPerSecond + 1); // ~7h16
-    expect(requested(events, 'cutscene.requested', 'cutsceneId')).toContain('cs.gabi_call');
-    session.finishCutscene('cs.gabi_call');
-    expect(session.goals()[0]!.title).toBe('A visita da Gabi');
-    // Às 8h30 na rua, ela ainda não vem: precisa estar no café.
-    session.state.time = 8 * 60 + 40;
-    session.tickClock(2);
-    expect(requested(events, 'script.requested', 'scriptId')).not.toContain('scr.gabi_visit');
-    session.enter('map.cafe_main');
-    expect(requested(events, 'script.requested', 'scriptId')).toContain('scr.gabi_visit');
-    // O roteiro entrega o presente.
-    session.receiveItem('item.dishes_set');
-    session.finishScript('scr.gabi_visit');
-    expect(session.state.inventory['item.dishes_set']).toBe(1);
-  });
-
   it('o presente não se compra nem se devolve', () => {
     const { session } = newSession();
     expect(session.buy('item.dishes_set').ok).toBe(false);
@@ -641,5 +685,128 @@ describe('mercado: matéria-prima', () => {
     for (const r of Object.values(content.recipes)) for (const id of Object.keys(r.ingredients)) expect(sold.has(id)).toBe(true);
     expect(session.buy('item.coffee_ground')).toEqual({ ok: true });
     expect(session.state.inventory['item.coffee_ground']).toBe(1);
+  });
+});
+
+describe('pedidos da vila', () => {
+  const afterPrologue = () => {
+    const ctx = newSession();
+    startInCafe(ctx.session);
+    finishPrologue(ctx.session);
+    return ctx;
+  };
+
+  it('só aparecem depois do prólogo', () => {
+    const { session } = newSession();
+    expect(session.availableJobs()).toEqual([]);
+    expect(afterPrologue().session.availableJobs().length).toBe(4);
+  });
+
+  it('um de cada vez; paga ao concluir e conta no resumo do dia', () => {
+    const { session, events } = afterPrologue();
+    const money = session.state.money;
+    expect(session.acceptJob('job.market_shelves')).toEqual({ ok: true });
+    expect(session.acceptJob('job.flyers')).toEqual({ ok: false, reason: 'job_full' });
+    expect(session.pendingJobPoints('map.market').map((p) => p.id)).toEqual(['pt.shelf_1', 'pt.shelf_2', 'pt.shelf_3']);
+    session.doJobPoint('pt.shelf_1');
+    expect(session.jobStepProgress('job.market_shelves')).toEqual([1, 3]);
+    session.doJobPoint('pt.shelf_2');
+    session.doJobPoint('pt.shelf_3');
+    expect(session.state.money).toBe(money + 25);
+    expect(session.state.today).toEqual({ earned: 25, jobs: 1 });
+    expect(events.some((e) => e.name === 'job.completed')).toBe(true);
+    // Uma vez por dia.
+    expect(session.acceptJob('job.market_shelves')).toEqual({ ok: false, reason: 'job_unavailable' });
+    session.endDay('home');
+    expect(session.acceptJob('job.market_shelves')).toEqual({ ok: true });
+  });
+
+  it('a entrega: pega a caixa no mercado e entrega na loja; os passos vão em ordem', () => {
+    const { session } = afterPrologue();
+    session.acceptJob('job.delivery');
+    expect(session.pendingJobPoints('map.street')).toEqual([]);
+    expect(session.doJobPoint('pt.parcel_dropoff')).toEqual({ ok: false, reason: 'not_found' });
+    session.doJobPoint('pt.parcel_pickup');
+    expect(session.state.inventory['item.parcel']).toBe(1);
+    expect(session.pendingJobPoints('map.street').map((p) => p.id)).toEqual(['pt.parcel_dropoff']);
+    session.doJobPoint('pt.parcel_dropoff');
+    expect(session.state.inventory['item.parcel']).toBeUndefined();
+  });
+
+  it('pedido pela metade não passa para o dia seguinte (e a caixa volta)', () => {
+    const { session } = afterPrologue();
+    session.acceptJob('job.delivery');
+    session.doJobPoint('pt.parcel_pickup');
+    session.endDay('home');
+    expect(session.activeJobs()).toEqual([]);
+    expect(session.state.inventory['item.parcel']).toBeUndefined();
+  });
+
+  it('a neve aparece no mapa só enquanto o pedido está aceito', () => {
+    const { session } = afterPrologue();
+    const snow = () => session.mapData('map.street').objects.filter((o) => o.id.startsWith('marker.')).length;
+    expect(snow()).toBe(0);
+    session.acceptJob('job.clear_snow');
+    expect(snow()).toBe(3);
+    session.doJobPoint('pt.snow_1');
+    expect(snow()).toBe(2);
+  });
+
+  it('o jornal tem notícias marcadas para o dia e um sorteio estável depois', () => {
+    const { session } = afterPrologue();
+    expect(session.news().map((n) => n.id)).toEqual(['news.coldest_night', 'news.bakery_sold']);
+    session.state.day = 9;
+    const a = session.news();
+    expect(a).toHaveLength(1);
+    expect(session.news()).toEqual(a);
+  });
+});
+
+describe('passagem dos dias e rotina', () => {
+  it('só dá para ir para casa a partir das 17h; o resumo vai no fim do dia', () => {
+    const { session, events } = newSession();
+    session.state.time = 16 * 60;
+    expect(session.canGoHome()).toBe(false);
+    session.goHome();
+    expect(session.state.day).toBe(1);
+    session.state.time = 17 * 60;
+    session.addMoney(30, 'job:test');
+    session.goHome();
+    expect(session.state.day).toBe(2);
+    expect(session.state.time).toBe(7 * 60);
+    expect(events.find((e) => e.name === 'day.ended')?.payload).toEqual({ day: 1, reason: 'home', earned: 30, jobs: 0 });
+    expect(session.state.today).toEqual({ earned: 0, jobs: 0 });
+  });
+
+  it('devolver item não conta como dinheiro ganho', () => {
+    const { session } = newSession();
+    session.buy('item.cactus');
+    session.refund('item.cactus');
+    expect(session.state.today.earned).toBe(0);
+  });
+
+  it('o gato come uma vez por dia; a rotina mostra comida e poeira', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    session.enter('map.cafe_main');
+    const bowl = session.bowlNear([[14, 8]])!;
+    session.buy('item.cat_food_basic');
+    expect(session.chores().find((c) => c.kind === 'feed')?.done).toBe(false);
+    expect(session.feedFromBowl(bowl)).toEqual({ ok: true });
+    expect(session.feedFromBowl(bowl)).toEqual({ ok: false, reason: 'already_fed' });
+    expect(session.chores().find((c) => c.kind === 'feed')?.done).toBe(true);
+  });
+
+  it('de manhã volta um pouco de poeira (depois do prólogo)', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    const dust = () => session.visibleDirt().filter((d) => d.tags.includes('daily')).length;
+    expect(dust()).toBe(content.world.dailyDirt);
+    for (const d of session.visibleDirt().filter((x) => x.tags.includes('daily'))) session.clean(d.id);
+    expect(dust()).toBe(0);
+    session.endDay('home');
+    expect(dust()).toBe(content.world.dailyDirt);
   });
 });

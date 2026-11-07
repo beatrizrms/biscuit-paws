@@ -190,7 +190,9 @@ Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem 
   "homeMap": "map.cafe_main",
   "season": "winter",                                  // estação atual (escolhe as cores do dia/noite)
   "morning": { "map": "map.street", "spawn": [16, 9] }, // onde ela aparece de manhã, vindo de casa
-  "sleepMap": null                                      // onde dorme; null = em casa, fora do mapa
+  "sleepMap": null,                                     // onde dorme; null = em casa, fora do mapa
+  "goHomeDoors": ["door.street"],                       // portas do café onde ela pode encerrar o dia
+  "dailyDirt": 2                                        // poeiras (tag "daily") que voltam a cada manhã
 }
 ```
 
@@ -202,9 +204,11 @@ Itens podem ter `iconImage` (ex.: a chave) e `kind: "tool"` (não se compra nem 
 ```jsonc
 {
   "schemaVersion": 1,
-  "minutesPerSecond": 0.7,     // minutos de jogo por segundo real (o relógio para em falas, cenas e menus)
+  "minutesPerSecond": 1.2,     // minutos de jogo por segundo real (um dia ≈ 16 min; o relógio para só em falas, cenas e transições)
   "dayStart": "07:00",         // hora em que ela chega de manhã
-  "passOut": "26:00",          // 2h da madrugada: o dia acaba sozinho
+  "passOut": "26:00",          // 2h da madrugada: ela desmaia de sono e o dia acaba
+  "goHomeFrom": "17:00",       // a partir daí, a porta do café pergunta se ela quer encerrar o dia
+  "wakeAfterPassOut": "10:00", // se desmaiou, o dia seguinte começa mais tarde
   "indoorStrength": 0.35,      // mapas "indoor" recebem só 55% da cor
   "keyframes": [{ "time": "07:00", "color": "#ffe8d0" }, { "time": "12:00", "color": "#ffffff" }],
   "seasons": { "winter": { "keyframes": [...] } }   // troca as horas-chave numa estação (inverno: escurece cedo e mais frio)
@@ -284,14 +288,18 @@ Cada passo pode ter `"devNote"`: nota para a equipe, que só aparece no modo deb
 
 Um marco termina quando todos os `after` estão concluídos, todos os passos da meta valem e o `when` vale. Marcos concluídos nunca voltam atrás.
 
+Campos de ordem (v6):
+- `"start"`: condição para o marco **começar** (aparecer no balão). Ex.: `{ "nextDay": "story.coffee_machine" }` (só no dia seguinte).
+- `"exclusive": true`: enquanto o marco estiver ativo, os seguintes do arquivo não começam (uma quest por vez, nos primeiros dias). Marcos sem a flag correm em paralelo: é assim que a fase seguinte vai ter várias quests ao mesmo tempo, só mudando os dados.
+
 Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
 `{ "placed": "item.id", "gte": n }`, `{ "placedTag": "tag", "gte": n }`, `{ "owned": "item.id", "gte": n }`, `{ "money": { "gte": n } }`.
 
 Os efeitos são aplicados antes do evento `story.beat_completed`, para a interface saber que uma fala abriu e segurar o dinheiro e o diário até ela acabar.
 
-Condições do relógio e do lugar: `{ "day": { "gte": 2 } }`, `{ "clock": { "gte": "08:30" } }`, `{ "location": "map.cafe_main" }` (o relógio reavalia a história a cada minuto de jogo).
+Condições do relógio e do lugar: `{ "day": { "gte": 2 } }`, `{ "clock": { "gte": "08:30" } }`, `{ "location": "map.cafe_main" }` (o relógio reavalia a história a cada minuto de jogo), `{ "nextDay": "story.id" }` (o marco terminou num dia anterior), `{ "timer": "gabi.arrival" }` (o relógio marcado chegou), `{ "ownedTag": "table", "gte": 2 }` (itens com a tag, na bolsa ou posicionados).
 
-Efeitos: `{ "endDay": true }` (fim do dia), `{ "setTime": "08:00" }` (acerta o relógio), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
+Efeitos: `{ "endDay": true }` (fim do dia), `{ "setTime": "08:00" }` (acerta o relógio), `{ "startTimer": "gabi.arrival", "minutes": 90 }` (marca um relógio; um passo com `{ "timer": ... }` mostra o botão "Esperar" e o texto pode usar `{timer:gabi.arrival}` para a hora), `{ "shelterCat": "cat.id" }` (abriga e abre a caixa de nome), `{ "giveItem": "item.id" }`, `{ "cutscene": "cs.id" }`, `{ "dialogue": "dlg.id" }`, `{ "setFlag": "id" }`, `{ "addMoney": n }`.
 
 ## Falas (`data/dialogue.json`)
 
@@ -340,7 +348,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h). Fixtures: `tests/fixtures/save_v1.json` a `save_v5.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`). Fixtures: `tests/fixtures/save_v1.json` a `save_v6.json`.
 
 Regras:
 - Hoje o save fica no `localStorage` (chave `biscuit-paws:slot1`), via `src/platform/`. Abrir o jogo com `?novo` na URL começa um jogo novo.
@@ -363,3 +371,33 @@ Balões 16x16 (`exclamation`, `heart`, `plus1`) usados nos roteiros: `{ "emote":
 Outros passos de roteiro: `{ "catWalk": "cat.id", "to": [11, 5] }` (o gato vem e senta) e `{ "npcToCat": "npc.joca", "cat": "cat.id" }` (o NPC vai até o lado do gato).
 Itens `kind: "gift"`: presentes da história (ex.: `item.dishes_set`, da Gabi); não se compram nem se devolvem.
 Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "title": "chamando...", "caller": "npc.gabi", "lines": [] }`.
+
+## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)
+
+```jsonc
+{
+  "maxActive": 1,                         // quantos pedidos ao mesmo tempo
+  "points": [
+    { "id": "pt.snow_1", "map": "map.street", "at": [7, 8], "action": "sweep", "marker": "snow_monte_neve" },
+    { "id": "pt.parcel_pickup", "map": "map.market", "at": [18, 7], "action": "press", "gives": "item.parcel" }
+  ],
+  "jobs": [
+    {
+      "id": "job.clear_snow", "title": "Tirar a neve da calçada", "giver": "Loja de Móveis",
+      "description": "...", "location": "map.street", "reward": 30,
+      "repeat": "daily",                    // daily: uma vez por dia; once: uma vez no jogo
+      "available": { "beat": "story.prologue_end" },
+      "steps": [{ "text": "Varrer 3 montes de neve...", "points": ["pt.snow_1", "pt.snow_2", "pt.snow_3"] }]
+    }
+  ]
+}
+```
+
+Ponto: `press` (E ou clique de perto) ou `sweep` (varre com a vassoura). `marker`: tile desenhado enquanto o ponto está pendente. `gives`/`takes`: item recebido/entregue (itens com a tag `job` somem no fim do dia). Os passos vão em ordem; os pontos de um passo, em qualquer ordem. Pedido pela metade não passa para o dia seguinte.
+Aceitar: no celular (tecla P, app "Vila Hoje") ou no mural do mercado (interação `{ "action": { "board": true } }`).
+
+Jornal: `{ "id": "news.x", "headline": "...", "text": "...", "day": 2 }` (fixa num dia) ou `"fromDay": 4` (sorteio: uma por dia, sempre a mesma para aquele dia).
+
+## Rotina do dia
+
+Depois do prólogo, o balão mostra "hoje": comida para cada gato do café (uma vez por dia; `cats[].fedOn`) e a poeira que voltou (sujeiras com a tag `daily`, `world.dailyDirt` por manhã). O fim do dia (`day.ended`) leva o resumo: moedas ganhas (sem devoluções), pedidos feitos e os corações dos gatos.

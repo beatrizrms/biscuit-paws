@@ -1,10 +1,12 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import type { GameSession } from '../../core/session';
+import { formatClock } from '../../core/time';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, ShopPanel } from './ShopPanel';
+import { NewsPanel } from './NewsPanel';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -13,6 +15,8 @@ const TYPE_SPEED_MS = 22;
 export interface UiHandlers {
   /** A jogadora escolheu um item que já está na bolsa: começar a posicionar. */
   onPlace(itemId: string): void;
+  /** "Esperar": o relógio corre depressa até a meta que só espera o tempo. */
+  onWait(): void;
 }
 
 export class GameUi {
@@ -33,6 +37,7 @@ export class GameUi {
   private cutscene!: CutsceneView;
   private naming!: NamingBox;
   private shop!: ShopPanel;
+  private news!: NewsPanel;
   /** Cenas pedidas enquanto uma fala estava aberta: tocam quando a fala acabar. */
   private pendingCutscenes: string[] = [];
   /** Mudanças no HUD esperam a fala acabar (o dinheiro não sobe antes da fala que o explica). */
@@ -87,6 +92,7 @@ export class GameUi {
     this.cutscene = new CutsceneView(root, session, afterOverlay);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.bought), (reason) => this.problem(reason as keyof typeof uiText.problems));
+    this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
     bus.on('cutscene.requested', ({ cutsceneId }) => {
@@ -97,6 +103,7 @@ export class GameUi {
       if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
+    bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
     bus.onAny(() => this.refresh());
     this.refresh();
@@ -104,7 +111,12 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.reveal !== null;
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.reveal !== null;
+  }
+
+  /** O relógio para só em falas, cenas, caixa de nome e transições (menus não param o tempo). */
+  pausesClock(): boolean {
+    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null;
   }
 
   isDialogueOpen(): boolean {
@@ -146,6 +158,23 @@ export class GameUi {
 
   problem(reason: keyof typeof uiText.problems): void {
     this.toast(uiText.problems[reason] ?? reason);
+  }
+
+  /** Rotina do dia e pedido em andamento, embaixo da meta no balão. */
+  private extrasHtml(): string {
+    const c = uiText.chores;
+    const items = this.session.chores().map((ch) => {
+      const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : c.sweep;
+      const count = ch.progress && !ch.done ? ` <span class="count">${ch.progress[0]}/${ch.progress[1]}</span>` : '';
+      return `<li class="${ch.done ? 'done' : ''}"><span>${esc(text)}${count}</span></li>`;
+    });
+    for (const job of this.session.activeJobs()) {
+      const step = job.steps[this.session.jobStep(job.id)];
+      const [done, total] = this.session.jobStepProgress(job.id);
+      const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
+      items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
+    }
+    return items.length ? `<h4>${c.title}</h4><ul class="chores">${items.join('')}</ul>` : '';
   }
 
   /** Mostra um item grande no centro da tela (ex.: a chave). Resolve quando a jogadora continuar. */
@@ -198,10 +227,18 @@ export class GameUi {
   }
 
   /** Fim do dia: "Você foi para casa." e o dia seguinte. Resolve sozinho ou com clique/tecla. */
-  showDayTransition(day: number): Promise<void> {
+  showDayTransition(day: number, summary?: { reason: 'home' | 'passOut' | 'story'; earned: number; jobs: number }): Promise<void> {
     const el = document.createElement('div');
     el.className = 'day-transition';
-    el.innerHTML = `<p class="home">${uiText.dayTransition.home}</p><p class="next">${uiText.day} ${day}</p>`;
+    const t = uiText.dayTransition;
+    const hearts = this.session
+      .shelteredCats()
+      .map((id) => `<li>${esc(this.session.catName(id))} <span class="hearts">${'♥'.repeat(this.session.catHearts(id)) || '♡'}</span></li>`)
+      .join('');
+    const report = summary && summary.reason !== 'story'
+      ? `<ul class="summary"><li>${t.earned}: <b>${summary.earned}</b></li><li>${t.jobs}: <b>${summary.jobs}</b></li>${hearts}</ul>`
+      : '';
+    el.innerHTML = `<p class="home">${t[summary?.reason ?? 'home']}</p>${report}<p class="next">${uiText.day} ${day}</p>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     this.reveal = { el, done: () => undefined };
@@ -221,7 +258,7 @@ export class GameUi {
       };
       window.setTimeout(() => window.addEventListener('keydown', done), 400);
       el.addEventListener('click', done);
-      window.setTimeout(done, 2600);
+      window.setTimeout(done, summary && summary.reason !== 'story' ? 4500 : 2600);
     });
   }
 
@@ -232,6 +269,44 @@ export class GameUi {
 
   closeShop(): void {
     this.shop.close();
+    this.news.close();
+  }
+
+  /** Celular ("Vila Hoje") ou mural do mercado. */
+  openNews(mode: 'phone' | 'board'): void {
+    this.closeCatalog();
+    this.shop.close();
+    this.news.open(mode);
+  }
+
+  isNewsOpen(): boolean {
+    return this.news.isOpen();
+  }
+
+  /** Pergunta sim/não (ex.: encerrar o dia). Enter = sim, Esc = não. */
+  confirm(question: string, yes: string, no: string): Promise<boolean> {
+    const el = document.createElement('div');
+    el.className = 'confirm-layer';
+    el.innerHTML = `<div class="panel confirm"><p>${esc(question)}</p><div class="buttons"><button class="no">${esc(no)}</button><button class="yes">${esc(yes)}</button></div></div>`;
+    this.root.appendChild(el);
+    this.reveal = { el, done: () => undefined };
+    this.refresh();
+    return new Promise((resolve) => {
+      const finish = (answer: boolean) => {
+        window.removeEventListener('keydown', onKey);
+        el.remove();
+        this.reveal = null;
+        this.refresh();
+        resolve(answer);
+      };
+      const onKey = (e: KeyboardEvent) => {
+        if (e.code === 'Enter') finish(true);
+        else if (e.code === 'Escape') finish(false);
+      };
+      window.setTimeout(() => window.addEventListener('keydown', onKey), 150);
+      (el.querySelector('.yes') as HTMLElement).addEventListener('click', () => finish(true));
+      (el.querySelector('.no') as HTMLElement).addEventListener('click', () => finish(false));
+    });
   }
 
   isShopOpen(): boolean {
@@ -274,16 +349,20 @@ export class GameUi {
       void this.goals.offsetWidth; // reinicia a animação
       this.goals.classList.add("new");
     }
-    this.goals.innerHTML = goal
+    const extra = this.extrasHtml();
+    this.goals.classList.toggle('empty', !goal && !extra);
+    this.goals.innerHTML = (goal
       ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
           .map((s) => {
             const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
             const count = s.progress && !s.done ? ` <span class="count">${s.progress[0]}/${s.progress[1]}</span>` : '';
-            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}</span></li>`;
+            const wait = s.waitUntil !== undefined && !s.done ? `<button class="wait" title="${uiText.waitTitle}">${uiText.wait}</button>` : '';
+            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}${wait}</span></li>`;
           })
           .join('')}</ul>`
-      : '';
+      : extra ? `<h2>${uiText.goalsTitle}</h2>` : '') + extra;
 
+    this.goals.querySelector('.wait')?.addEventListener('click', () => this.handlers.onWait());
     if (this.isCatalogOpen()) this.renderCatalog();
     this.renderHint();
   }
@@ -386,7 +465,12 @@ export class GameUi {
   /** Abre a caixa de fala se houver fala na fila e nada na frente (cena, caixa de nome). */
   /** {cat:cat.id} nos textos vira o nome que a jogadora deu ao gato. */
   private fillNames(text: string): string {
-    return text.replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id));
+    return text
+      .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => this.session.catName(id))
+      .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
+        const t = this.session.timerClock(id);
+        return t === undefined ? '' : formatClock(t, 5);
+      });
   }
 
   private openDialogueIfFree(): void {

@@ -290,7 +290,7 @@
     {
       "id": "item.table_round",
       "name": "Mesa redonda",
-      "price": 30,
+      "price": 60,
       "tile": "table_round",
       "tags": [
         "furniture",
@@ -679,6 +679,27 @@
       "tags": [
         "gift",
         "dishes"
+      ]
+    },
+    {
+      "id": "item.coffee_machine",
+      "name": "Cafeteira",
+      "price": 180,
+      "tile": "coffee_machine",
+      "tags": [
+        "furniture",
+        "counter",
+        "coffee_machine"
+      ]
+    },
+    {
+      "id": "item.parcel",
+      "name": "Caixa de encomenda",
+      "price": 0,
+      "kind": "key",
+      "icon": "caixa_entrega_fechada",
+      "tags": [
+        "job"
       ]
     }
   ]
