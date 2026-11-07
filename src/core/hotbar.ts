@@ -20,16 +20,19 @@ export function fitsHotbar(item: ItemDef | undefined): boolean {
   return !!item && (item.kind ?? 'furniture') !== 'furniture' && item.kind !== 'fixture';
 }
 
+/** Entra sozinho na barra: ferramentas (vassoura) e itens com uso (ração, petisco). */
+const autoSlotted = (item: ItemDef | undefined) => item?.kind === 'tool' || !!item?.use;
+
 const owned = (inventory: Record<string, number>, id: string | null) => !!id && (inventory[id] ?? 0) > 0;
 
 /**
- * Ferramenta nova vai sozinha para o primeiro espaço livre (vazio ou com item que acabou).
+ * Ferramenta ou item com uso novo vai sozinho para o primeiro espaço livre (vazio ou com item que acabou).
  * Devolve se mudou algo.
  */
 export function syncHotbar(bar: HotbarState, inventory: Record<string, number>, items: Record<string, ItemDef>): boolean {
   let changed = false;
   for (const id of Object.keys(inventory)) {
-    if (!owned(inventory, id) || items[id]?.kind !== 'tool' || bar.slots.includes(id)) continue;
+    if (!owned(inventory, id) || !autoSlotted(items[id]) || bar.slots.includes(id)) continue;
     const free = bar.slots.findIndex((s) => !owned(inventory, s));
     if (free < 0) break;
     bar.slots[free] = id;

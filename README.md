@@ -31,7 +31,7 @@ Os prints do teste ficam em `test-results/`.
 
 Controles:
 - **Clique na sujeira** (de perto, com a vassoura ativa na barra): limpar. Manchas e rachaduras só saem quando o pintor reforma.
-- **1 a 8 / roda do mouse:** escolher o item ativo na barra (embaixo da tela). **I:** mochila em grade; clique num item para pôr no espaço ativo.
+- **1 a 8 / roda do mouse:** escolher o item ativo na barra (embaixo da tela). **I:** mochila em grade; clique num item para pôr no espaço ativo. Com a **ração** ativa, E na tigela enche; com o **petisco** ativo, E perto do gato dá o petisco.
 - **Setas / WASD:** andar. Para entrar ou sair por uma porta, pare na frente dela e siga para cima.
 - **C:** catálogo: móveis, balcão e **Reforma (pintor)** (clique num item para comprar e já posicionar; num acabamento, para o pintor aplicar)
 - **Clique:** posicionar · **botão direito ou Esc:** cancelar (o item fica na bolsa)

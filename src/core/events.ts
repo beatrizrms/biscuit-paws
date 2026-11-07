@@ -51,6 +51,9 @@ export interface GameEvents {
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };
   'hotbar.changed': { active: number };
+  /** Receita nova destrancada (pela evolução do café: clientes atendidos). */
+  'recipe.unlocked': { recipeId: string };
+  'cat.treated': { catId: string; itemId: string };
 }
 
 export type EventName = keyof GameEvents;

@@ -8,7 +8,10 @@ const content = loadContent();
 const price = (id: string) => content.items[id]!.price;
 
 function market(money: number) {
-  const session = new GameSession(content, newGameState(money, 'map.market'));
+  const state = newGameState(money, 'map.market');
+  // Café já evoluído: todas as receitas destrancadas, então o mercado vende todos os ingredientes.
+  state.service.served = 999;
+  const session = new GameSession(content, state);
   const events: string[] = [];
   session.bus.onAny((name) => events.push(name));
   return { session, events };

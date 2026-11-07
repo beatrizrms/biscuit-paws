@@ -109,7 +109,7 @@ export class GameUi {
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
     this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
-    this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem);
+    this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem, (id) => this.handlers.onPlace(id));
     this.hotbar = new Hotbar(root, session);
     this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
@@ -143,6 +143,8 @@ export class GameUi {
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
+    // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).
+    bus.on('recipe.unlocked', ({ recipeId }) => this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
@@ -188,11 +190,11 @@ export class GameUi {
     this.renderHint();
   }
 
-  toast(text: string): void {
+  toast(text: string, ms = 1600): void {
     this.toastEl.textContent = text;
     this.toastEl.classList.add('show');
     window.clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => this.toastEl.classList.remove('show'), 1600);
+    this.toastTimer = window.setTimeout(() => this.toastEl.classList.remove('show'), ms);
   }
 
   /** Aviso com um texto de data/ui_text.json. */

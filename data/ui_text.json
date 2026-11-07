@@ -26,6 +26,7 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "hintWalk": "Setas/WASD: andar · E: interagir · 1–8: barra · C: catálogo · M: cardápio · I: mochila · P: celular",
+  "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "hotbar": {
     "label": "Barra de itens"
   },
@@ -49,6 +50,8 @@
     "locked": "Ainda não conheço um pintor.",
     "too_far": "Preciso chegar mais perto.",
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
+    "needs_food": "Preciso da ração na mão. Escolha ela na barra (teclas 1 a 8).",
+    "needs_treat": "Preciso do petisco na mão. Escolha ele na barra (teclas 1 a 8).",
     "needs_repair": "Isso não sai com faxina. Só reformando.",
     "invalid_name": "Escolha um nome de 1 a 14 letras.",
     "not_sheltered": "Esse gatinho ainda não mora aqui.",
@@ -237,7 +240,9 @@
     "hold": "segurar",
     "stow": "guardar",
     "dirty": "{name} suja",
-    "furniture": "Móveis guardados: {n} (posicione pelo catálogo, C).",
+    "furnitureTitle": "Móveis guardados",
+    "furnitureHint": "Clique para posicionar no café.",
+    "needsCounter": "precisa de balcão",
     "useTray": "usar bandeja",
     "stowTray": "guardar bandeja",
     "wip": "{name} ({equipment})",

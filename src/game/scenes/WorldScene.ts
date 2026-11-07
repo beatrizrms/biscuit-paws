@@ -17,7 +17,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, serviceArt, uiText } from '../content';
+import { broom, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
@@ -57,6 +57,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dayNight!: DayNightLayer;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
+  /** Tocando a animação de usar um item da barra (ração na tigela, petisco no gato). */
+  private usingItem = false;
   /** "Esperar": o relógio corre depressa até a meta de espera concluir. */
   /** "Esperar": o relógio corre depressa até este momento absoluto. */
   private waitUntilAbs: number | null = null;
@@ -253,10 +255,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping;
+    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
-    const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping;
+    const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
     if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.waitUntilAbs !== null ? WAIT_SPEED : 1));
     this.updateDayNight();
     const input = this.autoWalk
@@ -573,12 +575,81 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else this.ui.openNews('board');
       return true;
     }
-    // Tigela de ração por perto: enche e o gato vem comer.
+    // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
     const bowl = this.session.bowlNear(this.playerCells(), target);
-    if (!bowl) return this.tryPickUpCat(target);
-    const result = this.session.feedFromBowl(bowl);
-    if (!result.ok) this.ui.problem(result.reason);
+    if (!bowl) return this.tryTreatCat(target) || this.tryPickUpCat(target);
+    if (this.usingItem) return true;
+    const problem = this.session.feedProblem(bowl);
+    if (problem) {
+      this.ui.problem(problem);
+      return true;
+    }
+    const food = this.session.activeItem()!;
+    const placed = this.session.state.placed.find((p) => p.uid === bowl)!;
+    const ts = this.map.tileSize;
+    void this.playUse(food, (placed.at[0] + 0.5) * ts, (placed.at[1] + 0.5) * ts, 'pour').then(() => {
+      const result = this.session.feedFromBowl(bowl);
+      if (!result.ok) this.ui.problem(result.reason);
+    });
     return true;
+  }
+
+  /** Petisco ativo na barra e um gato perto: o petisco vai da mão até o gato. */
+  private tryTreatCat(target?: Cell): boolean {
+    if (!this.session.holdingTreat() || !this.session.atHome() || this.usingItem) return false;
+    const feet = this.playerCells();
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    if (!cat) return false;
+    const treat = this.session.activeItem()!;
+    void this.playUse(treat, cat.x, cat.y - 10, 'give').then(() => {
+      const result = this.session.treatCat(cat.catId);
+      if (!result.ok) this.ui.problem(result.reason);
+    });
+    return true;
+  }
+
+  /**
+   * Usar um item da barra, sem mudar nada no jogo: o ícone aparece na mão dela, vai até o alvo e
+   * despeja (grãos caindo na tigela) ou é entregue (some no gato). Placeholder até a pose "despejar".
+   */
+  private async playUse(itemId: string, x: number, y: number, how: 'pour' | 'give'): Promise<void> {
+    const item = this.session.content.items[itemId];
+    const f = item?.icon ? iconFrame(this, item.icon) : undefined;
+    if (!f) return;
+    this.usingItem = true;
+    const dx = x - this.player.x;
+    const dy = y - (this.player.y - 16);
+    this.player.face(Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    const [ax, ay] = serviceArt.handAnchor[this.player.facingDirection()];
+    const icon = this.add
+      .image(this.player.x - 16 + ax, this.player.y - 64 + ay, f.key, f.frame)
+      .setScale(0)
+      .setDepth(this.player.depth + 2);
+    await this.tweenProps(icon, { scale: 0.5 }, itemUse.pickMs);
+    if (how === 'pour') {
+      // Fica na mão: só estica o braço um pouco na direção da tigela e inclina; os grãos caem dele até a tigela.
+      const reach = 0.55;
+      const px = icon.x + (x - icon.x) * reach;
+      const py = icon.y + (y - 14 - icon.y) * reach;
+      await this.tweenProps(icon, { x: px, y: py, angle: dx < 0 ? -70 : 70 }, itemUse.moveMs);
+      const grainMs = itemUse.pourMs / itemUse.grains;
+      const color = Phaser.Display.Color.HexStringToColor(itemUse.grainColor).color;
+      for (let i = 0; i < itemUse.grains; i++) {
+        const g = this.add.rectangle(px + (i % 3) - 1, py + 4, 2, 2, color).setDepth(icon.depth - 1);
+        this.tweens.add({ targets: g, x: x + (i % 3) - 1, y: y + 2, duration: grainMs * 2, ease: 'Quad.easeIn', onComplete: () => g.destroy() });
+        await this.wait(grainMs);
+      }
+    } else {
+      await this.tweenProps(icon, { x, y, scale: 0.35 }, itemUse.giveMs);
+    }
+    await this.tweenProps(icon, { alpha: 0 }, 120);
+    icon.destroy();
+    this.usingItem = false;
+  }
+
+  private tweenProps(target: Phaser.GameObjects.GameObject, props: Record<string, number>, duration: number): Promise<void> {
+    return new Promise((resolve) => this.tweens.add({ targets: target, ...props, duration, ease: 'Sine.easeInOut', onComplete: () => resolve() }));
   }
 
   /** Coraçãozinho que sobe e some em cima do gato. */

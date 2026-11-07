@@ -32,6 +32,8 @@ export interface ItemDef {
   iconImage?: string;
   /** Quadro de data/emotes.json desenhado acima da cabeça dela enquanto tiver o item (ex.: a caixa de uma entrega). */
   carrySprite?: string;
+  /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "cat" = dar ao gato (petisco). */
+  use?: ItemUse;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
@@ -91,6 +93,10 @@ export interface EconomyData {
 }
 
 /** Condição de história, escrita em JSON. */
+/** Onde um item da barra é usado. */
+export type ItemUse = 'food_bowl' | 'cat';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat'];
+
 export type Condition =
   | { all: Condition[] }
   | { any: Condition[] }
@@ -351,6 +357,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
   }
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
+  for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
   // Todo ponto de pedido precisa ser alcançável a pé a partir do spawn do mapa (ele ou um vizinho).
   for (const p of raw.jobs.points) {

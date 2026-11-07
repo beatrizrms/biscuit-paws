@@ -108,7 +108,10 @@ export class ShopPanel {
 
   private renderShelf(shopId: string, tags: string[]): void {
     const { state } = this.session;
-    const ids = this.session.shopItems(shopId).filter((id) => content.items[id]!.tags.some((t) => tags.includes(t)));
+    // Só o que já serve: ingredientes e equipamentos aparecem com a receita que usa eles.
+    const ids = this.session
+      .shopItems(shopId)
+      .filter((id) => content.items[id]!.tags.some((t) => tags.includes(t)) && this.session.itemUnlocked(id));
     const row = (id: string) => {
       const item = content.items[id]!;
       const owned = state.inventory[id] ?? 0;

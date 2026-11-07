@@ -49,6 +49,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Músicas e sons ambientes (canais prontos)
 - [x] Atendimento, Fase 1: quadro do cardápio (M), mochila (I), mãos, preparo com barra, clientes em pé, louça suja e pia, capacidade pela louça
 - [ ] Atendimento, Fase 2: bandeja, itens pesados, gato no veterinário, forno, pia como estação, qualidade e preferências
+- [x] Usar itens da barra com animação (ração na tigela, petisco no gato); evolução das receitas por clientes atendidos
+- [ ] Veterinário: levar o gato no colo até a clínica (mapa, NPC e arte)
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
 - [x] Barra de itens (1 a 8) e mochila em grade; varrer exige a vassoura ativa

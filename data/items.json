@@ -10,7 +10,8 @@
       "tags": [
         "pet",
         "food"
-      ]
+      ],
+      "use": "food_bowl"
     },
     {
       "id": "item.cat_food_premium",
@@ -21,7 +22,8 @@
       "tags": [
         "pet",
         "food"
-      ]
+      ],
+      "use": "food_bowl"
     },
     {
       "id": "item.cat_treat_biscuit",
@@ -32,7 +34,8 @@
       "tags": [
         "pet",
         "treat"
-      ]
+      ],
+      "use": "cat"
     },
     {
       "id": "item.cat_litter",

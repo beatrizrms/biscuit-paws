@@ -654,14 +654,16 @@
 /* Mochila em grade: clicar num item põe no espaço ativo da barra */
 .catalog.backpack .bp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
 .catalog.backpack .bp-item { display: flex; flex-direction: column; gap: 2px; }
-.catalog.backpack .bp-item > button[data-assign] { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px 3px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--cream2); font: inherit; cursor: pointer; }
-.catalog.backpack .bp-item > button[data-assign]:hover { border-color: var(--butter3); }
+.catalog.backpack .bp-item > button[data-assign], .catalog.backpack .bp-item > button[data-place] { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px 3px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--cream2); font: inherit; cursor: pointer; }
+.catalog.backpack .bp-item > button[data-assign]:hover, .catalog.backpack .bp-item > button[data-place]:hover:not(:disabled) { border-color: var(--butter3); }
+.catalog.backpack .bp-item > button[data-place]:disabled { cursor: default; opacity: 0.85; }
+.catalog.backpack .tile-thumb { display: inline-block; image-rendering: pixelated; background-repeat: no-repeat; }
 .catalog.backpack .bp-item.active > button[data-assign] { border: 2px solid var(--butter3); background: var(--cream); }
 .catalog.backpack .bp-item .icon { image-rendering: pixelated; }
 .catalog.backpack .bp-name { font-size: 7px; text-align: center; line-height: 1.1; }
 .catalog.backpack .bp-amount { font-size: 6.5px; color: var(--grey2); }
 .catalog.backpack .slot-no { position: absolute; top: 1px; left: 3px; font-size: 6px; font-weight: bold; color: var(--wood3); }
-.catalog.backpack .bp-item > button:not([data-assign]) { padding: 1px 4px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
+.catalog.backpack .bp-item > button:not([data-assign]):not([data-place]) { padding: 1px 4px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
 
 /* Carrinho do mercado: prateleira (+/−) e caixa (total, pagar) */
 .catalog .cart-row { grid-template-columns: 1fr auto auto; align-items: center; gap: 4px; cursor: default; }

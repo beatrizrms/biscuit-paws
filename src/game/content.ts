@@ -86,5 +86,8 @@ export const broom = toolsJson.broom as unknown as {
   frames: Record<string, [number, number, number, number]>;
 };
 
+/** Usar um item da barra: tempos da animação (ícone na mão). */
+export const itemUse = toolsJson.use as unknown as { pickMs: number; moveMs: number; pourMs: number; giveMs: number; grains: number; grainColor: string };
+
 /** Celular das cenas (moldura e ícones). */
 export const phone = phoneJson as unknown as { frame: string; size: [number, number]; screen: { x: number; y: number; w: number; h: number }; status: string; notification: string; apps: Record<string, string> };

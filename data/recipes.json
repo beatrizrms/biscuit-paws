@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro.",
+  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro (evolução: clientes atendidos no jogo todo; o equipamento e os ingredientes só aparecem no catálogo/mercado quando alguma receita destrancada usa eles).",
   "recipes": [
     {
       "id": "recipe.black_coffee",
@@ -39,7 +39,12 @@
           "equipment": "teapot",
           "minutes": 8
         }
-      ]
+      ],
+      "unlock": {
+        "served": {
+          "gte": 6
+        }
+      }
     },
     {
       "id": "recipe.orange_juice",
@@ -59,7 +64,12 @@
           "equipment": "blender",
           "minutes": 6
         }
-      ]
+      ],
+      "unlock": {
+        "served": {
+          "gte": 15
+        }
+      }
     },
     {
       "id": "recipe.cafe_latte",
@@ -73,7 +83,9 @@
       "vessel": "cup",
       "price": 15,
       "unlock": {
-        "flag": "recipe.cafe_latte"
+        "served": {
+          "gte": 25
+        }
       },
       "premium": {
         "item.coffee_ground": "item.coffee_beans_bag"
@@ -95,7 +107,9 @@
       "vessel": "cup",
       "price": 9,
       "unlock": {
-        "flag": "recipe.green_tea"
+        "served": {
+          "gte": 45
+        }
       },
       "premium": {
         "item.tea_green_bag": "item.tea_leaves_tin"
@@ -118,7 +132,9 @@
       "vessel": "glass",
       "price": 11,
       "unlock": {
-        "flag": "recipe.strawberry_juice"
+        "served": {
+          "gte": 55
+        }
       },
       "premium": {
         "item.pulp_strawberry": "item.strawberry"
@@ -141,7 +157,9 @@
       "vessel": "glass",
       "price": 10,
       "unlock": {
-        "flag": "recipe.lemonade"
+        "served": {
+          "gte": 65
+        }
       },
       "premium": {
         "item.pulp_lemon": "item.lemon"
@@ -173,7 +191,12 @@
         }
       ],
       "vessel": "plate",
-      "price": 18
+      "price": 18,
+      "unlock": {
+        "served": {
+          "gte": 35
+        }
+      }
     },
     {
       "id": "recipe.cake_slice",
@@ -196,7 +219,12 @@
         }
       ],
       "vessel": "plate",
-      "price": 22
+      "price": 22,
+      "unlock": {
+        "served": {
+          "gte": 80
+        }
+      }
     }
   ]
 }

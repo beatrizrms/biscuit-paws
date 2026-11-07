@@ -182,7 +182,7 @@ Roteiro = lista de passos executados em ordem; cada um espera o anterior termina
 A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
 NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`).
 A vassoura fica em `data/tools.json` (quadros, ponto do cabo, tempo de varrer).
-Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem se devolve) e `carrySprite` (quadro de `data/emotes.json` desenhado acima da cabeça dela enquanto tiver o item; ex.: a caixa de uma entrega).
+Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem se devolve) e `carrySprite` (quadro de `data/emotes.json` desenhado acima da cabeça dela enquanto tiver o item; ex.: a caixa de uma entrega). `use` diz o que o item faz quando está ativo na barra: `"food_bowl"` (ração: encher a tigela; a escolhida, simples ou premium) ou `"cat"` (petisco: dar ao gato). Itens com `use` entram sozinhos na barra, como as ferramentas. Tempos da animação de usar (ícone na mão, despejar, dar) em `data/tools.json: use`.
 
 ## Mundo (`data/world.json`)
 
@@ -438,9 +438,11 @@ Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o fur
   "vessel": "cup",                      // cup (xícara), glass (copo), plate (prato)
   // a louça (vessel) diz onde é servida: service.json, servedAt
   "prepMinutes": 10, "price": 12,
-  "unlock": { "flag": "recipe.cafe_latte" }   // opcional: condição para aparecer no quadro
+  "unlock": { "served": { "gte": 25 } }   // opcional: condição para aparecer no quadro
 }
 ```
+
+Evolução das receitas: o café abre só com o café preto; as outras destrancam por clientes atendidos (`served`): chá preto 6, suco de laranja 15, latte 25, pão de queijo 35, chá verde 45, suco de morango 55, limonada 65, bolo 80. Ao destrancar, um aviso aparece uma vez (evento `recipe.unlocked`, flag `recipe.known.<id>`; na abertura de um save só marca, sem aviso). Equipamentos (tags de `service.json: equipment`) e ingredientes (tag `ingredient`) só aparecem no catálogo e no mercado quando alguma receita destrancada usa eles; ingrediente que nenhuma receita usa fica escondido.
 
 `data/service.json`: `menuSlots` (4), `servedAt` (onde cada louça pode ser servida: xícara e copo `["standing", "table"]`, prato `["table"]`), horário (`open`), chegada (`firstArrivalMinutes`, `arrivalEveryMinutes`), `patienceMinutes`, `consumeMinutes`, `enabledWhen` (`{ "business": "soft_open" }`: a partir do funcionamento parcial), `queue` (células da fila), `sink` (pia), `equipment` (chave -> tag do móvel), `standingTag` (`bar`: balcões onde o cliente fica em pé), `tableTag`, `chairTag`, `surfaceTags`, `vessels` (nome e ícone), `customerTints` (clientes provisórios).
 

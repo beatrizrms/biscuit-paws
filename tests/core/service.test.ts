@@ -14,9 +14,11 @@ const advance = (session: GameSession, m: number) => {
 const untilChairs = content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.chairs') + 1).map((b) => b.id);
 
 /** Café pronto para o primeiro cliente: depois das cadeiras, com balcão, cafeteira, mesa, cadeira, louça da Gabi e café. */
-function openCafe(opts: { counter?: boolean; coffee?: boolean } = {}) {
+function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number } = {}) {
   const state = newGameState(500, 'map.cafe_main', 9 * 60);
   state.flags['has.cat'] = true;
+  // Clientes já atendidos: as receitas da evolução destrancam por aqui (o café novo só tem o café preto).
+  state.service.served = opts.served ?? 0;
   state.story.completed.push(...untilChairs);
   const session = new GameSession(content, state);
   const events: { name: EventName; payload: unknown }[] = [];
@@ -64,7 +66,9 @@ describe('receitas e cardápio', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('vessel');
     session.receiveItem('item.dishes_set');
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
-    // O chá precisa do bule; o suco, do liquidificador.
+    // Café novo: só o café preto. O chá destranca com clientes atendidos e aí pede o bule.
+    expect(sv.recipeStatus('recipe.black_tea')).toBe('locked');
+    session.state.service.served = 15;
     expect(sv.recipeStatus('recipe.black_tea')).toBe('equipment');
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('equipment');
     // Receitas para depois ficam bloqueadas até a condição delas.
@@ -83,7 +87,7 @@ describe('receitas e cardápio', () => {
   });
 
   it('o quadro tem slots (dados) e só aceita receita desbloqueada', () => {
-    const { sv, state } = openCafe();
+    const { sv, state } = openCafe({ served: 15 });
     expect(sv.toggleMenu('recipe.cafe_latte')).toEqual({ ok: false, reason: 'not_unlocked' });
     expect(sv.toggleMenu('recipe.black_coffee')).toEqual({ ok: true });
     expect(state.menu).toEqual(['recipe.black_coffee']);
@@ -91,9 +95,8 @@ describe('receitas e cardápio', () => {
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true });
     expect(sv.orderable().map((r) => r.id)).toEqual(['recipe.black_coffee']);
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
-    state.flags['recipe.green_tea'] = true;
+    state.service.served = 65;
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
-    state.flags['recipe.lemonade'] = true;
     expect(sv.toggleMenu('recipe.lemonade')).toEqual({ ok: false, reason: 'menu_full' });
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true }); // tirar
     expect(state.menu).not.toContain('recipe.black_tea');
@@ -367,7 +370,7 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
 describe('fase 2: forno e receitas em etapas', () => {
   /** Café com fogão, forno, mesa, cadeira e ingredientes do pão de queijo; o quadro só com ele. */
   const bakery = () => {
-    const ctx = openCafe();
+    const ctx = openCafe({ served: 35 });
     const { session, sv } = ctx;
     session.state.money += 1000;
     for (const [id, at] of [['item.counter_single', [2, 8]], ['item.counter_single', [4, 8]], ['item.stove', [2, 8]], ['item.oven', [4, 8]]] as const) {
@@ -405,7 +408,7 @@ describe('fase 2: forno e receitas em etapas', () => {
   });
 
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
-    const { session, sv } = openCafe();
+    const { session, sv } = openCafe({ served: 35 });
     session.state.money += 1000;
     session.buy('item.counter_single');
     session.place('item.counter_single', [2, 8]);
@@ -466,7 +469,7 @@ describe('fase 2: qualidade e preferências', () => {
 
 describe('equipamentos em cima do balcão', () => {
   it('só vão em cima de um balcão livre; o balcão não sai com algo em cima; não vira lugar de cliente', () => {
-    const { session, sv, state } = openCafe();
+    const { session, sv, state } = openCafe({ served: 6 });
     const machine = state.placed.find((p) => p.item === 'item.coffee_machine')!;
     const counter = state.placed.find((p) => p.item === 'item.counter_single' && p.at[0] === 7)!;
     // Já tem a cafeteira em cima: o bule não cabe no mesmo balcão.

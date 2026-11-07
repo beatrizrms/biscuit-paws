@@ -52,7 +52,9 @@ function finishPrologue(session: GameSession) {
   expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
   buyAndPlace(session, 'item.food_bowl', [14, 9]);
   const bowl = session.bowlNear([[14, 8]])!;
+  expect(session.selectHotbarItem('item.cat_food_basic')).toBe(true);
   expect(session.feedFromBowl(bowl)).toEqual({ ok: true });
+  session.selectHotbarItem('item.broom'); // de volta à vassoura (varrer e pedidos)
   session.finishCutscene('cs.prologue_end');
 }
 
@@ -131,7 +133,9 @@ describe('começo da história', () => {
     expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
     expect(session.goals().map((g) => g.title)).toEqual(['Hora de comer']);
-    // Alimentar: primeiro coração, cartão final e fim do dia.
+    // Alimentar: a ração entrou sozinha na barra; ela escolhe e enche a tigela. Primeiro coração, cartão final e fim do dia.
+    expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: false, reason: 'needs_food' });
+    expect(session.selectHotbarItem('item.cat_food_basic')).toBe(true);
     expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: true });
     expect(session.catHearts('cat.first_stray')).toBe(1);
     session.finishCutscene('cs.prologue_end');
@@ -455,6 +459,7 @@ describe('o gatinho na porta', () => {
     expect(session.itemUnlocked('item.cat_bed')).toBe(false);
     expect(session.buy('item.cat_bed')).toEqual({ ok: false, reason: 'locked' });
     expect(session.itemUnlocked('item.table_round')).toBe(true);
+    expect(session.itemUnlocked('item.honey')).toBe(false); // nenhuma receita usa mel ainda
   });
 
   it('depois da faxina, a porta de dentro mostra o gatinho em vez de sair', () => {
@@ -578,6 +583,7 @@ describe('alimentar e fim do dia', () => {
     session.buy('item.cat_food_basic');
     session.buy('item.cat_food_basic');
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    session.selectHotbarItem('item.cat_food_basic');
     session.feedFromBowl(session.bowlNear([[14, 8]])!);
     expect(session.state.inventory['item.cat_food_basic']).toBe(1);
     expect(events.some((e) => e.name === 'cat.fed')).toBe(true);
@@ -863,6 +869,7 @@ describe('passagem dos dias e rotina', () => {
     session.enter('map.cafe_main');
     const bowl = session.bowlNear([[14, 8]])!;
     session.buy('item.cat_food_basic');
+    session.selectHotbarItem('item.cat_food_basic');
     expect(session.chores().find((c) => c.kind === 'feed')?.done).toBe(false);
     expect(session.feedFromBowl(bowl)).toEqual({ ok: true });
     expect(session.feedFromBowl(bowl)).toEqual({ ok: false, reason: 'already_fed' });
@@ -1024,5 +1031,81 @@ describe('barra de itens', () => {
     expect(session.buy('item.cactus')).toEqual({ ok: true });
     expect(session.assignToHotbar('item.cactus')).toEqual({ ok: false, reason: 'unknown_item' });
     expect(session.assignToHotbar('item.cat_food_basic')).toEqual({ ok: false, reason: 'not_in_inventory' });
+  });
+});
+
+describe('usar itens da barra', () => {
+  it('ração e petisco entram sozinhos na barra; a vassoura continua ativa', () => {
+    const { session } = newSession();
+    session.buy('item.cat_food_basic');
+    session.buy('item.cat_treat_biscuit');
+    expect(session.state.hotbar.slots.slice(0, 3)).toEqual(['item.broom', 'item.cat_food_basic', 'item.cat_treat_biscuit']);
+    expect(session.activeItem()).toBe('item.broom');
+  });
+
+  it('a ração escolhida é a que vai para a tigela (simples ou premium)', () => {
+    const { session, events } = newSession();
+    startInCafe(session);
+    session.buy('item.cat_food_basic');
+    session.buy('item.cat_food_premium');
+    buyAndPlace(session, 'item.food_bowl', [14, 9]);
+    session.selectHotbarItem('item.cat_food_premium');
+    expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: true });
+    expect(session.state.inventory['item.cat_food_premium'] ?? 0).toBe(0);
+    expect(session.state.inventory['item.cat_food_basic']).toBe(1);
+    expect(events.find((e) => e.name === 'cat.fed')?.payload).toMatchObject({ itemId: 'item.cat_food_premium' });
+  });
+
+  it('petisco ativo: dá ao gato direto da mochila e ganha pontos', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    session.buy('item.cat_treat_biscuit');
+    expect(session.holdingTreat()).toBe(false);
+    expect(session.treatCat('cat.first_stray')).toEqual({ ok: false, reason: 'needs_treat' });
+    session.selectHotbarItem('item.cat_treat_biscuit');
+    expect(session.holdingTreat()).toBe(true);
+    const before = session.state.relationships['player|cat.first_stray'] ?? 0;
+    expect(session.treatCat('cat.first_stray')).toEqual({ ok: true });
+    expect(session.state.relationships['player|cat.first_stray']).toBe(before + content.relationships.treatPoints);
+    expect(session.state.inventory['item.cat_treat_biscuit'] ?? 0).toBe(0);
+  });
+});
+
+describe('evolução das receitas', () => {
+  it('o café começa só com o café preto; as outras destrancam com clientes atendidos, com aviso', () => {
+    const { session, events } = newSession();
+    session.start(true);
+    const unlocked = () => session.service.unlockedRecipes().map((r) => r.id);
+    expect(unlocked()).toEqual(['recipe.black_coffee']);
+    session.state.service.served = 6;
+    session.service.toggleMenu('recipe.black_coffee'); // qualquer ação avança a história
+    expect(unlocked()).toContain('recipe.black_tea');
+    expect(events.filter((e) => e.name === 'recipe.unlocked').map((e) => e.payload)).toEqual([{ recipeId: 'recipe.black_tea' }]);
+    // Avisa uma vez só.
+    session.service.toggleMenu('recipe.black_coffee');
+    expect(events.filter((e) => e.name === 'recipe.unlocked')).toHaveLength(1);
+  });
+
+  it('o equipamento e os ingredientes só aparecem quando alguma receita destrancada usa eles', () => {
+    const { session } = newSession();
+    expect(session.itemUnlocked('item.coffee_machine')).toBe(true);
+    expect(session.itemUnlocked('item.coffee_ground')).toBe(true);
+    expect(session.itemUnlocked('item.teapot')).toBe(false);
+    expect(session.itemUnlocked('item.tea_black_bag')).toBe(false);
+    expect(session.buy('item.teapot')).toEqual({ ok: false, reason: 'locked' });
+    session.state.service.served = 6;
+    expect(session.itemUnlocked('item.teapot')).toBe(true);
+    expect(session.itemUnlocked('item.tea_black_bag')).toBe(true);
+    // O forno só com o pão de queijo; móveis e coisas de gato não mudam.
+    expect(session.itemUnlocked('item.oven')).toBe(false);
+    expect(session.itemUnlocked('item.table_round')).toBe(true);
+    expect(session.itemUnlocked('item.honey')).toBe(false); // nenhuma receita usa mel ainda
+  });
+
+  it('save antigo: receitas já destrancadas não avisam de novo ao abrir', () => {
+    const { session, events } = newSession();
+    session.state.service.served = 20;
+    session.start(false);
+    expect(events.some((e) => e.name === 'recipe.unlocked')).toBe(false);
   });
 });

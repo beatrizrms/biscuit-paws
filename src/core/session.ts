@@ -1,6 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
-import type { Condition, Content, Effect } from './content';
+import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
 import { newsForDay, type JobDef, type JobPoint, type NewsItem } from './jobs';
@@ -35,6 +35,8 @@ export type ActionResult =
         | 'no_money'
         | 'not_in_inventory'
         | 'needs_broom'
+        | 'needs_food'
+        | 'needs_treat'
         | 'not_found'
         | 'unknown_surface'
         | 'unknown_finish'
@@ -98,6 +100,7 @@ export class GameSession {
   start(isNew: boolean): void {
     // Saves de antes da v8: a louça que ela já ganhou entra no estoque.
     for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
+    this.announceRecipes(true);
     this.bus.emit('game.started', { isNew });
     this.advanceStory();
   }
@@ -111,6 +114,14 @@ export class GameSession {
   /** Item no espaço ativo da barra (o que ela usa para agir), se ainda tiver. */
   activeItem(): string | null {
     return activeItem(this.state.hotbar, this.state.inventory);
+  }
+
+  /** Deixa ativo o espaço onde está este item (se estiver na barra). */
+  selectHotbarItem(itemId: string): boolean {
+    const slot = this.state.hotbar.slots.indexOf(itemId);
+    if (slot < 0) return false;
+    this.selectHotbarSlot(slot);
+    return true;
   }
 
   /** Escolhe o espaço ativo (0 a HOTBAR_SIZE - 1). */
@@ -134,10 +145,35 @@ export class GameSession {
     return this.activeItem() === this.content.world.tools[action] ? null : 'needs_broom';
   }
 
-  /** O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato) */
+  /**
+   * O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato)
+   * Equipamentos e ingredientes seguem a evolução das receitas: só aparecem quando alguma receita
+   * destrancada usa eles (o bule chega ao catálogo junto com o chá). Sem receita nenhuma, ficam escondidos.
+   */
   itemUnlocked(itemId: string): boolean {
     const item = this.content.items[itemId];
-    return !!item && (!item.requires || evaluate(item.requires, this.state, this.storyContext()));
+    if (!item || (item.requires && !evaluate(item.requires, this.state, this.storyContext()))) return false;
+    const recipes = Object.values(this.content.recipes);
+    const equipment = this.content.service.equipment;
+    const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));
+    const usedBy = recipes.filter((r) =>
+      isEquipment
+        ? r.steps.some((st) => item.tags.includes(equipment[st.equipment]?.tag ?? ''))
+        : item.tags.includes('ingredient') && (itemId in r.ingredients || Object.values(r.premium ?? {}).includes(itemId)),
+    );
+    // Ingrediente que nenhuma receita usa ainda (chá de camomila, mel...) fica guardado para quando usar.
+    if (usedBy.length === 0) return !isEquipment && !item.tags.includes('ingredient');
+    return usedBy.some((r) => this.service.recipeStatus(r.id) !== 'locked');
+  }
+
+  /** Receitas destrancadas que ela ainda não viu: avisa uma vez (o café evoluiu). Na abertura, só marca. */
+  private announceRecipes(silent: boolean): void {
+    for (const r of this.service.unlockedRecipes()) {
+      const flag = `recipe.known.${r.id}`;
+      if (this.state.flags[flag]) continue;
+      this.state.flags[flag] = true;
+      if (!silent && r.unlock) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+    }
   }
 
   /** Esta porta, agora, mostra uma cena em vez de deixar passar? Devolve o id da cena. */
@@ -173,19 +209,51 @@ export class GameSession {
     })?.uid;
   }
 
-  /** Enche a tigela com uma ração da bolsa e um gato do café come (ganha corações). */
-  feedFromBowl(bowlUid: string): ActionResult {
-    if (!this.state.placed.some((p) => p.uid === bowlUid)) return { ok: false, reason: 'not_found' };
+  /** Item ativo da barra, se ele tiver este uso (ração para a tigela, petisco para o gato). */
+  private activeUse(use: ItemUse): string | null {
+    const id = this.activeItem();
+    return id && this.content.items[id]?.use === use ? id : null;
+  }
+
+  /** Por que não dá para encher a tigela agora (ou null). A interface confere antes de tocar a animação. */
+  feedProblem(bowlUid: string): 'not_found' | 'already_fed' | 'no_food' | 'no_cat' | 'needs_food' | null {
+    if (!this.state.placed.some((p) => p.uid === bowlUid)) return 'not_found';
     const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id);
-    if (catId && this.state.cats[catId]!.fedOn === this.state.day) return { ok: false, reason: 'already_fed' };
-    const food = Object.values(this.content.items).find((i) => i.tags.includes('food') && (this.state.inventory[i.id] ?? 0) > 0);
-    if (!food) return { ok: false, reason: 'no_food' };
-    if (!catId) return { ok: false, reason: 'no_cat' };
-    this.removeFromInventory(food.id);
+    if (catId && this.state.cats[catId]!.fedOn === this.state.day) return 'already_fed';
+    const hasFood = Object.values(this.content.items).some((i) => i.use === 'food_bowl' && (this.state.inventory[i.id] ?? 0) > 0);
+    if (!hasFood) return 'no_food';
+    if (!catId) return 'no_cat';
+    // A ração vai da barra para a mão: precisa estar no espaço ativo (simples ou premium, a que ela escolher).
+    return this.activeUse('food_bowl') ? null : 'needs_food';
+  }
+
+  /** Enche a tigela com a ração ativa na barra e um gato do café come (ganha corações). */
+  feedFromBowl(bowlUid: string): ActionResult {
+    const problem = this.feedProblem(bowlUid);
+    if (problem) return { ok: false, reason: problem };
+    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id)!;
+    const food = this.activeUse('food_bowl')!;
+    this.removeFromInventory(food);
     this.state.flags[`fed.${catId}`] = true;
     this.state.cats[catId]!.fedOn = this.state.day;
-    this.bus.emit('cat.fed', { catId, itemId: food.id, bowlUid });
+    this.bus.emit('cat.fed', { catId, itemId: food, bowlUid });
     this.addCatAffection(catId, this.content.relationships.feedPoints);
+    return { ok: true };
+  }
+
+  /** O item ativo é um petisco? (aí clicar no gato dá o petisco em vez de pegar no colo) */
+  holdingTreat(): boolean {
+    return !!this.activeUse('cat');
+  }
+
+  /** Dá ao gato o petisco ativo na barra (direto da mochila, sem passar pelas mãos). */
+  treatCat(catId: string): ActionResult {
+    if (!this.state.cats[catId]?.sheltered) return { ok: false, reason: 'not_found' };
+    const treat = this.activeUse('cat');
+    if (!treat) return { ok: false, reason: 'needs_treat' };
+    this.removeFromInventory(treat);
+    this.bus.emit('cat.treated', { catId, itemId: treat });
+    this.addCatAffection(catId, this.content.relationships.treatPoints);
     return { ok: true };
   }
 
@@ -891,7 +959,7 @@ export class GameSession {
       if (this.state.business === 'closed' && evaluate(this.content.business.softOpenWhen, this.state, this.storyContext())) this.setBusiness('soft_open');
       const ctx = this.storyContext();
       const next = activeBeats(this.content.story, this.state, ctx).find((b) => isBeatSatisfied(b, this.state, ctx));
-      if (!next) return;
+      if (!next) return this.announceRecipes(false);
       this.state.story.completed.push(next.id);
       this.state.story.completedOn[next.id] = this.state.day;
       // Efeitos antes do aviso: quem escuta já sabe que uma fala foi aberta (o HUD espera ela acabar).

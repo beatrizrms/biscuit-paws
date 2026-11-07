@@ -6,6 +6,7 @@ import { VESSELS } from '../../core/recipes';
 import { content, uiText } from '../content';
 import { itemIconHtml } from './Hotbar';
 import { iconHtml } from './ShopPanel';
+import { tileThumbHtml } from '../icons';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -31,6 +32,7 @@ export class BackpackPanel {
     private session: GameSession,
     private onChange: () => void,
     private onProblem: (reason: string) => void,
+    private onPlace: (itemId: string) => void,
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog backpack';
@@ -84,7 +86,14 @@ export class BackpackPanel {
     // Ferramentas primeiro, depois o resto, e os ingredientes no fim.
     const order = (i: (typeof abstract)[number]) => (i!.kind === 'tool' ? 0 : i!.tags.includes('ingredient') ? 2 : 1);
     const sorted = [...abstract].sort((a, b) => order(a) - order(b));
-    const furniture = Object.entries(st.inventory).filter(([id]) => (content.items[id]?.kind ?? 'furniture') === 'furniture').reduce((n, [, q]) => n + q, 0);
+    // Móveis guardados (ex.: a cafeteira sem balcão livre): com desenho e "posicionar" (só dentro do café).
+    const furniture = Object.entries(st.inventory).filter(([id, q]) => q > 0 && (content.items[id]?.kind ?? 'furniture') === 'furniture');
+    const furnitureTile = ([id, q]: [string, number]) => {
+      const item = content.items[id]!;
+      const why = this.session.missingHost(id);
+      const note = why ? `<span class="bp-amount">${esc(t.needsCounter)}</span>` : '';
+      return `<div class="bp-item"><button data-place="${id}" title="${esc(item.name)}" ${why || !this.session.atHome() ? 'disabled' : ''}>${tileThumbHtml(item.tile, 20)}<span class="bp-name">${esc(item.name)}</span><span class="bp-amount">x${q}</span>${note}</button></div>`;
+    };
     const dishes = VESSELS.map((v) => `<span class="vessel">${iconHtml(content.service.vessels[v].icon)}${content.service.vessels[v].name}: <b>${st.dishes[v] ?? 0}</b></span>`).join('');
     const hands = st.hands.length
       ? st.hands.map((h) => `<div class="recipe"><span class="name"><b>${esc(handItemName(h, (id) => this.session.catName(id)))}</b></span>${h.kind === 'item' ? `<button data-stow>${t.stow}</button>` : ''}</div>`).join('')
@@ -94,7 +103,13 @@ export class BackpackPanel {
       <h3>${t.dishes}</h3><p class="dishes">${dishes}</p>
       <h3>${t.items}</h3><p class="empty">${t.gridHint.replace('{n}', String(st.hotbar.active + 1))}</p>
       <div class="bp-grid">${sorted.map((i) => tile(i!.id)).join('') || `<p class="empty">${t.none}</p>`}</div>
-      ${furniture ? `<p class="empty">${t.furniture.replace('{n}', String(furniture))}</p>` : ''}`;
+      ${furniture.length ? `<h3>${t.furnitureTitle}</h3><p class="empty">${t.furnitureHint}</p><div class="bp-grid">${furniture.map(furnitureTile).join('')}</div>` : ''}`;
+    this.body.querySelectorAll<HTMLButtonElement>('[data-place]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.close();
+        this.onPlace(b.dataset.place!);
+      }),
+    );
     this.body.querySelectorAll<HTMLButtonElement>('[data-assign]').forEach((b) =>
       b.addEventListener('click', () => {
         const r = this.session.assignToHotbar(b.dataset.assign!);

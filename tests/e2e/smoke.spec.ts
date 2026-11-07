@@ -185,6 +185,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.toast')).toContainText('Pedido feito');
   await expect(page.locator('.hud-money')).toContainText('142');
   await page.keyboard.press('c');
+  await expect(page.locator('section.catalog[aria-label]')).not.toHaveClass(/open/);
   // O relógio passa 1h; ela pega a caixa na porta e leva para dentro.
   await page.evaluate(() => {
     const w = (window as unknown as { __biscuitPaws: { cafe: { session: { tickClock(s: number): void; enter(m: string): void; pickUpParcels(): unknown; content: { dayNight: { minutesPerSecond: number } } }; goTo(m: string): void } } }).__biscuitPaws.cafe;
@@ -325,9 +326,13 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   await enterCafe(page);
   await cleanCafe(page);
   // Antes do gato, o catálogo não mostra a caminha.
+  // Espera abrir e fechar de verdade: sem isso o segundo "c" pode chegar antes do jogo ler o primeiro.
+  const catalog = page.locator('section.catalog[aria-label]');
   await page.keyboard.press('c');
+  await expect(catalog).toHaveClass(/open/);
   await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(0);
   await page.keyboard.press('c');
+  await expect(catalog).not.toHaveClass(/open/);
 
   // Vai até a porta de dentro e sobe: em vez de sair, vem a cena.
   await teleport(page, 14, 4);
@@ -392,7 +397,7 @@ test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando pa
   await expect.poll(async () => (await player(page)).map).toBe('map.street');
 });
 
-test('fim do prólogo: E na tigela alimenta, coração, cartão final e dia 2', async ({ page }, testInfo) => {
+test('fim do prólogo: ração ativa na barra, E na tigela alimenta, coração, cartão final e dia 2', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
   await enterCafe(page);
@@ -410,7 +415,14 @@ test('fim do prólogo: E na tigela alimenta, coração, cartão final e dia 2', 
   await expect(page.locator('.hud-goals')).toContainText('Hora de comer');
 
   await teleport(page, 13, 8);
+  // Com a vassoura ativa, a tigela pede a ração; a ração entrou sozinha no espaço 2 da barra.
   await page.keyboard.press('e');
+  await expect(page.locator('.toast')).toContainText('ração na mão');
+  await page.keyboard.press('2');
+  await page.keyboard.press('e');
+  // A ração aparece na mão (animação) antes de encher a tigela.
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: testInfo.outputPath('16b-racao-na-mao.png') });
   await expect(page.locator('.toast')).toContainText('♥');
   await expect(page.locator('.dialogue')).toContainText('come com vontade');
   // A fala termina e só então vem o cartão final (não abre por cima da fala).

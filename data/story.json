@@ -191,11 +191,11 @@
         "title": "Hora de comer",
         "steps": [
           {
-            "text": "Encher a tigela de {cat:cat.first_stray}.",
+            "text": "Escolher a ração na barra e encher a tigela de {cat:cat.first_stray}.",
             "when": {
               "flag": "fed.cat.first_stray"
             },
-            "devNote": "Tecla E (ou clique) perto da tigela de ração, com ração na bolsa."
+            "devNote": "Ração ativa na barra (1 a 8), depois E (ou clique) perto da tigela de ração."
           }
         ]
       },
