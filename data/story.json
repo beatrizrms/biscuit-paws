@@ -560,7 +560,7 @@
       "id": "story.back_room",
       "act": 2,
       "after": [
-        "story.first_customer"
+        "story.inauguration"
       ],
       "start": {
         "room": "room.back_room",
@@ -597,7 +597,7 @@
       "id": "story.backyard",
       "act": 2,
       "after": [
-        "story.first_customer"
+        "story.inauguration"
       ],
       "start": {
         "room": "room.backyard",

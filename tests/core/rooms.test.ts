@@ -13,13 +13,17 @@ const content = loadContent();
 const beats = content.story.beats.map((b) => b.id);
 const until = (id: string) => beats.slice(0, beats.indexOf(id) + 1);
 
-/** No café, depois do primeiro cliente (o quartinho já pode ser descoberto). */
-function afterFirstCustomer(money = 1000) {
+/** No café, já inaugurado e com movimento (o quartinho já pode ser descoberto: 40 clientes, dia 6). */
+function afterFirstCustomer(money = 1000, progress: { served?: number; day?: number } = {}) {
   const state = newGameState(money, 'map.cafe_main', 10 * 60);
   state.flags['has.cat'] = true;
   state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
   state.inventory['item.broom'] = 1;
-  state.story.completed.push(...until('story.first_customer'));
+  // Os marcos dos cômodos ficam antes da inauguração no arquivo: não entram como concluídos.
+  state.story.completed.push(...until('story.inauguration').filter((b) => b !== 'story.back_room' && b !== 'story.backyard'));
+  state.business = 'inaugurated';
+  state.service.served = progress.served ?? 40;
+  state.day = progress.day ?? 6;
   const session = new GameSession(content, state);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
@@ -85,7 +89,12 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(dialogues(events)).toContain('dlg.door_back_room_locked');
   });
 
-  it('obra: sem dinheiro não abre; pagando, abre sujo, a capacidade sobe e o quintal aparece (o gato leva)', () => {
+  it('o ritmo: sem a inauguração, 40 clientes e o dia 6, o quartinho continua oculto', () => {
+    expect(afterFirstCustomer(1000, { served: 39 }).session.roomState('room.back_room')).toBe('locked');
+    expect(afterFirstCustomer(1000, { day: 5 }).session.roomState('room.back_room')).toBe('locked');
+  });
+
+  it('obra: sem dinheiro não abre; pagando, abre sujo e a capacidade sobe (o quintal ainda não)', () => {
     const poor = afterFirstCustomer(50);
     expect(poor.session.openRoom('room.back_room')).toMatchObject({ ok: false, problem: 'needs_money' });
     const { session, state, events } = afterFirstCustomer(1000);
@@ -94,8 +103,8 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.roomState('room.back_room')).toBe('abandoned');
     expect(session.doorState('door.back_room')).toBe('open');
     expect(session.catCapacity()).toBe(4 + 3);
-    expect(session.roomState('room.backyard')).toBe('discovered');
-    expect(events.find((e) => e.name === 'room.discovered' && (e.payload as { roomId: string }).roomId === 'room.backyard')?.payload).toMatchObject({ trigger: 'cat_leads', highlight: 'door.backyard' });
+    expect(session.roomState('room.backyard')).toBe('locked');
+    void events;
     // A passagem aberta não é mais sólida.
     expect(resolveMap(session.mapData(), content.catalog).solid[7]![16]).toBe(false);
   });
@@ -128,19 +137,26 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
 });
 
 describe('quintal secreto: chave, porta com cadeado, playground', () => {
+  /** Quartinho aberto, limpo (a chave já achada) e reformado; 100 clientes, dia 12: o quintal aparece. */
   function withBackRoomOpen() {
-    const ctx = afterFirstCustomer();
+    const ctx = afterFirstCustomer(1000, { served: 100, day: 12 });
     ctx.session.openRoom('room.back_room');
+    cleanTag(ctx.session, 'back_room');
+    expect(ctx.session.roomState('room.backyard')).toBe('locked'); // ainda não: falta reformar
+    ctx.session.restoreRoom('room.back_room');
     return ctx;
   }
 
-  it('a chave estava embaixo do lençol; com ela, a porta abre (e a chave é usada)', () => {
+  it('o gato leva até a porta com cadeado; a chave (achada no quartinho) abre e é usada', () => {
     const { session, state, events } = withBackRoomOpen();
-    expect(session.useRoomDoor('door.backyard')).toMatchObject({ ok: false, problem: 'needs_item' });
-    expect(dialogues(events)).toContain('dlg.door_backyard_locked');
-    session.clean('dirt.back_room_junk', [[19, 5]]);
+    expect(session.roomState('room.backyard')).toBe('discovered');
+    expect(events.find((e) => e.name === 'room.discovered' && (e.payload as { roomId: string }).roomId === 'room.backyard')?.payload).toMatchObject({ trigger: 'cat_leads', highlight: 'door.backyard' });
     expect(state.inventory['item.key_backyard']).toBe(1);
     expect(dialogues(events)).toContain('dlg.key_backyard_found');
+    delete state.inventory['item.key_backyard'];
+    expect(session.useRoomDoor('door.backyard')).toMatchObject({ ok: false, problem: 'needs_item' });
+    expect(dialogues(events)).toContain('dlg.door_backyard_locked');
+    state.inventory['item.key_backyard'] = 1;
     expect(session.useRoomDoor('door.backyard')).toEqual({ ok: true });
     expect(state.inventory['item.key_backyard']).toBeUndefined();
     expect(session.roomState('room.backyard')).toBe('abandoned');
@@ -149,7 +165,6 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
 
   it('playground: módulo só com o quintal reformado e 10 gatos; só no quintal; dá afeto por dia', () => {
     const { session, state } = withBackRoomOpen();
-    session.clean('dirt.back_room_junk', [[19, 5]]);
     session.useRoomDoor('door.backyard');
     expect(session.itemUnlocked('item.playground_tunnel')).toBe(false);
     cleanTag(session, 'backyard');

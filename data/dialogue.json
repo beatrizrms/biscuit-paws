@@ -429,11 +429,15 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "A Dona Neusa comentou que o seu Antônio tinha um quartinho atrás desta parede..."
+          "text": "O café está cheio de gente todo dia... preciso de mais espaço."
         },
         {
           "speaker": "{player}",
-          "text": "Olha ali: dá para ver o contorno de uma porta. Com uma obra, dá para abrir a passagem (catálogo, Obras)."
+          "text": "A Dona Neusa comentou que o seu Antônio tinha um quartinho atrás desta parede. Olha ali: o contorno de uma porta!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Com uma obra dá para abrir a passagem (catálogo, Obras)."
         }
       ]
     },
@@ -469,11 +473,11 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "O {cat:cat.first_stray} não para de miar para aquela porta no fundo..."
+          "text": "O {cat:cat.first_stray} não para de miar para aquela parede no fundo do quartinho..."
         },
         {
           "speaker": "{player}",
-          "text": "Tem um cadeado velho! O que será que tem do outro lado?"
+          "text": "Atrás da tralha tem uma porta com cadeado! Será que a chave enferrujada serve?"
         }
       ]
     },
@@ -489,7 +493,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Embaixo do lençol... uma chave enferrujada! Deve ser do cadeado."
+          "text": "Embaixo do lençol... uma chave enferrujada. De onde será?"
         }
       ]
     },
