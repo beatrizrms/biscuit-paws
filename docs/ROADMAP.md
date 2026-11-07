@@ -32,7 +32,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Outras estações da rua (dados já preparados)
 
 ## Prólogo (em andamento)
-- [x] Cenas sem mapa: Natal, lembrança da Tekinha (Misty), anúncio no celular
+- [x] Cenas sem mapa: Natal, lembrança da Tekinha (Pebble), anúncio no celular
 - [x] Chegada na rua: o lugar horrível, os vizinhos que não gostam de gatos
 - [x] Compra e chave (porta trancada sem a chave)
 - [x] O miado: gatinho na porta, caixa de nome, ele entra e fica (itens de gato só depois dele)

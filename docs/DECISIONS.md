@@ -107,3 +107,7 @@ Consequência: `data/maps/market.json` convertido da cena do `mercado_interior` 
 ## 029. Fim do prólogo: alimentar, coração, cartão e fim do dia (nov/2026)
 Motivo: fechar o prólogo como no roteiro, com o primeiro vínculo e o cartão "menos um gatinho...".
 Consequência: tigela de ração (tag `food_bowl`) usada com E ou clique de perto gasta uma ração (tag `food`) e dá `feedPoints` de afeto. O efeito `endDay` passa o dia (`day.ended`); por enquanto ela "vai para casa" só no texto e amanhece no café. Cenas pedidas durante uma fala esperam a fala acabar (fila única na interface). O cantinho quente do Ato 1 virou caminha + almofada (as tigelas são do prólogo).
+
+## 030. Tekinha usa o Pebble (nov/2026)
+Motivo: pedido da desenvolvedora (lembra mais a gatinha dela).
+Consequência: `cat.tekinha` passa da variante `misty` para `pebble` (Cosy Cats). A decisão 026 continua valendo no resto.

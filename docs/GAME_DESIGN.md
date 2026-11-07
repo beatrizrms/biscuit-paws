@@ -31,7 +31,7 @@ Você ama gatos e comprou, com suas economias, uma padaria abandonada para trans
 
 ## Prólogo (decisões 026 a 029)
 Textos em `data/cutscenes.json` e `data/dialogue.json`; marcos em `data/story.json`.
-1. **Cena:** véspera de Natal; ela quer empreender e não sabe com o quê. Lembra da **Tekinha** (Misty), que virou um anjinho, e dos gatos no frio.
+1. **Cena:** véspera de Natal; ela quer empreender e não sabe com o quê. Lembra da **Tekinha** (Pebble, cinza rajada), que virou um anjinho, e dos gatos no frio.
 2. **Cena:** o anúncio no celular: antiga padaria, preço de pechincha, na **Vila das Baunilhas**, onde ela nasceu.
 3. **Rua:** o lugar está horrível, mas o espaço é ótimo. Os vizinhos não gostam de gatos; ela decide mostrar o contrário. Compra e recebe a **chave**.
 4. **Café:** faxina (teias, poeira, cacos). Ouve um miado.
