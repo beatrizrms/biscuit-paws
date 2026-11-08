@@ -7,6 +7,7 @@ import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
+import { openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
@@ -268,6 +269,8 @@ export class GameUi {
       items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
     const sv = this.session.service;
+    // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
+    if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) items.push(`<li class="job"><span>${esc(uiText.service.closed.replace('{when}', openingText(this.session)))}</span></li>`);
     if (sv.isOpen()) {
       items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity().total))}</span></li>`);
       const blocked = sv.arrivalsBlocked();
@@ -494,7 +497,7 @@ export class GameUi {
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
     const sd = this.session.seasonDay();
-    (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day));
+    (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day)).replace('{weekday}', uiText.weekdays[this.session.service.weekday()] ?? '');
     if (bumpMoney) {
       this.money.classList.remove('bump');
       void this.money.offsetWidth; // reinicia a animação

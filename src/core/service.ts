@@ -10,6 +10,7 @@ import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceK
 import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
+import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem } from './schedule';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
@@ -76,7 +77,8 @@ export type ServiceProblem =
   | 'not_on_tray'
   | 'no_tray'
   | 'sink_full'
-  | 'not_at_home';
+  | 'not_at_home'
+  | ScheduleProblem;
 
 export type ServiceResult = { ok: true } | { ok: false; reason: ServiceProblem };
 
@@ -344,11 +346,41 @@ export class CafeService {
     return (['vessel', 'ingredients', 'equipment'] as const).find((st) => statuses.includes(st)) ?? 'equipment';
   }
 
-  /** O atendimento está funcionando agora (marco/condição dos dados + horário)? */
+  /** O atendimento já existe (marco/condição dos dados), aberto ou não agora. */
+  enabled(): boolean {
+    return this.h.evaluate(this.cfg.enabledWhen);
+  }
+
+  /** O atendimento está funcionando agora (marco/condição dos dados + horário escolhido)? */
   isOpen(): boolean {
-    if (!this.h.evaluate(this.cfg.enabledWhen)) return false;
-    const t = this.st.time;
-    return t >= parseClock(this.cfg.open.from) && t < parseClock(this.cfg.open.until);
+    return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
+  }
+
+  // ---------- Horário de funcionamento ----------
+
+  /** O horário que vale: o escolhido (se ainda vale pelas regras) ou o padrão dos dados. */
+  schedule(): Schedule {
+    const s = this.st.schedule;
+    return s && !scheduleProblem(s, this.cfg.schedule) ? s : this.cfg.schedule.default;
+  }
+
+  /** Dia da semana de hoje (0 = segunda). */
+  weekday(day = this.st.day): number {
+    return weekdayOf(day, this.h.content.seasons.startWeekday);
+  }
+
+  /** Muda o horário (app "Horário"). Fechar mais cedo vale já: quem está na fila vai embora no próximo minuto. */
+  setSchedule(s: Schedule): ServiceResult {
+    const problem = scheduleProblem(s, this.cfg.schedule);
+    if (problem) return { ok: false, reason: problem };
+    this.st.schedule = { days: [...s.days], open: s.open, close: s.close };
+    this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
+    return { ok: true };
+  }
+
+  /** Próxima abertura (dia do jogo e hora), quando está fechado agora. */
+  nextOpening(): { day: number; open: string } | null {
+    return nextOpening(this.schedule(), this.st.day, this.st.time, this.h.content.seasons.startWeekday);
   }
 
   // ---------- Relógio ----------
@@ -392,6 +424,8 @@ export class CafeService {
         this.leave(c, true);
       }
     }
+    // Fechou: quem estava na fila vai embora (sem bronca: o café fechou). Quem já está no lugar termina.
+    if (!this.isOpen()) for (const c of sv.customers.filter((x) => x.stage === 'queue')) this.leave(c, true);
     // Fila: quem esperava ganha um lugar livre (se ainda cabe gente: lugares e louça).
     for (const c of sv.customers.filter((x) => x.stage === 'queue')) {
       const spot = this.isFull() ? undefined : this.usableSpot();

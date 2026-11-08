@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Atendimento. menuSlots: itens no quadro. servedAt: onde cada louça pode ser servida (beber em pé ou na mesa; comer só na mesa); a capacidade sai dos lugares e da louça (capacity.ts), sem teto fixo. enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados).",
+  "_comment": "Atendimento. menuSlots: itens no quadro. servedAt: onde cada louça pode ser servida (beber em pé ou na mesa; comer só na mesa); a capacidade sai dos lugares e da louça (capacity.ts), sem teto fixo. enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados). schedule: horário de funcionamento (a jogadora escolhe no app Horário do celular): default (days: segunda a domingo; open/close), earliest/latest, stepMinutes, minHours. Fora dele não entra cliente novo; quem está na fila vai embora; ela só vai para casa depois que o último cliente sair.",
   "menuSlots": 4,
   "servedAt": {
     "cup": [
@@ -15,9 +15,24 @@
       "table"
     ]
   },
-  "open": {
-    "from": "09:00",
-    "until": "18:00"
+  "schedule": {
+    "default": {
+      "days": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "open": "09:00",
+      "close": "18:00"
+    },
+    "earliest": "06:00",
+    "latest": "22:00",
+    "stepMinutes": 30,
+    "minHours": 2
   },
   "firstArrivalMinutes": 5,
   "arrivalEveryMinutes": [

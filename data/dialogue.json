@@ -33,7 +33,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Pronto. Um cantinho quente para {cat:cat.first_stray}."
+          "text": "Pronto. Caixa de areia e um cantinho quente para {cat:cat.first_stray}."
         },
         {
           "speaker": "{player}",
@@ -135,7 +135,7 @@
         },
         {
           "speaker": "",
-          "text": "Aperte C para abrir o catálogo. O mercado fica ali na rua: no caixa, aperte E."
+          "text": "Aperte C para abrir o Market no celular. O mercado fica ali na rua: no caixa, aperte E."
         }
       ]
     },
@@ -304,7 +304,7 @@
         },
         {
           "speaker": "",
-          "text": "Agora o pintor aparece no catálogo (C), na seção Reforma."
+          "text": "Agora o pintor aparece no Market (C), na aba Construção."
         },
         {
           "speaker": "",
@@ -441,7 +441,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Com uma obra dá para abrir a passagem (catálogo, Obras)."
+          "text": "Com uma obra dá para abrir a passagem (Market, aba Construção)."
         }
       ]
     },
@@ -457,7 +457,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Ainda é só uma porta velha emperrada. Preciso pagar a obra para abrir (catálogo, Obras)."
+          "text": "Ainda é só uma porta velha emperrada. Preciso pagar a obra para abrir (Market, aba Construção)."
         }
       ]
     },
@@ -521,7 +521,27 @@
         },
         {
           "speaker": "{player}",
-          "text": "Com 10 gatos no abrigo, dá para montar um playground (catálogo)."
+          "text": "Com 10 gatos no abrigo, dá para montar um playground (Market, aba Pet)."
+        }
+      ]
+    },
+    "dlg.forgot_litter": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Pronto, limpinho. Pobre {cat:cat.first_stray}, não tinha onde fazer..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Esquecida! Com tanta coisa acontecendo, nem pensei numa caixinha de areia."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Me desculpe, {cat:cat.first_stray}. Ontem acabei não comprando uma caminha pra você, mas vou resolver isso agora mesmo!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Pelo menos você não passou frio essa noite."
         }
       ]
     }

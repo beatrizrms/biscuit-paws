@@ -889,3 +889,55 @@
 .hud-goals.open .peek { display: none; }
 .hud-goals .peek { margin: 0; font-size: 7px; color: var(--grey2); }
 .hud-goals:not(.open):has(li.warn) h2::after { content: "!"; display: inline-grid; place-items: center; width: 8px; height: 8px; margin-left: 3px; border-radius: 50%; background: var(--berry); color: #fff; font-size: 6px; font-weight: bold; font-style: normal; vertical-align: 1px; }
+
+/* Ícones desenhados (Horário: relógio; Calendário: folhinha com o dia) */
+.p-icon.schedule { background: #b8d6ee; }
+.p-icon.calendar { background: #e2d8ee; }
+.p-icon .clock-face { position: relative; width: 22px; height: 22px; border-radius: 50%; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; }
+.p-icon .clock-face::before, .p-icon .clock-face::after { content: ""; position: absolute; left: 50%; bottom: 50%; width: 2px; background: var(--wood4); transform-origin: 50% 100%; margin-left: -1px; }
+.p-icon .clock-face::before { height: 7px; }
+.p-icon .clock-face::after { height: 5px; transform: rotate(110deg); }
+.p-icon .cal-face { display: flex; flex-direction: column; align-items: center; width: 24px; height: 24px; border-radius: 3px; overflow: hidden; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; font-size: 9px; font-weight: bold; line-height: 1; color: var(--wood4); }
+.p-icon .cal-face b { display: block; width: 100%; height: 5px; margin-bottom: 2px; background: var(--berry); }
+
+/* App Horário */
+.s-status { margin: 5px 0 2px; padding: 3px 6px; border-radius: 6px; font-size: 7.5px; font-weight: bold; }
+.s-status.open { background: #e2f3e8; color: #3f7a55; }
+.s-status.closed { background: #f8e3e6; color: #a3424f; }
+.s-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.s-day { padding: 4px 0; border: 1px solid var(--cream3); border-radius: 5px; background: #fffaf0; font: inherit; font-size: 7px; font-weight: bold; color: var(--grey2); cursor: pointer; }
+.s-day.on { background: var(--mint2); border-color: var(--mint3); color: #24402e; }
+.s-day.today { box-shadow: inset 0 -2px 0 var(--pink3); }
+.s-time { display: flex; align-items: center; gap: 5px; margin: 0 0 4px; padding: 3px 6px; border-radius: 6px; background: #fffaf0; border: 1px solid var(--cream3); }
+.s-time .s-label { flex: 1; font-size: 7.5px; color: var(--ink2); }
+.s-time b { min-width: 30px; text-align: center; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--wood4); }
+.s-time button { width: 16px; height: 16px; padding: 0; border: 1px solid var(--cream3); border-radius: 50%; background: var(--cream2); font: inherit; font-size: 10px; line-height: 1; color: var(--wood4); cursor: pointer; }
+.s-time button:hover { border-color: var(--wood3); }
+.s-summary { margin: 4px 0 2px; font-size: 7.5px; color: var(--ink); }
+
+/* App Calendário */
+.c-head { display: flex; align-items: baseline; gap: 4px; margin: 5px 0 3px; }
+.c-head strong { font-size: 10px; color: var(--wood4); }
+.c-head .c-year { flex: 1; font-size: 7px; color: var(--grey2); }
+.c-head button { border: none; background: none; font: inherit; font-size: 11px; color: var(--pink3); cursor: pointer; padding: 0 4px; }
+.c-head button:disabled { opacity: 0.3; cursor: default; }
+.c-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.c-wd { text-align: center; font-size: 6px; font-weight: bold; color: var(--grey2); text-transform: uppercase; }
+.c-cell { position: relative; display: grid; place-items: center; height: 17px; border-radius: 4px; background: #fffaf0; font-size: 7px; color: var(--ink2); }
+.c-cell.blank { background: none; }
+.c-cell.past { opacity: 0.4; }
+.c-cell.closed { background: repeating-linear-gradient(135deg, #fffaf0 0 3px, #efe3d0 3px 5px); }
+.c-cell.today { background: var(--pink3); color: #fff; font-weight: bold; }
+.c-cell.mark::after { content: ""; position: absolute; bottom: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--berry); }
+.c-cell.mark.season::after { background: var(--mint3); }
+.c-cell.today.mark::after { background: #fff; }
+.c-list { margin: 0; padding: 0; list-style: none; }
+.c-list li { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3px; padding: 3px 6px; border-left: 3px solid var(--berry); border-radius: 4px; background: #fffaf0; }
+.c-list li.season { border-left-color: var(--mint3); }
+.c-list li b { font-size: 7.5px; }
+.c-list li span { font-size: 6.5px; color: var(--ink2); }
+
+/* Tutorial da intro dos mini games: ícone + 1 a 3 linhas numeradas */
+.minigame-layer .mg-tutorial { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; padding: 6px 8px; border-radius: 6px; background: var(--cream2); text-align: left; }
+.minigame-layer .mg-tut-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: var(--cream); }
+.minigame-layer .mg-tutorial ol { margin: 0; padding-left: 12px; font-size: 8px; line-height: 1.45; }

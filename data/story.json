@@ -292,14 +292,48 @@
       ]
     },
     {
-      "id": "story.warm_corner",
+      "id": "story.litter_surprise",
       "act": 1,
       "after": [
         "story.prologue_end"
       ],
+      "exclusive": true,
+      "start": {
+        "location": "map.cafe_main"
+      },
+      "goal": {
+        "title": "Que cheiro é esse?",
+        "steps": [
+          {
+            "text": "Recolher o \"presente\" de {cat:cat.first_stray} com a vassoura.",
+            "when": {
+              "cleaned": "poop"
+            },
+            "devNote": "Cocô em (8,6), aparece no dia 2 (dirt.cat_poop, when). Vassoura ativa na barra."
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.forgot_litter"
+        }
+      ]
+    },
+    {
+      "id": "story.warm_corner",
+      "act": 1,
+      "after": [
+        "story.litter_surprise"
+      ],
       "goal": {
         "title": "Um cantinho quente",
         "steps": [
+          {
+            "text": "Uma caixa de areia (Market, aba Pet).",
+            "when": {
+              "placed": "item.litter_box"
+            }
+          },
           {
             "text": "Uma caminha macia para {cat:cat.first_stray}.",
             "when": {
@@ -348,13 +382,13 @@
             }
           },
           {
-            "text": "Encomendar um balcão pelo catálogo (C).",
+            "text": "Encomendar um balcão pelo Market (C).",
             "when": {
               "ownedTag": "bar"
             }
           },
           {
-            "text": "Encomendar a cafeteira pelo catálogo (C).",
+            "text": "Encomendar a cafeteira pelo Market (C).",
             "when": {
               "owned": "item.coffee_machine"
             }
@@ -416,7 +450,7 @@
             }
           },
           {
-            "text": "Encomendar duas mesas pelo catálogo (C).",
+            "text": "Encomendar duas mesas pelo Market (C).",
             "when": {
               "ownedTag": "table",
               "gte": 2
@@ -586,7 +620,7 @@
         "title": "O quartinho dos fundos",
         "steps": [
           {
-            "text": "Pagar a obra para abrir a passagem (catálogo, Obras).",
+            "text": "Pagar a obra para abrir a passagem (Market, aba Construção).",
             "when": {
               "room": "room.back_room",
               "atLeast": "abandoned"
@@ -599,7 +633,7 @@
             }
           },
           {
-            "text": "Terminar a reforma (catálogo, Obras).",
+            "text": "Terminar a reforma (Market, aba Construção).",
             "when": {
               "room": "room.back_room",
               "atLeast": "restored"
@@ -650,7 +684,7 @@
             }
           },
           {
-            "text": "Terminar a reforma (catálogo, Obras).",
+            "text": "Terminar a reforma (Market, aba Construção).",
             "when": {
               "room": "room.backyard",
               "atLeast": "restored"
@@ -675,10 +709,10 @@
             "when": {
               "renovated": true
             },
-            "devNote": "Superfícies em data/business.json (requiredSurfaces). O pintor está no catálogo (C)."
+            "devNote": "Superfícies em data/business.json (requiredSurfaces). O pintor está no Market (C), aba Construção."
           },
           {
-            "text": "Encomendar a placa do café (catálogo) e abrir a caixa.",
+            "text": "Encomendar a placa do café (Market, aba Construção) e abrir a caixa.",
             "when": {
               "received": "item.cafe_sign"
             }

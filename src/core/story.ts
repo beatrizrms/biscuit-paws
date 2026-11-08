@@ -23,7 +23,7 @@ export interface StoryContext {
 
 /** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda a do salão (saves antigos; cômodos novos não contam). */
 export function isCleaned(state: GameState, d: DirtSpot): boolean {
-  return state.cleaned.includes(d.id) || (state.cleaned.includes('*') && !d.tags.includes('room'));
+  return state.cleaned.includes(d.id) || (state.cleaned.includes('*') && !d.tags.includes('room') && !d.when);
 }
 
 export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boolean {

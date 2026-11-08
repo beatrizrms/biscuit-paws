@@ -82,6 +82,20 @@
       }
     },
     {
+      "id": "item.litter_box",
+      "name": "Caixa de areia",
+      "price": 15,
+      "tile": "ph_litter_box",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "litter_box"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.water_bowl",
       "name": "Tigela de água",
       "price": 8,

@@ -144,7 +144,12 @@
     "wrong_room": "Isso só vai no quintal.",
     "blocks_door": "Aí fica na frente da passagem.",
     "too_early": "Ainda é cedo para dormir.",
-    "no_facade": "A fachada só se pinta pelo catálogo, no café."
+    "no_facade": "A fachada só se pinta pelo Market, no café.",
+    "customers_inside": "Ainda tem cliente no café: só vou para casa quando o último sair.",
+    "no_days": "Escolha pelo menos um dia para abrir.",
+    "too_short": "O café precisa ficar aberto mais tempo.",
+    "out_of_range": "Fora do horário possível.",
+    "bad_step": "Horário inválido."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -394,7 +399,8 @@
       "vessel": "Ninguém entra: tudo do quadro esgotado. Lave a louça na pia.",
       "ingredients": "Ninguém entra: tudo do quadro esgotado. Faltam ingredientes (mercado).",
       "equipment": "Ninguém entra: tudo do quadro esgotado. Falta equipamento."
-    }
+    },
+    "closed": "Café fechado · abre {when}"
   },
   "playerFallback": "Você",
   "rooms": {
@@ -413,7 +419,7 @@
     "sleepNo": "Ainda não",
     "goHomeSleep": "Agora eu durmo no quartinho do café (a cama, depois das {time})."
   },
-  "seasonDay": "{season}, dia {day}",
+  "seasonDay": "{season} {day} · {weekday}",
   "minigames": {
     "start": "Começar (E)",
     "difficulty": {
@@ -457,5 +463,47 @@
     "home": "Início",
     "back": "voltar",
     "close": "fechar"
+  },
+  "weekdays": [
+    "seg",
+    "ter",
+    "qua",
+    "qui",
+    "sex",
+    "sáb",
+    "dom"
+  ],
+  "scheduleApp": {
+    "app": "Horário",
+    "status": {
+      "open": "Aberto agora · fecha às {close}",
+      "closed": "Fechado agora · abre {when}",
+      "disabled": "O café ainda não atende clientes."
+    },
+    "today": "hoje às {time}",
+    "tomorrow": "amanhã às {time}",
+    "onDay": "{weekday} às {time}",
+    "days": "Dias de funcionamento",
+    "hours": "Horário",
+    "opens": "Abre",
+    "closes": "Fecha",
+    "everyDay": "todos os dias",
+    "summary": "Aberto {days}, das {open} às {close}.",
+    "hint": "Depois do horário ninguém novo entra: quem está na fila vai embora, quem já pediu termina. Você só vai para casa quando o último cliente sair.",
+    "earlier": "mais cedo",
+    "later": "mais tarde"
+  },
+  "calendarApp": {
+    "app": "Calendário",
+    "year": "ano {n}",
+    "upcoming": "Próximos dias",
+    "none": "Nada marcado por enquanto.",
+    "today": "hoje",
+    "tomorrow": "amanhã",
+    "inDays": "em {n} dias",
+    "entryDay": "{season}, dia {day} ({weekday})",
+    "closed": "café fechado",
+    "prev": "estação anterior",
+    "next": "próxima estação"
   }
 }

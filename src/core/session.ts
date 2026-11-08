@@ -15,7 +15,7 @@ import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } f
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { dayInSeason, daysUntil, mapInSeason, seasonOf } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
 import {
   activeFeatures,
   catCapacity,
@@ -38,6 +38,7 @@ import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './sta
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
+  solidGrid,
   interactionNear,
   type Cell,
   type DirtSpot,
@@ -117,6 +118,7 @@ export type ActionResult =
         | 'nothing_here'
         | 'already_owned'
         | 'too_early'
+        | 'customers_inside'
         | 'cart_empty'
         | 'one_heavy_per_trip'
         | PlaceProblem;
@@ -389,7 +391,14 @@ export class GameSession {
 
   /** Já dá para encerrar o dia na porta do café? */
   canGoHome(): boolean {
-    return this.state.time >= parseClock(this.content.dayNight.goHomeFrom);
+    return this.goHomeProblem() === null;
+  }
+
+  /** Por que ainda não dá para ir para casa: cedo demais, ou ainda tem cliente no café (ela espera o último sair). */
+  goHomeProblem(): 'too_early' | 'customers_inside' | null {
+    if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
+    if (this.state.service.customers.length > 0) return 'customers_inside';
+    return null;
   }
 
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
@@ -405,7 +414,7 @@ export class GameSession {
     if (clean.length === 0) return;
     // "*" (saves antigos: tudo limpo) vira a lista de verdade antes de sujar de novo (só o salão: cômodos novos começam sujos).
     if (this.state.cleaned.includes('*')) {
-      this.state.cleaned = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && !d.tags.includes('room')).map((d) => d.id);
+      this.state.cleaned = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && !d.tags.includes('room') && !d.when).map((d) => d.id);
     }
     const rng = createRng(this.state.day * 31 + 7);
     // Sorteio estável (Fisher-Yates com a semente do dia).
@@ -779,7 +788,8 @@ export class GameSession {
   /** Dorme no café (a cama do quartinho, depois do horário de ir para casa). */
   sleepInCafe(): ActionResult {
     if (!this.sleepRoom()) return { ok: false, reason: 'locked' };
-    if (!this.canGoHome()) return { ok: false, reason: 'too_early' };
+    const problem = this.goHomeProblem();
+    if (problem) return { ok: false, reason: problem };
     this.endDay('sleep');
     return { ok: true };
   }
@@ -1154,12 +1164,46 @@ export class GameSession {
 
   /** Sujeira do café que ainda aparece (a limpa, a de superfícies reformadas e a de cômodos fechados somem). */
   visibleDirt(): DirtSpot[] {
-    return (this.content.map.dirt ?? []).filter((d) => {
-      // Cômodo ainda fechado: a sujeira dele não aparece nem se limpa.
-      const room = this.roomAt(d.at);
-      if (room && !isOpen(this.roomState(room.id))) return false;
-      return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
-    });
+    return (this.content.map.dirt ?? [])
+      .filter((d) => {
+        // Cômodo ainda fechado: a sujeira dele não aparece nem se limpa.
+        const room = this.roomAt(d.at);
+        if (room && !isOpen(this.roomState(room.id))) return false;
+        // Sujeira que só aparece a partir de uma condição (o cocô do dia 2).
+        if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
+        return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
+      })
+      .map((d) => (d.when ? this.freeSpotFor(d) : d));
+  }
+
+  /** A célula não fica num cômodo ainda fechado. */
+  private cellOpen(cell: Cell): boolean {
+    const room = this.roomAt(cell);
+    return !room || isOpen(this.roomState(room.id));
+  }
+
+  /**
+   * Sujeira que aparece no meio do jogo (com `when`): se a jogadora já pôs um móvel naquela célula, ela vai para a
+   * célula livre mais próxima (senão ficaria escondida embaixo dele).
+   */
+  private freeSpotFor(d: DirtSpot): DirtSpot {
+    const { catalog, items } = this.content;
+    const taken = new Set<string>();
+    for (const p of this.state.placed) {
+      const def = catalog.tiles[items[p.item]?.tile ?? ''];
+      if (def) for (const [c, r] of cellsOf(p.at, def)) taken.add(`${c},${r}`);
+    }
+    const solid = solidGrid({ ...this.content.map, objects: this.visibleObjects(this.content.map) }, catalog);
+    const free = ([c, r]: Cell) => !taken.has(`${c},${r}`) && solid[r]?.[c] === false && this.cellOpen([c, r]);
+    if (free(d.at)) return d;
+    for (let dist = 1; dist <= 6; dist++)
+      for (let dr = -dist; dr <= dist; dr++)
+        for (let dc = -dist; dc <= dist; dc++) {
+          if (Math.max(Math.abs(dc), Math.abs(dr)) !== dist) continue;
+          const at: Cell = [d.at[0] + dc, d.at[1] + dr];
+          if (free(at)) return { ...d, at };
+        }
+    return d;
   }
 
   /** Marcadores dos pontos de pedido pendentes (ex.: montes de neve a varrer). */
@@ -1247,6 +1291,11 @@ export class GameSession {
   seasonDay(): { season: string; name: string; day: number } {
     const season = this.season();
     return { season, name: this.content.seasons.names[season] ?? season, day: dayInSeason(this.content.seasons, this.state.day) };
+  }
+
+  /** Marcações do calendário (app "Calendário") de `from` a `to`: começos de estação e eventos ainda valendo. */
+  calendar(from: number, to: number): CalendarEntry[] {
+    return calendarEntries(this.content.seasons, from, to, (e) => !!e.hideWhen && evaluate(e.hideWhen as Condition, this.state, this.storyContext()));
   }
 
   /** Dias até a estação chegar pela primeira vez (0 se já chegou). */

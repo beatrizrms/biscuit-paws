@@ -17,6 +17,7 @@ import { validateFishTable } from './fishing';
 import { validateLattePatterns } from './latte';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
+import { validateScheduleRules } from './schedule';
 
 /** furniture: vai para o café (catálogo). consumable: ração, remédio... key: chaves. */
 /** fixture: peça de lugar fixo (ex.: a lousa da porta). Compra uma vez e aparece sozinha no mapa. */
@@ -580,6 +581,8 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateBusiness(raw.business, surfaceIds));
   errors.push(...validateCharacter(raw.character));
+  errors.push(...validateScheduleRules(raw.service.schedule, raw.seasons.startWeekday));
+  for (const e of raw.seasons.events ?? []) if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(
     ...validateRooms(raw.rooms, {
@@ -596,6 +599,7 @@ export function validateContent(raw: RawContent): string[] {
   for (const d of home?.dirt ?? []) {
     if (d.gives && !itemIds.has(d.gives)) err(`mapa: sujeira "${d.id}" esconde item inexistente "${d.gives}"`);
     if (d.foundDialogue && !dialogueIds.has(d.foundDialogue)) err(`mapa: sujeira "${d.id}" com fala inexistente "${d.foundDialogue}"`);
+    if (d.when) checkCondition(`mapa: sujeira "${d.id}"`, d.when as Condition);
   }
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {

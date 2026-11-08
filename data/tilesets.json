@@ -799,6 +799,20 @@
           "layer": "wall"
         }
       }
+    },
+    {
+      "id": "placeholders",
+      "image": "assets/objects/placeholders/tile_placeholders.png",
+      "pieces": "placeholders.json",
+      "prefix": "ph_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "poop": {
+          "layer": "floor",
+          "solid": false
+        }
+      }
     }
   ]
 }

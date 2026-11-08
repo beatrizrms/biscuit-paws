@@ -2,6 +2,7 @@
 // Puro: sem Phaser, DOM ou window.
 import type { Cell } from './map';
 import type { BusinessStage } from './business';
+import type { Schedule } from './schedule';
 
 export interface GameEvents {
   'game.started': { isNew: boolean };
@@ -29,6 +30,7 @@ export interface GameEvents {
   'item.bought': { itemId: string; price: number };
   /** Carrinho do mercado mudou (count: unidades; total: moedas). */
   'cart.changed': { count: number; total: number };
+  'schedule.changed': { schedule: Schedule };
   /** Cômodos: descoberto (com o gatilho e a porta a destacar), aberto, reformado; passagem trancada. */
   'room.discovered': { roomId: string; trigger: string; highlight: string | null };
   'room.opened': { roomId: string };

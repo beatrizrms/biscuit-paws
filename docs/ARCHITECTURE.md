@@ -94,6 +94,7 @@ cat-cafe-game/
 | `money.changed` | dinheiro mudou | `from, to, reason` |
 | `item.bought` | item comprado (vai para o inventário) | `itemId, price` |
 | `cart.changed` | carrinho do mercado mudou | `count, total` |
+| `schedule.changed` | horário de funcionamento mudou (app Horário) | `schedule` |
 | `cart.checked_out` | pagou no caixa | `lines, total` |
 | `business.changed` | negócio mudou de estágio | `from, to` |
 | `item.received` | a história deu um item (ex.: a chave) | `itemId` |

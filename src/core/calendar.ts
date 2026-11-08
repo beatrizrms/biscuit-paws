@@ -12,10 +12,36 @@ export interface SeasonalMap {
   winterOnly?: string[];
 }
 
+/** Dia importante no app "Calendário" (data/seasons.json: events). */
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  /** Dia do jogo (1 = o primeiro) ou o primeiro dia de uma estação (no primeiro ano). */
+  day?: number;
+  fromSeason?: string;
+  /** Repete todo ano (Natal, Ano Novo). */
+  everyYear?: boolean;
+  /** Some do calendário quando esta condição vale (ex.: a inauguração já aconteceu). */
+  hideWhen?: unknown;
+}
+
+/** Uma marcação no calendário: um evento ou o começo de uma estação. */
+export interface CalendarEntry {
+  id: string;
+  day: number;
+  title: string;
+  kind: 'season' | 'event';
+}
+
 export interface SeasonsData {
   schemaVersion: number;
   _comment?: string;
   daysPerSeason: number;
+  /** Dia da semana do primeiro dia do jogo (0 = segunda ... 6 = domingo). */
+  startWeekday: number;
+  /** "Começa a primavera"...: título do primeiro dia de cada estação no calendário. */
+  seasonStarts: Record<string, string>;
+  events: CalendarEvent[];
   /** Ordem das estações; o jogo começa na primeira. */
   order: string[];
   /** Estação cujos tiles são os nomes sem prefixo (a arte de inverno veio primeiro). */
@@ -48,6 +74,36 @@ export function firstDayOf(data: SeasonsData, season: string): number {
 /** Quantos dias faltam para a estação começar pela primeira vez (0 se já começou). */
 export function daysUntil(data: SeasonsData, day: number, season: string): number {
   return Math.max(0, firstDayOf(data, season) - day);
+}
+
+/** Dias do ano (todas as estações). */
+export function yearLength(data: SeasonsData): number {
+  return data.daysPerSeason * data.order.length;
+}
+
+/**
+ * Marcações do calendário de `from` a `to` (dias do jogo, inclusive), em ordem: começos de estação e eventos
+ * (os com hideWhen valendo ficam de fora; `hidden` avalia a condição).
+ */
+export function calendarEntries(data: SeasonsData, from: number, to: number, hidden: (e: CalendarEvent) => boolean = () => false): CalendarEntry[] {
+  const out: CalendarEntry[] = [];
+  const year = yearLength(data);
+  for (let d = Math.max(1, from); d <= to; d++) {
+    if ((d - 1) % data.daysPerSeason === 0) {
+      const season = seasonOf(data, d);
+      if (d > 1) out.push({ id: `season.${season}.${d}`, day: d, title: data.seasonStarts[season] ?? data.names[season] ?? season, kind: 'season' });
+    }
+  }
+  for (const e of data.events) {
+    if (hidden(e)) continue;
+    const first = e.day ?? (e.fromSeason ? firstDayOf(data, e.fromSeason) : 0);
+    if (first < 1) continue;
+    for (let d = first; d <= to; d += year) {
+      if (d >= from) out.push({ id: e.id, day: d, title: e.title, kind: 'event' });
+      if (!e.everyYear) break;
+    }
+  }
+  return out.sort((a, b) => a.day - b.day || (a.kind === 'season' ? -1 : 1));
 }
 
 /** Nome de um tile na estação (o da base fica como está). Sem versão na estação: undefined. */
@@ -87,6 +143,16 @@ export function validateSeasons(data: SeasonsData, refs: { maps: ReadonlySet<str
   if (data.order.length === 0) errors.push('seasons: order vazio');
   if (!data.order.includes(data.base)) errors.push(`seasons: base "${data.base}" não está em order`);
   for (const s of data.order) if (!data.names[s]) errors.push(`seasons: falta o nome de "${s}"`);
+  for (const s of data.order) if (!data.seasonStarts?.[s]) errors.push(`seasons: falta seasonStarts de "${s}"`);
+  const ids = new Set<string>();
+  for (const e of data.events ?? []) {
+    if (!e.id.startsWith('cal.')) errors.push(`seasons: evento "${e.id}" deve começar com "cal."`);
+    if (ids.has(e.id)) errors.push(`seasons: evento repetido "${e.id}"`);
+    ids.add(e.id);
+    if ((e.day === undefined) === (e.fromSeason === undefined)) errors.push(`seasons: evento "${e.id}" precisa de day ou de fromSeason (só um)`);
+    if (e.day !== undefined && !(Number.isInteger(e.day) && e.day >= 1)) errors.push(`seasons: evento "${e.id}" com day inválido`);
+    if (e.fromSeason !== undefined && !data.order.includes(e.fromSeason)) errors.push(`seasons: evento "${e.id}" com estação inexistente "${e.fromSeason}"`);
+  }
   for (const [mapId, cfg] of Object.entries(data.maps)) {
     if (!refs.maps.has(mapId)) errors.push(`seasons: mapa inexistente "${mapId}"`);
     for (const s of data.order.filter((x) => x !== data.base)) {

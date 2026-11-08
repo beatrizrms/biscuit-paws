@@ -58,6 +58,17 @@ function finishPrologue(session: GameSession) {
   session.finishCutscene('cs.prologue_end');
 }
 
+/**
+ * Dia 2: o cocô no salão (recolhe com a vassoura), a fala da "esquecida" e o cantinho do gato:
+ * caixa de areia e caminha.
+ */
+function warmCorner(session: GameSession) {
+  session.enter('map.cafe_main');
+  expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
+  buyAndPlace(session, 'item.litter_box', [11, 9]);
+  buyAndPlace(session, 'item.cat_bed', [12, 9]);
+}
+
 /** Aceita um pedido da vila e faz todos os pontos, passo a passo. */
 function doJob(session: GameSession, jobId: string) {
   expect(session.acceptJob(jobId)).toEqual({ ok: true });
@@ -159,9 +170,15 @@ describe('começo da história', () => {
     const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
     const cutscenes = () => events.filter((e) => e.name === 'cutscene.requested').map((e) => (e.payload as { cutsceneId: string }).cutsceneId);
 
-    // Dia 2: só a caminha (sem almofada), e só uma quest aparece.
+    // Dia 2: no café, o cocô no salão; recolhido, o cantinho (caixa de areia e caminha). Uma quest por vez.
+    session.enter('map.cafe_main');
+    expect(titles()).toEqual(['Que cheiro é esse?']);
+    expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
+    expect(events).toContainEqual({ name: 'dialogue.requested', payload: { dialogueId: 'dlg.forgot_litter' } });
     expect(titles()).toEqual(['Um cantinho quente']);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    expect(titles()).toEqual(['Um cantinho quente']);
+    buyAndPlace(session, 'item.litter_box', [11, 9]);
     expect(titles()).toEqual(['Uma cafeteira']);
     // A cafeteira e o balcão não cabem no dinheiro: precisa dos pedidos da vila.
     expect(session.state.money).toBeLessThan(205);
@@ -219,7 +236,7 @@ describe('começo da história', () => {
     const { session, events } = newSession();
     startInCafe(session);
     finishPrologue(session);
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    warmCorner(session);
     session.addMoney(1000, 'test');
     session.buy('item.coffee_machine');
     session.buy('item.counter_single');
@@ -240,11 +257,37 @@ describe('começo da história', () => {
     const { session } = newSession();
     startInCafe(session);
     finishPrologue(session);
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
-    buyAndPlace(session, 'item.cushion_pink', [11, 9]);
+    warmCorner(session);
+    buyAndPlace(session, 'item.cushion_pink', [10, 9]);
     const bed = session.state.placed.find((p) => p.item === 'item.cat_bed')!;
     expect(session.pickUp(bed.uid)).toEqual({ ok: true });
     expect(session.state.story.completed).toContain('story.warm_corner');
+  });
+});
+
+describe('o cocô do dia 2', () => {
+  it('aparece enquanto a meta dele não for cumprida, mesmo em save que já passou da caminha', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    session.state.story.completed.push('story.warm_corner'); // save antigo: caminha já posta
+    session.state.day = 5;
+    session.enter('map.cafe_main');
+    expect(session.goals().map((g) => g.title)).toEqual(['Que cheiro é esse?']);
+    expect(session.visibleDirt().some((d) => d.id === 'dirt.cat_poop')).toBe(true);
+  });
+
+  it('com um móvel na célula, vai para a célula livre mais próxima', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    session.enter('map.cafe_main');
+    const spot = content.map.dirt!.find((d) => d.id === 'dirt.cat_poop')!.at;
+    buyAndPlace(session, 'item.cushion_pink', [spot[0], spot[1]]);
+    const poop = session.visibleDirt().find((d) => d.id === 'dirt.cat_poop')!;
+    expect(poop.at).not.toEqual(spot);
+    expect(Math.max(Math.abs(poop.at[0] - spot[0]), Math.abs(poop.at[1] - spot[1]))).toBe(1);
+    expect(session.dirtAt(poop.at)?.id).toBe('dirt.cat_poop');
   });
 });
 
@@ -313,7 +356,7 @@ describe('pintor (reforma)', () => {
     const { session } = newSession();
     startInCafe(session);
     finishPrologue(session);
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    warmCorner(session);
     expect(session.painterUnlocked()).toBe(false);
     session.addMoney(500, 'test');
     session.buy('item.coffee_machine');
@@ -843,7 +886,7 @@ describe('pedidos da vila', () => {
 
   it('a cafeteira (com o balcão) cabe em um dia de pedidos, mesmo sem fazer todos', () => {
     const { session } = afterPrologue();
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    warmCorner(session);
     const total = Object.values(content.jobs).reduce((n, j) => n + j.reward, 0);
     const needed = content.items['item.coffee_machine']!.price + content.items['item.counter_single']!.price;
     // Folga: dá para pular dois pedidos do dia (ou comprar mais ração) e ainda chegar lá.
@@ -992,7 +1035,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     startInCafe(session);
     finishPrologue(session);
     session.enter('map.cafe_main');
-    buyAndPlace(session, 'item.cat_bed', [12, 9]);
+    warmCorner(session);
     session.addMoney(1000, 'test');
     const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
     const called = () => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.gabi_call');

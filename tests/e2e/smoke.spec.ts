@@ -442,9 +442,18 @@ test('fim do prólogo: ração ativa na barra, E na tigela alimenta, coração, 
   await expect(page.locator('.cs-card')).toContainText('MENOS UM GATINHO');
   await page.screenshot({ path: testInfo.outputPath('17-cartao-final.png') });
   await skipDialogue(page);
-  await expect(page.locator('.hud-money')).toContainText('Inverno, dia 2');
-  await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
+  await expect(page.locator('.hud-money')).toContainText('Inverno 2 · qui');
+  // Dia 2: no café, o "presente" do gato no chão (a caixa de areia vem com a caminha, depois de recolher).
+  await enterCafe(page);
+  await expect(page.locator('.hud-goals')).toContainText('Que cheiro é esse?');
   await page.screenshot({ path: testInfo.outputPath('18-dia-2.png') });
+  await page.evaluate(() => {
+    const s = (window as unknown as { __biscuitPaws: { cafe: { session: { selectHotbarItem(id: string): boolean; clean(id: string): unknown } } } }).__biscuitPaws.cafe.session;
+    s.selectHotbarItem('item.broom');
+    s.clean('dirt.cat_poop');
+  });
+  await skipDialogue(page);
+  await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
 });
 
 test('corretora: aparece na rua, leva para dentro e a chave aparece no centro da tela', async ({ page }, testInfo) => {

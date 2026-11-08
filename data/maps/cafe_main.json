@@ -485,6 +485,34 @@
         "room",
         "backyard"
       ]
+    },
+    {
+      "id": "dirt.cat_poop",
+      "tile": "ph_poop",
+      "at": [
+        8,
+        6
+      ],
+      "tags": [
+        "poop"
+      ],
+      "when": {
+        "all": [
+          {
+            "flag": "prologue.done"
+          },
+          {
+            "day": {
+              "gte": 2
+            }
+          },
+          {
+            "not": {
+              "beat": "story.litter_surprise"
+            }
+          }
+        ]
+      }
     }
   ],
   "surfaces": [

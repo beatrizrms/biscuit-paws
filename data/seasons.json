@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem.",
+  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem. startWeekday: dia da semana do dia 1 (0 = segunda; o jogo começa numa quarta, véspera de Natal). App Calendário: seasonStarts (título do primeiro dia de cada estação) e events (day ou fromSeason; everyYear repete; hideWhen some quando a condição vale).",
   "daysPerSeason": 30,
   "order": [
     "winter",
@@ -15,6 +15,35 @@
     "summer": "Verão",
     "autumn": "Outono"
   },
+  "startWeekday": 2,
+  "seasonStarts": {
+    "winter": "Começa o inverno",
+    "spring": "Começa a primavera",
+    "summer": "Começa o verão",
+    "autumn": "Começa o outono"
+  },
+  "events": [
+    {
+      "id": "cal.christmas",
+      "title": "Natal",
+      "day": 2,
+      "everyYear": true
+    },
+    {
+      "id": "cal.new_year",
+      "title": "Ano Novo",
+      "day": 9,
+      "everyYear": true
+    },
+    {
+      "id": "cal.inauguration",
+      "title": "Inauguração do café: a partir de hoje!",
+      "fromSeason": "spring",
+      "hideWhen": {
+        "beat": "story.inauguration"
+      }
+    }
+  ],
   "maps": {
     "map.street": {
       "prefixes": [

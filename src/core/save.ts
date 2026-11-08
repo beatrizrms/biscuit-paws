@@ -6,11 +6,12 @@ import type { GameState } from './state';
 import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 import { normalizeRoomsState, type RoomsData } from './rooms';
+import { WEEK, type Schedule } from './schedule';
 
-export const SAVE_SCHEMA_VERSION = 14;
+export const SAVE_SCHEMA_VERSION = 15;
 
-export interface SaveV14 extends GameState {
-  schemaVersion: 14;
+export interface SaveV15 extends GameState {
+  schemaVersion: 15;
   savedAt: string;
 }
 
@@ -88,10 +89,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   }),
   /** v13 -> v14: cômodos e passagens. Saves antigos: tudo no estado inicial dos dados (o salão como estiver). */
   13: (save) => ({ ...save, schemaVersion: 14, rooms: {}, doors: {} }),
+  /** v14 -> v15: horário de funcionamento escolhido pela jogadora. Saves antigos: o padrão dos dados. */
+  14: (save) => ({ ...save, schemaVersion: 15, schedule: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV14 = { schemaVersion: 14, savedAt: now.toISOString(), ...state };
+  const save: SaveV15 = { schemaVersion: 15, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -132,7 +135,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV14>;
+  const v2 = save as unknown as Partial<SaveV15>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -230,9 +233,17 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
+    schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
+}
+
+/** Horário salvo com o formato certo (as regras de horas a sessão confere; inválido volta ao padrão). */
+function validSchedule(s: unknown): s is Schedule {
+  const x = s as Schedule | null | undefined;
+  const clock = (t: unknown) => typeof t === 'string' && /^\d{1,2}:\d{2}$/.test(t);
+  return !!x && Array.isArray(x.days) && x.days.length === WEEK && x.days.every((d) => typeof d === 'boolean') && clock(x.open) && clock(x.close);
 }
 
 /** Os IDs conhecidos a partir do conteúdo. */

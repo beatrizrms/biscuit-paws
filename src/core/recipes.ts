@@ -2,6 +2,7 @@
 // Puro: sem Phaser, DOM ou window. Quem decide se dá para fazer é o CafeService (service.ts).
 import type { Cell } from './map';
 import type { Condition } from './content';
+import type { ScheduleRules } from './schedule';
 
 /** Louça: xícara, copo, prato. */
 export type Vessel = 'cup' | 'glass' | 'plate';
@@ -52,8 +53,8 @@ export interface ServiceConfig {
    * A capacidade (capacity.ts) sai daqui, dos lugares e da louça: não há teto fixo.
    */
   servedAt: Record<Vessel, ServiceKind[]>;
-  /** Horário em que entram clientes. */
-  open: { from: string; until: string };
+  /** Horário de funcionamento: o padrão e as regras do app "Horário" (a jogadora escolhe; fica no save). */
+  schedule: ScheduleRules;
   /** O primeiro cliente do dia chega depois de tantos minutos; os outros, num intervalo sorteado. */
   firstArrivalMinutes: number;
   arrivalEveryMinutes: [number, number];

@@ -322,6 +322,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.goHomeProblem() === 'customers_inside') {
+        // Já é hora, mas ainda tem cliente: ela pode sair para a rua, só não encerra o dia.
+        this.ui.problem('customers_inside');
+        this.useDoor(door);
+      }
       else if (this.session.canUseDoor(door)) this.useDoor(door);
       else {
         this.doorLocked = true; // avisa uma vez por aperto
@@ -371,7 +376,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Na cama do quartinho: dormir no café (depois do horário de ir para casa). */
   private askSleep(): void {
-    if (!this.session.canGoHome()) return this.ui.problem('too_early');
+    const problem = this.session.goHomeProblem();
+    if (problem) return this.ui.problem(problem);
     const r = uiText.rooms;
     void this.ui.confirm(r.sleepQuestion, r.sleepYes, r.sleepNo).then((yes) => {
       if (yes) this.session.sleepInCafe();

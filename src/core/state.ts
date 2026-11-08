@@ -9,6 +9,7 @@ import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import type { DoorState, RoomState } from './rooms';
+import type { Schedule } from './schedule';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -79,6 +80,8 @@ export interface GameState {
   /** Cômodos (v14): estado de cada um e das passagens; o que não está aqui vale o `initial` de data/rooms.json. */
   rooms: Record<string, RoomState>;
   doors: Record<string, DoorState>;
+  /** Horário de funcionamento escolhido (v15; app "Horário"). null = o padrão de data/service.json. */
+  schedule: Schedule | null;
 }
 
 export interface PlayerState {
@@ -152,6 +155,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     debt: 0,
     rooms: {},
     doors: {},
+    schedule: null,
   };
 }
 

@@ -44,6 +44,8 @@ export interface DirtSpot {
   foundDialogue?: string;
   /** Pixels para cima (negativo = para baixo), para assentar a peça (ex.: buraco de rato no rodapé). */
   lift?: number;
+  /** Só aparece a partir desta condição (ex.: o cocô do dia 2). Fica fora do "tudo limpo" dos saves antigos. */
+  when?: unknown;
 }
 
 /** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */

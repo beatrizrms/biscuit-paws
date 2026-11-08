@@ -1,15 +1,18 @@
 // Celular (tecla P; C abre direto no Market) e mural de pedidos do mercado.
 // O celular tem a moldura do pacote (data/phone.json) e uma tela de início com os apps:
-// "Vila Hoje" (notícias + pedidos da vila), "Meus gatos" (os gatos abrigados) e "Market" (compras online, MarketApp).
+// "Vila Hoje" (notícias + pedidos da vila), "Meus gatos" (os gatos abrigados), "Market" (compras online, MarketApp),
+// "Horário" (dias e horas de funcionamento, ScheduleApp) e "Calendário" (dias importantes, CalendarApp).
 // O mural é um painel simples, só com os pedidos. Quem decide se um pedido pode ser aceito é o núcleo.
 import type { CatProfile, GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
 import { content, phone, uiText } from '../content';
+import { CalendarApp } from './CalendarApp';
 import { MarketApp, type MarketHost } from './MarketApp';
+import { ScheduleApp } from './ScheduleApp';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export type PhoneApp = 'home' | 'news' | 'cats' | 'market';
+export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar';
 
 export class NewsPanel {
   /** Mural do mercado. */
@@ -22,6 +25,8 @@ export class NewsPanel {
   /** App aberto no celular. */
   private app: PhoneApp = 'home';
   private market: MarketApp;
+  private scheduleApp: ScheduleApp;
+  private calendarApp: CalendarApp;
 
   constructor(
     root: HTMLElement,
@@ -61,6 +66,8 @@ export class NewsPanel {
       if (b) this.show(b.dataset.app as PhoneApp);
     });
     this.market = new MarketApp(session, marketHost);
+    this.scheduleApp = new ScheduleApp(session, onProblem);
+    this.calendarApp = new CalendarApp(session);
 
     for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
       session.bus.on(ev, () => this.render());
@@ -101,12 +108,21 @@ export class NewsPanel {
       return;
     }
     if (this.mode !== 'phone') return;
-    const titles: Record<PhoneApp, string> = { home: '', news: content.news.app, cats: uiText.cats.app, market: uiText.market.app };
+    const titles: Record<PhoneApp, string> = {
+      home: '',
+      news: content.news.app,
+      cats: uiText.cats.app,
+      market: uiText.market.app,
+      schedule: uiText.scheduleApp.app,
+      calendar: uiText.calendarApp.app,
+    };
     this.phoneEl.dataset.app = this.app;
     (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
     (this.phoneEl.querySelector('.p-clock') as HTMLElement).textContent = formatClock(this.session.state.time, 10);
     const body = this.phoneBody;
     if (this.app === 'market') return this.market.render(body);
+    if (this.app === 'schedule') return this.scheduleApp.render(body);
+    if (this.app === 'calendar') return this.calendarApp.render(body);
     if (this.app === 'cats') body.innerHTML = this.catsHtml();
     else if (this.app === 'news') {
       body.innerHTML = this.jobsHtml(true);
@@ -115,6 +131,7 @@ export class NewsPanel {
   }
 
   private show(app: PhoneApp): void {
+    if (app === 'calendar') this.calendarApp.reset();
     this.app = app;
     this.render();
     this.phoneBody.scrollTop = 0;
@@ -134,6 +151,8 @@ export class NewsPanel {
       { id: 'news', name: content.news.app, icon: `<img src="${phone.apps.classificados}" alt="" />`, badge: pending > 0 },
       { id: 'cats', name: uiText.cats.app, icon: catIcon },
       { id: 'market', name: uiText.market.app, icon: '<img class="cart" src="assets/ui/hud/icon_cart_full.png" alt="" />' },
+      { id: 'schedule', name: uiText.scheduleApp.app, icon: '<span class="clock-face"></span>' },
+      { id: 'calendar', name: uiText.calendarApp.app, icon: `<span class="cal-face"><b></b>${this.session.seasonDay().day}</span>` },
     ];
     return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
       .map(
