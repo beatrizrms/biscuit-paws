@@ -11,6 +11,7 @@ import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
 import { addTileImage, tileScale } from '../tileArt';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
+import { actorsOf } from '../../core/arrivalModels';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
 import tilesetsJson from '../../../data/tilesets.json';
 import type { HandItem } from '../../core/carry';
@@ -99,6 +100,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private vanBusy = false;
   private vanObjects: Phaser.GameObjects.GameObject[] = [];
   private jobIcons: Phaser.GameObjects.Image[] = [];
+  /** Gato (e vizinho) da chegada esperando no mapa. */
+  private arrivalActors: Phaser.GameObjects.GameObject[] = [];
   private lastDay: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
@@ -208,7 +211,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (door && this.session.atHome()) this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
-    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    for (const ev of ['arrival.started', 'arrival.step', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
@@ -836,6 +839,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Pontos de pedido pendentes neste mapa: marcadores (redesenha o mapa), o quadro do ponto (a caixa) ou um "!". */
   private refreshJobPoints(rebuild = false): void {
     if (rebuild) this.buildMap();
+    this.refreshArrivalActors();
     this.jobIcons.forEach((i) => i.destroy());
     const ts = this.map.tileSize;
     this.jobIcons = this.session
@@ -851,6 +855,32 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         return icon;
       });
+  }
+
+  /** Chegada de gato: quem espera no lugar do encontro (o gato sentado; no vizinho_traz, o vizinho ao lado). */
+  private refreshArrivalActors(): void {
+    this.arrivalActors.forEach((a) => a.destroy());
+    this.arrivalActors = [];
+    const a = this.session.arrivals.active();
+    const step = this.session.arrivals.currentStep();
+    if (!a || !step || !('meet' in step) || a.def.place.map !== this.map.id || !a.def.place.at) return;
+    const ts = this.map.tileSize;
+    const [c, r] = a.def.place.at;
+    const who = actorsOf(a.def);
+    const variant = this.session.catDef(a.catId)?.variant;
+    if (who.cat && variant && this.textures.exists(catTexture(variant))) {
+      CatSprite.createAnimations(this, variant);
+      const feet = (r + 1) * ts - 4;
+      const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
+      cat.play(`${catTexture(variant)}-sit`);
+      this.arrivalActors.push(cat);
+    }
+    const npc = who.npc ? this.session.content.npcs[who.npc] : undefined;
+    if (npc) {
+      const sprite = new NpcSprite(this, npc, (c - 0.5) * ts, (r + 1) * ts, ts);
+      sprite.face('right');
+      this.arrivalActors.push(sprite);
+    }
   }
 
   // ---------- Atendimento ----------

@@ -1,6 +1,9 @@
 // Cenas sem mapa (prólogo, cartões). Só dados e validação: quem mostra é a interface.
 // Puro: sem Phaser, DOM ou window.
 
+/** Nas cenas, o gato da chegada em andamento (o jogo troca pelo id dele). */
+export const ARRIVAL_CAT = 'arrival';
+
 export type CutsceneStep =
   | { type: 'text'; speaker: string; text: string }
   | { type: 'cat'; cat: string; animation: string; caption?: string }
@@ -54,7 +57,8 @@ export function validateCutscenes(data: CutscenesData, catIds: ReadonlySet<strin
     if (cs.steps.length === 0) errors.push(`${where}: sem passos`);
     cs.steps.forEach((step, i) => {
       if (step.type === 'cat') {
-        if (!catIds.has(step.cat)) errors.push(`${where} passo ${i}: gato inexistente "${step.cat}"`);
+        // "arrival": o gato da chegada em andamento (data/arrivals.json), que pode ser gerado.
+        if (step.cat !== ARRIVAL_CAT && !catIds.has(step.cat)) errors.push(`${where} passo ${i}: gato inexistente "${step.cat}"`);
         if (!animations.has(step.animation)) errors.push(`${where} passo ${i}: animação inexistente "${step.animation}"`);
       }
       if (step.type === 'phone' && step.mode === 'call' && !step.caller) errors.push(`${where} passo ${i}: ligação sem caller`);

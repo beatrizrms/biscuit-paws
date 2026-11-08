@@ -228,6 +228,32 @@
           "text": "GRANDE ABERTURA!"
         }
       ]
+    },
+    "cs.arrival_door": {
+      "background": "#3b2a32",
+      "steps": [
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Na calçada, bem na frente da porta, alguém espera."
+        },
+        {
+          "type": "cat",
+          "cat": "arrival",
+          "animation": "sit",
+          "caption": "{arrival:condition} · {arrival:personality}"
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Oi... De onde você veio?"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O gato olha para a porta do café, depois para você."
+        }
+      ]
     }
   }
 }

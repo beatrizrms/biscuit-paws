@@ -3,13 +3,18 @@
 // (café cheio, com prazo) ou no abrigo da vila (entra na feira de adoção). As etapas de cada modelo (seguir a pista,
 // mini game, escolha) vêm a partir da etapa (b); aqui ficam o ciclo e as regras de vaga e ritmo.
 // Puro: sem Phaser, DOM ou window.
-import { arrivalsToQueue, nextGap, triggerHolds, type ArrivalDef } from './arrivals';
+import { stepsOf } from './arrivalModels';
+import { arrivalsToQueue, nextGap, triggerHolds, type ArrivalDef, type ArrivalStep } from './arrivals';
+import type { JobPoint } from './jobs';
 import { generateCat } from './catGen';
 import { seasonOf, weatherOf } from './calendar';
 import type { Content } from './content';
 import type { EventBus } from './events';
 import { createRng, type Rng } from './rng';
 import type { GameState } from './state';
+
+/** Id do ponto do encontro (não é um ponto de data/jobs.json: existe só durante a chegada). */
+export const meetPointId = (arrivalId: string) => `arrival:${arrivalId}`;
 
 /** Onde o gato foi parar no fim da chegada. */
 export type Placement = 'sheltered' | 'provisional' | 'shelter_pool' | null;
@@ -119,14 +124,89 @@ export class ArrivalSystem {
     this.st.active = { id: def.id, catId, condition, startedOn: s.day, step: 0 };
     this.st.last[def.id] = s.day;
     this.h.bus.emit('arrival.started', { arrivalId: def.id, catId, model: def.model });
+    this.enterStep();
   }
 
-  /** Avança para a próxima etapa (os modelos chamam; a etapa (b) em diante). */
-  nextStep(): void {
+  // ---------- Etapas (os modelos dão as padrão: arrivalModels.ts) ----------
+
+  /** A etapa da vez (ou null: acabaram). */
+  currentStep(): ArrivalStep | null {
+    const a = this.active();
+    return a ? (stepsOf(a.def)[a.step] ?? null) : null;
+  }
+
+  /**
+   * Entra na etapa da vez: fala segue sozinha; cena, roteiro e pergunta pedem à interface e esperam; ir até o
+   * lugar, pista e cartaz esperam a protagonista. Sem mais etapas: o gato foi aceito.
+   */
+  private enterStep(): void {
+    for (let guard = 0; guard < 100; guard++) {
+      const a = this.st.active;
+      if (!a) return;
+      const step = this.currentStep();
+      if (!step) {
+        this.finish('accepted');
+        return;
+      }
+      this.h.bus.emit('arrival.step', { arrivalId: a.id, step: a.step });
+      if ('dialogue' in step) {
+        this.h.bus.emit('dialogue.requested', { dialogueId: step.dialogue });
+        a.step++;
+        continue;
+      }
+      if ('cutscene' in step) this.h.bus.emit('cutscene.requested', { cutsceneId: step.cutscene });
+      else if ('script' in step) this.h.bus.emit('script.requested', { scriptId: step.script });
+      else if ('choice' in step) this.h.bus.emit('arrival.choice', { arrivalId: a.id, key: step.choice });
+      return;
+    }
+  }
+
+  /** Passa para a próxima etapa. */
+  private advance(): void {
     const a = this.st.active;
     if (!a) return;
     a.step++;
-    this.h.bus.emit('arrival.step', { arrivalId: a.id, step: a.step });
+    this.enterStep();
+  }
+
+  /** Pontos no mapa que esta chegada pede agora (ir até o lugar, ou a pista). */
+  pendingPoints(mapId: string): JobPoint[] {
+    const a = this.active();
+    const step = this.currentStep();
+    if (!a || !step) return [];
+    if ('meet' in step && a.def.place.map === mapId && a.def.place.at) return [{ id: meetPointId(a.def.id), map: mapId, at: a.def.place.at, action: 'press' }];
+    if ('clue' in step) {
+      const p = this.h.content.jobPoints[step.clue];
+      return p && p.map === mapId ? [p] : [];
+    }
+    return [];
+  }
+
+  /** Ela apertou E num ponto: é desta chegada? (o lugar do encontro ou a pista da vez) */
+  interact(pointId: string): boolean {
+    const a = this.active();
+    const step = this.currentStep();
+    if (!a || !step) return false;
+    if (('meet' in step && pointId === meetPointId(a.def.id)) || ('clue' in step && step.clue === pointId)) {
+      this.advance();
+      return true;
+    }
+    return false;
+  }
+
+  /** Uma cena ou roteiro terminou: se era a etapa da vez, segue. */
+  stepFinished(what: { cutscene?: string; script?: string }): void {
+    const step = this.currentStep();
+    if (!step) return;
+    if (('cutscene' in step && step.cutscene === what.cutscene) || ('script' in step && step.script === what.script)) this.advance();
+  }
+
+  /** Resposta da pergunta (ou do cartaz): sim segue; não, a chegada acaba recusada. */
+  answer(yes: boolean): void {
+    const step = this.currentStep();
+    if (!step || !('choice' in step || 'poster' in step)) return;
+    if (yes) this.advance();
+    else this.finish('declined');
   }
 
   /**

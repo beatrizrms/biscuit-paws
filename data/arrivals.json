@@ -10,5 +10,48 @@
   "autoStartWhen": { "cats": { "gte": 3 } },
   "queueMax": 3,
   "provisional": { "days": 7 },
-  "arrivals": []
+  "arrivals": [
+    {
+      "id": "arr.door_meow",
+      "model": "na_porta",
+      "kind": "random",
+      "repeatable": true,
+      "minGapDays": 8,
+      "trigger": { "hours": ["07:00", "10:00"] },
+      "place": { "kind": "cafe_door", "map": "map.street", "at": [13, 9] },
+      "clue": "meow",
+      "cat": { "generate": {} },
+      "steps": [],
+      "result": { "startPoints": 40 },
+      "whenFull": "provisional"
+    },
+    {
+      "id": "arr.neusa_brings",
+      "model": "vizinho_traz",
+      "kind": "random",
+      "repeatable": true,
+      "minGapDays": 15,
+      "trigger": { "when": { "flag": "met.old_neighbor" } },
+      "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
+      "clue": "neighbor",
+      "cat": { "generate": { "personality": "needy" } },
+      "steps": [],
+      "result": { "startPoints": 60, "npc": { "id": "npc.neusa", "points": 60 } },
+      "whenFull": "adoption"
+    },
+    {
+      "id": "arr.board_poster",
+      "model": "mural",
+      "kind": "random",
+      "repeatable": true,
+      "minGapDays": 10,
+      "trigger": {},
+      "place": { "kind": "market" },
+      "clue": "poster",
+      "cat": { "generate": {} },
+      "steps": [],
+      "result": { "startPoints": 20 },
+      "whenFull": "postpone"
+    }
+  ]
 }

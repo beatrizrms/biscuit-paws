@@ -6,6 +6,7 @@
 import type { GenerateSpec } from './catGen';
 import { pickWeighted, type Rng } from './rng';
 import { parseClock } from './time';
+import { modelReady, stepsOf } from './arrivalModels';
 
 export const ARRIVAL_MODELS = ['na_porta', 'pegadas', 'preso', 'vizinho_traz', 'gato_leva', 'ninhada', 'dentro_do_cafe', 'entrega', 'em_perigo', 'mural'] as const;
 export type ArrivalModel = (typeof ARRIVAL_MODELS)[number];
@@ -35,8 +36,12 @@ export interface ArrivalTrigger {
   when?: unknown;
 }
 
-/** Uma etapa da chegada (o modelo dá as etapas padrão; os dados podem trocar). Executadas a partir da etapa (b). */
+/** Uma etapa da chegada (o modelo dá as etapas padrão: arrivalModels.ts; os dados podem trocar). */
 export type ArrivalStep =
+  /** Ir até o lugar da chegada (place.map / place.at) e apertar E (o gato, ou o vizinho, espera ali). */
+  | { meet: true }
+  /** Cartaz no mural do mercado e no Vila Hoje: "Acolher" segue, "Agora não" recusa. */
+  | { poster: true }
   | { dialogue: string }
   | { cutscene: string }
   | { script: string }
@@ -225,7 +230,11 @@ export function validateArrivals(
     }
     if (a.condition && !refs.conditions.has(a.condition)) err(`${w}: condição inexistente "${a.condition}"`);
     if (a.result?.npc && !refs.npcs.has(a.result.npc.id)) err(`${w}: NPC inexistente "${a.result.npc.id}"`);
-    for (const step of a.steps) {
+    if (!modelReady(a.model)) err(`${w}: o modelo "${a.model}" ainda não tem etapas`);
+    const steps = stepsOf(a);
+    if (steps.some((s) => 'meet' in s) && (!a.place.map || !a.place.at)) err(`${w}: a etapa meet precisa de place.map e place.at`);
+    if (a.model === 'vizinho_traz' && !a.result?.npc) err(`${w}: vizinho_traz precisa de result.npc (quem traz o gato)`);
+    for (const step of steps) {
       if ('dialogue' in step && !refs.dialogues.has(step.dialogue)) err(`${w}: fala inexistente "${step.dialogue}"`);
       else if ('cutscene' in step && !refs.cutscenes.has(step.cutscene)) err(`${w}: cena inexistente "${step.cutscene}"`);
       else if ('script' in step && !refs.scripts.has(step.script)) err(`${w}: roteiro inexistente "${step.script}"`);

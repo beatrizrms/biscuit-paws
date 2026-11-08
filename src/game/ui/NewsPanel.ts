@@ -8,6 +8,7 @@ import { formatClock } from '../../core/time';
 import { content, phone, uiText } from '../content';
 import { CalendarApp } from './CalendarApp';
 import { MarketApp, type MarketHost } from './MarketApp';
+import { fillNames } from './text';
 import { ScheduleApp } from './ScheduleApp';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -69,7 +70,7 @@ export class NewsPanel {
     this.scheduleApp = new ScheduleApp(session, onProblem);
     this.calendarApp = new CalendarApp(session);
 
-    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
+    for (const ev of ['arrival.started', 'arrival.finished', 'arrival.step', 'job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
       session.bus.on(ev, () => this.render());
   }
 
@@ -164,6 +165,21 @@ export class NewsPanel {
   }
 
   /** Vila Hoje (notícias + pedidos) ou o mural (só pedidos). */
+  /** Cartaz de gato precisando de lar (chegada modelo mural): o gato, como ele está e os botões. */
+  private posterHtml(): string {
+    const s = this.session;
+    const a = s.arrivals.active();
+    const step = s.arrivals.currentStep();
+    if (!a || !step || !('poster' in step)) return '';
+    const def = s.catDef(a.catId);
+    const sprites = content.catSprites;
+    const sheet = def ? sprites.variants[def.variant] : undefined;
+    const t = uiText.arrivals.poster;
+    const pic = sheet ? `<span class="cat-sprite" style="background-image:url(${sheet});background-size:${sprites.columns * sprites.frameSize}px auto;--frames:4;--end:${-4 * sprites.frameSize}px"></span>` : '';
+    return `<div class="cat-card poster">${pic}<div class="cat-info"><strong>${esc(t.title)}</strong><span class="routine">${esc(fillNames(s, t.text))}</span>
+      <span class="poster-buttons"><button data-poster="yes">${esc(t.yes)}</button><button data-poster="no">${esc(t.no)}</button></span></div></div>`;
+  }
+
   private jobsHtml(withNews: boolean): string {
     const s = this.session;
     const news = withNews
@@ -182,10 +198,11 @@ export class NewsPanel {
         <button data-job="${j.id}" ${full ? `disabled title="${uiText.news.oneAtATime}"` : ''}>${uiText.news.accept}</button></div>`,
     );
     const jobs = [...active, ...open].join('') || `<p class="empty">${uiText.news.noJobs}</p>`;
-    return `${news}<h3 class="jobs-title">${uiText.news.jobsTitle}</h3>${jobs}`;
+    return `${news}${this.posterHtml()}<h3 class="jobs-title">${uiText.news.jobsTitle}</h3>${jobs}`;
   }
 
   private bindJobs(body: HTMLElement): void {
+    body.querySelectorAll<HTMLButtonElement>('[data-poster]').forEach((btn) => btn.addEventListener('click', () => this.session.answerArrival(btn.dataset.poster === 'yes')));
     body.querySelectorAll<HTMLButtonElement>('[data-job]').forEach((btn) =>
       btn.addEventListener('click', () => {
         const id = btn.dataset.job!;

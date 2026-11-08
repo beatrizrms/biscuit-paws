@@ -179,6 +179,24 @@ export class GameUi {
       this.toast(uiText.health.infected.replace('{name}', session.catName(catId)).replace('{from}', session.catName(fromCatId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4500),
     );
     bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
+    // Chegada de gatos: a pista, a pergunta (sim/não) e onde o gato foi parar.
+    const at = uiText.arrivals;
+    bus.on('arrival.started', ({ arrivalId }) => {
+      const clue = this.session.arrivals.def(arrivalId)?.clue ?? 'none';
+      const text = at.clue[clue];
+      if (text) this.toast(this.fillNames(text), 4500);
+    });
+    bus.on('arrival.choice', ({ key }) => {
+      const c = at.choices[key as keyof typeof at.choices];
+      if (!c) return this.session.answerArrival(true);
+      void this.confirm(this.fillNames(c.question), c.yes, c.no).then((yes) => this.session.answerArrival(yes));
+    });
+    bus.on('arrival.finished', ({ outcome, placement }) => {
+      const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
+      if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
+    });
+    bus.on('arrival.provisional_settled', () => this.toast(at.settled, 4000));
+    bus.on('arrival.provisional_expired', () => this.toast(at.expired, 4500));
     const ft = uiText.fair;
     bus.on('fair.started', () => this.toast(ft.started, 4500));
     bus.on('fair.progress', ({ step }) => {
@@ -291,6 +309,9 @@ export class GameUi {
       const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
       items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
+    // Chegada de gato em andamento: o que fazer agora.
+    const arrival = this.arrivalLine();
+    if (arrival) items.push(arrival);
     // Feira de adoção: a etapa da vez (src/core/fair.ts).
     const fair = this.fairLine();
     if (fair) items.push(fair);
@@ -365,6 +386,16 @@ export class GameUi {
     }
     const root = this.root.getBoundingClientRect();
     this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
+  }
+
+  /** Linha da chegada de gato no balão (ou vazio). */
+  private arrivalLine(): string {
+    const a = this.session.arrivals.active();
+    const step = this.session.arrivals.currentStep();
+    if (!a || !step) return '';
+    const g = uiText.arrivals.goal;
+    const text = 'meet' in step ? (a.def.model === 'vizinho_traz' ? g.meet_neighbor : g.meet) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? g.clue : '';
+    return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }
 
   /** Linha da feira de adoção no balão (ou vazio, sem feira em andamento). */

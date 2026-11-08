@@ -210,3 +210,70 @@ describe('chegadas na sessão', () => {
     expect(v17.arrivals).toEqual(newArrivals());
   });
 });
+
+describe('modelos de chegada (etapa b)', () => {
+  function cafe() {
+    const state = newGameState(500, 'map.street', 8 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    const events: { name: string; payload: unknown }[] = [];
+    session.bus.onAny((name, payload) => events.push({ name, payload }));
+    const names = () => events.map((e) => e.name);
+    return { session, state, events, names };
+  }
+
+  it('na_porta: o gato espera na calçada; E nele mostra a cena; deixar entrar abriga', () => {
+    const { session, state, events, names } = cafe();
+    expect(session.arrivals.queueNow('arr.door_meow')).toBe(true);
+    const at = content.arrivals.arrivals.find((a) => a.id === 'arr.door_meow')!.place.at!;
+    const point = session.pendingJobPoints('map.street').find((p) => p.id === 'arrival:arr.door_meow');
+    expect(point?.at).toEqual(at);
+    expect(session.doJobPoint('arrival:arr.door_meow')).toEqual({ ok: true });
+    expect(events).toContainEqual({ name: 'cutscene.requested', payload: { cutsceneId: 'cs.arrival_door' } });
+    session.finishCutscene('cs.arrival_door');
+    expect(events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.door_meow', key: 'take_in' } });
+    session.answerArrival(true);
+    const catId = 'cat.gen.1';
+    expect(state.cats[catId]?.sheltered).toBe(true);
+    expect(names()).toContain('cat.sheltered'); // a caixa de nome abre com este evento
+    expect(state.relationships[`player|${catId}`]).toBe(40);
+    expect(state.arrivals.active).toBeNull();
+  });
+
+  it('vizinho_traz: aceitar dá corações ao vizinho; recusar não abriga e o gato some', () => {
+    const yes = cafe();
+    yes.session.arrivals.queueNow('arr.neusa_brings');
+    yes.session.doJobPoint('arrival:arr.neusa_brings');
+    expect(yes.events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.neusa_brings', key: 'neighbor_offer' } });
+    yes.session.answerArrival(true);
+    expect(yes.state.relationships['player|npc.neusa']).toBe(60);
+    expect(yes.session.catDef('cat.gen.1')?.personality).toBe('needy');
+
+    const no = cafe();
+    no.session.arrivals.queueNow('arr.neusa_brings');
+    no.session.doJobPoint('arrival:arr.neusa_brings');
+    no.session.answerArrival(false);
+    expect(no.state.cats['cat.gen.1']).toBeUndefined();
+    expect(no.state.catDefs['cat.gen.1']).toBeUndefined();
+    expect(no.state.relationships['player|npc.neusa']).toBeUndefined();
+  });
+
+  it('mural: o cartaz espera a resposta; acolher abriga sem precisar ir a lugar nenhum', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.board_poster');
+    expect(session.arrivals.currentStep()).toEqual({ poster: true });
+    expect(session.pendingJobPoints('map.market')).toEqual([]);
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+
+  it('validação: modelo ainda sem etapas e encontro sem lugar não passam', async () => {
+    const { validateContent } = await import('../../src/core/content');
+    const { rawContent } = await import('./content');
+    const raw = rawContent();
+    raw.arrivals.arrivals.push({ ...raw.arrivals.arrivals[0]!, id: 'arr.x', model: 'preso' }, { ...raw.arrivals.arrivals[0]!, id: 'arr.y', place: { kind: 'street' } });
+    const errors = validateContent(raw).join('\n');
+    expect(errors).toMatch(/"arr.x": o modelo "preso" ainda não tem etapas/);
+    expect(errors).toMatch(/"arr.y": a etapa meet precisa de place.map e place.at/);
+  });
+});

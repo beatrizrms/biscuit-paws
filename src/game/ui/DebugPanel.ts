@@ -32,6 +32,7 @@ export class DebugPanel {
         <button data-act="rep-zero">Zerar reputação</button>
         <button data-act="fair">Feira: começar</button>
         <button data-act="fair-day">Feira: ir ao dia</button>
+        ${session.content.arrivals.arrivals.map((a) => `<button data-arrival="${a.id}">chegada ${a.id.replace('arr.', '')}</button>`).join('')}
         <button data-act="skip">Pular falas</button>
         <button data-act="collision">Colisão</button>
         <button data-act="grid">Grade</button>
@@ -72,6 +73,8 @@ export class DebugPanel {
     on('grid', (b) => b.classList.toggle('on', actions.toggleGrid()));
     on('new', () => actions.newGame());
     on('off', () => actions.turnOff());
+    // Chegadas: põe na fila agora (ignora o gatilho e o sorteio; respeita a vez).
+    panel.querySelectorAll<HTMLButtonElement>('[data-arrival]').forEach((b) => b.addEventListener('click', () => session.arrivals.queueNow(b.dataset.arrival!)));
     panel.querySelectorAll<HTMLButtonElement>('[data-mg]').forEach((b) =>
       b.addEventListener('click', () => actions.openMiniGame(b.dataset.mg!, b.dataset.dif as 'easy' | 'normal' | 'hard')),
     );

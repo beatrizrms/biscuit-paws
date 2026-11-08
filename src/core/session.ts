@@ -618,6 +618,8 @@ export class GameSession {
         if (p && p.map === mapId && !done.has(id)) out.push(p);
       }
     }
+    // A chegada de gato da vez: o lugar do encontro ou a pista.
+    out.push(...this.arrivals.pendingPoints(mapId));
     // A feira de adoção usa pontos de pedido sem ser um pedido (as etapas ficam em state.fair).
     for (const id of pendingFairPoints(this.state.fair, this.content.adoption.fair, this.state.day)) {
       const p = this.content.jobPoints[id];
@@ -648,6 +650,7 @@ export class GameSession {
 
   /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
   doJobPoint(pointId: string): ActionResult {
+    if (this.arrivals.interact(pointId)) return { ok: true };
     if (this.isFairPoint(pointId)) return this.doFairStep(pointId);
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
     const point = this.content.jobPoints[pointId];
@@ -1140,6 +1143,7 @@ export class GameSession {
   finishScript(scriptId: string): void {
     this.state.flags[seenFlag(scriptId)] = true;
     this.bus.emit('script.finished', { scriptId });
+    this.arrivals.stepFinished({ script: scriptId });
     this.advanceStory();
   }
 
@@ -1147,6 +1151,7 @@ export class GameSession {
   finishCutscene(cutsceneId: string): void {
     this.state.flags[seenFlag(cutsceneId)] = true;
     this.bus.emit('cutscene.finished', { cutsceneId });
+    this.arrivals.stepFinished({ cutscene: cutsceneId });
     this.advanceStory();
   }
 
@@ -1725,6 +1730,12 @@ export class GameSession {
     };
     this.bus.emit('cat.sheltered', { catId });
     if (profile ? profile.sick : def?.arrivesSick) this.makeSick(catId);
+  }
+
+  /** Resposta da pergunta da chegada (ou do cartaz do mural): sim segue, não recusa. */
+  answerArrival(yes: boolean): void {
+    this.arrivals.answer(yes);
+    this.advanceStory();
   }
 
   /** Algum marco exclusivo da história em andamento (as chegadas esperam a vez). */

@@ -583,5 +583,53 @@
     "snow": "Neve",
     "sun": "Sol",
     "rain": "Chuva"
+  },
+  "arrivals": {
+    "title": "Um gato",
+    "clue": {
+      "meow": "Um miado lá fora... vem da porta do café.",
+      "neighbor": "{arrival:npc} está na porta do café com alguma coisa no colo.",
+      "poster": "Tem um cartaz novo no mural do mercado: um gato precisa de lar.",
+      "footprints": "Pegadas de gato na calçada...",
+      "none": ""
+    },
+    "goal": {
+      "meet": "Ver quem está na porta do café.",
+      "meet_neighbor": "Falar com {arrival:npc} na porta do café.",
+      "poster": "Ler o cartaz no mural do mercado (ou no Vila Hoje).",
+      "choice": "Decidir se o gato fica.",
+      "clue": "Seguir a pista."
+    },
+    "choices": {
+      "take_in": {
+        "question": "Deixar o gato ({arrival:condition}) entrar no café?",
+        "yes": "Deixar entrar",
+        "no": "Agora não"
+      },
+      "neighbor_offer": {
+        "question": "{arrival:npc}: \"Achei este gatinho na rua. Você não quer ficar com ele?\"",
+        "yes": "Fico com ele!",
+        "no": "Não posso agora"
+      },
+      "poster": {
+        "question": "Acolher o gato do cartaz?",
+        "yes": "Acolher",
+        "no": "Agora não"
+      }
+    },
+    "poster": {
+      "title": "Precisa de um lar",
+      "text": "Gato {arrival:personality}, {arrival:condition}. Quem puder acolher, procure o mural do mercado.",
+      "yes": "Acolher",
+      "no": "Agora não"
+    },
+    "finished": {
+      "sheltered": "Um gato novo no café!",
+      "provisional": "O café está cheio... o gato fica provisório por {days} dias, até abrir vaga.",
+      "shelter_pool": "O café está cheio: o gato vai para o abrigo da vila e entra na próxima feira de adoção.",
+      "declined": "O gato seguiu o caminho dele."
+    },
+    "settled": "Abriu vaga: o gato provisório ficou de vez!",
+    "expired": "Sem vaga no café... o gato provisório foi para o abrigo da vila."
   }
 }

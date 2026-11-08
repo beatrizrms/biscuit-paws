@@ -954,3 +954,8 @@
 .hud-rep .fill { position: absolute; inset: 0 auto 0 0; background: var(--pink3); }
 .hud-rep .value { min-width: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--wood4); }
 .hud-rep.bump { animation: bump 0.35s; }
+
+/* Cartaz de gato precisando de lar (chegada modelo mural), no mural e no Vila Hoje */
+.news .cat-card.poster { border: 1px dashed var(--pink3); background: #fff4f2; }
+.news .poster-buttons { display: flex; gap: 4px; margin-top: 3px; }
+.news .poster-buttons button { padding: 1px 8px; border: 1px solid var(--pink3); border-radius: 8px; background: var(--cream); color: var(--pink3); font: inherit; font-size: 7.5px; font-weight: bold; cursor: pointer; }
