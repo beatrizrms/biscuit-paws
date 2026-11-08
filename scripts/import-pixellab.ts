@@ -456,7 +456,7 @@ const SHEETS: Sheet[] = [
     auto: true,
     layout: {
       pergola_forno: { file: '', w: 4, h: 3, build: () => pergolaForno() },
-      arvore: { file: 'quintal/arvore_3x4.png', w: 3, h: 4 },
+      arvore: { file: 'quintal/arvore_nova/arvore_3x4_v2.png', w: 3, h: 4, dy: 8 },
       topiaria: { file: 'quintal/topiaria_2x2.png', w: 2, h: 2, dy: 8 },
       dracena: { file: 'quintal/dracena_2x2.png', w: 2, h: 2, dy: 10 },
       cadeira_vime_esq: { file: 'quintal/cadeira_lado_esq.png', w: 1, h: 2, dy: 20 },
