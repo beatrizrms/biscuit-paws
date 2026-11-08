@@ -1001,6 +1001,7 @@ export class GameSession {
    */
   finishMiniGame(result: MiniGameResult, params: MiniGameParams): void {
     if (result.coinsEarned > 0) this.addMoney(result.coinsEarned, `minigame:${result.gameId}`);
+    if (result.itemId && this.content.items[result.itemId]) this.receiveItem(result.itemId);
     this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
     if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
     else this.advanceStory();

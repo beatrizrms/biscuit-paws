@@ -396,6 +396,8 @@ Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "
 
 Gato em fuga (`chase`): `map` (arena: `data/maps/minigame_chase.json`, segue a estação como a rua), `catSpawn`, `spots` (células possíveis de esconderijo: `box`, `trash`, `bush`, `car`) e, por dificuldade, `timeSec`, `catSpeed`, `turnEveryMs`, `hideChance`, `hidingSpots`, `hideMs`, `noticeRadius`, `catchRadius`, `greatTimeShare`.
 
+Pescaria (`fishing`): `fish` (tabela: `id`, `name`, `rarity` = junk/common/uncommon/rare/legendary, `speed` e `zone` em frações da barra, `value` = moedas extras, `item` = vai para a mochila, `icon` = quadro da folha de peixes) e `sounds` (efeitos de `data/audio.json`: `bite`, `catch`, `escape`). Por dificuldade: `timeSec`, `waitMs`, `biteWindowMs`, `rarityWeights`, `zoneScale`, `speedScale`, `progressGain`, `progressLoss`, `startProgress`, `lift`, `gravity`, `greatAccuracy` (fração do tempo dentro da zona). O resultado traz o `itemId` do peixe (a sessão põe na mochila) e o valor dele soma às moedas. Sorteio e física da barra: `src/core/fishing.ts`.
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

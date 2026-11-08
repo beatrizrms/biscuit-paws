@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa.",
+  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa. fishing (Pescaria): fish = tabela (id, name, rarity: junk/common/uncommon/rare/legendary, speed = fração da barra por segundo, zone = tamanho da zona verde, value = moedas extras, item = vai para a mochila, icon = quadro na folha 3 x 2); sounds: efeitos de data/audio.json (sfx). Por dificuldade: timeSec, waitMs [min, max] (boia esperando), biteWindowMs (tempo para fisgar), rarityWeights, zoneScale e speedScale (multiplicam a tabela), progressGain e progressLoss (por segundo), startProgress, lift e gravity (o indicador), greatAccuracy (fração do tempo dentro da zona).",
   "introMs": 2000,
   "skipRewardShare": 0.25,
   "games": {
@@ -18,23 +18,41 @@
         { "at": [20, 7], "kind": "box" }
       ],
       "rewards": {
-        "easy": {
-          "ok": 15,
-          "great": 25
-        },
-        "normal": {
-          "ok": 25,
-          "great": 40
-        },
-        "hard": {
-          "ok": 40,
-          "great": 60
-        }
+        "easy": { "ok": 15, "great": 25 },
+        "normal": { "ok": 25, "great": 40 },
+        "hard": { "ok": 40, "great": 60 }
       },
       "difficulties": {
         "easy": { "timeSec": 60, "catSpeed": 62, "turnEveryMs": [1400, 2600], "hideChance": 0.25, "hidingSpots": 2, "hideMs": [2500, 4000], "noticeRadius": 70, "catchRadius": 14, "greatTimeShare": 0.5 },
         "normal": { "timeSec": 45, "catSpeed": 78, "turnEveryMs": [1000, 2000], "hideChance": 0.35, "hidingSpots": 3, "hideMs": [3000, 5000], "noticeRadius": 85, "catchRadius": 13, "greatTimeShare": 0.5 },
         "hard": { "timeSec": 35, "catSpeed": 92, "turnEveryMs": [700, 1500], "hideChance": 0.45, "hidingSpots": 4, "hideMs": [3500, 6000], "noticeRadius": 100, "catchRadius": 12, "greatTimeShare": 0.5 }
+      }
+    },
+    "fishing": {
+      "name": "Pescaria",
+      "instructions": "Aperte E (ou clique na água) para lançar a linha. Quando a boia afundar, aperte E rápido para fisgar! Depois segure E (ou o botão do mouse) para manter o indicador dentro da zona verde até encher a barra.",
+      "sounds": {
+        "bite": "new_order",
+        "catch": "success",
+        "escape": "error"
+      },
+      "fish": [
+        { "id": "fish.silver", "name": "Peixe prateado", "rarity": "common", "speed": 0.35, "zone": 0.32, "value": 4, "item": "item.fish_silver", "icon": 0 },
+        { "id": "fish.sardine", "name": "Sardinha", "rarity": "common", "speed": 0.45, "zone": 0.28, "value": 3, "item": "item.fish_sardine", "icon": 1 },
+        { "id": "fish.tuna", "name": "Atum azul", "rarity": "uncommon", "speed": 0.55, "zone": 0.24, "value": 10, "item": "item.fish_tuna", "icon": 2 },
+        { "id": "fish.salmon", "name": "Salmão", "rarity": "rare", "speed": 0.65, "zone": 0.2, "value": 18, "item": "item.fish_salmon", "icon": 3 },
+        { "id": "fish.golden", "name": "Peixe dourado", "rarity": "legendary", "speed": 0.85, "zone": 0.16, "value": 40, "item": "item.fish_golden", "icon": 4 },
+        { "id": "fish.old_boot", "name": "Bota velha", "rarity": "junk", "speed": 0.2, "zone": 0.4, "value": 0, "item": "item.old_boot", "icon": 5 }
+      ],
+      "rewards": {
+        "easy": { "ok": 10, "great": 18 },
+        "normal": { "ok": 15, "great": 26 },
+        "hard": { "ok": 22, "great": 36 }
+      },
+      "difficulties": {
+        "easy": { "waitMs": [1500, 4000], "biteWindowMs": 1200, "startProgress": 0.3, "lift": 3.2, "gravity": 2.6, "greatAccuracy": 0.75, "timeSec": 75, "rarityWeights": { "junk": 10, "common": 60, "uncommon": 25, "rare": 5, "legendary": 0 }, "zoneScale": 1.25, "speedScale": 0.8, "progressGain": 0.45, "progressLoss": 0.2 },
+        "normal": { "waitMs": [1500, 4000], "biteWindowMs": 900, "startProgress": 0.3, "lift": 3.2, "gravity": 2.6, "greatAccuracy": 0.75, "timeSec": 60, "rarityWeights": { "junk": 10, "common": 50, "uncommon": 28, "rare": 10, "legendary": 2 }, "zoneScale": 1, "speedScale": 1, "progressGain": 0.38, "progressLoss": 0.25 },
+        "hard": { "waitMs": [1500, 4000], "biteWindowMs": 700, "startProgress": 0.3, "lift": 3.2, "gravity": 2.6, "greatAccuracy": 0.75, "timeSec": 50, "rarityWeights": { "junk": 8, "common": 40, "uncommon": 30, "rare": 17, "legendary": 5 }, "zoneScale": 0.8, "speedScale": 1.25, "progressGain": 0.32, "progressLoss": 0.32 }
       }
     }
   }

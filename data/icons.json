@@ -379,6 +379,36 @@
       "col": 12,
       "row": 0,
       "sheet": "fluxo"
+    },
+    "peixe_prateado": {
+      "col": 0,
+      "row": 0,
+      "sheet": "peixes"
+    },
+    "peixe_sardinha": {
+      "col": 1,
+      "row": 0,
+      "sheet": "peixes"
+    },
+    "peixe_atum": {
+      "col": 2,
+      "row": 0,
+      "sheet": "peixes"
+    },
+    "peixe_salmao": {
+      "col": 0,
+      "row": 1,
+      "sheet": "peixes"
+    },
+    "peixe_dourado": {
+      "col": 1,
+      "row": 1,
+      "sheet": "peixes"
+    },
+    "bota_velha": {
+      "col": 2,
+      "row": 1,
+      "sheet": "peixes"
     }
   },
   "sheets": {
@@ -397,6 +427,10 @@
     "fluxo": {
       "image": "assets/icons/sheets/icon_sheet_food.png",
       "columns": 13
+    },
+    "peixes": {
+      "image": "assets/minigames/fishing/icons_fish.png",
+      "columns": 3
     }
   }
 }

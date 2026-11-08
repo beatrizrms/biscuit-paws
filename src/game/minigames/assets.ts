@@ -30,6 +30,18 @@ export const CHASE = {
   alerts: { key: 'mg.chase.alerts', file: `${DIR}/chase/ui_alerts.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xfff4e0 },
 } satisfies Record<string, SheetSpec>;
 
+/** Pescaria. A barra de timing é só a moldura: a zona verde, o indicador e o progresso são desenhados por cima. */
+export const FISHING = {
+  water: { key: 'mg.fishing.water', file: `${DIR}/fishing/anim_water.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x6fa8c8 },
+  bobber: { key: 'mg.fishing.bobber', file: `${DIR}/fishing/anim_bobber.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xd9475d },
+  pier: { key: 'mg.fishing.pier', file: `${DIR}/fishing/tile_pier.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x9b6a45 },
+  bar: { key: 'mg.fishing.bar', file: `${DIR}/fishing/ui_timing_bar.png`, frameWidth: 48, frameHeight: 192, placeholder: 0xfff7e6 },
+  fish: { key: 'mg.fishing.fish', file: `${DIR}/fishing/icons_fish.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xe0a94e },
+} satisfies Record<string, SheetSpec>;
+
+/** Onde fica a parte de dentro da barra de timing (pixels da arte, 48 x 192): o trilho e o tubo do progresso. */
+export const BAR_TRACK = { x: 8, w: 19, y: 40, h: 113, progressX: 28, progressW: 3 };
+
 /** Tipos de esconderijo (data/minigames.json: games.chase.spots[].kind) -> textura. */
 export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, trash: CHASE.hideTrash, bush: CHASE.hideBush, car: CHASE.hideCar };
 

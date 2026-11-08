@@ -383,6 +383,16 @@
     "chase": {
       "caught": "Pegou o gato! Sobraram {s} s.",
       "escaped": "O gato escapou..."
+    },
+    "fishing": {
+      "aim": "Aperte E (ou clique na água) para lançar a linha.",
+      "waiting": "Esperando... fique de olho na boia.",
+      "bite": "Mordeu! Aperte E agora!",
+      "reel": "Segure E (ou o mouse) para manter o indicador na zona verde!",
+      "missed": "Demorou... o peixe soltou a isca. Lance de novo.",
+      "escaped": "Escapou! Lance de novo.",
+      "caught": "Pescou: {fish}! (+{value} pelo peixe, já na mochila)",
+      "noFish": "Nenhum peixe desta vez."
     }
   }
 }

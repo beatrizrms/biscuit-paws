@@ -5,13 +5,13 @@ import Phaser from 'phaser';
 import type { InputState } from '../../core/movement';
 
 export class MiniGameControls {
-  private keys: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+  private keys: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'e' | 'space', Phaser.Input.Keyboard.Key>;
   private actionCbs: ((world?: { x: number; y: number }) => void)[] = [];
   private pauseCbs: (() => void)[] = [];
 
   constructor(private scene: Phaser.Scene) {
     const K = Phaser.Input.Keyboard.KeyCodes;
-    this.keys = scene.input.keyboard!.addKeys({ up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D }, false) as typeof this.keys;
+    this.keys = scene.input.keyboard!.addKeys({ up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, e: K.E, space: K.SPACE }, false) as typeof this.keys;
     const kb = scene.input.keyboard!;
     const action = () => this.actionCbs.forEach((cb) => cb());
     const pause = () => this.pauseCbs.forEach((cb) => cb());
@@ -35,6 +35,11 @@ export class MiniGameControls {
   direction(): InputState {
     const k = this.keys;
     return { up: k.up.isDown || k.w.isDown, down: k.down.isDown || k.s.isDown, left: k.left.isDown || k.a.isDown, right: k.right.isDown || k.d.isDown };
+  }
+
+  /** A ação está sendo segurada agora (E, Espaço ou botão do mouse): para jogos de segurar, como a pescaria. */
+  holding(): boolean {
+    return this.keys.e.isDown || this.keys.space.isDown || this.scene.input.activePointer.isDown;
   }
 
   /** E/Espaço ou clique (com o ponto do mundo, quando foi clique). */

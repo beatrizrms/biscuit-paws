@@ -1,5 +1,6 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
+import type { FishDef } from './fishing';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
@@ -15,6 +16,8 @@ export interface MiniGameResult {
   coinsEarned: number;
   /** Pulou (recompensa reduzida). */
   skipped: boolean;
+  /** O que veio junto (ex.: o peixe pescado): vai para a mochila. */
+  itemId?: string;
 }
 
 /** Com o que o mini game foi aberto: dificuldade, gato envolvido, item de missão, ponto de pedido... */
@@ -34,6 +37,10 @@ export interface MiniGameDef {
   rewards: Record<Difficulty, { ok: number; great: number }>;
   /** Parâmetros do jogo por dificuldade (cada jogo define os seus). */
   difficulties: Record<Difficulty, Record<string, unknown>>;
+  /** Pescaria: a tabela de peixes. */
+  fish?: FishDef[];
+  /** Efeitos sonoros (data/audio.json: sfx) por momento do jogo. */
+  sounds?: Record<string, string>;
 }
 
 export interface MiniGamesConfig {
@@ -51,9 +58,22 @@ export function coinsFor(cfg: MiniGamesConfig, gameId: string, difficulty: Diffi
   return outcome === 'fail' ? 0 : r[outcome];
 }
 
-/** Monta o resultado com as moedas certas (a cena nunca decide quanto vale). */
-export function makeResult(cfg: MiniGamesConfig, gameId: string, difficulty: Difficulty, outcome: Outcome, score: number, skipped = false): MiniGameResult {
-  return { gameId, outcome: skipped ? 'ok' : outcome, score, coinsEarned: coinsFor(cfg, gameId, difficulty, outcome, skipped), skipped };
+/**
+ * Monta o resultado com as moedas certas (a cena nunca decide quanto vale). `extra`: o que o jogo achou
+ * (o valor do peixe soma às moedas e o item vai para a mochila); pular não traz nada disso.
+ */
+export function makeResult(
+  cfg: MiniGamesConfig,
+  gameId: string,
+  difficulty: Difficulty,
+  outcome: Outcome,
+  score: number,
+  skipped = false,
+  extra: { bonusCoins?: number; itemId?: string } = {},
+): MiniGameResult {
+  const won = !skipped && outcome !== 'fail';
+  const coinsEarned = coinsFor(cfg, gameId, difficulty, outcome, skipped) + (won ? extra.bonusCoins ?? 0 : 0);
+  return { gameId, outcome: skipped ? 'ok' : outcome, score, coinsEarned, skipped, ...(won && extra.itemId ? { itemId: extra.itemId } : {}) };
 }
 
 /** Parâmetros de um jogo numa dificuldade, já tipados por quem chama. */

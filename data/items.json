@@ -1078,6 +1078,66 @@
           }
         ]
       }
+    },
+    {
+      "id": "item.fish_silver",
+      "name": "Peixe prateado",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "peixe_prateado",
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "item.fish_sardine",
+      "name": "Sardinha",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "peixe_sardinha",
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "item.fish_tuna",
+      "name": "Atum azul",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "peixe_atum",
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "item.fish_salmon",
+      "name": "Salmão",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "peixe_salmao",
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "item.fish_golden",
+      "name": "Peixe dourado",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "peixe_dourado",
+      "tags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "item.old_boot",
+      "name": "Bota velha",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "bota_velha",
+      "tags": [
+        "junk"
+      ]
     }
   ]
 }

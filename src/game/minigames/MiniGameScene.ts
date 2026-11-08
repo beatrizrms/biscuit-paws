@@ -6,7 +6,7 @@ import Phaser from 'phaser';
 import { Countdown, makeResult, type MiniGameParams, type MiniGameResult, type Outcome } from '../../core/minigame';
 import { createRng, type Rng } from '../../core/rng';
 import { content, uiText } from '../content';
-import { setupCamera } from '../screen';
+import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import { MiniGameControls } from './controls';
 
 /** O que a cena recebe de quem abriu (o registro monta). */
@@ -51,7 +51,9 @@ export abstract class MiniGameScene extends Phaser.Scene {
   }
 
   create(): void {
-    setupCamera(this);
+    // Zoom do motor (decisão 052) a partir do centro: centrar na área lógica 640 x 360. Quem segue alguém
+    // (a fuga) troca isso no buildGame.
+    setupCamera(this).centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
     this.controls = new MiniGameControls(this);
     this.controls.onPause(() => this.togglePause());
     this.buildLayer();
@@ -87,11 +89,11 @@ export abstract class MiniGameScene extends Phaser.Scene {
   }
 
   /** Acabou: mostra o resultado (as moedas vêm do núcleo, pelos dados). */
-  protected finish(outcome: Outcome, score: number, skipped = false): void {
+  protected finish(outcome: Outcome, score: number, skipped = false, extra: { bonusCoins?: number; itemId?: string } = {}): void {
     if (this.phase === 'result') return;
     this.timer?.stop();
     this.physics.pause();
-    this.result = makeResult(content.minigames, this.gameId, this.launch.params.difficulty, outcome, score, skipped);
+    this.result = makeResult(content.minigames, this.gameId, this.launch.params.difficulty, outcome, score, skipped, extra);
     this.phase = 'result';
     this.showResult(this.result);
   }
