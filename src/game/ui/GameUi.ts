@@ -259,7 +259,7 @@ export class GameUi {
     }
     const sv = this.session.service;
     if (sv.isOpen()) {
-      items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity()))}</span></li>`);
+      items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity().total))}</span></li>`);
     }
     if (this.session.state.tray) items.push(`<li class="job"><span>${uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity()))}</span></li>`);
     for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id))))}</span></li>`);
