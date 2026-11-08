@@ -111,6 +111,47 @@
           ]
         }
       ]
+    },
+    "kitten_hunt": {
+      "name": "Caça ao filhote",
+      "instructions": "Um filhote se escondeu por aqui! Clique nos esconderijos para procurar. Cada tentativa errada diz se você está quente ou frio.",
+      "tutorial": {"icon":"caixa_entrega_fechada","lines":["Clique num esconderijo para procurar (gasta uma tentativa).","Errou? A dica diz se o filhote está perto (quente) ou longe (frio).","Ache com até 3 tentativas para o \"Perfeito!\"."]},
+      "map": "map.minigame_chase",
+      "view": [6,0,20,12],
+      "heatRange": 12,
+      "heat": [
+        {"min":0,"label":"Gelado","color":"#7eb6e8","rate":0.7},
+        {"min":0.35,"label":"Frio","color":"#a8d4ea","rate":0.85},
+        {"min":0.55,"label":"Morno","color":"#f8d877","rate":1},
+        {"min":0.75,"label":"Quente","color":"#f2a05a","rate":1.25},
+        {"min":0.88,"label":"Fervendo!","color":"#e0525e","rate":1.5}
+      ],
+      "sounds": {"hint":"meow_kitten","found":"success","empty":"broom"},
+      "hideoutKinds": ["box","trash","bush","car","basket","crate","pot"],
+      "hideouts": [
+        {"id":"h.box_a","kind":"box","at":[7,7]},
+        {"id":"h.bush_a","kind":"bush","at":[12,6]},
+        {"id":"h.bush_b","kind":"bush","at":[16,3]},
+        {"id":"h.trash_a","kind":"trash","at":[24,3]},
+        {"id":"h.box_b","kind":"box","at":[20,7]},
+        {"id":"h.basket_a","kind":"basket","at":[9,4]},
+        {"id":"h.crate_a","kind":"crate","at":[14,7]},
+        {"id":"h.pot_a","kind":"pot","at":[18,5]},
+        {"id":"h.trash_b","kind":"trash","at":[11,3]},
+        {"id":"h.basket_b","kind":"basket","at":[22,5]},
+        {"id":"h.crate_b","kind":"crate","at":[25,4]},
+        {"id":"h.pot_b","kind":"pot","at":[7,3]}
+      ],
+      "rewards": {
+        "easy": {"ok":10,"great":18},
+        "normal": {"ok":16,"great":26},
+        "hard": {"ok":24,"great":40}
+      },
+      "difficulties": {
+        "easy": {"hideouts":6,"tries":5,"kittens":[1,1],"greatTries":3},
+        "normal": {"hideouts":8,"tries":5,"kittens":[1,1],"greatTries":3,"timeSec":45},
+        "hard": {"hideouts":10,"tries":7,"kittens":[2,3],"greatTries":3,"timeSec":60}
+      }
     }
   }
 }

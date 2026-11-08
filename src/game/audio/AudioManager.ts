@@ -148,8 +148,9 @@ export class AudioManager {
   }
 
   /** Efeito curto (moeda, sino, miado...). */
-  sfx(id: string): void {
-    if (this.canPlay('sfx', id)) this.game.sound.play(trackKey('sfx', id), { volume: this.volume('sfx', id) });
+  sfx(id: string, opts: { rate?: number } = {}): void {
+    // rate: mais rápido = mais agudo (a dica "quente" da caça ao filhote).
+    if (this.canPlay('sfx', id)) this.game.sound.play(trackKey('sfx', id), { volume: this.volume('sfx', id), rate: opts.rate ?? 1 });
   }
 
   /** Jingle (uma vez, por cima da música). */

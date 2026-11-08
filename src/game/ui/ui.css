@@ -941,3 +941,5 @@
 .minigame-layer .mg-tutorial { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; padding: 6px 8px; border-radius: 6px; background: var(--cream2); text-align: left; }
 .minigame-layer .mg-tut-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: var(--cream); }
 .minigame-layer .mg-tutorial ol { margin: 0; padding-left: 12px; font-size: 8px; line-height: 1.45; }
+.minigame-layer .mg-info { padding: 2px 8px; border-radius: 8px; background: #3b2a32cc; color: var(--cream); font-size: 8px; }
+.minigame-layer .mg-info:empty { display: none; }

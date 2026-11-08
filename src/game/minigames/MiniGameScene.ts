@@ -182,7 +182,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
     root.classList.add('minigame-on');
     this.layer = document.createElement('div');
     this.layer.className = 'minigame-layer';
-    this.layer.innerHTML = `<div class="mg-hud"><span class="mg-name">${esc(this.def.name)}</span><span class="mg-time"></span>
+    this.layer.innerHTML = `<div class="mg-hud"><span class="mg-name">${esc(this.def.name)}</span><span class="mg-info"></span><span class="mg-time"></span>
       <button class="menu-btn mg-skip" data-act="skip">${this.skipLabel()}</button></div><div class="mg-overlay"></div>`;
     root.appendChild(this.layer);
     this.hud = this.layer.querySelector('.mg-time');
@@ -193,6 +193,12 @@ export abstract class MiniGameScene extends Phaser.Scene {
       else if (act === 'skip' && this.phase !== 'result') this.finish('ok', 0, true);
       else if (act === 'close') this.close();
     });
+  }
+
+  /** Linha de informação no topo, ao lado do nome (tentativas, filhotes achados, qualidade...). */
+  protected setHudInfo(text: string): void {
+    const el = this.layer?.querySelector<HTMLElement>('.mg-info');
+    if (el && el.textContent !== text) el.textContent = text;
   }
 
   /** Botão extra no topo (ex.: "Servir" da latte art), ao lado do Pular. Some na tela de resultado. */

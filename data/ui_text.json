@@ -457,6 +457,13 @@
     "latte": {
       "serve": "Servir (Enter)",
       "result": "{pattern}: {stars} · contorno {coverage}% · capricho {accuracy}% · gorjeta +{tip}"
+    },
+    "kitten_hunt": {
+      "hud": "Tentativas: {tries} · Filhotes: {found}/{total}",
+      "already": "Já procurou aí.",
+      "found": "Achou!",
+      "result": "Achou {found} de {total} com {used} tentativa(s).",
+      "lost": "Os filhotes estavam ali... acabaram as tentativas."
     }
   },
   "phoneApp": {

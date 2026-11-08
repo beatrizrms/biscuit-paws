@@ -45,11 +45,25 @@ export const LATTE = {
   pitcher: { key: 'mg.latte.pitcher', file: `${DIR}/latte/obj_pitcher.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xc8ccd0 },
 } satisfies Record<string, SheetSpec>;
 
+/**
+ * Caça ao filhote: os esconderijos que não existem no pacote. PLACEHOLDER(arte): cesto, caixote e vaso
+ * (64 x 64, 1 x 1 tile, quadro 0 parado) ainda não têm arquivo: viram retângulos coloridos até a arte chegar
+ * (lista na memória: assets-pendentes). Caixa, lixeira, arbusto e carro são os do Gato em fuga.
+ */
+export const KITTEN_HUNT = {
+  basket: { key: 'mg.hunt.basket', file: `${DIR}/hunt/hide_basket.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xd8a75e },
+  crate: { key: 'mg.hunt.crate', file: `${DIR}/hunt/hide_crate.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xa8663e },
+  pot: { key: 'mg.hunt.pot', file: `${DIR}/hunt/hide_pot.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xc0704a },
+} satisfies Record<string, SheetSpec>;
+
 /** Onde fica a parte de dentro da barra de timing (pixels da arte, 48 x 192): o trilho e o tubo do progresso. */
 export const BAR_TRACK = { x: 8, w: 19, y: 40, h: 113, progressX: 28, progressW: 3 };
 
 /** Tipos de esconderijo (data/minigames.json: games.chase.spots[].kind) -> textura. */
 export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, trash: CHASE.hideTrash, bush: CHASE.hideBush, car: CHASE.hideCar };
+
+/** Tipos de esconderijo da caça ao filhote (data/minigames.json: games.kitten_hunt.hideoutKinds) -> textura. */
+export const HUNT_SHEETS: Record<string, SheetSpec> = { ...HIDE_SHEETS, basket: KITTEN_HUNT.basket, crate: KITTEN_HUNT.crate, pot: KITTEN_HUNT.pot };
 
 export function loadSheets(scene: Phaser.Scene, sheets: SheetSpec[]): void {
   for (const s of sheets) if (!scene.textures.exists(s.key)) scene.load.spritesheet(s.key, s.file, { frameWidth: s.frameWidth, frameHeight: s.frameHeight });

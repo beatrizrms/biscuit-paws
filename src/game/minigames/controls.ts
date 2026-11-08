@@ -4,9 +4,14 @@
 import Phaser from 'phaser';
 import type { InputState } from '../../core/movement';
 
+const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
+  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
+};
+
 export class MiniGameControls {
   private keys: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'e' | 'space', Phaser.Input.Keyboard.Key>;
   private actionCbs: ((world?: { x: number; y: number }) => void)[] = [];
+  private moveCbs: ((dir: 'up' | 'down' | 'left' | 'right') => void)[] = [];
   private pauseCbs: (() => void)[] = [];
 
   constructor(private scene: Phaser.Scene) {
@@ -18,12 +23,19 @@ export class MiniGameControls {
     const click = (p: Phaser.Input.Pointer) => {
       if (p.leftButtonDown()) this.actionCbs.forEach((cb) => cb(this.toWorld(p)));
     };
+    // Setas/WASD como "passos" (um por toque): escolher um alvo sem mouse (esconderijos, cartas...).
+    const move = (e: KeyboardEvent) => {
+      const dir = MOVE_KEYS[e.code];
+      if (dir) this.moveCbs.forEach((cb) => cb(dir));
+    };
+    kb.on('keydown', move);
     kb.on('keydown-E', action);
     kb.on('keydown-SPACE', action);
     kb.on('keydown-ESC', pause);
     scene.input.on('pointerdown', click);
     // A cena é reaberta a cada partida: sem isso, os ouvintes da partida anterior continuariam vivos.
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb.off('keydown', move);
       kb.off('keydown-E', action);
       kb.off('keydown-SPACE', action);
       kb.off('keydown-ESC', pause);
@@ -45,6 +57,11 @@ export class MiniGameControls {
   /** E/Espaço ou clique (com o ponto do mundo, quando foi clique). */
   onAction(cb: (world?: { x: number; y: number }) => void): void {
     this.actionCbs.push(cb);
+  }
+
+  /** Um passo de seta/WASD (para escolher alvos com o teclado). */
+  onMove(cb: (dir: 'up' | 'down' | 'left' | 'right') => void): void {
+    this.moveCbs.push(cb);
   }
 
   onPause(cb: () => void): void {

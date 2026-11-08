@@ -400,6 +400,10 @@ Pescaria (`fishing`): `fish` (tabela: `id`, `name`, `rarity` = junk/common/uncom
 
 Latte art (`latte`): `patterns` (cada um: `id`, `name`, `lines` = linhas de pontos `[x, y]` de 0 a `guideSize`; padrão novo = outra entrada, sem código), `guideSize`, `cupCenter` (centro do café na arte da xícara), `guideScale`, `cupScale` (xícara na tela; 1 = o dobro da medida do pacote, para dar para desenhar), `milkWidth`. Por dificuldade: `timeSec`, `patterns` (quais sorteia), `tolerance`, `starAt` (nota mínima para 1, 2 e 3 estrelas), `tipPerStar` (gorjeta, soma às moedas) e `coverageWeight`. Nota (`src/core/latte.ts`): cobertura do contorno e precisão do traço; 0 estrelas = fail, 1-2 = ok, 3 = great.
 
+Todo jogo pode ter `tutorial` (`{ "icon": "<icons.json>", "lines": [1 a 3 linhas] }`), mostrado na intro; sem `timeSec` na dificuldade, não há cronômetro.
+
+Caça ao filhote (`kitten_hunt`): `map` + `view` (`[col, row, largura, altura]`: o pedaço da arena na tela fixa), `hideouts` (`{ id, kind, at }` em células), `hideoutKinds` (tipos com arte: caixa, lixeira, arbusto e carro do Gato em fuga; cesto, caixote e vaso provisórios), `heatRange` (células em que o calor chega a 0), `heat` (`{ min, label, color, rate }`: o nível da dica e o tom do miado), `sounds` (`hint`, `found`). Por dificuldade: `hideouts` (quantos aparecem), `tries`, `kittens` (`[mín, máx]`), `greatTries`, `timeSec` (opcional). Regra: `src/core/kittenHunt.ts`.
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

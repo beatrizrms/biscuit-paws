@@ -1,6 +1,7 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
 import type { FishDef } from './fishing';
+import type { HeatLevel, Hideout } from './kittenHunt';
 import type { LattePattern } from './latte';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
@@ -60,6 +61,13 @@ export interface MiniGameDef {
   guideScale?: number;
   cupScale?: number;
   milkWidth?: number;
+  /** Caça ao filhote: os esconderijos possíveis, os tipos com arte, a dica de calor e o pedaço da arena na tela. */
+  hideouts?: Hideout[];
+  hideoutKinds?: string[];
+  heat?: HeatLevel[];
+  heatRange?: number;
+  /** Parte da arena mostrada (coluna, linha, largura, altura em células), quando a tela é fixa. */
+  view?: [number, number, number, number];
 }
 
 export interface MiniGamesConfig {
