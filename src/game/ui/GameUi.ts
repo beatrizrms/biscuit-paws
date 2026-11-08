@@ -203,6 +203,7 @@ export class GameUi {
         .then(() => this.choose(at.ask.question, list))
         .then((i) => this.session.answerArrivalAsk(i));
     });
+    bus.on('arrival.fed', ({ fed, times }) => this.toast(fed >= times ? at.fedLast : at.fed, 4000));
     bus.on('arrival.finished', ({ outcome, placement }) => {
       const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
       if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
@@ -410,6 +411,11 @@ export class GameUi {
     const mg = { preso: g.rescue, ninhada: g.litter, dentro_do_cafe: g.inside, em_perigo: g.danger } as Record<string, string>;
     const meetText = a.def.model === 'entrega' ? g.box : meet;
     const clueText = a.def.model === 'entrega' ? g.ask : g.clue;
+    if ('feed' in step) {
+      const done = this.session.state.arrivals.active?.fed ?? 0;
+      const f = g.feed.replace('{n}', String(done)).replace('{total}', String(step.feed.times)).replace('{from}', step.feed.hours[0]).replace('{to}', step.feed.hours[1]);
+      return `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(f)}</span></li>`;
+    }
     const text = 'ask' in step ? g.ask : 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
     return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }

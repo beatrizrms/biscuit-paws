@@ -111,6 +111,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** pegadas: o gato escondido (só aparece de perto) e quantas pegadas estão desenhadas (a neve cobre com o tempo). */
   private arrivalHidden: Phaser.GameObjects.Sprite | null = null;
   private arrivalTrailKey: number | null = null;
+  /** Gato carteiro: onde ele está desenhado ('' = fora do horário). */
+  private arrivalFeedKey = '';
   /** gato_leva: o gato do café que guia e a próxima célula do caminho. */
   private arrivalGuide: { sprite: Phaser.GameObjects.Sprite; next: number; variant: string } | null = null;
   private lastDay: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number } | null = null;
@@ -896,6 +898,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return cat;
     };
     const at = a.def.place.at;
+    // Gato carteiro: aparece no horário, cada dia uma célula mais perto (some depois de comer).
+    const feed = 'feed' in step ? this.session.arrivals.feedSpot() : null;
+    if (feed) sitCat(a.catId, feed);
+    this.arrivalFeedKey = feed ? feed.join(',') : '';
     // Etapa de mini game (e as dicas antes dela): o gato fica no lugar (preso no alto do poste: place.lift).
     if (('minigame' in step || 'ask' in step) && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0);
     // Dicas: os vizinhos em volta, olhando para cima.
@@ -951,6 +957,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.arrivalHidden.setVisible(d < ARRIVAL_REVEAL_CELLS * ts);
     }
     if (this.arrivalTrailKey !== null && this.session.arrivals.trailNow().length !== this.arrivalTrailKey) this.refreshArrivalActors();
+    // Gato carteiro: chegou ou passou o horário (ou ele comeu): redesenha.
+    const feed = this.session.arrivals.feedSpot();
+    if ((feed ? feed.join(',') : '') !== this.arrivalFeedKey) this.refreshJobPoints();
     const g = this.arrivalGuide;
     const route = this.session.arrivals.active()?.def.place.route;
     if (!g || !route || g.next >= route.length) return;

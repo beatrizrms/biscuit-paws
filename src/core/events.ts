@@ -27,6 +27,8 @@ export interface GameEvents {
   /** A chegada pergunta (sim/não); a resposta volta por session.answerArrival. */
   'arrival.choice': { arrivalId: string; key: string };
   /** Vizinhos dão dicas (etapa ask); a escolha volta por session.answerArrivalAsk. */
+  /** Gato carteiro: comeu o que ela deixou (refeições até agora e quantas faltam no total). */
+  'arrival.fed': { arrivalId: string; fed: number; times: number };
   'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };

@@ -14,7 +14,7 @@ export type ArrivalModel = (typeof ARRIVAL_MODELS)[number];
 export const PLACE_KINDS = ['cafe_door', 'street', 'roof', 'market', 'backyard', 'inside_cafe', 'clinic'] as const;
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
-export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'none'] as const;
+export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'routine', 'none'] as const;
 export type Clue = (typeof CLUES)[number];
 
 /** Café cheio: o gato fica provisório (com prazo), vai para o abrigo da vila (adoção) ou a chegada espera vaga. */
@@ -56,6 +56,11 @@ export type ArrivalStep =
   | { lead: true }
   /** Vizinhos dão dicas; ela escolhe quem ouvir (a dificuldade "auto" do mini game seguinte vira a da dica). */
   | { ask: AskOption[] }
+  /**
+   * Vários dias (gato tímido, "carteiro"): ele aparece entre `hours`; ela deixa `item` (1 por dia) e, a cada
+   * refeição, ele aparece uma célula mais perto (place.route). Depois de `times` refeições, segue.
+   */
+  | { feed: { times: number; item: string; hours: [string, string] } }
   | { dialogue: string }
   | { cutscene: string }
   | { script: string }
@@ -145,6 +150,9 @@ export interface ActiveArrival {
   extraCats?: string[];
   /** Etapa ask: a dica escolhida (índice nas opções). */
   tip?: number;
+  /** Etapa feed: quantas refeições ele já aceitou e o último dia em que comeu. */
+  fed?: number;
+  fedOn?: number;
   /** Etapa atual (índice em steps). */
   step: number;
 }
@@ -248,6 +256,7 @@ export function validateArrivals(
     scripts: ReadonlySet<string>;
     points: ReadonlySet<string>;
     minigames: ReadonlySet<string>;
+    items: ReadonlySet<string>;
   },
   checkCondition: (where: string, c: unknown) => void,
 ): string[] {
@@ -299,7 +308,12 @@ export function validateArrivals(
       else if ('script' in step && !refs.scripts.has(step.script)) err(`${w}: roteiro inexistente "${step.script}"`);
       else if ('clue' in step && !refs.points.has(step.clue)) err(`${w}: ponto inexistente "${step.clue}"`);
       else if ('minigame' in step && !refs.minigames.has(step.minigame.id)) err(`${w}: mini game inexistente "${step.minigame.id}"`);
-      else if ('ask' in step) {
+      else if ('feed' in step) {
+        if (!(Number.isInteger(step.feed.times) && step.feed.times >= 1)) err(`${w}: feed.times precisa ser 1 ou mais`);
+        if (!refs.items.has(step.feed.item)) err(`${w}: feed com item inexistente "${step.feed.item}"`);
+        for (const h of step.feed.hours) if (!/^\d{1,2}:\d{2}$/.test(h)) err(`${w}: feed com hora inválida "${h}"`);
+        if (!a.place.map || !(a.place.at || a.place.route?.length)) err(`${w}: feed precisa de place.map e place.at (ou place.route)`);
+      } else if ('ask' in step) {
         if (step.ask.length < 2) err(`${w}: ask precisa de 2 dicas ou mais`);
         for (const o of step.ask) {
           if (!refs.npcs.has(o.npc)) err(`${w}: dica de NPC inexistente "${o.npc}"`);

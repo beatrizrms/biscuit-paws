@@ -7,6 +7,7 @@ import { stepsOf } from './arrivalModels';
 import { arrivalsToQueue, nextGap, triggerHolds, visibleTrail, type ArrivalDef, type ArrivalStep } from './arrivals';
 import type { JobPoint } from './jobs';
 import { generateCat } from './catGen';
+import { parseClock } from './time';
 import { seasonOf, weatherOf } from './calendar';
 import type { Content } from './content';
 import type { EventBus } from './events';
@@ -17,6 +18,9 @@ import type { GameState } from './state';
 export const meetPointId = (arrivalId: string) => `arrival:${arrivalId}`;
 /** Id do ponto do mini game da etapa `step`. */
 export const minigamePointId = (arrivalId: string, step: number) => `arrival:${arrivalId}:mg${step}`;
+
+/** Id do ponto onde ela deixa a comida (etapa feed). */
+export const feedPointId = (arrivalId: string) => `arrival:${arrivalId}:feed`;
 
 /** Id do destino do guia (gato_leva). */
 export const destPointId = (arrivalId: string) => `arrival:${arrivalId}:dest`;
@@ -39,6 +43,8 @@ export interface ArrivalHost {
   /** Algum evento exclusivo da história em andamento (a chegada espera). */
   exclusiveActive(): boolean;
   reputation(): number;
+  /** Tira 1 do item da mochila (a ração do gato carteiro). Devolve se tinha. */
+  takeItem(itemId: string): boolean;
   /** Personalidade do gato (data/cats.json ou o gerado). */
   catPersonality(catId: string): string;
   /** Abriga o gato no café com a condição de chegada (saúde, doença, fome). */
@@ -227,6 +233,8 @@ export class ArrivalSystem {
       const difficulty = m.difficulty === 'auto' ? this.autoDifficulty(a.catId) : m.difficulty;
       return [{ id: minigamePointId(a.def.id, a.step), map: mapId, at: a.def.place.at, action: 'minigame', minigame: { id: m.id, difficulty, ...(m.itemId ? { itemId: m.itemId } : {}) } }];
     }
+    const feed = this.feedSpot();
+    if (feed && a.def.place.map === mapId) return [{ id: feedPointId(a.def.id), map: mapId, at: feed, action: 'press' }];
     const route = a.def.place.route;
     if ('lead' in step && a.def.place.map === mapId && route && route.length > 0) return [{ id: destPointId(a.def.id), map: mapId, at: route[route.length - 1]!, action: 'press' }];
     if ('clue' in step) {
@@ -236,11 +244,37 @@ export class ArrivalSystem {
     return [];
   }
 
-  /** Ela apertou E num ponto: é desta chegada? (o lugar do encontro ou a pista da vez) */
-  interact(pointId: string): boolean {
+  /**
+   * Etapa feed: onde o gato está agora (place.route, uma célula mais perto a cada refeição; sem rota, place.at),
+   * ou null fora do horário ou se ele já comeu hoje.
+   */
+  feedSpot(): [number, number] | null {
+    const a = this.active();
+    const step = this.currentStep();
+    const st = this.st.active;
+    if (!a || !st || !step || !('feed' in step)) return null;
+    const now = this.h.state.time;
+    const [from, to] = step.feed.hours;
+    if (now < parseClock(from) || now >= parseClock(to) || st.fedOn === this.h.state.day) return null;
+    const route = a.def.place.route;
+    if (route?.length) return route[Math.min(st.fed ?? 0, route.length - 1)]!;
+    return a.def.place.at ?? null;
+  }
+
+  /** Ela apertou E num ponto: é desta chegada? (o lugar do encontro ou a pista da vez). Sem a ração: "missing_item". */
+  interact(pointId: string): boolean | 'missing_item' {
     const a = this.active();
     const step = this.currentStep();
     if (!a || !step) return false;
+    if ('feed' in step && pointId === feedPointId(a.def.id) && this.feedSpot()) {
+      if (!this.h.takeItem(step.feed.item)) return 'missing_item';
+      const st = this.st.active!;
+      st.fed = (st.fed ?? 0) + 1;
+      st.fedOn = this.h.state.day;
+      this.h.bus.emit('arrival.fed', { arrivalId: a.def.id, fed: st.fed, times: step.feed.times });
+      if (st.fed >= step.feed.times) this.advance();
+      return true;
+    }
     if (('meet' in step && pointId === meetPointId(a.def.id)) || ('lead' in step && pointId === destPointId(a.def.id)) || ('clue' in step && step.clue === pointId)) {
       this.advance();
       return true;

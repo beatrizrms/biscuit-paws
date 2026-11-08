@@ -480,3 +480,35 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     expect(state.cats[id]?.provisionalUntil).toBeDefined();
   });
 });
+
+describe('gato carteiro (etapa f)', () => {
+  it('aparece no horário; com ração, come e chega mais perto a cada dia; depois de 3, a pergunta', () => {
+    const state = newGameState(500, 'map.street', 12 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    const fed: unknown[] = [];
+    session.bus.on('arrival.fed', (e) => fed.push(e));
+    session.arrivals.queueNow('arr.mail_cat');
+    const def = content.arrivals.arrivals.find((a) => a.id === 'arr.mail_cat')!;
+    const route = def.place.route!;
+    const feedPoint = () => session.pendingJobPoints('map.street').find((p) => p.id === 'arrival:arr.mail_cat:feed');
+    expect(feedPoint()).toBeUndefined(); // meio-dia: ainda não é a hora dele
+    for (let day = 0; day < 3; day++) {
+      state.time = 17 * 60;
+      expect(feedPoint()?.at).toEqual(route[day]); // cada dia uma célula mais perto
+      expect(session.doJobPoint('arrival:arr.mail_cat:feed')).toEqual({ ok: false, reason: 'missing_item' }); // sem ração
+      state.inventory['item.cat_food_basic'] = 1;
+      expect(session.doJobPoint('arrival:arr.mail_cat:feed')).toEqual({ ok: true });
+      expect(state.inventory['item.cat_food_basic'] ?? 0).toBe(0);
+      if (day < 2) {
+        expect(feedPoint()).toBeUndefined(); // já comeu hoje
+        session.endDay('home');
+      }
+    }
+    expect(fed).toHaveLength(3);
+    expect(session.arrivals.currentStep()).toEqual({ choice: 'take_in' });
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+    expect(state.relationships['player|cat.gen.1']).toBe(120);
+  });
+});

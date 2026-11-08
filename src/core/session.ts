@@ -163,6 +163,11 @@ export class GameSession {
       bus: this.bus,
       evaluate: (c) => evaluate(c as Condition, this.state, this.storyContext()),
       shelteredCount: () => this.shelteredCats().length,
+      takeItem: (itemId) => {
+        if ((this.state.inventory[itemId] ?? 0) < 1) return false;
+        this.removeFromInventory(itemId);
+        return true;
+      },
       catPersonality: (id) => this.catDef(id)?.personality ?? '',
       guideCats: () => this.shelteredCats().filter((id) => this.state.cats[id]?.provisionalUntil === undefined),
       now: () => nowAbs(this.state),
@@ -654,7 +659,9 @@ export class GameSession {
 
   /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
   doJobPoint(pointId: string): ActionResult {
-    if (this.arrivals.interact(pointId)) return { ok: true };
+    const arrival = this.arrivals.interact(pointId);
+    if (arrival === 'missing_item') return { ok: false, reason: 'missing_item' };
+    if (arrival) return { ok: true };
     if (this.isFairPoint(pointId)) return this.doFairStep(pointId);
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
     const point = this.content.jobPoints[pointId];

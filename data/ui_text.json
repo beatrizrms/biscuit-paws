@@ -597,7 +597,8 @@
       "inside": "Um miadinho... dentro do café? De onde vem?",
       "box": "Tem uma caixa na porta do café. Ela está... miando?",
       "danger": "Um gato ferido passou correndo pela rua! Precisa de ajuda, já!",
-      "litter": "Miadinhos bem finos perto dos caixotes de fruta da calçada..."
+      "litter": "Miadinhos bem finos perto dos caixotes de fruta da calçada...",
+      "routine": "Um gato tímido aparece sempre no fim da tarde, perto da caixa de correio da rua..."
     },
     "goal": {
       "meet": "Ver quem está na porta do café.",
@@ -614,7 +615,8 @@
       "inside": "Procurar o miado dentro do café e ganhar a confiança dele.",
       "danger": "Pegar o gato ferido e correr com ele até a clínica!",
       "box": "Ver a caixa que mia na porta do café.",
-      "ask": "Os vizinhos estão dando palpites: ouvir um deles."
+      "ask": "Os vizinhos estão dando palpites: ouvir um deles.",
+      "feed": "Deixar ração para o gato tímido da rua ({n}/{total}), entre {from} e {to}."
     },
     "choices": {
       "take_in": {
@@ -670,6 +672,8 @@
       "pole_calm": "Fale baixinho e espere. Gato assustado desce sozinho quando se sente seguro.",
       "pole_treat": "Chama com um petisco! Gato nenhum resiste.",
       "pole_ladder": "Pega a escada e sobe rápido, antes que ele pule!"
-    }
+    },
+    "fed": "Ele comeu de longe, de olho em você... Amanhã ele chega um pouco mais perto.",
+    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto."
   }
 }

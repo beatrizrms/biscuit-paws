@@ -651,6 +651,7 @@ export function validateContent(raw: RawContent): string[] {
         scripts: scriptIds,
         points: new Set(raw.jobs.points.map((p) => p.id)),
         minigames: new Set(Object.keys(raw.minigames.games)),
+        items: new Set(raw.items.items.map((i) => i.id)),
       },
       (where, c) => checkCondition(where, c as Condition),
     ),

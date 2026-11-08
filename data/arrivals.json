@@ -210,6 +210,22 @@
       "whenFull": "provisional"
     },
     {
+      "id": "arr.mail_cat",
+      "model": "na_porta",
+      "kind": "random",
+      "repeatable": false,
+      "trigger": { "hours": ["12:00", "16:00"] },
+      "place": { "kind": "street", "map": "map.street", "at": [15, 9], "route": [[8, 9], [10, 9], [12, 9], [14, 9]] },
+      "clue": "routine",
+      "cat": { "generate": { "personality": "shy", "condition": "hungry" } },
+      "steps": [
+        { "feed": { "times": 3, "item": "item.cat_food_basic", "hours": ["16:00", "19:00"] } },
+        { "choice": "take_in" }
+      ],
+      "result": { "startPoints": 120 },
+      "whenFull": "provisional"
+    },
+    {
       "id": "arr.board_poster",
       "model": "mural",
       "kind": "random",
