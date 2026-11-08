@@ -27,7 +27,7 @@ interface Piece {
   /** Arquivo em assets/_pixellab (ou vazio quando a peça é desenhada por `build`). */
   file: string;
   /** Desenha a peça por código (teias grandes, raio de sol, poeira montada com pedaços). */
-  build?: () => PNG;
+  build?: (variant: number) => PNG;
   w: number;
   h: number;
   col?: number;
@@ -420,6 +420,53 @@ const SHEETS: Sheet[] = [
       ...enfeite('d', 'sazonais/obj_11', 'obj_15', 'sazonais/obj_3', 'sazonais/obj_5'),
     },
   },
+  {
+    // Quintal secreto: troca as peças antigas de mesmo tamanho (sebe, céu, grama, pedras, mesa, forno...).
+    // Grama e pedras do quintal abandonado: secas por código (dryYard).
+    image: 'public/assets/env/backyard/tile_pixellab_quintal.png',
+    pieces: 'data/tilesets/pixellab_quintal.json',
+    columns: 12,
+    auto: true,
+    layout: {
+      yard_fundo_ceu_telhados: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline.png', 0, 0], ['quintal/fundo_skyline.png', 3 * TS, 0]]) },
+      yard_sebe_topo: { file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)) },
+      yard_sebe_lateral: { file: '', w: 1, h: 1, build: () => seamlessRows(readPng(`${SRC}/quintal/sebe_lateral_1x3.png`), 20, 118) },
+      yard_grama_a: { file: 'quintal/grama.png', w: 1, h: 1 },
+      yard_grama_b: { file: 'quintal/grama.png', w: 1, h: 1 },
+      yard_grama_c: { file: '', w: 1, h: 1, build: () => dryYard(readPng(`${SRC}/quintal/grama.png`), 3) },
+      yard_pedra_a: { file: '', w: 1, h: 1, variants: 2, build: (v) => readPng(`${SRC}/quintal/${v ? 'pedras_b' : 'pedras_a'}.png`) },
+      yard_pedra_b: { file: '', w: 1, h: 1, variants: 2, build: (v) => dryYard(readPng(`${SRC}/quintal/${v ? 'pedras_b' : 'pedras_a'}.png`), 5 + v) },
+      yard_luzinhas_fio: { file: 'quintal/luzinhas_3x1.png', w: 3, h: 1 },
+      yard_luminaria_parede_sebe: { file: 'quintal/obj_0.png', w: 1, h: 1 },
+      yard_lampada_chao: { file: 'quintal/obj_2.png', w: 1, h: 1, dy: 4 },
+      yard_vaso_arvore_a: { file: '', w: 1, h: 3, build: () => compose(TS, 3 * TS, [['quintal/vaso_arvore_a_1x2.png', 0, TS]]) },
+      yard_vaso_arvore_b: { file: '', w: 1, h: 3, build: () => compose(TS, 3 * TS, [['quintal/vaso_arvore_b_1x2.png', 0, TS]]) },
+      yard_vaso_baixo_flores: { file: 'quintal/obj_4.png', w: 1, h: 1, dy: 4 },
+      yard_banquinho_ceramica: { file: 'quintal/obj_8.png', w: 1, h: 1, dy: 6 },
+      yard_mesa_redonda_branca: { file: 'quintal/mesa_2x2.png', w: 2, h: 2 },
+      yard_cadeira_vime: { file: 'quintal/cadeira_lado_dir.png', w: 1, h: 2, dy: 20 },
+      yard_bancada_forno_pedra: { file: 'quintal/forno_2x2.png', w: 2, h: 2 },
+    },
+  },
+  {
+    // Quintal secreto: peças novas (sebe do fundo 3x1, pérgola com o forno, árvore, topiaria, bancos e cadeiras de lado...).
+    image: 'public/assets/env/backyard/tile_pixellab_quintal_novos.png',
+    pieces: 'data/tilesets/pixellab_quintal_novos.json',
+    columns: 12,
+    auto: true,
+    layout: {
+      pergola_forno: { file: '', w: 4, h: 3, build: () => pergolaForno() },
+      arvore: { file: 'quintal/arvore_3x4.png', w: 3, h: 4 },
+      topiaria: { file: 'quintal/topiaria_2x2.png', w: 2, h: 2, dy: 8 },
+      dracena: { file: 'quintal/dracena_2x2.png', w: 2, h: 2, dy: 10 },
+      cadeira_vime_esq: { file: 'quintal/cadeira_lado_esq.png', w: 1, h: 2, dy: 20 },
+      espreguicadeira_lado: { file: 'quintal/espreguicadeira_lado.png', w: 1, h: 2, dy: 10 },
+      espreguicadeira_lado_esp: { file: 'quintal/espreguicadeira_lado_esp.png', w: 1, h: 2, dy: 10 },
+      banco_lado: { file: 'quintal/banco_lado_esq.png', w: 1, h: 2, dy: 6 },
+      vaso_baixo_b: { file: 'quintal/obj_6.png', w: 1, h: 1, dy: 4 },
+      vaso_baixo_c: { file: 'quintal/obj_5.png', w: 1, h: 1, dy: 4 },
+    },
+  },
 ];
 
 /**
@@ -540,6 +587,54 @@ function snowCap(src: PNG, seed: number, maxDepth = 7): PNG {
     plot(out, x, top + depth, line);
   }
   return out;
+}
+
+// ---------- Quintal secreto ----------
+
+/** Um tile (64 linhas) da imagem que repete na vertical sem emenda: o trecho entre yMin e yMax cuja linha de cima mais parece a de baixo. */
+function seamlessRows(src: PNG, yMin: number, yMax: number): PNG {
+  const rowDiff = (a: number, b: number) => {
+    let d = 0;
+    for (let x = 0; x < src.width; x++) for (let c = 0; c < 4; c++) d += Math.abs(src.data[(a * src.width + x) * 4 + c]! - src.data[(b * src.width + x) * 4 + c]!);
+    return d;
+  };
+  let best = yMin, bestD = Infinity;
+  for (let y0 = yMin; y0 + TS <= yMax; y0++) {
+    const d = rowDiff(y0, y0 + TS);
+    if (d < bestD) { bestD = d; best = y0; }
+  }
+  return pickRows(src, range(best, best + TS - 1));
+}
+
+/** Um tile (64 colunas) da imagem que repete na horizontal sem emenda: o trecho cuja coluna da esquerda mais parece a seguinte à direita. */
+function seamlessCols(src: PNG): PNG {
+  const colDiff = (a: number, b: number) => {
+    let d = 0;
+    for (let y = 0; y < src.height; y++) for (let c = 0; c < 4; c++) d += Math.abs(src.data[(y * src.width + a) * 4 + c]! - src.data[(y * src.width + b) * 4 + c]!);
+    return d;
+  };
+  let best = 0, bestD = Infinity;
+  for (let x0 = 0; x0 + TS < src.width; x0++) {
+    const d = colDiff(x0, x0 + TS);
+    if (d < bestD) { bestD = d; best = x0; }
+  }
+  return columns(src, range(best, best + TS - 1));
+}
+
+/** Quintal abandonado: grama e pedras secas (verde puxado para palha) com pintinhas mais escuras. */
+function dryYard(png: PNG, seed: number): PNG {
+  recolor(png, { from: [60, 170], hue: 54, sat: 0.62, light: 0.02 });
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < png.data.length; i += 4) {
+    if (rnd() >= 0.04) continue;
+    for (let c = 0; c < 3; c++) png.data[i + c] = Math.round(png.data[i + c]! * 0.8);
+  }
+  return png;
+}
+
+/** Pérgola (4x3) com o forno de pedra embaixo, numa peça só (os dois dividem as mesmas células). */
+function pergolaForno(): PNG {
+  return compose(4 * TS, 3 * TS, [['quintal/forno_2x2.png', TS, 0], ['quintal/pergola_4x3.png', 8, 0]]);
 }
 
 // ---------- Chão e objetos da rua ----------
@@ -713,7 +808,7 @@ function recolor(png: PNG, rcs: Recolor | Recolor[]): void {
 }
 
 function load(p: Piece, variant = 0): PNG {
-  let png: PNG = p.build ? p.build() : PNG.sync.read(readFileSync(`${SRC}/${p.file}`));
+  let png: PNG = p.build ? p.build(variant) : PNG.sync.read(readFileSync(`${SRC}/${p.file}`));
   const h = p.h + (p.rise ?? 0);
   if (png.width !== p.w * TS || png.height !== h * TS) {
     throw new Error(`${p.file}: ${png.width}x${png.height}, esperado ${p.w * TS}x${h * TS} (${p.w}x${h} tiles)`);

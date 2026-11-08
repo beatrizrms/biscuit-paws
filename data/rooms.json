@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge, brick, mix). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo.",
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo.",
   "rooms": [
     {
       "id": "room.hall",
@@ -222,7 +222,7 @@
                 "id": "obj.yard_lights",
                 "tile": "yard_luzinhas_fio",
                 "at": [
-                  34,
+                  33,
                   2
                 ]
               },
@@ -244,198 +244,74 @@
               },
               {
                 "id": "obj.yard_oven",
-                "tile": "yard_bancada_forno_pedra",
+                "tile": "yard_pergola_forno",
                 "at": [
-                  27,
-                  4
-                ]
-              },
-              {
-                "id": "obj.yard_table",
-                "tile": "yard_mesa_redonda_branca",
-                "at": [
-                  28,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_chair",
-                "tile": "yard_cadeira_vime",
-                "at": [
-                  30,
-                  8
+                  26,
+                  3
                 ]
               },
               {
                 "id": "obj.yard_pot_a",
                 "tile": "yard_vaso_arvore_a",
                 "at": [
-                  33,
-                  4
+                  32,
+                  2
                 ]
               },
               {
                 "id": "obj.yard_pot_b",
                 "tile": "yard_vaso_arvore_b",
                 "at": [
-                  37,
-                  4
+                  38,
+                  2
                 ]
               },
               {
-                "id": "obj.yard_bench",
-                "tile": "yard_banco_rustico_vasos",
+                "id": "obj.yard_pot_low_a",
+                "tile": "yard_vaso_baixo_flores",
                 "at": [
-                  41,
-                  4
+                  31,
+                  3
+                ]
+              },
+              {
+                "id": "obj.yard_pot_low_b",
+                "tile": "yard_vaso_baixo_b",
+                "at": [
+                  37,
+                  3
+                ]
+              },
+              {
+                "id": "obj.yard_topiary",
+                "tile": "yard_topiaria",
+                "at": [
+                  35,
+                  3
+                ]
+              },
+              {
+                "id": "obj.yard_tree",
+                "tile": "yard_arvore",
+                "at": [
+                  40,
+                  3
                 ]
               },
               {
                 "id": "obj.yard_floor_lamp",
                 "tile": "yard_lampada_chao",
                 "at": [
-                  35,
+                  33,
                   6
                 ]
-              }
-            ]
-          }
-        },
-        "brick": {
-          "legend": {
-            "k": "brick_tijolo_topo",
-            "m": "brick_tijolo_meio_a",
-            "T": "brick_tijolo_meio_b",
-            "B": "brick_tijolo_base",
-            "L": "brick_tijolo_meio_a",
-            "g": "brick_grama_b",
-            "s": "brick_pedra_irregular_b"
-          },
-          "legendByState": {
-            "restored": {
-              "g": "brick_grama_a",
-              "s": "brick_pedra_irregular_a"
-            }
-          },
-          "objects": [
-            {
-              "id": "obj.yard_pillar_a",
-              "tile": "brick_pilar_branco",
-              "at": [
-                31,
-                1
-              ]
-            },
-            {
-              "id": "obj.yard_pillar_b",
-              "tile": "brick_pilar_branco",
-              "at": [
-                37,
-                1
-              ]
-            }
-          ],
-          "objectsByState": {
-            "restored": [
-              {
-                "id": "obj.yard_moon_window",
-                "tile": "brick_janela_lua",
-                "at": [
-                  33,
-                  2
-                ]
               },
               {
-                "id": "obj.yard_wall_pot",
-                "tile": "brick_vaso_parede",
-                "at": [
-                  29,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_topiary",
-                "tile": "brick_topiaria_redonda",
+                "id": "obj.yard_chair",
+                "tile": "yard_cadeira_vime",
                 "at": [
                   27,
-                  4
-                ]
-              },
-              {
-                "id": "obj.yard_flowers",
-                "tile": "brick_canteiro_azul",
-                "at": [
-                  35,
-                  4
-                ]
-              },
-              {
-                "id": "obj.yard_bush",
-                "tile": "brick_arbusto_lima",
-                "at": [
-                  40,
-                  9
-                ]
-              },
-              {
-                "id": "obj.yard_tree",
-                "tile": "brick_arvore_grande_a",
-                "at": [
-                  40,
-                  4
-                ]
-              }
-            ]
-          }
-        },
-        "mix": {
-          "legend": {
-            "k": "brick_tijolo_topo",
-            "m": "brick_tijolo_meio_a",
-            "T": "brick_tijolo_meio_b",
-            "B": "brick_tijolo_base",
-            "L": "brick_tijolo_meio_a"
-          },
-          "legendByState": {
-            "restored": {
-              "g": "yard_grama_a",
-              "s": "yard_pedra_a"
-            }
-          },
-          "objects": [
-            {
-              "id": "obj.yard_pillar_a",
-              "tile": "brick_pilar_branco",
-              "at": [
-                31,
-                1
-              ]
-            },
-            {
-              "id": "obj.yard_pillar_b",
-              "tile": "brick_pilar_branco",
-              "at": [
-                37,
-                1
-              ]
-            }
-          ],
-          "objectsByState": {
-            "restored": [
-              {
-                "id": "obj.yard_lights",
-                "tile": "yard_luzinhas_fio",
-                "at": [
-                  34,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_oven",
-                "tile": "yard_bancada_forno_pedra",
-                "at": [
-                  27,
-                  4
+                  8
                 ]
               },
               {
@@ -447,27 +323,59 @@
                 ]
               },
               {
-                "id": "obj.yard_chair",
-                "tile": "yard_cadeira_vime",
+                "id": "obj.yard_chair_b",
+                "tile": "yard_cadeira_vime_esq",
                 "at": [
                   30,
                   8
                 ]
               },
               {
-                "id": "obj.yard_topiary",
-                "tile": "brick_topiaria_redonda",
+                "id": "obj.yard_lounger_a",
+                "tile": "yard_espreguicadeira_lado",
                 "at": [
-                  41,
-                  4
+                  36,
+                  8
                 ]
               },
               {
-                "id": "obj.yard_floor_lamp",
-                "tile": "yard_lampada_chao",
+                "id": "obj.yard_lounger_b",
+                "tile": "yard_espreguicadeira_lado_esp",
                 "at": [
-                  35,
-                  6
+                  37,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_bench",
+                "tile": "yard_banco_lado",
+                "at": [
+                  42,
+                  8
+                ]
+              },
+              {
+                "id": "obj.yard_dracaena",
+                "tile": "yard_dracena",
+                "at": [
+                  40,
+                  9
+                ]
+              },
+              {
+                "id": "obj.yard_pot_low_c",
+                "tile": "yard_vaso_baixo_c",
+                "at": [
+                  31,
+                  10
+                ]
+              },
+              {
+                "id": "obj.yard_stool",
+                "tile": "yard_banquinho_ceramica",
+                "at": [
+                  32,
+                  10
                 ]
               }
             ]

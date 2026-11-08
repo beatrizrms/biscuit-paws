@@ -1,6 +1,5 @@
 // npx tsx scripts/import-backyard.ts (npm run backyard): prepara a arte dos cômodos da expansão.
-// - Quintal secreto, variante A (sebe): copia a folha do pacote e escreve o JSON de peças.
-// - Quintal secreto, variante B (tijolo): junta as peças soltas numa folha e escreve o JSON de peças.
+// - Quintal secreto (sebe): copia a folha do pacote e escreve o JSON de peças.
 // - Provisórios dos cômodos (parede divisória, portas, cama, folhas secas, módulos do playground),
 //   desenhados por código até a arte chegar (lista em docs/ART_AND_LICENSE.md).
 // Os originais ficam em assets/_originais_pacotes (fora do Git); as folhas vão para public/assets (fora do Git).
@@ -59,18 +58,6 @@ function pack(images: { name: string; png: PNG }[], columns: number): { sheet: P
   const sheet = new PNG({ width: columns * TS, height: rows * TS });
   for (const { name, png } of images) blit(sheet, png, pieces[name]!.col * TS, pieces[name]!.row * TS);
   return { sheet, pieces, rows };
-}
-
-// ---------- Variante B: tijolo ----------
-{
-  const dir = `${PACK}/variante_tijolo/pecas`;
-  const images = readdirSync(dir)
-    .filter((f) => f.endsWith('.png'))
-    .sort()
-    .map((f) => ({ name: f.replace(/\.png$/, ''), png: PNG.sync.read(readFileSync(`${dir}/${f}`)) }));
-  const { sheet, pieces, rows } = pack(images, 16);
-  writeFileSync(`${ENV}/tile_backyard_brick.png`, PNG.sync.write(sheet));
-  writePieces('quintal_tijolo.json', 16, rows, pieces);
 }
 
 // ---------- Provisórios (desenhados por código, paleta Cosy) ----------

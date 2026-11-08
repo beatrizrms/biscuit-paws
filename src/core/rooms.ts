@@ -50,7 +50,7 @@ export interface RoomDef {
   /** Funcionalidade "sleep": a cama (E para dormir) e onde ela acorda. */
   sleep?: { bed: Cell; wake: Cell };
   look?: RoomLook;
-  /** Variantes visuais (ex.: quintal "hedge", "brick", "mix"); `variant` diz qual vale. */
+  /** Variantes visuais (ex.: quintal "hedge"); `variant` diz qual vale. */
   variants?: Record<string, RoomLook>;
   variant?: string;
 }
