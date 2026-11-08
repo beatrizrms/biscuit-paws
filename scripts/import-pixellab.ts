@@ -591,6 +591,8 @@ const FONT: Record<string, string[]> = {
   S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
   T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
   V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+  L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+  Y: ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
 };
 const ACUTE = ['...#.', '..#..'];
 const PLAIN: Record<string, string> = { 'É': 'E', 'Á': 'A', 'Ó': 'O' };
@@ -1425,20 +1427,20 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
 {
   const dir = 'public/assets/minigames/delivery';
   mkdirSync(dir, { recursive: true });
-  writeFileSync(`${dir}/obstacle_bike.png`, PNG.sync.write(readPng(`${SRC}/provisorios/bicicleta_2x2.png`)));
+  writeFileSync(`${dir}/obstacle_bike.png`, PNG.sync.write(readPng(`${SRC}/provisorios/ciclista_opcoes/opcao_1.png`)));
   writeFileSync(`${dir}/goal_door.png`, PNG.sync.write(readPng(`${SRC}/lote01/door64x128.png`)));
   console.log(`${dir}: bicicleta e porta`);
 }
 
-// ---------- Furgão do correio (256 x 128, de lado; desenhado em meia escala: data/delivery.json van.scale) ----------
-// Letreiro "CORREIO" por código; a versão para a esquerda é a imagem espelhada com o texto escrito depois (não sai ao contrário).
+// ---------- Furgão de entregas (3x3: 192 x 192, de lado; desenhado em meia escala: data/delivery.json van.scale) ----------
+// Branco e azul royal; letreiro "DELIVERY" por código. A versão para a esquerda é a imagem espelhada com o texto escrito depois.
 {
-  const src = readPng(`${SRC}/furgao/furgao_256x128.png`);
+  const van = () => pickRows(readPng(`${SRC}/furgao/delivery_192.png`), [...Array.from({ length: 32 }, () => 0), ...range(0, 159)]);
   const mirror = (png: PNG) => columns(png, range(0, png.width - 1).reverse());
-  const ink: [number, number, number] = [176, 66, 70], shade: [number, number, number] = [236, 206, 170];
+  const ink: [number, number, number] = [36, 72, 168], shade: [number, number, number] = [206, 214, 230];
   const dir = 'public/assets/objects/vehicles';
   mkdirSync(dir, { recursive: true });
-  writeFileSync(`${dir}/obj_van_pixellab_right.png`, PNG.sync.write(signText(readPng(`${SRC}/furgao/furgao_256x128.png`), 'CORREIO', [44, 26, 134, 64], ink, shade)));
-  writeFileSync(`${dir}/obj_van_pixellab_left.png`, PNG.sync.write(signText(mirror(src), 'CORREIO', [121, 26, 211, 64], ink, shade)));
+  writeFileSync(`${dir}/obj_van_pixellab_right.png`, PNG.sync.write(signText(van(), 'DELIVERY', [14, 84, 116, 132], ink, shade)));
+  writeFileSync(`${dir}/obj_van_pixellab_left.png`, PNG.sync.write(signText(mirror(van()), 'DELIVERY', [75, 84, 177, 132], ink, shade)));
   console.log(`${dir}: furgão para a direita e para a esquerda`);
 }
