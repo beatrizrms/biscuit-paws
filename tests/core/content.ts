@@ -38,6 +38,7 @@ export function rawContent(): RawContent {
     business: read('data/business.json'),
     character: read('data/character.json'),
     rooms: read('data/rooms.json'),
+    seasons: read('data/seasons.json'),
   };
 }
 

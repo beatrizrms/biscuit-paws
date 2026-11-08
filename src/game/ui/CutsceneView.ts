@@ -9,6 +9,8 @@ const TYPE_SPEED_MS = 26;
 const CAT_SCALE = 5;
 
 export class CutsceneView {
+  /** Toca um som da cena (jingle); quem cria a cena liga no áudio. */
+  onSound: ((id: string) => void) | null = null;
   private el: HTMLElement;
   private stage: HTMLElement;
   private textBox: HTMLElement;
@@ -115,6 +117,14 @@ export class CutsceneView {
       case 'hide':
         this.stage.innerHTML = '';
         break;
+      case 'image': {
+        // A imagem da cor da fachada que ela escolheu (sem arte dessa cor: a padrão).
+        const facade = content.facade ? this.session.state.finishes[content.facade.surface.id] : undefined;
+        const src = (facade && step.byFacade?.[facade]) || step.image;
+        this.stage.innerHTML = `<img class="cs-image" src="${src}" alt="" />`;
+        if (step.sound) this.onSound?.(step.sound);
+        break;
+      }
     }
   }
 

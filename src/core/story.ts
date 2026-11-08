@@ -6,6 +6,7 @@ import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from 
 import { parseClock } from './time';
 import { isRenovated, stageAtLeast } from './business';
 import { atLeast as roomAtLeast, roomState, type RoomsData } from './rooms';
+import { firstDayOf, type SeasonsData } from './calendar';
 
 /** O que as condições precisam saber além do estado. */
 export interface StoryContext {
@@ -16,6 +17,8 @@ export interface StoryContext {
   requiredSurfaces: readonly string[];
   /** Cômodos (estado inicial de quem o save ainda não mudou). */
   rooms: RoomsData;
+  /** Calendário (condição fromSeason). */
+  seasons: SeasonsData;
 }
 
 /** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda a do salão (saves antigos; cômodos novos não contam). */
@@ -63,6 +66,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('business' in c) return stageAtLeast(state.business, c.business);
   if ('renovated' in c) return isRenovated(state.finishes, ctx.requiredSurfaces);
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
+  if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);
   if ('cats' in c) return Object.values(state.cats).filter((x) => x.sheltered).length >= c.cats.gte;
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }

@@ -14,6 +14,7 @@ import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } f
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
+import { dayInSeason, daysUntil, mapInSeason, seasonOf } from './calendar';
 import {
   activeFeatures,
   catCapacity,
@@ -1069,7 +1070,10 @@ export class GameSession {
     if (mapId !== this.content.map.id) {
       const other = this.content.maps[mapId];
       if (!other) throw new Error(`Mapa desconhecido: "${mapId}"`);
-      return { ...other, objects: [...this.visibleObjects(other), ...this.jobMarkers(mapId)] };
+      // A fachada do café com a cor do pintor; depois, a rua na estação do dia (sem neve fora do inverno).
+      const painted = this.withFacade({ ...other, objects: this.visibleObjects(other) });
+      const inSeason = mapInSeason(this.content.seasons, painted, this.season(), (t) => !!this.content.catalog.tiles[t]);
+      return { ...inSeason, objects: [...inSeason.objects, ...this.jobMarkers(mapId)] };
     }
     const rooms = this.roomsMapParts();
     const base = {
@@ -1197,12 +1201,42 @@ export class GameSession {
   }
 
   private storyContext(): StoryContext {
-    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces, rooms: this.content.rooms };
+    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces, rooms: this.content.rooms, seasons: this.content.seasons };
   }
 
-  /** Superfícies que o pintor pode reformar. */
+  /** Superfícies que o pintor pode reformar (as do café e a fachada na rua). */
   surfaces(): SurfaceDef[] {
-    return this.content.map.surfaces ?? [];
+    return [...(this.content.map.surfaces ?? []), ...(this.content.facade ? [this.content.facade.surface] : [])];
+  }
+
+  /** A fachada do café com o acabamento escolhido (a neve por cima, se houver para ela). */
+  private withFacade(map: MapData): MapData {
+    const f = this.content.facade;
+    const finish = f && map.id === f.map ? this.content.finishes[this.state.finishes[f.surface.id] ?? ''] : undefined;
+    if (!f || !finish) return map;
+    const snow = `snow_${finish.tile}`;
+    return {
+      ...map,
+      objects: map.objects.map((o) => (o.id === f.object ? { ...o, tile: finish.tile, overlay: this.content.catalog.tiles[snow] ? snow : undefined } : o)),
+    };
+  }
+
+  // ---------- Calendário (data/seasons.json) ----------
+
+  /** Estação de hoje. */
+  season(): string {
+    return seasonOf(this.content.seasons, this.state.day);
+  }
+
+  /** "Inverno, dia 12". */
+  seasonDay(): { season: string; name: string; day: number } {
+    const season = this.season();
+    return { season, name: this.content.seasons.names[season] ?? season, day: dayInSeason(this.content.seasons, this.state.day) };
+  }
+
+  /** Dias até a estação chegar pela primeira vez (0 se já chegou). */
+  daysUntil(season: string): number {
+    return daysUntil(this.content.seasons, this.state.day, season);
   }
 
   /** Contrata o pintor: troca o acabamento de uma superfície (fica pronto na hora). */

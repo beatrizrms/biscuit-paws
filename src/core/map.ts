@@ -101,7 +101,7 @@ export interface MapData {
   surfaces?: SurfaceDef[];
 }
 
-export type SurfaceKind = 'floor' | 'wall' | 'wainscot';
+export type SurfaceKind = 'floor' | 'wall' | 'wainscot' | 'facade';
 
 /** Uma superfície do mapa: todas as células com a letra `legend` mudam juntas. */
 export interface SurfaceDef {

@@ -89,9 +89,8 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(dialogues(events)).toContain('dlg.door_back_room_locked');
   });
 
-  it('o ritmo: sem a inauguração, 40 clientes e o dia 6, o quartinho continua oculto', () => {
+  it('o ritmo: sem a inauguração e 40 clientes, o quartinho continua oculto', () => {
     expect(afterFirstCustomer(1000, { served: 39 }).session.roomState('room.back_room')).toBe('locked');
-    expect(afterFirstCustomer(1000, { day: 5 }).session.roomState('room.back_room')).toBe('locked');
   });
 
   it('obra: sem dinheiro não abre; pagando, abre sujo e a capacidade sobe (o quintal ainda não)', () => {

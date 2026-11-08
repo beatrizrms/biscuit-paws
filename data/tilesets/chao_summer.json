@@ -1,0 +1,91 @@
+{
+ "tileSize": 32,
+ "columns": 8,
+ "rows": 2,
+ "pieces": {
+  "calcada_a": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 0
+  },
+  "calcada_b": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 1
+  },
+  "calcada_limpa": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 2
+  },
+  "meio_fio": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 3
+  },
+  "asfalto_a": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 4
+  },
+  "asfalto_b": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 5
+  },
+  "asfalto_faixa": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 6
+  },
+  "grama": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 7
+  },
+  "terra_a": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 8
+  },
+  "terra_b": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 9
+  },
+  "agua_a": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 10
+  },
+  "agua_b": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 11
+  }
+ }
+}

@@ -248,11 +248,12 @@ export function knownIds(content: {
   character: CharacterData;
   health: { diseases: { id: string }[] };
   rooms: RoomsData;
+  facade?: { surface: { id: string } } | null;
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
     finishes: new Set(Object.keys(content.finishes)),
-    surfaces: new Set((content.map.surfaces ?? []).map((s) => s.id)),
+    surfaces: new Set([...(content.map.surfaces ?? []).map((s) => s.id), ...(content.facade ? [content.facade.surface.id] : [])]),
     maps: new Set(Object.keys(content.maps)),
     cats: new Set(Object.keys(content.cats)),
     jobs: new Set(Object.keys(content.jobs)),

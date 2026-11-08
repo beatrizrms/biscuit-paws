@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge, brick, mix). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração, clientes atendidos, dias); são recompensas que facilitam a vida, não o começo do jogo.",
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge, brick, mix). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo.",
   "rooms": [
     {
       "id": "room.hall",
@@ -53,11 +53,6 @@
             {
               "served": {
                 "gte": 40
-              }
-            },
-            {
-              "day": {
-                "gte": 6
               }
             }
           ]
@@ -162,11 +157,6 @@
             {
               "served": {
                 "gte": 100
-              }
-            },
-            {
-              "day": {
-                "gte": 12
               }
             }
           ]

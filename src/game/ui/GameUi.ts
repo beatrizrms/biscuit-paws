@@ -476,7 +476,8 @@ export class GameUi {
     }
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
-    (this.money.querySelector('.day') as HTMLElement).textContent = `${uiText.day} ${state.day}`;
+    const sd = this.session.seasonDay();
+    (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day));
     if (bumpMoney) {
       this.money.classList.remove('bump');
       void this.money.offsetWidth; // reinicia a animação

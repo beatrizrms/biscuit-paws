@@ -655,7 +655,7 @@
         "title": "A inauguração",
         "steps": [
           {
-            "text": "Reformar o café inteiro com o pintor: papel de parede, lambri e os dois pisos.",
+            "text": "Reformar o café inteiro com o pintor: papel de parede, lambri, os dois pisos e a fachada.",
             "when": {
               "renovated": true
             },
@@ -666,6 +666,12 @@
             "when": {
               "received": "item.cafe_sign"
             }
+          },
+          {
+            "text": "Esperar a primavera para inaugurar (faltam {daysUntil:spring} dias).",
+            "when": {
+              "fromSeason": "spring"
+            }
           }
         ]
       },
@@ -675,6 +681,9 @@
         },
         {
           "setFlag": "cafe.inaugurated"
+        },
+        {
+          "cutscene": "cs.inauguration"
         },
         {
           "dialogue": "dlg.inauguration"

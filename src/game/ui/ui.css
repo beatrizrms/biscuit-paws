@@ -760,3 +760,6 @@
 .catalog.consult .bill .total { font-size: 9px; color: var(--ink); }
 .catalog.consult .credit { margin: 5px 0 0; font-size: 7px; color: #5d4a8a; }
 .catalog.consult .pay { display: block; margin: 6px 0 0 auto; padding: 2px 10px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
+
+/* Cena com imagem de tela cheia (ex.: a inauguração) */
+.cs-stage .cs-image { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }

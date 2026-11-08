@@ -1,0 +1,63 @@
+{
+ "tileSize": 32,
+ "columns": 16,
+ "rows": 24,
+ "pieces": {
+  "loja_menta": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 0
+  },
+  "loja_rosa": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 5
+  },
+  "loja_ceu": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8,
+   "first_tile_id": 10
+  },
+  "loja_moveis": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 6,
+   "h_tiles": 8,
+   "first_tile_id": 128
+  },
+  "mercado": {
+   "col": 6,
+   "row": 8,
+   "w_tiles": 7,
+   "h_tiles": 8,
+   "first_tile_id": 134
+  },
+  "casa_a": {
+   "col": 0,
+   "row": 16,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 256
+  },
+  "casa_b": {
+   "col": 4,
+   "row": 16,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 260
+  },
+  "casa_c": {
+   "col": 8,
+   "row": 16,
+   "w_tiles": 4,
+   "h_tiles": 8,
+   "first_tile_id": 264
+  }
+ }
+}

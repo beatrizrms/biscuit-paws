@@ -1,17 +1,93 @@
 {
   "schemaVersion": 1,
-  "_comment": "unlockFlag: o pintor só aparece depois que esta flag existir (a Dona Neusa indica o pintor).",
+  "_comment": "unlockFlag: o pintor só aparece depois que esta flag existir (a Dona Neusa indica o pintor). facade: a fachada do café na rua também é uma superfície do pintor (acabamentos kind \"facade\"; o tile troca o objeto do café na rua, na estação certa).",
   "unlockFlag": "painter.available",
   "finishes": [
-    { "id": "finish.wood_parquet", "name": "Taco de madeira", "tile": "floor_wood_a", "kind": "floor", "price": 60 },
-    { "id": "finish.wood_planks", "name": "Tábuas de madeira", "tile": "floor_wood_b", "kind": "floor", "price": 60 },
-    { "id": "finish.check_pink", "name": "Xadrez rosa", "tile": "floor_check_pink", "kind": "floor", "price": 70 },
-    { "id": "finish.tile_mint", "name": "Azulejo menta", "tile": "floor_tile_mint", "kind": "floor", "price": 70 },
-
-    { "id": "finish.wallpaper_stripe_pink", "name": "Listras rosa", "tile": "wall_stripe_pink", "kind": "wall", "price": 80 },
-    { "id": "finish.wallpaper_dots_cream", "name": "Creme com bolinhas", "tile": "wall_dots_cream", "kind": "wall", "price": 80 },
-    { "id": "finish.wallpaper_mint", "name": "Verde menta", "tile": "wall_mint", "kind": "wall", "price": 80 },
-
-    { "id": "finish.wainscot_varnished", "name": "Lambri envernizado", "tile": "wall_wainscot", "kind": "wainscot", "price": 40 }
-  ]
+    {
+      "id": "finish.wood_parquet",
+      "name": "Taco de madeira",
+      "tile": "floor_wood_a",
+      "kind": "floor",
+      "price": 60
+    },
+    {
+      "id": "finish.wood_planks",
+      "name": "Tábuas de madeira",
+      "tile": "floor_wood_b",
+      "kind": "floor",
+      "price": 60
+    },
+    {
+      "id": "finish.check_pink",
+      "name": "Xadrez rosa",
+      "tile": "floor_check_pink",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.tile_mint",
+      "name": "Azulejo menta",
+      "tile": "floor_tile_mint",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.wallpaper_stripe_pink",
+      "name": "Listras rosa",
+      "tile": "wall_stripe_pink",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wallpaper_dots_cream",
+      "name": "Creme com bolinhas",
+      "tile": "wall_dots_cream",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wallpaper_mint",
+      "name": "Verde menta",
+      "tile": "wall_mint",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wainscot_varnished",
+      "name": "Lambri envernizado",
+      "tile": "wall_wainscot",
+      "kind": "wainscot",
+      "price": 40
+    },
+    {
+      "id": "finish.facade_mint",
+      "name": "Fachada menta",
+      "tile": "facade_loja_menta",
+      "kind": "facade",
+      "price": 150
+    },
+    {
+      "id": "finish.facade_pink",
+      "name": "Fachada rosa",
+      "tile": "facade_loja_rosa",
+      "kind": "facade",
+      "price": 150
+    },
+    {
+      "id": "finish.facade_sky",
+      "name": "Fachada céu",
+      "tile": "facade_loja_ceu",
+      "kind": "facade",
+      "price": 150
+    }
+  ],
+  "facade": {
+    "surface": {
+      "id": "surface.facade",
+      "name": "Fachada (rua)",
+      "kind": "facade"
+    },
+    "map": "map.street",
+    "object": "obj.facade_cafe"
+  }
 }

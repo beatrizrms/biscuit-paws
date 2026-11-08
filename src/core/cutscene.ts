@@ -20,7 +20,12 @@ export type CutsceneStep =
       time?: string;
       date?: string;
     }
-  | { type: 'card'; text: string };
+  | { type: 'card'; text: string }
+  /**
+   * Imagem de tela cheia (ex.: a inauguração). `byFacade`: imagem por acabamento da fachada (a cor que ela escolheu);
+   * sem a da cor, vale `image`. `sound`: chave de data/audio.json tocada ao aparecer (jingle).
+   */
+  | { type: 'image'; image: string; byFacade?: Record<string, string>; sound?: string };
 
 export interface CutsceneDef {
   /** Cor de fundo da cena. */

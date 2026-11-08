@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo). backyard_hedge / backyard_brick: quintal secreto (variantes A e B; npm run backyard). rooms_placeholder: provisórios dos cômodos, desenhados por código.",
+  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo). backyard_hedge / backyard_brick: quintal secreto (variantes A e B; npm run backyard). rooms_placeholder: provisórios dos cômodos, desenhados por código. street_*_<estação>: rua de primavera, verão e outono (npm run seasons); nomes com o prefixo da estação (spring_street_..., spring_facade_..., spring_prop_...).",
   "sheets": [
     {
       "id": "street_ground",
@@ -596,6 +596,189 @@
         "cama_ao_sol": {
           "layer": "object",
           "solid": false
+        }
+      }
+    },
+    {
+      "id": "street_ground_spring",
+      "image": "assets/env/street/spring/tile_street_ground_spring.png",
+      "pieces": "chao_spring.json",
+      "prefix": "spring_street_",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "asfalto_a": {
+          "solid": true
+        },
+        "asfalto_b": {
+          "solid": true
+        },
+        "asfalto_faixa": {
+          "solid": true
+        },
+        "agua_a": {
+          "solid": true
+        },
+        "agua_b": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_facades_spring",
+      "image": "assets/env/street/spring/tile_street_facades_spring.png",
+      "pieces": "fachadas_spring.json",
+      "prefix": "spring_facade_",
+      "layer": "wall",
+      "solid": true
+    },
+    {
+      "id": "street_props_spring",
+      "image": "assets/env/street/spring/tile_street_props_spring.png",
+      "pieces": "objetos_spring.json",
+      "prefix": "spring_prop_",
+      "layer": "object",
+      "solid": false,
+      "overrides": {
+        "banco": {
+          "solid": true
+        },
+        "lixeira": {
+          "solid": true
+        },
+        "caixa_correio": {
+          "solid": true
+        },
+        "caixote_macas": {
+          "solid": true
+        },
+        "caixote_laranjas": {
+          "solid": true
+        },
+        "vaso_planta": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_ground_summer",
+      "image": "assets/env/street/summer/tile_street_ground_summer.png",
+      "pieces": "chao_summer.json",
+      "prefix": "summer_street_",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "asfalto_a": {
+          "solid": true
+        },
+        "asfalto_b": {
+          "solid": true
+        },
+        "asfalto_faixa": {
+          "solid": true
+        },
+        "agua_a": {
+          "solid": true
+        },
+        "agua_b": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_facades_summer",
+      "image": "assets/env/street/summer/tile_street_facades_summer.png",
+      "pieces": "fachadas_summer.json",
+      "prefix": "summer_facade_",
+      "layer": "wall",
+      "solid": true
+    },
+    {
+      "id": "street_props_summer",
+      "image": "assets/env/street/summer/tile_street_props_summer.png",
+      "pieces": "objetos_summer.json",
+      "prefix": "summer_prop_",
+      "layer": "object",
+      "solid": false,
+      "overrides": {
+        "banco": {
+          "solid": true
+        },
+        "lixeira": {
+          "solid": true
+        },
+        "caixa_correio": {
+          "solid": true
+        },
+        "caixote_macas": {
+          "solid": true
+        },
+        "caixote_laranjas": {
+          "solid": true
+        },
+        "vaso_planta": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_ground_autumn",
+      "image": "assets/env/street/autumn/tile_street_ground_autumn.png",
+      "pieces": "chao_autumn.json",
+      "prefix": "autumn_street_",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "asfalto_a": {
+          "solid": true
+        },
+        "asfalto_b": {
+          "solid": true
+        },
+        "asfalto_faixa": {
+          "solid": true
+        },
+        "agua_a": {
+          "solid": true
+        },
+        "agua_b": {
+          "solid": true
+        }
+      }
+    },
+    {
+      "id": "street_facades_autumn",
+      "image": "assets/env/street/autumn/tile_street_facades_autumn.png",
+      "pieces": "fachadas_autumn.json",
+      "prefix": "autumn_facade_",
+      "layer": "wall",
+      "solid": true
+    },
+    {
+      "id": "street_props_autumn",
+      "image": "assets/env/street/autumn/tile_street_props_autumn.png",
+      "pieces": "objetos_autumn.json",
+      "prefix": "autumn_prop_",
+      "layer": "object",
+      "solid": false,
+      "overrides": {
+        "banco": {
+          "solid": true
+        },
+        "lixeira": {
+          "solid": true
+        },
+        "caixa_correio": {
+          "solid": true
+        },
+        "caixote_macas": {
+          "solid": true
+        },
+        "caixote_laranjas": {
+          "solid": true
+        },
+        "vaso_planta": {
+          "solid": true
         }
       }
     }

@@ -88,6 +88,10 @@
         {
           "speaker": "",
           "text": "Clique na sujeira perto de você para varrer. Para sair, vá até a porta e siga em frente."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Um mês até a primavera... Será que em 1 mês eu consigo inaugurar essa loja?"
         }
       ]
     },
@@ -348,7 +352,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Quando o salão estiver todo reformado e a placa chegar, faço a inauguração de verdade."
+          "text": "Na primavera, com tudo reformado e a placa lá fora, faço a inauguração de verdade."
         }
       ]
     },

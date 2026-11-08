@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem.",
+  "daysPerSeason": 30,
+  "order": [
+    "winter",
+    "spring",
+    "summer",
+    "autumn"
+  ],
+  "base": "winter",
+  "names": {
+    "winter": "Inverno",
+    "spring": "Primavera",
+    "summer": "Verão",
+    "autumn": "Outono"
+  },
+  "maps": {
+    "map.street": {
+      "prefixes": [
+        "street_",
+        "facade_",
+        "prop_"
+      ],
+      "snowPrefix": "snow_",
+      "winterOnly": [
+        "prop_abeto_natal",
+        "prop_pegadas",
+        "prop_caixa_gato_vazia",
+        "prop_caixa_gato_manta",
+        "prop_caixa_gato_olhos"
+      ]
+    }
+  }
+}

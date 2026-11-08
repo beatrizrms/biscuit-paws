@@ -664,7 +664,7 @@ describe('lousa da porta (peça fixa)', () => {
     expect(chalkboardOnStreet(session)).toBe(true);
   });
 
-  it('a inauguração: depois do primeiro cliente, reforma completa + placa; o negócio passa a inaugurado', () => {
+  it('a inauguração: reforma completa (com a fachada) + placa + primavera; o negócio passa a inaugurado', () => {
     const state = newGameState(500, 'map.cafe_main', 10 * 60);
     const beats = content.story.beats.map((x) => x.id);
     state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1));
@@ -675,6 +675,13 @@ describe('lousa da porta (peça fixa)', () => {
     expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
     renovate(session);
     session.buy('item.cafe_sign');
+    // Pronta no inverno: espera a primavera (o passo mostra quantos dias faltam).
+    expect(session.state.business).toBe('soft_open');
+    expect(session.goals()[0]!.steps.at(-1)!.text).toContain('{daysUntil:spring}');
+    expect(session.daysUntil('spring')).toBe(content.seasons.daysPerSeason); // dia 1 do inverno
+    session.state.day = content.seasons.daysPerSeason + 1; // primeiro dia da primavera
+    session.tickClock(2); // o relógio reavalia a história a cada minuto
+    expect(session.season()).toBe('spring');
     expect(session.state.business).toBe('inaugurated');
     expect(events).toContain('business.changed');
     expect(chalkboardOnStreet(session)).toBe(true);

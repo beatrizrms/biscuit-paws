@@ -3,10 +3,11 @@
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
-import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceKind } from './map';
+import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceDef, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
 import { validateCharacter, type CharacterData } from './appearance';
 import { ROOM_STATES, validateRooms, type RoomsData, type RoomState } from './rooms';
+import { validateSeasons, type SeasonsData } from './calendar';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
@@ -87,6 +88,8 @@ export interface FinishesData {
   /** Flag que libera o pintor (sem ela, a seção Reforma não aparece). */
   unlockFlag?: string;
   finishes: FinishDef[];
+  /** A fachada do café na rua como superfície do pintor: o acabamento troca o tile deste objeto deste mapa. */
+  facade?: { surface: SurfaceDef; map: string; object: string };
 }
 
 export interface EconomyData {
@@ -148,7 +151,9 @@ export type Condition =
   /** O cômodo já chegou a este estado (data/rooms.json). */
   | { room: string; atLeast: RoomState }
   /** Gatos abrigados. */
-  | { cats: { gte: number } };
+  | { cats: { gte: number } }
+  /** A partir da primeira vez que esta estação chega (data/seasons.json). Ex.: a inauguração, na primavera. */
+  | { fromSeason: string };
 
 export type Effect =
   | { dialogue: string }
@@ -273,6 +278,9 @@ export interface Content {
   business: BusinessData;
   character: CharacterData;
   rooms: RoomsData;
+  seasons: SeasonsData;
+  /** A fachada do café (superfície do pintor na rua), se configurada. */
+  facade: FinishesData['facade'] | null;
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
@@ -309,6 +317,7 @@ export interface RawContent {
   business: BusinessData;
   character: CharacterData;
   rooms: RoomsData;
+  seasons: SeasonsData;
 }
 
 /** Correio (data/delivery.json). */
@@ -341,7 +350,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, business: raw.business, character: raw.character, rooms: raw.rooms };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -449,7 +458,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
   }
 
-  const LAYER_OF: Record<SurfaceKind, string> = { floor: 'floor', wall: 'wall', wainscot: 'wall' };
+  const LAYER_OF: Record<SurfaceKind, string> = { floor: 'floor', wall: 'wall', wainscot: 'wall', facade: 'wall' };
   const finishIds = new Set<string>();
   for (const f of raw.finishes.finishes) {
     if (!f.id.startsWith('finish.')) err(`finishes: id "${f.id}" deve começar com "finish."`);
@@ -461,6 +470,14 @@ export function validateContent(raw: RawContent): string[] {
     if (!Number.isInteger(f.price) || f.price < 0) err(`finishes: "${f.id}" tem preço inválido`);
   }
   const surfaceIds = new Set<string>();
+  const facade = raw.finishes.facade;
+  if (facade) {
+    surfaceIds.add(facade.surface.id);
+    const fmap = raw.maps.find((m) => m.id === facade.map);
+    if (!fmap) err(`finishes: fachada em mapa inexistente "${facade.map}"`);
+    else if (!fmap.objects.some((o) => o.id === facade.object)) err(`finishes: fachada: objeto inexistente "${facade.object}" em "${facade.map}"`);
+    if (facade.surface.kind !== 'facade') err('finishes: a superfície da fachada precisa ser kind "facade"');
+  }
   for (const d of home?.dirt ?? []) {
     if (d.clearedBy && !(home?.surfaces ?? []).some((s) => s.id === d.clearedBy)) err(`mapa: sujeira "${d.id}" sai com "${d.clearedBy}", que não existe`);
   }
@@ -520,6 +537,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('fromSeason' in c) {
+      if (!raw.seasons.order.includes(c.fromSeason)) err(`${where}: estação inexistente "${c.fromSeason}"`);
     } else if ('room' in c) {
       if (!raw.rooms.rooms.some((r) => r.id === c.room)) err(`${where}: cômodo inexistente "${c.room}"`);
       if (!(ROOM_STATES as readonly string[]).includes(c.atLeast)) err(`${where}: estado de cômodo inválido "${c.atLeast}"`);
@@ -548,6 +567,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateBusiness(raw.business, surfaceIds));
   errors.push(...validateCharacter(raw.character));
+  errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(
     ...validateRooms(raw.rooms, {
       cols: home?.size.cols ?? 0,

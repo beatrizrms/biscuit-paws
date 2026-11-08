@@ -1,4 +1,4 @@
-// Marcadores nos textos dos dados: {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada).
+// Marcadores nos textos dos dados: {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação).
 import type { GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
 import { uiText } from '../content';
@@ -10,6 +10,7 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/,\s*\{player\}/g, (m) => (name ? m : ''))
     .replace(/\{player\}/g, () => name || uiText.playerFallback)
     .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => session.catName(id))
+    .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);
       return t === undefined ? '' : formatClock(t, 5);

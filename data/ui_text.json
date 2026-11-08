@@ -95,7 +95,8 @@
     "room_closed": "Esse cômodo ainda não está aberto.",
     "wrong_room": "Isso só vai no quintal.",
     "blocks_door": "Aí fica na frente da passagem.",
-    "too_early": "Ainda é cedo para dormir."
+    "too_early": "Ainda é cedo para dormir.",
+    "no_facade": "A fachada só se pinta pelo catálogo, no café."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -357,5 +358,6 @@
     "sleepYes": "Dormir",
     "sleepNo": "Ainda não",
     "goHomeSleep": "Agora eu durmo no quartinho do café (a cama, depois das {time})."
-  }
+  },
+  "seasonDay": "{season}, dia {day}"
 }

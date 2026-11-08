@@ -609,8 +609,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { content } = this.session;
     const indoor = content.maps[this.map.id]?.lighting === 'indoor';
     const t = this.session.state.time;
-    const color = tintAt(t, content.dayNight, content.world.season, indoor);
-    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, content.world.season, false) : undefined);
+    const season = this.session.season();
+    const color = tintAt(t, content.dayNight, season, indoor);
+    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined);
     this.ui.setClock(formatClock(t));
   }
 

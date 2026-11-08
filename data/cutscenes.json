@@ -193,6 +193,41 @@
           "type": "hide"
         }
       ]
+    },
+    "cs.inauguration": {
+      "background": "#2b1d1a",
+      "steps": [
+        {
+          "type": "image",
+          "image": "assets/ui/scenes/scene_inauguration_ribbon_pink.png",
+          "byFacade": {
+            "finish.facade_pink": "assets/ui/scenes/scene_inauguration_ribbon_pink.png"
+          }
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Chegou o dia! A fita, a placa, os balões... e todo mundo veio."
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Vai, {player}! Corta logo essa fita!"
+        },
+        {
+          "type": "image",
+          "image": "assets/ui/scenes/scene_inauguration_cut_pink.png",
+          "byFacade": {
+            "finish.facade_pink": "assets/ui/scenes/scene_inauguration_cut_pink.png"
+          },
+          "sound": "jingle_inauguration"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "GRANDE ABERTURA!"
+        }
+      ]
     }
   }
 }
