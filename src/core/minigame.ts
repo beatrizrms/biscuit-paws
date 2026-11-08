@@ -1,0 +1,132 @@
+// Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
+// Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
+
+export type Difficulty = 'easy' | 'normal' | 'hard';
+export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
+
+export type Outcome = 'fail' | 'ok' | 'great';
+
+/** O que todo mini game devolve para quem chamou. */
+export interface MiniGameResult {
+  gameId: string;
+  outcome: Outcome;
+  /** Pontuação do jogo (ex.: segundos que sobraram, peso do peixe, % do desenho). */
+  score: number;
+  coinsEarned: number;
+  /** Pulou (recompensa reduzida). */
+  skipped: boolean;
+}
+
+/** Com o que o mini game foi aberto: dificuldade, gato envolvido, item de missão, ponto de pedido... */
+export interface MiniGameParams {
+  difficulty: Difficulty;
+  catId?: string;
+  itemId?: string;
+  /** Ponto de pedido da vila que este jogo conclui (se der certo). */
+  jobPoint?: string;
+}
+
+export interface MiniGameDef {
+  name: string;
+  instructions: string;
+  /** Mapa da arena, quando o jogo usa um (ex.: a rua da fuga). */
+  map?: string;
+  rewards: Record<Difficulty, { ok: number; great: number }>;
+  /** Parâmetros do jogo por dificuldade (cada jogo define os seus). */
+  difficulties: Record<Difficulty, Record<string, unknown>>;
+}
+
+export interface MiniGamesConfig {
+  schemaVersion: 1;
+  introMs: number;
+  skipRewardShare: number;
+  games: Record<string, MiniGameDef>;
+}
+
+/** Moedas de um resultado: as do outcome na dificuldade; pular vale skipRewardShare das de "ok". */
+export function coinsFor(cfg: MiniGamesConfig, gameId: string, difficulty: Difficulty, outcome: Outcome, skipped = false): number {
+  const r = cfg.games[gameId]?.rewards[difficulty];
+  if (!r) return 0;
+  if (skipped) return Math.round(r.ok * cfg.skipRewardShare);
+  return outcome === 'fail' ? 0 : r[outcome];
+}
+
+/** Monta o resultado com as moedas certas (a cena nunca decide quanto vale). */
+export function makeResult(cfg: MiniGamesConfig, gameId: string, difficulty: Difficulty, outcome: Outcome, score: number, skipped = false): MiniGameResult {
+  return { gameId, outcome: skipped ? 'ok' : outcome, score, coinsEarned: coinsFor(cfg, gameId, difficulty, outcome, skipped), skipped };
+}
+
+/** Parâmetros de um jogo numa dificuldade, já tipados por quem chama. */
+export function paramsOf<T>(cfg: MiniGamesConfig, gameId: string, difficulty: Difficulty): T {
+  const def = cfg.games[gameId];
+  if (!def) throw new Error(`mini game inexistente "${gameId}"`);
+  return def.difficulties[difficulty] as T;
+}
+
+/**
+ * Contagem regressiva em milissegundos, avançada por quem a usa (a cena chama tick a cada quadro).
+ * Não usa relógio próprio: pausar é só parar de chamar tick, e os testes avançam o tempo à mão.
+ */
+export class Countdown {
+  private left: number;
+  private paused = false;
+  private ended = false;
+
+  constructor(
+    readonly totalMs: number,
+    private onEnd: () => void = () => {},
+  ) {
+    this.left = totalMs;
+  }
+
+  tick(dtMs: number): void {
+    if (this.paused || this.ended) return;
+    this.left = Math.max(0, this.left - dtMs);
+    if (this.left === 0) {
+      this.ended = true;
+      this.onEnd();
+    }
+  }
+
+  pause(): void {
+    this.paused = true;
+  }
+
+  resume(): void {
+    this.paused = false;
+  }
+
+  /** Para de vez (o jogo acabou por outro motivo): não chama onEnd. */
+  stop(): void {
+    this.ended = true;
+  }
+
+  isPaused(): boolean {
+    return this.paused;
+  }
+
+  remainingMs(): number {
+    return this.left;
+  }
+
+  /** Fração do tempo que sobrou (1 = cheio, 0 = acabou). */
+  remainingShare(): number {
+    return this.totalMs > 0 ? this.left / this.totalMs : 0;
+  }
+}
+
+export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySet<string> }): string[] {
+  const errors: string[] = [];
+  const err = (m: string) => errors.push(`minigames: ${m}`);
+  if (!(cfg.introMs >= 0)) err('introMs precisa ser 0 ou mais');
+  if (!(cfg.skipRewardShare >= 0 && cfg.skipRewardShare <= 1)) err('skipRewardShare entre 0 e 1');
+  for (const [id, g] of Object.entries(cfg.games)) {
+    if (g.map && !refs.maps.has(g.map)) err(`"${id}": mapa inexistente "${g.map}"`);
+    for (const d of DIFFICULTIES) {
+      if (!g.difficulties[d]) err(`"${id}": falta a dificuldade "${d}"`);
+      const r = g.rewards[d];
+      if (!r || !(r.ok >= 0) || !(r.great >= r.ok)) err(`"${id}": rewards.${d} precisa de ok >= 0 e great >= ok`);
+    }
+  }
+  return errors;
+}

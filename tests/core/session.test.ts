@@ -163,15 +163,22 @@ describe('começo da história', () => {
     expect(titles()).toEqual(['Um cantinho quente']);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     expect(titles()).toEqual(['Uma cafeteira']);
-    // A cafeteira não cabe no dinheiro: precisa dos pedidos da vila.
-    expect(session.state.money).toBeLessThan(180);
+    // A cafeteira e o balcão não cabem no dinheiro: precisa dos pedidos da vila.
+    expect(session.state.money).toBeLessThan(205);
     expect(session.buy('item.coffee_machine')).toEqual({ ok: false, reason: 'no_money' });
-    for (const job of ['job.market_shelves', 'job.clear_snow', 'job.delivery', 'job.flyers']) doJob(session, job);
-    expect(session.state.money).toBeGreaterThanOrEqual(180);
-    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
-    expect(scripts()).not.toContain('scr.neusa_visit');
-    // Comprar a cafeteira traz a Dona Neusa (e o pintor).
+    for (const job of ['job.market_shelves', 'job.clear_snow', 'job.delivery', 'job.flyers', 'job.market_crates']) doJob(session, job);
+    expect(session.state.money).toBeGreaterThanOrEqual(205);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false, false, false]);
+    // Comprar não basta: a Dona Neusa só vem com a cafeteira montada em cima do balcão.
     expect(session.buy('item.coffee_machine')).toEqual({ ok: true });
+    expect(session.buy('item.counter_single')).toEqual({ ok: true });
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, true, true, false]);
+    expect(scripts()).not.toContain('scr.neusa_visit');
+    expect(session.place('item.counter_single', [7, 5])).toEqual({ ok: true });
+    expect(scripts()).not.toContain('scr.neusa_visit');
+    expect(session.place('item.coffee_machine', [7, 5])).toEqual({ ok: true });
+    // Montou: a fala da cafeteira e a Dona Neusa (e o pintor).
+    expect(events.some((e) => e.name === 'dialogue.requested' && (e.payload as { dialogueId: string }).dialogueId === 'dlg.coffee_ready')).toBe(true);
     expect(scripts()).toContain('scr.neusa_visit');
     expect(session.painterUnlocked()).toBe(true);
     // As mesas só no dia seguinte.
@@ -215,6 +222,9 @@ describe('começo da história', () => {
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     session.addMoney(1000, 'test');
     session.buy('item.coffee_machine');
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [7, 5]);
+    session.place('item.coffee_machine', [7, 5]);
     session.endDay('home');
     session.state.time = 20 * 60;
     session.buy('item.table_round');
@@ -307,6 +317,10 @@ describe('pintor (reforma)', () => {
     expect(session.painterUnlocked()).toBe(false);
     session.addMoney(500, 'test');
     session.buy('item.coffee_machine');
+    expect(session.painterUnlocked()).toBe(false); // comprada não basta: precisa montar no balcão
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [7, 5]);
+    session.place('item.coffee_machine', [7, 5]);
     expect(session.painterUnlocked()).toBe(true);
   });
 
@@ -745,7 +759,7 @@ describe('pedidos da vila', () => {
   it('só aparecem depois do prólogo', () => {
     const { session } = newSession();
     expect(session.availableJobs()).toEqual([]);
-    expect(afterPrologue().session.availableJobs().length).toBe(8);
+    expect(afterPrologue().session.availableJobs().length).toBe(9);
   });
 
   it('um de cada vez; paga ao concluir e conta no resumo do dia', () => {
@@ -973,7 +987,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     expect(session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard')).toBe(true);
   });
 
-  it('Dona Neusa vem quando a cafeteira entra no café; a Gabi liga quando as mesas chegam na porta', () => {
+  it('Dona Neusa vem quando a cafeteira é montada no balcão; a Gabi liga quando as mesas chegam na porta', () => {
     const { session, events } = newSession();
     startInCafe(session);
     finishPrologue(session);
@@ -983,14 +997,19 @@ describe('correio: compras do catálogo chegam na porta', () => {
     const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
     const called = () => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.gabi_call');
     session.state.time = 10 * 60;
+    session.order('item.counter_single');
     session.order('item.coffee_machine');
-    // Encomendou: o passo "encomendar" vale, mas a Dona Neusa espera a caixa entrar.
-    expect(session.goals()[0]!.steps.every((s) => s.done)).toBe(true);
+    // Encomendou os dois: só falta montar. A caixa chegar ou abrir ainda não traz a Dona Neusa.
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, true, true, false]);
     session.tickClock(minutes(61));
-    expect(scripts()).not.toContain('scr.neusa_visit');
     session.enter('map.street');
     session.pickUpParcels();
     session.enter('map.cafe_main');
+    expect(session.unpackParcel()).toMatchObject({ ok: true });
+    expect(session.unpackParcel()).toMatchObject({ ok: true });
+    expect(scripts()).not.toContain('scr.neusa_visit');
+    expect(session.place('item.counter_single', [7, 5])).toEqual({ ok: true });
+    expect(session.place('item.coffee_machine', [7, 5])).toEqual({ ok: true });
     expect(scripts()).toContain('scr.neusa_visit');
     // Dia seguinte: mesas pelo correio.
     session.endDay('home');

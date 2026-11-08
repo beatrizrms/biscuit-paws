@@ -390,6 +390,14 @@ Outros passos de roteiro: `{ "catWalk": "cat.id", "to": [11, 5] }` (o gato vem e
 Itens `kind: "gift"`: presentes da história (ex.: `item.dishes_set`, da Gabi); não se compram nem se devolvem.
 Celular em ligação: passo `{ "type": "phone", "mode": "call", "app": "Gabi", "title": "chamando...", "caller": "npc.gabi", "lines": [] }`.
 
+## Mini games (`data/minigames.json`)
+
+`introMs` (instruções antes de começar), `skipRewardShare` (pular paga essa fração das moedas de "ok"). Cada jogo em `games.<id>`: `name`, `instructions`, `rewards` por dificuldade (`easy`/`normal`/`hard`: `{ ok, great }`; "fail" não paga) e `difficulties` com os parâmetros do jogo. Resultado (`src/core/minigame.ts`): `{ gameId, outcome: "fail" | "ok" | "great", score, coinsEarned, skipped }`; as moedas sempre vêm dos dados (`makeResult`), nunca da cena. `session.finishMiniGame(result, params)` paga e, com `params.jobPoint`, conta o ponto do pedido se não falhou (evento `minigame.finished`).
+
+Gato em fuga (`chase`): `map` (arena: `data/maps/minigame_chase.json`, segue a estação como a rua), `catSpawn`, `spots` (células possíveis de esconderijo: `box`, `trash`, `bush`, `car`) e, por dificuldade, `timeSec`, `catSpeed`, `turnEveryMs`, `hideChance`, `hidingSpots`, `hideMs`, `noticeRadius`, `catchRadius`, `greatTimeShare`.
+
+Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
+
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)
 
 ```jsonc

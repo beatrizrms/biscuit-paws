@@ -35,6 +35,7 @@ export function rawContent(): RawContent {
     news: read('data/news.json'),
     delivery: read('data/delivery.json'),
     health: read('data/health.json'),
+    minigames: read('data/minigames.json'),
     business: read('data/business.json'),
     character: read('data/character.json'),
     rooms: read('data/rooms.json'),

@@ -9,6 +9,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
+import type { MiniGameParams, MiniGameResult } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
@@ -991,6 +992,19 @@ export class GameSession {
     return !!this.activeUse('medicine');
   }
 
+
+  // ---------- Mini games (data/minigames.json) ----------
+
+  /**
+   * O mini game acabou: paga as moedas do resultado e, se ele foi aberto por um ponto de pedido e deu certo,
+   * conta o ponto. Quem chamou recebe o resultado pelo registro (a tela); a regra fica aqui.
+   */
+  finishMiniGame(result: MiniGameResult, params: MiniGameParams): void {
+    if (result.coinsEarned > 0) this.addMoney(result.coinsEarned, `minigame:${result.gameId}`);
+    this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
+    if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
+    else this.advanceStory();
+  }
 
   /** Corações entre a protagonista e um gato. */
   catHearts(catId: string): number {

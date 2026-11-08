@@ -38,6 +38,7 @@ const raw: RawContent = {
   news: read('data/news.json'),
   delivery: read('data/delivery.json'),
   health: read('data/health.json'),
+  minigames: read('data/minigames.json'),
 };
 
 const errors = validateContent(raw);

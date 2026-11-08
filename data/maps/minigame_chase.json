@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "id": "map.minigame_chase",
+  "tileSize": 32,
+  "size": {
+    "cols": 32,
+    "rows": 12
+  },
+  "background": "#a9d4ea",
+  "lighting": "outdoor",
+  "legend": {
+    "A": "street_calcada_a",
+    "B": "street_calcada_b",
+    "C": "street_meio_fio",
+    "D": "street_asfalto_a",
+    "E": "street_asfalto_b"
+  },
+  "layers": {
+    "floor": [
+      "BAAAABAAAABAAAABAAAABAAAABAAAABA",
+      "ABAAAABAAAABAAAABAAAABAAAABAAAAB",
+      "AABAAAABAAAABAAAABAAAABAAAABAAAA",
+      "AAABAAAABAAAABAAAABAAAABAAAABAAA",
+      "AAAABAAAABAAAABAAAABAAAABAAAABAA",
+      "BAAAABAAAABAAAABAAAABAAAABAAAABA",
+      "ABAAAABAAAABAAAABAAAABAAAABAAAAB",
+      "AABAAAABAAAABAAAABAAAABAAAABAAAA",
+      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "EDDEDDEDDEDDEDDEDDEDDEDDEDDEDDED",
+      "DDEDDEDDEDDEDDEDDEDDEDDEDDEDDEDD",
+      "DEDDEDDEDDEDDEDDEDDEDDEDDEDDEDDE"
+    ],
+    "walls": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "objects": [
+    {
+      "id": "obj.chase_lamp_1",
+      "tile": "prop_poste",
+      "at": [
+        0,
+        4
+      ]
+    },
+    {
+      "id": "obj.chase_lamp_2",
+      "tile": "prop_poste",
+      "at": [
+        30,
+        4
+      ]
+    },
+    {
+      "id": "obj.chase_bench_1",
+      "tile": "prop_banco",
+      "at": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "obj.chase_bench_2",
+      "tile": "prop_banco",
+      "at": [
+        22,
+        5
+      ]
+    },
+    {
+      "id": "obj.chase_tree_1",
+      "tile": "prop_arvore",
+      "at": [
+        13,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_tree_2",
+      "tile": "prop_arvore",
+      "at": [
+        26,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_planter_1",
+      "tile": "prop_vaso_planta",
+      "at": [
+        10,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_planter_2",
+      "tile": "prop_vaso_planta",
+      "at": [
+        11,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_planter_3",
+      "tile": "prop_vaso_planta",
+      "at": [
+        15,
+        6
+      ]
+    },
+    {
+      "id": "obj.chase_planter_4",
+      "tile": "prop_vaso_planta",
+      "at": [
+        27,
+        6
+      ]
+    },
+    {
+      "id": "obj.chase_crate_1",
+      "tile": "prop_caixote_macas",
+      "at": [
+        18,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_crate_2",
+      "tile": "prop_caixote_laranjas",
+      "at": [
+        19,
+        1
+      ]
+    },
+    {
+      "id": "obj.chase_bin",
+      "tile": "prop_lixeira",
+      "at": [
+        8,
+        5
+      ]
+    }
+  ],
+  "spawn": {
+    "player": [
+      3,
+      7
+    ]
+  }
+}

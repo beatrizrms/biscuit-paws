@@ -1,0 +1,58 @@
+// Texturas dos mini games: chave -> arquivo (npm run minigames copia o pacote para public/assets/minigames).
+// Toda a arte do pacote é de 64 px por tile e é desenhada na metade (ART_SCALE), como pede a decisão 052:
+// assim um esconderijo de 64 x 64 ocupa uma célula de 32 do mundo e mostra o detalhe inteiro no canvas de 1280 x 720.
+// Se um arquivo faltar, a chave ganha um placeholder (retângulo colorido) e o jogo funciona igual: dá para trocar a
+// arte depois sem mexer na lógica.
+import type Phaser from 'phaser';
+
+export const ART_SCALE = 0.5;
+
+export interface SheetSpec {
+  key: string;
+  file: string;
+  frameWidth: number;
+  frameHeight: number;
+  /** Cor do placeholder (se o arquivo faltar). */
+  placeholder: number;
+}
+
+const DIR = 'assets/minigames';
+
+/** Gato em fuga. */
+export const CHASE = {
+  hideBox: { key: 'mg.chase.hide_box', file: `${DIR}/chase/anim_hide_box.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xb07a4a },
+  hideTrash: { key: 'mg.chase.hide_trash', file: `${DIR}/chase/anim_hide_trash.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x7d8a8c },
+  hideBush: { key: 'mg.chase.hide_bush', file: `${DIR}/chase/anim_hide_bush.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x5f9a5a },
+  hideCar: { key: 'mg.chase.hide_car', file: `${DIR}/chase/anim_hide_car.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xd07070 },
+  dust: { key: 'mg.chase.dust', file: `${DIR}/chase/anim_dust.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xe8dcc8 },
+  arrow: { key: 'mg.chase.arrow', file: `${DIR}/chase/ui_arrow.png`, frameWidth: 24, frameHeight: 24, placeholder: 0xd97890 },
+  /** Quadro 0: "!" (o gato te notou); quadro 1: "?". */
+  alerts: { key: 'mg.chase.alerts', file: `${DIR}/chase/ui_alerts.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xfff4e0 },
+} satisfies Record<string, SheetSpec>;
+
+/** Tipos de esconderijo (data/minigames.json: games.chase.spots[].kind) -> textura. */
+export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, trash: CHASE.hideTrash, bush: CHASE.hideBush, car: CHASE.hideCar };
+
+export function loadSheets(scene: Phaser.Scene, sheets: SheetSpec[]): void {
+  for (const s of sheets) if (!scene.textures.exists(s.key)) scene.load.spritesheet(s.key, s.file, { frameWidth: s.frameWidth, frameHeight: s.frameHeight });
+}
+
+/** Depois do load: quem não carregou vira um placeholder com o mesmo tamanho de quadro (2 quadros). */
+export function ensurePlaceholders(scene: Phaser.Scene, sheets: SheetSpec[]): string[] {
+  const missing: string[] = [];
+  for (const s of sheets) {
+    if (scene.textures.exists(s.key)) continue;
+    missing.push(s.key);
+    const g = scene.make.graphics({ x: 0, y: 0 }, false);
+    for (let i = 0; i < 2; i++) {
+      g.fillStyle(s.placeholder, 1).fillRect(i * s.frameWidth + 2, 2, s.frameWidth - 4, s.frameHeight - 4);
+      g.lineStyle(2, 0x3b2a32, 1).strokeRect(i * s.frameWidth + 2, 2, s.frameWidth - 4, s.frameHeight - 4);
+    }
+    g.generateTexture(s.key, s.frameWidth * 2, s.frameHeight);
+    g.destroy();
+    const tex = scene.textures.get(s.key);
+    for (let i = 0; i < 2; i++) tex.add(i, 0, i * s.frameWidth, 0, s.frameWidth, s.frameHeight);
+  }
+  if (missing.length) console.warn(`[mini games] placeholders: ${missing.join(', ')} (rode npm run minigames)`);
+  return missing;
+}

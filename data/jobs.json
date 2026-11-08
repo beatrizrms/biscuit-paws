@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer; marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty }; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
   "maxActive": 1,
   "points": [
     {
@@ -225,6 +225,19 @@
         8
       ],
       "action": "press"
+    },
+    {
+      "id": "pt.runaway_cat",
+      "map": "map.street",
+      "at": [
+        26,
+        9
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "chase",
+        "difficulty": "normal"
+      }
     }
   ],
   "jobs": [
@@ -414,6 +427,26 @@
             "pt.crate_greens",
             "pt.crate_bananas",
             "pt.crate_tomatoes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.runaway_cat",
+      "title": "Gatinho fujão",
+      "giver": "Seu Ademir, do mercado",
+      "description": "O gato de uma freguesa escapou pela rua e ninguém consegue pegar. Ela paga uma recompensa!",
+      "location": "map.street",
+      "reward": 10,
+      "repeat": "daily",
+      "available": {
+        "beat": "story.prologue_end"
+      },
+      "steps": [
+        {
+          "text": "Pegar o gatinho que fugiu pela rua (perto da casa azul).",
+          "points": [
+            "pt.runaway_cat"
           ]
         }
       ]

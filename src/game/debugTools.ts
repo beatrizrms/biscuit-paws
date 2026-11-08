@@ -1,6 +1,7 @@
 // Ferramentas do modo debug. Carregado sob demanda (import dinâmico) só em `npm run dev`,
 // então nada disto entra no build de produção.
 import { setDebug } from './debug';
+import { MiniGameRegistry } from './minigames/MiniGameRegistry';
 import type { WorldScene } from './scenes/WorldScene';
 import { DebugPanel } from './ui/DebugPanel';
 import './ui/debug.css';
@@ -29,5 +30,7 @@ export function attachDebugTools(scene: WorldScene, root: HTMLElement): DebugPan
     // Jogo novo no slot 1 do debug (a URL ?novo pula a Home).
     newGame: () => (window.location.href = `${window.location.pathname}?novo`),
     turnOff: () => setDebug(false),
+    openMiniGame: (id, difficulty) => void scene.openMiniGame(id, { difficulty }),
+    miniGames: () => MiniGameRegistry.ids(),
   });
 }

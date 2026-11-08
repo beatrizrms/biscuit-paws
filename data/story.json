@@ -326,18 +326,31 @@
         "title": "Uma cafeteira",
         "steps": [
           {
-            "text": "Juntar 180 moedas com pedidos da vila (mural do mercado ou celular, tecla P).",
+            "text": "Juntar 205 moedas com pedidos da vila (mural do mercado ou celular, tecla P): a cafeteira (180) e um balcão para ela (25).",
             "when": {
               "any": [
                 {
                   "money": {
-                    "gte": 180
+                    "gte": 205
                   }
                 },
                 {
-                  "owned": "item.coffee_machine"
+                  "all": [
+                    {
+                      "owned": "item.coffee_machine"
+                    },
+                    {
+                      "ownedTag": "bar"
+                    }
+                  ]
                 }
               ]
+            }
+          },
+          {
+            "text": "Encomendar um balcão pelo catálogo (C).",
+            "when": {
+              "ownedTag": "bar"
             }
           },
           {
@@ -345,6 +358,13 @@
             "when": {
               "owned": "item.coffee_machine"
             }
+          },
+          {
+            "text": "Montar o balcão e pôr a cafeteira em cima dele.",
+            "when": {
+              "placed": "item.coffee_machine"
+            },
+            "devNote": "Abrir as caixas no salão; a cafeteira só vai em cima de um balcão livre (placeOn: bar)."
           }
         ]
       },
@@ -364,11 +384,7 @@
         {
           "addMoney": 50
         }
-      ],
-      "when": {
-        "delivery": "item.coffee_machine",
-        "stage": "inside"
-      }
+      ]
     },
     {
       "id": "story.tables",

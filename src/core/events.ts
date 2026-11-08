@@ -17,6 +17,8 @@ export interface GameEvents {
   /** De manhã: gatos doentes demais, os clientes evitam o café. */
   'customers.away': { sickCats: number };
   'debt.paid': { amount: number; left: number };
+  /** Um mini game acabou (as moedas já entraram). */
+  'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };

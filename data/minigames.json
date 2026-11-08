@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa.",
+  "introMs": 2000,
+  "skipRewardShare": 0.25,
+  "games": {
+    "chase": {
+      "name": "Gato em fuga",
+      "instructions": "O gato escapou! Corra atrás dele (setas/WASD) e encoste nele antes do tempo acabar. Se ele se esconder, chegue perto e aperte E (ou clique) para espiar.",
+      "map": "map.minigame_chase",
+      "catSpawn": [16, 4],
+      "spots": [
+        { "at": [7, 7], "kind": "box" },
+        { "at": [16, 3], "kind": "bush" },
+        { "at": [24, 2], "kind": "trash" },
+        { "at": [29, 7], "kind": "car" },
+        { "at": [12, 6], "kind": "bush" },
+        { "at": [20, 7], "kind": "box" }
+      ],
+      "rewards": {
+        "easy": {
+          "ok": 15,
+          "great": 25
+        },
+        "normal": {
+          "ok": 25,
+          "great": 40
+        },
+        "hard": {
+          "ok": 40,
+          "great": 60
+        }
+      },
+      "difficulties": {
+        "easy": { "timeSec": 60, "catSpeed": 62, "turnEveryMs": [1400, 2600], "hideChance": 0.25, "hidingSpots": 2, "hideMs": [2500, 4000], "noticeRadius": 70, "catchRadius": 14, "greatTimeShare": 0.5 },
+        "normal": { "timeSec": 45, "catSpeed": 78, "turnEveryMs": [1000, 2000], "hideChance": 0.35, "hidingSpots": 3, "hideMs": [3000, 5000], "noticeRadius": 85, "catchRadius": 13, "greatTimeShare": 0.5 },
+        "hard": { "timeSec": 35, "catSpeed": 92, "turnEveryMs": [700, 1500], "hideChance": 0.45, "hidingSpots": 4, "hideMs": [3500, 6000], "noticeRadius": 100, "catchRadius": 12, "greatTimeShare": 0.5 }
+      }
+    }
+  }
+}

@@ -9,6 +9,8 @@ import { CatSprite, catTexture } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
+import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
+import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
 import tilesetsJson from '../../../data/tilesets.json';
 import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
@@ -70,6 +72,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private sounds: SoundEvents | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
+  /** Um mini game está aberto (o mundo está pausado embaixo). */
+  private miniGameOpen = false;
   /** Tocando a animação de usar um item da barra (ração na tigela, petisco no gato). */
   private usingItem = false;
   /** "Esperar": o relógio corre depressa até a meta de espera concluir. */
@@ -618,6 +622,31 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.ui.setClock(formatClock(t));
   }
 
+  /**
+   * Abre um mini game (pedido da vila, história ou atalho de debug): pausa o mundo, joga e, na volta, paga as
+   * moedas e conta o ponto do pedido pela sessão. Devolve o resultado para quem chamou.
+   */
+  async openMiniGame(gameId: string, params: MiniGameParams): Promise<MiniGameResult | null> {
+    if (this.miniGameOpen) return null;
+    this.miniGameOpen = true;
+    this.cancelPlacing();
+    this.ui.closeCatalog();
+    this.ui.closeShop();
+    this.player.setVelocity(0, 0);
+    try {
+      const result = await MiniGameRegistry.open(this, gameId, params, {
+        season: this.session.season(),
+        catVariant: miniGameCatVariant(this, params.catId),
+        // Semente: dia e hora do jogo (repetível no mesmo save, diferente a cada partida do dia).
+        seed: this.session.state.day * 100_003 + Math.floor(this.session.state.time),
+      });
+      this.session.finishMiniGame(result, params);
+      return result;
+    } finally {
+      this.miniGameOpen = false;
+    }
+  }
+
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
     if (this.session.atHome() && this.serviceInteract(target)) return true;
@@ -628,7 +657,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(problem);
         return true;
       }
-      if (point.action === 'sweep') {
+      if (point.action === 'minigame' && point.minigame) {
+        // O ponto só conta se o jogo der certo (session.finishMiniGame faz o doJobPoint).
+        void this.openMiniGame(point.minigame.id, { difficulty: point.minigame.difficulty, jobPoint: point.id });
+      } else if (point.action === 'sweep') {
         if (this.sweeping) return true;
         const ts = this.map.tileSize;
         void this.playSweep((point.at[0] + 0.5) * ts, (point.at[1] + 0.5) * ts).then(() => this.doJobPoint(point.id));
@@ -1445,7 +1477,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 }
 
+/** Variante do Cosy Cats do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
+function miniGameCatVariant(scene: WorldScene, catId?: string): string {
+  const id = catId ?? scene.session.shelteredCats()[0] ?? 'cat.first_stray';
+  return scene.session.content.cats[id]?.variant ?? 'marmalade';
+}
+
 /** Em desenvolvimento, deixa a cena acessível no console e no Playwright. */
 function exposeDebug(scene: WorldScene): void {
   (window as unknown as { __biscuitPaws: unknown }).__biscuitPaws = { world: scene, cafe: scene };
+  // ?minijogo=chase[&dificuldade=hard]: abre o mini game direto (atalho de teste).
+  const q = new URLSearchParams(window.location.search);
+  const id = q.get('minijogo');
+  if (id) {
+    const d = q.get('dificuldade');
+    scene.time.delayedCall(300, () => void scene.openMiniGame(id, { difficulty: d === 'easy' || d === 'hard' ? d : 'normal' }));
+  }
 }

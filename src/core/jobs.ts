@@ -11,8 +11,10 @@ export interface JobPoint {
   at: Cell;
   /** Distância máxima (em células) entre os pés e o ponto (padrão 1). */
   reach?: number;
-  /** "press": só apertar E; "sweep": varre com a vassoura. */
-  action: 'press' | 'sweep';
+  /** "press": só apertar E; "sweep": varre com a vassoura; "minigame": abre um mini game (o ponto conta se der certo). */
+  action: 'press' | 'sweep' | 'minigame';
+  /** Com action "minigame": qual jogo e em que dificuldade. */
+  minigame?: { id: string; difficulty: 'easy' | 'normal' | 'hard' };
   /** Tile desenhado no ponto enquanto ele estiver pendente (ex.: monte de neve). */
   marker?: string;
   /** Quadro de data/emotes.json desenhado no ponto enquanto pendente, no lugar do "!" (ex.: a caixa para pegar). */
@@ -95,7 +97,8 @@ export function validateJobs(
     if (pointIds.has(p.id)) errors.push(`${where}: id repetido`);
     pointIds.add(p.id);
     if (!refs.maps.has(p.map)) errors.push(`${where}: mapa inexistente "${p.map}"`);
-    if (!['press', 'sweep'].includes(p.action)) errors.push(`${where}: ação inválida "${p.action}"`);
+    if (!['press', 'sweep', 'minigame'].includes(p.action)) errors.push(`${where}: ação inválida "${p.action}"`);
+    if (p.action === 'minigame' && !p.minigame) errors.push(`${where}: action "minigame" precisa de "minigame": { id, difficulty }`);
     if (p.marker && !refs.tiles.has(p.marker)) errors.push(`${where}: tile inexistente "${p.marker}"`);
     if (p.sprite && !refs.sprites.has(p.sprite)) errors.push(`${where}: quadro inexistente em emotes.json "${p.sprite}"`);
     for (const item of [p.gives, p.takes]) if (item && !refs.items.has(item)) errors.push(`${where}: item inexistente "${item}"`);

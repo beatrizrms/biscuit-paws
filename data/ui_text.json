@@ -359,5 +359,30 @@
     "sleepNo": "Ainda não",
     "goHomeSleep": "Agora eu durmo no quartinho do café (a cama, depois das {time})."
   },
-  "seasonDay": "{season}, dia {day}"
+  "seasonDay": "{season}, dia {day}",
+  "minigames": {
+    "start": "Começar (E)",
+    "difficulty": {
+      "easy": "Dificuldade: fácil",
+      "normal": "Dificuldade: normal",
+      "hard": "Dificuldade: difícil"
+    },
+    "paused": "Pausado",
+    "pausedHint": "Esc continua. Pular dá só parte das moedas.",
+    "resume": "Continuar (Esc)",
+    "skip": "Pular (+{coins})",
+    "skipped": "Pulou",
+    "outcome": {
+      "fail": "Não deu dessa vez",
+      "ok": "Conseguiu!",
+      "great": "Perfeito!"
+    },
+    "coins": "+{coins} moedas",
+    "noCoins": "Sem moedas desta vez.",
+    "continue": "Continuar (E)",
+    "chase": {
+      "caught": "Pegou o gato! Sobraram {s} s.",
+      "escaped": "O gato escapou..."
+    }
+  }
 }

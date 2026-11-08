@@ -27,6 +27,8 @@ import jobsJson from '../../data/jobs.json';
 import newsJson from '../../data/news.json';
 import deliveryJson from '../../data/delivery.json';
 import healthJson from '../../data/health.json';
+import minigamesJson from '../../data/minigames.json';
+import minigameChaseJson from '../../data/maps/minigame_chase.json';
 import businessJson from '../../data/business.json';
 import characterJson from '../../data/character.json';
 import roomsJson from '../../data/rooms.json';
@@ -39,7 +41,7 @@ import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  maps: [cafeJson, streetJson, marketJson, vetClinicJson],
+  maps: [cafeJson, streetJson, marketJson, vetClinicJson, minigameChaseJson],
   world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
@@ -63,6 +65,7 @@ export const content: Content = buildContent({
   news: newsJson,
   delivery: deliveryJson,
   health: healthJson,
+  minigames: minigamesJson,
   business: businessJson,
   character: characterJson,
   rooms: roomsJson,

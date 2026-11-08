@@ -30,6 +30,21 @@
         "prop_caixa_gato_manta",
         "prop_caixa_gato_olhos"
       ]
+    },
+    "map.minigame_chase": {
+      "prefixes": [
+        "street_",
+        "facade_",
+        "prop_"
+      ],
+      "snowPrefix": "snow_",
+      "winterOnly": [
+        "prop_abeto_natal",
+        "prop_pegadas",
+        "prop_caixa_gato_vazia",
+        "prop_caixa_gato_manta",
+        "prop_caixa_gato_olhos"
+      ]
     }
   }
 }

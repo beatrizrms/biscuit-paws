@@ -25,6 +25,7 @@ npm run dev         # abre o jogo em http://localhost:5173 (refaz data/tiles.jso
 npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda sozinho no dev e no build)
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
+npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)
 npm run build       # build de produção em dist/
@@ -42,6 +43,7 @@ Controles:
 - **Botão direito num móvel:** recolher e mudar de lugar
 - **Espaço / Enter / clique:** avançar as falas
 - **Mercado:** **E** numa prateleira põe itens no carrinho (+/−); **E** no caixa mostra o total e paga. Sair sem pagar não cobra nada (o carrinho fica até dormir).
+- **Mini games** (pedidos da vila, ex.: "Gatinho fujão"): E no ponto do pedido abre o jogo. Dentro: setas/WASD, **E**/Espaço ou clique = ação, **Esc** = pausa, botão **Pular** (só parte das moedas). Atalho de teste: `?jogar&minijogo=chase&dificuldade=hard` na URL, ou os botões no painel de debug (F9).
 - **M:** quadro do cardápio, com quantos clientes cabem (lugares e louça).
 - **P:** celular (depois do prólogo), com dois apps: **Vila Hoje** (notícias e pedidos da vila) e **Meus gatos** (cada gato abrigado: personalidade, corações, saúde, doença e remédio, se comeu hoje e há quantos dias está no café).
 - **Clínica da Fernanda** (fim da rua, a partir do dia 6): com o gato doente no colo (E perto dele), entre e aperte **E** na mesa de exame para a consulta (diagnóstico, receita de 1 a 7 dias e o preço; a primeira pode ser fiado). Em casa, com o **remédio** ativo na barra, **E** perto do gato dá a dose do dia. Cuidado: gato doente sem remédio por mais de 2 dias passa a doença para os outros, e com 2 ou mais gatos doentes os clientes deixam de entrar.

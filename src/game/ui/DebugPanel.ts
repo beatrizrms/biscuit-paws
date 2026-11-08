@@ -7,6 +7,9 @@ export interface DebugActions {
   toggleGrid(): boolean;
   newGame(): void;
   turnOff(): void;
+  /** Abre um mini game direto (sem missão). */
+  openMiniGame(gameId: string, difficulty: 'easy' | 'normal' | 'hard'): void;
+  miniGames(): string[];
 }
 
 export class DebugPanel {
@@ -30,6 +33,10 @@ export class DebugPanel {
         <button data-act="new">Jogo novo</button>
         <button data-act="off">Desligar</button>
       </div>
+      <div class="buttons minigames">${actions
+        .miniGames()
+        .map((id) => ['easy', 'normal', 'hard'].map((d) => `<button data-mg="${id}" data-dif="${d}">${id} ${d}</button>`).join(''))
+        .join('')}</div>
       <div class="status"></div>`;
     root.appendChild(panel);
     this.status = panel.querySelector('.status') as HTMLElement;
@@ -44,6 +51,9 @@ export class DebugPanel {
     on('grid', (b) => b.classList.toggle('on', actions.toggleGrid()));
     on('new', () => actions.newGame());
     on('off', () => actions.turnOff());
+    panel.querySelectorAll<HTMLButtonElement>('[data-mg]').forEach((b) =>
+      b.addEventListener('click', () => actions.openMiniGame(b.dataset.mg!, b.dataset.dif as 'easy' | 'normal' | 'hard')),
+    );
 
     session.bus.onAny(() => this.render());
     this.render();

@@ -20,7 +20,8 @@
     "pretest": "npm run tiles",
     "test": "vitest run",
     "test:e2e": "npm run tiles && playwright test",
-    "vet": "tsx scripts/import-vet.ts"
+    "vet": "tsx scripts/import-vet.ts",
+    "minigames": "tsx scripts/import-minigames.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0"
