@@ -3,7 +3,7 @@
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
-import { newsForDay, type JobDef, type JobPoint, type NewsItem } from './jobs';
+import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem } from './jobs';
 import { createRng } from './rng';
 import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
@@ -554,6 +554,7 @@ export class GameSession {
   private jobOpen(job: JobDef): boolean {
     if (job.available && !evaluate(job.available as Condition, this.state, this.storyContext())) return false;
     const last = this.state.jobs.doneOn[job.id];
+    if (job.repeat === 'sporadic') return last !== this.state.day && sporadicToday(job.id, this.state.day, job.chance ?? 0);
     return job.repeat === 'daily' ? last !== this.state.day : last === undefined;
   }
 

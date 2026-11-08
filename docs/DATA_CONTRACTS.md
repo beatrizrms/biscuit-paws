@@ -414,7 +414,7 @@ Match de adoção (`adoption`, em `minigames.json` só nome, tutorial, sons e di
 
 `start` (jogo novo e saves antigos), `max` (100), `logSize` (registros de motivo guardados), `thresholds` (`{ id: "rep.*", at, name }`: ao passar subindo, evento `reputation.threshold_reached` uma vez). Quanto vale: `reputation` (`{ fail?, ok?, great? }`) em cada jogo de `minigames.json` e `reputation` (`good`, `ok`, `bad`) por adoção em `adoption.json`. Regra: `src/core/reputation.ts`; na sessão, `addReputation(amount, reason)` e `reputation()`; evento `reputation.changed`.
 
-Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
+Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal", "itemId"?: "..." }` (ex.: `job.runaway_cat`; `itemId`: o pedido da entrega ou o petisco da confiança).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)
 
@@ -429,7 +429,7 @@ Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { 
     {
       "id": "job.clear_snow", "title": "Tirar a neve da calçada", "giver": "Loja de Móveis",
       "description": "...", "location": "map.street", "reward": 30,
-      "repeat": "daily",                    // daily: uma vez por dia; once: uma vez no jogo
+      "repeat": "daily",                    // daily: uma vez por dia; once: uma vez no jogo; sporadic: só nos dias sorteados (com "chance": 0 a 1)
       "available": { "beat": "story.prologue_end" },
       "steps": [{ "text": "Varrer 3 montes de neve...", "points": ["pt.snow_1", "pt.snow_2", "pt.snow_3"] }]
     }

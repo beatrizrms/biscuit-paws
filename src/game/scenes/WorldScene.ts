@@ -679,7 +679,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       if (point.action === 'minigame' && point.minigame) {
         // O ponto só conta se o jogo der certo (session.finishMiniGame faz o doJobPoint).
-        void this.openMiniGame(point.minigame.id, { difficulty: point.minigame.difficulty, jobPoint: point.id });
+        void this.openMiniGame(point.minigame.id, { difficulty: point.minigame.difficulty, jobPoint: point.id, ...(point.minigame.itemId ? { itemId: point.minigame.itemId } : {}) });
       } else if (point.action === 'sweep') {
         if (this.sweeping) return true;
         const ts = this.map.tileSize;

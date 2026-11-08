@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { bounceHeading, chaseOutcome, fleeHeading, type ChaseParams } from '../../src/core/chase';
 import { coinsFor, Countdown, DIFFICULTIES, makeResult, paramsOf, validateMiniGames } from '../../src/core/minigame';
+import { sporadicToday } from '../../src/core/jobs';
 import { createRng } from '../../src/core/rng';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -107,6 +108,41 @@ describe('mini game pela missão (Filhotes escondidos)', () => {
     session.finishMiniGame(r, { difficulty: 'normal', jobPoint: 'pt.kitten_hunt' });
     expect(state.money).toBe(100 + r.coinsEarned + content.jobs['job.lost_kittens']!.reward);
     expect(state.jobs.doneOn['job.lost_kittens']).toBe(state.day);
+  });
+});
+
+describe('missões esporádicas (Entrega relâmpago, Gato assustado)', () => {
+  it('o sorteio do dia é repetível, separado por pedido e perto da chance', () => {
+    expect(sporadicToday('job.flash_delivery', 7, 0.35)).toBe(sporadicToday('job.flash_delivery', 7, 0.35));
+    const days = Array.from({ length: 400 }, (_, i) => i + 1);
+    const share = days.filter((d) => sporadicToday('job.flash_delivery', d, 0.35)).length / days.length;
+    expect(share).toBeGreaterThan(0.25);
+    expect(share).toBeLessThan(0.45);
+    const same = days.filter((d) => sporadicToday('job.flash_delivery', d, 0.35) === sporadicToday('job.scared_cat', d, 0.35)).length;
+    expect(same).toBeLessThan(days.length); // não aparecem sempre juntos
+  });
+
+  it('aparece só nos dias sorteados; feito, some até outro dia sorteado; abre o jogo com o item do ponto', () => {
+    const state = newGameState(100, 'map.street');
+    state.story.completed.push(...content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.prologue_end') + 1).map((b) => b.id));
+    state.flags['met.old_neighbor'] = true;
+    state.flags['clinic.open'] = true;
+    const session = new GameSession(content, state);
+    const job = content.jobs['job.flash_delivery']!;
+    const open = (d: number) => {
+      state.day = d;
+      return session.availableJobs().some((j) => j.id === job.id);
+    };
+    const days = Array.from({ length: 60 }, (_, i) => i + 2);
+    const yes = days.find((d) => sporadicToday(job.id, d, job.chance!))!;
+    const no = days.find((d) => !sporadicToday(job.id, d, job.chance!))!;
+    expect(open(no)).toBe(false);
+    expect(open(yes)).toBe(true);
+    expect(session.acceptJob(job.id)).toEqual({ ok: true });
+    session.finishMiniGame(makeResult(cfg, 'delivery', 'normal', 'ok', 40), { difficulty: 'normal', jobPoint: 'pt.flash_delivery' });
+    expect(open(yes)).toBe(false); // feito hoje
+    expect(content.jobPoints['pt.flash_delivery']!.minigame).toEqual({ id: 'delivery', difficulty: 'normal', itemId: 'coffee' });
+    expect(content.jobPoints['pt.scared_cat']!.minigame?.id).toBe('trust');
   });
 });
 

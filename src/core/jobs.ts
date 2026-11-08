@@ -13,8 +13,8 @@ export interface JobPoint {
   reach?: number;
   /** "press": só apertar E; "sweep": varre com a vassoura; "minigame": abre um mini game (o ponto conta se der certo). */
   action: 'press' | 'sweep' | 'minigame';
-  /** Com action "minigame": qual jogo e em que dificuldade. */
-  minigame?: { id: string; difficulty: 'easy' | 'normal' | 'hard' };
+  /** Com action "minigame": qual jogo, em que dificuldade e, se o jogo usa, com que item (o café da entrega, o petisco). */
+  minigame?: { id: string; difficulty: 'easy' | 'normal' | 'hard'; itemId?: string };
   /** Tile desenhado no ponto enquanto ele estiver pendente (ex.: monte de neve). */
   marker?: string;
   /** Quadro de data/emotes.json desenhado no ponto enquanto pendente, no lugar do "!" (ex.: a caixa para pegar). */
@@ -42,8 +42,13 @@ export interface JobDef {
   location: string;
   /** Moedas pagas ao concluir. */
   reward: number;
-  /** daily: pode ser feito uma vez por dia; once: uma vez no jogo. */
-  repeat: 'daily' | 'once';
+  /**
+   * daily: pode ser feito uma vez por dia; once: uma vez no jogo; sporadic: aparece só em alguns dias (sorteio
+   * pelo dia, com a chance de `chance`) e, nesses dias, uma vez.
+   */
+  repeat: 'daily' | 'once' | 'sporadic';
+  /** sporadic: chance (0 a 1) de aparecer num dia. */
+  chance?: number;
   /** Condição para aparecer (ex.: depois do prólogo). Usa as condições da história. */
   available?: Record<string, unknown>;
   steps: JobStep[];
@@ -55,6 +60,16 @@ export interface JobsData {
   maxActive: number;
   points: JobPoint[];
   jobs: JobDef[];
+}
+
+/**
+ * Pedido esporádico aparece neste dia? Sorteio com semente do id e do dia: o mesmo dia dá sempre a mesma
+ * resposta (abrir e fechar o jogo não muda) e cada pedido sorteia separado.
+ */
+export function sporadicToday(jobId: string, day: number, chance: number): boolean {
+  let h = 0;
+  for (const ch of jobId) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  return createRng((h ^ (day * 2654435761)) >>> 0).next() < chance;
 }
 
 /** Notícia do "Vila Hoje": fixa num dia (`day`) ou do sorteio a partir de um dia (`fromDay`). */
@@ -111,7 +126,8 @@ export function validateJobs(
     jobIds.add(j.id);
     if (!refs.maps.has(j.location)) errors.push(`${where}: mapa inexistente "${j.location}"`);
     if (!(j.reward > 0)) errors.push(`${where}: recompensa precisa ser positiva`);
-    if (!['daily', 'once'].includes(j.repeat)) errors.push(`${where}: repeat inválido "${j.repeat}"`);
+    if (!['daily', 'once', 'sporadic'].includes(j.repeat)) errors.push(`${where}: repeat inválido "${j.repeat}"`);
+    if (j.repeat === 'sporadic' && !(j.chance !== undefined && j.chance > 0 && j.chance <= 1)) errors.push(`${where}: sporadic precisa de chance entre 0 e 1`);
     if (j.steps.length === 0) errors.push(`${where}: sem passos`);
     for (const s of j.steps) {
       if (s.points.length === 0) errors.push(`${where}: passo sem pontos`);

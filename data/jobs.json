@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty }; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia. maxActive: quantos ao mesmo tempo.",
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty, itemId? }; itemId: o pedido da entrega ou o petisco; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia; once = uma vez no jogo; sporadic = só em alguns dias (sorteio pelo dia com a chance de chance), uma vez nesses dias. maxActive: quantos ao mesmo tempo.",
   "maxActive": 1,
   "points": [
     {
@@ -251,6 +251,34 @@
         "id": "kitten_hunt",
         "difficulty": "normal"
       }
+    },
+    {
+      "id": "pt.flash_delivery",
+      "map": "map.street",
+      "at": [
+        17,
+        9
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "delivery",
+        "difficulty": "normal",
+        "itemId": "coffee"
+      }
+    },
+    {
+      "id": "pt.scared_cat",
+      "map": "map.street",
+      "at": [
+        29,
+        9
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "trust",
+        "difficulty": "normal",
+        "itemId": "item.cat_treat_biscuit"
+      }
     }
   ],
   "jobs": [
@@ -480,6 +508,48 @@
           "text": "Procurar o filhote escondido na rua (na calçada em frente ao café).",
           "points": [
             "pt.kitten_hunt"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.flash_delivery",
+      "title": "Entrega relâmpago",
+      "giver": "Seu Ademir, do mercado",
+      "description": "Um freguês do fim da rua quer um café quentinho, agora! Se chegar frio, ele reclama.",
+      "location": "map.street",
+      "reward": 15,
+      "repeat": "sporadic",
+      "chance": 0.35,
+      "available": {
+        "flag": "met.old_neighbor"
+      },
+      "steps": [
+        {
+          "text": "Levar o café até a casa do freguês (saída na frente do café, ao lado da lousa).",
+          "points": [
+            "pt.flash_delivery"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.scared_cat",
+      "title": "Gato assustado",
+      "giver": "Fernanda, da clínica",
+      "description": "Um gato apareceu perto da clínica, todo arisco. A Fernanda deixou um petisco para ajudar a ganhar a confiança dele.",
+      "location": "map.street",
+      "reward": 20,
+      "repeat": "sporadic",
+      "chance": 0.3,
+      "available": {
+        "flag": "clinic.open"
+      },
+      "steps": [
+        {
+          "text": "Ganhar a confiança do gato assustado perto da clínica, no fim da rua.",
+          "points": [
+            "pt.scared_cat"
           ]
         }
       ]
