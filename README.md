@@ -19,7 +19,7 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 
 ```bash
 npm install
-npm run dev         # abre o jogo em http://localhost:5173
+npm run dev         # abre o jogo em http://localhost:5173 (refaz data/tiles.json sozinho quando os dados de tiles mudam)
 npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda sozinho no dev e no build)
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
