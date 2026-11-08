@@ -39,6 +39,12 @@ export const FISHING = {
   fish: { key: 'mg.fishing.fish', file: `${DIR}/fishing/icons_fish.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xe0a94e },
 } satisfies Record<string, SheetSpec>;
 
+/** Latte art. Os contornos são desenhados dos pontos dos dados (as imagens-guia do pacote ficam de reserva). */
+export const LATTE = {
+  cup: { key: 'mg.latte.cup', file: `${DIR}/latte/obj_cup.png`, frameWidth: 192, frameHeight: 192, placeholder: 0xf5d7ac },
+  pitcher: { key: 'mg.latte.pitcher', file: `${DIR}/latte/obj_pitcher.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xc8ccd0 },
+} satisfies Record<string, SheetSpec>;
+
 /** Onde fica a parte de dentro da barra de timing (pixels da arte, 48 x 192): o trilho e o tubo do progresso. */
 export const BAR_TRACK = { x: 8, w: 19, y: 40, h: 113, progressX: 28, progressW: 3 };
 

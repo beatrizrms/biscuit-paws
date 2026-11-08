@@ -398,6 +398,8 @@ Gato em fuga (`chase`): `map` (arena: `data/maps/minigame_chase.json`, segue a e
 
 Pescaria (`fishing`): `fish` (tabela: `id`, `name`, `rarity` = junk/common/uncommon/rare/legendary, `speed` e `zone` em frações da barra, `value` = moedas extras, `item` = vai para a mochila, `icon` = quadro da folha de peixes) e `sounds` (efeitos de `data/audio.json`: `bite`, `catch`, `escape`). Por dificuldade: `timeSec`, `waitMs`, `biteWindowMs`, `rarityWeights`, `zoneScale`, `speedScale`, `progressGain`, `progressLoss`, `startProgress`, `lift`, `gravity`, `greatAccuracy` (fração do tempo dentro da zona). O resultado traz o `itemId` do peixe (a sessão põe na mochila) e o valor dele soma às moedas. Sorteio e física da barra: `src/core/fishing.ts`.
 
+Latte art (`latte`): `patterns` (cada um: `id`, `name`, `lines` = linhas de pontos `[x, y]` de 0 a `guideSize`; padrão novo = outra entrada, sem código), `guideSize`, `cupCenter` (centro do café na arte da xícara), `guideScale`, `cupScale` (xícara na tela; 1 = o dobro da medida do pacote, para dar para desenhar), `milkWidth`. Por dificuldade: `timeSec`, `patterns` (quais sorteia), `tolerance`, `starAt` (nota mínima para 1, 2 e 3 estrelas), `tipPerStar` (gorjeta, soma às moedas) e `coverageWeight`. Nota (`src/core/latte.ts`): cobertura do contorno e precisão do traço; 0 estrelas = fail, 1-2 = ok, 3 = great.
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

@@ -1,6 +1,7 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
 import type { FishDef } from './fishing';
+import type { LattePattern } from './latte';
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
@@ -41,6 +42,13 @@ export interface MiniGameDef {
   fish?: FishDef[];
   /** Efeitos sonoros (data/audio.json: sfx) por momento do jogo. */
   sounds?: Record<string, string>;
+  /** Latte art: os padrões e onde o contorno fica na xícara. */
+  patterns?: LattePattern[];
+  guideSize?: number;
+  cupCenter?: [number, number];
+  guideScale?: number;
+  cupScale?: number;
+  milkWidth?: number;
 }
 
 export interface MiniGamesConfig {

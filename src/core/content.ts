@@ -14,6 +14,7 @@ import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData 
 import { validateHealth, type HealthConfig } from './health';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
+import { validateLattePatterns } from './latte';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
@@ -390,6 +391,11 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateMiniGames(raw.minigames, { maps: mapIds }));
   for (const g of Object.values(raw.minigames.games)) if (g.fish) errors.push(...validateFishTable(g.fish, { items: new Set(raw.items.items.map((i) => i.id)) }));
+  for (const g of Object.values(raw.minigames.games)) {
+    if (!g.patterns) continue;
+    const used = Object.values(g.difficulties).flatMap((d) => (d.patterns as string[] | undefined) ?? []);
+    errors.push(...validateLattePatterns(g.patterns, g.guideSize ?? 128, used));
+  }
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));

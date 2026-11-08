@@ -393,6 +393,10 @@
       "escaped": "Escapou! Lance de novo.",
       "caught": "Pescou: {fish}! (+{value} pelo peixe, já na mochila)",
       "noFish": "Nenhum peixe desta vez."
+    },
+    "latte": {
+      "serve": "Servir (Enter)",
+      "result": "{pattern}: {stars} · contorno {coverage}% · capricho {accuracy}% · gorjeta +{tip}"
     }
   }
 }

@@ -16,7 +16,7 @@ export class MiniGameControls {
     const action = () => this.actionCbs.forEach((cb) => cb());
     const pause = () => this.pauseCbs.forEach((cb) => cb());
     const click = (p: Phaser.Input.Pointer) => {
-      if (p.leftButtonDown()) this.actionCbs.forEach((cb) => cb({ x: p.worldX, y: p.worldY }));
+      if (p.leftButtonDown()) this.actionCbs.forEach((cb) => cb(this.toWorld(p)));
     };
     kb.on('keydown-E', action);
     kb.on('keydown-SPACE', action);
@@ -51,9 +51,18 @@ export class MiniGameControls {
     this.pauseCbs.push(cb);
   }
 
-  /** Mouse/ponteiro pressionado e onde (para jogos de desenhar ou de segurar). */
+  /** Mouse/ponteiro pressionado e onde, no mundo (para jogos de desenhar ou de segurar). */
   pointer(): { down: boolean; x: number; y: number } {
     const p = this.scene.input.activePointer;
-    return { down: p.isDown, x: p.worldX, y: p.worldY };
+    return { down: p.isDown, ...this.toWorld(p) };
+  }
+
+  /**
+   * Posição do ponteiro no mundo pela câmera desta cena. O worldX do Phaser pode vir em pixels do canvas
+   * (1280 x 720) numa cena aberta por cima de outra; a câmera com zoom 2 (decisão 052) converte certo.
+   */
+  private toWorld(p: Phaser.Input.Pointer): { x: number; y: number } {
+    const w = this.scene.cameras.main.getWorldPoint(p.x, p.y);
+    return { x: w.x, y: w.y };
   }
 }
