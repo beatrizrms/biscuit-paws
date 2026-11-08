@@ -21,10 +21,10 @@ Os moldes (`pedidos/NN_xxx/molde.png`) são opcionais: mostram a arte atual de c
 - **Estados** só onde a lista pede (porta fechada/aberta, pote cheio/vazio...): um embaixo do outro, o mesmo objeto na
   mesma posição, e cada modelo em todos os estados.
 - **Comida sem prato** (o prato é a louça feita por código).
-
-O `PLANO_PIXELLAB.md` lista item por item as variações, os estados e quantos sprites saem no fim.
 - **Balcões:** tampo liso, sem nada em cima, e as peças com a mesma altura.
 - **Itens de pôr em cima** (louça, comida, utensílios, registradora): pequenos e sem mesa embaixo.
+
+O `PLANO_PIXELLAB.md` lista item por item as variações, os estados e quantos sprites saem no fim.
 
 ## Se um item sair errado (importante)
 **Não peça para ele "ajustar" a imagem**: ele redesenha tudo e estraga o que estava bom.
