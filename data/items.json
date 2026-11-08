@@ -326,6 +326,94 @@
       ]
     },
     {
+      "id": "item.counter_a_left",
+      "name": "Balcão verde (ponta esquerda)",
+      "price": 20,
+      "tile": "counter_a_left",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_a_mid",
+      "name": "Balcão verde (meio)",
+      "price": 15,
+      "tile": "counter_a_mid",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_a_right",
+      "name": "Balcão verde (ponta direita)",
+      "price": 20,
+      "tile": "counter_a_right",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_a_single",
+      "name": "Balcão verde pequeno",
+      "price": 25,
+      "tile": "counter_a_single",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_b_left",
+      "name": "Balcão de ripas (ponta esquerda)",
+      "price": 20,
+      "tile": "counter_b_left",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_b_mid",
+      "name": "Balcão de ripas (meio)",
+      "price": 15,
+      "tile": "counter_b_mid",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_b_right",
+      "name": "Balcão de ripas (ponta direita)",
+      "price": 20,
+      "tile": "counter_b_right",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
+      "id": "item.counter_b_single",
+      "name": "Balcão de ripas pequeno",
+      "price": 25,
+      "tile": "counter_b_single",
+      "tags": [
+        "furniture",
+        "counter",
+        "bar"
+      ]
+    },
+    {
       "id": "item.display_case",
       "name": "Vitrine de doces",
       "price": 90,

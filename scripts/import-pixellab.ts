@@ -111,14 +111,14 @@ const SHEETS: Sheet[] = [
       scratch_post: { file: 'piloto01/obj_10.png', w: 1, h: 1 },
       cactus: { file: 'piloto01/obj_5.png', w: 1, h: 1 },
       doormat: { file: '04_cafe_4/obj_7.png', w: 1, h: 1 },
-      counter_left: { file: '01_cafe_1/balcao_esq.png', w: 1, h: 1 },
-      counter_mid: { file: '01_cafe_1/balcao_meio.png', w: 1, h: 1 },
-      counter_right: { file: '01_cafe_1/balcao_dir.png', w: 1, h: 1 },
-      counter_single: { file: '01_cafe_1/balcao_unica.png', w: 1, h: 1 },
-      counter_register: { file: '01_cafe_1/balcao_meio.png', w: 1, h: 1, over: { file: 'mercado_A/obj_0.png', dx: 0, dy: -30 } },
-      bar_balcao_esq: { file: '01_cafe_1/balcao_esq.png', w: 1, h: 1 },
-      bar_balcao_meio: { file: '01_cafe_1/balcao_meio.png', w: 1, h: 1 },
-      bar_balcao_dir: { file: '01_cafe_1/balcao_dir.png', w: 1, h: 1 },
+      counter_left: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'left') },
+      counter_mid: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid') },
+      counter_right: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'right') },
+      counter_single: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'single') },
+      counter_register: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid'), over: { file: 'mercado_A/obj_0.png', dx: 0, dy: -27 } },
+      bar_balcao_esq: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'left') },
+      bar_balcao_meio: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid') },
+      bar_balcao_dir: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'right') },
       wall_shelf: { file: 'cafe_superficies/prateleira_2x1.png', w: 2, h: 1 },
       wall_clock: { file: 'cafe_superficies/relogio.png', w: 1, h: 1 },
     },
@@ -155,6 +155,16 @@ const SHEETS: Sheet[] = [
       sofa_ceu: { file: '03_cafe_3/sofa_128x64.png', w: 2, h: 1, recolor: { from: PINK, hue: 205, sat: 0.8 } },
       cat_bed_rosa: { file: 'piloto01/obj_9.png', w: 1, h: 1, recolor: { from: GREEN, hue: 350, sat: 1.9, light: 0.03 } },
       cat_bed_lilas: { file: 'piloto01/obj_9.png', w: 1, h: 1, recolor: { from: GREEN, hue: 268, sat: 1.7, light: 0.03 } },
+      counter_a_left: { file: '', w: 1, h: 1, build: () => counterPiece('a', 'left') },
+      counter_a_mid: { file: '', w: 1, h: 1, build: () => counterPiece('a', 'mid') },
+      counter_a_right: { file: '', w: 1, h: 1, build: () => counterPiece('a', 'right') },
+      counter_a_single: { file: '', w: 1, h: 1, build: () => counterPiece('a', 'single') },
+      counter_b_left: { file: '', w: 1, h: 1, build: () => counterPiece('b', 'left') },
+      counter_b_mid: { file: '', w: 1, h: 1, build: () => counterPiece('b', 'mid') },
+      counter_b_right: { file: '', w: 1, h: 1, build: () => counterPiece('b', 'right') },
+      counter_b_single: { file: '', w: 1, h: 1, build: () => counterPiece('b', 'single') },
+      // Base da pia do jogo (eq_pia): peça única do modelo 1 com a cuba; as tiras de animação partem dela.
+      sink_counter_m1: { file: '', w: 1, h: 1, build: () => withSink(counterPiece('m1', 'single')) },
     },
   },
   {
@@ -274,29 +284,68 @@ function autoLayout(sheet: Sheet): number {
   return row + rowH;
 }
 
-for (const sheet of SHEETS) {
-  const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
-  const out = new PNG({ width: sheet.columns * TS, height: rows * TS });
-  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }> = {};
-  for (const [name, p] of Object.entries(sheet.layout)) {
-    for (let v = 0; v < (p.variants ?? 1); v++) {
-      const png = load(p, v);
-      const dy = p.dy ?? 0;
-      for (let y = 0; y + dy < png.height; y++) {
-        for (let x = 0; x < png.width; x++) {
-          const sx = p.mirror ? png.width - 1 - x : x;
-          const src = (y * png.width + sx) * 4;
-          const dst = ((p.row! * TS + y + dy) * out.width + (p.col! + v * p.w) * TS + x) * 4;
-          png.data.copy(out.data, dst, src, src + 4);
-        }
-      }
+
+// ---------- Balcões de tampo fundo (3 modelos, decisão 065) ----------
+// Cada modelo veio como um balcão de 3 tiles (192x64). As peças saem fatiando nos painéis da frente,
+// repetindo/tirando colunas de dentro do painel para dar 64 px (como no balcão antigo do café).
+// O modelo 1 veio com a pia na ponta esquerda: o tampo dela é refeito com o tampo do meio.
+interface CounterModel { file: string; p1r: number; p2r: number; hasSink?: boolean; slats?: boolean }
+const BT = 'balcao_teste';
+const COUNTERS: Record<string, CounterModel> = {
+  m1: { file: `${BT}/modelo1_com_pia.png`, p1r: 61, p2r: 121, hasSink: true },
+  a: { file: `${BT}/balcao_pia_var_a_sem_pia.png`, p1r: 62, p2r: 120 },
+  b: { file: `${BT}/balcao_pia_var_b_sem_pia.png`, p1r: 63, p2r: 127, slats: true },
+};
+const SINK = { file: `${BT}/modelo1_com_pia.png`, x0: 15, x1: 52, y0: 2, y1: 32 };
+
+const isSinkPixel = (d: Buffer, i: number) => {
+  const r = d[i]!, g = d[i + 1]!, b = d[i + 2]!, mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  return d[i + 3]! > 0 && ((mx - mn < 24 && mx > 55) || (r + g + b) / 3 < 70);
+};
+
+/** Imagem do modelo sem a pia (o tampo sob a pia vem da mesma linha, 64 px à direita). */
+function counterStrip(m: CounterModel): PNG {
+  const png = readPng(`${SRC}/${m.file}`);
+  if (m.hasSink) {
+    for (let y = SINK.y0; y <= SINK.y1; y++) for (let x = SINK.x0; x <= SINK.x1; x++) {
+      const i = (y * png.width + x) * 4;
+      if (isSinkPixel(png.data, i)) png.data.copy(png.data, i, i + 64 * 4, i + 64 * 4 + 4);
     }
-    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}) };
   }
-  mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
-  writeFileSync(sheet.image, PNG.sync.write(out));
-  writeFileSync(sheet.pieces, JSON.stringify({ tileSize: TS, columns: sheet.columns, rows, pieces }, null, 1) + '\n');
-  console.log(`${sheet.image}: ${Object.keys(pieces).length} peças`);
+  return png;
+}
+
+function columns(src: PNG, cols: number[]): PNG {
+  const out = new PNG({ width: cols.length, height: src.height });
+  cols.forEach((sx, x) => { for (let y = 0; y < src.height; y++) src.data.copy(out.data, (y * cols.length + x) * 4, (y * src.width + sx) * 4, (y * src.width + sx) * 4 + 4); });
+  return out;
+}
+
+/** Fatia um modelo em ponta esquerda, meio, ponta direita e peça única (64 px cada). */
+function counterPiece(model: string, part: 'left' | 'mid' | 'right' | 'single'): PNG {
+  const m = COUNTERS[model]!, src = counterStrip(m), W = src.width;
+  if (m.slats) return columns(src, { left: range(0, 63), mid: range(64, 127), right: range(128, 191), single: [...range(0, 31), ...range(W - 32, W - 1)] }[part]);
+  const fit = (cols: number[], center: number) => {
+    while (cols.length < 64) cols.splice(cols.indexOf(center) + 1, 0, center);
+    while (cols.length > 64) cols.splice(cols.indexOf(center), 1);
+    return cols;
+  };
+  const left = fit(range(0, m.p1r), Math.round(m.p1r / 2));
+  const mid = fit(range(m.p1r + 1, m.p2r), Math.round((m.p1r + m.p2r) / 2));
+  const right = fit(range(m.p2r + 1, W - 1), Math.round((m.p2r + W) / 2));
+  return columns(src, { left, mid, right, single: [...range(0, 31), ...range(W - 32, W - 1)] }[part]);
+}
+
+/** Cola a cuba e a torneira do modelo 1 no meio de uma peça. */
+function withSink(tile: PNG, dx = -2): PNG {
+  const s = readPng(`${SRC}/${SINK.file}`);
+  for (let y = SINK.y0; y <= SINK.y1; y++) for (let x = SINK.x0; x <= SINK.x1; x++) {
+    const i = (y * s.width + x) * 4;
+    if (!isSinkPixel(s.data, i)) continue;
+    const X = x + dx; if (X < 0 || X >= tile.width) continue;
+    s.data.copy(tile.data, (y * tile.width + X) * 4, i, i + 4);
+  }
+  return tile;
 }
 
 // ---------- Sujeira desenhada por código ----------
@@ -456,7 +505,7 @@ const STRIPS: Strip[] = [
       { name: 'forno', frames: equipRow('forno', [1, 2, 3, 2], (f) => keepTop(f, anim('forno', 0), 22), 3) },
     ],
   },
-  { image: 'public/assets/objects/equipment/anim_coffee_maker_pixellab.png', pieces: 'data/tilesets/cafeteira.json', columns: 6, rows: [{ name: 'cafeteira', frames: equipRow('cafeteira') }] },
+  { image: 'public/assets/objects/equipment/anim_coffee_maker_pixellab.png', pieces: 'data/tilesets/cafeteira.json', columns: 6, rows: [{ name: 'cafeteira', frames: equipRow('espresso') }] },
   {
     image: 'public/assets/objects/equipment/anim_sink_pixellab.png',
     pieces: 'data/tilesets/pia.json',
@@ -465,15 +514,40 @@ const STRIPS: Strip[] = [
       name: 'pia',
       // 0 vazia, 1 louça suja, 2-5 lavando, 6 louça limpa (tilesets.json: work [2,5], dirty 1, clean 6).
       frames: (dst, row) => {
-        const base = anim('pia', 0);
+        const base = anim('piam1', 0);
         paste(dst, base, 0, row);
         paste(dst, base, 1, row); paste(dst, readPng(`${EQ}/obj_7.png`), 1, row, 2, -6);
-        [1, 2, 3, 4].forEach((w, k) => paste(dst, anim('pia', w), 2 + k, row));
+        [1, 2, 3, 4].forEach((w, k) => paste(dst, anim('piam1', w), 2 + k, row));
         paste(dst, base, 6, row); paste(dst, readPng(`${EQ}/obj_8.png`), 6, row, -4, -6);
       },
     }],
   },
 ];
+
+for (const sheet of SHEETS) {
+  const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
+  const out = new PNG({ width: sheet.columns * TS, height: rows * TS });
+  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }> = {};
+  for (const [name, p] of Object.entries(sheet.layout)) {
+    for (let v = 0; v < (p.variants ?? 1); v++) {
+      const png = load(p, v);
+      const dy = p.dy ?? 0;
+      for (let y = 0; y + dy < png.height; y++) {
+        for (let x = 0; x < png.width; x++) {
+          const sx = p.mirror ? png.width - 1 - x : x;
+          const src = (y * png.width + sx) * 4;
+          const dst = ((p.row! * TS + y + dy) * out.width + (p.col! + v * p.w) * TS + x) * 4;
+          png.data.copy(out.data, dst, src, src + 4);
+        }
+      }
+    }
+    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}) };
+  }
+  mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
+  writeFileSync(sheet.image, PNG.sync.write(out));
+  writeFileSync(sheet.pieces, JSON.stringify({ tileSize: TS, columns: sheet.columns, rows, pieces }, null, 1) + '\n');
+  console.log(`${sheet.image}: ${Object.keys(pieces).length} peças`);
+}
 
 for (const strip of STRIPS) {
   const out = new PNG({ width: strip.columns * TS, height: strip.rows.length * TS });
