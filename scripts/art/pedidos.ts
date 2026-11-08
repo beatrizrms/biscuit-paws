@@ -85,7 +85,8 @@ const groups: Group[] = [
 // ---------- empacotar em lotes (grade 8x8 em 4x; 16x16 em 2x) ----------
 type Placed = Piece & { cx: number; cy: number };
 function pack(pieces: Piece[], cols: number, maxPieces: number): Placed[][] {
-  const todo = [...pieces].sort((a, b) => b.h - a.h || b.w - a.w);
+  const views = (p: Piece) => (/^chair_/.test(p.name) ? 0 : 1); // vistas do mesmo móvel vão juntas
+  const todo = [...pieces].sort((a, b) => b.h - a.h || b.w - a.w || views(a) - views(b) || a.name.split('_')[0]!.localeCompare(b.name.split('_')[0]!));
   const batches: Placed[][] = [];
   while (todo.length) {
     const used = Array.from({ length: cols }, () => Array<boolean>(cols).fill(false));
@@ -111,22 +112,26 @@ function pack(pieces: Piece[], cols: number, maxPieces: number): Placed[][] {
 }
 
 const BASE = (g: Group, scale: number) => {
-  const cell = 32 * scale, cols = 1024 / cell;
-  return `Redesenhe cada objeto da imagem anexada (molde) como pixel art no MESMO estilo da folha de referência que já usamos
-(${g.context}; visão de frente em 3/4; luz vindo de cima à esquerda; contorno marrom-escuro de 1 pixel;
+  const tile = 32 * scale;
+  return `Crie uma folha de sprites em pixel art no MESMO estilo da folha de referência anexada
+(${g.context}; visão de frente em 3/4; luz vindo de cima à esquerda; contorno marrom-escuro;
 cores quentes e saturadas; volume com o topo dos móveis visível).
 
-FORMATO OBRIGATÓRIO:
-- Imagem de exatamente 1024 x 1024 pixels.
-- Grade invisível de ${cols} colunas x ${cols} linhas; cada célula tem ${cell} x ${cell} px.
-- Cada objeto continua EXATAMENTE na mesma posição e no mesmo tamanho em que está no molde.
-- Pixel art de 32 px por célula ampliada ${scale}x: cada pixel da arte é um quadrado exato de ${scale} x ${scale} px,
-  alinhado à grade. Nada de pixels de tamanhos diferentes.
-- Fundo de cor única, magenta puro #FF00FF, em toda a área fora dos objetos. Sem xadrez, sem textura,
-  sem sombra no fundo, sem moldura.
-- Pixel art "dura": sem antisserrilhado, sem desfoque, sem degradê suave, sem brilho difuso.
-- A base de cada objeto encosta na parte de baixo da sua área. Nenhum objeto invade a área de outro.
-- Sem texto, números ou legendas na imagem.
+TAMANHO É O MAIS IMPORTANTE:
+- Neste jogo, 1 tile = ${tile} x ${tile} px nesta imagem. Cada objeto tem um tamanho fixo em tiles (lista abaixo) e
+  deve ocupar exatamente esse tamanho, encostando a base embaixo. Ex.: um objeto de 1 x 2 tiles tem ${tile} px de
+  largura e ${tile * 2} px de altura. Uma porta e uma estante são da altura de uma pessoa (2 tiles); uma xícara é pequena.
+- Todos os objetos na mesma escala de pixel: cada pixel da arte é um quadrado de ${scale === 4 ? '2 x 2' : '1 x 1'} px em toda a imagem.
+
+FORMATO:
+- Imagem quadrada de 1024 x 1024 px, entregue em PNG.
+- Fundo de cor única, magenta puro #FF00FF, liso. Sem xadrez, sem textura, sem sombra no fundo, sem moldura.
+- Objetos separados por pelo menos 16 px de magenta; nenhum objeto encostado em outro. A posição na imagem é livre.
+- Pixel art com bordas duras: sem desfoque, sem brilho difuso, sem sombra projetada no fundo.
+- Sem texto, números ou legendas.
+- Desenhe só os objetos da lista (o molde anexado mostra o que é cada um). Se sobrar espaço, acrescente variações
+  dos MESMOS objetos (outra cor ou estampa), no mesmo tamanho em tiles.
+- Objetos com várias vistas (ex.: cadeira de frente, de costas e de lado) devem ser o MESMO móvel visto de lados diferentes.
 `;
 };
 
@@ -156,9 +161,9 @@ for (const g of groups) {
     }
     writeFileSync(`${dir}/molde.png`, PNG.sync.write(img));
     const list = [...batch].sort((a, b) => a.cy - b.cy || a.cx - b.cx)
-      .map((p) => `- linha ${p.cy + 1}, coluna ${p.cx + 1}${p.w > 1 || p.h > 1 ? ` (ocupa ${p.w} coluna${p.w > 1 ? 's' : ''} x ${p.h} linha${p.h > 1 ? 's' : ''})` : ''}: ${p.label}`)
+      .map((p) => `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${p.w * 32 * g.scale} x ${p.h * 32 * g.scale} px)`)
       .join('\n');
-    writeFileSync(`${dir}/pedido.txt`, `${g.title}${batches.length > 1 ? ` (parte ${bi + 1} de ${batches.length})` : ''}\nAnexe: molde.png (deste pedido) e a folha de referência de estilo.\n\n${BASE(g, g.scale)}\nOBJETOS (linha e coluna começam em 1, de cima para baixo e da esquerda para a direita):\n${list}\n`);
+    writeFileSync(`${dir}/pedido.txt`, `${g.title}${batches.length > 1 ? ` (parte ${bi + 1} de ${batches.length})` : ''}\nAnexe: molde.png (deste pedido, mostra o que é cada objeto) e a folha de referência de estilo.\n\n${BASE(g, g.scale)}\nOBJETOS (largura x altura em tiles):\n${list}\n`);
     writeFileSync(`${dir}/layout.json`, JSON.stringify({ scale: g.scale, cell, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], cell: [p.cx, p.cy] })) }, null, 2));
     index.push(`| ${dir.split('/').pop()} | ${g.title}${batches.length > 1 ? ` (${bi + 1}/${batches.length})` : ''} | ${batch.length} | ${g.scale}x |`);
   });
