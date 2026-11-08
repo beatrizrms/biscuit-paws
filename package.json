@@ -6,6 +6,7 @@
   "scripts": {
     "tiles": "tsx scripts/build-tiles.ts",
     "art": "tsx scripts/build-worn-tiles.ts",
+    "art:kitchen": "tsx scripts/art/kitchen.ts",
     "art:cafe": "tsx scripts/art/cafe.ts && tsx scripts/build-worn-tiles.ts",
     "character": "tsx scripts/import-character.ts",
     "backyard": "tsx scripts/import-backyard.ts",

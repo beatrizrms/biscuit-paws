@@ -7,7 +7,7 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_originais_pacotes/fluxo_cafe_onda1/fluxo_cafe';
 const OUT = 'public/assets';
-for (const d of ['objects/equipment', 'objects/furniture', 'objects/dishes', 'icons/sheets', 'ui/hud']) mkdirSync(`${OUT}/${d}`, { recursive: true });
+for (const d of ['icons/sheets', 'ui/hud']) mkdirSync(`${OUT}/${d}`, { recursive: true });
 
 /** Junta imagens do mesmo tamanho lado a lado, numa folha com `columns` colunas. */
 function sheet(files: string[], size: number, columns: number, out: string): void {
@@ -26,25 +26,17 @@ function sheet(files: string[], size: number, columns: number, out: string): voi
   writeFileSync(out, PNG.sync.write(png));
 }
 
-// Cafeteira: parada, preparando 1..4, pronta (mesma ordem da folha usada pelo jogo).
-sheet(
-  ['ociosa', 'preparando_1', 'preparando_2', 'preparando_3', 'preparando_4', 'pronta'].map((n) => `${SRC}/estacoes/cafeteira_${n}.png`),
-  32,
-  6,
-  `${OUT}/objects/equipment/anim_coffee_maker.png`,
-);
+// Cafeteira, balcões e louça 16x16 agora são desenhados por scripts/art/kitchen.ts (estilo novo, decisão 051).
 
 // Ícones de comida e o remédio (32x32), numa folha só.
 export const FOOD_ICONS = ['pao', 'pao_de_queijo', 'bolo_fatia', 'biscoito', 'remedio', 'cafe_preto', 'cafe_com_leite', 'cha', 'suco'];
 const TRAYS = ['bandeja_vazia', 'bandeja_1_itens', 'bandeja_2_itens', 'bandeja_3_itens'];
 sheet([...FOOD_ICONS.map((n) => `${SRC}/icones/${n}.png`), ...TRAYS.map((n) => `${SRC}/bandeja/${n}.png`)], 32, FOOD_ICONS.length + TRAYS.length, `${OUT}/icons/sheets/icon_sheet_food.png`);
 
-// Balcões (esquerda, meio, direita) e o marcador que pulsa.
-sheet(['esq', 'meio', 'dir'].map((n) => `${SRC}/estacoes/balcao_${n}.png`), 32, 3, `${OUT}/objects/furniture/tile_counter_wood.png`);
+// Marcador que pulsa no balcão.
 for (const i of [1, 2]) copyFileSync(`${SRC}/estacoes/balcao_marcador_${i}.png`, `${OUT}/ui/hud/ui_ready_marker_${i}.png`);
 
-// Louça 16x16 (limpa, cheia, suja x xícara, prato, copo) e a interface (nome no pacote -> nome no jogo).
-copyFileSync(`${SRC}/louca/louca_tileset_16.png`, `${OUT}/objects/dishes/tile_dishes_16.png`);
+// Interface (nome no pacote -> nome no jogo).
 const ui: Record<string, string> = {
   balao_pedido: 'ui_order_bubble',
   balao_pedido_impaciente: 'ui_order_bubble_impatient',
@@ -61,4 +53,4 @@ const ui: Record<string, string> = {
   ...Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`barra_progresso_${i}`, `ui_progress_bar_${i}`])),
 };
 for (const [from, to] of Object.entries(ui)) copyFileSync(`${SRC}/ui/${from}.png`, `${OUT}/ui/hud/${to}.png`);
-console.log(`fluxo do café: cafeteira, ${FOOD_ICONS.length} ícones, louça 16 e ${Object.keys(ui).length} peças de interface`);
+console.log(`fluxo do café: ${FOOD_ICONS.length} ícones e ${Object.keys(ui).length} peças de interface`);
