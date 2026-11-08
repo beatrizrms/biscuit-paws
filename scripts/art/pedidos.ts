@@ -9,7 +9,17 @@ import { PNG } from 'pngjs';
 
 const OUT = 'pedidos_arte';
 const MAGENTA = [255, 0, 255] as const;
-type Piece = { name: string; label: string; image: string; x: number; y: number; w: number; h: number }; // w/h em tiles de 32
+/** Onde o objeto fica no jogo (muda como ele encosta na área do tile). */
+type Place = 'chao' | 'sobre' | 'parede' | 'piso' | 'pendurado' | 'icone' | 'fachada';
+type Piece = { name: string; label: string; image: string; x: number; y: number; w: number; h: number; place: Place }; // w/h em tiles de 32
+const PLACE_TAG: Record<Place, string> = {
+  chao: '[chão]', sobre: '[sobre balcão/mesa]', parede: '[parede]', piso: '[piso]', pendurado: '[pendurado]', icone: '[ícone]', fachada: '[fachada]',
+};
+// Comidas, bebidas e coisas que ficam em cima de balcão ou mesa; coisas penduradas no teto.
+const SOBRE = /^(cake_|cupcake|macarons|cookie_jar|latte|tea_cup|teapot|milkshake|croissant|fish_biscuits|coffee_machine|caixa_registradora|leitor_codigo)/;
+const PENDURADO = /^(plant_hanging|luminaria_teto|luzinhas_fio|luminaria)$/;
+const layerToPlace = (layer: string | undefined): Place => (layer === 'floor' ? 'piso' : layer === 'wall' ? 'parede' : 'chao');
+const placeOf = (name: string, layer: string | undefined): Place => (PENDURADO.test(name) ? 'pendurado' : SOBRE.test(name) ? 'sobre' : layerToPlace(layer));
 type Group = { id: string; title: string; scale: 4 | 2; context: string; pieces: Piece[] };
 
 const read = <T>(p: string) => JSON.parse(readFileSync(p, 'utf8')) as T;
@@ -19,15 +29,15 @@ const human = (n: string) => n.replace(/_/g, ' ');
 
 // ---------- de onde vêm as peças ----------
 type TilesetJson = { pieces: Record<string, { col: number; row: number; w_tiles?: number; h_tiles?: number }> };
-type SheetDef = { id: string; image: string; pieces: string };
+type SheetDef = { id: string; image: string; pieces: string; layer?: string; overrides?: Record<string, { layer?: string }> };
 const tilesets = read<{ sheets: SheetDef[] }>('data/tilesets.json').sheets;
-function fromTileset(id: string, skip: RegExp, label: (n: string) => string = human): Piece[] {
+function fromTileset(id: string, skip: RegExp, label: (n: string) => string = human, force?: Place): Piece[] {
   const s = tilesets.find((t) => t.id === id);
   if (!s) throw new Error(`folha ${id} não encontrada`);
   const j = read<TilesetJson>(`data/tilesets/${s.pieces}`);
   return Object.entries(j.pieces)
     .filter(([n]) => !skip.test(n))
-    .map(([n, v]) => ({ name: n, label: label(n), image: s.image, x: v.col, y: v.row, w: v.w_tiles ?? 1, h: v.h_tiles ?? 1 }));
+    .map(([n, v]) => ({ name: n, label: label(n), image: s.image, x: v.col, y: v.row, w: v.w_tiles ?? 1, h: v.h_tiles ?? 1, place: force ?? placeOf(n, s.overrides?.[n]?.layer ?? s.layer) }));
 }
 
 const CAFE_PT: Record<string, string> = {
@@ -43,12 +53,13 @@ const CAFE_PT: Record<string, string> = {
   cat_bed: 'caminha de gato redonda', food_bowl: 'tigela de ração', water_bowl: 'tigela de água', yarn_balls: 'novelos de lã', plant_pot: 'planta em vaso de barro',
   plant_tall: 'planta alta em vaso', plant_hanging: 'planta pendurada', cactus: 'cacto em vaso', flower_vase: 'vaso com flores',
 };
+const tileMeta = read<{ tiles: Record<string, { layer?: string }> }>('data/tiles.meta.json').tiles;
 function cafePieces(): Piece[] {
   const csv = readFileSync('data/tiles.csv', 'utf8').trim().split(/\r?\n/).slice(1);
   return csv
     .map((l) => l.split(','))
     .filter(([n]) => !/^(floor_wood|floor_check|floor_tile|wall_|counter_)/.test(n!))
-    .map(([n, c, r, w, h]) => ({ name: n!, label: CAFE_PT[n!] ?? human(n!), image: 'assets/interiors/cafe/tile_cafe.png', x: +c!, y: +r!, w: +w!, h: +h! }));
+    .map(([n, c, r, w, h]) => ({ name: n!, label: CAFE_PT[n!] ?? human(n!), image: 'assets/interiors/cafe/tile_cafe.png', x: +c!, y: +r!, w: +w!, h: +h!, place: placeOf(n!, tileMeta[n!]?.layer) }));
 }
 
 type IconsJson = { image: string; columns: number; sheets: Record<string, { image: string }>; icons: Record<string, { col: number; row: number; sheet?: string }> };
@@ -56,7 +67,7 @@ const icons = read<IconsJson>('data/icons.json');
 function iconPieces(sheet: string | undefined): Piece[] {
   return Object.entries(icons.icons)
     .filter(([, v]) => v.sheet === sheet)
-    .map(([n, v]) => ({ name: n, label: `ícone: ${human(n)}`, image: sheet ? icons.sheets[sheet]!.image : icons.image, x: v.col, y: v.row, w: 1, h: 1 }));
+    .map(([n, v]) => ({ name: n, label: `ícone: ${human(n)}`, image: sheet ? icons.sheets[sheet]!.image : icons.image, x: v.col, y: v.row, w: 1, h: 1, place: 'icone' as Place }));
 }
 
 // ---------- os grupos (o que vai para o gerador) ----------
@@ -74,7 +85,7 @@ const groups: Group[] = [
   })),
   ...(['winter', 'spring', 'summer', 'autumn'] as const).map((s): Group => ({
     id: `rua_fachadas_${s}`, title: `Rua (${s}): fachadas`, scale: 2, context: `fachadas de prédios de uma vila pequena no ${SEASON_PT[s]}`,
-    pieces: [...fromTileset(s === 'winter' ? 'street_facades' : `street_facades_${s}`, /^$/), ...(s === 'winter' ? fromTileset('street_vet', /^$/) : [])],
+    pieces: [...fromTileset(s === 'winter' ? 'street_facades' : `street_facades_${s}`, /^$/, human, 'fachada'), ...(s === 'winter' ? fromTileset('street_vet', /^$/, human, 'fachada') : [])],
   })),
   { id: 'icones_loja', title: 'Ícones: loja do mercado', scale: 4, context: 'ícones de itens de inventário', pieces: iconPieces(undefined) },
   { id: 'icones_ingredientes', title: 'Ícones: ingredientes', scale: 4, context: 'ícones de itens de inventário', pieces: iconPieces('materia_prima') },
@@ -132,6 +143,16 @@ FORMATO:
 - Desenhe só os objetos da lista (o molde anexado mostra o que é cada um). Se sobrar espaço, acrescente variações
   dos MESMOS objetos (outra cor ou estampa), no mesmo tamanho em tiles.
 - Objetos com várias vistas (ex.: cadeira de frente, de costas e de lado) devem ser o MESMO móvel visto de lados diferentes.
+
+ONDE CADA OBJETO FICA (a etiqueta vem na lista):
+- [chão]: em pé no chão; a base encosta na borda de baixo da área do objeto.
+- [sobre balcão/mesa]: fica em cima de um balcão ou mesa. Desenhe SÓ o objeto, sem móvel embaixo, pequeno
+  (ocupando uns 2/3 da área), com a base encostada na borda de baixo; o jogo coloca ele em cima do tampo.
+- [parede]: preso na parede, visto de frente; sem pés e sem sombra no chão; centralizado na área (portas encostam na borda de baixo).
+- [piso]: deitado no chão, plano (tapete, capacho), visto um pouco de cima, ocupando a área toda.
+- [pendurado]: pendurado no teto; o fio ou a corrente sai da borda de cima da área e o objeto fica na metade de cima.
+- [ícone]: ícone de inventário; centralizado, ocupando uns 80% da área, sem sombra.
+- [fachada]: prédio inteiro visto de frente, ocupando a área toda, com a base na borda de baixo (sem calçada).
 `;
 };
 
@@ -161,10 +182,10 @@ for (const g of groups) {
     }
     writeFileSync(`${dir}/molde.png`, PNG.sync.write(img));
     const list = [...batch].sort((a, b) => a.cy - b.cy || a.cx - b.cx)
-      .map((p) => `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${p.w * 32 * g.scale} x ${p.h * 32 * g.scale} px)`)
+      .map((p) => `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${p.w * 32 * g.scale} x ${p.h * 32 * g.scale} px) ${PLACE_TAG[p.place]}`)
       .join('\n');
     writeFileSync(`${dir}/pedido.txt`, `${g.title}${batches.length > 1 ? ` (parte ${bi + 1} de ${batches.length})` : ''}\nAnexe: molde.png (deste pedido, mostra o que é cada objeto) e a folha de referência de estilo.\n\n${BASE(g, g.scale)}\nOBJETOS (largura x altura em tiles):\n${list}\n`);
-    writeFileSync(`${dir}/layout.json`, JSON.stringify({ scale: g.scale, cell, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], cell: [p.cx, p.cy] })) }, null, 2));
+    writeFileSync(`${dir}/layout.json`, JSON.stringify({ scale: g.scale, cell, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], cell: [p.cx, p.cy], place: p.place })) }, null, 2));
     index.push(`| ${dir.split('/').pop()} | ${g.title}${batches.length > 1 ? ` (${bi + 1}/${batches.length})` : ''} | ${batch.length} | ${g.scale}x |`);
   });
 }
