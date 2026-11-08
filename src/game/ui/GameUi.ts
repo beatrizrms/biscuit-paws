@@ -394,7 +394,8 @@ export class GameUi {
     const step = this.session.arrivals.currentStep();
     if (!a || !step) return '';
     const g = uiText.arrivals.goal;
-    const text = 'meet' in step ? (a.def.model === 'vizinho_traz' ? g.meet_neighbor : g.meet) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? g.clue : '';
+    const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : g.meet;
+    const text = 'meet' in step ? meet : 'lead' in step ? g.lead : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? g.clue : '';
     return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }
 

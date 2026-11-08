@@ -282,7 +282,18 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
   const x = a as Partial<ArrivalsState> | null | undefined;
   const ok = (id: unknown): id is string => typeof id === 'string' && (!knownArrivals || knownArrivals.has(id));
   const act = x?.active;
-  const active = act && ok(act.id) && typeof act.catId === 'string' && knownCat(act.catId) ? { id: act.id, catId: act.catId, condition: String(act.condition ?? 'healthy'), startedOn: Number(act.startedOn) || 1, step: Number(act.step) || 0 } : null;
+  const active =
+    act && ok(act.id) && typeof act.catId === 'string' && knownCat(act.catId)
+      ? {
+          id: act.id,
+          catId: act.catId,
+          condition: String(act.condition ?? 'healthy'),
+          startedOn: Number(act.startedOn) || 1,
+          step: Number(act.step) || 0,
+          ...(typeof act.startedAt === 'number' ? { startedAt: act.startedAt } : {}),
+          ...(typeof act.leaderId === 'string' && knownCat(act.leaderId) ? { leaderId: act.leaderId } : {}),
+        }
+      : null;
   return {
     active,
     queue: Array.isArray(x?.queue) ? x.queue.filter(ok) : [],

@@ -53,6 +53,12 @@ const NO_INPUT = { up: false, down: false, left: false, right: false };
  * O mundo: desenha o mapa onde a personagem está (rua, café...), move a jogadora,
  * troca de mapa pelas portas e, dentro do café, cuida do modo de posicionar móveis.
  */
+/** Chegada pegadas: o gato escondido aparece quando ela chega a tantas células. */
+const ARRIVAL_REVEAL_CELLS = 2.5;
+/** Chegada gato_leva: o guia espera se ela ficar mais longe que isto (células) e anda a esta velocidade (px/s). */
+const ARRIVAL_GUIDE_WAIT_CELLS = 3;
+const ARRIVAL_GUIDE_SPEED = 55;
+
 export class WorldScene extends Phaser.Scene implements ScriptStage {
   session!: GameSession;
   private isNew = false;
@@ -102,6 +108,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private jobIcons: Phaser.GameObjects.Image[] = [];
   /** Gato (e vizinho) da chegada esperando no mapa. */
   private arrivalActors: Phaser.GameObjects.GameObject[] = [];
+  /** pegadas: o gato escondido (só aparece de perto) e quantas pegadas estão desenhadas (a neve cobre com o tempo). */
+  private arrivalHidden: Phaser.GameObjects.Sprite | null = null;
+  private arrivalTrailKey: number | null = null;
+  /** gato_leva: o gato do café que guia e a próxima célula do caminho. */
+  private arrivalGuide: { sprite: Phaser.GameObjects.Sprite; next: number; variant: string } | null = null;
   private lastDay: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
@@ -288,6 +299,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     this.sounds?.update();
+    this.updateArrivalActors(this.game.loop.delta);
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing();
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
@@ -857,30 +869,102 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       });
   }
 
-  /** Chegada de gato: quem espera no lugar do encontro (o gato sentado; no vizinho_traz, o vizinho ao lado). */
+  /**
+   * Chegada de gato no mapa: quem espera no lugar do encontro (o gato; no vizinho_traz, o vizinho ao lado), as pegadas
+   * (pegadas: só as que a neve ainda não cobriu; o gato escondido só aparece de perto) e o gato do café que guia
+   * (gato_leva: anda pelo caminho esperando por ela; no fim, o gato novo).
+   */
   private refreshArrivalActors(): void {
     this.arrivalActors.forEach((a) => a.destroy());
     this.arrivalActors = [];
+    this.arrivalHidden = null;
+    this.arrivalGuide = null;
+    this.arrivalTrailKey = null;
     const a = this.session.arrivals.active();
     const step = this.session.arrivals.currentStep();
-    if (!a || !step || !('meet' in step) || a.def.place.map !== this.map.id || !a.def.place.at) return;
+    if (!a || !step || a.def.place.map !== this.map.id) return;
     const ts = this.map.tileSize;
-    const [c, r] = a.def.place.at;
     const who = actorsOf(a.def);
-    const variant = this.session.catDef(a.catId)?.variant;
-    if (who.cat && variant && this.textures.exists(catTexture(variant))) {
+    const sitCat = (catId: string | undefined, [c, r]: [number, number]) => {
+      const variant = catId ? this.session.catDef(catId)?.variant : undefined;
+      if (!variant || !this.textures.exists(catTexture(variant))) return null;
       CatSprite.createAnimations(this, variant);
       const feet = (r + 1) * ts - 4;
       const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
       cat.play(`${catTexture(variant)}-sit`);
       this.arrivalActors.push(cat);
+      return cat;
+    };
+    const at = a.def.place.at;
+    if ('meet' in step && at) {
+      if (who.trail) {
+        // PLACEHOLDER(arte): pegadas desenhadas por código (ph_footprints).
+        const def = this.session.content.catalog.tiles['ph_footprints'];
+        if (def) for (const [c, r] of this.session.arrivals.trailNow()) this.arrivalActors.push(addTileImage(this, c * ts, r * ts, def.sheet, frameOf(this.session.content.catalog, def)).setDepth(1));
+        this.arrivalTrailKey = this.session.arrivals.trailNow().length;
+      }
+      if (who.cat) {
+        const cat = sitCat(a.catId, at);
+        if (cat && who.hidden) {
+          cat.setVisible(false);
+          this.arrivalHidden = cat;
+        }
+      }
+      const npc = who.npc ? this.session.content.npcs[who.npc] : undefined;
+      if (npc) {
+        const sprite = new NpcSprite(this, npc, (at[0] - 0.5) * ts, (at[1] + 1) * ts, ts);
+        sprite.face('right');
+        this.arrivalActors.push(sprite);
+      }
+      if (who.leader) sitCat(a.leaderId, at);
     }
-    const npc = who.npc ? this.session.content.npcs[who.npc] : undefined;
-    if (npc) {
-      const sprite = new NpcSprite(this, npc, (c - 0.5) * ts, (r + 1) * ts, ts);
-      sprite.face('right');
-      this.arrivalActors.push(sprite);
+    const route = a.def.place.route;
+    if ('lead' in step && route && route.length > 0) {
+      sitCat(a.catId, route[route.length - 1]!); // o gato novo espera no fim do caminho
+      const guide = sitCat(a.leaderId, at ?? route[0]!);
+      if (guide) this.arrivalGuide = { sprite: guide, next: 0, variant: this.session.catDef(a.leaderId!)!.variant };
     }
+  }
+
+  /** A cada quadro: o gato escondido aparece de perto; o guia anda pelo caminho esperando por ela; a neve cobre as pegadas. */
+  private updateArrivalActors(delta: number): void {
+    const ts = this.map.tileSize;
+    if (this.arrivalHidden) {
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.arrivalHidden.x, this.arrivalHidden.y);
+      this.arrivalHidden.setVisible(d < ARRIVAL_REVEAL_CELLS * ts);
+    }
+    if (this.arrivalTrailKey !== null && this.session.arrivals.trailNow().length !== this.arrivalTrailKey) this.refreshArrivalActors();
+    const g = this.arrivalGuide;
+    const route = this.session.arrivals.active()?.def.place.route;
+    if (!g || !route || g.next >= route.length) return;
+    // Ficou para trás (longe e mais longe do destino que o guia): o guia senta e espera. Se ela foi na frente, ele segue.
+    const [ec, er] = route[route.length - 1]!;
+    const toEnd = (x: number, y: number) => Phaser.Math.Distance.Between(x, y, (ec + 0.5) * ts, (er + 1) * ts - 4);
+    const far =
+      Phaser.Math.Distance.Between(this.player.x, this.player.y, g.sprite.x, g.sprite.y) > ARRIVAL_GUIDE_WAIT_CELLS * ts &&
+      toEnd(this.player.x, this.player.y) > toEnd(g.sprite.x, g.sprite.y);
+    const tex = catTexture(g.variant);
+    if (far) {
+      g.sprite.play(`${tex}-sit`, true);
+      return;
+    }
+    const [c, r] = route[g.next]!;
+    const tx = (c + 0.5) * ts;
+    const ty = (r + 1) * ts - 4;
+    const step = (ARRIVAL_GUIDE_SPEED * delta) / 1000;
+    const dx = tx - g.sprite.x;
+    const dy = ty - g.sprite.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist <= step) {
+      g.sprite.setPosition(tx, ty);
+      g.next++;
+      if (g.next >= route.length) g.sprite.play(`${tex}-sit`, true);
+    } else {
+      g.sprite.setPosition(g.sprite.x + (dx / dist) * step, g.sprite.y + (dy / dist) * step);
+      const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'walk_right' : 'walk_left') : dy > 0 ? 'walk_down' : 'walk_up';
+      g.sprite.play(`${tex}-${dir}`, true);
+    }
+    g.sprite.setDepth(ySortDepth(g.sprite.y));
   }
 
   // ---------- Atendimento ----------

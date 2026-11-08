@@ -14,7 +14,7 @@ export type ArrivalModel = (typeof ARRIVAL_MODELS)[number];
 export const PLACE_KINDS = ['cafe_door', 'street', 'roof', 'market', 'backyard', 'inside_cafe', 'clinic'] as const;
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
-export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'none'] as const;
+export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'none'] as const;
 export type Clue = (typeof CLUES)[number];
 
 /** Café cheio: o gato fica provisório (com prazo), vai para o abrigo da vila (adoção) ou a chegada espera vaga. */
@@ -42,6 +42,8 @@ export type ArrivalStep =
   | { meet: true }
   /** Cartaz no mural do mercado e no Vila Hoje: "Acolher" segue, "Agora não" recusa. */
   | { poster: true }
+  /** Seguir o gato do café que leva até o lugar (place.route; o fim é o destino, onde o gato novo espera). */
+  | { lead: true }
   | { dialogue: string }
   | { cutscene: string }
   | { script: string }
@@ -72,7 +74,18 @@ export interface ArrivalDef {
   /** Peso no sorteio do dia (random; padrão 1). */
   weight?: number;
   trigger: ArrivalTrigger;
-  place: { kind: PlaceKind; map?: string; at?: [number, number] };
+  place: {
+    kind: PlaceKind;
+    map?: string;
+    /** Onde o encontro acontece (o gato esperando; nas pegadas, o esconderijo; no gato_leva, onde o guia aparece). */
+    at?: [number, number];
+    /** pegadas: as células das pegadas, da porta até perto do esconderijo. */
+    trail?: [number, number][];
+    /** pegadas: em quantos minutos a neve cobre as pegadas (some primeiro o começo: seguir cedo é mais fácil). */
+    fadeMinutes?: number;
+    /** gato_leva: o caminho do guia; a última célula é onde o gato novo espera. */
+    route?: [number, number][];
+  };
   clue: Clue;
   /** Gato fixo (data/cats.json) ou gerado (o que vier fixo; o resto sorteado). */
   cat: { id: string } | { generate: GenerateSpec };
@@ -100,6 +113,10 @@ export interface ActiveArrival {
   catId: string;
   condition: string;
   startedOn: number;
+  /** Minuto absoluto em que começou (as pegadas somem com o tempo). */
+  startedAt?: number;
+  /** gato_leva: o gato do café que guia. */
+  leaderId?: string;
   /** Etapa atual (índice em steps). */
   step: number;
 }
@@ -132,6 +149,16 @@ export interface TriggerContext {
   cats: number;
   reputation: number;
   evaluate(condition: unknown): boolean;
+}
+
+/**
+ * Pegadas ainda visíveis: a neve cobre do começo (perto da porta) para o fim, ao longo de fadeMinutes.
+ * Sem fadeMinutes, todas ficam.
+ */
+export function visibleTrail(trail: readonly [number, number][], fadeMinutes: number | undefined, elapsedMinutes: number): [number, number][] {
+  if (!fadeMinutes) return [...trail];
+  const gone = Math.floor(Math.max(0, Math.min(1, elapsedMinutes / fadeMinutes)) * trail.length);
+  return trail.slice(gone);
 }
 
 /** O gatilho da chegada vale agora? */
@@ -234,6 +261,8 @@ export function validateArrivals(
     const steps = stepsOf(a);
     if (steps.some((s) => 'meet' in s) && (!a.place.map || !a.place.at)) err(`${w}: a etapa meet precisa de place.map e place.at`);
     if (a.model === 'vizinho_traz' && !a.result?.npc) err(`${w}: vizinho_traz precisa de result.npc (quem traz o gato)`);
+    if (a.model === 'pegadas' && (a.place.trail?.length ?? 0) < 2) err(`${w}: pegadas precisa de place.trail (2 células ou mais)`);
+    if (steps.some((s) => 'lead' in s) && (a.place.route?.length ?? 0) < 2) err(`${w}: a etapa lead precisa de place.route (2 células ou mais)`);
     for (const step of steps) {
       if ('dialogue' in step && !refs.dialogues.has(step.dialogue)) err(`${w}: fala inexistente "${step.dialogue}"`);
       else if ('cutscene' in step && !refs.cutscenes.has(step.cutscene)) err(`${w}: cena inexistente "${step.cutscene}"`);

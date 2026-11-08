@@ -944,6 +944,10 @@
         },
         "fair_balloons": {
           "solid": false
+        },
+        "footprints": {
+          "layer": "floor",
+          "solid": false
         }
       }
     }

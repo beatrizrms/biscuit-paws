@@ -1,6 +1,6 @@
 // npx tsx scripts/art/placeholders.ts [--preview <png>]
 // Arte provisória desenhada por código (32 px, paleta Cosy), até a arte de verdade (PixelLab) chegar:
-// a caixa de areia do gato, o cocô do dia 2 e a feira de adoção (placa, bandeirinhas, balões e a mesa). Folha: data/tilesets.json "placeholders" (peças em data/tilesets/placeholders.json).
+// a caixa de areia do gato, o cocô do dia 2, a feira de adoção (placa, bandeirinhas, balões e a mesa) e as pegadas. Folha: data/tilesets.json "placeholders" (peças em data/tilesets/placeholders.json).
 import { Canvas, at, preview, rng, writeWithBackup } from './lib';
 import { P } from './palette';
 
@@ -81,8 +81,20 @@ function fairTable(): Canvas {
   return c.outline();
 }
 
-// Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa.
-const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable()];
+/** Chegada pegadas: duas patinhas na neve (cinza-azulado, meio apagadas). */
+function footprints(): Canvas {
+  const c = new Canvas(T, T);
+  const paw = (x: number, y: number) => {
+    c.ellipse(x, y, 2.5, 2, at(P.sky, 1));
+    for (const [dx, dy] of [[-2, -3], [0, -4], [2, -3]] as const) c.px(x + dx, y + dy, at(P.sky, 1));
+  };
+  paw(11, 12);
+  paw(20, 22);
+  return c;
+}
+
+// Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa, pegadas.
+const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable(), footprints()];
 const sheet = new Canvas(pieces.length * T, T);
 pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');

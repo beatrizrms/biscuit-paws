@@ -590,15 +590,19 @@
       "meow": "Um miado lá fora... vem da porta do café.",
       "neighbor": "{arrival:npc} está na porta do café com alguma coisa no colo.",
       "poster": "Tem um cartaz novo no mural do mercado: um gato precisa de lar.",
-      "footprints": "Pegadas de gato na calçada...",
-      "none": ""
+      "footprints": "Pegadas de gato na neve da calçada... saindo da porta do café.",
+      "none": "",
+      "leader": "{arrival:leader} mia insistente na porta do café, olhando para você..."
     },
     "goal": {
       "meet": "Ver quem está na porta do café.",
       "meet_neighbor": "Falar com {arrival:npc} na porta do café.",
       "poster": "Ler o cartaz no mural do mercado (ou no Vila Hoje).",
       "choice": "Decidir se o gato fica.",
-      "clue": "Seguir a pista."
+      "clue": "Seguir a pista.",
+      "trail": "Seguir as pegadas na calçada antes que a neve cubra.",
+      "meet_leader": "Ver o que {arrival:leader} quer, na porta do café.",
+      "lead": "Seguir {arrival:leader}."
     },
     "choices": {
       "take_in": {

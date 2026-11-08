@@ -1,5 +1,6 @@
 // Marcadores nos textos dos dados: {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação),
-// {arrival:condition} / {arrival:personality} / {arrival:npc} (a chegada de gato em andamento: como chega, o jeito, quem trouxe).
+// {arrival:condition} / {arrival:personality} / {arrival:npc} / {arrival:leader} (a chegada de gato em andamento: como chega,
+// o jeito, quem trouxe, o gato do café que guia).
 import type { GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
 import { uiText } from '../content';
@@ -29,5 +30,6 @@ function arrivalText(session: GameSession, what: string): string {
     return (uiText.cats.personalities[p as keyof typeof uiText.cats.personalities] ?? '').toLowerCase();
   }
   if (what === 'npc') return session.content.npcs[a.def.result?.npc?.id ?? '']?.name ?? '';
+  if (what === 'leader') return a.leaderId ? session.catName(a.leaderId) : '';
   return '';
 }

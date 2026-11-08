@@ -163,6 +163,8 @@ export class GameSession {
       bus: this.bus,
       evaluate: (c) => evaluate(c as Condition, this.state, this.storyContext()),
       shelteredCount: () => this.shelteredCats().length,
+      guideCats: () => this.shelteredCats().filter((id) => this.state.cats[id]?.provisionalUntil === undefined),
+      now: () => nowAbs(this.state),
       capacity: () => this.catCapacity(),
       exclusiveActive: () => this.exclusiveActive(),
       reputation: () => this.reputation(),

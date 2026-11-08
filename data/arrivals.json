@@ -40,6 +40,45 @@
       "whenFull": "adoption"
     },
     {
+      "id": "arr.snow_trail",
+      "model": "pegadas",
+      "kind": "random",
+      "repeatable": true,
+      "minGapDays": 10,
+      "trigger": { "seasons": ["winter"], "weather": ["snow"], "hours": ["07:00", "11:00"] },
+      "place": {
+        "kind": "street",
+        "map": "map.street",
+        "at": [24, 8],
+        "trail": [[17, 9], [18, 9], [19, 9], [20, 9], [21, 9], [22, 9], [23, 9], [24, 9]],
+        "fadeMinutes": 240
+      },
+      "clue": "footprints",
+      "cat": { "generate": { "condition": "cold" } },
+      "steps": [],
+      "result": { "startPoints": 50 },
+      "whenFull": "provisional"
+    },
+    {
+      "id": "arr.cat_leads",
+      "model": "gato_leva",
+      "kind": "random",
+      "repeatable": true,
+      "minGapDays": 12,
+      "trigger": { "cats": { "gte": 1 } },
+      "place": {
+        "kind": "street",
+        "map": "map.street",
+        "at": [16, 9],
+        "route": [[15, 9], [14, 9], [13, 9], [12, 9], [11, 9], [10, 9], [9, 9], [8, 9], [7, 9], [6, 9], [5, 9], [4, 9]]
+      },
+      "clue": "leader",
+      "cat": { "generate": { "condition": "scared" } },
+      "steps": [],
+      "result": { "startPoints": 30 },
+      "whenFull": "provisional"
+    },
+    {
       "id": "arr.board_poster",
       "model": "mural",
       "kind": "random",

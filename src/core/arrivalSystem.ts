@@ -4,7 +4,7 @@
 // mini game, escolha) vêm a partir da etapa (b); aqui ficam o ciclo e as regras de vaga e ritmo.
 // Puro: sem Phaser, DOM ou window.
 import { stepsOf } from './arrivalModels';
-import { arrivalsToQueue, nextGap, triggerHolds, type ArrivalDef, type ArrivalStep } from './arrivals';
+import { arrivalsToQueue, nextGap, triggerHolds, visibleTrail, type ArrivalDef, type ArrivalStep } from './arrivals';
 import type { JobPoint } from './jobs';
 import { generateCat } from './catGen';
 import { seasonOf, weatherOf } from './calendar';
@@ -15,6 +15,8 @@ import type { GameState } from './state';
 
 /** Id do ponto do encontro (não é um ponto de data/jobs.json: existe só durante a chegada). */
 export const meetPointId = (arrivalId: string) => `arrival:${arrivalId}`;
+/** Id do destino do guia (gato_leva). */
+export const destPointId = (arrivalId: string) => `arrival:${arrivalId}:dest`;
 
 /** Onde o gato foi parar no fim da chegada. */
 export type Placement = 'sheltered' | 'provisional' | 'shelter_pool' | null;
@@ -24,6 +26,10 @@ export interface ArrivalHost {
   content: Content;
   bus: EventBus;
   evaluate(condition: unknown): boolean;
+  /** Gatos do café que podem guiar (gato_leva): abrigados de vez. */
+  guideCats(): string[];
+  /** Minuto absoluto agora (dia * 1440 + hora). */
+  now(): number;
   /** Gatos que ocupam vaga no café (abrigados, inclusive os provisórios) e a capacidade dos cômodos abertos. */
   shelteredCount(): number;
   capacity(): number;
@@ -58,10 +64,17 @@ export class ArrivalSystem {
   }
 
   /** A chegada em andamento, com a definição. */
-  active(): { def: ArrivalDef; catId: string; condition: string; step: number } | null {
+  active(): { def: ArrivalDef; catId: string; condition: string; step: number; leaderId?: string; startedAt: number } | null {
     const a = this.st.active;
     const def = a ? this.def(a.id) : undefined;
-    return a && def ? { def, catId: a.catId, condition: a.condition, step: a.step } : null;
+    return a && def ? { def, catId: a.catId, condition: a.condition, step: a.step, startedAt: a.startedAt ?? this.h.now(), ...(a.leaderId ? { leaderId: a.leaderId } : {}) } : null;
+  }
+
+  /** Pegadas visíveis agora (a neve cobre com o tempo: seguir cedo é mais fácil). */
+  trailNow(): [number, number][] {
+    const a = this.active();
+    if (!a?.def.place.trail) return [];
+    return visibleTrail(a.def.place.trail, a.def.place.fadeMinutes, this.h.now() - a.startedAt);
   }
 
   /** O sorteio automático já vale (depois dos gatos escritos à mão)? */
@@ -99,9 +112,10 @@ export class ArrivalSystem {
   private tryStart(): void {
     if (this.st.active || this.h.exclusiveActive()) return;
     const full = this.h.shelteredCount() >= this.h.capacity();
+    // gato_leva precisa de um gato do café para guiar.
     const i = this.st.queue.findIndex((id) => {
       const def = this.def(id);
-      return def && !(def.whenFull === 'postpone' && full);
+      return def && !(def.whenFull === 'postpone' && full) && !(def.model === 'gato_leva' && this.h.guideCats().length === 0);
     });
     if (i < 0) return;
     const [id] = this.st.queue.splice(i, 1);
@@ -121,7 +135,9 @@ export class ArrivalSystem {
       catId = gen.def.id;
       condition = def.condition ?? gen.condition;
     }
-    this.st.active = { id: def.id, catId, condition, startedOn: s.day, step: 0 };
+    const guides = def.model === 'gato_leva' ? this.h.guideCats() : [];
+    const leaderId = guides.length > 0 ? guides[this.rng().int(0, guides.length - 1)] : undefined;
+    this.st.active = { id: def.id, catId, condition, startedOn: s.day, startedAt: this.h.now(), step: 0, ...(leaderId ? { leaderId } : {}) };
     this.st.last[def.id] = s.day;
     this.h.bus.emit('arrival.started', { arrivalId: def.id, catId, model: def.model });
     this.enterStep();
@@ -175,6 +191,8 @@ export class ArrivalSystem {
     const step = this.currentStep();
     if (!a || !step) return [];
     if ('meet' in step && a.def.place.map === mapId && a.def.place.at) return [{ id: meetPointId(a.def.id), map: mapId, at: a.def.place.at, action: 'press' }];
+    const route = a.def.place.route;
+    if ('lead' in step && a.def.place.map === mapId && route && route.length > 0) return [{ id: destPointId(a.def.id), map: mapId, at: route[route.length - 1]!, action: 'press' }];
     if ('clue' in step) {
       const p = this.h.content.jobPoints[step.clue];
       return p && p.map === mapId ? [p] : [];
@@ -187,7 +205,7 @@ export class ArrivalSystem {
     const a = this.active();
     const step = this.currentStep();
     if (!a || !step) return false;
-    if (('meet' in step && pointId === meetPointId(a.def.id)) || ('clue' in step && step.clue === pointId)) {
+    if (('meet' in step && pointId === meetPointId(a.def.id)) || ('lead' in step && pointId === destPointId(a.def.id)) || ('clue' in step && step.clue === pointId)) {
       this.advance();
       return true;
     }

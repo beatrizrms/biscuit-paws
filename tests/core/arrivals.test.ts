@@ -277,3 +277,54 @@ describe('modelos de chegada (etapa b)', () => {
     expect(errors).toMatch(/"arr.y": a etapa meet precisa de place.map e place.at/);
   });
 });
+
+describe('modelos de chegada (etapa c)', () => {
+  function cafe() {
+    const state = newGameState(500, 'map.street', 8 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    const events: { name: string; payload: unknown }[] = [];
+    session.bus.onAny((name, payload) => events.push({ name, payload }));
+    return { session, state, events };
+  }
+
+  it('pegadas somem do começo para o fim com o tempo (seguir cedo é mais fácil)', async () => {
+    const { visibleTrail } = await import('../../src/core/arrivals');
+    const trail: [number, number][] = [[0, 0], [1, 0], [2, 0], [3, 0]];
+    expect(visibleTrail(trail, 100, 0)).toEqual(trail);
+    expect(visibleTrail(trail, 100, 50)).toEqual([[2, 0], [3, 0]]);
+    expect(visibleTrail(trail, 100, 500)).toEqual([]);
+    expect(visibleTrail(trail, undefined, 500)).toEqual(trail);
+  });
+
+  it('pegadas: o encontro é no esconderijo; a neve cobre conforme o relógio anda', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.snow_trail');
+    const def = content.arrivals.arrivals.find((a) => a.id === 'arr.snow_trail')!;
+    expect(session.pendingJobPoints('map.street').find((p) => p.id === 'arrival:arr.snow_trail')?.at).toEqual(def.place.at);
+    expect(session.arrivals.trailNow()).toHaveLength(def.place.trail!.length);
+    state.time += def.place.fadeMinutes! / 2;
+    expect(session.arrivals.trailNow().length).toBeLessThan(def.place.trail!.length);
+    session.doJobPoint('arrival:arr.snow_trail');
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+
+  it('gato_leva: precisa de um gato do café para guiar; segue o caminho até o gato novo', () => {
+    const none = cafe();
+    none.session.arrivals.queueNow('arr.cat_leads');
+    expect(none.state.arrivals.active).toBeNull(); // nenhum gato para guiar: espera na fila
+
+    const { session, state } = cafe();
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
+    session.arrivals.queueNow('arr.cat_leads');
+    expect(state.arrivals.active?.leaderId).toBe('cat.first_stray');
+    session.doJobPoint('arrival:arr.cat_leads');
+    expect(session.arrivals.currentStep()).toEqual({ lead: true });
+    const route = content.arrivals.arrivals.find((a) => a.id === 'arr.cat_leads')!.place.route!;
+    expect(session.pendingJobPoints('map.street').find((p) => p.id === 'arrival:arr.cat_leads:dest')?.at).toEqual(route[route.length - 1]);
+    session.doJobPoint('arrival:arr.cat_leads:dest');
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+});
