@@ -9,7 +9,7 @@ describe('buildCatalog', () => {
   const catalog = buildCatalog(csv, meta);
 
   it('lê todos os tiles do pacote com as nossas decisões', () => {
-    expect(Object.keys(catalog.tiles)).toHaveLength(58);
+    expect(Object.keys(catalog.tiles)).toHaveLength(60);
     expect(getTile(catalog, 'cat_tree')).toMatchObject({ col: 6, row: 6, w: 2, h: 3, solid: true, layer: 'object' });
     expect(getTile(catalog, 'floor_rug')).toMatchObject({ w: 3, h: 2, solid: false, layer: 'floor' });
   });

@@ -57,3 +57,5 @@ plant_tall,4,9,1,2,76
 plant_hanging,5,9,1,1,77
 cactus,6,9,1,1,78
 flower_vase,7,9,1,1,79
+chair_left,0,10,1,1,80
+chair_right,1,10,1,1,81

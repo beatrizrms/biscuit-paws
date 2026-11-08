@@ -375,16 +375,18 @@
       "tile": "market_caixa_registradora",
       "at": [
         13,
-        9
-      ]
+        10
+      ],
+      "lift": 18
     },
     {
       "id": "obj.market_leitor_codigo",
       "tile": "market_leitor_codigo",
       "at": [
         14,
-        9
-      ]
+        10
+      ],
+      "lift": 18
     },
     {
       "id": "obj.market_banco_caixa",

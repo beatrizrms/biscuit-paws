@@ -42,6 +42,8 @@ export interface DirtSpot {
   /** Embaixo dela tem um item (ex.: a chave do quintal): limpar entrega o item, com esta fala. */
   gives?: string;
   foundDialogue?: string;
+  /** Pixels para cima (negativo = para baixo), para assentar a peça (ex.: buraco de rato no rodapé). */
+  lift?: number;
 }
 
 /** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */
@@ -311,7 +313,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const [c0, r0] = d.at;
     const depth = def.layer === 'floor' ? DEPTH.floorDirt : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
     for (const [col, row] of cellsOf(d.at, def)) {
-      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth });
+      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, ...(d.lift ? { dy: d.lift } : {}) });
     }
   }
 

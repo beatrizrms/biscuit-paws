@@ -43,6 +43,8 @@
     "table_round":      { "solid": true,  "layer": "object" },
     "chair_front":      { "solid": false, "layer": "object" },
     "chair_back":       { "solid": false, "layer": "object" },
+    "chair_left":       { "solid": false, "layer": "object" },
+    "chair_right":      { "solid": false, "layer": "object" },
     "sofa":             { "solid": true,  "layer": "object" },
     "bookshelf":        { "solid": true,  "layer": "object" },
     "cat_tree":         { "solid": true,  "layer": "object" },

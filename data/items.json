@@ -329,6 +329,28 @@
       ]
     },
     {
+      "id": "item.chair_left",
+      "name": "Cadeira (virada para a esquerda)",
+      "price": 15,
+      "tile": "chair_left",
+      "tags": [
+        "furniture",
+        "for:guests",
+        "chair"
+      ]
+    },
+    {
+      "id": "item.chair_right",
+      "name": "Cadeira (virada para a direita)",
+      "price": 15,
+      "tile": "chair_right",
+      "tags": [
+        "furniture",
+        "for:guests",
+        "chair"
+      ]
+    },
+    {
       "id": "item.sofa",
       "name": "Sofá menta",
       "price": 120,
