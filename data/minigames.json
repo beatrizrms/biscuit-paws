@@ -152,6 +152,44 @@
         "normal": {"hideouts":8,"tries":5,"kittens":[1,1],"greatTries":3,"timeSec":45},
         "hard": {"hideouts":10,"tries":7,"kittens":[2,3],"greatTries":3,"timeSec":60}
       }
+    },
+    "delivery": {
+      "name": "Entrega relâmpago",
+      "instructions": "Leve o pedido até a porta da casa no fim da rua (setas/WASD). Desvie dos pedestres e das bicicletas: cada esbarrão atrasa e estraga um pouco. E corra: o café esfria!",
+      "tutorial": {"icon":"cafe_para_viagem","lines":["Setas ou WASD para andar até a porta marcada.","Esbarrou em alguém? Para 1 s e o pedido estraga um pouco.","Chegue com mais de 50% de qualidade para o \"Perfeito!\"."]},
+      "map": "map.minigame_chase",
+      "start": [2,6],
+      "goal": [30,3],
+      "goalRadius": 18,
+      "stunMs": 1000,
+      "hitRadius": {"pedestrian":11,"bike":16},
+      "graceMs": 600,
+      "sounds": {"bump":"error","arrive":"door_bell"},
+      "items": [
+        {"id":"coffee","name":"Café","icon":"cafe_para_viagem","verb":"esfriando","decayPerSec":1.6,"hitLoss":12},
+        {"id":"cat_food","name":"Ração","icon":"racao_simples","verb":"chacoalhando","decayPerSec":0.7,"hitLoss":20},
+        {"id":"cake","name":"Bolo","icon":"bolo_fatia","verb":"amassando","decayPerSec":1.0,"hitLoss":25}
+      ],
+      "obstacles": [
+        {"kind":"pedestrian","path":[[7,2],[7,7]],"speed":30},
+        {"kind":"bike","path":[[29,7],[3,7]],"speed":85},
+        {"kind":"pedestrian","path":[[12,3],[20,3]],"speed":28},
+        {"kind":"pedestrian","path":[[16,7],[16,2]],"speed":34},
+        {"kind":"bike","path":[[4,4],[28,4]],"speed":95},
+        {"kind":"pedestrian","path":[[24,6],[24,2]],"speed":32},
+        {"kind":"pedestrian","path":[[9,5],[20,5]],"speed":36},
+        {"kind":"bike","path":[[28,3],[21,3]],"speed":100}
+      ],
+      "rewards": {
+        "easy": {"ok":10,"great":18},
+        "normal": {"ok":16,"great":26},
+        "hard": {"ok":24,"great":40}
+      },
+      "difficulties": {
+        "easy": {"obstacles":3,"speedScale":0.8,"decayScale":0.8,"timeSec":60,"greatQuality":0.5},
+        "normal": {"obstacles":5,"speedScale":1,"decayScale":1,"timeSec":50,"greatQuality":0.5},
+        "hard": {"obstacles":8,"speedScale":1.2,"decayScale":1.25,"timeSec":40,"greatQuality":0.5}
+      }
     }
   }
 }

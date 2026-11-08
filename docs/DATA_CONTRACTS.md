@@ -404,6 +404,8 @@ Todo jogo pode ter `tutorial` (`{ "icon": "<icons.json>", "lines": [1 a 3 linhas
 
 Caça ao filhote (`kitten_hunt`): `map` + `view` (`[col, row, largura, altura]`: o pedaço da arena na tela fixa), `hideouts` (`{ id, kind, at }` em células), `hideoutKinds` (tipos com arte: caixa, lixeira, arbusto e carro do Gato em fuga; cesto, caixote e vaso provisórios), `heatRange` (células em que o calor chega a 0), `heat` (`{ min, label, color, rate }`: o nível da dica e o tom do miado), `sounds` (`hint`, `found`). Por dificuldade: `hideouts` (quantos aparecem), `tries`, `kittens` (`[mín, máx]`), `greatTries`, `timeSec` (opcional). Regra: `src/core/kittenHunt.ts`.
 
+Entrega relâmpago (`delivery`): `map`, `start` e `goal` (células), `goalRadius` (px), `stunMs`, `graceMs`, `hitRadius` (`{ pedestrian, bike }`, px), `sounds` (`bump`, `arrive`), `items` (`{ id, name, icon, verb, decayPerSec, hitLoss }`: qualidade de 0 a 100) e `obstacles` (`{ kind: pedestrian|bike, path: [[c,r],[c,r]], speed }`: vai e volta). Por dificuldade: `obstacles` (quantas rotas, as primeiras), `speedScale`, `decayScale`, `timeSec` (opcional), `greatQuality` (0,5). O mini game pode ser aberto com `itemId` (id de um item de entrega) para escolher o pedido. Regra: `src/core/delivery.ts`.
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

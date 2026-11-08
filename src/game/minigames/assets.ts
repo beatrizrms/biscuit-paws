@@ -56,6 +56,16 @@ export const KITTEN_HUNT = {
   pot: { key: 'mg.hunt.pot', file: `${DIR}/hunt/hide_pot.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xc0704a },
 } satisfies Record<string, SheetSpec>;
 
+/**
+ * Entrega relâmpago. PLACEHOLDER(arte): a bicicleta (64 x 64, de lado, virada para a direita; espelhada para a
+ * esquerda) e a porta da casa de entrega (64 x 128, 1 x 2 tiles, com capacho) ainda não têm arquivo: retângulos
+ * coloridos até a arte chegar (lista na memória: assets-pendentes). Pedestres são os NPCs de cliente.
+ */
+export const DELIVERY = {
+  bike: { key: 'mg.delivery.bike', file: `${DIR}/delivery/obstacle_bike.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x5a86b8 },
+  door: { key: 'mg.delivery.door', file: `${DIR}/delivery/goal_door.png`, frameWidth: 64, frameHeight: 128, placeholder: 0x9fd8b5 },
+} satisfies Record<string, SheetSpec>;
+
 /** Onde fica a parte de dentro da barra de timing (pixels da arte, 48 x 192): o trilho e o tubo do progresso. */
 export const BAR_TRACK = { x: 8, w: 19, y: 40, h: 113, progressX: 28, progressW: 3 };
 

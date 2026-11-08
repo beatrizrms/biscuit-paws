@@ -1,6 +1,7 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
 import type { FishDef } from './fishing';
+import type { DeliveryItem, ObstacleRoute } from './delivery';
 import type { HeatLevel, Hideout } from './kittenHunt';
 import type { LattePattern } from './latte';
 
@@ -68,6 +69,16 @@ export interface MiniGameDef {
   heatRange?: number;
   /** Parte da arena mostrada (coluna, linha, largura, altura em células), quando a tela é fixa. */
   view?: [number, number, number, number];
+  /** Entrega relâmpago: saída, porta de entrega (células), itens, rotas dos obstáculos e o esbarrão. */
+  start?: [number, number];
+  goal?: [number, number];
+  goalRadius?: number;
+  items?: DeliveryItem[];
+  obstacles?: ObstacleRoute[];
+  stunMs?: number;
+  /** Raio do esbarrão por tipo de obstáculo (px lógicos) e a folga depois de um tropeço (ms). */
+  hitRadius?: Record<string, number>;
+  graceMs?: number;
 }
 
 export interface MiniGamesConfig {

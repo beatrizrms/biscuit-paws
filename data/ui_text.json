@@ -464,6 +464,13 @@
       "found": "Achou!",
       "result": "Achou {found} de {total} com {used} tentativa(s).",
       "lost": "Os filhotes estavam ali... acabaram as tentativas."
+    },
+    "delivery": {
+      "hud": "{item} {verb}: {quality}%",
+      "bump": "Opa!",
+      "result": "Entregou o {item} com {quality}% de qualidade.",
+      "ruined": "O {item} estragou no caminho...",
+      "late": "Não deu tempo de entregar."
     }
   },
   "phoneApp": {
