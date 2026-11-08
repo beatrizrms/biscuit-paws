@@ -10,6 +10,7 @@ import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import type { DoorState, RoomState } from './rooms';
 import type { Schedule } from './schedule';
+import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
 export interface PlacedItem {
@@ -85,6 +86,8 @@ export interface GameState {
   schedule: Schedule | null;
   /** Reputação felina da cidade (v16): valor, limiares já alcançados e o log curto dos motivos. */
   reputation: ReputationState;
+  /** Feira de adoção (v17): etapa, dia marcado, pontos feitos e a estação da última feira. */
+  fair: FairState;
 }
 
 export interface PlayerState {
@@ -161,6 +164,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     schedule: null,
     // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
     reputation: { value: 0, reached: [], log: [] },
+    fair: { stage: 'idle', day: null, done: [], lastSeason: null, heldOn: null },
   };
 }
 

@@ -547,5 +547,23 @@
     "label": "Reputação",
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
+  },
+  "fair": {
+    "title": "Feira de adoção",
+    "flyers": "Distribuir panfletos da feira pela rua.",
+    "waiting": "Feira marcada: {date} ({when}).",
+    "sign": "Hoje é a feira! Pôr a placa de fechado na porta do café.",
+    "decor": "Decorar o quintal para a feira.",
+    "table": "Abrir a feira na mesa do quintal.",
+    "calendar": "Feira de adoção",
+    "started": "Tantos gatos... e o quintal pronto! Que tal uma feira de adoção lá? Primeiro, panfletos pela rua!",
+    "flyer": "Panfleto entregue!",
+    "scheduled": "Feira de adoção marcada para {date}! Está no calendário.",
+    "sign_done": "Placa na porta: hoje o café fica fechado para a feira.",
+    "decor_done": "Ficou bonito!",
+    "ready": "Tudo pronto! A mesa no quintal espera os gatos.",
+    "missed": "A feira de adoção passou sem acontecer... Dá para organizar de novo.",
+    "finished": "Feira encerrada! {n} gato(s) com família nova.",
+    "date": "{season} {day} ({weekday})"
   }
 }

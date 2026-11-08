@@ -21,6 +21,11 @@ export interface GameEvents {
   /** Um mini game acabou (as moedas já entraram). */
   'reputation.changed': { from: number; to: number; amount: number; reason: string };
   'reputation.threshold_reached': { thresholdId: string; value: number };
+  'fair.started': Record<string, never>;
+  'fair.progress': { step: 'flyer' | 'scheduled' | 'sign' | 'decor' | 'ready'; pointId: string };
+  'fair.scheduled': { day: number };
+  'fair.missed': { day: number };
+  'fair.finished': { adopted: number };
   'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };

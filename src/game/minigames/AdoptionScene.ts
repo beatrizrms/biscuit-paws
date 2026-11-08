@@ -58,12 +58,13 @@ export class AdoptionScene extends MiniGameScene {
   }
 
   preload(): void {
-    loadCatVariants(this, content.adoption.cats.map((c) => c.variant));
+    loadCatVariants(this, [...content.adoption.cats, ...(this.launch.params.adoptCats ?? [])].map((c) => c.variant));
   }
 
   protected buildGame(): void {
     this.p = paramsOf<AdoptionParams>(content.minigames, 'adoption', this.launch.params.difficulty);
-    const match = setupMatch(this.rng, content.adoption, this.p.pairs);
+    // Na feira, os gatos do café entram primeiro (params.adoptCats); o resto vem do abrigo da vila.
+    const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? []);
     this.cats = match.cats;
     this.slots = [];
     this.cards.clear();

@@ -1,6 +1,7 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
 import type { FishDef } from './fishing';
+import type { AdoptCat } from './adoption';
 import type { DeliveryItem, ObstacleRoute } from './delivery';
 import type { HeatLevel, Hideout } from './kittenHunt';
 import type { LattePattern } from './latte';
@@ -32,6 +33,8 @@ export interface MiniGameParams {
   itemId?: string;
   /** Ponto de pedido da vila que este jogo conclui (se der certo). */
   jobPoint?: string;
+  /** Match de adoção na feira: os gatos do café que entram na partida (o resto vem do abrigo). */
+  adoptCats?: AdoptCat[];
 }
 
 /** Tutorial da intro: 1 a 3 linhas curtas e um ícone (chave de data/icons.json). */

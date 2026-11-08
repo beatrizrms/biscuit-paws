@@ -96,6 +96,7 @@ cat-cafe-game/
 | `cart.changed` | carrinho do mercado mudou | `count, total` |
 | `reputation.changed` | a reputação felina mudou | `from, to, amount, reason` |
 | `reputation.threshold_reached` | passou de um limiar pela primeira vez (só o gancho) | `thresholdId, value` |
+| `fair.started` / `fair.progress` / `fair.scheduled` / `fair.missed` / `fair.finished` | etapas da feira de adoção | `step, pointId` / `day` / `day` / `adopted` |
 | `cat.adopted` | match de adoção terminou: um gato e o veredito (boa: sai do café, se for de lá) | `catId, verdict, leftCafe` |
 | `schedule.changed` | horário de funcionamento mudou (app Horário) | `schedule` |
 | `cart.checked_out` | pagou no caixa | `lines, total` |

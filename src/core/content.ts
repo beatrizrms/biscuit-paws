@@ -17,6 +17,7 @@ import { validateFishTable } from './fishing';
 import { validateAdoption, type AdoptionData } from './adoption';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { validateDelivery } from './delivery';
+import { validateFair } from './fair';
 import { validateHideouts } from './kittenHunt';
 import { validateLattePatterns } from './latte';
 import type { RelationshipsConfig } from './relationships';
@@ -148,6 +149,8 @@ export type Condition =
   | { deliveryTag: string; stage: 'door' | 'carried' | 'inside'; gte?: number }
   /** O marco já terminou num dia anterior (começa no dia seguinte). */
   | { nextDay: string }
+  /** Já se passaram pelo menos `gte` dias desde que o marco terminou (ex.: a feira, uma semana depois do quintal). */
+  | { daysSince: { beat: string; gte: number } }
   /** O relógio marcado chegou (ex.: a hora da chegada da Gabi). */
   | { timer: string }
   /** Quantos itens com esta tag ela tem (na bolsa + posicionados). */
@@ -420,6 +423,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateReputation(raw.reputation));
   const adoptGame = raw.minigames.games.adoption;
+  errors.push(...validateFair(raw.adoption.fair, { points: new Set(raw.jobs.points.map((p) => p.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), traits: raw.adoption.traits }));
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
@@ -564,6 +568,9 @@ export function validateContent(raw: RawContent): string[] {
       if (!(home?.dirt ?? []).some((d) => !d.clearedBy && d.tags.includes(c.cleaned))) err(`${where}: nenhuma sujeira com a tag "${c.cleaned}"`);
     } else if ('catNamed' in c) {
       if (!catIds.has(c.catNamed)) err(`${where}: gato inexistente "${c.catNamed}"`);
+    } else if ('daysSince' in c) {
+      if (!beatIds.has(c.daysSince.beat)) err(`${where}: marco inexistente "${c.daysSince.beat}"`);
+      if (!(c.daysSince.gte >= 0)) err(`${where}: daysSince.gte precisa ser 0 ou mais`);
     } else if ('nextDay' in c) {
       if (!beatIds.has(c.nextDay)) err(`${where}: marco inexistente "${c.nextDay}"`);
     } else if ('ownedTag' in c) {
@@ -615,6 +622,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateBusiness(raw.business, surfaceIds));
   errors.push(...validateCharacter(raw.character));
   errors.push(...validateScheduleRules(raw.service.schedule, raw.seasons.startWeekday));
+  if (raw.adoption.fair.startWhen) checkCondition('adoption: fair.startWhen', raw.adoption.fair.startWhen as Condition);
   for (const e of raw.seasons.events ?? []) if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(

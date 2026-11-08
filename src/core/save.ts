@@ -7,12 +7,13 @@ import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 import { normalizeRoomsState, type RoomsData } from './rooms';
 import { WEEK, type Schedule } from './schedule';
+import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 16;
+export const SAVE_SCHEMA_VERSION = 17;
 
-export interface SaveV16 extends GameState {
-  schemaVersion: 16;
+export interface SaveV17 extends GameState {
+  schemaVersion: 17;
   savedAt: string;
 }
 
@@ -94,10 +95,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   14: (save) => ({ ...save, schemaVersion: 15, schedule: null }),
   /** v15 -> v16: reputação felina. Saves antigos começam no valor inicial dos dados (parseSave preenche). */
   15: (save) => ({ ...save, schemaVersion: 16, reputation: null }),
+  /** v16 -> v17: feira de adoção. Saves antigos: nenhuma feira em andamento nem feita. */
+  16: (save) => ({ ...save, schemaVersion: 17, fair: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV16 = { schemaVersion: 16, savedAt: now.toISOString(), ...state };
+  const save: SaveV17 = { schemaVersion: 17, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -140,7 +143,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV16>;
+  const v2 = save as unknown as Partial<SaveV17>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -238,11 +241,27 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
+    fair: normalizeFair(v2.fair),
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
+}
+
+/** Feira salva (ou parada, em save antigo ou quebrado). */
+function normalizeFair(f: unknown): FairState {
+  const x = f as Partial<FairState> | null | undefined;
+  const stage = x?.stage === 'flyers' || x?.stage === 'scheduled' ? x.stage : 'idle';
+  const num = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) ? n : null);
+  const day = num(x?.day);
+  return {
+    stage: stage === 'scheduled' && day === null ? 'idle' : stage,
+    day: stage === 'scheduled' ? day : null,
+    done: Array.isArray(x?.done) ? x.done.filter((id): id is string => typeof id === 'string') : [],
+    lastSeason: num(x?.lastSeason),
+    heldOn: num(x?.heldOn),
+  };
 }
 
 /** Reputação salva (ou a inicial, em save antigo ou quebrado). */

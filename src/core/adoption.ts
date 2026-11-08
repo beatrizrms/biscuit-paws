@@ -2,6 +2,7 @@
 // Ao confirmar, cada par ganha um veredito (boa, ok, ruim) e um porquê, pelas regras de data/adoption.json.
 // Puro: sem Phaser, DOM ou window.
 import type { Outcome } from './minigame';
+import type { FairConfig } from './fair';
 import type { Rng } from './rng';
 
 export type Verdict = 'good' | 'ok' | 'bad';
@@ -35,6 +36,8 @@ export interface AdoptionData {
   protectedCats: string[];
   cats: AdoptCat[];
   families: FamilyProfile[];
+  /** A feira de adoção (organizada pela protagonista; src/core/fair.ts). */
+  fair: FairConfig;
 }
 
 export interface AdoptionParams {
@@ -88,18 +91,47 @@ export function hasPerfectMatch(data: Pick<AdoptionData, 'verdicts'>, cats: read
   return cats.every((_, ci) => tryCat(ci, families.map(() => false)));
 }
 
-/** Sorteia os gatos e as famílias da partida, sempre com uma resposta toda "boa" possível (senão o perfeito seria sorte). */
-export function setupMatch(rng: Rng, data: AdoptionData, pairs: number): { cats: AdoptCat[]; families: FamilyProfile[] } {
+/** O que a adoção precisa saber de um gato do café (cats.json + o nome que a jogadora deu). */
+export interface CafeCatInfo {
+  id: string;
+  name: string;
+  variant: string;
+  personality: string;
+  adoptionTraits?: Record<string, string>;
+}
+
+/**
+ * Gatos do café como gatos de adoção (feira): os traços de adoptionTraits ou, sem eles, o jeito traduzido da
+ * personalidade (fair.personalityFrom) e o resto de fair.defaultTraits.
+ */
+export function cafeAdoptCats(data: Pick<AdoptionData, 'fair' | 'traits'>, cats: readonly CafeCatInfo[]): AdoptCat[] {
+  const f = data.fair;
+  return cats.map((c) => {
+    const traits: Record<string, string> = { ...f.defaultTraits };
+    const mapped = f.personalityFrom[c.personality];
+    if (mapped) traits.personality = mapped;
+    Object.assign(traits, c.adoptionTraits ?? {});
+    return { id: c.id, name: c.name, variant: c.variant, traits };
+  });
+}
+
+/**
+ * Sorteia os gatos e as famílias da partida, sempre com uma resposta toda "boa" possível (senão o perfeito seria sorte).
+ * `fixed`: gatos que precisam estar (os do café, na feira); o resto vem do abrigo da vila. Se com eles não houver
+ * resposta toda boa, fica a melhor tentativa (os gatos do café não são trocados).
+ */
+export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: readonly AdoptCat[] = []): { cats: AdoptCat[]; families: FamilyProfile[] } {
   const draw = <T>(pool: readonly T[], n: number): T[] => {
     const bag = [...pool];
     const out: T[] = [];
     for (let i = 0; i < n && bag.length > 0; i++) out.push(bag.splice(rng.int(0, bag.length - 1), 1)[0]!);
     return out;
   };
-  let last = { cats: draw(data.cats, pairs), families: draw(data.families, pairs) };
-  for (let tries = 0; tries < 500 && !hasPerfectMatch(data, last.cats, last.families); tries++) {
-    last = { cats: draw(data.cats, pairs), families: draw(data.families, pairs) };
-  }
+  const mine = fixed.slice(0, pairs);
+  const pool = data.cats.filter((c) => !mine.some((m) => m.id === c.id));
+  const roll = () => ({ cats: [...mine, ...draw(pool, pairs - mine.length)], families: draw(data.families, pairs) });
+  let last = roll();
+  for (let tries = 0; tries < 500 && !hasPerfectMatch(data, last.cats, last.families); tries++) last = roll();
   return last;
 }
 

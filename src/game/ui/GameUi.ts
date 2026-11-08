@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import type { GameSession } from '../../core/session';
+import { dayInSeason, seasonOf } from '../../core/calendar';
 import { formatClock } from '../../core/time';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
@@ -178,6 +179,17 @@ export class GameUi {
       this.toast(uiText.health.infected.replace('{name}', session.catName(catId)).replace('{from}', session.catName(fromCatId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4500),
     );
     bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
+    const ft = uiText.fair;
+    bus.on('fair.started', () => this.toast(ft.started, 4500));
+    bus.on('fair.progress', ({ step }) => {
+      if (step === 'flyer') this.toast(ft.flyer);
+      else if (step === 'sign') this.toast(ft.sign_done, 3500);
+      else if (step === 'decor') this.toast(ft.decor_done);
+      else if (step === 'ready') this.toast(ft.ready, 3500);
+    });
+    bus.on('fair.scheduled', ({ day }) => this.toast(ft.scheduled.replace('{date}', this.fairDate(day)), 4500));
+    bus.on('fair.missed', () => this.toast(ft.missed, 4500));
+    bus.on('fair.finished', ({ adopted }) => this.toast(ft.finished.replace('{n}', String(adopted)), 4500));
     bus.on('reputation.changed', () => {
       const el = this.root.querySelector<HTMLElement>('.hud-rep');
       el?.classList.remove('bump');
@@ -279,6 +291,9 @@ export class GameUi {
       const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
       items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
+    // Feira de adoção: a etapa da vez (src/core/fair.ts).
+    const fair = this.fairLine();
+    if (fair) items.push(fair);
     const sv = this.session.service;
     // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
     if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) items.push(`<li class="job"><span>${esc(uiText.service.closed.replace('{when}', openingText(this.session)))}</span></li>`);
@@ -350,6 +365,31 @@ export class GameUi {
     }
     const root = this.root.getBoundingClientRect();
     this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
+  }
+
+  /** Linha da feira de adoção no balão (ou vazio, sem feira em andamento). */
+  private fairLine(): string {
+    const f = this.session.fairStatus();
+    const t = uiText.fair;
+    if (f.stage === 'idle') return '';
+    const count = f.total > 1 && f.left > 0 ? ` <span class="count">${f.total - f.left}/${f.total}</span>` : '';
+    let text = '';
+    if (f.stage === 'flyers') text = t.flyers;
+    else if (f.stage === 'waiting') {
+      const n = (f.day ?? 0) - this.session.state.day;
+      const when = n === 1 ? uiText.calendarApp.tomorrow : uiText.calendarApp.inDays.replace('{n}', String(n));
+      text = t.waiting.replace('{date}', this.fairDate(f.day ?? 0)).replace('{when}', when);
+    } else text = f.next === 'sign' ? t.sign : f.next === 'decor' ? t.decor : t.table;
+    return `<li class="job"><span><b>${esc(t.title)}:</b> ${esc(text)}${count}</span></li>`;
+  }
+
+  /** "Inverno 15 (sex)". */
+  private fairDate(day: number): string {
+    const s = content.seasons;
+    return uiText.fair.date
+      .replace('{season}', s.names[seasonOf(s, day)] ?? '')
+      .replace('{day}', String(dayInSeason(s, day)))
+      .replace('{weekday}', uiText.weekdays[this.session.service.weekday(day)] ?? '');
   }
 
   /** Reputação felina no HUD: barrinha e número (embaixo do dinheiro). */

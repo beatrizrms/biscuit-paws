@@ -13,6 +13,8 @@ export interface CatDef {
   memory?: boolean;
   /** Já chega doente ao ser abrigado (doença sorteada de data/health.json). */
   arrivesSick?: boolean;
+  /** Traços na feira de adoção (data/adoption.json: traits); sem eles, vem da personalidade (fair.personalityFrom). */
+  adoptionTraits?: Record<string, string>;
   tags: string[];
 }
 

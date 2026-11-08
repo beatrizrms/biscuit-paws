@@ -854,6 +854,12 @@
         "poop": {
           "layer": "floor",
           "solid": false
+        },
+        "fair_bunting": {
+          "solid": false
+        },
+        "fair_balloons": {
+          "solid": false
         }
       }
     }

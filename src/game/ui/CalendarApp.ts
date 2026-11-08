@@ -33,7 +33,9 @@ export class CalendarApp {
     const last = first + per - 1;
     const season = seasonOf(seasons, first);
     const year = Math.floor((first - 1) / (per * seasons.order.length)) + 1;
-    const marks = this.session.calendar(first, last);
+    // A feira marcada vem do núcleo sem título (é texto de interface).
+    const named = (list: ReturnType<GameSession['calendar']>) => list.map((m) => (m.id === 'cal.adoption_fair' ? { ...m, title: uiText.fair.calendar } : m));
+    const marks = named(this.session.calendar(first, last));
     const lead = sv.weekday(first);
     const cells: string[] = Array.from({ length: lead }, () => '<span class="c-cell blank"></span>');
     for (let d = first; d <= last; d++) {
@@ -44,8 +46,7 @@ export class CalendarApp {
       cells.push(`<span class="${cls}"${title ? ` title="${esc(title)}"` : ''}>${dayInSeason(seasons, d)}</span>`);
     }
     const head = uiText.weekdays.map((w) => `<span class="c-wd">${esc(w)}</span>`).join('');
-    const upcoming = this.session
-      .calendar(today, today + AHEAD)
+    const upcoming = named(this.session.calendar(today, today + AHEAD))
       .map((m) => {
         const n = m.day - today;
         const when = n === 0 ? t.today : n === 1 ? t.tomorrow : t.inDays.replace('{n}', String(n));

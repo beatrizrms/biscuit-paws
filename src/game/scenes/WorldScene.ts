@@ -208,7 +208,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (door && this.session.atHome()) this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
-    for (const ev of ['job.accepted', 'job.progress', 'job.completed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
@@ -679,7 +679,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       if (point.action === 'minigame' && point.minigame) {
         // O ponto só conta se o jogo der certo (session.finishMiniGame faz o doJobPoint).
-        void this.openMiniGame(point.minigame.id, { difficulty: point.minigame.difficulty, jobPoint: point.id, ...(point.minigame.itemId ? { itemId: point.minigame.itemId } : {}) });
+        void this.openMiniGame(point.minigame.id, {
+          difficulty: point.minigame.difficulty,
+          jobPoint: point.id,
+          ...(point.minigame.itemId ? { itemId: point.minigame.itemId } : {}),
+          ...this.session.miniGameExtras(point.id), // a mesa da feira leva os gatos do café
+        });
       } else if (point.action === 'sweep') {
         if (this.sweeping) return true;
         const ts = this.map.tileSize;

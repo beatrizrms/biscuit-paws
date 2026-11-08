@@ -48,6 +48,10 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
+  if ('daysSince' in c) {
+    const on = state.story.completedOn[c.daysSince.beat];
+    return on !== undefined && state.day - on >= c.daysSince.gte;
+  }
   if ('nextDay' in c) {
     if (!state.story.completed.includes(c.nextDay)) return false;
     return state.day > (state.story.completedOn[c.nextDay] ?? 0);

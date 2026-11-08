@@ -1,6 +1,6 @@
 // npx tsx scripts/art/placeholders.ts [--preview <png>]
 // Arte provisória desenhada por código (32 px, paleta Cosy), até a arte de verdade (PixelLab) chegar:
-// a caixa de areia do gato e o cocô do dia 2. Folha: data/tilesets.json "placeholders" (peças em data/tilesets/placeholders.json).
+// a caixa de areia do gato, o cocô do dia 2 e a feira de adoção (placa, bandeirinhas, balões e a mesa). Folha: data/tilesets.json "placeholders" (peças em data/tilesets/placeholders.json).
 import { Canvas, at, preview, rng, writeWithBackup } from './lib';
 import { P } from './palette';
 
@@ -34,10 +34,58 @@ function poop(): Canvas {
   return c;
 }
 
-const sheet = new Canvas(2 * T, T);
-sheet.blit(litterBox(), 0, 0);
-sheet.blit(poop(), T, 0);
+/** Feira: placa de cavalete "fechado para a feira" (rosa, com uma patinha). */
+function fairSign(): Canvas {
+  const c = new Canvas(T, T);
+  c.line(9, 30, 13, 8, at(P.walnut, 3));
+  c.line(22, 30, 18, 8, at(P.walnut, 3));
+  c.rect(7, 6, 18, 14, at(P.cream, 5));
+  c.rect(7, 6, 18, 3, at(P.rose, 3));
+  for (const [x, y] of [[13, 14], [16, 12], [19, 14]] as const) c.rect(x, y, 2, 2, at(P.rose, 2));
+  c.rect(14, 15, 5, 3, at(P.rose, 2));
+  return c.outline();
+}
+
+/** Feira: varal de bandeirinhas coloridas. */
+function fairBunting(): Canvas {
+  const c = new Canvas(T, T);
+  c.line(1, 6, 30, 6, at(P.walnut, 2));
+  const flags = [P.rose, P.butter, P.mint, P.sky, P.lilac];
+  flags.forEach((r, i) => {
+    const x = 2 + i * 6;
+    for (let k = 0; k < 5; k++) c.hline(x + Math.floor(k / 2), 7 + k, 5 - k, at(r, 3));
+  });
+  return c.outline();
+}
+
+/** Feira: três balões amarrados. */
+function fairBalloons(): Canvas {
+  const c = new Canvas(T, T);
+  c.line(16, 30, 10, 14, at(P.metal, 2));
+  c.line(16, 30, 16, 12, at(P.metal, 2));
+  c.line(16, 30, 22, 14, at(P.metal, 2));
+  c.ball(10, 9, 5, 6, P.rose);
+  c.ball(22, 9, 5, 6, P.sky);
+  c.ball(16, 6, 5, 6, P.butter);
+  return c.outline();
+}
+
+/** Feira: mesa com toalha rosa e uma plaquinha "adote". */
+function fairTable(): Canvas {
+  const c = new Canvas(T, T);
+  c.rect(3, 12, 26, 14, at(P.rose, 3));
+  c.rect(3, 12, 26, 3, at(P.rose, 4));
+  for (let x = 4; x < 28; x += 4) c.vline(x, 16, 9, at(P.rose, 2));
+  c.rect(11, 5, 10, 7, at(P.cream, 5));
+  c.rect(14, 7, 4, 3, at(P.rose, 2));
+  return c.outline();
+}
+
+// Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa.
+const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable()];
+const sheet = new Canvas(pieces.length * T, T);
+pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');
-console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô)');
+console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

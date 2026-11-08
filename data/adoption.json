@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Match de adoção (mini game adoption). traits: os traços e os nomes na tela. cats: gatos do abrigo da vila (id adopt.*), com variante do Cosy Cats e um valor de cada traço. families: perfis de família; scores dá pontos por traço do gato (positivo combina, negativo não; o que não está aqui vale 0) e notes explica o porquê (1 linha por par, mostrada ao confirmar). Veredito: soma >= verdicts.goodAt = boa; <= verdicts.badAt = ruim; o resto = ok. O motivo mostrado é a nota do traço que mais pesou para o lado do veredito. reputation: quanto cada adoção vale (fase 2, reputação). protectedCats: gatos do café que nunca saem por adoção (os da história).",
+  "_comment": "Match de adoção (mini game adoption). traits: os traços e os nomes na tela. cats: gatos do abrigo da vila (id adopt.*), com variante do Cosy Cats e um valor de cada traço. families: perfis de família; scores dá pontos por traço do gato (positivo combina, negativo não; o que não está aqui vale 0) e notes explica o porquê (1 linha por par, mostrada ao confirmar). Veredito: soma >= verdicts.goodAt = boa; <= verdicts.badAt = ruim; o resto = ok. O motivo mostrado é a nota do traço que mais pesou para o lado do veredito. reputation: quanto cada adoção vale (fase 2, reputação). protectedCats: gatos do café que nunca saem por adoção (os da história). fair: a feira de adoção, no quintal secreto (1x por estação, com mais de minCats - 1 gatos abrigados e startWhen: uma semana depois do quintal pronto): panfletos nos pontos flyers; a feira fica marcada daysAfterFlyers dias depois; no dia, placa (sign) na porta do café (fecha o atendimento), decorações no quintal (decorations: ponto + tile que aparece depois de feita) e a mesa no quintal (table: ponto que abre o match com os gatos do café). Gatos do café na feira: traços de adoptionTraits em cats.json ou, sem eles, personalityFrom (personalidade do gato -> jeito) + defaultTraits.",
   "traits": {
     "personality": { "calm": "Calmo", "playful": "Brincalhão", "shy": "Tímido" },
     "age": { "kitten": "Filhote", "adult": "Adulto", "senior": "Idoso" },
@@ -9,6 +9,21 @@
   "verdicts": { "goodAt": 2, "badAt": -1 },
   "reputation": { "good": 3, "ok": 1, "bad": 0 },
   "protectedCats": ["cat.first_stray", "cat.tekinha"],
+  "fair": {
+    "minCats": 9,
+    "startWhen": { "daysSince": { "beat": "story.backyard", "gte": 7 } },
+    "daysAfterFlyers": 3,
+    "flyers": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"],
+    "sign": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+    "decorations": [
+      { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting" },
+      { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
+      { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting" }
+    ],
+    "table": "pt.fair_table",
+    "personalityFrom": { "sweet": "calm", "brave": "playful" },
+    "defaultTraits": { "personality": "calm", "age": "adult", "coat": "short" }
+  },
   "cats": [
     { "id": "adopt.mingau", "name": "Mingau", "variant": "snowdrop", "traits": { "personality": "calm", "age": "senior", "coat": "long" } },
     { "id": "adopt.faisca", "name": "Faísca", "variant": "marmalade", "traits": { "personality": "playful", "age": "kitten", "coat": "short" } },

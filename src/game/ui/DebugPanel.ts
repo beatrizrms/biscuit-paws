@@ -29,6 +29,8 @@ export class DebugPanel {
         <button data-act="money">+100 moedas</button>
         <button data-act="rep">+10 reputação</button>
         <button data-act="rep-zero">Zerar reputação</button>
+        <button data-act="fair">Feira: começar</button>
+        <button data-act="fair-day">Feira: ir ao dia</button>
         <button data-act="skip">Pular falas</button>
         <button data-act="collision">Colisão</button>
         <button data-act="grid">Grade</button>
@@ -49,6 +51,16 @@ export class DebugPanel {
     };
     on('money', () => session.addMoney(100, 'debug'));
     on('rep', () => session.addReputation(10, 'debug'));
+    // Feira de adoção sem precisar dos 9 gatos; e pular os dias até a data marcada (de manhã).
+    on('fair', () => session.debugStartFair());
+    on('fair-day', () => {
+      const day = session.state.fair.day;
+      if (day !== null && session.state.day < day) {
+        session.state.day = day;
+        session.state.time = 9 * 60;
+        session.bus.emit('day.started', { day });
+      }
+    });
     // Zerar também esquece os limiares alcançados (para testar os eventos de novo).
     on('rep-zero', () => {
       session.addReputation(-session.reputation(), 'debug:zerar');

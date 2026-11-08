@@ -10,6 +10,7 @@ import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceK
 import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
+import { fairClosesCafe } from './fair';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem } from './schedule';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
@@ -353,6 +354,8 @@ export class CafeService {
 
   /** O atendimento está funcionando agora (marco/condição dos dados + horário escolhido)? */
   isOpen(): boolean {
+    // A placa da feira de adoção na porta: hoje o atendimento não abre.
+    if (fairClosesCafe(this.st.fair, this.h.content.adoption.fair, this.st.day)) return false;
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 
