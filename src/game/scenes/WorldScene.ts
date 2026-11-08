@@ -28,6 +28,7 @@ import { formatClock, tintAt } from '../../core/time';
 import { catPropColor, type Pose } from '../../core/appearance';
 import { poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
+import { SoundEvents } from '../audio/SoundEvents';
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -65,6 +66,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dayNight!: DayNightLayer;
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
+  /** Sons ligados aos eventos e ao lugar. */
+  private sounds: SoundEvents | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
   private sweeping = false;
   /** Tocando a animação de usar um item da barra (ração na tigela, petisco no gato). */
@@ -250,10 +253,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         void import('../debugTools').then((m) => (this.debugPanel = m.attachDebugTools(this, uiRoot)));
       }
     }
-    // Música e ambiente de cada lugar (data/audio.json).
-    const { audio } = services();
-    audio.playScene(this.session.location());
-    this.session.bus.on('map.entered', ({ mapId }) => audio.playScene(mapId));
+    // Som: eventos -> efeitos e jingles; música e ambiente do lugar (dia/noite) a cada quadro (data/audio.json).
+    this.sounds = new SoundEvents(this.session, services().audio);
     this.session.start(this.isNew);
   }
 
@@ -277,6 +278,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   update(): void {
+    this.sounds?.update();
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing();
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
@@ -1220,6 +1222,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Animação de varrer (vassoura, poeira, brilho), sem mudar nada no jogo. */
   private async playSweep(x: number, y: number): Promise<void> {
     this.sweeping = true;
+    services().audio.sfx('broom');
     const left = x < this.player.x;
     this.player.face(left ? 'left' : 'right');
     const posed = this.textures.exists(poseTexture('sweep'));

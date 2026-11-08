@@ -1,33 +1,53 @@
-// Áudio em dois canais independentes: música de fundo e sons ambientes. Cada um liga/desliga e tem volume
-// (configurações à parte do save). Troca de faixa e liga/desliga com fade. Navegadores só deixam tocar depois
-// do primeiro gesto do jogador: até lá, o pedido fica guardado e toca quando liberar.
-// Sem arquivo ainda (data/audio.json: file null)? O canal funciona igual, só não toca nada.
+// Áudio em dois canais de volume: música (músicas e jingles) e ambiente (sons de fundo e efeitos). Cada um
+// liga/desliga e tem volume (configurações à parte do save). Troca de faixa e liga/desliga com fade. Navegadores
+// só deixam tocar depois do primeiro gesto do jogador: até lá, o pedido fica guardado e toca quando liberar.
+// Faixa sem arquivo (data/audio.json: file null) funciona igual, só não toca nada.
 import Phaser from 'phaser';
 import audioJson from '../../../data/audio.json';
 import { effectiveVolume, type Settings } from '../../core/settings';
 
 type Channel = 'music' | 'ambient';
+type Group = 'music' | 'ambient' | 'jingles' | 'sfx';
 interface TrackDef {
-  file: string | null;
+  /** [ogg, mp3] (o navegador escolhe), um caminho só, ou null. */
+  file: string | string[] | null;
   loop: boolean;
+  /** Mixagem da faixa (multiplica o volume do canal). */
+  gain?: number;
+}
+interface SceneTracks {
+  music: string | null;
+  ambient: string | null;
 }
 interface AudioData {
   fadeMs: number;
+  nightFrom: string;
+  nightUntil: string;
   music: Record<string, TrackDef>;
+  jingles: Record<string, TrackDef>;
   ambient: Record<string, TrackDef>;
-  scenes: Record<string, { music: string | null; ambient: string | null }>;
+  sfx: Record<string, TrackDef>;
+  scenes: Record<string, { day: SceneTracks; night?: SceneTracks; busyAmbient?: string }>;
+  events: { event: string; sfx?: string; jingle?: string }[];
+  loops: Record<string, string>;
 }
 export const audioData = audioJson as unknown as AudioData;
 
+/** Canal de volume de cada grupo de faixas. */
+const CHANNEL: Record<Group, Channel> = { music: 'music', jingles: 'music', ambient: 'ambient', sfx: 'ambient' };
+
 /** Chave da faixa no carregador do Phaser. */
-export const trackKey = (channel: Channel, id: string) => `${channel}:${id}`;
+export const trackKey = (group: Group, id: string) => `${group}:${id}`;
 
 /** Carrega as faixas que já têm arquivo (o BootScene chama no preload). */
 export function preloadAudio(load: Phaser.Loader.LoaderPlugin): void {
-  for (const channel of ['music', 'ambient'] as const) {
-    for (const [id, t] of Object.entries(audioData[channel])) if (t.file) load.audio(trackKey(channel, id), t.file);
+  for (const group of ['music', 'jingles', 'ambient', 'sfx'] as const) {
+    for (const [id, t] of Object.entries(audioData[group])) if (t.file) load.audio(trackKey(group, id), t.file);
   }
 }
+
+/** Alguma faixa tem arquivo? (as Opções avisam quando ainda não há som nenhum.) */
+export const hasAudioFiles = () => (['music', 'ambient', 'sfx'] as const).some((g) => Object.values(audioData[g]).some((t) => t.file));
 
 interface Playing {
   id: string;
@@ -36,6 +56,7 @@ interface Playing {
 
 export class AudioManager {
   private current: Record<Channel, Playing | null> = { music: null, ambient: null };
+  private loops = new Map<string, Phaser.Sound.BaseSound>();
   private fades = new Set<number>();
 
   constructor(
@@ -63,21 +84,44 @@ export class AudioManager {
     return this.settings;
   }
 
+  private volume(group: Group, id: string): number {
+    return effectiveVolume(this.settings[CHANNEL[group]]) * (audioData[group][id]?.gain ?? 1);
+  }
+
+  private canPlay(group: Group, id: string): boolean {
+    return this.isUnlocked() && !!audioData[group][id]?.file && this.game.cache.audio.exists(trackKey(group, id));
+  }
+
   /** Aplica configurações novas (o volume muda com fade; desligar some devagar). */
   setSettings(s: Settings): void {
     this.settings = s;
     for (const ch of ['music', 'ambient'] as const) {
-      const sound = this.current[ch]?.sound;
-      if (sound) this.fadeTo(sound, effectiveVolume(s[ch]));
+      const p = this.current[ch];
+      if (p?.sound) this.fadeTo(p.sound, this.volume(ch, p.id));
     }
+    for (const [id, sound] of this.loops) this.fadeTo(sound, this.volume('sfx', id));
   }
 
-  /** Música e ambiente de um lugar (data/audio.json: scenes). */
-  playScene(sceneId: string): void {
+  /**
+   * Música e ambiente de um lugar (data/audio.json: scenes), de dia ou de noite. `busy`: há clientes
+   * (o café troca o ambiente pelo burburinho). Pode chamar sempre: a mesma faixa não recomeça.
+   */
+  playScene(sceneId: string, opts: { night?: boolean; busy?: boolean } = {}): void {
     const s = audioData.scenes[sceneId];
     if (!s) return;
-    this.play('music', s.music);
-    this.play('ambient', s.ambient);
+    const tracks = (opts.night && s.night) || s.day;
+    this.play('music', tracks.music);
+    this.play('ambient', opts.busy && s.busyAmbient ? s.busyAmbient : tracks.ambient);
+  }
+
+  /** É noite para a música (data/audio.json: nightFrom, nightUntil), em minutos do dia. */
+  static isNight(minutes: number): boolean {
+    const toMin = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h! * 60 + m!;
+    };
+    const t = minutes % 1440;
+    return t >= toMin(audioData.nightFrom) || t < toMin(audioData.nightUntil);
   }
 
   /** Troca a faixa do canal (com fade); null para. */
@@ -92,24 +136,39 @@ export class AudioManager {
       this.current[channel] = null;
       return;
     }
-    const def = audioData[channel][id];
-    const key = trackKey(channel, id);
     // Sem arquivo ou ainda bloqueado: guarda o pedido (toca quando tiver/liberar).
-    if (!def?.file || !this.isUnlocked() || !this.game.cache.audio.exists(key)) {
+    if (!this.canPlay(channel, id)) {
       this.current[channel] = { id, sound: null };
       return;
     }
-    const sound = this.game.sound.add(key, { loop: def.loop, volume: 0 });
+    const sound = this.game.sound.add(trackKey(channel, id), { loop: audioData[channel][id]!.loop, volume: 0 });
     sound.play();
     this.current[channel] = { id, sound };
-    this.fadeTo(sound, effectiveVolume(this.settings[channel]));
+    this.fadeTo(sound, this.volume(channel, id));
   }
 
-  /** Som curto no canal ambiente (ex.: passos). */
+  /** Efeito curto (moeda, sino, miado...). */
   sfx(id: string): void {
-    const key = trackKey('ambient', id);
-    if (!this.isUnlocked() || !this.game.cache.audio.exists(key)) return;
-    this.game.sound.play(key, { volume: effectiveVolume(this.settings.ambient) });
+    if (this.canPlay('sfx', id)) this.game.sound.play(trackKey('sfx', id), { volume: this.volume('sfx', id) });
+  }
+
+  /** Jingle (uma vez, por cima da música). */
+  jingle(id: string): void {
+    if (this.canPlay('jingles', id)) this.game.sound.play(trackKey('jingles', id), { volume: this.volume('jingles', id) });
+  }
+
+  /** Efeito em repetição enquanto `on` (cafeteira, pia, ronronar). Pode chamar sempre. */
+  setLoop(id: string, on: boolean): void {
+    const playing = this.loops.get(id);
+    if (on && !playing && this.canPlay('sfx', id)) {
+      const sound = this.game.sound.add(trackKey('sfx', id), { loop: true, volume: 0 });
+      sound.play();
+      this.loops.set(id, sound);
+      this.fadeTo(sound, this.volume('sfx', id));
+    } else if (!on && playing) {
+      this.loops.delete(id);
+      this.fadeTo(playing, 0, () => playing.destroy());
+    }
   }
 
   /** Faixa pedida em cada canal (para a interface e os testes). */
@@ -124,6 +183,7 @@ export class AudioManager {
       if (sound) this.fadeTo(sound, 0, () => sound.destroy());
       this.current[ch] = null;
     }
+    for (const id of [...this.loops.keys()]) this.setLoop(id, false);
   }
 
   private fadeTo(sound: Phaser.Sound.BaseSound, target: number, done?: () => void): void {

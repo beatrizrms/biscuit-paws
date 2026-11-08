@@ -3,6 +3,7 @@
 import type { SlotId, SlotStatus } from '../../../core/saveSlots';
 import { formatClock } from '../../../core/time';
 import { t } from '../../i18n';
+import { services } from '../../services';
 
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -48,8 +49,11 @@ function onKey(e: KeyboardEvent): void {
 /** Mostra a camada por cima das outras e põe o foco no primeiro botão (ou no `focus`). */
 export function pushLayer(layer: MenuLayer, focus?: HTMLElement | null): void {
   stack.push(layer);
+  services().audio.sfx('menu_open');
   if (!listening) {
     window.addEventListener('keydown', onKey, true);
+    // Clique nos botões dos menus.
+    window.addEventListener('click', (e) => (e.target as HTMLElement).closest?.('.menu-btn') && services().audio.sfx('ui_click'), true);
     listening = true;
   }
   window.setTimeout(() => (focus ?? focusables(layer.el)[0])?.focus(), 0);
@@ -58,7 +62,10 @@ export function pushLayer(layer: MenuLayer, focus?: HTMLElement | null): void {
 /** Tira a camada (e devolve o foco para a de baixo). */
 export function popLayer(layer: MenuLayer): void {
   const i = stack.indexOf(layer);
-  if (i >= 0) stack.splice(i, 1);
+  if (i >= 0) {
+    stack.splice(i, 1);
+    services().audio.sfx('menu_close');
+  }
   layer.el.remove();
   const below = stack[stack.length - 1];
   if (below) window.setTimeout(() => focusables(below.el)[0]?.focus(), 0);

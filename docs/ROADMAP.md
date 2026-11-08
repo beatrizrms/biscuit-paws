@@ -29,7 +29,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Metas como subconsciente (balão de pensamento, 1ª pessoa)
 - [x] Pintor liberado pela Dona Neusa; devolução de itens da bolsa
 - [x] Sujeira no café velho: faxina por clique; manchas e rachaduras saem com a reforma
-- [ ] Outras estações da rua (dados já preparados)
+- [x] Outras estações da rua: calendário de 30 dias por estação, a rua muda (sem neve fora do inverno)
 
 ## Prólogo (em andamento)
 - [x] Cenas sem mapa: Natal, lembrança da Tekinha (Pebble), anúncio no celular
@@ -46,7 +46,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Anúncio com os gatos; uma quest por vez nos primeiros dias (cafeteira -> Dona Neusa; mesas -> Gabi; cadeiras)
 - [x] Tela inicial (Home), menu principal, pausa; 3 slots + autosave com backup, exportar/importar, saves corrompidos; opções de som (2 canais)
 - [x] Criador de personagem (pacote personagem_principal) no Novo jogo: nome, aparência e 7 poses
-- [ ] Músicas e sons ambientes (os canais e `data/audio.json` estão prontos; faltam os arquivos)
+- [x] Músicas (dia e noite), sons ambientes, jingles e efeitos ligados aos eventos
 - [x] Atendimento, Fase 1: quadro do cardápio (M), mochila (I), mãos, preparo com barra, clientes em pé, louça suja e pia, capacidade pela louça
 - [x] Atendimento, Fase 2: bandeja, itens pesados, gato no colo, forno, pia como estação, qualidade e preferências (o veterinário ficou em item próprio)
 - [x] Usar itens da barra com animação (ração na tigela, petisco no gato); evolução das receitas por clientes atendidos
@@ -106,9 +106,12 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Ícone e página da loja (`CREDITS.md` já existe; declarar o uso de IA na arte)
 
 ## Arte pendente
-- [ ] Moldura de botão e de painel (9 partes) e logo do título, para a Home e os menus
-- [ ] Arte da inauguração (hoje é só um diálogo)
-- [ ] Ícone do carrinho no HUD (hoje é texto)
+- [x] Moldura de botão e de painel (9 partes) nos menus
+- [ ] Logo do título com o nome Biscuit Paws
+- [x] Arte da inauguração (cena na primavera)
+- [ ] Arte da inauguração nas cores menta e céu da fachada (hoje usa a rosa)
+- [ ] Fachada da clínica veterinária na primavera, no verão e no outono (hoje fica a de inverno)
+- [x] Ícone do carrinho no HUD
 - [ ] Pose da personagem carregando saco pesado (o pacote não tem; o saco é desenhado na mão)
 
 ## Depois

@@ -1,0 +1,123 @@
+/*
+ * Pele da interface com a arte do pacote ui_menus (npm run ui-audio): molduras de 9 partes, em pixels do jogo
+ * (a interface inteira é ampliada junto com a tela, então 1 px aqui = 1 pixel da arte).
+ * Botões 32x32: cortes 8 / 8 / 8 em cima / 10 embaixo; estados normal, hover (e foco), pressed, disabled.
+ * Painéis 48x48: cortes de 16; a borda desenhada sai 8 px para fora (border-image-outset), o texto fica a 8 px da moldura.
+ * Carregado depois de ui.css e menu.css: só troca o visual, não a disposição.
+ */
+
+/* ---------- Botões ---------- */
+.menu-btn {
+  --btn: 'cream';
+  border-style: solid;
+  border-width: 8px 8px 10px;
+  border-radius: 0;
+  border-image: url('/assets/ui/menu/ui_button_cream_normal.png') 8 8 10 fill;
+  background: none;
+  box-shadow: none;
+  padding: 0 4px;
+  line-height: 12px;
+  image-rendering: pixelated;
+}
+.menu-btn:hover,
+.menu-btn:focus,
+.menu-btn:focus-visible {
+  background: none;
+  border-image-source: url('/assets/ui/menu/ui_button_cream_hover.png');
+}
+.menu-btn:active:not([disabled]) {
+  border-image-source: url('/assets/ui/menu/ui_button_cream_pressed.png');
+  padding-top: 2px; /* o texto desce junto com o botão */
+  padding-bottom: 0;
+}
+.menu-btn[disabled] {
+  background: none;
+  border-image-source: url('/assets/ui/menu/ui_button_cream_disabled.png');
+  color: #8f8389;
+}
+.menu-btn.small { padding: 0 2px; line-height: 9px; box-shadow: none; }
+.menu-btn.big { padding: 0 8px; line-height: 13px; }
+
+/* Botões principais da Home e "seguir em frente" (rosa); confirmar e pagar (menta); apagar (ameixa). */
+.menu-home .menu-btn.big { border-image-source: url('/assets/ui/menu/ui_button_pink_normal.png'); color: #fff8ec; text-shadow: 0 1px 0 #8f3f52; }
+.menu-home .menu-btn.big:hover,
+.menu-home .menu-btn.big:focus { border-image-source: url('/assets/ui/menu/ui_button_pink_hover.png'); }
+.menu-home .menu-btn.big:active:not([disabled]) { border-image-source: url('/assets/ui/menu/ui_button_pink_pressed.png'); }
+.menu-home .menu-btn.big[disabled] { border-image-source: url('/assets/ui/menu/ui_button_pink_disabled.png'); color: #f3e3e8; text-shadow: none; }
+.menu-home .menu-btn.big .sub { color: #ffe3ea; }
+
+.menu-btn.primary,
+.menu-btn.yes,
+.catalog .cart-bar .pay {
+  border-image-source: url('/assets/ui/menu/ui_button_mint_normal.png');
+}
+.menu-btn.primary:hover,
+.menu-btn.primary:focus,
+.menu-btn.yes:hover,
+.menu-btn.yes:focus,
+.catalog .cart-bar .pay:hover { border-image-source: url('/assets/ui/menu/ui_button_mint_hover.png'); }
+.menu-btn.primary:active,
+.menu-btn.yes:active,
+.catalog .cart-bar .pay:active { border-image-source: url('/assets/ui/menu/ui_button_mint_pressed.png'); }
+.catalog .cart-bar .pay:disabled { border-image-source: url('/assets/ui/menu/ui_button_mint_disabled.png'); }
+.catalog .cart-bar .pay {
+  border-style: solid;
+  border-width: 8px 8px 10px;
+  border-radius: 0;
+  border-image-slice: 8 8 10 fill;
+  background: none;
+  padding: 0 4px;
+  line-height: 10px;
+  image-rendering: pixelated;
+}
+.menu-slot [data-action='delete'] { border-image-source: url('/assets/ui/menu/ui_button_plum_normal.png'); color: #fff8ec; }
+.menu-slot [data-action='delete']:hover,
+.menu-slot [data-action='delete']:focus { border-image-source: url('/assets/ui/menu/ui_button_plum_hover.png'); }
+
+/* ---------- Painéis ---------- */
+.menu-panel,
+.catalog,
+.dialogue-layer .dialogue {
+  border-style: solid;
+  border-width: 8px;
+  border-radius: 0;
+  border-image: url('/assets/ui/menu/ui_panel_cream.png') 16 fill / 16px / 8px;
+  background: none;
+  box-shadow: none;
+  image-rendering: pixelated;
+}
+.menu-panel { padding: 2px 4px; }
+.menu-panel.pause,
+.menu-confirm .menu-panel { border-image-source: url('/assets/ui/menu/ui_panel_pink.png'); }
+.catalog.menu-board { border-image-source: url('/assets/ui/menu/ui_panel_wood.png'); }
+
+/* Título dos painéis numa faixa (3 partes: ponta, meio, ponta). */
+.menu-panel h2 {
+  align-self: flex-start;
+  margin: -14px 0 2px -2px;
+  padding: 0 10px;
+  border-style: solid;
+  border-width: 0 14px;
+  border-image: url('/assets/ui/menu/ui_ribbon_pink.png') 0 14 fill;
+  line-height: 20px;
+  color: #fff8ec;
+  text-shadow: 0 1px 0 #8f3f52;
+  image-rendering: pixelated;
+}
+.menu-panel.creator h2,
+.menu-panel.options h2 { border-image-source: url('/assets/ui/menu/ui_ribbon_mint.png'); text-shadow: 0 1px 0 #3f7a5c; }
+
+/* ---------- Carrinho no HUD (ícone do pacote) ---------- */
+.hud-cart { display: flex; align-items: center; gap: 3px; padding: 0 6px 0 2px; }
+.hud-cart img { width: 16px; height: 16px; image-rendering: pixelated; }
+
+/* Ajustes de tamanho: a moldura soma 16 px (borda + sobra para fora); os painéis cabem nos 360 da tela. */
+.menu-panel { max-height: 318px; }
+.menu-panel h2 { margin-top: 0; }
+.menu-panel.creator { padding: 0 6px; gap: 2px; }
+.creator-preview { display: grid; grid-template-columns: auto auto; justify-items: center; gap: 4px; }
+.creator-preview canvas.frame { grid-column: 1 / -1; }
+.creator-preview .menu-row { flex-wrap: nowrap; }
+.creator-error { min-height: 0; margin: 0; }
+/* "Primavera, dia 12" cabe ao lado da barra de itens. */
+.hud-money .day { font-size: 8px; }

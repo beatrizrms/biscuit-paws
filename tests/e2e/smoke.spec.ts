@@ -436,7 +436,7 @@ test('fim do prólogo: ração ativa na barra, E na tigela alimenta, coração, 
   await expect(page.locator('.cs-card')).toContainText('MENOS UM GATINHO');
   await page.screenshot({ path: testInfo.outputPath('17-cartao-final.png') });
   await skipDialogue(page);
-  await expect(page.locator('.hud-money')).toContainText('Dia 2');
+  await expect(page.locator('.hud-money')).toContainText('Inverno, dia 2');
   await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
   await page.screenshot({ path: testInfo.outputPath('18-dia-2.png') });
 });

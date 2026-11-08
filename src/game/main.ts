@@ -4,6 +4,7 @@ import { BootScene } from './scenes/BootScene';
 import { MainMenuScene } from './scenes/MainMenuScene';
 import { WorldScene } from './scenes/WorldScene';
 import './ui/menu/menu.css';
+import './ui/skin.css';
 import { GAME_HEIGHT, GAME_WIDTH } from './screen';
 
 /** Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). */

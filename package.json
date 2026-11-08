@@ -8,6 +8,8 @@
     "art": "tsx scripts/build-worn-tiles.ts",
     "character": "tsx scripts/import-character.ts",
     "backyard": "tsx scripts/import-backyard.ts",
+    "seasons": "tsx scripts/import-seasons.ts",
+    "ui-audio": "tsx scripts/import-ui-audio.ts",
     "predev": "npm run tiles && npm run art",
     "dev": "vite",
     "prebuild": "npm run check && npm run art",

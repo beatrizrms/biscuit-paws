@@ -1,22 +1,390 @@
 {
-  "schemaVersion": 1,
-  "_comment": "Áudio em dois canais: music (música de fundo) e ambient (vento, neve, rua, passos...). file: caminho em public/ (null = ainda sem arquivo; o canal fica pronto e mudo). loop: tocar em repetição. fadeMs: transição ao trocar de faixa ou ligar/desligar.",
+  "schemaVersion": 2,
+  "_comment": "Áudio (pacote audio, sintetizado por código; npm run ui-audio). Dois canais de volume nas Opções: music (músicas e jingles) e ambient (ambientes e efeitos). file: [ogg, mp3] em public/ (null = ainda sem arquivo: o canal fica pronto e mudo). gain: mixagem da faixa (0..1, multiplica o volume do canal). scenes: música e ambiente de cada lugar, de dia e de noite (night: das nightFrom às nightUntil); busyAmbient: ambiente quando há clientes no café. events: evento do jogo -> efeito (sfx) ou jingle. loops: efeitos em repetição enquanto algo acontece (preparo, pia, gato no colo). fadeMs: transição ao trocar de faixa.",
   "fadeMs": 800,
+  "nightFrom": "18:00",
+  "nightUntil": "06:00",
   "music": {
-    "home": { "file": null, "loop": true },
-    "street": { "file": null, "loop": true },
-    "cafe": { "file": null, "loop": true }
+    "menu": {
+      "file": [
+        "assets/audio/music/music_menu.ogg",
+        "assets/audio/music/music_menu.mp3"
+      ],
+      "loop": true,
+      "gain": 0.45
+    },
+    "cafe_day": {
+      "file": [
+        "assets/audio/music/music_cafe_day.ogg",
+        "assets/audio/music/music_cafe_day.mp3"
+      ],
+      "loop": true,
+      "gain": 0.4
+    },
+    "night": {
+      "file": [
+        "assets/audio/music/music_night.ogg",
+        "assets/audio/music/music_night.mp3"
+      ],
+      "loop": true,
+      "gain": 0.4
+    }
+  },
+  "jingles": {
+    "inauguration": {
+      "file": [
+        "assets/audio/music/jingle_inauguration.ogg",
+        "assets/audio/music/jingle_inauguration.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "success": {
+      "file": [
+        "assets/audio/music/jingle_success.ogg",
+        "assets/audio/music/jingle_success.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "new_day": {
+      "file": [
+        "assets/audio/music/jingle_new_day.ogg",
+        "assets/audio/music/jingle_new_day.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "day_end": {
+      "file": [
+        "assets/audio/music/jingle_day_end.ogg",
+        "assets/audio/music/jingle_day_end.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    }
   },
   "ambient": {
-    "winter_wind": { "file": null, "loop": true },
-    "snow": { "file": null, "loop": true },
-    "street": { "file": null, "loop": true },
-    "steps": { "file": null, "loop": false }
+    "street_day": {
+      "file": [
+        "assets/audio/ambient/amb_street_day.ogg",
+        "assets/audio/ambient/amb_street_day.mp3"
+      ],
+      "loop": true,
+      "gain": 0.3
+    },
+    "cafe_busy": {
+      "file": [
+        "assets/audio/ambient/amb_cafe_busy.ogg",
+        "assets/audio/ambient/amb_cafe_busy.mp3"
+      ],
+      "loop": true,
+      "gain": 0.3
+    },
+    "night_crickets": {
+      "file": [
+        "assets/audio/ambient/amb_night_crickets.ogg",
+        "assets/audio/ambient/amb_night_crickets.mp3"
+      ],
+      "loop": true,
+      "gain": 0.3
+    },
+    "rain": {
+      "file": [
+        "assets/audio/ambient/amb_rain.ogg",
+        "assets/audio/ambient/amb_rain.mp3"
+      ],
+      "loop": true,
+      "gain": 0.3
+    },
+    "clock_room": {
+      "file": [
+        "assets/audio/ambient/amb_clock_room.ogg",
+        "assets/audio/ambient/amb_clock_room.mp3"
+      ],
+      "loop": true,
+      "gain": 0.25
+    }
+  },
+  "sfx": {
+    "door_bell": {
+      "file": [
+        "assets/audio/sfx/sfx_door_bell.ogg",
+        "assets/audio/sfx/sfx_door_bell.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "new_order": {
+      "file": [
+        "assets/audio/sfx/sfx_new_order.ogg",
+        "assets/audio/sfx/sfx_new_order.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "pick_up": {
+      "file": [
+        "assets/audio/sfx/sfx_pick_up.ogg",
+        "assets/audio/sfx/sfx_pick_up.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "put_down": {
+      "file": [
+        "assets/audio/sfx/sfx_put_down.ogg",
+        "assets/audio/sfx/sfx_put_down.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "coin": {
+      "file": [
+        "assets/audio/sfx/sfx_coin.ogg",
+        "assets/audio/sfx/sfx_coin.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "success": {
+      "file": [
+        "assets/audio/sfx/sfx_success.ogg",
+        "assets/audio/sfx/sfx_success.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "error": {
+      "file": [
+        "assets/audio/sfx/sfx_error.ogg",
+        "assets/audio/sfx/sfx_error.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "ui_click": {
+      "file": [
+        "assets/audio/sfx/sfx_ui_click.ogg",
+        "assets/audio/sfx/sfx_ui_click.mp3"
+      ],
+      "loop": false,
+      "gain": 0.5
+    },
+    "menu_open": {
+      "file": [
+        "assets/audio/sfx/sfx_menu_open.ogg",
+        "assets/audio/sfx/sfx_menu_open.mp3"
+      ],
+      "loop": false,
+      "gain": 0.5
+    },
+    "menu_close": {
+      "file": [
+        "assets/audio/sfx/sfx_menu_close.ogg",
+        "assets/audio/sfx/sfx_menu_close.mp3"
+      ],
+      "loop": false,
+      "gain": 0.5
+    },
+    "coffee_brewing": {
+      "file": [
+        "assets/audio/sfx/sfx_coffee_brewing_loop.ogg",
+        "assets/audio/sfx/sfx_coffee_brewing_loop.mp3"
+      ],
+      "loop": true,
+      "gain": 0.45
+    },
+    "coffee_ready": {
+      "file": [
+        "assets/audio/sfx/sfx_coffee_ready.ogg",
+        "assets/audio/sfx/sfx_coffee_ready.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "sink_water": {
+      "file": [
+        "assets/audio/sfx/sfx_sink_water_loop.ogg",
+        "assets/audio/sfx/sfx_sink_water_loop.mp3"
+      ],
+      "loop": true,
+      "gain": 0.45
+    },
+    "broom": {
+      "file": [
+        "assets/audio/sfx/sfx_broom.ogg",
+        "assets/audio/sfx/sfx_broom.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "stove_sizzle": {
+      "file": [
+        "assets/audio/sfx/sfx_stove_sizzle_loop.ogg",
+        "assets/audio/sfx/sfx_stove_sizzle_loop.mp3"
+      ],
+      "loop": true,
+      "gain": 0.45
+    },
+    "oven_ding": {
+      "file": [
+        "assets/audio/sfx/sfx_oven_ding.ogg",
+        "assets/audio/sfx/sfx_oven_ding.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "dishes_clink": {
+      "file": [
+        "assets/audio/sfx/sfx_dishes_clink.ogg",
+        "assets/audio/sfx/sfx_dishes_clink.mp3"
+      ],
+      "loop": false,
+      "gain": 0.6
+    },
+    "step": {
+      "file": [
+        "assets/audio/sfx/sfx_step.ogg",
+        "assets/audio/sfx/sfx_step.mp3"
+      ],
+      "loop": false,
+      "gain": 0.3
+    },
+    "meow_1": {
+      "file": [
+        "assets/audio/sfx/sfx_meow_1.ogg",
+        "assets/audio/sfx/sfx_meow_1.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "meow_2": {
+      "file": [
+        "assets/audio/sfx/sfx_meow_2.ogg",
+        "assets/audio/sfx/sfx_meow_2.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "meow_kitten": {
+      "file": [
+        "assets/audio/sfx/sfx_meow_kitten.ogg",
+        "assets/audio/sfx/sfx_meow_kitten.mp3"
+      ],
+      "loop": false,
+      "gain": 0.7
+    },
+    "purr": {
+      "file": [
+        "assets/audio/sfx/sfx_purr_loop.ogg",
+        "assets/audio/sfx/sfx_purr_loop.mp3"
+      ],
+      "loop": true,
+      "gain": 0.5
+    }
   },
   "scenes": {
-    "home": { "music": "home", "ambient": "winter_wind" },
-    "map.street": { "music": "street", "ambient": "street" },
-    "map.market": { "music": "street", "ambient": null },
-    "map.cafe_main": { "music": "cafe", "ambient": null }
+    "home": {
+      "day": {
+        "music": "menu",
+        "ambient": null
+      }
+    },
+    "map.street": {
+      "day": {
+        "music": "cafe_day",
+        "ambient": "street_day"
+      },
+      "night": {
+        "music": "night",
+        "ambient": "night_crickets"
+      }
+    },
+    "map.market": {
+      "day": {
+        "music": "cafe_day",
+        "ambient": null
+      },
+      "night": {
+        "music": "night",
+        "ambient": null
+      }
+    },
+    "map.cafe_main": {
+      "day": {
+        "music": "cafe_day",
+        "ambient": null
+      },
+      "night": {
+        "music": "night",
+        "ambient": null
+      },
+      "busyAmbient": "cafe_busy"
+    }
+  },
+  "events": [
+    {
+      "event": "customer.arrived",
+      "sfx": "door_bell"
+    },
+    {
+      "event": "customer.served",
+      "sfx": "coin"
+    },
+    {
+      "event": "prep.ready",
+      "sfx": "coffee_ready"
+    },
+    {
+      "event": "dish.washed",
+      "sfx": "dishes_clink"
+    },
+    {
+      "event": "cat.sheltered",
+      "sfx": "meow_kitten"
+    },
+    {
+      "event": "cat.fed",
+      "sfx": "meow_1"
+    },
+    {
+      "event": "cat.affection_changed",
+      "sfx": "meow_2"
+    },
+    {
+      "event": "job.completed",
+      "sfx": "success"
+    },
+    {
+      "event": "cart.checked_out",
+      "sfx": "coin"
+    },
+    {
+      "event": "item.bought",
+      "sfx": "coin"
+    },
+    {
+      "event": "room.discovered",
+      "sfx": "success"
+    },
+    {
+      "event": "story.beat_completed",
+      "jingle": "success"
+    },
+    {
+      "event": "day.ended",
+      "jingle": "day_end"
+    },
+    {
+      "event": "day.started",
+      "jingle": "new_day"
+    }
+  ],
+  "loops": {
+    "coffee_brewing": "Preparando na cafeteira, liquidificador ou bule",
+    "stove_sizzle": "Preparando no fogão ou forno",
+    "sink_water": "Lavando louça na pia",
+    "purr": "Gato no colo"
   }
 }

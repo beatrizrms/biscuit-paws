@@ -1,7 +1,7 @@
 // Opções de som: música e sons ambientes, cada um com liga/desliga e volume. Aplica na hora e grava à parte do save.
 // Usado na Home e na pausa do jogo.
 import type { ChannelSettings, Settings } from '../../../core/settings';
-import { audioData } from '../../audio/AudioManager';
+import { hasAudioFiles } from '../../audio/AudioManager';
 import { t } from '../../i18n';
 import { services } from '../../services';
 import { esc, popLayer, pushLayer, type MenuLayer } from './MenuKit';
@@ -9,7 +9,7 @@ import { esc, popLayer, pushLayer, type MenuLayer } from './MenuKit';
 export function openOptions(root: HTMLElement, onClose?: () => void): void {
   const { audio, saveSettings } = services();
   const settings: Settings = structuredClone(audio.getSettings());
-  const hasFiles = (['music', 'ambient'] as const).some((ch) => Object.values(audioData[ch]).some((tr) => tr.file));
+  const hasFiles = hasAudioFiles();
   const el = document.createElement('div');
   el.className = 'menu-layer';
   const row = (ch: 'music' | 'ambient', c: ChannelSettings) => `

@@ -522,3 +522,23 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 - **Funcionalidades** (com o cômodo reformado): `sleep` = a cama oferece "dormir no café" depois de `goHomeFrom`; ela acorda em `sleep.wake` (também depois de desmaiar), e a porta da fachada não manda mais para casa. `playground` = módulos (itens com a tag de `playground.tag` e `"room": "room.backyard"`, liberados por `requires`: quintal reformado e `{ "cats": { "gte": 10 } }`) dão `pointsPerModulePerDay` de afeto a cada gato por dia.
 - Itens com `room` só podem ser posicionados naquele cômodo. Condições novas: `{ "room": "room.x", "atLeast": "abandoned" }`, `{ "cats": { "gte": 10 } }`.
 - **Novo cômodo** (cozinha, sótão, porão...): área livre no mapa (parede divisória e passagem) + uma entrada em `rooms` e em `doors`. Arte: `npm run backyard` importa o quintal e desenha os provisórios.
+
+## Calendário e estações (`data/seasons.json`)
+
+- `daysPerSeason` (30), `order` (inverno, primavera, verão, outono; o jogo começa na primeira, véspera de Natal), `names` (no HUD: "Inverno, dia 12"). A estação sai de `state.day`: o save não guarda nada novo.
+- `maps`: mapas que mudam com a estação (a rua). Tiles com os `prefixes` ganham o da estação (`street_calcada_a` -> `spring_street_calcada_a`); peças com `snowPrefix` (neve, montes, a neve por cima de objetos) somem fora do inverno; o que não existe na estação (abeto de Natal, pegadas) some. A cor do dia e da noite usa a estação do dia (`daynight.json: seasons`).
+- Condição `{ "fromSeason": "spring" }`: a partir da primeira vez que a estação chega (dia 31). Texto `{daysUntil:spring}`: dias que faltam.
+- **Inauguração** (`story.inauguration`): reforma completa (agora com a fachada) + placa + `fromSeason: spring`. No inverno a meta mostra quantos dias faltam. Ao inaugurar, a cena `cs.inauguration`.
+- **Fachada no pintor** (`finishes.json: facade`): a superfície `surface.facade` (kind `facade`) troca o tile do objeto `obj.facade_cafe` da rua (menta, rosa, céu; com neve no inverno). Entra em `business.json: requiredSurfaces`.
+- Arte: `npm run seasons` importa a rua de primavera, verão e outono.
+
+## Cenas: passo de imagem (`data/cutscenes.json`)
+
+`{ "type": "image", "image": "assets/ui/scenes/...png", "byFacade": { "finish.facade_pink": "..." }, "sound": "inauguration" }`: imagem de tela cheia; `byFacade` escolhe pela cor da fachada (sem arte da cor, vale `image`); `sound`: jingle de `audio.json` ao aparecer. Passo sem texto: emenda no próximo.
+
+## Áudio v2 (`data/audio.json`)
+
+- Grupos: `music` e `jingles` (volume "Música" das Opções), `ambient` e `sfx` (volume "Sons ambientes"). Faixa: `file` ([ogg, mp3]; null = mudo), `loop`, `gain` (mixagem).
+- `scenes`: por lugar, `day` e `night` (de `nightFrom` a `nightUntil`) com música e ambiente; `busyAmbient`: burburinho quando há clientes no café.
+- `events`: evento do núcleo -> `sfx` ou `jingle` (ex.: `customer.served` -> moeda, `day.started` -> jingle do dia novo). `loops`: cafeteira/liquidificador/bule, fogão/forno, pia e gato no colo tocam em repetição enquanto acontecem (`src/game/audio/SoundEvents.ts`).
+- Menus: clique, abrir e fechar; avisos de problema: som de erro. Arte e som: `npm run ui-audio`.

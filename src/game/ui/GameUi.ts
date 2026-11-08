@@ -12,6 +12,7 @@ import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
+import { services } from '../services';
 
 type HintMode = 'walk' | 'placing' | 'dialogue';
 
@@ -86,7 +87,7 @@ export class GameUi {
     const cartEl = $('.hud-cart');
     session.bus.on('cart.changed', ({ count, total }) => {
       cartEl.hidden = count === 0;
-      cartEl.textContent = `${uiText.shop.cartTitle}: ${count} · ${total}`;
+      cartEl.innerHTML = `<img src="assets/ui/hud/${count > 0 ? 'icon_cart_full' : 'icon_cart_empty'}.png" alt="${uiText.shop.cartTitle}" /><span>${count} · ${total}</span>`;
     });
     this.goals = $('.hud-goals');
     this.hint = $('.hint');
@@ -112,6 +113,7 @@ export class GameUi {
       this.openDialogueIfFree();
     };
     this.cutscene = new CutsceneView(root, session, afterOverlay);
+    this.cutscene.onSound = (id) => services().audio.jingle(id);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
@@ -225,6 +227,7 @@ export class GameUi {
   }
 
   problem(reason: keyof typeof uiText.problems): void {
+    services().audio.sfx('error');
     this.toast(uiText.problems[reason] ?? reason);
   }
 

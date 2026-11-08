@@ -12,6 +12,8 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 | Arquivo | Destino |
 | --- | --- |
 | `cat-cafe-tileset.png` (pacote Cat Cafe 32x32, pasta `tiles/`) | `public/assets/interiors/cafe/tile_cafe.png` |
+| pacotes `ui_menus`, `inauguracao` e `audio` (zips) | `assets/_originais_pacotes/<pacote>/`, depois rode `npm run ui-audio` |
+| pacote `rua_estacoes_tilesets` | `assets/_originais_pacotes/rua_estacoes_tilesets/`, depois rode `npm run seasons` |
 | pacote `quintal_secreto` (zip) | `assets/_originais_pacotes/quintal_secreto/`, depois rode `npm run backyard` |
 | pacote `personagem_principal` (zip) | `assets/_originais_pacotes/personagem_principal/`, depois rode `npm run character` (copia para `public/assets/characters/player/` e confere os arquivos) |
 
@@ -44,7 +46,7 @@ Controles:
 - **P:** celular (depois do prólogo), com dois apps: **Vila Hoje** (notícias e pedidos da vila) e **Meus gatos** (cada gato abrigado: personalidade, corações, saúde, doença e remédio, se comeu hoje e há quantos dias está no café).
 - **Clínica da Fernanda** (fim da rua, a partir do dia 6): com o gato doente no colo (E perto dele), entre e aperte **E** na mesa de exame para a consulta (diagnóstico, receita de 1 a 7 dias e o preço; a primeira pode ser fiado). Em casa, com o **remédio** ativo na barra, **E** perto do gato dá a dose do dia. Cuidado: gato doente sem remédio por mais de 2 dias passa a doença para os outros, e com 2 ou mais gatos doentes os clientes deixam de entrar.
 
-O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. No **Novo jogo**, depois do slot, vem **Sua personagem**: nome e aparência (pele, olhos, cabelo, roupa, parte de baixo, calçado, óculos e acessório), com prévia que gira, "Aleatório" e "Exemplos". Isso só se escolhe no início do jogo. O café cresce por cômodos, como recompensa de quem já toca o café: depois da inauguração (na primavera) e com 40 clientes atendidos, a Dona Neusa conta do **quartinho** atrás da parede (obra no catálogo, seção **Obras**). Com o quartinho reformado e 100 clientes, o gato leva até a porta com cadeado do **quintal secreto** (a chave estava no quartinho). Cômodo reformado libera funções: no quartinho, dormir no café. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
+O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, Carregar/recuperar saves, Opções e Créditos. No **Novo jogo**, depois do slot, vem **Sua personagem**: nome e aparência (pele, olhos, cabelo, roupa, parte de baixo, calçado, óculos e acessório), com prévia que gira, "Aleatório" e "Exemplos". Isso só se escolhe no início do jogo. O ano tem quatro estações de 30 dias: o jogo começa no inverno, e a inauguração do café só pode acontecer a partir da primavera (o inverno é o mês para reformar o salão e a fachada). O café cresce por cômodos, como recompensa de quem já toca o café: depois da inauguração (na primavera) e com 40 clientes atendidos, a Dona Neusa conta do **quartinho** atrás da parede (obra no catálogo, seção **Obras**). Com o quartinho reformado e 100 clientes, o gato leva até a porta com cadeado do **quintal secreto** (a chave estava no quartinho). Cômodo reformado libera funções: no quartinho, dormir no café. Esc no jogo abre a pausa (Continuar, Opções, Salvar, Voltar ao menu).
 
 Atalhos para testar (pulam a Home): `http://localhost:5173/?novo` começa um jogo novo no slot 1; `?jogar` continua o save mais recente (ou começa um novo).
 
