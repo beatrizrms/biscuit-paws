@@ -8,6 +8,7 @@ import { FishingScene, FISHING_SCENE } from './minigames/FishingScene';
 import { DeliveryScene, DELIVERY_SCENE } from './minigames/DeliveryScene';
 import { KittenHuntScene, KITTEN_HUNT_SCENE } from './minigames/KittenHuntScene';
 import { LatteScene, LATTE_SCENE } from './minigames/LatteScene';
+import { TrustScene, TRUST_SCENE } from './minigames/TrustScene';
 import { MiniGameRegistry } from './minigames/MiniGameRegistry';
 import './ui/menu/menu.css';
 import './ui/skin.css';
@@ -28,7 +29,7 @@ const game = new Phaser.Game({
   roundPixels: true,
   scale: { mode: Phaser.Scale.NONE, zoom: integerZoom() / RENDER_SCALE },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, MainMenuScene, WorldScene, ChaseScene, FishingScene, LatteScene, KittenHuntScene, DeliveryScene],
+  scene: [BootScene, MainMenuScene, WorldScene, ChaseScene, FishingScene, LatteScene, KittenHuntScene, DeliveryScene, TrustScene],
 });
 
 // Mini games: id (data/minigames.json) -> cena. Para um jogo novo: a cena acima e uma linha aqui.
@@ -37,6 +38,7 @@ MiniGameRegistry.register('fishing', FISHING_SCENE);
 MiniGameRegistry.register('latte', LATTE_SCENE);
 MiniGameRegistry.register('kitten_hunt', KITTEN_HUNT_SCENE);
 MiniGameRegistry.register('delivery', DELIVERY_SCENE);
+MiniGameRegistry.register('trust', TRUST_SCENE);
 
 /** Canvas e interface HTML crescem juntos, sempre na mesma escala inteira. */
 function layout(): void {

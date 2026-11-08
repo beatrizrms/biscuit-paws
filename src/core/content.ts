@@ -410,6 +410,7 @@ export function validateContent(raw: RawContent): string[] {
     const most = Math.max(...Object.values(g.difficulties).map((d) => Number(d.obstacles ?? 0)));
     errors.push(...validateDelivery(g.items, g.obstacles, most, new Set(Object.keys(raw.icons.icons))));
   }
+  for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));

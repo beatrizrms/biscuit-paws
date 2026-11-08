@@ -471,6 +471,15 @@
       "result": "Entregou o {item} com {quality}% de qualidade.",
       "ruined": "O {item} estragou no caminho...",
       "late": "Não deu tempo de entregar."
+    },
+    "trust": {
+      "hud": "Confiança {trust}% · Sustos {scares}/{max}",
+      "treat": "Petisco (P) ×{n}",
+      "hiss": "Fff!",
+      "scared": "Assustou!",
+      "result": "Confiança conquistada com {scares} susto(s).",
+      "failed": "Ele se assustou demais e fugiu.",
+      "treatGiven": "Petisco!"
     }
   },
   "phoneApp": {

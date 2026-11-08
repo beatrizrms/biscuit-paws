@@ -190,6 +190,26 @@
         "normal": {"obstacles":5,"speedScale":1,"decayScale":1,"timeSec":50,"greatQuality":0.5},
         "hard": {"obstacles":8,"speedScale":1.2,"decayScale":1.25,"timeSec":40,"greatQuality":0.5}
       }
+    },
+    "trust": {
+      "name": "Confiança do gato",
+      "instructions": "Um gato assustado na rua. Segure para chegar perto, devagar. Se ele ficar alerta, pare e espere ele relaxar. Se ele bufar e você continuar andando, ele se assusta. Perto e com ele calmo, a confiança sobe.",
+      "tutorial": {"icon":"petisco_biscoito","lines":["Segure → (ou E, Espaço, mouse) para chegar perto devagar; ← se afasta.","Ele ficou alerta (!)? Pare e espere relaxar. Bufou? Não ande!","Petisco (P) acelera a confiança. Sem nenhum susto = \"Perfeito!\"."]},
+      "map": "map.minigame_chase",
+      "view": [6,0,20,12],
+      "catAt": [21,6],
+      "treatItem": "item.cat_treat_biscuit",
+      "sounds": {"hiss":"error","scare":"error","trust":"purr","treat":"meow_1","done":"success"},
+      "rewards": {
+        "easy": {"ok":10,"great":18},
+        "normal": {"ok":16,"great":26},
+        "hard": {"ok":24,"great":40}
+      },
+      "difficulties": {
+        "easy": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.35,"relaxRate":0.35,"gainPerSec":4,"treats":2},
+        "normal": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.45,"relaxRate":0.3,"gainPerSec":3.5,"treats":1},
+        "hard": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.6,"relaxRate":0.25,"gainPerSec":3,"treats":0}
+      }
     }
   }
 }

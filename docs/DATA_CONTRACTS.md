@@ -406,6 +406,8 @@ Caça ao filhote (`kitten_hunt`): `map` + `view` (`[col, row, largura, altura]`:
 
 Entrega relâmpago (`delivery`): `map`, `start` e `goal` (células), `goalRadius` (px), `stunMs`, `graceMs`, `hitRadius` (`{ pedestrian, bike }`, px), `sounds` (`bump`, `arrive`), `items` (`{ id, name, icon, verb, decayPerSec, hitLoss }`: qualidade de 0 a 100) e `obstacles` (`{ kind: pedestrian|bike, path: [[c,r],[c,r]], speed }`: vai e volta). Por dificuldade: `obstacles` (quantas rotas, as primeiras), `speedScale`, `decayScale`, `timeSec` (opcional), `greatQuality` (0,5). O mini game pode ser aberto com `itemId` (id de um item de entrega) para escolher o pedido. Regra: `src/core/delivery.ts`.
 
+Confiança do gato (`trust`): `map`, `view`, `catAt` (célula do gato), `treatItem` (item que vale um petisco a mais quando passado em `params.itemId`), `sounds` (`hiss`, `scare`, `trust` (ronronar em repetição), `treat`, `done`). Sem `timeSec`. Por dificuldade: distâncias (`startDistance`, `nearDistance`, `minDistance`), `approachSpeed`, `backSpeed`, tensão (`tensionRate`, `farTension`, `relaxRate`, `alertAt`, `hissAt`), confiança (`gainPerSec`, `movingGain`), sustos (`scareLoss`, `scarePushback`, `maxScares`, `scareCooldownMs`) e petiscos (`treats`, `treatGain`, `treatSec`, `treatCalm`). Regra: `src/core/trust.ts`.
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

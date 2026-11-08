@@ -79,6 +79,9 @@ export interface MiniGameDef {
   /** Raio do esbarrão por tipo de obstáculo (px lógicos) e a folga depois de um tropeço (ms). */
   hitRadius?: Record<string, number>;
   graceMs?: number;
+  /** Confiança do gato: onde o gato fica (célula) e o item que vale um petisco a mais (params.itemId). */
+  catAt?: [number, number];
+  treatItem?: string;
 }
 
 export interface MiniGamesConfig {

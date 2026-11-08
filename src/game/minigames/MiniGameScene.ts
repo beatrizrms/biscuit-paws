@@ -202,7 +202,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   }
 
   /** Botão extra no topo (ex.: "Servir" da latte art), ao lado do Pular. Some na tela de resultado. */
-  protected hudButton(label: string, onClick: () => void): void {
+  protected hudButton(label: string, onClick: () => void): HTMLButtonElement {
     const b = document.createElement('button');
     b.className = 'menu-btn mg-skip mg-extra';
     b.textContent = label;
@@ -211,6 +211,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
       if (this.phase === 'playing') onClick();
     });
     this.layer?.querySelector('.mg-hud')?.insertBefore(b, this.layer.querySelector('.mg-skip'));
+    return b;
   }
 
   private overlay(html: string | null): void {
