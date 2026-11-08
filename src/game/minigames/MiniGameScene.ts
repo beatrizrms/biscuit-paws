@@ -91,7 +91,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   }
 
   /** Acabou: mostra o resultado (as moedas vêm do núcleo, pelos dados). */
-  protected finish(outcome: Outcome, score: number, skipped = false, extra: { bonusCoins?: number; itemId?: string } = {}): void {
+  protected finish(outcome: Outcome, score: number, skipped = false, extra: Parameters<typeof makeResult>[6] = {}): void {
     if (this.phase === 'result') return;
     this.timer?.stop();
     this.physics.pause();
@@ -217,7 +217,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private overlay(html: string | null): void {
     const o = this.layer?.querySelector<HTMLElement>('.mg-overlay');
     if (!o) return;
-    o.innerHTML = html ? `<div class="panel mg-panel">${html}</div>` : '';
+    o.innerHTML = html ? `<div class="panel mg-panel" data-game="${this.gameId}">${html}</div>` : '';
     o.classList.toggle('open', !!html);
     this.layer!.querySelectorAll<HTMLElement>('.mg-skip').forEach((b) => (b.hidden = this.phase === 'result'));
   }

@@ -32,6 +32,7 @@ const raw: RawContent = {
   character: read('data/character.json'),
   rooms: read('data/rooms.json'),
   seasons: read('data/seasons.json'),
+  adoption: read('data/adoption.json'),
   carry: read('data/carry.json'),
   emotes: read('data/emotes.json'),
   jobs: read('data/jobs.json'),

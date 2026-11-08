@@ -408,6 +408,8 @@ Entrega relâmpago (`delivery`): `map`, `start` e `goal` (células), `goalRadius
 
 Confiança do gato (`trust`): `map`, `view`, `catAt` (célula do gato), `treatItem` (item que vale um petisco a mais quando passado em `params.itemId`), `sounds` (`hiss`, `scare`, `trust` (ronronar em repetição), `treat`, `done`). Sem `timeSec`. Por dificuldade: distâncias (`startDistance`, `nearDistance`, `minDistance`), `approachSpeed`, `backSpeed`, tensão (`tensionRate`, `farTension`, `relaxRate`, `alertAt`, `hissAt`), confiança (`gainPerSec`, `movingGain`), sustos (`scareLoss`, `scarePushback`, `maxScares`, `scareCooldownMs`) e petiscos (`treats`, `treatGain`, `treatSec`, `treatCalm`). Regra: `src/core/trust.ts`.
 
+Match de adoção (`adoption`, em `minigames.json` só nome, tutorial, sons e dificuldades `pairs` (3/4/5) e `okAt`). O conteúdo fica em **`data/adoption.json`**: `traits` (grupo -> valor -> nome na tela), `cats` (`{ id: "adopt.*", name, variant, traits: { personality, age, coat } }`), `families` (`{ id: "fam.*", name, description, scores: { "grupo.valor": pontos }, notes: { "grupo.valor": "porquê" } }`), `verdicts` (`goodAt`, `badAt`), `reputation` (`good`, `ok`, `bad`: por adoção) e `protectedCats` (gatos do café que nunca saem por adoção). Regra: `src/core/adoption.ts`; evento `cat.adopted` (`catId, verdict, leftCafe`).
+
 Pedido que abre um mini game: ponto com `"action": "minigame"` e `"minigame": { "id": "chase", "difficulty": "normal" }` (ex.: `job.runaway_cat`).
 
 ## Pedidos da vila (`data/jobs.json`) e jornal (`data/news.json`)

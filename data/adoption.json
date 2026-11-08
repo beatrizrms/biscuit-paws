@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Match de adoção (mini game adoption). traits: os traços e os nomes na tela. cats: gatos do abrigo da vila (id adopt.*), com variante do Cosy Cats e um valor de cada traço. families: perfis de família; scores dá pontos por traço do gato (positivo combina, negativo não; o que não está aqui vale 0) e notes explica o porquê (1 linha por par, mostrada ao confirmar). Veredito: soma >= verdicts.goodAt = boa; <= verdicts.badAt = ruim; o resto = ok. O motivo mostrado é a nota do traço que mais pesou para o lado do veredito. reputation: quanto cada adoção vale (fase 2, reputação). protectedCats: gatos do café que nunca saem por adoção (os da história).",
+  "traits": {
+    "personality": { "calm": "Calmo", "playful": "Brincalhão", "shy": "Tímido" },
+    "age": { "kitten": "Filhote", "adult": "Adulto", "senior": "Idoso" },
+    "coat": { "short": "Pelo curto", "long": "Pelo longo" }
+  },
+  "verdicts": { "goodAt": 2, "badAt": -1 },
+  "reputation": { "good": 3, "ok": 1, "bad": 0 },
+  "protectedCats": ["cat.first_stray", "cat.tekinha"],
+  "cats": [
+    { "id": "adopt.mingau", "name": "Mingau", "variant": "snowdrop", "traits": { "personality": "calm", "age": "senior", "coat": "long" } },
+    { "id": "adopt.faisca", "name": "Faísca", "variant": "marmalade", "traits": { "personality": "playful", "age": "kitten", "coat": "short" } },
+    { "id": "adopt.sombra", "name": "Sombra", "variant": "midnight", "traits": { "personality": "shy", "age": "adult", "coat": "short" } },
+    { "id": "adopt.pipoca", "name": "Pipoca", "variant": "custard", "traits": { "personality": "playful", "age": "adult", "coat": "short" } },
+    { "id": "adopt.nuvem", "name": "Nuvem", "variant": "misty", "traits": { "personality": "calm", "age": "adult", "coat": "long" } },
+    { "id": "adopt.tico", "name": "Tico", "variant": "freckle", "traits": { "personality": "shy", "age": "kitten", "coat": "short" } },
+    { "id": "adopt.dona_ruth", "name": "Dona Ruth", "variant": "toffee", "traits": { "personality": "calm", "age": "senior", "coat": "short" } },
+    { "id": "adopt.bolota", "name": "Bolota", "variant": "biscuit", "traits": { "personality": "playful", "age": "kitten", "coat": "long" } },
+    { "id": "adopt.domino", "name": "Dominó", "variant": "domino", "traits": { "personality": "shy", "age": "senior", "coat": "long" } },
+    { "id": "adopt.avela", "name": "Avelã", "variant": "hazel", "traits": { "personality": "calm", "age": "kitten", "coat": "short" } }
+  ],
+  "families": [
+    {
+      "id": "fam.small_flat", "name": "Apê pequeno", "description": "Casal num apartamento de um quarto.",
+      "scores": { "personality.calm": 2, "personality.playful": -2, "age.senior": 1, "age.kitten": -1 },
+      "notes": {
+        "personality.calm": "gato calmo fica feliz num cantinho pequeno",
+        "personality.playful": "brincalhão precisa de espaço para correr",
+        "age.senior": "idoso não precisa de muito espaço",
+        "age.kitten": "filhote vai querer correr pela casa toda"
+      }
+    },
+    {
+      "id": "fam.kids", "name": "Família com crianças", "description": "Duas crianças pequenas e muita bagunça.",
+      "scores": { "personality.playful": 2, "age.adult": 1, "personality.shy": -2, "age.senior": -1, "age.kitten": -1 },
+      "notes": {
+        "personality.playful": "as crianças vão brincar o dia todo com ele",
+        "age.adult": "adulto aguenta bem a bagunça das crianças",
+        "personality.shy": "tímido vai se assustar com o barulho",
+        "age.senior": "idoso precisa de sossego",
+        "age.kitten": "filhote é frágil para mãos pequenas"
+      }
+    },
+    {
+      "id": "fam.elderly", "name": "Seu Dito, sozinho", "description": "Aposentado que mora sozinho e quer companhia.",
+      "scores": { "personality.calm": 2, "age.senior": 2, "personality.playful": -1, "age.kitten": -2, "coat.long": -1 },
+      "notes": {
+        "personality.calm": "um gato calmo é a companhia perfeita para a tarde",
+        "age.senior": "dois idosos no mesmo ritmo",
+        "personality.playful": "brincalhão demais cansa o Seu Dito",
+        "age.kitten": "filhote dá trabalho demais",
+        "coat.long": "escovar pelo longo todo dia é difícil para ele"
+      }
+    },
+    {
+      "id": "fam.has_cat", "name": "Casa com gato", "description": "Já tem uma gata e quer uma companhia para ela.",
+      "scores": { "age.kitten": 2, "personality.playful": 1, "personality.shy": -1, "age.senior": -1 },
+      "notes": {
+        "age.kitten": "filhote se adapta rápido a outro gato",
+        "personality.playful": "a gata da casa vai ganhar um parceiro de brincadeira",
+        "personality.shy": "tímido pode se esconder da gata da casa",
+        "age.senior": "idoso pode não gostar de dividir a casa"
+      }
+    },
+    {
+      "id": "fam.student", "name": "Estudante", "description": "Passa o dia na faculdade e volta à noite.",
+      "scores": { "personality.shy": 1, "personality.calm": 1, "age.adult": 1, "age.kitten": -2, "personality.playful": -1 },
+      "notes": {
+        "personality.shy": "tímido gosta de casa quieta",
+        "personality.calm": "calmo fica bem sozinho durante o dia",
+        "age.adult": "adulto já sabe ficar sozinho",
+        "age.kitten": "filhote não pode passar o dia sozinho",
+        "personality.playful": "brincalhão vai ficar entediado o dia inteiro"
+      }
+    },
+    {
+      "id": "fam.big_house", "name": "Casa com quintal", "description": "Família grande, casa grande e um quintal.",
+      "scores": { "personality.playful": 2, "age.kitten": 1, "coat.long": 1, "personality.shy": -1 },
+      "notes": {
+        "personality.playful": "um quintal inteiro para explorar",
+        "age.kitten": "espaço de sobra para crescer",
+        "coat.long": "tem gente de sobra para escovar o pelo",
+        "personality.shy": "muita gente em casa assusta um tímido"
+      }
+    },
+    {
+      "id": "fam.allergic", "name": "Casal com rinite", "description": "Amam gatos, mas espirram com pelo solto.",
+      "scores": { "coat.short": 2, "coat.long": -3 },
+      "notes": {
+        "coat.short": "pelo curto solta bem menos",
+        "coat.long": "pelo longo vai ser espirro o dia todo"
+      }
+    },
+    {
+      "id": "fam.home_office", "name": "Designer em casa", "description": "Trabalha em casa, em silêncio, o dia todo.",
+      "scores": { "personality.shy": 2, "personality.calm": 1, "coat.long": 1, "personality.playful": -1 },
+      "notes": {
+        "personality.shy": "tímido vai ganhar confiança com alguém sempre por perto",
+        "personality.calm": "calmo dorme ao lado do computador",
+        "coat.long": "dá tempo de escovar o pelo nas pausas",
+        "personality.playful": "brincalhão vai pular no teclado"
+      }
+    }
+  ]
+}

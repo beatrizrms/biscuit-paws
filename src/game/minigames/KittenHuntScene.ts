@@ -11,7 +11,7 @@ import { content, uiText } from '../content';
 import { CatSprite, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { addTileImage } from '../tileArt';
-import { ART_SCALE, CHASE, ensurePlaceholders, HUNT_SHEETS, KITTEN_HUNT, loadSheets } from './assets';
+import { ART_SCALE, CHASE, ensurePlaceholders, HUNT_SHEETS, KITTEN_HUNT, loadCatVariants, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
 export const KITTEN_HUNT_SCENE = 'MiniGame.kitten_hunt';
@@ -40,6 +40,7 @@ export class KittenHuntScene extends MiniGameScene {
 
   preload(): void {
     loadSheets(this, [CHASE.hideBox, CHASE.hideTrash, CHASE.hideBush, CHASE.hideCar, ...Object.values(KITTEN_HUNT)]);
+    loadCatVariants(this, Object.keys(content.catSprites.variants)); // filhotes de cores variadas
   }
 
   protected buildGame(): void {

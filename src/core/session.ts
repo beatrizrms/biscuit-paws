@@ -1012,9 +1012,22 @@ export class GameSession {
   finishMiniGame(result: MiniGameResult, params: MiniGameParams): void {
     if (result.coinsEarned > 0) this.addMoney(result.coinsEarned, `minigame:${result.gameId}`);
     if (result.itemId && this.content.items[result.itemId]) this.receiveItem(result.itemId);
+    for (const a of result.adoptions ?? []) this.bus.emit('cat.adopted', { catId: a.catId, verdict: a.verdict, leftCafe: a.verdict === 'good' && this.adoptOut(a.catId) });
     this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
     if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
     else this.advanceStory();
+  }
+
+  /**
+   * Ponto de integração da adoção: um gato do café que foi adotado (match "boa") sai do café. Os gatos do abrigo
+   * da vila (adopt.*) não estão no café, e os da história (adoption.json: protectedCats) nunca saem.
+   * Devolve se o gato saiu.
+   */
+  adoptOut(catId: string): boolean {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId)) return false;
+    cat.sheltered = false;
+    return true;
   }
 
   /** Corações entre a protagonista e um gato. */

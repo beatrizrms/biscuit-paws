@@ -21,6 +21,8 @@ export interface MiniGameResult {
   skipped: boolean;
   /** O que veio junto (ex.: o peixe pescado): vai para a mochila. */
   itemId?: string;
+  /** Match de adoção: cada gato e como ficou (a sessão avisa e, nas boas, tira o gato do café se ele for de lá). */
+  adoptions?: { catId: string; verdict: 'good' | 'ok' | 'bad' }[];
 }
 
 /** Com o que o mini game foi aberto: dificuldade, gato envolvido, item de missão, ponto de pedido... */
@@ -110,11 +112,20 @@ export function makeResult(
   outcome: Outcome,
   score: number,
   skipped = false,
-  extra: { bonusCoins?: number; itemId?: string } = {},
+  extra: { bonusCoins?: number; itemId?: string; adoptions?: MiniGameResult['adoptions'] } = {},
 ): MiniGameResult {
   const won = !skipped && outcome !== 'fail';
   const coinsEarned = coinsFor(cfg, gameId, difficulty, outcome, skipped) + (won ? extra.bonusCoins ?? 0 : 0);
-  return { gameId, outcome: skipped ? 'ok' : outcome, score, coinsEarned, skipped, ...(won && extra.itemId ? { itemId: extra.itemId } : {}) };
+  // As adoções valem mesmo quando a partida não deu (as boas foram boas); pular não adota ninguém.
+  return {
+    gameId,
+    outcome: skipped ? 'ok' : outcome,
+    score,
+    coinsEarned,
+    skipped,
+    ...(won && extra.itemId ? { itemId: extra.itemId } : {}),
+    ...(!skipped && extra.adoptions?.length ? { adoptions: extra.adoptions } : {}),
+  };
 }
 
 /** Parâmetros de um jogo numa dificuldade, já tipados por quem chama. */

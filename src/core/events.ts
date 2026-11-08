@@ -19,6 +19,7 @@ export interface GameEvents {
   'customers.away': { sickCats: number };
   'debt.paid': { amount: number; left: number };
   /** Um mini game acabou (as moedas já entraram). */
+  'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };

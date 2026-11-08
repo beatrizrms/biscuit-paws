@@ -210,6 +210,22 @@
         "normal": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.45,"relaxRate":0.3,"gainPerSec":3.5,"treats":1},
         "hard": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.6,"relaxRate":0.25,"gainPerSec":3,"treats":0}
       }
+    },
+    "adoption": {
+      "name": "Match de adoção",
+      "instructions": "Gatos do abrigo e famílias querendo adotar. Arraste cada gato para a família que combina com ele (veja os traços e o perfil) e confirme. Os gatos, as famílias e as regras estão em data/adoption.json.",
+      "tutorial": {"icon":"caixa_presente_laco","lines":["Arraste cada gato até o lugar de uma família.","Leia os traços (jeito, idade, pelo) e o perfil da família.","Confirme: cada par mostra se ficou bom, ok ou ruim, e por quê."]},
+      "sounds": {"drop":"put_down","good":"success","bad":"error"},
+      "rewards": {
+        "easy": {"ok":10,"great":18},
+        "normal": {"ok":16,"great":26},
+        "hard": {"ok":24,"great":40}
+      },
+      "difficulties": {
+        "easy": {"pairs":3,"okAt":0.5},
+        "normal": {"pairs":4,"okAt":0.5},
+        "hard": {"pairs":5,"okAt":0.6}
+      }
     }
   }
 }

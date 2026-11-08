@@ -480,6 +480,20 @@
       "result": "Confiança conquistada com {scares} susto(s).",
       "failed": "Ele se assustou demais e fugiu.",
       "treatGiven": "Petisco!"
+    },
+    "adoption": {
+      "confirm": "Confirmar (Enter)",
+      "hud": "Gatos com família: {placed}/{total}",
+      "slot": "solte um gato aqui",
+      "verdict": {
+        "good": "Boa!",
+        "ok": "Ok.",
+        "bad": "Não combina."
+      },
+      "line": "{cat} → {family}: {verdict} {reason}",
+      "reason": "{trait}: {note}.",
+      "noReason": "Nada contra, nada a favor.",
+      "summary": "{good} boa(s), {ok} ok, {bad} ruim(ns)."
     }
   },
   "phoneApp": {

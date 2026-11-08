@@ -943,3 +943,6 @@
 .minigame-layer .mg-tutorial ol { margin: 0; padding-left: 12px; font-size: 8px; line-height: 1.45; }
 .minigame-layer .mg-info { padding: 2px 8px; border-radius: 8px; background: #3b2a32cc; color: var(--cream); font-size: 8px; }
 .minigame-layer .mg-info:empty { display: none; }
+/* Resultado com uma linha por par (match de adoção): painel mais largo, texto à esquerda, quebras de linha */
+.minigame-layer .mg-panel[data-game='adoption'] { width: 420px; }
+.minigame-layer .mg-panel[data-game='adoption'] p:not(.mg-coins) { white-space: pre-line; text-align: left; font-size: 7.5px; }

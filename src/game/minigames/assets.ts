@@ -4,6 +4,8 @@
 // Se um arquivo faltar, a chave ganha um placeholder (retângulo colorido) e o jogo funciona igual: dá para trocar a
 // arte depois sem mexer na lógica.
 import type Phaser from 'phaser';
+import { content } from '../content';
+import { catTexture } from '../entities/Cat';
 
 export const ART_SCALE = 0.5;
 
@@ -74,6 +76,15 @@ export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, tras
 
 /** Tipos de esconderijo da caça ao filhote (data/minigames.json: games.kitten_hunt.hideoutKinds) -> textura. */
 export const HUNT_SHEETS: Record<string, SheetSpec> = { ...HIDE_SHEETS, basket: KITTEN_HUNT.basket, crate: KITTEN_HUNT.crate, pot: KITTEN_HUNT.pot };
+
+/** Folhas do Cosy Cats que o Boot não carregou (ele só carrega os gatos do mundo): os do abrigo, os filhotes... */
+export function loadCatVariants(scene: Phaser.Scene, variants: Iterable<string>): void {
+  const sprites = content.catSprites;
+  for (const v of new Set(variants)) {
+    const file = sprites.variants[v];
+    if (file && !scene.textures.exists(catTexture(v))) scene.load.spritesheet(catTexture(v), file, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
+  }
+}
 
 export function loadSheets(scene: Phaser.Scene, sheets: SheetSpec[]): void {
   for (const s of sheets) if (!scene.textures.exists(s.key)) scene.load.spritesheet(s.key, s.file, { frameWidth: s.frameWidth, frameHeight: s.frameHeight });
