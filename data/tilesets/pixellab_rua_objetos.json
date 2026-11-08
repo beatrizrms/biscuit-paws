@@ -1,0 +1,349 @@
+{
+ "tileSize": 64,
+ "columns": 12,
+ "rows": 11,
+ "pieces": {
+  "prop_poste": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "spring_prop_poste": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "summer_prop_poste": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "autumn_prop_poste": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "snow_prop_poste": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "prop_banco": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "spring_prop_banco": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "summer_prop_banco": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "autumn_prop_banco": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "snow_prop_banco": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "prop_lousa_cafe": {
+   "col": 8,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "spring_prop_lousa_cafe": {
+   "col": 8,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "summer_prop_lousa_cafe": {
+   "col": 8,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "autumn_prop_lousa_cafe": {
+   "col": 8,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "snow_prop_lousa_cafe": {
+   "col": 9,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "prop_caixa_correio": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "spring_prop_caixa_correio": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "summer_prop_caixa_correio": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "autumn_prop_caixa_correio": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "snow_prop_caixa_correio": {
+   "col": 11,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "prop_arvore": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore": {
+   "col": 6,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "snow_prop_arvore": {
+   "col": 8,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "prop_lixeira": {
+   "col": 10,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_lixeira": {
+   "col": 10,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_lixeira": {
+   "col": 10,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_lixeira": {
+   "col": 10,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_lixeira": {
+   "col": 11,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_caixote_macas": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_caixote_macas": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_caixote_macas": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_caixote_macas": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixote_macas": {
+   "col": 1,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_caixote_laranjas": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_caixote_laranjas": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_caixote_laranjas": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_caixote_laranjas": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixote_laranjas": {
+   "col": 3,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_vaso_planta": {
+   "col": 4,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_vaso_planta": {
+   "col": 5,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_vaso_planta": {
+   "col": 6,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_vaso_planta": {
+   "col": 7,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_vaso_planta": {
+   "col": 8,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_mesa_terraco": {
+   "col": 9,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "spring_prop_mesa_terraco": {
+   "col": 9,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "summer_prop_mesa_terraco": {
+   "col": 9,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "autumn_prop_mesa_terraco": {
+   "col": 9,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "prop_abeto_natal": {
+   "col": 11,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "snow_prop_abeto_natal": {
+   "col": 0,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "prop_caixa_gato_vazia": {
+   "col": 1,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_caixa_gato_manta": {
+   "col": 2,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_caixa_gato_olhos": {
+   "col": 3,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixa_gato_vazia": {
+   "col": 4,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixa_gato_manta": {
+   "col": 5,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixa_gato_olhos": {
+   "col": 6,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

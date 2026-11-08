@@ -93,6 +93,10 @@
     { "id": "obj.christmas_tree", "tile": "prop_abeto_natal", "at": [22, 8], "overlay": "snow_prop_abeto_natal" },
     { "id": "obj.bin", "tile": "prop_lixeira", "at": [23, 8], "overlay": "snow_prop_lixeira" },
     { "id": "obj.snow_pile_1", "tile": "snow_monte_neve", "at": [1, 9] },
+    { "id": "obj.season_deco_a", "tile": "prop_enfeite_a", "at": [8, 8], "overlay": "snow_prop_enfeite_a" },
+    { "id": "obj.season_deco_b", "tile": "prop_enfeite_b", "at": [28, 8], "overlay": "snow_prop_enfeite_b" },
+    { "id": "obj.season_deco_c", "tile": "prop_enfeite_c", "at": [30, 8], "overlay": "snow_prop_enfeite_c" },
+    { "id": "obj.season_deco_d", "tile": "prop_enfeite_d", "at": [35, 8], "overlay": "snow_prop_enfeite_d" },
     { "id": "obj.snow_pile_2", "tile": "snow_monte_neve", "at": [8, 9] },
     { "id": "obj.snow_pile_3", "tile": "snow_monte_neve", "at": [28, 9] },
     { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0] }

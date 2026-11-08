@@ -902,6 +902,32 @@
       "replaces": true
     },
     {
+      "id": "pixellab_rua_chao",
+      "image": "assets/env/street/tile_pixellab_rua_chao.png",
+      "pieces": "pixellab_rua_chao.json",
+      "prefix": "",
+      "layer": "floor",
+      "solid": false,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_rua_objetos",
+      "image": "assets/env/street/tile_pixellab_rua_objetos.png",
+      "pieces": "pixellab_rua_objetos.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_rua_enfeites",
+      "image": "assets/env/street/tile_pixellab_rua_enfeites.png",
+      "pieces": "pixellab_rua_enfeites.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",

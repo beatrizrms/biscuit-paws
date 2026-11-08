@@ -337,6 +337,89 @@ const SHEETS: Sheet[] = [
       snow_facade_casa_c: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_c.png`), 7) },
     },
   },
+  {
+    // Chão da rua: a base é a mesma o ano todo; primavera e outono ganham pétalas e folhas por cima (por código).
+    image: 'public/assets/env/street/tile_pixellab_rua_chao.png',
+    pieces: 'data/tilesets/pixellab_rua_chao.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      street_calcada_a: { file: 'rua/calcada.png', w: 1, h: 1, aliases: ['summer_street_calcada_a'] },
+      spring_street_calcada_a: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), PETALS, 3) },
+      autumn_street_calcada_a: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), LEAVES, 5) },
+      street_calcada_b: { file: 'rua/calcada.png', w: 1, h: 1, aliases: ['summer_street_calcada_b'] },
+      spring_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), PETALS, 8) },
+      autumn_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), LEAVES, 9) },
+      street_calcada_limpa: { file: 'rua/calcada.png', w: 1, h: 1, aliases: seasonal('calcada_limpa', 'street') },
+      street_meio_fio: { file: 'rua/meio_fio.png', w: 1, h: 1, aliases: seasonal('meio_fio', 'street') },
+      street_asfalto_a: { file: 'rua/asfalto.png', w: 1, h: 1, aliases: seasonal('asfalto_a', 'street') },
+      street_asfalto_b: { file: 'rua/asfalto.png', w: 1, h: 1, aliases: seasonal('asfalto_b', 'street') },
+      street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => crosswalk(readPng(`${SRC}/rua/asfalto.png`)), aliases: seasonal('asfalto_faixa', 'street') },
+      snow_street_calcada_a: { file: '', w: 1, h: 1, build: () => snowGround(0.86, 21) },
+      snow_street_calcada_b: { file: '', w: 1, h: 1, build: () => snowGround(0.8, 22) },
+      snow_street_calcada_limpa: { file: '', w: 1, h: 1, build: () => snowGround(0.35, 23) },
+      snow_street_meio_fio: { file: '', w: 1, h: 1, build: () => snowGround(0.9, 24, 26) },
+      snow_street_asfalto_a: { file: '', w: 1, h: 1, build: () => snowPatches(0, 25) },
+      snow_street_asfalto_b: { file: '', w: 1, h: 1, build: () => snowPatches(1, 26) },
+      snow_street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => snowPatches(1, 27) },
+    },
+  },
+  {
+    // Objetos da rua: trocam os antigos (mesmo espaço; poste, banco e lousa encaixados no espaço antigo).
+    // Árvore e floreira mudam com a estação; o resto é igual o ano todo. Neve por cima desenhada por código.
+    image: 'public/assets/env/street/tile_pixellab_rua_objetos.png',
+    pieces: 'data/tilesets/pixellab_rua_objetos.json',
+    columns: 12,
+    auto: true,
+    layout: {
+      prop_poste: { file: '', w: 2, h: 4, build: () => posteArt(), aliases: seasonal('poste', 'prop') },
+      snow_prop_poste: { file: '', w: 2, h: 4, build: () => snowCap(posteArt(), 31) },
+      prop_banco: { file: '', w: 2, h: 2, build: () => benchArt(), aliases: seasonal('banco', 'prop') },
+      snow_prop_banco: { file: '', w: 2, h: 2, build: () => snowCap(benchArt(), 32) },
+      prop_lousa_cafe: { file: '', w: 1, h: 2, build: () => boardArt(), aliases: seasonal('lousa_cafe', 'prop') },
+      snow_prop_lousa_cafe: { file: '', w: 1, h: 2, build: () => snowCap(boardArt(), 33) },
+      prop_caixa_correio: { file: 'rua/caixa_correio_1x2.png', w: 1, h: 2, aliases: seasonal('caixa_correio', 'prop') },
+      snow_prop_caixa_correio: { file: '', w: 1, h: 2, build: () => snowCap(readPng(`${SRC}/rua/caixa_correio_1x2.png`), 34) },
+      prop_arvore: { file: 'rua/arvore_inverno.png', w: 2, h: 3 },
+      spring_prop_arvore: { file: 'rua/arvore_primavera.png', w: 2, h: 3 },
+      summer_prop_arvore: { file: 'rua/arvore_2x3.png', w: 2, h: 3 },
+      autumn_prop_arvore: { file: 'rua/arvore_outono.png', w: 2, h: 3 },
+      snow_prop_arvore: { file: '', w: 2, h: 3, build: () => snowCap(readPng(`${SRC}/rua/arvore_inverno.png`), 35, 2) },
+      prop_lixeira: { file: 'rua/obj_5.png', w: 1, h: 1, dy: 4, aliases: seasonal('lixeira', 'prop') },
+      snow_prop_lixeira: { file: '', w: 1, h: 1, dy: 4, build: () => snowCap(readPng(`${SRC}/rua/obj_5.png`), 36) },
+      prop_caixote_macas: { file: 'mercado_A/obj_5.png', w: 1, h: 1, aliases: seasonal('caixote_macas', 'prop') },
+      snow_prop_caixote_macas: { file: '', w: 1, h: 1, build: () => snowCap(readPng(`${SRC}/mercado_A/obj_5.png`), 37) },
+      prop_caixote_laranjas: { file: 'mercado_A/obj_4.png', w: 1, h: 1, aliases: seasonal('caixote_laranjas', 'prop') },
+      snow_prop_caixote_laranjas: { file: '', w: 1, h: 1, build: () => snowCap(readPng(`${SRC}/mercado_A/obj_4.png`), 38) },
+      prop_vaso_planta: { file: 'rua/obj_15.png', w: 1, h: 1, dy: 6 },
+      spring_prop_vaso_planta: { file: 'rua/sazonais/obj_0.png', w: 1, h: 1, dy: 6 },
+      summer_prop_vaso_planta: { file: 'rua/sazonais/obj_3.png', w: 1, h: 1, dy: 4 },
+      autumn_prop_vaso_planta: { file: 'rua/sazonais/obj_5.png', w: 1, h: 1, dy: 6 },
+      snow_prop_vaso_planta: { file: '', w: 1, h: 1, dy: 6, build: () => snowCap(readPng(`${SRC}/rua/obj_15.png`), 39) },
+      prop_mesa_terraco: { file: 'rua/mesa_terraco_2x1.png', w: 2, h: 1, aliases: seasonal('mesa_terraco', 'prop') },
+      prop_abeto_natal: { file: 'rua/abeto_natal_1x2.png', w: 1, h: 2 },
+      snow_prop_abeto_natal: { file: '', w: 1, h: 2, build: () => snowCap(readPng(`${SRC}/rua/abeto_natal_1x2.png`), 40, 2) },
+      prop_caixa_gato_vazia: { file: 'rua/obj_0.png', w: 1, h: 1, dy: 6 },
+      prop_caixa_gato_manta: { file: 'rua/obj_1.png', w: 1, h: 1, dy: 6 },
+      prop_caixa_gato_olhos: { file: '', w: 1, h: 1, dy: 6, build: () => catEyes(readPng(`${SRC}/rua/obj_0.png`)) },
+      snow_prop_caixa_gato_vazia: { file: '', w: 1, h: 1, dy: 6, build: () => snowCap(readPng(`${SRC}/rua/obj_0.png`), 41) },
+      snow_prop_caixa_gato_manta: { file: '', w: 1, h: 1, dy: 6, build: () => snowCap(readPng(`${SRC}/rua/obj_1.png`), 42) },
+      snow_prop_caixa_gato_olhos: { file: '', w: 1, h: 1, dy: 6, build: () => snowCap(readPng(`${SRC}/rua/obj_0.png`), 41) },
+    },
+  },
+  {
+    // Enfeites da estação na calçada (nomes novos): cada um troca de arte com a estação (trenó, hortênsia, cadeira de praia, folhas...).
+    image: 'public/assets/env/street/tile_pixellab_rua_enfeites.png',
+    pieces: 'data/tilesets/pixellab_rua_enfeites.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      ...enfeite('a', 'sazonais/obj_13', 'sazonais/obj_2', 'sazonais/obj_4', 'sazonais/obj_6'),
+      ...enfeite('b', 'sazonais/obj_14', 'sazonais/obj_0', 'obj_8', 'sazonais/obj_7'),
+      ...enfeite('c', 'sazonais/obj_15', 'sazonais/obj_2', 'obj_15', 'sazonais/obj_8'),
+      ...enfeite('d', 'sazonais/obj_11', 'obj_15', 'sazonais/obj_3', 'sazonais/obj_5'),
+    },
+  },
 ];
 
 /**
@@ -372,8 +455,8 @@ function withLeftPost(src: PNG, a: number, b: number): PNG {
 // ---------- Fachadas da rua ----------
 
 /** Nomes das versões por estação de uma fachada (a arte nova é a mesma o ano todo). */
-function seasonal(name: string): string[] {
-  return ['spring', 'summer', 'autumn'].map((s) => `${s}_facade_${name}`);
+function seasonal(name: string, kind = 'facade'): string[] {
+  return ['spring', 'summer', 'autumn'].map((s) => `${s}_${kind}_${name}`);
 }
 
 // Cores do café por código, a partir da menta (decisão 065): o verde vira a cor nova e o rosa (porta, toldo) vira o contraste.
@@ -442,7 +525,7 @@ function signText(png: PNG, text: string, [x0, y0, x1, y1]: [number, number, num
  * Neve do inverno por cima de uma fachada: uma camada sobre o contorno de cima (telhado, chaminé, platibanda),
  * com a borda de baixo ondulada (semente fixa) e uma sombra azulada. A imagem tem o tamanho da fachada.
  */
-function snowCap(src: PNG, seed: number): PNG {
+function snowCap(src: PNG, seed: number, maxDepth = 7): PNG {
   const out = blank(src.width, src.height);
   const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
   const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [196, 214, 234], line: [number, number, number] = [150, 170, 196];
@@ -451,12 +534,114 @@ function snowCap(src: PNG, seed: number): PNG {
     let top = -1;
     for (let y = 0; y < src.height; y++) if (src.data[(y * src.width + x) * 4 + 3]! > 0) { top = y; break; }
     if (top < 0) continue;
-    depth = Math.max(3, Math.min(7, depth + (rnd() < 0.3 ? (rnd() < 0.5 ? -1 : 1) : 0)));
+    depth = Math.max(Math.min(3, maxDepth), Math.min(maxDepth, depth + (rnd() < 0.3 ? (rnd() < 0.5 ? -1 : 1) : 0)));
     const y0 = Math.max(0, top - 2);
     for (let y = y0; y < top + depth; y++) plot(out, x, y, y >= top + depth - 2 ? shade : white);
     plot(out, x, top + depth, line);
   }
   return out;
+}
+
+// ---------- Chão e objetos da rua ----------
+
+/** Poste (1x3) no espaço do antigo (2x4): no meio das duas colunas, com a base embaixo. */
+function posteArt(): PNG {
+  return compose(2 * TS, 4 * TS, [['rua/poste_1x3.png', TS / 2, TS]]);
+}
+
+/** Banco (2x1) no espaço do antigo (2x2): na linha de baixo. */
+function benchArt(): PNG {
+  return compose(2 * TS, 2 * TS, [['rua/banco_2x1.png', 0, TS]]);
+}
+
+/** Lousa do café (1x1) no espaço da antiga (1x2): na linha de baixo. */
+function boardArt(): PNG {
+  return compose(TS, 2 * TS, [['piloto01/obj_15.png', 0, TS]]);
+}
+
+/** Enfeite da calçada que troca com a estação: base (inverno), primavera, verão, outono e a neve do inverno. */
+function enfeite(id: string, winter: string, spring: string, summer: string, autumn: string): Record<string, Piece> {
+  const name = `prop_enfeite_${id}`;
+  const piece = (file: string): Piece => ({ file: `rua/${file}.png`, w: 1, h: 1, dy: 4 });
+  return {
+    [name]: piece(winter),
+    [`spring_${name}`]: piece(spring),
+    [`summer_${name}`]: piece(summer),
+    [`autumn_${name}`]: piece(autumn),
+    [`snow_${name}`]: { file: '', w: 1, h: 1, dy: 4, build: () => snowCap(readPng(`${SRC}/rua/${winter}.png`), id.charCodeAt(0)) },
+  };
+}
+
+const PETALS: [number, number, number][] = [[246, 196, 210], [255, 226, 232], [236, 170, 190]];
+const LEAVES: [number, number, number][] = [[214, 120, 52], [232, 162, 64], [184, 82, 48], [204, 140, 60]];
+
+/** Pétalas ou folhas caídas por cima do chão (pedacinhos de 2 a 3 pixels, semente fixa). */
+function scatter(png: PNG, colors: [number, number, number][], seed: number): PNG {
+  const rnd = () => (seed = (seed * 16807 + 7) % 2147483647) / 2147483647;
+  for (let n = 0; n < (colors === LEAVES ? 22 : 12); n++) {
+    const x = Math.floor(rnd() * 60) + 1, y = Math.floor(rnd() * 60) + 1;
+    const c = colors[Math.floor(rnd() * colors.length)]!;
+    const shade: [number, number, number] = [c[0] * 0.72, c[1] * 0.72, c[2] * 0.72];
+    plot(png, x, y, c); plot(png, x + 1, y, c); plot(png, x + 2, y, c); plot(png, x, y + 1, shade); plot(png, x + 1, y + 1, c);
+    if (rnd() < 0.5) plot(png, x + 1, y + 1, c);
+  }
+  return png;
+}
+
+/** Faixa de pedestres: barras brancas um pouco gastas sobre o asfalto. */
+function crosswalk(png: PNG): PNG {
+  let seed = 17;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const x0 of [6, 27, 48]) {
+    for (let y = 2; y < 62; y++) for (let x = x0; x < x0 + 11; x++) if (rnd() > 0.07) plot(png, x, y, [232, 230, 222]);
+  }
+  return png;
+}
+
+/**
+ * Neve sobre o chão (camada por cima, inverno): manchas de neve cobrindo cerca de `cover` do tile,
+ * com borda azulada; `rows` limita às linhas de cima (meio-fio).
+ */
+function snowGround(cover: number, seed: number, rows = TS): PNG {
+  const out = blank(TS, TS);
+  const rnd = () => (seed = (seed * 16807 + 3) % 2147483647) / 2147483647;
+  const cell = 8, grid = TS / cell + 1;
+  const g = Array.from({ length: grid * grid }, () => rnd());
+  const at = (x: number, y: number) => {
+    const gx = x / cell, gy = y / cell, x0 = Math.floor(gx), y0 = Math.floor(gy), fx = gx - x0, fy = gy - y0;
+    const v = (i: number, j: number) => g[Math.min(grid - 1, y0 + j) * grid + Math.min(grid - 1, x0 + i)]!;
+    return (v(0, 0) * (1 - fx) + v(1, 0) * fx) * (1 - fy) + (v(0, 1) * (1 - fx) + v(1, 1) * fx) * fy;
+  };
+  const on = (x: number, y: number) => y < rows && at(x, y) < cover;
+  for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) {
+    if (!on(x, y)) continue;
+    const edge = !on(x, y + 1) || !on(x - 1, y) || !on(x + 1, y);
+    plot(out, x, y, edge ? [204, 220, 238] : rnd() < 0.05 ? [232, 240, 250] : [248, 251, 255]);
+  }
+  return out;
+}
+
+/** Poucas manchas redondas de neve (asfalto no inverno), com borda azulada. */
+function snowPatches(count: number, seed: number): PNG {
+  const out = blank(TS, TS);
+  const rnd = () => (seed = (seed * 16807 + 5) % 2147483647) / 2147483647;
+  for (let n = 0; n < count; n++) {
+    const cx = 8 + rnd() * 48, cy = 8 + rnd() * 48, rx = 3 + rnd() * 4, ry = 1.5 + rnd() * 1.5;
+    for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) {
+      const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+      if (d <= 1) plot(out, x, y, d > 0.6 ? [204, 220, 238] : [246, 250, 255]);
+    }
+  }
+  return out;
+}
+
+/** Caixa de papelão com dois olhinhos brilhando lá dentro (um gato escondido). */
+function catEyes(png: PNG): PNG {
+  for (const ex of [27, 35]) {
+    plot(png, ex, 24, [226, 214, 96]); plot(png, ex + 1, 24, [226, 214, 96]);
+    plot(png, ex, 25, [226, 214, 96]); plot(png, ex + 1, 25, [40, 30, 20]);
+  }
+  return png;
 }
 
 /** Um tile (64 px) da imagem, começando na linha y0. */
