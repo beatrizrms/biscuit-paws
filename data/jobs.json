@@ -238,6 +238,19 @@
         "id": "chase",
         "difficulty": "normal"
       }
+    },
+    {
+      "id": "pt.kitten_hunt",
+      "map": "map.street",
+      "at": [
+        14,
+        9
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "kitten_hunt",
+        "difficulty": "normal"
+      }
     }
   ],
   "jobs": [
@@ -447,6 +460,26 @@
           "text": "Pegar o gatinho que fugiu pela rua (perto da casa azul).",
           "points": [
             "pt.runaway_cat"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job.lost_kittens",
+      "title": "Filhotes escondidos",
+      "giver": "Dona Neusa, a vizinha",
+      "description": "A gata da Dona Neusa teve filhotes, e um deles saiu explorando e se escondeu pela rua. Ela não tem mais pernas para procurar!",
+      "location": "map.street",
+      "reward": 15,
+      "repeat": "daily",
+      "available": {
+        "flag": "met.old_neighbor"
+      },
+      "steps": [
+        {
+          "text": "Procurar o filhote escondido na rua (na calçada em frente ao café).",
+          "points": [
+            "pt.kitten_hunt"
           ]
         }
       ]

@@ -93,6 +93,23 @@ describe('mini game pela missão (Gatinho fujão)', () => {
   });
 });
 
+describe('mini game pela missão (Filhotes escondidos)', () => {
+  it('só depois de conhecer a Dona Neusa; o ponto abre a caça ao filhote e, dando certo, conclui o pedido', () => {
+    const state = newGameState(100, 'map.street');
+    state.story.completed.push(...content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.prologue_end') + 1).map((b) => b.id));
+    const session = new GameSession(content, state);
+    expect(session.availableJobs().map((j) => j.id)).not.toContain('job.lost_kittens');
+    state.flags['met.old_neighbor'] = true;
+    expect(session.availableJobs().map((j) => j.id)).toContain('job.lost_kittens');
+    expect(content.jobPoints['pt.kitten_hunt']!.minigame).toEqual({ id: 'kitten_hunt', difficulty: 'normal' });
+    expect(session.acceptJob('job.lost_kittens')).toEqual({ ok: true });
+    const r = makeResult(cfg, 'kitten_hunt', 'normal', 'great', 3);
+    session.finishMiniGame(r, { difficulty: 'normal', jobPoint: 'pt.kitten_hunt' });
+    expect(state.money).toBe(100 + r.coinsEarned + content.jobs['job.lost_kittens']!.reward);
+    expect(state.jobs.doneOn['job.lost_kittens']).toBe(state.day);
+  });
+});
+
 describe('Gato em fuga (regras)', () => {
   it('pegou com mais da metade do tempo = great; pegou depois = ok; não pegou = fail', () => {
     expect(chaseOutcome(true, 0.6, 0.5)).toBe('great');
