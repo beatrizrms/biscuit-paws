@@ -17,7 +17,8 @@ function stripDevNotes(): Plugin {
 
 export default defineConfig({
   plugins: [stripDevNotes()],
-  server: { port: 5173, strictPort: true },
+  // host: true = também aceita conexões da rede local (abrir de outra máquina pelo IP deste PC).
+  server: { port: 5173, strictPort: true, host: true },
   // O Phaser sozinho tem ~1,2 MB; num jogo isso é esperado.
   build: { chunkSizeWarningLimit: 2000 },
   test: { include: ['tests/core/**/*.test.ts'] },
