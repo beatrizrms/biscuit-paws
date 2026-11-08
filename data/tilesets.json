@@ -52,6 +52,14 @@
       "solid": false
     },
     {
+      "id": "street_vet",
+      "image": "assets/env/street/winter/tile_street_vet_clinic_winter.png",
+      "pieces": "veterinaria_winter.json",
+      "prefix": "facade_",
+      "layer": "wall",
+      "solid": true
+    },
+    {
       "id": "street_props",
       "image": "assets/env/street/winter/tile_street_props_winter.png",
       "pieces": "objetos_winter.json",
@@ -357,6 +365,73 @@
       "prefix": "bar_",
       "layer": "object",
       "solid": true
+    },
+    {
+      "id": "vet_clinic",
+      "image": "assets/interiors/vet_clinic/tile_vet_clinic.png",
+      "pieces": "vet_clinic.json",
+      "prefix": "vet_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "piso_xadrez": {
+          "layer": "floor",
+          "solid": false
+        },
+        "tapete_entrada": {
+          "layer": "floor",
+          "solid": false
+        },
+        "parede_papel": {
+          "layer": "wall"
+        },
+        "parede_papel_topo": {
+          "layer": "wall"
+        },
+        "parede_azulejo": {
+          "layer": "wall"
+        },
+        "janela": {
+          "layer": "wall",
+          "solid": false
+        },
+        "placa_recepcao": {
+          "layer": "wall",
+          "solid": false
+        },
+        "placa_cruz_vet": {
+          "layer": "wall",
+          "solid": false
+        },
+        "cartaz_gato": {
+          "layer": "wall",
+          "solid": false
+        },
+        "cartaz_cachorro": {
+          "layer": "wall",
+          "solid": false
+        },
+        "quadro_avisos": {
+          "layer": "wall",
+          "solid": false
+        },
+        "negatoscopio": {
+          "layer": "wall",
+          "solid": false
+        },
+        "luminaria_teto": {
+          "layer": "wall",
+          "solid": false
+        },
+        "armario_medicamentos": {
+          "layer": "wall",
+          "solid": false
+        },
+        "porta_consultorio": {
+          "layer": "wall",
+          "solid": false
+        }
+      }
     }
   ]
 }

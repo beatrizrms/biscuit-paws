@@ -9,6 +9,7 @@ import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
+import { ConsultPanel } from './ConsultPanel';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 
@@ -44,6 +45,7 @@ export class GameUi {
   private news!: NewsPanel;
   private menuBoard!: MenuBoardPanel;
   private backpack!: BackpackPanel;
+  private consult!: ConsultPanel;
   /** Tecla 1 a 8 com a mochila aberta e um item selecionado: põe ele naquele espaço da barra. */
   backpackNumberKey(n: number): boolean {
     return this.backpack.numberKey(n);
@@ -116,6 +118,7 @@ export class GameUi {
     this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
     this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem, (id) => this.handlers.onPlace(id));
     this.hotbar = new Hotbar(root, session);
+    this.consult = new ConsultPanel(root, session, () => this.refresh(), (reason) => this.problem(reason as keyof typeof uiText.problems), (text) => this.toast(text, 3500));
     this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
 
     const bus = session.bus;
@@ -150,6 +153,20 @@ export class GameUi {
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).
     bus.on('recipe.unlocked', ({ recipeId }) => this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000));
+    // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
+    bus.on('cat.sick', ({ catId, disease }) => {
+      if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
+        this.toast((session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic).replace('{name}', session.catName(catId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4000);
+    });
+    bus.on('cat.medicated', ({ catId, dosesGiven, days }) => {
+      if (dosesGiven < days) this.toast(uiText.health.dose.replace('{name}', session.catName(catId)).replace('{n}', String(dosesGiven)).replace('{days}', String(days)));
+    });
+    bus.on('cat.infected', ({ catId, fromCatId, disease }) =>
+      this.toast(uiText.health.infected.replace('{name}', session.catName(catId)).replace('{from}', session.catName(fromCatId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4500),
+    );
+    bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
+    bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
+    bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
@@ -159,7 +176,7 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.reveal !== null || this.paused;
+    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.consult.isOpen() || this.reveal !== null || this.paused;
   }
 
   /** Menu de pausa aberto (o mundo para e o relógio também). */
@@ -225,6 +242,8 @@ export class GameUi {
   private extrasHtml(): string {
     const c = uiText.chores;
     const items = this.session.chores().map((ch) => {
+      // Gatos doentes demais: o aviso do café vazio (sem contador).
+      if (ch.kind === 'sick') return `<li class="warn"><span>${esc(c.sick)}</span></li>`;
       const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : c.sweep;
       const count = ch.progress && !ch.done ? ` <span class="count">${ch.progress[0]}/${ch.progress[1]}</span>` : '';
       return `<li class="${ch.done ? 'done' : ''}"><span>${esc(text)}${count}</span></li>`;
@@ -361,6 +380,7 @@ export class GameUi {
     this.news.close();
     this.menuBoard.close();
     this.backpack.close();
+    this.consult.close();
   }
 
   /** Quadro do cardápio (M) e mochila (I): abre um, fecha os outros. */
@@ -377,7 +397,7 @@ export class GameUi {
   }
 
   isPanelOpen(): boolean {
-    return this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen();
+    return this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.consult.isOpen();
   }
 
   /** A entregadora ainda está trazendo estas caixas (o balão só conta as que já estão na porta). */
@@ -388,6 +408,13 @@ export class GameUi {
   }
 
   /** Celular ("Vila Hoje") ou mural do mercado. */
+  /** Clínica: a ficha da consulta do gato que está no colo. */
+  openConsult(): void {
+    this.closeCatalog();
+    this.closeShop();
+    this.consult.open();
+  }
+
   openNews(mode: 'phone' | 'board'): void {
     this.closeCatalog();
     this.shop.close();

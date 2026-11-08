@@ -884,6 +884,18 @@
         "oven"
       ],
       "placeOn": "bar"
+    },
+    {
+      "id": "item.vet_medicine",
+      "name": "Remédio da Fernanda",
+      "price": 0,
+      "kind": "consumable",
+      "icon": "remedio",
+      "use": "medicine",
+      "tags": [
+        "pet",
+        "medicine"
+      ]
     }
   ]
 }

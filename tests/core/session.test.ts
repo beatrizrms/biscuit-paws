@@ -505,7 +505,7 @@ describe('o gatinho na porta', () => {
 describe('corações', () => {
   it('pontos viram corações, com evento quando muda', () => {
     const { session, events } = newSession();
-    session.state.cats['cat.first_stray'] = { sheltered: true, name: 'Pipoca', map: 'map.cafe_main' };
+    session.state.cats['cat.first_stray'] = { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     session.addCatAffection('cat.first_stray', 60);
     expect(session.catHearts('cat.first_stray')).toBe(0);
     session.addCatAffection('cat.first_stray', 60);
@@ -1128,5 +1128,25 @@ describe('evolução das receitas', () => {
     session.state.service.served = 20;
     session.start(false);
     expect(events.some((e) => e.name === 'recipe.unlocked')).toBe(false);
+  });
+});
+
+describe('meus gatos', () => {
+  it('ficha do gato abrigado: nome, personalidade, corações, comeu hoje e dias no café', () => {
+    const { session } = newSession();
+    expect(session.catProfiles()).toEqual([]);
+    startInCafe(session);
+    const [p] = session.catProfiles();
+    expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'marmalade', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
+    finishPrologue(session); // come, ganha um coração e o dia vira
+    expect(session.catProfiles()[0]).toMatchObject({ hearts: 1, fedToday: false, daysInCafe: 2 });
+    session.state.day = 7;
+    expect(session.catProfiles()[0]!.daysInCafe).toBe(7);
+  });
+
+  it('a Tekinha (só lembrança) não aparece', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    expect(session.catProfiles().map((p) => p.id)).not.toContain('cat.tekinha');
   });
 });

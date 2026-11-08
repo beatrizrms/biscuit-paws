@@ -50,7 +50,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Atendimento, Fase 1: quadro do cardápio (M), mochila (I), mãos, preparo com barra, clientes em pé, louça suja e pia, capacidade pela louça
 - [x] Atendimento, Fase 2: bandeja, itens pesados, gato no colo, forno, pia como estação, qualidade e preferências (o veterinário ficou em item próprio)
 - [x] Usar itens da barra com animação (ração na tigela, petisco no gato); evolução das receitas por clientes atendidos
-- [ ] Veterinário: levar o gato no colo até a clínica (mapa, NPC e arte)
+- [x] Saúde dos gatos, doenças fictícias e a clínica da Fernanda (dia 6): consulta, receita de 1 a 7 dias, remédio diário e fiado
+- [ ] Clínica nas outras estações (a fachada já existe nas 4; a rua só tem o inverno)
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
 - [x] Barra de itens (1 a 8) e mochila em grade; varrer exige a vassoura ativa
@@ -66,6 +67,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] `data/cats.json` e entidade Gato (IA simples: vagar, sentar, dormir)
 - [ ] Gatos procuram almofadas e caminhas para sentar e dormir (hoje sentam e dormem em qualquer lugar)
 - [x] Evento `cat.sheltered`
+- [x] App "Meus gatos" no celular (P): personalidade, corações, se comeu hoje e dias no café
 - [x] Continuação da história: encontrar o gato que mia lá fora (feito no prólogo: "O miado", `story.meow`)
 
 ## Marco 2: dia, frio e abrigo

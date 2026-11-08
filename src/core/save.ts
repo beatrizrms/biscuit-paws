@@ -6,10 +6,10 @@ import type { GameState } from './state';
 import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 
-export const SAVE_SCHEMA_VERSION = 12;
+export const SAVE_SCHEMA_VERSION = 13;
 
-export interface SaveV12 extends GameState {
-  schemaVersion: 12;
+export interface SaveV13 extends GameState {
+  schemaVersion: 13;
   savedAt: string;
 }
 
@@ -75,10 +75,20 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   10: (save) => ({ ...save, schemaVersion: 11, business: 'closed' }),
   /** v11 -> v12: nome e aparência da protagonista. Saves antigos ficam sem nome e com a aparência padrão. */
   11: (save) => ({ ...save, schemaVersion: 12, player: { name: '', appearance: null } }),
+  /**
+   * v12 -> v13: o dia em que cada gato foi abrigado (app "Meus gatos": dias no café), a saúde e a doença, e o fiado.
+   * Nos saves antigos o único gato abrigado é o do prólogo, que chega no dia 1, saudável (saúde 80 = health.start).
+   */
+  12: (save) => ({
+    ...save,
+    schemaVersion: 13,
+    cats: Object.fromEntries(Object.entries((save.cats ?? {}) as Record<string, object>).map(([id, c]) => [id, { shelteredOn: 1, health: 80, sickness: null, ...c }])),
+    debt: 0,
+  }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV12 = { schemaVersion: 12, savedAt: now.toISOString(), ...state };
+  const save: SaveV13 = { schemaVersion: 13, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -96,6 +106,8 @@ export interface KnownIds {
   cats: ReadonlySet<string>;
   jobs: ReadonlySet<string>;
   recipes: ReadonlySet<string>;
+  /** Doenças de data/health.json (doença que sumiu: o gato fica saudável). */
+  diseases: ReadonlySet<string>;
   /** Onde começar se o local salvo não existir mais. */
   startMap: string;
   /** Opções da aparência (escolha que sumiu volta ao padrão). */
@@ -115,7 +127,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV12>;
+  const v2 = save as unknown as Partial<SaveV13>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -147,11 +159,19 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     nextUid: v2.nextUid ?? 1,
     story: { completed: [...(v2.story?.completed ?? [])], completedOn: { ...(v2.story?.completedOn ?? {}) } },
     cats: Object.fromEntries(
-      Object.entries(v2.cats ?? {}).filter(([id]) => {
-        if (known.cats.has(id)) return true;
-        warnings.push(`gato "${id}" não existe mais; ignorado`);
-        return false;
-      }),
+      Object.entries(v2.cats ?? {})
+        .filter(([id]) => {
+          if (known.cats.has(id)) return true;
+          warnings.push(`gato "${id}" não existe mais; ignorado`);
+          return false;
+        })
+        .map(([id, c]) => {
+          const s = c.sickness;
+          // Doença que sumiu dos dados: o gato fica saudável (com aviso).
+          const sickness = s && known.diseases.has(s.disease) ? { ...s, treatment: s.treatment ? { ...s.treatment } : null } : null;
+          if (s && !sickness) warnings.push(`doença "${s.disease}" não existe mais; ${id} ficou saudável`);
+          return [id, { ...c, shelteredOn: Number.isInteger(c.shelteredOn) && c.shelteredOn >= 1 ? c.shelteredOn : 1, health: typeof c.health === 'number' ? c.health : 80, sickness }];
+        }),
     ),
     relationships: { ...(v2.relationships ?? {}) },
     finishes,
@@ -199,6 +219,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       active: Number.isInteger(v2.hotbar?.active) && v2.hotbar!.active >= 0 && v2.hotbar!.active < HOTBAR_SIZE ? v2.hotbar!.active : 0,
     },
     business: isBusinessStage(v2.business) ? v2.business : 'closed',
+    debt: typeof v2.debt === 'number' && v2.debt > 0 ? v2.debt : 0,
     player: {
       name: typeof v2.player?.name === 'string' ? cleanPlayerName(v2.player.name) : '',
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
@@ -219,6 +240,7 @@ export function knownIds(content: {
   recipes: Record<string, unknown>;
   world: { startMap: string };
   character: CharacterData;
+  health: { diseases: { id: string }[] };
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -228,6 +250,7 @@ export function knownIds(content: {
     cats: new Set(Object.keys(content.cats)),
     jobs: new Set(Object.keys(content.jobs)),
     recipes: new Set(Object.keys(content.recipes)),
+    diseases: new Set(content.health.diseases.map((d) => d.id)),
     startMap: content.world.startMap,
     character: content.character,
   };

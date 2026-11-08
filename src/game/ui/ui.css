@@ -103,6 +103,8 @@
 .hud-goals ul { margin: 0; padding: 0; list-style: none; font-size: 8px; }
 .hud-goals li { display: flex; gap: 4px; align-items: baseline; }
 .hud-goals li::before { content: "·"; flex: none; color: #8d78bd; font-style: normal; }
+.hud-goals li.warn { color: #c0596a; font-weight: bold; }
+.hud-goals li.warn::before { content: "!"; color: #c0596a; }
 .hud-goals li.done { color: var(--grey2); text-decoration: line-through; }
 .hud-goals li.done::before { content: "✓"; color: var(--mint3); }
 .hud-goals.new { animation: thought 0.9s ease-out; }
@@ -716,3 +718,45 @@
 .catalog.backpack .bp-detail-actions button:disabled { opacity: 0.5; cursor: default; }
 .catalog.backpack .bp-detail-actions .why { font-size: 6.5px; color: var(--grey2); }
 .catalog.backpack .bp-hint { margin: 5px 0 0; font-size: 7px; font-style: italic; color: var(--grey2); }
+
+/* Celular: apps no topo (Vila Hoje, Meus gatos); o mural do mercado não tem apps */
+.catalog.news .apps { display: none; gap: 3px; margin: 0 0 4px; }
+.catalog.news.phone .apps { display: flex; }
+.catalog.news .apps button { flex: 1; padding: 2px 4px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--cream2); color: var(--ink2); font: inherit; font-size: 7.5px; cursor: pointer; }
+.catalog.news .apps button.on { border-color: var(--pink3); background: var(--cream); color: var(--pink3); font-weight: bold; }
+
+/* App "Meus gatos": ficha com o gato sentado (Cosy Cats, linha "sit"), corações e rotina */
+.catalog.news .cat-card { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); }
+.catalog.news .cat-sprite { flex: none; width: 32px; height: 32px; image-rendering: pixelated; background-repeat: no-repeat; background-position: 0 0; animation: cat-sit 0.8s steps(var(--frames)) infinite; }
+@keyframes cat-sit { to { background-position-x: var(--end); } }
+.catalog.news .cat-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.catalog.news .cat-info strong { font-size: 9px; }
+.catalog.news .cat-info .personality { font-size: 7px; color: var(--grey2); }
+.catalog.news .cat-info .hearts { font-size: 9px; line-height: 1; letter-spacing: 0.5px; color: var(--cream3); }
+.catalog.news .cat-info .hearts .n { font-size: 7px; letter-spacing: 0; color: var(--ink2); }
+.catalog.news .cat-info .hearts .on { color: var(--pink3); }
+.catalog.news .cat-info .routine { font-size: 7px; color: var(--ink2); }
+.catalog.news .cat-info .fed { color: #4f8a64; }
+.catalog.news .cat-info .hungry { color: #c0596a; }
+
+/* Saúde no "Meus gatos": barra (verde, amarela quando baixa, vermelha doente) e selo de doente */
+.catalog.news .cat-info .health { display: flex; align-items: center; gap: 3px; font-size: 6.5px; color: var(--ink2); }
+.catalog.news .cat-info .health .bar { position: relative; width: 70px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
+.catalog.news .cat-info .health .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: #68ad8a; }
+.catalog.news .cat-info .health .fill.low { background: var(--butter3); }
+.catalog.news .cat-info .health .fill.sick { background: #c0596a; }
+.catalog.news .cat-info .sick-badge { font-size: 6.5px; color: #c0596a; font-weight: bold; }
+
+/* Consulta na clínica: ficha no centro */
+.catalog.consult { left: 50%; right: auto; top: 40px; bottom: auto; width: 220px; transform: translateX(-50%); }
+.catalog.consult .list { overflow: visible; font-size: 8px; }
+.catalog.consult .patient { margin: 0 0 4px; color: var(--ink2); }
+.catalog.consult .diagnosis { display: flex; flex-direction: column; gap: 1px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); }
+.catalog.consult .diagnosis .label { font-size: 6.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pink3); }
+.catalog.consult .diagnosis strong { font-size: 10px; }
+.catalog.consult .diagnosis .desc { font-size: 7px; font-style: italic; color: var(--ink2); }
+.catalog.consult .prescription { display: flex; align-items: center; gap: 4px; margin: 5px 0; }
+.catalog.consult .bill { display: grid; grid-template-columns: 1fr auto; gap: 1px 8px; padding: 4px 6px; border-top: 1px dashed var(--cream3); border-bottom: 1px dashed var(--cream3); }
+.catalog.consult .bill .total { font-size: 9px; color: var(--ink); }
+.catalog.consult .credit { margin: 5px 0 0; font-size: 7px; color: #5d4a8a; }
+.catalog.consult .pay { display: block; margin: 6px 0 0 auto; padding: 2px 10px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }

@@ -94,6 +94,8 @@ export interface ServiceHost {
   addMoney(delta: number, reason: string): void;
   advanceStory(): void;
   catAffection(catId: string, points: number): void;
+  /** Gatos doentes demais: nenhum cliente novo entra (data/health.json: customers). */
+  customersAway(): boolean;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -390,6 +392,8 @@ export class CafeService {
   private maybeSpawn(now: number): void {
     const sv = this.st.service;
     if (!this.isOpen()) return;
+    // Prejuízo: com gatos doentes demais, as pessoas não querem entrar (quem já está fica até o fim).
+    if (this.h.customersAway()) return;
     if (sv.nextCustomerAt === null) sv.nextCustomerAt = now + this.cfg.firstArrivalMinutes;
     if (now < sv.nextCustomerAt) return;
     if (this.orderable().length === 0) return;

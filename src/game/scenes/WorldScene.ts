@@ -349,6 +349,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const catId of this.session.shelteredCats()) {
       if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
     }
+    // NPCs que ficam no mapa (a Fernanda no balcão da clínica).
+    for (const n of this.session.mapData(mapId).npcs ?? []) this.spawnNpc(n.npc, n.at, n.facing);
     this.refreshJobPoints();
     this.stopVan();
     this.refreshParcels();
@@ -580,6 +582,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (it) {
       if ('shop' in it.action) this.ui.openShop(it.action.shop);
       else if ('shelf' in it.action) this.ui.openShelf(it.action.shelf, it.action.tags);
+      else if ('vet' in it.action) this.ui.openConsult();
       else this.ui.openNews('board');
       return true;
     }
@@ -602,16 +605,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
-  /** Petisco ativo na barra e um gato perto: o petisco vai da mão até o gato. */
+  /** Petisco ou remédio ativo na barra e um gato perto: vai da mão até o gato. */
   private tryTreatCat(target?: Cell): boolean {
-    if (!this.session.holdingTreat() || !this.session.atHome() || this.usingItem) return false;
+    const medicine = this.session.holdingMedicine();
+    if ((!this.session.holdingTreat() && !medicine) || !this.session.atHome() || this.usingItem) return false;
     const feet = this.playerCells();
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
     if (!cat) return false;
-    const treat = this.session.activeItem()!;
-    void this.playUse(treat, cat.x, cat.y - 10, 'give').then(() => {
-      const result = this.session.treatCat(cat.catId);
+    const item = this.session.activeItem()!;
+    if (medicine) {
+      // Remédio: confere antes (uma dose por dia, só com receita) para não tocar a animação à toa.
+      const problem = this.session.medicineProblem(cat.catId);
+      if (problem) {
+        this.ui.problem(problem);
+        return true;
+      }
+    }
+    void this.playUse(item, cat.x, cat.y - 10, 'give').then(() => {
+      const result = medicine ? this.session.medicateCat(cat.catId) : this.session.treatCat(cat.catId);
       if (!result.ok) this.ui.problem(result.reason);
     });
     return true;

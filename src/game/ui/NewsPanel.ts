@@ -1,6 +1,7 @@
-// Jornal do celular ("Vila Hoje") e mural de pedidos do mercado: o mesmo painel, com ou sem as notícias.
-// Lista os pedidos da vila e aceita pela sessão; quem decide se pode é o núcleo.
-import type { GameSession } from '../../core/session';
+// Celular (tecla P) e mural de pedidos do mercado: o mesmo painel. No celular há dois apps: "Vila Hoje"
+// (notícias + pedidos da vila) e "Meus gatos" (os gatos abrigados e a relação com cada um).
+// Quem decide se um pedido pode ser aceito é o núcleo.
+import type { CatProfile, GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -9,6 +10,8 @@ export class NewsPanel {
   private el: HTMLElement;
   private body: HTMLElement;
   private mode: 'phone' | 'board' | null = null;
+  /** App aberto no celular. */
+  private app: 'news' | 'cats' = 'news';
 
   constructor(
     root: HTMLElement,
@@ -19,11 +22,18 @@ export class NewsPanel {
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog news';
-    this.el.innerHTML = `<header><h2></h2><button class="close">${uiText.news.close}</button></header><div class="list"></div>`;
+    this.el.innerHTML = `<header><h2></h2><button class="close">${uiText.news.close}</button></header>
+      <nav class="apps"><button data-app="news">${esc(content.news.app)}</button><button data-app="cats">${uiText.cats.app}</button></nav><div class="list"></div>`;
     root.appendChild(this.el);
     this.body = this.el.querySelector('.list') as HTMLElement;
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
-    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started'] as const) session.bus.on(ev, () => this.render());
+    this.el.querySelectorAll<HTMLButtonElement>('[data-app]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.app = b.dataset.app === 'cats' ? 'cats' : 'news';
+        this.render();
+      }),
+    );
+    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const) session.bus.on(ev, () => this.render());
   }
 
   isOpen(): boolean {
@@ -33,7 +43,7 @@ export class NewsPanel {
   /** phone: o "Vila Hoje" (notícias + pedidos); board: o mural do mercado (só pedidos). */
   open(mode: 'phone' | 'board'): void {
     this.mode = mode;
-    (this.el.querySelector('h2') as HTMLElement).textContent = mode === 'phone' ? content.news.app : uiText.news.boardTitle;
+    if (mode === 'board') this.app = 'news';
     this.el.classList.toggle('phone', mode === 'phone');
     this.render();
     this.el.classList.add('open');
@@ -49,6 +59,10 @@ export class NewsPanel {
 
   private render(): void {
     if (!this.mode) return;
+    const phone = this.mode === 'phone';
+    (this.el.querySelector('h2') as HTMLElement).textContent = !phone ? uiText.news.boardTitle : this.app === 'cats' ? uiText.cats.app : content.news.app;
+    this.el.querySelectorAll<HTMLButtonElement>('[data-app]').forEach((b) => b.classList.toggle('on', b.dataset.app === this.app));
+    if (phone && this.app === 'cats') return this.renderCats();
     const s = this.session;
     const news =
       this.mode === 'phone'
@@ -77,5 +91,42 @@ export class NewsPanel {
         this.onAccepted(content.jobs[id]!.title);
       }),
     );
+  }
+
+  /** "Doente: Febre do Bigode · remédio 2/5 (hoje: ok)". */
+  private sickText(s: NonNullable<CatProfile['sickness']>): string {
+    const t = uiText.cats;
+    const name = content.health.diseases.find((d) => d.id === s.disease)?.name ?? s.disease;
+    if (!s.treatment) return t.sickUntreated.replace('{disease}', name);
+    return t.sickTreated
+      .replace('{disease}', name)
+      .replace('{n}', String(s.treatment.dosesGiven))
+      .replace('{days}', String(s.treatment.days))
+      .replace('{today}', s.treatment.dosedToday ? t.dosedToday : t.doseDue);
+  }
+
+  /** App "Meus gatos": uma ficha por gato abrigado, com o gato sentado (animado), corações e a rotina. */
+  private renderCats(): void {
+    const t = uiText.cats;
+    const sprites = content.catSprites;
+    const sit = sprites.animations.find((a) => a.name === 'sit');
+    const cards = this.session.catProfiles().map((p) => {
+      const sheet = sprites.variants[p.variant];
+      const frames = sit?.frames ?? 1;
+      const sprite = sheet
+        ? `<span class="cat-sprite" style="background-image:url(${sheet});background-size:${sprites.columns * sprites.frameSize}px auto;--frames:${frames};--end:${-frames * sprites.frameSize}px;animation-duration:${(frames / (sit?.fps ?? 4)).toFixed(2)}s"></span>`
+        : '';
+      const hearts = Array.from({ length: p.maxHearts }, (_, i) => `<span class="heart${i < p.hearts ? ' on' : ''}">♥</span>`).join('');
+      const personality = t.personalities[p.personality as keyof typeof t.personalities] ?? p.personality;
+      const days = p.daysInCafe === 1 ? t.firstDay : t.days.replace('{n}', String(p.daysInCafe));
+      return `<div class="cat-card">${sprite}<div class="cat-info">
+          <strong>${esc(p.name)}</strong><span class="personality">${esc(personality)}</span>
+          <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
+          <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
+          ${p.sickness ? `<span class="sick-badge">${esc(this.sickText(p.sickness))}</span>` : ''}
+          <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
+        </div></div>`;
+    });
+    this.body.innerHTML = cards.join('') || `<p class="empty">${t.none}</p>`;
   }
 }

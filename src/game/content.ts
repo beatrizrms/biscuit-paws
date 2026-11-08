@@ -26,16 +26,18 @@ import emotesJson from '../../data/emotes.json';
 import jobsJson from '../../data/jobs.json';
 import newsJson from '../../data/news.json';
 import deliveryJson from '../../data/delivery.json';
+import healthJson from '../../data/health.json';
 import businessJson from '../../data/business.json';
 import characterJson from '../../data/character.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
+import vetClinicJson from '../../data/maps/vet_clinic.json';
 import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  maps: [cafeJson, streetJson, marketJson],
+  maps: [cafeJson, streetJson, marketJson, vetClinicJson],
   world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
@@ -58,6 +60,7 @@ export const content: Content = buildContent({
   jobs: jobsJson,
   news: newsJson,
   delivery: deliveryJson,
+  health: healthJson,
   business: businessJson,
   character: characterJson,
 } as unknown as RawContent);

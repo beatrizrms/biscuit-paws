@@ -1,0 +1,196 @@
+{
+ "tileSize": 32,
+ "columns": 8,
+ "rows": 9,
+ "pieces": {
+  "armario_medicamentos": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 16
+  },
+  "balanca": {
+   "col": 7,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 55
+  },
+  "balcao_recepcao": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 2,
+   "first_tile_id": 4
+  },
+  "banco_espera": {
+   "col": 3,
+   "row": 6,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "first_tile_id": 51
+  },
+  "carrinho_instrumentos": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 56
+  },
+  "cartaz_cachorro": {
+   "col": 1,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 57
+  },
+  "cartaz_gato": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 58
+  },
+  "gaiola_cachorro": {
+   "col": 2,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 18
+  },
+  "gaiola_gato": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 20
+  },
+  "gaiola_vazia": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 22
+  },
+  "janela": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 32
+  },
+  "lixeira_pedal": {
+   "col": 3,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 59
+  },
+  "luminaria_teto": {
+   "col": 4,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 60
+  },
+  "mesa_exame": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 2,
+   "first_tile_id": 34
+  },
+  "negatoscopio": {
+   "col": 5,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 61
+  },
+  "parede_azulejo": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 0
+  },
+  "parede_papel": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 1
+  },
+  "parede_papel_topo": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 2
+  },
+  "pia_com_louca": {
+   "col": 6,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 62
+  },
+  "pia_vazia": {
+   "col": 7,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 63
+  },
+  "piso_xadrez": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 3
+  },
+  "placa_cruz_vet": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 64
+  },
+  "placa_recepcao": {
+   "col": 5,
+   "row": 6,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "first_tile_id": 53
+  },
+  "planta_vaso": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 36
+  },
+  "porta_consultorio": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 2,
+   "first_tile_id": 37
+  },
+  "quadro_avisos": {
+   "col": 1,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "first_tile_id": 65
+  },
+  "tapete_entrada": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 3,
+   "h_tiles": 1,
+   "first_tile_id": 48
+  }
+ }
+}

@@ -9,6 +9,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
+import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
@@ -27,6 +28,36 @@ import {
   type SurfaceDef,
 } from './map';
 
+/** Orçamento da consulta na clínica. */
+export interface ConsultQuote {
+  catId: string;
+  disease: string;
+  days: number;
+  consult: number;
+  medicine: number;
+  total: number;
+  /** Primeira consulta sem dinheiro bastante: fica fiado. */
+  onCredit: boolean;
+}
+
+/** Ficha de um gato abrigado (app "Meus gatos"). */
+export interface CatProfile {
+  id: string;
+  name: string;
+  variant: string;
+  personality: string;
+  hearts: number;
+  maxHearts: number;
+  fedToday: boolean;
+  daysInCafe: number;
+  map: string;
+  /** Saúde (0 a maxHealth). */
+  health: number;
+  maxHealth: number;
+  /** Doente: a doença e, depois da consulta, a receita (doses dadas, se já tomou hoje). */
+  sickness: { disease: string; treatment: { days: number; dosesGiven: number; dosedToday: boolean } | null } | null;
+}
+
 export type ActionResult =
   | { ok: true }
   | {
@@ -38,6 +69,13 @@ export type ActionResult =
         | 'needs_broom'
         | 'needs_food'
         | 'needs_treat'
+        | 'needs_medicine'
+        | 'not_at_clinic'
+        | 'bring_cat'
+        | 'not_sick'
+        | 'already_treated'
+        | 'no_prescription'
+        | 'already_dosed'
         | 'not_found'
         | 'unknown_surface'
         | 'unknown_finish'
@@ -89,6 +127,7 @@ export class GameSession {
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       advanceStory: () => this.advanceStory(),
       catAffection: (catId, points) => this.addCatAffection(catId, points),
+      customersAway: () => this.customersAway(),
     });
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
     // para a barra, venha de onde vier. O que ela tirou da barra de propósito não volta sozinho.
@@ -295,6 +334,7 @@ export class GameSession {
     this.state.jobs.active = [];
     this.state.jobs.progress = {};
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
+    this.healthAtDayEnd(day);
     this.state.day = day + 1;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
     this.state.today = { earned: 0, jobs: 0 };
@@ -302,6 +342,8 @@ export class GameSession {
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
+    this.randomIllness();
+    if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
     this.service.endOfDay();
     this.cart.clear();
     this.bus.emit('cart.changed', { count: 0, total: 0 });
@@ -355,9 +397,10 @@ export class GameSession {
   }
 
   /** Rotina do dia, depois do prólogo: comida para cada gato do café e a poeira que voltou. */
-  chores(): { kind: 'feed' | 'sweep'; catId?: string; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'sweep' | 'sick'; catId?: string; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'sweep' | 'sick'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
+    if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
     for (const id of this.shelteredCats()) {
       if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
     }
@@ -578,9 +621,9 @@ export class GameSession {
 
   // ---------- Gatos ----------
 
-  /** Gatos abrigados (ids). */
+  /** Gatos abrigados (ids). Gatos de lembrança (a Tekinha) nunca contam, nem se um save trouxer um deles. */
   shelteredCats(): string[] {
-    return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered);
+    return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered && !this.content.cats[id]?.memory);
   }
 
   /** Nome da protagonista (vazio em saves de antes do criador). */
@@ -614,6 +657,166 @@ export class GameSession {
     this.advanceStory();
     return { ok: true };
   }
+
+  /**
+   * Ficha de cada gato abrigado (app "Meus gatos"): nome, variante (sprite), personalidade, corações,
+   * se comeu hoje e há quantos dias está no café (o dia em que chegou conta como o 1º).
+   */
+  catProfiles(): CatProfile[] {
+    return this.shelteredCats().map((id) => {
+      const cat = this.state.cats[id]!;
+      const def = this.content.cats[id];
+      return {
+        id,
+        name: this.catName(id),
+        variant: def?.variant ?? '',
+        personality: def?.personality ?? '',
+        hearts: this.catHearts(id),
+        maxHearts: this.content.relationships.maxHearts,
+        fedToday: cat.fedOn === this.state.day,
+        daysInCafe: Math.max(1, this.state.day - cat.shelteredOn + 1),
+        map: cat.map,
+        health: cat.health,
+        maxHealth: this.content.health.max,
+        sickness: cat.sickness && {
+          disease: cat.sickness.disease,
+          treatment: cat.sickness.treatment && {
+            days: cat.sickness.treatment.days,
+            dosesGiven: cat.sickness.treatment.dosesGiven,
+            dosedToday: cat.sickness.treatment.lastDoseDay === this.state.day,
+          },
+        },
+      };
+    });
+  }
+
+  // ---------- Saúde (data/health.json) ----------
+
+  /** Adoece um gato abrigado: doença sorteada (ou a dada) e a saúde cai para health.sickHealth. */
+  makeSick(catId: string, disease?: string): void {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered || cat.sickness) return;
+    const cfg = this.content.health;
+    cat.sickness = { disease: disease ?? pickDisease(cfg, this.state.day, catId), since: this.state.day, treatment: null };
+    cat.health = Math.min(cat.health, cfg.sickHealth);
+    this.bus.emit('cat.sick', { catId, disease: cat.sickness.disease });
+  }
+
+  /** Fim do dia: comeu sobe, não comeu desce (descuido), doente sem o remédio do dia desce mais; baixa demais, adoece. */
+  private healthAtDayEnd(day: number): void {
+    const cfg = this.content.health;
+    for (const id of this.shelteredCats()) {
+      const cat = this.state.cats[id]!;
+      let delta = cat.fedOn === day ? cfg.daily.fed : cfg.daily.hungry;
+      if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
+      cat.health = clampHealth(cfg, cat.health + delta);
+      if (!cat.sickness && cat.health < cfg.sickBelow) this.makeSick(id);
+    }
+    // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
+    for (const sourceId of this.shelteredCats()) {
+      const source = this.state.cats[sourceId]!;
+      if (!source.sickness || !isContagious(cfg, source.sickness, day)) continue;
+      for (const id of this.shelteredCats()) {
+        const cat = this.state.cats[id]!;
+        if (id === sourceId || cat.sickness || cat.map !== source.map || !rollsContagion(cfg, day, id)) continue;
+        this.makeSick(id, source.sickness.disease);
+        this.bus.emit('cat.infected', { catId: id, fromCatId: sourceId, disease: source.sickness.disease });
+      }
+    }
+  }
+
+  /** Gatos doentes agora (ids). */
+  sickCats(): string[] {
+    return this.shelteredCats().filter((id) => this.state.cats[id]!.sickness);
+  }
+
+  /** Prejuízo: com gatos doentes demais (health.customers.stopAtSickCats), nenhum cliente novo entra. */
+  customersAway(): boolean {
+    return this.sickCats().length >= this.content.health.customers.stopAtSickCats;
+  }
+
+  /** Manhã: um gato pode adoecer à toa (evento aleatório com semente), só depois que a clínica abre. */
+  private randomIllness(): void {
+    const r = this.content.health.randomIllness;
+    if (this.state.day < r.fromDay || !this.state.flags[r.requiresFlag]) return;
+    for (const id of this.shelteredCats()) {
+      if (!this.state.cats[id]!.sickness && rollsIllness(this.content.health, this.state.day, id)) this.makeSick(id);
+    }
+  }
+
+  /** O orçamento da consulta (sem mudar nada): a doença, a receita sorteada e o preço; ou por que não dá. */
+  consultQuote(catId: string): ConsultQuote | { problem: 'not_at_clinic' | 'bring_cat' | 'not_sick' | 'already_treated' | 'no_money' } {
+    const cfg = this.content.health;
+    const cat = this.state.cats[catId];
+    if (this.state.location !== cfg.clinic.map) return { problem: 'not_at_clinic' };
+    if (!cat?.sheltered || this.service.carriedCat() !== catId) return { problem: 'bring_cat' };
+    if (!cat.sickness) return { problem: 'not_sick' };
+    if (cat.sickness.treatment) return { problem: 'already_treated' };
+    const days = prescriptionDays(cfg, this.state.day, catId);
+    const medicine = days * cfg.prices.medicinePerDay;
+    const total = cfg.prices.consult + medicine;
+    const canCredit = cfg.credit.firstConsultOnCredit && !this.state.flags['vet.credit_used'];
+    const onCredit = this.state.money < total && canCredit;
+    if (this.state.money < total && !onCredit) return { problem: 'no_money' };
+    return { catId, disease: cat.sickness.disease, days, consult: cfg.prices.consult, medicine, total, onCredit };
+  }
+
+  /** A consulta: paga (ou fica fiado, na primeira vez), recebe o remédio da receita e o tratamento começa. */
+  consult(catId: string): ActionResult {
+    const q = this.consultQuote(catId);
+    if ('problem' in q) return { ok: false, reason: q.problem };
+    if (q.onCredit) {
+      this.state.debt += q.total;
+      this.state.flags['vet.credit_used'] = true;
+    } else this.addMoney(-q.total, 'vet');
+    const cat = this.state.cats[catId]!;
+    cat.sickness!.treatment = { days: q.days, dosesGiven: 0, lastDoseDay: null };
+    const med = this.content.health.medicine.item;
+    this.state.inventory[med] = (this.state.inventory[med] ?? 0) + q.days;
+    this.state.flags['vet.consulted'] = true;
+    this.bus.emit('cat.diagnosed', { catId, disease: q.disease, days: q.days, total: q.total, onCredit: q.onCredit });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Por que não dá para dar o remédio agora (ou null). Uma dose por dia, só com a receita e o remédio ativo na barra. */
+  medicineProblem(catId: string): 'not_found' | 'not_sick' | 'no_prescription' | 'already_dosed' | 'needs_medicine' | null {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered) return 'not_found';
+    if (!cat.sickness) return 'not_sick';
+    const t = cat.sickness.treatment;
+    if (!t) return 'no_prescription';
+    if (t.lastDoseDay === this.state.day) return 'already_dosed';
+    return this.activeUse('medicine') ? null : 'needs_medicine';
+  }
+
+  /** Dá a dose do dia: cura um pouco; tomou todas as doses da receita, sara. */
+  medicateCat(catId: string): ActionResult {
+    const problem = this.medicineProblem(catId);
+    if (problem) return { ok: false, reason: problem };
+    const cfg = this.content.health;
+    const cat = this.state.cats[catId]!;
+    const t = cat.sickness!.treatment!;
+    this.removeFromInventory(this.activeUse('medicine')!);
+    t.dosesGiven += 1;
+    t.lastDoseDay = this.state.day;
+    cat.health = clampHealth(cfg, cat.health + cfg.medicine.healPerDose);
+    this.bus.emit('cat.medicated', { catId, dosesGiven: t.dosesGiven, days: t.days });
+    if (t.dosesGiven >= t.days) {
+      cat.sickness = null;
+      cat.health = Math.max(cat.health, cfg.sickBelow);
+      this.state.flags['vet.cured'] = true;
+      this.bus.emit('cat.cured', { catId });
+    }
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** O item ativo é remédio? (aí E perto do gato dá a dose) */
+  holdingMedicine(): boolean {
+    return !!this.activeUse('medicine');
+  }
+
 
   /** Corações entre a protagonista e um gato. */
   catHearts(catId: string): number {
@@ -1016,8 +1219,11 @@ export class GameSession {
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
       const id = effect.shelterCat;
-      this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id };
+      this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id, shelteredOn: this.state.day, health: this.content.health.start, sickness: null };
       this.bus.emit('cat.sheltered', { catId: id });
+      if (this.content.cats[id]?.arrivesSick) this.makeSick(id);
+    } else if ('makeSick' in effect) {
+      this.makeSick(effect.makeSick);
     } else if ('giveItem' in effect) this.receiveItem(effect.giveItem);
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
     else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
@@ -1026,10 +1232,17 @@ export class GameSession {
   /** Soma (ou desconta) dinheiro. Usado pela história, pelas compras e pelo modo debug. */
   addMoney(delta: number, reason: string): void {
     const from = this.state.money;
-    this.state.money = from + delta;
+    // Fiado: parte de cada ganho (não devoluções) paga a dívida da clínica.
+    let toDebt = 0;
+    if (delta > 0 && this.state.debt > 0 && !reason.startsWith('refund')) {
+      toDebt = Math.min(this.state.debt, Math.ceil(delta * this.content.health.credit.repayShare));
+      this.state.debt -= toDebt;
+    }
+    this.state.money = from + delta - toDebt;
     // Resumo do dia: o que ela ganhou (devoluções não contam).
     if (delta > 0 && !reason.startsWith('refund')) this.state.today.earned += delta;
     this.bus.emit('money.changed', { from, to: this.state.money, reason });
+    if (toDebt > 0) this.bus.emit('debt.paid', { amount: toDebt, left: this.state.debt });
   }
 
   private removeFromInventory(itemId: string): void {

@@ -313,6 +313,58 @@
           "npcLeave": "npc.neusa"
         }
       ]
+    },
+    "scr.fernanda_visit": {
+      "steps": [
+        {
+          "dialogue": "dlg.cat_sick"
+        },
+        {
+          "npcSpawn": "npc.fernanda",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            4
+          ],
+          "facing": "down"
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcToCat": "npc.fernanda",
+          "cat": "cat.first_stray"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "dialogue": "dlg.fernanda_visit"
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            14,
+            4
+          ]
+        },
+        {
+          "npcLeave": "npc.fernanda"
+        }
+      ]
     }
   }
 }

@@ -229,6 +229,69 @@
       "exclusive": true
     },
     {
+      "id": "story.cat_falls_ill",
+      "act": 1,
+      "after": [
+        "story.prologue_end"
+      ],
+      "exclusive": true,
+      "start": {
+        "all": [
+          {
+            "day": {
+              "gte": 6
+            }
+          },
+          {
+            "location": "map.cafe_main"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "makeSick": "cat.first_stray"
+        },
+        {
+          "setFlag": "clinic.open"
+        },
+        {
+          "script": "scr.fernanda_visit"
+        }
+      ]
+    },
+    {
+      "id": "story.vet_visit",
+      "act": 1,
+      "after": [
+        "story.cat_falls_ill"
+      ],
+      "exclusive": true,
+      "goal": {
+        "title": "Gatinho doente",
+        "steps": [
+          {
+            "text": "Levar {cat:cat.first_stray} no colo até a clínica da Fernanda, no fim da rua.",
+            "when": {
+              "flag": "vet.consulted"
+            },
+            "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta."
+          },
+          {
+            "text": "Dar o remédio para {cat:cat.first_stray} uma vez por dia, até acabar a receita.",
+            "when": {
+              "flag": "vet.cured"
+            },
+            "devNote": "Remédio ativo na barra e E perto do gato (uma dose por dia)."
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.vet_cured"
+        }
+      ]
+    },
+    {
       "id": "story.warm_corner",
       "act": 1,
       "after": [

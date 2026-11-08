@@ -25,7 +25,12 @@
         {
           "type": "text",
           "speaker": "",
-          "text": "Você pensa na Tekinha. Ela era perfeita. Hoje, é um anjinho."
+          "text": "Você pensa na Tekinha, a gatinha que você teve quando era criança."
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Que saudade de você, Tekinha."
         },
         {
           "type": "text",

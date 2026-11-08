@@ -11,6 +11,8 @@ export interface CatDef {
   nameSuggestions?: string[];
   /** Só aparece em lembranças (não vive no café). */
   memory?: boolean;
+  /** Já chega doente ao ser abrigado (doença sorteada de data/health.json). */
+  arrivesSick?: boolean;
   tags: string[];
 }
 

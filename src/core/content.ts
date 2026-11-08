@@ -9,6 +9,7 @@ import { validateCharacter, type CharacterData } from './appearance';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
+import { validateHealth, type HealthConfig } from './health';
 import type { RelationshipsConfig } from './relationships';
 import type { TileCatalog } from './tiles';
 
@@ -95,8 +96,8 @@ export interface EconomyData {
 
 /** Condição de história, escrita em JSON. */
 /** Onde um item da barra é usado. */
-export type ItemUse = 'food_bowl' | 'cat';
-export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat'];
+export type ItemUse = 'food_bowl' | 'cat' | 'medicine';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat', 'medicine'];
 
 export type Condition =
   | { all: Condition[] }
@@ -150,6 +151,8 @@ export type Effect =
   | { giveItem: string }
   /** Abriga um gato no café (abre a caixa de nome). */
   | { shelterCat: string }
+  /** Adoece um gato abrigado com uma doença sorteada (ex.: o primeiro gato no dia 6). */
+  | { makeSick: string }
   /** Termina o dia (a protagonista vai para casa; amanhece no dia seguinte). */
   | { endDay: true }
   /** Roteiro no mundo (data/scripts.json): ex.: a corretora mostra a padaria. */
@@ -257,6 +260,7 @@ export interface Content {
   service: ServiceConfig;
   carry: CarryConfig;
   delivery: DeliveryConfig;
+  health: HealthConfig;
   business: BusinessData;
   character: CharacterData;
   jobs: Record<string, JobDef>;
@@ -291,6 +295,7 @@ export interface RawContent {
   jobs: JobsData;
   news: NewsData;
   delivery: DeliveryConfig;
+  health: HealthConfig;
   business: BusinessData;
   character: CharacterData;
 }
@@ -325,7 +330,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, business: raw.business, character: raw.character };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, business: raw.business, character: raw.character };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -359,6 +364,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
   }
+  errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
@@ -373,6 +379,7 @@ export function validateContent(raw: RawContent): string[] {
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
   for (const m of raw.maps) {
+    for (const n of m.npcs ?? []) if (!raw.npcs.npcs.some((x) => x.id === n.npc)) err(`${m.id}: NPC inexistente "${n.npc}"`);
     for (const door of m.doors ?? []) {
       const target = raw.maps.find((t) => t.id === door.to);
       if (!target) err(`${m.id}: porta "${door.id}" leva a "${door.to}", que não existe`);
@@ -575,6 +582,11 @@ export function validateContent(raw: RawContent): string[] {
       if ('startTimer' in effect && !(effect.minutes > 0)) err(`${where}: relógio "${effect.startTimer}" sem minutos`);
       if ('script' in effect && !scriptIds.has(effect.script)) err(`${where}: roteiro inexistente "${effect.script}"`);
       if ('shelterCat' in effect && !catIds.has(effect.shelterCat)) err(`${where}: gato inexistente "${effect.shelterCat}"`);
+      if ('makeSick' in effect && !catIds.has(effect.makeSick)) err(`${where}: gato inexistente "${effect.makeSick}"`);
+      // Gato de lembrança (a Tekinha) só existe nas memórias da protagonista: não é abrigado nem adoece.
+      for (const id of ['shelterCat' in effect ? effect.shelterCat : null, 'makeSick' in effect ? effect.makeSick : null]) {
+        if (id && raw.cats.cats.find((c) => c.id === id)?.memory) err(`${where}: "${id}" é um gato de lembrança e não pode ser abrigado nem adoecer`);
+      }
     }
   }
 

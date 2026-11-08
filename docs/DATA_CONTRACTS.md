@@ -71,6 +71,8 @@ Peças extras sugeridas (decoração, no mesmo estilo): janelas `window` (2x2) e
 
 ## Gatos (`data/cats.json`)
 
+Opcional: `arrivesSick: true` (já chega doente; ver Saúde).
+
 ```jsonc
 {
   "schemaVersion": 1,
@@ -317,6 +319,14 @@ Efeitos: `{ "endDay": true }` (fim do dia), `{ "setTime": "08:00" }` (acerta o r
 
 `speaker` vazio = narração (aparece em itálico). `{cat:cat.id}` no texto vira o nome que a jogadora deu ao gato.
 
+## Saúde dos gatos e clínica (`data/health.json`)
+
+Saúde de 0 a `max` (gato novo: `start`). No fim do dia: `daily.fed` se comeu, `daily.hungry` se não comeu (descuido), `daily.sickUntreated` a mais se está doente sem a dose do dia. Abaixo de `sickBelow` adoece: doença sorteada de `diseases` (fictícias, ids `disease.*`) e a saúde cai para `sickHealth`. `randomIllness`: chance por gato por dia de adoecer à toa, a partir de `fromDay` e só com a flag `requiresFlag` (`clinic.open`). Gato com `arrivesSick: true` em `cats.json` já chega doente. `contagion`: um gato doente há mais de `afterDays` dias (sem tratamento, se `onlyUntreated`) passa a mesma doença; no fim do dia, cada gato saudável do mesmo lugar pega com `chancePerDay` (evento `cat.infected`). `customers.stopAtSickCats`: com tantos gatos doentes, nenhum cliente novo entra no café (quem já está fica); a rotina "HOJE" avisa e a manhã começa com o evento `customers.away`. Efeito de história `{ "makeSick": "cat.x" }` adoece um gato (o dia 6). Sorteios com semente (dia + gato): `src/core/health.ts`.
+
+Consulta (`session.consultQuote` / `consult`): na clínica (`clinic.map`), com o gato no colo e doente; receita de `prescription.minDays` a `maxDays` dias sorteados; custa `prices.consult` + `prices.medicinePerDay` por dia; o remédio (`medicine.item`, `use: "medicine"`) vai para a mochila (um por dia). `credit`: a primeira consulta sem dinheiro fica fiado (`state.debt`, flag `vet.credit_used`); `repayShare` de cada ganho paga a dívida. Dose (`medicateCat`): uma por dia, com o remédio ativo na barra; cada dose cura `medicine.healPerDose`; tomou todas, sara (flag `vet.cured`). Flags da história: `clinic.open`, `vet.consulted`, `vet.cured`.
+
+Mapas podem ter `npcs` fixos (`[{ "npc": "npc.fernanda", "at": [13, 7], "facing": "up" }]`) e a interação `{ "action": { "vet": true } }` (a consulta).
+
 ## Corações (`data/relationships.json`)
 
 `pointsPerHeart`, `maxHearts` e `feedPoints` (pontos ao comer da tigela). Os pontos ficam no save em `relationships`, por par (`"player|cat.first_stray": 120`); os corações são calculados. Serve para gato, vizinho, cliente e NPC↔gato.
@@ -352,7 +362,7 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
 }
 ```
 
-Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento) -> **v9** (`tray`, `sink`, etapas de preparo e preferências) -> **v10** (`hotbar`: 8 espaços com IDs de itens e o espaço ativo; o migrador põe a barra vazia e a vassoura entra sozinha ao abrir) -> **v11** (`business`: `closed` | `soft_open` | `inaugurated`; o migrador põe `closed` e, ao abrir, a sessão passa para `soft_open` se o café já tem o mínimo) -> **v12** (`player`: `{ name, appearance }`; o migrador põe `{ name: "", appearance: null }` = sem nome e aparência padrão). Fixtures: `tests/fixtures/save_v1.json` a `save_v12.json`.
+Histórico de versões: **v1** (primeiro save) -> **v2** (entra `finishes`; o migrador põe `{}`) -> **v3** (entram `location`, `visited`, `cleaned`; saves antigos ficam dentro do café, já limpo) -> **v4** (`cats` com nome e mapa; `relationships`) -> **v5** (`time`, hora do dia; saves antigos ficam às 8h) -> **v6** (`story.completedOn`, `timers`, `today`, `jobs`, `cats[].fedOn`) -> **v7** (`deliveries`: compras do catálogo pelo correio) -> **v8** (`menu`, `pantryOpen`, `dishes`, `hands`, `surfaces`, `service`: atendimento) -> **v9** (`tray`, `sink`, etapas de preparo e preferências) -> **v10** (`hotbar`: 8 espaços com IDs de itens e o espaço ativo; o migrador põe a barra vazia e a vassoura entra sozinha ao abrir) -> **v11** (`business`: `closed` | `soft_open` | `inaugurated`; o migrador põe `closed` e, ao abrir, a sessão passa para `soft_open` se o café já tem o mínimo) -> **v12** (`player`: `{ name, appearance }`; o migrador põe `{ name: "", appearance: null }` = sem nome e aparência padrão) -> **v13** (`cats[].shelteredOn`: dia em que o gato foi abrigado; `cats[].health` e `cats[].sickness` (`{ disease, since, treatment: { days, dosesGiven, lastDoseDay } | null }`); `debt`: o fiado da clínica. O migrador põe `shelteredOn: 1`, `health: 80`, `sickness: null` e `debt: 0`; doença que sumiu dos dados deixa o gato saudável, com aviso). Fixtures: `tests/fixtures/save_v1.json` a `save_v13.json`.
 
 Barra de itens (`src/core/hotbar.ts`): vão para a barra itens da mochila que não são móveis nem fixos. Ferramenta (`kind: "tool"`) entra sozinha no primeiro espaço livre. Item que acabou deixa o espaço vazio na tela. `world.tools.sweep` diz qual item precisa estar no espaço ativo para varrer sujeira e neve (sem ele: `needs_broom`).
 

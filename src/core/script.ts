@@ -43,6 +43,8 @@ export interface NpcDef {
   walk: Record<Facing, number>;
   /** Animações extras: nome -> índices de quadro. */
   extras: Record<string, number[]>;
+  /** Arte provisória (folha emprestada); entra na lista de arte pendente. */
+  placeholder?: boolean;
 }
 
 export interface NpcsData {

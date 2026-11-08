@@ -7,6 +7,16 @@ export interface GameEvents {
   'game.started': { isNew: boolean };
   'map.entered': { mapId: string };
   'cat.sheltered': { catId: string };
+  /** Saúde (data/health.json): adoeceu, consultou, tomou remédio, sarou; e o fiado sendo pago. */
+  'cat.sick': { catId: string; disease: string };
+  'cat.diagnosed': { catId: string; disease: string; days: number; total: number; onCredit: boolean };
+  'cat.medicated': { catId: string; dosesGiven: number; days: number };
+  'cat.cured': { catId: string };
+  /** Contágio: pegou a doença de outro gato. */
+  'cat.infected': { catId: string; fromCatId: string; disease: string };
+  /** De manhã: gatos doentes demais, os clientes evitam o café. */
+  'customers.away': { sickCats: number };
+  'debt.paid': { amount: number; left: number };
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };

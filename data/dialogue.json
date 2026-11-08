@@ -363,6 +363,67 @@
           "text": "Biscuit Paws está oficialmente inaugurado!"
         }
       ]
+    },
+    "dlg.door_locked_clinic": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Uma placa na porta: \"Clínica Veterinária. Inauguração em breve!\""
+        }
+      ]
+    },
+    "dlg.cat_sick": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "{cat:cat.first_stray} está quietinho hoje... Nem veio pedir carinho."
+        },
+        {
+          "speaker": "{player}",
+          "text": "O nariz está quente. Acho que ele não está bem."
+        }
+      ]
+    },
+    "dlg.fernanda_visit": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Oi! Desculpa entrar assim. Sou a Fernanda, veterinária."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Acabei de abrir uma clínica no fim da rua, depois da casa azul."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Hm... Esse gatinho não está com uma carinha boa. Traga {cat:cat.first_stray} no colo até a clínica que eu examino."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "E não se preocupe com o dinheiro: a primeira consulta pode ficar para depois."
+        }
+      ]
+    },
+    "dlg.vet_consult": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Deixa eu ver esse paciente... Pronto, já sei o que é."
+        }
+      ]
+    },
+    "dlg.vet_cured": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "{cat:cat.first_stray} voltou a ser ele mesmo! Preciso agradecer a Fernanda."
+        }
+      ]
     }
   }
 }

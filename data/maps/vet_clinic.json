@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "map.vet_clinic",
+  "tileSize": 32,
+  "size": {
+    "cols": 20,
+    "rows": 11
+  },
+  "background": "#2b1d1a",
+  "lighting": "indoor",
+  "legend": {
+    "M": "vet_parede_papel_topo",
+    "P": "vet_parede_papel",
+    "A": "vet_parede_azulejo",
+    "X": "vet_piso_xadrez"
+  },
+  "layers": {
+    "floor": [
+      "....................",
+      "....................",
+      "....................",
+      "....................",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXXXXXXXX"
+    ],
+    "walls": [
+      "MMMMMMMMMMMMMMMMMMMM",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "AAAAAAAAAAAAAAAAAAAA",
+      "....................",
+      "....................",
+      "....................",
+      "....................",
+      "....................",
+      "....................",
+      "...................."
+    ]
+  },
+  "objects": [
+    { "id": "obj.vet_lamp_1", "tile": "vet_luminaria_teto", "at": [2, 0] },
+    { "id": "obj.vet_lamp_2", "tile": "vet_luminaria_teto", "at": [7, 0] },
+    { "id": "obj.vet_lamp_3", "tile": "vet_luminaria_teto", "at": [13, 0] },
+    { "id": "obj.vet_lamp_4", "tile": "vet_luminaria_teto", "at": [17, 0] },
+    { "id": "obj.vet_sign_reception", "tile": "vet_placa_recepcao", "at": [1, 1] },
+    { "id": "obj.vet_sign_cross", "tile": "vet_placa_cruz_vet", "at": [4, 1] },
+    { "id": "obj.vet_window", "tile": "vet_janela", "at": [6, 1] },
+    { "id": "obj.vet_poster_cat", "tile": "vet_cartaz_gato", "at": [8, 2] },
+    { "id": "obj.vet_exam_door", "tile": "vet_porta_consultorio", "at": [10, 2] },
+    { "id": "obj.vet_cabinet", "tile": "vet_armario_medicamentos", "at": [12, 1] },
+    { "id": "obj.vet_xray", "tile": "vet_negatoscopio", "at": [14, 2] },
+    { "id": "obj.vet_board", "tile": "vet_quadro_avisos", "at": [16, 2] },
+    { "id": "obj.vet_poster_dog", "tile": "vet_cartaz_cachorro", "at": [17, 2] },
+    { "id": "obj.vet_plant_1", "tile": "vet_planta_vaso", "at": [0, 4] },
+    { "id": "obj.vet_reception_desk", "tile": "vet_balcao_recepcao", "at": [1, 4] },
+    { "id": "obj.vet_bench_1", "tile": "vet_banco_espera", "at": [5, 5] },
+    { "id": "obj.vet_bench_2", "tile": "vet_banco_espera", "at": [8, 7] },
+    { "id": "obj.vet_plant_2", "tile": "vet_planta_vaso", "at": [10, 6] },
+    { "id": "obj.vet_cart", "tile": "vet_carrinho_instrumentos", "at": [11, 5] },
+    { "id": "obj.vet_exam_table", "tile": "vet_mesa_exame", "at": [12, 5] },
+    { "id": "obj.vet_bin", "tile": "vet_lixeira_pedal", "at": [14, 6] },
+    { "id": "obj.vet_scale", "tile": "vet_balanca", "at": [15, 5] },
+    { "id": "obj.vet_sink", "tile": "vet_pia_vazia", "at": [17, 4] },
+    { "id": "obj.vet_cage_cat", "tile": "vet_gaiola_gato", "at": [16, 6] },
+    { "id": "obj.vet_cage_dog", "tile": "vet_gaiola_cachorro", "at": [18, 6] },
+    { "id": "obj.vet_mat", "tile": "vet_tapete_entrada", "at": [4, 10] }
+  ],
+  "npcs": [
+    { "npc": "npc.fernanda", "at": [13, 7], "facing": "up" }
+  ],
+  "interactions": [
+    { "id": "int.vet_exam", "at": [13, 6], "reach": 2, "action": { "vet": true } }
+  ],
+  "spawn": {
+    "player": [5, 9]
+  },
+  "doors": [
+    { "id": "door.vet_exit", "at": [5, 10], "to": "map.street", "spawn": [33, 9], "facing": "down", "direction": "down" },
+    { "id": "door.vet_exit_2", "at": [6, 10], "to": "map.street", "spawn": [33, 9], "facing": "down", "direction": "down" }
+  ]
+}

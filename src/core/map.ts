@@ -47,8 +47,8 @@ export interface MapInteraction {
   at: Cell;
   /** Distância máxima (em células) entre os pés da personagem e `at`. */
   reach?: number;
-  /** shop: o caixa (paga o carrinho); shelf: prateleira da loja (só os itens com estas tags vão para o carrinho); board: mural de pedidos. */
-  action: { shop: string } | { shelf: string; tags: string[] } | { board: true };
+  /** shop: o caixa (paga o carrinho); shelf: prateleira da loja (só os itens com estas tags vão para o carrinho); board: mural de pedidos; vet: a consulta na clínica. */
+  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true };
 }
 
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */
@@ -84,6 +84,8 @@ export interface MapData {
   spawn: { player: Cell };
   doors?: MapDoor[];
   interactions?: MapInteraction[];
+  /** NPCs que ficam no mapa (ex.: a Fernanda no balcão da clínica). */
+  npcs?: { npc: string; at: Cell; facing?: Facing }[];
   /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */

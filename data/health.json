@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Saúde dos gatos (0 a max). Fim do dia: daily.fed se comeu, daily.hungry se não comeu (descuido), daily.sickUntreated a mais se está doente sem remédio. Abaixo de sickBelow adoece (doença sorteada de diseases) e cai para sickHealth. randomIllness: chance por gato por dia de adoecer à toa, a partir de fromDay e só com a flag (a clínica aberta). Receita: minDays a maxDays sorteados; cada dose (medicine.item, uma por dia) cura healPerDose; tomou tudo, sara. Preços: consulta + medicinePerDay por dia de receita. credit: a primeira consulta pode ser fiado; repayShare de cada ganho paga a dívida. Gatos com arrivesSick em cats.json já chegam doentes. contagion: gato doente há mais de afterDays dias (sem tratamento, se onlyUntreated) passa a mesma doença; cada gato saudável pega com chancePerDay no fim do dia. customers: com stopAtSickCats ou mais gatos doentes, nenhum cliente novo entra no café. Doenças fictícias.",
+  "max": 100,
+  "start": 80,
+  "sickBelow": 30,
+  "sickHealth": 25,
+  "daily": { "fed": 10, "hungry": -15, "sickUntreated": -5 },
+  "randomIllness": { "chancePerDay": 0.04, "fromDay": 9, "requiresFlag": "clinic.open" },
+  "contagion": { "afterDays": 2, "chancePerDay": 0.5, "onlyUntreated": true },
+  "customers": { "stopAtSickCats": 2 },
+  "diseases": [
+    { "id": "disease.whisker_fever", "name": "Febre do Bigode", "description": "Os bigodes ficam murchinhos e o nariz, quente." },
+    { "id": "disease.purr_hiccups", "name": "Soluço de Ronrom", "description": "O ronrom engasga e vira soluço." },
+    { "id": "disease.sleepy_paws", "name": "Patinha Sonolenta", "description": "As patinhas ficam moles e ele só quer dormir." },
+    { "id": "disease.snow_sniffles", "name": "Fungadinha da Neve", "description": "Espirros miúdos de tanto frio na rua." },
+    { "id": "disease.tangled_tummy", "name": "Barriguinha Enrolada", "description": "A barriga ronca e ele recusa a ração." },
+    { "id": "disease.dim_meow", "name": "Miado Apagado", "description": "O miado sai fraquinho, quase um sussurro." }
+  ],
+  "medicine": { "item": "item.vet_medicine", "healPerDose": 15 },
+  "prescription": { "minDays": 1, "maxDays": 7 },
+  "prices": { "consult": 30, "medicinePerDay": 5 },
+  "credit": { "firstConsultOnCredit": true, "repayShare": 0.5 },
+  "clinic": { "map": "map.vet_clinic", "vet": "npc.fernanda" }
+}

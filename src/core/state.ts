@@ -4,6 +4,7 @@ import type { HandItem, SurfaceItem } from './carry';
 import type { Vessel } from './recipes';
 import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
 import type { Cell } from './map';
+import type { CatSickness } from './health';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
@@ -67,6 +68,8 @@ export interface GameState {
   sink: SinkState;
   /** Estágio do negócio (v11): fechado, funcionamento parcial (sem placa) ou inaugurado (com placa). Só avança. */
   business: BusinessStage;
+  /** Fiado (v13): quanto ela ainda deve (a primeira consulta da clínica). Parte de cada ganho paga. */
+  debt: number;
   /**
    * A protagonista (v12): nome e aparência escolhidos no início do jogo.
    * appearance null = a padrão dos dados (saves de antes do criador).
@@ -103,6 +106,12 @@ export interface CatState {
   map: string;
   /** Último dia em que comeu (v6; rotina diária). */
   fedOn?: number;
+  /** Dia em que foi abrigado (v13; app "Meus gatos": dias no café). */
+  shelteredOn: number;
+  /** Saúde de 0 a health.max (v13). */
+  health: number;
+  /** Doença em andamento e a receita (v13); null = saudável. */
+  sickness: CatSickness | null;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -136,6 +145,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     hotbar: newHotbar(),
     business: 'closed',
     player: { name: '', appearance: null },
+    debt: 0,
   };
 }
 

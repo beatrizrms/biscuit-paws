@@ -52,6 +52,13 @@
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
     "needs_food": "Preciso da ração na mão. Escolha ela na barra (teclas 1 a 8).",
     "needs_treat": "Preciso do petisco na mão. Escolha ele na barra (teclas 1 a 8).",
+    "needs_medicine": "Preciso do remédio na mão. Escolha ele na barra (teclas 1 a 8).",
+    "not_at_clinic": "Isso é na clínica da Fernanda, no fim da rua.",
+    "bring_cat": "Preciso trazer o gato no colo para a consulta.",
+    "not_sick": "Ele está saudável! Nada de remédio.",
+    "already_treated": "A receita já está comigo. É só dar o remédio todo dia.",
+    "no_prescription": "Primeiro a consulta na clínica: lá a Fernanda receita o remédio.",
+    "already_dosed": "Ele já tomou o remédio hoje. Amanhã tem mais.",
     "needs_repair": "Isso não sai com faxina. Só reformando.",
     "invalid_name": "Escolha um nome de 1 a 14 letras.",
     "not_sheltered": "Esse gatinho ainda não mora aqui.",
@@ -180,10 +187,55 @@
     "accepted": "Pedido aceito",
     "done": "Pedido concluído"
   },
+  "consult": {
+    "title": "Clínica da Fernanda",
+    "close": "sair",
+    "patient": "Paciente: {name}",
+    "diagnosis": "Diagnóstico",
+    "prescription": "Receita: remédio por {days} dia(s), uma dose por dia.",
+    "consultPrice": "Consulta",
+    "medicinePrice": "Remédio ({days} x {each})",
+    "total": "Total",
+    "credit": "Sem dinheiro agora? A Fernanda deixa a primeira consulta fiado: metade do que você ganhar vai pagando a conta.",
+    "pay": "Pagar {total} e levar o remédio",
+    "payCredit": "Levar o remédio (fiado)",
+    "done": "Remédio na mochila: uma dose por dia, por {days} dia(s).",
+    "doneCredit": "Fiado! Remédio na mochila: uma dose por dia, por {days} dia(s)."
+  },
+  "health": {
+    "sick": "{name} não parece bem... {disease}? Melhor levar à clínica da Fernanda.",
+    "sickNoClinic": "{name} não parece bem... Preciso cuidar melhor dele (comida todo dia).",
+    "infected": "{name} pegou {disease} de {from}! Doente sem remédio passa para os outros.",
+    "customersAway": "Com {n} gatos doentes, ninguém quer entrar no café. Preciso levar à clínica.",
+    "dose": "{name} tomou o remédio ({n}/{days}).",
+    "cured": "{name} sarou! Voltou a ser ele mesmo.",
+    "debtPaid": "Paguei {amount} do fiado da clínica (faltam {left}).",
+    "debtDone": "Paguei {amount} e quitei o fiado da clínica!"
+  },
+  "cats": {
+    "app": "Meus gatos",
+    "none": "Nenhum gato abrigado ainda. Quem sabe um miado na porta...",
+    "fed": "Comeu hoje",
+    "hungry": "Ainda não comeu",
+    "firstDay": "1º dia no café",
+    "days": "{n} dias no café",
+    "heartsTitle": "{n} de {max} corações",
+    "health": "Saúde",
+    "healthTitle": "Saúde {n} de {max}",
+    "sickUntreated": "Doente: {disease}. Levar à clínica (no colo).",
+    "sickTreated": "Doente: {disease} · remédio {n}/{days} · {today}",
+    "dosedToday": "já tomou hoje",
+    "doseDue": "falta a dose de hoje",
+    "personalities": {
+      "brave": "Valente",
+      "sweet": "Doce"
+    }
+  },
   "chores": {
     "title": "hoje",
     "feed": "Comida para {cat}",
     "sweep": "Varrer a poeira do dia",
+    "sick": "Gatos doentes: clientes não entram",
     "job": "Pedido"
   },
   "goHome": {

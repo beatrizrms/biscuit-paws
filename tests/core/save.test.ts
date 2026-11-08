@@ -95,7 +95,7 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
 
   it('save_v4: guarda nome e corações; gato que sumiu dos dados é ignorado', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v4.json', 'utf8'), known);
-    expect(state.cats).toEqual({ 'cat.first_stray': { sheltered: true, name: 'Pipoca', map: 'map.cafe_main' } });
+    expect(state.cats).toEqual({ 'cat.first_stray': { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null } });
     expect(state.relationships['player|cat.first_stray']).toBe(120);
     expect(warnings.join()).toMatch(/cat.lost_forever/);
   });
@@ -209,6 +209,16 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     const session = new GameSession(content, state);
     session.start(false);
     expect(session.state.business).toBe('soft_open');
+  });
+
+  it('save_v12: migra para v13; o gato do prólogo chegou no dia 1', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v12.json', 'utf8'), known);
+    expect(state.cats['cat.first_stray']?.shelteredOn).toBe(1);
+  });
+
+  it('save_v13: guarda o dia em que o gato foi abrigado', () => {
+    const { state } = parseSave(readFileSync('tests/fixtures/save_v13.json', 'utf8'), known);
+    expect(state.cats['cat.first_stray']?.shelteredOn).toBe(2);
   });
 
   it('save_v2: mantém a reforma válida e descarta acabamento que sumiu', () => {

@@ -178,6 +178,24 @@ describe('ciclo do pedido', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
   });
 
+  it('com 2 ou mais gatos doentes, nenhum cliente novo entra; sararam, voltam', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const sick = { disease: content.health.diseases[0]!.id, since: state.day, treatment: null };
+    const cat = (id: string) => ({ sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 20, sickness: { ...sick } });
+    state.cats['cat.first_stray'] = cat('A');
+    state.cats['cat.second'] = cat('B');
+    expect(session.customersAway()).toBe(true);
+    expect(session.chores().some((c) => c.kind === 'sick')).toBe(false); // antes do prólogo a rotina não aparece
+    advance(session, 60);
+    expect(state.service.customers).toHaveLength(0);
+    // Um só doente: o café volta a receber gente.
+    state.cats['cat.second']!.sickness = null;
+    expect(session.customersAway()).toBe(false);
+    advance(session, 60);
+    expect(state.service.customers.length).toBeGreaterThan(0);
+  });
+
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
@@ -256,7 +274,7 @@ describe('mãos', () => {
 
   it('carregar deixa mais lenta; petisco na mão vai para o gato', () => {
     const { session, sv, state } = openCafe();
-    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main' };
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     expect(sv.speed()).toBe(1);
     session.buy('item.cat_treat_biscuit');
     expect(sv.hold('item.cat_treat_biscuit')).toEqual({ ok: true });
@@ -344,7 +362,7 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
 
   it('gato no colo: mãos livres, mais lenta, só põe no chão dentro do café', () => {
     const { sv, state } = openCafe();
-    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main' };
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     expect(sv.pickUpCat('cat.first_stray')).toEqual({ ok: true });
     expect(sv.carriedCat()).toBe('cat.first_stray');
     expect(sv.speed()).toBe(content.carry.cat.speedFactor);
@@ -360,7 +378,7 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     session.buy('item.cat_food_sack');
     session.endDay('home');
     expect(state.inventory['item.cat_food_basic']).toBe(5);
-    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main' };
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     sv.pickUpCat('cat.first_stray');
     session.endDay('home');
     expect(state.hands).toEqual([]);
