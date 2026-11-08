@@ -20,7 +20,8 @@
   },
   "carrier": "npc.mail_carrier",
   "van": {
-    "left": "assets/objects/vehicles/obj_van_left.png",
-    "right": "assets/objects/vehicles/obj_van_right.png"
+    "left": "assets/objects/vehicles/obj_van_pixellab_left.png",
+    "right": "assets/objects/vehicles/obj_van_pixellab_right.png",
+    "scale": 0.5
   }
 }

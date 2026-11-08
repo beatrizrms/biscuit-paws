@@ -1390,7 +1390,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const roadY = this.map.rows * ts - 4;
       // Para um pouco depois da porta, para não esconder a entregadora nem a pilha.
       const stopX = (dc + 6.5) * ts;
-      const van = this.add.image(this.map.cols * ts + 120, roadY, 'van_left').setOrigin(0.5, 1).setDepth(ySortDepth(roadY));
+      const van = this.add.image(this.map.cols * ts + 120, roadY, 'van_left').setOrigin(0.5, 1).setScale(cfg.van.scale ?? 1).setDepth(ySortDepth(roadY));
       this.vanObjects.push(van);
       await this.tweenTo(van, stopX, 1600);
       const def = this.session.content.npcs[cfg.carrier]!;

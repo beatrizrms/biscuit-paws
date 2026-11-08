@@ -362,7 +362,8 @@ export interface DeliveryConfig {
   inside: { at: Cell };
   /** NPC que entrega e o furgão (vistas de lado). */
   carrier: string;
-  van: { left: string; right: string };
+  /** Imagens do furgão de lado; scale: 0,5 para a arte em 64 px (decisão 052), 1 para a antiga. */
+  van: { left: string; right: string; scale?: number };
 }
 
 export function buildContent(raw: RawContent): Content {

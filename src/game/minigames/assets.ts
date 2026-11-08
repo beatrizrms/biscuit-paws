@@ -60,12 +60,12 @@ export const KITTEN_HUNT = {
 } satisfies Record<string, SheetSpec>;
 
 /**
- * Entrega relâmpago: a bicicleta (64 x 64, de lado, virada para a direita; espelhada para a esquerda) e a porta
+ * Entrega relâmpago: a bicicleta (128 x 128, 2 x 2 tiles, de lado, virada para a direita; espelhada para a esquerda) e a porta
  * da casa de entrega (64 x 128, 1 x 2 tiles), copiadas por `npm run pixellab` (arte do PixelLab). Sem o arquivo,
  * viram retângulos coloridos. Pedestres são os NPCs de cliente.
  */
 export const DELIVERY = {
-  bike: { key: 'mg.delivery.bike', file: `${DIR}/delivery/obstacle_bike.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x5a86b8 },
+  bike: { key: 'mg.delivery.bike', file: `${DIR}/delivery/obstacle_bike.png`, frameWidth: 128, frameHeight: 128, placeholder: 0x5a86b8 },
   door: { key: 'mg.delivery.door', file: `${DIR}/delivery/goal_door.png`, frameWidth: 64, frameHeight: 128, placeholder: 0x9fd8b5 },
 } satisfies Record<string, SheetSpec>;
 
