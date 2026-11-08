@@ -1,0 +1,55 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 2,
+ "pieces": {
+  "room_tunel": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "room_tora": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "room_cama_quartinho": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "room_casinha": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "room_cama_ao_sol": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "room_mato": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "room_folhas_secas": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "room_parede_divisoria": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

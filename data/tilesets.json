@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo). backyard_hedge: quintal secreto do pacote (npm run backyard); pixellab_quintal troca a arte dele e pixellab_quintal_novos traz as peças novas (npm run pixellab). rooms_placeholder: provisórios dos cômodos, desenhados por código. street_*_<estação>: rua de primavera, verão e outono (npm run seasons); nomes com o prefixo da estação (spring_street_..., spring_facade_..., spring_prop_...). pixellab_lote01: primeiro lote do PixelLab em 64 px (resolução 2, decisão 052): porta fechada/aberta e potes de biscoito cheio/vazio. pixellab_cafe: arte nova do café (decisão 065); replaces: as peças trocam a imagem de tiles que já existem, com o mesmo nome e tamanho (npm run pixellab). pixellab_cafe_superficies: pisos e paredes do café (acabamentos do pintor e versões velhas). pixellab_sujeira: sujeira do café na arte nova (troca as peças dirt_*; lençol continua o antigo). Equipamentos e pia: as folhas de animação apontam para as tiras *_pixellab.png. pixellab_cafe_cores: cores novas (sofá rosa/céu, caminha rosa/lilás).",
+  "_comment": "Folhas extras do catálogo. pieces: JSON em data/tilesets/ (nomes e posições). prefix: prefixo dos nomes. layer/solid: padrão da folha; overrides: exceções por peça. Imagens em public/ (fora do Git). animation: folhas de equipamentos com quadros (columns por linha; work = primeiro e último quadro do preparo). backyard_hedge: quintal secreto do pacote (npm run backyard); pixellab_quintal troca a arte dele e pixellab_quintal_novos traz as peças novas (npm run pixellab). rooms_placeholder: provisórios dos cômodos, desenhados por código; pixellab_comodos troca a arte deles (npm run pixellab). street_*_<estação>: rua de primavera, verão e outono (npm run seasons); nomes com o prefixo da estação (spring_street_..., spring_facade_..., spring_prop_...). pixellab_lote01: primeiro lote do PixelLab em 64 px (resolução 2, decisão 052): porta fechada/aberta e potes de biscoito cheio/vazio. pixellab_cafe: arte nova do café (decisão 065); replaces: as peças trocam a imagem de tiles que já existem, com o mesmo nome e tamanho (npm run pixellab). pixellab_cafe_superficies: pisos e paredes do café (acabamentos do pintor e versões velhas). pixellab_sujeira: sujeira do café na arte nova (troca as peças dirt_*; lençol continua o antigo). Equipamentos e pia: as folhas de animação apontam para as tiras *_pixellab.png. pixellab_cafe_cores: cores novas (sofá rosa/céu, caminha rosa/lilás).",
   "sheets": [
     {
       "id": "street_ground",
@@ -879,6 +879,23 @@
       "image": "assets/env/backyard/tile_pixellab_quintal_novos.png",
       "pieces": "pixellab_quintal_novos.json",
       "prefix": "yard_",
+      "layer": "object",
+      "solid": true
+    },
+    {
+      "id": "pixellab_comodos",
+      "image": "assets/interiors/cafe/tile_pixellab_comodos.png",
+      "pieces": "pixellab_comodos.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_comodos_portas",
+      "image": "assets/interiors/cafe/tile_pixellab_comodos_portas.png",
+      "pieces": "pixellab_comodos_portas.json",
+      "prefix": "",
       "layer": "object",
       "solid": true
     },

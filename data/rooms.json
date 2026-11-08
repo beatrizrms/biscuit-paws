@@ -396,7 +396,7 @@
       "initial": "hidden",
       "tiles": {
         "hidden": "room_parede_divisoria",
-        "locked": "room_porta_fechada"
+        "locked": "room_porta_quarto"
       },
       "lockedDialogue": "dlg.door_back_room_locked"
     },
@@ -415,7 +415,7 @@
       "consumesItem": true,
       "tiles": {
         "hidden": "room_parede_divisoria",
-        "locked": "room_porta_cadeado"
+        "locked": "room_porta_quarto_cadeado"
       },
       "lockedDialogue": "dlg.door_backyard_locked"
     }

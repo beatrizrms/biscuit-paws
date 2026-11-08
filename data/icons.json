@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Ícones. \"image\": folha padrão (catalogo_compras, 32 px). \"sheets\": outras folhas; o ícone diz a folha em \"sheet\"; tileSize da folha quando não é o padrão. \"pixellab\": arte nova em 64 px (npm run pixellab; decisão 065), desenhada em meia escala; louça e peixes ainda nas folhas antigas. Todos gerados por IA.",
+  "_comment": "Ícones. \"image\": folha padrão (catalogo_compras, 32 px). \"sheets\": outras folhas; o ícone diz a folha em \"sheet\"; tileSize da folha quando não é o padrão. \"pixellab\": arte nova em 64 px (npm run pixellab; decisão 065), desenhada em meia escala. Todos gerados por IA.",
   "image": "assets/icons/sheets/icon_sheet_shop.png",
   "tileSize": 32,
   "columns": 5,
@@ -242,93 +242,93 @@
     },
     "xicara_limpa": {
       "col": 0,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "xicara_suja": {
       "col": 1,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "prato_limpo": {
       "col": 2,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "prato_sujo": {
       "col": 3,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "tigela_limpa": {
       "col": 4,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "tigela_suja": {
       "col": 5,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "copo_limpo": {
       "col": 6,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "copo_sujo": {
       "col": 7,
-      "row": 0,
-      "sheet": "louca"
+      "row": 8,
+      "sheet": "pixellab"
     },
     "copo_alto_limpo": {
       "col": 0,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "copo_alto_sujo": {
       "col": 1,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "caneca_limpa": {
       "col": 2,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "caneca_suja": {
       "col": 3,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "pilha_baixa_limpa": {
       "col": 4,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "pilha_baixa_suja": {
       "col": 5,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "pilha_media_limpa": {
       "col": 6,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "pilha_media_suja": {
       "col": 7,
-      "row": 1,
-      "sheet": "louca"
+      "row": 9,
+      "sheet": "pixellab"
     },
     "pilha_alta_limpa": {
       "col": 0,
-      "row": 2,
-      "sheet": "louca"
+      "row": 10,
+      "sheet": "pixellab"
     },
     "pilha_alta_suja": {
       "col": 1,
-      "row": 2,
-      "sheet": "louca"
+      "row": 10,
+      "sheet": "pixellab"
     },
     "pao": {
       "col": 2,
@@ -396,34 +396,34 @@
       "sheet": "pixellab"
     },
     "peixe_prateado": {
-      "col": 0,
-      "row": 0,
-      "sheet": "peixes"
+      "col": 2,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "peixe_sardinha": {
-      "col": 1,
-      "row": 0,
-      "sheet": "peixes"
+      "col": 3,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "peixe_atum": {
-      "col": 2,
-      "row": 0,
-      "sheet": "peixes"
+      "col": 4,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "peixe_salmao": {
-      "col": 0,
-      "row": 1,
-      "sheet": "peixes"
+      "col": 5,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "peixe_dourado": {
-      "col": 1,
-      "row": 1,
-      "sheet": "peixes"
+      "col": 6,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "bota_velha": {
-      "col": 2,
-      "row": 1,
-      "sheet": "peixes"
+      "col": 7,
+      "row": 10,
+      "sheet": "pixellab"
     },
     "extra_croissant": {
       "col": 4,

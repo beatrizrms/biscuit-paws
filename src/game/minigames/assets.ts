@@ -48,9 +48,9 @@ export const LATTE = {
 } satisfies Record<string, SheetSpec>;
 
 /**
- * Caça ao filhote: os esconderijos que não existem no pacote. PLACEHOLDER(arte): cesto, caixote e vaso
- * (64 x 64, 1 x 1 tile, quadro 0 parado) ainda não têm arquivo: viram retângulos coloridos até a arte chegar
- * (lista na memória: assets-pendentes). Caixa, lixeira, arbusto e carro são os do Gato em fuga.
+ * Caça ao filhote: os esconderijos que não existem no pacote: cesto, caixote e vaso (64 x 64, 1 x 1 tile,
+ * quadro 0 parado), gerados no PixelLab e copiados por `npm run pixellab`. Sem o arquivo, viram retângulos coloridos.
+ * Caixa, lixeira, arbusto e carro são os do Gato em fuga.
  */
 export const KITTEN_HUNT = {
   basket: { key: 'mg.hunt.basket', file: `${DIR}/hunt/hide_basket.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xd8a75e },

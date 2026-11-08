@@ -44,7 +44,7 @@ export class KittenHuntScene extends MiniGameScene {
   }
 
   protected buildGame(): void {
-    // PLACEHOLDER(arte): cesto, caixote e vaso viram retângulos até a arte chegar (assets.ts: KITTEN_HUNT).
+    // Cesto, caixote e vaso viram retângulos se o arquivo faltar (assets.ts: KITTEN_HUNT; npm run pixellab).
     ensurePlaceholders(this, [CHASE.hideBox, CHASE.hideTrash, CHASE.hideBush, CHASE.hideCar, ...Object.values(KITTEN_HUNT)]);
     const def = this.def;
     this.p = paramsOf<KittenHuntParams>(content.minigames, 'kitten_hunt', this.launch.params.difficulty);

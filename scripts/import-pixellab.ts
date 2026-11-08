@@ -467,6 +467,34 @@ const SHEETS: Sheet[] = [
       vaso_baixo_c: { file: 'quintal/obj_5.png', w: 1, h: 1, dy: 4 },
     },
   },
+  {
+    // Cômodos do café (troca os provisórios desenhados por código): módulos do playground, cama, portas, mato e folhas.
+    image: 'public/assets/interiors/cafe/tile_pixellab_comodos.png',
+    pieces: 'data/tilesets/pixellab_comodos.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      room_tunel: { file: 'comodos/tunel_2x1.png', w: 2, h: 1 },
+      room_tora: { file: 'comodos/tora_2x1.png', w: 2, h: 1 },
+      room_cama_quartinho: { file: 'comodos/cama_quartinho_2x1.png', w: 2, h: 1 },
+      room_casinha: { file: 'louca_peixes/lote_B/obj_8.png', w: 1, h: 1, dy: 4 },
+      room_cama_ao_sol: { file: 'louca_peixes/lote_B/obj_9.png', w: 1, h: 1, dy: 8 },
+      room_mato: { file: 'louca_peixes/lote_B/obj_10.png', w: 1, h: 1, dy: 4 },
+      room_folhas_secas: { file: 'fachadas/abandonado/obj_14.png', w: 1, h: 1 },
+      room_parede_divisoria: { file: '', w: 1, h: 1, build: () => dividerWall() },
+    },
+  },
+  {
+    // Portas dos cômodos em 1x2 (portas sempre 1x2): nomes novos, a 1x1 antiga fica sem uso.
+    image: 'public/assets/interiors/cafe/tile_pixellab_comodos_portas.png',
+    pieces: 'data/tilesets/pixellab_comodos_portas.json',
+    columns: 2,
+    auto: true,
+    layout: {
+      room_porta_quarto: { file: '', w: 1, h: 2, dy: 6, build: () => tallDoor(11) },
+      room_porta_quarto_cadeado: { file: '', w: 1, h: 2, dy: 6, build: () => tallDoor(12) },
+    },
+  },
 ];
 
 /**
@@ -587,6 +615,28 @@ function snowCap(src: PNG, seed: number, maxDepth = 7): PNG {
     plot(out, x, top + depth, line);
   }
   return out;
+}
+
+// ---------- Cômodos ----------
+
+/** Porta 64x64 do lote B em 1x2: repete as linhas lisas do painel de cima (17 a 23) até a porta ter 128 px. */
+function tallDoor(i: number): PNG {
+  const src = readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`);
+  return pickRows(src, [...range(0, 24), ...Array.from({ length: 9 }, () => range(17, 23)).flat(), ...range(24, 63)]);
+}
+
+/** Parede divisória vista de cima (topo da parede entre os cômodos): reboco creme com borda de madeira dos dois lados. */
+function dividerWall(): PNG {
+  const png = blank(TS, TS);
+  let seed = 61;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) {
+    const edge = x < 3 || x > TS - 4;
+    const trim = x < 7 || x > TS - 8;
+    const rgb: [number, number, number] = edge ? [92, 60, 44] : trim ? (x < 7 ? [178, 124, 82] : [150, 102, 68]) : rnd() < 0.05 ? [226, 212, 188] : [240, 228, 206];
+    plot(png, x, y, rgb);
+  }
+  return png;
 }
 
 // ---------- Quintal secreto ----------
@@ -1171,15 +1221,32 @@ for (const strip of STRIPS) {
 }
 
 // ---------- Ícones (64 px) ----------
+/** Peças do lote de louça/peixes que não são ícones (viram tiles dos cômodos ou esconderijos do mini game). */
+const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada', 'porta_cadeado', 'esconderijo_cesto', 'esconderijo_caixote', 'esconderijo_vaso']);
 // Os 4 lotes de icones/ (obj_N.png na ordem de escolhas.json) numa folha de 8 colunas, na mesma ordem.
 // data/icons.json aponta os ícones para esta folha (sheet "pixellab", tileSize 64).
 {
   const lots = JSON.parse(readFileSync(`${SRC}/icones/escolhas.json`, 'utf8')) as Record<string, unknown>;
-  const names = (['loja', 'ingredientes', 'bebidas', 'comidas'] as const).flatMap((lot) => (lots[lot] as string[]).map((name, i) => ({ name, file: `${SRC}/icones/${lot}/obj_${i}.png` })));
+  const louca = JSON.parse(readFileSync(`${SRC}/louca_peixes/escolhas.json`, 'utf8')) as Record<'lote_A' | 'lote_B', string[]>;
+  const names = [
+    ...(['loja', 'ingredientes', 'bebidas', 'comidas'] as const).flatMap((lot) => (lots[lot] as string[]).map((name, i) => ({ name, file: `${SRC}/icones/${lot}/obj_${i}.png` }))),
+    ...(['lote_A', 'lote_B'] as const).flatMap((lot) => louca[lot].map((name, i) => ({ name, file: `${SRC}/louca_peixes/${lot}/obj_${i}.png` }))).filter(({ name }) => !ICON_SKIP.has(name)),
+  ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
   names.forEach(({ file }, i) => paste(out, readPng(file), i % cols, Math.floor(i / cols)));
   const image = 'public/assets/icons/sheets/icon_sheet_pixellab.png';
   writeFileSync(image, PNG.sync.write(out));
   console.log(`${image}: ${names.length} ícones`);
+}
+
+// ---------- Esconderijos da Caça ao filhote (64 px, quadro 0 parado) ----------
+// src/game/minigames/assets.ts (KITTEN_HUNT) carrega estes arquivos; sem eles o jogo desenha retângulos.
+{
+  const dir = 'public/assets/minigames/hunt';
+  mkdirSync(dir, { recursive: true });
+  for (const [file, i] of [['hide_basket', 13], ['hide_crate', 14], ['hide_pot', 15]] as const) {
+    writeFileSync(`${dir}/${file}.png`, PNG.sync.write(readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`)));
+  }
+  console.log(`${dir}: 3 esconderijos`);
 }

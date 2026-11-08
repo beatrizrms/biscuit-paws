@@ -1262,7 +1262,10 @@ export class GameSession {
     for (const door of this.content.rooms.doors) {
       const s = this.doorState(door.id);
       if (s === 'open') continue;
-      objects.push({ id: `obj.${door.id}`, tile: s === 'hidden' ? door.tiles.hidden : door.tiles.locked, at: door.at });
+      // A porta (1x2) tem a base na célula da passagem e sobe por cima da parede; a parede escondida é 1x1.
+      const tile = s === 'hidden' ? door.tiles.hidden : door.tiles.locked;
+      const h = this.content.catalog.tiles[tile]?.h ?? 1;
+      objects.push({ id: `obj.${door.id}`, tile, at: [door.at[0], door.at[1] - h + 1] });
       if (s === 'locked') interactions.push({ id: `int.${door.id}`, at: door.at, reach: 1, action: { door: door.id } });
     }
     return { legend, objects, interactions };
