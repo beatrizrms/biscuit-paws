@@ -99,7 +99,7 @@
     { "id": "obj.season_deco_d", "tile": "prop_enfeite_d", "at": [35, 8], "overlay": "snow_prop_enfeite_d" },
     { "id": "obj.snow_pile_2", "tile": "snow_monte_neve", "at": [8, 9] },
     { "id": "obj.snow_pile_3", "tile": "snow_monte_neve", "at": [28, 9] },
-    { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0] }
+    { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0], "overlay": "snow_facade_veterinaria" }
   ],
   "spawn": {
     "player": [15, 9]

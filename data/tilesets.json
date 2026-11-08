@@ -900,6 +900,14 @@
       "solid": true
     },
     {
+      "id": "pixellab_fachadas_inverno",
+      "image": "assets/env/street/tile_pixellab_fachadas_inverno.png",
+      "pieces": "pixellab_fachadas_inverno.json",
+      "prefix": "",
+      "layer": "wall",
+      "solid": false
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",

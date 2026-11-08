@@ -1,0 +1,13 @@
+{
+ "tileSize": 64,
+ "columns": 6,
+ "rows": 8,
+ "pieces": {
+  "snow_facade_veterinaria": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 6,
+   "h_tiles": 8
+  }
+ }
+}

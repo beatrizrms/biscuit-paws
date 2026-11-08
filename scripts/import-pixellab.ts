@@ -327,14 +327,14 @@ const SHEETS: Sheet[] = [
     auto: true,
     layout: {
       snow_facade_loja_velha: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/loja_velha.png`), 1) },
-      snow_facade_loja_menta: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
-      snow_facade_loja_rosa: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
-      snow_facade_loja_ceu: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
-      snow_facade_loja_moveis: { file: '', w: 6, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/loja_moveis.png`), 3) },
-      snow_facade_mercado: { file: '', w: 7, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/mercado.png`), 4) },
-      snow_facade_casa_a: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_a.png`), 5) },
-      snow_facade_casa_b: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_b.png`), 6) },
-      snow_facade_casa_c: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_c.png`), 7) },
+      snow_facade_loja_menta: { file: '', w: 5, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2), [['wreath', 220, 318], ['garland', 92, 288]]) },
+      snow_facade_loja_rosa: { file: '', w: 5, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2), [['wreath', 220, 318], ['garland', 92, 288]]) },
+      snow_facade_loja_ceu: { file: '', w: 5, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2), [['wreath', 220, 318], ['garland', 92, 288]]) },
+      snow_facade_loja_moveis: { file: '', w: 6, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/loja_moveis.png`), 3), [['wreath', 291, 318], ['lights', 90, 286], ['lights', 230, 286]]) },
+      snow_facade_mercado: { file: '', w: 7, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/mercado.png`), 4), [['wreath', 350, 318]]) },
+      snow_facade_casa_a: { file: '', w: 4, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/casa_a.png`), 5), [['wreath', 160, 318]]) },
+      snow_facade_casa_b: { file: '', w: 4, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/casa_b.png`), 6), [['wreath', 56, 314]]) },
+      snow_facade_casa_c: { file: '', w: 4, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/casa_c.png`), 7), [['wreath', 187, 318]]) },
     },
   },
   {
@@ -499,6 +499,16 @@ const SHEETS: Sheet[] = [
       room_porta_quarto_cadeado: { file: '', w: 1, h: 2, dy: 6, build: () => tallDoor(12) },
     },
   },
+  {
+    // Inverno da veterinária (ela não tinha camada de neve): neve no telhado, guirlanda na porta e luzinhas no letreiro.
+    image: 'public/assets/env/street/tile_pixellab_fachadas_inverno.png',
+    pieces: 'data/tilesets/pixellab_fachadas_inverno.json',
+    columns: 6,
+    auto: true,
+    layout: {
+      snow_facade_veterinaria: { file: '', w: 6, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/veterinaria.png`), 8), [['wreath', 243, 314], ['lights', 70, 300], ['lights', 200, 300]]) },
+    },
+  },
 ];
 
 /**
@@ -596,6 +606,49 @@ function signText(png: PNG, text: string, [x0, y0, x1, y1]: [number, number, num
     draw(x, g, shadow, k);
     draw(x, g, ink, 0);
     x += (g.rows[0]!.length + 1) * k;
+  }
+  return png;
+}
+
+/** Guirlanda redonda (64 px) em meia escala, pela cor mais frequente de cada 2x2, com contorno escuro de 1 px. */
+function smallWreath(): PNG {
+  const src = readPng(`${SRC}/rua/sazonais/obj_9.png`);
+  const out = blank(32, 32);
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+    const count = new Map<string, number>();
+    let best = 't', n = 0;
+    for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]] as const) {
+      const i = ((y * 2 + dy) * src.width + x * 2 + dx) * 4;
+      const key = src.data[i + 3]! < 128 ? 't' : [0, 1, 2].map((c) => src.data[i + c]).join(',');
+      const k = (count.get(key) ?? 0) + 1;
+      count.set(key, k);
+      if (k > n || (k === n && key !== 't')) { n = k; best = key; }
+    }
+    if (best !== 't') plot(out, x, y, best.split(',').map(Number) as [number, number, number]);
+  }
+  const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < 32 && y < 32 && out.data[(y * 32 + x) * 4 + 3]! > 0;
+  const edge: [number, number][] = [];
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (!solid(x, y) && (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1))) edge.push([x, y]);
+  for (const [x, y] of edge) plot(out, x, y, [44, 56, 36]);
+  return out;
+}
+
+type WinterDeco = ['wreath' | 'garland' | 'lights', number, number];
+
+/**
+ * Enfeites de Natal por cima da camada de neve da fachada (só aparecem no inverno): guirlanda na porta
+ * (x = centro da porta, y = topo da porta), festão de pinho e luzinhas (x = centro, y = topo).
+ */
+function winterDeco(png: PNG, decos: WinterDeco[]): PNG {
+  const art = { wreath: smallWreath(), garland: readPng(`${SRC}/rua/sazonais/obj_10.png`), lights: readPng(`${SRC}/rua/sazonais/obj_12.png`) };
+  for (const [kind, cx, top] of decos) {
+    const src = art[kind];
+    const ox = cx - (src.width >> 1), oy = kind === 'wreath' ? top + 6 : top - 8;
+    for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+      const i = (y * src.width + x) * 4;
+      if (src.data[i + 3]! < 128) continue;
+      plot(png, ox + x, oy + y, [src.data[i]!, src.data[i + 1]!, src.data[i + 2]!]);
+    }
   }
   return png;
 }
