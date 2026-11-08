@@ -398,6 +398,7 @@ const SHEETS: Sheet[] = [
       snow_prop_vaso_planta: { file: '', w: 1, h: 1, dy: 6, build: () => snowCap(readPng(`${SRC}/rua/obj_15.png`), 39) },
       prop_mesa_terraco: { file: 'rua/mesa_terraco_2x1.png', w: 2, h: 1, aliases: seasonal('mesa_terraco', 'prop') },
       prop_abeto_natal: { file: 'rua/abeto_natal_1x2.png', w: 1, h: 2 },
+      snow_monte_neve: { file: '', w: 1, h: 1, build: () => snowPile(71) },
       snow_prop_abeto_natal: { file: '', w: 1, h: 2, build: () => snowCap(readPng(`${SRC}/rua/abeto_natal_1x2.png`), 40, 2) },
       prop_caixa_gato_vazia: { file: 'rua/obj_0.png', w: 1, h: 1, dy: 6 },
       prop_caixa_gato_manta: { file: 'rua/obj_1.png', w: 1, h: 1, dy: 6 },
@@ -430,6 +431,9 @@ const SHEETS: Sheet[] = [
     layout: {
       yard_fundo_ceu_telhados: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline.png', 0, 0], ['quintal/fundo_skyline.png', 3 * TS, 0]]) },
       yard_sebe_topo: { file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)) },
+      yard_sebe_meio_a: { file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)) },
+      yard_sebe_meio_b: { file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)) },
+      yard_sebe_base: { file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)) },
       yard_sebe_lateral: { file: '', w: 1, h: 1, build: () => seamlessRows(readPng(`${SRC}/quintal/sebe_lateral_1x3.png`), 20, 118) },
       yard_grama_a: { file: 'quintal/grama.png', w: 1, h: 1 },
       yard_grama_b: { file: 'quintal/grama.png', w: 1, h: 1 },
@@ -807,6 +811,20 @@ function snowPatches(count: number, seed: number): PNG {
       const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
       if (d <= 1) plot(out, x, y, d > 0.6 ? [204, 220, 238] : [246, 250, 255]);
     }
+  }
+  return out;
+}
+
+/** Monte de neve na guia (inverno): um morrinho branco com sombra azulada e borda de baixo reta. */
+function snowPile(seed: number): PNG {
+  const out = blank(TS, TS);
+  const rnd = () => (seed = (seed * 16807 + 9) % 2147483647) / 2147483647;
+  const cx = TS / 2, base = TS - 3, rx = 28, ry = 24;
+  for (let y = base - ry - 2; y <= base; y++) for (let x = 2; x < TS - 2; x++) {
+    const d = ((x - cx) / rx) ** 2 + ((y - base) / ry) ** 2;
+    if (d > 1 + rnd() * 0.08) continue;
+    const edge = d > 0.86 || y === base;
+    plot(out, x, y, edge ? [150, 170, 196] : y > base - 4 || x > cx + 8 ? [204, 220, 238] : [248, 251, 255]);
   }
   return out;
 }
@@ -1249,4 +1267,13 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     writeFileSync(`${dir}/${file}.png`, PNG.sync.write(readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`)));
   }
   console.log(`${dir}: 3 esconderijos`);
+}
+
+// ---------- Peixes da Pescaria (folha 3 x 2 de 64 px, na ordem de "icon" em data/minigames.json) ----------
+{
+  const order = [2, 3, 4, 5, 6, 7]; // lote_B: prateado, sardinha, atum, salmão, dourado, bota velha
+  const out = new PNG({ width: 3 * TS, height: 2 * TS });
+  order.forEach((i, k) => paste(out, readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`), k % 3, Math.floor(k / 3)));
+  writeFileSync('public/assets/minigames/fishing/icons_fish_pixellab.png', PNG.sync.write(out));
+  console.log('public/assets/minigames/fishing/icons_fish_pixellab.png: 6 peixes');
 }

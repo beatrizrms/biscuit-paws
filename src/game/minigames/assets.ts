@@ -38,7 +38,8 @@ export const FISHING = {
   bobber: { key: 'mg.fishing.bobber', file: `${DIR}/fishing/anim_bobber.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xd9475d },
   pier: { key: 'mg.fishing.pier', file: `${DIR}/fishing/tile_pier.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x9b6a45 },
   bar: { key: 'mg.fishing.bar', file: `${DIR}/fishing/ui_timing_bar.png`, frameWidth: 48, frameHeight: 192, placeholder: 0xfff7e6 },
-  fish: { key: 'mg.fishing.fish', file: `${DIR}/fishing/icons_fish.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xe0a94e },
+  /** Peixes em 64 px (arte nova, npm run pixellab): desenhados em um quarto da escala, do tamanho dos antigos de 32 px. */
+  fish: { key: 'mg.fishing.fish', file: `${DIR}/fishing/icons_fish_pixellab.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xe0a94e },
 } satisfies Record<string, SheetSpec>;
 
 /** Latte art. Os contornos são desenhados dos pontos dos dados (as imagens-guia do pacote ficam de reserva). */

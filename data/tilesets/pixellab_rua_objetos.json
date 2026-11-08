@@ -303,44 +303,50 @@
    "w_tiles": 1,
    "h_tiles": 2
   },
-  "snow_prop_abeto_natal": {
+  "snow_monte_neve": {
    "col": 0,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_abeto_natal": {
+   "col": 1,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 2
   },
   "prop_caixa_gato_vazia": {
-   "col": 1,
-   "row": 9,
-   "w_tiles": 1,
-   "h_tiles": 1
-  },
-  "prop_caixa_gato_manta": {
    "col": 2,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "prop_caixa_gato_olhos": {
+  "prop_caixa_gato_manta": {
    "col": 3,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "snow_prop_caixa_gato_vazia": {
+  "prop_caixa_gato_olhos": {
    "col": 4,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "snow_prop_caixa_gato_manta": {
+  "snow_prop_caixa_gato_vazia": {
    "col": 5,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "snow_prop_caixa_gato_olhos": {
+  "snow_prop_caixa_gato_manta": {
    "col": 6,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_prop_caixa_gato_olhos": {
+   "col": 7,
    "row": 9,
    "w_tiles": 1,
    "h_tiles": 1

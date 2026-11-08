@@ -26,7 +26,7 @@ npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda s
 npm run art:placeholders  # arte provisória desenhada por código (caixa de areia, cocô); roda sozinho no dev
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
-npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café: móveis e cores novas)
+npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)

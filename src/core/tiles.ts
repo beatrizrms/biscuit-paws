@@ -208,6 +208,10 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
     }
   }
 
+  // Folhas que nenhum tile usa mais (a arte delas foi toda trocada por outra folha) ficam fora: o jogo não as baixa.
+  const used = new Set(Object.values(tiles).map((t) => t.sheet));
+  for (const id of Object.keys(sheets)) if (!used.has(id)) delete sheets[id];
+
   return { schemaVersion: 1, tileSize, sheets, tiles };
 }
 

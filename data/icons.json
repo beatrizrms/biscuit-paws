@@ -447,26 +447,6 @@
     }
   },
   "sheets": {
-    "materia_prima": {
-      "image": "assets/icons/sheets/icon_sheet_ingredients.png",
-      "columns": 6
-    },
-    "bebidas": {
-      "image": "assets/icons/sheets/icon_sheet_drinks.png",
-      "columns": 6
-    },
-    "louca": {
-      "image": "assets/icons/sheets/icon_sheet_dishes.png",
-      "columns": 8
-    },
-    "fluxo": {
-      "image": "assets/icons/sheets/icon_sheet_food.png",
-      "columns": 13
-    },
-    "peixes": {
-      "image": "assets/minigames/fishing/icons_fish.png",
-      "columns": 3
-    },
     "pixellab": {
       "image": "assets/icons/sheets/icon_sheet_pixellab.png",
       "columns": 8,

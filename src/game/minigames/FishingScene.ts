@@ -219,7 +219,7 @@ export class FishingScene extends MiniGameScene {
     // A arte traz um peixinho parado do lado da barra: recorta só a barra (o peixe de verdade se move, desenhado à parte).
     const frame = this.add.image(0, 0, FISHING.bar.key, 0).setOrigin(0).setScale(ART_SCALE).setCrop(0, 0, BAR_TRACK.progressX + BAR_TRACK.progressW + 2, FISHING.bar.frameHeight);
     this.barGfx = this.add.graphics();
-    this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale(ART_SCALE);
+    this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale((ART_SCALE * 32) / FISHING.fish.frameWidth);
     this.bar.add([frame, this.barGfx, this.barFish]);
   }
 

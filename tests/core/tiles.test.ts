@@ -105,6 +105,20 @@ describe('folha que troca a arte de tiles existentes (replaces)', () => {
     expect(() => buildCatalog(csv, meta, undefined, [troca({ cactus: { col: 0, row: 1, w_tiles: 1, h_tiles: 1, rise: 1 } })])).toThrow(/sai da folha/);
   });
 
+  it('folha que ficou sem nenhum tile (toda a arte trocada) sai do catálogo', () => {
+    const extra = (id: string, replaces: boolean, pieces: ExtraSheet['pieces']['pieces']): ExtraSheet => ({
+      id, image: `${id}.png`, prefix: '', layer: 'object', solid: true, ...(replaces ? { replaces } : {}),
+      pieces: { tileSize: 64, columns: 4, rows: 2, pieces },
+    });
+    const catalog = buildCatalog(csv, meta, undefined, [
+      extra('velha', false, { banquinho: { col: 0, row: 0, w_tiles: 1, h_tiles: 1 } }),
+      extra('nova', true, { banquinho: { col: 1, row: 0, w_tiles: 1, h_tiles: 1 } }),
+    ]);
+    expect(getTile(catalog, 'banquinho').sheet).toBe('nova');
+    expect(catalog.sheets.velha).toBeUndefined();
+    expect(catalog.sheets.nova).toBeDefined();
+  });
+
   it('recusa trocar um tile que não existe ou com outro tamanho', () => {
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa_gigante: { col: 0, row: 0, w_tiles: 1, h_tiles: 1 } })])).toThrow(/não existe/);
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa: { col: 0, row: 0, w_tiles: 3, h_tiles: 2 } })])).toThrow(/tamanho|tiles/);

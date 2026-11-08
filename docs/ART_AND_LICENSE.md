@@ -8,7 +8,7 @@
 | Cosy UI Kit | leckie1989 | Interface (marco futuro) |
 | Personagem provisória (gerada) | gerada para teste | Jogadora, folha 128 x 256 |
 
-Regras de estilo: **tudo em 32 x 32**, mesmo artista, mesma paleta (`cosy-palette.gpl`). Não misturar 16 x 16 com 32 x 32: a densidade de pixel fica diferente. Escalar sempre com vizinho mais próximo (nearest).
+Regras de estilo (originais): tudo em 32 x 32, mesmo artista, mesma paleta (`cosy-palette.gpl`). **Hoje** os ambientes, móveis e ícones estão na arte nova em **64 px por tile** (decisões 052 e 065, seção "Arte nova do PixelLab" no fim deste arquivo); os gatos e as pessoas continuam em 32 px até a sessão de personagens terminar. Não misturar densidades de pixel dentro de um mesmo grupo. Escalar sempre com vizinho mais próximo (nearest).
 
 ## Licença (Cat Cafe 32x32)
 - **Pode:** usar em jogos comerciais e não comerciais, modificar, usar em trailers e marketing do jogo. Crédito é apreciado, não obrigatório.
@@ -160,3 +160,38 @@ Auditoria em `docs/ASSET_AUDIT.md`; estrutura, convenção de nomes (inglês, `p
 
 ## Estilo novo desenhado por código (decisão 051)
 Arte original nossa, gerada por `scripts/art/` (sem IA e sem pacote de terceiros). Mesmas posições das folhas antigas; as antigas ficam em `assets/_estilo_antigo/` (fora do Git). Pronto: folha do café (`npm run art:cafe`, 60 peças, inclui cadeiras de lado); balcão de madeira, cafeteira, equipamentos, pia e louça 16/32 (`npm run art:kitchen`; o `import-fluxo.ts` não grava mais essas folhas). Regras: paleta de `scripts/art/palette.ts`, luz de cima à esquerda, contorno marrom-escuro de 1 px, volume (tampo visível) nos móveis.
+
+## Arte nova do PixelLab (decisão 065, nov/2026)
+Gerada por IA no PixelLab (https://www.pixellab.ai, assinatura Tier 1) em **64 px por tile**, desenhada em meia escala no grid de 32 (decisão 052). Os pedidos, as escolhas e o que foi ajustado por código ficam em `assets/_pixellab/<pasta>/escolhas.json` (fora do Git). `npm run pixellab` (`scripts/import-pixellab.ts`) monta as folhas em `public/assets/` e os JSONs de peças em `data/tilesets/`.
+
+| Onde | Folhas | Observação |
+| --- | --- | --- |
+| Café | `pixellab_cafe`, `pixellab_cafe_superficies`, `pixellab_cafe_cores`, `pixellab_sujeira`, tiras `*_pixellab.png` (equipamentos, espresso, pia) | troca a arte dos tiles antigos (`replaces`); cores e balcões A/B como itens novos |
+| Cômodos | `pixellab_comodos`, `pixellab_comodos_portas` | módulos do playground, cama, mato; parede divisória por código; portas 1x2 |
+| Mercado | `pixellab_market`, `pixellab_market_novos` | layout novo do mapa |
+| Clínica | `pixellab_vet`, `pixellab_vet_novos` | layout novo do mapa |
+| Rua | `pixellab_fachadas`, `pixellab_fachadas_neve`, `pixellab_rua_chao`, `pixellab_rua_objetos`, `pixellab_rua_enfeites` | arte igual o ano todo; a estação vem por cima (neve, folhas, pétalas, enfeites) |
+| Quintal | `pixellab_quintal`, `pixellab_quintal_novos` | a variante de tijolo saiu |
+| Ícones | folha `pixellab` de `data/icons.json` (64 px) | todos os ícones do jogo |
+| Mini games | `minigames/hunt/hide_*.png`, `minigames/fishing/icons_fish_pixellab.png` | esconderijos da Caça ao filhote e peixes da Pescaria |
+
+Feito por código em cima da arte gerada (sem gerar de novo): letreiros (fonte de pixel), cores alternativas (café rosa e céu, sofás, caminhas), versões velhas e secas, neve, pétalas e folhas, balcões fatiados, portas esticadas pelo painel liso, asfalto sem rachaduras repetidas.
+
+**Ainda fora da arte nova:**
+- Gatos (Cosy Cats, leckie1989): **nunca** gerar por IA (licença).
+- Personagem, NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`).
+- Interface (menus, HUD, celular, balões de atendimento, louça 16 px na mão) e os pacotes dos mini games (Gato em fuga, Pescaria, Latte art, Entrega).
+- Lençol sobre móvel (sujeira do café abandonado) e os provisórios por código da lista de pendências (caixa de areia, cocô, pegadas, peças da feira de adoção).
+
+**Folhas antigas:** continuam no `tilesets.json` só como lista de nomes (a arte nova troca a imagem pelo nome). Uma folha que ficou sem nenhum tile sai do catálogo e o jogo não a baixa (`buildCatalog`).
+
+**Licença:** antes do lançamento, ler os termos do PixelLab (https://pixellab.ai/termsofservice) e confirmar o uso comercial das imagens geradas na assinatura (pendente). Regras nossas: não redistribuir os PNGs (ficam fora do Git, em `assets/` e `public/assets/`), **declarar o uso de IA na página da Steam**, e nunca enviar arte de pacotes do leckie1989 (Cat Cafe, Cosy Cats) como referência para o PixelLab.
+
+### Declaração de IA na página da Steam (texto proposto)
+Formulário "AI Generated Content Disclosure", conteúdo **pré-gerado**:
+
+> PT: Grande parte da arte do jogo (ambientes, móveis, fachadas, objetos e ícones) foi gerada com ferramentas de IA (PixelLab) a partir das nossas descrições e depois revisada, editada e ajustada à mão e por código pela equipe: recortes, cores alternativas, letreiros, versões gastas e sazonais. Gatos animados são de um pacote comercial de pixel art feito por um artista (Leckie Pixel Studio). Músicas e efeitos sonoros foram sintetizados por código. O jogo não gera conteúdo com IA durante a partida.
+>
+> EN: Most of the game's art (environments, furniture, storefronts, props and icons) was created with AI tools (PixelLab) from our own descriptions, then reviewed, edited and adjusted by hand and by code by the team: slicing, alternate colors, sign lettering, worn and seasonal versions. The animated cats come from a commercial pixel art pack made by an artist (Leckie Pixel Studio). Music and sound effects were synthesized by code. The game does not generate any AI content while it is being played.
+
+Revisar este texto quando a sessão de personagens terminar (personagem e NPCs também passam a ser gerados no PixelLab).

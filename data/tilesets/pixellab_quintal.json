@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 12,
- "rows": 7,
+ "rows": 8,
  "pieces": {
   "yard_fundo_ceu_telhados": {
    "col": 0,
@@ -15,100 +15,118 @@
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "yard_sebe_lateral": {
+  "yard_sebe_meio_a": {
    "col": 7,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "yard_grama_a": {
+  "yard_sebe_meio_b": {
    "col": 8,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "yard_grama_b": {
+  "yard_sebe_base": {
    "col": 9,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "yard_grama_c": {
+  "yard_sebe_lateral": {
    "col": 10,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "yard_pedra_a": {
+  "yard_grama_a": {
+   "col": 11,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_grama_b": {
    "col": 0,
    "row": 2,
    "w_tiles": 1,
-   "h_tiles": 1,
-   "variants": 2
+   "h_tiles": 1
   },
-  "yard_pedra_b": {
+  "yard_grama_c": {
+   "col": 1,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_pedra_a": {
    "col": 2,
    "row": 2,
    "w_tiles": 1,
    "h_tiles": 1,
    "variants": 2
   },
-  "yard_luzinhas_fio": {
+  "yard_pedra_b": {
    "col": 4,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 2
+  },
+  "yard_luzinhas_fio": {
+   "col": 6,
    "row": 2,
    "w_tiles": 3,
    "h_tiles": 1
   },
   "yard_luminaria_parede_sebe": {
-   "col": 7,
+   "col": 9,
    "row": 2,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "yard_lampada_chao": {
-   "col": 8,
+   "col": 10,
    "row": 2,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "yard_vaso_arvore_a": {
-   "col": 9,
+   "col": 11,
    "row": 2,
    "w_tiles": 1,
    "h_tiles": 3
   },
   "yard_vaso_arvore_b": {
-   "col": 10,
-   "row": 2,
+   "col": 0,
+   "row": 5,
    "w_tiles": 1,
    "h_tiles": 3
   },
   "yard_vaso_baixo_flores": {
-   "col": 11,
-   "row": 2,
+   "col": 1,
+   "row": 5,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "yard_banquinho_ceramica": {
-   "col": 0,
+   "col": 2,
    "row": 5,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "yard_mesa_redonda_branca": {
-   "col": 1,
+   "col": 3,
    "row": 5,
    "w_tiles": 2,
    "h_tiles": 2
   },
   "yard_cadeira_vime": {
-   "col": 3,
+   "col": 5,
    "row": 5,
    "w_tiles": 1,
    "h_tiles": 2
   },
   "yard_bancada_forno_pedra": {
-   "col": 4,
+   "col": 6,
    "row": 5,
    "w_tiles": 2,
    "h_tiles": 2
