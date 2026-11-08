@@ -30,9 +30,20 @@ export interface MiniGameParams {
   jobPoint?: string;
 }
 
+/** Tutorial da intro: 1 a 3 linhas curtas e um ícone (chave de data/icons.json). */
+export interface MiniGameTutorial {
+  icon?: string;
+  lines: string[];
+}
+
+/** Máximo de linhas no tutorial (mais que isso ninguém lê em 2 segundos). */
+export const TUTORIAL_MAX_LINES = 3;
+
 export interface MiniGameDef {
   name: string;
   instructions: string;
+  /** Tutorial mostrado na intro (sem ele, aparece `instructions`). */
+  tutorial?: MiniGameTutorial;
   /** Mapa da arena, quando o jogo usa um (ex.: a rua da fuga). */
   map?: string;
   rewards: Record<Difficulty, { ok: number; great: number }>;
@@ -143,13 +154,18 @@ export class Countdown {
   }
 }
 
-export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySet<string> }): string[] {
+export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySet<string>; icons?: ReadonlySet<string> }): string[] {
   const errors: string[] = [];
   const err = (m: string) => errors.push(`minigames: ${m}`);
   if (!(cfg.introMs >= 0)) err('introMs precisa ser 0 ou mais');
   if (!(cfg.skipRewardShare >= 0 && cfg.skipRewardShare <= 1)) err('skipRewardShare entre 0 e 1');
   for (const [id, g] of Object.entries(cfg.games)) {
     if (g.map && !refs.maps.has(g.map)) err(`"${id}": mapa inexistente "${g.map}"`);
+    if (g.tutorial) {
+      const n = g.tutorial.lines.length;
+      if (n < 1 || n > TUTORIAL_MAX_LINES) err(`"${id}": tutorial precisa de 1 a ${TUTORIAL_MAX_LINES} linhas`);
+      if (g.tutorial.icon && refs.icons && !refs.icons.has(g.tutorial.icon)) err(`"${id}": ícone do tutorial inexistente "${g.tutorial.icon}"`);
+    }
     for (const d of DIFFICULTIES) {
       if (!g.difficulties[d]) err(`"${id}": falta a dificuldade "${d}"`);
       const r = g.rewards[d];

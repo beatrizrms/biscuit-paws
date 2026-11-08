@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa. fishing (Pescaria): fish = tabela (id, name, rarity: junk/common/uncommon/rare/legendary, speed = fração da barra por segundo, zone = tamanho da zona verde, value = moedas extras, item = vai para a mochila, icon = quadro na folha 3 x 2); sounds: efeitos de data/audio.json (sfx). Por dificuldade: timeSec, waitMs [min, max] (boia esperando), biteWindowMs (tempo para fisgar), rarityWeights, zoneScale e speedScale (multiplicam a tabela), progressGain e progressLoss (por segundo), startProgress, lift e gravity (o indicador), greatAccuracy (fração do tempo dentro da zona). latte (Latte art): guideSize (lado do quadrado dos padrões), cupCenter (centro do café na arte da xícara), guideScale (o contorno dentro do café), cupScale (tamanho da xícara na tela), milkWidth (espessura do traço), patterns (id, name, lines: linhas de pontos [x, y] de 0 a guideSize; para um padrão novo, basta outra entrada). Por dificuldade: timeSec, patterns (quais sorteia), tolerance (px do contorno que ainda contam como em cima da linha), starAt (nota mínima para 1, 2 e 3 estrelas), tipPerStar (gorjeta de 0 a 3 estrelas, soma às moedas), coverageWeight (peso da cobertura; o resto é precisão).",
+  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa. fishing (Pescaria): fish = tabela (id, name, rarity: junk/common/uncommon/rare/legendary, speed = fração da barra por segundo, zone = tamanho da zona verde, value = moedas extras, item = vai para a mochila, icon = quadro na folha 3 x 2); sounds: efeitos de data/audio.json (sfx). Por dificuldade: timeSec, waitMs [min, max] (boia esperando), biteWindowMs (tempo para fisgar), rarityWeights, zoneScale e speedScale (multiplicam a tabela), progressGain e progressLoss (por segundo), startProgress, lift e gravity (o indicador), greatAccuracy (fração do tempo dentro da zona). latte (Latte art): guideSize (lado do quadrado dos padrões), cupCenter (centro do café na arte da xícara), guideScale (o contorno dentro do café), cupScale (tamanho da xícara na tela), milkWidth (espessura do traço), patterns (id, name, lines: linhas de pontos [x, y] de 0 a guideSize; para um padrão novo, basta outra entrada). Por dificuldade: timeSec, patterns (quais sorteia), tolerance (px do contorno que ainda contam como em cima da linha), starAt (nota mínima para 1, 2 e 3 estrelas), tipPerStar (gorjeta de 0 a 3 estrelas, soma às moedas), coverageWeight (peso da cobertura; o resto é precisão). tutorial: 1 a 3 linhas e um ícone (data/icons.json) mostrados na intro. Sem timeSec na dificuldade, o jogo não tem cronômetro.",
   "introMs": 2000,
   "skipRewardShare": 0.25,
   "games": {
     "chase": {
       "name": "Gato em fuga",
       "instructions": "O gato escapou! Corra atrás dele (setas/WASD) e encoste nele antes do tempo acabar. Se ele se esconder, chegue perto e aperte E (ou clique) para espiar.",
+      "tutorial": {"icon":"petisco_biscoito","lines":["Setas ou WASD para correr.","Encoste no gato antes que ele se esconda.","Ele some nos esconderijos: fique de olho!"]},
       "map": "map.minigame_chase",
       "catSpawn": [16, 4],
       "spots": [
@@ -31,6 +32,7 @@
     "fishing": {
       "name": "Pescaria",
       "instructions": "Aperte E (ou clique na água) para lançar a linha. Quando a boia afundar, aperte E rápido para fisgar! Depois segure E (ou o botão do mouse) para manter o indicador dentro da zona verde até encher a barra.",
+      "tutorial": {"icon":"peixe_sardinha","lines":["E ou clique para lançar; de novo quando morder (!).","Segure para subir a zona verde e mantenha o peixe nela."]},
       "sounds": {
         "bite": "new_order",
         "catch": "success",
@@ -58,6 +60,7 @@
     "latte": {
       "name": "Latte art",
       "instructions": "Desenhe por cima do contorno com o leite: segure o botão do mouse e passe pela linha (ou setas para mover a jarra e segurar E para despejar). Quando terminar, aperte Enter ou o botão Servir.",
+      "tutorial": {"icon":"cafe_com_leite_gato","lines":["Segure o botão do mouse e desenhe por cima do contorno.","Enter ou \"Servir\" entrega a xícara."]},
       "guideSize": 128,
       "cupCenter": [95, 96],
       "guideScale": 0.78,

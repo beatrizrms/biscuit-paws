@@ -7,6 +7,7 @@ import { Countdown, makeResult, type MiniGameParams, type MiniGameResult, type O
 import { createRng, type Rng } from '../../core/rng';
 import { content, uiText } from '../content';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
+import { iconHtml } from '../ui/ShopPanel';
 import { MiniGameControls } from './controls';
 
 /** O que a cena recebe de quem abriu (o registro monta). */
@@ -84,8 +85,9 @@ export abstract class MiniGameScene extends Phaser.Scene {
     return content.minigames.games[this.gameId]!;
   }
 
-  protected startTimer(seconds: number, onEnd: () => void): void {
-    this.timer = new Countdown(seconds * 1000, onEnd);
+  /** Cronômetro opcional: sem `seconds` (dificuldade sem timeSec, ex.: a confiança do gato), o jogo não tem tempo. */
+  protected startTimer(seconds: number | undefined, onEnd: () => void): void {
+    this.timer = seconds ? new Countdown(seconds * 1000, onEnd) : null;
   }
 
   /** Acabou: mostra o resultado (as moedas vêm do núcleo, pelos dados). */
@@ -103,12 +105,19 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private showIntro(): void {
     const t = uiText.minigames;
     this.physics.pause();
-    this.overlay(`<h2>${esc(this.def.name)}</h2><p>${esc(this.def.instructions)}</p>
+    this.overlay(`<h2>${esc(this.def.name)}</h2>${this.tutorialHtml()}
       <p class="mg-difficulty">${esc(t.difficulty[this.launch.params.difficulty])}</p>
       <button class="menu-btn" data-act="start">${t.start}</button>`);
     // Instruções por introMs e começa sozinho; ou antes, pelo botão / E / Espaço.
     this.time.delayedCall(content.minigames.introMs, () => this.begin());
     this.controls.onAction(() => this.phase === 'intro' && this.begin());
+  }
+
+  /** Tutorial da intro (data/minigames.json: tutorial): ícone e 1 a 3 linhas; sem ele, o texto de instruções. */
+  private tutorialHtml(): string {
+    const tut = this.def.tutorial;
+    if (!tut) return `<p>${esc(this.def.instructions)}</p>`;
+    return `<div class="mg-tutorial">${tut.icon ? `<span class="mg-tut-icon">${iconHtml(tut.icon, 32)}</span>` : ''}<ol>${tut.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ol></div>`;
   }
 
   private begin(): void {

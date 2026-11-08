@@ -15,6 +15,16 @@ describe('framework dos mini games', () => {
     for (const d of DIFFICULTIES) expect(paramsOf<ChaseParams>(cfg, 'chase', d).timeSec).toBeGreaterThan(0);
   });
 
+  it('tutorial: de 1 a 3 linhas e ícone que existe', () => {
+    const icons = new Set(['peixe_sardinha']);
+    const maps = new Set(Object.keys(content.maps));
+    const withTut = (tutorial: { icon?: string; lines: string[] }) => ({ ...cfg, games: { x: { ...cfg.games.latte!, tutorial } } });
+    expect(validateMiniGames(withTut({ icon: 'peixe_sardinha', lines: ['um'] }), { maps, icons })).toEqual([]);
+    expect(validateMiniGames(withTut({ lines: [] }), { maps, icons }).join()).toMatch(/1 a 3 linhas/);
+    expect(validateMiniGames(withTut({ lines: ['a', 'b', 'c', 'd'] }), { maps, icons }).join()).toMatch(/1 a 3 linhas/);
+    expect(validateMiniGames(withTut({ icon: 'nada', lines: ['a'] }), { maps, icons }).join()).toMatch(/ícone do tutorial inexistente/);
+  });
+
   it('cronômetro: conta, pausa, retoma e chama o fim uma vez só', () => {
     let ended = 0;
     const t = new Countdown(1000, () => ended++);

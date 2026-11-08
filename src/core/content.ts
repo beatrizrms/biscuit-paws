@@ -390,7 +390,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
   }
-  errors.push(...validateMiniGames(raw.minigames, { maps: mapIds }));
+  errors.push(...validateMiniGames(raw.minigames, { maps: mapIds, icons: new Set(Object.keys(raw.icons.icons)) }));
   for (const g of Object.values(raw.minigames.games)) if (g.fish) errors.push(...validateFishTable(g.fish, { items: new Set(raw.items.items.map((i) => i.id)) }));
   for (const g of Object.values(raw.minigames.games)) {
     if (!g.patterns) continue;
