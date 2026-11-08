@@ -930,6 +930,15 @@
           "solid": false
         }
       }
+    },
+    {
+      "id": "pixellab_provisorios",
+      "image": "assets/objects/pixellab/tile_pixellab_provisorios.png",
+      "pieces": "pixellab_provisorios.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "replaces": true
     }
   ]
 }

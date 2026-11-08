@@ -53,7 +53,7 @@
       "name": "Cobertor de gato",
       "price": 12,
       "kind": "consumable",
-      "iconImage": "assets/objects/placeholders/icon_blanket.png",
+      "icon": "mantinha",
       "tags": [
         "pet",
         "blanket"

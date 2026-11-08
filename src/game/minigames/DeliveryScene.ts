@@ -65,7 +65,7 @@ export class DeliveryScene extends MiniGameScene {
   }
 
   protected buildGame(): void {
-    // PLACEHOLDER(arte): bicicleta e porta viram retângulos até a arte chegar (assets.ts: DELIVERY).
+    // Bicicleta e porta viram retângulos se o arquivo faltar (assets.ts: DELIVERY; npm run pixellab).
     ensurePlaceholders(this, [CHASE.arrow, ...Object.values(DELIVERY)]);
     const def = this.def;
     this.p = paramsOf<DeliveryParams>(content.minigames, 'delivery', this.launch.params.difficulty);

@@ -509,6 +509,22 @@ const SHEETS: Sheet[] = [
       snow_facade_veterinaria: { file: '', w: 6, h: 8, build: () => winterDeco(snowCap(readPng(`${SRC}/fachadas/veterinaria.png`), 8), [['wreath', 243, 314], ['lights', 70, 300], ['lights', 200, 300]]) },
     },
   },
+  {
+    // Provisórios (ph_*, desenhados por código em scripts/art/placeholders.ts): a arte nova troca a imagem pelo nome.
+    image: 'public/assets/objects/pixellab/tile_pixellab_provisorios.png',
+    pieces: 'data/tilesets/pixellab_provisorios.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      ph_litter_box: { file: 'provisorios/obj_0.png', w: 1, h: 1, dy: 8 },
+      ph_poop: { file: '', w: 1, h: 1, build: () => poopOnly() },
+      ph_footprints: { file: 'provisorios/obj_2.png', w: 1, h: 1 },
+      ph_fair_sign: { file: '', w: 1, h: 1, dy: 6, build: () => tinyText(readPng(`${SRC}/provisorios/obj_4.png`), ['FECH', 'ADO'], 29, 22) },
+      ph_fair_bunting: { file: 'rua/sazonais/obj_1.png', w: 1, h: 1 },
+      ph_fair_balloons: { file: 'provisorios/obj_5.png', w: 1, h: 1, dy: 6 },
+      ph_fair_table: { file: '', w: 1, h: 1, dy: 4, build: () => heartSign(readPng(`${SRC}/provisorios/obj_6.png`), 28, 20) },
+    },
+  },
 ];
 
 /**
@@ -672,6 +688,79 @@ function snowCap(src: PNG, seed: number, maxDepth = 7): PNG {
     plot(out, x, top + depth, line);
   }
   return out;
+}
+
+// ---------- Provisórios ----------
+
+/**
+ * Cocô do dia 2: só os montinhos (a geração veio com um pedaço de chão por baixo, que sai), na base do tile.
+ * Cresce a partir do meio dos montinhos pelos pixels escuros (4 vizinhos) e tira os fiapos que sobram.
+ */
+function poopOnly(): PNG {
+  const src = readPng(`${SRC}/provisorios/obj_1.png`);
+  const W = src.width, H = src.height;
+  const lum = (i: number) => (src.data[i * 4]! + src.data[i * 4 + 1]! + src.data[i * 4 + 2]!) / 3;
+  const dark = (i: number) => src.data[i * 4 + 3]! > 0 && lum(i) < 128;
+  const keep = new Set<number>();
+  const stack: number[] = [];
+  for (let y = 26; y < 38; y++) for (let x = 20; x < 46; x++) { const i = y * W + x; if (dark(i) && lum(i) > 80) { keep.add(i); stack.push(i); } }
+  while (stack.length) {
+    const i = stack.pop()!, x = i % W, y = (i / W) | 0;
+    for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]] as const) {
+      const n = ny * W + nx;
+      if (nx >= 0 && ny >= 0 && nx < W && ny < H && !keep.has(n) && dark(n)) { keep.add(n); stack.push(n); }
+    }
+  }
+  // Fiapos (pedaços com menos de 15 pixels) saem.
+  const seen = new Set<number>();
+  for (const i of [...keep]) {
+    if (seen.has(i)) continue;
+    const part: number[] = [];
+    for (const st = [i]; st.length; ) {
+      const j = st.pop()!;
+      if (seen.has(j) || !keep.has(j)) continue;
+      seen.add(j); part.push(j);
+      const x = j % W, y = (j / W) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) st.push((y + dy) * W + x + dx);
+    }
+    if (part.length < 15) for (const j of part) keep.delete(j);
+  }
+  const bottom = Math.max(...[...keep].map((i) => (i / W) | 0));
+  const out = blank(W, H);
+  const shift = H - 6 - bottom;
+  for (const i of keep) src.data.copy(out.data, (i + shift * W) * 4, i * 4, i * 4 + 4);
+  return out;
+}
+
+/** Letras 3x5 para placas pequenas (cavalete da feira). */
+const TINY: Record<string, string[]> = {
+  A: ['.#.', '#.#', '###', '#.#', '#.#'],
+  C: ['.##', '#..', '#..', '#..', '.##'],
+  D: ['##.', '#.#', '#.#', '#.#', '##.'],
+  E: ['###', '#..', '##.', '#..', '###'],
+  F: ['###', '#..', '##.', '#..', '#..'],
+  H: ['#.#', '#.#', '###', '#.#', '#.#'],
+  O: ['.#.', '#.#', '#.#', '#.#', '.#.'],
+};
+
+/** Escreve linhas curtas em letra 3x5 (marrom-escuro), cada linha centrada em cx, a partir de y0. */
+function tinyText(png: PNG, lines: string[], cx: number, y0: number): PNG {
+  lines.forEach((line, row) => {
+    const w = line.length * 4 - 1;
+    let x = cx - (w >> 1);
+    for (const ch of line) {
+      TINY[ch]!.forEach((r, ry) => [...r].forEach((c, rx) => { if (c === '#') plot(png, x + rx, y0 + row * 7 + ry, [92, 52, 40]); }));
+      x += 4;
+    }
+  });
+  return png;
+}
+
+/** Plaquinha "adote" da mesa da feira: um coração vermelho (o texto não cabe), centrado em (cx, cy). */
+function heartSign(png: PNG, cx: number, cy: number): PNG {
+  const heart = ['.#.#.', '#####', '#####', '.###.', '..#..'];
+  heart.forEach((r, ry) => [...r].forEach((c, rx) => { if (c === '#') plot(png, cx - 2 + rx, cy - 2 + ry, rx === 1 && ry === 1 ? [240, 150, 150] : [206, 72, 80]); }));
+  return png;
 }
 
 // ---------- Cômodos ----------
@@ -1302,6 +1391,7 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   const names = [
     ...(['loja', 'ingredientes', 'bebidas', 'comidas'] as const).flatMap((lot) => (lots[lot] as string[]).map((name, i) => ({ name, file: `${SRC}/icones/${lot}/obj_${i}.png` }))),
     ...(['lote_A', 'lote_B'] as const).flatMap((lot) => louca[lot].map((name, i) => ({ name, file: `${SRC}/louca_peixes/${lot}/obj_${i}.png` }))).filter(({ name }) => !ICON_SKIP.has(name)),
+    ...([['mantinha', 7], ['caixa_bilhete', 8], ['pegadas_lama', 3]] as const).map(([name, i]) => ({ name, file: `${SRC}/provisorios/obj_${i}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
@@ -1329,4 +1419,13 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   order.forEach((i, k) => paste(out, readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`), k % 3, Math.floor(k / 3)));
   writeFileSync('public/assets/minigames/fishing/icons_fish_pixellab.png', PNG.sync.write(out));
   console.log('public/assets/minigames/fishing/icons_fish_pixellab.png: 6 peixes');
+}
+
+// ---------- Entrega relâmpago: bicicleta (64 x 64, de lado, para a direita) e porta da casa (64 x 128) ----------
+{
+  const dir = 'public/assets/minigames/delivery';
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/obstacle_bike.png`, PNG.sync.write(readPng(`${SRC}/provisorios/obj_9.png`)));
+  writeFileSync(`${dir}/goal_door.png`, PNG.sync.write(readPng(`${SRC}/lote01/door64x128.png`)));
+  console.log(`${dir}: bicicleta e porta`);
 }
