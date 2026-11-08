@@ -351,10 +351,10 @@ const SHEETS: Sheet[] = [
       spring_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), PETALS, 8) },
       autumn_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), LEAVES, 9) },
       street_calcada_limpa: { file: 'rua/calcada.png', w: 1, h: 1, aliases: seasonal('calcada_limpa', 'street') },
-      street_meio_fio: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), 0), 38), aliases: seasonal('meio_fio', 'street') },
-      street_asfalto_a: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), 0), aliases: seasonal('asfalto_a', 'street') },
-      street_asfalto_b: { file: '', w: 1, h: 1, build: () => sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), aliases: seasonal('asfalto_b', 'street') },
-      street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => crosswalk(smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), 0)), aliases: seasonal('asfalto_faixa', 'street') },
+      street_meio_fio: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(guiaAsfalto(), 0), 38), aliases: seasonal('meio_fio', 'street') },
+      street_asfalto_a: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(guiaAsfalto(), TS), 0), aliases: seasonal('asfalto_a', 'street') },
+      street_asfalto_b: { file: '', w: 1, h: 1, build: () => sliceRows(guiaAsfalto(), TS), aliases: seasonal('asfalto_b', 'street') },
+      street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => crosswalk(smoothAsphalt(sliceRows(guiaAsfalto(), TS), 0)), aliases: seasonal('asfalto_faixa', 'street') },
       snow_street_calcada_a: { file: '', w: 1, h: 1, build: () => snowGround(0.86, 21) },
       snow_street_calcada_b: { file: '', w: 1, h: 1, build: () => snowGround(0.8, 22) },
       snow_street_calcada_limpa: { file: '', w: 1, h: 1, build: () => snowGround(0.35, 23) },
@@ -584,6 +584,17 @@ function scatter(png: PNG, colors: [number, number, number][], seed: number): PN
     const shade: [number, number, number] = [c[0] * 0.72, c[1] * 0.72, c[2] * 0.72];
     plot(png, x, y, c); plot(png, x + 1, y, c); plot(png, x + 2, y, c); plot(png, x, y + 1, shade); plot(png, x + 1, y + 1, c);
     if (rnd() < 0.5) plot(png, x + 1, y + 1, c);
+  }
+  return png;
+}
+
+/** Guia e asfalto gerados (64x128), com os cinzas puxados para um tom mais quente, da paleta da rua. */
+function guiaAsfalto(): PNG {
+  const png = readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`);
+  for (let i = 0; i < png.data.length; i += 4) {
+    png.data[i] = Math.min(255, png.data[i]! + 8);
+    png.data[i + 1] = Math.min(255, png.data[i + 1]! + 3);
+    png.data[i + 2] = Math.max(0, png.data[i + 2]! - 6);
   }
   return png;
 }
