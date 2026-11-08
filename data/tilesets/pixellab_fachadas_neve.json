@@ -1,0 +1,61 @@
+{
+ "tileSize": 64,
+ "columns": 12,
+ "rows": 40,
+ "pieces": {
+  "snow_facade_loja_velha": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8
+  },
+  "snow_facade_loja_menta": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 5,
+   "h_tiles": 8
+  },
+  "snow_facade_loja_rosa": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 5,
+   "h_tiles": 8
+  },
+  "snow_facade_loja_ceu": {
+   "col": 5,
+   "row": 8,
+   "w_tiles": 5,
+   "h_tiles": 8
+  },
+  "snow_facade_loja_moveis": {
+   "col": 0,
+   "row": 16,
+   "w_tiles": 6,
+   "h_tiles": 8
+  },
+  "snow_facade_mercado": {
+   "col": 0,
+   "row": 24,
+   "w_tiles": 7,
+   "h_tiles": 8
+  },
+  "snow_facade_casa_a": {
+   "col": 7,
+   "row": 24,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "snow_facade_casa_b": {
+   "col": 0,
+   "row": 32,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "snow_facade_casa_c": {
+   "col": 4,
+   "row": 32,
+   "w_tiles": 4,
+   "h_tiles": 8
+  }
+ }
+}

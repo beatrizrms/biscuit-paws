@@ -34,7 +34,10 @@ interface Piece {
   row?: number;
   dy?: number;
   mirror?: boolean;
-  recolor?: Recolor;
+  /** Uma troca ou várias (cada pixel usa a primeira faixa em que cai, olhando a cor original). */
+  recolor?: Recolor | Recolor[];
+  /** Outros nomes com a mesma imagem (ex.: as versões por estação, quando a arte é a mesma o ano todo). */
+  aliases?: string[];
   over?: { file: string; dx: number; dy: number };
   /** Monta a peça com estas linhas da origem, na ordem (ex.: esticar o lambri repetindo as tábuas). */
   rows?: number[];
@@ -296,6 +299,44 @@ const SHEETS: Sheet[] = [
       primeiros_socorros: { file: 'clinica/obj_14.png', w: 1, h: 1, dy: 4 },
     },
   },
+  {
+    // Fachadas da rua: trocam as antigas (mesmos nomes e tamanhos). A arte é a mesma o ano todo (rua agnóstica):
+    // as versões por estação apontam para a mesma imagem. Letreiros escritos por código (signText).
+    image: 'public/assets/env/street/tile_pixellab_fachadas.png',
+    pieces: 'data/tilesets/pixellab_fachadas.json',
+    columns: 12,
+    auto: true,
+    layout: {
+      facade_loja_velha: { file: 'fachadas/loja_velha.png', w: 5, h: 8 },
+      facade_loja_menta: { file: '', w: 5, h: 8, build: () => cafeFacade(), aliases: seasonal('loja_menta') },
+      facade_loja_rosa: { file: '', w: 5, h: 8, build: () => cafeFacade(CAFE_ROSA), aliases: seasonal('loja_rosa') },
+      facade_loja_ceu: { file: '', w: 5, h: 8, build: () => cafeFacade(CAFE_CEU), aliases: seasonal('loja_ceu') },
+      facade_loja_moveis: { file: '', w: 6, h: 8, build: () => signText(readPng(`${SRC}/fachadas/loja_moveis.png`), 'MÓVEIS', [22, 267, 362, 293], [252, 238, 212], [70, 36, 24]), aliases: seasonal('loja_moveis') },
+      facade_mercado: { file: '', w: 7, h: 8, build: () => signText(readPng(`${SRC}/fachadas/mercado.png`), 'MERCADO', [20, 268, 428, 295], [200, 52, 70], [250, 226, 214]), aliases: seasonal('mercado') },
+      facade_veterinaria: { file: '', w: 6, h: 8, build: () => signText(readPng(`${SRC}/fachadas/veterinaria.png`), 'VETERINÁRIA', [20, 264, 310, 292], [70, 120, 84], [236, 218, 204]) },
+      facade_casa_a: { file: 'fachadas/casa_a.png', w: 4, h: 8, aliases: seasonal('casa_a') },
+      facade_casa_b: { file: 'fachadas/casa_b.png', w: 4, h: 8, aliases: seasonal('casa_b') },
+      facade_casa_c: { file: 'fachadas/casa_c.png', w: 4, h: 8, aliases: seasonal('casa_c') },
+    },
+  },
+  {
+    // Neve sobre as fachadas novas (inverno): desenhada por código em cima do contorno do telhado.
+    image: 'public/assets/env/street/tile_pixellab_fachadas_neve.png',
+    pieces: 'data/tilesets/pixellab_fachadas_neve.json',
+    columns: 12,
+    auto: true,
+    layout: {
+      snow_facade_loja_velha: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/loja_velha.png`), 1) },
+      snow_facade_loja_menta: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
+      snow_facade_loja_rosa: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
+      snow_facade_loja_ceu: { file: '', w: 5, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/cafe_menta.png`), 2) },
+      snow_facade_loja_moveis: { file: '', w: 6, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/loja_moveis.png`), 3) },
+      snow_facade_mercado: { file: '', w: 7, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/mercado.png`), 4) },
+      snow_facade_casa_a: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_a.png`), 5) },
+      snow_facade_casa_b: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_b.png`), 6) },
+      snow_facade_casa_c: { file: '', w: 4, h: 8, build: () => snowCap(readPng(`${SRC}/fachadas/casa_c.png`), 7) },
+    },
+  },
 ];
 
 /**
@@ -328,6 +369,96 @@ function withLeftPost(src: PNG, a: number, b: number): PNG {
   return columns(src, cols);
 }
 
+// ---------- Fachadas da rua ----------
+
+/** Nomes das versões por estação de uma fachada (a arte nova é a mesma o ano todo). */
+function seasonal(name: string): string[] {
+  return ['spring', 'summer', 'autumn'].map((s) => `${s}_facade_${name}`);
+}
+
+// Cores do café por código, a partir da menta (decisão 065): o verde vira a cor nova e o rosa (porta, toldo) vira o contraste.
+const MINT: [number, number] = [125, 180];
+const ROSE: [number, number] = [320, 358];
+const CAFE_ROSA: Recolor[] = [{ from: MINT, hue: 342, sat: 0.9, light: 0.02 }, { from: ROSE, hue: 155, sat: 0.75 }];
+const CAFE_CEU: Recolor[] = [{ from: MINT, hue: 208, sat: 0.95 }, { from: ROSE, hue: 44, sat: 1.3, light: 0.02 }];
+
+function cafeFacade(colors?: Recolor[]): PNG {
+  const png = readPng(`${SRC}/fachadas/cafe_menta.png`);
+  if (colors) recolor(png, colors);
+  return signText(png, 'CAFÉ', [22, 265, 298, 294], [250, 240, 214], [34, 52, 44]);
+}
+
+/** Letras 5x7 (I tem 3 de largura); o acento agudo fica nas 2 linhas de cima. */
+const FONT: Record<string, string[]> = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+  F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
+  I: ['###', '.#.', '.#.', '.#.', '.#.', '.#.', '###'],
+  M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'],
+  N: ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
+  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+  S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+};
+const ACUTE = ['...#.', '..#..'];
+const PLAIN: Record<string, string> = { 'É': 'E', 'Á': 'A', 'Ó': 'O' };
+
+/**
+ * Escreve o texto do letreiro (letras por código, não por IA), centrado na caixa [x0, y0, x1, y1],
+ * na maior escala inteira que couber, com sombra de 1 pixel na cor `shadow`.
+ */
+function signText(png: PNG, text: string, [x0, y0, x1, y1]: [number, number, number, number], ink: [number, number, number], shadow: [number, number, number]): PNG {
+  const glyphs = [...text].map((ch) => ({ rows: FONT[PLAIN[ch] ?? ch]!, accent: ch in PLAIN }));
+  const accent = glyphs.some((g) => g.accent);
+  const width = (k: number) => glyphs.reduce((w, g) => w + g.rows[0]!.length * k, 0) + (glyphs.length - 1) * k + k;
+  const height = (k: number) => (7 + (accent ? 3 : 0)) * k + k;
+  let k = 4;
+  while (k > 1 && (width(k) > x1 - x0 - 8 || height(k) > y1 - y0 - 4)) k--;
+  let x = x0 + Math.floor((x1 - x0 + 1 - width(k)) / 2);
+  const top = y0 + Math.floor((y1 - y0 + 1 - height(k)) / 2) + (accent ? 3 * k : 0);
+  const cell = (cx: number, cy: number, rgb: [number, number, number]) => {
+    for (let dy = 0; dy < k; dy++) for (let dx = 0; dx < k; dx++) plot(png, cx + dx, cy + dy, rgb);
+  };
+  const draw = (gx: number, g: (typeof glyphs)[number], rgb: [number, number, number], off: number) => {
+    g.rows.forEach((row, ry) => [...row].forEach((c, rx) => { if (c === '#') cell(gx + rx * k + off, top + ry * k + off, rgb); }));
+    if (g.accent) {
+      const ax = gx + Math.floor((g.rows[0]!.length - 5) / 2) * k;
+      ACUTE.forEach((row, ry) => [...row].forEach((c, rx) => { if (c === '#') cell(ax + rx * k + off, top - (3 - ry) * k + off, rgb); }));
+    }
+  };
+  for (const g of glyphs) {
+    draw(x, g, shadow, k);
+    draw(x, g, ink, 0);
+    x += (g.rows[0]!.length + 1) * k;
+  }
+  return png;
+}
+
+/**
+ * Neve do inverno por cima de uma fachada: uma camada sobre o contorno de cima (telhado, chaminé, platibanda),
+ * com a borda de baixo ondulada (semente fixa) e uma sombra azulada. A imagem tem o tamanho da fachada.
+ */
+function snowCap(src: PNG, seed: number): PNG {
+  const out = blank(src.width, src.height);
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [196, 214, 234], line: [number, number, number] = [150, 170, 196];
+  let depth = 4;
+  for (let x = 0; x < src.width; x++) {
+    let top = -1;
+    for (let y = 0; y < src.height; y++) if (src.data[(y * src.width + x) * 4 + 3]! > 0) { top = y; break; }
+    if (top < 0) continue;
+    depth = Math.max(3, Math.min(7, depth + (rnd() < 0.3 ? (rnd() < 0.5 ? -1 : 1) : 0)));
+    const y0 = Math.max(0, top - 2);
+    for (let y = y0; y < top + depth; y++) plot(out, x, y, y >= top + depth - 2 ? shade : white);
+    plot(out, x, top + depth, line);
+  }
+  return out;
+}
+
 /** Um tile (64 px) da imagem, começando na linha y0. */
 function sliceRows(src: PNG, y0: number): PNG {
   return pickRows(src, range(y0, y0 + TS - 1));
@@ -353,11 +484,13 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 
 const inRange = (h: number, [a, b]: [number, number]) => (a <= b ? h >= a && h <= b : h >= a || h <= b);
 
-function recolor(png: PNG, rc: Recolor): void {
+function recolor(png: PNG, rcs: Recolor | Recolor[]): void {
+  const list = Array.isArray(rcs) ? rcs : [rcs];
   for (let i = 0; i < png.data.length; i += 4) {
     if (!png.data[i + 3]) continue;
     const [h, s, l] = rgbToHsl(png.data[i]!, png.data[i + 1]!, png.data[i + 2]!);
-    if (s < 0.12 || !inRange(h, rc.from)) continue;
+    const rc = list.find((c) => inRange(h, c.from));
+    if (s < 0.12 || !rc) continue;
     const [r, g, b] = hslToRgb(rc.hue, Math.min(1, s * (rc.sat ?? 1)), Math.max(0, Math.min(1, l + (rc.light ?? 0))));
     png.data[i] = r; png.data[i + 1] = g; png.data[i + 2] = b;
   }
@@ -706,6 +839,7 @@ for (const sheet of SHEETS) {
       }
     }
     pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}), ...(p.rise ? { rise: p.rise } : {}) };
+    for (const alias of p.aliases ?? []) pieces[alias] = pieces[name]!;
   }
   mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
   writeFileSync(sheet.image, PNG.sync.write(out));

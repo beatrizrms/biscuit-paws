@@ -884,6 +884,24 @@
       }
     },
     {
+      "id": "pixellab_fachadas",
+      "image": "assets/env/street/tile_pixellab_fachadas.png",
+      "pieces": "pixellab_fachadas.json",
+      "prefix": "",
+      "layer": "wall",
+      "solid": true,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_fachadas_neve",
+      "image": "assets/env/street/tile_pixellab_fachadas_neve.png",
+      "pieces": "pixellab_fachadas_neve.json",
+      "prefix": "",
+      "layer": "wall",
+      "solid": false,
+      "replaces": true
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",
