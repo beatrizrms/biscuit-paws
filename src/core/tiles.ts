@@ -26,7 +26,12 @@ export interface SheetInfo {
   image: string;
   columns: number;
   rows: number;
+  /** Pixels da arte por pixel do jogo: 1 = 32 px por tile, 2 = 64 px (decisão 052). Sem o campo, 1. */
+  resolution?: number;
 }
+
+/** Resoluções aceitas para uma folha (arte em 32 ou 64 px por tile). */
+export const SHEET_RESOLUTIONS: readonly number[] = [1, 2];
 
 export interface TileCatalog {
   schemaVersion: 1;
@@ -149,8 +154,12 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
 
   for (const extra of extras) {
     if (sheets[extra.id]) throw new Error(`tilesets.json: folha repetida "${extra.id}"`);
-    if (extra.pieces.tileSize !== tileSize) throw new Error(`tilesets.json: "${extra.id}" não é ${tileSize} px`);
-    sheets[extra.id] = { image: extra.image, columns: extra.pieces.columns, rows: extra.pieces.rows };
+    const resolution = extra.pieces.tileSize / tileSize;
+    if (!SHEET_RESOLUTIONS.includes(resolution)) {
+      const sizes = SHEET_RESOLUTIONS.map((r) => r * tileSize).join(' ou ');
+      throw new Error(`tilesets.json: "${extra.id}" tem tiles de ${extra.pieces.tileSize} px; aceita ${sizes}`);
+    }
+    sheets[extra.id] = { image: extra.image, columns: extra.pieces.columns, rows: extra.pieces.rows, ...(resolution !== 1 ? { resolution } : {}) };
     for (const name of Object.keys(extra.overrides ?? {})) {
       if (!extra.pieces.pieces[name]) throw new Error(`tilesets.json: "${extra.id}" tem exceção para "${name}", que não existe`);
     }
@@ -174,6 +183,11 @@ export function getTile(catalog: TileCatalog, name: string): TileDef {
   const def = catalog.tiles[name];
   if (!def) throw new Error(`Tile desconhecido: "${name}"`);
   return def;
+}
+
+/** Resolução da folha (1 = 32 px por tile, 2 = 64 px). */
+export function sheetResolution(catalog: TileCatalog, sheet: string): number {
+  return catalog.sheets[sheet]?.resolution ?? 1;
 }
 
 /** Índice do quadro na folha do tile, para a célula (dx, dy) dentro da peça, na versão `variant`. */

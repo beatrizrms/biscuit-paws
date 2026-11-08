@@ -1,0 +1,43 @@
+{
+ "tileSize": 64,
+ "columns": 4,
+ "rows": 2,
+ "pieces": {
+  "door_closed": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "door_open": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "cookie_jar_a_full": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cookie_jar_a_empty": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cookie_jar_b_full": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cookie_jar_b_empty": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

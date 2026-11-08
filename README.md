@@ -25,6 +25,7 @@ npm run dev         # abre o jogo em http://localhost:5173 (refaz data/tiles.jso
 npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda sozinho no dev e no build)
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
+npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)
@@ -86,7 +87,7 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 - `data/daynight.json`: cores do dia e da noite por hora e estação (o mapa diz se é `indoor` e onde ficam as `lights`).
 - `data/items.json`: móveis do catálogo, nomes e preços.
 - `data/maps/street.json`: a rua (fachadas, objetos, neve, porta do café). `data/world.json`: onde o jogo começa.
-- `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça.
+- `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça. A arte pode ser de 32 ou 64 px por tile: vale o `tileSize` do JSON de peças em `data/tilesets/` (decisão 052).
 - `data/finishes.json`: acabamentos do pintor (pisos e papéis de parede) e preços. As superfícies reformáveis ficam no mapa (`surfaces`).
 - `data/tiles.worn.json`: tiles velhos gerados do pacote (estilo de desgaste, troca de cores, variações).
 - `data/economy.json`: dinheiro inicial.

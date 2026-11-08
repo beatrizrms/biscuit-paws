@@ -12,6 +12,7 @@
 - Cosy Cats 32x32, Leckie Pixel Studio (leckie1989): https://leckie1989.itch.io/cosy-cats-32x32-animated-cat-sprites
 - NPCs (corretora, Gabi, Joca, Dona Neusa, entregadora), furgão do correio, equipamentos de cozinha, pia, cafeteira, louça, clientes, interface do atendimento, celular, catálogo de compras, mercado, matéria-prima, bebidas e vassoura: arte gerada por IA na paleta Cosy (uso declarado na página da Steam).
 - Clínica veterinária (fachada nas 4 estações, interior e a médica Fernanda): arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam).
+- Porta e potes de biscoito em 64 px (lote de teste do estilo novo): arte gerada por IA no PixelLab (https://www.pixellab.ai), uso declarado na página da Steam.
 - Mini games (esconderijos, poeira, seta e balões da fuga; água, boia, cais, barra e peixes da pescaria; xícara, jarra e guias da latte art): arte gerada por IA (uso declarado na página da Steam).
 
 ## Planejados (marcos futuros)

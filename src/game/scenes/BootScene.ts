@@ -8,6 +8,7 @@ import { startGame } from '../startGame';
 import { catTexture } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
+import { sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
 import { preloadWalkLayers } from '../playerLook';
 
@@ -33,9 +34,10 @@ export class BootScene extends Phaser.Scene {
     const bar = this.add.rectangle(x, y, 1, 8, 0xe58fa6).setOrigin(0);
     this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => bar.setSize(Math.max(1, Math.round(w * p)), 8));
     preloadAudio(this.load);
-    const { sheets, tileSize } = content.catalog;
+    const { sheets } = content.catalog;
     for (const [id, sheet] of Object.entries(sheets)) {
-      this.load.spritesheet(id, sheet.image, { frameWidth: tileSize, frameHeight: tileSize });
+      const size = sheetFrameSize(id);
+      this.load.spritesheet(id, sheet.image, { frameWidth: size, frameHeight: size });
     }
     // Folhas do Cosy Cats dos gatos que vivem no mundo (a Tekinha só aparece em lembrança, em HTML).
     const sprites = content.catSprites;
@@ -58,7 +60,10 @@ export class BootScene extends Phaser.Scene {
     art.readyMarker.forEach((p, i) => this.load.image(`ready_${i}`, p));
     this.load.spritesheet('dishes16', art.dishes.image, { frameWidth: art.dishes.tile, frameHeight: art.dishes.tile });
     for (const sheet of tilesetsJson.sheets) {
-      if ('animation' in sheet) this.load.spritesheet(`anim:${sheet.id}`, sheet.image, { frameWidth: 32, frameHeight: 32 });
+      if ('animation' in sheet) {
+        const size = sheetFrameSize(sheet.id);
+        this.load.spritesheet(`anim:${sheet.id}`, sheet.image, { frameWidth: size, frameHeight: size });
+      }
     }
     this.load.image('van_right', content.delivery.van.right);
     // Personagem: as camadas da caminhada (o criador mostra qualquer combinação; as poses vêm ao começar o jogo).

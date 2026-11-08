@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import { resolveMap } from '../../core/map';
 import { parseClock, tintAt } from '../../core/time';
 import { content } from '../content';
+import { addTileImage } from '../tileArt';
 import { DayNightLayer } from '../DayNightLayer';
 import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y, setupCamera } from '../screen';
 import { services } from '../services';
@@ -25,7 +26,7 @@ export class MainMenuScene extends Phaser.Scene {
     // Sem o que depende da história (ex.: a lousa só depois de comprada).
     const map = resolveMap({ ...street, objects: street.objects.filter((o) => !o.when) }, content.catalog);
     const ts = map.tileSize;
-    for (const s of map.sprites) this.add.image(s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setOrigin(0).setDepth(s.depth);
+    for (const s of map.sprites) addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
     const width = map.cols * ts;
     const cam = setupCamera(this);
     cam.setBackgroundColor(street.background ?? '#a9d4ea');

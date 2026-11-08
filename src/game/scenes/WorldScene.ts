@@ -9,6 +9,7 @@ import { CatSprite, catTexture } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
+import { addTileImage, tileScale } from '../tileArt';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
 import tilesetsJson from '../../../data/tilesets.json';
@@ -412,7 +413,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.mapImages?.destroy(true);
     this.mapImages = this.add.group();
     for (const s of this.map.sprites) {
-      this.mapImages.add(this.add.image(s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setOrigin(0).setDepth(s.depth));
+      this.mapImages.add(addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth));
     }
 
     this.solidCollider?.destroy();
@@ -531,7 +532,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (let dy = 0; dy < def.h; dy++) {
       for (let dx = 0; dx < def.w; dx++) {
         ghosts.push(
-          this.add.image(0, 0, def.sheet, frameOf(catalog, def, dx, dy)).setOrigin(0).setAlpha(0.8).setDepth(GHOST_DEPTH),
+          addTileImage(this, 0, 0, def.sheet, frameOf(catalog, def, dx, dy)).setAlpha(0.8).setDepth(GHOST_DEPTH),
         );
       }
     }
@@ -1058,7 +1059,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           const first = def.row * columns + work[0]!;
           const anim = `work-${sheet.id}-${def.row}`;
           if (!this.anims.exists(anim)) this.anims.create({ key: anim, frames: this.anims.generateFrameNumbers(key, { start: first, end: def.row * columns + work[1]! }), frameRate: 6, repeat: -1 });
-          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts - this.liftOf(placed.uid), key, first).setOrigin(0).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 2);
+          const sprite = this.add.sprite(placed.at[0] * ts, placed.at[1] * ts - this.liftOf(placed.uid), key, first).setOrigin(0).setScale(tileScale(sheet.id)).setDepth(ySortDepth((placed.at[1] + 1) * ts) + 2);
           sprite.play(anim);
           this.equipAnims.set(placed.uid, sprite);
         }
@@ -1086,7 +1087,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const [c, r] = this.session.content.service.sink;
     if (!this.sinkSprite || !this.sinkSprite.active) {
-      this.sinkSprite = this.add.sprite(c * ts, r * ts, 'anim:sink', 0).setOrigin(0).setDepth(ySortDepth((r + 1) * ts) + 1).setVisible(false);
+      this.sinkSprite = this.add.sprite(c * ts, r * ts, 'anim:sink', 0).setOrigin(0).setScale(tileScale('sink')).setDepth(ySortDepth((r + 1) * ts) + 1).setVisible(false);
       const [a, b] = sheet.animation.work as [number, number];
       if (!this.anims.exists('sink-wash')) this.anims.create({ key: 'sink-wash', frames: this.anims.generateFrameNumbers('anim:sink', { start: a, end: b }), frameRate: 6, repeat: -1 });
     }

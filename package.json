@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:e2e": "npm run tiles && playwright test",
     "vet": "tsx scripts/import-vet.ts",
+    "pixellab": "tsx scripts/import-pixellab.ts",
     "minigames": "tsx scripts/import-minigames.ts"
   },
   "dependencies": {

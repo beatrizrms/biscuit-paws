@@ -8,6 +8,7 @@ import { resolveMap, solidRects, type Cell, type ResolvedMap } from '../../core/
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
+import { addTileImage } from '../tileArt';
 import { Player } from '../entities/Player';
 import { catTexture, CatSprite } from '../entities/Cat';
 import { ART_SCALE, CHASE, ensurePlaceholders, HIDE_SHEETS, loadSheets } from './assets';
@@ -74,7 +75,7 @@ export class ChaseScene extends MiniGameScene {
     const width = this.map.cols * ts;
     const height = this.map.rows * ts;
     this.cameras.main.setBackgroundColor(this.map.background ?? '#a9d4ea');
-    for (const s of this.map.sprites) this.add.image(s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setOrigin(0).setDepth(s.depth);
+    for (const s of this.map.sprites) addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
     this.physics.world.setBounds(0, 0, width, height);
     const solids = this.physics.add.staticGroup();
     for (const r of solidRects(this.map.solid)) {
