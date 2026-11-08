@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 5,
+ "rows": 6,
  "pieces": {
   "market_parede_topo": {
    "col": 0,
@@ -115,6 +115,12 @@
    "col": 5,
    "row": 4,
    "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "market_capacho": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
    "h_tiles": 1
   }
  }

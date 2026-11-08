@@ -228,6 +228,7 @@ const SHEETS: Sheet[] = [
       market_placa_mercearia: { file: 'mercado_C/placa_mercado.png', w: 3, h: 1 },
       market_placa_pet: { file: 'mercado_C/placa_pet.png', w: 2, h: 1 },
       market_placa_ofertas: { file: '', w: 3, h: 1, build: () => jobBoard() },
+      market_capacho: { file: '04_cafe_4/obj_9.png', w: 1, h: 1 },
     },
   },
   {
