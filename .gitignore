@@ -16,3 +16,6 @@ assets/
 
 # Gerado por npm run tiles
 data/tiles.json
+
+# Pedidos de arte gerados por scripts/art/pedidos.ts (moldes com arte, fora do Git)
+pedidos_arte/
