@@ -1,0 +1,49 @@
+{
+ "tileSize": 64,
+ "columns": 6,
+ "rows": 5,
+ "pieces": {
+  "gondola_mercearia": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "gondola_pet": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "caixa": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "banca_a": {
+   "col": 3,
+   "row": 2,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "banca_b": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "carrinhos_fila": {
+   "col": 3,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cestas_vime": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

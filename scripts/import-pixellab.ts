@@ -202,7 +202,86 @@ const SHEETS: Sheet[] = [
       dirt_particulas_poeira: { file: 'cafe_sujeira/obj_5.png', w: 1, h: 1 },
     },
   },
+  {
+    // Mercado: troca as peças antigas de mesmo tamanho (parede, piso, janela, geladeiras, carrinho, placas...).
+    image: 'public/assets/interiors/market/tile_pixellab_market.png',
+    pieces: 'data/tilesets/pixellab_market.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      market_parede_topo: { file: '', w: 1, h: 1, build: () => sliceRows(readPng(`${SRC}/mercado_C/parede.png`), 0) },
+      market_parede_meio: { file: '', w: 1, h: 1, build: () => sliceRows(readPng(`${SRC}/mercado_C/parede.png`), 0) },
+      market_parede_rodape: { file: '', w: 1, h: 1, build: () => sliceRows(readPng(`${SRC}/mercado_C/parede.png`), TS) },
+      market_chao_a: { file: 'mercado_A/piso_pequeno.png', w: 1, h: 1 },
+      market_chao_b: { file: 'mercado_A/piso_pequeno.png', w: 1, h: 1 },
+      market_chao_aisle: { file: 'mercado_A/piso_pequeno.png', w: 1, h: 1 },
+      market_chao_pet: { file: 'mercado_A/piso_pequeno.png', w: 1, h: 1 },
+      market_janela: { file: 'mercado_A/janela_fechada.png', w: 1, h: 2 },
+      market_porta: { file: 'mercado_A/porta_fechada.png', w: 1, h: 2 },
+      market_geladeira_bebidas: { file: 'mercado_C/geladeira_64.png', w: 1, h: 2, dy: 5 },
+      market_geladeira_pet: { file: 'mercado_C/geladeira_64.png', w: 1, h: 2, dy: 5 },
+      market_caixa_registradora: { file: 'mercado_A/obj_0.png', w: 1, h: 1 },
+      market_carrinho: { file: 'mercado_A/obj_9.png', w: 1, h: 1, dy: 3 },
+      market_cestas: { file: 'mercado_A/obj_11.png', w: 1, h: 1, dy: 4 },
+      market_lixeira: { file: 'mercado_A/obj_13.png', w: 1, h: 1, dy: 6 },
+      market_luminaria: { file: 'mercado_A/obj_15.png', w: 1, h: 1 },
+      market_placa_mercearia: { file: 'mercado_C/placa_mercado.png', w: 3, h: 1 },
+      market_placa_pet: { file: 'mercado_C/placa_pet.png', w: 2, h: 1 },
+      market_placa_ofertas: { file: '', w: 3, h: 1, build: () => jobBoard() },
+    },
+  },
+  {
+    // Mercado: peças grandes novas (gôndolas 3x2, bancas de frutas 3x1, caixa 3x2) e cestas/carrinhos.
+    image: 'public/assets/interiors/market/tile_pixellab_market_novos.png',
+    pieces: 'data/tilesets/pixellab_market_novos.json',
+    columns: 6,
+    auto: true,
+    layout: {
+      gondola_mercearia: { file: 'mercado_C/gondola_mercearia.png', w: 3, h: 2 },
+      gondola_pet: { file: '', w: 3, h: 2, build: () => withLeftPost(readPng(`${SRC}/mercado_C/gondola_pet.png`), 175, 182) },
+      caixa: { file: 'mercado_C/caixa_3x2.png', w: 3, h: 2, dy: 12 },
+      banca_a: { file: 'mercado_C/banca_a.png', w: 3, h: 1 },
+      banca_b: { file: 'mercado_C/banca_b.png', w: 3, h: 1 },
+      carrinhos_fila: { file: 'mercado_A/obj_10.png', w: 1, h: 1, dy: 3 },
+      cestas_vime: { file: 'mercado_A/obj_12.png', w: 1, h: 1, dy: 4 },
+    },
+  },
 ];
+
+/**
+ * Mural de pedidos do mercado (3x1): a moldura da lousa do café, com o fundo limpo
+ * (sem os desenhos de café) e papéis de pedido pregados.
+ */
+function jobBoard(): PNG {
+  const lousa = readPng(`${SRC}/03_cafe_3/lousa_a.png`);
+  const green: [number, number, number] = [57, 66, 57];
+  for (let y = 14; y <= 52; y++) for (let x = 15; x <= 112; x++) plot(lousa, x, y, green);
+  const paper: [number, number, number] = [244, 232, 204], edge: [number, number, number] = [98, 49, 25], ink: [number, number, number] = [176, 150, 118];
+  const pins: [number, number, number][] = [[201, 84, 72], [96, 138, 170], [214, 170, 72], [201, 84, 72], [120, 156, 100]];
+  ([[22, 19, 16, 22], [42, 23, 18, 20], [64, 18, 16, 24], [84, 22, 18, 21]] as const).forEach(([x0, y0, w, h], k) => {
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+      plot(lousa, x, y, x === x0 || y === y0 || x === x0 + w - 1 || y === y0 + h - 1 ? edge : paper);
+    }
+    for (let l = 0; l < 3; l++) line(lousa, x0 + 3, y0 + 7 + l * 4, x0 + w - 4 - (l === 2 ? 4 : 0), y0 + 7 + l * 4, ink);
+    plot(lousa, x0 + (w >> 1), y0 + 2, pins[k]!); plot(lousa, x0 + (w >> 1) + 1, y0 + 2, pins[k]!);
+    plot(lousa, x0 + (w >> 1), y0 + 3, pins[k]!); plot(lousa, x0 + (w >> 1) + 1, y0 + 3, pins[k]!);
+  });
+  const out = blank(3 * TS, TS);
+  for (let y = 0; y < TS; y++) lousa.data.copy(out.data, (y * out.width + 32) * 4, y * lousa.width * 4, (y + 1) * lousa.width * 4);
+  return out;
+}
+
+/** A gôndola pet veio sem a coluna da esquerda: ela é a da direita (colunas a..b) espelhada, e o resto anda para a direita. */
+function withLeftPost(src: PNG, a: number, b: number): PNG {
+  const post = b - a + 1;
+  const cols = [...range(a, b).reverse(), ...range(1, src.width - post)];
+  return columns(src, cols);
+}
+
+/** Um tile (64 px) da imagem, começando na linha y0. */
+function sliceRows(src: PNG, y0: number): PNG {
+  return pickRows(src, range(y0, y0 + TS - 1));
+}
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   r /= 255; g /= 255; b /= 255;

@@ -378,7 +378,7 @@ test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando pa
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.market'));
   expect((await player(page)).map).toBe('map.market');
   // Prateleira pet: põe 2 rações no carrinho; nada é cobrado ainda.
-  await teleport(page, 13, 4);
+  await teleport(page, 9, 4);
   await page.keyboard.press('e');
   await expect(page.locator('.shop')).toHaveClass(/open/);
   const add = page.locator('[data-row="item.cat_food_basic"] [data-act="add"]');

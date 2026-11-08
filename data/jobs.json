@@ -8,7 +8,7 @@
       "map": "map.market",
       "at": [
         1,
-        5
+        3
       ],
       "action": "press"
     },
@@ -16,8 +16,8 @@
       "id": "pt.shelf_2",
       "map": "map.market",
       "at": [
-        4,
-        5
+        5,
+        3
       ],
       "action": "press"
     },
@@ -25,8 +25,8 @@
       "id": "pt.shelf_3",
       "map": "map.market",
       "at": [
-        13,
-        5
+        9,
+        3
       ],
       "action": "press"
     },
@@ -64,8 +64,8 @@
       "id": "pt.parcel_pickup",
       "map": "map.market",
       "at": [
-        18,
-        7
+        17,
+        6
       ],
       "action": "press",
       "gives": "item.parcel",
@@ -122,8 +122,8 @@
       "id": "pt.parcel_pickup_house_a",
       "map": "map.market",
       "at": [
-        18,
-        7
+        17,
+        6
       ],
       "action": "press",
       "sprite": "parcel",
@@ -143,8 +143,8 @@
       "id": "pt.parcel_pickup_house_c",
       "map": "map.market",
       "at": [
-        18,
-        7
+        17,
+        6
       ],
       "action": "press",
       "sprite": "parcel",
@@ -194,8 +194,8 @@
       "id": "pt.crate_apples",
       "map": "map.market",
       "at": [
-        2,
-        8
+        3,
+        4
       ],
       "action": "press"
     },
@@ -203,8 +203,8 @@
       "id": "pt.crate_greens",
       "map": "map.market",
       "at": [
-        4,
-        8
+        2,
+        5
       ],
       "action": "press"
     },
@@ -212,8 +212,8 @@
       "id": "pt.crate_bananas",
       "map": "map.market",
       "at": [
-        6,
-        8
+        5,
+        5
       ],
       "action": "press"
     },
@@ -221,8 +221,8 @@
       "id": "pt.crate_tomatoes",
       "map": "map.market",
       "at": [
-        7,
-        8
+        5,
+        4
       ],
       "action": "press"
     },

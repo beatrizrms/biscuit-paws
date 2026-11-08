@@ -1,0 +1,121 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 5,
+ "pieces": {
+  "market_parede_topo": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_parede_meio": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_parede_rodape": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_chao_a": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_chao_b": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_chao_aisle": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_chao_pet": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_janela": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "market_porta": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "market_geladeira_bebidas": {
+   "col": 1,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "market_geladeira_pet": {
+   "col": 2,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "market_caixa_registradora": {
+   "col": 3,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_carrinho": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_cestas": {
+   "col": 5,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_lixeira": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_luminaria": {
+   "col": 7,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_placa_mercearia": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "market_placa_pet": {
+   "col": 3,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "market_placa_ofertas": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 3,
+   "h_tiles": 1
+  }
+ }
+}

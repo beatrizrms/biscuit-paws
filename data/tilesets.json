@@ -844,6 +844,23 @@
       }
     },
     {
+      "id": "pixellab_market",
+      "image": "assets/interiors/market/tile_pixellab_market.png",
+      "pieces": "pixellab_market.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_market_novos",
+      "image": "assets/interiors/market/tile_pixellab_market_novos.png",
+      "pieces": "pixellab_market_novos.json",
+      "prefix": "market_",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",
