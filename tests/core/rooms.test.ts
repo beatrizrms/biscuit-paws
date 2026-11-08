@@ -50,7 +50,7 @@ describe('cômodos: dados e regras', () => {
     const yard = content.rooms.rooms.find((r) => r.id === 'room.backyard')!;
     expect(resolvedLook(yard, 'abandoned').legend.g).toBeUndefined(); // grama do mapa (seca)
     expect(resolvedLook(yard, 'restored').legend.g).toBe('yard_grama_a');
-    expect(resolvedLook({ ...yard, variant: 'brick' }, 'restored').legend.g).toBe('brick_grama_a');
+    expect(Object.keys(yard.variants!)).toEqual(['hedge']); // a variante de tijolo saiu na arte nova (decisão 065)
     expect(resolvedLook(yard, 'restored').objects.some((o) => o.id === 'obj.yard_lights')).toBe(true);
   });
 
