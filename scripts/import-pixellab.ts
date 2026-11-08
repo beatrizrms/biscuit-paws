@@ -351,10 +351,10 @@ const SHEETS: Sheet[] = [
       spring_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), PETALS, 8) },
       autumn_street_calcada_b: { file: '', w: 1, h: 1, build: () => scatter(readPng(`${SRC}/rua/calcada.png`), LEAVES, 9) },
       street_calcada_limpa: { file: 'rua/calcada.png', w: 1, h: 1, aliases: seasonal('calcada_limpa', 'street') },
-      street_meio_fio: { file: 'rua/meio_fio.png', w: 1, h: 1, aliases: seasonal('meio_fio', 'street') },
-      street_asfalto_a: { file: 'rua/asfalto.png', w: 1, h: 1, aliases: seasonal('asfalto_a', 'street') },
-      street_asfalto_b: { file: 'rua/asfalto.png', w: 1, h: 1, aliases: seasonal('asfalto_b', 'street') },
-      street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => crosswalk(readPng(`${SRC}/rua/asfalto.png`)), aliases: seasonal('asfalto_faixa', 'street') },
+      street_meio_fio: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), 0), 38), aliases: seasonal('meio_fio', 'street') },
+      street_asfalto_a: { file: '', w: 1, h: 1, build: () => smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), 0), aliases: seasonal('asfalto_a', 'street') },
+      street_asfalto_b: { file: '', w: 1, h: 1, build: () => sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), aliases: seasonal('asfalto_b', 'street') },
+      street_asfalto_faixa: { file: '', w: 1, h: 1, build: () => crosswalk(smoothAsphalt(sliceRows(readPng(`${SRC}/rua/guia_asfalto/gerado_64x128.png`), TS), 0)), aliases: seasonal('asfalto_faixa', 'street') },
       snow_street_calcada_a: { file: '', w: 1, h: 1, build: () => snowGround(0.86, 21) },
       snow_street_calcada_b: { file: '', w: 1, h: 1, build: () => snowGround(0.8, 22) },
       snow_street_calcada_limpa: { file: '', w: 1, h: 1, build: () => snowGround(0.35, 23) },
@@ -584,6 +584,26 @@ function scatter(png: PNG, colors: [number, number, number][], seed: number): PN
     const shade: [number, number, number] = [c[0] * 0.72, c[1] * 0.72, c[2] * 0.72];
     plot(png, x, y, c); plot(png, x + 1, y, c); plot(png, x + 2, y, c); plot(png, x, y + 1, shade); plot(png, x + 1, y + 1, c);
     if (rnd() < 0.5) plot(png, x + 1, y + 1, c);
+  }
+  return png;
+}
+
+/**
+ * Asfalto liso: tira as rachaduras e pedrinhas (pixels bem mais escuros ou claros que o asfalto)
+ * das linhas a partir de y0, trocando por grão do próprio asfalto (semente fixa). Assim o tile repetido não forma grade.
+ */
+function smoothAsphalt(png: PNG, y0: number): PNG {
+  const lum = (i: number) => (png.data[i]! + png.data[i + 1]! + png.data[i + 2]!) / 3;
+  const grain: number[] = [];
+  for (let y = y0; y < png.height; y++) for (let x = 0; x < png.width; x++) {
+    const i = (y * png.width + x) * 4, l = lum(i);
+    if (l >= 125 && l <= 141) grain.push(i);
+  }
+  let seed = 101;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let y = y0; y < png.height; y++) for (let x = 0; x < png.width; x++) {
+    const i = (y * png.width + x) * 4, l = lum(i);
+    if (l < 122 || l > 146) { const g = grain[Math.floor(rnd() * grain.length)]!; png.data.copy(png.data, i, g, g + 4); }
   }
   return png;
 }
