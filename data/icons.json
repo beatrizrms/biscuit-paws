@@ -1,229 +1,244 @@
 {
   "schemaVersion": 1,
-  "_comment": "Ícones 32x32. \"image\": folha padrão (catalogo_compras). \"sheets\": outras folhas (matéria-prima, bebidas); o ícone diz a folha em \"sheet\". Nomes = nomes dos pacotes. Todos gerados por IA na paleta Cosy.",
+  "_comment": "Ícones. \"image\": folha padrão (catalogo_compras, 32 px). \"sheets\": outras folhas; o ícone diz a folha em \"sheet\"; tileSize da folha quando não é o padrão. \"pixellab\": arte nova em 64 px (npm run pixellab; decisão 065), desenhada em meia escala; louça e peixes ainda nas folhas antigas. Todos gerados por IA.",
   "image": "assets/icons/sheets/icon_sheet_shop.png",
   "tileSize": 32,
   "columns": 5,
   "icons": {
     "areia": {
       "col": 0,
-      "row": 0
+      "row": 0,
+      "sheet": "pixellab"
     },
     "caixa_areia": {
       "col": 1,
-      "row": 0
+      "row": 0,
+      "sheet": "pixellab"
     },
     "racao_simples": {
-      "col": 2,
-      "row": 0
+      "col": 5,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "racao_premium": {
-      "col": 3,
-      "row": 0
+      "col": 4,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "petisco_biscoito": {
-      "col": 4,
-      "row": 0
+      "col": 3,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "farinha": {
-      "col": 0,
-      "row": 1
+      "col": 5,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "oleo": {
       "col": 1,
-      "row": 1
+      "row": 1,
+      "sheet": "pixellab"
     },
     "sal": {
-      "col": 2,
-      "row": 1
+      "col": 6,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "calabresa": {
-      "col": 3,
-      "row": 1
+      "col": 2,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "carne": {
-      "col": 4,
-      "row": 1
+      "col": 3,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "frango": {
-      "col": 0,
-      "row": 2
+      "col": 6,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "chocolate": {
-      "col": 1,
-      "row": 2
+      "col": 4,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "manteiga": {
-      "col": 2,
-      "row": 2
+      "col": 0,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "leite": {
-      "col": 3,
-      "row": 2
+      "col": 7,
+      "row": 0,
+      "sheet": "pixellab"
     },
     "ovos": {
-      "col": 4,
-      "row": 2
+      "col": 2,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "graos_cafe_saco": {
       "col": 0,
-      "row": 0,
-      "sheet": "materia_prima"
+      "row": 3,
+      "sheet": "pixellab"
     },
     "graos_cafe_soltos": {
       "col": 1,
-      "row": 0,
-      "sheet": "materia_prima"
+      "row": 3,
+      "sheet": "pixellab"
     },
     "po_cafe_pacote": {
-      "col": 2,
-      "row": 0,
-      "sheet": "materia_prima"
+      "col": 5,
+      "row": 3,
+      "sheet": "pixellab"
     },
     "filtro_papel": {
-      "col": 3,
-      "row": 0,
-      "sheet": "materia_prima"
+      "col": 4,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "cha_preto_caixa": {
-      "col": 4,
-      "row": 0,
-      "sheet": "materia_prima"
+      "col": 2,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "cha_verde_caixa": {
-      "col": 5,
-      "row": 0,
-      "sheet": "materia_prima"
+      "col": 3,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "cha_camomila_caixa": {
-      "col": 0,
-      "row": 1,
-      "sheet": "materia_prima"
+      "col": 1,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "saquinho_cha_preto": {
       "col": 1,
-      "row": 1,
-      "sheet": "materia_prima"
+      "row": 4,
+      "sheet": "pixellab"
     },
     "saquinho_cha_verde": {
       "col": 2,
-      "row": 1,
-      "sheet": "materia_prima"
+      "row": 4,
+      "sheet": "pixellab"
     },
     "lata_folhas_cha": {
-      "col": 3,
-      "row": 1,
-      "sheet": "materia_prima"
+      "col": 2,
+      "row": 3,
+      "sheet": "pixellab"
     },
     "fruta_laranja": {
-      "col": 4,
-      "row": 1,
-      "sheet": "materia_prima"
+      "col": 5,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "fruta_morango": {
-      "col": 5,
-      "row": 1,
-      "sheet": "materia_prima"
+      "col": 7,
+      "row": 2,
+      "sheet": "pixellab"
     },
     "fruta_limao": {
-      "col": 0,
+      "col": 6,
       "row": 2,
-      "sheet": "materia_prima"
+      "sheet": "pixellab"
     },
     "polpa_laranja": {
-      "col": 1,
-      "row": 2,
-      "sheet": "materia_prima"
+      "col": 6,
+      "row": 3,
+      "sheet": "pixellab"
     },
     "polpa_morango": {
-      "col": 2,
-      "row": 2,
-      "sheet": "materia_prima"
+      "col": 0,
+      "row": 4,
+      "sheet": "pixellab"
     },
     "polpa_limao": {
-      "col": 3,
-      "row": 2,
-      "sheet": "materia_prima"
+      "col": 7,
+      "row": 3,
+      "sheet": "pixellab"
     },
     "acucar_pacote": {
-      "col": 4,
+      "col": 0,
       "row": 2,
-      "sheet": "materia_prima"
+      "sheet": "pixellab"
     },
     "mel_pote": {
-      "col": 5,
-      "row": 2,
-      "sheet": "materia_prima"
+      "col": 4,
+      "row": 3,
+      "sheet": "pixellab"
     },
     "leite_po_lata": {
-      "col": 0,
+      "col": 3,
       "row": 3,
-      "sheet": "materia_prima"
+      "sheet": "pixellab"
     },
     "cafe_preto": {
-      "col": 0,
-      "row": 0,
-      "sheet": "bebidas"
+      "col": 6,
+      "row": 4,
+      "sheet": "pixellab"
     },
     "cafe_com_leite_gato": {
-      "col": 1,
-      "row": 0,
-      "sheet": "bebidas"
+      "col": 4,
+      "row": 4,
+      "sheet": "pixellab"
     },
     "cha_preto": {
-      "col": 2,
-      "row": 0,
-      "sheet": "bebidas"
+      "col": 3,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "cha_verde": {
-      "col": 3,
-      "row": 0,
-      "sheet": "bebidas"
+      "col": 4,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "bule_cha": {
-      "col": 4,
-      "row": 0,
-      "sheet": "bebidas"
+      "col": 3,
+      "row": 4,
+      "sheet": "pixellab"
     },
     "cafe_para_viagem": {
       "col": 5,
-      "row": 0,
-      "sheet": "bebidas"
+      "row": 4,
+      "sheet": "pixellab"
     },
     "suco_laranja": {
-      "col": 0,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 5,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "suco_morango": {
-      "col": 1,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 7,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "suco_limao": {
-      "col": 2,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 6,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "caixa_entrega_fechada": {
-      "col": 3,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 0,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "caixa_entrega_aberta": {
-      "col": 4,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 7,
+      "row": 4,
+      "sheet": "pixellab"
     },
     "caixa_presente_laco": {
-      "col": 5,
-      "row": 1,
-      "sheet": "bebidas"
+      "col": 1,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "caixas_empilhadas": {
-      "col": 0,
-      "row": 2,
-      "sheet": "bebidas"
+      "col": 2,
+      "row": 5,
+      "sheet": "pixellab"
     },
     "xicara_limpa": {
       "col": 0,
@@ -316,69 +331,69 @@
       "sheet": "louca"
     },
     "pao": {
-      "col": 0,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 2,
+      "row": 7,
+      "sheet": "pixellab"
     },
     "pao_de_queijo": {
-      "col": 1,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 3,
+      "row": 7,
+      "sheet": "pixellab"
     },
     "bolo_fatia": {
-      "col": 2,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 5,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "biscoito": {
-      "col": 3,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 4,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "remedio": {
-      "col": 4,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 7,
+      "row": 1,
+      "sheet": "pixellab"
     },
     "menu_cafe_preto": {
-      "col": 5,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 7,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "menu_cafe_com_leite": {
       "col": 6,
-      "row": 0,
-      "sheet": "fluxo"
+      "row": 6,
+      "sheet": "pixellab"
     },
     "menu_cha": {
-      "col": 7,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 0,
+      "row": 7,
+      "sheet": "pixellab"
     },
     "menu_suco": {
-      "col": 8,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 1,
+      "row": 7,
+      "sheet": "pixellab"
     },
     "bandeja_vazia": {
-      "col": 9,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 3,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "bandeja_1_itens": {
-      "col": 10,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 0,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "bandeja_2_itens": {
-      "col": 11,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 1,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "bandeja_3_itens": {
-      "col": 12,
-      "row": 0,
-      "sheet": "fluxo"
+      "col": 2,
+      "row": 6,
+      "sheet": "pixellab"
     },
     "peixe_prateado": {
       "col": 0,
@@ -409,6 +424,26 @@
       "col": 2,
       "row": 1,
       "sheet": "peixes"
+    },
+    "extra_croissant": {
+      "col": 4,
+      "row": 7,
+      "sheet": "pixellab"
+    },
+    "extra_cupcake": {
+      "col": 5,
+      "row": 7,
+      "sheet": "pixellab"
+    },
+    "extra_saco_paes": {
+      "col": 6,
+      "row": 7,
+      "sheet": "pixellab"
+    },
+    "extra_pote_biscoitos": {
+      "col": 7,
+      "row": 7,
+      "sheet": "pixellab"
     }
   },
   "sheets": {
@@ -431,6 +466,11 @@
     "peixes": {
       "image": "assets/minigames/fishing/icons_fish.png",
       "columns": 3
+    },
+    "pixellab": {
+      "image": "assets/icons/sheets/icon_sheet_pixellab.png",
+      "columns": 8,
+      "tileSize": 64
     }
   }
 }

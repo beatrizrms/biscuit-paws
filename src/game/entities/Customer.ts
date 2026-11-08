@@ -74,7 +74,7 @@ export class CustomerSprite {
     if (f) {
       const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
       const [bw, bh] = [this.bubbleBg.width, this.bubbleBg.height];
-      this.bubbleIcon = this.scene.add.image(sx + sw / 2 - bw / 2, sy + sh / 2 - bh, f.key, f.frame);
+      this.bubbleIcon = this.scene.add.image(sx + sw / 2 - bw / 2, sy + sh / 2 - bh, f.key, f.frame).setScale(f.scale);
       this.bubble.add(this.bubbleIcon);
     }
     this.bubble.setVisible(true);

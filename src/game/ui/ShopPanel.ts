@@ -165,8 +165,9 @@ export function iconHtml(icon: string | undefined, px = ICON_PX): string {
   const sheet = pos.sheet ? icons.sheets?.[pos.sheet] : undefined;
   const image = sheet?.image ?? icons.image;
   const columns = sheet?.columns ?? icons.columns;
-  const scale = px / icons.tileSize;
+  const size = sheet?.tileSize ?? icons.tileSize;
+  const scale = px / size;
   return `<span class="icon" style="width:${px}px;height:${px}px;background-image:url(${image});background-size:${columns * px}px auto;background-position:${
-    -pos.col * icons.tileSize * scale
-  }px ${-pos.row * icons.tileSize * scale}px"></span>`;
+    -pos.col * size * scale
+  }px ${-pos.row * size * scale}px"></span>`;
 }

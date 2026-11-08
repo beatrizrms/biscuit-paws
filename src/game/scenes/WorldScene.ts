@@ -801,7 +801,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       .image(this.player.x - 16 + ax, this.player.y - 64 + ay, f.key, f.frame)
       .setScale(0)
       .setDepth(this.player.depth + 2);
-    await this.tweenProps(icon, { scale: 0.5 }, itemUse.pickMs);
+    await this.tweenProps(icon, { scale: 0.5 * f.scale }, itemUse.pickMs);
     if (how === 'pour') {
       // Fica na mão: só estica o braço um pouco na direção da tigela e inclina; os grãos caem dele até a tigela.
       const reach = 0.55;
@@ -1107,7 +1107,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const icon = item.kind === 'wip' ? c.recipes[item.recipe]?.icon : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon : undefined;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
-    const img = this.add.image(0, 0, f.key, f.frame);
+    const img = this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale);
     if (item.kind === 'wip') img.setTint(0xf2dcb8); // massa crua, ainda não terminou
     return img;
   }
@@ -1168,12 +1168,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         // Sem a arte da pose: um desenho só, com 0 a 3 louças em cima.
         const icon = serviceArt.trayIcons[Math.min(st.hands.length, serviceArt.trayIcons.length - 1)]!;
         const f = iconFrame(this, icon);
-        this.handIcons = f ? [this.add.image(0, 0, f.key, f.frame).setOrigin(0.5, 0.5)] : [];
+        this.handIcons = f ? [this.add.image(0, 0, f.key, f.frame).setScale(f.scale).setOrigin(0.5, 0.5)] : [];
       } else {
         this.handIcons = st.hands
           .map((h) => ({ h, img: this.handItemImage(h) }))
           .filter((x): x is { h: HandItem; img: Phaser.GameObjects.Image } => !!x.img)
-          .map(({ h, img }) => img.setScale(this.handScale(h)).setOrigin(0.5, 0.5));
+          .map(({ h, img }) => img.setScale(this.handScale(h) * ((img.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 0.5));
       }
       // Gato no colo: some do chão e aparece nos braços (a pose já desenha o gato; sem ela, o sprite do gato).
       for (const cat of this.cats) {

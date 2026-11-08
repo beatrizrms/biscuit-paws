@@ -75,8 +75,8 @@ export interface IconsData {
   image: string;
   tileSize: number;
   columns: number;
-  /** Outras folhas de ícones (o ícone aponta com `sheet`). */
-  sheets?: Record<string, { image: string; columns: number }>;
+  /** Outras folhas de ícones (o ícone aponta com `sheet`); tileSize da folha quando não é o padrão (arte nova em 64 px). */
+  sheets?: Record<string, { image: string; columns: number; tileSize?: number }>;
   icons: Record<string, { col: number; row: number; sheet?: string }>;
 }
 

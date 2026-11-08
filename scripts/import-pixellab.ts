@@ -1169,3 +1169,17 @@ for (const strip of STRIPS) {
   writeFileSync(strip.pieces, JSON.stringify({ tileSize: TS, columns: strip.columns, rows: strip.rows.length, pieces }, null, 1) + '\n');
   console.log(`${strip.image}: ${strip.rows.length} linha(s) de animação`);
 }
+
+// ---------- Ícones (64 px) ----------
+// Os 4 lotes de icones/ (obj_N.png na ordem de escolhas.json) numa folha de 8 colunas, na mesma ordem.
+// data/icons.json aponta os ícones para esta folha (sheet "pixellab", tileSize 64).
+{
+  const lots = JSON.parse(readFileSync(`${SRC}/icones/escolhas.json`, 'utf8')) as Record<string, unknown>;
+  const names = (['loja', 'ingredientes', 'bebidas', 'comidas'] as const).flatMap((lot) => (lots[lot] as string[]).map((name, i) => ({ name, file: `${SRC}/icones/${lot}/obj_${i}.png` })));
+  const cols = 8;
+  const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
+  names.forEach(({ file }, i) => paste(out, readPng(file), i % cols, Math.floor(i / cols)));
+  const image = 'public/assets/icons/sheets/icon_sheet_pixellab.png';
+  writeFileSync(image, PNG.sync.write(out));
+  console.log(`${image}: ${names.length} ícones`);
+}

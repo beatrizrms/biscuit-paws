@@ -97,7 +97,7 @@ export class DeliveryScene extends MiniGameScene {
     this.player = new Player(this, sc * ts + ts / 2, (sr + 1) * ts - 2);
     this.physics.add.collider(this.player, solids);
     const f = iconFrame(this, this.item.icon);
-    this.carried = this.add.image(0, 0, f?.key ?? '__MISSING', f?.frame).setScale(0.5).setDepth(1e6);
+    this.carried = this.add.image(0, 0, f?.key ?? '__MISSING', f?.frame).setScale(0.5 * (f?.scale ?? 1)).setDepth(1e6);
     this.bar = this.add.graphics().setDepth(1e6);
 
     // Obstáculos: as primeiras rotas da lista (a dificuldade diz quantas).
