@@ -16,7 +16,11 @@ Os moldes (`pedidos/NN_xxx/molde.png`) são opcionais: mostram a arte atual de c
 ## Conferir cada imagem
 - Fundo magenta liso, **sem xadrez**, e os itens não se encostam.
 - **Tamanho:** porta, estante e janela altas (2 tiles); árvore de gato com 2 x 3; xícaras e comidas pequenas.
-- **De 2 a 3 variações de cor** de cada item (menos ícones, fachadas e sujeira).
+- **De 2 a 3 variações** de cada item (de cor ou de modelo, como diz a lista), lado a lado (menos ícones, fachadas e sujeira).
+- **Estados** (tigela vazia/cheia, luminária apagada/acesa, porta fechada/aberta, planta viçosa/murcha...): um embaixo
+  do outro, o mesmo objeto na mesma posição, e cada variação em todos os estados.
+
+O `PLANO_PIXELLAB.md` lista item por item as variações, os estados e quantos sprites saem no fim.
 - **Balcões:** tampo liso, sem nada em cima, e as peças com a mesma altura.
 - **Itens de pôr em cima** (louça, comida, utensílios, registradora): pequenos e sem mesa embaixo.
 

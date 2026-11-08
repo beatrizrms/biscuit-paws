@@ -28,6 +28,33 @@ const layerToPlace = (layer: string | undefined): Place => (layer === 'floor' ? 
 const placeOf = (name: string, layer: string | undefined): Place =>
   BALCAO.test(name) ? 'balcao' : PENDURADO.test(name) ? 'pendurado' : SOBRE.test(name) ? 'sobre' : layerToPlace(layer);
 
+// ---------- estados e variações ----------
+// Estado: o MESMO item (mesma variação, mesmo canvas, mesma posição) mostrando uma situação do jogo. O primeiro é o padrão.
+// Vale para todos os pedidos de objetos; ícones, fachadas e sujeira não têm estados.
+const STATES: [RegExp, string[]][] = [
+  [/^(food_bowl|water_bowl|tigela|comedouro)/, ['vazia', 'cheia']],
+  [/^(cookie_jar|cake_stand|display_case|prateleira_(mercearia|pet)_|geladeira_|caixote_|cesto_brinquedos|cestas|sacos_racao)/, ['cheio', 'pela metade', 'vazio']],
+  [/^(cake_whole)$/, ['inteiro', 'pela metade', 'só o prato com migalhas']],
+  [/^(cake_slice|cupcake|croissant|macarons|fish_biscuits)$/, ['servido no prato', 'prato vazio com migalhas']],
+  [/^(latte|tea_cup|milkshake)$/, ['cheio', 'vazio e sujo']],
+  [/^(teapot)$/, ['cheio (vapor saindo)', 'vazio']],
+  [/^(lixeira)/, ['vazia', 'cheia (transbordando)']],
+  [/^(caixa_correio)/, ['vazia', 'com carta saindo']],
+  [/^(door$|window$|janela|porta(_consultorio)?$)/, ['fechada', 'aberta']],
+  [/^(luminaria|lampada_chao|luzinhas_fio|poste|negatoscopio)/, ['apagada', 'acesa']],
+  [/^coffee_machine$/, ['desligada', 'ligada (vapor saindo)']],
+  [/^bancada_forno_pedra$/, ['apagado', 'aceso (fogo)']],
+  [/^(table_round|mesa_(terraco|redonda|guarda_sol))/, ['limpa', 'suja (migalhas e manchas)']],
+  [/^(scratch_post|arranhador|cat_tree|arvore_gato|cat_condo)/, ['nova', 'gasta (sisal arranhado)']],
+  [/^(plant_|cactus|flower_vase|planta|vaso_|dracena|topiaria|canteiro|arbusto)/, ['viçosa', 'murcha (precisa de água)']],
+  [/^(cat_bed|cama_|cushion_)/, ['arrumada', 'amassada (gato dormiu)']],
+];
+const statesOf = (p: Piece): string[] =>
+  p.place === 'icone' || p.place === 'fachada' ? [] : (STATES.find(([re]) => re.test(p.name))?.[1] ?? []);
+// Variação: cor (mesmo desenho, outras cores) ou modelo (outro desenho do mesmo objeto, mesmo tamanho).
+const MODELO = /^(plant_|cactus|flower_vase|planta|vaso_|picture_|cartaz_|quadro_|floor_rug|doormat|capacho|tapete_|cake_|cupcake|macarons|croissant|cookie_jar|fish_biscuits|yarn_balls|menu_board|lousa_|placa_|cushion_|caixote_)/;
+const variantKind = (name: string): 'cor' | 'modelo' => (MODELO.test(name) ? 'modelo' : 'cor');
+
 /** imgTile: px por tile na imagem pedida; variants: quantas variações de cor por item; maxItems: itens diferentes por pedido. */
 type Group = { id: string; title: string; context: string; pieces: Piece[]; imgTile: 128 | 64; variants: 1 | 3; maxItems: number };
 
@@ -106,8 +133,9 @@ const groups: Group[] = [
   { id: 'icones_comidas', title: 'Ícones: comidas, remédio e bandeja', context: 'ícones de itens de inventário', pieces: iconPieces('fluxo'), imgTile: 128, variants: 1, maxItems: 16 },
 ];
 
-// ---------- empacotar em lotes: cada item ocupa w x h tiles vezes o número de variações (lado a lado) ----------
-type Placed = Piece & { cx: number; cy: number; v: number };
+// ---------- empacotar em lotes: cada item ocupa (w x variações) por (h x estados) tiles ----------
+// variações lado a lado (colunas), estados um embaixo do outro (linhas)
+type Placed = Piece & { cx: number; cy: number; v: number; states: string[] };
 /** Peças do mesmo balcão (0) e vistas da mesma cadeira (1) vão juntas: cada conjunto cabe inteiro num pedido. */
 const together = (p: Piece) => (BALCAO.test(p.name) && p.w === 1 ? 0 : /^chair_/.test(p.name) ? 1 : 2);
 function pack(g: Group): Placed[][] {
@@ -125,18 +153,21 @@ function pack(g: Group): Placed[][] {
         const size = todo.filter((t) => together(t) === set).length;
         if (batch.length + size > g.maxItems) { i++; continue; }
       }
+      const states = statesOf(p);
       const v = Math.max(1, Math.min(g.variants, Math.floor(cols / p.w)));
       const W = p.w * v;
+      const H = p.h * Math.max(1, states.length);
+      if (H > cols) throw new Error(`estados demais para caber: ${p.name}`);
       let spot: [number, number] | null = null;
-      for (let y = 0; y + p.h <= cols && !spot; y++)
+      for (let y = 0; y + H <= cols && !spot; y++)
         for (let x = 0; x + W <= cols && !spot; x++) {
           let free = true;
-          for (let j = 0; j < p.h && free; j++) for (let k = 0; k < W && free; k++) if (used[y + j]![x + k]) free = false;
+          for (let j = 0; j < H && free; j++) for (let k = 0; k < W && free; k++) if (used[y + j]![x + k]) free = false;
           if (free) spot = [x, y];
         }
       if (!spot) { i++; continue; }
-      for (let j = 0; j < p.h; j++) for (let k = 0; k < W; k++) used[spot[1] + j]![spot[0] + k] = true;
-      batch.push({ ...p, cx: spot[0], cy: spot[1], v });
+      for (let j = 0; j < H; j++) for (let k = 0; k < W; k++) used[spot[1] + j]![spot[0] + k] = true;
+      batch.push({ ...p, cx: spot[0], cy: spot[1], v, states });
       todo.splice(i, 1);
     }
     if (!batch.length) throw new Error(`peça grande demais: ${todo[0]!.name}`);
@@ -162,9 +193,16 @@ const RULES = `REGRAS (valem para todos os pedidos)
    sem textura, sem sombra no fundo, sem moldura. Itens separados por pelo menos 16 px de magenta, nenhum encostado
    em outro. A posição dos itens na imagem é livre. Bordas duras, sem desfoque nem brilho difuso. Sem texto.
 
-4. VARIAÇÕES: para cada item da lista, desenhe de 2 a 3 variações de cor ou acabamento, lado a lado, com o MESMO
-   formato e o MESMO tamanho. Exceções: [ícone], [fachada] e a sujeira: só 1 versão.
-   Itens com várias vistas (ex.: cadeira de frente, de costas e de lado) são o MESMO móvel: cada cor aparece em todas as vistas.
+4. VARIAÇÕES E ESTADOS (o jogo precisa dos dois):
+   - VARIAÇÕES: para cada item, desenhe as variações pedidas na lista, LADO A LADO, todas com o MESMO tamanho.
+     "de cor": o mesmo desenho em outras cores ou acabamentos (madeira clara, escura, pintada...).
+     "de modelo": outro desenho do mesmo objeto (outra planta, outro bolo, outra estampa), no mesmo tamanho e lugar.
+     Exceções: [ícone], [fachada] e a sujeira: só 1 versão.
+     Itens com várias vistas (ex.: cadeira de frente, de costas e de lado) são o MESMO móvel: cada cor aparece em todas as vistas.
+   - ESTADOS: quando a lista diz "estados: A / B", desenhe o item em cada estado, UM EMBAIXO DO OUTRO, na ordem da
+     lista (o primeiro em cima). É o MESMO objeto, na mesma posição e no mesmo tamanho: só muda o que o estado muda
+     (ex.: tigela vazia / cheia; luminária apagada / acesa; porta fechada / aberta; planta viçosa / murcha).
+   - Cada variação aparece em TODOS os estados: 3 variações x 2 estados = uma grade de 3 colunas por 2 linhas.
 
 5. ONDE CADA ITEM FICA (a etiqueta vem na lista):
    - [chão]: em pé no chão; base encostada na borda de baixo da área do item.
@@ -192,8 +230,9 @@ const RULES = `REGRAS (valem para todos os pedidos)
 
 function itemLine(p: Placed): string {
   const px = `${p.w * 128} x ${p.h * 128} px`;
-  const vars = p.v > 1 ? `, ${p.v} variações de cor` : '';
-  return `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${px}${vars}) ${TAG[p.place]}`;
+  const vars = p.v > 1 ? `, ${p.v} variações de ${variantKind(p.name)}` : '';
+  const states = p.states.length ? `; estados: ${p.states.join(' / ')}` : '';
+  return `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${px}${vars}${states}) ${TAG[p.place]}`;
 }
 function itemLineFacade(p: Placed): string {
   return `- ${p.label}: ${p.w} x ${p.h} tiles (${p.w * 64} x ${p.h * 64} px) ${TAG[p.place]}`;
@@ -205,6 +244,7 @@ mkdirSync(OUT, { recursive: true });
 let n = 0;
 const index: string[] = [];
 const master: string[] = [];
+const plan: { code: string; item: string; label: string; w: number; h: number; v: number; kind: 'cor' | 'modelo'; states: string[]; place: Place }[] = [];
 for (const g of groups) {
   const batches = pack(g);
   batches.forEach((batch, bi) => {
@@ -233,7 +273,8 @@ for (const g of groups) {
     const head = `PEDIDO ${code}: ${g.title}${batches.length > 1 ? ` (parte ${bi + 1} de ${batches.length})` : ''}\nCenário: ${g.context}.\nEscala: ${g.imgTile === 128 ? '1 tile = 128 x 128 px (cada pixel da arte = 2 x 2 px)' : '1 tile = 64 x 64 px (cada pixel da arte = 1 x 1 px)'}.\n\nITENS (largura x altura em tiles):\n${lines}`;
     master.push(head);
     writeFileSync(`${dir}/pedido.txt`, `${head}\n\n${RULES}\n`);
-    writeFileSync(`${dir}/layout.json`, JSON.stringify({ code, imgTile: g.imgTile, artTile: ART_TILE, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], place: p.place, variants: p.v })) }, null, 2));
+    writeFileSync(`${dir}/layout.json`, JSON.stringify({ code, imgTile: g.imgTile, artTile: ART_TILE, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], place: p.place, variants: p.v, variantKind: variantKind(p.name), states: p.states })) }, null, 2));
+    plan.push(...batch.map((p) => ({ code, item: p.name, label: p.label, w: p.w, h: p.h, v: p.v, kind: variantKind(p.name), states: p.states, place: p.place })));
     index.push(`| ${code} | ${g.title}${batches.length > 1 ? ` (${bi + 1}/${batches.length})` : ''} | ${batch.length} | ${g.imgTile === 128 ? 'objetos (128 px por tile)' : 'fachadas (64 px por tile)'} |`);
   });
 }
@@ -252,6 +293,38 @@ ${RULES}
 
 ${master.join('\n\n---\n\n')}
 `);
+
+// Plano para o PixelLab: cada desenho novo é uma vaga numa geração em lote (create_1_direction_object), que devolve
+// 16 vagas em 64 px, 4 em 128 px ou 1 até 256 px, por 10 gerações. Variação de cor = troca de paleta por código (grátis);
+// variação de modelo = outro desenho (uma vaga a mais); estado = edição do desenho escolhido (mesmo canvas), e a troca
+// de paleta leva o estado para todas as cores.
+{
+  const canvas = (p: (typeof plan)[number]) => Math.max(p.w, p.h) * ART_TILE;
+  const tier = (c: number) => (c <= 64 ? 16 : c <= 128 ? 4 : c <= 256 ? 1 : 0);
+  const slots = { 16: 0, 4: 0, 1: 0, 0: 0 } as Record<number, number>;
+  let edits = 0, sprites = 0;
+  const rows = plan.filter((p) => p.place !== 'fachada').map((p) => {
+    const designs = p.kind === 'modelo' ? p.v : 1;
+    const nStates = Math.max(1, p.states.length);
+    slots[tier(canvas(p))]! += designs;
+    edits += designs * (nStates - 1);
+    sprites += p.v * nStates;
+    const c = canvas(p);
+    return `| ${p.code} | ${p.label} | ${p.w}x${p.h} (${c} px${c > 256 ? ': grande demais, fatiar' : ''}) | ${p.v > 1 ? `${p.v} de ${p.kind}` : '1'} | ${p.states.join(' / ') || '-'} | ${p.v * nStates} |`;
+  });
+  const gens = Math.ceil(slots[16]! / 16) * 10 + Math.ceil(slots[4]! / 4) * 10 + slots[1]! * 10;
+  writeFileSync(`${OUT}/PLANO_PIXELLAB.md`, `# Plano de geração no PixelLab
+
+Sprites finais (todas as variações em todos os estados): **${sprites}**.
+Desenhos novos a gerar: ${slots[16]} em 64 px, ${slots[4]} em 128 px, ${slots[1]} em até 256 px${slots[0] ? ` e ${slots[0]} maiores que 256 px (precisam ser fatiados)` : ''}: cerca de **${gens} gerações**.
+Edições de estado sobre os desenhos escolhidos: **${edits}**. Variações de cor saem por troca de paleta (grátis).
+Fachadas ficam fora desta conta.
+
+| Pedido | Item | Tamanho | Variações | Estados (o 1º é o padrão) | Sprites |
+|---|---|---|---|---|---|
+${rows.join('\n')}
+`);
+}
 
 // folhas atuais (referência), sem a arte do leckie1989 (licença proíbe usar com IA)
 const sheets = [
