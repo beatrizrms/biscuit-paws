@@ -70,7 +70,8 @@ export interface PiecesFile {
   tileSize: number;
   columns: number;
   rows: number;
-  pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number }>;
+  /** variants: quantas células seguidas (na linha) são variações da mesma peça (só 1x1). */
+  pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }>;
 }
 
 /** Uma folha extra (data/tilesets.json), já com o JSON de peças lido. */
@@ -184,6 +185,12 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
         const layer = o.layer ?? old.layer;
         if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
         tiles[name] = { name, sheet: extra.id, col: p.col, row: p.row, w: p.w_tiles, h: p.h_tiles, solid: o.solid ?? old.solid, layer };
+        if (p.variants && p.variants > 1) {
+          if (p.w_tiles !== 1 || p.h_tiles !== 1) throw new Error(`tilesets.json: "${name}" tem variações e não é 1x1`);
+          if (p.col + p.variants > extra.pieces.columns) throw new Error(`tilesets.json: variações de "${name}" saem da folha`);
+          tiles[name]!.variants = p.variants;
+          if (old.variantWeights?.length === p.variants) tiles[name]!.variantWeights = old.variantWeights;
+        }
         continue;
       }
       if (tiles[name]) throw new Error(`tilesets.json: nome repetido "${name}"`);

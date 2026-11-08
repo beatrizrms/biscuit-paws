@@ -4,7 +4,8 @@
 // Cada peça encosta a base no fim das suas células: `dy` desce o desenho quando sobra margem embaixo.
 // Folhas com `auto` arrumam as peças sozinhas (da esquerda para a direita, `columns` tiles por linha).
 // `recolor` troca uma faixa de matiz por outra (cores alternativas por código, decisão 065);
-// `mirror` espelha; `over` desenha outra imagem por cima (ex.: registradora sobre o balcão).
+// `mirror` espelha; `over` desenha outra imagem por cima (ex.: registradora sobre o balcão);
+// `rows` remonta a peça com linhas escolhidas da origem; `wear` faz a versão velha (piso e parede antes da reforma).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
@@ -32,6 +33,12 @@ interface Piece {
   mirror?: boolean;
   recolor?: Recolor;
   over?: { file: string; dx: number; dy: number };
+  /** Monta a peça com estas linhas da origem, na ordem (ex.: esticar o lambri repetindo as tábuas). */
+  rows?: number[];
+  /** Versão velha (antes da reforma): mais escura, desbotada e com pintinhas de sujeira. */
+  wear?: boolean;
+  /** Quantas variações seguidas na linha (com wear: cada uma com outra semente de sujeira). */
+  variants?: number;
 }
 
 interface Sheet {
@@ -42,6 +49,8 @@ interface Sheet {
   auto?: boolean;
   layout: Record<string, Piece>;
 }
+
+const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
 const PINK: [number, number] = [330, 25];
 const GREEN: [number, number] = [70, 170];
@@ -107,6 +116,29 @@ const SHEETS: Sheet[] = [
       bar_balcao_esq: { file: '01_cafe_1/balcao_esq.png', w: 1, h: 1 },
       bar_balcao_meio: { file: '01_cafe_1/balcao_meio.png', w: 1, h: 1 },
       bar_balcao_dir: { file: '01_cafe_1/balcao_dir.png', w: 1, h: 1 },
+      wall_shelf: { file: 'cafe_superficies/prateleira_2x1.png', w: 2, h: 1 },
+      wall_clock: { file: 'cafe_superficies/relogio.png', w: 1, h: 1 },
+    },
+  },
+  {
+    // Pisos e paredes do café (acabamentos do pintor e as versões velhas, antes da reforma).
+    image: 'public/assets/interiors/cafe/tile_pixellab_cafe_superficies.png',
+    pieces: 'data/tilesets/pixellab_cafe_superficies.json',
+    columns: 6,
+    auto: true,
+    layout: {
+      floor_wood_a: { file: 'cafe_superficies/tile_0.png', w: 1, h: 1 },
+      floor_wood_b: { file: 'cafe_superficies/tile_1.png', w: 1, h: 1 },
+      floor_check_pink: { file: 'cafe_superficies/tile_2.png', w: 1, h: 1 },
+      floor_tile_mint: { file: 'cafe_superficies/tile_3.png', w: 1, h: 1 },
+      wall_stripe_pink: { file: 'cafe_superficies/tile_4.png', w: 1, h: 1 },
+      wall_dots_cream: { file: 'cafe_superficies/tile_5.png', w: 1, h: 1 },
+      wall_mint: { file: 'cafe_superficies/tile_6.png', w: 1, h: 1 },
+      wall_wainscot: { file: 'cafe_superficies/tile_7.png', w: 1, h: 1, rows: [...range(26, 33), ...range(34, 63), ...range(34, 59)] },
+      floor_wood_old: { file: 'cafe_superficies/tile_0.png', w: 1, h: 1, wear: true, variants: 4 },
+      floor_check_old: { file: 'cafe_superficies/tile_2.png', w: 1, h: 1, wear: true, variants: 4 },
+      wall_stripe_old: { file: 'cafe_superficies/tile_4.png', w: 1, h: 1, wear: true, variants: 4 },
+      wall_wainscot_old: { file: 'cafe_superficies/tile_7.png', w: 1, h: 1, rows: [...range(26, 33), ...range(34, 63), ...range(34, 59)], wear: true, variants: 4 },
     },
   },
   {
@@ -154,12 +186,14 @@ function recolor(png: PNG, rc: Recolor): void {
   }
 }
 
-function load(p: Piece): PNG {
-  const png = PNG.sync.read(readFileSync(`${SRC}/${p.file}`));
+function load(p: Piece, variant = 0): PNG {
+  let png: PNG = PNG.sync.read(readFileSync(`${SRC}/${p.file}`));
   if (png.width !== p.w * TS || png.height !== p.h * TS) {
     throw new Error(`${p.file}: ${png.width}x${png.height}, esperado ${p.w * TS}x${p.h * TS} (${p.w}x${p.h} tiles)`);
   }
+  if (p.rows) png = pickRows(png, p.rows);
   if (p.recolor) recolor(png, p.recolor);
+  if (p.wear) wear(png, 7 + variant * 101);
   if (p.over) {
     const o = PNG.sync.read(readFileSync(`${SRC}/${p.over.file}`));
     for (let y = 0; y < o.height; y++) for (let x = 0; x < o.width; x++) {
@@ -174,13 +208,32 @@ function load(p: Piece): PNG {
   return png;
 }
 
+/** Nova imagem com as linhas escolhidas da origem (mesma largura). */
+function pickRows(src: PNG, rows: number[]): PNG {
+  const out = new PNG({ width: src.width, height: rows.length });
+  rows.forEach((sy, y) => src.data.copy(out.data, y * src.width * 4, sy * src.width * 4, (sy + 1) * src.width * 4));
+  return out;
+}
+
+/** Piso/parede velhos: mais escuros e desbotados, com pintinhas de sujeira (semente fixa: sempre igual). */
+function wear(png: PNG, seed = 7): void {
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < png.data.length; i += 4) {
+    const r = png.data[i]!, g = png.data[i + 1]!, b = png.data[i + 2]!, l = (r + g + b) / 3;
+    const dirt = rnd() < 0.04 ? 0.78 : 1;
+    png.data[i] = Math.round((r * 0.7 + l * 0.3) * 0.86 * dirt + 6);
+    png.data[i + 1] = Math.round((g * 0.7 + l * 0.3) * 0.84 * dirt + 4);
+    png.data[i + 2] = Math.round((b * 0.7 + l * 0.3) * 0.8 * dirt);
+  }
+}
+
 /** Arruma as peças em linhas de `columns` tiles, na ordem da lista. */
 function autoLayout(sheet: Sheet): number {
   let col = 0, row = 0, rowH = 0;
   for (const p of Object.values(sheet.layout)) {
-    if (col + p.w > sheet.columns) { row += rowH; col = 0; rowH = 0; }
+    if (col + p.w * (p.variants ?? 1) > sheet.columns) { row += rowH; col = 0; rowH = 0; }
     p.col = col; p.row = row;
-    col += p.w; rowH = Math.max(rowH, p.h);
+    col += p.w * (p.variants ?? 1); rowH = Math.max(rowH, p.h);
   }
   return row + rowH;
 }
@@ -188,19 +241,21 @@ function autoLayout(sheet: Sheet): number {
 for (const sheet of SHEETS) {
   const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
   const out = new PNG({ width: sheet.columns * TS, height: rows * TS });
-  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number }> = {};
+  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }> = {};
   for (const [name, p] of Object.entries(sheet.layout)) {
-    const png = load(p);
-    const dy = p.dy ?? 0;
-    for (let y = 0; y + dy < png.height; y++) {
-      for (let x = 0; x < png.width; x++) {
-        const sx = p.mirror ? png.width - 1 - x : x;
-        const src = (y * png.width + sx) * 4;
-        const dst = ((p.row! * TS + y + dy) * out.width + p.col! * TS + x) * 4;
-        png.data.copy(out.data, dst, src, src + 4);
+    for (let v = 0; v < (p.variants ?? 1); v++) {
+      const png = load(p, v);
+      const dy = p.dy ?? 0;
+      for (let y = 0; y + dy < png.height; y++) {
+        for (let x = 0; x < png.width; x++) {
+          const sx = p.mirror ? png.width - 1 - x : x;
+          const src = (y * png.width + sx) * 4;
+          const dst = ((p.row! * TS + y + dy) * out.width + (p.col! + v * p.w) * TS + x) * 4;
+          png.data.copy(out.data, dst, src, src + 4);
+        }
       }
     }
-    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h };
+    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}) };
   }
   mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
   writeFileSync(sheet.image, PNG.sync.write(out));

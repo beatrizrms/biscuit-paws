@@ -1,0 +1,83 @@
+{
+ "tileSize": 64,
+ "columns": 6,
+ "rows": 5,
+ "pieces": {
+  "floor_wood_a": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_wood_b": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_check_pink": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_tile_mint": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_stripe_pink": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_dots_cream": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_mint": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_wainscot": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_wood_old": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  },
+  "floor_check_old": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  },
+  "wall_stripe_old": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  },
+  "wall_wainscot_old": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  }
+ }
+}

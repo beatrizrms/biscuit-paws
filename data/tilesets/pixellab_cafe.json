@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 12,
- "rows": 6,
+ "rows": 7,
  "pieces": {
   "cat_tree": {
    "col": 0,
@@ -234,6 +234,18 @@
   "bar_balcao_dir": {
    "col": 10,
    "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_shelf": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "wall_clock": {
+   "col": 2,
+   "row": 6,
    "w_tiles": 1,
    "h_tiles": 1
   }

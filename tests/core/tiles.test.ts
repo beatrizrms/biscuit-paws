@@ -90,6 +90,13 @@ describe('folha que troca a arte de tiles existentes (replaces)', () => {
     expect(getTile(catalog, 'sofa').solid).toBe(!antes.solid);
   });
 
+  it('a peça nova pode trazer variações (células seguidas na linha)', () => {
+    const catalog = buildCatalog(csv, meta, undefined, [troca({ cactus: { col: 0, row: 0, w_tiles: 1, h_tiles: 1, variants: 3 } })]);
+    const cactus = getTile(catalog, 'cactus');
+    expect(cactus.variants).toBe(3);
+    expect(frameOf(catalog, cactus, 0, 0, 2)).toBe(2);
+  });
+
   it('recusa trocar um tile que não existe ou com outro tamanho', () => {
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa_gigante: { col: 0, row: 0, w_tiles: 1, h_tiles: 1 } })])).toThrow(/não existe/);
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa: { col: 0, row: 0, w_tiles: 3, h_tiles: 2 } })])).toThrow(/tamanho|tiles/);
