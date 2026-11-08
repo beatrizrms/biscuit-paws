@@ -542,5 +542,10 @@
     "closed": "café fechado",
     "prev": "estação anterior",
     "next": "próxima estação"
+  },
+  "reputation": {
+    "label": "Reputação",
+    "title": "Reputação felina da cidade: {value} de {max}",
+    "reached": "Reputação felina: agora você é \"{name}\"!"
   }
 }

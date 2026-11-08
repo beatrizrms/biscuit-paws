@@ -48,6 +48,8 @@ export interface MiniGameDef {
   instructions: string;
   /** Tutorial mostrado na intro (sem ele, aparece `instructions`). */
   tutorial?: MiniGameTutorial;
+  /** Reputação felina pelo resultado (pular não vale nada; fail pode ser negativo). */
+  reputation?: Partial<Record<Outcome, number>>;
   /** Mapa da arena, quando o jogo usa um (ex.: a rua da fuga). */
   map?: string;
   rewards: Record<Difficulty, { ok: number; great: number }>;
@@ -199,6 +201,7 @@ export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySe
       if (n < 1 || n > TUTORIAL_MAX_LINES) err(`"${id}": tutorial precisa de 1 a ${TUTORIAL_MAX_LINES} linhas`);
       if (g.tutorial.icon && refs.icons && !refs.icons.has(g.tutorial.icon)) err(`"${id}": ícone do tutorial inexistente "${g.tutorial.icon}"`);
     }
+    for (const [o, v] of Object.entries(g.reputation ?? {})) if (!Number.isFinite(v)) err(`"${id}": reputation.${o} precisa ser um número`);
     for (const d of DIFFICULTIES) {
       if (!g.difficulties[d]) err(`"${id}": falta a dificuldade "${d}"`);
       const r = g.rewards[d];

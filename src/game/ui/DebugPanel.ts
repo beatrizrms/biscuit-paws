@@ -27,6 +27,8 @@ export class DebugPanel {
       <header><strong>DEBUG</strong> · save de teste · F9 desliga</header>
       <div class="buttons">
         <button data-act="money">+100 moedas</button>
+        <button data-act="rep">+10 reputação</button>
+        <button data-act="rep-zero">Zerar reputação</button>
         <button data-act="skip">Pular falas</button>
         <button data-act="collision">Colisão</button>
         <button data-act="grid">Grade</button>
@@ -46,6 +48,12 @@ export class DebugPanel {
       btn.addEventListener('click', () => fn(btn));
     };
     on('money', () => session.addMoney(100, 'debug'));
+    on('rep', () => session.addReputation(10, 'debug'));
+    // Zerar também esquece os limiares alcançados (para testar os eventos de novo).
+    on('rep-zero', () => {
+      session.addReputation(-session.reputation(), 'debug:zerar');
+      session.state.reputation.reached = [];
+    });
     on('skip', () => actions.skipDialogue());
     on('collision', (b) => b.classList.toggle('on', actions.toggleCollision()));
     on('grid', (b) => b.classList.toggle('on', actions.toggleGrid()));
@@ -67,6 +75,8 @@ export class DebugPanel {
 
   private render(): void {
     const done = this.session.state.story.completed.map((id) => id.replace('story.', '')).join(' → ') || 'nenhum';
-    this.status.textContent = `célula ${this.cell} · marcos: ${done}`;
+    const rep = this.session.state.reputation;
+    const last = rep.log.slice(-3).map((e) => `${e.amount > 0 ? '+' : ''}${e.amount} ${e.reason}`).join(', ');
+    this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · marcos: ${done}`;
   }
 }

@@ -41,6 +41,7 @@ export function rawContent(): RawContent {
     rooms: read('data/rooms.json'),
     seasons: read('data/seasons.json'),
     adoption: read('data/adoption.json'),
+    reputation: read('data/reputation.json'),
   };
 }
 

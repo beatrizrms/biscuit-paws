@@ -15,6 +15,7 @@ import { validateHealth, type HealthConfig } from './health';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, type AdoptionData } from './adoption';
+import { validateReputation, type ReputationConfig } from './reputation';
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
 import { validateLattePatterns } from './latte';
@@ -289,6 +290,8 @@ export interface Content {
   seasons: SeasonsData;
   /** Match de adoção: gatos do abrigo, famílias e regras (data/adoption.json). */
   adoption: AdoptionData;
+  /** Reputação felina: valor inicial, limiares (data/reputation.json). */
+  reputation: ReputationConfig;
   /** A fachada do café (superfície do pintor na rua), se configurada. */
   facade: FinishesData['facade'] | null;
   jobs: Record<string, JobDef>;
@@ -330,6 +333,7 @@ export interface RawContent {
   rooms: RoomsData;
   seasons: SeasonsData;
   adoption: AdoptionData;
+  reputation: ReputationConfig;
 }
 
 /** Correio (data/delivery.json). */
@@ -362,7 +366,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -414,6 +418,7 @@ export function validateContent(raw: RawContent): string[] {
     const most = Math.max(...Object.values(g.difficulties).map((d) => Number(d.obstacles ?? 0)));
     errors.push(...validateDelivery(g.items, g.obstacles, most, new Set(Object.keys(raw.icons.icons))));
   }
+  errors.push(...validateReputation(raw.reputation));
   const adoptGame = raw.minigames.games.adoption;
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);

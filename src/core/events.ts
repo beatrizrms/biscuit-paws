@@ -19,6 +19,8 @@ export interface GameEvents {
   'customers.away': { sickCats: number };
   'debt.paid': { amount: number; left: number };
   /** Um mini game acabou (as moedas já entraram). */
+  'reputation.changed': { from: number; to: number; amount: number; reason: string };
+  'reputation.threshold_reached': { thresholdId: string; value: number };
   'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };

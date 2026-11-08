@@ -7,11 +7,12 @@ import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 import { normalizeRoomsState, type RoomsData } from './rooms';
 import { WEEK, type Schedule } from './schedule';
+import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 15;
+export const SAVE_SCHEMA_VERSION = 16;
 
-export interface SaveV15 extends GameState {
-  schemaVersion: 15;
+export interface SaveV16 extends GameState {
+  schemaVersion: 16;
   savedAt: string;
 }
 
@@ -91,10 +92,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   13: (save) => ({ ...save, schemaVersion: 14, rooms: {}, doors: {} }),
   /** v14 -> v15: horário de funcionamento escolhido pela jogadora. Saves antigos: o padrão dos dados. */
   14: (save) => ({ ...save, schemaVersion: 15, schedule: null }),
+  /** v15 -> v16: reputação felina. Saves antigos começam no valor inicial dos dados (parseSave preenche). */
+  15: (save) => ({ ...save, schemaVersion: 16, reputation: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV15 = { schemaVersion: 15, savedAt: now.toISOString(), ...state };
+  const save: SaveV16 = { schemaVersion: 16, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -120,6 +123,8 @@ export interface KnownIds {
   character: CharacterData;
   /** Cômodos e passagens (estado que sumiu volta ao inicial). */
   rooms: RoomsData;
+  /** Reputação de quem não tem (saves antigos). */
+  reputationStart?: number;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -135,7 +140,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV15>;
+  const v2 = save as unknown as Partial<SaveV16>;
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -233,10 +238,22 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
+    reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
+}
+
+/** Reputação salva (ou a inicial, em save antigo ou quebrado). */
+function normalizeReputation(r: unknown, start: number): ReputationState {
+  const x = r as Partial<ReputationState> | null | undefined;
+  if (!x || typeof x.value !== 'number' || !Number.isFinite(x.value)) return { value: start, reached: [], log: [] };
+  return {
+    value: Math.max(0, x.value),
+    reached: Array.isArray(x.reached) ? x.reached.filter((id): id is string => typeof id === 'string') : [],
+    log: Array.isArray(x.log) ? x.log.filter((e) => e && typeof e.amount === 'number' && typeof e.reason === 'string' && typeof e.day === 'number') : [],
+  };
 }
 
 /** Horário salvo com o formato certo (as regras de horas a sessão confere; inválido volta ao padrão). */
@@ -260,6 +277,7 @@ export function knownIds(content: {
   health: { diseases: { id: string }[] };
   rooms: RoomsData;
   facade?: { surface: { id: string } } | null;
+  reputation?: { start: number };
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -273,5 +291,6 @@ export function knownIds(content: {
     startMap: content.world.startMap,
     character: content.character,
     rooms: content.rooms,
+    reputationStart: content.reputation?.start ?? 0,
   };
 }

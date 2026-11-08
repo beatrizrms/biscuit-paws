@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Reputação felina da cidade (0 a max). start: valor de um jogo novo (e de saves antigos). logSize: quantos registros (motivo de cada mudança) ficam no save, para debug. thresholds: ao passar de cada valor (subindo), dispara o evento reputation.threshold_reached com o id, uma vez só. Os desbloqueios ainda não existem: só o gancho. Quanto cada mini game vale: data/minigames.json (reputation de cada jogo) e data/adoption.json (reputation por adoção).",
+  "start": 0,
+  "max": 100,
+  "logSize": 20,
+  "thresholds": [
+    { "id": "rep.noticed", "at": 20, "name": "Notada na vila" },
+    { "id": "rep.trusted", "at": 40, "name": "De confiança" },
+    { "id": "rep.beloved", "at": 60, "name": "Querida pelos gatos" },
+    { "id": "rep.legend", "at": 80, "name": "Lenda felina" }
+  ]
+}

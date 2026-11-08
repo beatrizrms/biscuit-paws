@@ -70,6 +70,7 @@ export class GameUi {
       <div class="panel hud-goals"></div>
       <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
+      <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <div class="dialogue-layer">
@@ -177,6 +178,16 @@ export class GameUi {
       this.toast(uiText.health.infected.replace('{name}', session.catName(catId)).replace('{from}', session.catName(fromCatId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4500),
     );
     bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
+    bus.on('reputation.changed', () => {
+      const el = this.root.querySelector<HTMLElement>('.hud-rep');
+      el?.classList.remove('bump');
+      void el?.offsetWidth; // reinicia a animação
+      el?.classList.add('bump');
+    });
+    bus.on('reputation.threshold_reached', ({ thresholdId }) => {
+      const t = content.reputation.thresholds.find((x) => x.id === thresholdId);
+      if (t) this.toast(uiText.reputation.reached.replace('{name}', t.name), 4000);
+    });
     bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
@@ -341,6 +352,17 @@ export class GameUi {
     this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
   }
 
+  /** Reputação felina no HUD: barrinha e número (embaixo do dinheiro). */
+  private renderReputation(): void {
+    const el = this.root.querySelector<HTMLElement>('.hud-rep');
+    if (!el) return;
+    const max = content.reputation.max;
+    const value = this.session.reputation();
+    (el.querySelector('.fill') as HTMLElement).style.width = `${Math.round((value / max) * 100)}%`;
+    (el.querySelector('.value') as HTMLElement).textContent = String(Math.round(value));
+    el.title = uiText.reputation.title.replace('{value}', String(Math.round(value))).replace('{max}', String(max));
+  }
+
   /** Hora no HUD (só mexe no texto quando muda). */
   setClock(text: string): void {
     const el = this.money.querySelector('.clock') as HTMLElement;
@@ -496,6 +518,7 @@ export class GameUi {
     }
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
+    this.renderReputation();
     const sd = this.session.seasonDay();
     (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day)).replace('{weekday}', uiText.weekdays[this.session.service.weekday()] ?? '');
     if (bumpMoney) {

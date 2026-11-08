@@ -16,6 +16,7 @@ import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
+import { addReputation, reputationForResult } from './reputation';
 import {
   activeFeatures,
   catCapacity,
@@ -162,6 +163,8 @@ export class GameSession {
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
   start(isNew: boolean): void {
+    // Jogo novo: a reputação começa no valor dos dados (newGameState não conhece o conteúdo).
+    if (isNew && this.state.reputation.log.length === 0) this.state.reputation.value = this.content.reputation.start;
     // Saves de antes da v8: a louça que ela já ganhou entra no estoque.
     for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
     this.announceRecipes(true);
@@ -1012,7 +1015,14 @@ export class GameSession {
   finishMiniGame(result: MiniGameResult, params: MiniGameParams): void {
     if (result.coinsEarned > 0) this.addMoney(result.coinsEarned, `minigame:${result.gameId}`);
     if (result.itemId && this.content.items[result.itemId]) this.receiveItem(result.itemId);
-    for (const a of result.adoptions ?? []) this.bus.emit('cat.adopted', { catId: a.catId, verdict: a.verdict, leftCafe: a.verdict === 'good' && this.adoptOut(a.catId) });
+    for (const a of result.adoptions ?? []) {
+      this.bus.emit('cat.adopted', { catId: a.catId, verdict: a.verdict, leftCafe: a.verdict === 'good' && this.adoptOut(a.catId) });
+      // Cada adoção vale a sua reputação (boa vale mais que ok: data/adoption.json).
+      const rep = this.content.adoption.reputation[a.verdict] ?? 0;
+      if (rep !== 0) this.addReputation(rep, `adoption:${a.catId}:${a.verdict}`);
+    }
+    const rep = reputationForResult(this.content.minigames.games[result.gameId]?.reputation, result);
+    if (rep !== 0) this.addReputation(rep, `minigame:${result.gameId}:${result.outcome}`);
     this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
     if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
     else this.advanceStory();
@@ -1028,6 +1038,23 @@ export class GameSession {
     if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId)) return false;
     cat.sheltered = false;
     return true;
+  }
+
+  // ---------- Reputação felina ----------
+
+  /** Valor de 0 a max (data/reputation.json). */
+  reputation(): number {
+    return this.state.reputation.value;
+  }
+
+  /**
+   * Soma (ou tira) reputação, com o motivo (fica no log curto do save, para debug). Emite reputation.changed e,
+   * para cada limiar cruzado pela primeira vez, reputation.threshold_reached (os desbloqueios ainda não existem).
+   */
+  addReputation(amount: number, reason: string): void {
+    const { from, to, crossed } = addReputation(this.state.reputation, this.content.reputation, amount, reason, this.state.day);
+    if (from !== to) this.bus.emit('reputation.changed', { from, to, amount: to - from, reason });
+    for (const t of crossed) this.bus.emit('reputation.threshold_reached', { thresholdId: t.id, value: to });
   }
 
   /** Corações entre a protagonista e um gato. */

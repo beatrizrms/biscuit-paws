@@ -10,6 +10,7 @@ import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import type { DoorState, RoomState } from './rooms';
 import type { Schedule } from './schedule';
+import type { ReputationState } from './reputation';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -82,6 +83,8 @@ export interface GameState {
   doors: Record<string, DoorState>;
   /** Horário de funcionamento escolhido (v15; app "Horário"). null = o padrão de data/service.json. */
   schedule: Schedule | null;
+  /** Reputação felina da cidade (v16): valor, limiares já alcançados e o log curto dos motivos. */
+  reputation: ReputationState;
 }
 
 export interface PlayerState {
@@ -156,6 +159,8 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     rooms: {},
     doors: {},
     schedule: null,
+    // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
+    reputation: { value: 0, reached: [], log: [] },
   };
 }
 
