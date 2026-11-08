@@ -1,0 +1,145 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 7,
+ "pieces": {
+  "dirt_raio_de_sol": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "dirt_teia_canto_grande_esq": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "dirt_teia_canto_grande_dir": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "dirt_teia_janela": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "dirt_poeira_densa": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "dirt_poeira_c": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "dirt_teia_fio_aranha": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "dirt_escorrido_parede": {
+   "col": 5,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "dirt_teia_canto_esq": {
+   "col": 6,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_teia_canto_dir": {
+   "col": 7,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_poeira_a": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_poeira_b": {
+   "col": 1,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_mancha_agua": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_mancha_bolor": {
+   "col": 3,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_mancha_fuligem": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_rachadura_a": {
+   "col": 5,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_rachadura_b": {
+   "col": 6,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_vidro_quebrado": {
+   "col": 7,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_papeis_chao": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_folhas_secas": {
+   "col": 1,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_buraco_rato": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_balde_goteira": {
+   "col": 3,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_particulas_poeira": {
+   "col": 4,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

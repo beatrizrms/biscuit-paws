@@ -1,5 +1,5 @@
 {
- "tileSize": 32,
+ "tileSize": 64,
  "columns": 7,
  "rows": 1,
  "pieces": {
