@@ -614,7 +614,7 @@
       "inside": "Procurar o miado dentro do café e ganhar a confiança dele.",
       "danger": "Pegar o gato ferido e correr com ele até a clínica!",
       "box": "Ver a caixa que mia na porta do café.",
-      "ask": "Perguntar pela vila de quem é o gato (mercado e clínica)."
+      "ask": "Os vizinhos estão dando palpites: ouvir um deles."
     },
     "choices": {
       "take_in": {
@@ -641,6 +641,11 @@
         "question": "Ninguém na vila sabe de quem é. O gatinho da caixa fica no café?",
         "yes": "Fica!",
         "no": "Agora não"
+      },
+      "neighbor_offer_skeptic": {
+        "question": "{arrival:npc}: \"E então? Vai ficar com ele ou não? Não é meu, já disse.\"",
+        "yes": "Fico com ele",
+        "no": "Agora não"
       }
     },
     "poster": {
@@ -656,6 +661,15 @@
       "declined": "O gato seguiu o caminho dele."
     },
     "settled": "Abriu vaga: o gato provisório ficou de vez!",
-    "expired": "Sem vaga no café... o gato provisório foi para o abrigo da vila."
+    "expired": "Sem vaga no café... o gato provisório foi para o abrigo da vila.",
+    "ask": {
+      "question": "Os vizinhos olham para o gato lá em cima. Quem você ouve?",
+      "option": "{npc}: \"{tip}\""
+    },
+    "tips": {
+      "pole_calm": "Fale baixinho e espere. Gato assustado desce sozinho quando se sente seguro.",
+      "pole_treat": "Chama com um petisco! Gato nenhum resiste.",
+      "pole_ladder": "Pega a escada e sobe rápido, antes que ele pule!"
+    }
   }
 }

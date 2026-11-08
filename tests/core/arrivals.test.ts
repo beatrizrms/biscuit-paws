@@ -343,7 +343,11 @@ describe('modelos de chegada com mini game (etapa d)', () => {
   const mgPoint = (s: GameSession, map: string) => s.pendingJobPoints(map).find((p) => p.action === 'minigame')!;
 
   it('preso: o mini game da confiança tem a dificuldade do jeito do gato; não deu, tenta de novo; deu, segue', () => {
-    const { session, state } = cafe();
+    // As etapas padrão do modelo preso (sem as dicas dos vizinhos do exemplo).
+    const pole = { ...content.arrivals.arrivals.find((a) => a.id === 'arr.cat_on_pole')!, steps: [] };
+    const state = newGameState(500, 'map.street', 10 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession({ ...content, arrivals: { ...content.arrivals, arrivals: [pole] } }, state);
     session.arrivals.queueNow('arr.cat_on_pole');
     const p = mgPoint(session, 'map.street');
     const shy = content.catProfiles.personalities[session.catDef('cat.gen.1')!.personality]!.trust;
@@ -401,5 +405,78 @@ describe('modelos de chegada com mini game (etapa d)', () => {
     session.finishMiniGame(result('delivery', 'ok'), { difficulty: 'normal', jobPoint: run.id });
     expect(state.cats['cat.gen.1']?.sickness).not.toBeNull();
     expect(state.money).toBe(500 - 15);
+  });
+});
+
+describe('eventos de exemplo e debug (etapa e)', () => {
+  function cafe(day = 20) {
+    const state = newGameState(500, 'map.street', 10 * 60);
+    state.day = day;
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    state.flags['met.old_neighbor'] = true;
+    const session = new GameSession(content, state);
+    const events: { name: string; payload: unknown }[] = [];
+    session.bus.onAny((name, payload) => events.push({ name, payload }));
+    return { session, state, events };
+  }
+  const shelter = (state: ReturnType<typeof newGameState>, ids: string[]) => {
+    for (const id of ids) state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
+  };
+
+  it('gato no poste: quem ela ouve muda a dificuldade e ganha corações; a vila ganha reputação', () => {
+    const { session, state, events } = cafe();
+    session.arrivals.queueNow('arr.cat_on_pole');
+    const ask = events.find((e) => e.name === 'arrival.ask')!.payload as { options: { npc: string }[] };
+    expect(ask.options.map((o) => o.npc)).toEqual(['npc.neusa', 'npc.gabi', 'npc.mail_carrier']);
+    session.answerArrivalAsk(2); // a escada: difícil
+    const p = session.pendingJobPoints('map.street').find((x) => x.action === 'minigame')!;
+    expect(p.minigame?.difficulty).toBe('hard');
+    session.finishMiniGame({ gameId: 'trust', outcome: 'ok', score: 0, coinsEarned: 0, skipped: false }, { difficulty: 'hard', jobPoint: p.id });
+    session.answerArrival(true);
+    expect(state.relationships['player|npc.mail_carrier']).toBe(10);
+    // +2 da chegada (a vila) e o que o próprio mini game da confiança vale.
+    expect(state.reputation.value).toBe(content.reputation.start + 2 + content.minigames.games.trust!.reputation!.ok!);
+  });
+
+  it('2º gato: a Dona Neusa no dia 8, só com 1 gato; 3º: pegadas no dia 12, só com 2', () => {
+    const early = cafe(7);
+    shelter(early.state, ['cat.first_stray']);
+    early.session.arrivals.tick();
+    expect(early.state.arrivals.active).toBeNull();
+    const second = cafe(8);
+    shelter(second.state, ['cat.first_stray']);
+    second.session.arrivals.tick();
+    expect(second.state.arrivals.active?.id).toBe('arr.second_cat');
+    second.session.doJobPoint('arrival:arr.second_cat');
+    expect(second.events).toContainEqual({ name: 'dialogue.requested', payload: { dialogueId: 'dlg.arrival_second_cat' } });
+    second.session.answerArrival(true);
+    expect(second.state.relationships['player|npc.neusa']).toBe(80);
+    const third = cafe(12);
+    shelter(third.state, ['cat.first_stray', 'cat.gen.1']);
+    third.session.arrivals.tick();
+    expect(third.state.arrivals.active?.id).toBe('arr.third_cat');
+    expect(third.session.catDef(third.state.arrivals.active!.catId)).toMatchObject({ personality: 'shy', variant: 'misty' });
+  });
+
+  it('vizinho cético: aceitar dá corações à corretora e reputação', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.skeptic_realtor');
+    session.doJobPoint('arrival:arr.skeptic_realtor');
+    session.answerArrival(true);
+    expect(state.relationships['player|npc.realtor']).toBe(80);
+    expect(state.reputation.value).toBe(content.reputation.start + 3);
+  });
+
+  it('debug: clima forçado liga o gatilho; café cheio força o provisório; gerar gato escolhido', () => {
+    const { session, state } = cafe(5); // inverno
+    session.arrivals.debug.weather = 'sun';
+    expect(session.arrivals.triggerReport().find((r) => r.id === 'arr.snow_trail')?.holds).toBe(false);
+    session.arrivals.debug.weather = 'snow';
+    state.time = 8 * 60;
+    expect(session.arrivals.triggerReport().find((r) => r.id === 'arr.snow_trail')?.holds).toBe(true);
+    session.arrivals.debug.cafeFull = true;
+    const id = session.arrivals.debugGenerate('grumpy', 'senior');
+    expect(session.catDef(id)).toMatchObject({ personality: 'grumpy', adoptionTraits: { age: 'senior' } });
+    expect(state.cats[id]?.provisionalUntil).toBeDefined();
   });
 });

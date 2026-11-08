@@ -26,6 +26,8 @@ export interface GameEvents {
   'arrival.step': { arrivalId: string; step: number };
   /** A chegada pergunta (sim/não); a resposta volta por session.answerArrival. */
   'arrival.choice': { arrivalId: string; key: string };
+  /** Vizinhos dão dicas (etapa ask); a escolha volta por session.answerArrivalAsk. */
+  'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };

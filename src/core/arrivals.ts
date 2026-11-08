@@ -36,6 +36,16 @@ export interface ArrivalTrigger {
   when?: unknown;
 }
 
+/** Uma dica de vizinho (etapa ask): quem ela ouve muda a dificuldade do mini game seguinte e dá corações a quem ajudou. */
+export interface AskOption {
+  npc: string;
+  /** Texto da dica: ui_text.json arrivals.tips[tip]. */
+  tip: string;
+  difficulty: 'easy' | 'normal' | 'hard';
+  /** Pontos com a protagonista para quem deu a dica (quando o gato entra). */
+  points: number;
+}
+
 /** Uma etapa da chegada (o modelo dá as etapas padrão: arrivalModels.ts; os dados podem trocar). */
 export type ArrivalStep =
   /** Ir até o lugar da chegada (place.map / place.at) e apertar E (o gato, ou o vizinho, espera ali). */
@@ -44,6 +54,8 @@ export type ArrivalStep =
   | { poster: true }
   /** Seguir o gato do café que leva até o lugar (place.route; o fim é o destino, onde o gato novo espera). */
   | { lead: true }
+  /** Vizinhos dão dicas; ela escolhe quem ouvir (a dificuldade "auto" do mini game seguinte vira a da dica). */
+  | { ask: AskOption[] }
   | { dialogue: string }
   | { cutscene: string }
   | { script: string }
@@ -64,6 +76,8 @@ export interface ArrivalResult {
   npc?: { id: string; points: number };
   /** Moedas que entram (bônus) ou saem (custo do vet, ração...). */
   money?: number;
+  /** Reputação felina da cidade (a vila aceita melhor os gatos). */
+  reputation?: number;
 }
 
 export interface ArrivalDef {
@@ -129,6 +143,8 @@ export interface ActiveArrival {
   leaderId?: string;
   /** Ninhada: os filhotes que vêm junto (gerados). */
   extraCats?: string[];
+  /** Etapa ask: a dica escolhida (índice nas opções). */
+  tip?: number;
   /** Etapa atual (índice em steps). */
   step: number;
 }
@@ -283,6 +299,13 @@ export function validateArrivals(
       else if ('script' in step && !refs.scripts.has(step.script)) err(`${w}: roteiro inexistente "${step.script}"`);
       else if ('clue' in step && !refs.points.has(step.clue)) err(`${w}: ponto inexistente "${step.clue}"`);
       else if ('minigame' in step && !refs.minigames.has(step.minigame.id)) err(`${w}: mini game inexistente "${step.minigame.id}"`);
+      else if ('ask' in step) {
+        if (step.ask.length < 2) err(`${w}: ask precisa de 2 dicas ou mais`);
+        for (const o of step.ask) {
+          if (!refs.npcs.has(o.npc)) err(`${w}: dica de NPC inexistente "${o.npc}"`);
+          if (!['easy', 'normal', 'hard'].includes(o.difficulty)) err(`${w}: dica com dificuldade inválida "${o.difficulty}"`);
+        }
+      }
     }
   }
   return errors;

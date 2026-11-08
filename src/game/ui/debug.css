@@ -24,3 +24,6 @@
 }
 .debug-panel button.on { background: var(--berry); color: var(--cream); }
 .debug-panel .status { color: var(--ink2); }
+/* Linha das chegadas: seletores pequenos como os botões */
+.debug-panel select { padding: 0 2px; font: inherit; font-size: 7px; border: 1px solid var(--cream3); border-radius: 3px; background: var(--cream); color: var(--ink); }
+.debug-panel .buttons.arrivals strong { font-size: 7px; color: var(--berry); align-self: center; }

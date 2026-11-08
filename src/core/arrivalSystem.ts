@@ -44,12 +44,21 @@ export interface ArrivalHost {
   /** Abriga o gato no café com a condição de chegada (saúde, doença, fome). */
   shelterCat(catId: string, condition: string, provisionalUntil?: number): void;
   addMoney(delta: number, reason: string): void;
+  addReputation(amount: number, reason: string): void;
   /** Pontos de relação (corações) de `from` por `to`. */
   addPoints(from: string, to: string, delta: number): void;
 }
 
+/** Debug (não vai para o save): forçar o clima e o café cheio para testar os gatilhos e a capacidade. */
+export interface ArrivalDebug {
+  weather?: string;
+  cafeFull?: boolean;
+}
+
 export class ArrivalSystem {
   private rngCalls = 0;
+  /** Painel de debug: clima forçado e café cheio. */
+  debug: ArrivalDebug = {};
 
   constructor(private h: ArrivalHost) {}
 
@@ -95,7 +104,7 @@ export class ArrivalSystem {
       day: s.day,
       time: s.time,
       season: seasonOf(seasons, s.day),
-      weather: weatherOf(seasons, s.day),
+      weather: this.debug.weather ?? weatherOf(seasons, s.day),
       cats: this.h.shelteredCount(),
       reputation: this.h.reputation(),
       evaluate: (c: unknown) => this.h.evaluate(c),
@@ -114,12 +123,17 @@ export class ArrivalSystem {
     this.tryStart();
   }
 
+  /** Vagas do café (o debug pode forçar "cheio"). */
+  private capacity(): number {
+    return this.debug.cafeFull ? 0 : this.h.capacity();
+  }
+
   /** Começa a primeira da fila, se nada exclusivo está acontecendo (e, se ela adia com o café cheio, se há vaga). */
   private tryStart(): void {
     if (this.st.active) return;
     // Urgente (em_perigo) não espera os marcos exclusivos da história.
     const exclusive = this.h.exclusiveActive();
-    const full = this.h.shelteredCount() >= this.h.capacity();
+    const full = this.h.shelteredCount() >= this.capacity();
     // gato_leva precisa de um gato do café para guiar.
     const i = this.st.queue.findIndex((id) => {
       const def = this.def(id);
@@ -189,6 +203,7 @@ export class ArrivalSystem {
       if ('cutscene' in step) this.h.bus.emit('cutscene.requested', { cutsceneId: step.cutscene });
       else if ('script' in step) this.h.bus.emit('script.requested', { scriptId: step.script });
       else if ('choice' in step) this.h.bus.emit('arrival.choice', { arrivalId: a.id, key: step.choice });
+      else if ('ask' in step) this.h.bus.emit('arrival.ask', { arrivalId: a.id, options: step.ask.map((o) => ({ npc: o.npc, tip: o.tip })) });
       return;
     }
   }
@@ -233,8 +248,27 @@ export class ArrivalSystem {
     return false;
   }
 
-  /** Dificuldade "auto": a da confiança da personalidade do gato (tímido = difícil). */
+  /** A dica escolhida na etapa ask (se houve). */
+  private chosenTip() {
+    const a = this.active();
+    if (!a || this.st.active?.tip === undefined) return undefined;
+    const ask = stepsOf(a.def).find((s): s is Extract<ArrivalStep, { ask: unknown }> => 'ask' in s);
+    return ask?.ask[this.st.active.tip];
+  }
+
+  /** Ela escolheu ouvir a dica de um vizinho (etapa ask). */
+  answerAsk(index: number): void {
+    const step = this.currentStep();
+    const a = this.st.active;
+    if (!a || !step || !('ask' in step) || !step.ask[index]) return;
+    a.tip = index;
+    this.advance();
+  }
+
+  /** Dificuldade "auto": a da dica escolhida (etapa ask) ou a da confiança da personalidade do gato (tímido = difícil). */
   private autoDifficulty(catId: string): 'easy' | 'normal' | 'hard' {
+    const tip = this.chosenTip();
+    if (tip) return tip.difficulty;
     const p = this.h.catPersonality(catId);
     return this.h.content.catProfiles.personalities[p]?.trust ?? 'normal';
   }
@@ -280,7 +314,7 @@ export class ArrivalSystem {
     if (outcome === 'accepted') {
       // Cada gato (o principal e os filhotes da ninhada) pela vaga: no café, provisório ou abrigo da vila.
       const place = (catId: string, condition: string): Placement => {
-        const full = this.h.shelteredCount() >= this.h.capacity();
+        const full = this.h.shelteredCount() >= this.capacity();
         const where: Placement = !full ? 'sheltered' : def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
         if (where === 'shelter_pool') this.st.shelterPool.push(catId);
         else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined);
@@ -292,6 +326,10 @@ export class ArrivalSystem {
       if (r.startPoints) this.h.addPoints('player', a.catId, r.startPoints);
       if (r.npc) this.h.addPoints('player', r.npc.id, r.npc.points);
       if (r.money) this.h.addMoney(r.money, `arrival:${def.id}`);
+      if (r.reputation) this.h.addReputation(r.reputation, `arrival:${def.id}`);
+      // Quem deu a dica que ela ouviu ganha corações.
+      const tip = a.tip !== undefined ? stepsOf(def).find((st): st is Extract<ArrivalStep, { ask: unknown }> => 'ask' in st)?.ask[a.tip] : undefined;
+      if (tip?.points) this.h.addPoints('player', tip.npc, tip.points);
     } else for (const id of [a.catId, ...(a.extraCats ?? [])]) if (s.catDefs[id] && !s.cats[id]) delete s.catDefs[id];
     if (def.kind === 'random') this.st.nextOn = s.day + nextGap(this.data, s.day, this.rng());
     this.h.bus.emit('arrival.finished', { arrivalId: def.id, catId: a.catId, outcome, placement });
@@ -308,7 +346,7 @@ export class ArrivalSystem {
     const provisional = Object.entries(s.cats).filter(([, c]) => c.sheltered && c.provisionalUntil !== undefined);
     for (const [id, cat] of provisional) {
       const permanent = Object.values(s.cats).filter((c) => c.sheltered && c.provisionalUntil === undefined).length;
-      if (permanent < this.h.capacity()) {
+      if (permanent < this.capacity()) {
         delete cat.provisionalUntil;
         this.h.bus.emit('arrival.provisional_settled', { catId: id });
       } else if (newDay > cat.provisionalUntil!) {
@@ -327,6 +365,23 @@ export class ArrivalSystem {
     this.st.queue.push(arrivalId);
     this.tryStart();
     return true;
+  }
+
+  /** Debug: gera um gato com personalidade e condição escolhidas e abriga (pela vaga, como uma chegada aceita). */
+  debugGenerate(personality: string, condition: string): string {
+    this.st.seq++;
+    const gen = generateCat(this.rng(), this.h.content.catProfiles, { personality, condition }, this.st.seq);
+    this.h.state.catDefs[gen.def.id] = gen.def;
+    const full = this.h.shelteredCount() >= this.capacity();
+    if (full) this.h.shelterCat(gen.def.id, condition, this.h.state.day + this.data.provisional.days);
+    else this.h.shelterCat(gen.def.id, condition);
+    return gen.def.id;
+  }
+
+  /** Debug: quais chegadas valem agora pelo gatilho (com o clima e o café cheio forçados). */
+  triggerReport(): { id: string; holds: boolean }[] {
+    const ctx = this.context();
+    return this.data.arrivals.map((d) => ({ id: d.id, holds: triggerHolds(d.trigger, ctx) }));
   }
 
   /** O gatilho desta chegada vale agora? (debug) */

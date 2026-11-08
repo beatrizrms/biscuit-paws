@@ -896,8 +896,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return cat;
     };
     const at = a.def.place.at;
-    // Etapa de mini game: o gato fica no lugar (preso no alto do poste: place.lift), esperando ajuda.
-    if ('minigame' in step && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0);
+    // Etapa de mini game (e as dicas antes dela): o gato fica no lugar (preso no alto do poste: place.lift).
+    if (('minigame' in step || 'ask' in step) && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0);
+    // Dicas: os vizinhos em volta, olhando para cima.
+    if ('ask' in step && at) {
+      step.ask.forEach((o, i) => {
+        const npc = this.session.content.npcs[o.npc];
+        if (!npc) return;
+        const sprite = new NpcSprite(this, npc, (at[0] - 1 + i * 1.5) * ts, (at[1] + 1) * ts + 6, ts);
+        sprite.face('up');
+        this.arrivalActors.push(sprite);
+      });
+    }
     if ('meet' in step && at) {
       if (who.parcel) {
         // A caixa que mia (o quadro da caixa de entrega dos balões).

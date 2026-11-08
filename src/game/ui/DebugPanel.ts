@@ -16,6 +16,8 @@ export interface DebugActions {
 export class DebugPanel {
   private status: HTMLElement;
   private cell = '-';
+  /** Resultado do botão "gatilhos agora". */
+  private note = '';
 
   constructor(
     root: HTMLElement,
@@ -32,7 +34,18 @@ export class DebugPanel {
         <button data-act="rep-zero">Zerar reputação</button>
         <button data-act="fair">Feira: começar</button>
         <button data-act="fair-day">Feira: ir ao dia</button>
-        ${session.content.arrivals.arrivals.map((a) => `<button data-arrival="${a.id}">chegada ${a.id.replace('arr.', '')}</button>`).join('')}
+      </div>
+      <div class="buttons arrivals">
+        <strong>Chegadas</strong>
+        ${session.content.arrivals.arrivals.map((a) => `<button data-arrival="${a.id}">${a.id.replace('arr.', '')}</button>`).join('')}
+        <select data-dbg="weather"><option value="">clima do dia</option>${[...new Set(Object.values(session.content.seasons.weather ?? {}).flatMap((w) => Object.keys(w)))].map((w) => `<option>${w}</option>`).join('')}</select>
+        <button data-act="hour">+1 h</button>
+        <button data-act="day">+1 dia</button>
+        <button data-act="full">café cheio</button>
+        <select data-dbg="personality">${Object.keys(session.content.catProfiles.personalities).map((p) => `<option>${p}</option>`).join('')}</select>
+        <select data-dbg="condition">${Object.keys(session.content.catProfiles.conditions).map((c) => `<option>${c}</option>`).join('')}</select>
+        <button data-act="gen-cat">gerar gato</button>
+        <button data-act="triggers">gatilhos agora</button>
         <button data-act="skip">Pular falas</button>
         <button data-act="collision">Colisão</button>
         <button data-act="grid">Grade</button>
@@ -73,6 +86,26 @@ export class DebugPanel {
     on('grid', (b) => b.classList.toggle('on', actions.toggleGrid()));
     on('new', () => actions.newGame());
     on('off', () => actions.turnOff());
+    // Chegadas: forçar clima, horas, dias e café cheio; gerar um gato; ver quais gatilhos valem agora.
+    const sel = (k: string) => panel.querySelector(`[data-dbg="${k}"]`) as HTMLSelectElement;
+    sel('weather').addEventListener('change', () => {
+      session.arrivals.debug.weather = sel('weather').value || undefined;
+      session.arrivals.tick();
+    });
+    on('hour', () => {
+      session.state.time += 60;
+      session.arrivals.tick();
+    });
+    on('day', () => session.endDay('home'));
+    on('full', (b) => {
+      session.arrivals.debug.cafeFull = !session.arrivals.debug.cafeFull;
+      b.classList.toggle('on', session.arrivals.debug.cafeFull);
+    });
+    on('gen-cat', () => session.arrivals.debugGenerate(sel('personality').value, sel('condition').value));
+    on('triggers', () => {
+      this.note = session.arrivals.triggerReport().filter((r) => r.holds).map((r) => r.id.replace('arr.', '')).join(', ') || 'nenhum';
+      this.render();
+    });
     // Chegadas: põe na fila agora (ignora o gatilho e o sorteio; respeita a vez).
     panel.querySelectorAll<HTMLButtonElement>('[data-arrival]').forEach((b) => b.addEventListener('click', () => session.arrivals.queueNow(b.dataset.arrival!)));
     panel.querySelectorAll<HTMLButtonElement>('[data-mg]').forEach((b) =>
@@ -96,7 +129,8 @@ export class DebugPanel {
     // Chegadas de gatos: a em andamento, a fila, a próxima sorteada e o clima do dia.
     const ar = this.session.state.arrivals;
     const weather = weatherOf(this.session.content.seasons, this.session.state.day);
-    const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${weather}`;
+    const forced = this.session.arrivals.debug;
+    const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${forced.weather ?? weather}${forced.cafeFull ? ' · CAFÉ CHEIO' : ''}${this.note ? ` · gatilhos: ${this.note}` : ''}`;
     this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · ${arrivals} · marcos: ${done}`;
   }
 }

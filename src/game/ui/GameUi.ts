@@ -189,7 +189,19 @@ export class GameUi {
     bus.on('arrival.choice', ({ key }) => {
       const c = at.choices[key as keyof typeof at.choices];
       if (!c) return this.session.answerArrival(true);
-      void this.confirm(this.fillNames(c.question), c.yes, c.no).then((yes) => this.session.answerArrival(yes));
+      // A pergunta espera a fala da chegada (a do vizinho, por exemplo) acabar.
+      void this.afterDialogue()
+        .then(() => this.confirm(this.fillNames(c.question), c.yes, c.no))
+        .then((yes) => this.session.answerArrival(yes));
+    });
+    // Dicas dos vizinhos: ela escolhe quem ouvir (a escolha muda a dificuldade e dá corações a quem ajudou).
+    bus.on('arrival.ask', ({ options }) => {
+      const list = options.map((o) =>
+        at.ask.option.replace('{npc}', content.npcs[o.npc]?.name ?? '').replace('{tip}', at.tips[o.tip as keyof typeof at.tips] ?? ''),
+      );
+      void this.afterDialogue()
+        .then(() => this.choose(at.ask.question, list))
+        .then((i) => this.session.answerArrivalAsk(i));
     });
     bus.on('arrival.finished', ({ outcome, placement }) => {
       const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
@@ -398,7 +410,7 @@ export class GameUi {
     const mg = { preso: g.rescue, ninhada: g.litter, dentro_do_cafe: g.inside, em_perigo: g.danger } as Record<string, string>;
     const meetText = a.def.model === 'entrega' ? g.box : meet;
     const clueText = a.def.model === 'entrega' ? g.ask : g.clue;
-    const text = 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
+    const text = 'ask' in step ? g.ask : 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
     return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }
 
@@ -540,6 +552,41 @@ export class GameUi {
 
   isNewsOpen(): boolean {
     return this.news.isOpen();
+  }
+
+  /** Resolve quando não há fala, cena nem caixa de nome na tela (as perguntas das chegadas esperam). */
+  private afterDialogue(): Promise<void> {
+    return new Promise((resolve) => {
+      const check = () => (this.isDialogueOpen() || this.dialogueQueue.length > 0 ? window.setTimeout(check, 120) : resolve());
+      check();
+    });
+  }
+
+  /** Escolha entre várias opções (ex.: as dicas dos vizinhos). Clique ou 1 a 9. Devolve o índice. */
+  choose(question: string, options: string[]): Promise<number> {
+    const el = document.createElement('div');
+    el.className = 'confirm-layer';
+    el.innerHTML = `<div class="panel confirm choose"><p>${esc(question)}</p><div class="options">${options
+      .map((o, i) => `<button data-i="${i}"><b>${i + 1}</b> ${esc(o)}</button>`)
+      .join('')}</div></div>`;
+    this.root.appendChild(el);
+    this.reveal = { el, done: () => undefined };
+    this.refresh();
+    return new Promise((resolve) => {
+      const finish = (i: number) => {
+        window.removeEventListener('keydown', onKey);
+        el.remove();
+        this.reveal = null;
+        this.refresh();
+        resolve(i);
+      };
+      const onKey = (e: KeyboardEvent) => {
+        const n = Number(e.key) - 1;
+        if (Number.isInteger(n) && n >= 0 && n < options.length) finish(n);
+      };
+      window.setTimeout(() => window.addEventListener('keydown', onKey), 150);
+      el.querySelectorAll<HTMLButtonElement>('[data-i]').forEach((b) => b.addEventListener('click', () => finish(Number(b.dataset.i))));
+    });
   }
 
   /** Pergunta sim/não (ex.: encerrar o dia). Enter = sim, Esc = não. */

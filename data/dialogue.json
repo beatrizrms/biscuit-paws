@@ -544,6 +544,55 @@
           "text": "Pelo menos você não passou frio essa noite."
         }
       ]
+    },
+    "dlg.arrival_second_cat": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Bom dia, querida! Olha só quem eu achei miando na minha área, com uma fome que só vendo."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Eu já tenho idade para cuidar de mim, quanto mais de um gato. Mas vi como você trata o seu..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Ele é tão magrinho... Coitado."
+        }
+      ]
+    },
+    "dlg.arrival_third_cat": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Achei você... Encolhido aqui atrás, tremendo de frio."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Já são dois gatos no café. Será que cabe mais um? Acho que cabe, sim."
+        }
+      ]
+    },
+    "dlg.arrival_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Nem me olhe assim. Eu NÃO gosto de gatos."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Esse aqui estava no imóvel que eu ia mostrar. Assustou o cliente. Não é meu, hein!"
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Mas... dizem que aqui ele estaria bem. Só estou dizendo."
+        }
+      ]
     }
   }
 }

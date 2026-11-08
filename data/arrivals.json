@@ -12,6 +12,49 @@
   "provisional": { "days": 7 },
   "arrivals": [
     {
+      "id": "arr.second_cat",
+      "model": "vizinho_traz",
+      "kind": "scripted",
+      "trigger": { "days": [8], "hours": ["08:00", "17:00"], "cats": { "gte": 1, "lte": 1 }, "when": { "flag": "met.old_neighbor" } },
+      "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
+      "clue": "neighbor",
+      "cat": { "generate": { "personality": "needy", "condition": "hungry", "variant": "toffee" } },
+      "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_second_cat" }, { "choice": "neighbor_offer" }],
+      "result": { "startPoints": 60, "npc": { "id": "npc.neusa", "points": 80 } },
+      "whenFull": "provisional"
+    },
+    {
+      "id": "arr.third_cat",
+      "model": "pegadas",
+      "kind": "scripted",
+      "trigger": { "days": [12], "hours": ["07:00", "12:00"], "cats": { "gte": 2, "lte": 2 } },
+      "place": {
+        "kind": "street",
+        "map": "map.street",
+        "at": [24, 8],
+        "trail": [[17, 9], [18, 9], [19, 9], [20, 9], [21, 9], [22, 9], [23, 9], [24, 9]],
+        "fadeMinutes": 300
+      },
+      "clue": "footprints",
+      "cat": { "generate": { "personality": "shy", "condition": "cold", "variant": "misty" } },
+      "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_third_cat" }, { "choice": "take_in" }],
+      "result": { "startPoints": 50 },
+      "whenFull": "provisional"
+    },
+    {
+      "id": "arr.skeptic_realtor",
+      "model": "vizinho_traz",
+      "kind": "random",
+      "repeatable": false,
+      "trigger": { "when": { "served": { "gte": 20 } } },
+      "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
+      "clue": "neighbor",
+      "cat": { "generate": { "personality": "grumpy" } },
+      "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_realtor" }, { "choice": "neighbor_offer_skeptic" }],
+      "result": { "startPoints": 20, "npc": { "id": "npc.realtor", "points": 80 }, "reputation": 3 },
+      "whenFull": "adoption"
+    },
+    {
       "id": "arr.door_meow",
       "model": "na_porta",
       "kind": "random",
@@ -88,8 +131,18 @@
       "place": { "kind": "street", "map": "map.street", "at": [13, 9], "lift": 44 },
       "clue": "noise",
       "cat": { "generate": { "condition": "scared" } },
-      "steps": [],
-      "result": { "startPoints": 40 },
+      "steps": [
+        {
+          "ask": [
+            { "npc": "npc.neusa", "tip": "pole_calm", "difficulty": "easy", "points": 40 },
+            { "npc": "npc.gabi", "tip": "pole_treat", "difficulty": "normal", "points": 30 },
+            { "npc": "npc.mail_carrier", "tip": "pole_ladder", "difficulty": "hard", "points": 10 }
+          ]
+        },
+        { "minigame": { "id": "trust", "difficulty": "auto" } },
+        { "choice": "take_in" }
+      ],
+      "result": { "startPoints": 40, "reputation": 2 },
       "whenFull": "provisional"
     },
     {

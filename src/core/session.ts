@@ -171,6 +171,7 @@ export class GameSession {
       reputation: () => this.reputation(),
       shelterCat: (id, condition, until) => this.shelterCat(id, condition, until),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
+      addReputation: (amount, reason) => this.addReputation(amount, reason),
       addPoints: (from, to, delta) => void addPoints(this.state, this.content.relationships, from, to, delta),
     });
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
@@ -1746,6 +1747,12 @@ export class GameSession {
   /** Resposta da pergunta da chegada (ou do cartaz do mural): sim segue, não recusa. */
   answerArrival(yes: boolean): void {
     this.arrivals.answer(yes);
+    this.advanceStory();
+  }
+
+  /** Ela escolheu ouvir a dica de um vizinho (etapa ask da chegada). */
+  answerArrivalAsk(index: number): void {
+    this.arrivals.answerAsk(index);
     this.advanceStory();
   }
 
