@@ -45,7 +45,7 @@ test('cômodos (depois da inauguração): obra abre o quartinho, passagem contí
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?novo');
+  await page.goto('/?novo&escala=1');
   await page.waitForFunction(() => (window as unknown as Partial<Hook>).__biscuitPaws?.world?.map);
   await settle(page);
   // Café inaugurado e com movimento (40 clientes, dia 6): a Dona Neusa contou do quartinho.

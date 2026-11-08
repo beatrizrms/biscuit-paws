@@ -14,7 +14,7 @@ import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
-import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
+import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, itemUse, serviceArt, uiText } from '../content';
@@ -118,6 +118,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   create(): void {
+    setupCamera(this);
     const uiRoot = document.getElementById('ui')!;
     this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until) }, isDebugOn());
 

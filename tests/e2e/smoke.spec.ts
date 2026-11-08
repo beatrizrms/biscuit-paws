@@ -33,7 +33,7 @@ async function openGame(page: Page): Promise<void> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   // ?jogar pula a Home: continua o save mais recente ou começa um novo (contexto limpo: sempre novo).
-  await page.goto('/?jogar');
+  await page.goto('/?jogar&escala=1');
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   expect(errors).toEqual([]);
 }

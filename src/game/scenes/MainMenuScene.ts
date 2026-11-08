@@ -5,7 +5,7 @@ import { resolveMap } from '../../core/map';
 import { parseClock, tintAt } from '../../core/time';
 import { content } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
-import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
+import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y, setupCamera } from '../screen';
 import { services } from '../services';
 import { startGame } from '../startGame';
 import { MainMenu } from '../ui/menu/MainMenu';
@@ -27,11 +27,13 @@ export class MainMenuScene extends Phaser.Scene {
     const ts = map.tileSize;
     for (const s of map.sprites) this.add.image(s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setOrigin(0).setDepth(s.depth);
     const width = map.cols * ts;
-    const cam = this.cameras.main;
+    const cam = setupCamera(this);
     cam.setBackgroundColor(street.background ?? '#a9d4ea');
     cam.setBounds(0, map.rows * ts - GAME_HEIGHT, width, GAME_HEIGHT);
-    cam.scrollY = map.rows * ts - GAME_HEIGHT;
-    this.tweens.add({ targets: cam, scrollX: width - GAME_WIDTH, duration: 45_000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    // scroll = canto de cima/esquerda da vista menos o deslocamento do zoom (screen.ts)
+    cam.scrollY = map.rows * ts - GAME_HEIGHT - SCREEN_OFFSET_Y;
+    cam.scrollX = -SCREEN_OFFSET_X;
+    this.tweens.add({ targets: cam, scrollX: width - GAME_WIDTH - SCREEN_OFFSET_X, duration: 45_000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     const dayNight = new DayNightLayer(this);
     dayNight.setLights(street.lights ?? [], ts);
@@ -44,7 +46,7 @@ export class MainMenuScene extends Phaser.Scene {
       g.destroy();
     }
     this.add
-      .particles(0, -6, 'snowflake', {
+      .particles(SCREEN_OFFSET_X, SCREEN_OFFSET_Y - 6, 'snowflake', {
         x: { min: -20, max: GAME_WIDTH + 20 },
         lifespan: 14_000,
         speedY: { min: 12, max: 26 },

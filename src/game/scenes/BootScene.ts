@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { broom, content, emotes, serviceArt } from '../content';
 import { preloadAudio } from '../audio/AudioManager';
 import { t } from '../i18n';
-import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
+import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import { initServices } from '../services';
 import { startGame } from '../startGame';
 import { catTexture } from '../entities/Cat';
@@ -22,6 +22,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
+    setupCamera(this).centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
     // Barra de carregamento (desenhada, sem arte).
     const w = 220;
     const x = (GAME_WIDTH - w) / 2;

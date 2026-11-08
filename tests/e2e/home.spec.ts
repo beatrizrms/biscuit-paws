@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 async function openHome(page: Page): Promise<string[]> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/?escala=1');
   await page.locator('.menu-tap').click();
   await expect(page.locator('[data-act="new"]')).toBeVisible();
   return errors;

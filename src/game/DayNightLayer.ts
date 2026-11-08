@@ -3,7 +3,7 @@
 import Phaser from 'phaser';
 import type { MapLight } from '../core/map';
 import { darkness, hexToRgb, rgbToHex, type RGB } from '../core/time';
-import { GAME_HEIGHT, GAME_WIDTH } from './screen';
+import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y } from './screen';
 
 const TINT_DEPTH = 150_000;
 const LIGHT_DEPTH = 150_001;
@@ -22,7 +22,7 @@ export class DayNightLayer {
 
   constructor(private scene: Phaser.Scene) {
     this.tint = scene.add
-      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0xffffff)
+      .rectangle(SCREEN_OFFSET_X, SCREEN_OFFSET_Y, GAME_WIDTH, GAME_HEIGHT, 0xffffff)
       .setOrigin(0)
       .setScrollFactor(0)
       .setDepth(TINT_DEPTH)

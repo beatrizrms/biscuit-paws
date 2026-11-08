@@ -5,7 +5,7 @@ import { MainMenuScene } from './scenes/MainMenuScene';
 import { WorldScene } from './scenes/WorldScene';
 import './ui/menu/menu.css';
 import './ui/skin.css';
-import { GAME_HEIGHT, GAME_WIDTH } from './screen';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './screen';
 
 /** Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). */
 function integerZoom(): number {
@@ -15,12 +15,12 @@ function integerZoom(): number {
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'stage',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  width: CANVAS_WIDTH,
+  height: CANVAS_HEIGHT,
   backgroundColor: '#2b1d1a',
   pixelArt: true,
   roundPixels: true,
-  scale: { mode: Phaser.Scale.NONE, zoom: integerZoom() },
+  scale: { mode: Phaser.Scale.NONE, zoom: integerZoom() / RENDER_SCALE },
   physics: { default: 'arcade', arcade: { debug: false } },
   scene: [BootScene, MainMenuScene, WorldScene],
 });
@@ -28,7 +28,7 @@ const game = new Phaser.Game({
 /** Canvas e interface HTML crescem juntos, sempre na mesma escala inteira. */
 function layout(): void {
   const zoom = integerZoom();
-  game.scale.setZoom(zoom);
+  game.scale.setZoom(zoom / RENDER_SCALE);
   const stage = document.getElementById('stage')!;
   stage.style.width = `${GAME_WIDTH * zoom}px`;
   stage.style.height = `${GAME_HEIGHT * zoom}px`;
