@@ -83,6 +83,12 @@ export interface ExtraSheet {
   solid: boolean;
   /** Exceções por peça (nome sem prefixo). */
   overrides?: Record<string, { solid?: boolean; layer?: TileLayer }>;
+  /**
+   * As peças trocam a arte de tiles que já existem (mesmo nome e mesmo tamanho em tiles):
+   * mapas, itens e saves continuam iguais e só a imagem muda (arte nova do PixelLab, decisão 065).
+   * solid/layer ficam os do tile antigo, a não ser que a folha traga uma exceção.
+   */
+  replaces?: boolean;
   pieces: PiecesFile;
 }
 
@@ -165,11 +171,22 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
     }
     for (const [piece, p] of Object.entries(extra.pieces.pieces)) {
       const name = extra.prefix + piece;
-      if (tiles[name]) throw new Error(`tilesets.json: nome repetido "${name}"`);
       if (p.col + p.w_tiles > extra.pieces.columns || p.row + p.h_tiles > extra.pieces.rows) {
         throw new Error(`tilesets.json: "${name}" sai da folha`);
       }
       const o = extra.overrides?.[piece] ?? {};
+      if (extra.replaces) {
+        const old = tiles[name];
+        if (!old) throw new Error(`tilesets.json: "${extra.id}" troca "${name}", que não existe`);
+        if (old.w !== p.w_tiles || old.h !== p.h_tiles) {
+          throw new Error(`tilesets.json: "${name}" tem ${p.w_tiles}x${p.h_tiles} tiles, mas o tile que ele troca tem ${old.w}x${old.h}`);
+        }
+        const layer = o.layer ?? old.layer;
+        if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
+        tiles[name] = { name, sheet: extra.id, col: p.col, row: p.row, w: p.w_tiles, h: p.h_tiles, solid: o.solid ?? old.solid, layer };
+        continue;
+      }
+      if (tiles[name]) throw new Error(`tilesets.json: nome repetido "${name}"`);
       const layer = o.layer ?? extra.layer;
       if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
       tiles[name] = { name, sheet: extra.id, col: p.col, row: p.row, w: p.w_tiles, h: p.h_tiles, solid: o.solid ?? extra.solid, layer };

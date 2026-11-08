@@ -82,6 +82,32 @@
       }
     },
     {
+      "id": "item.cat_bed_rosa",
+      "name": "Caminha rosa",
+      "price": 25,
+      "tile": "cat_bed_rosa",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cat_bed_lilas",
+      "name": "Caminha lilás",
+      "price": 25,
+      "tile": "cat_bed_lilas",
+      "tags": [
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.litter_box",
       "name": "Caixa de areia",
       "price": 15,
@@ -369,6 +395,26 @@
       "name": "Sofá menta",
       "price": 120,
       "tile": "sofa",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.sofa_rosa",
+      "name": "Sofá rosa",
+      "price": 120,
+      "tile": "sofa_rosa",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.sofa_ceu",
+      "name": "Sofá céu",
+      "price": 120,
+      "tile": "sofa_ceu",
       "tags": [
         "furniture",
         "for:guests"

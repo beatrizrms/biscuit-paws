@@ -61,3 +61,37 @@ describe('resolução por folha', () => {
     expect(() => buildCatalog(csv, meta, undefined, [extra('torta', 48)])).toThrow(/48 px/);
   });
 });
+
+describe('folha que troca a arte de tiles existentes (replaces)', () => {
+  const troca = (pieces: ExtraSheet['pieces']['pieces'], overrides?: ExtraSheet['overrides']): ExtraSheet => ({
+    id: 'nova',
+    image: 'nova.png',
+    prefix: '',
+    layer: 'object',
+    solid: false,
+    replaces: true,
+    ...(overrides ? { overrides } : {}),
+    pieces: { tileSize: 64, columns: 4, rows: 2, pieces },
+  });
+
+  it('aponta o tile antigo para a folha nova e mantém solid/layer', () => {
+    const antes = getTile(buildCatalog(csv, meta), 'sofa');
+    const catalog = buildCatalog(csv, meta, undefined, [troca({ sofa: { col: 1, row: 1, w_tiles: antes.w, h_tiles: antes.h } })]);
+    const sofa = getTile(catalog, 'sofa');
+    expect(sofa).toMatchObject({ sheet: 'nova', col: 1, row: 1, w: antes.w, h: antes.h, solid: antes.solid, layer: antes.layer });
+    expect(sheetResolution(catalog, 'nova')).toBe(2);
+  });
+
+  it('aceita exceção de solid/layer', () => {
+    const antes = getTile(buildCatalog(csv, meta), 'sofa');
+    const catalog = buildCatalog(csv, meta, undefined, [
+      troca({ sofa: { col: 0, row: 0, w_tiles: antes.w, h_tiles: antes.h } }, { sofa: { solid: !antes.solid } }),
+    ]);
+    expect(getTile(catalog, 'sofa').solid).toBe(!antes.solid);
+  });
+
+  it('recusa trocar um tile que não existe ou com outro tamanho', () => {
+    expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa_gigante: { col: 0, row: 0, w_tiles: 1, h_tiles: 1 } })])).toThrow(/não existe/);
+    expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa: { col: 0, row: 0, w_tiles: 3, h_tiles: 2 } })])).toThrow(/tamanho|tiles/);
+  });
+});

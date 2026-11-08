@@ -1,0 +1,241 @@
+{
+ "tileSize": 64,
+ "columns": 12,
+ "rows": 6,
+ "pieces": {
+  "cat_tree": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "floor_rug": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "cat_condo": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "window": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "bookshelf": {
+   "col": 9,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "plant_tall": {
+   "col": 10,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "door": {
+   "col": 11,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "sofa": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "display_case": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "menu_board": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "table_round": {
+   "col": 6,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "chair_front": {
+   "col": 7,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "chair_left": {
+   "col": 8,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "chair_right": {
+   "col": 9,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "chair_back": {
+   "col": 10,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "plant_pot": {
+   "col": 11,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "plant_hanging": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cat_bed": {
+   "col": 1,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "food_bowl": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "water_bowl": {
+   "col": 3,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cushion_pink": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cushion_mint": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cushion_sky": {
+   "col": 6,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cushion_lav": {
+   "col": 7,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cushion_butter": {
+   "col": 8,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "picture_paw": {
+   "col": 9,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "flower_vase": {
+   "col": 10,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yarn_balls": {
+   "col": 11,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "scratch_post": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cactus": {
+   "col": 1,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "doormat": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "counter_left": {
+   "col": 3,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "counter_mid": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "counter_right": {
+   "col": 5,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "counter_single": {
+   "col": 6,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "counter_register": {
+   "col": 7,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "bar_balcao_esq": {
+   "col": 8,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "bar_balcao_meio": {
+   "col": 9,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "bar_balcao_dir": {
+   "col": 10,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { reachableCells, resolveMap, solidRects, validateMap, type MapData } from '../../src/core/map';
-import { getTile } from '../../src/core/tiles';
+import { frameOf, getTile } from '../../src/core/tiles';
 import { variantAt } from '../../src/core/map';
 import { loadContent } from './content';
 
@@ -53,7 +53,9 @@ describe('resolveMap', () => {
     const map = resolveMap(tinyMap([{ id: 'obj.tree', tile: 'cat_tree', at: [1, 1] }]), catalog);
     const tree = map.sprites.filter((s) => s.tile === 'cat_tree');
     expect(tree).toHaveLength(6);
-    expect(tree.map((s) => s.frame).sort((a, b) => a - b)).toEqual([54, 55, 62, 63, 70, 71]);
+    const def = getTile(catalog, 'cat_tree');
+    const cells = [0, 1, 2].flatMap((dy) => [0, 1].map((dx) => frameOf(catalog, def, dx, dy)));
+    expect(tree.map((s) => s.frame).sort((a, b) => a - b)).toEqual(cells.sort((a, b) => a - b));
     expect(new Set(tree.map((s) => s.depth))).toEqual(new Set([(1 + 3) * 32])); // base da árvore inteira
   });
 

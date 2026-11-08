@@ -26,7 +26,7 @@ npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda s
 npm run art:placeholders  # arte provisória desenhada por código (caixa de areia, cocô); roda sozinho no dev
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
-npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets
+npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café: móveis e cores novas)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)
@@ -91,7 +91,7 @@ Edite `data/tiles.meta.json`. Cada tile tem:
 - `data/daynight.json`: cores do dia e da noite por hora e estação (o mapa diz se é `indoor` e onde ficam as `lights`).
 - `data/items.json`: móveis do catálogo, nomes e preços.
 - `data/maps/street.json`: a rua (fachadas, objetos, neve, porta do café). `data/world.json`: onde o jogo começa.
-- `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça. A arte pode ser de 32 ou 64 px por tile: vale o `tileSize` do JSON de peças em `data/tilesets/` (decisão 052).
+- `data/tilesets.json`: folhas extras de tiles (rua, neve, sujeira), com camada e solidez de cada peça. A arte pode ser de 32 ou 64 px por tile: vale o `tileSize` do JSON de peças em `data/tilesets/` (decisão 052). Folha com `replaces: true` troca só a imagem de tiles que já existem (mesmo nome e tamanho): é assim que a arte nova do PixelLab entra no café (decisão 065).
 - `data/finishes.json`: acabamentos do pintor (pisos e papéis de parede) e preços. As superfícies reformáveis ficam no mapa (`surfaces`).
 - `data/tiles.worn.json`: tiles velhos gerados do pacote (estilo de desgaste, troca de cores, variações).
 - `data/economy.json`: dinheiro inicial.
