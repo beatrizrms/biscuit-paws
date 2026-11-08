@@ -49,6 +49,20 @@
       ]
     },
     {
+      "id": "item.cat_blanket",
+      "name": "Cobertor de gato",
+      "price": 12,
+      "kind": "consumable",
+      "iconImage": "assets/objects/placeholders/icon_blanket.png",
+      "tags": [
+        "pet",
+        "blanket"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.broom",
       "name": "Vassoura",
       "price": 0,

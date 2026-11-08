@@ -117,6 +117,8 @@ export type ActionResult =
         | 'job_full'
         | 'job_unavailable'
         | 'missing_item'
+        | 'need_food'
+        | 'need_warmth'
         | 'door_full'
         | 'hands_full'
         | 'nothing_here'
@@ -174,7 +176,8 @@ export class GameSession {
       capacity: () => this.catCapacity(),
       exclusiveActive: () => this.exclusiveActive(),
       reputation: () => this.reputation(),
-      shelterCat: (id, condition, until) => this.shelterCat(id, condition, until),
+      shelterCat: (id, condition, until, treated) => this.shelterCat(id, condition, until, treated),
+      money: () => this.state.money,
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
       addPoints: (from, to, delta) => void addPoints(this.state, this.content.relationships, from, to, delta),
@@ -660,7 +663,7 @@ export class GameSession {
   /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
   doJobPoint(pointId: string): ActionResult {
     const arrival = this.arrivals.interact(pointId);
-    if (arrival === 'missing_item') return { ok: false, reason: 'missing_item' };
+    if (typeof arrival === 'string') return { ok: false, reason: arrival };
     if (arrival) return { ok: true };
     if (this.isFairPoint(pointId)) return this.doFairStep(pointId);
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
@@ -1738,7 +1741,7 @@ export class GameSession {
    * Abriga um gato no café. Com a condição de chegada (data/cat_profiles.json), a saúde e a doença vêm dela; sem
    * ela (o gato da história), a saúde inicial e o arrivesSick dos dados. provisionalUntil: café cheio, com prazo.
    */
-  shelterCat(catId: string, condition?: string, provisionalUntil?: number): void {
+  shelterCat(catId: string, condition?: string, provisionalUntil?: number, treated = false): void {
     const def = this.catDef(catId);
     const profile = condition ? this.content.catProfiles.conditions[condition] : undefined;
     this.state.cats[catId] = {
@@ -1751,7 +1754,8 @@ export class GameSession {
       ...(provisionalUntil !== undefined ? { provisionalUntil } : {}),
     };
     this.bus.emit('cat.sheltered', { catId });
-    if (profile ? profile.sick : def?.arrivesSick) this.makeSick(catId);
+    // Chega doente pela condição (ferido) ou pelos dados, a não ser que o vet já tenha cuidado na chegada.
+    if (!treated && (profile ? profile.sick : def?.arrivesSick)) this.makeSick(catId);
   }
 
   /** Resposta da pergunta da chegada (ou do cartaz do mural): sim segue, não recusa. */

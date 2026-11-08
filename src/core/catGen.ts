@@ -32,6 +32,15 @@ export interface CatProfilesData {
   schemaVersion: 1;
   personalities: Record<string, PersonalityProfile>;
   conditions: Record<string, ConditionProfile>;
+  /** Como atender cada necessidade antes de o gato entrar. */
+  needs: {
+    food: { items: string[] };
+    warmth: { items: string[] };
+    /** Falar com a Fernanda no ponto (pagando cost): o gato entra tratado. */
+    vet: { point: string; cost: number };
+  };
+  /** Onde o gato espera quando a chegada não tem lugar (o cartaz do mural). */
+  needsPlace: { map: string; at: [number, number] };
   generated: {
     variants: string[];
     names: string[];
@@ -76,7 +85,10 @@ export function generateCat(rng: Rng, profiles: CatProfilesData, spec: GenerateS
   return { def, condition };
 }
 
-export function validateCatProfiles(data: CatProfilesData, refs: { variants: ReadonlySet<string>; catPersonalities: readonly string[] }): string[] {
+export function validateCatProfiles(
+  data: CatProfilesData,
+  refs: { variants: ReadonlySet<string>; catPersonalities: readonly string[]; items?: ReadonlySet<string>; points?: ReadonlySet<string>; maps?: ReadonlySet<string> },
+): string[] {
   const errors: string[] = [];
   const err = (m: string) => errors.push(`cat_profiles: ${m}`);
   for (const [id, p] of Object.entries(data.personalities)) {
@@ -87,6 +99,10 @@ export function validateCatProfiles(data: CatProfilesData, refs: { variants: Rea
     if (!(c.health > 0)) err(`condição "${id}" com saúde inválida`);
     for (const n of c.needs) if (!CAT_NEEDS.includes(n)) err(`condição "${id}" com necessidade desconhecida "${n}"`);
   }
+  for (const id of [...data.needs.food.items, ...data.needs.warmth.items]) if (refs.items && !refs.items.has(id)) err(`needs com item inexistente "${id}"`);
+  if (refs.points && !refs.points.has(data.needs.vet.point)) err(`needs.vet com ponto inexistente "${data.needs.vet.point}"`);
+  if (!(data.needs.vet.cost >= 0)) err('needs.vet.cost precisa ser 0 ou mais');
+  if (refs.maps && !refs.maps.has(data.needsPlace.map)) err(`needsPlace com mapa inexistente "${data.needsPlace.map}"`);
   for (const p of refs.catPersonalities) if (!data.personalities[p]) err(`personalidade "${p}" (data/cats.json) sem perfil`);
   const g = data.generated;
   if (g.variants.length === 0 || g.names.length === 0) err('generated precisa de variantes e nomes');

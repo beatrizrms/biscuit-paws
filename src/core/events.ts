@@ -28,6 +28,9 @@ export interface GameEvents {
   'arrival.choice': { arrivalId: string; key: string };
   /** Vizinhos dão dicas (etapa ask); a escolha volta por session.answerArrivalAsk. */
   /** Gato carteiro: comeu o que ela deixou (refeições até agora e quantas faltam no total). */
+  /** Aceito: o gato precisa disto antes de entrar (ração, cobertor, vet). */
+  'arrival.needs': { arrivalId: string; needs: ('food' | 'vet' | 'warmth')[] };
+  'arrival.need_met': { arrivalId: string; need: 'food' | 'vet' | 'warmth'; left: ('food' | 'vet' | 'warmth')[] };
   'arrival.fed': { arrivalId: string; fed: number; times: number };
   'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };

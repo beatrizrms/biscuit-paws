@@ -633,7 +633,15 @@ export function validateContent(raw: RawContent): string[] {
   if (raw.adoption.fair.startWhen) checkCondition('adoption: fair.startWhen', raw.adoption.fair.startWhen as Condition);
   // Chegadas de gatos e perfis (personalidades, condições, gatos gerados).
   const variants = new Set(Object.keys(raw.catSprites.variants));
-  errors.push(...validateCatProfiles(raw.catProfiles, { variants, catPersonalities: raw.cats.cats.map((c) => c.personality) }));
+  errors.push(
+    ...validateCatProfiles(raw.catProfiles, {
+      variants,
+      catPersonalities: raw.cats.cats.map((c) => c.personality),
+      items: new Set(raw.items.items.map((i) => i.id)),
+      points: new Set(raw.jobs.points.map((p) => p.id)),
+      maps: mapIds,
+    }),
+  );
   errors.push(
     ...validateArrivals(
       raw.arrivals,

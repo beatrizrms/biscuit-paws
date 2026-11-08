@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), se chega com fome (hungry), o que precisa para entrar (needs: food, vet, warmth) e a idade (kitten/senior, para a adoção). generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
+  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), se chega com fome (hungry), o que precisa para entrar (needs: food, vet, warmth) e a idade (kitten/senior, para a adoção). needs: como atender cada necessidade antes de o gato entrar (food e warmth: dar um dos items, no gato; vet: falar com a Fernanda no ponto, pagando cost; o gato entra tratado). needsPlace: onde o gato espera quando a chegada não tem lugar (o cartaz do mural). generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
   "personalities": {
     "brave": { "trust": "easy", "heartsToTrust": 1 },
     "sweet": { "trust": "easy", "heartsToTrust": 1 },
@@ -18,6 +18,12 @@
     "kitten": { "health": 70, "age": "kitten", "needs": ["food"] },
     "senior": { "health": 60, "age": "senior", "needs": [] }
   },
+  "needs": {
+    "food": { "items": ["item.cat_food_basic", "item.cat_food_premium"] },
+    "warmth": { "items": ["item.cat_blanket"] },
+    "vet": { "point": "pt.arrival_vet", "cost": 20 }
+  },
+  "needsPlace": { "map": "map.street", "at": [16, 9] },
   "generated": {
     "variants": ["biscuit", "custard", "domino", "freckle", "hazel", "midnight", "misty", "snowdrop", "toffee"],
     "names": ["Amendoim", "Bolinho", "Canela", "Docinho", "Farofa", "Jujuba", "Mingau", "Nescau", "Pipoca", "Quindim", "Sushi", "Tapioca", "Pudim", "Cocada", "Biju"],

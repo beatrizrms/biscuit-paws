@@ -99,6 +99,7 @@ cat-cafe-game/
 | `fair.started` / `fair.progress` / `fair.scheduled` / `fair.missed` / `fair.finished` | etapas da feira de adoção | `step, pointId` / `day` / `day` / `adopted` |
 | `arrival.queued` / `arrival.started` / `arrival.step` / `arrival.finished` | chegada de gato: na fila, começou, etapa, terminou (onde o gato ficou) | `arrivalId` / `+catId, model` / `step` / `outcome, placement` |
 | `arrival.choice` | a chegada pergunta sim/não (a resposta volta por `session.answerArrival`) | `arrivalId, key` |
+| `arrival.needs` / `arrival.need_met` | aceito, o gato espera as necessidades da condição (ração, cobertor, vet) / uma foi atendida | `arrivalId, needs` / `arrivalId, need, left` |
 | `arrival.provisional_settled` / `arrival.provisional_expired` | gato provisório ficou de vez / foi para o abrigo da vila | `catId` |
 | `cat.adopted` | match de adoção terminou: um gato e o veredito (boa: sai do café, se for de lá) | `catId, verdict, leftCafe` |
 | `schedule.changed` | horário de funcionamento mudou (app Horário) | `schedule` |

@@ -203,6 +203,8 @@ export class GameUi {
         .then(() => this.choose(at.ask.question, list))
         .then((i) => this.session.answerArrivalAsk(i));
     });
+    bus.on('arrival.needs', () => this.toast(at.needsStart, 3500));
+    bus.on('arrival.need_met', ({ need }) => this.toast(at.needMet[need], 3500));
     bus.on('arrival.fed', ({ fed, times }) => this.toast(fed >= times ? at.fedLast : at.fed, 4000));
     bus.on('arrival.finished', ({ outcome, placement }) => {
       const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
@@ -404,9 +406,16 @@ export class GameUi {
   /** Linha da chegada de gato no balão (ou vazio). */
   private arrivalLine(): string {
     const a = this.session.arrivals.active();
+    const g = uiText.arrivals.goal;
+    // Aceito, esperando as necessidades: a próxima delas (ração antes do cobertor, vet por último).
+    const needs = this.session.arrivals.pendingNeeds();
+    const need = needs && (['food', 'warmth', 'vet'] as const).find((n) => needs.includes(n));
+    if (a && need) {
+      const text = need === 'vet' ? g.need_vet.replace('{cost}', String(this.session.content.catProfiles.needs.vet.cost)) : need === 'food' ? g.need_food : g.need_warmth;
+      return `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(text)}</span></li>`;
+    }
     const step = this.session.arrivals.currentStep();
     if (!a || !step) return '';
-    const g = uiText.arrivals.goal;
     const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : g.meet;
     const mg = { preso: g.rescue, ninhada: g.litter, dentro_do_cafe: g.inside, em_perigo: g.danger } as Record<string, string>;
     const meetText = a.def.model === 'entrega' ? g.box : meet;

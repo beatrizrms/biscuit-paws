@@ -383,6 +383,15 @@
         7
       ],
       "action": "press"
+    },
+    {
+      "id": "pt.arrival_vet",
+      "map": "map.vet_clinic",
+      "at": [
+        5,
+        7
+      ],
+      "action": "press"
     }
   ],
   "jobs": [

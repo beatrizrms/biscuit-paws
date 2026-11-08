@@ -98,6 +98,17 @@ const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), 
 const sheet = new Canvas(pieces.length * T, T);
 pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');
+
+/** Ícone do cobertor de gato (item.cat_blanket): mantinha xadrez dobrada. */
+function blanketIcon(): Canvas {
+  const c = new Canvas(T, T);
+  c.rect(5, 9, 22, 16, at(P.rose, 3));
+  for (let x = 5; x < 27; x += 4) c.vline(x, 9, 16, at(P.rose, 4));
+  for (let y = 9; y < 25; y += 4) c.hline(5, y, 22, at(P.cream, 5));
+  c.rect(5, 21, 22, 4, at(P.rose, 2)); // a dobra
+  return c.outline();
+}
+writeWithBackup(blanketIcon(), 'public/assets/objects/placeholders/icon_blanket.png');
 console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

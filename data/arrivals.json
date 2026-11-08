@@ -206,7 +206,7 @@
       "clue": "danger",
       "cat": { "generate": { "condition": "injured" } },
       "steps": [],
-      "result": { "startPoints": 80, "money": -15 },
+      "result": { "startPoints": 80 },
       "whenFull": "provisional"
     },
     {

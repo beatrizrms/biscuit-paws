@@ -116,7 +116,7 @@ export class ShopPanel {
       const item = content.items[id]!;
       const owned = state.inventory[id] ?? 0;
       return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}">
-          <span class="name">${iconHtml(item.icon)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
+          <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
         </div>`;
     };
@@ -144,7 +144,7 @@ export class ShopPanel {
       .map(({ itemId, qty }) => {
         const item = content.items[itemId]!;
         return `<div class="row cart-row in-cart" data-row="${itemId}">
-            <span class="name">${iconHtml(item.icon)}${item.name}</span><span class="price">${item.price * qty}</span>${this.qtyControls(itemId)}
+            <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price * qty}</span>${this.qtyControls(itemId)}
             <button class="drop" data-act="drop" data-item="${itemId}">${uiText.shop.removeAll}</button>
           </div>`;
       })
@@ -155,6 +155,11 @@ export class ShopPanel {
       ${missing > 0 ? `<span class="missing">${fill(uiText.shop.missing, { missing })}</span>` : ''}
       <button class="pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })}</button>`;
   }
+}
+
+/** Ícone do item na loja: a imagem própria (iconImage) ou o da folha de ícones. */
+function shopIcon(item: { icon?: string; iconImage?: string }): string {
+  return item.iconImage ? `<img class="icon" src="${item.iconImage}" alt="" style="width:${ICON_PX}px;height:${ICON_PX}px" />` : iconHtml(item.icon);
 }
 
 /** Ícone do item, recortado da folha de ícones (CSS, sem suavizar). */

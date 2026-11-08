@@ -149,7 +149,9 @@
     "no_days": "Escolha pelo menos um dia para abrir.",
     "too_short": "O café precisa ficar aberto mais tempo.",
     "out_of_range": "Fora do horário possível.",
-    "bad_step": "Horário inválido."
+    "bad_step": "Horário inválido.",
+    "need_food": "Você precisa de ração de gato (o mercado vende).",
+    "need_warmth": "Você precisa de um cobertor de gato (o mercado vende)."
   },
   "renovationTitle": "Reforma (pintor)",
   "renovationHint": "O pintor deixa pronto na hora.",
@@ -616,7 +618,10 @@
       "danger": "Pegar o gato ferido e correr com ele até a clínica!",
       "box": "Ver a caixa que mia na porta do café.",
       "ask": "Os vizinhos estão dando palpites: ouvir um deles.",
-      "feed": "Deixar ração para o gato tímido da rua ({n}/{total}), entre {from} e {to}."
+      "feed": "Deixar ração para o gato tímido da rua ({n}/{total}), entre {from} e {to}.",
+      "need_food": "Dar ração ao gato antes de ele entrar (E no gato).",
+      "need_warmth": "Esquentar o gato com um cobertor (E no gato).",
+      "need_vet": "Levar o gato à clínica: falar com a Fernanda ({cost} moedas)."
     },
     "choices": {
       "take_in": {
@@ -674,6 +679,12 @@
       "pole_ladder": "Pega a escada e sobe rápido, antes que ele pule!"
     },
     "fed": "Ele comeu de longe, de olho em você... Amanhã ele chega um pouco mais perto.",
-    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto."
+    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto.",
+    "needsStart": "Ele ainda não está pronto para entrar: veja o balão.",
+    "needMet": {
+      "food": "Ele comeu tudo, rapidinho.",
+      "warmth": "Enrolado no cobertor, ele parou de tremer.",
+      "vet": "A Fernanda cuidou dele. Vai ficar bem."
+    }
   }
 }

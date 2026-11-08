@@ -224,7 +224,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (door && this.session.atHome()) this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
-    for (const ev of ['arrival.started', 'arrival.step', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    for (const ev of ['arrival.started', 'arrival.step', 'arrival.needs', 'arrival.need_met', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
@@ -884,8 +884,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.arrivalTrailKey = null;
     const a = this.session.arrivals.active();
     const step = this.session.arrivals.currentStep();
-    if (!a || !step || a.def.place.map !== this.map.id) return;
     const ts = this.map.tileSize;
+    // Esperando as necessidades: o gato sentado no lugar dele (com a ração e o cobertor ela aperta E nele).
+    if (a && !step && this.session.arrivals.pendingNeeds()?.length) {
+      const spot = this.session.arrivals.needsSpot();
+      const variant = this.session.catDef(a.catId)?.variant;
+      if (spot.map !== this.map.id || !variant || !this.textures.exists(catTexture(variant))) return;
+      CatSprite.createAnimations(this, variant);
+      const feet = (spot.at[1] + 1) * ts - 4;
+      const cat = this.add.sprite((spot.at[0] + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
+      cat.play(`${catTexture(variant)}-sit`);
+      this.arrivalActors.push(cat);
+      return;
+    }
+    if (!a || !step || a.def.place.map !== this.map.id) return;
     const who = actorsOf(a.def);
     const sitCat = (catId: string | undefined, [c, r]: [number, number], lift = 0) => {
       const variant = catId ? this.session.catDef(catId)?.variant : undefined;

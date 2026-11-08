@@ -3,7 +3,7 @@
 // com o café cheio. Aqui ficam os tipos, a validação e as decisões puras (o gatilho vale? quem entra na fila hoje?
 // quando é a próxima?). Quem executa (cria o gato, abriga, guarda no save) é o ArrivalSystem.
 // Puro: sem Phaser, DOM ou window.
-import type { GenerateSpec } from './catGen';
+import type { CatNeed, GenerateSpec } from './catGen';
 import { pickWeighted, type Rng } from './rng';
 import { parseClock } from './time';
 import { modelReady, stepsOf } from './arrivalModels';
@@ -150,6 +150,10 @@ export interface ActiveArrival {
   extraCats?: string[];
   /** Etapa ask: a dica escolhida (índice nas opções). */
   tip?: number;
+  /** Aceito, esperando as necessidades da condição (ração, cobertor, vet) antes de entrar. */
+  needs?: CatNeed[];
+  /** O vet já cuidou dele (entra sem a doença da chegada). */
+  treated?: boolean;
   /** Etapa feed: quantas refeições ele já aceitou e o último dia em que comeu. */
   fed?: number;
   fedOn?: number;

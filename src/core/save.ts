@@ -294,6 +294,8 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
           ...(typeof act.leaderId === 'string' && knownCat(act.leaderId) ? { leaderId: act.leaderId } : {}),
           ...(typeof act.tip === 'number' ? { tip: act.tip } : {}),
           ...(typeof act.fed === 'number' ? { fed: act.fed } : {}),
+          ...(Array.isArray(act.needs) ? { needs: act.needs.filter((n): n is 'food' | 'vet' | 'warmth' => n === 'food' || n === 'vet' || n === 'warmth') } : {}),
+          ...(act.treated ? { treated: true } : {}),
           ...(typeof act.fedOn === 'number' ? { fedOn: act.fedOn } : {}),
           ...(Array.isArray(act.extraCats) ? { extraCats: act.extraCats.filter((id): id is string => typeof id === 'string' && knownCat(id)) } : {}),
         }
