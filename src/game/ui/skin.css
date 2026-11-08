@@ -121,3 +121,5 @@
 .creator-error { min-height: 0; margin: 0; }
 /* "Primavera, dia 12" cabe ao lado da barra de itens. */
 .hud-money .day { font-size: 8px; }
+/* Painéis laterais (catálogo, loja, celular...): a moldura sai 8 px para fora; afasta das bordas e do HUD. */
+.catalog { margin: 8px 8px 8px 0; }
