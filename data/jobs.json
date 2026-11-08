@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty, itemId? }; itemId: o pedido da entrega ou o petisco; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia; once = uma vez no jogo; sporadic = só em alguns dias (sorteio pelo dia com a chance de chance), uma vez nesses dias. maxActive: quantos ao mesmo tempo. pt.fair_*: pontos da feira de adoção (data/adoption.json: fair), que não pertencem a nenhum pedido.",
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty, itemId? }; itemId: o pedido da entrega ou o petisco; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia; once = uma vez no jogo; sporadic = só em alguns dias (sorteio pelo dia com a chance de chance), uma vez nesses dias. maxActive: quantos ao mesmo tempo. pt.fair_*: pontos da feira de adoção (data/adoption.json: fair), que não pertencem a nenhum pedido. pt.arrival_*: pistas das chegadas de gatos (data/arrivals.json), fora de qualquer pedido.",
   "maxActive": 1,
   "points": [
     {
@@ -365,6 +365,24 @@
         "difficulty": "normal"
       },
       "marker": "ph_fair_table"
+    },
+    {
+      "id": "pt.arrival_ask_market",
+      "map": "map.market",
+      "at": [
+        11,
+        9
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.arrival_ask_clinic",
+      "map": "map.vet_clinic",
+      "at": [
+        4,
+        7
+      ],
+      "action": "press"
     }
   ],
   "jobs": [

@@ -14,6 +14,16 @@ const TEMPLATES: Partial<Record<ArrivalModel, ArrivalStep[]>> = {
   pegadas: [{ meet: true }, { choice: 'take_in' }],
   // Um gato do café aparece miando (place.at), ela segue o caminho dele (place.route) até o gato novo e decide.
   gato_leva: [{ meet: true }, { lead: true }, { choice: 'take_in' }],
+  // Preso num lugar sem saída (poste, telhado, caixa): acalmar até ele descer (Confiança do gato) e decidir.
+  preso: [{ minigame: { id: 'trust', difficulty: 'auto' } }, { choice: 'take_in' }],
+  // Gata com filhotes em lugar perigoso: achar os filhotes um a um (Caça ao filhote) e acolher a família.
+  ninhada: [{ meet: true }, { minigame: { id: 'kitten_hunt', difficulty: 'hard' } }, { choice: 'take_in_litter' }],
+  // Entrou no café por uma brecha: procurar pelo som (Caça ao filhote) e ganhar a confiança dele.
+  dentro_do_cafe: [{ minigame: { id: 'kitten_hunt', difficulty: 'easy' } }, { minigame: { id: 'trust', difficulty: 'auto' } }, { choice: 'take_in' }],
+  // Uma caixa que mia na porta (com bilhete): ler, perguntar pela vila (pistas nos dados) e decidir.
+  entrega: [{ meet: true }, { cutscene: 'cs.arrival_box' }, { choice: 'keep_box_cat' }],
+  // Gato ferido fugindo: pegar (Gato em fuga) e correr com ele até a clínica (Entrega relâmpago). Sem pergunta: precisa de ajuda.
+  em_perigo: [{ minigame: { id: 'chase', difficulty: 'easy' } }, { minigame: { id: 'delivery', difficulty: 'normal', itemId: 'hurt_cat' } }],
 };
 
 /** Modelos que já têm etapas (os dados só podem usar estes). */
@@ -30,9 +40,10 @@ export function stepsOf(def: ArrivalDef): ArrivalStep[] {
  * O que o modelo mostra no mapa enquanto ela não chega até o lugar (etapa meet): o gato novo (escondido = só
  * aparece de perto), o vizinho, as pegadas e o gato do café que guia.
  */
-export function actorsOf(def: ArrivalDef): { cat: boolean; hidden: boolean; npc: string | null; trail: boolean; leader: boolean } {
+export function actorsOf(def: ArrivalDef): { cat: boolean; hidden: boolean; npc: string | null; trail: boolean; leader: boolean; parcel: boolean } {
   return {
-    cat: def.model === 'na_porta' || def.model === 'vizinho_traz' || def.model === 'pegadas',
+    cat: ['na_porta', 'vizinho_traz', 'pegadas', 'preso', 'ninhada', 'em_perigo'].includes(def.model),
+    parcel: def.model === 'entrega',
     hidden: def.model === 'pegadas',
     npc: def.model === 'vizinho_traz' ? (def.result?.npc?.id ?? null) : null,
     trail: def.model === 'pegadas',

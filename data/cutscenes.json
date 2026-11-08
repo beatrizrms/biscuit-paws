@@ -254,6 +254,32 @@
           "text": "O gato olha para a porta do café, depois para você."
         }
       ]
+    },
+    "cs.arrival_box": {
+      "background": "#3b2a32",
+      "steps": [
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Uma caixa de papelão na porta do café. Ela se mexe. Ela... mia."
+        },
+        {
+          "type": "cat",
+          "cat": "arrival",
+          "animation": "sit",
+          "caption": "{arrival:condition} · {arrival:personality}"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Junto, um bilhete com letra apressada: \"Não posso ficar com ele. Por favor, cuide bem.\""
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Alguém da vila deve saber de onde ele veio. Vou perguntar no mercado e na clínica."
+        }
+      ]
     }
   }
 }

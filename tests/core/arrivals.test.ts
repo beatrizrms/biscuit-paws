@@ -267,13 +267,13 @@ describe('modelos de chegada (etapa b)', () => {
     expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
   });
 
-  it('validação: modelo ainda sem etapas e encontro sem lugar não passam', async () => {
+  it('validação: modelo desconhecido e encontro sem lugar não passam', async () => {
     const { validateContent } = await import('../../src/core/content');
     const { rawContent } = await import('./content');
     const raw = rawContent();
-    raw.arrivals.arrivals.push({ ...raw.arrivals.arrivals[0]!, id: 'arr.x', model: 'preso' }, { ...raw.arrivals.arrivals[0]!, id: 'arr.y', place: { kind: 'street' } });
+    raw.arrivals.arrivals.push({ ...raw.arrivals.arrivals[0]!, id: 'arr.x', model: 'voando' as never }, { ...raw.arrivals.arrivals[0]!, id: 'arr.y', place: { kind: 'street' } });
     const errors = validateContent(raw).join('\n');
-    expect(errors).toMatch(/"arr.x": o modelo "preso" ainda não tem etapas/);
+    expect(errors).toMatch(/"arr.x": modelo desconhecido "voando"/);
     expect(errors).toMatch(/"arr.y": a etapa meet precisa de place.map e place.at/);
   });
 });
@@ -326,5 +326,80 @@ describe('modelos de chegada (etapa c)', () => {
     session.doJobPoint('arrival:arr.cat_leads:dest');
     session.answerArrival(true);
     expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+});
+
+describe('modelos de chegada com mini game (etapa d)', () => {
+  function cafe() {
+    const state = newGameState(500, 'map.street', 10 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    state.flags['clinic.open'] = true;
+    const session = new GameSession(content, state);
+    const events: { name: string; payload: unknown }[] = [];
+    session.bus.onAny((name, payload) => events.push({ name, payload }));
+    return { session, state, events };
+  }
+  const result = (gameId: string, outcome: 'fail' | 'ok') => ({ gameId, outcome, score: 0, coinsEarned: 0, skipped: false });
+  const mgPoint = (s: GameSession, map: string) => s.pendingJobPoints(map).find((p) => p.action === 'minigame')!;
+
+  it('preso: o mini game da confiança tem a dificuldade do jeito do gato; não deu, tenta de novo; deu, segue', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.cat_on_pole');
+    const p = mgPoint(session, 'map.street');
+    const shy = content.catProfiles.personalities[session.catDef('cat.gen.1')!.personality]!.trust;
+    expect(p.minigame).toEqual({ id: 'trust', difficulty: shy });
+    expect(session.miniGameExtras(p.id).catId).toBe('cat.gen.1'); // o mini game mostra o gato da chegada
+    session.finishMiniGame(result('trust', 'fail'), { difficulty: shy, jobPoint: p.id });
+    expect(mgPoint(session, 'map.street').id).toBe(p.id); // ainda no mini game
+    session.finishMiniGame(result('trust', 'ok'), { difficulty: shy, jobPoint: p.id });
+    expect(session.arrivals.currentStep()).toEqual({ choice: 'take_in' });
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+
+  it('ninhada: a mãe e os filhotes entram juntos (cada um pela vaga)', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.litter_crates');
+    expect(state.arrivals.active?.extraCats).toHaveLength(3);
+    session.doJobPoint('arrival:arr.litter_crates');
+    const p = mgPoint(session, 'map.street');
+    expect(p.minigame?.id).toBe('kitten_hunt');
+    session.finishMiniGame(result('kitten_hunt', 'ok'), { difficulty: 'hard', jobPoint: p.id });
+    session.answerArrival(true);
+    const capacity = session.catCapacity();
+    const inCafe = ['cat.gen.1', 'cat.gen.2', 'cat.gen.3', 'cat.gen.4'].filter((id) => state.cats[id]?.sheltered).length;
+    const pool = state.arrivals.shelterPool.length;
+    expect(inCafe + pool).toBe(4); // ninguém se perde: o que não coube foi para o abrigo da vila
+    expect(inCafe).toBeLessThanOrEqual(Math.max(capacity, 0) + 4);
+  });
+
+  it('entrega: caixa na porta, cena, perguntar no mercado e na clínica, e decidir', () => {
+    const { session, events, state } = cafe();
+    session.arrivals.queueNow('arr.delivery_box');
+    session.doJobPoint('arrival:arr.delivery_box');
+    session.finishCutscene('cs.arrival_box');
+    expect(session.pendingJobPoints('map.market').map((p) => p.id)).toContain('pt.arrival_ask_market');
+    session.doJobPoint('pt.arrival_ask_market');
+    session.doJobPoint('pt.arrival_ask_clinic');
+    expect(events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.delivery_box', key: 'keep_box_cat' } });
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  });
+
+  it('em perigo: fura a fila e o marco exclusivo; pegar e correr até a clínica; entra ferido e paga o vet', () => {
+    const { session, state } = cafe();
+    state.story.completed = []; // o prólogo (exclusivo) ativo: as outras esperam
+    session.arrivals.queueNow('arr.door_meow');
+    expect(state.arrivals.active).toBeNull();
+    session.arrivals.queueNow('arr.hurt_cat');
+    expect(state.arrivals.active?.id).toBe('arr.hurt_cat');
+    const chase = mgPoint(session, 'map.street');
+    expect(chase.minigame?.id).toBe('chase');
+    session.finishMiniGame(result('chase', 'ok'), { difficulty: 'easy', jobPoint: chase.id });
+    const run = mgPoint(session, 'map.street');
+    expect(run.minigame).toEqual({ id: 'delivery', difficulty: 'normal', itemId: 'hurt_cat' });
+    session.finishMiniGame(result('delivery', 'ok'), { difficulty: 'normal', jobPoint: run.id });
+    expect(state.cats['cat.gen.1']?.sickness).not.toBeNull();
+    expect(state.money).toBe(500 - 15);
   });
 });

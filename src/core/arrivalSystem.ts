@@ -15,6 +15,9 @@ import type { GameState } from './state';
 
 /** Id do ponto do encontro (não é um ponto de data/jobs.json: existe só durante a chegada). */
 export const meetPointId = (arrivalId: string) => `arrival:${arrivalId}`;
+/** Id do ponto do mini game da etapa `step`. */
+export const minigamePointId = (arrivalId: string, step: number) => `arrival:${arrivalId}:mg${step}`;
+
 /** Id do destino do guia (gato_leva). */
 export const destPointId = (arrivalId: string) => `arrival:${arrivalId}:dest`;
 
@@ -36,6 +39,8 @@ export interface ArrivalHost {
   /** Algum evento exclusivo da história em andamento (a chegada espera). */
   exclusiveActive(): boolean;
   reputation(): number;
+  /** Personalidade do gato (data/cats.json ou o gerado). */
+  catPersonality(catId: string): string;
   /** Abriga o gato no café com a condição de chegada (saúde, doença, fome). */
   shelterCat(catId: string, condition: string, provisionalUntil?: number): void;
   addMoney(delta: number, reason: string): void;
@@ -102,7 +107,8 @@ export class ArrivalSystem {
     const auto = this.autoOn();
     if (auto && this.st.nextOn === null) this.st.nextOn = this.h.state.day + nextGap(this.data, this.h.state.day, this.rng());
     for (const id of arrivalsToQueue(this.data, this.st, this.context(), this.rng(), auto)) {
-      this.st.queue.push(id);
+      if (this.def(id)?.priority) this.st.queue.unshift(id);
+      else this.st.queue.push(id);
       this.h.bus.emit('arrival.queued', { arrivalId: id });
     }
     this.tryStart();
@@ -110,12 +116,14 @@ export class ArrivalSystem {
 
   /** Começa a primeira da fila, se nada exclusivo está acontecendo (e, se ela adia com o café cheio, se há vaga). */
   private tryStart(): void {
-    if (this.st.active || this.h.exclusiveActive()) return;
+    if (this.st.active) return;
+    // Urgente (em_perigo) não espera os marcos exclusivos da história.
+    const exclusive = this.h.exclusiveActive();
     const full = this.h.shelteredCount() >= this.h.capacity();
     // gato_leva precisa de um gato do café para guiar.
     const i = this.st.queue.findIndex((id) => {
       const def = this.def(id);
-      return def && !(def.whenFull === 'postpone' && full) && !(def.model === 'gato_leva' && this.h.guideCats().length === 0);
+      return def && (!exclusive || def.priority) && !(def.whenFull === 'postpone' && full) && !(def.model === 'gato_leva' && this.h.guideCats().length === 0);
     });
     if (i < 0) return;
     const [id] = this.st.queue.splice(i, 1);
@@ -135,9 +143,17 @@ export class ArrivalSystem {
       catId = gen.def.id;
       condition = def.condition ?? gen.condition;
     }
+    // Ninhada: os filhotes vêm junto (gerados, condição kitten).
+    const extraCats: string[] = [];
+    for (let i = 0; i < (def.litter ?? 0); i++) {
+      this.st.seq++;
+      const kit = generateCat(this.rng(), this.h.content.catProfiles, { condition: 'kitten' }, this.st.seq);
+      s.catDefs[kit.def.id] = kit.def;
+      extraCats.push(kit.def.id);
+    }
     const guides = def.model === 'gato_leva' ? this.h.guideCats() : [];
     const leaderId = guides.length > 0 ? guides[this.rng().int(0, guides.length - 1)] : undefined;
-    this.st.active = { id: def.id, catId, condition, startedOn: s.day, startedAt: this.h.now(), step: 0, ...(leaderId ? { leaderId } : {}) };
+    this.st.active = { id: def.id, catId, condition, startedOn: s.day, startedAt: this.h.now(), step: 0, ...(leaderId ? { leaderId } : {}), ...(extraCats.length ? { extraCats } : {}) };
     this.st.last[def.id] = s.day;
     this.h.bus.emit('arrival.started', { arrivalId: def.id, catId, model: def.model });
     this.enterStep();
@@ -191,6 +207,11 @@ export class ArrivalSystem {
     const step = this.currentStep();
     if (!a || !step) return [];
     if ('meet' in step && a.def.place.map === mapId && a.def.place.at) return [{ id: meetPointId(a.def.id), map: mapId, at: a.def.place.at, action: 'press' }];
+    if ('minigame' in step && a.def.place.map === mapId && a.def.place.at) {
+      const m = step.minigame;
+      const difficulty = m.difficulty === 'auto' ? this.autoDifficulty(a.catId) : m.difficulty;
+      return [{ id: minigamePointId(a.def.id, a.step), map: mapId, at: a.def.place.at, action: 'minigame', minigame: { id: m.id, difficulty, ...(m.itemId ? { itemId: m.itemId } : {}) } }];
+    }
     const route = a.def.place.route;
     if ('lead' in step && a.def.place.map === mapId && route && route.length > 0) return [{ id: destPointId(a.def.id), map: mapId, at: route[route.length - 1]!, action: 'press' }];
     if ('clue' in step) {
@@ -210,6 +231,24 @@ export class ArrivalSystem {
       return true;
     }
     return false;
+  }
+
+  /** Dificuldade "auto": a da confiança da personalidade do gato (tímido = difícil). */
+  private autoDifficulty(catId: string): 'easy' | 'normal' | 'hard' {
+    const p = this.h.catPersonality(catId);
+    return this.h.content.catProfiles.personalities[p]?.trust ?? 'normal';
+  }
+
+  /** O ponto é o mini game da etapa da vez desta chegada? */
+  ownsMinigame(pointId: string): boolean {
+    const a = this.st.active;
+    return !!a && pointId === minigamePointId(a.id, a.step);
+  }
+
+  /** Terminou o mini game da etapa: deu certo, segue; não deu, fica na etapa (tenta de novo). */
+  minigameResult(pointId: string, success: boolean): void {
+    if (!this.ownsMinigame(pointId) || !success) return;
+    this.advance();
   }
 
   /** Uma cena ou roteiro terminou: se era a etapa da vez, segue. */
@@ -239,16 +278,21 @@ export class ArrivalSystem {
     this.st.active = null;
     let placement: Placement = null;
     if (outcome === 'accepted') {
-      const full = this.h.shelteredCount() >= this.h.capacity();
-      if (!full) placement = 'sheltered';
-      else placement = def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
-      if (placement === 'shelter_pool') this.st.shelterPool.push(a.catId);
-      else this.h.shelterCat(a.catId, a.condition, placement === 'provisional' ? s.day + this.data.provisional.days : undefined);
+      // Cada gato (o principal e os filhotes da ninhada) pela vaga: no café, provisório ou abrigo da vila.
+      const place = (catId: string, condition: string): Placement => {
+        const full = this.h.shelteredCount() >= this.h.capacity();
+        const where: Placement = !full ? 'sheltered' : def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
+        if (where === 'shelter_pool') this.st.shelterPool.push(catId);
+        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined);
+        return where;
+      };
+      placement = place(a.catId, a.condition);
+      for (const kit of a.extraCats ?? []) place(kit, 'kitten');
       const r = def.result ?? {};
       if (r.startPoints) this.h.addPoints('player', a.catId, r.startPoints);
       if (r.npc) this.h.addPoints('player', r.npc.id, r.npc.points);
       if (r.money) this.h.addMoney(r.money, `arrival:${def.id}`);
-    } else if (s.catDefs[a.catId] && !s.cats[a.catId]) delete s.catDefs[a.catId];
+    } else for (const id of [a.catId, ...(a.extraCats ?? [])]) if (s.catDefs[id] && !s.cats[id]) delete s.catDefs[id];
     if (def.kind === 'random') this.st.nextOn = s.day + nextGap(this.data, s.day, this.rng());
     this.h.bus.emit('arrival.finished', { arrivalId: def.id, catId: a.catId, outcome, placement });
     this.tryStart();

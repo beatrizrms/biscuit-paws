@@ -163,6 +163,7 @@ export class GameSession {
       bus: this.bus,
       evaluate: (c) => evaluate(c as Condition, this.state, this.storyContext()),
       shelteredCount: () => this.shelteredCats().length,
+      catPersonality: (id) => this.catDef(id)?.personality ?? '',
       guideCats: () => this.shelteredCats().filter((id) => this.state.cats[id]?.provisionalUntil === undefined),
       now: () => nowAbs(this.state),
       capacity: () => this.catCapacity(),
@@ -1061,6 +1062,12 @@ export class GameSession {
     const rep = reputationForResult(this.content.minigames.games[result.gameId]?.reputation, result);
     if (rep !== 0) this.addReputation(rep, `minigame:${result.gameId}:${result.outcome}`);
     this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
+    // Mini game de uma chegada de gato: deu certo, a chegada segue; não deu, tenta de novo no mesmo lugar.
+    if (params.jobPoint && this.arrivals.ownsMinigame(params.jobPoint)) {
+      this.arrivals.minigameResult(params.jobPoint, result.outcome !== 'fail' && !result.skipped);
+      this.advanceStory();
+      return;
+    }
     // A mesa da feira: a feira acontece com qualquer resultado (as adoções boas já foram boas).
     if (params.jobPoint && params.jobPoint === this.content.adoption.fair.table && isFairDay(this.state.fair, this.state.day)) {
       const adopted = (result.adoptions ?? []).filter((a) => a.verdict === 'good').length;
@@ -1348,7 +1355,9 @@ export class GameSession {
   }
 
   /** Parâmetros extras de um mini game aberto por um ponto (a mesa da feira leva os gatos do café). */
-  miniGameExtras(pointId: string): { adoptCats?: AdoptCat[] } {
+  miniGameExtras(pointId: string): { adoptCats?: AdoptCat[]; catId?: string } {
+    // Mini game de uma chegada: o gato da chegada (a fuga, a confiança... com a cor dele).
+    if (this.arrivals.ownsMinigame(pointId)) return { catId: this.state.arrivals.active!.catId };
     if (pointId !== this.content.adoption.fair.table) return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]

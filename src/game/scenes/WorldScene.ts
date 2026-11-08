@@ -885,18 +885,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!a || !step || a.def.place.map !== this.map.id) return;
     const ts = this.map.tileSize;
     const who = actorsOf(a.def);
-    const sitCat = (catId: string | undefined, [c, r]: [number, number]) => {
+    const sitCat = (catId: string | undefined, [c, r]: [number, number], lift = 0) => {
       const variant = catId ? this.session.catDef(catId)?.variant : undefined;
       if (!variant || !this.textures.exists(catTexture(variant))) return null;
       CatSprite.createAnimations(this, variant);
-      const feet = (r + 1) * ts - 4;
+      const feet = (r + 1) * ts - 4 - lift;
       const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
       cat.play(`${catTexture(variant)}-sit`);
       this.arrivalActors.push(cat);
       return cat;
     };
     const at = a.def.place.at;
+    // Etapa de mini game: o gato fica no lugar (preso no alto do poste: place.lift), esperando ajuda.
+    if ('minigame' in step && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0);
     if ('meet' in step && at) {
+      if (who.parcel) {
+        // A caixa que mia (o quadro da caixa de entrega dos balões).
+        const bottom = (at[1] + 1) * ts - 2;
+        this.arrivalActors.push(this.add.image((at[0] + 0.5) * ts, bottom, 'emotes', 'parcel').setOrigin(0.5, 1).setDepth(ySortDepth(bottom)));
+      }
       if (who.trail) {
         // PLACEHOLDER(arte): pegadas desenhadas por código (ph_footprints).
         const def = this.session.content.catalog.tiles['ph_footprints'];
@@ -904,7 +911,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.arrivalTrailKey = this.session.arrivals.trailNow().length;
       }
       if (who.cat) {
-        const cat = sitCat(a.catId, at);
+        const cat = sitCat(a.catId, at, a.def.place.lift ?? 0);
         if (cat && who.hidden) {
           cat.setVisible(false);
           this.arrivalHidden = cat;

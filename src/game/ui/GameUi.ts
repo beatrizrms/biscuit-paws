@@ -395,7 +395,10 @@ export class GameUi {
     if (!a || !step) return '';
     const g = uiText.arrivals.goal;
     const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : g.meet;
-    const text = 'meet' in step ? meet : 'lead' in step ? g.lead : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? g.clue : '';
+    const mg = { preso: g.rescue, ninhada: g.litter, dentro_do_cafe: g.inside, em_perigo: g.danger } as Record<string, string>;
+    const meetText = a.def.model === 'entrega' ? g.box : meet;
+    const clueText = a.def.model === 'entrega' ? g.ask : g.clue;
+    const text = 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
     return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }
 

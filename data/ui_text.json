@@ -592,7 +592,12 @@
       "poster": "Tem um cartaz novo no mural do mercado: um gato precisa de lar.",
       "footprints": "Pegadas de gato na neve da calçada... saindo da porta do café.",
       "none": "",
-      "leader": "{arrival:leader} mia insistente na porta do café, olhando para você..."
+      "leader": "{arrival:leader} mia insistente na porta do café, olhando para você...",
+      "noise": "Barulho na rua: os vizinhos olham para cima, para o poste...",
+      "inside": "Um miadinho... dentro do café? De onde vem?",
+      "box": "Tem uma caixa na porta do café. Ela está... miando?",
+      "danger": "Um gato ferido passou correndo pela rua! Precisa de ajuda, já!",
+      "litter": "Miadinhos bem finos perto dos caixotes de fruta da calçada..."
     },
     "goal": {
       "meet": "Ver quem está na porta do café.",
@@ -602,7 +607,14 @@
       "clue": "Seguir a pista.",
       "trail": "Seguir as pegadas na calçada antes que a neve cubra.",
       "meet_leader": "Ver o que {arrival:leader} quer, na porta do café.",
-      "lead": "Seguir {arrival:leader}."
+      "lead": "Seguir {arrival:leader}.",
+      "minigame": "Ajudar o gato (E no lugar).",
+      "rescue": "Acalmar o gato preso até ele descer.",
+      "litter": "Achar os filhotes, um a um.",
+      "inside": "Procurar o miado dentro do café e ganhar a confiança dele.",
+      "danger": "Pegar o gato ferido e correr com ele até a clínica!",
+      "box": "Ver a caixa que mia na porta do café.",
+      "ask": "Perguntar pela vila de quem é o gato (mercado e clínica)."
     },
     "choices": {
       "take_in": {
@@ -618,6 +630,16 @@
       "poster": {
         "question": "Acolher o gato do cartaz?",
         "yes": "Acolher",
+        "no": "Agora não"
+      },
+      "take_in_litter": {
+        "question": "Levar a mamãe gata e os filhotes para o café?",
+        "yes": "Levar todos",
+        "no": "Agora não"
+      },
+      "keep_box_cat": {
+        "question": "Ninguém na vila sabe de quem é. O gatinho da caixa fica no café?",
+        "yes": "Fica!",
         "no": "Agora não"
       }
     },

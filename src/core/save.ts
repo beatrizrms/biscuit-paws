@@ -292,6 +292,7 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
           step: Number(act.step) || 0,
           ...(typeof act.startedAt === 'number' ? { startedAt: act.startedAt } : {}),
           ...(typeof act.leaderId === 'string' && knownCat(act.leaderId) ? { leaderId: act.leaderId } : {}),
+          ...(Array.isArray(act.extraCats) ? { extraCats: act.extraCats.filter((id): id is string => typeof id === 'string' && knownCat(id)) } : {}),
         }
       : null;
   return {

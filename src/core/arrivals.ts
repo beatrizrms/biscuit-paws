@@ -14,7 +14,7 @@ export type ArrivalModel = (typeof ARRIVAL_MODELS)[number];
 export const PLACE_KINDS = ['cafe_door', 'street', 'roof', 'market', 'backyard', 'inside_cafe', 'clinic'] as const;
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
-export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'none'] as const;
+export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'none'] as const;
 export type Clue = (typeof CLUES)[number];
 
 /** Café cheio: o gato fica provisório (com prazo), vai para o abrigo da vila (adoção) ou a chegada espera vaga. */
@@ -49,7 +49,11 @@ export type ArrivalStep =
   | { script: string }
   /** Pista no mapa: ponto de data/jobs.json que ela precisa visitar. */
   | { clue: string }
-  | { minigame: { id: string; difficulty: 'easy' | 'normal' | 'hard' } }
+  /**
+   * Mini game no lugar da chegada (place.at, com "!"): E abre; deu certo, segue; não deu, tenta de novo.
+   * difficulty "auto": a da confiança da personalidade do gato (cat_profiles.json). itemId: o pedido da entrega.
+   */
+  | { minigame: { id: string; difficulty: 'easy' | 'normal' | 'hard' | 'auto'; itemId?: string } }
   /** Escolha sim/não (ex.: acolher o gato do mural). Textos em ui_text. */
   | { choice: string };
 
@@ -73,6 +77,10 @@ export interface ArrivalDef {
   minGapDays?: number;
   /** Peso no sorteio do dia (random; padrão 1). */
   weight?: number;
+  /** Urgente (em_perigo): fura a fila e não espera os marcos exclusivos da história. */
+  priority?: boolean;
+  /** Ninhada: quantos filhotes vêm junto com o gato (gerados, condição kitten). */
+  litter?: number;
   trigger: ArrivalTrigger;
   place: {
     kind: PlaceKind;
@@ -83,6 +91,8 @@ export interface ArrivalDef {
     trail?: [number, number][];
     /** pegadas: em quantos minutos a neve cobre as pegadas (some primeiro o começo: seguir cedo é mais fácil). */
     fadeMinutes?: number;
+    /** Desenha o gato tantos pixels acima da célula (preso no alto do poste, no telhado). */
+    lift?: number;
     /** gato_leva: o caminho do guia; a última célula é onde o gato novo espera. */
     route?: [number, number][];
   };
@@ -117,6 +127,8 @@ export interface ActiveArrival {
   startedAt?: number;
   /** gato_leva: o gato do café que guia. */
   leaderId?: string;
+  /** Ninhada: os filhotes que vêm junto (gerados). */
+  extraCats?: string[];
   /** Etapa atual (índice em steps). */
   step: number;
 }
@@ -261,6 +273,8 @@ export function validateArrivals(
     const steps = stepsOf(a);
     if (steps.some((s) => 'meet' in s) && (!a.place.map || !a.place.at)) err(`${w}: a etapa meet precisa de place.map e place.at`);
     if (a.model === 'vizinho_traz' && !a.result?.npc) err(`${w}: vizinho_traz precisa de result.npc (quem traz o gato)`);
+    if (a.litter !== undefined && !(Number.isInteger(a.litter) && a.litter >= 1)) err(`${w}: litter precisa ser um inteiro de 1 ou mais`);
+    if (steps.some((s) => 'minigame' in s) && (!a.place.map || !a.place.at)) err(`${w}: a etapa de mini game precisa de place.map e place.at`);
     if (a.model === 'pegadas' && (a.place.trail?.length ?? 0) < 2) err(`${w}: pegadas precisa de place.trail (2 células ou mais)`);
     if (steps.some((s) => 'lead' in s) && (a.place.route?.length ?? 0) < 2) err(`${w}: a etapa lead precisa de place.route (2 células ou mais)`);
     for (const step of steps) {
