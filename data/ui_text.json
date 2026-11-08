@@ -1,31 +1,79 @@
 {
   "schemaVersion": 1,
-  "catalogTitle": "Catálogo",
-  "catalogSections": [
-    {
-      "tag": "for:cats",
-      "title": "Para os gatos"
-    },
-    {
-      "tag": "counter",
-      "title": "Balcão e equipamentos"
-    },
-    {
-      "tag": "for:guests",
-      "title": "Para os clientes"
-    },
-    {
-      "tag": "decor",
-      "title": "Decoração"
-    },
-    {
-      "tag": "facade",
-      "title": "Fachada"
-    }
-  ],
+  "market": {
+    "app": "Market",
+    "online": "Compra online: chega pela entregadora, na porta do café, em 1 hora.",
+    "tabs": [
+      {
+        "id": "pet",
+        "title": "Pet",
+        "groups": [
+          {
+            "tag": "for:cats",
+            "title": "Para os gatos"
+          }
+        ]
+      },
+      {
+        "id": "furniture",
+        "title": "Móveis",
+        "groups": [
+          {
+            "tag": "counter",
+            "except": [
+              "equipment"
+            ],
+            "title": "Balcão e vitrine"
+          },
+          {
+            "tag": "for:guests",
+            "title": "Para os clientes"
+          }
+        ]
+      },
+      {
+        "id": "appliances",
+        "title": "Eletro",
+        "groups": [
+          {
+            "tag": "equipment",
+            "title": "Eletrodomésticos e eletrônicos"
+          }
+        ]
+      },
+      {
+        "id": "decor",
+        "title": "Decor",
+        "groups": [
+          {
+            "tag": "decor",
+            "title": "Decoração"
+          }
+        ]
+      },
+      {
+        "id": "build",
+        "title": "Construção",
+        "groups": [
+          {
+            "tag": "facade",
+            "title": "Fachada"
+          }
+        ],
+        "rooms": true,
+        "renovation": true
+      }
+    ],
+    "empty": "Nada por aqui ainda. Novidades chegam conforme o café cresce.",
+    "placeOnlyHome": "Para posicionar, entre no café.",
+    "tapToPlace": "posicionar"
+  },
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
-  "hintWalk": "Setas/WASD: andar · E: interagir · 1–8: barra · C: catálogo · M: cardápio · I: mochila · P: celular",
+  "goalsPeek": "clique para ver",
+  "goalsShow": "Clique para ver os detalhes",
+  "goalsHide": "Clique para recolher",
+  "hintWalk": "Setas/WASD: andar · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "hotbar": {
     "label": "Barra de itens"
@@ -174,10 +222,10 @@
     "jobs": "Pedidos feitos",
     "sleep": "Você dormiu no quartinho do café."
   },
-  "catalogOnline": "Comprando online: chega pelo correio, na porta do café, em 1 hora.",
   "installed": "na porta",
   "phone": {
-    "calling": "chamando..."
+    "calling": "chamando...",
+    "title": "Celular"
   },
   "wait": "Esperar ⏩",
   "waitTitle": "O tempo passa depressa até a hora marcada",
@@ -340,7 +388,13 @@
     "trayOff": "Bandeja guardada.",
     "tray": "Bandeja: {n}/{max}",
     "sinkLoad": "Pia: {n} para lavar",
-    "sinkWashing": "Pia: lavando"
+    "sinkWashing": "Pia: lavando",
+    "blocked": {
+      "empty_menu": "Ninguém entra: o quadro está vazio. Ponha receitas (M).",
+      "vessel": "Ninguém entra: tudo do quadro esgotado. Lave a louça na pia.",
+      "ingredients": "Ninguém entra: tudo do quadro esgotado. Faltam ingredientes (mercado).",
+      "equipment": "Ninguém entra: tudo do quadro esgotado. Falta equipamento."
+    }
   },
   "playerFallback": "Você",
   "rooms": {
@@ -398,5 +452,10 @@
       "serve": "Servir (Enter)",
       "result": "{pattern}: {stars} · contorno {coverage}% · capricho {accuracy}% · gorjeta +{tip}"
     }
+  },
+  "phoneApp": {
+    "home": "Início",
+    "back": "voltar",
+    "close": "fechar"
   }
 }

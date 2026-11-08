@@ -332,6 +332,18 @@ export class CafeService {
     return this.freeSpots().find((s) => recipes.some((r) => this.servesAt(r, s.kind)));
   }
 
+  /**
+   * Por que nenhum cliente novo entra, com o café aberto: quadro vazio ou tudo do quadro esgotado (o motivo mais
+   * comum entre as receitas: louça, ingrediente ou equipamento). null = está entrando gente normalmente.
+   */
+  arrivalsBlocked(): 'empty_menu' | 'vessel' | 'ingredients' | 'equipment' | null {
+    if (!this.isOpen()) return null;
+    if (this.st.menu.length === 0) return 'empty_menu';
+    if (this.orderable().length > 0) return null;
+    const statuses = this.st.menu.map((id) => this.recipeStatus(id));
+    return (['vessel', 'ingredients', 'equipment'] as const).find((st) => statuses.includes(st)) ?? 'equipment';
+  }
+
   /** O atendimento está funcionando agora (marco/condição dos dados + horário)? */
   isOpen(): boolean {
     if (!this.h.evaluate(this.cfg.enabledWhen)) return false;

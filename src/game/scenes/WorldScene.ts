@@ -138,13 +138,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Sem captura: senão W, A, S, D não dá para digitar na caixa de nome do gato.
     }, false) as Keys;
     // Teclas de ação por evento: um toque rápido nunca se perde.
-    this.input.keyboard!.on('keydown-C', () => {
+    // C: o Market do celular (compra online: funciona em qualquer lugar; posicionar só dentro do café).
+    this.onKey('C', () => {
       if (this.ui.isDialogueOpen()) return;
-      if (!this.session.atHome()) return this.ui.toastText('notHome');
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
-    this.input.keyboard!.on('keydown-ESC', () => {
+    this.onKey('ESC', () => {
       if (this.placing) this.cancelPlacing();
       else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
         this.ui.closeCatalog();
@@ -152,23 +152,23 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else if (!this.ui.isBusy() && !this.changingMap && !this.scripts.isRunning()) this.openPause();
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
-    this.input.keyboard!.on('keydown-E', () => {
+    this.onKey('E', () => {
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       this.interact();
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
     // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
-    this.input.keyboard!.on('keydown-M', () => {
+    this.onKey('M', () => {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       if (!this.session.atHome()) return this.ui.toastText('notHome');
       this.ui.openMenuBoard();
     });
-    this.input.keyboard!.on('keydown-I', () => {
+    this.onKey('I', () => {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       this.ui.openBackpack();
     });
-    this.input.keyboard!.on('keydown-P', () => {
+    this.onKey('P', () => {
       if (this.ui.isNewsOpen()) return this.ui.closeShop();
       if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
       this.ui.openNews('phone');
@@ -539,6 +539,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placing = { itemId, ghosts, at: [0, 0] };
     this.ui.setHint('placing');
     this.moveGhost(this.input.activePointer);
+  }
+
+  /**
+   * Tecla de ação, uma vez por toque. O Phaser às vezes entrega o mesmo keydown de novo ao soltar a tecla
+   * (apertar e soltar no mesmo quadro): sem isto, um toque rápido no C abria e fechava o Market.
+   */
+  private onKey(key: string, fn: () => void): void {
+    let last: KeyboardEvent | null = null;
+    this.input.keyboard!.on(`keydown-${key}`, (e: KeyboardEvent) => {
+      if (e === last) return;
+      last = e;
+      fn();
+    });
   }
 
   private cancelPlacing(): void {
@@ -1128,6 +1141,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         view.shownRecipe = shown;
         view.showOrder(shown ? this.session.content.recipes[shown]?.icon : shown);
       }
+      // Depois de pagar, fica no lugar consumindo (consumeMinutes): a barrinha mostra quanto falta para ir embora.
+      view.showConsuming(c.stage === 'drinking' ? 1 - (c.until - nowAbs(this.session.state)) / cfg.consumeMinutes[c.kind] : undefined);
       if (c.stage === 'waiting') {
         const left = (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes;
         const b = serviceArt.bubble;
@@ -1143,6 +1158,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       view.leaving = true;
       view.showOrder(undefined);
+      view.showConsuming(undefined);
       void view.walkTo(door).then(() => (view.sprite.active ? view.sprite.leave() : undefined)).then(() => {
         view.destroy();
         this.customerViews.delete(id);

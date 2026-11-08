@@ -15,6 +15,8 @@ export class CustomerSprite {
   private bubbleBg: Phaser.GameObjects.Image;
   private bubbleIcon: Phaser.GameObjects.Image | null = null;
   private waiting: Phaser.GameObjects.Sprite;
+  /** Barrinha enquanto consome (depois de pagar): mostra quanto falta para ir embora. */
+  private consuming: Phaser.GameObjects.Image;
   private walking: Promise<void> = Promise.resolve();
   /** Célula para onde está indo (ou onde está). */
   target: Cell;
@@ -37,6 +39,7 @@ export class CustomerSprite {
       scene.anims.create({ key: 'bubble-wait', frames: serviceArt.bubble.waiting.map((_, i) => ({ key: `bubble_wait_${i}` })), frameRate: 3, repeat: -1 });
     }
     this.waiting = scene.add.sprite(0, 0, 'bubble_wait_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_500);
+    this.consuming = scene.add.image(0, 0, 'progress_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_400);
   }
 
   /**
@@ -77,6 +80,16 @@ export class CustomerSprite {
     this.bubble.setVisible(true);
   }
 
+  /** Consumindo: barrinha de 0 a 1 (undefined esconde). */
+  showConsuming(progress: number | undefined): void {
+    if (progress === undefined) {
+      this.consuming.setVisible(false);
+      return;
+    }
+    const n = serviceArt.progress.length;
+    this.consuming.setTexture(`progress_${Math.min(n - 1, Math.max(0, Math.round(progress * (n - 1))))}`).setVisible(true);
+  }
+
   /** Paciência: o balão muda de cara (impaciente, furioso). */
   setMood(mood: Mood): void {
     if (mood === this.mood) return;
@@ -88,11 +101,13 @@ export class CustomerSprite {
   update(): void {
     this.bubble.setPosition(this.sprite.x, this.sprite.y - 60);
     this.waiting.setPosition(this.sprite.x + 6, this.sprite.y - 60);
+    this.consuming.setPosition(this.sprite.x, this.sprite.y - 52);
   }
 
   destroy(): void {
     this.bubble.destroy();
     this.waiting.destroy();
+    this.consuming.destroy();
     this.sprite.destroy();
   }
 }

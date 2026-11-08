@@ -178,6 +178,20 @@ describe('ciclo do pedido', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
   });
 
+  it('avisa por que ninguém entra: quadro vazio, sem ingrediente, sem louça limpa', () => {
+    const { session, sv, state } = openCafe({ coffee: false });
+    expect(sv.arrivalsBlocked()).toBe('empty_menu');
+    sv.toggleMenu('recipe.black_coffee');
+    expect(sv.arrivalsBlocked()).toBe('ingredients');
+    session.buy('item.coffee_ground');
+    session.buy('item.paper_filter');
+    expect(sv.arrivalsBlocked()).toBeNull();
+    state.dishes = { cup: 0, glass: 0, plate: 0 };
+    expect(sv.arrivalsBlocked()).toBe('vessel');
+    state.time = 20 * 60; // fechado: sem aviso
+    expect(sv.arrivalsBlocked()).toBeNull();
+  });
+
   it('com 2 ou mais gatos doentes, nenhum cliente novo entra; sararam, voltam', () => {
     const { session, sv, state } = openCafe();
     sv.toggleMenu('recipe.black_coffee');

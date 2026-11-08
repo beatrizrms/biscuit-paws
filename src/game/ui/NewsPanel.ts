@@ -1,17 +1,27 @@
-// Celular (tecla P) e mural de pedidos do mercado: o mesmo painel. No celular há dois apps: "Vila Hoje"
-// (notícias + pedidos da vila) e "Meus gatos" (os gatos abrigados e a relação com cada um).
-// Quem decide se um pedido pode ser aceito é o núcleo.
+// Celular (tecla P; C abre direto no Market) e mural de pedidos do mercado.
+// O celular tem a moldura do pacote (data/phone.json) e uma tela de início com os apps:
+// "Vila Hoje" (notícias + pedidos da vila), "Meus gatos" (os gatos abrigados) e "Market" (compras online, MarketApp).
+// O mural é um painel simples, só com os pedidos. Quem decide se um pedido pode ser aceito é o núcleo.
 import type { CatProfile, GameSession } from '../../core/session';
-import { content, uiText } from '../content';
+import { formatClock } from '../../core/time';
+import { content, phone, uiText } from '../content';
+import { MarketApp, type MarketHost } from './MarketApp';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
+export type PhoneApp = 'home' | 'news' | 'cats' | 'market';
+
 export class NewsPanel {
-  private el: HTMLElement;
-  private body: HTMLElement;
+  /** Mural do mercado. */
+  private board: HTMLElement;
+  private boardBody: HTMLElement;
+  /** Celular. */
+  private phoneEl: HTMLElement;
+  private phoneBody: HTMLElement;
   private mode: 'phone' | 'board' | null = null;
   /** App aberto no celular. */
-  private app: 'news' | 'cats' = 'news';
+  private app: PhoneApp = 'home';
+  private market: MarketApp;
 
   constructor(
     root: HTMLElement,
@@ -19,56 +29,127 @@ export class NewsPanel {
     private onChange: () => void,
     private onAccepted: (title: string) => void,
     private onProblem: (reason: string) => void,
+    marketHost: MarketHost,
   ) {
-    this.el = document.createElement('section');
-    this.el.className = 'panel catalog news';
-    this.el.innerHTML = `<header><h2></h2><button class="close">${uiText.news.close}</button></header>
-      <nav class="apps"><button data-app="news">${esc(content.news.app)}</button><button data-app="cats">${uiText.cats.app}</button></nav><div class="list"></div>`;
-    root.appendChild(this.el);
-    this.body = this.el.querySelector('.list') as HTMLElement;
-    (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
-    this.el.querySelectorAll<HTMLButtonElement>('[data-app]').forEach((b) =>
-      b.addEventListener('click', () => {
-        this.app = b.dataset.app === 'cats' ? 'cats' : 'news';
-        this.render();
-      }),
-    );
-    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const) session.bus.on(ev, () => this.render());
+    this.board = document.createElement('section');
+    this.board.className = 'panel catalog news';
+    this.board.innerHTML = `<header><h2>${uiText.news.boardTitle}</h2><button class="close">${uiText.news.close}</button></header><div class="list"></div>`;
+    root.appendChild(this.board);
+    this.boardBody = this.board.querySelector('.list') as HTMLElement;
+    (this.board.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
+
+    // A moldura do pacote é esticada pelas bordas (border-image): a tela fica maior que no pacote, sem borrar.
+    const [fw, fh] = phone.size;
+    const s = phone.screen;
+    const slice = [s.y, fw - s.x - s.w, fh - s.y - s.h, s.x];
+    this.phoneEl = document.createElement('section');
+    this.phoneEl.className = 'phone-ui news';
+    this.phoneEl.setAttribute('aria-label', uiText.phone.title);
+    this.phoneEl.style.borderImage = `url(${phone.frame}) ${slice.join(' ')} / ${slice.map((n) => `${n}px`).join(' ')} stretch`;
+    this.phoneEl.style.borderWidth = slice.map((n) => `${n}px`).join(' ');
+    this.phoneEl.innerHTML = `<div class="phone-screen">
+        <div class="phone-status"><span class="p-clock"></span><img src="${phone.status}" alt="" /></div>
+        <header class="phone-bar"><button class="p-back" title="${uiText.phoneApp.back}">‹</button><h2></h2><button class="p-close" title="${uiText.phoneApp.close}">✕</button></header>
+        <div class="phone-body"></div>
+      </div>`;
+    root.appendChild(this.phoneEl);
+    this.phoneBody = this.phoneEl.querySelector('.phone-body') as HTMLElement;
+    (this.phoneEl.querySelector('.p-close') as HTMLElement).addEventListener('click', () => this.close());
+    (this.phoneEl.querySelector('.p-back') as HTMLElement).addEventListener('click', () => this.show('home'));
+    this.phoneBody.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-app]');
+      if (b) this.show(b.dataset.app as PhoneApp);
+    });
+    this.market = new MarketApp(session, marketHost);
+
+    for (const ev of ['job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
+      session.bus.on(ev, () => this.render());
   }
 
   isOpen(): boolean {
     return this.mode !== null;
   }
 
-  /** phone: o "Vila Hoje" (notícias + pedidos); board: o mural do mercado (só pedidos). */
-  open(mode: 'phone' | 'board'): void {
+  /** O Market está na tela (a tecla C abre e fecha ele). */
+  isMarketOpen(): boolean {
+    return this.mode === 'phone' && this.app === 'market';
+  }
+
+  /** phone: o celular (na tela de início ou num app); board: o mural do mercado (só pedidos). */
+  open(mode: 'phone' | 'board', app: PhoneApp = 'home'): void {
+    this.close();
     this.mode = mode;
-    if (mode === 'board') this.app = 'news';
-    this.el.classList.toggle('phone', mode === 'phone');
+    this.app = app;
+    (mode === 'phone' ? this.phoneEl : this.board).classList.add('open');
     this.render();
-    this.el.classList.add('open');
     this.onChange();
   }
 
   close(): void {
     if (!this.mode) return;
     this.mode = null;
-    this.el.classList.remove('open');
+    this.board.classList.remove('open');
+    this.phoneEl.classList.remove('open');
     this.onChange();
   }
 
-  private render(): void {
-    if (!this.mode) return;
-    const phone = this.mode === 'phone';
-    (this.el.querySelector('h2') as HTMLElement).textContent = !phone ? uiText.news.boardTitle : this.app === 'cats' ? uiText.cats.app : content.news.app;
-    this.el.querySelectorAll<HTMLButtonElement>('[data-app]').forEach((b) => b.classList.toggle('on', b.dataset.app === this.app));
-    if (phone && this.app === 'cats') return this.renderCats();
+  /** Redesenha (dinheiro, entregas, a hora...). */
+  render(): void {
+    if (this.mode === 'board') {
+      this.boardBody.innerHTML = this.jobsHtml(false);
+      this.bindJobs(this.boardBody);
+      return;
+    }
+    if (this.mode !== 'phone') return;
+    const titles: Record<PhoneApp, string> = { home: '', news: content.news.app, cats: uiText.cats.app, market: uiText.market.app };
+    this.phoneEl.dataset.app = this.app;
+    (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
+    (this.phoneEl.querySelector('.p-clock') as HTMLElement).textContent = formatClock(this.session.state.time, 10);
+    const body = this.phoneBody;
+    if (this.app === 'market') return this.market.render(body);
+    if (this.app === 'cats') body.innerHTML = this.catsHtml();
+    else if (this.app === 'news') {
+      body.innerHTML = this.jobsHtml(true);
+      this.bindJobs(body);
+    } else body.innerHTML = this.homeHtml();
+  }
+
+  private show(app: PhoneApp): void {
+    this.app = app;
+    this.render();
+    this.phoneBody.scrollTop = 0;
+    this.onChange();
+  }
+
+  /** Tela de início: os ícones dos apps. */
+  private homeHtml(): string {
+    const sprites = content.catSprites;
+    const firstCat = this.session.catProfiles()[0];
+    const catSheet = sprites.variants[firstCat?.variant ?? Object.keys(sprites.variants)[0]!];
+    const catIcon = catSheet
+      ? `<span class="cat-face" style="background-image:url(${catSheet});background-size:${sprites.columns * sprites.frameSize}px auto"></span>`
+      : '';
+    const pending = this.session.availableJobs().length;
+    const apps: { id: PhoneApp; name: string; icon: string; badge?: boolean }[] = [
+      { id: 'news', name: content.news.app, icon: `<img src="${phone.apps.classificados}" alt="" />`, badge: pending > 0 },
+      { id: 'cats', name: uiText.cats.app, icon: catIcon },
+      { id: 'market', name: uiText.market.app, icon: '<img class="cart" src="assets/ui/hud/icon_cart_full.png" alt="" />' },
+    ];
+    return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
+      .map(
+        (a) => `<button class="p-app" data-app="${a.id}"><span class="p-icon ${a.id}">${a.icon}${
+          a.badge ? `<img class="p-badge" src="${phone.notification}" alt="" />` : ''
+        }</span><span class="p-name">${esc(a.name)}</span></button>`,
+      )
+      .join('')}</div>`;
+  }
+
+  /** Vila Hoje (notícias + pedidos) ou o mural (só pedidos). */
+  private jobsHtml(withNews: boolean): string {
     const s = this.session;
-    const news =
-      this.mode === 'phone'
-        ? `<p class="date">${uiText.day} ${s.state.day}</p>` +
-          s.news().map((n) => `<article><h3>${esc(n.headline)}</h3><p>${esc(n.text)}</p></article>`).join('')
-        : '';
+    const news = withNews
+      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(n.headline)}</h3><p>${esc(n.text)}</p></article>`).join('')
+      : '';
     const active = s.activeJobs().map((j) => {
       const step = j.steps[s.jobStep(j.id)];
       const [done, total] = s.jobStepProgress(j.id);
@@ -82,11 +163,14 @@ export class NewsPanel {
         <button data-job="${j.id}" ${full ? `disabled title="${uiText.news.oneAtATime}"` : ''}>${uiText.news.accept}</button></div>`,
     );
     const jobs = [...active, ...open].join('') || `<p class="empty">${uiText.news.noJobs}</p>`;
-    this.body.innerHTML = `${news}<h3 class="jobs-title">${uiText.news.jobsTitle}</h3>${jobs}`;
-    this.body.querySelectorAll<HTMLButtonElement>('[data-job]').forEach((btn) =>
+    return `${news}<h3 class="jobs-title">${uiText.news.jobsTitle}</h3>${jobs}`;
+  }
+
+  private bindJobs(body: HTMLElement): void {
+    body.querySelectorAll<HTMLButtonElement>('[data-job]').forEach((btn) =>
       btn.addEventListener('click', () => {
         const id = btn.dataset.job!;
-        const result = s.acceptJob(id);
+        const result = this.session.acceptJob(id);
         if (!result.ok) return this.onProblem(result.reason);
         this.onAccepted(content.jobs[id]!.title);
       }),
@@ -106,7 +190,7 @@ export class NewsPanel {
   }
 
   /** App "Meus gatos": uma ficha por gato abrigado, com o gato sentado (animado), corações e a rotina. */
-  private renderCats(): void {
+  private catsHtml(): string {
     const t = uiText.cats;
     const sprites = content.catSprites;
     const sit = sprites.animations.find((a) => a.name === 'sit');
@@ -127,6 +211,6 @@ export class NewsPanel {
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;
     });
-    this.body.innerHTML = cards.join('') || `<p class="empty">${t.none}</p>`;
+    return cards.join('') || `<p class="empty">${t.none}</p>`;
   }
 }

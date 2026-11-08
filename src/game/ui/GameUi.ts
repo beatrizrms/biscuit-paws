@@ -32,8 +32,6 @@ export class GameUi {
   private toastEl: HTMLElement;
   private dialogueLayer: HTMLElement;
   private dialogueBox: HTMLElement;
-  private catalog: HTMLElement;
-  private catalogList: HTMLElement;
 
   private dialogueQueue: { speaker: string; text: string; npc?: string }[] = [];
   private reveal: { el: HTMLElement; done: () => void } | null = null;
@@ -73,11 +71,6 @@ export class GameUi {
       <div class="panel hud-cart" hidden></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
-      <section class="panel catalog" aria-label="${uiText.catalogTitle}">
-        <header><h2>${uiText.catalogTitle}</h2><button class="close" title="Fechar (C)">fechar</button></header>
-        <p class="online">${uiText.catalogOnline}</p>
-        <div class="list"></div>
-      </section>
       <div class="dialogue-layer">
         <div class="panel dialogue"><img class="portrait" alt="" /><span class="speaker"></span><span class="text"></span><span class="more">▼</span></div>
       </div>`;
@@ -90,14 +83,15 @@ export class GameUi {
       cartEl.innerHTML = `<img src="assets/ui/hud/${count > 0 ? 'icon_cart_full' : 'icon_cart_empty'}.png" alt="${uiText.shop.cartTitle}" /><span>${count} · ${total}</span>`;
     });
     this.goals = $('.hud-goals');
+    // O balão fica recolhido (só o título da meta): um clique abre os detalhes, outro recolhe.
+    this.goals.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.wait')) return;
+      this.goals.classList.toggle('open');
+    });
     this.hint = $('.hint');
     this.toastEl = $('.toast');
     this.dialogueLayer = $('.dialogue-layer');
     this.dialogueBox = $('.dialogue');
-    this.catalog = $('.catalog');
-    this.catalogList = $('.catalog .list');
-
-    $('.catalog .close').addEventListener('click', () => this.closeCatalog());
     this.dialogueLayer.addEventListener('click', () => this.advanceDialogue());
     window.addEventListener('keydown', (e) => {
       if (!this.dialogueLayer.classList.contains('open')) return; // só a caixa de fala (a cena tem a dela)
@@ -121,7 +115,22 @@ export class GameUi {
     this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem, (id) => this.handlers.onPlace(id));
     this.hotbar = new Hotbar(root, session);
     this.consult = new ConsultPanel(root, session, () => this.refresh(), (reason) => this.problem(reason as keyof typeof uiText.problems), (text) => this.toast(text, 3500));
-    this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems));
+    this.news = new NewsPanel(root, session, () => this.refresh(), (title) => this.toast(`${uiText.news.accepted}: ${title}`), (reason) => this.problem(reason as keyof typeof uiText.problems), {
+      toast: (text) => this.toast(text),
+      problem,
+      place: (id) => {
+        this.news.close();
+        this.handlers.onPlace(id);
+      },
+      done: (text) => {
+        this.news.close();
+        if (text) this.toast(text);
+      },
+      ordered: (arrivesAt) => {
+        const { time, tomorrow } = this.clockOf(arrivesAt);
+        this.toast((tomorrow ? uiText.delivery.orderedTomorrow : uiText.delivery.ordered).replace('{time}', time));
+      },
+    });
 
     const bus = session.bus;
     bus.on('cutscene.requested', ({ cutsceneId }) => {
@@ -193,20 +202,21 @@ export class GameUi {
     return this.dialogueLayer.classList.contains('open') || this.cutscene?.isOpen() === true || this.naming?.isOpen() === true;
   }
 
+  /** O Market (app do celular) está aberto: a tecla C abre e fecha ele. */
   isCatalogOpen(): boolean {
-    return this.catalog.classList.contains('open');
+    return this.news.isMarketOpen();
   }
 
   toggleCatalog(): void {
     if (this.isCatalogOpen()) this.closeCatalog();
     else if (!this.isDialogueOpen()) {
-      this.renderCatalog();
-      this.catalog.classList.add('open');
+      this.closeShop();
+      this.news.open('phone', 'market');
     }
   }
 
   closeCatalog(): void {
-    this.catalog.classList.remove('open');
+    if (this.isCatalogOpen()) this.news.close();
   }
 
   setHint(mode: HintMode): void {
@@ -260,6 +270,8 @@ export class GameUi {
     const sv = this.session.service;
     if (sv.isOpen()) {
       items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity().total))}</span></li>`);
+      const blocked = sv.arrivalsBlocked();
+      if (blocked) items.push(`<li class="job warn"><span>${esc(uiText.service.blocked[blocked])}</span></li>`);
     }
     if (this.session.state.tray) items.push(`<li class="job"><span>${uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity()))}</span></li>`);
     for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id))))}</span></li>`);
@@ -317,7 +329,9 @@ export class GameUi {
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }): void {
     for (const el of [this.goals, this.money]) {
       const r = el.getBoundingClientRect();
-      const under = points.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
+      // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente.
+      const near = el === this.goals ? points.slice(0, 2) : points;
+      const under = near.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       el.classList.toggle('see-through', under);
     }
     const root = this.root.getBoundingClientRect();
@@ -498,7 +512,7 @@ export class GameUi {
     const extra = this.extrasHtml();
     this.goals.classList.toggle('empty', !goal && !extra);
     this.goals.innerHTML = (goal
-      ? `<h2>${uiText.goalsTitle}</h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
+      ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
           .map((s) => {
             const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
             const count = s.progress && !s.done ? ` <span class="count">${s.progress[0]}/${s.progress[1]}</span>` : '';
@@ -506,142 +520,17 @@ export class GameUi {
             return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}${wait}</span></li>`;
           })
           .join('')}</ul>`
-      : extra ? `<h2>${uiText.goalsTitle}</h2>` : '') + extra;
+      : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${uiText.goalsPeek}</p>` : '') + extra;
+    this.goals.title = this.goals.classList.contains('open') ? uiText.goalsHide : uiText.goalsShow;
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
-    if (this.isCatalogOpen()) this.renderCatalog();
+    if (this.news?.isOpen()) this.news.render();
     this.renderHint();
   }
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
     this.hint.textContent = mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : uiText.hintWalk;
-  }
-
-  private renderCatalog(): void {
-    const { state } = this.session;
-    const items = Object.values(content.items).filter((i) => !i.deprecated);
-    this.catalogList.innerHTML = uiText.catalogSections
-      .map((section) => {
-        const rows = items
-          .filter((i) => this.session.itemUnlocked(i.id))
-          .filter((i) => i.tags.includes(section.tag))
-          .filter((i) => uiText.catalogSections.find((s) => i.tags.includes(s.tag)) === section) // cada item numa seção só
-          .map((i) => {
-            const owned = state.inventory[i.id] ?? 0;
-            const fixture = i.kind === 'fixture';
-            const coming = state.deliveries.filter((d) => d.item === i.id).length;
-            const disabled = (owned === 0 && state.money < i.price) || (fixture && (owned > 0 || coming > 0));
-            const refund =
-              owned > 0 && !fixture
-                ? `<button class="refund" data-refund="${i.id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(i.id)}</button>`
-                : '';
-            return `<div class="item-row"><button class="row" data-item="${i.id}" ${disabled ? 'disabled' : ''}>
-              <span>${esc(i.name)}</span><span class="price">${i.price}</span>
-              ${owned > 0 ? `<span class="owned">${fixture ? uiText.installed : `${owned} ${uiText.inBag}`}</span>` : ''}
-              ${coming > 0 ? `<span class="owned coming">${coming} ${uiText.delivery.onTheWay}</span>` : ''}
-            </button>${refund}</div>`;
-          })
-          .join('');
-        return rows ? `<h3>${esc(section.title)}</h3>${rows}` : '';
-      })
-      .join('') + this.renderRooms() + this.renderRenovation();
-    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-item]').forEach((btn) =>
-      btn.addEventListener('click', () => this.pick(btn.dataset.item!)),
-    );
-    this.catalogList.querySelectorAll<HTMLButtonElement>('.refund[data-refund]').forEach((btn) =>
-      btn.addEventListener('click', () => {
-        const result = this.session.refund(btn.dataset.refund!);
-        if (!result.ok) return this.problem(result.reason);
-        this.toast(uiText.refunded);
-      }),
-    );
-    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-room]').forEach((btn) =>
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.room!;
-        const result = btn.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
-        if (!result.ok) return this.problem(result.reason);
-        this.closeCatalog();
-      }),
-    );
-    this.catalogList.querySelectorAll<HTMLButtonElement>('.row[data-finish]').forEach((btn) =>
-      btn.addEventListener('click', () => this.paint(btn.dataset.surface!, btn.dataset.finish!)),
-    );
-  }
-
-  /** Obras dos cômodos (data/rooms.json): abrir os descobertos e terminar a reforma dos abertos. E quantos gatos cabem. */
-  private renderRooms(): string {
-    const r = uiText.rooms;
-    const why: Record<string, string> = { needs_money: r.needsMoney, needs_beat: r.needsBeat, needs_cats: r.needsCats, needs_item: r.needsItem };
-    const rows = this.session
-      .rooms()
-      .map((room) => {
-        const s = this.session.roomState(room.id);
-        if (s === 'discovered' && (room.unlock?.cost ?? 0) > 0) {
-          const p = this.session.openRoomProblem(room.id);
-          return `<button class="row" data-room="${room.id}" data-work="open" ${p ? 'disabled' : ''}>
-            <span>${esc(room.unlock?.label ?? room.name)}</span><span class="price">${room.unlock?.cost}</span>
-            ${p ? `<span class="owned">${esc(why[p] ?? '')}</span>` : ''}</button>`;
-        }
-        if (s === 'abandoned' && room.restore && !room.restore.when) {
-          const p = this.session.restoreRoomProblem(room.id);
-          const note = p === 'still_dirty' ? r.stillDirty.replace('{n}', String(this.session.roomDirtLeft(room.id))) : p === 'needs_money' ? r.needsMoney : '';
-          return `<button class="row" data-room="${room.id}" data-work="restore" ${p ? 'disabled' : ''}>
-            <span>${esc(room.restore.label ?? room.name)}</span><span class="price">${room.restore.cost ?? 0}</span>
-            ${note ? `<span class="owned">${esc(note)}</span>` : ''}</button>`;
-        }
-        return '';
-      })
-      .join('');
-    const cats = `<p class="note">${esc(r.cats.replace('{n}', String(this.session.shelteredCats().length)).replace('{max}', String(this.session.catCapacity())))}</p>`;
-    return rows ? `<h3>${esc(r.title)}</h3><p class="note">${esc(r.hint)}</p>${rows}${cats}` : cats;
-  }
-
-  /** Seção do pintor: para cada superfície, os acabamentos que servem nela. */
-  private renderRenovation(): string {
-    if (!this.session.painterUnlocked()) return '';
-    const { state } = this.session;
-    const finishes = Object.values(content.finishes);
-    const blocks = this.session
-      .surfaces()
-      .map((surface) => {
-        const rows = finishes
-          .filter((f) => f.kind === surface.kind)
-          .map((f) => {
-            const current = state.finishes[surface.id] === f.id;
-            const disabled = current || state.money < f.price;
-            return `<button class="row" data-surface="${surface.id}" data-finish="${f.id}" ${disabled ? 'disabled' : ''}>
-              <span>${esc(f.name)}</span><span class="price">${current ? uiText.current : f.price}</span>
-            </button>`;
-          })
-          .join('');
-        return `<h4>${esc(surface.name)}</h4>${rows}`;
-      })
-      .join('');
-    return blocks ? `<h3>${esc(uiText.renovationTitle)}</h3><p class="note">${esc(uiText.renovationHint)}</p>${blocks}` : '';
-  }
-
-  private paint(surfaceId: string, finishId: string): void {
-    const result = this.session.paint(surfaceId, finishId);
-    if (!result.ok) return this.problem(result.reason);
-    this.closeCatalog();
-    this.toast(uiText.painted);
-  }
-
-  /** Item da bolsa: posiciona. Senão: compra e posiciona. */
-  private pick(itemId: string): void {
-    // Já na bolsa (caixa aberta): posicionar. Senão, encomendar: chega pelo correio.
-    if ((this.session.state.inventory[itemId] ?? 0) > 0 && content.items[itemId]?.kind !== 'fixture') {
-      this.closeCatalog();
-      this.handlers.onPlace(itemId);
-      return;
-    }
-    const result = this.session.order(itemId);
-    if (!result.ok) return this.problem(result.reason);
-    const last = this.session.state.deliveries[this.session.state.deliveries.length - 1]!;
-    const { time, tomorrow } = this.clockOf(last.arrivesAt);
-    this.toast((tomorrow ? uiText.delivery.orderedTomorrow : uiText.delivery.ordered).replace('{time}', time));
-    this.renderCatalog();
   }
 
   private queueDialogue(dialogueId: string): void {

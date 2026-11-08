@@ -170,22 +170,25 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-money')).toContainText('150');
   await page.screenshot({ path: testInfo.outputPath('05-abertura.png') });
   await skipDialogue(page);
-  // Na rua o catálogo não abre (o roteiro da corretora termina dentro do café: volta para a rua).
+  // O Market (C) é compra online: abre também na rua (o roteiro da corretora termina dentro do café: volta para a rua).
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.street'));
   await page.keyboard.press('c');
-  await expect(page.locator('section.catalog[aria-label]')).not.toHaveClass(/open/);
-  await expect(page.locator('.toast')).toContainText('lá dentro');
+  await expect(page.locator('section.phone-ui[data-app="market"]')).toHaveClass(/open/);
+  await page.screenshot({ path: testInfo.outputPath('05b-market.png') });
+  await page.keyboard.press('c');
+  await expect(page.locator('section.phone-ui')).not.toHaveClass(/open/);
   await enterCafe(page);
   await cleanCafe(page);
   await adoptFirstCat(page);
 
-  // Catálogo: encomenda pelo correio (chega em 1h na porta do café).
+  // Market (aba Pet): encomenda pelo correio (chega em 1h na porta do café).
   await page.keyboard.press('c');
+  await page.locator('[data-tab="pet"]').click();
   await page.locator('[data-item="item.water_bowl"]').click();
   await expect(page.locator('.toast')).toContainText('Pedido feito');
   await expect(page.locator('.hud-money')).toContainText('142');
   await page.keyboard.press('c');
-  await expect(page.locator('section.catalog[aria-label]')).not.toHaveClass(/open/);
+  await expect(page.locator('section.phone-ui[data-app="market"]')).not.toHaveClass(/open/);
   // O relógio passa 1h; ela pega a caixa na porta e leva para dentro.
   await page.evaluate(() => {
     const w = (window as unknown as { __biscuitPaws: { cafe: { session: { tickClock(s: number): void; enter(m: string): void; pickUpParcels(): unknown; content: { dayNight: { minutesPerSecond: number } } }; goTo(m: string): void } } }).__biscuitPaws.cafe;
@@ -216,10 +219,11 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-goals li.done')).toHaveCount(0);
   await expect(page.locator('.hint')).toContainText('cancelar'); // modo de posicionar
   await page.keyboard.press('Escape');
-  await expect(page.locator('.hint')).toContainText('catálogo'); // voltou a andar
+  await expect(page.locator('.hint')).toContainText('market'); // voltou a andar
   await page.keyboard.press('c');
-  await expect(page.locator('section.catalog[aria-label]')).toHaveClass(/open/);
-  await expect(page.locator('[data-item="item.water_bowl"] .owned')).toBeVisible();
+  await expect(page.locator('section.phone-ui[data-app="market"]')).toHaveClass(/open/);
+  await page.locator('[data-tab="pet"]').click();
+  await expect(page.locator('[data-item="item.water_bowl"] .m-owned')).toBeVisible();
 });
 
 test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ page }, testInfo) => {
@@ -257,6 +261,7 @@ test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ p
     session.state.flags['painter.available'] = true;
   });
   await page.keyboard.press('c');
+  await page.locator('[data-tab="build"]').click();
   await page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]').click();
   await expect(page.locator('.hud-money')).toContainText('90');
   await expect(page.locator('.toast')).toHaveClass(/show/);
@@ -265,6 +270,7 @@ test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ p
   await page.reload();
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   await page.keyboard.press('c');
+  await page.locator('[data-tab="build"]').click();
   const current = page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]');
   await expect(current).toBeDisabled();
   await expect(current).toContainText('atual');
@@ -327,7 +333,7 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   await cleanCafe(page);
   // Antes do gato, o catálogo não mostra a caminha.
   // Espera abrir e fechar de verdade: sem isso o segundo "c" pode chegar antes do jogo ler o primeiro.
-  const catalog = page.locator('section.catalog[aria-label]');
+  const catalog = page.locator('section.phone-ui[data-app="market"]');
   await page.keyboard.press('c');
   await expect(catalog).toHaveClass(/open/);
   await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(0);

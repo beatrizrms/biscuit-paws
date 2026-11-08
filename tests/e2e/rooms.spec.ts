@@ -69,7 +69,8 @@ test('cômodos (depois da inauguração): obra abre o quartinho, passagem contí
 
   // Obra pelo catálogo (Obras).
   await page.keyboard.press('c');
-  const work = page.locator('.catalog [data-room="room.back_room"][data-work="open"]');
+  await page.locator('[data-tab="build"]').click();
+  const work = page.locator('.phone-ui [data-room="room.back_room"][data-work="open"]');
   await expect(work).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('20-obras.png') });
   await work.click();
