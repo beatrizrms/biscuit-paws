@@ -1,0 +1,151 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 8,
+ "pieces": {
+  "vet_parede_papel_topo": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_parede_papel": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_parede_azulejo": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_piso_xadrez": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_tapete_entrada": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "vet_armario_medicamentos": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "vet_balcao_recepcao": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "vet_mesa_exame": {
+   "col": 5,
+   "row": 1,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "vet_gaiola_vazia": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "vet_gaiola_gato": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "vet_gaiola_cachorro": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "vet_banco_espera": {
+   "col": 6,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "vet_placa_recepcao": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "vet_planta_vaso": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "vet_porta_consultorio": {
+   "col": 3,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "vet_balanca": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_carrinho_instrumentos": {
+   "col": 5,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_negatoscopio": {
+   "col": 6,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_luminaria_teto": {
+   "col": 7,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_placa_cruz_vet": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_quadro_avisos": {
+   "col": 1,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_cartaz_cachorro": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_cartaz_gato": {
+   "col": 3,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vet_lixeira_pedal": {
+   "col": 4,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

@@ -861,6 +861,29 @@
       "solid": true
     },
     {
+      "id": "pixellab_vet",
+      "image": "assets/interiors/vet_clinic/tile_pixellab_vet.png",
+      "pieces": "pixellab_vet.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "replaces": true
+    },
+    {
+      "id": "pixellab_vet_novos",
+      "image": "assets/interiors/vet_clinic/tile_pixellab_vet_novos.png",
+      "pieces": "pixellab_vet_novos.json",
+      "prefix": "vet_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "janela_azul": {
+          "layer": "wall",
+          "solid": false
+        }
+      }
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",
