@@ -39,9 +39,9 @@ export class BootScene extends Phaser.Scene {
       const size = sheetFrameSize(id);
       this.load.spritesheet(id, sheet.image, { frameWidth: size, frameHeight: size });
     }
-    // Folhas do Cosy Cats dos gatos que vivem no mundo (a Tekinha só aparece em lembrança, em HTML).
+    // Todas as folhas do Cosy Cats: os gatos gerados pelas chegadas podem ter qualquer cor (são 12 folhas pequenas).
     const sprites = content.catSprites;
-    for (const variant of new Set(Object.values(content.cats).filter((c) => !c.memory).map((c) => c.variant))) {
+    for (const variant of Object.keys(sprites.variants)) {
       this.load.spritesheet(catTexture(variant), sprites.variants[variant]!, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
     }
     for (const npc of Object.values(content.npcs)) {

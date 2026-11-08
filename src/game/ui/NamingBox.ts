@@ -73,7 +73,7 @@ export class NamingBox {
     this.catId = id;
     this.attempt = 0;
     this.input.value = this.session.suggestCatName(id, 0);
-    const cat = content.cats[id]!;
+    const cat = this.session.catDef(id)!;
     const sprites = content.catSprites;
     const sit = sprites.animations.find((a) => a.name === 'sit')!;
     (this.el.querySelector('.naming-cat') as HTMLElement).innerHTML = `<div class="cs-cat" style="background-image:url(${

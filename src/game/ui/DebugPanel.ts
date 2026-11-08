@@ -1,5 +1,6 @@
 // Painel do modo debug (só em `npm run dev`, com o debug ligado).
 import type { GameSession } from '../../core/session';
+import { weatherOf } from '../../core/calendar';
 
 export interface DebugActions {
   skipDialogue(): void;
@@ -89,6 +90,10 @@ export class DebugPanel {
     const done = this.session.state.story.completed.map((id) => id.replace('story.', '')).join(' → ') || 'nenhum';
     const rep = this.session.state.reputation;
     const last = rep.log.slice(-3).map((e) => `${e.amount > 0 ? '+' : ''}${e.amount} ${e.reason}`).join(', ');
-    this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · marcos: ${done}`;
+    // Chegadas de gatos: a em andamento, a fila, a próxima sorteada e o clima do dia.
+    const ar = this.session.state.arrivals;
+    const weather = weatherOf(this.session.content.seasons, this.session.state.day);
+    const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${weather}`;
+    this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · ${arrivals} · marcos: ${done}`;
   }
 }

@@ -21,7 +21,7 @@
       { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting" }
     ],
     "table": "pt.fair_table",
-    "personalityFrom": { "sweet": "calm", "brave": "playful" },
+    "personalityFrom": { "sweet": "calm", "brave": "playful", "shy": "shy", "curious": "playful", "grumpy": "calm", "needy": "calm" },
     "defaultTraits": { "personality": "calm", "age": "adult", "coat": "short" }
   },
   "cats": [

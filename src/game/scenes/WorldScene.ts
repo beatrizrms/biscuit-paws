@@ -495,7 +495,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Põe um gato no mapa atual, perto de `near` (ou num lugar livre qualquer). */
   private spawnCat(catId: string, near?: Cell): void {
     const state = this.session.state.cats[catId];
-    const def = this.session.content.cats[catId];
+    const def = this.session.catDef(catId);
     if (!state || !def || state.map !== this.map.id) return;
     const rng = createRng(cellHash(catId.length, this.cats.length + 1) ^ 0x9e37);
     const [c, r] = this.freeCellNear(near ?? this.map.spawn, rng);
@@ -1014,7 +1014,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.carriedCatSprite?.destroy();
       this.carriedCatSprite = null;
       const catId = sv.carriedCat();
-      const catColor = catPropColor(this.session.content.character, this.session.content.cats[catId ?? '']?.variant);
+      const catColor = catPropColor(this.session.content.character, this.session.catDef(catId ?? '')?.variant);
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela; senão, a normal.
       this.player.setCarryPose(st.tray ? 'tray' : catId ? 'cat' : null, catColor);
       const posed = this.textures.exists(st.tray ? poseTexture('tray') : poseTexture('cat', catColor));
@@ -1040,7 +1040,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         if (cat.catId === catId) {
           cat.setVisible(false).setVelocity(0, 0);
           if (posed) continue;
-          const variant = this.session.content.cats[catId]?.variant ?? '';
+          const variant = this.session.catDef(catId)?.variant ?? '';
           this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.6).play(`${catTexture(variant)}-sit`);
         }
       }
@@ -1508,7 +1508,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 /** Variante do Cosy Cats do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {
   const id = catId ?? scene.session.shelteredCats()[0] ?? 'cat.first_stray';
-  return scene.session.content.cats[id]?.variant ?? 'marmalade';
+  return scene.session.catDef(id)?.variant ?? 'marmalade';
 }
 
 /** Em desenvolvimento, deixa a cena acessível no console e no Playwright. */

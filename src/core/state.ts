@@ -10,6 +10,8 @@ import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import type { DoorState, RoomState } from './rooms';
 import type { Schedule } from './schedule';
+import type { ArrivalsState } from './arrivals';
+import type { CatDef } from './cats';
 import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
@@ -88,6 +90,10 @@ export interface GameState {
   reputation: ReputationState;
   /** Feira de adoção (v17): etapa, dia marcado, pontos feitos e a estação da última feira. */
   fair: FairState;
+  /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o abrigo da vila. */
+  arrivals: ArrivalsState;
+  /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
+  catDefs: Record<string, CatDef>;
 }
 
 export interface PlayerState {
@@ -125,6 +131,8 @@ export interface CatState {
   health: number;
   /** Doença em andamento e a receita (v13); null = saudável. */
   sickness: CatSickness | null;
+  /** Abrigado provisório (v18; café cheio): até este dia, a vaga precisa abrir ou ele vai para o abrigo da vila. */
+  provisionalUntil?: number;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -165,6 +173,8 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
     reputation: { value: 0, reached: [], log: [] },
     fair: { stage: 'idle', day: null, done: [], lastSeason: null, heldOn: null },
+    arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
+    catDefs: {},
   };
 }
 

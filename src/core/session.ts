@@ -6,7 +6,7 @@ import { parseClock } from './time';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem } from './jobs';
 import { createRng } from './rng';
 import { CafeService } from './service';
-import { cleanCatName, suggestCatName } from './cats';
+import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
 import type { MiniGameParams, MiniGameResult } from './minigame';
@@ -17,6 +17,7 @@ import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
 import { addReputation, reputationForResult } from './reputation';
+import { ArrivalSystem } from './arrivalSystem';
 import { doFairPoint, fairCanStart, fairDayEnded, finishFair, isFairDay, pendingFairPoints } from './fair';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import {
@@ -132,6 +133,8 @@ export class GameSession {
 
   /** Atendimento do café: cardápio, pedidos, mãos, louça, clientes (service.ts). */
   readonly service: CafeService;
+  /** Chegada de gatos (data/arrivals.json). */
+  readonly arrivals: ArrivalSystem;
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
@@ -153,6 +156,19 @@ export class GameSession {
       advanceStory: () => this.advanceStory(),
       catAffection: (catId, points) => this.addCatAffection(catId, points),
       customersAway: () => this.customersAway(),
+    });
+    this.arrivals = new ArrivalSystem({
+      state,
+      content,
+      bus: this.bus,
+      evaluate: (c) => evaluate(c as Condition, this.state, this.storyContext()),
+      shelteredCount: () => this.shelteredCats().length,
+      capacity: () => this.catCapacity(),
+      exclusiveActive: () => this.exclusiveActive(),
+      reputation: () => this.reputation(),
+      shelterCat: (id, condition, until) => this.shelterCat(id, condition, until),
+      addMoney: (delta, reason) => this.addMoney(delta, reason),
+      addPoints: (from, to, delta) => void addPoints(this.state, this.content.relationships, from, to, delta),
     });
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
     // para a barra, venha de onde vier. O que ela tirou da barra de propósito não volta sozinho.
@@ -363,6 +379,7 @@ export class GameSession {
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
     this.healthAtDayEnd(day);
     if (fairDayEnded(this.state.fair, day + 1)) this.bus.emit('fair.missed', { day });
+    this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
     this.state.today = { earned: 0, jobs: 0 };
@@ -821,7 +838,7 @@ export class GameSession {
 
   /** Gatos abrigados (ids). Gatos de lembrança (a Tekinha) nunca contam, nem se um save trouxer um deles. */
   shelteredCats(): string[] {
-    return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered && !this.content.cats[id]?.memory);
+    return Object.keys(this.state.cats).filter((id) => this.state.cats[id]!.sheltered && !this.catDef(id)?.memory);
   }
 
   /** Nome da protagonista (vazio em saves de antes do criador). */
@@ -834,13 +851,18 @@ export class GameSession {
     return this.state.player.appearance ?? this.content.character.default;
   }
 
+  /** Definição do gato: a de data/cats.json ou, para os gerados pelas chegadas, a do save. */
+  catDef(catId: string): CatDef | undefined {
+    return this.content.cats[catId] ?? this.state.catDefs[catId];
+  }
+
   /** Nome do gato: o escolhido, o fixo dos dados, ou vazio. */
   catName(catId: string): string {
-    return this.state.cats[catId]?.name || this.content.cats[catId]?.name || '';
+    return this.state.cats[catId]?.name || this.catDef(catId)?.name || '';
   }
 
   suggestCatName(catId: string, attempt: number): string {
-    const cat = this.content.cats[catId];
+    const cat = this.catDef(catId);
     return cat ? suggestCatName(cat, attempt) : '';
   }
 
@@ -863,7 +885,7 @@ export class GameSession {
   catProfiles(): CatProfile[] {
     return this.shelteredCats().map((id) => {
       const cat = this.state.cats[id]!;
-      const def = this.content.cats[id];
+      const def = this.catDef(id);
       return {
         id,
         name: this.catName(id),
@@ -1050,6 +1072,12 @@ export class GameSession {
    * Devolve se o gato saiu.
    */
   adoptOut(catId: string): boolean {
+    // Do abrigo da vila (café estava cheio): ganhou família e sai da lista.
+    const pool = this.state.arrivals.shelterPool;
+    if (pool.includes(catId)) {
+      this.state.arrivals.shelterPool = pool.filter((id) => id !== catId);
+      return true;
+    }
     const cat = this.state.cats[catId];
     if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId)) return false;
     cat.sheltered = false;
@@ -1316,10 +1344,10 @@ export class GameSession {
   miniGameExtras(pointId: string): { adoptCats?: AdoptCat[] } {
     if (pointId !== this.content.adoption.fair.table) return {};
     const protectedCats = this.content.adoption.protectedCats;
-    const cats = this.shelteredCats()
-      .filter((id) => !protectedCats.includes(id))
+    const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]
+      .filter((id) => !protectedCats.includes(id) && this.catDef(id))
       .map((id) => {
-        const def = this.content.cats[id]!;
+        const def = this.catDef(id)!;
         return { id, name: this.catName(id), variant: def.variant, personality: def.personality, ...(def.adoptionTraits ? { adoptionTraits: def.adoptionTraits } : {}) };
       });
     return { adoptCats: cafeAdoptCats(this.content.adoption, cats) };
@@ -1644,6 +1672,7 @@ export class GameSession {
    */
   private advanceStory(): void {
     this.maybeStartFair();
+    this.arrivals?.tick(); // (o construtor chama a história antes de criar o sistema)
     for (let guard = 0; guard < 1000; guard++) {
       if (this.advanceRooms()) continue;
       // Fechado -> funcionamento parcial assim que o café tem o mínimo (data/business.json).
@@ -1670,15 +1699,37 @@ export class GameSession {
     else if ('discoverRoom' in effect) this.discoverRoom(effect.discoverRoom);
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {
-      const id = effect.shelterCat;
-      this.state.cats[id] = { sheltered: true, name: this.content.cats[id]?.name ?? '', map: this.content.map.id, shelteredOn: this.state.day, health: this.content.health.start, sickness: null };
-      this.bus.emit('cat.sheltered', { catId: id });
-      if (this.content.cats[id]?.arrivesSick) this.makeSick(id);
+      this.shelterCat(effect.shelterCat);
     } else if ('makeSick' in effect) {
       this.makeSick(effect.makeSick);
     } else if ('giveItem' in effect) this.receiveItem(effect.giveItem);
     else if ('setFlag' in effect) this.state.flags[effect.setFlag] = true;
     else if ('addMoney' in effect) this.addMoney(effect.addMoney, 'story');
+  }
+
+  /**
+   * Abriga um gato no café. Com a condição de chegada (data/cat_profiles.json), a saúde e a doença vêm dela; sem
+   * ela (o gato da história), a saúde inicial e o arrivesSick dos dados. provisionalUntil: café cheio, com prazo.
+   */
+  shelterCat(catId: string, condition?: string, provisionalUntil?: number): void {
+    const def = this.catDef(catId);
+    const profile = condition ? this.content.catProfiles.conditions[condition] : undefined;
+    this.state.cats[catId] = {
+      sheltered: true,
+      name: def?.name ?? '',
+      map: this.content.map.id,
+      shelteredOn: this.state.day,
+      health: profile?.health ?? this.content.health.start,
+      sickness: null,
+      ...(provisionalUntil !== undefined ? { provisionalUntil } : {}),
+    };
+    this.bus.emit('cat.sheltered', { catId });
+    if (profile ? profile.sick : def?.arrivesSick) this.makeSick(catId);
+  }
+
+  /** Algum marco exclusivo da história em andamento (as chegadas esperam a vez). */
+  exclusiveActive(): boolean {
+    return activeBeats(this.content.story, this.state, this.storyContext()).some((b) => b.exclusive);
   }
 
   /** Soma (ou desconta) dinheiro. Usado pela história, pelas compras e pelo modo debug. */

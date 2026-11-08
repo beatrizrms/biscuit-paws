@@ -7,13 +7,15 @@ import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 import { normalizeRoomsState, type RoomsData } from './rooms';
 import { WEEK, type Schedule } from './schedule';
+import type { ArrivalsState } from './arrivals';
+import type { CatDef } from './cats';
 import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 17;
+export const SAVE_SCHEMA_VERSION = 18;
 
-export interface SaveV17 extends GameState {
-  schemaVersion: 17;
+export interface SaveV18 extends GameState {
+  schemaVersion: 18;
   savedAt: string;
 }
 
@@ -97,10 +99,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   15: (save) => ({ ...save, schemaVersion: 16, reputation: null }),
   /** v16 -> v17: feira de adoção. Saves antigos: nenhuma feira em andamento nem feita. */
   16: (save) => ({ ...save, schemaVersion: 17, fair: null }),
+  /** v17 -> v18: chegadas de gatos e gatos gerados. Saves antigos: nenhuma chegada nem gato gerado. */
+  17: (save) => ({ ...save, schemaVersion: 18, arrivals: null, catDefs: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV17 = { schemaVersion: 17, savedAt: now.toISOString(), ...state };
+  const save: SaveV18 = { schemaVersion: 18, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -128,6 +132,8 @@ export interface KnownIds {
   rooms: RoomsData;
   /** Reputação de quem não tem (saves antigos). */
   reputationStart?: number;
+  /** Chegadas de data/arrivals.json (a que sumiu sai da fila). */
+  arrivals?: ReadonlySet<string>;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -143,7 +149,10 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV17>;
+  const v2 = save as unknown as Partial<SaveV18>;
+  // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
+  const catDefs = normalizeCatDefs(v2.catDefs);
+  const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -153,7 +162,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
 
   // Bebida de receita que sumiu ou item que sumiu: o objeto da mão/superfície é ignorado.
   const knownHand = (h: HandItem) =>
-    h.kind === 'item' || h.kind === 'heavy' ? known.items.has(h.item) : h.kind === 'drink' || h.kind === 'wip' ? known.recipes.has(h.recipe) : h.kind === 'cat' ? known.cats.has(h.catId) : true;
+    h.kind === 'item' || h.kind === 'heavy' ? known.items.has(h.item) : h.kind === 'drink' || h.kind === 'wip' ? known.recipes.has(h.recipe) : h.kind === 'cat' ? knownCat(h.catId) : true;
   const inventory: Record<string, number> = {};
   for (const [id, qty] of Object.entries(v2.inventory ?? {})) {
     if (knownItem(id, 'inventário') && qty > 0) inventory[id] = qty;
@@ -177,7 +186,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     cats: Object.fromEntries(
       Object.entries(v2.cats ?? {})
         .filter(([id]) => {
-          if (known.cats.has(id)) return true;
+          if (knownCat(id)) return true;
           warnings.push(`gato "${id}" não existe mais; ignorado`);
           return false;
         })
@@ -242,11 +251,46 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     fair: normalizeFair(v2.fair),
+    arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
+    catDefs,
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
+}
+
+/** Definições de gatos gerados (só as com o formato certo). */
+function normalizeCatDefs(defs: unknown): Record<string, CatDef> {
+  const out: Record<string, CatDef> = {};
+  for (const [id, d] of Object.entries((defs ?? {}) as Record<string, Partial<CatDef>>)) {
+    if (!d || typeof d.variant !== 'string' || typeof d.personality !== 'string') continue;
+    out[id] = {
+      id,
+      variant: d.variant,
+      personality: d.personality,
+      nameSuggestions: Array.isArray(d.nameSuggestions) ? d.nameSuggestions.filter((n): n is string => typeof n === 'string') : [],
+      ...(d.adoptionTraits ? { adoptionTraits: { ...d.adoptionTraits } } : {}),
+      tags: Array.isArray(d.tags) ? d.tags.filter((t): t is string => typeof t === 'string') : [],
+    };
+  }
+  return out;
+}
+
+/** Chegadas salvas (as que sumiram dos dados saem da fila; a em andamento que sumiu é cancelada). */
+function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | undefined, knownCat: (id: string) => boolean): ArrivalsState {
+  const x = a as Partial<ArrivalsState> | null | undefined;
+  const ok = (id: unknown): id is string => typeof id === 'string' && (!knownArrivals || knownArrivals.has(id));
+  const act = x?.active;
+  const active = act && ok(act.id) && typeof act.catId === 'string' && knownCat(act.catId) ? { id: act.id, catId: act.catId, condition: String(act.condition ?? 'healthy'), startedOn: Number(act.startedOn) || 1, step: Number(act.step) || 0 } : null;
+  return {
+    active,
+    queue: Array.isArray(x?.queue) ? x.queue.filter(ok) : [],
+    last: Object.fromEntries(Object.entries(x?.last ?? {}).filter(([id, d]) => ok(id) && typeof d === 'number')),
+    nextOn: typeof x?.nextOn === 'number' ? x.nextOn : null,
+    seq: typeof x?.seq === 'number' && x.seq >= 0 ? x.seq : 0,
+    shelterPool: Array.isArray(x?.shelterPool) ? x.shelterPool.filter((id): id is string => typeof id === 'string' && knownCat(id)) : [],
+  };
 }
 
 /** Feira salva (ou parada, em save antigo ou quebrado). */
@@ -297,6 +341,7 @@ export function knownIds(content: {
   rooms: RoomsData;
   facade?: { surface: { id: string } } | null;
   reputation?: { start: number };
+  arrivals?: { arrivals: { id: string }[] };
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -311,5 +356,6 @@ export function knownIds(content: {
     character: content.character,
     rooms: content.rooms,
     reputationStart: content.reputation?.start ?? 0,
+    ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
   };
 }

@@ -42,6 +42,8 @@ export function rawContent(): RawContent {
     seasons: read('data/seasons.json'),
     adoption: read('data/adoption.json'),
     reputation: read('data/reputation.json'),
+    catProfiles: read('data/cat_profiles.json'),
+    arrivals: read('data/arrivals.json'),
   };
 }
 

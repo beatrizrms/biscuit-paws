@@ -21,6 +21,12 @@ export interface GameEvents {
   /** Um mini game acabou (as moedas já entraram). */
   'reputation.changed': { from: number; to: number; amount: number; reason: string };
   'reputation.threshold_reached': { thresholdId: string; value: number };
+  'arrival.queued': { arrivalId: string };
+  'arrival.started': { arrivalId: string; catId: string; model: string };
+  'arrival.step': { arrivalId: string; step: number };
+  'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
+  'arrival.provisional_settled': { catId: string };
+  'arrival.provisional_expired': { catId: string };
   'fair.started': Record<string, never>;
   'fair.progress': { step: 'flyer' | 'scheduled' | 'sign' | 'decor' | 'ready'; pointId: string };
   'fair.scheduled': { day: number };

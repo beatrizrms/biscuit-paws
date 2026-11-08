@@ -174,7 +174,7 @@ export class CutsceneView {
 
   /** Um gato animado com os quadros da folha do Cosy Cats (CSS, sem Phaser). */
   private catHtml(catId: string, animation: string, caption?: string): string {
-    const cat = content.cats[catId];
+    const cat = this.session.catDef(catId);
     const sprites = content.catSprites;
     const anim = sprites.animations.find((a) => a.name === animation);
     if (!cat || !anim) return '';

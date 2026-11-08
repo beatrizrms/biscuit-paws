@@ -2,6 +2,7 @@
 // E a rua de cada estação: mesmos lugares, folhas da estação (sem neve fora do inverno).
 // Puro: sem Phaser, DOM ou window.
 import type { MapData, MapObject } from './map';
+import { createRng, pickWeighted } from './rng';
 
 export interface SeasonalMap {
   /** Prefixos de tile que têm versão por estação: "street_" -> "spring_street_" (o inverno é o nome sem prefixo). */
@@ -42,6 +43,8 @@ export interface SeasonsData {
   /** "Começa a primavera"...: título do primeiro dia de cada estação no calendário. */
   seasonStarts: Record<string, string>;
   events: CalendarEvent[];
+  /** Clima: pesos por estação (snow, rain, sun...). Sorteado por dia, sem guardar nada no save. */
+  weather?: Record<string, Record<string, number>>;
   /** Ordem das estações; o jogo começa na primeira. */
   order: string[];
   /** Estação cujos tiles são os nomes sem prefixo (a arte de inverno veio primeiro). */
@@ -74,6 +77,13 @@ export function firstDayOf(data: SeasonsData, season: string): number {
 /** Quantos dias faltam para a estação começar pela primeira vez (0 se já começou). */
 export function daysUntil(data: SeasonsData, day: number, season: string): number {
   return Math.max(0, firstDayOf(data, season) - day);
+}
+
+/** Clima do dia (sorteio com semente do dia, pelos pesos da estação). Sem pesos para a estação: "sun". */
+export function weatherOf(data: SeasonsData, day: number): string {
+  const weights = data.weather?.[seasonOf(data, day)];
+  if (!weights) return 'sun';
+  return pickWeighted(createRng(Math.imul(Math.max(1, day), 2654435761) ^ 0x5eed), weights);
 }
 
 /** Dias do ano (todas as estações). */

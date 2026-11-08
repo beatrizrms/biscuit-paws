@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Chegadas de gatos (src/core/arrivals.ts). Modelos (model): na_porta, pegadas, preso, vizinho_traz, gato_leva, ninhada, dentro_do_cafe, entrega, em_perigo, mural. kind: scripted (escrita à mão: dispara quando o gatilho vale, com prioridade; os 3 primeiros gatos) ou random (entra no sorteio do dia, só depois de autoStartWhen). trigger: days [de, até], hours [de, até], seasons, weather, cats {gte, lte}, reputation {gte}, when (condição da história: cômodo, corações, marco...). repeatable + minGapDays. place: tipo de lugar + mapa/célula. clue: miado, pegadas, vizinho, cartaz. cat: id fixo OU generate (personality/condition/variant fixos ou sorteados). condition: como chega (data/cat_profiles.json). steps: as etapas (por modelo). result: corações iniciais do gato, corações de um vizinho, moedas, custo. whenFull: café cheio -> provisional (fica provisório por provisional.days), adoption (vai para o abrigo da vila, entra na feira) ou postpone (adia). pacing: intervalo entre chegadas sorteadas por fase (primeiras semanas mais seguidas). queueMax: quantas esperam na fila (chegam quando não há outro evento exclusivo).",
+  "pacing": {
+    "phases": [
+      { "untilDay": 21, "everyDays": [2, 3] },
+      { "everyDays": [4, 7] }
+    ]
+  },
+  "autoStartWhen": { "cats": { "gte": 3 } },
+  "queueMax": 3,
+  "provisional": { "days": 7 },
+  "arrivals": []
+}

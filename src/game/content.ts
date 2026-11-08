@@ -35,6 +35,8 @@ import roomsJson from '../../data/rooms.json';
 import seasonsJson from '../../data/seasons.json';
 import adoptionJson from '../../data/adoption.json';
 import reputationJson from '../../data/reputation.json';
+import catProfilesJson from '../../data/cat_profiles.json';
+import arrivalsJson from '../../data/arrivals.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -74,6 +76,8 @@ export const content: Content = buildContent({
   seasons: seasonsJson,
   adoption: adoptionJson,
   reputation: reputationJson,
+  catProfiles: catProfilesJson,
+  arrivals: arrivalsJson,
 } as unknown as RawContent);
 
 /** Arte do atendimento (quadro, balões, barra, louça no mundo, moeda). */

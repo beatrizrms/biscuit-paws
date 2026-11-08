@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), se chega com fome (hungry), o que precisa para entrar (needs: food, vet, warmth) e a idade (kitten/senior, para a adoção). generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
+  "personalities": {
+    "brave": { "trust": "easy", "heartsToTrust": 1 },
+    "sweet": { "trust": "easy", "heartsToTrust": 1 },
+    "shy": { "trust": "hard", "heartsToTrust": 3 },
+    "curious": { "trust": "normal", "heartsToTrust": 2 },
+    "grumpy": { "trust": "hard", "heartsToTrust": 4 },
+    "needy": { "trust": "easy", "heartsToTrust": 1 }
+  },
+  "conditions": {
+    "healthy": { "health": 80, "needs": [] },
+    "cold": { "health": 60, "needs": ["warmth"] },
+    "hungry": { "health": 65, "hungry": true, "needs": ["food"] },
+    "injured": { "health": 40, "sick": true, "needs": ["vet"] },
+    "scared": { "health": 75, "needs": [] },
+    "kitten": { "health": 70, "age": "kitten", "needs": ["food"] },
+    "senior": { "health": 60, "age": "senior", "needs": [] }
+  },
+  "generated": {
+    "variants": ["biscuit", "custard", "domino", "freckle", "hazel", "midnight", "misty", "snowdrop", "toffee"],
+    "names": ["Amendoim", "Bolinho", "Canela", "Docinho", "Farofa", "Jujuba", "Mingau", "Nescau", "Pipoca", "Quindim", "Sushi", "Tapioca", "Pudim", "Cocada", "Biju"],
+    "personalityWeights": { "shy": 3, "curious": 3, "grumpy": 2, "needy": 3, "sweet": 2, "brave": 2 },
+    "conditionWeights": { "healthy": 4, "cold": 2, "hungry": 3, "scared": 2, "kitten": 2, "senior": 1, "injured": 1 },
+    "coat": { "misty": "long", "snowdrop": "long", "toffee": "long" }
+  }
+}

@@ -287,7 +287,20 @@
     "doseDue": "falta a dose de hoje",
     "personalities": {
       "brave": "Valente",
-      "sweet": "Doce"
+      "sweet": "Doce",
+      "shy": "Tímido",
+      "curious": "Curioso",
+      "grumpy": "Ranzinza",
+      "needy": "Carente"
+    },
+    "conditions": {
+      "healthy": "Saudável",
+      "cold": "Com frio",
+      "hungry": "Com fome",
+      "injured": "Ferido",
+      "scared": "Assustado",
+      "kitten": "Filhote",
+      "senior": "Idoso"
     }
   },
   "chores": {
@@ -565,5 +578,10 @@
     "missed": "A feira de adoção passou sem acontecer... Dá para organizar de novo.",
     "finished": "Feira encerrada! {n} gato(s) com família nova.",
     "date": "{season} {day} ({weekday})"
+  },
+  "weather": {
+    "snow": "Neve",
+    "sun": "Sol",
+    "rain": "Chuva"
   }
 }

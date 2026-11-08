@@ -27,6 +27,18 @@ export function createRng(seed: number): Rng {
   };
 }
 
+/** Sorteio por peso (na ordem das chaves dos dados: repetível com a mesma semente). Pesos <= 0 não saem. */
+export function pickWeighted(rng: Rng, weights: Record<string, number>): string {
+  const entries = Object.entries(weights).filter(([, w]) => w > 0);
+  const total = entries.reduce((n, [, w]) => n + w, 0);
+  let roll = rng.next() * total;
+  for (const [key, w] of entries) {
+    roll -= w;
+    if (roll < 0) return key;
+  }
+  return entries[entries.length - 1]![0];
+}
+
 /** Hash estável de uma célula, para escolher variações de tile sem guardar nada. */
 export function cellHash(col: number, row: number): number {
   let h = Math.imul(col, 73856093) ^ Math.imul(row, 19349663);
