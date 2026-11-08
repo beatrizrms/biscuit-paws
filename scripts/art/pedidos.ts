@@ -31,29 +31,34 @@ const placeOf = (name: string, layer: string | undefined): Place =>
 // ---------- estados e variações ----------
 // Estado: o MESMO item (mesma variação, mesmo canvas, mesma posição) mostrando uma situação do jogo. O primeiro é o padrão.
 // Vale para todos os pedidos de objetos; ícones, fachadas e sujeira não têm estados.
-const STATES: [RegExp, string[]][] = [
-  [/^(food_bowl|water_bowl|tigela|comedouro)/, ['vazia', 'cheia']],
-  [/^(cookie_jar|cake_stand|display_case|prateleira_(mercearia|pet)_|geladeira_|caixote_|cesto_brinquedos|cestas|sacos_racao)/, ['cheio', 'pela metade', 'vazio']],
-  [/^(cake_whole)$/, ['inteiro', 'pela metade', 'só o prato com migalhas']],
-  [/^(cake_slice|cupcake|croissant|macarons|fish_biscuits)$/, ['servido no prato', 'prato vazio com migalhas']],
-  [/^(latte|tea_cup|milkshake)$/, ['cheio', 'vazio e sujo']],
-  [/^(teapot)$/, ['cheio (vapor saindo)', 'vazio']],
-  [/^(lixeira)/, ['vazia', 'cheia (transbordando)']],
-  [/^(caixa_correio)/, ['vazia', 'com carta saindo']],
-  [/^(door$|window$|janela|porta(_consultorio)?$)/, ['fechada', 'aberta']],
-  [/^(luminaria|lampada_chao|luzinhas_fio|poste|negatoscopio)/, ['apagada', 'acesa']],
-  [/^coffee_machine$/, ['desligada', 'ligada (vapor saindo)']],
-  [/^bancada_forno_pedra$/, ['apagado', 'aceso (fogo)']],
-  [/^(table_round|mesa_(terraco|redonda|guarda_sol))/, ['limpa', 'suja (migalhas e manchas)']],
-  [/^(scratch_post|arranhador|cat_tree|arvore_gato|cat_condo)/, ['nova', 'gasta (sisal arranhado)']],
-  [/^(plant_|cactus|flower_vase|planta|vaso_|dracena|topiaria|canteiro|arbusto)/, ['viçosa', 'murcha (precisa de água)']],
-  [/^(cat_bed|cama_|cushion_)/, ['arrumada', 'amassada (gato dormiu)']],
+// ia: estados que a IA desenha (só quando a forma do objeto muda); codigo: estados que o jogo monta por cima do
+// desenho padrão (camada, brilho, partículas), sem pedir arte nova.
+type StateDef = { ia: string[]; codigo: string[] };
+const STATES: [RegExp, StateDef][] = [
+  [/^(food_bowl|water_bowl|tigela|comedouro)/, { ia: [], codigo: ['cheia: ração ou água desenhada dentro da borda'] }],
+  [/^(cookie_jar|cake_stand|display_case|prateleira_(mercearia|pet)_|geladeira_|caixote_|cesto_brinquedos|cestas|sacos_racao)/, { ia: ['cheio', 'vazio'], codigo: [] }],
+  [/^(cake_whole|cake_slice|cupcake|croissant|macarons|fish_biscuits)$/, { ia: [], codigo: ['no prato (o prato é a louça feita por código)', 'só o prato com migalhas'] }],
+  [/^(lixeira)/, { ia: [], codigo: ['cheia: papéis amassados saindo pela boca'] }],
+  [/^(caixa_correio)/, { ia: [], codigo: ['com carta: envelope saindo da fenda'] }],
+  [/^(door$|window$|janela|porta(_consultorio)?$)/, { ia: ['fechada', 'aberta'], codigo: [] }],
+  [/^(luminaria|lampada_chao|luzinhas_fio|poste|negatoscopio)/, { ia: [], codigo: ['acesa: partes de luz clareadas + halo'] }],
+  [/^coffee_machine$/, { ia: [], codigo: ['ligada: vapor animado'] }],
+  [/^arvore$/, { ia: ['com folhas', 'sem folhas (inverno)'], codigo: ['cor das folhas por estação (troca de paleta)', 'neve por cima (camada)'] }],
+  [/^(moita_chao|vaso_planta)$/, { ia: [], codigo: ['cor por estação (troca de paleta)', 'neve por cima (camada)'] }],
+  [/^(poste|banco|caixa_correio|lixeira|lousa_cafe|mesa_terraco|caixote_)/, { ia: [], codigo: ['neve por cima no inverno (camada)'] }],
+  [/^bancada_forno_pedra$/, { ia: [], codigo: ['aceso: fogo animado na boca do forno'] }],
 ];
-const statesOf = (p: Piece): string[] =>
-  p.place === 'icone' || p.place === 'fachada' ? [] : (STATES.find(([re]) => re.test(p.name))?.[1] ?? []);
+const NO_STATES: StateDef = { ia: [], codigo: [] };
+const stateDefOf = (p: Piece): StateDef =>
+  p.place === 'icone' || p.place === 'fachada' ? NO_STATES : (STATES.find(([re]) => re.test(p.name))?.[1] ?? NO_STATES);
+const statesOf = (p: Piece): string[] => stateDefOf(p).ia;
 // Variação: cor (mesmo desenho, outras cores) ou modelo (outro desenho do mesmo objeto, mesmo tamanho).
-const MODELO = /^(plant_|cactus|flower_vase|planta|vaso_|picture_|cartaz_|quadro_|floor_rug|doormat|capacho|tapete_|cake_|cupcake|macarons|croissant|cookie_jar|fish_biscuits|yarn_balls|menu_board|lousa_|placa_|cushion_|caixote_)/;
+const MODELO = /^(plant_|cactus|flower_vase|planta|vaso_|picture_|cartaz_|quadro_|floor_rug|doormat|capacho|tapete_|cake_|cupcake|macarons|croissant|cookie_jar|fish_biscuits|yarn_balls|menu_board|lousa_|placa_|cushion_)/;
 const variantKind = (name: string): 'cor' | 'modelo' => (MODELO.test(name) ? 'modelo' : 'cor');
+// Variações de cor saem por troca de paleta no código: a IA desenha só uma versão. Modelos a IA desenha todos.
+const drawnVariants = (name: string, variants: number) => (variantKind(name) === 'cor' ? 1 : variants);
+// Comida vem sem prato: o prato é a louça feita por código.
+const FOOD = /^(cake_whole|cake_slice|cupcake|croissant|macarons|fish_biscuits)$/;
 
 /** imgTile: px por tile na imagem pedida; variants: quantas variações de cor por item; maxItems: itens diferentes por pedido. */
 type Group = { id: string; title: string; context: string; pieces: Piece[]; imgTile: 128 | 64; variants: 1 | 3; maxItems: number };
@@ -79,9 +84,9 @@ function fromTileset(id: string, skip: RegExp, label: (n: string) => string = hu
 const LABEL_PT: Record<string, string> = {
   floor_rug: 'tapete grande com franja', doormat: 'capacho', window: 'janela com cortinas', door: 'porta de madeira com vidro e placa',
   menu_board: 'lousa do cardápio na parede', wall_clock: 'relógio de parede com orelhas de gato', picture_paw: 'quadro com pata de gato', wall_shelf: 'prateleira de parede com potes e livros',
-  coffee_machine: 'máquina de espresso pequena', display_case: 'vitrine de doces com vidro (altura de balcão)', cake_whole: 'bolo inteiro no prato', cake_slice: 'fatia de bolo no prato',
-  cupcake: 'cupcake', macarons: 'macarons no prato', cookie_jar: 'pote de biscoitos', latte: 'xícara de latte com pires', tea_cup: 'xícara de chá com pires', teapot: 'bule de chá',
-  milkshake: 'milkshake com canudo', croissant: 'croissants no prato', fish_biscuits: 'biscoitos de peixe no prato', cake_stand: 'boleira de dois andares com doces',
+  coffee_machine: 'máquina de espresso pequena', display_case: 'vitrine de doces com vidro (altura de balcão)', cake_whole: 'bolo inteiro', cake_slice: 'fatia de bolo',
+  cupcake: 'cupcake', macarons: 'macarons', cookie_jar: 'pote de biscoitos', latte: 'xícara de latte com pires', tea_cup: 'xícara de chá com pires', teapot: 'bule de chá',
+  milkshake: 'milkshake com canudo', croissant: 'croissants', fish_biscuits: 'biscoitos de peixe', cake_stand: 'boleira de dois andares com doces',
   table_round: 'mesa redonda de madeira', chair_front: 'cadeira de madeira com assento estofado, vista de frente', chair_back: 'a mesma cadeira vista de costas',
   chair_left: 'a mesma cadeira de perfil, virada para a esquerda', chair_right: 'a mesma cadeira de perfil, virada para a direita', sofa: 'sofá de veludo',
   bookshelf: 'estante com livros', cat_tree: 'árvore de gato com plataformas e casinha', cat_condo: 'torre de gato com dois andares e buracos', scratch_post: 'arranhador de sisal',
@@ -90,7 +95,7 @@ const LABEL_PT: Record<string, string> = {
   counter_single: 'balcão: peça única curta (acabamento nas duas pontas)', counter_register: 'balcão: peça do meio com uma caixa registradora em cima',
   balcao_esq: 'balcão: ponta esquerda', balcao_meio: 'balcão: peça do meio (sem borda dos lados; se repete)', balcao_dir: 'balcão: ponta direita',
 };
-const label = (n: string) => LABEL_PT[n] ?? human(n);
+const label = (n: string) => (LABEL_PT[n] ?? human(n)) + (FOOD.test(n) ? ' (SEM prato: só a comida)' : '');
 const tileMeta = read<{ tiles: Record<string, { layer?: string }> }>('data/tiles.meta.json').tiles;
 function cafePieces(): Piece[] {
   const csv = readFileSync('data/tiles.csv', 'utf8').trim().split(/\r?\n/).slice(1);
@@ -98,7 +103,8 @@ function cafePieces(): Piece[] {
     .map((l) => l.split(','))
     // pisos e paredes ficam por código; as almofadas são uma peça só (as cores viram as variações);
     // as pontas e o meio do balcão vêm da folha de balcões (são os que o jogo usa)
-    .filter(([n]) => !/^(floor_wood|floor_check|floor_tile|wall_|counter_(left|mid|right)$|cushion_(mint|sky|lav|butter))/.test(n!))
+    // xícaras, bule e milkshake são louça (feita por código)
+    .filter(([n]) => !/^(floor_wood|floor_check|floor_tile|wall_|counter_(left|mid|right)$|cushion_(mint|sky|lav|butter)|latte$|tea_cup$|teapot$|milkshake$)/.test(n!))
     .map(([n, c, r, w, h]) => ({ name: n!, label: label(n!), image: 'assets/interiors/cafe/tile_cafe.png', x: +c!, y: +r!, w: +w!, h: +h!, place: placeOf(n!, tileMeta[n!]?.layer) }));
 }
 
@@ -112,6 +118,13 @@ function iconPieces(sheet: string | undefined): Piece[] {
 
 // ---------- os grupos (o que vai para o gerador) ----------
 const SEASON_PT: Record<string, string> = { winter: 'inverno (SEM neve por cima: a neve é outra camada)', spring: 'primavera', summer: 'verão', autumn: 'outono' };
+const SEASONS = ['spring', 'summer', 'autumn', 'winter'] as const;
+/** Junta as listas das estações, uma peça por nome (vale a da primeira estação em que aparece). */
+const onePerName = (lists: Piece[][]): Piece[] => {
+  const seen = new Map<string, Piece>();
+  for (const l of lists) for (const p of l) if (!seen.has(p.name)) seen.set(p.name, p);
+  return [...seen.values()];
+};
 const objects = (id: string, title: string, context: string, pieces: Piece[]): Group => ({ id, title, context, pieces, imgTile: 128, variants: 3, maxItems: 8 });
 const groups: Group[] = [
   objects('cafe', 'Café: móveis, balcão e objetos', 'interior de um café de gatos aconchegante', [...cafePieces(), ...fromTileset('counters', /^$/, label)]),
@@ -120,13 +133,13 @@ const groups: Group[] = [
   objects('quintal', 'Quintal: móveis e plantas', 'quintal secreto com jardim', [...fromTileset('backyard_hedge', /^(sebe_|grama_|pedra_|fundo_|brilho_)/), ...fromTileset('backyard_brick', /^(tijolo_|grama_|pedra_|raios_)/)]),
   objects('comodos', 'Cômodos: portas e coisas de gato', 'cômodos do café (quartinho e quintal)', fromTileset('rooms_placeholder', /^(parede_|mato|folhas_)/)),
   { id: 'sujeira', title: 'Café abandonado: sujeira sólida', context: 'café abandonado e sujo', pieces: fromTileset('dirt', /^(teia_|poeira_|mancha_|escorrido|particulas|raio_)/), imgTile: 128, variants: 1, maxItems: 12 },
-  ...(['winter', 'spring', 'summer', 'autumn'] as const).map((s) =>
-    objects(`rua_objetos_${s}`, `Rua (${s}): objetos`, `rua de uma vila pequena no ${SEASON_PT[s]}`, fromTileset(s === 'winter' ? 'street_props' : `street_props_${s}`, /^pegadas$/)),
-  ),
-  ...(['winter', 'spring', 'summer', 'autumn'] as const).map((s): Group => ({
-    id: `rua_fachadas_${s}`, title: `Rua (${s}): fachadas`, context: `fachadas de prédios de uma vila pequena no ${SEASON_PT[s]}`, imgTile: 64, variants: 1, maxItems: 2,
-    pieces: [...fromTileset(s === 'winter' ? 'street_facades' : `street_facades_${s}`, /^$/, human, 'fachada'), ...(s === 'winter' ? fromTileset('street_vet', /^$/, human, 'fachada') : [])],
-  })),
+  // Rua: um conjunto só, desenhado na primavera. As outras estações saem por código (troca de paleta nas folhas e a
+  // camada de neve); só o que existe numa estação (abeto de Natal, abóboras...) vem da estação dele.
+  objects('rua_objetos', 'Rua: objetos', `rua de uma vila pequena na ${SEASON_PT.spring}`, onePerName(SEASONS.map((s) => fromTileset(s === 'winter' ? 'street_props' : `street_props_${s}`, /^pegadas$/)))),
+  {
+    id: 'rua_fachadas', title: 'Rua: fachadas', context: `fachadas de prédios de uma vila pequena na ${SEASON_PT.spring}`, imgTile: 64, variants: 1, maxItems: 2,
+    pieces: onePerName([...SEASONS.map((s) => fromTileset(s === 'winter' ? 'street_facades' : `street_facades_${s}`, /^$/, human, 'fachada')), fromTileset('street_vet', /^$/, human, 'fachada')]),
+  },
   { id: 'icones_loja', title: 'Ícones: loja do mercado', context: 'ícones de itens de inventário', pieces: iconPieces(undefined), imgTile: 128, variants: 1, maxItems: 16 },
   { id: 'icones_ingredientes', title: 'Ícones: ingredientes', context: 'ícones de itens de inventário', pieces: iconPieces('materia_prima'), imgTile: 128, variants: 1, maxItems: 16 },
   { id: 'icones_bebidas', title: 'Ícones: bebidas e caixas', context: 'ícones de itens de inventário', pieces: iconPieces('bebidas'), imgTile: 128, variants: 1, maxItems: 16 },
@@ -135,7 +148,8 @@ const groups: Group[] = [
 
 // ---------- empacotar em lotes: cada item ocupa (w x variações) por (h x estados) tiles ----------
 // variações lado a lado (colunas), estados um embaixo do outro (linhas)
-type Placed = Piece & { cx: number; cy: number; v: number; states: string[] };
+// v: variações desenhadas na imagem; total: variações no jogo (as de cor a mais saem por troca de paleta)
+type Placed = Piece & { cx: number; cy: number; v: number; total: number; states: string[] };
 /** Peças do mesmo balcão (0) e vistas da mesma cadeira (1) vão juntas: cada conjunto cabe inteiro num pedido. */
 const together = (p: Piece) => (BALCAO.test(p.name) && p.w === 1 ? 0 : /^chair_/.test(p.name) ? 1 : 2);
 function pack(g: Group): Placed[][] {
@@ -154,7 +168,8 @@ function pack(g: Group): Placed[][] {
         if (batch.length + size > g.maxItems) { i++; continue; }
       }
       const states = statesOf(p);
-      const v = Math.max(1, Math.min(g.variants, Math.floor(cols / p.w)));
+      const total = Math.max(1, Math.min(g.variants, Math.floor(cols / p.w)));
+      const v = drawnVariants(p.name, total);
       const W = p.w * v;
       const H = p.h * Math.max(1, states.length);
       if (H > cols) throw new Error(`estados demais para caber: ${p.name}`);
@@ -167,7 +182,7 @@ function pack(g: Group): Placed[][] {
         }
       if (!spot) { i++; continue; }
       for (let j = 0; j < H; j++) for (let k = 0; k < W; k++) used[spot[1] + j]![spot[0] + k] = true;
-      batch.push({ ...p, cx: spot[0], cy: spot[1], v, states });
+      batch.push({ ...p, cx: spot[0], cy: spot[1], v, total, states });
       todo.splice(i, 1);
     }
     if (!batch.length) throw new Error(`peça grande demais: ${todo[0]!.name}`);
@@ -194,15 +209,16 @@ const RULES = `REGRAS (valem para todos os pedidos)
    em outro. A posição dos itens na imagem é livre. Bordas duras, sem desfoque nem brilho difuso. Sem texto.
 
 4. VARIAÇÕES E ESTADOS (o jogo precisa dos dois):
-   - VARIAÇÕES: para cada item, desenhe as variações pedidas na lista, LADO A LADO, todas com o MESMO tamanho.
-     "de cor": o mesmo desenho em outras cores ou acabamentos (madeira clara, escura, pintada...).
-     "de modelo": outro desenho do mesmo objeto (outra planta, outro bolo, outra estampa), no mesmo tamanho e lugar.
+   - VARIAÇÕES: quando a lista pede "variações de modelo", desenhe outros desenhos do mesmo objeto (outra planta,
+     outro bolo, outra estampa), LADO A LADO, todos com o MESMO tamanho. Sem isso, desenhe só 1 versão: as outras
+     cores eu faço por código.
      Exceções: [ícone], [fachada] e a sujeira: só 1 versão.
      Itens com várias vistas (ex.: cadeira de frente, de costas e de lado) são o MESMO móvel: cada cor aparece em todas as vistas.
    - ESTADOS: quando a lista diz "estados: A / B", desenhe o item em cada estado, UM EMBAIXO DO OUTRO, na ordem da
      lista (o primeiro em cima). É o MESMO objeto, na mesma posição e no mesmo tamanho: só muda o que o estado muda
-     (ex.: tigela vazia / cheia; luminária apagada / acesa; porta fechada / aberta; planta viçosa / murcha).
-   - Cada variação aparece em TODOS os estados: 3 variações x 2 estados = uma grade de 3 colunas por 2 linhas.
+     (ex.: porta fechada / aberta; pote de biscoitos cheio / vazio). Luz acesa, vapor, fogo e conteúdo de
+     tigela eu faço por código: não desenhe esses estados.
+   - Cada variação aparece em TODOS os estados: 3 modelos x 2 estados = uma grade de 3 colunas por 2 linhas.
 
 5. ONDE CADA ITEM FICA (a etiqueta vem na lista):
    - [chão]: em pé no chão; base encostada na borda de baixo da área do item.
@@ -230,7 +246,7 @@ const RULES = `REGRAS (valem para todos os pedidos)
 
 function itemLine(p: Placed): string {
   const px = `${p.w * 128} x ${p.h * 128} px`;
-  const vars = p.v > 1 ? `, ${p.v} variações de ${variantKind(p.name)}` : '';
+  const vars = p.v > 1 ? `, ${p.v} variações de modelo` : '';
   const states = p.states.length ? `; estados: ${p.states.join(' / ')}` : '';
   return `- ${p.label}: ${p.w} x ${p.h} tile${p.w * p.h > 1 ? 's' : ''} (${px}${vars}${states}) ${TAG[p.place]}`;
 }
@@ -244,7 +260,7 @@ mkdirSync(OUT, { recursive: true });
 let n = 0;
 const index: string[] = [];
 const master: string[] = [];
-const plan: { code: string; item: string; label: string; w: number; h: number; v: number; kind: 'cor' | 'modelo'; states: string[]; place: Place }[] = [];
+const plan: { code: string; item: string; label: string; w: number; h: number; v: number; total: number; kind: 'cor' | 'modelo'; states: string[]; codigo: string[]; place: Place }[] = [];
 for (const g of groups) {
   const batches = pack(g);
   batches.forEach((batch, bi) => {
@@ -274,7 +290,7 @@ for (const g of groups) {
     master.push(head);
     writeFileSync(`${dir}/pedido.txt`, `${head}\n\n${RULES}\n`);
     writeFileSync(`${dir}/layout.json`, JSON.stringify({ code, imgTile: g.imgTile, artTile: ART_TILE, pieces: batch.map((p) => ({ name: p.name, sheet: p.image, src: [p.x, p.y, p.w, p.h], place: p.place, variants: p.v, variantKind: variantKind(p.name), states: p.states })) }, null, 2));
-    plan.push(...batch.map((p) => ({ code, item: p.name, label: p.label, w: p.w, h: p.h, v: p.v, kind: variantKind(p.name), states: p.states, place: p.place })));
+    plan.push(...batch.map((p) => ({ code, item: p.name, label: p.label, w: p.w, h: p.h, v: p.v, total: p.total, kind: variantKind(p.name), states: p.states, codigo: stateDefOf(p).codigo, place: p.place })));
     index.push(`| ${code} | ${g.title}${batches.length > 1 ? ` (${bi + 1}/${batches.length})` : ''} | ${batch.length} | ${g.imgTile === 128 ? 'objetos (128 px por tile)' : 'fachadas (64 px por tile)'} |`);
   });
 }
@@ -304,24 +320,24 @@ ${master.join('\n\n---\n\n')}
   const slots = { 16: 0, 4: 0, 1: 0, 0: 0 } as Record<number, number>;
   let edits = 0, sprites = 0;
   const rows = plan.filter((p) => p.place !== 'fachada').map((p) => {
-    const designs = p.kind === 'modelo' ? p.v : 1;
     const nStates = Math.max(1, p.states.length);
-    slots[tier(canvas(p))]! += designs;
-    edits += designs * (nStates - 1);
-    sprites += p.v * nStates;
+    slots[tier(canvas(p))]! += p.v;
+    edits += p.v * (nStates - 1);
+    sprites += p.total * nStates;
     const c = canvas(p);
-    return `| ${p.code} | ${p.label} | ${p.w}x${p.h} (${c} px${c > 256 ? ': grande demais, fatiar' : ''}) | ${p.v > 1 ? `${p.v} de ${p.kind}` : '1'} | ${p.states.join(' / ') || '-'} | ${p.v * nStates} |`;
+    const vars = p.total > 1 ? (p.kind === 'cor' ? `${p.total} de cor (código)` : `${p.total} de modelo`) : '1';
+    return `| ${p.code} | ${p.label} | ${p.w}x${p.h} (${c} px${c > 256 ? ': grande demais, fatiar' : ''}) | ${vars} | ${p.states.join(' / ') || '-'} | ${p.codigo.join('; ') || '-'} | ${p.total * nStates} |`;
   });
   const gens = Math.ceil(slots[16]! / 16) * 10 + Math.ceil(slots[4]! / 4) * 10 + slots[1]! * 10;
   writeFileSync(`${OUT}/PLANO_PIXELLAB.md`, `# Plano de geração no PixelLab
 
-Sprites finais (todas as variações em todos os estados): **${sprites}**.
+Sprites que a IA desenha + recolorações por código (sem contar os estados feitos por código): **${sprites}**.
 Desenhos novos a gerar: ${slots[16]} em 64 px, ${slots[4]} em 128 px, ${slots[1]} em até 256 px${slots[0] ? ` e ${slots[0]} maiores que 256 px (precisam ser fatiados)` : ''}: cerca de **${gens} gerações**.
-Edições de estado sobre os desenhos escolhidos: **${edits}**. Variações de cor saem por troca de paleta (grátis).
+Edições de estado sobre os desenhos escolhidos: **${edits}**. Variações de cor e estados da coluna "por código" não gastam geração.
 Fachadas ficam fora desta conta.
 
-| Pedido | Item | Tamanho | Variações | Estados (o 1º é o padrão) | Sprites |
-|---|---|---|---|---|---|
+| Pedido | Item | Tamanho | Variações | Estados pela IA (o 1º é o padrão) | Estados por código | Sprites |
+|---|---|---|---|---|---|---|
 ${rows.join('\n')}
 `);
 }

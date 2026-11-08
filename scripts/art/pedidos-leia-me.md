@@ -16,9 +16,11 @@ Os moldes (`pedidos/NN_xxx/molde.png`) são opcionais: mostram a arte atual de c
 ## Conferir cada imagem
 - Fundo magenta liso, **sem xadrez**, e os itens não se encostam.
 - **Tamanho:** porta, estante e janela altas (2 tiles); árvore de gato com 2 x 3; xícaras e comidas pequenas.
-- **De 2 a 3 variações** de cada item (de cor ou de modelo, como diz a lista), lado a lado (menos ícones, fachadas e sujeira).
-- **Estados** (tigela vazia/cheia, luminária apagada/acesa, porta fechada/aberta, planta viçosa/murcha...): um embaixo
-  do outro, o mesmo objeto na mesma posição, e cada variação em todos os estados.
+- **Variações de modelo** só onde a lista pede (plantas, bolos, quadros, tapetes...), lado a lado. O resto vem em 1 versão:
+  as outras cores eu faço por código.
+- **Estados** só onde a lista pede (porta fechada/aberta, pote cheio/vazio...): um embaixo do outro, o mesmo objeto na
+  mesma posição, e cada modelo em todos os estados.
+- **Comida sem prato** (o prato é a louça feita por código).
 
 O `PLANO_PIXELLAB.md` lista item por item as variações, os estados e quantos sprites saem no fim.
 - **Balcões:** tampo liso, sem nada em cima, e as peças com a mesma altura.
@@ -39,7 +41,10 @@ Eu recorto cada item separado e posso juntar itens de imagens diferentes. Então
 | Cafeteira, bule, liquidificador, fogão, forno, pia (animados) | Cada um tem 6 a 7 quadros que precisam ser idênticos, mudando só o detalhe | Eu, por código |
 | Teias, poeira, manchas, raios de sol, brilhos | São translúcidos; o fundo magenta não guarda transparência | Eu, por código |
 | Neve por cima (inverno) | Camada separada que precisa casar pixel a pixel com a arte de baixo | Eu, por código |
-| Louça (xícara, prato, copo) | Refeita no estilo novo | Eu, por código |
+| Louça (xícara, prato, copo, bule, milkshake) | Refeita no estilo novo | Eu, por código |
+| Outras cores dos móveis | Troca de paleta do desenho aprovado: mesmo formato garantido | Eu, por código |
+| Estados de luz, vapor, fogo e conteúdo (luminária acesa, máquina ligada, forno aceso, tigela cheia, lixeira cheia, carta na caixa, prato com migalhas) | Camada ou efeito por cima do desenho padrão | Eu, por código |
+| Rua no verão, outono e inverno | A rua é desenhada uma vez (primavera); folhas mudam de cor por troca de paleta e a neve é camada. Só o que é de uma estação (abeto de Natal, abóboras) vem separado | Eu, por código |
 | Gatos | Arte do leckie1989 (Cosy Cats): **a licença proíbe usar com IA**. Não envie essas imagens ao ChatGPT | Decidir depois |
 | Personagens e NPCs | Estilo em decisão (teste de mulher e homem) | Decidir depois |
 | Botões e painéis da interface | Molduras de 9 partes que precisam de cantos exatos | Depois, se precisar |
