@@ -42,6 +42,8 @@ interface Piece {
   wear?: boolean;
   /** Quantas variações seguidas na linha (com wear: cada uma com outra semente de sujeira). */
   variants?: number;
+  /** Linhas de arte acima da peça, sem ocupar a célula (a imagem tem h + rise tiles de altura). */
+  rise?: number;
 }
 
 interface Sheet {
@@ -115,7 +117,7 @@ const SHEETS: Sheet[] = [
       counter_mid: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid') },
       counter_right: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'right') },
       counter_single: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'single') },
-      counter_register: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid'), over: { file: 'mercado_A/obj_0.png', dx: 0, dy: -27 } },
+      counter_register: { file: '', w: 1, h: 1, rise: 1, build: () => raised(counterPiece('m1', 'mid'), 1), over: { file: 'mercado_A/obj_0.png', dx: 0, dy: TS - 27 } },
       bar_balcao_esq: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'left') },
       bar_balcao_meio: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'mid') },
       bar_balcao_dir: { file: '', w: 1, h: 1, build: () => counterPiece('m1', 'right') },
@@ -195,7 +197,7 @@ const SHEETS: Sheet[] = [
       dirt_vidro_quebrado: { file: 'fachadas/abandonado/obj_8.png', w: 1, h: 1 },
       dirt_papeis_chao: { file: 'cafe_sujeira/obj_2.png', w: 1, h: 1 },
       dirt_folhas_secas: { file: 'fachadas/abandonado/obj_14.png', w: 1, h: 1 },
-      dirt_buraco_rato: { file: 'cafe_sujeira/obj_10.png', w: 1, h: 1 },
+      dirt_buraco_rato: { file: '', w: 1, h: 1, build: () => holeOnly(readPng(`${SRC}/cafe_sujeira/obj_10.png`)) },
       dirt_balde_goteira: { file: 'cafe_sujeira/obj_4.png', w: 1, h: 1 },
       dirt_particulas_poeira: { file: 'cafe_sujeira/obj_5.png', w: 1, h: 1 },
     },
@@ -234,8 +236,9 @@ function recolor(png: PNG, rc: Recolor): void {
 
 function load(p: Piece, variant = 0): PNG {
   let png: PNG = p.build ? p.build() : PNG.sync.read(readFileSync(`${SRC}/${p.file}`));
-  if (png.width !== p.w * TS || png.height !== p.h * TS) {
-    throw new Error(`${p.file}: ${png.width}x${png.height}, esperado ${p.w * TS}x${p.h * TS} (${p.w}x${p.h} tiles)`);
+  const h = p.h + (p.rise ?? 0);
+  if (png.width !== p.w * TS || png.height !== h * TS) {
+    throw new Error(`${p.file}: ${png.width}x${png.height}, esperado ${p.w * TS}x${h * TS} (${p.w}x${h} tiles)`);
   }
   if (p.rows) png = pickRows(png, p.rows);
   if (p.recolor) recolor(png, p.recolor);
@@ -252,6 +255,13 @@ function load(p: Piece, variant = 0): PNG {
     }
   }
   return png;
+}
+
+/** A peça com `rise` tiles vazios em cima (para desenhar o que sobe acima dela). */
+function raised(png: PNG, rise: number): PNG {
+  const out = new PNG({ width: png.width, height: png.height + rise * TS });
+  png.data.copy(out.data, rise * TS * png.width * 4);
+  return out;
 }
 
 /** Nova imagem com as linhas escolhidas da origem (mesma largura). */
@@ -279,7 +289,7 @@ function autoLayout(sheet: Sheet): number {
   for (const p of Object.values(sheet.layout)) {
     if (col + p.w * (p.variants ?? 1) > sheet.columns) { row += rowH; col = 0; rowH = 0; }
     p.col = col; p.row = row;
-    col += p.w * (p.variants ?? 1); rowH = Math.max(rowH, p.h);
+    col += p.w * (p.variants ?? 1); rowH = Math.max(rowH, p.h + (p.rise ?? 0));
   }
   return row + rowH;
 }
@@ -352,6 +362,31 @@ function withSink(tile: PNG, dx = -2): PNG {
 
 function readPng(path: string): PNG {
   return PNG.sync.read(readFileSync(path));
+}
+
+/** Só o buraco preto da peça (o miolo preto, cada linha preenchida de ponta a ponta), encostado na base do tile. */
+function holeOnly(src: PNG): PNG {
+  const W = src.width, H = src.height;
+  const dark = (i: number) => src.data[i * 4 + 3]! > 0 && (src.data[i * 4]! + src.data[i * 4 + 1]! + src.data[i * 4 + 2]!) / 3 < 10;
+  let seed = -1;
+  for (let y = H - 1; y >= 0 && seed < 0; y--) if (dark(y * W + (W >> 1))) seed = y * W + (W >> 1);
+  const keep = new Set<number>([seed]);
+  for (const stack = [seed]; stack.length; ) {
+    const i = stack.pop()!, x = i % W, y = (i / W) | 0;
+    for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]] as const) {
+      const n = ny * W + nx;
+      if (nx >= 0 && ny >= 0 && nx < W && ny < H && !keep.has(n) && dark(n)) { keep.add(n); stack.push(n); }
+    }
+  }
+  const span = new Map<number, [number, number]>();
+  for (const i of keep) {
+    const x = i % W, y = (i / W) | 0, [a, b] = span.get(y) ?? [x, x];
+    span.set(y, [Math.min(a, x), Math.max(b, x)]);
+  }
+  const bottom = Math.max(...span.keys());
+  const out = blank(W, H);
+  for (const [y, [a, b]] of span) for (let x = a; x <= b; x++) src.data.copy(out.data, ((y + H - 1 - bottom) * W + x) * 4, seed * 4, seed * 4 + 4);
+  return out;
 }
 
 function blank(w: number, h: number): PNG {
@@ -527,7 +562,7 @@ const STRIPS: Strip[] = [
 for (const sheet of SHEETS) {
   const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
   const out = new PNG({ width: sheet.columns * TS, height: rows * TS });
-  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }> = {};
+  const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number; rise?: number }> = {};
   for (const [name, p] of Object.entries(sheet.layout)) {
     for (let v = 0; v < (p.variants ?? 1); v++) {
       const png = load(p, v);
@@ -541,7 +576,7 @@ for (const sheet of SHEETS) {
         }
       }
     }
-    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}) };
+    pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}), ...(p.rise ? { rise: p.rise } : {}) };
   }
   mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
   writeFileSync(sheet.image, PNG.sync.write(out));

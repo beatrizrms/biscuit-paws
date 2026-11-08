@@ -18,6 +18,8 @@ export interface TileDef {
   variants?: number;
   /** Peso de cada versão (quantas vezes aparece). Sem pesos, todas valem igual. */
   variantWeights?: number[];
+  /** Linhas da arte acima da peça, desenhadas por cima da célula de cima sem ocupá-la (ex.: registradora sobre o balcão). */
+  rise?: number;
   /** Tile do pacote de onde este foi gerado (tiles "velhos"). */
   from?: string;
 }
@@ -70,8 +72,11 @@ export interface PiecesFile {
   tileSize: number;
   columns: number;
   rows: number;
-  /** variants: quantas células seguidas (na linha) são variações da mesma peça (só 1x1). */
-  pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number }>;
+  /**
+   * variants: quantas células seguidas (na linha) são variações da mesma peça (só 1x1).
+   * rise: linhas de arte acima da peça (row aponta para a primeira delas; a peça começa em row + rise).
+   */
+  pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number; rise?: number }>;
 }
 
 /** Uma folha extra (data/tilesets.json), já com o JSON de peças lido. */
@@ -172,10 +177,13 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
     }
     for (const [piece, p] of Object.entries(extra.pieces.pieces)) {
       const name = extra.prefix + piece;
-      if (p.col + p.w_tiles > extra.pieces.columns || p.row + p.h_tiles > extra.pieces.rows) {
+      const rise = p.rise ?? 0;
+      if (!Number.isInteger(rise) || rise < 0) throw new Error(`tilesets.json: "${name}" tem rise inválido`);
+      if (p.col + p.w_tiles > extra.pieces.columns || p.row + rise + p.h_tiles > extra.pieces.rows) {
         throw new Error(`tilesets.json: "${name}" sai da folha`);
       }
       const o = extra.overrides?.[piece] ?? {};
+      const at = { col: p.col, row: p.row + rise, w: p.w_tiles, h: p.h_tiles, ...(rise ? { rise } : {}) };
       if (extra.replaces) {
         const old = tiles[name];
         if (!old) throw new Error(`tilesets.json: "${extra.id}" troca "${name}", que não existe`);
@@ -184,7 +192,7 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
         }
         const layer = o.layer ?? old.layer;
         if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
-        tiles[name] = { name, sheet: extra.id, col: p.col, row: p.row, w: p.w_tiles, h: p.h_tiles, solid: o.solid ?? old.solid, layer };
+        tiles[name] = { name, sheet: extra.id, ...at, solid: o.solid ?? old.solid, layer };
         if (p.variants && p.variants > 1) {
           if (p.w_tiles !== 1 || p.h_tiles !== 1) throw new Error(`tilesets.json: "${name}" tem variações e não é 1x1`);
           if (p.col + p.variants > extra.pieces.columns) throw new Error(`tilesets.json: variações de "${name}" saem da folha`);
@@ -196,7 +204,7 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
       if (tiles[name]) throw new Error(`tilesets.json: nome repetido "${name}"`);
       const layer = o.layer ?? extra.layer;
       if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
-      tiles[name] = { name, sheet: extra.id, col: p.col, row: p.row, w: p.w_tiles, h: p.h_tiles, solid: o.solid ?? extra.solid, layer };
+      tiles[name] = { name, sheet: extra.id, ...at, solid: o.solid ?? extra.solid, layer };
     }
   }
 

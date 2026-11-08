@@ -97,6 +97,14 @@ describe('folha que troca a arte de tiles existentes (replaces)', () => {
     expect(frameOf(catalog, cactus, 0, 0, 2)).toBe(2);
   });
 
+  it('rise: a arte sobe acima da peça sem mudar o tamanho dela', () => {
+    const catalog = buildCatalog(csv, meta, undefined, [troca({ cactus: { col: 2, row: 0, w_tiles: 1, h_tiles: 1, rise: 1 } })]);
+    const cactus = getTile(catalog, 'cactus');
+    expect(cactus).toMatchObject({ row: 1, h: 1, rise: 1 });
+    expect(frameOf(catalog, cactus, 0, -1)).toBe(2);
+    expect(() => buildCatalog(csv, meta, undefined, [troca({ cactus: { col: 0, row: 1, w_tiles: 1, h_tiles: 1, rise: 1 } })])).toThrow(/sai da folha/);
+  });
+
   it('recusa trocar um tile que não existe ou com outro tamanho', () => {
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa_gigante: { col: 0, row: 0, w_tiles: 1, h_tiles: 1 } })])).toThrow(/não existe/);
     expect(() => buildCatalog(csv, meta, undefined, [troca({ sofa: { col: 0, row: 0, w_tiles: 3, h_tiles: 2 } })])).toThrow(/tamanho|tiles/);

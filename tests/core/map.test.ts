@@ -66,6 +66,19 @@ describe('resolveMap', () => {
     expect(solid[3]).toEqual([false, true, true, false]);
   });
 
+  it('arte acima da peça (rise) é desenhada na célula de cima, que continua livre', () => {
+    const def = getTile(catalog, 'counter_register');
+    expect(def.rise).toBe(1);
+    const map = resolveMap(tinyMap([{ id: 'obj.caixa', tile: 'counter_register', at: [1, 2] }]), catalog);
+    const caixa = map.sprites.filter((s) => s.tile === 'counter_register');
+    expect(caixa.map((s) => [s.col, s.row, s.frame])).toEqual([
+      [1, 1, frameOf(catalog, def, 0, -1)],
+      [1, 2, frameOf(catalog, def, 0, 0)],
+    ]);
+    expect(caixa[0]!.depth).toBe(caixa[1]!.depth);
+    expect(map.solid[1]![1]).toBe(false);
+  });
+
   it('paredes são sólidas inteiras; peças não sólidas não bloqueiam', () => {
     const { solid } = resolveMap(tinyMap([{ id: 'obj.chair', tile: 'chair_front', at: [2, 2] }]), catalog);
     expect(solid[0]).toEqual([true, true, true, true]);

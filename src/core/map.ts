@@ -300,6 +300,13 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const depth =
       def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
     const over = obj.overlay ? catalog.tiles[obj.overlay] : undefined;
+    // Arte que sobe acima da peça (rise): mesma profundidade, sem ocupar a célula de cima.
+    for (let k = 1; k <= (def.rise ?? 0); k++) {
+      for (let dx = 0; dx < def.w; dx++) {
+        const frame = frameOf(catalog, def, dx, -k);
+        sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col: c0 + dx, row: r0 - k, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
+      }
+    }
     for (const [col, row] of cellsOf(obj.at, def)) {
       const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
       sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });

@@ -325,8 +325,7 @@
       "tags": [
         "repair"
       ],
-      "clearedBy": "surface.wainscot",
-      "lift": -7
+      "clearedBy": "surface.wainscot"
     },
     {
       "id": "dirt.crack_hall_a",
