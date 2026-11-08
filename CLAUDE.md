@@ -39,3 +39,5 @@ Leia `docs/` antes de mexer no código. Este arquivo é o resumo das regras.
 - Depois de qualquer mudança visual, **abrir no navegador (Playwright), tirar print e conferir**.
 - Mudanças pequenas, commits claros.
 - Definição de pronto: roda, passa em `npm run check` e `npm test`, tem print conferido e README atualizado.
+- Skills do projeto (`.claude/skills/`): `/novo-pacote-arte` (importar e checar arte), `/conferir-visual` (prints de todos os mapas e arquivos que não carregaram), `/fechar-tarefa` (verificar, documentar e commitar).
+- Pode haver outras conversas trabalhando nesta pasta: commitar só os arquivos da sua tarefa.
