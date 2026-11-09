@@ -621,6 +621,68 @@
       ]
     },
     {
+      "id": "item.decor_planter",
+      "name": "Floreira de flores",
+      "price": 18,
+      "tile": "decor_floreira",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.decor_leafy_pot",
+      "name": "Vaso de folhagem",
+      "price": 16,
+      "tile": "decor_vaso_folhagem",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.decor_watering_can",
+      "name": "Regador",
+      "price": 8,
+      "tile": "decor_regador",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
+      "id": "item.decor_picnic_basket",
+      "name": "Cesta de piquenique",
+      "price": 14,
+      "tile": "decor_cesta_piquenique",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
+      "id": "item.decor_lantern",
+      "name": "Lampião",
+      "price": 18,
+      "tile": "decor_lampiao",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
+      "id": "item.decor_books",
+      "name": "Pilha de livros",
+      "price": 10,
+      "tile": "decor_livros",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
       "id": "item.wall_shelf",
       "name": "Prateleira",
       "price": 30,

@@ -908,6 +908,25 @@
       "solid": false
     },
     {
+      "id": "pixellab_decor",
+      "image": "assets/objects/pixellab/tile_pixellab_decor.png",
+      "pieces": "pixellab_decor.json",
+      "prefix": "decor_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "regador": {
+          "solid": false
+        },
+        "lampiao": {
+          "solid": false
+        },
+        "livros": {
+          "solid": false
+        }
+      }
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",

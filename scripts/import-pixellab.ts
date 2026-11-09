@@ -525,6 +525,21 @@ const SHEETS: Sheet[] = [
       ph_fair_table: { file: '', w: 1, h: 1, dy: 4, build: () => heartSign(readPng(`${SRC}/provisorios/obj_6.png`), 28, 20) },
     },
   },
+  {
+    // Decoração extra à venda no catálogo (sobras do lote dos provisórios): nomes novos decor_*.
+    image: 'public/assets/objects/pixellab/tile_pixellab_decor.png',
+    pieces: 'data/tilesets/pixellab_decor.json',
+    columns: 6,
+    auto: true,
+    layout: {
+      floreira: { file: 'provisorios/obj_10.png', w: 1, h: 1, dy: 6 },
+      vaso_folhagem: { file: 'provisorios/obj_11.png', w: 1, h: 1, dy: 4 },
+      regador: { file: 'provisorios/obj_12.png', w: 1, h: 1, dy: 8 },
+      cesta_piquenique: { file: 'provisorios/obj_13.png', w: 1, h: 1, dy: 6 },
+      lampiao: { file: 'provisorios/obj_14.png', w: 1, h: 1, dy: 4 },
+      livros: { file: 'provisorios/obj_15.png', w: 1, h: 1, dy: 8 },
+    },
+  },
 ];
 
 /**
