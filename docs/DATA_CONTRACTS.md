@@ -282,7 +282,10 @@ A história é uma lista de **marcos** (`beats`). Cada marco tem uma condição 
         "title": "Um lugar para sentar",
         "steps": [
           { "text": "Coloque uma mesa", "when": { "placedTag": "table" } },
-          { "text": "Coloque duas cadeiras", "when": { "placedTag": "chair", "gte": 2 } }
+          { "text": "Coloque duas cadeiras", "when": { "placedTag": "chair", "gte": 2 } },
+          // opcionais: detail (linha menor embaixo do passo da vez), icon (data/icons.json) e doses (o gato da
+          // receita: o balão mostra as doses em bolinhas e "hoje: feito")
+          { "text": "Dar o remédio para {cat:cat.first_stray}", "detail": "Uma dose por dia, até acabar a receita.", "icon": "remedio", "doses": "cat.first_stray", "when": { "flag": "vet.cured" } }
         ]
       },
       "when": { "money": { "gte": 0 } },  // opcional: condição extra

@@ -76,6 +76,14 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
+  "goals": {
+    "story": "história",
+    "cafe": "café",
+    "service": "Atendimento",
+    "stepsDone": "✓ {n} de {total}",
+    "doneToday": "✓ {n} feita(s) hoje",
+    "doneToday1": "hoje: feito · volta amanhã"
+  },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
   "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular",
@@ -615,10 +623,6 @@
     "back": "voltar",
     "close": "fechar",
     "balance": "Saldo"
-  },
-  "medicineProgress": {
-    "progress": " ({given}/{days} doses{today})",
-    "today": " · hoje já tomou"
   },
   "weekdays": [
     "seg",

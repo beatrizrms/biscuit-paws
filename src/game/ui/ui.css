@@ -77,7 +77,6 @@
   border: 1.5px solid var(--lav3, #8d78bd);
   border-radius: 14px;
   box-shadow: 0 2px 0 #bca8e0;
-  font-style: italic;
 }
 /* bolinhas do balão de pensamento */
 .hud-goals::before,
@@ -991,3 +990,30 @@
 .m-order-clear { padding: 2px 4px; font: inherit; font-size: 6.5px; color: var(--ink2); background: none; border: 1px solid var(--cream3); border-radius: 5px; cursor: pointer; }
 .m-order-confirm { padding: 3px 7px; font: inherit; font-size: 7.5px; font-weight: bold; color: #fff; background: var(--pink3); border: 0; border-radius: 6px; box-shadow: 0 1px 0 #b05a72; cursor: pointer; }
 .m-order-confirm:disabled { opacity: 0.45; cursor: default; }
+
+/* Balão de metas legível: seções, passo da vez em destaque, feitos resumidos, bolinhas e o alerta numa faixa. */
+.hud-goals { max-width: 168px; }
+.hud-goals h4 { margin: 5px 0 2px; font-size: 6.5px; letter-spacing: 0.1em; text-transform: lowercase; color: #8d78bd; }
+.hud-goals .g-card { padding: 3px 5px 4px; background: #fffdf7; border: 1px solid #eadfcf; border-radius: 6px; }
+.hud-goals .g-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+.hud-goals .g-head h3 { margin: 0; font-size: 8.5px; color: var(--ink2); }
+.hud-goals .g-sum { flex: none; font-size: 6.5px; color: var(--grey2); }
+.hud-goals .g-now { display: flex; align-items: center; gap: 3px; margin-top: 3px; font-size: 8.5px; font-weight: bold; color: var(--ink); }
+.hud-goals .g-detail { margin: 1px 0 0 15px; font-size: 7px; line-height: 1.3; color: var(--grey2); }
+.hud-goals .g-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 3px 0 0 15px; }
+.hud-goals .g-tag { padding: 0 4px; border-radius: 4px; background: #e4f1e3; color: #2f5e38; font-size: 6.5px; line-height: 1.6; }
+.hud-goals .pips { display: inline-flex; gap: 2px; margin-left: auto; }
+.hud-goals .g-progress .pips { margin-left: 0; }
+.hud-goals .pips i { width: 5px; height: 5px; border-radius: 50%; border: 1px solid var(--mint3); box-sizing: border-box; }
+.hud-goals .pips i.on { background: var(--mint3); }
+.hud-goals ul .icon { flex: none; align-self: center; }
+.hud-goals li .t { flex: 1; }
+.hud-goals li:has(> .icon)::before { content: none; }
+.hud-goals li.done-sum { color: var(--grey2); font-size: 7px; }
+.hud-goals li.done-sum::before { content: none; }
+.hud-goals .g-card ul { margin-top: 3px; font-size: 7.5px; color: #5d4a8a; }
+.hud-goals .g-alert { margin-top: 5px; padding: 3px 5px; border: 1px solid #f0b9c0; border-radius: 6px; background: #fbe6e8; color: #8c2a3a; font-size: 7px; line-height: 1.35; }
+.hud-goals .g-alert b { display: block; font-size: 7.5px; }
+.hud-goals:not(.open) .g-card { padding: 0; background: none; border: 0; }
+.hud-goals:not(.open) .g-now, .hud-goals:not(.open) .g-detail, .hud-goals:not(.open) .g-progress, .hud-goals:not(.open) .g-sum, .hud-goals:not(.open) .g-alert { display: none; }
+.hud-goals:not(.open):has(.g-alert) h2::after { content: "!"; display: inline-grid; place-items: center; width: 8px; height: 8px; margin-left: 3px; border-radius: 50%; background: var(--berry); color: #fff; font-size: 6px; font-weight: bold; vertical-align: 1px; }

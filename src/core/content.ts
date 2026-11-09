@@ -195,8 +195,14 @@ export type Effect =
   | { discoverRoom: string };
 
 export interface GoalStep {
-  /** Texto que a jogadora vê. */
+  /** Texto que a jogadora vê: curto, começando pelo verbo. */
   text: string;
+  /** Linha menor embaixo do passo da vez (o como, o quando). */
+  detail?: string;
+  /** Ícone do passo (data/icons.json). */
+  icon?: string;
+  /** Receita deste gato: o balão mostra as doses (bolinhas) e se já tomou hoje. */
+  doses?: string;
   /** Nota de desenvolvimento: só aparece no modo debug. */
   devNote?: string;
   when: Condition;
@@ -781,7 +787,11 @@ export function validateContent(raw: RawContent): string[] {
     for (const dep of beat.after ?? []) if (!beatIds.has(dep)) err(`${where}: "after" aponta para "${dep}", que não existe`);
     if (beat.when) checkCondition(where, beat.when);
     if (beat.start) checkCondition(where, beat.start);
-    beat.goal?.steps.forEach((s) => checkCondition(where, s.when));
+    beat.goal?.steps.forEach((s) => {
+      checkCondition(where, s.when);
+      if (s.icon && !raw.icons.icons[s.icon]) err(`${where}: ícone inexistente "${s.icon}"`);
+      if (s.doses && !raw.cats.cats.some((c) => c.id === s.doses)) err(`${where}: doses de um gato inexistente "${s.doses}"`);
+    });
     for (const effect of beat.effects) {
       if ('dialogue' in effect && !dialogueIds.has(effect.dialogue)) err(`${where}: fala inexistente "${effect.dialogue}"`);
       if ('cutscene' in effect && !cutsceneIds.has(effect.cutscene)) err(`${where}: cena inexistente "${effect.cutscene}"`);
@@ -806,7 +816,7 @@ export function validateContent(raw: RawContent): string[] {
   (home?.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));
   for (const beat of raw.story.beats) {
     if (beat.goal) playerText(`story "${beat.id}"`, beat.goal.title);
-    beat.goal?.steps.forEach((s) => playerText(`story "${beat.id}"`, s.text));
+    beat.goal?.steps.forEach((s) => [s.text, s.detail].forEach((t) => t && playerText(`story "${beat.id}"`, t)));
   }
   for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => playerText(`dialogue "${id}"`, l.text));
   for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => playerText(`cutscene "${id}"`, t));
