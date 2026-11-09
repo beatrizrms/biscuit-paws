@@ -35,6 +35,14 @@ import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
 
+/** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
+const PARCEL_PILE_SCALE = 0.5;
+const PARCEL_PILE_STEP = 12;
+const PARCEL_HAND_SCALE = 0.36;
+const PARCEL_HAND_STEP = 9;
+/** Abaixa a caixa até as mãos (a base da imagem fica um pouco abaixo do ponto da mão). */
+const PARCEL_HAND_DROP = 10;
+
 /** Tipos de coisa da dica "E" (os textos ficam em ui_text.json: hints). */
 type HintKind = keyof typeof uiText.hints;
 
@@ -1009,7 +1017,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (who.parcel) {
         // A caixa que mia (o quadro da caixa de entrega dos balões).
         const bottom = (at[1] + 1) * ts - 2;
-        this.arrivalActors.push(this.add.image((at[0] + 0.5) * ts, bottom, 'emotes', 'parcel').setOrigin(0.5, 1).setDepth(ySortDepth(bottom)));
+        this.arrivalActors.push(this.parcelImage(PARCEL_PILE_SCALE).setPosition((at[0] + 0.5) * ts, bottom).setDepth(ySortDepth(bottom)));
       }
       if (who.trail) {
         // PLACEHOLDER(arte): pegadas desenhadas por código (ph_footprints).
@@ -1433,7 +1441,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const ts = this.map.tileSize;
       const bottom = (at[1] + 1) * ts - 2;
       for (let i = 0; i < Math.min(count, cfg.maxPending); i++) {
-        this.parcelImages.push(this.add.image((at[0] + 0.5) * ts, bottom - i * 11, 'emotes', 'parcel').setOrigin(0.5, 1).setDepth(ySortDepth(bottom) + i));
+        this.parcelImages.push(this.parcelImage(PARCEL_PILE_SCALE).setPosition((at[0] + 0.5) * ts, bottom - i * PARCEL_PILE_STEP).setDepth(ySortDepth(bottom) + i));
       }
     };
     const loc = this.session.location();
@@ -1441,7 +1449,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.session.atHome()) stack(cfg.inside.at, this.session.deliveriesAt('inside'));
   }
 
-  /** As caixas que ela carrega aparecem em cima da cabeça: as do correio e itens com carrySprite (a caixa de uma entrega). */
+  /** Caixa de papelão (ícone de data/delivery.json), com a base embaixo, na escala pedida (a arte é 64 px). */
+  private parcelImage(scale: number): Phaser.GameObjects.Image {
+    const f = iconFrame(this, this.session.content.delivery.parcelIcon);
+    return (f ? this.add.image(0, 0, f.key, f.frame).setScale(scale * f.scale * 2) : this.add.image(0, 0, 'emotes', 'parcel').setScale(scale)).setOrigin(0.5, 1);
+  }
+
+  /** As caixas que ela carrega ficam nas mãos (ponto da mão da direção), empilhadas: as do correio e itens com carrySprite. */
   private updateCarried(): void {
     const { inventory } = this.session.state;
     const items = this.session.content.items;
@@ -1450,11 +1464,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       ...Object.entries(inventory).flatMap(([id, qty]) => (items[id]?.carrySprite ? Array<string>(qty).fill(items[id]!.carrySprite!) : [])),
     ].slice(0, 3);
     while (this.carriedImages.length > frames.length) this.carriedImages.pop()!.destroy();
-    while (this.carriedImages.length < frames.length) this.carriedImages.push(this.add.image(0, 0, 'emotes', 'parcel').setOrigin(0.5, 1).setScale(0.75));
-    this.carriedImages.forEach((img, i) => {
-      if (img.frame.name !== frames[i]) img.setFrame(frames[i]!);
-      img.setPosition(this.player.x, this.player.y - 48 - i * 7).setDepth(this.player.depth + 1 + i);
-    });
+    while (this.carriedImages.length < frames.length) this.carriedImages.push(this.parcelImage(PARCEL_HAND_SCALE));
+    const dir = this.player.facingDirection();
+    const [ax, ay] = serviceArt.handAnchor[dir];
+    const front = this.player.depth + (dir === 'up' ? -1 : 2);
+    this.carriedImages.forEach((img, i) => img.setPosition(this.player.x - 16 + ax, this.player.y - 64 + ay + PARCEL_HAND_DROP - i * PARCEL_HAND_STEP).setDepth(front + i * (dir === 'up' ? -0.01 : 0.01)));
   }
 
   /** Furgão do correio: chega pela rua, a entregadora deixa a caixa na porta e vai embora. Uma de cada vez. */

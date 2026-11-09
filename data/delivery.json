@@ -19,6 +19,7 @@
     ]
   },
   "carrier": "npc.mail_carrier",
+  "parcelIcon": "caixa_entrega_fechada",
   "van": {
     "left": "assets/objects/vehicles/obj_van_pixellab_left.png",
     "right": "assets/objects/vehicles/obj_van_pixellab_right.png",

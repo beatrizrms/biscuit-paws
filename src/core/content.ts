@@ -366,6 +366,8 @@ export interface DeliveryConfig {
   carrier: string;
   /** Imagens do furgão de lado; scale: 0,5 para a arte em 64 px (decisão 052), 1 para a antiga. */
   van: { left: string; right: string; scale?: number };
+  /** Ícone (data/icons.json) da caixa de papelão: na pilha da porta, na chegada e nas mãos. */
+  parcelIcon: string;
 }
 
 export function buildContent(raw: RawContent): Content {
