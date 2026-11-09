@@ -120,6 +120,9 @@ if (L) {
     'hair:curly': 'curly.png',
     'hair:ponytail': 'ponytail.png',
     'hair:bob': 'bob.png',
+    'hair:short_afro': 'short_afro.png',
+    'hair:side_part': 'side_part.png',
+    'hair:quiff': 'quiff.png',
   };
   /** Como achar cima e baixo em cada roupa: pela cor (moletom vermelho, jeans azul), pela altura (corte na cintura) ou tudo cima (vestido). */
   const SPLIT: Record<string, 'hue' | 'waist' | 'dress'> = { hoodie: 'hue', dress: 'dress', collar_shirt: 'waist', tshirt: 'waist' };
