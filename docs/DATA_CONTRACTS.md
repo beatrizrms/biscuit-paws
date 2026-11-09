@@ -136,7 +136,7 @@ Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 ]
 ```
 
-Sem `clearedBy`: sai com faxina (clique, a até 2 células da personagem; fica em `cleaned` no save). Com `clearedBy`: só some quando o pintor reforma aquela superfície. Com `when` (condição): só aparece a partir dela e fica fora do "tudo limpo" (`"*"`) dos saves antigos (ex.: `dirt.cat_poop`, o cocô do dia 2, até ser recolhido). Se a célula tiver um móvel da jogadora, ela vai para a célula livre mais próxima.
+Sem `clearedBy`: sai com faxina (clique, a até 2 células da personagem; fica em `cleaned` no save). Com `clearedBy`: só some quando aquela superfície tem acabamento novo (o reparo interno faz isso em todas). Com `when` (condição): só aparece a partir dela e fica fora do "tudo limpo" (`"*"`) dos saves antigos (ex.: `dirt.cat_poop`, o cocô do dia 2, até ser recolhido). Se a célula tiver um móvel da jogadora, ela vai para a célula livre mais próxima.
 Condição de história: `{ "cleaned": "web" }` = toda a sujeira com essa tag (das que saem com faxina) já foi limpa.
 
 ## Cenas sem mapa (`data/cutscenes.json`)
@@ -237,7 +237,7 @@ Cada folha nova (rua, neve, sujeira) aponta para a imagem em `public/` e para um
 
 ## Reforma: superfícies (no mapa) e acabamentos (`data/finishes.json`)
 
-O mapa lista as **superfícies** que o pintor pode trocar. Cada uma é uma letra da legenda: todas as células com essa letra mudam juntas.
+O mapa lista as **superfícies** que o construtor pode trocar. Cada uma é uma letra da legenda. O acabamento da superfície vale para todas as células dela; uma obra por área (troca de acabamento) grava o acabamento por célula (`construction.cells` no save), por cima.
 
 ```jsonc
 // em data/maps/cafe_main.json (campo opcional)
@@ -259,6 +259,8 @@ Os **acabamentos** são o que o pintor vende. `kind` diz em que superfície serv
 ```
 
 Sem reforma, a superfície usa o tile da legenda (o velho). O `npm run check` confere letras, camadas dos tiles e IDs.
+
+**Obras** (`finishes.json: construction`, `src/core/construction.ts`): `npc` (o construtor), `hoursPerTile`, `hoursPerDay`, `laborPerTile`, `materialPerTile` (por kind: floor, wall, wainscot), `repairs.inside` (`price`, `days`, `finishes`: superfície -> acabamento original novo, `site`: onde ele trabalha), `repairs.outside` (`price`, `days`, `site` com `map`), `facadeDays`, `tapeTile` (a fita da área isolada). Uma obra por vez; o `price` do acabamento só vale para a cor da fachada (as outras pagam por tile).
 
 ## Economia (`data/economy.json`)
 
@@ -362,7 +364,8 @@ Dicas, seções do catálogo e mensagens de erro. Ficam em dados para facilitar 
   "cats": {
     "cat.mimi": { "sheltered": true, "affection": 4 }
   },
-  "finishes": { "surface.hall_floor": "finish.wood_planks" },  // v2: reforma do pintor
+  "finishes": { "surface.hall_floor": "finish.wood_planks" },  // v2: acabamento da superfície (reparo interno, cor da fachada)
+  "construction": { "repaired": ["inside"], "quote": null, "job": null, "askPending": false, "cells": { "9,6": "finish.wood_planks" } },  // v25: obras
   "cats": { "cat.first_stray": { "sheltered": true, "name": "Pipoca", "map": "map.cafe_main" } },  // v4
   "relationships": { "player|cat.first_stray": 120 },                                     // v4
   "location": "map.street",                                  // v3: onde a personagem está
@@ -535,7 +538,7 @@ Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidif
 
 - `state.business` (save v11): `closed` (fechado) -> `soft_open` (funcionamento parcial: atende com o mínimo e já ganha dinheiro, **sem placa**) -> `inaugurated` (com placa). Só avança: tirar a mesa depois não fecha o café. Evento `business.changed`.
 - `closed` -> `soft_open`: sozinho, quando `softOpenWhen` vale (a sessão confere sempre que a história é reavaliada).
-- `soft_open` -> `inaugurated`: efeito `{ "setBusiness": "inaugurated" }`, do marco `story.inauguration` (depois do primeiro cliente). As metas são: reforma completa (`{ "renovated": true }`: toda superfície de `requiredSurfaces` com acabamento do pintor) e a placa recebida.
+- `soft_open` -> `inaugurated`: efeito `{ "setBusiness": "inaugurated" }`, do marco `story.inauguration` (depois do primeiro cliente). As metas são: reforma completa (`{ "renovated": true }`: os dois reparos do construtor, interno e externo) e a placa recebida.
 - A placa (`item.cafe_sign`) tem `"requires": { "renovated": true }`: só aparece à venda depois da reforma. Na fachada, a lousa só aparece inaugurado.
 - Condições: `{ "business": "soft_open" }` (já chegou a esse estágio; inaugurado conta) e `{ "renovated": true }`.
 
@@ -577,7 +580,7 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 - `maps`: mapas que mudam com a estação (a rua). Tiles com os `prefixes` ganham o da estação (`street_calcada_a` -> `spring_street_calcada_a`); peças com `snowPrefix` (neve, montes, a neve por cima de objetos) somem fora do inverno; o que não existe na estação (abeto de Natal, pegadas) some. A cor do dia e da noite usa a estação do dia (`daynight.json: seasons`).
 - Condição `{ "fromSeason": "spring" }`: a partir da primeira vez que a estação chega (dia 31). Texto `{daysUntil:spring}`: dias que faltam.
 - **Inauguração** (`story.inauguration`): reforma completa (agora com a fachada) + placa + `fromSeason: spring`. No inverno a meta mostra quantos dias faltam. Ao inaugurar, a cena `cs.inauguration`.
-- **Fachada no pintor** (`finishes.json: facade`): a superfície `surface.facade` (kind `facade`) troca o tile do objeto `obj.facade_cafe` da rua (menta, rosa, céu; com neve no inverno). Entra em `business.json: requiredSurfaces`.
+- **Fachada** (`finishes.json: facade`): a superfície `surface.facade` (kind `facade`) troca o tile do objeto `obj.facade_cafe` da rua (menta, rosa, céu; com neve no inverno). A cor vem do reparo externo (e de uma obra de pintura depois).
 - Arte: `npm run seasons` importa a rua de primavera, verão e outono.
 
 ## Cenas: passo de imagem (`data/cutscenes.json`)

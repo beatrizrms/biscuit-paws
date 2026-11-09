@@ -74,6 +74,12 @@ export interface GameEvents {
   'item.refunded': { itemId: string; amount: number };
   'dirt.cleaned': { dirtId: string };
   'surface.painted': { surfaceId: string; finishId: string; price: number };
+  /** Obras (src/core/construction.ts): ligação com o orçamento, resposta, fim da obra e a pergunta dele depois. */
+  'construction.call': { kind: string };
+  'construction.accepted': { kind: string; startDay: number; endDay: number };
+  'construction.declined': { kind: string };
+  'construction.done': { kind: string };
+  'construction.asked': { more: boolean };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };
   'cutscene.requested': { cutsceneId: string };

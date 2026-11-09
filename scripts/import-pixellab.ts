@@ -551,6 +551,7 @@ const SHEETS: Sheet[] = [
       cesta_piquenique: { file: 'provisorios/obj_13.png', w: 1, h: 1, dy: 6 },
       lampiao: { file: 'provisorios/obj_14.png', w: 1, h: 1, dy: 4 },
       livros: { file: 'provisorios/obj_15.png', w: 1, h: 1, dy: 8 },
+      obra_fita: { file: '', w: 1, h: 1, build: () => tapeBarrier() },
     },
   },
 ];
@@ -790,6 +791,25 @@ function tinyText(png: PNG, lines: string[], cx: number, y0: number): PNG {
 function heartSign(png: PNG, cx: number, cy: number): PNG {
   const heart = ['.#.#.', '#####', '#####', '.###.', '..#..'];
   heart.forEach((r, ry) => [...r].forEach((c, rx) => { if (c === '#') plot(png, cx - 2 + rx, cy - 2 + ry, rx === 1 && ry === 1 ? [240, 150, 150] : [206, 72, 80]); }));
+  return png;
+}
+
+// ---------- Obras ----------
+
+/** Fita de isolamento da obra (1 tile): duas estacas laranja com a fita listrada amarela e preta entre elas. */
+function tapeBarrier(): PNG {
+  const png = blank(TS, TS);
+  const post = (x0: number) => {
+    for (let y = 26; y < 62; y++) for (let x = x0; x < x0 + 5; x++) plot(png, x, y, x === x0 || x === x0 + 4 ? [120, 64, 36] : y % 10 < 5 ? [236, 132, 64] : [250, 240, 226]);
+    for (let x = x0 - 2; x < x0 + 7; x++) plot(png, x, 61, [92, 60, 44]);
+  };
+  post(2); post(57);
+  for (const y0 of [30, 44]) {
+    for (let x = 4; x < 60; x++) for (let y = y0; y < y0 + 6; y++) {
+      const edge = y === y0 || y === y0 + 5;
+      plot(png, x, y, edge ? [92, 60, 44] : Math.floor((x + y) / 4) % 2 ? [250, 210, 64] : [52, 44, 40]);
+    }
+  }
   return png;
 }
 

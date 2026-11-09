@@ -97,7 +97,8 @@ export interface MapData {
   doors?: MapDoor[];
   interactions?: MapInteraction[];
   /** NPCs que ficam no mapa (ex.: a Fernanda no balcão da clínica). */
-  npcs?: { npc: string; at: Cell; facing?: Facing }[];
+  /** NPCs parados no mapa; anim: animação extra em repetição (o construtor martelando). */
+  npcs?: { npc: string; at: Cell; facing?: Facing; anim?: string }[];
   /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */

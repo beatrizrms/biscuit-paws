@@ -86,6 +86,12 @@ export class NewsPanel {
     return this.mode !== null;
   }
 
+  /** Muda a aba do Market (e redesenha, se ele estiver aberto). */
+  marketTab(tabId: string): void {
+    this.market.setTab(tabId);
+    this.render();
+  }
+
   /** O Market está na tela (a tecla C abre e fecha ele). */
   isMarketOpen(): boolean {
     return this.mode === 'phone' && this.app === 'market';

@@ -65,6 +65,40 @@
       "resolution": 2
     },
     {
+      "id": "npc.builder",
+      "name": "Tião",
+      "sheet": "assets/characters/npcs/v64/npc_builder.png",
+      "portrait": "assets/characters/npcs/v64/npc_builder_portrait.png",
+      "frameWidth": 144,
+      "frameHeight": 128,
+      "columns": 5,
+      "fps": 6,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [
+          21,
+          22,
+          23,
+          24
+        ],
+        "segurando": [
+          29
+        ],
+        "martelando": [
+          31,
+          32,
+          33,
+          34
+        ]
+      },
+      "resolution": 2
+    },
+    {
       "id": "npc.joca",
       "name": "Joca",
       "sheet": "assets/characters/npcs/v64/npc_joca.png",

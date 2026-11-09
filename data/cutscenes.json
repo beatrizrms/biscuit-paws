@@ -280,6 +280,41 @@
           "text": "Alguém da vila deve saber de onde ele veio. Vou perguntar no mercado e na clínica."
         }
       ]
+    },
+    "cs.builder_call": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Tião",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.builder"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Você liga para o Tião, o sobrinho da Dona Neusa."
+        },
+        {
+          "type": "text",
+          "speaker": "Tião",
+          "text": "Alô! Tião falando. É do café? A tia Neusa falou de você!"
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Isso! Tenho uma obra para você."
+        },
+        {
+          "type": "text",
+          "speaker": "Tião",
+          "text": "Deixa eu anotar aqui... pronto. Vou fazer as contas."
+        },
+        {
+          "type": "hide"
+        }
+      ]
     }
   }
 }

@@ -89,5 +89,52 @@
     },
     "map": "map.street",
     "object": "obj.facade_cafe"
+  },
+  "construction": {
+    "_comment": "Obras com o Tião (src/core/construction.ts). Uma obra por vez, pedida na aba Construção do Market; orçamento numa ligação, pago adiantado; ele vem no dia seguinte. Reparos (pré-requisito das outras obras e da inauguração): interno (devolve o acabamento original novo das superfícies, que tira manchas, rachaduras e buraco de rato) e externo (a fachada abandonada vira a nova, na cor que ela escolher). Troca de acabamento por área: material por tile (ela compra; volta se recusar) + laborPerTile de mão de obra; dias = tiles x hoursPerTile / hoursPerDay, arredondado para cima. site: onde ele trabalha no reparo (o café e a rua).",
+    "npc": "npc.builder",
+    "hoursPerTile": 0.5,
+    "hoursPerDay": 8,
+    "laborPerTile": 1,
+    "materialPerTile": {
+      "floor": 1,
+      "wall": 2,
+      "wainscot": 1
+    },
+    "repairs": {
+      "inside": {
+        "name": "Reparo interno",
+        "price": 200,
+        "days": 2,
+        "finishes": {
+          "surface.wallpaper": "finish.wallpaper_stripe_pink",
+          "surface.wainscot": "finish.wainscot_varnished",
+          "surface.hall_floor": "finish.check_pink",
+          "surface.counter_floor": "finish.wood_parquet"
+        },
+        "site": {
+          "at": [
+            10,
+            4
+          ],
+          "facing": "right"
+        }
+      },
+      "outside": {
+        "name": "Reparo externo (fachada)",
+        "price": 200,
+        "days": 2,
+        "site": {
+          "map": "map.street",
+          "at": [
+            15,
+            9
+          ],
+          "facing": "right"
+        }
+      }
+    },
+    "facadeDays": 1,
+    "tapeTile": "decor_obra_fita"
   }
 }

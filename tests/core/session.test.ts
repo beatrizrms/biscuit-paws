@@ -348,7 +348,7 @@ describe('pintor (reforma)', () => {
   it('fica bloqueado até a Dona Lurdes indicar o pintor', () => {
     const { session } = newSession();
     expect(session.painterUnlocked()).toBe(false);
-    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: false, reason: 'locked' });
+    expect(session.quoteRepair('inside')).toEqual({ ok: false, reason: 'locked' });
     expect(session.state.money).toBe(150);
   });
 
@@ -367,35 +367,28 @@ describe('pintor (reforma)', () => {
     expect(session.painterUnlocked()).toBe(true);
   });
 
-  it('troca o piso do salão: cobra, guarda no estado e muda o mapa', () => {
-    const { session, events } = painterSession();
+  it('acabamento da superfície muda o mapa; outra superfície não muda (as obras em si: construction.test.ts)', () => {
+    const { session } = painterSession();
     session.start(true);
-    events.length = 0;
     expect(session.mapData().legend.M).toBe('floor_check_old');
-
-    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: true });
-    expect(session.state.money).toBe(150 - 60);
-    expect(session.state.finishes).toEqual({ 'surface.hall_floor': 'finish.wood_planks' });
+    session.state.finishes['surface.hall_floor'] = 'finish.wood_planks';
     expect(session.mapData().legend.M).toBe('floor_wood_b');
-    expect(session.mapData().legend.X).toBe('floor_wood_old'); // outra superfície não muda
-    expect(events.map((e) => e.name)).toEqual(['money.changed', 'surface.painted']);
+    expect(session.mapData().legend.X).toBe('floor_wood_old');
   });
 
-  it('recusa acabamento que não serve, repetido, sem dinheiro ou desconhecido', () => {
+  it('recusa troca de acabamento que não serve na superfície', () => {
     const { session } = painterSession();
-    expect(session.paint('surface.hall_floor', 'finish.wallpaper_mint')).toEqual({ ok: false, reason: 'wrong_surface' });
-    expect(session.paint('surface.roof', 'finish.wood_planks')).toEqual({ ok: false, reason: 'unknown_surface' });
-    expect(session.paint('surface.hall_floor', 'finish.gold')).toEqual({ ok: false, reason: 'unknown_finish' });
-    session.paint('surface.hall_floor', 'finish.wood_planks');
-    expect(session.paint('surface.hall_floor', 'finish.wood_planks')).toEqual({ ok: false, reason: 'already_painted' });
-    session.state.money = 10;
-    expect(session.paint('surface.wallpaper', 'finish.wallpaper_mint')).toEqual({ ok: false, reason: 'no_money' });
+    session.state.construction.repaired = ['inside', 'outside'];
+    expect(session.quoteFinish('surface.hall_floor', 'finish.wallpaper_mint', [9, 6], [10, 7])).toEqual({ ok: false, reason: 'wrong_surface' });
+    expect(session.quoteFinish('surface.roof', 'finish.wood_planks', [9, 6], [10, 7])).toEqual({ ok: false, reason: 'wrong_surface' });
+    session.state.money = 1;
+    expect(session.quoteFinish('surface.hall_floor', 'finish.wood_planks', [9, 6], [10, 7])).toEqual({ ok: false, reason: 'no_money' });
   });
 
   it('móveis continuam no lugar depois da reforma', () => {
     const { session } = painterSession();
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
-    session.paint('surface.hall_floor', 'finish.tile_mint');
+    session.state.finishes['surface.hall_floor'] = 'finish.tile_mint';
     expect(session.mapData().objects.some((o) => o.tile === 'cat_bed')).toBe(true);
   });
 });
@@ -461,8 +454,7 @@ describe('faxina', () => {
     const { session } = newSession();
     expect(session.clean('dirt.stain_water')).toEqual({ ok: false, reason: 'needs_repair' });
     expect(session.dirtAt([4, 1])?.id).toBe('dirt.stain_water');
-    session.state.flags['painter.available'] = true;
-    session.paint('surface.wallpaper', 'finish.wallpaper_mint');
+    session.state.finishes['surface.wallpaper'] = 'finish.wallpaper_mint'; // o reparo interno faz isso em todas
     expect(session.visibleDirt().some((d) => d.clearedBy === 'surface.wallpaper')).toBe(false);
     expect(session.visibleDirt().some((d) => d.clearedBy === 'surface.hall_floor')).toBe(true);
   });
@@ -713,7 +705,7 @@ describe('lousa da porta (peça fixa)', () => {
 
   /** Reforma completa: acabamento em toda superfície obrigatória (data/business.json). */
   const renovate = (session: GameSession) => {
-    for (const s of content.business.requiredSurfaces) session.state.finishes[s] = 'finish.test';
+    session.state.construction.repaired = ['inside', 'outside'];
   };
 
   it('só dá para comprar a placa depois da reforma completa', () => {
@@ -1057,7 +1049,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
 
   it('a lousa (peça fixa) também vem pelo correio e só uma vez', () => {
     const { session } = inCafe();
-    for (const s of content.business.requiredSurfaces) session.state.finishes[s] = 'finish.test';
+    session.state.construction.repaired = ['inside', 'outside'];
     session.state.business = 'inaugurated';
     session.order('item.cafe_sign');
     expect(session.order('item.cafe_sign')).toEqual({ ok: false, reason: 'already_owned' });

@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 1,
+ "rows": 2,
  "pieces": {
   "floreira": {
    "col": 0,
@@ -36,6 +36,12 @@
   "livros": {
    "col": 5,
    "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "obra_fita": {
+   "col": 0,
+   "row": 1,
    "w_tiles": 1,
    "h_tiles": 1
   }

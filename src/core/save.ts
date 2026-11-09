@@ -1,5 +1,6 @@
 // Save versionado com migrações. Puro: sem Phaser, DOM ou window.
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
+import { newConstruction, type ConstructionState } from './construction';
 import type { HandItem } from './carry';
 import { HOTBAR_SIZE, newHotbar } from './hotbar';
 import type { GameState } from './state';
@@ -13,10 +14,10 @@ import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 24;
+export const SAVE_SCHEMA_VERSION = 25;
 
-export interface SaveV24 extends GameState {
-  schemaVersion: 24;
+export interface SaveV25 extends GameState {
+  schemaVersion: 25;
   savedAt: string;
 }
 
@@ -132,10 +133,22 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   22: (save) => ({ ...save, schemaVersion: 23, bestPhoto: null }),
   /** v23 -> v24: lista de compras (app Notas). Saves antigos: lista vazia. */
   23: (save) => ({ ...save, schemaVersion: 24, shoppingList: [] }),
+  /**
+   * v24 -> v25: obras com o construtor (o pintor que deixava pronto na hora saiu). Saves antigos: o reparo interno
+   * conta como feito se as 4 superfícies do café já tinham acabamento novo; o externo, se a fachada tinha. Nenhuma obra.
+   */
+  24: (save) => {
+    const f = (save.finishes ?? {}) as Record<string, string>;
+    const repaired = [
+      ...(['surface.wallpaper', 'surface.wainscot', 'surface.hall_floor', 'surface.counter_floor'].every((s) => f[s]) ? ['inside'] : []),
+      ...(f['surface.facade'] ? ['outside'] : []),
+    ];
+    return { ...save, schemaVersion: 25, construction: { repaired, quote: null, job: null, askPending: false, cells: {} } };
+  },
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV24 = { schemaVersion: 24, savedAt: now.toISOString(), ...state };
+  const save: SaveV25 = { schemaVersion: 25, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -182,7 +195,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV24>;
+  const v2 = save as unknown as Partial<SaveV25>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -301,6 +314,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     festivals: normalizeFestivals(v2.festivals, known.festivals, warnings),
     bestPhoto: normalizeBestPhoto(v2.bestPhoto, knownCat),
+    construction: normalizeConstruction(v2.construction, known),
     shoppingList: [...new Set((Array.isArray(v2.shoppingList) ? v2.shoppingList : []).filter((id): id is string => typeof id === 'string' && known.items.has(id)))],
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
@@ -458,4 +472,23 @@ export function knownIds(content: {
     ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
     ...(content.festivals ? { festivals: new Set(content.festivals.map((f) => f.id)) } : {}),
   };
+}
+
+/** Obras (v25): reparos, orçamento e obra só com acabamentos e superfícies que existem; células "col,row" válidas. */
+function normalizeConstruction(c: unknown, known: KnownIds): ConstructionState {
+  const x = (c ?? {}) as Partial<ConstructionState>;
+  const out = newConstruction();
+  out.repaired = (Array.isArray(x.repaired) ? x.repaired : []).filter((k): k is 'inside' | 'outside' => k === 'inside' || k === 'outside');
+  const job = (j: unknown): ConstructionState['job'] => {
+    const v = j as ConstructionState['job'];
+    if (!v || !['inside', 'outside', 'finish', 'facade'].includes(v.kind)) return null;
+    if (v.finishId && !known.finishes.has(v.finishId)) return null;
+    if (v.surfaceId && !known.surfaces.has(v.surfaceId)) return null;
+    return v;
+  };
+  out.quote = job(x.quote);
+  out.job = job(x.job);
+  out.askPending = x.askPending === true;
+  for (const [key, finish] of Object.entries(x.cells ?? {})) if (/^\d+,\d+$/.test(key) && known.finishes.has(finish)) out.cells[key] = finish;
+  return out;
 }

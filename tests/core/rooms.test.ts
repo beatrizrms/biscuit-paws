@@ -183,7 +183,7 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
 describe('salão e save', () => {
   it('o salão fica "reformado" sozinho quando a reforma da inauguração termina', () => {
     const { session, state } = afterFirstCustomer();
-    for (const s of content.business.requiredSurfaces) state.finishes[s] = 'finish.test';
+    state.construction.repaired = ['inside', 'outside'];
     session.buy('item.cushion_pink'); // qualquer ação reavalia a história
     expect(session.roomState('room.hall')).toBe('restored');
   });

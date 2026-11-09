@@ -42,6 +42,8 @@ import { CareBubbles } from '../careBubbles';
 import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
+import { AreaSelect } from '../AreaSelect';
+import { daysText } from '../ui/constructionText';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
@@ -92,6 +94,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * Posicionando: um item da mochila, ou (moveUid) um móvel do café mudando de lugar, com o que está em cima dele
    * (riders: fantasmas que acompanham, já na altura do tampo).
    */
+  /** Marcando a área de uma obra (troca de acabamento). */
+  private areaSelect: AreaSelect | null = null;
+  private builderAsking = false;
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -174,7 +179,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   create(): void {
     setupCamera(this);
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until) }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -199,6 +204,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
     this.onKey('ESC', () => {
+      if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.placing) this.cancelPlacing();
       else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
         this.ui.closeCatalog();
@@ -207,6 +213,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
     this.onKey('E', () => {
+      if (this.areaSelect) return;
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       const kind = this.eTarget()?.kind;
@@ -343,7 +350,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.sounds?.update();
     this.updateArrivalActors(this.game.loop.delta);
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing();
+    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
@@ -436,7 +443,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
     }
     // NPCs que ficam no mapa (a Fernanda no balcão da clínica).
-    for (const n of this.session.mapData(mapId).npcs ?? []) this.spawnNpc(n.npc, n.at, n.facing);
+    for (const n of this.session.mapData(mapId).npcs ?? []) {
+      this.spawnNpc(n.npc, n.at, n.facing);
+      if (n.anim) this.npcs.get(n.npc)?.loop(n.anim); // o Tião martelando na obra
+    }
+    // A obra terminou: no café, o Tião vem perguntar se ela quer mais algum serviço.
+    if (mapId === this.session.content.map.id && this.session.state.construction.askPending) void this.builderAsk();
     this.refreshJobPoints();
     this.stopVan();
     this.refreshParcels();
@@ -701,7 +713,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.ui.isBusy()) return;
+    if (this.ui.isBusy() || this.areaSelect) return;
     if (!pointer.rightButtonDown() && !this.placing && this.interact(this.cellAt(pointer))) return;
     if (!this.session.atHome()) return;
     if (this.placing) {
@@ -1721,6 +1733,60 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       for (let c = Math.floor(b.left / ts); c <= Math.floor((b.right - 0.01) / ts); c++) cells.push([c, r]);
     }
     return cells;
+  }
+
+  // ---------- Obras com o construtor ----------
+
+  /** Troca de acabamento: ela marca a área no café (retângulo); confirmar abre a ligação com o orçamento. */
+  private startAreaSelect(surfaceId: string, finishId: string): void {
+    if (!this.session.atHome()) return this.ui.toast(uiText.construction.selectNotHere, 3000);
+    this.cancelPlacing();
+    const t = uiText.construction;
+    this.areaSelect = new AreaSelect(
+      this,
+      {
+        tileSize: this.map.tileSize,
+        start: this.feetCell(),
+        cols: this.map.cols,
+        rows: this.map.rows,
+        quote: (a, b) => {
+          const q = this.session.finishQuote(surfaceId, finishId, a, b);
+          if (!q) return null;
+          return { cells: q.cells, text: t.selectInfo.replace('{n}', String(q.cells.length)).replace('{material}', String(q.material)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days)) };
+        },
+        onConfirm: (a, b) => {
+          this.areaSelect = null;
+          const r = this.session.quoteFinish(surfaceId, finishId, a, b);
+          if (!r.ok) this.ui.problem(r.reason as keyof typeof uiText.problems);
+        },
+        onCancel: () => (this.areaSelect = null),
+      },
+      t.selectHint,
+    );
+  }
+
+  /** O Tião terminou a obra: vem até ela, pergunta se quer mais algum serviço e vai embora (sim abre a aba Construção). */
+  private async builderAsk(): Promise<void> {
+    if (this.builderAsking) return;
+    this.builderAsking = true;
+    // Espera a entrada no mapa e o que estiver na tela (falas, roteiros) acabar.
+    await this.wait(600);
+    while (this.ui.isBusy() || this.scripts.isRunning() || this.changingMap) await this.wait(300);
+    const npcId = this.session.content.construction.npc;
+    const [pc, pr] = this.feetCell();
+    const spot = ([[2, 0], [-2, 0], [0, 2], [1, 1], [-1, 1]] as const).map(([dx, dy]) => [pc + dx, pr + dy] as Cell).find(([c, r]) => this.map.solid[r]?.[c] === false);
+    if (spot) {
+      this.spawnNpc(npcId, spot, spot[0] < pc ? 'right' : 'left');
+      await this.npcs.get(npcId)?.act('acenar', 1200);
+      this.npcs.get(npcId)?.face(spot[0] < pc ? 'right' : 'left');
+    }
+    const t = uiText.construction;
+    const more = await this.ui.confirm(t.ask, t.askYes, t.askNo);
+    this.session.answerBuilder(more);
+    await this.npcs.get(npcId)?.leave();
+    this.npcs.delete(npcId);
+    this.builderAsking = false;
+    if (more) this.ui.openConstruction();
   }
 
   // ---------- Roteiros (ScriptStage) ----------

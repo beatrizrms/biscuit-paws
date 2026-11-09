@@ -74,7 +74,7 @@
         },
         {
           "speaker": "Dona Neusa",
-          "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor. Diga que fui eu que mandei.",
+          "text": "Ah, e essas paredes... Meu sobrinho Tião é pintor e pedreiro, faz qualquer obra. Diga que fui eu que mandei.",
           "npc": "npc.neusa"
         }
       ]
@@ -304,7 +304,7 @@
         },
         {
           "speaker": "",
-          "text": "Agora o pintor aparece no Market (C), na aba Construção."
+          "text": "Agora dá para chamar o Tião pelo Market (C), na aba Construção. Primeiro, os reparos: o de dentro e o da fachada."
         },
         {
           "speaker": "",

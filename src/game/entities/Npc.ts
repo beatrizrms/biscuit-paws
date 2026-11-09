@@ -96,6 +96,11 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     await new Promise((r) => this.scene.time.delayedCall(ms, r));
   }
 
+  /** Fica repetindo uma animação extra (o construtor martelando na obra). */
+  loop(anim: string): void {
+    if (this.active) this.play(`${npcTexture(this.def.id)}-${anim}`, true);
+  }
+
   /** Sai de cena (some devagar). */
   leave(): Promise<void> {
     return new Promise((resolve) => {

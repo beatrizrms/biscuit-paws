@@ -1046,3 +1046,8 @@
 .hud-goals:not(.open) .g-card { padding: 0; background: none; border: 0; }
 .hud-goals:not(.open) .g-now, .hud-goals:not(.open) .g-detail, .hud-goals:not(.open) .g-progress, .hud-goals:not(.open) .g-sum, .hud-goals:not(.open) .g-alert { display: none; }
 .hud-goals:not(.open):has(.g-alert) h2::after { content: "!"; display: inline-grid; place-items: center; width: 8px; height: 8px; margin-left: 3px; border-radius: 50%; background: var(--berry); color: #fff; font-size: 6px; font-weight: bold; vertical-align: 1px; }
+
+
+/* Obras: o aviso da seleção da área (instruções e o orçamento ao vivo), no alto da tela. */
+.area-select-hint { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 8px 14px; border-radius: 8px; background: #3a2a2ee6; color: #fff4e0; font: 15px 'Trebuchet MS', sans-serif; text-align: center; pointer-events: none; }
+.area-select-hint b { color: #ffe9a8; }

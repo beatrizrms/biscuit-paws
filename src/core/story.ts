@@ -4,7 +4,8 @@ import type { Beat, Condition, ItemDef, StoryData } from './content';
 import type { DirtSpot } from './map';
 import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from './state';
 import { parseClock } from './time';
-import { isRenovated, stageAtLeast } from './business';
+import { stageAtLeast } from './business';
+import { isRenovated } from './construction';
 import { atLeast as roomAtLeast, roomState, type RoomsData } from './rooms';
 import { firstDayOf, type SeasonsData } from './calendar';
 
@@ -68,7 +69,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
     return tagged.reduce((n, i) => n + ownedCount(state, i.id) + deliveredCount(state, i.id, c.stage), 0) >= (c.gte ?? 1);
   }
   if ('business' in c) return stageAtLeast(state.business, c.business);
-  if ('renovated' in c) return isRenovated(state.finishes, ctx.requiredSurfaces);
+  if ('renovated' in c) return isRenovated(state.construction);
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
   if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);
   if ('cats' in c) return Object.values(state.cats).filter((x) => x.sheltered).length >= c.cats.gte;

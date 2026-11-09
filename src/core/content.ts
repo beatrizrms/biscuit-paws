@@ -13,6 +13,7 @@ import { validateCharacter, type CharacterData } from './appearance';
 import { ROOM_STATES, validateRooms, type RoomsData, type RoomState } from './rooms';
 import { validateSeasons, type SeasonsData } from './calendar';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
+import { validateConstruction, type ConstructionData } from './construction';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import { validateHealth, type HealthConfig } from './health';
@@ -104,6 +105,8 @@ export interface FinishesData {
   finishes: FinishDef[];
   /** A fachada do café na rua como superfície do pintor: o acabamento troca o tile deste objeto deste mapa. */
   facade?: { surface: SurfaceDef; map: string; object: string };
+  /** Obras com o construtor (reparos e troca de acabamento por área; src/core/construction.ts). */
+  construction: ConstructionData;
 }
 
 export interface EconomyData {
@@ -162,7 +165,7 @@ export type Condition =
   | { ownedTag: string; gte?: number }
   /** O negócio já chegou a este estágio (inaugurado também conta como funcionamento parcial). */
   | { business: BusinessStage }
-  /** Reforma completa: toda superfície de data/business.json (requiredSurfaces) tem acabamento novo. */
+  /** Reforma completa: os dois reparos do construtor feitos (interno e da fachada; data/finishes.json construction). */
   | { renovated: true }
   /** O cômodo já chegou a este estado (data/rooms.json). */
   | { room: string; atLeast: RoomState }
@@ -282,6 +285,7 @@ export interface Content {
   finishes: Record<string, FinishDef>;
   /** Flag que libera o pintor. */
   painterUnlockFlag?: string;
+  construction: ConstructionData;
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -400,7 +404,7 @@ export function buildContent(raw: RawContent): Content {
   for (const item of raw.items.items) items[item.id] = item;
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
+  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
     npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
@@ -575,6 +579,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!home!.legend[s.legend]) err(`mapa: superfície "${s.id}" usa a letra "${s.legend}", que não está na legenda`);
     if (!raw.finishes.finishes.some((f) => f.kind === s.kind)) err(`mapa: nenhum acabamento serve para "${s.id}" (${s.kind})`);
   }
+  errors.push(...validateConstruction(raw.finishes.construction, { npcs: new Set(raw.npcs.npcs.map((n) => n.id)), finishes: finishIds, surfaces: surfaceIds }));
 
   if (!Number.isInteger(raw.economy.startingMoney) || raw.economy.startingMoney < 0) {
     err('economy: startingMoney inválido');

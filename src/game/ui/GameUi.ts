@@ -16,6 +16,10 @@ import { ConsultPanel } from './ConsultPanel';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
+import { daysText, workName } from './constructionText';
+
+/** A ligação para o construtor (data/cutscenes.json). */
+const CALL_CUTSCENE = 'cs.builder_call';
 
 type HintMode = 'walk' | 'placing' | 'moving' | 'dialogue';
 
@@ -26,6 +30,8 @@ export interface UiHandlers {
   onPlace(itemId: string): void;
   /** "Esperar": o relógio corre depressa até o momento `until` (absoluto). */
   onWait(until: number): void;
+  /** Obra: marcar a área da troca de acabamento no café. */
+  onSelectArea(surfaceId: string, finishId: string): void;
 }
 
 export class GameUi {
@@ -130,6 +136,10 @@ export class GameUi {
         this.news.close();
         if (text) this.toast(text);
       },
+      selectArea: (surfaceId, finishId) => {
+        this.news.close();
+        this.handlers.onSelectArea(surfaceId, finishId);
+      },
       ordered: (arrivesAt) => {
         const { time, tomorrow } = this.clockOf(arrivesAt);
         this.toast((tomorrow ? uiText.delivery.orderedTomorrow : uiText.delivery.ordered).replace('{time}', time));
@@ -137,6 +147,20 @@ export class GameUi {
     });
 
     const bus = session.bus;
+    // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não).
+    bus.on('construction.call', () => this.cutscene.request(CALL_CUTSCENE));
+    bus.on('cutscene.finished', ({ cutsceneId }) => {
+      const q = session.state.construction.quote;
+      if (cutsceneId !== CALL_CUTSCENE || !q) return;
+      const t = uiText.construction;
+      const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
+      void this.confirm(text, t.yes, t.no).then((yes) => {
+        const r = session.answerQuote(yes);
+        if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
+        if (yes) this.toast(t.accepted);
+        else if (q.material > 0) this.toast(t.declined);
+      });
+    });
     bus.on('cutscene.requested', ({ cutsceneId }) => {
       if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
       else this.cutscene.request(cutsceneId);
@@ -259,6 +283,13 @@ export class GameUi {
   /** O Market (app do celular) está aberto: a tecla C abre e fecha ele. */
   isCatalogOpen(): boolean {
     return this.news.isMarketOpen();
+  }
+
+  /** O Market aberto na aba Construção (o Tião perguntou se ela quer mais algum serviço). */
+  openConstruction(): void {
+    this.closeShop();
+    this.news.open('phone', 'market');
+    this.news.marketTab(uiText.market.tabs.find((t) => 'renovation' in t && t.renovation)?.id ?? '');
   }
 
   toggleCatalog(): void {

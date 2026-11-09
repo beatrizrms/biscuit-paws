@@ -42,13 +42,13 @@ describe('a rua muda com a estação', () => {
     expect(mapInSeason(S, street, 'winter', exists)).toBe(street);
   });
 
-  it('a sessão desenha a rua da estação do dia e a fachada com a cor do pintor', () => {
+  it('a sessão desenha a rua da estação do dia e a fachada com a cor do reparo externo', () => {
     const state = newGameState(1000);
     state.flags['painter.available'] = true;
     const session = new GameSession(content, state);
     const facade = () => session.mapData('map.street').objects.find((o) => o.id === content.facade!.object)!;
     expect(facade().tile).toBe('facade_loja_velha');
-    expect(session.paint('surface.facade', 'finish.facade_mint')).toEqual({ ok: true });
+    state.finishes['surface.facade'] = 'finish.facade_mint'; // o reparo externo (tests/core/construction.test.ts)
     expect(facade().tile).toBe('facade_loja_menta');
     state.day = 31;
     expect(facade().tile).toBe('spring_facade_loja_menta');

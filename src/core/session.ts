@@ -1,5 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
+import { type QuoteProblem, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
@@ -51,6 +52,7 @@ import {
   interactionNear,
   type Cell,
   type DirtSpot,
+  type Facing,
   type MapData,
   type MapDoor,
   type MapInteraction,
@@ -132,6 +134,7 @@ export type ActionResult =
         | 'customers_inside'
         | 'cart_empty'
         | 'one_heavy_per_trip'
+        | QuoteProblem
         | PlaceProblem;
     };
 
@@ -414,6 +417,7 @@ export class GameSession {
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
+    this.constructionDayEnded(day + 1);
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
     this.state.today = { earned: 0, jobs: 0 };
     this.playgroundDay();
@@ -1426,7 +1430,9 @@ export class GameSession {
       // A fachada do café com a cor do pintor; depois, a rua na estação do dia (sem neve fora do inverno).
       const painted = this.withFacade({ ...other, objects: this.visibleObjects(other) });
       const inSeason = mapInSeason(this.content.seasons, painted, this.season(), (t) => !!this.content.catalog.tiles[t]);
-      return { ...inSeason, objects: [...inSeason.objects, ...this.jobMarkers(mapId)] };
+      const builder = this.builderAt(mapId);
+      const npcs = [...(inSeason.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
+      return { ...inSeason, npcs, objects: [...inSeason.objects, ...this.jobMarkers(mapId)] };
     }
     const rooms = this.roomsMapParts();
     const base = {
@@ -1439,7 +1445,11 @@ export class GameSession {
       const finish = this.content.finishes[this.state.finishes[surface.id] ?? ''];
       if (finish) legend[surface.legend] = finish.tile;
     }
-    return withPlaced({ ...base, legend, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0);
+    // Obras: acabamento por célula, a fita da área isolada e o construtor trabalhando.
+    const works = this.constructionMapParts(base);
+    const builder = this.builderAt(base.id);
+    const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -1811,22 +1821,141 @@ export class GameSession {
     return daysUntil(this.content.seasons, this.state.day, season);
   }
 
-  /** Contrata o pintor: troca o acabamento de uma superfície (fica pronto na hora). */
-  paint(surfaceId: string, finishId: string): ActionResult {
-    const surface = this.surfaces().find((s) => s.id === surfaceId);
-    if (!surface) return { ok: false, reason: 'unknown_surface' };
-    const finish = this.content.finishes[finishId];
-    if (!finish) return { ok: false, reason: 'unknown_finish' };
-    if (!this.painterUnlocked()) return { ok: false, reason: 'locked' };
-    if (finish.kind !== surface.kind) return { ok: false, reason: 'wrong_surface' };
-    if (this.state.finishes[surfaceId] === finishId) return { ok: false, reason: 'already_painted' };
-    if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };
-    this.addMoney(-finish.price, `paint:${surfaceId}`);
-    this.state.finishes[surfaceId] = finishId;
-    this.bus.emit('surface.painted', { surfaceId, finishId, price: finish.price });
-    this.advanceStory();
+  // ---------- Obras com o construtor (src/core/construction.ts; data/finishes.json construction) ----------
+
+  /** Acabamento que vale numa célula: o da obra por área, senão o da superfície (ou nenhum: o velho do mapa). */
+  finishAt(surface: SurfaceDef, cell: Cell): string | undefined {
+    return this.state.construction.cells[cellKey(cell)] ?? this.state.finishes[surface.id];
+  }
+
+  /** Pede um reparo (interno, ou externo com a cor da fachada): abre a ligação com o orçamento. */
+  quoteRepair(kind: RepairKind, facadeFinishId?: string): ActionResult {
+    const s = this.state.construction;
+    const problem = quoteBlocker(s, kind, this.painterUnlocked());
+    if (problem) return { ok: false, reason: problem };
+    const r = this.content.construction.repairs[kind];
+    if (kind === 'outside' && this.content.finishes[facadeFinishId ?? '']?.kind !== 'facade') return { ok: false, reason: 'unknown_finish' };
+    if (this.state.money < r.price) return { ok: false, reason: 'no_money' };
+    s.quote = { kind, ...(kind === 'outside' ? { finishId: facadeFinishId } : {}), material: 0, labor: r.price, days: r.days };
+    this.bus.emit('construction.call', { kind });
     return { ok: true };
   }
+
+  /** Pinta a fachada de outra cor (depois do reparo externo). */
+  quoteFacade(finishId: string): ActionResult {
+    const s = this.state.construction;
+    const problem = quoteBlocker(s, 'facade', this.painterUnlocked());
+    if (problem) return { ok: false, reason: problem };
+    const finish = this.content.finishes[finishId];
+    if (finish?.kind !== 'facade') return { ok: false, reason: 'unknown_finish' };
+    if (this.state.finishes[this.content.facade?.surface.id ?? ''] === finishId) return { ok: false, reason: 'already_painted' };
+    if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };
+    s.quote = { kind: 'facade', finishId, material: 0, labor: finish.price, days: this.content.construction.facadeDays };
+    this.bus.emit('construction.call', { kind: 'facade' });
+    return { ok: true };
+  }
+
+  /** Orçamento de uma troca de acabamento na área (sem cobrar). Paredes pegam a coluna inteira. */
+  finishQuote(surfaceId: string, finishId: string, a: Cell, b: Cell): { cells: Cell[]; material: number; labor: number; days: number } | null {
+    const surface = this.surfaces().find((x) => x.id === surfaceId);
+    const finish = this.content.finishes[finishId];
+    if (!surface || !finish || finish.kind !== surface.kind || surface.kind === 'facade') return null;
+    const c = this.content.construction;
+    const cells = surfaceCells(this.content.map, surface, a, b).filter((cell) => this.finishAt(surface, cell) !== finishId);
+    const perTile = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
+    return { cells, material: cells.length * perTile, labor: cells.length * c.laborPerTile, days: jobDays(cells.length, c) };
+  }
+
+  /** Pede a troca de acabamento na área: ela compra o material (sai agora) e liga para o construtor. */
+  quoteFinish(surfaceId: string, finishId: string, a: Cell, b: Cell): ActionResult {
+    const s = this.state.construction;
+    const problem = quoteBlocker(s, 'finish', this.painterUnlocked());
+    if (problem) return { ok: false, reason: problem };
+    const q = this.finishQuote(surfaceId, finishId, a, b);
+    if (!q) return { ok: false, reason: 'wrong_surface' };
+    if (q.cells.length === 0) return { ok: false, reason: 'no_cells' };
+    // O total precisa caber: a mão de obra é paga logo em seguida, na ligação.
+    if (this.state.money < q.material + q.labor) return { ok: false, reason: 'no_money' };
+    if (q.material > 0) this.addMoney(-q.material, `material:${finishId}`);
+    s.quote = { kind: 'finish', surfaceId, finishId, cells: q.cells, material: q.material, labor: q.labor, days: q.days };
+    this.bus.emit('construction.call', { kind: 'finish' });
+    return { ok: true };
+  }
+
+  /** Resposta ao orçamento: sim paga adiantado e ele vem amanhã; não devolve o material. */
+  answerQuote(accept: boolean): ActionResult {
+    const s = this.state.construction;
+    const q = s.quote;
+    if (!q) return { ok: false, reason: 'not_found' };
+    if (!accept || this.state.money < q.labor) {
+      if (q.material > 0) this.addMoney(q.material, `material_refund:${q.finishId ?? q.kind}`);
+      s.quote = null;
+      this.bus.emit('construction.declined', { kind: q.kind });
+      return accept ? { ok: false, reason: 'no_money' } : { ok: true };
+    }
+    this.addMoney(-q.labor, `construction:${q.kind}`);
+    s.job = scheduleJob(q, this.state.day);
+    s.quote = null;
+    this.bus.emit('construction.accepted', { kind: q.kind, startDay: s.job.startDay!, endDay: s.job.endDay! });
+    return { ok: true };
+  }
+
+  /** Depois da obra, ele pergunta se ela quer mais algum serviço: a resposta (sim abre a aba Construção) encerra a pergunta. */
+  answerBuilder(more: boolean): void {
+    this.state.construction.askPending = false;
+    this.bus.emit('construction.asked', { more });
+  }
+
+  /** O construtor está trabalhando hoje neste mapa: onde e virado para onde. */
+  builderAt(mapId: string): { at: Cell; facing: Facing } | null {
+    const spot = builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
+    if (!spot || (spot.map ?? this.content.map.id) !== mapId) return null;
+    return { at: spot.at, facing: spot.facing };
+  }
+
+  /** Fim do dia: a obra que terminou entra no café (ou na fachada). */
+  private constructionDayEnded(newDay: number): void {
+    const facade = this.content.facade?.surface.id ?? 'surface.facade';
+    const done = finishJobIfDone(this.state.construction, this.state.finishes, newDay, this.content.construction, facade);
+    if (done) this.bus.emit('construction.done', { kind: done.kind });
+  }
+
+  /** O que a obra põe no mapa do café hoje: o acabamento por célula e a área isolada (fita). */
+  private constructionMapParts(base: MapData): { layers: MapData['layers']; legend: Record<string, string>; objects: MapData['objects'] } {
+    const legend: Record<string, string> = {};
+    const layers = { ...base.layers, floor: [...base.layers.floor], walls: [...base.layers.walls] };
+    const cells = this.state.construction.cells;
+    const surfaces = base.surfaces ?? [];
+    // Uma letra nova por acabamento usado nas células (as da legenda não servem: valem para a superfície toda).
+    const pool = [...'0123456789!#$%&*+=?@^~'].filter((ch) => !(ch in base.legend));
+    const letterOf = new Map<string, string>();
+    for (const [key, finishId] of Object.entries(cells)) {
+      const finish = this.content.finishes[finishId];
+      if (!finish) continue;
+      const [c, r] = key.split(',').map(Number) as Cell;
+      const surface = surfaces.find((s) => (s.kind === 'floor' ? base.layers.floor : base.layers.walls)[r]?.[c] === s.legend);
+      if (!surface) continue;
+      let ch = letterOf.get(finish.tile);
+      if (!ch) {
+        ch = pool.shift();
+        if (!ch) continue;
+        letterOf.set(finish.tile, ch);
+        legend[ch] = finish.tile;
+      }
+      const layer = surface.kind === 'floor' ? layers.floor : layers.walls;
+      layer[r] = layer[r]!.slice(0, c) + ch + layer[r]!.slice(c + 1);
+    }
+    // A fita não cai onde ela entra no café, nas portas nem embaixo de móveis (essas células ficam livres).
+    const blocked = new Set([base.spawn.player, ...(base.doors ?? []).map((d) => d.at)].map((c) => cellKey(c)));
+    const { catalog, items } = this.content;
+    for (const o of base.objects) { const def = catalog.tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
+    for (const p of this.state.placed) { const def = catalog.tiles[items[p.item]?.tile ?? '']; if (def) for (const cell of cellsOf(p.at, def)) blocked.add(cellKey(cell)); }
+    const objects = isolatedCells(this.state.construction, base, this.state.day)
+      .filter((cell) => !blocked.has(cellKey(cell)))
+      .map(([c, r]) => ({ id: `obj.construction.${c}_${r}`, tile: this.content.construction.tapeTile, at: [c, r] as Cell }));
+    return { layers, legend, objects };
+  }
+
 
   goals(): GoalView[] {
     return currentGoals(this.content.story, this.state, this.storyContext());

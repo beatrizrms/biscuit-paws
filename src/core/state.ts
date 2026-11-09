@@ -1,5 +1,6 @@
 // Estado do jogo: só IDs, números, booleanos e textos simples (é o que vai para o save).
 // Puro: sem Phaser, DOM ou window.
+import { newConstruction, type ConstructionState } from './construction';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import type { HandItem, SurfaceItem } from './carry';
 import type { Vessel } from './recipes';
@@ -95,6 +96,8 @@ export interface GameState {
   bestPhoto: { pose: string; score: number; catIds: string[]; day: number } | null;
   /** Lista de compras (v24; app Notas): IDs de itens anotados, na ordem; some ao comprar. */
   shoppingList: string[];
+  /** Obras com o construtor (v25): reparos feitos, orçamento, obra em andamento e acabamento por célula. */
+  construction: ConstructionState;
   /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o abrigo da vila. */
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
@@ -187,6 +190,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     festivals: newFestivals(),
     bestPhoto: null,
     shoppingList: [],
+    construction: newConstruction(),
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
     hintUses: {},

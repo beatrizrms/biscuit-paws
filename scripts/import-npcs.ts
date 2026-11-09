@@ -5,6 +5,7 @@
 // NPC só com caminhada (a Fernanda): só as 4 primeiras linhas. Cliente: caminhada e, nas linhas 4 a 7, sentado
 // (2 quadros, sem o 1º, que às vezes ainda é a descida; baixo, esquerda, direita, cima), para a cadeira do jogo ficar
 // por baixo (o cliente na mesa). O sentado para a direita é o da esquerda espelhado (de lado a IA virava 3/4).
+// Construtor: quadros 144x128 (o martelo), linha 6 = martelando para a direita.
 // Cachorro (o Joca): quadros 64x64, 6 colunas; caminhada, latindo (frente e lado), sentado e dormindo.
 // Rodar: npm run npcs. Saída em public/assets/characters/npcs/v64/ (fora do git, como toda a arte).
 import fs from 'node:fs';
@@ -13,7 +14,7 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_pixellab/personagens';
 const OUT = 'public/assets/characters/npcs/v64';
-type Kit = 'full' | 'walk' | 'customer' | 'dog';
+type Kit = 'full' | 'walk' | 'customer' | 'dog' | 'builder';
 
 /** Quadro (largura x altura) e colunas da folha de cada kit. */
 const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
@@ -21,6 +22,8 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
   walk: { w: 112, h: 128, columns: 5 },
   customer: { w: 112, h: 128, columns: 5 },
   dog: { w: 64, h: 64, columns: 6 },
+  // O construtor: quadros mais largos para o martelo caber (o golpe vai longe para a direita).
+  builder: { w: 144, h: 128, columns: 5 },
 };
 
 /** Pasta do PixelLab -> id do NPC (data/npcs.json) e o kit: completo (acenar, segurar), só caminhada ou cliente (sentado). */
@@ -31,6 +34,7 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   entregadora: { id: 'npc.mail_carrier', kit: 'full', portrait: true },
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },
+  construtor: { id: 'npc.builder', kit: 'builder', portrait: true },
   ...Object.fromEntries(
     Array.from({ length: 10 }, (_, i) => String(i + 1).padStart(2, '0')).map((n) => [`cliente${n}`, { id: `npc.customer_${n}`, kit: 'customer' as Kit, portrait: false }]),
   ),
@@ -52,6 +56,8 @@ const ROWS: Record<Kit, Row[]> = {
   walk: WALK,
   customer: [...WALK, ['sit', 'south', { skip: 1 }], ['sit', 'west', { skip: 1 }], ['sit', 'west', { skip: 1, mirror: true }], ['sit', 'north', { skip: 1 }]],
   dog: [...WALK, ['bark', 'south'], ['bark', 'east'], ['sit', 'south'], ['sleep', 'south']],
+  // Construtor: caminhada, acenar, segurar (2ª versão) e, na linha 6, martelando para a direita (com o martelo).
+  builder: [...WALK, ['wave', 'south'], ['hold_v2', 'south'], ['hammer_v3', 'east']],
 };
 
 function frames(folder: string, anim: string, dir: string): PNG[] {

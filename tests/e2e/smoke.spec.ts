@@ -207,7 +207,7 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('e');
   await expect(page.locator('.hint')).toContainText('cancelar');
   await clickCell(page, 12, 9);
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
+  await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   await page.screenshot({ path: testInfo.outputPath('06-caminha.png') });
 
   // Recarrega: sem abertura de novo, dinheiro e móvel continuam lá.
@@ -215,21 +215,21 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   await expect(page.locator('.dialogue-layer')).not.toHaveClass(/open/);
   await expect(page.locator('.hud-money')).toContainText('142');
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
+  await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
 
   // Botão direito entra em "mudar de lugar": o móvel continua no café (a meta segue feita); Esc cancela sem mudar nada.
   // Cada passo espera o jogo reagir antes do próximo (sem corrida entre teclas).
   await clickCell(page, 12, 9, 'right');
   await expect(page.locator('.hint')).toContainText('soltar'); // modo de mudar de lugar
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
+  await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   await page.keyboard.press('Escape');
   await expect(page.locator('.hint')).toContainText('market'); // voltou a andar
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
+  await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   // Botão direito e Q: guarda na mochila.
   await clickCell(page, 12, 9, 'right');
   await expect(page.locator('.hint')).toContainText('soltar');
   await page.keyboard.press('q');
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(0);
+  await expect(page.locator('.hud-goals .g-sum')).toHaveCount(0);
   await expect(page.locator('.hint')).toContainText('market');
   await page.keyboard.press('c');
   await expect(page.locator('section.phone-ui[data-app="market"]')).toHaveClass(/open/);
@@ -262,29 +262,61 @@ test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ p
   await expect(page.locator('.hud-money')).toContainText('150');
 });
 
-test('pintor: troca o piso do salão pelo catálogo e o save guarda', async ({ page }, testInfo) => {
+test('obras: reparo pela aba Construção (ligação, adiantado, o save guarda) e área marcada com o mouse', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
   await enterCafe(page);
-  // O pintor só aparece depois da Dona Lurdes: libera direto pelo estado.
+  // O Tião só aparece depois da Dona Neusa: libera direto pelo estado.
   await page.evaluate(() => {
     const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
     session.state.flags['painter.available'] = true;
+    session.addMoney(500, 'test');
   });
   await page.keyboard.press('c');
   await page.locator('[data-tab="build"]').click();
-  await page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]').click();
-  await expect(page.locator('.hud-money')).toContainText('90');
-  await expect(page.locator('.toast')).toHaveClass(/show/);
-  await page.screenshot({ path: testInfo.outputPath('08-piso-novo.png') });
+  await page.locator('[data-repair="inside"]').click();
+  // A ligação (cena) e o orçamento: Enter aceita (paga adiantado).
+  await expect(page.locator('.cutscene')).toHaveClass(/open/);
+  while (await page.locator('.cutscene.open').count()) await page.keyboard.press('Space');
+  await expect(page.getByText('Fica 200 moedas')).toBeVisible();
+  await page.waitForTimeout(300); // a pergunta só ouve o teclado depois de um instante
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.hud-money')).toContainText('450');
+  await page.screenshot({ path: testInfo.outputPath('08-obra-aceita.png') });
 
+  // O save guarda a obra: a aba mostra "Em obra" e uma obra por vez.
   await page.reload();
   await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
   await page.keyboard.press('c');
   await page.locator('[data-tab="build"]').click();
-  const current = page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]');
-  await expect(current).toBeDisabled();
-  await expect(current).toContainText('atual');
+  await expect(page.locator('.m-busy')).toContainText('Reparo interno');
+  await page.keyboard.press('Escape');
+
+  // Troca de acabamento (com os reparos feitos): marca a área arrastando o mouse; o aviso mostra o orçamento.
+  await page.evaluate(() => {
+    const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
+    const c = (session.state as unknown as { construction: { repaired: string[]; job: unknown } }).construction;
+    c.repaired = ['inside', 'outside'];
+    c.job = null;
+  });
+  await page.keyboard.press('c');
+  await page.locator('[data-tab="build"]').click();
+  await page.locator('[data-surface="surface.hall_floor"][data-finish="finish.wood_planks"]').click();
+  const box = (await page.locator('canvas').boundingBox())!;
+  const zoom = box.width / 640;
+  const at = (col: number, row: number) => [box.x + (col * TILE + TILE / 2 + 64) * zoom, box.y + (row * TILE + TILE / 2 + 4) * zoom] as const;
+  await page.mouse.move(...at(9, 6));
+  await page.mouse.down();
+  await page.mouse.move(...at(10, 7), { steps: 4 });
+  await page.mouse.up();
+  await expect(page.locator('.area-select-hint')).toContainText('4 tiles');
+  await page.screenshot({ path: testInfo.outputPath('08b-area.png') });
+  await page.keyboard.press('Enter');
+  while (await page.locator('.cutscene.open').count()) await page.keyboard.press('Space');
+  await expect(page.getByText('mão de obra fica 4 moedas')).toBeVisible();
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Escape'); // agora não: o material volta
+  await expect(page.locator('.hud-money')).toContainText('450');
 });
 
 test('rua: anda até a porta da padaria, entra e sai sem ficar indo e voltando', async ({ page }, testInfo) => {
@@ -533,7 +565,7 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
       for (let i = 0; i < m; i++) s.tickClock(1 / s.content.dayNight.minutesPerSecond);
     }, m);
   await advance(6);
-  await expect(page.locator('.hud-goals')).toContainText('Atendimento: 1');
+  await expect(page.locator('.hud-goals .pips i.on')).toHaveCount(1); // atendimento: 1 cliente (bolinha)
   await teleport(page, 7, 6);
   await page.keyboard.press('e');
   await expect(page.locator('.toast')).toContainText('Preparando');

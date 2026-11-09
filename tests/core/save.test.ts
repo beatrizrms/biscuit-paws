@@ -16,7 +16,7 @@ describe('save', () => {
     session.buy('item.cat_bed');
     session.place('item.cat_bed', [12, 9]);
     session.buy('item.cactus');
-    session.paint('surface.hall_floor', 'finish.wood_planks');
+    session.state.finishes['surface.hall_floor'] = 'finish.wood_planks';
 
     const json = serializeSave(session.state, new Date('2026-12-01T10:00:00Z'));
     const saved = JSON.parse(json);

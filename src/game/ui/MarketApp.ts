@@ -2,6 +2,7 @@
 // Pet, Móveis, Decor e Construção (data/ui_text.json: market.tabs). Cada item é um cartão com a miniatura do móvel.
 // Construção também tem as obras dos cômodos e o pintor. Quem decide (preço, limites, entrega) é a sessão.
 // Como no mercado, nada é comprado no toque: o item vai para o pedido (session.orderCart) e só sai ao confirmar.
+import { daysText, workName } from './constructionText';
 import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { itemThumbHtml, tileThumbHtml } from './thumbs';
@@ -19,6 +20,8 @@ export interface MarketHost {
   place(itemId: string): void;
   /** Obra começou ou parede pintada: fecha o celular para ver. */
   done(text?: string): void;
+  /** Troca de acabamento: fecha o celular e ela marca a área no café (retângulo). */
+  selectArea(surfaceId: string, finishId: string): void;
   /** "Pedido feito: chega às 15:00" (ou amanhã). */
   ordered(arrivesAt: number): void;
 }
@@ -32,6 +35,11 @@ export class MarketApp {
     private session: GameSession,
     private host: MarketHost,
   ) {}
+
+  /** Abre numa aba (id de data/ui_text.json market.tabs); id que não existe fica onde está. */
+  setTab(tabId: string): void {
+    if (uiText.market.tabs.some((t) => t.id === tabId)) this.tab = tabId;
+  }
 
   /** Desenha o app dentro de `body` (a tela do celular) e liga os botões. */
   render(body: HTMLElement): void {
@@ -83,12 +91,23 @@ export class MarketApp {
         this.host.done();
       }),
     );
-    body.querySelectorAll<HTMLButtonElement>('[data-finish]').forEach((b) =>
+    // Obras do Tião: o reparo (e a fachada) vai direto para a ligação; a troca de acabamento pede a área antes.
+    body.querySelectorAll<HTMLButtonElement>('[data-repair]').forEach((b) =>
       b.addEventListener('click', () => {
-        const r = this.session.paint(b.dataset.surface!, b.dataset.finish!);
+        const r = this.session.quoteRepair(b.dataset.repair as 'inside' | 'outside', b.dataset.finish);
         if (!r.ok) return this.host.problem(r.reason);
-        this.host.done(uiText.painted);
+        this.host.done();
       }),
+    );
+    body.querySelectorAll<HTMLButtonElement>('[data-facade]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const r = this.session.quoteFacade(b.dataset.facade!);
+        if (!r.ok) return this.host.problem(r.reason);
+        this.host.done();
+      }),
+    );
+    body.querySelectorAll<HTMLButtonElement>('[data-surface][data-finish]').forEach((b) =>
+      b.addEventListener('click', () => this.host.selectArea(b.dataset.surface!, b.dataset.finish!)),
     );
   }
 
@@ -186,26 +205,60 @@ export class MarketApp {
     return rows ? `<h3>${esc(r.title)}</h3><p class="m-hint">${esc(r.hint)}</p>${rows}${cats}` : cats;
   }
 
-  /** Pintor: para cada superfície, os acabamentos que servem nela (com a amostra do piso/parede). */
+  /**
+   * Obras do Tião (src/core/construction.ts): uma por vez. Primeiro os reparos (interno e da fachada, com a cor);
+   * depois, trocar o acabamento de uma área (o material é por tile) e pintar a fachada de outra cor.
+   */
   private renovationHtml(): string {
     if (!this.session.painterUnlocked()) return '';
+    const t = uiText.construction;
     const { state } = this.session;
+    const c = content.construction;
+    const s = state.construction;
+    const busy = !!(s.job || s.quote);
+    const coin = (n: number) => `${COIN}${n}`;
+    let status = '';
+    if (s.job) status = `<p class="m-hint m-busy">${esc(t.working.replace('{work}', workName(s.job)).replace('{day}', this.dayText(s.job.endDay!)))}</p>`;
+    const facadeFinishes = Object.values(content.finishes).filter((f) => f.kind === 'facade');
+    const card = (attrs: string, tile: string, name: string, price: string, disabled: boolean, has = false) =>
+      `<div class="m-cell"><button class="m-card${has ? ' has' : ''}" ${attrs} ${disabled ? 'disabled' : ''}><span class="m-thumb">${tileThumbHtml(tile, THUMB)}</span><span class="m-name">${esc(name)}</span><span class="m-price">${price}</span></button></div>`;
+    // Reparos.
+    const repairs: string[] = [];
+    if (!s.repaired.includes('inside')) {
+      const r = c.repairs.inside;
+      repairs.push(`<button class="m-row" data-repair="inside" ${busy || state.money < r.price ? 'disabled' : ''}><span class="m-name">${esc(r.name)}</span><span class="m-price">${coin(r.price)}</span><span class="m-note">${esc(t.insideNote + ' · ' + daysText(r.days))}</span></button>`);
+    }
+    if (!s.repaired.includes('outside')) {
+      const r = c.repairs.outside;
+      const cards = facadeFinishes.map((f) => card(`data-repair="outside" data-finish="${f.id}"`, f.tile, f.name, coin(r.price), busy || state.money < r.price)).join('');
+      repairs.push(`<h4>${esc(r.name)}</h4><p class="m-hint">${esc(t.outsideNote + ' · ' + daysText(r.days))}</p><div class="m-grid">${cards}</div>`);
+    }
+    // Troca de acabamento (depois do reparo interno): cada superfície do café, os acabamentos que servem.
+    const inside = s.repaired.includes('inside');
     const finishes = Object.values(content.finishes);
-    const blocks = this.session
-      .surfaces()
+    const areas = (content.map.surfaces ?? [])
       .map((surface) => {
+        const per = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
         const cards = finishes
           .filter((f) => f.kind === surface.kind)
-          .map((f) => {
-            const current = state.finishes[surface.id] === f.id;
-            return `<div class="m-cell"><button class="m-card${current ? ' has' : ''}" data-surface="${surface.id}" data-finish="${f.id}" ${current || state.money < f.price ? 'disabled' : ''}>
-                <span class="m-thumb">${tileThumbHtml(f.tile, THUMB)}</span><span class="m-name">${esc(f.name)}</span>
-                <span class="m-price">${current ? uiText.current : `${COIN}${f.price}`}</span></button></div>`;
-          })
+          .map((f) => card(`data-surface="${surface.id}" data-finish="${f.id}"`, f.tile, f.name, `${coin(per + c.laborPerTile)}${esc(t.perTile)}`, busy || !inside))
           .join('');
         return `<h4>${esc(surface.name)}</h4><div class="m-grid">${cards}</div>`;
       })
       .join('');
-    return blocks ? `<h3>${esc(uiText.renovationTitle)}</h3><p class="m-hint">${esc(uiText.renovationHint)}</p>${blocks}` : '';
+    const facade = s.repaired.includes('outside')
+      ? `<h4>${esc(t.facadeTitle)}</h4><div class="m-grid">${facadeFinishes
+          .map((f) => {
+            const current = state.finishes[content.facade?.surface.id ?? ''] === f.id;
+            return card(`data-facade="${f.id}"`, f.tile, f.name, current ? uiText.current : coin(f.price), busy || current || state.money < f.price, current);
+          })
+          .join('')}</div>`
+      : '';
+    return `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint)}</p>${status}${repairs.join('')}<h3>${esc(t.areaTitle)}</h3><p class="m-hint">${esc(inside ? t.areaHint : t.areaLocked)}</p>${areas}${facade}`;
+  }
+
+  /** "amanhã", "dia 14". */
+  private dayText(day: number): string {
+    return day === this.session.state.day + 1 ? uiText.construction.tomorrow : uiText.construction.dayN.replace('{n}', String(day));
   }
 }
