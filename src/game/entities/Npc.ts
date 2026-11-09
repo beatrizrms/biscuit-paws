@@ -41,6 +41,8 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
 
   /** Parada, virada para uma direção (quadro 0 da caminhada). */
   face(dir: Facing): void {
+    // A caminhada pode terminar depois de o mapa trocar (NPC já destruído): sem isso, o erro trava o relógio da cena.
+    if (!this.active) return;
     this.anims.stop();
     this.setFrame(this.def.walk[dir] * this.def.columns);
   }
