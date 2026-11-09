@@ -272,9 +272,16 @@
           {
             "text": "Ver se a obra no fim da rua já virou a clínica veterinária.",
             "when": {
-              "flag": "seen.scr.clinic_opening"
+              "any": [
+                {
+                  "flag": "seen.scr.clinic_opening"
+                },
+                {
+                  "flag": "vet.consulted"
+                }
+              ]
             },
-            "devNote": "Andar até a porta da clínica (rua): o intercept da porta roda scr.clinic_opening, que leva para dentro."
+            "devNote": "Andar até a porta da clínica (rua): o intercept da porta roda scr.clinic_opening, que leva para dentro. Já ter consultado também conta (save de antes da cena de inauguração)."
           },
           {
             "text": "Buscar {cat:cat.first_stray} no café e levar no colo até a clínica da Fernanda.",
@@ -284,7 +291,7 @@
             "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta."
           },
           {
-            "text": "Dar o remédio para {cat:cat.first_stray} uma vez por dia, até acabar a receita.",
+            "text": "Dar o remédio para {cat:cat.first_stray} uma vez por dia, até acabar a receita.{doses:cat.first_stray}",
             "when": {
               "flag": "vet.cured"
             },

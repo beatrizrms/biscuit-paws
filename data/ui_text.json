@@ -614,6 +614,10 @@
     "close": "fechar",
     "balance": "Saldo"
   },
+  "medicineProgress": {
+    "progress": " ({given}/{days} doses{today})",
+    "today": " · hoje já tomou"
+  },
   "weekdays": [
     "seg",
     "ter",
