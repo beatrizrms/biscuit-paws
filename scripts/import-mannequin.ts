@@ -110,11 +110,18 @@ if (L) {
     'outfit:dress': { dir: `${MAN}/roupa_dress`, prefix: 'v' },
     'outfit:collar_shirt': { dir: `${MAN}/roupa_collar_shirt`, prefix: 'c' },
     'outfit:tshirt': { dir: `${MAN}/roupa_tshirt`, prefix: 't' },
+    'outfit:blazer': { dir: `${MAN}/roupa_blazer`, prefix: 'z' },
+    'outfit:winter_coat': { dir: `${MAN}/roupa_winter_coat`, prefix: 'w' },
     'hair:long': { dir: `${MAN}/cabelo_longo`, prefix: 'l' },
     'hair:short': { dir: `${MAN}/cabelo_short`, prefix: 's' },
     'hair:bob': { dir: `${MAN}/cabelo_bob`, prefix: 'b' },
     'hair:bun': { dir: `${MAN}/cabelo_bun`, prefix: 'u' },
     'hair:ponytail': { dir: `${MAN}/cabelo_ponytail`, prefix: 'p' },
+    'hair:afro': { dir: `${MAN}/cabelo_afro`, prefix: 'a' },
+    'hair:curly': { dir: `${MAN}/cabelo_curly`, prefix: 'k' },
+    'hair:short_afro': { dir: `${MAN}/cabelo_short_afro`, prefix: 'f' },
+    'hair:side_part': { dir: `${MAN}/cabelo_side_part`, prefix: 'd' },
+    'hair:quiff': { dir: `${MAN}/cabelo_quiff`, prefix: 'q' },
   };
   /** Peças só de frente: imagem 128x128 editada sobre a rotação sul do manequim (cabelo sobre o manequim verde). */
   const FRONT: Record<string, string> = {

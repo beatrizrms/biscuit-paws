@@ -34,8 +34,8 @@
       "_comment": "Personagem em camadas sobre o manequim (decisão 077): roupa (figura inteira nas cores do desenho, com máscara da pele) + cabelo; só pele e cabelo mudam de cor (decisão 083; troca por código, src/core/recolor.ts). outfits/hair: ID do criador (top / hairStyle) -> true = todas as animações; false = só a imagem de frente (o criador mostra; no jogo usa `fallback`). Arquivos por convenção, montados por npm run mannequin: outfit_<id>_<anim>.png (+ _mask), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de pele e de cor do cabelo [matiz, saturação, luz mínima, luz máxima].",
       "anims": ["walk", "idle", "tray", "carry", "work"],
       "poseAnim": { "tray": "tray", "cat": "carry", "sweep": "work", "wipe_table": "work", "operate": "work", "stir": "work", "wash": "work" },
-      "outfits": { "hoodie": true, "dress": true, "collar_shirt": true, "tshirt": true, "blazer": false, "winter_coat": false },
-      "hair": { "long": true, "short": true, "bob": true, "bun": true, "ponytail": true, "afro": false, "curly": false, "short_afro": false, "side_part": false, "quiff": false },
+      "outfits": { "hoodie": true, "dress": true, "collar_shirt": true, "tshirt": true, "blazer": true, "winter_coat": true },
+      "hair": { "long": true, "short": true, "bob": true, "bun": true, "ponytail": true, "afro": true, "curly": true, "short_afro": true, "side_part": true, "quiff": true },
       "fallback": { "outfit": "hoodie", "hair": "long" },
       "ramps": {
         "skin": {
