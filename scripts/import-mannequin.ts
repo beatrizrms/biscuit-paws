@@ -191,21 +191,59 @@ if (L) {
     const reg = new Uint8Array(w * h);
     const b = bounds(p, (x, y) => opaque(p, x, y));
     const fig = b.y1 - b.y0;
-    const footY = b.y1 - Math.round(fig * 0.07), neckY = b.y0 + Math.round(fig * 0.22), waistY = b.y0 + Math.round(fig * 0.52);
+    const footY = b.y1 - Math.round(fig * 0.07), neckY = b.y0 + Math.round(fig * 0.22);
+    /** Do cano do tênis para baixo: o branco do calçado puxa para o bege, então pele ali só com bastante cor. */
+    const shoeTop = b.y1 - Math.round(fig * 0.12);
+    // Corte na cintura pela cor: a média da roupa no peito e nas coxas; no meio, cada pixel vai para a mais parecida
+    // (a barra da camiseta passa da cintura do manequim).
+    const band = (from: number, to: number) => {
+      const sum = [0, 0, 0];
+      let n = 0;
+      for (let y = b.y0 + Math.round(fig * from); y < b.y0 + Math.round(fig * to); y++)
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (!opaque(p, x, y)) continue;
+          const [hu, s, l] = hsl(p, i);
+          if (l < 0.14 || (hu >= 5 && hu <= 42 && s > 0.22 && l > 0.42)) continue;
+          for (let k = 0; k < 3; k++) sum[k]! += p.data[i + k]!;
+          n++;
+        }
+      return sum.map((v) => v / Math.max(1, n));
+    };
+    const chest = band(0.3, 0.4), thigh = band(0.66, 0.76);
+    const topY = b.y0 + Math.round(fig * 0.4), bottomY = b.y0 + Math.round(fig * 0.76);
+    const dist = (i: number, ref: number[]) => ref.reduce((a, v, k) => a + (p.data[i + k]! - v) ** 2, 0);
+    // A barra é uma linha reta: cada linha do meio vai inteira para o lado da maioria dos seus pixels (a sombra da camisa não vira calça).
+    const rowTop = new Map<number, boolean>();
+    for (let y = topY; y < bottomY; y++) {
+      let up = 0, down = 0;
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (!opaque(p, x, y)) continue;
+        const [hu, s, l] = hsl(p, i);
+        if (l < 0.14 || (hu >= 5 && hu <= 42 && s > 0.22 && l > 0.42)) continue;
+        if (dist(i, chest) <= dist(i, thigh)) up++;
+        else down++;
+      }
+      rowTop.set(y, up >= down);
+    }
+    const waistRegion = (_x: number, y: number) => (y < topY ? 2 : y >= bottomY ? 3 : rowTop.get(y) ? 2 : 3);
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         if (!opaque(p, x, y)) continue;
         const [hu, s, l] = hsl(p, (y * w + x) * 4);
         if (l < 0.14) continue;
         // Nos pés, só pele bem saturada (tênis branco e sapato claro puxam para o bege).
-        const skin = hu >= 5 && hu <= 42 && s > (y >= footY ? 0.4 : 0.22) && l > 0.42;
+        // Nos pés, pela intensidade da cor (croma): o branco creme do tênis tem saturação alta no HSL, mas pouca cor.
+        const chroma = s * (1 - Math.abs(2 * l - 1));
+        const skin = hu >= 5 && hu <= 42 && l > 0.42 && (y >= shoeTop ? chroma > 0.3 : s > 0.22);
         let r = 0;
         if (skin) r = 1;
         else if (y >= footY) r = 4;
         else if (y < neckY) r = 0; // olhos, boca e contorno da cabeça ficam como estão
         else if (split === 'hue') r = (hu >= 330 || hu <= 15) && s > 0.35 ? 2 : hu >= 190 && hu <= 240 && s > 0.15 ? 3 : 0;
         else if (split === 'dress') r = 2;
-        else r = y < waistY ? 2 : 3;
+        else r = waistRegion(x, y);
         reg[y * w + x] = r;
       }
     absorbIslands(reg, w, h, 10);
@@ -245,6 +283,30 @@ if (L) {
         keep[y * w + x] = 1;
       }
     absorbIslands(keep, w, h, 20);
+    // Fica só a massa do cabelo: grupos bem menores que o maior (um pedaço do braço perto da mão) saem.
+    {
+      const seen = new Uint8Array(w * h);
+      const groups: number[][] = [];
+      for (let s0 = 0; s0 < w * h; s0++) {
+        if (!keep[s0] || seen[s0]) continue;
+        const g = [s0];
+        seen[s0] = 1;
+        for (let k = 0; k < g.length; k++) {
+          const q = g[k]!, x = q % w, y = (q / w) | 0;
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+              const nx = x + dx, ny = y + dy, n = ny * w + nx;
+              if (nx >= 0 && ny >= 0 && nx < w && ny < h && keep[n] && !seen[n]) {
+                seen[n] = 1;
+                g.push(n);
+              }
+            }
+        }
+        groups.push(g);
+      }
+      const biggest = Math.max(0, ...groups.map((g) => g.length));
+      for (const g of groups) if (g.length < biggest * 0.15) for (const q of g) keep[q] = 0;
+    }
     for (let pass = 0; pass < 2; pass++) {
       const drop: number[] = [];
       for (let y = 1; y < h - 1; y++)
