@@ -9,7 +9,6 @@
     "art:kitchen": "tsx scripts/art/kitchen.ts",
     "art:placeholders": "tsx scripts/art/placeholders.ts",
     "art:cafe": "tsx scripts/art/cafe.ts && tsx scripts/build-worn-tiles.ts",
-    "character": "tsx scripts/import-character.ts",
     "backyard": "tsx scripts/import-backyard.ts",
     "seasons": "tsx scripts/import-seasons.ts",
     "ui-audio": "tsx scripts/import-ui-audio.ts",

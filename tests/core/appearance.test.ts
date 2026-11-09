@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { allFilesFor, cleanPlayerName, creatorOptions, cycle, hidesBottom, layerFiles, layerPieces, layerRamps, normalizeAppearance, POSES, randomAppearance, catPropColor, validateCharacter } from '../../src/core/appearance';
+import { cleanPlayerName, creatorOptions, CREATOR_KEYS, cycle, layerPieces, layerRamps, normalizeAppearance, POSES, randomAppearance, validateCharacter } from '../../src/core/appearance';
 import { createRng } from '../../src/core/rng';
 import { REGION } from '../../src/core/recolor';
 import { knownIds, parseSave } from '../../src/core/save';
@@ -11,66 +11,23 @@ import { loadContent } from './content';
 const content = loadContent();
 const C = content.character;
 
-describe('aparência: camadas', () => {
-  it('caminhada na ordem do pacote: corpo, olhos, calçado, calça, roupa, cabelo, acessórios', () => {
-    const a = { ...C.default, glasses: 'round', head: 'bow_pink' };
-    expect(layerFiles(C, a).map((l) => l.file)).toEqual([
-      'corpo/corpo_clara.png',
-      'olhos/olhos_castanho.png',
-      'calcado/calcado_tenis_branco.png',
-      'calca/calca_calca_jeans.png',
-      'camisa/camisa_moletom_vermelho.png',
-      'cabelo/cabelo_longo_castanho.png',
-      'acessorio/acessorio_oculos_redondo.png',
-      'acessorio/acessorio_laco_rosa.png',
-    ]);
-  });
-
-  it('vestido não desenha a parte de baixo; sem cabelo não desenha cabelo', () => {
-    const a = { ...C.default, top: 'dress', hairStyle: 'none' };
-    expect(hidesBottom(C, a)).toBe(true);
-    const files = layerFiles(C, a).map((l) => l.layer);
-    expect(files).not.toContain('bottom');
-    expect(files).not.toContain('hair');
-  });
-
-  it('pose: troca corpo e roupa, objeto atrás e na frente; parada usa o quadro 0 nas outras camadas', () => {
-    const layers = layerFiles(C, C.default, 'sweep');
-    expect(layers[0]).toEqual({ layer: 'prop_back', file: 'poses/varrer/prop/prop_atras_varrer.png', still: false });
-    expect(layers.find((l) => l.layer === 'body')).toEqual({ layer: 'body', file: 'poses/varrer/corpo/corpo_varrer_clara.png', still: false });
-    expect(layers.find((l) => l.layer === 'top')!.file).toBe('poses/varrer/camisa/camisa_varrer_moletom_vermelho.png');
-    expect(layers.find((l) => l.layer === 'hair')!.still).toBe(true);
-    // Bandeja anda: nada fica parado.
-    expect(layerFiles(C, C.default, 'tray').every((l) => !l.still)).toBe(true);
-  });
-
-  it('gato no colo na cor do gato (pela variante)', () => {
-    expect(catPropColor(C, 'pebble')).toBe('cinza');
-    expect(catPropColor(C, 'marmalade')).toBe('laranja');
-    expect(catPropColor(C, 'desconhecido')).toBe(C.catProp.fallback);
-    expect(layerFiles(C, C.default, 'cat', 'cinza').map((l) => l.file)).toContain('poses/gato/prop/prop_frente_gato_cinza.png');
-  });
-
-  it('uma combinação usa a caminhada e as 7 poses (gato nas 4 cores)', () => {
-    const files = allFilesFor(C, C.default);
-    expect(files).toContain('poses/lavar/prop/prop_frente_lavar.png');
-    expect(files.filter((f) => f.startsWith('poses/gato/prop/prop_atras_gato_'))).toHaveLength(4);
-  });
-});
-
 describe('aparência: escolhas', () => {
   it('girar a opção dá a volta', () => {
-    // As opções que o criador mostra (com o manequim em camadas, só as peles com cor).
+    // As opções que o criador mostra (só as peles com cor).
     const skins = creatorOptions(C, 'skin');
     const last = skins.at(-1)!.id;
     expect(cycle(C, { ...C.default, skin: last }, 'skin', 1).skin).toBe(skins[0]!.id);
     expect(cycle(C, { ...C.default, skin: skins[0]!.id }, 'skin', -1).skin).toBe(last);
   });
 
-  it('sorteio repetível com a mesma semente e sempre válido', () => {
+  it('sorteio repetível com a mesma semente, sempre válido e só com opções do criador', () => {
     const a = randomAppearance(C, createRng(7));
     expect(randomAppearance(C, createRng(7))).toEqual(a);
-    for (let s = 0; s < 50; s++) expect(normalizeAppearance(C, randomAppearance(C, createRng(s))).fixed).toEqual([]);
+    for (let s = 0; s < 50; s++) {
+      const r = randomAppearance(C, createRng(s));
+      expect(normalizeAppearance(C, r).fixed).toEqual([]);
+      for (const key of CREATOR_KEYS) expect(creatorOptions(C, key).map((o) => o.id)).toContain(r[key]);
+    }
   });
 
   it('escolha que não existe volta ao padrão', () => {
@@ -110,25 +67,29 @@ describe('aparência no save', () => {
   });
 });
 
-describe('aparência: manequim (arte em 64 px)', () => {
-  const m = C.mannequin!;
+describe('aparência: dados do manequim', () => {
+  const m = C.mannequin;
 
-  it('os dados atuais do manequim são válidos e cobrem todas as poses', () => {
+  it('os dados atuais são válidos e toda pose tem animação', () => {
     expect(validateCharacter(C)).toEqual([]);
-    for (const pose of POSES) expect(m.poses[pose]).toMatch(/\.png$/);
+    for (const pose of POSES) expect(m.anims).toContain(m.poseAnim[pose]);
   });
 
-  it('acusa pose sem folha e quadro que não divide pela resolução', () => {
-    const { wash: _, ...poses } = m.poses;
-    const bad = { ...C, mannequin: { ...m, frameWidth: 81, poses: poses as typeof m.poses } };
+  it('acusa pose sem animação, quadro que não divide pela resolução e reserva sem animação', () => {
+    const bad = { ...C, mannequin: { ...m, frameWidth: 81, poseAnim: { ...m.poseAnim, wash: 'dance' }, outfits: { ...m.outfits, [m.fallback.outfit]: false } } };
     const errors = validateCharacter(bad);
     expect(errors.some((e) => e.includes('"wash"'))).toBe(true);
     expect(errors.some((e) => e.includes('múltiplo de resolution'))).toBe(true);
+    expect(errors.some((e) => e.includes('roupa de reserva'))).toBe(true);
+  });
+
+  it('padrão e exemplos usam só peças e cores do criador', () => {
+    for (const a of [C.default, ...C.presets]) for (const key of CREATOR_KEYS) expect(creatorOptions(C, key).map((o) => o.id)).toContain(a[key]);
   });
 });
 
 describe('aparência: manequim em camadas', () => {
-  const L = C.mannequin!.layers!;
+  const L = C.mannequin;
 
   it('peça só de frente: o criador mostra a escolhida e o jogo usa a de reserva', () => {
     // Exemplo próprio (hoje todas as peças têm animação): casaco e afro marcados como só de frente.

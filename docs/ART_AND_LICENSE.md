@@ -95,8 +95,8 @@ Ficam sem colisão: chão, tapete, capacho, cadeiras, almofadas, caminha, tigela
 Comidas e bebidas têm fundo transparente e ficam centradas no tile: colocar sobre balcão/mesa numa camada de decoração.
 
 ## Personagem
-Camadas do pacote `personagem_principal` em `public/assets/characters/player/` (decisão 045): folhas 128 x 256, quadros de **32 x 64**, 4 colunas x 4 linhas.
-Linhas (de cima para baixo): `down`, `left`, `right`, `up`. Cada linha tem 4 quadros de caminhada.
+Manequim do PixelLab com roupa e cabelo em camadas (decisões 077, 083 e 087), em `public/assets/characters/player_mannequin/` (de `npm run mannequin`): quadros de **80 x 128** em **64 px por tile** (resolução 2), 4 colunas x 4 linhas (`down`, `left`, `right`, `up`). Peças: 6 roupas e 10 penteados, cada um com caminhada, parada, bandeja, colo e ação; só pele e cabelo mudam de cor. Os originais e os personagens do PixelLab (cor-chave verde nos cabelos) ficam em `assets/_pixellab/personagens/protagonista/manequim/`.
+O pacote antigo `personagem_principal` (camadas de 32 x 64, decisão 045) saiu do jogo; o original continua em `assets/_originais_pacotes/personagem_principal/`.
 A folha provisória antiga (`mulher_placeholder_32x64.png`) saiu do jogo e está guardada em `assets/_fora_do_jogo/characters/`.
 Humanos na grade de 32 px devem ter 32 x 48 ou 32 x 64.
 
@@ -137,7 +137,7 @@ A licença permite **modificar** os assets. Versões gastas de pisos e paredes s
 | Áudio (`assets/_originais_pacotes/audio`) | sintetizado por código | `npm run ui-audio` -> `public/assets/audio/{music,ambient,sfx}/` (.ogg e .mp3) |
 | Rua: primavera, verão, outono (`assets/_originais_pacotes/rua_estacoes_tilesets`) | gerado por código/IA | `npm run seasons` -> `public/assets/env/street/<estação>/` |
 | Quintal secreto (`assets/_originais_pacotes/quintal_secreto`) | gerado por código/IA na paleta Cosy | Importado por `npm run backyard` (`scripts/import-backyard.ts`) para `public/assets/env/backyard/`: variante A (sebe) e B (tijolo, peças juntadas numa folha). O mesmo script desenha os provisórios dos cômodos em `public/assets/interiors/cafe/tile_rooms_placeholder.png` (parede divisória, portas, cama do quartinho, mato, túnel, casinha, tora, cama ao sol) |
-| Personagem principal (`assets/_originais_pacotes/personagem_principal`) | gerado por código/IA na paleta Cosy | Importado por `npm run character` (`scripts/import-character.ts`) para `public/assets/characters/player/`: camadas 128x256 (corpo, olhos, calçado, calça, camisa, cabelo, acessórios) e 7 poses (bandeja, gato, varrer, limpar mesa, operar, mexer, lavar). O script confere se existe todo arquivo que alguma combinação usa |
+| Personagem principal antiga (`assets/_originais_pacotes/personagem_principal`) | gerado por código/IA na paleta Cosy | **Fora do jogo** desde a decisão 087 (a personagem é o manequim do PixelLab); original guardado |
 | Fluxo do café, onda 1 (`assets/_originais_pacotes/fluxo_cafe_onda1`) | gerado por código/IA na paleta Cosy | Importado por `scripts/import-fluxo.ts`: cafeteira, balões do pedido, barra de progresso, quadro do cardápio (4/6/8), esgotado, moeda, louça 16x16 e ícones de comida e remédio. Bandeja e personagem carregando ficam para a Fase 2 |
 | Louça (`assets/_originais_pacotes/louca`) | gerado por IA na paleta Cosy | 18 ícones 32x32 (reduzidos de 4x, peça por peça): xícara, prato, tigela, copo, copo alto, caneca e pilhas, limpos e sujos. Em uso: xícara, copo e prato |
 | Pia (`assets/_originais_pacotes/pia`) | gerado por IA/código na paleta Cosy | Pia 32x32: vazia, com louça, lavando (4 quadros) e louça limpa |
@@ -179,7 +179,7 @@ Feito por código em cima da arte gerada (sem gerar de novo): letreiros (fonte d
 
 **Ainda fora da arte nova:**
 - Gatos (Cosy Cats, leckie1989): **nunca** gerar por IA (licença).
-- Personagem, NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`). Já no jogo: o **manequim** da personagem principal (careca, roupa íntima bege, 64 px; caminhada, bandeja, colo e ação; decisão 075), montado por `npm run mannequin` em `public/assets/characters/player_mannequin/`. Caminhada, bandeja, colo e parada refeitas com os pés juntos (decisão 076); de lado, o braço de trás aparece escuro atrás das costas em 1 quadro.
+- NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`). A personagem principal já está na arte nova (manequim em camadas, decisão 087).
 - Interface (menus, HUD, celular, balões de atendimento, louça 16 px na mão) e os pacotes dos mini games (Gato em fuga, Pescaria, Latte art, Entrega).
 - Lençol sobre móvel (sujeira do café abandonado) e os provisórios por código da lista de pendências (caixa de areia, cocô, pegadas, peças da feira de adoção).
 

@@ -1,14 +1,15 @@
 // Criar personagem (Novo jogo, depois do slot): nome e aparência, com prévia animada que gira.
 // Mouse, toque e teclado (setas para cima/baixo trocam de linha; para os lados trocam a opção).
-// As regras (opções, vestido sem parte de baixo, sorteio) moram em src/core/appearance.ts.
+// Mostra o manequim com roupa e cabelo (decisões 077, 083 e 087): pele, penteado, cor do cabelo e roupa.
+// As regras (opções, peça de reserva, sorteio) moram em src/core/appearance.ts.
 import type Phaser from 'phaser';
-import { cleanPlayerName, creatorOptions, cycle, hidesBottom, isBald, LAYER_KEYS, layerFiles, randomAppearance, type Appearance } from '../../../core/appearance';
+import { cleanPlayerName, creatorOptions, CREATOR_KEYS, cycle, isBald, randomAppearance, type Appearance } from '../../../core/appearance';
 import { DEFAULT_PRONOUN, PRONOUNS, type Pronoun } from '../../../core/pronoun';
 import { createRng } from '../../../core/rng';
 import type { PlayerState } from '../../../core/state';
 import { content } from '../../content';
 import { t } from '../../i18n';
-import { composeLayers, drawLayers, previewAnimates } from '../../playerLook';
+import { composeLayers, previewAnimates } from '../../playerLook';
 import { esc, popLayer, pushLayer, type MenuLayer } from './MenuKit';
 
 const C = content.character;
@@ -16,15 +17,12 @@ const PREVIEW_SCALE = 3;
 const DIRS = ['down', 'left', 'up', 'right'] as const; // ordem de girar
 const ROW_OF: Record<(typeof DIRS)[number], number> = { down: 0, left: 1, right: 2, up: 3 };
 
-/** Manequim em camadas (decisão 077): menos linhas (só o que tem arte ou cor) e prévia na arte de 64 px. */
-const L = C.mannequin?.layers;
 const M = C.mannequin;
 /** Quadro da prévia (pixels da folha) e a escala para a tela (a arte do manequim tem `resolution` pixels por pixel do jogo). */
-const FRAME = L && M ? { w: M.frameWidth, h: M.frameHeight, scale: PREVIEW_SCALE / M.resolution } : { w: C.sheet.frameWidth, h: C.sheet.frameHeight, scale: PREVIEW_SCALE };
+const FRAME = { w: M.frameWidth, h: M.frameHeight, scale: PREVIEW_SCALE / M.resolution };
 
 /** As linhas da tela, na ordem (t('creator.<key>') é o rótulo). */
-const ALL_ROWS: (keyof Appearance)[] = ['skin', 'eyes', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'shoesColor', 'glasses', 'head'];
-const ROWS: readonly (keyof Appearance)[] = L ? LAYER_KEYS : ALL_ROWS;
+const ROWS = CREATOR_KEYS;
 const label = (key: keyof Appearance) => t(`creator.${key}`);
 
 export interface CreatorHandlers {
@@ -48,7 +46,7 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
       <h2>${t('creator.title')}</h2>
       <div class="creator-body">
         <div class="creator-preview">
-          <canvas class="frame${L ? ' mannequin' : ''}" width="${FRAME.w * FRAME.scale}" height="${FRAME.h * FRAME.scale}"></canvas>
+          <canvas class="frame mannequin" width="${FRAME.w * FRAME.scale}" height="${FRAME.h * FRAME.scale}"></canvas>
           <p class="creator-note" hidden>${t('creator.previewOnly')}</p>
           <div class="menu-row turn"><button class="menu-btn small" data-act="turn-left" aria-label="${t('creator.turnLeft')}">⟲</button><button class="menu-btn small" data-act="turn-right" aria-label="${t('creator.turnRight')}">⟳</button></div>
           <div class="menu-row"><button class="menu-btn small" data-act="random">${t('creator.random')}</button><button class="menu-btn small" data-act="preset">${t('creator.preset')}</button></div>
@@ -64,10 +62,8 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
     </div>`;
   root.appendChild(el);
 
-  // Folha montada fora da página; a prévia mostra um quadro dela. No manequim em camadas, a peça só de frente vira um quadro parado.
+  // Folha montada fora da página; a prévia mostra um quadro dela. Peça só de frente vira um quadro parado.
   let sheet = document.createElement('canvas');
-  sheet.width = C.sheet.frameWidth * C.sheet.columns;
-  sheet.height = C.sheet.frameHeight * C.sheet.rows.length;
   let still = false;
   const note = el.querySelector('.creator-note') as HTMLElement;
   const frame = el.querySelector('canvas.frame') as HTMLCanvasElement;
@@ -76,7 +72,6 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
   const error = el.querySelector('.creator-error') as HTMLElement;
 
   const visible = (key: keyof Appearance) => {
-    if ((key === 'bottom' || key === 'bottomColor') && hidesBottom(C, look)) return false;
     if (key === 'hairColor' && isBald(look)) return false;
     return true;
   };
@@ -96,15 +91,9 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
   };
 
   const redrawSheet = () => {
-    if (L) {
-      still = !previewAnimates(look);
-      sheet = composeLayers(textures, look, still ? 'front' : 'walk', false);
-      note.hidden = !still;
-      return;
-    }
-    const ctx = sheet.getContext('2d')!;
-    ctx.clearRect(0, 0, sheet.width, sheet.height);
-    drawLayers(ctx, textures, layerFiles(C, look));
+    still = !previewAnimates(look);
+    sheet = composeLayers(textures, look, still ? 'front' : 'walk', false);
+    note.hidden = !still;
   };
 
   const drawFrame = () => {

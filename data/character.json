@@ -1,9 +1,7 @@
 {
-  "schemaVersion": 1,
-  "_comment": "Personagem principal personalizável (pacote personagem_principal; importado por scripts/import-character.ts para public/assets/characters/player/). IDs em inglês e estáveis (o save guarda só eles); asset = nome no arquivo do pacote. Camadas 128x256 (quadros 32x64; 4 colunas; linhas baixo, esquerda, direita, cima), empilhadas em layerOrder. Regras: roupa com coversLegs (vestido) não desenha a parte de baixo; cabelo \"none\" não desenha cabelo; um acessório por grupo (óculos, cabeça). poses: trocam corpo e camisa pelos da pose; walks = anda com a pose (bandeja, gato); as outras são paradas (só braços e objeto animam). presets: combinações prontas (exemplos do pacote). actionMs: quanto dura a animação de uma ação parada (varrer segue a vassoura, data/broom).",
+  "schemaVersion": 2,
+  "_comment": "Personagem principal (decisões 077, 083 e 087): o manequim do PixelLab (64 px por tile) com roupa e cabelo em camadas; só pele e cabelo mudam de cor. A jogadora escolhe no Novo jogo: nome, pele, penteado, cor do cabelo e roupa. IDs em inglês e estáveis (o save guarda só eles). eyes, top.colors, bottom, shoes e accessories são do criador antigo: os IDs continuam aqui para saves antigos, mas não têm efeito. Folhas montadas por npm run mannequin (scripts/import-mannequin.ts). poses: ritmo de cada pose do jogo (walks = anda com ela; actionMs = quanto dura a ação parada).",
   "sheet": {
-    "frameWidth": 32,
-    "frameHeight": 64,
     "columns": 4,
     "rows": [
       "down",
@@ -12,222 +10,262 @@
       "up"
     ]
   },
-  "basePath": "assets/characters/player",
   "mannequin": {
-    "_comment": "Manequim do PixelLab (arte em 64 px por tile): enquanto existir, a jogadora é desenhada com estas folhas no lugar das camadas do criador (o save continua guardando a aparência escolhida). Folhas montadas por scripts/import-mannequin.ts (npm run mannequin) em quadros frameWidth x frameHeight na escala resolution; 4 colunas; linhas baixo, esquerda, direita, cima. poses: folha de cada pose do jogo (as ações paradas usam a mesma folha de ação). Sem objetos na mão: bandeja, gato e vassoura são desenhados pelo jogo.",
+    "_comment": "Arquivos em basePath (public/), quadros frameWidth x frameHeight na escala 1/resolution; 4 colunas, linhas baixo, esquerda, direita, cima. outfits e hair: ID do criador (top / hairStyle) -> true = todas as animações de anims; false = só a imagem de frente (o criador mostra; no jogo usa fallback). Arquivos por convenção: outfit_<id>_<anim>.png (+ _mask: canal vermelho 1 = pele), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de pele e de cor do cabelo [matiz, saturação, luz mínima, luz máxima].",
     "basePath": "assets/characters/player_mannequin",
     "resolution": 2,
     "frameWidth": 80,
     "frameHeight": 128,
-    "walk": "mannequin_walk.png",
-    "idle": "mannequin_idle.png",
-    "poses": {
-      "tray": "mannequin_tray.png",
-      "cat": "mannequin_carry.png",
-      "sweep": "mannequin_work.png",
-      "wipe_table": "mannequin_work.png",
-      "operate": "mannequin_work.png",
-      "stir": "mannequin_work.png",
-      "wash": "mannequin_work.png"
+    "anims": [
+      "walk",
+      "idle",
+      "tray",
+      "carry",
+      "work"
+    ],
+    "poseAnim": {
+      "tray": "tray",
+      "cat": "carry",
+      "sweep": "work",
+      "wipe_table": "work",
+      "operate": "work",
+      "stir": "work",
+      "wash": "work"
     },
-    "layers": {
-      "_comment": "Personagem em camadas sobre o manequim (decisão 077): roupa (figura inteira nas cores do desenho, com máscara da pele) + cabelo; só pele e cabelo mudam de cor (decisão 083; troca por código, src/core/recolor.ts). outfits/hair: ID do criador (top / hairStyle) -> true = todas as animações; false = só a imagem de frente (o criador mostra; no jogo usa `fallback`). Arquivos por convenção, montados por npm run mannequin: outfit_<id>_<anim>.png (+ _mask), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de pele e de cor do cabelo [matiz, saturação, luz mínima, luz máxima].",
-      "anims": ["walk", "idle", "tray", "carry", "work"],
-      "poseAnim": { "tray": "tray", "cat": "carry", "sweep": "work", "wipe_table": "work", "operate": "work", "stir": "work", "wash": "work" },
-      "outfits": { "hoodie": true, "dress": true, "collar_shirt": true, "tshirt": true, "blazer": true, "winter_coat": true },
-      "hair": { "long": true, "short": true, "bob": true, "bun": true, "ponytail": true, "afro": true, "curly": true, "short_afro": true, "side_part": true, "quiff": true },
-      "fallback": { "outfit": "hoodie", "hair": "long" },
-      "ramps": {
-        "skin": {
-          "light": [22, 0.6, 0.58, 0.92],
-          "tan": [24, 0.55, 0.42, 0.8],
-          "brown": [22, 0.48, 0.28, 0.65],
-          "dark": [20, 0.42, 0.14, 0.48]
-        },
-        "hair": {
-          "black": [220, 0.12, 0.05, 0.3],
-          "dark_brown": [20, 0.35, 0.1, 0.4],
-          "brown": [25, 0.45, 0.2, 0.58],
-          "blond": [42, 0.7, 0.4, 0.85],
-          "red": [12, 0.7, 0.22, 0.6],
-          "gray": [0, 0, 0.35, 0.85],
-          "pink": [330, 0.6, 0.4, 0.82],
-          "blue": [215, 0.55, 0.25, 0.7]
-        }
+    "outfits": {
+      "hoodie": true,
+      "dress": true,
+      "collar_shirt": true,
+      "tshirt": true,
+      "blazer": true,
+      "winter_coat": true
+    },
+    "hair": {
+      "long": true,
+      "short": true,
+      "bob": true,
+      "bun": true,
+      "ponytail": true,
+      "afro": true,
+      "curly": true,
+      "short_afro": true,
+      "side_part": true,
+      "quiff": true
+    },
+    "fallback": {
+      "outfit": "hoodie",
+      "hair": "long"
+    },
+    "ramps": {
+      "skin": {
+        "light": [
+          22,
+          0.6,
+          0.58,
+          0.92
+        ],
+        "tan": [
+          24,
+          0.55,
+          0.42,
+          0.8
+        ],
+        "brown": [
+          22,
+          0.48,
+          0.28,
+          0.65
+        ],
+        "dark": [
+          20,
+          0.42,
+          0.14,
+          0.48
+        ]
+      },
+      "hair": {
+        "black": [
+          220,
+          0.12,
+          0.05,
+          0.3
+        ],
+        "dark_brown": [
+          20,
+          0.35,
+          0.1,
+          0.4
+        ],
+        "brown": [
+          25,
+          0.45,
+          0.2,
+          0.58
+        ],
+        "blond": [
+          42,
+          0.7,
+          0.4,
+          0.85
+        ],
+        "red": [
+          12,
+          0.7,
+          0.22,
+          0.6
+        ],
+        "gray": [
+          0,
+          0,
+          0.35,
+          0.85
+        ],
+        "pink": [
+          330,
+          0.6,
+          0.4,
+          0.82
+        ],
+        "blue": [
+          215,
+          0.55,
+          0.25,
+          0.7
+        ]
       }
     }
   },
-  "layerOrder": [
-    "body",
-    "eyes",
-    "shoes",
-    "bottom",
-    "top",
-    "hair",
-    "accessory"
-  ],
   "skins": [
     {
       "id": "pale",
-      "name": "Pálida",
-      "asset": "palida"
+      "name": "Pálida"
     },
     {
       "id": "light",
-      "name": "Clara",
-      "asset": "clara"
+      "name": "Clara"
     },
     {
       "id": "tan",
-      "name": "Morena",
-      "asset": "morena"
+      "name": "Morena"
     },
     {
       "id": "brown",
-      "name": "Parda",
-      "asset": "parda"
+      "name": "Parda"
     },
     {
       "id": "dark",
-      "name": "Negra",
-      "asset": "negra"
+      "name": "Negra"
     },
     {
       "id": "east_asian",
-      "name": "Asiática",
-      "asset": "asiatica"
+      "name": "Asiática"
     }
   ],
   "eyes": [
     {
       "id": "brown",
-      "name": "Castanhos",
-      "asset": "castanho"
+      "name": "Castanhos"
     },
     {
       "id": "black",
-      "name": "Pretos",
-      "asset": "preto"
+      "name": "Pretos"
     },
     {
       "id": "blue",
-      "name": "Azuis",
-      "asset": "azul"
+      "name": "Azuis"
     },
     {
       "id": "green",
-      "name": "Verdes",
-      "asset": "verde"
+      "name": "Verdes"
     },
     {
       "id": "hazel",
-      "name": "Mel",
-      "asset": "mel"
+      "name": "Mel"
     }
   ],
   "hair": {
     "styles": [
       {
         "id": "none",
-        "name": "Sem cabelo",
-        "asset": ""
+        "name": "Sem cabelo"
       },
       {
         "id": "short",
-        "name": "Curto",
-        "asset": "curto"
+        "name": "Curto"
       },
       {
         "id": "bob",
-        "name": "Chanel",
-        "asset": "chanel"
+        "name": "Chanel"
       },
       {
         "id": "long",
-        "name": "Longo",
-        "asset": "longo"
+        "name": "Longo"
       },
       {
         "id": "bun",
-        "name": "Coque",
-        "asset": "coque"
+        "name": "Coque"
       },
       {
         "id": "ponytail",
-        "name": "Rabo de cavalo",
-        "asset": "rabo"
+        "name": "Rabo de cavalo"
       },
       {
         "id": "afro",
-        "name": "Afro",
-        "asset": "afro"
+        "name": "Afro"
       },
       {
         "id": "curly",
-        "name": "Cacheado",
-        "asset": "cacheado"
+        "name": "Cacheado"
       },
       {
         "id": "braids",
-        "name": "Tranças",
-        "asset": "trancas"
+        "name": "Tranças"
       },
       {
         "id": "short_afro",
-        "name": "Afro curto",
-        "asset": ""
+        "name": "Afro curto"
       },
       {
         "id": "side_part",
-        "name": "Social",
-        "asset": ""
+        "name": "Social"
       },
       {
         "id": "quiff",
-        "name": "Topete",
-        "asset": ""
+        "name": "Topete"
       }
     ],
     "colors": [
       {
         "id": "black",
-        "name": "Preto",
-        "asset": "preto"
+        "name": "Preto"
       },
       {
         "id": "dark_brown",
-        "name": "Castanho-escuro",
-        "asset": "castanho_escuro"
+        "name": "Castanho-escuro"
       },
       {
         "id": "brown",
-        "name": "Castanho",
-        "asset": "castanho"
+        "name": "Castanho"
       },
       {
         "id": "blond",
-        "name": "Loiro",
-        "asset": "loiro"
+        "name": "Loiro"
       },
       {
         "id": "red",
-        "name": "Ruivo",
-        "asset": "ruivo"
+        "name": "Ruivo"
       },
       {
         "id": "gray",
-        "name": "Grisalho",
-        "asset": "grisalho"
+        "name": "Grisalho"
       },
       {
         "id": "pink",
-        "name": "Rosa",
-        "asset": "rosa"
+        "name": "Rosa"
       },
       {
         "id": "blue",
-        "name": "Azul",
-        "asset": "azul"
+        "name": "Azul"
       }
     ]
   },
@@ -235,91 +273,73 @@
     "styles": [
       {
         "id": "tshirt",
-        "name": "Camiseta",
-        "asset": "camiseta"
+        "name": "Camiseta"
       },
       {
         "id": "long_sleeve",
-        "name": "Manga longa",
-        "asset": "manga_longa"
+        "name": "Manga longa"
       },
       {
         "id": "hoodie",
-        "name": "Moletom",
-        "asset": "moletom"
+        "name": "Moletom"
       },
       {
         "id": "tank",
-        "name": "Regata",
-        "asset": "regata"
+        "name": "Regata"
       },
       {
         "id": "collar_shirt",
-        "name": "Camisa de gola",
-        "asset": "camisa_gola"
+        "name": "Camisa de gola"
       },
       {
         "id": "dress",
-        "name": "Vestido",
-        "asset": "vestido",
-        "coversLegs": true
+        "name": "Vestido"
       },
       {
         "id": "apron",
-        "name": "Avental do café",
-        "asset": "avental"
+        "name": "Avental do café"
       },
       {
         "id": "blazer",
-        "name": "Blazer",
-        "asset": ""
+        "name": "Blazer"
       },
       {
         "id": "winter_coat",
-        "name": "Casaco de inverno",
-        "asset": ""
+        "name": "Casaco de inverno"
       }
     ],
     "colors": [
       {
         "id": "pink",
-        "name": "Rosa",
-        "asset": "rosa"
+        "name": "Rosa"
       },
       {
         "id": "red",
-        "name": "Vermelho",
-        "asset": "vermelho"
+        "name": "Vermelho"
       },
       {
         "id": "orange",
-        "name": "Laranja",
-        "asset": "laranja"
+        "name": "Laranja"
       },
       {
         "id": "yellow",
-        "name": "Amarelo",
-        "asset": "amarelo"
+        "name": "Amarelo"
       },
       {
         "id": "green",
-        "name": "Verde",
-        "asset": "verde"
+        "name": "Verde"
       },
       {
         "id": "blue",
-        "name": "Azul",
-        "asset": "azul"
+        "name": "Azul"
       },
       {
         "id": "purple",
-        "name": "Roxo",
-        "asset": "roxo"
+        "name": "Roxo"
       },
       {
         "id": "white",
-        "name": "Branco",
-        "asset": "branco"
+        "name": "Branco"
       }
     ]
   },
@@ -327,50 +347,41 @@
     "styles": [
       {
         "id": "pants",
-        "name": "Calça",
-        "asset": "calca"
+        "name": "Calça"
       },
       {
         "id": "shorts",
-        "name": "Bermuda",
-        "asset": "bermuda"
+        "name": "Bermuda"
       },
       {
         "id": "skirt",
-        "name": "Saia",
-        "asset": "saia"
+        "name": "Saia"
       }
     ],
     "colors": [
       {
         "id": "jeans",
-        "name": "Jeans",
-        "asset": "jeans"
+        "name": "Jeans"
       },
       {
         "id": "black",
-        "name": "Preto",
-        "asset": "preto"
+        "name": "Preto"
       },
       {
         "id": "gray",
-        "name": "Cinza",
-        "asset": "cinza"
+        "name": "Cinza"
       },
       {
         "id": "beige",
-        "name": "Bege",
-        "asset": "bege"
+        "name": "Bege"
       },
       {
         "id": "green",
-        "name": "Verde",
-        "asset": "verde"
+        "name": "Verde"
       },
       {
         "id": "pink",
-        "name": "Rosa",
-        "asset": "rosa"
+        "name": "Rosa"
       }
     ]
   },
@@ -378,40 +389,33 @@
     "styles": [
       {
         "id": "sneakers",
-        "name": "Tênis",
-        "asset": "tenis"
+        "name": "Tênis"
       },
       {
         "id": "boots",
-        "name": "Botinha",
-        "asset": "botinha"
+        "name": "Botinha"
       }
     ],
     "colors": [
       {
         "id": "white",
-        "name": "Branco",
-        "asset": "branco"
+        "name": "Branco"
       },
       {
         "id": "black",
-        "name": "Preto",
-        "asset": "preto"
+        "name": "Preto"
       },
       {
         "id": "red",
-        "name": "Vermelho",
-        "asset": "vermelho"
+        "name": "Vermelho"
       },
       {
         "id": "brown",
-        "name": "Marrom",
-        "asset": "marrom"
+        "name": "Marrom"
       },
       {
         "id": "pink",
-        "name": "Rosa",
-        "asset": "rosa"
+        "name": "Rosa"
       }
     ]
   },
@@ -419,149 +423,105 @@
     "glasses": [
       {
         "id": "none",
-        "name": "Sem óculos",
-        "asset": ""
+        "name": "Sem óculos"
       },
       {
         "id": "round",
-        "name": "Óculos redondo",
-        "asset": "oculos_redondo"
+        "name": "Óculos redondo"
       },
       {
         "id": "square",
-        "name": "Óculos quadrado",
-        "asset": "oculos_quadrado"
+        "name": "Óculos quadrado"
       }
     ],
     "head": [
       {
         "id": "none",
-        "name": "Nada",
-        "asset": ""
+        "name": "Nada"
       },
       {
         "id": "cap_blue",
-        "name": "Boné azul",
-        "asset": "bone_azul"
+        "name": "Boné azul"
       },
       {
         "id": "cap_red",
-        "name": "Boné vermelho",
-        "asset": "bone_vermelho"
+        "name": "Boné vermelho"
       },
       {
         "id": "cap_black",
-        "name": "Boné preto",
-        "asset": "bone_preto"
+        "name": "Boné preto"
       },
       {
         "id": "cap_pink",
-        "name": "Boné rosa",
-        "asset": "bone_rosa"
+        "name": "Boné rosa"
       },
       {
         "id": "bandana_red",
-        "name": "Bandana vermelha",
-        "asset": "bandana_vermelha"
+        "name": "Bandana vermelha"
       },
       {
         "id": "bandana_blue",
-        "name": "Bandana azul",
-        "asset": "bandana_azul"
+        "name": "Bandana azul"
       },
       {
         "id": "bandana_yellow",
-        "name": "Bandana amarela",
-        "asset": "bandana_amarela"
+        "name": "Bandana amarela"
       },
       {
         "id": "bow_pink",
-        "name": "Laço rosa",
-        "asset": "laco_rosa"
+        "name": "Laço rosa"
       },
       {
         "id": "bow_red",
-        "name": "Laço vermelho",
-        "asset": "laco_vermelho"
+        "name": "Laço vermelho"
       },
       {
         "id": "bow_lilac",
-        "name": "Laço lilás",
-        "asset": "laco_lilas"
+        "name": "Laço lilás"
       },
       {
         "id": "straw_hat",
-        "name": "Chapéu de palha",
-        "asset": "chapeu_palha"
+        "name": "Chapéu de palha"
       },
       {
         "id": "flower",
-        "name": "Flor",
-        "asset": "flor"
+        "name": "Flor"
       }
     ]
   },
   "poses": {
     "tray": {
-      "asset": "bandeja",
       "walks": true,
-      "fps": 8,
-      "back": "bandeja",
-      "front": "bandeja"
+      "fps": 8
     },
     "cat": {
-      "asset": "gato",
       "walks": true,
-      "fps": 7,
-      "catProp": true
+      "fps": 7
     },
     "sweep": {
-      "asset": "varrer",
       "walks": false,
-      "fps": 6,
-      "back": "varrer",
-      "front": "varrer"
+      "fps": 6
     },
     "wipe_table": {
-      "asset": "limpar_mesa",
       "walks": false,
       "fps": 8,
-      "front": "limpar_mesa",
       "actionMs": 900
     },
     "operate": {
-      "asset": "operar",
       "walks": false,
       "fps": 5,
       "actionMs": 900
     },
     "stir": {
-      "asset": "mexer",
       "walks": false,
       "fps": 6,
-      "front": "mexer",
       "actionMs": 1100
     },
     "wash": {
-      "asset": "lavar",
       "walks": false,
       "fps": 6,
-      "front": "lavar",
       "actionMs": 1200
     }
-  },
-  "catProp": {
-    "colors": [
-      "laranja",
-      "cinza",
-      "preto",
-      "branco"
-    ],
-    "byVariant": {
-      "pebble": "cinza",
-      "marmalade": "laranja"
-    },
-    "fallback": "laranja"
   },
   "default": {
     "skin": "light",
@@ -584,69 +544,83 @@
       "hairStyle": "long",
       "hairColor": "brown",
       "top": "hoodie",
-      "topColor": "pink",
+      "topColor": "red",
       "bottom": "pants",
       "bottomColor": "jeans",
       "shoes": "sneakers",
       "shoesColor": "white",
       "glasses": "none",
-      "head": "bow_pink"
+      "head": "none"
     },
     {
       "skin": "dark",
-      "eyes": "black",
+      "eyes": "brown",
       "hairStyle": "afro",
       "hairColor": "black",
       "top": "dress",
-      "topColor": "yellow",
-      "bottom": "skirt",
-      "bottomColor": "jeans",
-      "shoes": "sneakers",
-      "shoesColor": "red",
-      "glasses": "none",
-      "head": "flower"
-    },
-    {
-      "skin": "tan",
-      "eyes": "hazel",
-      "hairStyle": "curly",
-      "hairColor": "dark_brown",
-      "top": "apron",
       "topColor": "red",
       "bottom": "pants",
-      "bottomColor": "black",
-      "shoes": "boots",
-      "shoesColor": "brown",
-      "glasses": "none",
-      "head": "none"
-    },
-    {
-      "skin": "east_asian",
-      "eyes": "black",
-      "hairStyle": "bob",
-      "hairColor": "black",
-      "top": "collar_shirt",
-      "topColor": "white",
-      "bottom": "skirt",
-      "bottomColor": "gray",
-      "shoes": "sneakers",
-      "shoesColor": "black",
-      "glasses": "round",
-      "head": "none"
-    },
-    {
-      "skin": "pale",
-      "eyes": "blue",
-      "hairStyle": "ponytail",
-      "hairColor": "red",
-      "top": "tshirt",
-      "topColor": "green",
-      "bottom": "shorts",
-      "bottomColor": "beige",
+      "bottomColor": "jeans",
       "shoes": "sneakers",
       "shoesColor": "white",
       "glasses": "none",
-      "head": "cap_blue"
+      "head": "none"
+    },
+    {
+      "skin": "tan",
+      "eyes": "brown",
+      "hairStyle": "side_part",
+      "hairColor": "dark_brown",
+      "top": "collar_shirt",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "none"
+    },
+    {
+      "skin": "brown",
+      "eyes": "brown",
+      "hairStyle": "bun",
+      "hairColor": "red",
+      "top": "blazer",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "none"
+    },
+    {
+      "skin": "light",
+      "eyes": "brown",
+      "hairStyle": "quiff",
+      "hairColor": "blond",
+      "top": "tshirt",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "none"
+    },
+    {
+      "skin": "dark",
+      "eyes": "brown",
+      "hairStyle": "curly",
+      "hairColor": "dark_brown",
+      "top": "winter_coat",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "jeans",
+      "shoes": "sneakers",
+      "shoesColor": "white",
+      "glasses": "none",
+      "head": "none"
     }
   ]
 }

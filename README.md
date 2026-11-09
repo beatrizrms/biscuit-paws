@@ -15,7 +15,6 @@ A arte é licenciada e **não vai para o Git** (veja `docs/ART_AND_LICENSE.md`).
 | pacotes `ui_menus`, `inauguracao` e `audio` (zips) | `assets/_originais_pacotes/<pacote>/`, depois rode `npm run ui-audio` |
 | pacote `rua_estacoes_tilesets` | `assets/_originais_pacotes/rua_estacoes_tilesets/`, depois rode `npm run seasons` |
 | pacote `quintal_secreto` (zip) | `assets/_originais_pacotes/quintal_secreto/`, depois rode `npm run backyard` |
-| pacote `personagem_principal` (zip) | `assets/_originais_pacotes/personagem_principal/`, depois rode `npm run character` (copia para `public/assets/characters/player/` e confere os arquivos) |
 
 ## Comandos
 
@@ -26,7 +25,7 @@ npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda s
 npm run art:placeholders  # arte provisória desenhada por código (caixa de areia, cocô); roda sozinho no dev
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
-npm run mannequin   # monta as folhas do manequim da personagem (PixelLab, 64 px) em public/assets/characters/player_mannequin
+npm run mannequin   # monta as peças da personagem (manequim, roupas e cabelos do PixelLab, 64 px) em public/assets/characters/player_mannequin
 npm run npcs        # monta as folhas dos NPCs na arte nova (Gabi, Corretora, Dona Neusa, Entregadora) em public/assets/characters/npcs/v64
 npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
@@ -110,9 +109,7 @@ O formato está em `docs/DATA_CONTRACTS.md`. Rode `npm run check`: ele acusa ref
 ### Ajustar a personagem
 `data/player.json`: velocidade, quadros por segundo e tamanho da caixa dos pés.
 
-**Hoje a personagem aparece como o manequim do PixelLab** (careca, de roupa íntima, arte em 64 px; decisão 075), para ver as poses no jogo: caminhada, bandeja e colo andando, e uma ação parada que vale para varrer, lavar, mexer e operar. As folhas vêm de `npm run mannequin` (`assets/_pixellab/personagens/protagonista/manequim` -> `public/assets/characters/player_mannequin/`). O criador continua no Novo jogo e o save guarda a escolha, mas ela não aparece enquanto existir o bloco `mannequin` em `data/character.json` (apague o bloco para voltar às camadas do criador). Bandeja, gato no colo e vassoura são desenhados pelo jogo por cima.
-
-**Criador com o manequim em camadas (teste, decisões 077 e 083):** no Novo jogo, "Sua personagem" mostra o manequim com roupa e cabelo por cima: pele, cabelo (longo, chanel, coque, rabo de cavalo, cacheado, afro, curto, afro curto, social, topete ou sem cabelo), cor do cabelo e roupa (moletom, camiseta, camisa de gola, vestido, blazer, casaco de inverno). As roupas ficam sempre nas cores do desenho; só pele e cabelo mudam de cor (por código). Peças sem todas as animações aparecem paradas, de frente, com um aviso, e no jogo a personagem usa o moletom e o cabelo longo com a pele e a cor do cabelo escolhidas. O save não mudou. As camadas saem de `npm run mannequin`.
+**A personagem** é o manequim do PixelLab (arte em 64 px) com roupa e cabelo em camadas (decisões 077, 083 e 087). No Novo jogo, "Sua personagem" escolhe nome, pronome, pele (clara, morena, parda, negra), penteado (longo, chanel, coque, rabo de cavalo, cacheado, afro, curto, afro curto, social, topete ou sem cabelo), cor do cabelo e roupa (moletom, camiseta, camisa de gola, vestido, blazer, casaco de inverno). As roupas ficam nas cores do desenho; pele e cabelo mudam de cor por código. Todas as peças andam e fazem as poses (bandeja, colo, ação); bandeja, gato e vassoura são desenhados pelo jogo. As peças saem de `npm run mannequin`.
 
 ## Como o código está organizado
 

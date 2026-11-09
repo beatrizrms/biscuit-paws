@@ -83,9 +83,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!this.acting) this.idle();
   }
 
-  /** Pose de carregar, que anda junto: bandeja, gato no colo (na cor do gato) ou nenhuma. */
-  setCarryPose(pose: Extract<Pose, 'tray' | 'cat'> | null, catColor?: string): void {
-    const look = pose ? poseTexture(pose, catColor) : PLAYER_TEXTURE;
+  /** Pose de carregar, que anda junto: bandeja, gato no colo (o gato é desenhado pelo jogo) ou nenhuma. */
+  setCarryPose(pose: Extract<Pose, 'tray' | 'cat'> | null): void {
+    const look = pose ? poseTexture(pose) : PLAYER_TEXTURE;
     if (look === this.look || !this.scene.textures.exists(look)) return;
     this.look = look;
     if (this.acting) return;

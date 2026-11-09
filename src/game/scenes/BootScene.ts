@@ -10,7 +10,7 @@ import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
 import { sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
-import { preloadWalkLayers } from '../playerLook';
+import { preloadCreatorLayers } from '../playerLook';
 
 /**
  * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
@@ -66,8 +66,8 @@ export class BootScene extends Phaser.Scene {
       }
     }
     this.load.image('van_right', content.delivery.van.right);
-    // Personagem: as camadas da caminhada (o criador mostra qualquer combinação; as poses vêm ao começar o jogo).
-    preloadWalkLayers(this.load);
+    // Personagem: a frente de toda peça e a caminhada das completas (o criador mostra qualquer combinação; as poses vêm ao começar o jogo).
+    preloadCreatorLayers(this.load);
   }
 
   async create(): Promise<void> {
