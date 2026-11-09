@@ -1427,7 +1427,7 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
 {
   const dir = 'public/assets/minigames/delivery';
   mkdirSync(dir, { recursive: true });
-  writeFileSync(`${dir}/obstacle_bike.png`, PNG.sync.write(readPng(`${SRC}/provisorios/ciclista_opcoes/opcao_1.png`)));
+  writeFileSync(`${dir}/obstacle_bike.png`, PNG.sync.write(readPng(`${SRC}/provisorios/ciclista_opcoes/estilo_npc.png`)));
   writeFileSync(`${dir}/goal_door.png`, PNG.sync.write(readPng(`${SRC}/lote01/door64x128.png`)));
   console.log(`${dir}: bicicleta e porta`);
 }
