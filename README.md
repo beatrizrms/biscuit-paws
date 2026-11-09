@@ -109,6 +109,8 @@ O formato está em `docs/DATA_CONTRACTS.md`. Rode `npm run check`: ele acusa ref
 
 **Hoje a personagem aparece como o manequim do PixelLab** (careca, de roupa íntima, arte em 64 px; decisão 075), para ver as poses no jogo: caminhada, bandeja e colo andando, e uma ação parada que vale para varrer, lavar, mexer e operar. As folhas vêm de `npm run mannequin` (`assets/_pixellab/personagens/protagonista/manequim` -> `public/assets/characters/player_mannequin/`). O criador continua no Novo jogo e o save guarda a escolha, mas ela não aparece enquanto existir o bloco `mannequin` em `data/character.json` (apague o bloco para voltar às camadas do criador). Bandeja, gato no colo e vassoura são desenhados pelo jogo por cima.
 
+**Criador com o manequim em camadas (teste, decisão 077):** no Novo jogo, "Sua personagem" mostra o manequim com roupa e cabelo por cima e as cores trocadas por código: pele, cabelo (longo, curto, coque, afro, cacheado ou sem cabelo), cor do cabelo, roupa (moletom, camisa de gola, vestido, camiseta), cor da roupa e cor da parte de baixo. Só o moletom e o cabelo longo têm todas as animações; as outras peças aparecem paradas, de frente, com um aviso, e no jogo a personagem usa o moletom e o cabelo longo nas cores escolhidas. O save não mudou (as escolhas são os mesmos IDs do criador). As camadas saem de `npm run mannequin`.
+
 ## Como o código está organizado
 
 ```

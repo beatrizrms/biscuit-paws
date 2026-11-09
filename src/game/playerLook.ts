@@ -2,7 +2,8 @@
 // no mesmo formato da caminhada (quadros 32x64; 4 colunas; linhas baixo, esquerda, direita, cima).
 // As regras (quais arquivos, em que ordem) moram em src/core/appearance.ts.
 import Phaser from 'phaser';
-import { allFilesFor, allWalkFiles, layerFiles, POSES, type Appearance, type LayerFile, type Pose } from '../core/appearance';
+import { allFilesFor, allWalkFiles, layerFiles, layerPieces, layerRamps, POSES, type Appearance, type LayerFile, type MannequinLayers, type Pose } from '../core/appearance';
+import { lightRanges, recolor } from '../core/recolor';
 import { content } from './content';
 
 const C = content.character;
@@ -26,7 +27,131 @@ export function allPoseTextures(): { key: string; pose: Pose }[] {
 
 /** No Boot: as camadas da caminhada de todas as combinações (o criador mostra qualquer uma). */
 export function preloadWalkLayers(load: Phaser.Loader.LoaderPlugin): void {
+  const L = C.mannequin?.layers;
+  if (L) {
+    // Manequim em camadas: o criador usa a imagem de frente de toda peça e a caminhada das completas.
+    for (const f of creatorLayerFiles(L)) load.image(mqKey(f), mqUrl(f));
+    return;
+  }
   for (const f of allWalkFiles(C)) load.image(layerKey(f), layerUrl(f));
+}
+
+// ---- Manequim em camadas (decisão 077): roupa (figura inteira + máscara de regiões) e cabelo, nas cores escolhidas.
+
+/** Chave e endereço de um arquivo das camadas do manequim. */
+const mqKey = (file: string) => `mq:${file}`;
+const mqUrl = (file: string) => `${C.mannequin!.basePath}/${file}`;
+const outfitFile = (id: string, anim: string) => `outfit_${id}_${anim}.png`;
+const maskFile = (id: string, anim: string) => `outfit_${id}_${anim}_mask.png`;
+const hairFile = (id: string, anim: string) => `hair_${id}_${anim}.png`;
+
+/** O que o criador precisa: a frente de toda peça (+ máscara) e a caminhada das completas. */
+function creatorLayerFiles(L: MannequinLayers): string[] {
+  const files: string[] = [];
+  for (const [id, full] of Object.entries(L.outfits)) files.push(outfitFile(id, 'front'), maskFile(id, 'front'), ...(full ? [outfitFile(id, 'walk'), maskFile(id, 'walk')] : []));
+  for (const [id, full] of Object.entries(L.hair)) files.push(hairFile(id, 'front'), ...(full ? [hairFile(id, 'walk')] : []));
+  return files;
+}
+
+/** Imagem já carregada (ou null se o arquivo faltou). */
+function sourceOf(textures: Phaser.Textures.TextureManager, file: string): CanvasImageSource | null {
+  const key = mqKey(file);
+  return textures.exists(key) ? (textures.get(key).getSourceImage() as CanvasImageSource) : null;
+}
+
+/** Desenha uma imagem num canvas novo e devolve os pixels. */
+function pixelsOf(img: CanvasImageSource, w: number, h: number): { canvas: HTMLCanvasElement; data: ImageData } {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  ctx.drawImage(img, 0, 0);
+  return { canvas, data: ctx.getImageData(0, 0, w, h) };
+}
+
+/**
+ * Junta roupa e cabelo de uma animação (ou "front", a prévia de frente) nas cores da aparência.
+ * `inGame`: usa as peças que o jogo anima (a de reserva quando a escolhida só tem a frente).
+ * A faixa de luz de cada região vem da imagem de frente da peça: a mesma cor em todas as folhas.
+ */
+export function composeLayers(textures: Phaser.Textures.TextureManager, a: Appearance, anim: string, inGame: boolean): HTMLCanvasElement {
+  const m = C.mannequin!;
+  const L = m.layers!;
+  const p = layerPieces(L, a);
+  const outfit = inGame ? p.outfitInGame : p.outfit;
+  const hair = inGame ? p.hairInGame : p.hair;
+  const ramps = layerRamps(L, a);
+  const w = anim === 'front' ? m.frameWidth : m.frameWidth * C.sheet.columns;
+  const h = anim === 'front' ? m.frameHeight : m.frameHeight * C.sheet.rows.length;
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const ctx = out.getContext('2d')!;
+  const piece = (file: string, mask: string | null, front: string, frontMask: string | null) => {
+    const img = sourceOf(textures, file);
+    if (!img) return;
+    const px = pixelsOf(img, w, h);
+    const mk = mask ? sourceOf(textures, mask) : null;
+    const mkData = mk ? pixelsOf(mk, w, h).data.data : null;
+    const fImg = sourceOf(textures, front);
+    const fMk = frontMask ? sourceOf(textures, frontMask) : null;
+    const ranges = fImg ? lightRanges(pixelsOf(fImg, m.frameWidth, m.frameHeight).data.data, fMk ? pixelsOf(fMk, m.frameWidth, m.frameHeight).data.data : null) : undefined;
+    recolor(px.data.data, mask ? mkData : null, ramps, ranges);
+    px.canvas.getContext('2d')!.putImageData(px.data, 0, 0);
+    ctx.drawImage(px.canvas, 0, 0);
+  };
+  piece(outfitFile(outfit, anim), maskFile(outfit, anim), outfitFile(outfit, 'front'), maskFile(outfit, 'front'));
+  if (hair) piece(hairFile(hair, anim), null, hairFile(hair, 'front'), null);
+  return out;
+}
+
+/** A prévia do criador anda e gira? Só quando roupa e cabelo escolhidos têm todas as animações. */
+export function previewAnimates(a: Appearance): boolean {
+  const p = layerPieces(C.mannequin!.layers!, a);
+  return p.outfit === p.outfitInGame && p.hair === p.hairInGame;
+}
+
+/** Carrega os arquivos que faltam das camadas. Arquivo que falha fica de fora. */
+function loadMq(scene: Phaser.Scene, files: string[]): Promise<void> {
+  const missing = files.filter((f) => !scene.textures.exists(mqKey(f)));
+  if (missing.length === 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    for (const f of missing) scene.load.image(mqKey(f), mqUrl(f));
+    scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+    scene.load.start();
+  });
+}
+
+/** Folha do jogo (quadros numerados) a partir de um canvas montado. */
+function sheetFromCanvas(textures: Phaser.Textures.TextureManager, key: string, canvas: HTMLCanvasElement): void {
+  const m = C.mannequin!;
+  if (textures.exists(key)) textures.remove(key);
+  // Cada textura com o seu canvas: várias poses usam a mesma animação, e apagar uma textura apaga o canvas dela.
+  const copy = document.createElement('canvas');
+  copy.width = canvas.width;
+  copy.height = canvas.height;
+  copy.getContext('2d')!.drawImage(canvas, 0, 0);
+  const tex = textures.addCanvas(key, copy)!;
+  const { columns, rows } = C.sheet;
+  for (let i = 0; i < columns * rows.length; i++) tex.add(i, 0, (i % columns) * m.frameWidth, Math.floor(i / columns) * m.frameHeight, m.frameWidth, m.frameHeight);
+}
+
+/** Monta caminhada, parada e poses com as camadas da aparência. */
+async function buildLayered(scene: Phaser.Scene, a: Appearance): Promise<void> {
+  const L = C.mannequin!.layers!;
+  const p = layerPieces(L, a);
+  const files = [outfitFile(p.outfitInGame, 'front'), maskFile(p.outfitInGame, 'front')];
+  for (const anim of L.anims) files.push(outfitFile(p.outfitInGame, anim), maskFile(p.outfitInGame, anim));
+  if (p.hairInGame) {
+    files.push(hairFile(p.hairInGame, 'front'));
+    for (const anim of L.anims) files.push(hairFile(p.hairInGame, anim));
+  }
+  await loadMq(scene, files);
+  const sheets = new Map<string, HTMLCanvasElement>();
+  const sheet = (anim: string) => sheets.get(anim) ?? sheets.set(anim, composeLayers(scene.textures, a, anim, true)).get(anim)!;
+  sheetFromCanvas(scene.textures, PLAYER_TEXTURE, sheet('walk'));
+  sheetFromCanvas(scene.textures, PLAYER_IDLE_TEXTURE, sheet('idle'));
+  for (const { key, pose } of allPoseTextures()) sheetFromCanvas(scene.textures, key, sheet(L.poseAnim[pose]));
 }
 
 /** Carrega as camadas que ainda faltam (ex.: as poses da aparência escolhida). Arquivo que falha fica de fora. */
@@ -91,6 +216,7 @@ function loadMannequin(scene: Phaser.Scene): Promise<void> {
 
 /** Monta a caminhada e todas as poses da aparência (antes de abrir o mundo). */
 export async function buildPlayerTextures(scene: Phaser.Scene, a: Appearance): Promise<void> {
+  if (C.mannequin?.layers) return buildLayered(scene, a);
   if (C.mannequin) return loadMannequin(scene);
   await loadLayers(scene, allFilesFor(C, a));
   composeSheet(scene.textures, PLAYER_TEXTURE, layerFiles(C, a));

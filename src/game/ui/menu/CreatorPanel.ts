@@ -2,12 +2,12 @@
 // Mouse, toque e teclado (setas para cima/baixo trocam de linha; para os lados trocam a opção).
 // As regras (opções, vestido sem parte de baixo, sorteio) moram em src/core/appearance.ts.
 import type Phaser from 'phaser';
-import { cleanPlayerName, cycle, hidesBottom, isBald, layerFiles, optionsFor, randomAppearance, type Appearance } from '../../../core/appearance';
+import { cleanPlayerName, creatorOptions, cycle, hidesBottom, isBald, LAYER_KEYS, layerFiles, randomAppearance, type Appearance } from '../../../core/appearance';
 import { createRng } from '../../../core/rng';
 import type { PlayerState } from '../../../core/state';
 import { content } from '../../content';
 import { t } from '../../i18n';
-import { drawLayers } from '../../playerLook';
+import { composeLayers, drawLayers, previewAnimates } from '../../playerLook';
 import { esc, popLayer, pushLayer, type MenuLayer } from './MenuKit';
 
 const C = content.character;
@@ -15,8 +15,16 @@ const PREVIEW_SCALE = 3;
 const DIRS = ['down', 'left', 'up', 'right'] as const; // ordem de girar
 const ROW_OF: Record<(typeof DIRS)[number], number> = { down: 0, left: 1, right: 2, up: 3 };
 
+/** Manequim em camadas (decisão 077): menos linhas (só o que tem arte ou cor) e prévia na arte de 64 px. */
+const L = C.mannequin?.layers;
+const M = C.mannequin;
+/** Quadro da prévia (pixels da folha) e a escala para a tela (a arte do manequim tem `resolution` pixels por pixel do jogo). */
+const FRAME = L && M ? { w: M.frameWidth, h: M.frameHeight, scale: PREVIEW_SCALE / M.resolution } : { w: C.sheet.frameWidth, h: C.sheet.frameHeight, scale: PREVIEW_SCALE };
+
 /** As linhas da tela, na ordem (t('creator.<key>') é o rótulo). */
-const ROWS: (keyof Appearance)[] = ['skin', 'eyes', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'shoesColor', 'glasses', 'head'];
+const ALL_ROWS: (keyof Appearance)[] = ['skin', 'eyes', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'shoesColor', 'glasses', 'head'];
+const ROWS: readonly (keyof Appearance)[] = L ? LAYER_KEYS : ALL_ROWS;
+const label = (key: keyof Appearance) => t(L && key === 'bottomColor' ? 'creator.bottomColorLayers' : `creator.${key}`);
 
 export interface CreatorHandlers {
   onDone(player: PlayerState): void;
@@ -37,7 +45,8 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
       <h2>${t('creator.title')}</h2>
       <div class="creator-body">
         <div class="creator-preview">
-          <canvas class="frame" width="${C.sheet.frameWidth * PREVIEW_SCALE}" height="${C.sheet.frameHeight * PREVIEW_SCALE}"></canvas>
+          <canvas class="frame${L ? ' mannequin' : ''}" width="${FRAME.w * FRAME.scale}" height="${FRAME.h * FRAME.scale}"></canvas>
+          <p class="creator-note" hidden>${t('creator.previewOnly')}</p>
           <div class="menu-row turn"><button class="menu-btn small" data-act="turn-left" aria-label="${t('creator.turnLeft')}">⟲</button><button class="menu-btn small" data-act="turn-right" aria-label="${t('creator.turnRight')}">⟳</button></div>
           <div class="menu-row"><button class="menu-btn small" data-act="random">${t('creator.random')}</button><button class="menu-btn small" data-act="preset">${t('creator.preset')}</button></div>
         </div>
@@ -51,10 +60,12 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
     </div>`;
   root.appendChild(el);
 
-  // Folha montada fora da página; a prévia mostra um quadro dela.
-  const sheet = document.createElement('canvas');
+  // Folha montada fora da página; a prévia mostra um quadro dela. No manequim em camadas, a peça só de frente vira um quadro parado.
+  let sheet = document.createElement('canvas');
   sheet.width = C.sheet.frameWidth * C.sheet.columns;
   sheet.height = C.sheet.frameHeight * C.sheet.rows.length;
+  let still = false;
+  const note = el.querySelector('.creator-note') as HTMLElement;
   const frame = el.querySelector('canvas.frame') as HTMLCanvasElement;
   const rowsEl = el.querySelector('.creator-rows') as HTMLElement;
   const input = el.querySelector('.creator-name input') as HTMLInputElement;
@@ -70,8 +81,8 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
     const focused = (document.activeElement as HTMLElement | null)?.dataset.cycle;
     rowsEl.innerHTML = ROWS.filter(visible)
       .map((key) => {
-        const opt = optionsFor(C, key).find((o) => o.id === look[key]);
-        return `<div class="creator-row"><span class="label">${t(`creator.${key}`)}</span>
+        const opt = creatorOptions(C, key).find((o) => o.id === look[key]);
+        return `<div class="creator-row"><span class="label">${label(key)}</span>
           <button class="arrow" data-step="-1" data-key="${key}" tabindex="-1" aria-label="${t('creator.prev')}">‹</button>
           <button class="value" data-cycle="${key}">${esc(opt?.name ?? '')}</button>
           <button class="arrow" data-step="1" data-key="${key}" tabindex="-1" aria-label="${t('creator.next')}">›</button></div>`;
@@ -81,6 +92,12 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
   };
 
   const redrawSheet = () => {
+    if (L) {
+      still = !previewAnimates(look);
+      sheet = composeLayers(textures, look, still ? 'front' : 'walk', false);
+      note.hidden = !still;
+      return;
+    }
     const ctx = sheet.getContext('2d')!;
     ctx.clearRect(0, 0, sheet.width, sheet.height);
     drawLayers(ctx, textures, layerFiles(C, look));
@@ -88,10 +105,11 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
 
   const drawFrame = () => {
     const ctx = frame.getContext('2d')!;
-    const { frameWidth: w, frameHeight: h } = C.sheet;
+    const { w, h, scale } = FRAME;
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, frame.width, frame.height);
-    ctx.drawImage(sheet, column * w, ROW_OF[DIRS[dirIndex]!] * h, w, h, 0, 0, w * PREVIEW_SCALE, h * PREVIEW_SCALE);
+    const [col, row] = still ? [0, 0] : [column, ROW_OF[DIRS[dirIndex]!]];
+    ctx.drawImage(sheet, col * w, row * h, w, h, 0, 0, w * scale, h * scale);
   };
 
   const changed = () => {

@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { allFilesFor, cleanPlayerName, cycle, hidesBottom, layerFiles, normalizeAppearance, POSES, randomAppearance, catPropColor, validateCharacter } from '../../src/core/appearance';
+import { allFilesFor, cleanPlayerName, creatorOptions, cycle, hidesBottom, layerFiles, layerPieces, layerRamps, normalizeAppearance, POSES, randomAppearance, catPropColor, validateCharacter } from '../../src/core/appearance';
 import { createRng } from '../../src/core/rng';
+import { REGION } from '../../src/core/recolor';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -121,5 +122,35 @@ describe('aparência: manequim (arte em 64 px)', () => {
     const errors = validateCharacter(bad);
     expect(errors.some((e) => e.includes('"wash"'))).toBe(true);
     expect(errors.some((e) => e.includes('múltiplo de resolution'))).toBe(true);
+  });
+});
+
+describe('aparência: manequim em camadas', () => {
+  const L = C.mannequin!.layers!;
+
+  it('peça só de frente: o criador mostra a escolhida e o jogo usa a de reserva', () => {
+    const p = layerPieces(L, { ...C.default, top: 'dress', hairStyle: 'afro' });
+    expect(p).toEqual({ outfit: 'dress', outfitInGame: L.fallback.outfit, hair: 'afro', hairInGame: L.fallback.hair });
+  });
+
+  it('careca não tem cabelo; roupa sem arte (do criador antigo) vira a de reserva', () => {
+    const p = layerPieces(L, { ...C.default, top: 'apron', hairStyle: 'none' });
+    expect(p.outfit).toBe(L.fallback.outfit);
+    expect(p.hair).toBeNull();
+    expect(p.hairInGame).toBeNull();
+  });
+
+  it('cores: cada região recebe a rampa do ID escolhido', () => {
+    const r = layerRamps(L, { ...C.default, hairColor: 'blond', topColor: 'green' });
+    expect(r[REGION.hair]?.hue).toBe(L.ramps.hair.blond![0]);
+    expect(r[REGION.top]?.light).toEqual([L.ramps.top.green![2], L.ramps.top.green![3]]);
+  });
+
+  it('o criador só oferece peças com arte e cores com rampa', () => {
+    expect(creatorOptions(C, 'top').map((o) => o.id).sort()).toEqual(Object.keys(L.outfits).sort());
+    expect(creatorOptions(C, 'hairStyle').map((o) => o.id)).toContain('none');
+    for (const o of creatorOptions(C, 'hairColor')) expect(L.ramps.hair[o.id]).toBeDefined();
+    const random = randomAppearance(C, createRng(7));
+    expect(Object.keys(L.outfits)).toContain(random.top);
   });
 });

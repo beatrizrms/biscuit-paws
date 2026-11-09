@@ -1,5 +1,6 @@
 // Aparência da personagem principal: o que a jogadora escolhe no início do jogo e quais camadas
 // (arquivos do pacote personagem_principal) desenhar, normal ou numa pose. Puro: sem Phaser, DOM ou window.
+import { REGION, type Ramp } from './recolor';
 import type { Rng } from './rng';
 
 export interface CharacterOption {
@@ -66,6 +67,79 @@ export interface MannequinData {
   poses: Record<Pose, string>;
   /** Folha da pose parada (em pé, pernas juntas; mesmo formato da caminhada). Sem ela, parada = 1º quadro da caminhada. */
   idle?: string;
+  /** Roupa e cabelo em camadas, nas cores escolhidas (decisão 077). Sem isso, o jogo usa as folhas acima. */
+  layers?: MannequinLayers;
+}
+
+/** [matiz, saturação, luz mínima, luz máxima] de um ID de cor. */
+export type RampDef = [number, number, number, number];
+
+export interface MannequinLayers {
+  _comment?: string;
+  /** Animações de cada peça completa (outfit_<id>_<anim>.png...). */
+  anims: string[];
+  /** Animação de cada pose do jogo. */
+  poseAnim: Record<Pose, string>;
+  /** ID da roupa (top do criador) -> tem todas as animações (true) ou só a prévia de frente (false). */
+  outfits: Record<string, boolean>;
+  /** ID do penteado -> idem. "none" (careca) não precisa estar aqui. */
+  hair: Record<string, boolean>;
+  /** Peça completa usada no jogo no lugar de uma que só tem a prévia. */
+  fallback: { outfit: string; hair: string };
+  ramps: { skin: Record<string, RampDef>; hair: Record<string, RampDef>; top: Record<string, RampDef>; bottom: Record<string, RampDef> };
+}
+
+/** As peças das camadas para uma aparência: a que o criador mostra e a que o jogo anima. */
+export interface LayerPieces {
+  outfit: string;
+  /** Roupa animada no jogo (a própria, ou a de reserva). */
+  outfitInGame: string;
+  /** null = careca. */
+  hair: string | null;
+  hairInGame: string | null;
+}
+
+export function layerPieces(L: MannequinLayers, a: Appearance): LayerPieces {
+  const outfit = a.top in L.outfits ? a.top : L.fallback.outfit;
+  const hair = a.hairStyle === 'none' ? null : a.hairStyle in L.hair ? a.hairStyle : L.fallback.hair;
+  return {
+    outfit,
+    outfitInGame: L.outfits[outfit] ? outfit : L.fallback.outfit,
+    hair,
+    hairInGame: hair === null ? null : L.hair[hair] ? hair : L.fallback.hair,
+  };
+}
+
+const toRamp = (d: RampDef | undefined): Ramp | undefined => (d ? { hue: d[0], sat: d[1], light: [d[2], d[3]] } : undefined);
+
+/** Cor-alvo de cada região (REGION) para a aparência. Cor sem rampa: a região fica como foi desenhada. */
+export function layerRamps(L: MannequinLayers, a: Appearance): Partial<Record<number, Ramp>> {
+  return {
+    [REGION.skin]: toRamp(L.ramps.skin[a.skin]),
+    [REGION.top]: toRamp(L.ramps.top[a.topColor]),
+    [REGION.bottom]: toRamp(L.ramps.bottom[a.bottomColor]),
+    [REGION.hair]: toRamp(L.ramps.hair[a.hairColor]),
+  };
+}
+
+/** Escolhas que o criador mostra no modo de camadas (as outras não têm arte nem cor). */
+export const LAYER_KEYS = ['skin', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottomColor'] as const satisfies readonly (keyof Appearance)[];
+
+/** Opções do criador: com as camadas do manequim, só as que têm arte ou cor; senão, todas. */
+export function creatorOptions(data: CharacterData, key: keyof Appearance): CharacterOption[] {
+  const L = data.mannequin?.layers;
+  const all = optionsFor(data, key);
+  if (!L) return all;
+  const keep: Partial<Record<keyof Appearance, (id: string) => boolean>> = {
+    skin: (id) => id in L.ramps.skin,
+    hairStyle: (id) => id === 'none' || id in L.hair,
+    hairColor: (id) => id in L.ramps.hair,
+    top: (id) => id in L.outfits,
+    topColor: (id) => id in L.ramps.top,
+    bottomColor: (id) => id in L.ramps.bottom,
+  };
+  const f = keep[key];
+  return f ? all.filter((o) => f(o.id)) : all;
 }
 
 export interface CharacterData {
@@ -144,7 +218,7 @@ export function normalizeAppearance(data: CharacterData, raw: Partial<Record<key
 
 /** Escolha seguinte (ou anterior) de uma opção, dando a volta. */
 export function cycle(data: CharacterData, a: Appearance, key: keyof Appearance, step: 1 | -1): Appearance {
-  const opts = optionsFor(data, key);
+  const opts = creatorOptions(data, key);
   const i = Math.max(0, opts.findIndex((o) => o.id === a[key]));
   return { ...a, [key]: opts[(i + step + opts.length) % opts.length]!.id };
 }
@@ -152,7 +226,7 @@ export function cycle(data: CharacterData, a: Appearance, key: keyof Appearance,
 /** Uma aparência sorteada (RNG injetado: repetível nos testes). */
 export function randomAppearance(data: CharacterData, rng: Rng): Appearance {
   const pick = (key: keyof Appearance) => {
-    const opts = optionsFor(data, key);
+    const opts = creatorOptions(data, key);
     return opts[rng.int(0, opts.length - 1)]!.id;
   };
   const a = { ...data.default };
@@ -272,6 +346,17 @@ export function validateCharacter(data: CharacterData): string[] {
     if (m.frameWidth % m.resolution !== 0 || m.frameHeight % m.resolution !== 0) errors.push('character: mannequin: quadro precisa ser múltiplo de resolution');
     if (!m.walk) errors.push('character: mannequin sem folha de caminhada');
     for (const pose of POSES) if (!m.poses[pose]) errors.push(`character: mannequin sem folha da pose "${pose}"`);
+    const L = m.layers;
+    if (L) {
+      for (const pose of POSES) if (!L.anims.includes(L.poseAnim[pose])) errors.push(`character: mannequin.layers: pose "${pose}" sem animação em anims`);
+      for (const id of Object.keys(L.outfits)) if (!optionsFor(data, 'top').some((o) => o.id === id)) errors.push(`character: mannequin.layers: roupa "${id}" não existe em top.styles`);
+      for (const id of Object.keys(L.hair)) if (!optionsFor(data, 'hairStyle').some((o) => o.id === id)) errors.push(`character: mannequin.layers: cabelo "${id}" não existe em hair.styles`);
+      if (!L.outfits[L.fallback.outfit]) errors.push(`character: mannequin.layers: roupa de reserva "${L.fallback.outfit}" precisa ter todas as animações`);
+      if (!L.hair[L.fallback.hair]) errors.push(`character: mannequin.layers: cabelo de reserva "${L.fallback.hair}" precisa ter todas as animações`);
+      const groups: [keyof MannequinLayers['ramps'], keyof Appearance][] = [['skin', 'skin'], ['hair', 'hairColor'], ['top', 'topColor'], ['bottom', 'bottomColor']];
+      for (const [g, key] of groups) for (const id of Object.keys(L.ramps[g])) if (!optionsFor(data, key).some((o) => o.id === id)) errors.push(`character: mannequin.layers.ramps.${g}: cor "${id}" não existe`);
+      for (const key of LAYER_KEYS) if (!creatorOptions(data, key).some((o) => o.id === data.default[key])) errors.push(`character: default.${key} "${data.default[key]}" sem arte/cor nas camadas`);
+    }
   }
   return errors;
 }

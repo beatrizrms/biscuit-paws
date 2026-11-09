@@ -29,6 +29,52 @@
       "operate": "mannequin_work.png",
       "stir": "mannequin_work.png",
       "wash": "mannequin_work.png"
+    },
+    "layers": {
+      "_comment": "Personagem em camadas sobre o manequim (decisão 077): roupa (figura inteira, com máscara de regiões) + cabelo, nas cores escolhidas (trocadas por código, src/core/recolor.ts). outfits/hair: ID do criador (top / hairStyle) -> true = todas as animações; false = só a imagem de frente (o criador mostra; no jogo usa `fallback`). Arquivos por convenção, montados por npm run mannequin: outfit_<id>_<anim>.png (+ _mask), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de cor [matiz, saturação, luz mínima, luz máxima].",
+      "anims": ["walk", "idle", "tray", "carry", "work"],
+      "poseAnim": { "tray": "tray", "cat": "carry", "sweep": "work", "wipe_table": "work", "operate": "work", "stir": "work", "wash": "work" },
+      "outfits": { "hoodie": true, "dress": false, "collar_shirt": false, "tshirt": false },
+      "hair": { "long": true, "short": false, "bun": false, "afro": false, "curly": false },
+      "fallback": { "outfit": "hoodie", "hair": "long" },
+      "ramps": {
+        "skin": {
+          "pale": [24, 0.55, 0.7, 0.95],
+          "light": [22, 0.6, 0.58, 0.92],
+          "tan": [24, 0.55, 0.42, 0.8],
+          "brown": [22, 0.48, 0.28, 0.65],
+          "dark": [20, 0.42, 0.14, 0.48],
+          "east_asian": [32, 0.55, 0.58, 0.9]
+        },
+        "hair": {
+          "black": [220, 0.12, 0.05, 0.3],
+          "dark_brown": [20, 0.35, 0.1, 0.4],
+          "brown": [25, 0.45, 0.2, 0.58],
+          "blond": [42, 0.7, 0.4, 0.85],
+          "red": [12, 0.7, 0.22, 0.6],
+          "gray": [0, 0, 0.35, 0.85],
+          "pink": [330, 0.6, 0.4, 0.82],
+          "blue": [215, 0.55, 0.25, 0.7]
+        },
+        "top": {
+          "pink": [335, 0.55, 0.45, 0.82],
+          "red": [355, 0.65, 0.25, 0.6],
+          "orange": [24, 0.75, 0.35, 0.7],
+          "yellow": [46, 0.8, 0.42, 0.8],
+          "green": [130, 0.35, 0.25, 0.6],
+          "blue": [210, 0.55, 0.28, 0.68],
+          "purple": [275, 0.4, 0.28, 0.65],
+          "white": [40, 0.15, 0.65, 0.97]
+        },
+        "bottom": {
+          "jeans": [215, 0.45, 0.22, 0.6],
+          "black": [230, 0.1, 0.08, 0.32],
+          "gray": [0, 0, 0.28, 0.62],
+          "beige": [38, 0.35, 0.45, 0.8],
+          "green": [120, 0.25, 0.2, 0.5],
+          "pink": [335, 0.45, 0.45, 0.8]
+        }
+      }
     }
   },
   "layerOrder": [
