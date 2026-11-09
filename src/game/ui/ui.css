@@ -737,6 +737,7 @@
 
 /* Saúde no "Meus gatos": barra (verde, amarela quando baixa, vermelha doente) e selo de doente */
 .news .cat-info .health { display: flex; align-items: center; gap: 3px; font-size: 6.5px; color: var(--ink2); }
+.news .cat-info .health .label { min-width: 24px; } /* Saúde, Alegria e Higiene: as barras começam juntas */
 .news .cat-info .health .bar { position: relative; width: 70px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
 .news .cat-info .health .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: #68ad8a; }
 .news .cat-info .health .fill.low { background: var(--butter3); }

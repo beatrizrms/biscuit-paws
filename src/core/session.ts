@@ -13,6 +13,7 @@ import type { MiniGameParams, MiniGameResult } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, type CareNeed, type CareStat } from './care';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
@@ -1000,6 +1001,7 @@ export class GameSession {
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
       if (!cat.sickness && cat.health < cfg.sickBelow) this.makeSick(id);
+      careAtDayEnd(cat, cfg.care);
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
     for (const sourceId of this.shelteredCats()) {
@@ -1079,6 +1081,28 @@ export class GameSession {
     return this.activeUse('medicine') ? null : 'needs_medicine';
   }
 
+  /** Cuidados do gato: felicidade, higiene e o que ele está precisando agora (o balão em cima dele, o app). */
+  catCare(catId: string): { happiness: number; hygiene: number; needs: CareNeed[] } | null {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered) return null;
+    const cfg = this.content.health.care;
+    return { ...careOf(cat, cfg), needs: careNeeds(cat, this.state.day, cfg) };
+  }
+
+  /** Debug: muda felicidade ou higiene de um gato (F9, linha Cuidados). */
+  debugCare(catId: string, stat: CareStat, delta: number): void {
+    const cat = this.state.cats[catId];
+    if (cat?.sheltered) addCare(cat, stat, delta, this.content.health.care);
+  }
+
+  /** Debug: o gato fica doente e já com receita (3 dias), para testar o remédio sem passar pela clínica. */
+  debugSickWithPrescription(catId: string): void {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered) return;
+    this.makeSick(catId);
+    if (cat.sickness && !cat.sickness.treatment) cat.sickness.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+  }
+
   /** Dá a dose do dia: cura um pouco; tomou todas as doses da receita, sara. */
   medicateCat(catId: string): ActionResult {
     const problem = this.medicineProblem(catId);
@@ -1121,6 +1145,13 @@ export class GameSession {
       // Cada adoção vale a sua reputação (boa vale mais que ok: data/adoption.json).
       const rep = this.content.adoption.reputation[a.verdict] ?? 0;
       if (rep !== 0) this.addReputation(rep, `adoption:${a.catId}:${a.verdict}`);
+    }
+    // Cuidado de um gato do café (varinha, escova, remédio): felicidade e higiene sobem (health.json: care.gains).
+    const careCat = params.catId ? this.state.cats[params.catId] : undefined;
+    if (careCat?.sheltered && !result.skipped) {
+      const gain = careGain(this.content.health.care, result.gameId, result.outcome);
+      for (const [stat, v] of Object.entries(gain) as [CareStat, number][]) addCare(careCat, stat, v, this.content.health.care);
+      if (Object.keys(gain).length > 0) this.bus.emit('cat.cared', { catId: params.catId!, gameId: result.gameId, ...careOf(careCat, this.content.health.care) });
     }
     const rep = reputationForResult(this.content.minigames.games[result.gameId]?.reputation, result);
     if (rep !== 0) this.addReputation(rep, `minigame:${result.gameId}:${result.outcome}`);
@@ -1823,6 +1854,8 @@ export class GameSession {
       shelteredOn: this.state.day,
       health: profile?.health ?? this.content.health.start,
       sickness: null,
+      happiness: this.content.health.care.start.happiness,
+      hygiene: this.content.health.care.start.hygiene,
       ...(provisionalUntil !== undefined ? { provisionalUntil } : {}),
     };
     this.bus.emit('cat.sheltered', { catId });

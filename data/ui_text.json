@@ -308,7 +308,11 @@
       "scared": "Assustado",
       "kitten": "Filhote",
       "senior": "Idoso"
-    }
+    },
+    "happiness": "Alegria",
+    "happinessTitle": "Felicidade {n}/{max}",
+    "hygiene": "Higiene",
+    "hygieneTitle": "Higiene {n}/{max}"
   },
   "chores": {
     "title": "hoje",

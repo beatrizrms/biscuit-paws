@@ -12,10 +12,10 @@ import type { CatDef } from './cats';
 import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 19;
+export const SAVE_SCHEMA_VERSION = 20;
 
-export interface SaveV19 extends GameState {
-  schemaVersion: 19;
+export interface SaveV20 extends GameState {
+  schemaVersion: 20;
   savedAt: string;
 }
 
@@ -103,10 +103,16 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   17: (save) => ({ ...save, schemaVersion: 18, arrivals: null, catDefs: {} }),
   /** v18 -> v19: dicas "E" do tutorial (quantas vezes usou cada tipo de coisa). Saves antigos: o tutorial começa de novo. */
   18: (save) => ({ ...save, schemaVersion: 19, hintUses: {} }),
+  /** v19 -> v20: felicidade e higiene dos gatos. Saves antigos: todo gato começa com 70 nos dois (o care.start de hoje). */
+  19: (save) => ({
+    ...save,
+    schemaVersion: 20,
+    cats: Object.fromEntries(Object.entries((save.cats ?? {}) as Record<string, object>).map(([id, c]) => [id, { happiness: 70, hygiene: 70, ...c }])),
+  }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV19 = { schemaVersion: 19, savedAt: now.toISOString(), ...state };
+  const save: SaveV20 = { schemaVersion: 20, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -151,7 +157,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV19>;
+  const v2 = save as unknown as Partial<SaveV20>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -197,7 +203,22 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
           // Doença que sumiu dos dados: o gato fica saudável (com aviso).
           const sickness = s && known.diseases.has(s.disease) ? { ...s, treatment: s.treatment ? { ...s.treatment } : null } : null;
           if (s && !sickness) warnings.push(`doença "${s.disease}" não existe mais; ${id} ficou saudável`);
-          return [id, { ...c, shelteredOn: Number.isInteger(c.shelteredOn) && c.shelteredOn >= 1 ? c.shelteredOn : 1, health: typeof c.health === 'number' ? c.health : 80, sickness }];
+          // Felicidade e higiene fora de 0..100 (ou quebradas): somem, e a leitura usa o valor inicial (care.ts: careOf).
+          const care = (v: unknown) => (typeof v === 'number' && v >= 0 && v <= 100 ? Math.round(v) : undefined);
+          const { happiness: _h, hygiene: _g, ...rest } = c;
+          const happiness = care(c.happiness);
+          const hygiene = care(c.hygiene);
+          return [
+            id,
+            {
+              ...rest,
+              shelteredOn: Number.isInteger(c.shelteredOn) && c.shelteredOn >= 1 ? c.shelteredOn : 1,
+              health: typeof c.health === 'number' ? c.health : 80,
+              sickness,
+              ...(happiness !== undefined ? { happiness } : {}),
+              ...(hygiene !== undefined ? { hygiene } : {}),
+            },
+          ];
         }),
     ),
     relationships: { ...(v2.relationships ?? {}) },

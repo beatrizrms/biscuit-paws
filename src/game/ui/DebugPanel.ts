@@ -52,6 +52,15 @@ export class DebugPanel {
         <button data-act="new">Jogo novo</button>
         <button data-act="off">Desligar</button>
       </div>
+      <div class="buttons care">
+        <strong>Cuidados</strong>
+        <select data-dbg="care-cat"></select>
+        <button data-act="happy-up">alegria +20</button>
+        <button data-act="happy-down">alegria −20</button>
+        <button data-act="clean-up">higiene +20</button>
+        <button data-act="clean-down">higiene −20</button>
+        <button data-act="sick-rx">doente c/ receita</button>
+      </div>
       <div class="buttons minigames">${actions
         .miniGames()
         .map((id) => ['easy', 'normal', 'hard'].map((d) => `<button data-mg="${id}" data-dif="${d}">${id} ${d}</button>`).join(''))
@@ -64,6 +73,22 @@ export class DebugPanel {
       const btn = panel.querySelector(`[data-act="${act}"]`) as HTMLButtonElement;
       btn.addEventListener('click', () => fn(btn));
     };
+    // Cuidados: o gato escolhido (a lista é refeita ao abrir, porque os gatos mudam durante o jogo).
+    const careCat = panel.querySelector('[data-dbg="care-cat"]') as HTMLSelectElement;
+    const fillCats = () => {
+      const keep = careCat.value;
+      careCat.innerHTML = session.shelteredCats().map((id) => `<option value="${id}">${session.catName(id) || id}</option>`).join('');
+      if (keep && session.shelteredCats().includes(keep)) careCat.value = keep;
+    };
+    fillCats();
+    careCat.addEventListener('mousedown', fillCats);
+    careCat.addEventListener('focus', fillCats);
+    const care = (stat: 'happiness' | 'hygiene', delta: number) => () => careCat.value && session.debugCare(careCat.value, stat, delta);
+    on('happy-up', care('happiness', 20));
+    on('happy-down', care('happiness', -20));
+    on('clean-up', care('hygiene', 20));
+    on('clean-down', care('hygiene', -20));
+    on('sick-rx', () => careCat.value && session.debugSickWithPrescription(careCat.value));
     on('money', () => session.addMoney(100, 'debug'));
     on('rep', () => session.addReputation(10, 'debug'));
     // Feira de adoção sem precisar dos 9 gatos; e pular os dias até a data marcada (de manhã).

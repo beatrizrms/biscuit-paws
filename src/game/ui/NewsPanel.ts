@@ -225,6 +225,17 @@ export class NewsPanel {
       .replace('{today}', s.treatment.dosedToday ? t.dosedToday : t.doseDue);
   }
 
+  /** Felicidade e higiene (core/care.ts), do mesmo jeito da barra de saúde; abaixo do "baixo", fica amarela. */
+  private careBars(catId: string): string {
+    const care = this.session.catCare(catId);
+    if (!care) return '';
+    const t = uiText.cats;
+    const cfg = content.health.care;
+    const bar = (label: string, title: string, v: number, low: number) =>
+      `<span class="health" title="${title.replace('{n}', String(v)).replace('{max}', String(cfg.max))}"><span class="label">${label}</span><span class="bar"><span class="fill${v < low ? ' low' : ''}" style="width:${Math.round((v / cfg.max) * 100)}%"></span></span></span>`;
+    return bar(t.happiness, t.happinessTitle, care.happiness, cfg.low.happiness) + bar(t.hygiene, t.hygieneTitle, care.hygiene, cfg.low.hygiene);
+  }
+
   /** App "Meus gatos": uma ficha por gato abrigado, com o gato sentado (animado), corações e a rotina. */
   private catsHtml(): string {
     const t = uiText.cats;
@@ -243,6 +254,7 @@ export class NewsPanel {
           <strong>${esc(p.name)}</strong><span class="personality">${esc(personality)}</span>
           <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
           <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
+          ${this.careBars(p.id)}
           ${p.sickness ? `<span class="sick-badge">${esc(this.sickText(p.sickness))}</span>` : ''}
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;

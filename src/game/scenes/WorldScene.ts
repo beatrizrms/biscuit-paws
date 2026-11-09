@@ -34,6 +34,8 @@ import { poseDrawsProp, poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
+import { CareBubbles } from '../careBubbles';
+import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
 
@@ -106,6 +108,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Dica "E" em cima do que dá para usar agora. */
   private hint!: InteractHint;
   private hintCheckedAt = 0;
+  /** Balão de cuidado em cima de cada gato (remédio, banho, carinho); o que falta é relido 2 vezes por segundo. */
+  private careBubbles!: CareBubbles;
+  private careNeeds = new Map<string, CareNeed | null>();
+  private careCheckedAt = -Infinity;
   private parcelImages: Phaser.GameObjects.Image[] = [];
   private surfaceIcons: Phaser.GameObjects.Image[] = [];
   private handIcons: Phaser.GameObjects.Image[] = [];
@@ -166,6 +172,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.dayNight = new DayNightLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
+    this.careBubbles = new CareBubbles(this);
     this.loadMap(this.session.location());
 
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -353,6 +360,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = this.eTarget();
       this.hint.show(at && this.session.hintWanted(at.kind) ? { ...at, label: uiText.hints[at.kind] } : null);
     }
+    this.updateCareBubbles();
     this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {
       this.waiters.splice(this.waiters.indexOf(w), 1);
@@ -392,6 +400,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.catColliders = [];
     this.cats.forEach((c) => c.destroy());
     this.cats = [];
+    this.careBubbles?.clear();
+    this.careCheckedAt = -Infinity;
     this.npcs.forEach((n) => n.destroy());
     this.npcs.clear();
     this.buildMap(mapId);
@@ -851,6 +861,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (cat && s.holdingTreat()) return catTop(cat, 'cat_treat');
     if (cat && st.hands.length === 0 && !st.tray) return catTop(cat, 'cat_pickup');
     return null;
+  }
+
+  /** Balões de cuidado: seguem os gatos visíveis; o que cada um precisa vem da sessão (care.ts). */
+  private updateCareBubbles(): void {
+    if (this.time.now - this.careCheckedAt >= 500) {
+      this.careCheckedAt = this.time.now;
+      this.careNeeds = new Map(this.cats.map((c) => [c.catId, this.session.catCare(c.catId)?.needs[0] ?? null]));
+    }
+    this.careBubbles.update(this.cats.filter((c) => c.visible).map((c) => ({ catId: c.catId, x: c.x, y: c.y, depth: c.depth, need: this.careNeeds.get(c.catId) ?? null })));
   }
 
   /** Petisco ou remédio ativo na barra e um gato perto: vai da mão até o gato. */

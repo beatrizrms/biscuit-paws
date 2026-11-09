@@ -95,7 +95,7 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
 
   it('save_v4: guarda nome e corações; gato que sumiu dos dados é ignorado', () => {
     const { state, warnings } = parseSave(readFileSync('tests/fixtures/save_v4.json', 'utf8'), known);
-    expect(state.cats).toEqual({ 'cat.first_stray': { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null } });
+    expect(state.cats).toEqual({ 'cat.first_stray': { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70 } });
     expect(state.relationships['player|cat.first_stray']).toBe(120);
     expect(warnings.join()).toMatch(/cat.lost_forever/);
   });

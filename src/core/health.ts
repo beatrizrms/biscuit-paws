@@ -1,6 +1,7 @@
 // Saúde dos gatos (data/health.json): barra de 0 a 100, doenças fictícias sorteadas, receita e remédio.
 // Puro: sem Phaser, DOM ou window. A aleatoriedade vem de um RNG com semente (dia + gato), para repetir nos testes.
 import { createRng, cellHash } from './rng';
+import { validateCare, type CareConfig } from './care';
 
 export interface DiseaseDef {
   id: string;
@@ -12,6 +13,8 @@ export interface DiseaseDef {
 
 export interface HealthConfig {
   schemaVersion: 1;
+  /** Felicidade e higiene (care.ts). */
+  care: CareConfig;
   /** Saúde máxima e a de um gato que chega bem. */
   max: number;
   start: number;
@@ -84,6 +87,7 @@ export const clampHealth = (cfg: HealthConfig, v: number) => Math.max(0, Math.mi
 export function validateHealth(cfg: HealthConfig, refs: { items: ReadonlySet<string>; maps: ReadonlySet<string>; npcs: ReadonlySet<string> }): string[] {
   const errors: string[] = [];
   const err = (m: string) => errors.push(`health: ${m}`);
+  errors.push(...validateCare(cfg.care));
   if (!(cfg.max > 0) || cfg.start > cfg.max || cfg.sickBelow > cfg.max || cfg.sickHealth >= cfg.sickBelow) err('max, start, sickBelow e sickHealth fora de ordem (sickHealth < sickBelow <= max)');
   if (cfg.diseases.length === 0) err('precisa de pelo menos uma doença');
   const ids = new Set<string>();

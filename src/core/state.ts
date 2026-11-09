@@ -133,6 +133,9 @@ export interface CatState {
   health: number;
   /** Doença em andamento e a receita (v13); null = saudável. */
   sickness: CatSickness | null;
+  /** Felicidade e higiene, 0 a 100 (v20; care.ts). Ausente = o valor inicial de health.json: care.start. */
+  happiness?: number;
+  hygiene?: number;
   /** Abrigado provisório (v18; café cheio): até este dia, a vaga precisa abrir ou ele vai para o abrigo da vila. */
   provisionalUntil?: number;
 }
