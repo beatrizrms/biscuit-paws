@@ -227,3 +227,15 @@ describe('fixtures de saves antigos (todos precisam continuar carregando)', () =
     expect(warnings.join()).toMatch(/finish.wallpaper_that_was_removed/);
   });
 });
+
+describe('save v19: tutorial da dica "E"', () => {
+  it('v19 guarda quantas vezes usou cada tipo; v18 começa o tutorial do zero; lixo é ignorado', () => {
+    const v19 = parseSave(readFileSync('tests/fixtures/save_v19.json', 'utf8'), known).state;
+    expect(v19.hintUses).toEqual({ dirt: 3, int_shelf: 1 });
+    const v18 = parseSave(readFileSync('tests/fixtures/save_v18.json', 'utf8'), known).state;
+    expect(v18.hintUses).toEqual({});
+    const bad = JSON.parse(readFileSync('tests/fixtures/save_v19.json', 'utf8'));
+    bad.hintUses = { dirt: 'muito', bowl: -1, cat_pickup: 2 };
+    expect(parseSave(JSON.stringify(bad), known).state.hintUses).toEqual({ cat_pickup: 2 });
+  });
+});

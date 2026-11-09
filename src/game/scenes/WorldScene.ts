@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type ResolvedMap } from '../../core/map';
+import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
@@ -33,6 +33,10 @@ import { catPropColor, type Pose } from '../../core/appearance';
 import { poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
+import { InteractHint } from '../InteractHint';
+
+/** Tipos de coisa da dica "E" (os textos ficam em ui_text.json: hints). */
+type HintKind = keyof typeof uiText.hints;
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
 
@@ -87,6 +91,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** "Esperar": o relógio corre depressa até a meta de espera concluir. */
   /** "Esperar": o relógio corre depressa até este momento absoluto. */
   private waitUntilAbs: number | null = null;
+  /** Dica "E" em cima do que dá para usar agora. */
+  private hint!: InteractHint;
+  private hintCheckedAt = 0;
   private parcelImages: Phaser.GameObjects.Image[] = [];
   private surfaceIcons: Phaser.GameObjects.Image[] = [];
   private handIcons: Phaser.GameObjects.Image[] = [];
@@ -146,6 +153,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
+    this.hint = new InteractHint(this);
     this.loadMap(this.session.location());
 
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -171,7 +179,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('E', () => {
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
-      this.interact();
+      const kind = this.eTarget()?.kind;
+      if (this.interact() && kind) this.session.noteHintUse(kind);
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
     // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
@@ -323,6 +332,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);
+    // Dica "E": recalcula 10 vezes por segundo (procurar o que está perto passa pelos pedidos todos).
+    if (busy || this.placing) this.hint.show(null);
+    else if (this.time.now - this.hintCheckedAt >= 100) {
+      this.hintCheckedAt = this.time.now;
+      const at = this.eTarget();
+      this.hint.show(at && this.session.hintWanted(at.kind) ? { ...at, label: uiText.hints[at.kind] } : null);
+    }
     this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {
       this.waiters.splice(this.waiters.indexOf(w), 1);
@@ -741,6 +757,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else this.ui.openNews('board');
       return true;
     }
+    // E perto de uma sujeira: varre (o clique na sujeira faz o mesmo, no onPointerDown).
+    const dirt = !target && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
+    if (dirt) {
+      if (this.sweeping) return true;
+      const problem = this.session.cleanProblem(dirt.id, this.playerCells());
+      if (problem) {
+        this.ui.problem(problem);
+        return true;
+      }
+      const ts = this.map.tileSize;
+      const def = this.session.content.catalog.tiles[dirt.tile]!;
+      void this.sweep(dirt.id, (dirt.at[0] + def.w / 2) * ts, (dirt.at[1] + def.h / 2) * ts);
+      return true;
+    }
     // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
     const bowl = this.session.bowlNear(this.playerCells(), target);
     if (!bowl) return this.tryTreatCat(target) || this.tryPickUpCat(target);
@@ -758,6 +788,55 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!result.ok) this.ui.problem(result.reason);
     });
     return true;
+  }
+
+  /**
+   * Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa (tutorial: ui_text.hints),
+   * na mesma ordem do interact(); null: nada por perto. Só olha, não muda nada.
+   * Fica de fora o que não tem lugar no mapa (saco pesado, gato no colo).
+   */
+  private eTarget(): { x: number; y: number; kind: HintKind } | null {
+    const s = this.session;
+    const st = s.state;
+    const ts = this.map.tileSize;
+    const feet = this.playerCells();
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const cell = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: r * ts, kind });
+    const floor = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: (r + 0.4) * ts, kind }); // rente ao chão: a dica mais perto
+    const nearCat = () => this.cats.find((c) => c.visible && near(c.cell()));
+    const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9, kind });
+    if (s.atHome()) {
+      const sv = s.service;
+      const customer = sv.customerToServe(feet);
+      if (customer) return cell(customer.spot, 'customer');
+      if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
+      if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
+      const free = st.hands.length < sv.handsCapacity();
+      for (const eq of Object.keys(s.content.service.equipment)) {
+        const station = sv.stationsFor(eq).find((x) => x.cells.some(near));
+        if (!station) continue;
+        const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === eq);
+        if ((sv.surfaceAt(station.at) && free) || st.hands.length === 0 || bringsWip) return cell(station.at, 'station');
+      }
+      const surface = st.surfaces.find((x) => near(x.at));
+      if (surface && free) return cell(surface.at, 'surface');
+    }
+    const point = s.jobPointNear(feet);
+    if (point) return cell(point.at, 'job');
+    const parcels = s.parcelsNear(feet);
+    if (parcels) return parcels === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
+    const it = s.interactionAt(feet);
+    if (it) return cell(it.at, `int_${Object.keys(it.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
+    const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
+    if (dirt) return floor(dirt.at, 'dirt');
+    const bowl = s.bowlNear(feet);
+    if (bowl && !s.feedProblem(bowl)) return floor(st.placed.find((p) => p.uid === bowl)!.at, 'bowl');
+    if (!s.atHome()) return null;
+    const cat = nearCat();
+    if (cat && s.holdingMedicine()) return catTop(cat, 'cat_medicine');
+    if (cat && s.holdingTreat()) return catTop(cat, 'cat_treat');
+    if (cat && st.hands.length === 0 && !st.tray) return catTop(cat, 'cat_pickup');
+    return null;
   }
 
   /** Petisco ou remédio ativo na barra e um gato perto: vai da mão até o gato. */

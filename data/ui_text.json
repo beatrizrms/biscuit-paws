@@ -691,5 +691,25 @@
       "warmth": "Enrolado no cobertor, ele parou de tremer.",
       "vet": "A Fernanda cuidou dele. Vai ficar bem."
     }
+  },
+  "hints": {
+    "customer": "Atender",
+    "sink": "Pia",
+    "station": "Preparar / pegar",
+    "surface": "Pegar",
+    "job": "Interagir",
+    "parcels_door": "Pegar as caixas",
+    "parcels_inside": "Abrir a caixa",
+    "int_shop": "Pagar",
+    "int_shelf": "Ver a prateleira",
+    "int_board": "Ver o mural",
+    "int_vet": "Consulta",
+    "int_door": "Abrir a porta",
+    "int_sleep": "Dormir",
+    "dirt": "Varrer",
+    "bowl": "Encher a tigela",
+    "cat_treat": "Dar o petisco",
+    "cat_medicine": "Dar o remédio",
+    "cat_pickup": "Pegar no colo"
   }
 }

@@ -238,6 +238,8 @@ export interface DialogueData {
 /** data/world.json: onde o jogo começa e qual mapa é o café (onde se decora e reforma). */
 export interface WorldData {
   schemaVersion: 1;
+  /** Tutorial: quantas vezes a dica "E" aparece em cada tipo de coisa antes de sumir de vez. */
+  hintTimes: number;
   startMap: string;
   homeMap: string;
   /** Estação atual (dados de todas já existem; o prólogo é no inverno). */

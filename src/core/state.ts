@@ -94,6 +94,8 @@ export interface GameState {
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
   catDefs: Record<string, CatDef>;
+  /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa (a dica "E" some depois de algumas). */
+  hintUses: Record<string, number>;
 }
 
 export interface PlayerState {
@@ -175,6 +177,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     fair: { stage: 'idle', day: null, done: [], lastSeason: null, heldOn: null },
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
+    hintUses: {},
   };
 }
 

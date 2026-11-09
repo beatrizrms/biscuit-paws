@@ -444,6 +444,19 @@ describe('faxina', () => {
     expect(session.dirtAt([8, 5])).toBeUndefined();
   });
 
+  it('E com a vassoura: a sujeira mais perto dos pés (até 2 células), sem manchas da reforma', () => {
+    const { session } = newSession();
+    const near = session.dirtNear([[9, 7]]);
+    expect(near).toBeDefined();
+    expect(near!.clearedBy).toBeFalsy();
+    expect(session.cleanProblem(near!.id, [[9, 7]])).not.toBe('too_far');
+    // A mais perto vence: em cima da sujeira, é ela.
+    const dust = session.visibleDirt().find((d) => d.id === 'dirt.dust_hall')!;
+    expect(session.dirtNear([dust.at])?.id).toBe('dirt.dust_hall');
+    cleanAll(session);
+    expect(session.dirtNear([[9, 7]])).toBeUndefined();
+  });
+
   it('manchas e rachaduras não saem com faxina; somem com a reforma', () => {
     const { session } = newSession();
     expect(session.clean('dirt.stain_water')).toEqual({ ok: false, reason: 'needs_repair' });
@@ -1241,5 +1254,21 @@ describe('meus gatos', () => {
     const { session } = newSession();
     startInCafe(session);
     expect(session.catProfiles().map((p) => p.id)).not.toContain('cat.tekinha');
+  });
+});
+
+describe('tutorial da dica "E"', () => {
+  it('aparece nas primeiras vezes de cada tipo de coisa (world.hintTimes) e depois some de vez', () => {
+    const { session } = newSession();
+    const times = session.content.world.hintTimes;
+    expect(times).toBe(3);
+    for (let i = 0; i < times; i++) {
+      expect(session.hintWanted('dirt')).toBe(true);
+      session.noteHintUse('dirt');
+    }
+    expect(session.hintWanted('dirt')).toBe(false);
+    session.noteHintUse('dirt'); // não passa do limite
+    expect(session.state.hintUses.dirt).toBe(times);
+    expect(session.hintWanted('int_shelf')).toBe(true); // cada tipo conta à parte
   });
 });

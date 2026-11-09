@@ -12,10 +12,10 @@ import type { CatDef } from './cats';
 import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 18;
+export const SAVE_SCHEMA_VERSION = 19;
 
-export interface SaveV18 extends GameState {
-  schemaVersion: 18;
+export interface SaveV19 extends GameState {
+  schemaVersion: 19;
   savedAt: string;
 }
 
@@ -101,10 +101,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   16: (save) => ({ ...save, schemaVersion: 17, fair: null }),
   /** v17 -> v18: chegadas de gatos e gatos gerados. Saves antigos: nenhuma chegada nem gato gerado. */
   17: (save) => ({ ...save, schemaVersion: 18, arrivals: null, catDefs: {} }),
+  /** v18 -> v19: dicas "E" do tutorial (quantas vezes usou cada tipo de coisa). Saves antigos: o tutorial começa de novo. */
+  18: (save) => ({ ...save, schemaVersion: 19, hintUses: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV18 = { schemaVersion: 18, savedAt: now.toISOString(), ...state };
+  const save: SaveV19 = { schemaVersion: 19, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -149,7 +151,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV18>;
+  const v2 = save as unknown as Partial<SaveV19>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -253,6 +255,9 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     fair: normalizeFair(v2.fair),
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
+    hintUses: Object.fromEntries(
+      Object.entries(v2.hintUses ?? {}).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0),
+    ),
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
   };
