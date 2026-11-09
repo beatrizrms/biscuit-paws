@@ -1268,6 +1268,11 @@ export class GameSession {
       for (const [stat, v] of Object.entries(gain) as [CareStat, number][]) addCare(careCat, stat, v, this.content.health.care);
       if (Object.keys(gain).length > 0) this.bus.emit('cat.cared', { catId: params.catId!, gameId: result.gameId, ...careOf(careCat, this.content.health.care) });
     }
+    // Foto perfeita: a melhor de sempre fica guardada (pose, nota, gatos, dia).
+    if (result.photo && !result.skipped && result.photo.score > (this.state.bestPhoto?.score ?? -1)) {
+      this.state.bestPhoto = { ...result.photo, day: this.state.day };
+      this.bus.emit('photo.best', result.photo);
+    }
     const rep = reputationForResult(this.content.minigames.games[result.gameId]?.reputation, result);
     if (rep !== 0) this.addReputation(rep, `minigame:${result.gameId}:${result.outcome}`);
     this.bus.emit('minigame.finished', { gameId: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped });
@@ -1283,7 +1288,7 @@ export class GameSession {
     if (fest && activity && isFestivalDay(this.state.festivals, this.state.day)) {
       const adopted = (result.adoptions ?? []).filter((a) => a.verdict === 'good').length;
       this.festivalAdopted += adopted;
-      const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}), ...(result.contest ? { contest: result.contest } : {}) };
+      const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}), ...(result.contest ? { contest: result.contest } : {}), ...(result.photo ? { photo: result.photo } : {}) };
       const step = recordActivity(this.state.festivals, fest, activity.point, record, this.state.day);
       if (step === 'finished') this.endFestival(fest);
       this.advanceStory();
@@ -1628,6 +1633,7 @@ export class GameSession {
     const game = fest?.activities.find((a) => a.point === pointId)?.game ?? this.content.jobPoints[pointId]?.minigame?.id;
     // Concurso de fantasia: qualquer gato do café desfila (os da história também) com as peças liberadas.
     if (game === 'costume') return this.contestExtras();
+    if (game === 'photo') return { contestCats: this.contestExtras().contestCats };
     if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]

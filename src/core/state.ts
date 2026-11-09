@@ -91,6 +91,8 @@ export interface GameState {
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */
   festivals: FestivalsState;
+  /** A melhor foto (v23; foto perfeita): a pose, a nota, os gatos e o dia. Sem galeria por enquanto. */
+  bestPhoto: { pose: string; score: number; catIds: string[]; day: number } | null;
   /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o abrigo da vila. */
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
@@ -181,6 +183,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
     reputation: { value: 0, reached: [], log: [] },
     festivals: newFestivals(),
+    bestPhoto: null,
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
     hintUses: {},

@@ -13,10 +13,10 @@ import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 22;
+export const SAVE_SCHEMA_VERSION = 23;
 
-export interface SaveV22 extends GameState {
-  schemaVersion: 22;
+export interface SaveV23 extends GameState {
+  schemaVersion: 23;
   savedAt: string;
 }
 
@@ -128,10 +128,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     const heldOn = typeof f.heldOn === 'number' ? { id, day: f.heldOn } : null;
     return { ...rest, schemaVersion: 22, festivals: { active, last, heldOn } };
   },
+  /** v22 -> v23: a melhor foto (foto perfeita). Saves antigos: nenhuma foto ainda. */
+  22: (save) => ({ ...save, schemaVersion: 23, bestPhoto: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV22 = { schemaVersion: 22, savedAt: now.toISOString(), ...state };
+  const save: SaveV23 = { schemaVersion: 23, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -178,7 +180,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV22>;
+  const v2 = save as unknown as Partial<SaveV23>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -296,6 +298,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     festivals: normalizeFestivals(v2.festivals, known.festivals, warnings),
+    bestPhoto: normalizeBestPhoto(v2.bestPhoto, knownCat),
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
     hintUses: Object.fromEntries(
@@ -390,6 +393,14 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
   const h = x.heldOn;
   const heldOn = h && ok(h.id) && num(h.day) !== null ? { id: h.id, day: h.day } : null;
   return { active, last, heldOn };
+}
+
+/** A melhor foto salva (quebrada = nenhuma); gatos que sumiram saem da lista. */
+function normalizeBestPhoto(p: unknown, knownCat: (id: string) => boolean): GameState['bestPhoto'] {
+  const x = p as Partial<NonNullable<GameState['bestPhoto']>> | null | undefined;
+  if (!x || typeof x.pose !== 'string' || typeof x.score !== 'number' || typeof x.day !== 'number') return null;
+  const catIds = Array.isArray(x.catIds) ? x.catIds.filter((id): id is string => typeof id === 'string' && knownCat(id)) : [];
+  return { pose: x.pose, score: x.score, catIds, day: x.day };
 }
 
 /** Reputação salva (ou a inicial, em save antigo ou quebrado). */

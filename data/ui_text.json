@@ -538,6 +538,16 @@
       "result": "Pelo lisinho, com paciência {patience}%.",
       "failed": "Ele perdeu a paciência e fugiu."
     },
+    "photo": {
+      "hud": "Fotos: {left}/{total} · melhor: {best}",
+      "none": "—",
+      "shot": "{score} pontos",
+      "cute": "Que fofura!",
+      "empty": "Ninguém na foto...",
+      "result": "Melhor foto: {score} pontos ({pose}).",
+      "pair": " Os dois juntos!",
+      "record": "Nova melhor foto de sempre!"
+    },
     "costume": {
       "theme": "Tema: {theme}",
       "pickCat": "Quem desfila?",
@@ -801,6 +811,7 @@
       "adopted": "{n} gato(s) com família nova.",
       "visitors": " ({n} visitantes)",
       "rank": " ({n}º lugar)",
+      "photo": " (foto: {n} pontos)",
       "close": "Fechar"
     },
     "date": "{season} {day} ({weekday})"

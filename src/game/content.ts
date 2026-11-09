@@ -40,6 +40,7 @@ import arrivalsJson from '../../data/arrivals.json';
 import festivalsJson from '../../data/festivals.json';
 import fairSetupJson from '../../data/fair_setup.json';
 import costumeJson from '../../data/costume.json';
+import photoJson from '../../data/photo.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -84,6 +85,7 @@ export const content: Content = buildContent({
   festivals: festivalsJson,
   fairSetup: fairSetupJson,
   costume: costumeJson,
+  photo: photoJson,
 } as unknown as RawContent);
 
 /** Arte do atendimento (quadro, balões, barra, louça no mundo, moeda). */

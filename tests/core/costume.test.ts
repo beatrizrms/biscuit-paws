@@ -86,12 +86,19 @@ describe('concurso nos eventos', () => {
     expect(extras.costumePieces).toContain('costume.star_band');
     const catId = session.shelteredCats()[0]!;
     session.finishMiniGame(makeResult(content.minigames, 'costume', 'normal', 'ok', 70, false, { bonusCoins: 10, contest: { catId, theme: 'theme.sea', rank: 2 } }), { difficulty: 'normal', jobPoint: stage });
+    expect(state.festivals.active!.results[0]).toMatchObject({ game: 'costume', contest: { rank: 2 } });
+    // Depois do desfile, a foto (os mesmos gatos do café).
+    const spot = def.activities[1]!.point;
+    expect(session.pendingJobPoints('map.cafe_main').map((p) => p.id)).toEqual([spot]);
+    expect(session.miniGameExtras(spot).contestCats?.map((c) => c.id)).toEqual(session.shelteredCats());
+    session.finishMiniGame(makeResult(content.minigames, 'photo', 'normal', 'great', 90, false, { photo: { pose: 'cute', score: 90, catIds: [catId] } }), { difficulty: 'normal', jobPoint: spot });
+    expect(state.bestPhoto).toEqual({ pose: 'cute', score: 90, catIds: [catId], day: state.day });
     expect(state.festivals.active).toBeNull();
     expect(state.festivals.heldOn).toEqual({ id: def.id, day: state.day });
   });
 
-  it('o Dia do Gato termina com o desfile, depois da montagem e da mesa', () => {
+  it('o Dia do Gato: montagem, mesa, desfile e a foto', () => {
     const catDay = content.festivals.find((f) => f.id === 'fest.cat_day')!;
-    expect(catDay.activities.map((a) => a.game)).toEqual(['fair_setup', 'adoption', 'costume']);
+    expect(catDay.activities.map((a) => a.game)).toEqual(['fair_setup', 'adoption', 'costume', 'photo']);
   });
 });

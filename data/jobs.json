@@ -367,6 +367,19 @@
       "marker": "ph_fair_setup"
     },
     {
+      "id": "pt.photo_spot",
+      "map": "map.cafe_main",
+      "at": [
+        29,
+        7
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "photo",
+        "difficulty": "normal"
+      }
+    },
+    {
       "id": "pt.costume_stage",
       "map": "map.cafe_main",
       "at": [

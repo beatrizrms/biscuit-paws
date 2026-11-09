@@ -218,6 +218,7 @@ export class GameUi {
     bus.on('festival.scheduled', ({ festivalId, day }) => this.toast(ft.scheduled.replace('{name}', festName(festivalId)).replace('{date}', this.festivalDate(day)), 4500));
     bus.on('festival.missed', ({ festivalId }) => this.toast(ft.missed.replace('{name}', festName(festivalId)), 4500));
     bus.on('festival.finished', (e) => void this.festivalSummary(e));
+    bus.on('photo.best', () => this.toast(uiText.minigames.photo.record, 3500));
     bus.on('reputation.changed', () => {
       const el = this.root.querySelector<HTMLElement>('.hud-rep');
       el?.classList.remove('bump');
@@ -452,12 +453,12 @@ export class GameUi {
   }
 
   /** Fim do festival: o resumo (cada atividade com o resultado, moedas, reputação e adoções). Enter ou o botão fecha. */
-  private festivalSummary(e: { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; skipped: boolean; setup?: { visitors: number }; contest?: { rank: number } }[]; coins: number; reputation: number; adopted: number }): Promise<void> {
+  private festivalSummary(e: { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; skipped: boolean; setup?: { visitors: number }; contest?: { rank: number }; photo?: { score: number } }[]; coins: number; reputation: number; adopted: number }): Promise<void> {
     const t = uiText.festival.summary;
     const name = content.festivals.find((f) => f.id === e.festivalId)?.name ?? '';
     const rows = e.results.map((r) => {
       const game = content.minigames.games[r.game]?.name ?? r.game;
-      const visitors = r.setup ? t.visitors.replace('{n}', String(r.setup.visitors)) : r.contest ? t.rank.replace('{n}', String(r.contest.rank)) : '';
+      const visitors = r.setup ? t.visitors.replace('{n}', String(r.setup.visitors)) : r.contest ? t.rank.replace('{n}', String(r.contest.rank)) : r.photo ? t.photo.replace('{n}', String(r.photo.score)) : '';
       return `<li>${esc(t.activity.replace('{game}', game).replace('{outcome}', r.skipped ? t.outcomes.skipped : t.outcomes[r.outcome]) + visitors)}</li>`;
     });
     if (e.adopted > 0) rows.push(`<li>${esc(t.adopted.replace('{n}', String(e.adopted)))}</li>`);

@@ -235,6 +235,23 @@
         "hard": {"pairs":5,"okAt":0.6}
       }
     },
+    "photo": {
+      "name": "Foto perfeita",
+      "instructions": "O mouse é o visor da câmera; clique para fotografar. Os gatos andam e trocam de pose; sentado, às vezes um deles faz a pose fofa (brilho nos olhos) por um instante: é a hora! Gato no centro do visor e os dois juntos valem mais. Poucas fotos: vale a melhor. As poses e as regras estão em data/photo.json.",
+      "tutorial": {"icon":"caixa_presente_laco","lines":["O mouse mira o visor; clique para fotografar.","Brilho nos olhos = pose fofa, por um instante: fotografe!","Gato no centro, e os dois juntos, valem mais. Vale a melhor foto."]},
+      "reputation": {"ok":1,"great":2},
+      "sounds": {"shot":"put_down","good":"success","bad":"error"},
+      "rewards": {
+        "easy": {"ok":8,"great":14},
+        "normal": {"ok":12,"great":20},
+        "hard": {"ok":16,"great":28}
+      },
+      "difficulties": {
+        "easy": {"cats":1,"shots":6,"cuteWindow":0.8,"speed":30,"okAt":45,"greatAt":75},
+        "normal": {"cats":2,"shots":5,"cuteWindow":0.6,"speed":40,"okAt":50,"greatAt":80},
+        "hard": {"cats":2,"shots":4,"cuteWindow":0.45,"speed":55,"okAt":55,"greatAt":88}
+      }
+    },
     "costume": {
       "name": "Concurso de fantasia",
       "instructions": "Escolha um gato do café e uma peça para cada lugar (cabeça, pescoço, costas). O júri olha o tema do dia, se as cores e o estilo combinam e se não é tudo da mesma cor. Desfile antes do tempo acabar. As peças, os temas e as regras estão em data/costume.json.",

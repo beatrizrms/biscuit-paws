@@ -46,7 +46,8 @@
       "activities": [
         { "point": "pt.fair_setup", "game": "fair_setup" },
         { "point": "pt.fair_table", "game": "adoption" },
-        { "point": "pt.costume_stage", "game": "costume" }
+        { "point": "pt.costume_stage", "game": "costume" },
+        { "point": "pt.photo_spot", "game": "photo" }
       ],
       "rewards": { "coins": 30, "reputation": 4 },
       "texts": {
@@ -55,7 +56,8 @@
         "activities": {
           "fair_setup": "Montar a feira do Dia do Gato (os caixotes no quintal).",
           "adoption": "A feira do Dia do Gato, na mesa do quintal.",
-          "costume": "O desfile de fantasia do Dia do Gato (nos balões do quintal)."
+          "costume": "O desfile de fantasia do Dia do Gato (nos balões do quintal).",
+          "photo": "A foto do Dia do Gato: na frente do forno do quintal."
         }
       }
     },
@@ -73,14 +75,16 @@
         { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting" }
       ],
       "activities": [
-        { "point": "pt.costume_stage", "game": "costume" }
+        { "point": "pt.costume_stage", "game": "costume" },
+        { "point": "pt.photo_spot", "game": "photo" }
       ],
       "rewards": { "coins": 20, "reputation": 3 },
       "texts": {
         "close": "Hoje é o Concurso de fofura! Pôr a placa na porta do café.",
         "decor": "Enfeitar o quintal para o concurso.",
         "activities": {
-          "costume": "O desfile de fantasia, nos balões do quintal."
+          "costume": "O desfile de fantasia, nos balões do quintal.",
+          "photo": "A foto perfeita do concurso: na frente do forno do quintal."
         }
       }
     }

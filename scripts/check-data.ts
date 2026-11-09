@@ -39,6 +39,7 @@ const raw: RawContent = {
   festivals: read('data/festivals.json'),
   fairSetup: read('data/fair_setup.json'),
   costume: read('data/costume.json'),
+  photo: read('data/photo.json'),
   carry: read('data/carry.json'),
   emotes: read('data/emotes.json'),
   jobs: read('data/jobs.json'),

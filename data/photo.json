@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Foto perfeita (mini game photo, src/core/photo.ts). arena: onde os gatos andam (px lógicos x, y, largura, altura). frame: o tamanho do visor. poses: nome na tela, a animação do Cosy Cats (walk usa a da direção em que anda), quanto vale no momento (0 a 1; a fofa vale 1), a chance de ser a próxima (weight) e quanto dura em s. A pose fofa só vem do sentar (cuteChance) e dura a janela da dificuldade, com brilho nos olhos. Os bocejos e espreguiçadas não existem no Cosy Cats: brincar e cochilar fazem esse papel. scoring: pesos (somam 100) do momento, do enquadramento (gato perto do centro do visor) e da dupla (os dois gatos na foto). Quantos gatos, fotos, a janela, a velocidade e os limiares ficam em minigames.json (photo.difficulties).",
+  "arena": [70, 120, 500, 170],
+  "frame": { "w": 120, "h": 90 },
+  "poses": {
+    "walk": { "name": "andando", "anim": "walk_down", "moment": 0, "weight": 3, "duration": [1.5, 3] },
+    "sit": { "name": "sentado", "anim": "sit", "moment": 0.25, "weight": 4, "duration": [1, 2.2] },
+    "play": { "name": "brincando", "anim": "play", "moment": 0.35, "weight": 2, "duration": [1, 1.8] },
+    "loaf": { "name": "cochilando", "anim": "sleep", "moment": 0.2, "weight": 1, "duration": [1.5, 3] },
+    "cute": { "name": "pose fofa", "anim": "sit", "moment": 1, "weight": 0, "duration": [0.6, 0.6] }
+  },
+  "cuteChance": 0.45,
+  "scoring": { "moment": 60, "framing": 25, "pair": 15 }
+}

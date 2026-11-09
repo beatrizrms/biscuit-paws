@@ -47,6 +47,7 @@ export function rawContent(): RawContent {
     festivals: read('data/festivals.json'),
     fairSetup: read('data/fair_setup.json'),
     costume: read('data/costume.json'),
+    photo: read('data/photo.json'),
   };
 }
 

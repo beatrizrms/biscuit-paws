@@ -4,7 +4,7 @@
 // atividades (mini games, em ordem, no quintal). Feitas todas, o evento acaba: resumo com cada resultado, moedas e
 // reputação. Se o dia passa sem acabar, volta ao começo. Um intervalo mínimo separa duas edições do mesmo evento.
 // Puro: sem Phaser, DOM ou window. Os pontos são pontos de pedido (data/jobs.json); a sessão junta.
-import type { ContestOutcome, FairSetupOutcome, Outcome } from './minigame';
+import type { ContestOutcome, FairSetupOutcome, Outcome, PhotoOutcome } from './minigame';
 
 export interface FestivalDef {
   id: string;
@@ -47,6 +47,8 @@ export interface ActivityResult {
   setup?: FairSetupOutcome;
   /** Concurso de fantasia: a colocação (o resumo mostra). */
   contest?: ContestOutcome;
+  /** Foto perfeita: a melhor foto (o resumo mostra a nota). */
+  photo?: PhotoOutcome;
 }
 
 /** No save (v22). */
