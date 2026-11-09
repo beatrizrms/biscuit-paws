@@ -34,6 +34,13 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
       const first = row * def.columns;
       scene.anims.create({ key: name, frames: scene.anims.generateFrameNumbers(key, { start: first, end: first + 3 }), frameRate: def.fps, repeat: -1 });
     }
+    for (const [dir, row] of Object.entries(def.sit ?? {})) {
+      const name = `${key}-sit_${dir}`;
+      if (scene.anims.exists(name)) continue;
+      const first = row * def.columns;
+      // Sentado parado, respirando devagar (ida e volta).
+      scene.anims.create({ key: name, frames: scene.anims.generateFrameNumbers(key, { start: first, end: first + (def.sitFrames ?? 3) - 1 }), frameRate: 2, repeat: -1, yoyo: true });
+    }
     for (const [anim, frames] of Object.entries(def.extras)) {
       const name = `${key}-${anim}`;
       if (scene.anims.exists(name)) continue;
@@ -47,6 +54,13 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     if (!this.active) return;
     this.anims.stop();
     this.setFrame(this.def.walk[dir] * this.def.columns);
+  }
+
+  /** Senta virado para `dir` (a cadeira do mapa fica por baixo). false = este NPC não tem a pose sentada. */
+  sit(dir: Facing): boolean {
+    if (!this.active || !this.def.sit) return false;
+    this.play(`${npcTexture(this.def.id)}-sit_${dir}`, true);
+    return true;
   }
 
   /** Anda até a célula (primeiro na horizontal, depois na vertical). */

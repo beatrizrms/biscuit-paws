@@ -182,7 +182,7 @@ Roteiro = lista de passos executados em ordem; cada um espera o anterior termina
 `npcSpawn`, `npcWalk`, `npcAnim` (extras do NPC: acenar, segurando_chaves...), `npcFace`, `npcLeave`, `playerWalk`, `playerFace`,
 `dialogue` (espera a fala fechar), `enter` (fade para outro mapa levando a personagem e NPCs), `showItem` (item grande no centro), `giveItem`, `wait`.
 A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
-NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`).
+NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`). Arte nova (PixelLab, `npm run npcs`): `resolution: 2`, quadros 112x128 (pessoas) ou 64x64 (o Joca). Clientes: `sit` (linha do sentado por direção, `sitFrames` quadros, padrão 3): na mesa, o cliente senta virado para a mesa e a cadeira do mapa fica por baixo (na cadeira de costas, por cima dele). Kits do import (`scripts/import-npcs.ts`): completo (caminhada, acenar, segurar), só caminhada, cliente (caminhada e sentado) e cachorro.
 A vassoura fica em `data/tools.json` (quadros, ponto do cabo, tempo de varrer).
 Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem se devolve) e `carrySprite` (quadro de `data/emotes.json` desenhado acima da cabeça dela enquanto tiver o item; ex.: a caixa de uma entrega). `use` diz o que o item faz quando está ativo na barra: `"food_bowl"` (ração: encher a tigela; a escolhida, simples ou premium) ou `"cat"` (petisco: dar ao gato). Itens com `use` entram sozinhos na barra, como as ferramentas. Tempos da animação de usar (ícone na mão, despejar, dar) em `data/tools.json: use`.
 

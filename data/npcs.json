@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "NPCs. Folhas com pés na base (humanos 32x64, o Joca 32x32). walk: linha de cada direção (4 quadros). extras: nome -> quadros. resolution 2: arte em 64 px por tile (PixelLab), desenhada na metade; folhas montadas por npm run npcs (quadros 112x128, linhas: caminhada baixo/esquerda/direita/cima, acenar, segurar; segurar é uma pose de mãos juntas, o objeto ainda não aparece).",
+  "_comment": "NPCs. Folhas com pés na base (humanos 32x64, o Joca 32x32). walk: linha de cada direção (4 quadros). extras: nome -> quadros. resolution 2: arte em 64 px por tile (PixelLab), desenhada na metade; folhas montadas por npm run npcs (quadros 112x128, linhas: caminhada baixo/esquerda/direita/cima, acenar, segurar; segurar é uma pose de mãos juntas, o objeto ainda não aparece). Clientes: caminhada e, nas linhas 4 a 7, sentado (sit: baixo, esquerda, direita, cima; sitFrames quadros), com a cadeira do mapa por baixo. Joca: cachorro, quadros 64x64.",
   "npcs": [
     {
       "id": "npc.realtor",
@@ -67,10 +67,10 @@
     {
       "id": "npc.joca",
       "name": "Joca",
-      "sheet": "assets/characters/npcs/npc_joca.png",
-      "frameWidth": 32,
-      "frameHeight": 32,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_joca.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "columns": 6,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -79,21 +79,12 @@
         "up": 3
       },
       "extras": {
-        "sentado": [
-          16
-        ],
-        "latindo": [
-          17,
-          18
-        ],
-        "dormindo": [
-          19,
-          20
-        ],
-        "latindo_lado": [
-          21
-        ]
-      }
+        "sentado": [36, 37, 38],
+        "latindo": [24, 25, 26, 27, 28, 29],
+        "dormindo": [44],
+        "latindo_lado": [30, 31, 32, 33, 34, 35]
+      },
+      "resolution": 2
     },
     {
       "id": "npc.neusa",
@@ -160,10 +151,10 @@
     {
       "id": "npc.customer_01",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_01.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_01.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -171,15 +162,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_02",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_02.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_02.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -187,15 +186,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_03",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_03.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_03.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -203,15 +210,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_04",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_04.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_04.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -219,15 +234,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_05",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_05.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_05.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -235,15 +258,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_06",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_06.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_06.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -251,15 +282,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_07",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_07.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_07.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -267,15 +306,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_08",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_08.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_08.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -283,15 +330,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_09",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_09.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_09.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -299,15 +354,23 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.customer_10",
       "name": "Cliente",
-      "sheet": "assets/characters/customers/npc_customer_10.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_customer_10.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -315,7 +378,15 @@
         "right": 2,
         "up": 3
       },
-      "extras": {}
+      "extras": {},
+      "sit": {
+        "down": 4,
+        "left": 5,
+        "right": 6,
+        "up": 7
+      },
+      "sitFrames": 2,
+      "resolution": 2
     },
     {
       "id": "npc.fernanda",

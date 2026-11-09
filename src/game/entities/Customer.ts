@@ -1,7 +1,7 @@
 // Cliente: um dos visuais do pacote clientes, com o balão do pedido em cima.
 // Só desenha: onde ele fica, o que pediu e a paciência vêm do núcleo (CafeService).
 import Phaser from 'phaser';
-import type { Cell } from '../../core/map';
+import type { Cell, Facing } from '../../core/map';
 import type { NpcDef } from '../../core/script';
 import { serviceArt } from '../content';
 import { iconFrame } from '../icons';
@@ -23,6 +23,10 @@ export class CustomerSprite {
   shownRecipe: string | null | undefined;
   mood: Mood = 'normal';
   leaving = false;
+  /** Chegou à célula de `target` (a caminhada terminou). */
+  arrived = false;
+  /** Sentado virado para esta direção (null: em pé). */
+  seated: Facing | null = null;
 
   constructor(
     private scene: Phaser.Scene,
@@ -48,15 +52,28 @@ export class CustomerSprite {
    */
   walkTo(cell: Cell, verticalFirst = false): Promise<void> {
     this.target = cell;
+    this.arrived = false;
     this.walking = this.walking.then(async () => {
       if (!this.sprite.active) return;
+      this.seated = null;
       if (verticalFirst) {
         const col = Math.floor(this.sprite.x / this.tileSize);
         await this.sprite.walkTo([col, cell[1]]);
       }
       if (this.sprite.active) await this.sprite.walkTo(cell);
+      if (this.target === cell) this.arrived = true;
     });
     return this.walking;
+  }
+
+  /**
+   * Senta na cadeira da célula onde está, virado para a mesa. A cadeira de costas (virado para cima) fica na frente
+   * dele; nas outras, ele fica na frente da cadeira (base da cadeira: `chairBase`, a profundidade dela).
+   */
+  sit(dir: Facing, chairBase: number): void {
+    if (this.seated === dir || !this.sprite.sit(dir)) return;
+    this.seated = dir;
+    this.sprite.setDepth(chairBase + (dir === 'up' ? -1 : 1));
   }
 
   /** Balão do pedido (ícone da receita); null: aguardando (na fila); undefined: sem balão. */

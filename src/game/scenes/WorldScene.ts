@@ -1491,6 +1491,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts);
         this.customerViews.set(c.id, view);
         if (!this.customersFresh) void view.walkTo(c.spot, true);
+        else view.arrived = true;
       } else if (view.target[0] !== c.spot[0] || view.target[1] !== c.spot[1]) void view.walkTo(c.spot, true);
       const shown = c.stage === 'waiting' ? c.recipe : c.stage === 'queue' ? null : undefined;
       if (view.shownRecipe !== shown) {
@@ -1503,6 +1504,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const left = (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes;
         const b = serviceArt.bubble;
         view.setMood(left < b.furiousBelow ? 'furious' : left < b.impatientBelow ? 'impatient' : 'normal');
+      }
+      // Na mesa: chegou à cadeira, senta virado para a mesa (a cadeira do mapa fica por baixo).
+      if (c.kind === 'table' && c.stage !== 'queue' && view.arrived && view.target[0] === c.spot[0] && view.target[1] === c.spot[1]) {
+        const dx = c.dishAt[0] - c.spot[0];
+        const dy = c.dishAt[1] - c.spot[1];
+        view.sit(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down', ySortDepth((c.spot[1] + 1) * ts));
       }
       view.update();
     }
