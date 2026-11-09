@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Movimento e caixa dos pés. O desenho vem das camadas do criador (data/character.json, src/game/playerLook.ts).",
+  "_comment": "Movimento e caixa dos pés. O desenho vem das camadas do criador (data/character.json, src/game/playerLook.ts). run: correr segurando R (factor: quanto mais rápido; carryingFactor: o mesmo, carregando algo nas mãos, na bandeja ou no colo; vale por cima da velocidade de carregar).",
   "id": "char.player",
   "frameWidth": 32,
   "frameHeight": 64,
@@ -13,6 +13,10 @@
   "walkFrames": 4,
   "fps": 8,
   "speed": 80,
+  "run": {
+    "factor": 1.6,
+    "carryingFactor": 1.3
+  },
   "feet": {
     "width": 16,
     "height": 10

@@ -14,6 +14,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private facing: Direction = 'down';
   /** Multiplica a velocidade (ex.: carregando coisas). */
   speedFactor = 1;
+  /** Correndo (R): multiplica a velocidade e o ritmo da animação de andar. */
+  runFactor = 1;
   /** Textura de andar: a normal ou uma pose que anda (bandeja, gato no colo). */
   private look = PLAYER_TEXTURE;
   /** Ação parada em andamento (varrer, lavar...): a animação dela manda até acabar. */
@@ -61,9 +63,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   move(input: InputState): void {
     if (this.acting) return;
-    const m = movementFromInput(input, playerJson.speed * this.speedFactor, this.facing);
+    const m = movementFromInput(input, playerJson.speed * this.speedFactor * this.runFactor, this.facing);
     this.facing = m.facing;
     this.setVelocity(m.vx, m.vy);
+    this.anims.timeScale = m.moving ? this.runFactor : 1;
     if (m.moving) this.anims.play(`${this.look}-${m.facing}`, true);
     else this.idle();
   }
@@ -96,6 +99,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!this.scene.textures.exists(key)) return;
     this.acting = true;
     this.setVelocity(0, 0);
+    this.anims.timeScale = 1; // a pose no ritmo dela, mesmo se ela vinha correndo
     this.anims.play(`${key}-${this.facing}`, true);
     await new Promise<void>((resolve) => this.scene.time.delayedCall(ms, resolve));
     this.acting = false;

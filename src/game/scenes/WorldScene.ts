@@ -34,6 +34,8 @@ import { poseDrawsProp, poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
+import { runFactor } from '../../core/movement';
+import playerJson from '../../../data/player.json';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
@@ -43,10 +45,12 @@ const PARCEL_HAND_STEP = 9;
 /** Ajuste da caixa em relação ao ponto da mão (negativo = mais para cima): na altura dos braços, no peito. */
 const PARCEL_HAND_DROP = -2;
 
+const playerRun = playerJson.run;
+
 /** Tipos de coisa da dica "E" (os textos ficam em ui_text.json: hints). */
 type HintKind = keyof typeof uiText.hints;
 
-type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'run', Phaser.Input.Keyboard.Key>;
 
 const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
@@ -166,7 +170,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard!.addKeys({
-      up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D,
+      up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, run: K.R,
       // Sem captura: senão W, A, S, D não dá para digitar na caixa de nome do gato.
     }, false) as Keys;
     // Teclas de ação por evento: um toque rápido nunca se perde.
@@ -337,6 +341,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           right: k.right.isDown || k.d.isDown,
         };
     this.player.speedFactor = this.session.service.speed();
+    // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
+    this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown, this.session.service.carrying(), playerRun);
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);

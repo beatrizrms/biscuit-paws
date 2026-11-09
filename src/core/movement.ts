@@ -36,3 +36,15 @@ export function movementFromInput(input: InputState, speed: number, current: Dir
 
   return { vx: (dx / len) * speed, vy: (dy / len) * speed, moving: true, facing };
 }
+
+/** Correr (R segurado): quanto mais rápido, sem nada nas mãos ou carregando algo. */
+export interface RunConfig {
+  factor: number;
+  carryingFactor: number;
+}
+
+/** Multiplicador da velocidade: andando, 1; correndo, factor; correndo carregando algo, um pouco menos. */
+export function runFactor(running: boolean, carrying: boolean, cfg: RunConfig): number {
+  if (!running) return 1;
+  return carrying ? cfg.carryingFactor : cfg.factor;
+}
