@@ -74,8 +74,11 @@ export interface MapDoor {
   requires?: DoorCondition;
   /** Fala mostrada quando está trancada. */
   locked?: string;
-  /** Em vez de atravessar, mostra uma cena quando a condição vale (ex.: o gatinho na porta). */
-  intercept?: { when: DoorCondition; cutscene: string };
+  /**
+   * Em vez de atravessar, quando a condição vale: mostra uma cena (cutscene, ex.: o gatinho na porta) ou roda um
+   * roteiro no mundo (script, ex.: a clínica que abriu; o roteiro pode levar para dentro com o passo "enter").
+   */
+  intercept?: { when: DoorCondition; cutscene?: string; script?: string };
 }
 
 /** Mesma forma das condições da história (content.ts); repetida aqui para o mapa não depender do conteúdo. */

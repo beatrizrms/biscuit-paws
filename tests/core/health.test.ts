@@ -159,7 +159,7 @@ describe('a clínica', () => {
 });
 
 describe('o dia 6', () => {
-  it('a partir do dia 6, no café, o gato adoece, a clínica abre e a Fernanda vem; a meta segura as outras', () => {
+  it('a partir do dia 6, no café, o gato adoece e a clínica abre; a meta segura as outras', () => {
     const { session, state, events } = withCat(500);
     state.story.completed.push(...content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.prologue_end') + 1).map((b) => b.id));
     state.day = 5;
@@ -171,8 +171,25 @@ describe('o dia 6', () => {
     session.enter('map.cafe_main');
     expect(state.flags['clinic.open']).toBe(true);
     expect(state.cats[CAT]!.sickness).not.toBeNull();
-    expect(events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId)).toContain('scr.fernanda_visit');
+    expect(events.filter((e) => e.name === 'dialogue.requested').map((e) => (e.payload as { dialogueId: string }).dialogueId)).toContain('dlg.cat_sick');
     expect(session.goals().map((g) => g.title)).toEqual(['Gatinho doente']);
+  });
+
+  it('na porta da clínica ela vê que abriu e entra (roteiro); depois a porta volta a ser só porta', () => {
+    const { session, state, events } = withCat(500);
+    state.story.completed.push(...content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.prologue_end') + 1).map((b) => b.id));
+    state.day = 6;
+    session.enter('map.cafe_main');
+    session.enter('map.street');
+    const door = session.mapData('map.street').doors!.find((d) => d.to === 'map.vet_clinic')!;
+    expect(session.doorIntercept(door)).toBe('scr.clinic_opening');
+    expect(events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId)).toContain('scr.clinic_opening');
+    const step = () => session.goals()[0]!.steps.find((x) => !x.done)!.text;
+    expect(step()).toContain('obra no fim da rua');
+    session.finishScript('scr.clinic_opening');
+    expect(session.doorIntercept(door)).toBeUndefined();
+    expect(session.canUseDoor(door)).toBe(true);
+    expect(step()).toContain('levar no colo');
   });
 });
 

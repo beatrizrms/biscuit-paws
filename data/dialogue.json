@@ -385,30 +385,53 @@
         {
           "speaker": "{player}",
           "text": "O nariz está quente. Acho que ele não está bem."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Preciso de um veterinário... Aquela obra no fim da rua tinha uma placa de clínica. Vou dar uma olhada."
         }
       ]
     },
-    "dlg.fernanda_visit": {
+    "dlg.clinic_opened_today": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A placa mudou: \"Clínica Veterinária. Inauguração: hoje!\""
+        },
+        {
+          "speaker": "{player}",
+          "text": "Abriu! E justo hoje... Vou entrar."
+        }
+      ]
+    },
+    "dlg.clinic_first_visit": {
       "lines": [
         {
           "speaker": "Fernanda",
           "npc": "npc.fernanda",
-          "text": "Oi! Desculpa entrar assim. Sou a Fernanda, veterinária."
+          "text": "Oi! Pode entrar. Sou a Fernanda, a veterinária. Hoje é a inauguração, e você é a primeira visita!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Que sorte! Eu cuido de uns gatinhos na antiga padaria, aqui na rua."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Um deles, {cat:cat.first_stray}, amanheceu quietinho, com o nariz quente. Posso trazer ele aqui?"
         },
         {
           "speaker": "Fernanda",
           "npc": "npc.fernanda",
-          "text": "Acabei de abrir uma clínica no fim da rua, depois da casa azul."
-        },
-        {
-          "speaker": "Fernanda",
-          "npc": "npc.fernanda",
-          "text": "Hm... Esse gatinho não está com uma carinha boa. Traga {cat:cat.first_stray} no colo até a clínica que eu examino."
+          "text": "Claro! Traga {cat:cat.first_stray} no colo, que eu examino na hora."
         },
         {
           "speaker": "Fernanda",
           "npc": "npc.fernanda",
           "text": "E não se preocupe com o dinheiro: a primeira consulta pode ficar para depois."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Valeu demais, Fernanda! Já volto com ele."
         }
       ]
     },

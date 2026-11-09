@@ -314,55 +314,38 @@
         }
       ]
     },
-    "scr.fernanda_visit": {
+    "scr.clinic_opening": {
       "steps": [
         {
-          "dialogue": "dlg.cat_sick"
-        },
-        {
-          "npcSpawn": "npc.fernanda",
-          "map": "map.cafe_main",
-          "at": [
-            14,
-            4
-          ],
-          "facing": "down"
-        },
-        {
-          "npcWalk": "npc.fernanda",
-          "to": [
-            14,
-            6
-          ]
-        },
-        {
-          "npcToCat": "npc.fernanda",
-          "cat": "cat.first_stray"
+          "playerFace": "up"
         },
         {
           "emote": "player",
           "balloon": "exclamation",
-          "ms": 700
+          "ms": 800
         },
         {
-          "dialogue": "dlg.fernanda_visit"
+          "dialogue": "dlg.clinic_opened_today"
         },
         {
-          "npcWalk": "npc.fernanda",
-          "to": [
-            14,
-            6
+          "enter": "map.vet_clinic",
+          "spawn": [
+            5,
+            9
+          ],
+          "facing": "up"
+        },
+        {
+          "playerWalk": [
+            5,
+            7
           ]
         },
         {
-          "npcWalk": "npc.fernanda",
-          "to": [
-            14,
-            4
-          ]
+          "playerFace": "left"
         },
         {
-          "npcLeave": "npc.fernanda"
+          "dialogue": "dlg.clinic_first_visit"
         }
       ]
     }

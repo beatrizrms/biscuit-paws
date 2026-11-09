@@ -476,12 +476,12 @@ export function validateContent(raw: RawContent): string[] {
     }
   }
   const home = raw.maps.find((m) => m.id === raw.world.homeMap);
-  const doorChecks: { where: string; requires?: Condition; locked?: string; intercept?: { when: Condition; cutscene: string } }[] = raw.maps.flatMap((m) =>
+  const doorChecks: { where: string; requires?: Condition; locked?: string; intercept?: { when: Condition; cutscene?: string; script?: string } }[] = raw.maps.flatMap((m) =>
     (m.doors ?? []).map((d) => ({
       where: `${m.id}: porta "${d.id}"`,
       requires: d.requires as Condition | undefined,
       locked: d.locked,
-      intercept: d.intercept as { when: Condition; cutscene: string } | undefined,
+      intercept: d.intercept as { when: Condition; cutscene?: string; script?: string } | undefined,
     })),
   );
 
@@ -721,7 +721,10 @@ export function validateContent(raw: RawContent): string[] {
   for (const d of doorChecks) {
     if (d.intercept) {
       checkCondition(d.where, d.intercept.when);
-      if (!cutsceneIds.has(d.intercept.cutscene)) err(`${d.where}: cena inexistente "${d.intercept.cutscene}"`);
+      const { cutscene, script } = d.intercept;
+      if ((cutscene === undefined) === (script === undefined)) err(`${d.where}: intercept precisa de "cutscene" ou de "script" (um dos dois)`);
+      if (cutscene !== undefined && !cutsceneIds.has(cutscene)) err(`${d.where}: cena inexistente "${cutscene}"`);
+      if (script !== undefined && !scriptIds.has(script)) err(`${d.where}: roteiro inexistente "${script}"`);
     }
     if (d.requires) checkCondition(d.where, d.requires);
     if (d.locked && !dialogueIds.has(d.locked)) err(`${d.where}: fala de trancada inexistente "${d.locked}"`);

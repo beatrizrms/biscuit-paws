@@ -301,11 +301,15 @@ export class GameSession {
     }
   }
 
-  /** Esta porta, agora, mostra uma cena em vez de deixar passar? Devolve o id da cena. */
+  /** Esta porta, agora, mostra uma cena ou roda um roteiro em vez de deixar passar? Devolve o id da cena ou do roteiro. */
   doorIntercept(door: MapDoor): string | undefined {
     const i = door.intercept;
     if (!i || !evaluate(i.when as Condition, this.state, this.storyContext())) return undefined;
-    this.bus.emit('cutscene.requested', { cutsceneId: i.cutscene });
+    if (i.script) {
+      this.bus.emit('script.requested', { scriptId: i.script });
+      return i.script;
+    }
+    this.bus.emit('cutscene.requested', { cutsceneId: i.cutscene! });
     return i.cutscene;
   }
 

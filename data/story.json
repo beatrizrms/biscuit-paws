@@ -255,7 +255,7 @@
           "setFlag": "clinic.open"
         },
         {
-          "script": "scr.fernanda_visit"
+          "dialogue": "dlg.cat_sick"
         }
       ]
     },
@@ -270,7 +270,14 @@
         "title": "Gatinho doente",
         "steps": [
           {
-            "text": "Levar {cat:cat.first_stray} no colo até a clínica da Fernanda, no fim da rua.",
+            "text": "Ver se a obra no fim da rua já virou a clínica veterinária.",
+            "when": {
+              "flag": "seen.scr.clinic_opening"
+            },
+            "devNote": "Andar até a porta da clínica (rua): o intercept da porta roda scr.clinic_opening, que leva para dentro."
+          },
+          {
+            "text": "Buscar {cat:cat.first_stray} no café e levar no colo até a clínica da Fernanda.",
             "when": {
               "flag": "vet.consulted"
             },

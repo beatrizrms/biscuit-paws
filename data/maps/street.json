@@ -112,7 +112,8 @@
       "requires": { "flag": "clinic.open" },
       "locked": "dlg.door_locked_clinic",
       "spawn": [5, 9],
-      "facing": "up"
+      "facing": "up",
+      "intercept": { "when": { "all": [{ "beat": "story.cat_falls_ill" }, { "not": { "flag": "seen.scr.clinic_opening" } }] }, "script": "scr.clinic_opening" }
     },
     { "id": "door.market", "at": [24, 8], "to": "map.market", "spawn": [10, 10], "facing": "up" },
     {
