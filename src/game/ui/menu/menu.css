@@ -65,6 +65,12 @@
 .creator-name { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: bold; margin-bottom: 4px; }
 .creator-name input { flex: 1; min-width: 0; font: inherit; font-weight: normal; padding: 2px 5px; border: 1.5px solid #8b5e3c; border-radius: 4px; background: #fff8ec; color: #3b2a22; }
 .creator-name input:focus { outline: 2px solid #e48aa0; }
+/* Ela / Ele: dois botões, o escolhido marcado (como o nome: rótulo à esquerda) */
+.creator-pronoun { display: flex; align-items: center; gap: 4px; font-size: 9px; font-weight: bold; margin-bottom: 4px; }
+.creator-pronoun span { margin-right: 2px; }
+.creator-pronoun .menu-btn.small { font-weight: normal; background: #efe4dc; color: #8a7480; }
+.creator-pronoun .menu-btn.small.on { background: #f3a9bb; border-color: #c0596a; color: #6e2a3c; font-weight: bold; box-shadow: inset 0 -1px 0 #d97890, 0 1px 0 #3b2a32; }
+.creator-pronoun .menu-btn.small.on::before { content: "✓ "; }
 .creator-row { display: grid; grid-template-columns: 74px 14px 1fr 14px; align-items: center; gap: 2px; font-size: 8px; margin: 1px 0; }
 .creator-row .label { color: #6b4a3a; }
 .creator-row button { font: inherit; color: #3b2a22; background: #f6e7cc; border: 1px solid #c9a27a; border-radius: 3px; padding: 1px 2px; cursor: pointer; }

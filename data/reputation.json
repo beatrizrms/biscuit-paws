@@ -7,7 +7,7 @@
   "thresholds": [
     { "id": "rep.noticed", "at": 20, "name": "Notada na vila" },
     { "id": "rep.trusted", "at": 40, "name": "De confiança" },
-    { "id": "rep.beloved", "at": 60, "name": "Querida pelos gatos" },
+    { "id": "rep.beloved", "at": 60, "name": "Xodó dos gatos" },
     { "id": "rep.legend", "at": 80, "name": "Lenda felina" }
   ]
 }

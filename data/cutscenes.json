@@ -167,7 +167,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Bom dia, sumida! Que história é essa de que você comprou uma loja?"
+          "text": "Bom dia, {g:sumida|sumido}! Que história é essa de que você comprou uma loja?"
         },
         {
           "type": "text",

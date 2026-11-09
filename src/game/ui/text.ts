@@ -1,13 +1,15 @@
-// Marcadores nos textos dos dados: {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação),
+// Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação),
 // {arrival:condition} / {arrival:personality} / {arrival:npc} / {arrival:leader} (a chegada de gato em andamento: como chega,
 // o jeito, quem trouxe, o gato do café que guia).
 import type { GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
+import { genderText } from '../../core/pronoun';
 import { uiText } from '../content';
 
 export function fillNames(session: GameSession, text: string): string {
   const name = session.playerName();
-  return text
+  // Gênero primeiro (as formas são texto puro: sem outros marcadores dentro).
+  return genderText(text, session.playerPronoun())
     // Save de antes do criador (sem nome): o vocativo some com a vírgula ("Cheguei, {player}!" -> "Cheguei!").
     .replace(/,\s*\{player\}/g, (m) => (name ? m : ''))
     .replace(/\{player\}/g, () => name || uiText.playerFallback)

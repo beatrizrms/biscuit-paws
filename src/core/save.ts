@@ -3,6 +3,7 @@
 import type { HandItem } from './carry';
 import { HOTBAR_SIZE, newHotbar } from './hotbar';
 import type { GameState } from './state';
+import { DEFAULT_PRONOUN, isPronoun } from './pronoun';
 import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
 import { normalizeRoomsState, type RoomsData } from './rooms';
@@ -12,10 +13,10 @@ import type { CatDef } from './cats';
 import type { FairState } from './fair';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 20;
+export const SAVE_SCHEMA_VERSION = 21;
 
-export interface SaveV20 extends GameState {
-  schemaVersion: 20;
+export interface SaveV21 extends GameState {
+  schemaVersion: 21;
   savedAt: string;
 }
 
@@ -109,10 +110,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     schemaVersion: 20,
     cats: Object.fromEntries(Object.entries((save.cats ?? {}) as Record<string, object>).map(([id, c]) => [id, { happiness: 70, hygiene: 70, ...c }])),
   }),
+  /** v20 -> v21: ela ou ele (escolha do criador). Saves antigos: ela (o jogo foi escrito assim até aqui). */
+  20: (save) => ({ ...save, schemaVersion: 21, player: { ...((save.player ?? {}) as object), pronoun: DEFAULT_PRONOUN } }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV20 = { schemaVersion: 20, savedAt: now.toISOString(), ...state };
+  const save: SaveV21 = { schemaVersion: 21, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -157,7 +160,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV20>;
+  const v2 = save as unknown as Partial<SaveV21>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -271,6 +274,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     player: {
       name: typeof v2.player?.name === 'string' ? cleanPlayerName(v2.player.name) : '',
       appearance: v2.player?.appearance ? normalizeAppearance(known.character, v2.player.appearance).appearance : null,
+      pronoun: isPronoun(v2.player?.pronoun) ? v2.player.pronoun : DEFAULT_PRONOUN,
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     fair: normalizeFair(v2.fair),

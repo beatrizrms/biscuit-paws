@@ -12,8 +12,8 @@
     {
       "id": "news.bakery_sold",
       "day": 2,
-      "headline": "Padaria do seu Antônio tem nova dona",
-      "text": "A antiga padaria da rua principal, fechada há anos, foi vendida. A nova dona não quis dizer o que vai abrir lá."
+      "headline": "Padaria do seu Antônio tem {g:nova dona|novo dono}",
+      "text": "A antiga padaria da rua principal, fechada há anos, foi vendida. {g:A nova dona|O novo dono} não quis dizer o que vai abrir lá."
     },
     {
       "id": "news.market_help",

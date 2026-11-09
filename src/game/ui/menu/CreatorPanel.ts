@@ -3,6 +3,7 @@
 // As regras (opções, vestido sem parte de baixo, sorteio) moram em src/core/appearance.ts.
 import type Phaser from 'phaser';
 import { cleanPlayerName, creatorOptions, cycle, hidesBottom, isBald, LAYER_KEYS, layerFiles, randomAppearance, type Appearance } from '../../../core/appearance';
+import { DEFAULT_PRONOUN, PRONOUNS, type Pronoun } from '../../../core/pronoun';
 import { createRng } from '../../../core/rng';
 import type { PlayerState } from '../../../core/state';
 import { content } from '../../content';
@@ -34,6 +35,8 @@ export interface CreatorHandlers {
 export function openCreator(root: HTMLElement, textures: Phaser.Textures.TextureManager, handlers: CreatorHandlers): void {
   let look: Appearance = { ...C.default };
   let name = '';
+  // Ela ou ele: só muda o gênero de algumas falas ({g:feminino|masculino}); a aparência é livre.
+  let pronoun: Pronoun = DEFAULT_PRONOUN;
   let dirIndex = 0;
   let presetIndex = -1;
   let column = 0;
@@ -52,6 +55,7 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
         </div>
         <div class="creator-options">
           <label class="creator-name">${t('creator.name')}<input type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="${esc(t('creator.namePlaceholder'))}" /></label>
+          <div class="creator-pronoun" role="radiogroup" aria-label="${t('creator.pronoun')}"><span>${t('creator.pronoun')}</span>${PRONOUNS.map((p) => `<button class="menu-btn small" role="radio" data-pronoun="${p}">${t(`creator.pronoun_${p}`)}</button>`).join('')}</div>
           <div class="creator-rows"></div>
         </div>
       </div>
@@ -139,7 +143,7 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
       }
       window.clearInterval(timer);
       popLayer(layer);
-      handlers.onDone({ name: clean, appearance: { ...look } });
+      handlers.onDone({ name: clean, appearance: { ...look }, pronoun });
       return;
     }
     window.clearInterval(timer);
@@ -152,6 +156,10 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
     if (!b) return;
     if (b.dataset.step) return change(b.dataset.key as keyof Appearance, Number(b.dataset.step) === 1 ? 1 : -1);
     if (b.dataset.cycle) return change(b.dataset.cycle as keyof Appearance, 1);
+    if (b.dataset.pronoun) {
+      pronoun = b.dataset.pronoun as Pronoun;
+      return showPronoun();
+    }
     const act = b.dataset.act;
     if (act === 'turn-left' || act === 'turn-right') {
       dirIndex = (dirIndex + (act === 'turn-right' ? 1 : DIRS.length - 1)) % DIRS.length;
@@ -182,6 +190,14 @@ export function openCreator(root: HTMLElement, textures: Phaser.Textures.Texture
     e.stopPropagation();
     if (e.key === 'Enter') finish(true);
   });
+
+  const showPronoun = () =>
+    el.querySelectorAll<HTMLButtonElement>('[data-pronoun]').forEach((b) => {
+      const on = b.dataset.pronoun === pronoun;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', String(on));
+    });
+  showPronoun();
 
   const layer: MenuLayer = { el, onBack: () => finish(false) };
   changed();

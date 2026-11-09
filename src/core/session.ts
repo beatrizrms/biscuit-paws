@@ -13,6 +13,7 @@ import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
+import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import { addCare, careAtDayEnd, careGain, careNeeds, careOf, type CareNeed, type CareStat } from './care';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
@@ -914,6 +915,11 @@ export class GameSession {
   /** Nome da protagonista (vazio em saves de antes do criador). */
   playerName(): string {
     return this.state.player.name;
+  }
+
+  /** Ela ou ele (criador): escolhe a forma nos textos com {g:feminino|masculino}. */
+  playerPronoun(): Pronoun {
+    return this.state.player.pronoun ?? DEFAULT_PRONOUN;
   }
 
   /** Aparência da protagonista: a escolhida ou a padrão dos dados. */

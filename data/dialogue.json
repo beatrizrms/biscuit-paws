@@ -172,11 +172,11 @@
         {
           "speaker": "Corretora",
           "npc": "npc.realtor",
-          "text": "Bom dia! Você deve ser a interessada na padaria!"
+          "text": "Bom dia! Você veio pela padaria, não é?"
         },
         {
           "speaker": "{player}",
-          "text": "Sou eu! Vim assim que vi o anúncio."
+          "text": "Isso! Vim assim que vi o anúncio."
         },
         {
           "speaker": "Corretora",
@@ -533,7 +533,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Esquecida! Com tanta coisa acontecendo, nem pensei numa caixinha de areia."
+          "text": "Que cabeça a minha! Com tanta coisa acontecendo, nem pensei numa caixinha de areia."
         },
         {
           "speaker": "{player}",
@@ -550,7 +550,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Bom dia, querida! Olha só quem eu achei miando na minha área, com uma fome que só vendo."
+          "text": "Bom dia, {g:querida|querido}! Olha só quem eu achei miando na minha área, com uma fome que só vendo."
         },
         {
           "speaker": "Dona Neusa",

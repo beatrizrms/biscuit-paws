@@ -1,5 +1,6 @@
 // Estado do jogo: só IDs, números, booleanos e textos simples (é o que vai para o save).
 // Puro: sem Phaser, DOM ou window.
+import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import type { HandItem, SurfaceItem } from './carry';
 import type { Vessel } from './recipes';
 import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
@@ -101,6 +102,8 @@ export interface GameState {
 export interface PlayerState {
   name: string;
   appearance: Appearance | null;
+  /** Ela ou ele (v21): os textos com {g:feminino|masculino} seguem esta escolha (core/pronoun.ts). */
+  pronoun: Pronoun;
 }
 
 /** Ordem das etapas de uma entrega (depois de "inside" ela abre a caixa e o item vai para a bolsa). */
@@ -170,7 +173,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     sink: { load: emptyLoad(), washing: null },
     hotbar: newHotbar(),
     business: 'closed',
-    player: { name: '', appearance: null },
+    player: { name: '', appearance: null, pronoun: DEFAULT_PRONOUN },
     debt: 0,
     rooms: {},
     doors: {},

@@ -183,7 +183,7 @@ export class NewsPanel {
   private jobsHtml(withNews: boolean): string {
     const s = this.session;
     const news = withNews
-      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(n.headline)}</h3><p>${esc(n.text)}</p></article>`).join('')
+      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('')
       : '';
     const active = s.activeJobs().map((j) => {
       const step = j.steps[s.jobStep(j.id)];

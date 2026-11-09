@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 21,
+  "savedAt": "2026-11-08T12:00:00.000Z",
+  "day": 3,
+  "money": 100,
+  "flags": {
+    "bought.old_bakery": true,
+    "has.cat": true,
+    "dishes.stocked.item.dishes_set": true
+  },
+  "inventory": {
+    "item.key_bakery": 1,
+    "item.parcel": 1,
+    "item.dishes_set": 1,
+    "item.coffee_ground": 1,
+    "item.broom": 1
+  },
+  "placed": [],
+  "nextUid": 1,
+  "story": {
+    "completed": [
+      "story.prologue_thoughts",
+      "story.intro",
+      "story.enter_bakery",
+      "story.cleanup",
+      "story.meow",
+      "story.cat_named"
+    ],
+    "completedOn": {
+      "story.cat_named": 1
+    }
+  },
+  "cats": {
+    "cat.first_stray": {
+      "sheltered": true,
+      "name": "Pipoca",
+      "map": "map.cafe_main",
+      "shelteredOn": 2,
+      "happiness": 40,
+      "hygiene": 20
+    },
+    "cat.gen.1": {
+      "sheltered": true,
+      "name": "Nuvem",
+      "map": "map.cafe_main",
+      "shelteredOn": 5,
+      "health": 60,
+      "sickness": null,
+      "provisionalUntil": 12,
+      "happiness": 40,
+      "hygiene": 20
+    }
+  },
+  "relationships": {
+    "player|cat.first_stray": 120
+  },
+  "finishes": {
+    "surface.hall_floor": "finish.wood_planks"
+  },
+  "location": "map.street",
+  "visited": [
+    "map.street",
+    "map.cafe_main"
+  ],
+  "cleaned": [
+    "*"
+  ],
+  "time": 600,
+  "timers": {
+    "gabi.arrival": 5010
+  },
+  "today": {
+    "earned": 25,
+    "jobs": 1
+  },
+  "jobs": {
+    "active": [
+      "job.delivery",
+      "job.removed_from_game"
+    ],
+    "progress": {
+      "job.delivery": [
+        "pt.parcel_pickup"
+      ]
+    },
+    "doneOn": {
+      "job.market_shelves": 3
+    }
+  },
+  "deliveries": [
+    {
+      "uid": "d40",
+      "item": "item.table_round",
+      "stage": "door",
+      "arrivesAt": 4980
+    },
+    {
+      "uid": "d41",
+      "item": "item.cactus",
+      "stage": "shipping",
+      "arrivesAt": 5020
+    },
+    {
+      "uid": "d42",
+      "item": "item.lamp_removed_from_game",
+      "stage": "inside",
+      "arrivesAt": 4920
+    }
+  ],
+  "menu": [
+    "recipe.black_coffee",
+    "recipe.removed_from_game"
+  ],
+  "pantryOpen": {
+    "item.coffee_ground": 7
+  },
+  "dishes": {
+    "cup": 1,
+    "glass": 2,
+    "plate": 2
+  },
+  "hands": [
+    {
+      "kind": "dirty",
+      "vessel": "cup"
+    },
+    {
+      "kind": "drink",
+      "recipe": "recipe.black_coffee",
+      "vessel": "cup",
+      "quality": "premium"
+    }
+  ],
+  "surfaces": [
+    {
+      "at": [
+        3,
+        4
+      ],
+      "item": {
+        "kind": "drink",
+        "recipe": "recipe.black_coffee",
+        "vessel": "cup"
+      }
+    },
+    {
+      "at": [
+        4,
+        4
+      ],
+      "item": {
+        "kind": "drink",
+        "recipe": "recipe.removed_from_game",
+        "vessel": "cup"
+      }
+    }
+  ],
+  "service": {
+    "customers": [
+      {
+        "id": "c3",
+        "look": 1,
+        "stage": "waiting",
+        "kind": "standing",
+        "spot": [
+          3,
+          5
+        ],
+        "dishAt": [
+          3,
+          4
+        ],
+        "recipe": "recipe.black_coffee",
+        "until": 5020,
+        "favorite": "recipe.black_coffee",
+        "wantsPremium": true
+      }
+    ],
+    "preps": [
+      {
+        "stationUid": "p1",
+        "recipe": "recipe.cheese_bread",
+        "step": 1,
+        "quality": "simple",
+        "readyAt": 4960
+      }
+    ],
+    "nextCustomerAt": 5040,
+    "nextCustomerId": 4,
+    "served": 2
+  },
+  "tray": true,
+  "sink": {
+    "load": {
+      "cup": 1,
+      "glass": 0,
+      "plate": 0
+    },
+    "washing": {
+      "readyAt": 4970,
+      "load": {
+        "cup": 0,
+        "glass": 1,
+        "plate": 0
+      }
+    }
+  },
+  "hotbar": {
+    "slots": [
+      "item.broom",
+      "item.removed_from_game",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "active": 1
+  },
+  "business": "soft_open",
+  "player": {
+    "name": "Bia",
+    "appearance": {
+      "skin": "tan",
+      "eyes": "hazel",
+      "hairStyle": "curly",
+      "hairColor": "dark_brown",
+      "top": "apron",
+      "topColor": "red",
+      "bottom": "pants",
+      "bottomColor": "black",
+      "shoes": "boots",
+      "shoesColor": "brown",
+      "glasses": "none",
+      "head": "none"
+    },
+    "pronoun": "he"
+  },
+  "rooms": {
+    "room.back_room": "restored"
+  },
+  "doors": {
+    "door.back_room": "open"
+  },
+  "schedule": {
+    "days": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    "open": "08:00",
+    "close": "17:30"
+  },
+  "reputation": {
+    "value": 42,
+    "reached": [
+      "rep.noticed",
+      "rep.trusted"
+    ],
+    "log": [
+      {
+        "day": 3,
+        "amount": 4,
+        "reason": "minigame:chase:great"
+      },
+      {
+        "day": 3,
+        "amount": 3,
+        "reason": "adoption:adopt.mingau:good"
+      }
+    ]
+  },
+  "fair": {
+    "stage": "scheduled",
+    "day": 6,
+    "done": [
+      "pt.fair_sign"
+    ],
+    "lastSeason": null
+  },
+  "catDefs": {
+    "cat.gen.1": {
+      "id": "cat.gen.1",
+      "variant": "misty",
+      "personality": "shy",
+      "nameSuggestions": [
+        "Nuvem",
+        "Pudim",
+        "Biju"
+      ],
+      "adoptionTraits": {
+        "age": "adult",
+        "coat": "long"
+      },
+      "tags": [
+        "generated",
+        "condition:cold"
+      ]
+    }
+  },
+  "arrivals": {
+    "active": null,
+    "queue": [],
+    "last": {},
+    "nextOn": 9,
+    "seq": 1,
+    "shelterPool": []
+  },
+  "hintUses": {
+    "dirt": 3,
+    "int_shelf": 1
+  }
+}

@@ -85,6 +85,9 @@
     "name": "Nome",
     "namePlaceholder": "Como você se chama?",
     "nameRequired": "Escolha um nome para começar.",
+    "pronoun": "Pronome",
+    "pronoun_she": "Ela",
+    "pronoun_he": "Ele",
     "skin": "Pele",
     "eyes": "Olhos",
     "hairStyle": "Cabelo",
@@ -106,6 +109,6 @@
     "back": "Voltar",
     "done": "Começar",
     "bottomColorLayers": "Cor da parte de baixo",
-    "previewOnly": "Prévia parada: esta peça ainda não anda no jogo (lá ela usa o moletom e o cabelo longo, nas cores escolhidas)."
+    "previewOnly": "Prévia parada: esta peça ainda não anda no jogo (lá aparecem o moletom e o cabelo longo, nas cores escolhidas)."
   }
 }

@@ -99,12 +99,12 @@ describe('aparência no save', () => {
 
   it('save antigo (v11): sem nome e com a aparência padrão', () => {
     const { state } = parseSave(readFileSync('tests/fixtures/save_v11.json', 'utf8'), known);
-    expect(state.player).toEqual({ name: '', appearance: null });
+    expect(state.player).toEqual({ name: '', appearance: null, pronoun: 'she' });
     expect(new GameSession(content, state).appearance()).toEqual(C.default);
   });
 
   it('jogo novo começa sem nome (o criador preenche)', () => {
-    expect(newGameState(100).player).toEqual({ name: '', appearance: null });
+    expect(newGameState(100).player).toEqual({ name: '', appearance: null, pronoun: 'she' });
   });
 });
 
