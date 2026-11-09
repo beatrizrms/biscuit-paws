@@ -28,7 +28,9 @@ import { services } from '../services';
 import { saveNow } from '../startGame';
 import { openPause } from '../ui/menu/PauseMenu';
 import { t } from '../i18n';
-import { formatClock, tintAt } from '../../core/time';
+import { darkness, formatClock, tintAt } from '../../core/time';
+import { ambienceOf } from '../../core/ambience';
+import { AmbienceLayer, type AmbienceActor } from '../AmbienceLayer';
 import { catPropColor, type Pose } from '../../core/appearance';
 import { poseDrawsProp, poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
@@ -110,6 +112,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private hintCheckedAt = 0;
   /** Balão de cuidado em cima de cada gato (remédio, banho, carinho); o que falta é relido 2 vezes por segundo. */
   private careBubbles!: CareBubbles;
+  /** Luz e sombra de ambiente (sombras de contato, parede com piso, luz das janelas, vinheta). */
+  private ambience!: AmbienceLayer;
   private careNeeds = new Map<string, CareNeed | null>();
   private careCheckedAt = -Infinity;
   private parcelImages: Phaser.GameObjects.Image[] = [];
@@ -173,6 +177,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
     this.careBubbles = new CareBubbles(this);
+    this.ambience = new AmbienceLayer(this, this.session.content.dayNight.ambience);
     this.loadMap(this.session.location());
 
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -337,6 +342,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
     if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.waitUntilAbs !== null ? WAIT_SPEED : 1));
     this.updateDayNight();
+    this.updateAmbience();
     const input = this.autoWalk
       ? this.autoWalkInput()
       : busy
@@ -478,6 +484,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const s of this.map.sprites) {
       this.mapImages.add(addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth));
     }
+    // Luz e sombra de ambiente: refeitas junto com o mapa (inclui os móveis colocados).
+    const { content } = this.session;
+    this.ambience?.setAmbience(ambienceOf(this.session.mapData(mapId), content.catalog, content.dayNight.ambience, content.maps[this.map.id]?.lighting === 'indoor'));
 
     this.solidCollider?.destroy();
     this.solids?.destroy(true);
@@ -689,6 +698,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Cor do momento sobre o mundo e relógio no HUD. */
+  /** Sombras de quem anda e a luz das janelas pela hora (de dia forte, à noite some). */
+  private updateAmbience(): void {
+    const { content } = this.session;
+    const sh = content.dayNight.ambience.actorShadow;
+    const actors: AmbienceActor[] = [{ x: this.player.x, y: this.player.y - 1, w: sh.person, visible: this.player.visible }];
+    for (const c of this.cats) actors.push({ x: c.x, y: c.y - 1, w: sh.cat, visible: c.visible });
+    for (const n of this.npcs.values()) actors.push({ x: n.x, y: n.y - 1, w: sh.person, visible: n.visible });
+    for (const v of this.customerViews.values()) actors.push({ x: v.sprite.x, y: v.sprite.y - 1, w: sh.person, visible: v.sprite.visible });
+    const daylight = 1 - darkness(tintAt(this.session.state.time, content.dayNight, this.session.season(), false));
+    this.ambience.update(actors, daylight);
+  }
+
   private updateDayNight(): void {
     const { content } = this.session;
     const indoor = content.maps[this.map.id]?.lighting === 'indoor';

@@ -1,10 +1,24 @@
 {
   "schemaVersion": 1,
-  "_comment": "Ciclo dia/noite. A arte não muda: uma cor MULTIPLY cobre o mundo, interpolada entre as horas-chave (time pode passar de 24:00 até passOut). Luzes dos mapas brilham com ADD conforme escurece. Interiores usam a cor mais fraca (indoorStrength: 0 = sem tinta, 1 = igual à rua).",
+  "_comment": "Ciclo dia/noite. A arte não muda: uma cor MULTIPLY cobre o mundo, interpolada entre as horas-chave (time pode passar de 24:00 até passOut). Luzes dos mapas brilham com ADD conforme escurece. Interiores usam a cor mais fraca (indoorStrength: 0 = sem tinta, 1 = igual à rua). ambience: luz e sombra de ambiente sem mudar a arte (src/core/ambience.ts): sombra de contato embaixo dos objetos no chão e de quem anda, escurecido onde a parede encontra o piso, luz das janelas no piso dos interiores (some à noite) e uma vinheta nas bordas.",
   "minutesPerSecond": 1.2,
   "dayStart": "07:00",
   "passOut": "26:00",
   "indoorStrength": 0.55,
+  "ambience": {
+    "shadowAlpha": 0.5,
+    "shadowHeight": 8,
+    "shadowWidth": 0.85,
+    "actorShadow": { "person": 18, "cat": 14 },
+    "edgeSize": 16,
+    "edgeAlpha": 0.42,
+    "windowTiles": ["window", "market_janela", "vet_janela", "vet_janela_azul"],
+    "windowLength": 3,
+    "windowSkew": 40,
+    "windowColor": "#ffe0a6",
+    "windowAlpha": 0.18,
+    "vignetteAlpha": 0.22
+  },
   "keyframes": [
     {
       "time": "00:00",

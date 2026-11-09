@@ -1,7 +1,10 @@
 // Relógio do jogo e cor do ciclo dia/noite. Puro: sem Phaser, DOM ou window.
 // A hora é guardada em minutos desde 00:00 do dia atual; pode passar de 24:00 (madrugada) até passOut.
+import type { AmbienceConfig } from './ambience';
 
 export interface DayNightConfig {
+  /** Luz e sombra de ambiente (ambience.ts). */
+  ambience: AmbienceConfig;
   schemaVersion: 1;
   /** Minutos do jogo por segundo real. */
   minutesPerSecond: number;
