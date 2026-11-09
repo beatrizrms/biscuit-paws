@@ -60,9 +60,11 @@ describe('aparência: camadas', () => {
 
 describe('aparência: escolhas', () => {
   it('girar a opção dá a volta', () => {
-    const last = C.skins.at(-1)!.id;
-    expect(cycle(C, { ...C.default, skin: last }, 'skin', 1).skin).toBe(C.skins[0]!.id);
-    expect(cycle(C, { ...C.default, skin: C.skins[0]!.id }, 'skin', -1).skin).toBe(last);
+    // As opções que o criador mostra (com o manequim em camadas, só as peles com cor).
+    const skins = creatorOptions(C, 'skin');
+    const last = skins.at(-1)!.id;
+    expect(cycle(C, { ...C.default, skin: last }, 'skin', 1).skin).toBe(skins[0]!.id);
+    expect(cycle(C, { ...C.default, skin: skins[0]!.id }, 'skin', -1).skin).toBe(last);
   });
 
   it('sorteio repetível com a mesma semente e sempre válido', () => {

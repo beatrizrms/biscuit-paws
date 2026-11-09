@@ -209,11 +209,11 @@ if (L) {
    * Pixel art usa poucas cores: a pele do corpo tem as mesmas cores do rosto. A cabeça (careca, sempre pele) dá a paleta
    * da pele; do pescoço para baixo, só é pele o pixel com uma dessas cores (o bege do blazer e do casaco tem outras).
    */
-  const outfitMask = (p: PNG): PNG => {
+  const outfitMask = (p: PNG, cloth?: number[][]): PNG => {
     const w = p.width, h = p.height;
     const reg = new Uint8Array(w * h);
     const b = bounds(p, (x, y) => opaque(p, x, y));
-    const neckY = b.y0 + Math.round((b.y1 - b.y0) * 0.2);
+    const neckY = b.y0 + Math.round((b.y1 - b.y0) * 0.24);
     /** Todas as roupas têm calçado: os pés nunca são pele (o branco creme do tênis bate com o brilho do rosto). */
     const shoeY = b.y1 - Math.round((b.y1 - b.y0) * 0.06);
     const skinish = (i: number) => {
@@ -226,7 +226,18 @@ if (L) {
         const i = (y * w + x) * 4;
         if (opaque(p, x, y) && skinish(i)) palette.push([p.data[i]!, p.data[i + 1]!, p.data[i + 2]!]);
       }
-    const inPalette = (i: number) => palette.some((c) => Math.abs(c[0]! - p.data[i]!) + Math.abs(c[1]! - p.data[i + 1]!) + Math.abs(c[2]! - p.data[i + 2]!) <= 8);
+    const dist = (list: number[][], i: number) => {
+      let d = Infinity;
+      for (const c of list) d = Math.min(d, Math.abs(c[0]! - p.data[i]!) + Math.abs(c[1]! - p.data[i + 1]!) + Math.abs(c[2]! - p.data[i + 2]!));
+      return d;
+    };
+    // Com a paleta da roupa (tirada da frente, que está certa): só é pele se a cor estiver mais perto do rosto do que
+    // de qualquer cor da roupa. Assim o bege do blazer e do casaco continua roupa nos quadros redesenhados.
+    const inPalette = (i: number) => {
+      const d = dist(palette, i);
+      // Na dúvida (as duas paletas quase iguais), fica roupa: a pele tem que estar claramente mais perto.
+      return d <= 8 && (!cloth || d + 12 < dist(cloth, i));
+    };
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         if (!opaque(p, x, y)) continue;
@@ -359,6 +370,32 @@ if (L) {
    * ±1 px). Um encaixe automático (deslocar até a cabeça "bater") foi testado e errou: o couro cabeludo careca engana.
    */
   const hairFrame = (piece: PNG, man: PNG): PNG => hairCut(piece, man);
+  /** Cores da roupa (do pescoço para baixo, fora da pele) na imagem de frente da peça. */
+  const clothPalette = (front: PNG): number[][] => {
+    const m = outfitMask(front);
+    const b = bounds(front, (x, y) => opaque(front, x, y));
+    const neckY = b.y0 + Math.round((b.y1 - b.y0) * 0.24);
+    // Cores do rosto (sempre pele) não entram: senão a pele perde para a roupa nas cores que as duas dividem.
+    const face: number[][] = [];
+    for (let y = b.y0; y < neckY; y++)
+      for (let x = 0; x < front.width; x++) {
+        const i = (y * front.width + x) * 4;
+        if (opaque(front, x, y) && m.data[i + 3]! > 0) face.push([front.data[i]!, front.data[i + 1]!, front.data[i + 2]!]);
+      }
+    const onFace = (i: number) => face.some((c) => Math.abs(c[0]! - front.data[i]!) + Math.abs(c[1]! - front.data[i + 1]!) + Math.abs(c[2]! - front.data[i + 2]!) <= 6);
+    const seen = new Set<number>();
+    const out: number[][] = [];
+    for (let y = neckY; y < front.height; y++)
+      for (let x = 0; x < front.width; x++) {
+        const i = (y * front.width + x) * 4;
+        if (!opaque(front, x, y) || m.data[i + 3]! > 0 || hsl(front, i)[2] < 0.14 || onFace(i)) continue;
+        const k = (front.data[i]! << 16) | (front.data[i + 1]! << 8) | front.data[i + 2]!;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push([front.data[i]!, front.data[i + 1]!, front.data[i + 2]!]);
+      }
+    return out;
+  };
   const capFrames = new Map<string, PNG>();
   let capFront: PNG | null = null;
   let manFront: PNG | null = null;
@@ -371,6 +408,7 @@ if (L) {
       if (full) {
         const src = FULL[key];
         if (!src) throw new Error(`${key}: completa em data/character.json, mas o script não sabe onde estão as animações (FULL)`);
+        const cloth = kind === 'outfit' ? clothPalette(frameOf(src.dir, src.prefix, 'idle', 'south', 0)) : undefined;
         for (const anim of L.anims) {
           const sheet = blank(), mask = blank();
           ROWS.forEach((row, r) => {
@@ -379,7 +417,7 @@ if (L) {
               if (kind === 'outfit') {
                 dropSpecks(piece);
                 PNG.bitblt(piece, sheet, X0, Y0, W, H, f * W, r * H);
-                PNG.bitblt(outfitMask(piece), mask, X0, Y0, W, H, f * W, r * H);
+                PNG.bitblt(outfitMask(piece, cloth), mask, X0, Y0, W, H, f * W, r * H);
               } else {
                 const man = frameOf(MAN, 'm', anim, row, f);
                 const cut = hairFrame(piece, man);
@@ -432,7 +470,7 @@ if (L) {
       writeFileSync(`${OUT}/${kind}_${id}_front.png`, PNG.sync.write(out));
       if (kind === 'outfit') {
         const mk = new PNG({ width: W, height: H });
-        PNG.bitblt(outfitMask(front), mk, X0, Y0, W, H, 0, 0);
+        PNG.bitblt(outfitMask(front, clothPalette(front)), mk, X0, Y0, W, H, 0, 0);
         writeFileSync(`${OUT}/${kind}_${id}_front_mask.png`, PNG.sync.write(mk));
       }
       pieces++;
