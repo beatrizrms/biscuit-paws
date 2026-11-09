@@ -25,7 +25,7 @@ const FRAME = L && M ? { w: M.frameWidth, h: M.frameHeight, scale: PREVIEW_SCALE
 /** As linhas da tela, na ordem (t('creator.<key>') é o rótulo). */
 const ALL_ROWS: (keyof Appearance)[] = ['skin', 'eyes', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'shoesColor', 'glasses', 'head'];
 const ROWS: readonly (keyof Appearance)[] = L ? LAYER_KEYS : ALL_ROWS;
-const label = (key: keyof Appearance) => t(L && key === 'bottomColor' ? 'creator.bottomColorLayers' : `creator.${key}`);
+const label = (key: keyof Appearance) => t(`creator.${key}`);
 
 export interface CreatorHandlers {
   onDone(player: PlayerState): void;

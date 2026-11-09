@@ -31,10 +31,10 @@
       "wash": "mannequin_work.png"
     },
     "layers": {
-      "_comment": "Personagem em camadas sobre o manequim (decisão 077): roupa (figura inteira, com máscara de regiões) + cabelo, nas cores escolhidas (trocadas por código, src/core/recolor.ts). outfits/hair: ID do criador (top / hairStyle) -> true = todas as animações; false = só a imagem de frente (o criador mostra; no jogo usa `fallback`). Arquivos por convenção, montados por npm run mannequin: outfit_<id>_<anim>.png (+ _mask), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de cor [matiz, saturação, luz mínima, luz máxima].",
+      "_comment": "Personagem em camadas sobre o manequim (decisão 077): roupa (figura inteira nas cores do desenho, com máscara da pele) + cabelo; só pele e cabelo mudam de cor (decisão 083; troca por código, src/core/recolor.ts). outfits/hair: ID do criador (top / hairStyle) -> true = todas as animações; false = só a imagem de frente (o criador mostra; no jogo usa `fallback`). Arquivos por convenção, montados por npm run mannequin: outfit_<id>_<anim>.png (+ _mask), hair_<id>_<anim>.png, e _front para a prévia. poseAnim: animação de cada pose do jogo. ramps: cor-alvo de cada ID de pele e de cor do cabelo [matiz, saturação, luz mínima, luz máxima].",
       "anims": ["walk", "idle", "tray", "carry", "work"],
       "poseAnim": { "tray": "tray", "cat": "carry", "sweep": "work", "wipe_table": "work", "operate": "work", "stir": "work", "wash": "work" },
-      "outfits": { "hoodie": true, "dress": false, "collar_shirt": false, "tshirt": false },
+      "outfits": { "hoodie": true, "dress": false, "collar_shirt": false, "tshirt": false, "blazer": false, "winter_coat": false },
       "hair": { "long": true, "short": false, "bob": false, "bun": false, "ponytail": false, "afro": false, "curly": false, "short_afro": false, "side_part": false, "quiff": false },
       "fallback": { "outfit": "hoodie", "hair": "long" },
       "ramps": {
@@ -55,24 +55,6 @@
           "gray": [0, 0, 0.35, 0.85],
           "pink": [330, 0.6, 0.4, 0.82],
           "blue": [215, 0.55, 0.25, 0.7]
-        },
-        "top": {
-          "pink": [335, 0.55, 0.45, 0.82],
-          "red": [355, 0.65, 0.25, 0.6],
-          "orange": [24, 0.75, 0.35, 0.7],
-          "yellow": [46, 0.8, 0.42, 0.8],
-          "green": [130, 0.35, 0.25, 0.6],
-          "blue": [210, 0.55, 0.28, 0.68],
-          "purple": [275, 0.4, 0.28, 0.65],
-          "white": [40, 0.15, 0.65, 0.97]
-        },
-        "bottom": {
-          "jeans": [215, 0.45, 0.22, 0.6],
-          "black": [230, 0.1, 0.08, 0.32],
-          "gray": [0, 0, 0.28, 0.62],
-          "beige": [38, 0.35, 0.45, 0.8],
-          "green": [120, 0.25, 0.2, 0.5],
-          "pink": [335, 0.45, 0.45, 0.8]
         }
       }
     }
@@ -288,6 +270,16 @@
         "id": "apron",
         "name": "Avental do café",
         "asset": "avental"
+      },
+      {
+        "id": "blazer",
+        "name": "Blazer",
+        "asset": ""
+      },
+      {
+        "id": "winter_coat",
+        "name": "Casaco de inverno",
+        "asset": ""
       }
     ],
     "colors": [

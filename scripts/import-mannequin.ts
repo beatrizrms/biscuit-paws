@@ -98,7 +98,7 @@ console.log(`✓ manequim: ${Object.keys(SHEETS).length} folhas em ${OUT} (quadr
 if (cut > 0) console.warn(`! ${cut} pixels ficaram fora da caixa (aumente frameWidth/frameHeight ou ajuste FEET_Y)`);
 
 // ---------------------------------------------------------------------------------------------------------
-// Camadas (decisão 077): roupa = figura inteira vestida + máscara de regiões (pele, cima, baixo, sapato);
+// Camadas (decisões 077 e 083): roupa = figura inteira vestida, nas cores do desenho, + máscara da pele;
 // cabelo = só os fios, recortados do personagem pintado de verde (cor-chave) usando o manequim alinhado.
 // Peça completa: uma folha por animação. Toda peça também tem _front (de frente, parada) para a prévia do criador.
 const L = m.layers;
@@ -119,13 +119,13 @@ if (L) {
     'hair:afro': 'afro.png',
     'hair:curly': 'curly.png',
     'hair:ponytail': 'ponytail.png',
+    'outfit:blazer': 'blazer.png',
+    'outfit:winter_coat': 'winter_coat.png',
     'hair:bob': 'bob.png',
     'hair:short_afro': 'short_afro.png',
     'hair:side_part': 'side_part.png',
     'hair:quiff': 'quiff.png',
   };
-  /** Como achar cima e baixo em cada roupa: pela cor (moletom vermelho, jeans azul), pela altura (corte na cintura) ou tudo cima (vestido). */
-  const SPLIT: Record<string, 'hue' | 'waist' | 'dress'> = { hoodie: 'hue', dress: 'dress', collar_shirt: 'waist', tshirt: 'waist' };
   /** Animação -> nome no PixelLab (depois do prefixo) e quadros. A ação só tem frente e costas. */
   const ANIM: Record<string, { name: string; frames?: number[]; only?: Partial<Record<(typeof ROWS)[number], (typeof ROWS)[number]>> }> = {
     walk: { name: 'walk2' },
@@ -190,68 +190,37 @@ if (L) {
     }
   };
 
-  /** Máscara de regiões (canal vermelho) da roupa: 1 pele, 2 cima, 3 baixo, 4 sapato, 0 contorno e detalhes. */
-  const outfitMask = (p: PNG, split: 'hue' | 'waist' | 'dress'): PNG => {
+  /**
+   * Máscara da roupa (canal vermelho): 1 = pele, 0 = o resto (roupa e calçado ficam nas cores do desenho, decisão 083).
+   * Pixel art usa poucas cores: a pele do corpo tem as mesmas cores do rosto. A cabeça (careca, sempre pele) dá a paleta
+   * da pele; do pescoço para baixo, só é pele o pixel com uma dessas cores (o bege do blazer e do casaco tem outras).
+   */
+  const outfitMask = (p: PNG): PNG => {
     const w = p.width, h = p.height;
     const reg = new Uint8Array(w * h);
     const b = bounds(p, (x, y) => opaque(p, x, y));
-    const fig = b.y1 - b.y0;
-    const footY = b.y1 - Math.round(fig * 0.07), neckY = b.y0 + Math.round(fig * 0.22);
-    /** Do cano do tênis para baixo: o branco do calçado puxa para o bege, então pele ali só com bastante cor. */
-    const shoeTop = b.y1 - Math.round(fig * 0.12);
-    // Corte na cintura pela cor: a média da roupa no peito e nas coxas; no meio, cada pixel vai para a mais parecida
-    // (a barra da camiseta passa da cintura do manequim).
-    const band = (from: number, to: number) => {
-      const sum = [0, 0, 0];
-      let n = 0;
-      for (let y = b.y0 + Math.round(fig * from); y < b.y0 + Math.round(fig * to); y++)
-        for (let x = 0; x < w; x++) {
-          const i = (y * w + x) * 4;
-          if (!opaque(p, x, y)) continue;
-          const [hu, s, l] = hsl(p, i);
-          if (l < 0.14 || (hu >= 5 && hu <= 42 && s > 0.22 && l > 0.42)) continue;
-          for (let k = 0; k < 3; k++) sum[k]! += p.data[i + k]!;
-          n++;
-        }
-      return sum.map((v) => v / Math.max(1, n));
+    const neckY = b.y0 + Math.round((b.y1 - b.y0) * 0.2);
+    /** Todas as roupas têm calçado: os pés nunca são pele (o branco creme do tênis bate com o brilho do rosto). */
+    const shoeY = b.y1 - Math.round((b.y1 - b.y0) * 0.06);
+    const skinish = (i: number) => {
+      const [hu, s, l] = hsl(p, i);
+      return hu >= 0 && hu <= 45 && s > 0.2 && l > 0.3;
     };
-    const chest = band(0.3, 0.4), thigh = band(0.66, 0.76);
-    const topY = b.y0 + Math.round(fig * 0.4), bottomY = b.y0 + Math.round(fig * 0.76);
-    const dist = (i: number, ref: number[]) => ref.reduce((a, v, k) => a + (p.data[i + k]! - v) ** 2, 0);
-    // A barra é uma linha reta: cada linha do meio vai inteira para o lado da maioria dos seus pixels (a sombra da camisa não vira calça).
-    const rowTop = new Map<number, boolean>();
-    for (let y = topY; y < bottomY; y++) {
-      let up = 0, down = 0;
+    const palette: number[][] = [];
+    for (let y = b.y0; y < neckY; y++)
       for (let x = 0; x < w; x++) {
         const i = (y * w + x) * 4;
-        if (!opaque(p, x, y)) continue;
-        const [hu, s, l] = hsl(p, i);
-        if (l < 0.14 || (hu >= 5 && hu <= 42 && s > 0.22 && l > 0.42)) continue;
-        if (dist(i, chest) <= dist(i, thigh)) up++;
-        else down++;
+        if (opaque(p, x, y) && skinish(i)) palette.push([p.data[i]!, p.data[i + 1]!, p.data[i + 2]!]);
       }
-      rowTop.set(y, up >= down);
-    }
-    const waistRegion = (_x: number, y: number) => (y < topY ? 2 : y >= bottomY ? 3 : rowTop.get(y) ? 2 : 3);
+    const inPalette = (i: number) => palette.some((c) => Math.abs(c[0]! - p.data[i]!) + Math.abs(c[1]! - p.data[i + 1]!) + Math.abs(c[2]! - p.data[i + 2]!) <= 8);
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         if (!opaque(p, x, y)) continue;
-        const [hu, s, l] = hsl(p, (y * w + x) * 4);
-        if (l < 0.14) continue;
-        // Nos pés, só pele bem saturada (tênis branco e sapato claro puxam para o bege).
-        // Nos pés, pela intensidade da cor (croma): o branco creme do tênis tem saturação alta no HSL, mas pouca cor.
-        const chroma = s * (1 - Math.abs(2 * l - 1));
-        const skin = hu >= 5 && hu <= 42 && l > 0.42 && (y >= shoeTop ? chroma > 0.3 : s > 0.22);
-        let r = 0;
-        if (skin) r = 1;
-        else if (y >= footY) r = 4;
-        else if (y < neckY) r = 0; // olhos, boca e contorno da cabeça ficam como estão
-        else if (split === 'hue') r = (hu >= 330 || hu <= 15) && s > 0.35 ? 2 : hu >= 190 && hu <= 240 && s > 0.15 ? 3 : 0;
-        else if (split === 'dress') r = 2;
-        else r = waistRegion(x, y);
-        reg[y * w + x] = r;
+        const i = (y * w + x) * 4;
+        if (hsl(p, i)[2] < 0.14) continue; // contorno
+        if (y < neckY ? skinish(i) : y < shoeY && inPalette(i)) reg[y * w + x] = 1;
       }
-    absorbIslands(reg, w, h, 10);
+    absorbIslands(reg, w, h, 6);
     const out = new PNG({ width: w, height: h });
     for (let i = 0; i < w * h; i++)
       if (reg[i]) {
@@ -372,7 +341,6 @@ if (L) {
   for (const [kind, table] of [['outfit', L.outfits], ['hair', L.hair]] as const) {
     for (const [id, full] of Object.entries(table)) {
       const key = `${kind}:${id}`;
-      const split = SPLIT[id] ?? 'waist';
       if (full) {
         const src = FULL[key];
         if (!src) throw new Error(`${key}: completa em data/character.json, mas o script não sabe onde estão as animações (FULL)`);
@@ -384,7 +352,7 @@ if (L) {
               if (kind === 'outfit') {
                 dropSpecks(piece);
                 PNG.bitblt(piece, sheet, X0, Y0, W, H, f * W, r * H);
-                PNG.bitblt(outfitMask(piece, split), mask, X0, Y0, W, H, f * W, r * H);
+                PNG.bitblt(outfitMask(piece), mask, X0, Y0, W, H, f * W, r * H);
               } else PNG.bitblt(hairCut(piece, frameOf(MAN, 'm', anim, row, f)), sheet, X0, Y0, W, H, f * W, r * H);
             }
           });
@@ -425,7 +393,7 @@ if (L) {
       writeFileSync(`${OUT}/${kind}_${id}_front.png`, PNG.sync.write(out));
       if (kind === 'outfit') {
         const mk = new PNG({ width: W, height: H });
-        PNG.bitblt(outfitMask(front, split), mk, X0, Y0, W, H, 0, 0);
+        PNG.bitblt(outfitMask(front), mk, X0, Y0, W, H, 0, 0);
         writeFileSync(`${OUT}/${kind}_${id}_front_mask.png`, PNG.sync.write(mk));
       }
       pieces++;

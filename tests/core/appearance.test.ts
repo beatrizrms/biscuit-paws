@@ -140,10 +140,12 @@ describe('aparência: manequim em camadas', () => {
     expect(p.hairInGame).toBeNull();
   });
 
-  it('cores: cada região recebe a rampa do ID escolhido', () => {
-    const r = layerRamps(L, { ...C.default, hairColor: 'blond', topColor: 'green' });
+  it('cores: só pele e cabelo têm rampa; a roupa fica nas cores do desenho', () => {
+    const r = layerRamps(L, { ...C.default, hairColor: 'blond', skin: 'dark', topColor: 'green' });
     expect(r[REGION.hair]?.hue).toBe(L.ramps.hair.blond![0]);
-    expect(r[REGION.top]?.light).toEqual([L.ramps.top.green![2], L.ramps.top.green![3]]);
+    expect(r[REGION.skin]?.light).toEqual([L.ramps.skin.dark![2], L.ramps.skin.dark![3]]);
+    expect(r[REGION.top]).toBeUndefined();
+    expect(r[REGION.bottom]).toBeUndefined();
   });
 
   it('o criador só oferece peças com arte e cores com rampa', () => {

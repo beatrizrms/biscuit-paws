@@ -86,7 +86,8 @@ export interface MannequinLayers {
   hair: Record<string, boolean>;
   /** Peça completa usada no jogo no lugar de uma que só tem a prévia. */
   fallback: { outfit: string; hair: string };
-  ramps: { skin: Record<string, RampDef>; hair: Record<string, RampDef>; top: Record<string, RampDef>; bottom: Record<string, RampDef> };
+  /** Só pele e cabelo mudam de cor; a roupa fica nas cores do desenho (decisão 083). */
+  ramps: { skin: Record<string, RampDef>; hair: Record<string, RampDef> };
 }
 
 /** As peças das camadas para uma aparência: a que o criador mostra e a que o jogo anima. */
@@ -116,14 +117,12 @@ const toRamp = (d: RampDef | undefined): Ramp | undefined => (d ? { hue: d[0], s
 export function layerRamps(L: MannequinLayers, a: Appearance): Partial<Record<number, Ramp>> {
   return {
     [REGION.skin]: toRamp(L.ramps.skin[a.skin]),
-    [REGION.top]: toRamp(L.ramps.top[a.topColor]),
-    [REGION.bottom]: toRamp(L.ramps.bottom[a.bottomColor]),
     [REGION.hair]: toRamp(L.ramps.hair[a.hairColor]),
   };
 }
 
 /** Escolhas que o criador mostra no modo de camadas (as outras não têm arte nem cor). */
-export const LAYER_KEYS = ['skin', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottomColor'] as const satisfies readonly (keyof Appearance)[];
+export const LAYER_KEYS = ['skin', 'hairStyle', 'hairColor', 'top'] as const satisfies readonly (keyof Appearance)[];
 
 /** Opções do criador: com as camadas do manequim, só as que têm arte ou cor; senão, todas. */
 export function creatorOptions(data: CharacterData, key: keyof Appearance): CharacterOption[] {
@@ -135,8 +134,6 @@ export function creatorOptions(data: CharacterData, key: keyof Appearance): Char
     hairStyle: (id) => id === 'none' || id in L.hair,
     hairColor: (id) => id in L.ramps.hair,
     top: (id) => id in L.outfits,
-    topColor: (id) => id in L.ramps.top,
-    bottomColor: (id) => id in L.ramps.bottom,
   };
   const f = keep[key];
   return f ? all.filter((o) => f(o.id)) : all;
@@ -353,7 +350,7 @@ export function validateCharacter(data: CharacterData): string[] {
       for (const id of Object.keys(L.hair)) if (!optionsFor(data, 'hairStyle').some((o) => o.id === id)) errors.push(`character: mannequin.layers: cabelo "${id}" não existe em hair.styles`);
       if (!L.outfits[L.fallback.outfit]) errors.push(`character: mannequin.layers: roupa de reserva "${L.fallback.outfit}" precisa ter todas as animações`);
       if (!L.hair[L.fallback.hair]) errors.push(`character: mannequin.layers: cabelo de reserva "${L.fallback.hair}" precisa ter todas as animações`);
-      const groups: [keyof MannequinLayers['ramps'], keyof Appearance][] = [['skin', 'skin'], ['hair', 'hairColor'], ['top', 'topColor'], ['bottom', 'bottomColor']];
+      const groups: [keyof MannequinLayers['ramps'], keyof Appearance][] = [['skin', 'skin'], ['hair', 'hairColor']];
       for (const [g, key] of groups) for (const id of Object.keys(L.ramps[g])) if (!optionsFor(data, key).some((o) => o.id === id)) errors.push(`character: mannequin.layers.ramps.${g}: cor "${id}" não existe`);
       for (const key of LAYER_KEYS) if (!creatorOptions(data, key).some((o) => o.id === data.default[key])) errors.push(`character: default.${key} "${data.default[key]}" sem arte/cor nas camadas`);
     }

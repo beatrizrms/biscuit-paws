@@ -108,7 +108,6 @@
     "preset": "Exemplos",
     "back": "Voltar",
     "done": "Começar",
-    "bottomColorLayers": "Cor da parte de baixo",
-    "previewOnly": "Prévia parada: esta peça ainda não anda no jogo (lá aparecem o moletom e o cabelo longo, nas cores escolhidas)."
+    "previewOnly": "Prévia parada: esta peça ainda não anda no jogo (lá aparecem o moletom e o cabelo longo, com a pele e a cor do cabelo escolhidas)."
   }
 }
