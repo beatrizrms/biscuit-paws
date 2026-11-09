@@ -339,12 +339,13 @@ describe('quest: o primeiro cliente', () => {
 });
 
 describe('fase 2: bandeja, pesados e gato no colo', () => {
-  it('com a bandeja, leva até 3 louças (só louça) e fica um pouco mais lenta', () => {
+  it('com a bandeja selecionada na barra, leva até 3 louças (só louça) e fica um pouco mais lenta', () => {
     const { session, sv, state } = openCafe();
     expect(sv.toggleTray()).toEqual({ ok: false, reason: 'no_tray' });
     expect(session.buy('item.tray')).toEqual({ ok: true });
     expect(session.buy('item.tray')).toEqual({ ok: false, reason: 'already_owned' });
-    expect(sv.toggleTray()).toEqual({ ok: true });
+    expect(session.selectHotbarItem('item.tray')).toBe(true);
+    expect(state.tray).toBe(true);
     for (const at of [[4, 6], [5, 6], [6, 6], [6, 7]] as [number, number][]) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
     expect(sv.pickUp([4, 6])).toEqual({ ok: true });
     expect(sv.pickUp([5, 6])).toEqual({ ok: true });
@@ -356,7 +357,38 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     // Na pia, as três de uma vez.
     expect(sv.depositDirty()).toEqual({ ok: true });
     expect(sv.sinkLoad()).toBe(3);
-    expect(sv.toggleTray()).toEqual({ ok: true });
+    // Trocar de item na barra guarda a bandeja.
+    session.selectHotbarSlot((state.hotbar.slots.indexOf('item.tray') + 1) % state.hotbar.slots.length);
+    expect(state.tray).toBe(false);
+  });
+
+  it('sem a bandeja selecionada, uma louça por vez; com várias nas mãos, a bandeja só sai quando sobrar uma', () => {
+    const { session, sv, state } = openCafe();
+    session.buy('item.tray');
+    const traySlot = state.hotbar.slots.indexOf('item.tray');
+    const other = (traySlot + 1) % state.hotbar.slots.length;
+    session.selectHotbarSlot(other);
+    expect(state.tray).toBe(false);
+    for (const at of [[4, 6], [5, 6], [6, 6]] as [number, number][]) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
+    expect(sv.pickUp([4, 6])).toEqual({ ok: true });
+    expect(sv.pickUp([5, 6])).toEqual({ ok: false, reason: 'hands_full' });
+    // Com a bandeja, pega mais uma; trocando de item com duas nas mãos, a bandeja fica até sobrar uma.
+    session.selectHotbarSlot(traySlot);
+    expect(sv.pickUp([5, 6])).toEqual({ ok: true });
+    session.selectHotbarSlot(other);
+    expect(state.tray).toBe(true);
+    expect(sv.pickUp([6, 6])).toEqual({ ok: true }); // ainda com a bandeja
+    expect(sv.depositDirty()).toEqual({ ok: true });
+    expect(state.tray).toBe(false);
+  });
+
+  it('com a bandeja selecionada e as mãos vazias, pegar o gato larga a bandeja', () => {
+    const { session, sv, state } = openCafe();
+    session.buy('item.tray');
+    session.selectHotbarItem('item.tray');
+    expect(state.tray).toBe(true);
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1 } as (typeof state.cats)[string];
+    expect(sv.pickUpCat('cat.first_stray')).toEqual({ ok: true });
     expect(state.tray).toBe(false);
   });
 

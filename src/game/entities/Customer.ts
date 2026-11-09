@@ -15,6 +15,10 @@ export class CustomerSprite {
   private bubble: Phaser.GameObjects.Container;
   private bubbleBg: Phaser.GameObjects.Image;
   private bubbleIcon: Phaser.GameObjects.Image | null = null;
+  /** Barra de paciência em cima do balão (só esperando o pedido). */
+  private patienceBar: Phaser.GameObjects.Graphics;
+  /** Largura da parte cheia desenhada (pixels da arte); -1 = escondida. */
+  private patienceDrawn = -1;
   private waiting: Phaser.GameObjects.Sprite;
   /** Barrinha enquanto consome (depois de pagar): mostra quanto falta para ir embora. */
   private consuming: Phaser.GameObjects.Image;
@@ -39,7 +43,8 @@ export class CustomerSprite {
     this.target = at;
     // Balão: 40x44, ícone no slot dos dados; a ponta embaixo, no meio.
     this.bubbleBg = scene.add.image(0, 0, 'bubble_normal').setOrigin(0.5, 1);
-    this.bubble = scene.add.container(0, 0, [this.bubbleBg]).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
+    this.patienceBar = scene.add.graphics().setVisible(false);
+    this.bubble = scene.add.container(0, 0, [this.bubbleBg, this.patienceBar]).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
     if (!scene.anims.exists('bubble-wait')) {
       scene.anims.create({ key: 'bubble-wait', frames: serviceArt.bubble.waiting.map((_, i) => ({ key: `bubble_wait_${i}` })), frameRate: 3, repeat: -1 });
     }
@@ -113,6 +118,33 @@ export class CustomerSprite {
     if (mood === this.mood) return;
     this.mood = mood;
     this.bubbleBg.setTexture(`bubble_${mood}`);
+    this.patienceDrawn = -2; // redesenha na cor nova
+  }
+
+  /** Quanto falta de paciência (1 = cheia, 0 = desiste); undefined esconde a barra. */
+  setPatience(left: number | undefined): void {
+    const p = serviceArt.bubble.patienceBar;
+    if (left === undefined) {
+      this.patienceBar.setVisible(false);
+      this.patienceDrawn = -1;
+      return;
+    }
+    // Largura em pixels inteiros da arte: só redesenha quando muda um pixel.
+    const fill = Math.max(0, Math.min(p.w - 2, Math.ceil(left * (p.w - 2))));
+    if (fill === this.patienceDrawn) return;
+    this.patienceDrawn = fill;
+    const color = (hex: string) => Phaser.Display.Color.HexStringToColor(hex).color;
+    const x = p.x - this.bubbleBg.width / 2;
+    const y = p.y - this.bubbleBg.height;
+    this.patienceBar
+      .clear()
+      .fillStyle(color(p.border))
+      .fillRect(x, y, p.w, p.h)
+      .fillStyle(color(p.back))
+      .fillRect(x + 1, y + 1, p.w - 2, p.h - 2)
+      .fillStyle(color(p.colors[this.mood]))
+      .fillRect(x + 1, y + 1, fill, p.h - 2)
+      .setVisible(true);
   }
 
   /** Altura da ponta do balão acima dos pés: sentado, a cabeça fica mais baixa. */
@@ -123,7 +155,9 @@ export class CustomerSprite {
   /** Caixa do balão à mostra (pedido ou aguardando), pela ponta; null = sem balão. */
   bubbleBox(): AnchoredBox | null {
     const k = serviceArt.bubble.scale;
-    if (this.bubble.visible) return { x: this.sprite.x, y: this.sprite.y - this.bubbleLift(), w: this.bubbleBg.width * k, h: this.bubbleBg.height * k };
+    // Com a barra de paciência, a caixa cresce para cima até ela.
+    const bar = this.patienceBar.visible ? Math.max(0, -serviceArt.bubble.patienceBar.y) : 0;
+    if (this.bubble.visible) return { x: this.sprite.x, y: this.sprite.y - this.bubbleLift(), w: this.bubbleBg.width * k, h: (this.bubbleBg.height + bar) * k };
     if (this.waiting.visible) return { x: this.sprite.x + 6, y: this.sprite.y - this.bubbleLift(), w: this.waiting.width * k, h: this.waiting.height * k };
     return null;
   }

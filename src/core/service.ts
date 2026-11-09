@@ -575,7 +575,9 @@ export class CafeService {
 
   private canHold(item: HandItem): ServiceProblem | null {
     const hands = this.st.hands;
-    if (hands.some(exclusive) || (exclusive(item) && (hands.length > 0 || this.st.tray))) return 'hands_full';
+    if (hands.some(exclusive) || (exclusive(item) && hands.length > 0)) return 'hands_full';
+    // Gato ou saco pesado com as mãos vazias: ela larga a bandeja (syncTray guarda quando as mãos mudam).
+    if (exclusive(item)) return null;
     if (this.st.tray) {
       if (!onTray(item)) return 'not_on_tray';
       return hands.length < this.carry.tray.capacity ? null : 'hands_full';
@@ -705,6 +707,19 @@ export class CafeService {
   }
 
   // ---------- Bandeja, mochila, peso e gato ----------
+
+  /**
+   * A bandeja acompanha a barra de itens: selecionada, ela está nas mãos (leva até `tray.capacity` louças); fora
+   * dela, uma louça por vez. Com mais louça nas mãos do que cabe sem bandeja, ela só sai quando sobrar o que cabe
+   * (nada cai no chão). Gato, saco pesado e item que não vai na bandeja nas mãos: não pega a bandeja.
+   */
+  syncTray(selected: boolean): void {
+    const hands = this.st.hands;
+    const want = selected ? (this.st.inventory[this.carry.tray.item] ?? 0) > 0 && hands.every(onTray) : this.st.tray && hands.length > this.carry.carryCapacity;
+    if (want === !!this.st.tray) return;
+    this.st.tray = want;
+    this.handsChanged();
+  }
 
   /** Pega ou guarda a bandeja (precisa tê-la na mochila; com ela, as mãos levam várias louças). */
   toggleTray(): ServiceResult {

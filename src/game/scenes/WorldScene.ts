@@ -1306,7 +1306,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!img) continue;
       // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente.
       const base = (s.at[1] + 1) * ts;
-      img.setPosition((s.at[0] + 0.5) * ts, base - 12).setOrigin(0.5, 1).setScale(s.item.kind === 'item' ? 0.6 : 1).setDepth(ySortDepth(base) + 5);
+      img.setPosition((s.at[0] + 0.5) * ts, base - 12).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
       this.surfaceIcons.push(img);
     }
   }
@@ -1314,11 +1314,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Imagem do que está na mão (bebida: ícone da receita; louça suja: ícone apagado; item: ícone do item). */
   private handItemImage(item: HandItem): Phaser.GameObjects.Image | undefined {
     const c = this.session.content;
-    // Pedido pronto e louça suja: a louça 16x16 do pacote (cheia ou suja), no tamanho de verdade.
+    // Pedido pronto (o ícone da receita, o mesmo do balão) e louça suja (ícone da louça): arte nova, no tamanho da louça.
     if (item.kind === 'drink' || item.kind === 'dirty') {
-      const d = serviceArt.dishes;
-      const row = d.rows[item.vessel];
-      if (row !== undefined) return this.add.image(0, 0, 'dishes16', row * 3 + (item.kind === 'drink' ? d.cols.full : d.cols.dirty));
+      const di = serviceArt.dishIcons;
+      const f = iconFrame(this, item.kind === 'drink' ? c.recipes[item.recipe]?.icon ?? '' : di.dirty[item.vessel] ?? '');
+      if (f) return this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale * di.scale);
     }
     if (item.kind === 'cat') return undefined; // o gato no colo é desenhado à parte (animado)
     const icon = item.kind === 'wip' ? c.recipes[item.recipe]?.icon : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon : undefined;
@@ -1373,13 +1373,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.carriedCatSprite?.destroy();
       this.carriedCatSprite = null;
       const catId = sv.carriedCat();
+      // Bandeja (selecionada na barra) ou louça na mão: a bandeja nas mãos com uma louça em cima, mesmo levando
+      // várias (o número não aparece).
+      const onTray = st.tray || st.hands.some((h) => h.kind === 'drink' || h.kind === 'dirty');
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela, de mãos vazias; o jogo desenha o objeto.
-      this.player.setCarryPose(st.tray ? 'tray' : catId || boxes ? 'cat' : null);
-      if (st.tray) {
-        // A bandeja: um desenho só, com 0 a 3 louças em cima.
-        const icon = serviceArt.trayIcons[Math.min(st.hands.length, serviceArt.trayIcons.length - 1)]!;
-        const f = iconFrame(this, icon);
-        this.handIcons = f ? [this.add.image(0, 0, f.key, f.frame).setScale(f.scale).setOrigin(0.5, 0.5)] : [];
+      this.player.setCarryPose(onTray ? 'tray' : catId || boxes ? 'cat' : null);
+      if (onTray) {
+        const tray = iconFrame(this, serviceArt.trayIcons[0]!);
+        const top = st.hands[0];
+        const item = top ? this.handItemImage(top) : undefined;
+        item?.setScale(this.handScale(top) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, TRAY_ITEM_LIFT]).setData('onTray', true);
+        this.handIcons = [...(tray ? [this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, 0.5).setData('handOffset', [0, 0]).setData('onTray', true)] : []), ...(item ? [item] : [])];
       } else {
         this.handIcons = st.hands
           .map((h) => ({ h, img: this.handItemImage(h) }))
@@ -1401,7 +1405,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const hx = this.player.x - 16 + ax;
     const hy = this.player.y - 64 + ay;
     const front = this.player.depth + (dir === 'up' ? -1 : 2);
-    this.handIcons.forEach((img, i) => img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front));
+    this.handIcons.forEach((img, i) => {
+      const off = img.getData('handOffset') as [number, number] | undefined;
+      // Bandeja e louça em cima: o meio da bandeja vai onde trayHand manda para esta direção.
+      const tray: [number, number] = img.getData('onTray') ? serviceArt.trayHand[dir] : [0, 0];
+      if (off) img.setPosition(hx + tray[0] + off[0], hy + tray[1] + off[1]).setDepth(front + (i > 0 ? 0.5 : 0));
+      else img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front);
+    });
     this.carriedCatSprite?.setPosition(hx, hy).setDepth(front).setFlipX(dir === 'left');
     if (!this.session.atHome()) return;
     // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
@@ -1505,7 +1515,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const left = (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes;
         const b = serviceArt.bubble;
         view.setMood(left < b.furiousBelow ? 'furious' : left < b.impatientBelow ? 'impatient' : 'normal');
-      }
+        view.setPatience(left);
+      } else view.setPatience(undefined);
       // Na mesa: chegou à cadeira, senta virado para a mesa (a cadeira do mapa fica por baixo).
       if (c.kind === 'table' && c.stage !== 'queue' && view.arrived && view.target[0] === c.spot[0] && view.target[1] === c.spot[1]) {
         const dx = c.dishAt[0] - c.spot[0];
@@ -1891,6 +1902,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return this.session.state;
   }
 }
+
+/** Louça em cima da bandeja na mão: altura do pé dela a partir do meio da bandeja (pixels do jogo). */
+const TRAY_ITEM_LIFT = 2;
 
 /** Variante do Cosy Cats do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {

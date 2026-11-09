@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Arte do atendimento (pacote Fluxo do café, onda 1; importado por scripts/import-fluxo.ts). Só a interface usa. boards: quadro do cardápio por número de slots (posições do ícone e do preço). bubble: balão do pedido (ícone em iconSlot; scale: tamanho no mundo, 0.5 = um pixel da arte por pixel da tela); impatientBelow/furiousBelow: fração da paciência. dishes: louça 16x16 no mundo (linhas por louça, colunas por estado). readyMarker: marcador que pulsa no balcão quando algo fica pronto. trayIcons: bandeja com 0..3 itens. handAnchor: onde o item fica na mão (pixels do quadro 32x64, por direção; do pacote personagem_carregando).",
+  "_comment": "Arte do atendimento (pacote Fluxo do café, onda 1; importado por scripts/import-fluxo.ts). Só a interface usa. boards: quadro do cardápio por número de slots (posições do ícone e do preço). bubble: balão do pedido (ícone em iconSlot; scale: tamanho no mundo, 0.5 = um pixel da arte por pixel da tela; patienceBar: barra de paciência em cima do balão, em pixels da arte a partir do canto de cima do balão, encolhe até o cliente desistir, cor pelo humor); impatientBelow/furiousBelow: fração da paciência. dishes: louça 16x16 no mundo (linhas por louça, colunas por estado). readyMarker: marcador que pulsa no balcão quando algo fica pronto. trayIcons: bandeja com 0..3 itens. handAnchor: onde o item fica na mão (pixels do quadro 32x64, por direção; do pacote personagem_carregando).",
   "boards": {
     "4": {
       "image": "assets/ui/hud/ui_menu_board_4.png",
@@ -299,6 +299,19 @@
     "impatientBelow": 0.5,
     "furiousBelow": 0.2,
     "scale": 0.5,
+    "patienceBar": {
+      "x": 4,
+      "y": -6,
+      "w": 32,
+      "h": 4,
+      "border": "#3b2a2f",
+      "back": "#f4ece0",
+      "colors": {
+        "normal": "#7bb661",
+        "impatient": "#e3a83b",
+        "furious": "#d2465a"
+      }
+    },
     "waiting": [
       "assets/ui/hud/ui_waiting_bubble_1.png",
       "assets/ui/hud/ui_waiting_bubble_2.png",
@@ -317,6 +330,22 @@
     "assets/ui/hud/ui_progress_bar_8.png"
   ],
   "coin": "assets/ui/hud/ui_coin_16.png",
+  "trayHand": {
+    "_comment": "Bandeja nas mãos (com a louça em cima): onde fica o meio dela em relação ao ponto da mão (handAnchor), por direção, em pixels do jogo. Medido na personagem de 64 px: de lado, as mãos ficam mais altas e à frente.",
+    "down": [0, -5],
+    "left": [-14, -12],
+    "right": [14, -12],
+    "up": [0, -5]
+  },
+  "dishIcons": {
+    "_comment": "Louça na mão e em cima do balcão/mesa (arte nova): o pedido pronto usa o ícone da receita; a louça suja, o ícone daqui. scale: tamanho em relação ao ícone normal (0.5 = 16 px no mundo, o tamanho da louça).",
+    "scale": 0.5,
+    "dirty": {
+      "cup": "xicara_suja",
+      "glass": "copo_sujo",
+      "plate": "prato_sujo"
+    }
+  },
   "dishes": {
     "image": "assets/objects/dishes/tile_dishes_16.png",
     "tile": 16,

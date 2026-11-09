@@ -194,6 +194,11 @@ export class GameSession {
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
+    // A bandeja vale quando está selecionada na barra (e continua enquanto houver louça demais para levar sem ela).
+    const syncTray = () => this.service.syncTray(this.activeItem() === this.content.carry.tray.item);
+    this.bus.on('hotbar.changed', syncTray);
+    this.bus.on('hands.changed', syncTray);
+    syncTray();
   }
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */

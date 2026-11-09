@@ -158,8 +158,20 @@ export class BackpackPanel {
         case 'hold':
           if (id) report(sv.hold(id));
           return;
-        case 'tray':
-          return void report(sv.toggleTray());
+        case 'tray': {
+          // A bandeja vale quando está selecionada na barra: usar = selecionar (põe na barra se não estiver);
+          // guardar = passar para o espaço seguinte.
+          const tray = this.session.content.carry.tray.item;
+          const st = this.session.state;
+          if (st.tray) this.session.selectHotbarSlot((st.hotbar.active + 1) % st.hotbar.slots.length);
+          else if (!this.session.selectHotbarItem(tray)) {
+            const r = this.session.assignToHotbar(tray, this.freeSlot());
+            if (!r.ok) return void report(r);
+            this.session.selectHotbarItem(tray);
+          }
+          if (st.tray === (st.hotbar.slots[st.hotbar.active] !== tray)) report({ ok: false, reason: 'hands_full' });
+          return this.render();
+        }
         case 'stow':
           return void report(sv.stow());
       }
