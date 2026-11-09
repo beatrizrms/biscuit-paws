@@ -118,6 +118,8 @@ if (L) {
     'hair:bun': 'bun.png',
     'hair:afro': 'afro.png',
     'hair:curly': 'curly.png',
+    'hair:ponytail': 'ponytail.png',
+    'hair:bob': 'bob.png',
   };
   /** Como achar cima e baixo em cada roupa: pela cor (moletom vermelho, jeans azul), pela altura (corte na cintura) ou tudo cima (vestido). */
   const SPLIT: Record<string, 'hue' | 'waist' | 'dress'> = { hoodie: 'hue', dress: 'dress', collar_shirt: 'waist', tshirt: 'waist' };
@@ -330,6 +332,38 @@ if (L) {
     return PNG.sync.read(readFileSync(`${dir}/Idle/animations/${prefix}_${a.name}/${d}/frame_${String(a.frames?.[f] ?? f).padStart(3, '0')}.png`));
   };
 
+  /**
+   * Base do cabelo do tamanho da cabeça do molde: por baixo de todo penteado vai o topo do cabelo longo (o que melhor
+   * cobre a cabeça: risca na testa e laterais até as orelhas), cortado na altura das orelhas do manequim. Assim nenhum
+   * penteado deixa a cabeça careca nas têmporas; onde o penteado já cobre, ele fica por cima.
+   */
+  const CAP_HAIR = L.fallback.hair;
+  const capUnder = (hair: PNG, cap: PNG, man: PNG): void => {
+    const w = man.width;
+    let top = -1;
+    const widths: number[] = [];
+    for (let y = 0; y < man.height; y++) {
+      let a = -1, b = -1;
+      for (let x = 0; x < w; x++) if (opaque(man, x, y)) { if (a < 0) a = x; b = x; }
+      widths.push(a < 0 ? 0 : b - a + 1);
+      if (top < 0 && a >= 0) top = y;
+    }
+    let bottom = top;
+    for (let y = top; y < man.height; y++) if (widths[y]) bottom = y;
+    // Pescoço: a linha mais estreita entre 10% e 35% da figura; orelhas: um pouco acima do meio da cabeça para baixo.
+    let neck = top, min = Infinity;
+    for (let y = top + Math.round((bottom - top) * 0.1); y < top + Math.round((bottom - top) * 0.35); y++) if (widths[y]! < min) { min = widths[y]!; neck = y; }
+    const earY = top + Math.round((neck - top) * 0.62);
+    for (let y = 0; y < earY; y++)
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (hair.data[i + 3]! > 0 || cap.data[i + 3]! === 0) continue;
+        for (let k = 0; k < 4; k++) hair.data[i + k] = cap.data[i + k]!;
+      }
+  };
+  let capFront: PNG | null = null;
+  let manFront: PNG | null = null;
+
   const blank = () => new PNG({ width: W * FRAMES, height: H * ROWS.length });
   let pieces = 0;
   for (const [kind, table] of [['outfit', L.outfits], ['hair', L.hair]] as const) {
@@ -375,6 +409,16 @@ if (L) {
       }
       const out = new PNG({ width: W, height: H });
       PNG.bitblt(front, out, X0, Y0, W, H, 0, 0);
+      if (kind === 'hair') {
+        if (!manFront) {
+          const idle = frameOf(MAN, 'm', 'idle', 'south', 0);
+          manFront = new PNG({ width: W, height: H });
+          PNG.bitblt(idle, manFront, X0, Y0, W, H, 0, 0);
+        }
+        if (id === CAP_HAIR) capFront = out;
+        else if (capFront) capUnder(out, capFront, manFront);
+        else throw new Error(`cabelo "${CAP_HAIR}" (base) precisa vir antes dos outros em mannequin.layers.hair`);
+      }
       writeFileSync(`${OUT}/${kind}_${id}_front.png`, PNG.sync.write(out));
       if (kind === 'outfit') {
         const mk = new PNG({ width: W, height: H });
