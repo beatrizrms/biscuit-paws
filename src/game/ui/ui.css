@@ -966,3 +966,15 @@
 .confirm.choose .options button { padding: 4px 8px; border: 1px solid var(--cream3); border-radius: 6px; background: #fffaf0; font: inherit; font-size: 8px; text-align: left; color: var(--ink); cursor: pointer; }
 .confirm.choose .options button:hover { border-color: var(--wood3); background: #fff; }
 .confirm.choose .options b { color: var(--pink3); margin-right: 3px; }
+
+/* App Market do celular: pedido (como o carrinho do mercado), só compra ao confirmar */
+.m-card.in-order { border-color: var(--pink3); box-shadow: 0 0 0 1px var(--pink3); }
+.m-qty { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 6.5px; font-weight: bold; color: var(--pink3); }
+.m-less { width: 11px; height: 11px; padding: 0; font: inherit; font-size: 8px; line-height: 9px; color: var(--pink3); background: #fff; border: 1px solid var(--pink3); border-radius: 50%; cursor: pointer; }
+.m-order { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 4px; padding: 4px 6px; background: var(--cream2); border-top: 1px solid var(--cream3); }
+.m-order-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 5px; font-size: 7px; font-weight: bold; }
+.m-order-sum .m-price.short { color: var(--berry); }
+.m-short { flex-basis: 100%; font-size: 6px; font-weight: normal; color: var(--berry); }
+.m-order-clear { padding: 2px 4px; font: inherit; font-size: 6.5px; color: var(--ink2); background: none; border: 1px solid var(--cream3); border-radius: 5px; cursor: pointer; }
+.m-order-confirm { padding: 3px 7px; font: inherit; font-size: 7.5px; font-weight: bold; color: #fff; background: var(--pink3); border: 0; border-radius: 6px; box-shadow: 0 1px 0 #b05a72; cursor: pointer; }
+.m-order-confirm:disabled { opacity: 0.45; cursor: default; }

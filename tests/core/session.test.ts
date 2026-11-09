@@ -976,6 +976,30 @@ describe('correio: compras do catálogo chegam na porta', () => {
     expect(events.some((e) => e.name === 'delivery.arrived')).toBe(true);
   });
 
+  it('celular: tocar só põe no pedido; confirmar compra (tudo ou nada pelo dinheiro), limitado ao que cabe na porta', () => {
+    const { session } = inCafe();
+    const price = content.items['item.cactus']!.price;
+    session.state.money = price * 2;
+    expect(session.addToOrder('item.cactus')).toEqual({ ok: true });
+    expect(session.addToOrder('item.cactus')).toEqual({ ok: true });
+    expect(session.state.money).toBe(price * 2); // nada cobrado ainda
+    expect(session.state.deliveries).toHaveLength(0);
+    expect(session.orderTotal()).toBe(price * 2);
+    // Cabem 3 na porta: o 4º não entra no pedido.
+    expect(session.addToOrder('item.cactus')).toEqual({ ok: true });
+    expect(session.addToOrder('item.cactus')).toEqual({ ok: false, reason: 'door_full' });
+    // Sem dinheiro para os 3: não compra nenhum.
+    expect(session.checkoutOrder()).toEqual({ ok: false, reason: 'no_money', ordered: 0 });
+    expect(session.state.money).toBe(price * 2);
+    session.removeFromOrder('item.cactus');
+    const r = session.checkoutOrder();
+    expect(r).toMatchObject({ ok: true, ordered: 2 });
+    expect(session.state.money).toBe(0);
+    expect(session.state.deliveries).toHaveLength(2);
+    expect(session.orderCart.isEmpty()).toBe(true);
+    expect(session.checkoutOrder()).toEqual({ ok: false, reason: 'cart_empty', ordered: 0 });
+  });
+
   it('fora do horário do correio, chega no dia seguinte às 9h', () => {
     const { session } = inCafe();
     session.state.time = 17 * 60 + 30;

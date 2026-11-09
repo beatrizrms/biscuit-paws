@@ -185,6 +185,10 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await page.keyboard.press('c');
   await page.locator('[data-tab="pet"]').click();
   await page.locator('[data-item="item.water_bowl"]').click();
+  // Tocar só põe no pedido (não cobra); a compra sai ao confirmar.
+  await expect(page.locator('.m-order')).toContainText('1 no pedido');
+  await expect(page.locator('.hud-money')).toContainText('150');
+  await page.locator('[data-order="confirm"]').click();
   await expect(page.locator('.toast')).toContainText('Pedido feito');
   await expect(page.locator('.hud-money')).toContainText('142');
   await page.keyboard.press('c');

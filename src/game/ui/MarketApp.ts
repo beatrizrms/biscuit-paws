@@ -1,6 +1,7 @@
 // App "Market" do celular: as compras online (chegam pela entregadora na porta do café), em abas
 // Pet, Móveis, Decor e Construção (data/ui_text.json: market.tabs). Cada item é um cartão com a miniatura do móvel.
 // Construção também tem as obras dos cômodos e o pintor. Quem decide (preço, limites, entrega) é a sessão.
+// Como no mercado, nada é comprado no toque: o item vai para o pedido (session.orderCart) e só sai ao confirmar.
 import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { itemThumbHtml, tileThumbHtml } from './thumbs';
@@ -42,7 +43,7 @@ export class MarketApp {
     const old = body.querySelector<HTMLElement>('.m-scroll');
     const keep = old && body.dataset.marketTab === tab.id ? old.scrollTop : 0;
     body.dataset.marketTab = tab.id;
-    body.innerHTML = `<nav class="m-tabs">${tabs}</nav><div class="m-scroll"><p class="m-online">${esc(m.online)}</p>${content || `<p class="empty">${esc(m.empty)}</p>`}</div>`;
+    body.innerHTML = `<nav class="m-tabs">${tabs}</nav><div class="m-scroll"><p class="m-online">${esc(m.online)}</p>${content || `<p class="empty">${esc(m.empty)}</p>`}</div>${this.orderBarHtml()}`;
     (body.querySelector('.m-scroll') as HTMLElement).scrollTop = keep;
     body.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>
       b.addEventListener('click', () => {
@@ -50,7 +51,23 @@ export class MarketApp {
         this.render(body);
       }),
     );
-    body.querySelectorAll<HTMLButtonElement>('.m-card[data-item]').forEach((b) => b.addEventListener('click', () => this.pick(b.dataset.item!)));
+    body.querySelectorAll<HTMLButtonElement>('.m-card[data-item]').forEach((b) => b.addEventListener('click', () => this.pick(b.dataset.item!, body)));
+    body.querySelectorAll<HTMLButtonElement>('[data-less]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.session.removeFromOrder(b.dataset.less!);
+        this.render(body);
+      }),
+    );
+    body.querySelector<HTMLButtonElement>('[data-order="clear"]')?.addEventListener('click', () => {
+      this.session.orderCart.clear();
+      this.render(body);
+    });
+    body.querySelector<HTMLButtonElement>('[data-order="confirm"]')?.addEventListener('click', () => {
+      const r = this.session.checkoutOrder();
+      if (r.ok) this.host.ordered(r.arrivesAt);
+      else this.host.problem(r.reason);
+      this.render(body);
+    });
     body.querySelectorAll<HTMLButtonElement>('[data-refund]').forEach((b) =>
       b.addEventListener('click', () => {
         const r = this.session.refund(b.dataset.refund!);
@@ -103,24 +120,43 @@ export class MarketApp {
       owned > 0 ? `<span class="m-owned">${fixture ? uiText.installed : `${owned} ${uiText.inBag} · ${uiText.market.tapToPlace}`}</span>` : '',
       coming > 0 ? `<span class="m-owned coming">${coming} ${uiText.delivery.onTheWay}</span>` : '',
     ].join('');
+    const inOrder = this.session.orderCart.qty(id);
     const refund =
       owned > 0 && !fixture ? `<button class="m-refund" data-refund="${id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(id)}</button>` : '';
-    return `<div class="m-cell"><button class="m-card${owned > 0 ? ' has' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
+    // No pedido: quantos e o "−" (tocar no cartão de novo põe mais um).
+    const order =
+      inOrder > 0 ? `<div class="m-qty"><button class="m-less" data-less="${id}">−</button><span>${esc(uiText.market.orderCount.replace('{n}', String(inOrder)))}</span></div>` : '';
+    return `<div class="m-cell"><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
         <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>
         <span class="m-name">${esc(i.name)}</span>
         <span class="m-price">${COIN}${i.price}</span>${status}
-      </button>${refund}</div>`;
+      </button>${order}${refund}</div>`;
   }
 
-  /** Item da bolsa: posicionar (só dentro do café). Senão, encomendar: chega pelo correio. */
-  private pick(itemId: string): void {
+  /** Barra do pedido, embaixo da tela: quantos itens, o total e o botão de confirmar (só com itens no pedido). */
+  private orderBarHtml(): string {
+    const cart = this.session.orderCart;
+    if (cart.isEmpty()) return '';
+    const m = uiText.market;
+    const total = this.session.orderTotal();
+    const short = total - this.session.state.money;
+    return `<div class="m-order">
+        <div class="m-order-sum"><span>${esc(m.items.replace('{n}', String(cart.count())))}</span><span class="m-price${short > 0 ? ' short' : ''}">${COIN}${total}</span>
+        ${short > 0 ? `<span class="m-short">${esc(m.notEnough.replace('{n}', String(short)))}</span>` : ''}</div>
+        <button class="m-order-clear" data-order="clear">${esc(m.clear)}</button>
+        <button class="m-order-confirm" data-order="confirm" ${short > 0 ? 'disabled' : ''}>${esc(m.confirm)}</button>
+      </div>`;
+  }
+
+  /** Item da bolsa: posicionar (só dentro do café). Senão, vai para o pedido (só compra ao confirmar). */
+  private pick(itemId: string, body: HTMLElement): void {
     if ((this.session.state.inventory[itemId] ?? 0) > 0 && content.items[itemId]?.kind !== 'fixture') {
       if (!this.session.atHome()) return this.host.toast(uiText.market.placeOnlyHome);
       return this.host.place(itemId);
     }
-    const r = this.session.order(itemId);
+    const r = this.session.addToOrder(itemId);
     if (!r.ok) return this.host.problem(r.reason);
-    this.host.ordered(this.session.state.deliveries[this.session.state.deliveries.length - 1]!.arrivesAt);
+    this.render(body);
   }
 
   /** Obras dos cômodos (data/rooms.json): abrir os descobertos e terminar a reforma dos abertos. E quantos gatos cabem. */

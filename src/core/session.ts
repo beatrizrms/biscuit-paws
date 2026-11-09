@@ -140,6 +140,8 @@ export class GameSession {
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
+  /** Carrinho do app Market do celular: só vira pedido ao confirmar (checkoutOrder). Não vai para o save. */
+  readonly orderCart = new Cart();
 
   constructor(
     readonly content: Content,
@@ -405,6 +407,7 @@ export class GameSession {
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
     this.service.endOfDay();
     this.cart.clear();
+    this.orderCart.clear();
     this.bus.emit('cart.changed', { count: 0, total: 0 });
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
@@ -496,6 +499,55 @@ export class GameSession {
     this.bus.emit('delivery.ordered', { deliveryId: delivery.uid, itemId, arrivesAt: delivery.arrivesAt });
     this.advanceStory();
     return { ok: true };
+  }
+
+  /**
+   * Celular: quantos deste item ainda cabem no pedido. Fixo, só 1 (e nenhum se já tem ou está chegando);
+   * no total, não mais do que cabe na porta (delivery.maxPending, contando o que já está a caminho).
+   */
+  orderMax(itemId: string): number {
+    const item = this.content.items[itemId];
+    if (!item) return 0;
+    const room = this.content.delivery.maxPending - this.pendingDeliveries() - (this.orderCart.count() - this.orderCart.qty(itemId));
+    const own = item.kind === 'fixture' ? ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId) ? 0 : 1) : MAX_QTY_PER_ITEM;
+    return Math.max(0, Math.min(own, room));
+  }
+
+  /** Celular: põe uma unidade no pedido (o dinheiro só é conferido ao confirmar). */
+  addToOrder(itemId: string): ActionResult {
+    const item = this.content.items[itemId];
+    if (!item || item.deprecated || ['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
+    if (this.orderCart.qty(itemId) >= this.orderMax(itemId)) return { ok: false, reason: item.kind === 'fixture' ? 'already_owned' : 'door_full' };
+    this.orderCart.add(itemId);
+    return { ok: true };
+  }
+
+  removeFromOrder(itemId: string): void {
+    this.orderCart.remove(itemId);
+  }
+
+  orderTotal(): number {
+    return this.orderCart.total((id) => this.content.items[id]?.price ?? 0);
+  }
+
+  /**
+   * Celular: confirma o pedido. Sem dinheiro para tudo, não compra nada. Encomenda unidade por unidade
+   * (order); se uma falhar, para ali e o resto fica no carrinho. Devolve quantos saíram e quando chega o último.
+   */
+  checkoutOrder(): { ok: true; ordered: number; arrivesAt: number } | { ok: false; reason: Extract<ActionResult, { ok: false }>['reason']; ordered: number } {
+    if (this.orderCart.isEmpty()) return { ok: false, reason: 'cart_empty', ordered: 0 };
+    if (this.state.money < this.orderTotal()) return { ok: false, reason: 'no_money', ordered: 0 };
+    let ordered = 0;
+    for (const { itemId, qty } of this.orderCart.lines()) {
+      for (let i = 0; i < qty; i++) {
+        const r = this.order(itemId);
+        if (!r.ok) return { ok: false, reason: r.reason, ordered };
+        this.orderCart.remove(itemId);
+        ordered++;
+      }
+    }
+    return { ok: true, ordered, arrivesAt: this.state.deliveries[this.state.deliveries.length - 1]!.arrivesAt };
   }
 
   /** Quando chega um pedido feito agora: `minutes` depois, dentro do horário do correio (senão, amanhã cedo). */
