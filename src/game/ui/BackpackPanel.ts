@@ -5,10 +5,10 @@ import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
 import { fitsHotbar } from '../../core/hotbar';
 import type { GameSession } from '../../core/session';
-import { VESSELS } from '../../core/recipes';
+import { premiumIn, VESSELS } from '../../core/recipes';
 import { content, uiText } from '../content';
 import { itemIconHtml } from './Hotbar';
-import { iconHtml } from './ShopPanel';
+import { iconHtml, listNames } from './ShopPanel';
 import { tileThumbHtml } from '../icons';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -46,6 +46,8 @@ function purpose(item: ItemDef): string {
   if (item.use === 'food_bowl') return d.food;
   if (item.use === 'cat') return d.treat;
   if (isFurniture(item)) return d.furniture;
+  const premium = premiumIn(content.recipes, item.id);
+  if (premium.length > 0) return d.premium.replace('{recipes}', listNames(premium.map((r) => r.name)));
   if (item.tags.includes('ingredient')) return d.ingredient;
   if (item.kind === 'key') return d.key;
   if (item.tags.includes('job')) return d.job;

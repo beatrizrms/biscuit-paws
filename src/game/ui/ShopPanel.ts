@@ -1,9 +1,15 @@
 // Mercado com carrinho: as prateleiras põem itens no carrinho (com quantidade); o caixa mostra o
 // total e cobra. A regra (preço, limites, tudo ou nada) mora na sessão (src/core/cart.ts + session.checkout).
 import type { GameSession } from '../../core/session';
+import { premiumIn } from '../../core/recipes';
 import { content, uiText } from '../content';
 
 const ICON_PX = 16;
+
+/** "A", "A e B", "A, B e C". */
+export function listNames(names: string[]): string {
+  return names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`;
+}
 
 type Mode = { kind: 'shelf'; shopId: string; tags: string[] } | { kind: 'checkout'; shopId: string };
 
@@ -124,9 +130,11 @@ export class ShopPanel {
     const row = (id: string) => {
       const item = content.items[id]!;
       const owned = state.inventory[id] ?? 0;
+      const premium = premiumIn(content.recipes, id);
       return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}">
           <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
+          ${premium.length > 0 ? `<span class="premium">${uiText.shop.premium.replace('{recipes}', listNames(premium.map((r) => r.name)))}</span>` : ''}
         </div>`;
     };
     // Seções pela primeira tag que bate (ui_text: shop.sections); o resto vai no fim, sem título.

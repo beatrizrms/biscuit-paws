@@ -176,6 +176,7 @@
     "buy": "comprar",
     "bought": "Comprado!",
     "inBag": "na bolsa",
+    "premium": "★ premium em {recipes}",
     "close": "fechar",
     "sections": [
       {
@@ -386,11 +387,12 @@
     "needsCounter": "precisa de balcão",
     "purpose": {
       "sweep": "Varre a sujeira do café e a neve da rua.",
-      "tray": "Leva até 3 louças de uma vez.",
+      "tray": "Selecionada na barra, leva até 3 louças de uma vez.",
       "food": "Enche a tigela do gato.",
       "treat": "Um agrado para o gato (mais carinho).",
       "furniture": "Móvel guardado: posicione no café.",
       "ingredient": "Ingrediente da cozinha.",
+      "premium": "Ingrediente premium ({recipes}): o pedido sai premium, vende mais caro e quem gosta de premium deixa gorjeta.",
       "key": "Abre uma porta.",
       "job": "Parte de um pedido da vila.",
       "other": "Guardado na mochila."

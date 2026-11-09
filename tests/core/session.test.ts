@@ -795,9 +795,12 @@ describe('mercado: matéria-prima', () => {
   it('vende a matéria-prima (café, chá, frutas, despensa) e as receitas usam só itens do mercado', () => {
     const { session } = newSession();
     const sold = new Set(session.shopItems('shop.market'));
-    const ingredients = Object.values(content.items).filter((i) => i.tags.includes('ingredient'));
-    expect(ingredients.length).toBe(24); // 19 de bebidas + 5 da padaria
+    // O café a granel saiu do mercado (nenhuma receita usava); o ID continua para saves antigos.
+    const retired = ['item.coffee_beans_loose'];
+    const ingredients = Object.values(content.items).filter((i) => i.tags.includes('ingredient') && !retired.includes(i.id));
+    expect(ingredients.length).toBe(23); // 18 de bebidas + 5 da padaria
     for (const i of ingredients) expect(sold.has(i.id)).toBe(true);
+    for (const id of retired) expect(sold.has(id)).toBe(false);
     for (const r of Object.values(content.recipes)) for (const id of Object.keys(r.ingredients)) expect(sold.has(id)).toBe(true);
     expect(session.buy('item.coffee_ground')).toEqual({ ok: true });
     expect(session.state.inventory['item.coffee_ground']).toBe(1);

@@ -39,6 +39,11 @@ export interface RecipeDef {
   unlock?: Condition;
 }
 
+/** Receitas em que o item é a troca premium (ex.: café em grãos no café preto), na ordem dos dados. */
+export function premiumIn(recipes: Record<string, RecipeDef>, itemId: string): RecipeDef[] {
+  return Object.values(recipes).filter((r) => Object.values(r.premium ?? {}).includes(itemId));
+}
+
 export interface RecipesData {
   schemaVersion: 3;
   recipes: RecipeDef[];
