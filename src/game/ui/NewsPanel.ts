@@ -161,7 +161,7 @@ export class NewsPanel {
         return `<li><button class="n-check" data-strike="${id}" aria-label="${esc(t.remove)}"></button><span class="n-item">${item ? iconHtml(item.icon) : ''}${esc(item?.name ?? id)}</span></li>`;
       })
       .join('');
-    body.innerHTML = `<div class="notes">
+    body.innerHTML = `<div class="notes-app">
       <p class="n-date">${uiText.day} ${st.day} · ${formatClock(st.time, 10)}</p>
       <h3 class="n-title">${esc(t.title)}</h3>
       ${list.length ? `<ul>${items}</ul><p class="n-hint">${esc(t.hint)}</p>` : `<p class="n-empty">${esc(t.empty)}</p>`}

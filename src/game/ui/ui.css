@@ -830,6 +830,12 @@
 .phone-ui[data-app='home'] .phone-bar { border-bottom: none; }
 .phone-ui[data-app='home'] .p-back { visibility: hidden; }
 .phone-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 7px 7px; }
+/* Rolagem do celular: fininha e discreta. */
+.phone-body { scrollbar-width: thin; scrollbar-color: rgba(92, 52, 40, 0.3) transparent; }
+.phone-body::-webkit-scrollbar { width: 3px; }
+.phone-body::-webkit-scrollbar-track { background: transparent; }
+.phone-body::-webkit-scrollbar-thumb { background: rgba(92, 52, 40, 0.3); border-radius: 3px; }
+.phone-body::-webkit-scrollbar-button { display: none; }
 .phone-body h3 { margin: 6px 0 3px; font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pink3); }
 
 /* Tela de início */
@@ -922,17 +928,18 @@
 
 /* App Notas (lista de compras): bloco de notas de celular, papel claro, título grande e bolinhas amarelas */
 .phone-ui[data-app='notes'] .phone-bar button, .phone-ui[data-app='notes'] .phone-bar h2 { color: #d99a1e; }
-.notes { margin: -4px -4px 0; padding: 4px 8px 8px; min-height: 100%; background: #fffdf8; }
-.notes .n-date { margin: 2px 0 4px; text-align: center; font-size: 7px; color: var(--grey2); }
-.notes .n-title { margin: 0 0 6px; font-size: 14px; font-weight: bold; letter-spacing: 0; text-transform: none; color: var(--ink); }
-.notes ul { margin: 0; padding: 0; list-style: none; }
-.notes li { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #efe8dc; font-size: 9px; color: var(--ink); }
-.notes .n-item { display: flex; align-items: center; gap: 4px; transition: opacity 0.3s; }
-.notes .n-check { flex: none; width: 11px; height: 11px; padding: 0; border: 1.5px solid #c9c1b6; border-radius: 50%; background: none; cursor: pointer; }
-.notes .n-check:hover { border-color: #e3a82b; }
-.notes li.done .n-check { border-color: #e3a82b; background: #e3a82b radial-gradient(circle, #fff 0 22%, transparent 26%); }
-.notes li.done .n-item { opacity: 0.45; text-decoration: line-through; }
-.notes .n-hint, .notes .n-empty { margin: 8px 0; font-size: 7.5px; color: var(--grey2); }
+.phone-ui[data-app='notes'] .phone-body { background: #fffdf8; }
+.notes-app { padding: 0 2px 4px; }
+.notes-app .n-date { margin: 2px 0 4px; text-align: center; font-size: 7px; color: var(--grey2); }
+.notes-app .n-title { margin: 0 0 6px; font-size: 14px; font-weight: bold; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.notes-app ul { margin: 0; padding: 0; list-style: none; }
+.notes-app li { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #efe8dc; font-size: 9px; color: var(--ink); }
+.notes-app .n-item { display: flex; align-items: center; gap: 4px; transition: opacity 0.3s; }
+.notes-app .n-check { flex: none; width: 11px; height: 11px; padding: 0; border: 1.5px solid #c9c1b6; border-radius: 50%; background: none; cursor: pointer; }
+.notes-app .n-check:hover { border-color: #e3a82b; }
+.notes-app li.done .n-check { border-color: #e3a82b; background: #e3a82b radial-gradient(circle, #fff 0 22%, transparent 26%); }
+.notes-app li.done .n-item { opacity: 0.45; text-decoration: line-through; }
+.notes-app .n-hint, .notes-app .n-empty { margin: 8px 0; font-size: 7.5px; color: var(--grey2); }
 
 /* App Horário */
 .s-status { margin: 5px 0 2px; padding: 3px 6px; border-radius: 6px; font-size: 7.5px; font-weight: bold; }
