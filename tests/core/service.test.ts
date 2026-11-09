@@ -605,3 +605,61 @@ describe('mudar móvel de lugar', () => {
     expect(state.inventory['item.coffee_machine']).toBe(1);
   });
 });
+
+describe('avaliação dos clientes (estrelas)', () => {
+  const left = (events: { name: EventName; payload: unknown }[]) =>
+    events.filter((e) => e.name === 'customer.left').map((e) => e.payload as { happy: boolean; stars?: number; reputation?: number });
+
+  /** Atende o primeiro cliente (café preto) depois de `waitMin` minutos sentado esperando. */
+  function serveAfter(waitMin: number, clean: boolean) {
+    const { session, sv, state, events } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    if (clean) for (const d of session.visibleDirt()) state.cleaned.push(d.id);
+    advance(session, 6);
+    const c = state.service.customers[0]!;
+    c.wantsPremium = false;
+    advance(session, waitMin);
+    sv.prepare(coffeeMachineUid(session));
+    advance(session, 11);
+    sv.pickUp([7, 5]);
+    expect(sv.serve(c.id)).toEqual({ ok: true });
+    advance(session, content.service.consumeMinutes.standing + 1);
+    return { session, state, events };
+  }
+
+  it('rápido e salão limpo: 5 estrelas e a reputação delas', () => {
+    const { state, events, session } = serveAfter(0, true);
+    // A xícara suja que ele deixou conta como sujeira só depois que ele saiu.
+    expect(left(events)).toEqual([{ customerId: 'c1', happy: true, stars: 5, reputation: content.service.review.reputation['5'] }].map(({ customerId, ...r }) => ({ customerId, ...r })));
+    expect(state.reputation.value).toBe(content.service.review.reputation['5']!);
+    expect(session.hallDirt()).toBe(1);
+  });
+
+  it('esperou muito sentado: perde estrelas; salão sujo também', () => {
+    // Metade da paciência esperando e mais o preparo: passa da primeira faixa sentado.
+    const slow = left(serveAfter(content.service.patienceMinutes * 0.5, true).events)[0]!;
+    expect(slow.stars).toBe(5 - 1);
+    const dirty = serveAfter(0, false);
+    expect(dirty.session.visibleDirt().length).toBeGreaterThan(0);
+    expect(left(dirty.events)[0]!.stars).toBeLessThan(5);
+  });
+
+  it('desistiu sentado ou na fila: 1 estrela e a reputação cai', () => {
+    const { session, sv, state, events } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    // Só o lugar em pé: o segundo cliente vai para a fila.
+    const chair = state.placed.find((p) => content.items[p.item]?.tags.includes('chair'))!;
+    session.pickUp(chair.uid);
+    state.reputation.value = 10;
+    advance(session, 6);
+    state.service.nextCustomerAt = 0;
+    advance(session, 1);
+    expect(state.service.customers.map((c) => c.stage).sort()).toEqual(['queue', 'waiting']);
+    // O sentado desiste; o da fila senta (paciência nova) e desiste depois.
+    advance(session, 2 * content.service.patienceMinutes + 3);
+    const gaveUp = left(events).filter((e) => !e.happy);
+    expect(gaveUp.length).toBeGreaterThanOrEqual(2); // o sentado e o da fila
+    expect(gaveUp.every((e) => e.stars === content.service.review.gaveUp)).toBe(true);
+    expect(state.reputation.value).toBeLessThan(10);
+  });
+});

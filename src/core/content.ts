@@ -1,5 +1,6 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
+import { validateReview } from './review';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
 import { validateFairSetup, type FairSetupData, type FairSetupParams } from './fairSetup';
@@ -661,6 +662,7 @@ export function validateContent(raw: RawContent): string[] {
     if (r.restore?.when) checkCondition(`rooms: "${r.id}" restore`, r.restore.when);
   }
   errors.push(...validateBusiness(raw.business, surfaceIds));
+  errors.push(...validateReview(raw.service.review));
   errors.push(...validateCharacter(raw.character));
   errors.push(...validateScheduleRules(raw.service.schedule, raw.seasons.startWeekday));
   // Chegadas de gatos e perfis (personalidades, condições, gatos gerados).

@@ -94,7 +94,8 @@ export interface GameEvents {
   'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
   'sink.changed': { load: number };
   'heavy.stored': { itemId: string };
-  'customer.left': { customerId: string; happy: boolean };
+  /** stars e reputation: a avaliação ao sair (sem eles: o café fechou com ele na fila). */
+  'customer.left': { customerId: string; happy: boolean; stars?: number; reputation?: number };
   'hands.changed': { count: number };
   'dish.washed': { count: number };
   'delivery.ordered': { deliveryId: string; itemId: string; arrivesAt: number };

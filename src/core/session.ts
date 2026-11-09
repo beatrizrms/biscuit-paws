@@ -168,6 +168,8 @@ export class GameSession {
       advanceStory: () => this.advanceStory(),
       catAffection: (catId, points) => this.addCatAffection(catId, points),
       customersAway: () => this.customersAway(),
+      hallDirt: () => this.hallDirt(),
+      addReputation: (amount, reason) => this.addReputation(amount, reason),
     });
     this.arrivals = new ArrivalSystem({
       state,
@@ -1508,6 +1510,15 @@ export class GameSession {
   }
 
   /** Sujeira do café que ainda aparece (a limpa, a de superfícies reformadas e a de cômodos fechados somem). */
+  /** Sujeira do salão agora: sujeiras visíveis (das que saem com faxina) dentro dele e louça suja nas superfícies (pesa na avaliação dos clientes). */
+  hallDirt(): number {
+    const hall = this.content.rooms.rooms.find((r) => r.id === 'room.hall')?.area;
+    const inHall = ([c, r]: Cell) => !hall || (c >= hall.from[0] && c <= hall.to[0] && r >= hall.from[1] && r <= hall.to[1]);
+    // Só o que sai com faxina: rachaduras e manchas da reforma não são culpa do dia.
+    const dirt = this.visibleDirt().filter((d) => !d.clearedBy && inHall(d.at)).length;
+    return dirt + this.state.surfaces.filter((x) => x.item.kind === 'dirty').length;
+  }
+
   visibleDirt(): DirtSpot[] {
     return (this.content.map.dirt ?? [])
       .filter((d) => {

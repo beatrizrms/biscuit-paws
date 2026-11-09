@@ -76,6 +76,9 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
+  "review": {
+    "reputation": "reputação"
+  },
   "goals": {
     "story": "história",
     "cafe": "café",

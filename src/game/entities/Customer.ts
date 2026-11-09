@@ -10,6 +10,9 @@ import { NpcSprite } from './Npc';
 
 export type Mood = 'normal' | 'impatient' | 'furious';
 
+/** Tamanho do ícone de "tomando" (fração do ícone normal da folha). */
+const DRINK_ICON = 0.5;
+
 export class CustomerSprite {
   readonly sprite: NpcSprite;
   private bubble: Phaser.GameObjects.Container;
@@ -22,6 +25,11 @@ export class CustomerSprite {
   private waiting: Phaser.GameObjects.Sprite;
   /** Barrinha enquanto consome (depois de pagar): mostra quanto falta para ir embora. */
   private consuming: Phaser.GameObjects.Image;
+  /** Ícone de "tomando" ao lado da barrinha de consumo (o que ele pediu). */
+  private drinkIcon: Phaser.GameObjects.Image | null = null;
+  /** Barra de espera na fila (em pé), embaixo do ícone de espera: a paciência de cada etapa recomeça cheia. */
+  private queueBar: Phaser.GameObjects.Graphics;
+  private queueDrawn = -1;
   private walking: Promise<void> = Promise.resolve();
   /** Célula para onde está indo (ou onde está). */
   target: Cell;
@@ -50,6 +58,7 @@ export class CustomerSprite {
     }
     this.waiting = scene.add.sprite(0, 0, 'bubble_wait_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
     this.consuming = scene.add.image(0, 0, 'progress_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_400);
+    this.queueBar = scene.add.graphics().setVisible(false).setDepth(99_500);
   }
 
   /**
@@ -103,11 +112,17 @@ export class CustomerSprite {
     this.bubble.setVisible(true);
   }
 
-  /** Consumindo: barrinha de 0 a 1 (undefined esconde). */
-  showConsuming(progress: number | undefined): void {
+  /** Consumindo: barrinha de 0 a 1 e o ícone do que ele está tomando (undefined esconde). */
+  showConsuming(progress: number | undefined, icon?: string): void {
     if (progress === undefined) {
       this.consuming.setVisible(false);
+      this.drinkIcon?.destroy();
+      this.drinkIcon = null;
       return;
+    }
+    if (!this.drinkIcon && icon) {
+      const f = iconFrame(this.scene, icon);
+      if (f) this.drinkIcon = this.scene.add.image(0, 0, f.key, f.frame).setOrigin(1, 1).setDepth(99_400).setScale(f.scale * DRINK_ICON);
     }
     const n = serviceArt.progress.length;
     this.consuming.setTexture(`progress_${Math.min(n - 1, Math.max(0, Math.round(progress * (n - 1))))}`).setVisible(true);
@@ -147,6 +162,35 @@ export class CustomerSprite {
       .setVisible(true);
   }
 
+  /** Na fila: quanto falta de paciência (1 = cheia, 0 = desiste), na barra embaixo do ícone de espera; undefined esconde. */
+  setQueuePatience(left: number | undefined): void {
+    if (left === undefined) {
+      this.queueBar.setVisible(false);
+      this.queueDrawn = -1;
+      return;
+    }
+    const p = serviceArt.bubble.patienceBar;
+    const k = serviceArt.bubble.scale;
+    // Um pouco maior que a do balão (que já vem em meia escala): 4 px de altura deixam ver o preenchimento.
+    const w = Math.round(p.w * k) + 4;
+    const h = 4;
+    const fill = Math.max(0, Math.min(w - 2, Math.ceil(left * (w - 2))));
+    if (fill === this.queueDrawn) return;
+    this.queueDrawn = fill;
+    const b = serviceArt.bubble;
+    const mood: Mood = left < b.furiousBelow ? 'furious' : left < b.impatientBelow ? 'impatient' : 'normal';
+    const color = (hex: string) => Phaser.Display.Color.HexStringToColor(hex).color;
+    this.queueBar
+      .clear()
+      .fillStyle(color(p.border))
+      .fillRect(-w / 2, 0, w, h)
+      .fillStyle(color(p.back))
+      .fillRect(-w / 2 + 1, 1, w - 2, h - 2)
+      .fillStyle(color(p.colors[mood]))
+      .fillRect(-w / 2 + 1, 1, fill, h - 2)
+      .setVisible(true);
+  }
+
   /** Altura da ponta do balão acima dos pés: sentado, a cabeça fica mais baixa. */
   private bubbleLift(): number {
     return this.seated ? 50 : 60;
@@ -168,9 +212,13 @@ export class CustomerSprite {
     this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - this.bubbleLift() + oy);
     this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy);
     this.consuming.setPosition(this.sprite.x, this.sprite.y - this.bubbleLift() + 8);
+    this.drinkIcon?.setPosition(this.sprite.x - this.consuming.displayWidth / 2 - 1, this.sprite.y - this.bubbleLift() + 10);
+    this.queueBar.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy + 1);
   }
 
   destroy(): void {
+    this.drinkIcon?.destroy();
+    this.queueBar.destroy();
     this.bubble.destroy();
     this.waiting.destroy();
     this.consuming.destroy();

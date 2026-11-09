@@ -283,6 +283,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    this.session.bus.on('customer.left', ({ customerId, stars, reputation }) => stars !== undefined && this.showReview(customerId, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip }) => {
       const view = this.customerViews.get(customerId);
@@ -1498,6 +1499,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else this.sinkSprite.setVisible(false);
   }
 
+  /** A avaliação de quem saiu: 1 a 5 estrelas subindo em cima dele, com a reputação embaixo (+2, −1). */
+  private showReview(customerId: string, stars: number, reputation: number): void {
+    const view = this.customerViews.get(customerId);
+    if (!view) return; // só existe no café: fora dele, ninguém vê
+    const x = view.sprite.x;
+    const y = view.sprite.y - 52;
+    const style = (size: number, color: string) => ({ fontFamily: 'Trebuchet MS, sans-serif', fontSize: `${size}px`, fontStyle: 'bold', color, stroke: '#3b2a2f', strokeThickness: 2, resolution: 4 });
+    const row = this.add.text(x, y, '★'.repeat(stars) + '☆'.repeat(5 - stars), style(11, '#f2c45a')).setOrigin(0.5, 1).setDepth(99_800);
+    const rep = reputation ? this.add.text(x, y + 1, (reputation > 0 ? '+' : '−') + Math.abs(reputation) + ' ' + uiText.review.reputation, style(7, reputation > 0 ? '#a8e6a1' : '#ff9aa8')).setOrigin(0.5, 0).setDepth(99_800) : null;
+    const targets = rep ? [row, rep] : [row];
+    this.tweens.add({ targets, y: '-=14', duration: 1400, ease: 'Sine.easeOut' });
+    this.tweens.add({ targets, alpha: 0, delay: 1700, duration: 500, onComplete: () => targets.forEach((t) => t.destroy()) });
+  }
+
   /** Clientes: cria quem chegou (entra pela porta), anda até o lugar, balão do pedido; quem saiu vai embora. */
   private syncCustomers(): void {
     const cfg = this.session.content.service;
@@ -1522,7 +1537,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         view.showOrder(shown ? this.session.content.recipes[shown]?.icon : shown);
       }
       // Depois de pagar, fica no lugar consumindo (consumeMinutes): a barrinha mostra quanto falta para ir embora.
-      view.showConsuming(c.stage === 'drinking' ? 1 - (c.until - nowAbs(this.session.state)) / cfg.consumeMinutes[c.kind] : undefined);
+      view.showConsuming(
+        c.stage === 'drinking' ? 1 - (c.until - nowAbs(this.session.state)) / cfg.consumeMinutes[c.kind] : undefined,
+        c.recipe ? this.session.content.recipes[c.recipe]?.icon : undefined,
+      );
+      // Na fila (em pé) também tem paciência: a barra embaixo do ícone de espera.
+      view.setQueuePatience(c.stage === 'queue' ? (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes : undefined);
       if (c.stage === 'waiting') {
         const left = (c.until - nowAbs(this.session.state)) / cfg.patienceMinutes;
         const b = serviceArt.bubble;
@@ -1546,6 +1566,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       view.leaving = true;
       view.showOrder(undefined);
       view.showConsuming(undefined);
+      view.setQueuePatience(undefined);
       void view.walkTo(door).then(() => (view.sprite.active ? view.sprite.leave() : undefined)).then(() => {
         view.destroy();
         this.customerViews.delete(id);

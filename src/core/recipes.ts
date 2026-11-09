@@ -1,5 +1,6 @@
 // Receitas, cardápio e configuração do atendimento (data/recipes.json, data/service.json, data/carry.json).
 // Puro: sem Phaser, DOM ou window. Quem decide se dá para fazer é o CafeService (service.ts).
+import type { ReviewConfig } from './review';
 import type { Cell } from './map';
 import type { Condition } from './content';
 import type { ScheduleRules } from './schedule';
@@ -50,6 +51,8 @@ export interface RecipesData {
 }
 
 export interface ServiceConfig {
+  /** Avaliação ao sair (estrelas) e a reputação de cada nota (src/core/review.ts). */
+  review: ReviewConfig;
   schemaVersion: 1;
   /** Quantos itens cabem no quadro do cardápio. */
   menuSlots: number;

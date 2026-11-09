@@ -1,6 +1,7 @@
 // Atendimento do café: cardápio, pedidos, preparo nos equipamentos (em etapas), mãos e bandeja, itens pesados,
 // gato no colo, louça e pia, clientes com preferências. Puro: sem Phaser, DOM ou window.
 // O tempo é o relógio do jogo (minutos absolutos, nowAbs). A cena só desenha e chama as ações.
+import { reviewReputation, reviewStars, type Waits } from './review';
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
@@ -29,6 +30,8 @@ export interface Customer {
   /** Preferências: uma receita favorita (pede mais) e gostar de premium (só dá gorjeta se for premium). */
   favorite: string | null;
   wantsPremium: boolean;
+  /** Quanto da paciência gastou em pé (fila) e sentado (até ser atendido), de 0 a 1: entra na avaliação. */
+  waits?: Waits;
 }
 
 /** Uma etapa sendo feita num equipamento posicionado. */
@@ -99,6 +102,9 @@ export interface ServiceHost {
   catAffection(catId: string, points: number): void;
   /** Gatos doentes demais: nenhum cliente novo entra (data/health.json: customers). */
   customersAway(): boolean;
+  /** Sujeira do salão agora (sujeiras visíveis e louça suja nas mesas): pesa na avaliação. */
+  hallDirt(): number;
+  addReputation(amount: number, reason: string): void;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -421,10 +427,11 @@ export class CafeService {
     }
     // Clientes.
     for (const c of [...sv.customers]) {
-      if (c.stage === 'waiting' && now >= c.until) this.leave(c, false);
+      if ((c.stage === 'waiting' || c.stage === 'queue') && now >= c.until) this.leave(c, false, true);
       else if (c.stage === 'drinking' && now >= c.until) {
+        // Avalia antes de deixar a xícara: a louça dele não conta como sujeira na nota dele.
+        this.leave(c, true, true);
         this.leaveDish(c);
-        this.leave(c, true);
       }
     }
     // Fechou: quem estava na fila vai embora (sem bronca: o café fechou). Quem já está no lugar termina.
@@ -478,6 +485,8 @@ export class CafeService {
     if (options.length === 0) return;
     const rng = this.h.rng();
     const favorite = options.find((r) => r.id === c.favorite);
+    const queued = c.stage === 'queue' ? this.used(c) : 0;
+    c.waits = { queue: queued, seated: 0 };
     c.stage = 'waiting';
     c.kind = spot.kind;
     c.spot = [...spot.spot];
@@ -494,9 +503,26 @@ export class CafeService {
     this.st.surfaces.push({ at: [...at], item: { kind: 'dirty', vessel } });
   }
 
-  private leave(c: Customer, happy: boolean): void {
+  /** Quanto da paciência da etapa atual ele já gastou (0 a 1). */
+  private used(c: Customer): number {
+    return Math.max(0, Math.min(1, 1 - (c.until - this.now()) / this.cfg.patienceMinutes));
+  }
+
+  /**
+   * Vai embora. `review`: avalia (1 a 5 estrelas, src/core/review.ts) e a nota vira reputação; quem desiste (`happy`
+   * false) dá a nota de desistência. Sem avaliação: o café fechou com ele na fila.
+   */
+  private leave(c: Customer, happy: boolean, review = false): void {
     this.st.service.customers = this.st.service.customers.filter((x) => x !== c);
-    this.h.bus.emit('customer.left', { customerId: c.id, happy });
+    if (!review) {
+      this.h.bus.emit('customer.left', { customerId: c.id, happy });
+      return;
+    }
+    const cfg = this.cfg.review;
+    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy);
+    const reputation = reviewReputation(cfg, stars);
+    if (reputation !== 0) this.h.addReputation(reputation, `review:${stars}`);
+    this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation });
   }
 
   /** Fim do dia: clientes vão embora (a louça em uso volta limpa), preparos param, o saco vai para o estoque e o gato fica em casa. */
@@ -639,6 +665,7 @@ export class CafeService {
     const quality: Quality = served!.kind === 'drink' ? served!.quality ?? 'simple' : 'simple';
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
+    c.waits = { queue: c.waits?.queue ?? 0, seated: this.used(c) };
     const satisfied = patienceLeft >= this.cfg.tipPatience && (!c.wantsPremium || quality === 'premium');
     const price = this.priceOf(r.id, quality);
     const tip = satisfied ? Math.max(1, Math.round(price * this.cfg.tipRate)) : 0;
