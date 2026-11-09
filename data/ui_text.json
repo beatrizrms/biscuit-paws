@@ -518,6 +518,15 @@
       "reason": "{trait}: {note}.",
       "noReason": "Nada contra, nada a favor.",
       "summary": "{good} boa(s), {ok} ok, {bad} ruim(ns)."
+    },
+    "wand": {
+      "hud": "Empolgação {n}% · Enjoou {bored}",
+      "bored": "Enjoou...",
+      "tooFast": "Rápido demais!",
+      "wiggle": "Balançou!",
+      "pounce": "Bote!",
+      "result": "Botes: {pounces} · enjoou {bored} vez(es).",
+      "failed": "Ele perdeu a graça e foi deitar."
     }
   },
   "phoneApp": {
@@ -714,6 +723,8 @@
     "bowl": "Encher a tigela",
     "cat_treat": "Dar o petisco",
     "cat_medicine": "Dar o remédio",
-    "cat_pickup": "Pegar no colo"
+    "cat_pickup": "Pegar no colo",
+    "cat_wand": "Brincar",
+    "cat_brush": "Escovar"
   }
 }

@@ -234,6 +234,24 @@
         "normal": {"pairs":4,"okAt":0.5},
         "hard": {"pairs":5,"okAt":0.6}
       }
+    },
+    "wand": {
+      "name": "Brincar com a varinha",
+      "instructions": "O mouse é a ponta da varinha. Mude de rumo e de ritmo para o gato se empolgar; linha reta constante ou rápido demais e ele enjoa. Pare a ponta perto dele e ele dá o bote; balance de leve enquanto ele se agacha.",
+      "tutorial": {"lines":["Mexa o mouse: a ponta da varinha segue. Mude de rumo e de ritmo!","Reta e sempre igual, ou rápido demais: ele enjoa.","Pare perto dele: ele se agacha. Balance de leve e ele dá o bote. Barra cheia sem enjoar = Perfeito!"]},
+      "reputation": {"ok":1,"great":2},
+      "arena": [80,40,480,280],
+      "sounds": {"bored":"error","crouch":"meow_1","pounce":"purr","wiggle":"success","done":"success"},
+      "rewards": {
+        "easy": {"ok":4,"great":8},
+        "normal": {"ok":6,"great":12},
+        "hard": {"ok":8,"great":16}
+      },
+      "difficulties": {
+        "easy": {"timeSec":45,"catSpeed":150,"catAccel":420,"arriveRadius":40,"gainPerSec":9,"variety":160,"stillSpeed":12,"tooFast":620,"boringVariety":45,"boredAfterSec":3,"giveUpAfterSec":1.5,"boredLoss":15,"idleLossPerSec":2,"pounceDelaySec":0.5,"pounceRange":90,"crouchSec":0.9,"pounceGain":10,"wiggleBonus":8,"wiggleMin":15,"wiggleMax":140,"okAt":55},
+        "normal": {"timeSec":40,"catSpeed":160,"catAccel":400,"arriveRadius":40,"gainPerSec":8,"variety":180,"stillSpeed":12,"tooFast":560,"boringVariety":55,"boredAfterSec":2.5,"giveUpAfterSec":1.2,"boredLoss":18,"idleLossPerSec":3,"pounceDelaySec":0.5,"pounceRange":80,"crouchSec":0.8,"pounceGain":9,"wiggleBonus":7,"wiggleMin":15,"wiggleMax":120,"okAt":60},
+        "hard": {"timeSec":30,"catSpeed":175,"catAccel":380,"arriveRadius":40,"gainPerSec":8,"variety":200,"stillSpeed":12,"tooFast":500,"boringVariety":65,"boredAfterSec":2,"giveUpAfterSec":1,"boredLoss":20,"idleLossPerSec":4,"pounceDelaySec":0.5,"pounceRange":70,"crouchSec":0.7,"pounceGain":8,"wiggleBonus":6,"wiggleMin":15,"wiggleMax":100,"okAt":65}
+      }
     }
   }
 }

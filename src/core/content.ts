@@ -47,7 +47,7 @@ export interface ItemDef {
   iconImage?: string;
   /** Quadro de data/emotes.json desenhado acima da cabeça dela enquanto tiver o item (ex.: a caixa de uma entrega). */
   carrySprite?: string;
-  /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "cat" = dar ao gato (petisco). */
+  /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "cat" = dar ao gato (petisco); "wand"/"brush" = abrir o cuidado no gato (varinha, escova). */
   use?: ItemUse;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
@@ -113,8 +113,8 @@ export interface EconomyData {
 
 /** Condição de história, escrita em JSON. */
 /** Onde um item da barra é usado. */
-export type ItemUse = 'food_bowl' | 'cat' | 'medicine';
-export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat', 'medicine'];
+export type ItemUse = 'food_bowl' | 'cat' | 'medicine' | 'wand' | 'brush';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat', 'medicine', 'wand', 'brush'];
 
 export type Condition =
   | { all: Condition[] }

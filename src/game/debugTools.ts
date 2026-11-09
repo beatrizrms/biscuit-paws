@@ -30,7 +30,7 @@ export function attachDebugTools(scene: WorldScene, root: HTMLElement): DebugPan
     // Jogo novo no slot 1 do debug (a URL ?novo pula a Home).
     newGame: () => (window.location.href = `${window.location.pathname}?novo`),
     turnOff: () => setDebug(false),
-    openMiniGame: (id, difficulty) => void scene.openMiniGame(id, { difficulty }),
+    openMiniGame: (id, difficulty, catId) => void scene.openMiniGame(id, { difficulty, ...(catId ? { catId } : {}) }),
     miniGames: () => MiniGameRegistry.ids(),
   });
 }

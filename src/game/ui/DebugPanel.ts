@@ -9,7 +9,8 @@ export interface DebugActions {
   newGame(): void;
   turnOff(): void;
   /** Abre um mini game direto (sem missão). */
-  openMiniGame(gameId: string, difficulty: 'easy' | 'normal' | 'hard'): void;
+  /** catId: o gato da linha Cuidados (os mini games de cuidado sobem a alegria/higiene dele). */
+  openMiniGame(gameId: string, difficulty: 'easy' | 'normal' | 'hard', catId?: string): void;
   miniGames(): string[];
 }
 
@@ -134,7 +135,7 @@ export class DebugPanel {
     // Chegadas: põe na fila agora (ignora o gatilho e o sorteio; respeita a vez).
     panel.querySelectorAll<HTMLButtonElement>('[data-arrival]').forEach((b) => b.addEventListener('click', () => session.arrivals.queueNow(b.dataset.arrival!)));
     panel.querySelectorAll<HTMLButtonElement>('[data-mg]').forEach((b) =>
-      b.addEventListener('click', () => actions.openMiniGame(b.dataset.mg!, b.dataset.dif as 'easy' | 'normal' | 'hard')),
+      b.addEventListener('click', () => actions.openMiniGame(b.dataset.mg!, b.dataset.dif as 'easy' | 'normal' | 'hard', careCat.value || undefined)),
     );
 
     session.bus.onAny(() => this.render());

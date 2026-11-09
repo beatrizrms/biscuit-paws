@@ -38,6 +38,22 @@
       "use": "cat"
     },
     {
+      "id": "item.cat_wand",
+      "name": "Varinha de penas",
+      "price": 18,
+      "kind": "tool",
+      "use": "wand",
+      "iconImage": "assets/objects/placeholders/icon_wand.png",
+      "tags": [
+        "pet",
+        "tool",
+        "toy"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.cat_litter",
       "name": "Areia",
       "price": 12,

@@ -74,6 +74,8 @@ export interface MiniGameDef {
   hideoutKinds?: string[];
   heat?: HeatLevel[];
   heatRange?: number;
+  /** Área de jogo em px lógicos (x, y, largura, altura), quando o jogo é numa tela fixa sem mapa (ex.: a varinha). */
+  arena?: [number, number, number, number];
   /** Parte da arena mostrada (coluna, linha, largura, altura em células), quando a tela é fixa. */
   view?: [number, number, number, number];
   /** Entrega relâmpago: saída, porta de entrega (células), itens, rotas dos obstáculos e o esbarrão. */

@@ -9,7 +9,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus } from './events';
-import type { MiniGameParams, MiniGameResult } from './minigame';
+import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
@@ -1079,6 +1079,20 @@ export class GameSession {
     if (!t) return 'no_prescription';
     if (t.lastDoseDay === this.state.day) return 'already_dosed';
     return this.activeUse('medicine') ? null : 'needs_medicine';
+  }
+
+  /** O mini game de cuidado que o item ativo abre num gato do café (varinha: wand; escova: grooming), ou null. */
+  careGameInHand(): 'wand' | 'grooming' | null {
+    if (!this.atHome()) return null;
+    if (this.activeUse('wand')) return 'wand';
+    if (this.activeUse('brush')) return 'grooming';
+    return null;
+  }
+
+  /** Dificuldade dos cuidados pelo jeito do gato (cat_profiles.json: personalities[].trust; gato arisco = difícil). */
+  careDifficulty(catId: string): Difficulty {
+    const personality = this.catDef(catId)?.personality;
+    return (personality && this.content.catProfiles.personalities[personality]?.trust) || 'normal';
   }
 
   /** Cuidados do gato: felicidade, higiene e o que ele está precisando agora (o balão em cima dele, o app). */

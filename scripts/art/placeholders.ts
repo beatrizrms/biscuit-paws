@@ -109,6 +109,31 @@ function blanketIcon(): Canvas {
   return c.outline();
 }
 writeWithBackup(blanketIcon(), 'public/assets/objects/placeholders/icon_blanket.png');
+
+// PLACEHOLDER(arte): ícones da varinha (item.cat_wand) e da escova (item.cat_brush), 32x32 (lista em assets-pendentes).
+/** Varinha de penas: cabo de madeira na diagonal, fio e o pompom com penas na ponta. */
+function wandIcon(): Canvas {
+  const c = new Canvas(T, T);
+  c.line(5, 28, 19, 10, at(P.pine, 2)); // cabo
+  c.line(6, 28, 20, 10, at(P.pine, 4));
+  c.line(20, 10, 23, 15, at(P.cream, 1)); // fio
+  c.ellipse(21, 19, 2, 4, at(P.sky, 3)); // penas
+  c.ellipse(25, 19, 2, 4, at(P.butter, 3));
+  c.ellipse(23, 17, 2, 4, at(P.rose, 3));
+  c.ball(23, 22, 3, 3, P.red); // pompom
+  return c.outline();
+}
+/** Escova de pelo: cabo de madeira e as cerdas claras. */
+function brushIcon(): Canvas {
+  const c = new Canvas(T, T);
+  c.rect(6, 12, 20, 9, at(P.oak, 3)); // corpo
+  c.rect(6, 12, 20, 2, at(P.oak, 4));
+  c.rect(12, 21, 8, 7, at(P.oak, 2)); // cabo
+  for (let x = 7; x < 26; x += 2) c.vline(x, 7, 5, at(P.cream, 4)); // cerdas
+  return c.outline();
+}
+writeWithBackup(wandIcon(), 'public/assets/objects/placeholders/icon_wand.png');
+writeWithBackup(brushIcon(), 'public/assets/objects/placeholders/icon_brush.png');
 console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

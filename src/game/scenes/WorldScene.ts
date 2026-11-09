@@ -781,8 +781,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else this.ui.openNews('board');
       return true;
     }
-    // E perto de uma sujeira: varre (o clique na sujeira faz o mesmo, no onPointerDown).
-    const dirt = !target && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
+    // E perto de uma sujeira, com a vassoura na mão: varre (o clique na sujeira faz o mesmo, no onPointerDown).
+    // Sem a vassoura, o E segue para o resto (gatos, tigela): num café sujo, a sujeira não pode tomar o E de tudo.
+    const broom = this.session.activeItem() === this.session.content.world.tools.sweep;
+    const dirt = !target && broom && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
     if (dirt) {
       if (this.sweeping) return true;
       const problem = this.session.cleanProblem(dirt.id, this.playerCells());
@@ -797,7 +799,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
     const bowl = this.session.bowlNear(this.playerCells(), target);
-    if (!bowl) return this.tryTreatCat(target) || this.tryPickUpCat(target);
+    if (!bowl) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target);
     if (this.usingItem) return true;
     const problem = this.session.feedProblem(bowl);
     if (problem) {
@@ -857,6 +859,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (bowl && !s.feedProblem(bowl)) return floor(st.placed.find((p) => p.uid === bowl)!.at, 'bowl');
     if (!s.atHome()) return null;
     const cat = nearCat();
+    const care = s.careGameInHand();
+    if (cat && care) return catTop(cat, care === 'wand' ? 'cat_wand' : 'cat_brush');
     if (cat && s.holdingMedicine()) return catTop(cat, 'cat_medicine');
     if (cat && s.holdingTreat()) return catTop(cat, 'cat_treat');
     if (cat && st.hands.length === 0 && !st.tray) return catTop(cat, 'cat_pickup');
@@ -870,6 +874,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.careNeeds = new Map(this.cats.map((c) => [c.catId, this.session.catCare(c.catId)?.needs[0] ?? null]));
     }
     this.careBubbles.update(this.cats.filter((c) => c.visible).map((c) => ({ catId: c.catId, x: c.x, y: c.y, depth: c.depth, need: this.careNeeds.get(c.catId) ?? null })));
+  }
+
+  /** Varinha ou escova ativa na barra e um gato do café perto: abre o mini game de cuidado com ele. */
+  private tryCareGame(target?: Cell): boolean {
+    const game = this.session.careGameInHand();
+    if (!game) return false;
+    const feet = this.playerCells();
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    if (!cat) return false;
+    void this.openMiniGame(game, { difficulty: this.session.careDifficulty(cat.catId), catId: cat.catId });
+    return true;
   }
 
   /** Petisco ou remédio ativo na barra e um gato perto: vai da mão até o gato. */
