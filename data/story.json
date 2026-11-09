@@ -617,17 +617,17 @@
         "atLeast": "discovered"
       },
       "goal": {
-        "title": "O quartinho dos fundos",
+        "title": "O porão",
         "steps": [
           {
-            "text": "Pagar a obra para abrir a passagem (Market, aba Construção).",
+            "text": "Pagar a obra para abrir o acesso ao porão (Market, aba Construção).",
             "when": {
               "room": "room.back_room",
               "atLeast": "abandoned"
             }
           },
           {
-            "text": "Limpar o quartinho.",
+            "text": "Limpar o porão.",
             "when": {
               "cleaned": "back_room"
             }

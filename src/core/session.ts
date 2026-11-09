@@ -1455,11 +1455,15 @@ export class GameSession {
     }
     for (const door of this.content.rooms.doors) {
       const s = this.doorState(door.id);
-      if (s === 'open') continue;
       // A porta (1x2) tem a base na célula da passagem e sobe por cima da parede; a parede escondida é 1x1.
-      const tile = s === 'hidden' ? door.tiles.hidden : door.tiles.locked;
+      // Sem tile para o estado (escondida numa parede lisa, ou aberta sem porta), não desenha nada.
+      const tile = s === 'hidden' ? door.tiles.hidden : s === 'locked' ? door.tiles.locked : door.tiles.open;
+      if (!tile) continue;
       const h = this.content.catalog.tiles[tile]?.h ?? 1;
-      objects.push({ id: `obj.${door.id}`, tile, at: [door.at[0], door.at[1] - h + 1] });
+      // Porta na parede de cima (o jardim): embutida na parede, não no vão de uma parede divisória.
+      const inWall = (this.content.map.layers.walls[door.at[1]]?.[door.at[0]] ?? '.') !== '.';
+      objects.push({ id: `obj.${door.id}`, tile, at: [door.at[0], door.at[1] - h + 1], ...(inWall ? { inWall: true } : {}) });
+      if (s === 'locked' && door.tiles.lockedOverlay) objects.push({ id: `obj.${door.id}.lock`, tile: door.tiles.lockedOverlay, at: door.at, inWall: true });
       if (s === 'locked') interactions.push({ id: `int.${door.id}`, at: door.at, reach: 1, action: { door: door.id } });
     }
     return { legend, objects, interactions };
@@ -1874,8 +1878,14 @@ export class GameSession {
     if (roomsOf.some((r) => !isOpen(this.roomState(r!.id)))) return 'room_closed';
     const only = this.content.items[itemId]?.room;
     if (only && roomsOf.some((r) => r!.id !== only)) return 'wrong_room';
-    // A passagem e as células dos dois lados ficam livres.
-    const doorCells = this.content.rooms.doors.flatMap((d): Cell[] => [d.at, [d.at[0] - 1, d.at[1]], [d.at[0] + 1, d.at[1]]]);
+    // Porta no vão da parede divisória: a passagem e os dois lados. Porta na parede de cima (o jardim): ela (1x2)
+    // e a célula da frente, por onde se passa.
+    const walls = this.content.map.layers.walls;
+    const doorCells = this.content.rooms.doors.flatMap((d): Cell[] => {
+      const [c, r] = d.at;
+      const inWall = (walls[r]?.[c] ?? '.') !== '.';
+      return inWall ? [d.at, [c, r - 1], [c, r + 1]] : [d.at, [c - 1, r], [c + 1, r]];
+    });
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
   }

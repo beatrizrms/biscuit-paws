@@ -67,8 +67,12 @@ export interface RoomDoor {
   requires?: { item?: string };
   /** Gasta o item ao abrir. */
   consumesItem?: boolean;
-  /** Tiles: como parece escondida (parede) e trancada. Aberta não desenha nada (é chão). */
-  tiles: { hidden: string; locked: string };
+  /**
+   * Tiles: como parece escondida (parede divisória; sem hidden, não desenha nada: a parede lisa do mapa), trancada e
+   * aberta (sem open, não desenha nada: a passagem é chão; com open, a porta continua lá, ex.: a do jardim, que leva
+   * para lá pelas portas do mapa). lockedOverlay: desenhado por cima, na base, enquanto trancada (o cadeado).
+   */
+  tiles: { hidden?: string; locked: string; open?: string; lockedOverlay?: string };
   /** Fala ao tentar passar trancada (sem o item). */
   lockedDialogue?: string;
 }
@@ -220,7 +224,10 @@ export function validateRooms(
       const tiles = [...Object.values(look.legend ?? {}), ...Object.values(look.legendByState ?? {}).flatMap((m) => Object.values(m ?? {}))];
       const objects = [...(look.objects ?? []), ...Object.values(look.objectsByState ?? {}).flatMap((o) => o ?? [])];
       for (const t of [...tiles, ...objects.map((o) => o.tile)]) if (!refs.tiles.has(t)) errors.push(`${w}: tile inexistente "${t}"`);
-      for (const o of objects) if (!inArea(r, o.at)) errors.push(`${w}: objeto "${o.id}" fora do cômodo`);
+      // Pode começar na passagem de uma porta do próprio cômodo (a escadinha do porão, no vão da parede).
+      const passages = data.doors.filter((d) => d.to === r.id || d.from === r.id).map((d) => d.at);
+      const atPassage = (c: Cell) => passages.some(([x, y]) => x === c[0] && y === c[1]);
+      for (const o of objects) if (!inArea(r, o.at) && !atPassage(o.at)) errors.push(`${w}: objeto "${o.id}" fora do cômodo`);
     }
     if (!(r.capacity.cats >= 0) || !(r.capacity.customers >= 0)) errors.push(`${w}: capacidade inválida`);
   }
@@ -230,7 +237,7 @@ export function validateRooms(
     if (!ids.has(d.from) || !ids.has(d.to)) errors.push(`${w}: liga cômodo inexistente`);
     if (!inMap(d.at)) errors.push(`${w}: fora do mapa`);
     if (d.requires?.item && !refs.items.has(d.requires.item)) errors.push(`${w}: item inexistente "${d.requires.item}"`);
-    for (const t of [d.tiles.hidden, d.tiles.locked]) if (!refs.tiles.has(t)) errors.push(`${w}: tile inexistente "${t}"`);
+    for (const t of [d.tiles.hidden, d.tiles.locked, d.tiles.open, d.tiles.lockedOverlay]) if (t && !refs.tiles.has(t)) errors.push(`${w}: tile inexistente "${t}"`);
     if (d.lockedDialogue && !refs.dialogues.has(d.lockedDialogue)) errors.push(`${w}: fala inexistente "${d.lockedDialogue}"`);
     if (!(DOOR_STATES as readonly string[]).includes(d.initial)) errors.push(`${w}: estado inicial inválido`);
   }

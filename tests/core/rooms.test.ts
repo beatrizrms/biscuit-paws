@@ -80,7 +80,7 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.doorState('door.back_room')).toBe('locked');
     expect(dialogues(events)).toContain('dlg.room_back_found');
     expect(events.find((e) => e.name === 'room.discovered')?.payload).toEqual({ roomId: 'room.back_room', trigger: 'neighbor_tells', highlight: 'door.back_room' });
-    expect(session.goals().map((g) => g.title)).toContain('O quartinho dos fundos');
+    expect(session.goals().map((g) => g.title)).toContain('O porão');
   });
 
   it('a porta de obra não abre com E: avisa e pede a obra no catálogo', () => {

@@ -456,7 +456,9 @@ export function validateContent(raw: RawContent): string[] {
   for (const p of raw.jobs.points) {
     const m = raw.maps.find((x) => x.id === p.map);
     if (!m) continue;
-    const reach = reachableCells(solidGrid(m, raw.catalog), m.spawn.player);
+    // Portas que levam a outro ponto do próprio mapa (salão -> jardim) também contam como caminho.
+    const jumps = (m.doors ?? []).filter((d) => d.to === m.id).map((d) => ({ from: d.at, to: d.spawn }));
+    const reach = reachableCells(solidGrid(m, raw.catalog), m.spawn.player, jumps);
     const [c, r] = p.at;
     if (![[c, r], [c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]].some(([x, y]) => reach[y!]?.[x!])) err(`jobs: ponto "${p.id}" em (${c},${r}) de "${p.map}" não dá para alcançar a pé`);
   }

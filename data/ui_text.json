@@ -234,7 +234,7 @@
     "story": "Você foi para casa.",
     "earned": "Moedas ganhas",
     "jobs": "Pedidos feitos",
-    "sleep": "Você dormiu no quartinho do café."
+    "sleep": "Você dormiu no porão do café."
   },
   "installed": "na porta",
   "phone": {
@@ -443,7 +443,7 @@
     "sleepQuestion": "Dormir no café até amanhã?",
     "sleepYes": "Dormir",
     "sleepNo": "Ainda não",
-    "goHomeSleep": "Agora eu durmo no quartinho do café (a cama, depois das {time})."
+    "goHomeSleep": "Agora eu durmo no porão do café (a cama, depois das {time})."
   },
   "seasonDay": "{season} {day} · {weekday}",
   "minigames": {

@@ -27,6 +27,8 @@ export interface MapObject {
   when?: DoorCondition;
   /** Desenhado tantos pixels acima (em cima de outro móvel). */
   lift?: number;
+  /** Embutido na parede (a porta do jardim): pode ter a base na parede e fica atrás de quem passa na frente. */
+  inWall?: boolean;
 }
 
 /**
@@ -232,7 +234,7 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
       if (other) err(`objeto "${obj.id}" se sobrepõe a "${other}" em (${c},${r})`);
       else occupied.set(key, obj.id);
     }
-    if (def.solid) {
+    if (def.solid && !obj.inWall) {
       for (const [c, r] of footprintOf(obj.at, def)) {
         if (wallSolid[r]?.[c]) err(`objeto "${obj.id}": base em (${c},${r}) está dentro de uma parede`);
       }
@@ -300,7 +302,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const [c0, r0] = obj.at;
     // Todas as células da peça usam a base da peça inteira.
     const depth =
-      def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
+      def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' || obj.inWall ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
     const over = obj.overlay ? catalog.tiles[obj.overlay] : undefined;
     // Arte que sobe acima da peça (rise): mesma profundidade, sem ocupar a célula de cima.
     for (let k = 1; k <= (def.rise ?? 0); k++) {
@@ -376,7 +378,8 @@ export function solidRects(solid: boolean[][]): Rect[] {
 }
 
 /** Células livres alcançáveis a pé a partir de `start` (passos em 4 direções; diagonal entre dois sólidos não passa). */
-export function reachableCells(solid: boolean[][], [sc, sr]: Cell): boolean[][] {
+/** `jumps`: portas do mapa que levam a outro ponto dele mesmo (salão -> jardim): chegar em `from` leva a `to`. */
+export function reachableCells(solid: boolean[][], [sc, sr]: Cell, jumps: readonly { from: Cell; to: Cell }[] = []): boolean[][] {
   const seen = solid.map((line) => line.map(() => false));
   const free = (c: number, r: number) => solid[r]?.[c] === false && !seen[r]![c];
   if (!free(sc, sr)) return seen;
@@ -384,7 +387,8 @@ export function reachableCells(solid: boolean[][], [sc, sr]: Cell): boolean[][] 
   seen[sr]![sc] = true;
   while (queue.length > 0) {
     const [c, r] = queue.shift()!;
-    for (const [nc, nr] of [[c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]] as Cell[]) {
+    const jumped = jumps.filter((j) => j.from[0] === c && j.from[1] === r).map((j) => j.to);
+    for (const [nc, nr] of [[c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1], ...jumped] as Cell[]) {
       if (!free(nc, nr)) continue;
       seen[nr]![nc] = true;
       queue.push([nc, nr]);

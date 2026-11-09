@@ -203,7 +203,7 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
 ```
 
 `startMap`: onde um jogo novo começa. `homeMap`: o café, único mapa onde dá para decorar e reformar.
-`sleepMap` é o ponto de extensão para o quartinho do café: hoje o fim do dia mostra "Você foi para casa." e ela amanhece em `morning`.
+`sleepMap` é o ponto de extensão para dormir fora de casa (hoje quem faz isso é o porão reformado, pelo cômodo com `sleep`): hoje o fim do dia mostra "Você foi para casa." e ela amanhece em `morning`.
 
 ## Dia e noite (`data/daynight.json`)
 
@@ -543,7 +543,7 @@ Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidif
 
 ## Cômodos do café (`data/rooms.json`)
 
-O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (colunas 0-15) | parede | Quartinho (17-24) | parede | Quintal secreto (26-43). Andar entre cômodos é contínuo (sem fade); o fade fica só na porta da fachada. A câmera só vai até onde ela conhece (cômodos não ocultos).
+O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (colunas 0-15) | parede | Porão (17-24; o antigo quartinho, mesmo ID `room.back_room`, com a escadinha de 2 tiles na passagem) | parede | Quintal secreto (26-43). Salão e porão são contínuos (sem fade). O quintal não tem passagem pela parede: a porta dele fica na parede de cima do salão (os fundos), e quem leva até lá são as portas do mapa que apontam para o próprio mapa (`door.to_backyard` e `door.from_backyard` em `cafe_main.json`, com `requires` do quintal aberto); a validação de alcance conta essas portas como caminho. A câmera só vai até onde ela conhece (cômodos não ocultos).
 
 - **Cômodo** (`rooms[]`): `id` estável (`room.*`), `name`, `initial` (estado num jogo novo), `area` (células, inclusive), `outdoor` (luz de fora), `discover`, `unlock`, `restore`, `capacity` (`cats`, `customers`), `features`, `sleep` (cama e onde acorda), `look` / `variants` + `variant`.
 - **Estados:** `locked` (oculto, escuro) -> `discovered` (ela sabe; meio-escuro; a passagem vira porta fechada) -> `abandoned` (aberto, sujo) -> `restored` (reformado). Só avançam.
@@ -552,7 +552,7 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 - **Abrir** (`unlock`): `cost` (obra paga no catálogo, seção Obras), `minCats`, `beats`. Porta com `requires.item` (a chave) abre com **E** na porta, se ela tiver o item (`consumesItem` gasta).
 - **Reformar** (`restore`): limpar toda a sujeira com `dirtTag` e pagar `cost` (Obras); ou sozinho quando `when` valer (o salão: `{ "renovated": true }`). A sujeira de cômodo fechado não aparece nem se limpa; no mapa, a dos cômodos tem a tag `room` (o "\*" de saves antigos não a limpa). Sujeira com `gives` esconde um item (a chave), com `foundDialogue`.
 - **Visual** (`look`, e `variants[variant]` por cima): `legend` e `legendByState` trocam o tile de letras do mapa; `objects` e `objectsByState` põem peças. Quintal: `variant` = `hedge` (sebe; a variante de tijolo saiu na arte nova, decisão 065).
-- **Passagens** (`doors[]`): `id` (`door.*`), `at`, `from`, `to`, `initial` (`hidden` | `locked` | `open`), `tiles.hidden` (parece parede) e `tiles.locked`; aberta é chão. A célula da porta e as dos dois lados não aceitam móveis.
+- **Passagens** (`doors[]`): `id` (`door.*`), `at`, `from`, `to`, `initial` (`hidden` | `locked` | `open`), `tiles.hidden` (parece parede; sem ele, escondida não desenha nada), `tiles.locked`, `tiles.open` (sem ele, aberta é chão; com ele, a porta continua desenhada, como a do jardim) e `tiles.lockedOverlay` (por cima, trancada: o cadeado). Porta no vão de uma parede divisória: a célula dela e as dos dois lados não aceitam móveis; porta embutida na parede de cima: ela, a célula de cima e a da frente. Objeto do mapa com `inWall` pode ter a base na parede (porta embutida).
 - **Capacidade de gatos** = soma de `capacity.cats` dos cômodos abertos (aparece no catálogo). `capacity.customers` é só informação: o atendimento não tem teto fixo.
 - **Funcionalidades** (com o cômodo reformado): `sleep` = a cama oferece "dormir no café" depois de `goHomeFrom`; ela acorda em `sleep.wake` (também depois de desmaiar), e a porta da fachada não manda mais para casa. `playground` = módulos (itens com a tag de `playground.tag` e `"room": "room.backyard"`, liberados por `requires`: quintal reformado e `{ "cats": { "gte": 10 } }`) dão `pointsPerModulePerDay` de afeto a cada gato por dia.
 - Itens com `room` só podem ser posicionados naquele cômodo. Condições novas: `{ "room": "room.x", "atLeast": "abandoned" }`, `{ "cats": { "gte": 10 } }`.

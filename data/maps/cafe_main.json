@@ -12,9 +12,9 @@
     "X": "floor_wood_old",
     "M": "floor_check_old",
     "D": "room_parede_divisoria",
-    "q": "wall_stripe_old",
-    "w": "wall_wainscot_old",
-    "f": "floor_wood_old",
+    "q": "ph_basement_wall",
+    "w": "ph_basement_wall",
+    "f": "ph_basement_floor",
     "k": "yard_sebe_meio_a",
     "m": "yard_sebe_meio_b",
     "T": "yard_sebe_topo",
@@ -45,7 +45,7 @@
       "................D........D.................L",
       "................D........D.................L",
       "................D........D.................L",
-      "...........................................L",
+      ".........................D.................L",
       "................D........D.................L",
       "................D........D.................L",
       "................D........D.................L"
@@ -128,6 +128,38 @@
         },
         "cutscene": "cs.meow_door"
       }
+    },
+    {
+      "id": "door.to_backyard",
+      "at": [
+        6,
+        3
+      ],
+      "to": "map.cafe_main",
+      "spawn": [
+        34,
+        9
+      ],
+      "facing": "up",
+      "direction": "up",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "abandoned"
+      }
+    },
+    {
+      "id": "door.from_backyard",
+      "at": [
+        34,
+        10
+      ],
+      "to": "map.cafe_main",
+      "spawn": [
+        6,
+        3
+      ],
+      "facing": "down",
+      "direction": "down"
     }
   ],
   "dirt": [

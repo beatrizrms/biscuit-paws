@@ -97,7 +97,7 @@ test('cômodos (depois da inauguração): obra abre o quartinho, passagem contí
   });
   await settle(page);
   expect(await page.evaluate(() => (window as unknown as Hook).__biscuitPaws.world.session.doorState('door.backyard'))).toBe('locked');
-  await page.evaluate(() => (window as unknown as Hook).__biscuitPaws.world.teleportPlayer(24, 7));
+  await page.evaluate(() => (window as unknown as Hook).__biscuitPaws.world.teleportPlayer(6, 3)); // a porta do jardim, na parede de cima do salão
   await page.keyboard.press('e');
   await settle(page);
   expect(await page.evaluate(() => (window as unknown as Hook).__biscuitPaws.world.session.roomState('room.backyard'))).toBe('abandoned');

@@ -1,7 +1,7 @@
 {
   "tileSize": 32,
-  "columns": 7,
-  "rows": 1,
+  "columns": 11,
+  "rows": 2,
   "pieces": {
     "litter_box": {
       "col": 0,
@@ -44,6 +44,36 @@
       "row": 0,
       "w_tiles": 1,
       "h_tiles": 1
+    },
+    "basement_wall": {
+      "col": 7,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 1
+    },
+    "basement_floor": {
+      "col": 8,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 1
+    },
+    "basement_stairs": {
+      "col": 0,
+      "row": 1,
+      "w_tiles": 2,
+      "h_tiles": 1
+    },
+    "padlock": {
+      "col": 9,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 1
+    },
+    "back_door": {
+      "col": 10,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 2
     }
   }
 }

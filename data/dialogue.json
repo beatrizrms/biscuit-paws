@@ -437,7 +437,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "A Dona Neusa comentou que o seu Antônio tinha um quartinho atrás desta parede. Olha ali: o contorno de uma porta!"
+          "text": "A Dona Neusa comentou que o seu Antônio tinha um porão embaixo da loja. Olha ali, nesta parede: o contorno de uma porta!"
         },
         {
           "speaker": "{player}",
@@ -449,7 +449,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "A passagem está aberta! O quartinho está cheio de pó e de tralha coberta por um lençol."
+          "text": "A porta está aberta! Uma escadinha desce para o porão, cheio de pó e de tralha coberta por um lençol."
         }
       ]
     },
@@ -465,7 +465,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "O quartinho ficou uma graça. Dá até para dormir aqui depois de um dia longo!"
+          "text": "O porão ficou uma graça. Dá até para dormir aqui embaixo depois de um dia longo!"
         },
         {
           "speaker": "{player}",
@@ -477,11 +477,11 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "O {cat:cat.first_stray} não para de miar para aquela parede no fundo do quartinho..."
+          "text": "O {cat:cat.first_stray} não para de miar para a parede dos fundos do salão..."
         },
         {
           "speaker": "{player}",
-          "text": "Atrás da tralha tem uma porta com cadeado! Será que a chave enferrujada serve?"
+          "text": "Atrás do papel de parede solto tem uma porta com cadeado! Será que a chave enferrujada do porão serve?"
         }
       ]
     },

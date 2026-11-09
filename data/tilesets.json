@@ -947,6 +947,23 @@
         "footprints": {
           "layer": "floor",
           "solid": false
+        },
+        "basement_wall": {
+          "layer": "wall"
+        },
+        "basement_floor": {
+          "layer": "floor",
+          "solid": false
+        },
+        "basement_stairs": {
+          "layer": "floor",
+          "solid": false
+        },
+        "back_door": {
+          "layer": "wall"
+        },
+        "padlock": {
+          "solid": false
         }
       }
     },

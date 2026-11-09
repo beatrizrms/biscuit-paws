@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo.",
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo. Porta com tiles.open continua desenhada depois de aberta; sem tiles.hidden, escondida não desenha nada (parede lisa). A porta do jardim (door.backyard) fica na parede de cima do salão: a passagem em si são as portas do mapa (door.to_backyard / door.from_backyard em cafe_main.json), que só deixam passar com o jardim aberto. O quartinho virou o porão (mesmo ID room.back_room), com a escadinha (2 tiles) na passagem entre o salão e o porão.",
   "rooms": [
     {
       "id": "room.hall",
@@ -31,7 +31,7 @@
     },
     {
       "id": "room.back_room",
-      "name": "Quartinho",
+      "name": "Porão",
       "initial": "locked",
       "area": {
         "from": [
@@ -65,13 +65,13 @@
         "beats": [
           "story.inauguration"
         ],
-        "label": "Abrir a passagem para o quartinho",
+        "label": "Abrir o acesso ao porão",
         "dialogue": "dlg.room_back_opened"
       },
       "restore": {
         "cost": 150,
         "dirtTag": "back_room",
-        "label": "Terminar a reforma do quartinho",
+        "label": "Terminar a reforma do porão",
         "dialogue": "dlg.room_back_restored"
       },
       "capacity": {
@@ -94,18 +94,18 @@
       "look": {
         "legendByState": {
           "restored": {
-            "q": "wall_dots_cream",
-            "w": "wall_wainscot",
+            "q": "ph_basement_wall",
+            "w": "ph_basement_wall",
             "f": "floor_wood_b"
           }
         },
         "objects": [
           {
-            "id": "obj.back_room_window",
-            "tile": "window",
+            "id": "obj.basement_stairs",
+            "tile": "ph_basement_stairs",
             "at": [
-              20,
-              0
+              16,
+              7
             ]
           }
         ],
@@ -213,6 +213,14 @@
               "at": [
                 38,
                 0
+              ]
+            },
+            {
+              "id": "obj.yard_back_doormat",
+              "tile": "doormat",
+              "at": [
+                34,
+                10
               ]
             }
           ],
@@ -403,10 +411,10 @@
     {
       "id": "door.backyard",
       "at": [
-        25,
-        7
+        6,
+        2
       ],
-      "from": "room.back_room",
+      "from": "room.hall",
       "to": "room.backyard",
       "initial": "hidden",
       "requires": {
@@ -414,8 +422,9 @@
       },
       "consumesItem": true,
       "tiles": {
-        "hidden": "room_parede_divisoria",
-        "locked": "room_porta_quarto_cadeado"
+        "locked": "ph_back_door",
+        "open": "ph_back_door",
+        "lockedOverlay": "ph_padlock"
       },
       "lockedDialogue": "dlg.door_backyard_locked"
     }
