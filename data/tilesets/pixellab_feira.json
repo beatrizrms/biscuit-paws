@@ -1,0 +1,25 @@
+{
+ "tileSize": 64,
+ "columns": 4,
+ "rows": 2,
+ "pieces": {
+  "pen": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "poster": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "treats": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

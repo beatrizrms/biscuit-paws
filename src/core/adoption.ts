@@ -131,9 +131,10 @@ export function cafeAdoptCats(data: Pick<AdoptionData, 'fair' | 'traits'>, cats:
 /**
  * Sorteia os gatos e as famílias da partida, sempre com uma resposta toda "boa" possível (senão o perfeito seria sorte).
  * `fixed`: gatos que precisam estar (os do café, na feira); o resto vem do abrigo da vila. Se com eles não houver
- * resposta toda boa, fica a melhor tentativa (os gatos do café não são trocados).
+ * resposta toda boa, fica a melhor tentativa (os gatos do café não são trocados). `extraFamilies`: famílias a mais
+ * que gatos (os visitantes da feira montada): mais escolha, mesmo número de adoções.
  */
-export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: readonly AdoptCat[] = []): { cats: AdoptCat[]; families: FamilyProfile[] } {
+export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: readonly AdoptCat[] = [], extraFamilies = 0): { cats: AdoptCat[]; families: FamilyProfile[] } {
   const draw = <T>(pool: readonly T[], n: number): T[] => {
     const bag = [...pool];
     const out: T[] = [];
@@ -142,7 +143,7 @@ export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: r
   };
   const mine = fixed.slice(0, pairs);
   const pool = data.cats.filter((c) => !mine.some((m) => m.id === c.id));
-  const roll = () => ({ cats: [...mine, ...draw(pool, pairs - mine.length)], families: draw(data.families, pairs) });
+  const roll = () => ({ cats: [...mine, ...draw(pool, pairs - mine.length)], families: draw(data.families, pairs + extraFamilies) });
   let last = roll();
   for (let tries = 0; tries < 500 && !hasPerfectMatch(data, last.cats, last.families); tries++) last = roll();
   return last;

@@ -37,6 +37,7 @@ const raw: RawContent = {
   catProfiles: read('data/cat_profiles.json'),
   arrivals: read('data/arrivals.json'),
   festivals: read('data/festivals.json'),
+  fairSetup: read('data/fair_setup.json'),
   carry: read('data/carry.json'),
   emotes: read('data/emotes.json'),
   jobs: read('data/jobs.json'),

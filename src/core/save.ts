@@ -371,7 +371,19 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
     const results = Array.isArray(a.results)
       ? a.results.filter((r): r is ActivityResult => !!r && typeof r.game === 'string' && ['fail', 'ok', 'great'].includes(r.outcome) && typeof r.coins === 'number')
       : [];
-    active = { id: a.id, stage: a.stage, day: a.stage === 'scheduled' ? num(a.day) : null, done: strings(a.done), results: results.map((r) => ({ ...r, skipped: !!r.skipped })) };
+    active = {
+      id: a.id,
+      stage: a.stage,
+      day: a.stage === 'scheduled' ? num(a.day) : null,
+      done: strings(a.done),
+      results: results.map(({ setup, ...r }) => ({
+        ...r,
+        skipped: !!r.skipped,
+        ...(setup && Array.isArray(setup.cats) && typeof setup.visitors === 'number' && typeof setup.extraFamilies === 'number'
+          ? { setup: { cats: strings(setup.cats), visitors: setup.visitors, extraFamilies: setup.extraFamilies } }
+          : {}),
+      })),
+    };
   } else if (a) warnings.push(`festival "${String(a.id)}" não existe mais; esquecido`);
   const last = Object.fromEntries(Object.entries(x.last ?? {}).filter((e): e is [string, number] => ok(e[0]) && num(e[1]) !== null));
   const h = x.heldOn;

@@ -353,6 +353,20 @@
       "action": "press"
     },
     {
+      "id": "pt.fair_setup",
+      "map": "map.cafe_main",
+      "at": [
+        32,
+        7
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "fair_setup",
+        "difficulty": "normal"
+      },
+      "marker": "ph_fair_setup"
+    },
+    {
       "id": "pt.fair_table",
       "map": "map.cafe_main",
       "at": [

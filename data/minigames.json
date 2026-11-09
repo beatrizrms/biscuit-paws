@@ -235,6 +235,23 @@
         "hard": {"pairs":5,"okAt":0.6}
       }
     },
+    "fair_setup": {
+      "name": "Montar a feira",
+      "instructions": "O quintal visto de cima. Escolha uma peça embaixo e clique no gramado para pôr; clique numa peça posta para mudar de lugar e botão direito para tirar. Clique num gato à esquerda e depois numa caixa ou cercadinho para acomodar. Deixe caminho livre do portão até tudo, o cartaz perto do portão e os petiscos perto dos gatos. As peças e as regras estão em data/fair_setup.json.",
+      "tutorial": {"icon":"caixa_presente_laco","lines":["Escolha uma peça embaixo e clique no gramado para pôr. Botão direito tira.","Clique num gato e depois numa caixa ou cercadinho: ele vai para a feira.","Caminho livre do portão até tudo, cartaz perto do portão, petiscos perto dos gatos. Mais pontos = mais visitantes!"]},
+      "reputation": {"ok":1,"great":2},
+      "sounds": {"drop":"put_down","good":"success","bad":"error"},
+      "rewards": {
+        "easy": {"ok":8,"great":14},
+        "normal": {"ok":12,"great":20},
+        "hard": {"ok":16,"great":28}
+      },
+      "difficulties": {
+        "easy": {"cats":2,"stock":{"table":1,"carrier":2,"pen":1,"sign":1,"treats":2},"okAt":50,"greatAt":80},
+        "normal": {"cats":3,"stock":{"table":1,"carrier":1,"pen":1,"sign":1,"treats":1},"okAt":55,"greatAt":85},
+        "hard": {"cats":4,"stock":{"table":1,"carrier":2,"pen":1,"sign":1,"treats":1},"okAt":60,"greatAt":90}
+      }
+    },
     "wand": {
       "name": "Brincar com a varinha",
       "instructions": "O mouse é a ponta da varinha. Mude de rumo e de ritmo para o gato se empolgar; linha reta constante ou rápido demais e ele enjoa. Pare a ponta perto dele e ele dá o bote; balance de leve enquanto ele se agacha.",

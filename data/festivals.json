@@ -15,13 +15,19 @@
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
         { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting" }
       ],
-      "activities": [{ "point": "pt.fair_table", "game": "adoption" }],
+      "activities": [
+        { "point": "pt.fair_setup", "game": "fair_setup" },
+        { "point": "pt.fair_table", "game": "adoption" }
+      ],
       "rewards": { "reputation": 2 },
       "texts": {
         "prep": "Distribuir panfletos da feira pela rua.",
         "close": "Hoje é a feira! Pôr a placa de fechado na porta do café.",
         "decor": "Decorar o quintal para a feira.",
-        "activities": { "adoption": "Abrir a feira na mesa do quintal (Match de adoção)." }
+        "activities": {
+          "fair_setup": "Montar a feira no quintal (os caixotes perto da porta).",
+          "adoption": "Abrir a feira na mesa do quintal (Match de adoção)."
+        }
       }
     },
     {
@@ -37,12 +43,18 @@
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting" },
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" }
       ],
-      "activities": [{ "point": "pt.fair_table", "game": "adoption" }],
+      "activities": [
+        { "point": "pt.fair_setup", "game": "fair_setup" },
+        { "point": "pt.fair_table", "game": "adoption" }
+      ],
       "rewards": { "coins": 30, "reputation": 4 },
       "texts": {
         "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café.",
         "decor": "Enfeitar o quintal para a festa.",
-        "activities": { "adoption": "A feira do Dia do Gato, na mesa do quintal." }
+        "activities": {
+          "fair_setup": "Montar a feira do Dia do Gato (os caixotes no quintal).",
+          "adoption": "A feira do Dia do Gato, na mesa do quintal."
+        }
       }
     }
   ]

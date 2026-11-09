@@ -32,7 +32,7 @@ describe('festivais (puro)', () => {
   it('preparação -> marcado daysAfter depois -> no dia: placa, decorações e as atividades, nessa ordem', () => {
     const s = newFestivals();
     startFestival(s, fair, { day: 3, dayOfSeason: 3 });
-    const table = fair.activities[0]!.point;
+    const [setup, table] = fair.activities.map((a) => a.point) as [string, string];
     expect(pendingFestivalPoints(s, fair, 3)).toEqual(fair.prep!.points);
     expect(doFestivalPoint(s, fair, table, 3)).toBeNull(); // fora de hora
     fair.prep!.points.slice(0, -1).forEach((id) => expect(doFestivalPoint(s, fair, id, 3)).toBe('prep'));
@@ -47,10 +47,13 @@ describe('festivais (puro)', () => {
     expect(festivalClosesCafe(s, content.festivals, day)).toBe(true);
     fair.decorations!.slice(0, -1).forEach((d) => expect(doFestivalPoint(s, fair, d.point, day)).toBe('decor'));
     expect(doFestivalPoint(s, fair, fair.decorations!.at(-1)!.point, day)).toBe('ready');
+    expect(pendingFestivalPoints(s, fair, day)).toEqual([setup]); // montar a feira, depois a mesa
+    expect(doFestivalPoint(s, fair, setup, day)).toBeNull(); // atividade é mini game
+    expect(recordActivity(s, fair, table, result('adoption'), day)).toBeNull(); // fora de ordem
+    expect(recordActivity(s, fair, setup, result('fair_setup', 'great'), day)).toBe('next');
     expect(pendingFestivalPoints(s, fair, day)).toEqual([table]);
-    expect(doFestivalPoint(s, fair, table, day)).toBeNull(); // atividade é mini game
     expect(recordActivity(s, fair, table, result('adoption', 'fail'), day)).toBe('finished'); // qualquer resultado conta
-    expect(finishFestival(s)).toEqual({ id: fair.id, results: [result('adoption', 'fail')] });
+    expect(finishFestival(s)).toEqual({ id: fair.id, results: [result('fair_setup', 'great'), result('adoption', 'fail')] });
     expect(s).toEqual({ active: null, last: { [fair.id]: day }, heldOn: { id: fair.id, day } });
     expect(festivalClosesCafe(s, content.festivals, day)).toBe(true); // até o fim do dia
     expect(festivalClosesCafe(s, content.festivals, day + 1)).toBe(false);
@@ -118,6 +121,10 @@ describe('festivais na sessão', () => {
 
   it('feira do começo ao fim: panfletos, o dia no calendário, café fechado, decoração e o match encerra com o resumo', () => {
     const { session, state, events } = cafe();
+    for (const id of ['cat.gen.a', 'cat.gen.b']) {
+      state.catDefs[id] = { id, variant: 'pebble', personality: 'brave', tags: [] };
+      state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70 };
+    }
     session.debugStartFestival(fair.id);
     expect(names(events)).toContain('festival.started');
     expect(events.find((e) => e.name === 'dialogue.requested')?.payload).toEqual({ dialogueId: fair.idea });
@@ -136,16 +143,27 @@ describe('festivais na sessão', () => {
     for (const d of fair.decorations!) expect(session.doJobPoint(d.point)).toEqual({ ok: true });
     const pieces = () => session.mapData().objects.filter((o) => o.id.startsWith('fest.'));
     expect(pieces()).toHaveLength(1 + fair.decorations!.length);
-    const table = fair.activities[0]!.point;
+    const [setup, table] = fair.activities.map((a) => a.point) as [string, string];
+    expect(session.pendingJobPoints('map.cafe_main').map((p) => p.id)).toEqual([setup]);
+    expect(session.festivalStatus()).toMatchObject({ next: 'activity', game: 'fair_setup' });
+    // Montar a feira: os gatos do café que podem ir (o da história nunca vai).
+    expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id)).toEqual(['cat.gen.a', 'cat.gen.b']);
+    const fairSetup = { cats: ['cat.gen.b'], visitors: 7, extraFamilies: 2 };
+    session.finishMiniGame(makeResult(content.minigames, 'fair_setup', 'normal', 'great', 90, false, { fairSetup }), { difficulty: 'normal', jobPoint: setup });
+    expect(state.festivals.active!.results[0]).toMatchObject({ game: 'fair_setup', setup: fairSetup });
     expect(session.pendingJobPoints('map.cafe_main').map((p) => p.id)).toEqual([table]);
     expect(session.festivalStatus()).toMatchObject({ next: 'activity', game: 'adoption' });
-    expect(session.miniGameExtras(table).adoptCats).toEqual([]); // o gato da história nunca vai para a feira
+    // A mesa: só os gatos escolhidos e as famílias a mais (até caber: maxFamilies - pares da dificuldade).
+    const pairs = Number(content.minigames.games.adoption!.difficulties[content.jobPoints[table]!.minigame!.difficulty].pairs);
+    const extras = session.miniGameExtras(table);
+    expect(extras.adoptCats?.map((c) => c.id)).toEqual(['cat.gen.b']);
+    expect(extras.extraFamilies).toBe(Math.min(2, content.fairSetup.maxFamilies - pairs));
     const money = state.money;
     const rep = state.reputation.value;
     const adoptions = [{ catId: 'adopt.mingau', verdict: 'good' as const }];
     session.finishMiniGame(makeResult(content.minigames, 'adoption', 'normal', 'fail', 1, false, { adoptions }), { difficulty: 'normal', jobPoint: table });
     const finished = events.find((e) => e.name === 'festival.finished')!.payload as { results: unknown[]; adopted: number; reputation: number };
-    expect(finished).toMatchObject({ festivalId: fair.id, adopted: 1, reputation: fair.rewards!.reputation, results: [{ game: 'adoption', outcome: 'fail' }] });
+    expect(finished).toMatchObject({ festivalId: fair.id, adopted: 1, reputation: fair.rewards!.reputation, results: [{ game: 'fair_setup', outcome: 'great', setup: { visitors: 7 } }, { game: 'adoption', outcome: 'fail' }] });
     expect(state.festivals).toMatchObject({ active: null, last: { [fair.id]: day }, heldOn: { id: fair.id, day } });
     expect(state.money).toBe(money + (fair.rewards?.coins ?? 0));
     expect(state.reputation.value).toBeGreaterThanOrEqual(rep + (fair.rewards?.reputation ?? 0));

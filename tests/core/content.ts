@@ -45,6 +45,7 @@ export function rawContent(): RawContent {
     catProfiles: read('data/cat_profiles.json'),
     arrivals: read('data/arrivals.json'),
     festivals: read('data/festivals.json'),
+    fairSetup: read('data/fair_setup.json'),
   };
 }
 

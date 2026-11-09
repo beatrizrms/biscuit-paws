@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Montar a feira (mini game fair_setup, src/core/fairSetup.ts): o quintal visto de cima. board: tamanho em células, floor (tiles do gramado, sorteados por célula), gateFloor (o caminho do portão), decor (o que já está no quintal, só o desenho: tile e canto; as células dele precisam estar em blocked), o portão (gate: por onde os visitantes entram; nada em cima, o caminho começa ali) e o que já está no quintal (blocked). items: as peças (uma de cada tipo: table = a mesa da feira, obrigatória; carrier e pen = onde os gatos ficam, com capacity; sign = cartaz; treats = mesa de petiscos), com size em células e tile (a arte do catálogo; topTile vai por cima, ex.: a tigela na mesinha; sem tile, a cena desenha um provisório por código). scoring: pesos (somam 100) de cada regra, de 0 a 1: housed (gatos acomodados / gatos a levar), access (peças com caminho livre do portão: alguma vizinha alcançável a pé), sign (cartaz com caminho a até signNear células do portão), treats (caixas e cercadinhos com gato a até treatsNear de uma mesa de petiscos). Sem a mesa com caminho: 0. visitors: visitantes = pontuação x max / 100; families: a partir de at visitantes, extra famílias a mais no Match de adoção (até maxFamilies no total). Quantos gatos, o estoque de peças e os limiares ficam em minigames.json (fair_setup.difficulties).",
+  "board": {
+    "cols": 12,
+    "rows": 7,
+    "floor": ["yard_grama_a"],
+    "gateFloor": "yard_pedra_a",
+    "gate": [
+      [5, 6],
+      [6, 6]
+    ],
+    "blocked": [
+      [10, 0],
+      [11, 0],
+      [10, 1],
+      [11, 1],
+      [0, 0],
+      [3, 3]
+    ],
+    "decor": [
+      {
+        "tile": "yard_topiaria",
+        "at": [10, 0]
+      },
+      {
+        "tile": "yard_vaso_baixo_flores",
+        "at": [0, 0]
+      },
+      {
+        "tile": "yard_vaso_baixo_b",
+        "at": [3, 3]
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "fair.table",
+      "kind": "table",
+      "name": "Mesa da feira",
+      "size": [1, 1],
+      "tile": "ph_fair_table"
+    },
+    {
+      "id": "fair.carrier",
+      "kind": "carrier",
+      "name": "Caixa de transporte",
+      "size": [1, 1],
+      "capacity": 1,
+      "tile": "vet_caixa_transporte"
+    },
+    {
+      "id": "fair.pen",
+      "kind": "pen",
+      "name": "Cercadinho",
+      "size": [2, 2],
+      "capacity": 2,
+      "tile": "fair_pen"
+    },
+    {
+      "id": "fair.sign",
+      "kind": "sign",
+      "name": "Cartaz",
+      "size": [1, 1],
+      "tile": "fair_poster"
+    },
+    {
+      "id": "fair.treats",
+      "kind": "treats",
+      "name": "Mesa de petiscos",
+      "size": [1, 1],
+      "tile": "fair_treats"
+    }
+  ],
+  "scoring": {
+    "housed": 40,
+    "access": 30,
+    "sign": 15,
+    "treats": 15,
+    "signNear": 2,
+    "treatsNear": 1
+  },
+  "visitors": {
+    "max": 8,
+    "families": [
+      {
+        "at": 4,
+        "extra": 1
+      },
+      {
+        "at": 7,
+        "extra": 2
+      }
+    ]
+  },
+  "maxFamilies": 6
+}

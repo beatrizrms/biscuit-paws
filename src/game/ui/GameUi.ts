@@ -452,12 +452,13 @@ export class GameUi {
   }
 
   /** Fim do festival: o resumo (cada atividade com o resultado, moedas, reputação e adoções). Enter ou o botão fecha. */
-  private festivalSummary(e: { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; skipped: boolean }[]; coins: number; reputation: number; adopted: number }): Promise<void> {
+  private festivalSummary(e: { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; skipped: boolean; setup?: { visitors: number } }[]; coins: number; reputation: number; adopted: number }): Promise<void> {
     const t = uiText.festival.summary;
     const name = content.festivals.find((f) => f.id === e.festivalId)?.name ?? '';
     const rows = e.results.map((r) => {
       const game = content.minigames.games[r.game]?.name ?? r.game;
-      return `<li>${esc(t.activity.replace('{game}', game).replace('{outcome}', r.skipped ? t.outcomes.skipped : t.outcomes[r.outcome]))}</li>`;
+      const visitors = r.setup ? t.visitors.replace('{n}', String(r.setup.visitors)) : '';
+      return `<li>${esc(t.activity.replace('{game}', game).replace('{outcome}', r.skipped ? t.outcomes.skipped : t.outcomes[r.outcome]) + visitors)}</li>`;
     });
     if (e.adopted > 0) rows.push(`<li>${esc(t.adopted.replace('{n}', String(e.adopted)))}</li>`);
     if (e.coins > 0) rows.push(`<li class="gain">${esc(t.coins.replace('{n}', String(e.coins)))}</li>`);

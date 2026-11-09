@@ -538,6 +538,37 @@
       "result": "Pelo lisinho, com paciência {patience}%.",
       "failed": "Ele perdeu a paciência e fugiu."
     },
+    "fair_setup": {
+      "cats": "Gatos para a feira (até {n})",
+      "rules": "Como está",
+      "gate": "portão",
+      "done": "Pronto",
+      "hud": "Peças: {placed} · Gatos: {cats}/{want}",
+      "catIn": "na feira",
+      "catOut": "clique e escolha o lugar",
+      "rule": {
+        "housed": "Gatos numa caixa ou cercadinho",
+        "access": "Caminho livre do portão até tudo",
+        "sign": "Cartaz perto do portão",
+        "treats": "Petiscos perto dos gatos",
+        "table": "Mesa da feira com caminho"
+      },
+      "score": "Pontos: {score}",
+      "visitors": "Visitantes: {n}",
+      "families": "+{n} família(s) no match",
+      "needTable": "Ponha a mesa da feira, com caminho livre do portão.",
+      "result": "Montagem: {score} pontos, {visitors} visitante(s) interessado(s).",
+      "problem": {
+        "out": "Não cabe aqui.",
+        "blocked": "Já tem coisa no quintal aqui.",
+        "gate": "O portão precisa ficar livre.",
+        "overlap": "Já tem uma peça aqui.",
+        "stock": "Acabaram as peças desse tipo.",
+        "not_holder": "Gatos vão numa caixa ou num cercadinho.",
+        "full": "Está cheio.",
+        "limit": "Já tem gatos suficientes na feira."
+      }
+    },
     "pill": {
       "hudCover": "Comprimido coberto: {n}%",
       "hudOffer": "Desconfiança {n}% · coberto {cover}%",
@@ -737,7 +768,7 @@
     "prep": "Feito!",
     "close": "Placa na porta: hoje o café fica fechado para o evento.",
     "decor": "Ficou bonito!",
-    "ready": "Tudo pronto! A mesa no quintal espera.",
+    "ready": "Tudo enfeitado! Agora, a feira no quintal.",
     "missed": "{name} passou sem acontecer... Dá para organizar de novo.",
     "summary": {
       "title": "{name}: fim!",
@@ -751,6 +782,7 @@
       "coins": "+{n} moedas",
       "reputation": "+{n} reputação",
       "adopted": "{n} gato(s) com família nova.",
+      "visitors": " ({n} visitantes)",
       "close": "Fechar"
     },
     "date": "{season} {day} ({weekday})"

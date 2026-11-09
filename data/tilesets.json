@@ -927,6 +927,14 @@
       }
     },
     {
+      "id": "pixellab_feira",
+      "image": "assets/objects/pixellab/tile_pixellab_feira.png",
+      "pieces": "pixellab_feira.json",
+      "prefix": "fair_",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",

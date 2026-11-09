@@ -526,6 +526,19 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Montar a feira (fase 4f), gerados no PixelLab: cercadinho 2x2, cartaz 'adote' (edição da placa da feira) e mesa
+    // de petiscos. Nomes novos fair_* (data/fair_setup.json).
+    image: 'public/assets/objects/pixellab/tile_pixellab_feira.png',
+    pieces: 'data/tilesets/pixellab_feira.json',
+    columns: 4,
+    auto: true,
+    layout: {
+      pen: { file: 'provisorios/fair_pen.png', w: 2, h: 2 },
+      poster: { file: 'provisorios/fair_poster.png', w: 1, h: 1 },
+      treats: { file: 'provisorios/fair_treats.png', w: 1, h: 1 },
+    },
+  },
+  {
     // Decoração extra à venda no catálogo (sobras do lote dos provisórios): nomes novos decor_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_decor.png',
     pieces: 'data/tilesets/pixellab_decor.json',

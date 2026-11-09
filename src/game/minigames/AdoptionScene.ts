@@ -16,12 +16,14 @@ import { MiniGameScene } from './MiniGameScene';
 export const ADOPTION_SCENE = 'MiniGame.adoption';
 
 // Layout em px lógicos (tela de 640 x 360). Os cartões de gato cabem no lugar da família.
-const CARD = { w: 132, h: 50 };
+const CARD_W = 132;
 const CAT_X = 90;
 const FAMILY_X = 330;
 const FAMILY_W = 290;
 const TOP = 68;
+/** Linha cheia (até 5 famílias); com famílias a mais (a feira montada), as linhas e os cartões encolhem para caber. */
 const ROW = 56;
+const BOTTOM = 344;
 /** Espera depois de confirmar, para ler os vereditos no tabuleiro antes do resultado. */
 const REVIEW_MS = 1800;
 
@@ -52,6 +54,8 @@ export class AdoptionScene extends MiniGameScene {
   private drag!: DragDrop;
   private judgements: Judgement[] = [];
   private confirmed = false;
+  private row = ROW;
+  private cardH = ROW - 6;
 
   constructor() {
     super('adoption', ADOPTION_SCENE);
@@ -64,7 +68,10 @@ export class AdoptionScene extends MiniGameScene {
   protected buildGame(): void {
     this.p = paramsOf<AdoptionParams>(content.minigames, 'adoption', this.launch.params.difficulty);
     // Na feira, os gatos do café entram primeiro (params.adoptCats); o resto vem do abrigo da vila.
-    const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? []);
+    const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? [], this.launch.params.extraFamilies ?? 0);
+    const rows = Math.max(match.families.length, match.cats.length);
+    this.row = Math.min(ROW, Math.floor((BOTTOM - TOP) / rows));
+    this.cardH = this.row - 6;
     this.cats = match.cats;
     this.slots = [];
     this.cards.clear();
@@ -79,7 +86,7 @@ export class AdoptionScene extends MiniGameScene {
       onItemState: (catId, state) => this.cards.get(catId)?.setScale(state === 'idle' ? 1 : 1.04),
     });
     // A coluna dos gatos também é uma área: soltar ali tira o gato da família.
-    this.drag.addZone({ id: 'column', rect: new Phaser.Geom.Rectangle(CAT_X - CARD.w / 2 - 10, TOP - CARD.h / 2 - 10, CARD.w + 20, ROW * this.p.pairs + 10) });
+    this.drag.addZone({ id: 'column', rect: new Phaser.Geom.Rectangle(CAT_X - CARD_W / 2 - 10, TOP - this.cardH / 2 - 10, CARD_W + 20, this.row * this.p.pairs + 10) });
 
     match.families.forEach((f, i) => this.buildFamily(f, i));
     this.cats.forEach((c, i) => this.buildCat(c, i));
@@ -111,35 +118,41 @@ export class AdoptionScene extends MiniGameScene {
   // ---------- Montagem ----------
 
   private buildFamily(f: FamilyProfile, i: number): void {
-    const y = TOP + i * ROW;
+    const y = TOP + i * this.row;
     const left = FAMILY_X;
-    const slotX = left + CARD.w / 2 + 4;
+    const slotX = left + CARD_W / 2 + 4;
     const bg = this.add.graphics();
-    bg.fillStyle(C.card, 1).fillRoundedRect(left, y - CARD.h / 2 - 2, FAMILY_W, CARD.h + 4, 6).lineStyle(1, C.edge, 1).strokeRoundedRect(left, y - CARD.h / 2 - 2, FAMILY_W, CARD.h + 4, 6);
-    const textX = left + CARD.w + 12;
+    bg.fillStyle(C.card, 1).fillRoundedRect(left, y - this.cardH / 2 - 2, FAMILY_W, this.cardH + 4, 6).lineStyle(1, C.edge, 1).strokeRoundedRect(left, y - this.cardH / 2 - 2, FAMILY_W, this.cardH + 4, 6);
+    const textX = left + CARD_W + 12;
     this.add.text(textX, y - 20, f.name, textStyle(8.5, '#5c3428', true));
-    this.add.text(textX, y - 8, f.description, { ...textStyle(7, '#5a4048'), wordWrap: { width: FAMILY_W - CARD.w - 18 } });
+    this.add.text(textX, y - 8, f.description, { ...textStyle(7, '#5a4048'), wordWrap: { width: FAMILY_W - CARD_W - 18 } });
     const frame = this.add.graphics();
     this.add.text(slotX, y, uiText.minigames.adoption.slot, textStyle(6.5, '#a99fa6')).setOrigin(0.5);
-    const badge = this.add.text(left + FAMILY_W - 6, y - CARD.h / 2 + 1, '', textStyle(7, '#ffffff', true)).setOrigin(1, 0).setDepth(10).setVisible(false);
+    const badge = this.add.text(left + FAMILY_W - 6, y - this.cardH / 2 + 1, '', textStyle(7, '#ffffff', true)).setOrigin(1, 0).setDepth(10).setVisible(false);
     const slot: SlotView = { family: f, x: slotX, y, frame, badge, catId: null };
     this.slots.push(slot);
     this.paintSlot(slot, 'idle');
-    this.drag.addZone({ id: f.id, rect: new Phaser.Geom.Rectangle(slotX - CARD.w / 2, y - CARD.h / 2, CARD.w, CARD.h) });
+    this.drag.addZone({ id: f.id, rect: new Phaser.Geom.Rectangle(slotX - CARD_W / 2, y - this.cardH / 2, CARD_W, this.cardH) });
   }
 
   private buildCat(cat: AdoptCat, i: number): void {
     const x = CAT_X;
-    const y = TOP + i * ROW;
+    const y = TOP + i * this.row;
     const bg = this.add.graphics();
-    bg.fillStyle(0xffffff, 1).fillRoundedRect(-CARD.w / 2, -CARD.h / 2, CARD.w, CARD.h, 5).lineStyle(1, C.edge, 1).strokeRoundedRect(-CARD.w / 2, -CARD.h / 2, CARD.w, CARD.h, 5);
+    bg.fillStyle(0xffffff, 1).fillRoundedRect(-CARD_W / 2, -this.cardH / 2, CARD_W, this.cardH, 5).lineStyle(1, C.edge, 1).strokeRoundedRect(-CARD_W / 2, -this.cardH / 2, CARD_W, this.cardH, 5);
     // O gato sentado (Cosy Cats); variante sem folha carregada usa a do gato da missão.
     const tex = this.textures.exists(catTexture(cat.variant)) ? catTexture(cat.variant) : catTexture(this.launch.catVariant);
-    const sprite = this.add.sprite(-CARD.w / 2 + 18, 4, tex, 0);
-    const name = this.add.text(-CARD.w / 2 + 36, -CARD.h / 2 + 4, cat.name, textStyle(8.5, '#5c3428', true));
+    const sprite = this.add.sprite(-CARD_W / 2 + 18, 4, tex, 0);
+    const name = this.add.text(-CARD_W / 2 + 36, -this.cardH / 2 + 4, cat.name, textStyle(8.5, '#5c3428', true));
     const traits = Object.entries(cat.traits).map(([g, v]) => content.adoption.traits[g]?.[v] ?? v);
-    const chips = this.add.text(-CARD.w / 2 + 36, -CARD.h / 2 + 17, traits.join('\n'), { ...textStyle(6.5, '#5a4048'), lineSpacing: -1 });
-    const card = this.add.container(x, y, [bg, sprite, name, chips]).setSize(CARD.w, CARD.h).setDepth(5);
+    // Cartão baixo (famílias a mais): os traços em linha, quebrando onde precisar, para caber.
+    const compact = this.cardH < 46;
+    const chips = this.add.text(-CARD_W / 2 + 36, -this.cardH / 2 + 17, traits.join(compact ? ' · ' : '\n'), {
+      ...textStyle(6.5, '#5a4048'),
+      lineSpacing: -1,
+      ...(compact ? { wordWrap: { width: CARD_W - 40 } } : {}),
+    });
+    const card = this.add.container(x, y, [bg, sprite, name, chips]).setSize(CARD_W, this.cardH).setDepth(5);
     card.setInteractive({ useHandCursor: true });
     this.cards.set(cat.id, card);
     this.homes.set(cat.id, { x, y });
@@ -179,10 +192,10 @@ export class AdoptionScene extends MiniGameScene {
 
   private paintSlot(slot: SlotView | undefined, state: ZoneState): void {
     if (!slot) return;
-    const x = slot.x - CARD.w / 2;
-    const y = slot.y - CARD.h / 2;
+    const x = slot.x - CARD_W / 2;
+    const y = slot.y - this.cardH / 2;
     const edge = state === 'valid' ? C.valid : state === 'invalid' ? C.invalid : 0xc9b08e;
-    slot.frame.clear().fillStyle(C.slot, 1).fillRoundedRect(x, y, CARD.w, CARD.h, 5).lineStyle(state === 'idle' ? 1 : 2, edge, 1).strokeRoundedRect(x, y, CARD.w, CARD.h, 5);
+    slot.frame.clear().fillStyle(C.slot, 1).fillRoundedRect(x, y, CARD_W, this.cardH, 5).lineStyle(state === 'idle' ? 1 : 2, edge, 1).strokeRoundedRect(x, y, CARD_W, this.cardH, 5);
   }
 
   private updateInfo(): void {
@@ -194,11 +207,12 @@ export class AdoptionScene extends MiniGameScene {
 
   private confirm(): void {
     if (this.phase !== 'playing' || this.confirmed) return;
-    if (this.slots.some((s) => !s.catId)) return this.float(uiText.minigames.adoption.hud.replace('{placed}', String(this.slots.filter((s) => s.catId).length)).replace('{total}', String(this.cats.length)));
+    // Com famílias a mais, sobra lugar vazio: basta cada gato ter uma família.
+    if (this.slots.filter((s) => s.catId).length < this.cats.length) return this.float(uiText.minigames.adoption.hud.replace('{placed}', String(this.slots.filter((s) => s.catId).length)).replace('{total}', String(this.cats.length)));
     this.confirmed = true;
     this.drag.setEnabled(false);
     const t = uiText.minigames.adoption;
-    this.judgements = this.slots.map((s) => judge(content.adoption, this.cats.find((c) => c.id === s.catId)!, s.family));
+    this.judgements = this.slots.filter((s) => s.catId).map((s) => judge(content.adoption, this.cats.find((c) => c.id === s.catId)!, s.family));
     for (const j of this.judgements) {
       const slot = this.slots.find((s) => s.family.id === j.familyId)!;
       const color = C[j.verdict];

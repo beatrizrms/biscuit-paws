@@ -1282,7 +1282,8 @@ export class GameSession {
     if (fest && activity && isFestivalDay(this.state.festivals, this.state.day)) {
       const adopted = (result.adoptions ?? []).filter((a) => a.verdict === 'good').length;
       this.festivalAdopted += adopted;
-      const step = recordActivity(this.state.festivals, fest, activity.point, { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped }, this.state.day);
+      const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}) };
+      const step = recordActivity(this.state.festivals, fest, activity.point, record, this.state.day);
       if (step === 'finished') this.endFestival(fest);
       this.advanceStory();
     } else if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
@@ -1612,7 +1613,7 @@ export class GameSession {
   }
 
   /** Parâmetros extras de um mini game aberto por um ponto (a mesa da feira leva os gatos do café). */
-  miniGameExtras(pointId: string): { adoptCats?: AdoptCat[]; catId?: string } {
+  miniGameExtras(pointId: string): { adoptCats?: AdoptCat[]; catId?: string; extraFamilies?: number } {
     // Mini game de uma chegada: o gato da chegada (a fuga, a confiança... com a cor dele).
     if (this.arrivals.ownsMinigame(pointId)) return { catId: this.state.arrivals.active!.catId };
     // Ponto de pedido com o remédio escondido (missão do vet): o primeiro gato que precisa da dose hoje.
@@ -1620,9 +1621,11 @@ export class GameSession {
       const catId = this.shelteredCats().find((id) => needsMedicine(this.state.cats[id]!, this.state.day));
       return catId ? { catId } : {};
     }
-    // Atividade de adoção de um festival (a feira): os gatos do café vão para a mesa.
+    // Atividades de um festival: montar a feira (escolhe os gatos do café) e a mesa de adoção (os escolhidos primeiro,
+    // e as famílias a mais que a montagem trouxe).
     const fest = this.activeFestival();
-    if (!fest?.activities.some((a) => a.point === pointId && a.game === 'adoption')) return {};
+    const game = fest?.activities.find((a) => a.point === pointId)?.game;
+    if (game !== 'adoption' && game !== 'fair_setup') return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]
       .filter((id) => !protectedCats.includes(id) && this.catDef(id))
@@ -1630,7 +1633,19 @@ export class GameSession {
         const def = this.catDef(id)!;
         return { id, name: this.catName(id), variant: def.variant, personality: def.personality, ...(def.adoptionTraits ? { adoptionTraits: def.adoptionTraits } : {}) };
       });
-    return { adoptCats: cafeAdoptCats(this.content.adoption, cats) };
+    const all = cafeAdoptCats(this.content.adoption, cats);
+    if (game === 'fair_setup') return { adoptCats: all };
+    const setup = this.state.festivals.active?.results.find((r) => r.setup)?.setup;
+    if (!setup) return { adoptCats: all };
+    const chosen = setup.cats.map((id) => all.find((c) => c.id === id)).filter((c): c is AdoptCat => !!c);
+    const extra = Math.max(0, Math.min(setup.extraFamilies, this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId)));
+    return { adoptCats: chosen, extraFamilies: extra };
+  }
+
+  /** Pares do match aberto por este ponto (a dificuldade dele). */
+  private adoptionPairs(pointId: string): number {
+    const difficulty = this.content.jobPoints[pointId]?.minigame?.difficulty ?? 'normal';
+    return Number(this.content.minigames.games.adoption?.difficulties[difficulty]?.pairs ?? 0);
   }
 
   /** No dia do festival: a placa na porta e as decorações já feitas aparecem no mapa (até o fim do dia). */

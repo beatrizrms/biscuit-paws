@@ -168,14 +168,30 @@ function padlock(): Canvas {
   return c.outline();
 }
 
+/** Feira: o ponto de montar (caixotes empilhados com um cercadinho dobrado e um rolo de cartaz). */
+function fairSetup(): Canvas {
+  const c = new Canvas(T, T);
+  c.rect(3, 16, 14, 12, at(P.oak, 3)); // caixote de baixo
+  c.rect(3, 16, 14, 2, at(P.oak, 4));
+  c.vline(10, 18, 10, at(P.oak, 2));
+  c.rect(6, 6, 10, 10, at(P.oak, 3)); // caixote de cima
+  c.rect(6, 6, 10, 2, at(P.oak, 4));
+  for (let x = 19; x < 29; x += 3) c.vline(x, 12, 16, at(P.cream, 4)); // grade do cercadinho dobrado
+  c.hline(18, 13, 11, at(P.cream, 2));
+  c.hline(18, 26, 11, at(P.cream, 2));
+  c.rect(20, 4, 3, 9, at(P.rose, 3)); // rolo do cartaz
+  return c.outline();
+}
+
 // Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa, pegadas,
 // parede do porão, piso do porão, cadeado; a porta dos fundos (1x2) por último, ocupando as duas linhas; a escada (2x1) na
-// segunda linha, embaixo das primeiras.
+// segunda linha, embaixo das primeiras; ao lado dela, o ponto de montar a feira.
 const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable(), footprints(), basementWall(), basementFloor(), padlock()];
 const sheet = new Canvas((pieces.length + 1) * T, T * 2);
 pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 sheet.blit(backDoor(), pieces.length * T, 0);
 sheet.blit(basementStairs(), 0, T); // 2x1, na segunda linha
+sheet.blit(fairSetup(), 2 * T, T); // o ponto de montar a feira, ao lado da escada
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');
 
 /** Ícone do cobertor de gato (item.cat_blanket): mantinha xadrez dobrada. */

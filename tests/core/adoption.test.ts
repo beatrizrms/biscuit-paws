@@ -31,6 +31,13 @@ describe('match de adoção', () => {
     }
   });
 
+  it('feira montada: famílias a mais que gatos (mais escolha), sem repetir família', () => {
+    const m = setupMatch(createRng(7), data, 3, [], 2);
+    expect(m.cats).toHaveLength(3);
+    expect(m.families).toHaveLength(5);
+    expect(new Set(m.families.map((f) => f.id)).size).toBe(5);
+  });
+
   it('resultado: todas boas = perfeito; pontos acima de okAt = conseguiu; senão, não deu', () => {
     const j = (verdict: Judgement['verdict']): Judgement => ({ catId: 'a', familyId: 'b', verdict, score: 0 });
     expect(adoptionOutcome([j('good'), j('good'), j('good')], { okAt: 0.5 })).toBe('great');
