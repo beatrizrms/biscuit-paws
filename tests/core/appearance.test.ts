@@ -129,8 +129,8 @@ describe('aparência: manequim em camadas', () => {
   const L = C.mannequin!.layers!;
 
   it('peça só de frente: o criador mostra a escolhida e o jogo usa a de reserva', () => {
-    const p = layerPieces(L, { ...C.default, top: 'dress', hairStyle: 'afro' });
-    expect(p).toEqual({ outfit: 'dress', outfitInGame: L.fallback.outfit, hair: 'afro', hairInGame: L.fallback.hair });
+    const p = layerPieces(L, { ...C.default, top: 'winter_coat', hairStyle: 'afro' });
+    expect(p).toEqual({ outfit: 'winter_coat', outfitInGame: L.fallback.outfit, hair: 'afro', hairInGame: L.fallback.hair });
   });
 
   it('careca não tem cabelo; roupa sem arte (do criador antigo) vira a de reserva', () => {
