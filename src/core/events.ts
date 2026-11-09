@@ -42,7 +42,7 @@ export interface GameEvents {
   'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready'; pointId: string };
   'festival.scheduled': { festivalId: string; day: number };
   'festival.missed': { festivalId: string; day: number };
-  'festival.finished': { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean; setup?: { visitors: number } }[]; coins: number; reputation: number; adopted: number };
+  'festival.finished': { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean; setup?: { visitors: number }; contest?: { rank: number } }[]; coins: number; reputation: number; adopted: number };
   'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };

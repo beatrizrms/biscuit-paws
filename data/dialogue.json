@@ -640,6 +640,18 @@
           "text": "Já vou deixar marcado no calendário."
         }
       ]
+    },
+    "dlg.fest_idea_contest": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A vila inteira já conhece os gatos do café... E se o quintal recebesse um concurso de fofura?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Fantasias, desfile, júri... Vou marcar para o fim da primavera!"
+        }
+      ]
     }
   }
 }

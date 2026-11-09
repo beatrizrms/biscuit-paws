@@ -376,8 +376,9 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
       stage: a.stage,
       day: a.stage === 'scheduled' ? num(a.day) : null,
       done: strings(a.done),
-      results: results.map(({ setup, ...r }) => ({
+      results: results.map(({ setup, contest, ...r }) => ({
         ...r,
+        ...(contest && typeof contest.catId === 'string' && typeof contest.theme === 'string' && typeof contest.rank === 'number' ? { contest: { catId: contest.catId, theme: contest.theme, rank: contest.rank } } : {}),
         skipped: !!r.skipped,
         ...(setup && Array.isArray(setup.cats) && typeof setup.visitors === 'number' && typeof setup.extraFamilies === 'number'
           ? { setup: { cats: strings(setup.cats), visitors: setup.visitors, extraFamilies: setup.extraFamilies } }

@@ -39,6 +39,7 @@ import catProfilesJson from '../../data/cat_profiles.json';
 import arrivalsJson from '../../data/arrivals.json';
 import festivalsJson from '../../data/festivals.json';
 import fairSetupJson from '../../data/fair_setup.json';
+import costumeJson from '../../data/costume.json';
 import phoneJson from '../../data/phone.json';
 import toolsJson from '../../data/tools.json';
 import marketJson from '../../data/maps/market.json';
@@ -82,6 +83,7 @@ export const content: Content = buildContent({
   arrivals: arrivalsJson,
   festivals: festivalsJson,
   fairSetup: fairSetupJson,
+  costume: costumeJson,
 } as unknown as RawContent);
 
 /** Arte do atendimento (quadro, balões, barra, louça no mundo, moeda). */

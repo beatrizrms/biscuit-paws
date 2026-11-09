@@ -3,6 +3,7 @@
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
 import { validateFairSetup, type FairSetupData, type FairSetupParams } from './fairSetup';
+import { validateCostume, type CostumeData, type CostumeParams } from './costume';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceDef, type SurfaceKind } from './map';
@@ -308,6 +309,8 @@ export interface Content {
   festivals: FestivalDef[];
   /** Montar a feira (data/fair_setup.json). */
   fairSetup: FairSetupData;
+  /** Concurso de fantasia (data/costume.json). */
+  costume: CostumeData;
   /** A fachada do café (superfície do pintor na rua), se configurada. */
   facade: FinishesData['facade'] | null;
   jobs: Record<string, JobDef>;
@@ -354,6 +357,7 @@ export interface RawContent {
   arrivals: ArrivalsData;
   festivals: FestivalsData;
   fairSetup: FairSetupData;
+  costume: CostumeData;
 }
 
 /** Correio (data/delivery.json). */
@@ -389,7 +393,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -688,6 +692,13 @@ export function validateContent(raw: RawContent): string[] {
     }),
   );
   errors.push(...validateFairSetup(raw.fairSetup, raw.minigames.games.fair_setup?.difficulties as Record<string, FairSetupParams> | undefined, raw.catalog.tiles));
+  errors.push(
+    ...validateCostume(
+      raw.costume,
+      { thresholds: new Set(raw.reputation.thresholds.map((t) => t.id)) },
+      raw.minigames.games.costume?.difficulties as Record<string, CostumeParams> | undefined,
+    ),
+  );
   // A atividade abre o mini game do ponto dela: os dois precisam bater.
   for (const f of raw.festivals.festivals)
     for (const x of f.activities) {

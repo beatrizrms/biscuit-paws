@@ -235,6 +235,23 @@
         "hard": {"pairs":5,"okAt":0.6}
       }
     },
+    "costume": {
+      "name": "Concurso de fantasia",
+      "instructions": "Escolha um gato do café e uma peça para cada lugar (cabeça, pescoço, costas). O júri olha o tema do dia, se as cores e o estilo combinam e se não é tudo da mesma cor. Desfile antes do tempo acabar. As peças, os temas e as regras estão em data/costume.json.",
+      "tutorial": {"icon":"caixa_presente_laco","lines":["Escolha o gato e uma peça para cada lugar: cabeça, pescoço e costas.","O tema do dia está no alto: peças com a cor, o estilo ou o tema dele valem mais.","Cores que combinam e o mesmo estilo também contam. Desfile antes do tempo acabar!"]},
+      "reputation": {"ok":1,"great":3},
+      "sounds": {"drop":"put_down","good":"success","bad":"error"},
+      "rewards": {
+        "easy": {"ok":8,"great":14},
+        "normal": {"ok":12,"great":20},
+        "hard": {"ok":16,"great":28}
+      },
+      "difficulties": {
+        "easy": {"seconds":60,"rivals":3,"rivalRange":[25,60]},
+        "normal": {"seconds":60,"rivals":3,"rivalRange":[40,75]},
+        "hard": {"seconds":45,"rivals":3,"rivalRange":[55,88]}
+      }
+    },
     "fair_setup": {
       "name": "Montar a feira",
       "instructions": "O quintal visto de cima. Escolha uma peça embaixo e clique no gramado para pôr; clique numa peça posta para mudar de lugar e botão direito para tirar. Clique num gato à esquerda e depois numa caixa ou cercadinho para acomodar. Deixe caminho livre do portão até tudo, o cartaz perto do portão e os petiscos perto dos gatos. As peças e as regras estão em data/fair_setup.json.",

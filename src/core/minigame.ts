@@ -27,6 +27,14 @@ export interface MiniGameResult {
   adoptions?: { catId: string; verdict: 'good' | 'ok' | 'bad' }[];
   /** Montar a feira: os gatos levados (acomodados), os visitantes e as famílias a mais no match. */
   fairSetup?: FairSetupOutcome;
+  /** Concurso de fantasia: o gato, o tema e a colocação. */
+  contest?: ContestOutcome;
+}
+
+export interface ContestOutcome {
+  catId: string;
+  theme: string;
+  rank: number;
 }
 
 export interface FairSetupOutcome {
@@ -46,6 +54,9 @@ export interface MiniGameParams {
   adoptCats?: AdoptCat[];
   /** Match de adoção depois de montar a feira: famílias a mais (os visitantes interessados). */
   extraFamilies?: number;
+  /** Concurso de fantasia: os gatos do café que podem desfilar e as peças liberadas (ids de data/costume.json). */
+  contestCats?: { id: string; name: string; variant: string }[];
+  costumePieces?: string[];
 }
 
 /** Tutorial da intro: 1 a 3 linhas curtas e um ícone (chave de data/icons.json). */
@@ -134,7 +145,7 @@ export function makeResult(
   outcome: Outcome,
   score: number,
   skipped = false,
-  extra: { bonusCoins?: number; itemId?: string; adoptions?: MiniGameResult['adoptions']; fairSetup?: FairSetupOutcome } = {},
+  extra: { bonusCoins?: number; itemId?: string; adoptions?: MiniGameResult['adoptions']; fairSetup?: FairSetupOutcome; contest?: ContestOutcome } = {},
 ): MiniGameResult {
   const won = !skipped && outcome !== 'fail';
   const coinsEarned = coinsFor(cfg, gameId, difficulty, outcome, skipped) + (won ? extra.bonusCoins ?? 0 : 0);
@@ -148,6 +159,7 @@ export function makeResult(
     ...(won && extra.itemId ? { itemId: extra.itemId } : {}),
     ...(!skipped && extra.adoptions?.length ? { adoptions: extra.adoptions } : {}),
     ...(!skipped && extra.fairSetup ? { fairSetup: extra.fairSetup } : {}),
+    ...(!skipped && extra.contest ? { contest: extra.contest } : {}),
   };
 }
 

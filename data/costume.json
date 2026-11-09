@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Concurso de fantasia (mini game costume, src/core/costume.ts). slots: cabeça, pescoço e costas, com o ponto do gato sentado de frente (px do quadro de 32 do Cosy Cats) onde a peça fica (cabeça: a base da peça; pescoço e costas: o alto dela); behind = atrás do gato. colors: nome na tela e tom do desenho. colorPairs: cores que combinam (além de iguais). pieces: id costume.*, lugar, nome, forma (o desenho da cena), cor, estilo, temas; unlockReputation = só depois desse limiar de data/reputation.json. themes: o tema do dia é sorteado; tags = o que o júri procura (cor, estilo ou tema das peças). scoring: theme por etiqueta do tema em cada peça (até themeCap por peça), color por par de peças que combina, style se todas têm o mesmo estilo, variety se tem mais de uma cor (os pesos foram escolhidos para o máximo dar 100). rivals: os concorrentes (gato e dono). prizes: moedas a mais pela colocação. Tempo, quantos concorrentes e a faixa da nota deles ficam em minigames.json (costume.difficulties).",
+  "slots": {
+    "head": { "name": "Cabeça", "anchor": [16, 8] },
+    "neck": { "name": "Pescoço", "anchor": [16, 15] },
+    "back": { "name": "Costas", "anchor": [16, 15], "behind": true }
+  },
+  "colors": {
+    "pink": { "name": "rosa", "hex": "#e58fa4" },
+    "white": { "name": "branco", "hex": "#fbf3e4" },
+    "green": { "name": "verde", "hex": "#8fb87a" },
+    "gold": { "name": "dourado", "hex": "#e2b54c" },
+    "purple": { "name": "lilás", "hex": "#a48ac6" },
+    "blue": { "name": "azul", "hex": "#6f9fd0" },
+    "red": { "name": "vermelho", "hex": "#d0614f" }
+  },
+  "colorPairs": [["pink", "white"], ["pink", "green"], ["blue", "white"], ["gold", "purple"], ["red", "white"], ["red", "gold"], ["purple", "blue"]],
+  "pieces": [
+    { "id": "costume.bow_pink", "slot": "head", "name": "Laço", "shape": "bow", "color": "pink", "style": "cute", "themes": ["spring"] },
+    { "id": "costume.flower_crown", "slot": "head", "name": "Coroa de flores", "shape": "flower_crown", "color": "green", "style": "cute", "themes": ["flower", "spring"] },
+    { "id": "costume.crown_gold", "slot": "head", "name": "Coroa", "shape": "crown", "color": "gold", "style": "elegant", "themes": ["royal"] },
+    { "id": "costume.sailor_hat", "slot": "head", "name": "Chapéu de marinheiro", "shape": "sailor_hat", "color": "white", "style": "playful", "themes": ["sea"] },
+    { "id": "costume.beret_red", "slot": "head", "name": "Boina", "shape": "beret", "color": "red", "style": "elegant", "themes": ["autumn", "picnic"] },
+    { "id": "costume.star_band", "slot": "head", "name": "Tiara de estrela", "shape": "star_band", "color": "blue", "style": "playful", "themes": ["star", "night"], "unlockReputation": "rep.trusted" },
+    { "id": "costume.scarf_red", "slot": "neck", "name": "Cachecol", "shape": "scarf", "color": "red", "style": "cute", "themes": ["autumn", "picnic"] },
+    { "id": "costume.bowtie_blue", "slot": "neck", "name": "Gravata-borboleta", "shape": "bowtie", "color": "blue", "style": "elegant", "themes": ["night", "sea"] },
+    { "id": "costume.bell_gold", "slot": "neck", "name": "Coleira de sininho", "shape": "bell_collar", "color": "gold", "style": "cute", "themes": ["royal"] },
+    { "id": "costume.ruffle_white", "slot": "neck", "name": "Golinha de babado", "shape": "ruffle", "color": "white", "style": "elegant", "themes": ["royal", "spring"] },
+    { "id": "costume.ruffle_pink", "slot": "neck", "name": "Golinha rosa", "shape": "ruffle", "color": "pink", "style": "cute", "themes": ["flower", "spring"], "unlockReputation": "rep.noticed" },
+    { "id": "costume.cape_purple", "slot": "back", "name": "Capa de veludo", "shape": "cape", "color": "purple", "style": "elegant", "themes": ["royal", "night"] },
+    { "id": "costume.wings_white", "slot": "back", "name": "Asinhas", "shape": "wings", "color": "white", "style": "cute", "themes": ["spring", "star"] },
+    { "id": "costume.basket_red", "slot": "back", "name": "Mochila de piquenique", "shape": "backpack", "color": "red", "style": "playful", "themes": ["picnic", "autumn"] },
+    { "id": "costume.garland_pink", "slot": "back", "name": "Guirlanda", "shape": "garland", "color": "pink", "style": "cute", "themes": ["flower", "spring"] },
+    { "id": "costume.cape_blue", "slot": "back", "name": "Capa de marinheiro", "shape": "cape", "color": "blue", "style": "playful", "themes": ["sea", "star"], "unlockReputation": "rep.noticed" }
+  ],
+  "themes": [
+    { "id": "theme.spring", "name": "Primavera florida", "tags": ["spring", "flower", "pink", "green"] },
+    { "id": "theme.royal", "name": "Realeza felina", "tags": ["royal", "gold", "purple", "elegant"] },
+    { "id": "theme.sea", "name": "Marinheiro", "tags": ["sea", "blue", "white", "playful"] },
+    { "id": "theme.night", "name": "Noite estrelada", "tags": ["night", "star", "blue", "purple"] },
+    { "id": "theme.picnic", "name": "Piquenique de outono", "tags": ["picnic", "autumn", "red", "cute"] }
+  ],
+  "scoring": { "theme": 10, "themeCap": 2, "color": 8, "style": 10, "variety": 6 },
+  "rivals": [
+    { "cat": "Bolinha", "owner": "Dona Lurdes" },
+    { "cat": "Duquesa", "owner": "Seu Jorge" },
+    { "cat": "Paçoca", "owner": "Marina" },
+    { "cat": "Frajola", "owner": "Tião" },
+    { "cat": "Jujuba", "owner": "Dona Cida" },
+    { "cat": "Bartolomeu", "owner": "Seu Edson" }
+  ],
+  "prizes": { "1": 20, "2": 10, "3": 5 }
+}

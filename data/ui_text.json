@@ -538,6 +538,23 @@
       "result": "Pelo lisinho, com paciência {patience}%.",
       "failed": "Ele perdeu a paciência e fugiu."
     },
+    "costume": {
+      "theme": "Tema: {theme}",
+      "pickCat": "Quem desfila?",
+      "slots": "Peças",
+      "none": "sem peça",
+      "parade": "Desfilar",
+      "hud": "Tema: {theme} · peças {n}/3",
+      "noCat": "Escolha um gato primeiro.",
+      "rank": "{n}º",
+      "out": "fora do pódio",
+      "you": "{cat} (você)",
+      "result": "Tema \"{theme}\": {place}. Nota de {cat}: {score}.",
+      "winner": " Quem ganhou: {cat}, de {owner} ({score}).",
+      "place": { "1": "1º lugar!", "2": "2º lugar", "3": "3º lugar", "out": "fora do pódio" },
+      "colors": "Cor: {color} · estilo: {style}",
+      "styles": { "cute": "fofo", "elegant": "elegante", "playful": "brincalhão" }
+    },
     "fair_setup": {
       "cats": "Gatos para a feira (até {n})",
       "rules": "Como está",
@@ -783,6 +800,7 @@
       "reputation": "+{n} reputação",
       "adopted": "{n} gato(s) com família nova.",
       "visitors": " ({n} visitantes)",
+      "rank": " ({n}º lugar)",
       "close": "Fechar"
     },
     "date": "{season} {day} ({weekday})"

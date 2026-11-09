@@ -367,6 +367,20 @@
       "marker": "ph_fair_setup"
     },
     {
+      "id": "pt.costume_stage",
+      "map": "map.cafe_main",
+      "at": [
+        38,
+        7
+      ],
+      "action": "minigame",
+      "minigame": {
+        "id": "costume",
+        "difficulty": "normal"
+      },
+      "marker": "ph_fair_balloons"
+    },
+    {
       "id": "pt.fair_table",
       "map": "map.cafe_main",
       "at": [

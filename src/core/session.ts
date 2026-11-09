@@ -22,6 +22,7 @@ import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
 import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
+import { unlockedPieces } from './costume';
 import {
   activeFeatures,
   catCapacity,
@@ -1282,7 +1283,7 @@ export class GameSession {
     if (fest && activity && isFestivalDay(this.state.festivals, this.state.day)) {
       const adopted = (result.adoptions ?? []).filter((a) => a.verdict === 'good').length;
       this.festivalAdopted += adopted;
-      const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}) };
+      const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}), ...(result.contest ? { contest: result.contest } : {}) };
       const step = recordActivity(this.state.festivals, fest, activity.point, record, this.state.day);
       if (step === 'finished') this.endFestival(fest);
       this.advanceStory();
@@ -1613,7 +1614,7 @@ export class GameSession {
   }
 
   /** Parâmetros extras de um mini game aberto por um ponto (a mesa da feira leva os gatos do café). */
-  miniGameExtras(pointId: string): { adoptCats?: AdoptCat[]; catId?: string; extraFamilies?: number } {
+  miniGameExtras(pointId: string): Pick<MiniGameParams, 'adoptCats' | 'catId' | 'extraFamilies' | 'contestCats' | 'costumePieces'> {
     // Mini game de uma chegada: o gato da chegada (a fuga, a confiança... com a cor dele).
     if (this.arrivals.ownsMinigame(pointId)) return { catId: this.state.arrivals.active!.catId };
     // Ponto de pedido com o remédio escondido (missão do vet): o primeiro gato que precisa da dose hoje.
@@ -1624,8 +1625,10 @@ export class GameSession {
     // Atividades de um festival: montar a feira (escolhe os gatos do café) e a mesa de adoção (os escolhidos primeiro,
     // e as famílias a mais que a montagem trouxe).
     const fest = this.activeFestival();
-    const game = fest?.activities.find((a) => a.point === pointId)?.game;
-    if (game !== 'adoption' && game !== 'fair_setup') return {};
+    const game = fest?.activities.find((a) => a.point === pointId)?.game ?? this.content.jobPoints[pointId]?.minigame?.id;
+    // Concurso de fantasia: qualquer gato do café desfila (os da história também) com as peças liberadas.
+    if (game === 'costume') return this.contestExtras();
+    if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]
       .filter((id) => !protectedCats.includes(id) && this.catDef(id))
@@ -1640,6 +1643,14 @@ export class GameSession {
     const chosen = setup.cats.map((id) => all.find((c) => c.id === id)).filter((c): c is AdoptCat => !!c);
     const extra = Math.max(0, Math.min(setup.extraFamilies, this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId)));
     return { adoptCats: chosen, extraFamilies: extra };
+  }
+
+  /** O que o concurso de fantasia precisa: os gatos do café (com o nome dado) e as peças liberadas pela reputação. */
+  contestExtras(): Pick<MiniGameParams, 'contestCats' | 'costumePieces'> {
+    const contestCats = this.shelteredCats()
+      .map((id) => ({ id, name: this.catName(id), variant: this.catDef(id)?.variant ?? '' }))
+      .filter((c) => c.variant);
+    return { contestCats, costumePieces: unlockedPieces(this.content.costume, this.state.reputation.reached).map((p) => p.id) };
   }
 
   /** Pares do match aberto por este ponto (a dificuldade dele). */
