@@ -107,6 +107,9 @@ if (L) {
   /** Peças completas: pasta do personagem no PixelLab e prefixo das animações (m = o próprio manequim). */
   const FULL: Record<string, { dir: string; prefix: string }> = {
     'outfit:hoodie': { dir: `${MAN}/roupa_moletom`, prefix: 'r' },
+    'outfit:dress': { dir: `${MAN}/roupa_dress`, prefix: 'v' },
+    'outfit:collar_shirt': { dir: `${MAN}/roupa_collar_shirt`, prefix: 'c' },
+    'outfit:tshirt': { dir: `${MAN}/roupa_tshirt`, prefix: 't' },
     'hair:long': { dir: `${MAN}/cabelo_longo`, prefix: 'l' },
   };
   /** Peças só de frente: imagem 128x128 editada sobre a rotação sul do manequim (cabelo sobre o manequim verde). */
