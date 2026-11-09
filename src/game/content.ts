@@ -101,6 +101,8 @@ export const uiText = uiTextJson;
 /** Vassoura (quadros e tempos). */
 export const broom = toolsJson.broom as unknown as {
   image: string;
+  /** Vassoura na mão: segue as mãos da pose de ação (pontos em pixels da arte). */
+  hold: { image: string; resolution: number; grip: [number, number]; handHeight: number; handDx: number[] };
   sweepMs: number;
   sweepFps: number;
   frames: Record<string, [number, number, number, number]>;

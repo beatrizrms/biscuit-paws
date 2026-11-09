@@ -99,7 +99,7 @@
       "name": "Vassoura",
       "price": 0,
       "kind": "tool",
-      "iconImage": "assets/icons/items/icon_broom.png",
+      "icon": "vassoura",
       "tags": [
         "tool"
       ]
@@ -109,7 +109,7 @@
       "name": "Chave da padaria",
       "price": 0,
       "kind": "key",
-      "iconImage": "assets/icons/items/icon_key.png",
+      "icon": "chave_padaria",
       "tags": [
         "key"
       ]
@@ -1180,7 +1180,7 @@
       "name": "Chave enferrujada",
       "price": 0,
       "kind": "key",
-      "iconImage": "assets/icons/items/icon_key.png",
+      "icon": "chave_enferrujada",
       "tags": [
         "key"
       ]

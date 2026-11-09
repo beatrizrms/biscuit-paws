@@ -173,6 +173,7 @@ Gerada por IA no PixelLab (https://www.pixellab.ai, assinatura Tier 1) em **64 p
 | Rua | `pixellab_fachadas`, `pixellab_fachadas_neve`, `pixellab_rua_chao`, `pixellab_rua_objetos`, `pixellab_rua_enfeites` | arte igual o ano todo; a estação vem por cima (neve, folhas, pétalas, enfeites) |
 | Quintal | `pixellab_quintal`, `pixellab_quintal_novos` | a variante de tijolo saiu |
 | Ícones | folha `pixellab` de `data/icons.json` (64 px) | todos os ícones do jogo |
+| Chaves e vassoura | `icones_chave_vassoura/` (escolhas.json): ícones `chave_padaria` (latão com sininho: no começo ainda não é um café de gatos), `chave_enferrujada`, `vassoura` na folha `pixellab`; `broom_hold.png` (64x128) é a vassoura na mão | a vassoura na mão segue as mãos da pose de ação (`data/tools.json: broom.hold`); substituem `icon_key.png`, `icon_broom.png` e a vassoura antiga ao varrer (a poeira continua a antiga) |
 | Mini games | `minigames/hunt/hide_*.png`, `minigames/fishing/icons_fish_pixellab.png` | esconderijos da Caça ao filhote e peixes da Pescaria |
 
 Feito por código em cima da arte gerada (sem gerar de novo): letreiros (fonte de pixel), cores alternativas (café rosa e céu, sofás, caminhas), versões velhas e secas, neve, pétalas e folhas, balcões fatiados, portas esticadas pelo painel liso, asfalto sem rachaduras repetidas.

@@ -1638,18 +1638,27 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player.face(left ? 'left' : 'right');
     const posed = this.textures.exists(poseTexture('sweep'));
     if (posed) void this.player.playAction('sweep', broom.sweepMs);
-    // A vassoura por cima da pose de ação: o quadro cobre a metade de baixo da personagem (mão no meio do corpo, cerdas no chão).
+    // A vassoura na mão: o cabo vai onde estão as mãos no quadro atual da pose de ação, as cerdas no chão.
+    const hold = broom.hold;
+    const img = this.textures.get('broom_hold').getSourceImage() as { width: number; height: number };
     const tool = this.add
-      .image(this.player.x, this.player.y, 'broom', 'varrer_1')
-      .setOrigin(0.5, 1)
-      .setFlipX(left)
+      .image(this.player.x, this.player.y, 'broom_hold')
+      .setOrigin(hold.grip[0] / img.width, hold.grip[1] / img.height)
+      .setScale(1 / hold.resolution)
+      .setFlipX(!left) // a imagem tem as cerdas à esquerda: espelha para elas irem para o lado da sujeira
       .setDepth(this.player.depth + 1);
+    const followHands = () => {
+      const col = Number(this.player.frame.name) % hold.handDx.length;
+      tool.setPosition(this.player.x + (hold.handDx[col] ?? 0) / hold.resolution, this.player.y - hold.handHeight / hold.resolution);
+    };
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
     const frameMs = 1000 / broom.sweepFps;
-    for (let t = 0, i = 0; t < broom.sweepMs; t += frameMs, i++) {
-      tool.setFrame(i % 2 === 0 ? 'varrer_1' : 'varrer_2');
-      dust.setFrame(`poeira_${(i % 3) + 1}`);
-      await this.wait(frameMs);
+    // Passo curto: a vassoura acompanha a troca de quadro da personagem sem atraso.
+    const STEP = 40;
+    for (let t = 0; t < broom.sweepMs; t += STEP) {
+      followHands();
+      dust.setFrame(`poeira_${(Math.floor(t / frameMs) % 3) + 1}`);
+      await this.wait(STEP);
     }
     tool.destroy();
     for (const f of ['brilho_1', 'brilho_2', 'brilho_3']) {

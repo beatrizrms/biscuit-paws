@@ -1,8 +1,16 @@
 {
   "schemaVersion": 1,
-  "_comment": "Vassoura (pacote vassoura_nova, gerado por IA na paleta Cosy). Quadros 32x32 em linha. O quadro cobre a metade de baixo da personagem (32x64): fica nos pés dela; virada para a esquerda, espelha. use: animação de usar um item da barra (ícone na mão): pegar, levar até o alvo, despejar (ração: grãos caindo) ou dar (petisco). Tempos em ms; grainColor: cor dos grãos (paleta Cosy). Placeholder até existir a pose \"despejar\".",
+  "_comment": "Vassoura: na mão, a imagem de \"hold\" (arte nova, segue a pose de ação); a poeira e o brilho saem da folha antiga (pacote vassoura_nova, quadros 32x32 em linha). O quadro cobre a metade de baixo da personagem (32x64): fica nos pés dela; virada para a esquerda, espelha. use: animação de usar um item da barra (ícone na mão): pegar, levar até o alvo, despejar (ração: grãos caindo) ou dar (petisco). Tempos em ms; grainColor: cor dos grãos (paleta Cosy). Placeholder até existir a pose \"despejar\".",
   "broom": {
     "image": "assets/objects/tools/anim_broom.png",
+    "hold": {
+      "_comment": "Vassoura na mão (PixelLab, 64x128, npm run pixellab): segue as mãos da pose de ação da personagem. grip = ponto do cabo onde vão as mãos (pixels da imagem); handHeight = altura das mãos acima dos pés e handDx = mãos em relação ao meio do quadro em cada um dos 4 quadros da ação (pixels da arte, medidos nas folhas do manequim); resolution = pixels da arte por pixel do jogo.",
+      "image": "assets/objects/tools/broom_hold.png",
+      "resolution": 2,
+      "grip": [33.5, 67],
+      "handHeight": 54,
+      "handDx": [-4, -1, 3, -1]
+    },
     "sweepMs": 1500,
     "sweepFps": 6,
     "frames": {

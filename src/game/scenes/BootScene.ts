@@ -48,6 +48,7 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });
     }
     this.load.image('broom', broom.image);
+    this.load.image('broom_hold', broom.hold.image);
     this.load.image('emotes', emotes.image);
     this.load.image('van_left', content.delivery.van.left);
     // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.

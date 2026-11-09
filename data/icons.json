@@ -459,6 +459,21 @@
       "col": 2,
       "row": 11,
       "sheet": "pixellab"
+    },
+    "chave_padaria": {
+      "col": 3,
+      "row": 11,
+      "sheet": "pixellab"
+    },
+    "chave_enferrujada": {
+      "col": 4,
+      "row": 11,
+      "sheet": "pixellab"
+    },
+    "vassoura": {
+      "col": 5,
+      "row": 11,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

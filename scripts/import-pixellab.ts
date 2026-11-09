@@ -1409,6 +1409,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['loja', 'ingredientes', 'bebidas', 'comidas'] as const).flatMap((lot) => (lots[lot] as string[]).map((name, i) => ({ name, file: `${SRC}/icones/${lot}/obj_${i}.png` }))),
     ...(['lote_A', 'lote_B'] as const).flatMap((lot) => louca[lot].map((name, i) => ({ name, file: `${SRC}/louca_peixes/${lot}/obj_${i}.png` }))).filter(({ name }) => !ICON_SKIP.has(name)),
     ...([['mantinha', 7], ['caixa_bilhete', 8], ['pegadas_lama', 3]] as const).map(([name, i]) => ({ name, file: `${SRC}/provisorios/obj_${i}.png` })),
+    // Chaves e vassoura na arte nova (icones_chave_vassoura/escolhas.json).
+    ...(['chave_padaria', 'chave_enferrujada', 'vassoura'] as const).map((name) => ({ name, file: `${SRC}/icones_chave_vassoura/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
@@ -1416,6 +1418,14 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   const image = 'public/assets/icons/sheets/icon_sheet_pixellab.png';
   writeFileSync(image, PNG.sync.write(out));
   console.log(`${image}: ${names.length} ícones`);
+}
+
+// ---------- Vassoura na mão (64x128, para a pose de ação da personagem; data/tools.json: broom.hold) ----------
+{
+  const dir = 'public/assets/objects/tools';
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/broom_hold.png`, PNG.sync.write(readPng(`${SRC}/icones_chave_vassoura/vassoura_mao.png`)));
+  console.log(`${dir}/broom_hold.png: vassoura na mão`);
 }
 
 // ---------- Esconderijos da Caça ao filhote (64 px, quadro 0 parado) ----------
