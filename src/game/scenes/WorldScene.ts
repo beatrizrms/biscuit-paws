@@ -1246,7 +1246,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const st = this.session.state;
     const sv = this.session.service;
     // Mãos: o ícone vai na frente dela.
-    const key = JSON.stringify([st.hands, st.tray]);
+    // Caixas nas mãos (manequim): a pose de carregar, a mesma do gato no colo, sem gato desenhado.
+    const boxes = this.carriedImages.length > 0 && !poseDrawsProp();
+    const key = JSON.stringify([st.hands, st.tray, boxes]);
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
@@ -1255,7 +1257,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const catId = sv.carriedCat();
       const catColor = catPropColor(this.session.content.character, this.session.catDef(catId ?? '')?.variant);
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela; senão, a normal.
-      this.player.setCarryPose(st.tray ? 'tray' : catId ? 'cat' : null, catColor);
+      this.player.setCarryPose(st.tray ? 'tray' : catId || boxes ? 'cat' : null, catColor);
       const posed = poseDrawsProp() && this.textures.exists(st.tray ? poseTexture('tray') : poseTexture('cat', catColor));
       if (st.tray && posed) {
         // Bandeja na pose: as louças vão em cima dela, lado a lado.
