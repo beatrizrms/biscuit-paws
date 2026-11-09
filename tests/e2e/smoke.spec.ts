@@ -407,7 +407,8 @@ test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando pa
   await page.keyboard.press('e');
   await expect(page.locator('.shop.checkout')).toHaveClass(/open/);
   await page.screenshot({ path: testInfo.outputPath('17-mercado-caixa.png') });
-  await page.locator('.cart-bar .pay').click();
+  await expect(page.locator('.cart-bar .pay .key')).toHaveText('Enter');
+  await page.keyboard.press('Enter'); // Enter paga (o mesmo que clicar em Pagar)
   await expect(page.locator('.hud-money')).toContainText('120');
   await expect(page.locator('.shop')).not.toHaveClass(/open/);
   await expect(page.locator('.hud-cart')).toBeHidden();

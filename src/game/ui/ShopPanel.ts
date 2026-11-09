@@ -31,6 +31,12 @@ export class ShopPanel {
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
     // Um só ouvinte para os botões (a lista é redesenhada a cada mudança).
     this.el.addEventListener('click', (e) => this.onClick(e));
+    // No caixa, Enter paga (o mesmo que clicar em Pagar).
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.repeat || this.mode?.kind !== 'checkout') return;
+      e.preventDefault();
+      this.pay();
+    });
     session.bus.on('money.changed', () => this.render());
     session.bus.on('cart.changed', () => this.render());
   }
@@ -77,12 +83,15 @@ export class ShopPanel {
       if (!r.ok) this.onProblem(r.reason);
     } else if (act === 'sub') this.session.removeFromCart(id);
     else if (act === 'drop') this.session.removeFromCart(id, true);
-    else if (act === 'pay') {
-      const r = this.session.checkout();
-      if (!r.ok) return this.onProblem(r.reason);
-      this.onPaid();
-      this.close();
-    }
+    else if (act === 'pay') this.pay();
+  }
+
+  /** Paga o carrinho (botão ou Enter). */
+  private pay(): void {
+    const r = this.session.checkout();
+    if (!r.ok) return this.onProblem(r.reason);
+    this.onPaid();
+    this.close();
   }
 
   /** "3 itens · 25 moedas". */
@@ -153,7 +162,7 @@ export class ShopPanel {
     this.bar.innerHTML = `<span class="total">${this.cartLine()}</span>
       <span class="have">${fill(uiText.shop.youHave, { money: state.money })}</span>
       ${missing > 0 ? `<span class="missing">${fill(uiText.shop.missing, { missing })}</span>` : ''}
-      <button class="pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })}</button>`;
+      <button class="pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })} <span class="key">${uiText.shop.payKey}</span></button>`;
   }
 }
 

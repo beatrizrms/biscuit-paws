@@ -679,6 +679,8 @@
   color: var(--ink); background: var(--mint2); border: 1.5px solid var(--mint3); border-radius: 4px; cursor: pointer;
 }
 .catalog .cart-bar .pay:disabled { opacity: 0.45; cursor: default; }
+/* Tecla do atalho (Enter paga) dentro do botão, como uma teclinha. */
+.catalog .cart-bar .pay .key { display: inline-block; margin-left: 3px; padding: 0 2px; border: 1px solid currentColor; border-radius: 2px; font-size: 5px; line-height: 1.4; vertical-align: middle; opacity: 0.85; }
 .catalog .empty { margin: 8px 2px; color: var(--ink2); font-style: italic; }
 .hud-cart {
   position: absolute; top: 44px; right: 6px; padding: 1px 7px;

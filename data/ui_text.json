@@ -216,6 +216,7 @@
     "cashierTitle": "Caixa",
     "emptyCart": "O carrinho está vazio. Pegue os itens nas prateleiras.",
     "pay": "Pagar {total} moedas",
+    "payKey": "Enter",
     "youHave": "Você tem {money} moedas.",
     "missing": "Faltam {missing} moedas: tire alguns itens.",
     "paid": "Compra feita! Tudo na mochila.",
