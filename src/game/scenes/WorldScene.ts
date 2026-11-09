@@ -1640,17 +1640,23 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const posed = this.textures.exists(poseTexture('sweep'));
     if (posed) void this.player.playAction('sweep', broom.sweepMs);
     // A vassoura na mão: o cabo vai onde estão as mãos no quadro atual da pose de ação, as cerdas no chão.
+    // Duas metades da mesma imagem: das mãos para baixo, na frente dela; das mãos para cima, atrás (o cabo passa
+    // por trás da cabeça, e não na frente do rosto).
     const hold = broom.hold;
     const img = this.textures.get('broom_hold').getSourceImage() as { width: number; height: number };
-    const tool = this.add
-      .image(this.player.x, this.player.y, 'broom_hold')
-      .setOrigin(hold.grip[0] / img.width, hold.grip[1] / img.height)
-      .setScale(1 / hold.resolution)
-      .setFlipX(!left) // a imagem tem as cerdas à esquerda: espelha para elas irem para o lado da sujeira
-      .setDepth(this.player.depth + 1);
+    const gripY = Math.round(hold.grip[1]);
+    const half = (depth: number, cropY: number, cropH: number) =>
+      this.add
+        .image(this.player.x, this.player.y, 'broom_hold')
+        .setOrigin(hold.grip[0] / img.width, hold.grip[1] / img.height)
+        .setScale(1 / hold.resolution)
+        .setFlipX(!left) // a imagem tem as cerdas à esquerda: espelha para elas irem para o lado da sujeira
+        .setCrop(0, cropY, img.width, cropH)
+        .setDepth(depth);
+    const tools = [half(this.player.depth - 1, 0, gripY), half(this.player.depth + 1, gripY, img.height - gripY)];
     const followHands = () => {
       const col = Number(this.player.frame.name) % hold.handDx.length;
-      tool.setPosition(this.player.x + (hold.handDx[col] ?? 0) / hold.resolution, this.player.y - hold.handHeight / hold.resolution);
+      for (const t of tools) t.setPosition(this.player.x + (hold.handDx[col] ?? 0) / hold.resolution, this.player.y - hold.handHeight / hold.resolution);
     };
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
     const frameMs = 1000 / broom.sweepFps;
@@ -1661,7 +1667,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       dust.setFrame(`poeira_${(Math.floor(t / frameMs) % 3) + 1}`);
       await this.wait(STEP);
     }
-    tool.destroy();
+    tools.forEach((t) => t.destroy());
     for (const f of ['brilho_1', 'brilho_2', 'brilho_3']) {
       dust.setFrame(f);
       await this.wait(90);

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Vassoura: na mão, a imagem de \"hold\" (arte nova, segue a pose de ação); a poeira e o brilho saem da folha antiga (pacote vassoura_nova, quadros 32x32 em linha). O quadro cobre a metade de baixo da personagem (32x64): fica nos pés dela; virada para a esquerda, espelha. use: animação de usar um item da barra (ícone na mão): pegar, levar até o alvo, despejar (ração: grãos caindo) ou dar (petisco). Tempos em ms; grainColor: cor dos grãos (paleta Cosy). Placeholder até existir a pose \"despejar\".",
+  "_comment": "Vassoura: na mão, a imagem de \"hold\" (arte nova, segue a pose de ação); a poeira e o brilho saem da folha antiga (pacote vassoura_nova, quadros 32x32 em linha; os 3 primeiros quadros, a vassoura antiga, não são mais usados). Na mão, das mãos para cima o cabo fica atrás dela (não cruza o rosto). use: animação de usar um item da barra (ícone na mão): pegar, levar até o alvo, despejar (ração: grãos caindo) ou dar (petisco). Tempos em ms; grainColor: cor dos grãos (paleta Cosy). Placeholder até existir a pose \"despejar\".",
   "broom": {
     "image": "assets/objects/tools/anim_broom.png",
     "hold": {
@@ -14,24 +14,6 @@
     "sweepMs": 1500,
     "sweepFps": 6,
     "frames": {
-      "parada": [
-        0,
-        0,
-        32,
-        32
-      ],
-      "varrer_1": [
-        32,
-        0,
-        32,
-        32
-      ],
-      "varrer_2": [
-        64,
-        0,
-        32,
-        32
-      ],
       "poeira_1": [
         96,
         0,
