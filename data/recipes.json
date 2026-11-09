@@ -5,7 +5,7 @@
     {
       "id": "recipe.black_coffee",
       "name": "Café preto",
-      "icon": "menu_cafe_preto",
+      "icon": "cafe_preto",
       "ingredients": {
         "item.coffee_ground": 1,
         "item.paper_filter": 1
@@ -25,7 +25,7 @@
     {
       "id": "recipe.black_tea",
       "name": "Chá preto",
-      "icon": "menu_cha",
+      "icon": "cha_preto",
       "ingredients": {
         "item.tea_black_bag": 1
       },
@@ -49,7 +49,7 @@
     {
       "id": "recipe.orange_juice",
       "name": "Suco de laranja",
-      "icon": "menu_suco",
+      "icon": "suco_laranja",
       "ingredients": {
         "item.pulp_orange": 1,
         "item.sugar": 1
@@ -74,7 +74,7 @@
     {
       "id": "recipe.cafe_latte",
       "name": "Café com leite",
-      "icon": "menu_cafe_com_leite",
+      "icon": "cafe_com_leite_gato",
       "ingredients": {
         "item.coffee_ground": 1,
         "item.paper_filter": 1,
