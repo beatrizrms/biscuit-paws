@@ -93,6 +93,8 @@ export interface GameState {
   festivals: FestivalsState;
   /** A melhor foto (v23; foto perfeita): a pose, a nota, os gatos e o dia. Sem galeria por enquanto. */
   bestPhoto: { pose: string; score: number; catIds: string[]; day: number } | null;
+  /** Lista de compras (v24; app Notas): IDs de itens anotados, na ordem; some ao comprar. */
+  shoppingList: string[];
   /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o abrigo da vila. */
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
@@ -184,6 +186,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     reputation: { value: 0, reached: [], log: [] },
     festivals: newFestivals(),
     bestPhoto: null,
+    shoppingList: [],
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
     hintUses: {},

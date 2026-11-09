@@ -104,8 +104,7 @@ export interface GoalView {
   title: string;
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
-  /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
-  steps: { text: string; done: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
+  steps: { text: string; done: boolean; devNote?: string; progress?: [number, number]; waitUntil?: number }[];
 }
 
 /** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
@@ -122,19 +121,12 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
-      steps: b.goal!.steps.map((s) => {
-        // Receita de um gato: as doses dadas de todas, e se a de hoje já foi.
-        const treatment = s.doses ? state.cats[s.doses]?.sickness?.treatment : undefined;
-        return {
-          text: s.text,
-          done: evaluate(s.when, state, ctx),
-          ...(s.detail ? { detail: s.detail } : {}),
-          ...(s.icon ? { icon: s.icon } : {}),
-          devNote: s.devNote,
-          progress: treatment ? ([treatment.dosesGiven, treatment.days] as [number, number]) : progressOf(s.when, state, ctx),
-          ...(treatment ? { doneToday: treatment.lastDoseDay === state.day } : {}),
-          waitUntil: 'timer' in s.when ? state.timers[s.when.timer] : undefined,
-        };
-      }),
+      steps: b.goal!.steps.map((s) => ({
+        text: s.text,
+        done: evaluate(s.when, state, ctx),
+        devNote: s.devNote,
+        progress: progressOf(s.when, state, ctx),
+        waitUntil: 'timer' in s.when ? state.timers[s.when.timer] : undefined,
+      })),
     }));
 }

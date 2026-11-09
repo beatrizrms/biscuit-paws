@@ -76,14 +76,6 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
-  "goals": {
-    "story": "história",
-    "cafe": "café",
-    "service": "Atendimento",
-    "stepsDone": "✓ {n} de {total}",
-    "doneToday": "✓ {n} feita(s) hoje",
-    "doneToday1": "hoje: feito · volta amanhã"
-  },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
   "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular",
@@ -367,6 +359,9 @@
     "missingVessel": "sem {name} limpo(a)",
     "steps": "Etapas: {steps}",
     "premiumPrice": "premium {price}",
+    "shoppingAdd": "📝 anotar o que falta",
+    "shoppingAdded": "Anotado nas Notas: {items}",
+    "shoppingNothing": "Nada faltando: o cardápio está abastecido.",
     "capacity": {
       "line": "Cabem {total} clientes por vez",
       "detail": "({standing} em pé no balcão, {seated} sentados).",
@@ -618,11 +613,22 @@
       "failed": "Ele desconfiou e não comeu."
     }
   },
+  "notesApp": {
+    "app": "Notas",
+    "title": "Lista de compras",
+    "empty": "Nada anotado. No quadro do cardápio, use \"anotar o que falta\".",
+    "hint": "Some da lista quando você compra.",
+    "remove": "riscar"
+  },
   "phoneApp": {
     "home": "Início",
     "back": "voltar",
     "close": "fechar",
     "balance": "Saldo"
+  },
+  "medicineProgress": {
+    "progress": " ({given}/{days} doses{today})",
+    "today": " · hoje já tomou"
   },
   "weekdays": [
     "seg",

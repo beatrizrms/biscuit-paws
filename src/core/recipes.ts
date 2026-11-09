@@ -65,6 +65,8 @@ export interface ServiceConfig {
   arrivalEveryMinutes: [number, number];
   /** Quanto tempo o cliente espera o pedido antes de ir embora. */
   patienceMinutes: number;
+  /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */
+  shoppingListBelow: number;
   /** Quanto tempo ele fica consumindo. */
   consumeMinutes: Record<ServiceKind, number>;
   /** Quando o atendimento funciona (ex.: depois das cadeiras, com cafeteira, mesa e cadeira). */

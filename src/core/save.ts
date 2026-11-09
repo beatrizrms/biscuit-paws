@@ -13,10 +13,10 @@ import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 23;
+export const SAVE_SCHEMA_VERSION = 24;
 
-export interface SaveV23 extends GameState {
-  schemaVersion: 23;
+export interface SaveV24 extends GameState {
+  schemaVersion: 24;
   savedAt: string;
 }
 
@@ -130,10 +130,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   },
   /** v22 -> v23: a melhor foto (foto perfeita). Saves antigos: nenhuma foto ainda. */
   22: (save) => ({ ...save, schemaVersion: 23, bestPhoto: null }),
+  /** v23 -> v24: lista de compras (app Notas). Saves antigos: lista vazia. */
+  23: (save) => ({ ...save, schemaVersion: 24, shoppingList: [] }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV23 = { schemaVersion: 23, savedAt: now.toISOString(), ...state };
+  const save: SaveV24 = { schemaVersion: 24, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -180,7 +182,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV23>;
+  const v2 = save as unknown as Partial<SaveV24>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -299,6 +301,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     festivals: normalizeFestivals(v2.festivals, known.festivals, warnings),
     bestPhoto: normalizeBestPhoto(v2.bestPhoto, knownCat),
+    shoppingList: [...new Set((Array.isArray(v2.shoppingList) ? v2.shoppingList : []).filter((id): id is string => typeof id === 'string' && known.items.has(id)))],
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
     hintUses: Object.fromEntries(

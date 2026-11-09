@@ -1,7 +1,6 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import type { GameSession } from '../../core/session';
-import type { GoalView } from '../../core/story';
 import { dayInSeason, seasonOf } from '../../core/calendar';
 import { formatClock } from '../../core/time';
 import { content, uiText } from '../content';
@@ -115,7 +114,7 @@ export class GameUi {
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
-    this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem);
+    this.menuBoard = new MenuBoardPanel(root, session, () => this.refresh(), problem, (text) => this.toast(text, 3500));
     this.backpack = new BackpackPanel(root, session, () => this.refresh(), problem, (id) => this.handlers.onPlace(id));
     this.hotbar = new Hotbar(root, session);
     this.consult = new ConsultPanel(root, session, () => this.refresh(), (reason) => this.problem(reason as keyof typeof uiText.problems), (text) => this.toast(text, 3500));
@@ -305,91 +304,52 @@ export class GameUi {
     return { time: formatClock(t >= 1440 ? t - 1440 : t, 5), tomorrow: t >= 1440 };
   }
 
-  /** Bolinhas de progresso (até 8; mais que isso, o número). */
-  private pips(done: number, total: number): string {
-    if (total > 8 || total === 0) return `<span class="count">${done}/${total}</span>`;
-    return `<span class="pips">${Array.from({ length: total }, (_, k) => `<i class="${k < done ? 'on' : ''}"></i>`).join('')}</span>`;
-  }
-
-  /** Uma linha do balão: ícone (opcional), texto e o que vai à direita (contador, bolinhas, botão). */
-  private row(text: string, opts: { icon?: string; cls?: string; right?: string; html?: boolean } = {}): string {
-    const icon = opts.icon ? iconHtml(opts.icon, 10) : '';
-    const body = opts.html ? text : esc(text);
-    return `<li class="${opts.cls ?? ''}">${icon}<span class="t">${body}</span>${opts.right ?? ''}</li>`;
-  }
-
-  /**
-   * Embaixo da meta: "hoje" (rotina, pedidos, chegada, festival; as já feitas viram uma linha), "café" (atendimento,
-   * bandeja, pia, entregas) e os alertas numa faixa no fim (café vazio, gatos doentes).
-   */
+  /** Rotina do dia, pedido em andamento e entregas, embaixo da meta no balão. */
   private extrasHtml(): string {
     const c = uiText.chores;
-    const g = uiText.goals;
-    const today: string[] = [];
-    const cafe: string[] = [];
-    const alerts: string[] = [];
-    let doneToday = 0;
-    for (const ch of this.session.chores()) {
-      // Gatos doentes demais: o aviso do café vazio.
-      if (ch.kind === 'sick') {
-        alerts.push(c.sick);
-        continue;
-      }
-      if (ch.done) {
-        doneToday++;
-        continue;
-      }
+    const items = this.session.chores().map((ch) => {
+      // Gatos doentes demais: o aviso do café vazio (sem contador).
+      if (ch.kind === 'sick') return `<li class="warn"><span>${esc(c.sick)}</span></li>`;
       const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : c.sweep;
-      today.push(this.row(text, { icon: ch.kind === 'feed' ? 'racao_simples' : 'vassoura', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
-    }
+      const count = ch.progress && !ch.done ? ` <span class="count">${ch.progress[0]}/${ch.progress[1]}</span>` : '';
+      return `<li class="${ch.done ? 'done' : ''}"><span>${esc(text)}${count}</span></li>`;
+    });
     for (const job of this.session.activeJobs()) {
       const step = job.steps[this.session.jobStep(job.id)];
       const [done, total] = this.session.jobStepProgress(job.id);
-      today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_entrega_fechada', html: true, right: total > 1 ? this.pips(done, total) : '' }));
+      const count = total > 1 ? ` <span class="count">${done}/${total}</span>` : '';
+      items.push(`<li class="job"><span><b>${c.job}:</b> ${esc(step?.text ?? job.title)}${count}</span></li>`);
     }
-    // Chegada de gato e festival em andamento: o que fazer agora.
+    // Chegada de gato em andamento: o que fazer agora.
     const arrival = this.arrivalLine();
-    if (arrival) today.push(arrival);
+    if (arrival) items.push(arrival);
+    // Festival em andamento: a etapa da vez (src/core/festival.ts).
     const fest = this.festivalLine();
-    if (fest) today.push(fest);
-    if (doneToday > 0) today.push(`<li class="done-sum">${esc(g.doneToday.replace('{n}', String(doneToday)))}</li>`);
-
+    if (fest) items.push(fest);
     const sv = this.session.service;
     // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
-    if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) cafe.push(this.row(uiText.service.closed.replace('{when}', openingText(this.session)), { icon: 'xicara_limpa' }));
+    if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) items.push(`<li class="job"><span>${esc(uiText.service.closed.replace('{when}', openingText(this.session)))}</span></li>`);
     if (sv.isOpen()) {
-      const cap = sv.capacity().total;
-      cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
+      items.push(`<li class="job"><span>${uiText.service.open.replace('{n}', String(this.session.state.service.customers.length)).replace('{cap}', String(sv.capacity().total))}</span></li>`);
       const blocked = sv.arrivalsBlocked();
-      if (blocked) alerts.push(uiText.service.blocked[blocked]);
+      if (blocked) items.push(`<li class="job warn"><span>${esc(uiText.service.blocked[blocked])}</span></li>`);
     }
-    if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
-    for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
-    if (this.session.state.sink.washing) cafe.push(this.row(uiText.service.sinkWashing, { icon: 'xicara_suja' }));
-    else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
+    if (this.session.state.tray) items.push(`<li class="job"><span>${uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity()))}</span></li>`);
+    for (const h of this.session.state.hands) items.push(`<li class="job"><span>${esc(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id))))}</span></li>`);
+    if (this.session.state.sink.washing) items.push(`<li class="job"><span>${uiText.service.sinkWashing}</span></li>`);
+    else if (sv.sinkLoad() > 0) items.push(`<li class="job"><span>${uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad()))}</span></li>`);
     const d = uiText.delivery;
     const next = this.session.nextArrival();
     if (next !== undefined) {
       const { time, tomorrow } = this.clockOf(next);
-      cafe.push(this.row((tomorrow ? d.shippingTomorrow : d.shipping).replace('{time}', time), { icon: 'caixa_entrega_fechada', right: this.waitButton(next) }));
+      items.push(`<li class="job"><span>${(tomorrow ? d.shippingTomorrow : d.shipping).replace('{time}', time)}${this.waitButton(next)}</span></li>`);
     }
     const n = (stage: 'door' | 'carried' | 'inside') => this.session.deliveriesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
-    if (atDoor > 0) cafe.push(this.row(d.atDoor.replace('{n}', String(atDoor)), { icon: 'caixa_entrega_fechada' }));
-    if (n('carried')) cafe.push(this.row(d.carried.replace('{n}', String(n('carried'))), { icon: 'caixa_entrega_fechada' }));
-    if (n('inside')) cafe.push(this.row(d.inside.replace('{n}', String(n('inside'))), { icon: 'caixa_entrega_aberta' }));
-
-    const section = (title: string, items: string[]) => (items.length ? `<h4>${esc(title)}</h4><ul class="chores">${items.join('')}</ul>` : '');
-    // O alerta: a primeira frase vira o título (até o ":"), o resto é o que fazer.
-    const alert = alerts
-      .map((a) => {
-        const k = a.indexOf(':');
-        const [head, rest] = k > 0 ? [a.slice(0, k), a.slice(k + 1).trim()] : [a, ''];
-        const tail = rest.charAt(0).toUpperCase() + rest.slice(1);
-        return `<div class="g-alert"><b>! ${esc(head)}</b>${tail ? `<span>${esc(tail)}</span>` : ''}</div>`;
-      })
-      .join('');
-    return section(c.title, today) + section(g.cafe, cafe) + alert;
+    if (atDoor > 0) items.push(`<li class="job"><span>${d.atDoor.replace('{n}', String(atDoor))}</span></li>`);
+    if (n('carried')) items.push(`<li class="job"><span>${d.carried.replace('{n}', String(n('carried')))}</span></li>`);
+    if (n('inside')) items.push(`<li class="job"><span>${d.inside.replace('{n}', String(n('inside')))}</span></li>`);
+    return items.length ? `<h4>${c.title}</h4><ul class="chores">${items.join('')}</ul>` : '';
   }
 
   /** Mostra um item grande no centro da tela (ex.: a chave). Resolve quando a jogadora continuar. */
@@ -747,38 +707,20 @@ export class GameUi {
     const extra = this.extrasHtml();
     this.goals.classList.toggle('empty', !goal && !extra);
     this.goals.innerHTML = (goal
-      ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
+      ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><h3>${esc(fill(goal.title))}</h3><ul>${goal.steps
+          .map((s) => {
+            const note = this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '';
+            const count = s.progress && !s.done ? ` <span class="count">${s.progress[0]}/${s.progress[1]}</span>` : '';
+            const wait = s.waitUntil !== undefined && !s.done ? this.waitButton(s.waitUntil) : '';
+            return `<li class="${s.done ? 'done' : ''}"><span>${esc(fill(s.text))}${count}${note}${wait}</span></li>`;
+          })
+          .join('')}</ul>`
       : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${uiText.goalsPeek}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? uiText.goalsHide : uiText.goalsShow;
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.news?.isOpen()) this.news.render();
     this.renderHint();
-  }
-
-  /**
-   * A meta da história: o título com "✓ 2 de 3" (os passos feitos ficam resumidos), o passo da vez em destaque (ícone,
-   * texto curto, a linha de detalhe, as bolinhas e "hoje já foi") e os outros passos abertos, menores. No debug, tudo.
-   */
-  private storyHtml(goal: GoalView, fill: (t: string) => string): string {
-    const g = uiText.goals;
-    const done = goal.steps.filter((s) => s.done).length;
-    const open = goal.steps.filter((s) => !s.done);
-    const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(goal.steps.length)))}</span>` : '';
-    const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
-    const [now, ...rest] = open;
-    const nowHtml = now
-      ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
-        (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +
-        (now.progress || now.doneToday || now.waitUntil !== undefined
-          ? `<div class="g-progress">${now.progress ? this.pips(now.progress[0], now.progress[1]) : ''}${now.doneToday ? `<span class="g-tag">${esc(g.doneToday1)}</span>` : ''}${now.waitUntil !== undefined ? this.waitButton(now.waitUntil) : ''}</div>`
-          : '') +
-        note(now)
-      : '';
-    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
-    // No debug, os passos feitos também (para conferir a história).
-    const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
-    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}</div>`;
   }
 
   private renderHint(): void {

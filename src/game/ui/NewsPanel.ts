@@ -10,10 +10,11 @@ import { CalendarApp } from './CalendarApp';
 import { MarketApp, type MarketHost } from './MarketApp';
 import { fillNames } from './text';
 import { ScheduleApp } from './ScheduleApp';
+import { iconHtml } from './ShopPanel';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar';
+export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar' | 'notes';
 
 export class NewsPanel {
   /** Mural do mercado. */
@@ -123,6 +124,7 @@ export class NewsPanel {
       market: uiText.market.app,
       schedule: uiText.scheduleApp.app,
       calendar: uiText.calendarApp.app,
+      notes: uiText.notesApp.app,
     };
     this.phoneEl.dataset.app = this.app;
     (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
@@ -132,6 +134,7 @@ export class NewsPanel {
     if (this.app === 'market') return this.market.render(body);
     if (this.app === 'schedule') return this.scheduleApp.render(body);
     if (this.app === 'calendar') return this.calendarApp.render(body);
+    if (this.app === 'notes') return this.renderNotes(body);
     if (this.app === 'cats') body.innerHTML = this.catsHtml();
     else if (this.app === 'news') {
       body.innerHTML = this.jobsHtml(true);
@@ -145,6 +148,28 @@ export class NewsPanel {
     this.render();
     this.phoneBody.scrollTop = 0;
     this.onChange();
+  }
+
+  /** Notas: a lista de compras (o botão do cardápio anota; comprar tira; riscar tira à mão). */
+  private renderNotes(body: HTMLElement): void {
+    const t = uiText.notesApp;
+    const list = this.session.state.shoppingList;
+    body.innerHTML = `<div class="notes"><h3>${esc(t.title)}</h3>${
+      list.length
+        ? `<ul>${list
+            .map((id) => {
+              const item = content.items[id];
+              return `<li><span class="n-item">${item ? iconHtml(item.icon) : ''}${esc(item?.name ?? id)}</span><button data-strike="${id}" aria-label="${esc(t.remove)}">✕</button></li>`;
+            })
+            .join('')}</ul><p class="n-hint">${esc(t.hint)}</p>`
+        : `<p class="n-empty">${esc(t.empty)}</p>`
+    }</div>`;
+    body.querySelectorAll<HTMLButtonElement>('[data-strike]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.session.removeFromShoppingList(b.dataset.strike!);
+        this.render();
+      }),
+    );
   }
 
   /** Tela de início: os ícones dos apps. */
@@ -162,6 +187,7 @@ export class NewsPanel {
       { id: 'market', name: uiText.market.app, icon: '<img class="cart" src="assets/ui/hud/icon_cart_full.png" alt="" />' },
       { id: 'schedule', name: uiText.scheduleApp.app, icon: '<span class="clock-face"></span>' },
       { id: 'calendar', name: uiText.calendarApp.app, icon: `<span class="cal-face"><b></b>${this.session.seasonDay().day}</span>` },
+      { id: 'notes', name: uiText.notesApp.app, icon: '<span class="notes-face"><i></i><i></i><i></i></span>', badge: this.session.state.shoppingList.length > 0 },
     ];
     return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
       .map(

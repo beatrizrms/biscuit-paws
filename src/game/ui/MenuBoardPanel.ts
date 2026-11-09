@@ -3,7 +3,7 @@
 import type { GameSession } from '../../core/session';
 import type { RecipeDef, RecipeStatus } from '../../core/recipes';
 import { content, serviceArt, uiText } from '../content';
-import { iconHtml } from './ShopPanel';
+import { iconHtml, listNames } from './ShopPanel';
 
 /** Largura do quadro desenhado no painel (cabe no painel de 178 px). */
 const BOARD_WIDTH = 176;
@@ -20,6 +20,7 @@ export class MenuBoardPanel {
     private session: GameSession,
     private onChange: () => void,
     private onProblem: (reason: string) => void,
+    private onToast: (text: string) => void = () => {},
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog menu-board';
@@ -113,6 +114,7 @@ export class MenuBoardPanel {
     const scroll = this.body.scrollTop; // redesenhar não pode mexer na rolagem de quem está lendo
     this.body.innerHTML = `${this.boardHtml(inMenu)}
       ${this.capacityHtml()}
+      <button class="shopping-add" data-shopping>${uiText.menuBoard.shoppingAdd}</button>
       <h3>${uiText.menuBoard.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${inMenu.map((r) => this.row(r, true)).join('')}${empty.join('')}
       <h3>${uiText.menuBoard.recipes}</h3>
@@ -123,6 +125,12 @@ export class MenuBoardPanel {
         if (!result.ok) this.onProblem(result.reason);
       }),
     );
+    // Lista de compras: anota nas Notas (celular) o que acabou ou está acabando.
+    this.body.querySelector('[data-shopping]')?.addEventListener('click', () => {
+      const added = this.session.addMissingToShoppingList();
+      const t = uiText.menuBoard;
+      this.onToast(added.length ? t.shoppingAdded.replace('{items}', listNames(added.map((id) => content.items[id]?.name ?? id))) : t.shoppingNothing);
+    });
     this.body.scrollTop = scroll;
   }
 }

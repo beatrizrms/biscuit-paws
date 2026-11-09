@@ -291,10 +291,7 @@
             "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta."
           },
           {
-            "text": "Dar o remédio para {cat:cat.first_stray}",
-            "detail": "Uma dose por dia, até acabar a receita.",
-            "icon": "remedio",
-            "doses": "cat.first_stray",
+            "text": "Dar o remédio para {cat:cat.first_stray} uma vez por dia, até acabar a receita.{doses:cat.first_stray}",
             "when": {
               "flag": "vet.cured"
             },

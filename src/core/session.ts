@@ -12,6 +12,8 @@ import { EventBus } from './events';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
+import { lowIngredients } from './shopping';
+import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, type CareNeed, type CareStat } from './care';
@@ -193,6 +195,10 @@ export class GameSession {
     this.ownedIds = this.ownedNow();
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
+    });
+    // Lista de compras: o que ela compra sai da lista (no caixa ou um a um).
+    this.bus.on('item.bought', ({ itemId }) => {
+      this.state.shoppingList = this.state.shoppingList.filter((id) => id !== itemId);
     });
     // A bandeja vale quando está selecionada na barra (e continua enquanto houver louça demais para levar sem ela).
     const syncTray = () => this.service.syncTray(this.activeItem() === this.content.carry.tray.item);
@@ -1933,6 +1939,20 @@ export class GameSession {
    * Caixa: confere tudo e só então cobra e entrega (tudo ou nada).
    * Sem dinheiro, nada muda: ela tira itens e tenta de novo.
    */
+  /** Anota na lista de compras os ingredientes do cardápio que acabaram ou estão acabando. Devolve os anotados agora. */
+  addMissingToShoppingList(): string[] {
+    const menu = this.state.menu.map((id) => this.content.recipes[id]).filter((r): r is RecipeDef => !!r);
+    const low = lowIngredients(menu, (id) => this.service.doses(id), this.content.service.shoppingListBelow);
+    const added = low.filter((id) => !this.state.shoppingList.includes(id));
+    this.state.shoppingList.push(...added);
+    return added;
+  }
+
+  /** Risca um item da lista de compras (a jogadora tirou à mão). */
+  removeFromShoppingList(itemId: string): void {
+    this.state.shoppingList = this.state.shoppingList.filter((id) => id !== itemId);
+  }
+
   checkout(): ActionResult {
     if (this.cart.isEmpty()) return { ok: false, reason: 'cart_empty' };
     for (const { itemId } of this.cart.lines()) {
