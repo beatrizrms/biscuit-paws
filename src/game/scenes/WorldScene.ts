@@ -40,8 +40,8 @@ const PARCEL_PILE_SCALE = 0.5;
 const PARCEL_PILE_STEP = 12;
 const PARCEL_HAND_SCALE = 0.36;
 const PARCEL_HAND_STEP = 9;
-/** Abaixa a caixa até as mãos (a base da imagem fica um pouco abaixo do ponto da mão). */
-const PARCEL_HAND_DROP = 10;
+/** Ajuste da caixa em relação ao ponto da mão (negativo = mais para cima): na altura dos braços, no peito. */
+const PARCEL_HAND_DROP = -2;
 
 /** Tipos de coisa da dica "E" (os textos ficam em ui_text.json: hints). */
 type HintKind = keyof typeof uiText.hints;
