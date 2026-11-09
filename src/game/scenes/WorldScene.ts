@@ -788,6 +788,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const result = await MiniGameRegistry.open(this, gameId, params, {
         season: this.session.season(),
         catVariant: miniGameCatVariant(this, params.catId),
+        ...(params.catId ? { pillWindow: this.session.pillWindow(params.catId) } : {}),
         // Semente: dia e hora do jogo (repetível no mesmo save, diferente a cada partida do dia).
         seed: this.session.state.day * 100_003 + Math.floor(this.session.state.time),
       });
@@ -979,9 +980,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(problem);
         return true;
       }
+      // A dose é o remédio escondido: esconder o comprimido na comida e oferecer na hora certa (a sessão dá a dose
+      // se der certo; falhou, dá para tentar de novo).
+      void this.openMiniGame('pill', { difficulty: this.session.careDifficulty(cat.catId), catId: cat.catId });
+      return true;
     }
     void this.playUse(item, cat.x, cat.y - 10, 'give').then(() => {
-      const result = medicine ? this.session.medicateCat(cat.catId) : this.session.treatCat(cat.catId);
+      const result = this.session.treatCat(cat.catId);
       if (!result.ok) this.ui.problem(result.reason);
     });
     return true;

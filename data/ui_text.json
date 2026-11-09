@@ -537,6 +537,17 @@
       "allClean": "Pelo lisinho!",
       "result": "Pelo lisinho, com paciência {patience}%.",
       "failed": "Ele perdeu a paciência e fugiu."
+    },
+    "pill": {
+      "hudCover": "Comprimido coberto: {n}%",
+      "hudOffer": "Desconfiança {n}% · coberto {cover}%",
+      "ready": "Pronto (E)",
+      "offer": "Oferecer (E)",
+      "caught": "Ele viu!",
+      "ate": "Comeu tudo!",
+      "fled": "Desconfiou e foi embora.",
+      "result": "Remédio tomado em {offers} oferta(s).",
+      "failed": "Ele desconfiou e não comeu."
     }
   },
   "phoneApp": {

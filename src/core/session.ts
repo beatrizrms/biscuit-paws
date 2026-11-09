@@ -14,7 +14,7 @@ import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagio
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf, type CareNeed, type CareStat } from './care';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, type CareNeed, type CareStat } from './care';
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
@@ -1127,10 +1127,19 @@ export class GameSession {
   medicateCat(catId: string): ActionResult {
     const problem = this.medicineProblem(catId);
     if (problem) return { ok: false, reason: problem };
+    this.applyDose(catId, this.activeUse('medicine')!);
+    return { ok: true };
+  }
+
+  /**
+   * A dose do dia (com o item de remédio `itemId`, que sai da mochila): cura um pouco; tomou todas as doses da
+   * receita, sara. Quem chama já conferiu que pode (medicineProblem ou pillDose).
+   */
+  private applyDose(catId: string, itemId: string): void {
     const cfg = this.content.health;
     const cat = this.state.cats[catId]!;
     const t = cat.sickness!.treatment!;
-    this.removeFromInventory(this.activeUse('medicine')!);
+    this.removeFromInventory(itemId);
     t.dosesGiven += 1;
     t.lastDoseDay = this.state.day;
     cat.health = clampHealth(cfg, cat.health + cfg.medicine.healPerDose);
@@ -1142,7 +1151,25 @@ export class GameSession {
       this.bus.emit('cat.cured', { catId });
     }
     this.advanceStory();
-    return { ok: true };
+  }
+
+  /** Remédio escondido: quanto dura a distração do gato pelo jeito dele (cat_profiles.json: pillWindow). */
+  pillWindow(catId: string): number {
+    const personality = this.catDef(catId)?.personality;
+    return (personality && this.content.catProfiles.personalities[personality]?.pillWindow) || 1;
+  }
+
+  /**
+   * Remédio escondido deu certo: a dose do dia. O remédio pode estar na mão ou só na mochila (a missão do vet
+   * também abre o jogo: o vet entrega o remédio, o jogo dá a dose). Sem receita, já tomou hoje ou sem remédio: nada.
+   */
+  private pillDose(catId: string): void {
+    const cat = this.state.cats[catId];
+    const t = cat?.sickness?.treatment;
+    if (!cat?.sheltered || !t || t.lastDoseDay === this.state.day) return;
+    const medicine = this.content.health.medicine.item;
+    const item = this.activeUse('medicine') ?? ((this.state.inventory[medicine] ?? 0) > 0 ? medicine : null);
+    if (item) this.applyDose(catId, item);
   }
 
   /** O item ativo é remédio? (aí E perto do gato dá a dose) */
@@ -1166,6 +1193,8 @@ export class GameSession {
       const rep = this.content.adoption.reputation[a.verdict] ?? 0;
       if (rep !== 0) this.addReputation(rep, `adoption:${a.catId}:${a.verdict}`);
     }
+    // Remédio escondido: deu certo (sem pular), a dose do dia vai.
+    if (result.gameId === 'pill' && params.catId && result.outcome !== 'fail' && !result.skipped) this.pillDose(params.catId);
     // Cuidado de um gato do café (varinha, escova, remédio): felicidade e higiene sobem (health.json: care.gains).
     const careCat = params.catId ? this.state.cats[params.catId] : undefined;
     if (careCat?.sheltered && !result.skipped) {
@@ -1475,6 +1504,11 @@ export class GameSession {
   miniGameExtras(pointId: string): { adoptCats?: AdoptCat[]; catId?: string } {
     // Mini game de uma chegada: o gato da chegada (a fuga, a confiança... com a cor dele).
     if (this.arrivals.ownsMinigame(pointId)) return { catId: this.state.arrivals.active!.catId };
+    // Ponto de pedido com o remédio escondido (missão do vet): o primeiro gato que precisa da dose hoje.
+    if (this.content.jobPoints[pointId]?.minigame?.id === 'pill') {
+      const catId = this.shelteredCats().find((id) => needsMedicine(this.state.cats[id]!, this.state.day));
+      return catId ? { catId } : {};
+    }
     if (pointId !== this.content.adoption.fair.table) return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]

@@ -287,6 +287,23 @@
         "normal": {"mats":6,"needScale":1,"drainPerPx":0.7,"recoverPerPx":0.2,"greatAbove":50},
         "hard": {"mats":8,"needScale":1.1,"drainPerPx":0.6,"recoverPerPx":0.15,"greatAbove":50}
       }
+    },
+    "pill": {
+      "name": "Remédio escondido",
+      "instructions": "Primeiro, cubra o comprimido com a pasta, arrastando até não aparecer nada. Depois ofereça a tigela quando ele estiver distraído. Se ele estiver olhando, desconfia; desconfiança cheia, ele recusa e foge.",
+      "tutorial": {"lines":["Segure e arraste a pasta sobre o comprimido até cobrir 100%. Depois, Pronto (E).","Ofereça (E) quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Oferecer olhando ou com o comprimido aparecendo: desconfiança. Comeu na primeira = Perfeito!"]},
+      "reputation": {"ok":1,"great":2},
+      "sounds": {"spread":"put_down","ready":"success","turn":"meow_1","caught":"error","ate":"purr","fled":"error"},
+      "rewards": {
+        "easy": {"ok":4,"great":8},
+        "normal": {"ok":6,"great":12},
+        "hard": {"ok":8,"great":16}
+      },
+      "difficulties": {
+        "easy": {"grid":[8,4],"brushRadius":1.3,"distractedMs":[2200,3200],"attentiveMs":[1200,2000],"warnMs":600,"attentivePenalty":40,"incompletePenalty":40},
+        "normal": {"grid":[10,5],"brushRadius":1.1,"distractedMs":[1600,2600],"attentiveMs":[1400,2400],"warnMs":450,"attentivePenalty":50,"incompletePenalty":50},
+        "hard": {"grid":[12,6],"brushRadius":0.9,"distractedMs":[1100,1900],"attentiveMs":[1600,2800],"warnMs":350,"attentivePenalty":60,"incompletePenalty":70}
+      }
     }
   }
 }

@@ -17,6 +17,8 @@ export interface MiniGameLaunch {
   season: string;
   /** Variante do Cosy Cats do gato envolvido (o que foge, o que pesca junto...). */
   catVariant: string;
+  /** Remédio escondido: quanto dura a distração do gato pelo jeito dele (1 = normal). */
+  pillWindow?: number;
   /** Semente do sorteio (aleatoriedade repetível, regra 7). */
   seed: number;
   done: (result: MiniGameResult) => void;

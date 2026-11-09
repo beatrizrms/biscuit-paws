@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), se chega com fome (hungry), o que precisa para entrar (needs: food, vet, warmth) e a idade (kitten/senior, para a adoção). needs: como atender cada necessidade antes de o gato entrar (food e warmth: dar um dos items, no gato; vet: falar com a Fernanda no ponto, pagando cost; o gato entra tratado). needsPlace: onde o gato espera quando a chegada não tem lugar (o cartaz do mural). generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
+  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: pillWindow = quanto dura a distração no remédio escondido (desconfiado = menos); dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), se chega com fome (hungry), o que precisa para entrar (needs: food, vet, warmth) e a idade (kitten/senior, para a adoção). needs: como atender cada necessidade antes de o gato entrar (food e warmth: dar um dos items, no gato; vet: falar com a Fernanda no ponto, pagando cost; o gato entra tratado). needsPlace: onde o gato espera quando a chegada não tem lugar (o cartaz do mural). generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
   "personalities": {
-    "brave": { "trust": "easy", "heartsToTrust": 1 },
-    "sweet": { "trust": "easy", "heartsToTrust": 1 },
-    "shy": { "trust": "hard", "heartsToTrust": 3 },
-    "curious": { "trust": "normal", "heartsToTrust": 2 },
-    "grumpy": { "trust": "hard", "heartsToTrust": 4 },
-    "needy": { "trust": "easy", "heartsToTrust": 1 }
+    "brave": { "trust": "easy", "heartsToTrust": 1, "pillWindow": 1.1 },
+    "sweet": { "trust": "easy", "heartsToTrust": 1, "pillWindow": 1.2 },
+    "shy": { "trust": "hard", "heartsToTrust": 3, "pillWindow": 0.75 },
+    "curious": { "trust": "normal", "heartsToTrust": 2, "pillWindow": 1 },
+    "grumpy": { "trust": "hard", "heartsToTrust": 4, "pillWindow": 0.65 },
+    "needy": { "trust": "easy", "heartsToTrust": 1, "pillWindow": 1.15 }
   },
   "conditions": {
     "healthy": { "health": 80, "needs": [] },

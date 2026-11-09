@@ -12,6 +12,8 @@ export const CAT_NEEDS: readonly CatNeed[] = ['food', 'vet', 'warmth'];
 export interface PersonalityProfile {
   /** Dificuldade do mini game de confiança com este gato. */
   trust: TrustLevel;
+  /** Remédio escondido: quanto dura a distração dele (1 = normal; desconfiado, menos). */
+  pillWindow?: number;
   /** Corações para ele confiar (meta depois de entrar). */
   heartsToTrust: number;
 }
