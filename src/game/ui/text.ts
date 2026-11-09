@@ -15,21 +15,11 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{player\}/g, () => name || uiText.playerFallback)
     .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => session.catName(id))
     .replace(/\{arrival:(\w+)\}/g, (_, what: string) => arrivalText(session, what))
-    .replace(/\{doses:([\w.]+)\}/g, (_, id: string) => dosesText(session, id))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);
       return t === undefined ? '' : formatClock(t, 5);
     });
-}
-
-/** Receita do gato na meta: " (2/5 doses · hoje já tomou)"; sem receita, nada. */
-function dosesText(session: GameSession, catId: string): string {
-  const t = session.state.cats[catId]?.sickness?.treatment;
-  if (!t) return '';
-  const m = uiText.medicineProgress;
-  const today = t.lastDoseDay === session.state.day ? m.today : '';
-  return m.progress.replace('{given}', String(t.dosesGiven)).replace('{days}', String(t.days)).replace('{today}', today);
 }
 
 /** Texto da chegada em andamento: condição e jeito (em minúscula: entram no meio da frase) ou o vizinho que trouxe. */
