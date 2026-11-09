@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "_comment": "NPCs. Folhas com pés na base (humanos 32x64, o Joca 32x32). walk: linha de cada direção (4 quadros). extras: nome -> quadros.",
+  "_comment": "NPCs. Folhas com pés na base (humanos 32x64, o Joca 32x32). walk: linha de cada direção (4 quadros). extras: nome -> quadros. resolution 2: arte em 64 px por tile (PixelLab), desenhada na metade; folhas montadas por npm run npcs (quadros 112x128, linhas: caminhada baixo/esquerda/direita/cima, acenar, segurar; segurar é uma pose de mãos juntas, o objeto ainda não aparece).",
   "npcs": [
     {
       "id": "npc.realtor",
       "name": "Corretora",
-      "sheet": "assets/characters/npcs/npc_realtor.png",
-      "portrait": "assets/characters/npcs/npc_realtor_portrait.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_realtor.png",
+      "portrait": "assets/characters/npcs/v64/npc_realtor_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -19,25 +19,28 @@
       },
       "extras": {
         "acenar": [
-          16,
-          17
+          21,
+          22,
+          23,
+          24
         ],
         "segurando_chaves": [
-          18
+          29
         ],
         "prancheta": [
-          19
+          29
         ]
-      }
+      },
+      "resolution": 2
     },
     {
       "id": "npc.gabi",
       "name": "Gabi",
-      "sheet": "assets/characters/npcs/npc_gabi.png",
-      "portrait": "assets/characters/npcs/npc_gabi_portrait.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_gabi.png",
+      "portrait": "assets/characters/npcs/v64/npc_gabi_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -47,16 +50,19 @@
       },
       "extras": {
         "acenar": [
-          16,
-          17
+          21,
+          22,
+          23,
+          24
         ],
         "segurando_cafe": [
-          18
+          29
         ],
         "segurando_caixa": [
-          19
+          29
         ]
-      }
+      },
+      "resolution": 2
     },
     {
       "id": "npc.joca",
@@ -92,11 +98,11 @@
     {
       "id": "npc.neusa",
       "name": "Dona Neusa",
-      "sheet": "assets/characters/npcs/npc_neusa.png",
-      "portrait": "assets/characters/npcs/npc_neusa_portrait.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_neusa.png",
+      "portrait": "assets/characters/npcs/v64/npc_neusa_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 6,
       "walk": {
         "down": 0,
@@ -106,25 +112,28 @@
       },
       "extras": {
         "acenar": [
-          16,
-          17
+          21,
+          22,
+          23,
+          24
         ],
         "segurando_cafe": [
-          18
+          29
         ],
         "segurando_bolsa": [
-          19
+          29
         ]
-      }
+      },
+      "resolution": 2
     },
     {
       "id": "npc.mail_carrier",
       "name": "Entregadora",
-      "sheet": "assets/characters/npcs/npc_mail_carrier.png",
-      "portrait": "assets/characters/npcs/npc_mail_carrier_portrait.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_mail_carrier.png",
+      "portrait": "assets/characters/npcs/v64/npc_mail_carrier_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -134,16 +143,19 @@
       },
       "extras": {
         "acenar": [
-          16,
-          17
+          21,
+          22,
+          23,
+          24
         ],
         "segurando_carta": [
-          18
+          29
         ],
         "segurando_pacote": [
-          19
+          29
         ]
-      }
+      },
+      "resolution": 2
     },
     {
       "id": "npc.customer_01",

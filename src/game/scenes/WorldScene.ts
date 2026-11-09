@@ -1808,7 +1808,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       who === 'player'
         ? { x: this.player.x, y: this.player.y, top: 60 }
         : this.npcs.has(who)
-          ? { x: this.npcs.get(who)!.x, y: this.npcs.get(who)!.y, top: this.npcs.get(who)!.def.frameHeight - 2 }
+          ? { x: this.npcs.get(who)!.x, y: this.npcs.get(who)!.y, top: this.npcs.get(who)!.def.frameHeight / (this.npcs.get(who)!.def.resolution ?? 1) - 2 }
           : (() => {
               const cat = this.cats.find((c) => c.catId === who);
               return cat ? { x: cat.x, y: cat.y, top: 26 } : undefined;

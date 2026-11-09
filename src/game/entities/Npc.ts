@@ -20,6 +20,8 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     super(scene, x, y, npcTexture(def.id), 0);
     scene.add.existing(this);
     this.setOrigin(0.5, 1);
+    // Arte em 64 px por tile (resolution 2): desenhada na metade, ocupa o mesmo espaço do mundo.
+    this.setScale(1 / (def.resolution ?? 1));
     NpcSprite.createAnimations(scene, def);
     this.updateDepth();
   }

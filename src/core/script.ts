@@ -43,6 +43,8 @@ export interface NpcDef {
   walk: Record<Facing, number>;
   /** Animações extras: nome -> índices de quadro. */
   extras: Record<string, number[]>;
+  /** Pixels da folha por pixel do jogo (2 = arte em 64 px por tile, desenhada na metade). Sem isso, 1. */
+  resolution?: number;
   /** Arte provisória (folha emprestada); entra na lista de arte pendente. */
   placeholder?: boolean;
 }
