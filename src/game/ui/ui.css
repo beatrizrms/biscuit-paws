@@ -639,22 +639,26 @@
 .day-transition .summary .hearts { color: #e58fa6; }
 
 /* Quadro do cardápio e mochila */
-.catalog.menu-board .recipe { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: 8px; }
-.catalog.menu-board .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 9px; }
+/* Painel de madeira escuro: título, subtítulos e "fechar" em cores claras. */
+.catalog.menu-board h2 { font-size: 12px; color: var(--cream); text-shadow: 0 1px 0 #2a1a14; }
+.catalog.menu-board .close { color: var(--pink2); font-size: 9px; }
+.catalog.menu-board h3 { font-size: 8px; color: var(--butter2); }
+.catalog.menu-board .recipe { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding: 5px 6px; border-radius: 6px; background: var(--cream2); font-size: 8.5px; }
+.catalog.menu-board .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--ink); }
 .catalog.menu-board .recipe .price { margin-left: auto; font-weight: bold; }
-.catalog.menu-board .recipe .desc { color: var(--grey2); font-size: 7px; }
-.catalog.menu-board .recipe .status { font-size: 7px; color: #4f8a64; }
+.catalog.menu-board .recipe .desc { color: var(--ink2); font-size: 7.5px; }
+.catalog.menu-board .recipe .status { font-size: 8px; color: #3f7a55; }
 .catalog.menu-board .recipe.sold-out .status { color: #c0596a; font-weight: bold; }
 .catalog.menu-board .recipe button { align-self: flex-end; padding: 1px 8px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
-.catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--grey2); }
-.catalog.menu-board .slot-empty { font-style: italic; color: var(--grey2); background: transparent; border: 1px dashed var(--cream3); }
+.catalog.menu-board .empty { font-size: 8px; font-style: italic; color: var(--cream3); }
+.catalog.menu-board .slot-empty { font-style: italic; color: var(--cream3); background: transparent; border: 1px dashed var(--cream3); }
 
 /* Quadro do cardápio desenhado (pacote Fluxo do café) */
 .catalog.menu-board .board { position: relative; flex: none; margin: 0 auto 6px; background-size: 100% 100%; image-rendering: pixelated; }
 .catalog.menu-board .board .slot-icon { position: absolute; display: flex; align-items: center; justify-content: center; }
 .catalog.menu-board .board .slot-icon .veil { position: absolute; inset: -6%; width: 112%; height: 112%; image-rendering: pixelated; }
 .catalog.menu-board .board .slot-icon .mark { position: absolute; left: -18%; top: 30%; width: 136%; image-rendering: pixelated; }
-.catalog.menu-board .board .slot-price { position: absolute; display: flex; align-items: center; justify-content: flex-end; font-size: 6px; font-weight: bold; color: #f3e6c8; }
+.catalog.menu-board .board .slot-price { position: absolute; display: flex; align-items: center; justify-content: flex-end; font-size: 7px; font-weight: bold; color: #f3e6c8; }
 .catalog .list { overflow-anchor: none; }
 
 
@@ -695,7 +699,7 @@
 .hud-cart[hidden] { display: none; }
 
 /* Capacidade no quadro do cardápio */
-.catalog.menu-board .capacity { margin: 4px 0 2px; padding: 3px 5px; font-size: 7.5px; line-height: 1.35; background: var(--cream2); border-radius: 3px; }
+.catalog.menu-board .capacity { margin: 4px 0 2px; padding: 4px 6px; font-size: 8px; line-height: 1.4; color: var(--ink); background: var(--cream2); border-radius: 4px; }
 .catalog.menu-board .shopping-add { display: block; margin: 3px 0; padding: 2px 6px; font-size: 7.5px; }
 .catalog.shop .list { overflow-x: hidden; }
 .catalog .cart-row { box-sizing: border-box; }
@@ -916,13 +920,19 @@
 .p-icon .notes-face { display: flex; flex-direction: column; justify-content: center; gap: 3px; width: 20px; height: 24px; padding: 0 3px; border-radius: 2px; background: var(--butter2); border: 2px solid var(--wood4); border-top-width: 4px; box-sizing: border-box; }
 .p-icon .notes-face i { display: block; height: 1px; background: var(--wood3); }
 
-/* App Notas (lista de compras) */
-.notes h3 { margin: 4px 0; font-size: 8px; color: var(--wood4); }
+/* App Notas (lista de compras): bloco de notas de celular, papel claro, título grande e bolinhas amarelas */
+.phone-ui[data-app='notes'] .phone-bar button, .phone-ui[data-app='notes'] .phone-bar h2 { color: #d99a1e; }
+.notes { margin: -4px -4px 0; padding: 4px 8px 8px; min-height: 100%; background: #fffdf8; }
+.notes .n-date { margin: 2px 0 4px; text-align: center; font-size: 7px; color: var(--grey2); }
+.notes .n-title { margin: 0 0 6px; font-size: 14px; font-weight: bold; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .notes ul { margin: 0; padding: 0; list-style: none; }
-.notes li { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 4px; border-bottom: 1px dashed var(--cream3); font-size: 7.5px; color: var(--ink); }
-.notes .n-item { display: flex; align-items: center; gap: 4px; }
-.notes li button { border: 0; background: none; color: var(--berry); font: inherit; font-size: 8px; cursor: pointer; }
-.notes .n-hint, .notes .n-empty { margin: 5px 0; font-size: 7px; color: var(--grey2); }
+.notes li { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #efe8dc; font-size: 9px; color: var(--ink); }
+.notes .n-item { display: flex; align-items: center; gap: 4px; transition: opacity 0.3s; }
+.notes .n-check { flex: none; width: 11px; height: 11px; padding: 0; border: 1.5px solid #c9c1b6; border-radius: 50%; background: none; cursor: pointer; }
+.notes .n-check:hover { border-color: #e3a82b; }
+.notes li.done .n-check { border-color: #e3a82b; background: #e3a82b radial-gradient(circle, #fff 0 22%, transparent 26%); }
+.notes li.done .n-item { opacity: 0.45; text-decoration: line-through; }
+.notes .n-hint, .notes .n-empty { margin: 8px 0; font-size: 7.5px; color: var(--grey2); }
 
 /* App Horário */
 .s-status { margin: 5px 0 2px; padding: 3px 6px; border-radius: 6px; font-size: 7.5px; font-weight: bold; }

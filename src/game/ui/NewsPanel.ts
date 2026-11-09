@@ -150,24 +150,30 @@ export class NewsPanel {
     this.onChange();
   }
 
-  /** Notas: a lista de compras (o botão do cardápio anota; comprar tira; riscar tira à mão). */
+  /** Notas: a lista de compras, como um bloco de notas (data, título grande, lista com bolinhas para marcar). */
   private renderNotes(body: HTMLElement): void {
     const t = uiText.notesApp;
-    const list = this.session.state.shoppingList;
-    body.innerHTML = `<div class="notes"><h3>${esc(t.title)}</h3>${
-      list.length
-        ? `<ul>${list
-            .map((id) => {
-              const item = content.items[id];
-              return `<li><span class="n-item">${item ? iconHtml(item.icon) : ''}${esc(item?.name ?? id)}</span><button data-strike="${id}" aria-label="${esc(t.remove)}">✕</button></li>`;
-            })
-            .join('')}</ul><p class="n-hint">${esc(t.hint)}</p>`
-        : `<p class="n-empty">${esc(t.empty)}</p>`
-    }</div>`;
+    const st = this.session.state;
+    const list = st.shoppingList;
+    const items = list
+      .map((id) => {
+        const item = content.items[id];
+        return `<li><button class="n-check" data-strike="${id}" aria-label="${esc(t.remove)}"></button><span class="n-item">${item ? iconHtml(item.icon) : ''}${esc(item?.name ?? id)}</span></li>`;
+      })
+      .join('');
+    body.innerHTML = `<div class="notes">
+      <p class="n-date">${uiText.day} ${st.day} · ${formatClock(st.time, 10)}</p>
+      <h3 class="n-title">${esc(t.title)}</h3>
+      ${list.length ? `<ul>${items}</ul><p class="n-hint">${esc(t.hint)}</p>` : `<p class="n-empty">${esc(t.empty)}</p>`}
+    </div>`;
+    // Marcar a bolinha risca o item (some da lista logo depois).
     body.querySelectorAll<HTMLButtonElement>('[data-strike]').forEach((b) =>
       b.addEventListener('click', () => {
-        this.session.removeFromShoppingList(b.dataset.strike!);
-        this.render();
+        b.closest('li')?.classList.add('done');
+        window.setTimeout(() => {
+          this.session.removeFromShoppingList(b.dataset.strike!);
+          this.render();
+        }, 350);
       }),
     );
   }
