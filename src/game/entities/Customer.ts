@@ -2,6 +2,7 @@
 // Só desenha: onde ele fica, o que pediu e a paciência vêm do núcleo (CafeService).
 import Phaser from 'phaser';
 import type { Cell, Facing } from '../../core/map';
+import type { AnchoredBox } from '../../core/spread';
 import type { NpcDef } from '../../core/script';
 import { serviceArt } from '../content';
 import { iconFrame } from '../icons';
@@ -114,10 +115,18 @@ export class CustomerSprite {
     this.bubbleBg.setTexture(`bubble_${mood}`);
   }
 
-  /** Mantém o balão em cima da cabeça. */
-  update(): void {
-    this.bubble.setPosition(this.sprite.x, this.sprite.y - 60);
-    this.waiting.setPosition(this.sprite.x + 6, this.sprite.y - 60);
+  /** Caixa do balão à mostra (pedido ou aguardando), pela ponta; null = sem balão. */
+  bubbleBox(): AnchoredBox | null {
+    if (this.bubble.visible) return { x: this.sprite.x, y: this.sprite.y - 60, w: this.bubbleBg.width, h: this.bubbleBg.height };
+    if (this.waiting.visible) return { x: this.sprite.x + 6, y: this.sprite.y - 60, w: this.waiting.width, h: this.waiting.height };
+    return null;
+  }
+
+  /** Mantém o balão em cima da cabeça; `offset` afasta dos balões vizinhos (mesa cheia). */
+  update(offset: readonly [number, number] = [0, 0]): void {
+    const [ox, oy] = offset;
+    this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - 60 + oy);
+    this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - 60 + oy);
     this.consuming.setPosition(this.sprite.x, this.sprite.y - 52);
   }
 

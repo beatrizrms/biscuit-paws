@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
+import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
@@ -1527,6 +1528,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.customerViews.delete(id);
       });
     }
+    // Mesa cheia: os balões vizinhos se afastam o mínimo para não encostar um no outro.
+    const withBubble = [...this.customerViews.values()].flatMap((v) => {
+      const box = v.bubbleBox();
+      return box ? [{ v, box }] : [];
+    });
+    const offsets = spreadBoxes(withBubble.map((b) => b.box));
+    withBubble.forEach(({ v }, i) => v.update(offsets[i]));
   }
 
   private clearCustomers(): void {
