@@ -518,3 +518,58 @@ describe('equipamentos em cima do balcão', () => {
     expect(session.mapData().objects.find((o) => o.id === 'placed.' + machine.uid)?.lift).toBe(content.world.counterLift);
   });
 });
+
+describe('mudar móvel de lugar', () => {
+  function counterWithMachine() {
+    const state = newGameState(500, 'map.cafe_main', 9 * 60);
+    const session = new GameSession(content, state);
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [7, 5]);
+    session.buy('item.coffee_machine');
+    session.place('item.coffee_machine', [7, 5]);
+    const counter = state.placed.find((p) => p.item === 'item.counter_single')!;
+    const machine = state.placed.find((p) => p.item === 'item.coffee_machine')!;
+    return { session, state, counter, machine };
+  }
+
+  it('o balcão leva junto a cafeteira e a louça de cima; não passa pela mochila', () => {
+    const { session, state, counter, machine } = counterWithMachine();
+    state.surfaces.push({ at: [7, 5], item: { kind: 'dirty', vessel: 'mug' } as never });
+    expect(session.movingGroup(counter.uid).map((p) => p.item)).toEqual(['item.counter_single', 'item.coffee_machine']);
+    expect(session.move(counter.uid, [9, 7])).toEqual({ ok: true });
+    expect(counter.at).toEqual([9, 7]);
+    expect(machine.at).toEqual([9, 7]);
+    expect(state.surfaces[0]!.at).toEqual([9, 7]);
+    expect(state.inventory['item.counter_single'] ?? 0).toBe(0);
+    // A cafeteira continua no balcão (a mesma peça, o mesmo uid).
+    expect(session.service.stationsFor('coffee_machine').map((s) => s.uid)).toContain(machine.uid);
+  });
+
+  it('o lugar novo é conferido sem contar a própria peça (pode ir para a célula do lado); parede não', () => {
+    const { session, counter } = counterWithMachine();
+    expect(session.moveProblem(counter.uid, [8, 5])).toBeNull();
+    expect(session.moveProblem(counter.uid, [7, 0])).not.toBeNull();
+    expect(session.move(counter.uid, [7, 0]).ok).toBe(false);
+    expect(counter.at).toEqual([7, 5]);
+  });
+
+  it('só a de cima (cafeteira) vai para outro balcão livre; sem balcão, não', () => {
+    const { session, machine } = counterWithMachine();
+    expect(session.movingGroup(machine.uid).map((p) => p.item)).toEqual(['item.coffee_machine']);
+    expect(session.move(machine.uid, [10, 6])).toEqual({ ok: false, reason: 'needs_counter' });
+    session.buy('item.counter_single');
+    session.place('item.counter_single', [10, 6]);
+    expect(session.move(machine.uid, [10, 6])).toEqual({ ok: true });
+  });
+
+  it('guardar na mochila leva os dois; com louça em cima, primeiro tira a louça', () => {
+    const { session, state, counter } = counterWithMachine();
+    state.surfaces.push({ at: [7, 5], item: { kind: 'dirty', vessel: 'mug' } as never });
+    expect(session.storePlaced(counter.uid)).toEqual({ ok: false, reason: 'has_something_on_top' });
+    state.surfaces.length = 0;
+    expect(session.storePlaced(counter.uid)).toEqual({ ok: true });
+    expect(state.placed).toHaveLength(0);
+    expect(state.inventory['item.counter_single']).toBe(1);
+    expect(state.inventory['item.coffee_machine']).toBe(1);
+  });
+});

@@ -40,7 +40,7 @@ import {
   type RoomState,
 } from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
-import { nowAbs, type Delivery, type DeliveryStage, type GameState } from './state';
+import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
@@ -1805,6 +1805,63 @@ export class GameSession {
   /** Móvel da jogadora numa célula, se houver. */
   placedAt(cell: Cell) {
     return placedItemAt(this.content.catalog, this.state.placed, this.content.items, cell);
+  }
+
+  /** O móvel e o que está em cima dele (cafeteira no balcão...): vão juntos ao mover ou guardar. */
+  movingGroup(uid: string): PlacedItem[] {
+    const host = this.state.placed.find((p) => p.uid === uid);
+    if (!host) return [];
+    const riders = this.content.items[host.item]?.placeOn
+      ? []
+      : this.state.placed.filter((p) => p !== host && this.content.items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
+    return [host, ...riders];
+  }
+
+  /**
+   * Por que o móvel (e o que vai com ele) não pode ir para `to` (ou null). Confere como se ele já tivesse saído do
+   * lugar: a peça não "esbarra" nela mesma nem no que está em cima.
+   */
+  moveProblem(uid: string, to: Cell, reserved: readonly Cell[] = []): PlaceProblem | 'not_found' | null {
+    const group = this.movingGroup(uid);
+    if (group.length === 0) return 'not_found';
+    const all = this.state.placed;
+    this.state.placed = all.filter((p) => !group.includes(p));
+    try {
+      return this.checkPlacement(group[0]!.item, to, reserved);
+    } finally {
+      this.state.placed = all;
+    }
+  }
+
+  /** Muda o móvel de lugar sem passar pela mochila: o que está em cima (e a louça no balcão) vai junto. */
+  move(uid: string, to: Cell, reserved: readonly Cell[] = []): ActionResult {
+    const problem = this.moveProblem(uid, to, reserved);
+    if (problem) return { ok: false, reason: problem };
+    const group = this.movingGroup(uid);
+    const host = group[0]!;
+    const [dc, dr] = [to[0] - host.at[0], to[1] - host.at[1]];
+    const def = this.content.catalog.tiles[this.content.items[host.item]?.tile ?? ''];
+    const cells = def ? cellsOf(host.at, def) : [host.at];
+    // Louça e pedidos prontos em cima do balcão (atendimento) acompanham.
+    for (const s of this.state.surfaces) if (cells.some(([c, r]) => c === s.at[0] && r === s.at[1])) s.at = [s.at[0] + dc, s.at[1] + dr];
+    for (const p of group) p.at = [p.at[0] + dc, p.at[1] + dr];
+    this.bus.emit('item.moved', { itemId: host.item, uid, at: [to[0], to[1]], carried: group.length - 1 });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Guarda o móvel e o que está em cima dele na mochila (a louça do balcão não: precisa estar livre). */
+  storePlaced(uid: string): ActionResult {
+    const group = this.movingGroup(uid);
+    if (group.length === 0) return { ok: false, reason: 'not_found' };
+    const def = this.content.catalog.tiles[this.content.items[group[0]!.item]?.tile ?? ''];
+    const cells = def ? cellsOf(group[0]!.at, def) : [group[0]!.at];
+    if (this.state.surfaces.some((s) => cells.some(([c, r]) => c === s.at[0] && r === s.at[1]))) return { ok: false, reason: 'has_something_on_top' };
+    for (const p of [...group].reverse()) {
+      const r = this.pickUp(p.uid);
+      if (!r.ok) return r;
+    }
+    return { ok: true };
   }
 
   /** Recolhe um móvel de volta para o inventário. */

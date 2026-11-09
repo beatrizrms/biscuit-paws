@@ -36,6 +36,7 @@ import { poseDrawsProp, poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
+import { PLACED_PREFIX } from '../../core/placement';
 import { CareBubbles } from '../careBubbles';
 import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
@@ -90,7 +91,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private mapImages?: Phaser.GameObjects.Group;
   private solids?: Phaser.Physics.Arcade.StaticGroup;
   private solidCollider?: Phaser.Physics.Arcade.Collider;
-  private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell } | null = null;
+  /**
+   * Posicionando: um item da mochila, ou (moveUid) um móvel do café mudando de lugar, com o que está em cima dele
+   * (riders: fantasmas que acompanham, já na altura do tampo).
+   */
+  private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
+  /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
+  private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
   private debugPanel?: DebugPanel;
   private changingMap = false;
   private dayNight!: DayNightLayer;
@@ -192,6 +199,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
+    // Q: mudando um móvel de lugar, guarda na mochila.
+    this.onKey('Q', () => this.storeMoving());
     this.onKey('ESC', () => {
       if (this.placing) this.cancelPlacing();
       else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
@@ -242,6 +251,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const rebuildIfHome = () => this.session.atHome() && this.buildMap();
     this.session.bus.on('item.placed', rebuildIfHome);
     this.session.bus.on('item.picked_up', rebuildIfHome);
+    this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
     // Cômodos: o mapa, a câmera (só o que ela conhece) e a luz do quintal mudam; descobrir tem um momento.
@@ -481,8 +491,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     this.mapImages?.destroy(true);
     this.mapImages = this.add.group();
+    this.objectImages.clear();
     for (const s of this.map.sprites) {
-      this.mapImages.add(addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth));
+      const img = addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
+      this.mapImages.add(img);
+      if (s.obj) this.objectImages.set(s.obj, [...(this.objectImages.get(s.obj) ?? []), img]);
     }
     // Luz e sombra de ambiente: refeitas junto com o mapa (inclui os móveis colocados).
     const { content } = this.session;
@@ -626,8 +639,42 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
   }
 
+  /** Botão direito num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
+  private startMoving(uid: string): void {
+    this.cancelPlacing();
+    const group = this.session.movingGroup(uid);
+    const host = group[0];
+    if (!host) return;
+    const { catalog, items } = this.session.content;
+    const ghostsOf = (itemId: string) => {
+      const def = catalog.tiles[items[itemId]!.tile ?? '']!;
+      const out: Phaser.GameObjects.Image[] = [];
+      for (let dy = 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) out.push(addTileImage(this, 0, 0, def.sheet, frameOf(catalog, def, dx, dy)).setAlpha(0.8).setDepth(GHOST_DEPTH));
+      return { ghosts: out, w: def.w };
+    };
+    const lift = this.session.content.world.counterLift ?? 0;
+    const riders = group.slice(1).map((p) => ({ ...ghostsOf(p.item), lift }));
+    riders.forEach((r) => r.ghosts.forEach((g) => g.setDepth(GHOST_DEPTH + 1)));
+    this.placing = { itemId: host.item, ghosts: ghostsOf(host.item).ghosts, at: [host.at[0], host.at[1]], moveUid: uid, riders };
+    // O original fica no lugar, esmaecido, até soltar (cancelar não muda nada).
+    for (const p of group) this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => img.setAlpha(0.35));
+    this.ui.setHint('moving');
+    this.moveGhost(this.input.activePointer);
+  }
+
+  /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila. */
+  private storeMoving(): void {
+    const uid = this.placing?.moveUid;
+    if (!uid) return;
+    const r = this.session.storePlaced(uid);
+    if (!r.ok) return this.ui.problem(r.reason);
+    this.cancelPlacing();
+  }
+
   private cancelPlacing(): void {
     this.placing?.ghosts.forEach((g) => g.destroy());
+    this.placing?.riders?.forEach((r) => r.ghosts.forEach((g) => g.destroy()));
+    if (this.placing?.moveUid) for (const imgs of this.objectImages.values()) imgs.forEach((img) => img.setAlpha(1));
     this.placing = null;
     this.ui?.setHint('walk');
   }
@@ -647,10 +694,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const def = this.ghostDef();
     const [c0, r0] = this.placing.at;
-    const ok = this.session.checkPlacement(this.placing.itemId, this.placing.at, this.playerCells()) === null;
+    const { moveUid } = this.placing;
+    const ok = (moveUid ? this.session.moveProblem(moveUid, this.placing.at, this.playerCells()) : this.session.checkPlacement(this.placing.itemId, this.placing.at, this.playerCells())) === null;
     this.placing.ghosts.forEach((g, i) => {
       g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts).setTint(ok ? GHOST_OK : GHOST_BAD);
     });
+    // O que vai em cima: na célula de origem do apoio, subido até o tampo.
+    for (const r of this.placing.riders ?? []) r.ghosts.forEach((g, i) => g.setPosition((c0 + (i % r.w)) * ts, (r0 + Math.floor(i / r.w)) * ts - r.lift).setTint(ok ? GHOST_OK : GHOST_BAD));
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
@@ -660,8 +710,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.placing) {
       if (pointer.rightButtonDown()) return this.cancelPlacing();
       this.moveGhost(pointer);
-      const { itemId, at } = this.placing;
-      const result = this.session.place(itemId, at, this.playerCells());
+      const { itemId, at, moveUid } = this.placing;
+      const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
       if (!result.ok) return this.ui.problem(result.reason);
       this.cancelPlacing();
       return;
@@ -676,11 +726,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return;
     }
     {
-      // Botão direito: recolher um móvel e já pegá-lo na mão, para mudar de lugar.
+      // Botão direito: mudar o móvel de lugar (o que está em cima vai junto; Q guarda na mochila). Na célula de um
+      // balcão com cafeteira, pega o balcão (com ela); Shift + botão direito pega só a de cima.
       const placed = this.session.placedAt(this.cellAt(pointer));
       if (!placed) return;
-      this.session.pickUp(placed.uid);
-      this.startPlacing(placed.item);
+      const onTop = !!this.session.content.items[placed.item]?.placeOn;
+      const shift = (pointer.event as MouseEvent | undefined)?.shiftKey ?? false;
+      const host = onTop && !shift ? this.session.state.placed.find((p) => p !== placed && !this.session.content.items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1]) : undefined;
+      this.startMoving((host ?? placed).uid);
     }
   }
 

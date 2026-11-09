@@ -217,13 +217,20 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   await expect(page.locator('.hud-money')).toContainText('142');
   await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
 
-  // Botão direito recolhe e pega na mão; Esc cancela e o item volta para a bolsa.
+  // Botão direito entra em "mudar de lugar": o móvel continua no café (a meta segue feita); Esc cancela sem mudar nada.
   // Cada passo espera o jogo reagir antes do próximo (sem corrida entre teclas).
   await clickCell(page, 12, 9, 'right');
-  await expect(page.locator('.hud-goals li.done')).toHaveCount(0);
-  await expect(page.locator('.hint')).toContainText('cancelar'); // modo de posicionar
+  await expect(page.locator('.hint')).toContainText('soltar'); // modo de mudar de lugar
+  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(page.locator('.hint')).toContainText('market'); // voltou a andar
+  await expect(page.locator('.hud-goals li.done')).toHaveCount(1);
+  // Botão direito e Q: guarda na mochila.
+  await clickCell(page, 12, 9, 'right');
+  await expect(page.locator('.hint')).toContainText('soltar');
+  await page.keyboard.press('q');
+  await expect(page.locator('.hud-goals li.done')).toHaveCount(0);
+  await expect(page.locator('.hint')).toContainText('market');
   await page.keyboard.press('c');
   await expect(page.locator('section.phone-ui[data-app="market"]')).toHaveClass(/open/);
   await page.locator('[data-tab="pet"]').click();

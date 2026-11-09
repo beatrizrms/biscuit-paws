@@ -16,7 +16,7 @@ import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
 
-type HintMode = 'walk' | 'placing' | 'dialogue';
+type HintMode = 'walk' | 'placing' | 'moving' | 'dialogue';
 
 const TYPE_SPEED_MS = 22;
 
@@ -693,7 +693,7 @@ export class GameUi {
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    this.hint.textContent = mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : uiText.hintWalk;
+    this.hint.textContent = mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : uiText.hintWalk;
   }
 
   private queueDialogue(dialogueId: string): void {

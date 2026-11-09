@@ -117,6 +117,8 @@ export interface SurfaceDef {
 
 /** Uma célula de 32 x 32 pronta para desenhar. */
 export interface MapSprite {
+  /** Id do objeto do mapa de onde veio (só objetos; piso e parede não têm). */
+  obj?: string;
   /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
   dy?: number;
   tile: string;
@@ -304,15 +306,15 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     for (let k = 1; k <= (def.rise ?? 0); k++) {
       for (let dx = 0; dx < def.w; dx++) {
         const frame = frameOf(catalog, def, dx, -k);
-        sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col: c0 + dx, row: r0 - k, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
+        sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col: c0 + dx, row: r0 - k, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
       }
     }
     for (const [col, row] of cellsOf(obj.at, def)) {
       const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
-      sprites.push({ tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
+      sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
       if (over) {
         const overFrame = frameOf(catalog, over, col - c0, row - r0);
-        sprites.push({ tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });
+        sprites.push({ obj: obj.id, tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });
       }
     }
   }

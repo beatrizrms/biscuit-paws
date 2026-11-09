@@ -68,6 +68,8 @@ export interface GameEvents {
   'item.received': { itemId: string };
   'item.placed': { itemId: string; uid: string; at: Cell };
   'item.picked_up': { itemId: string; uid: string };
+  /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
+  'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };
   'item.refunded': { itemId: string; amount: number };
   'dirt.cleaned': { dirtId: string };
   'surface.painted': { surfaceId: string; finishId: string; price: number };

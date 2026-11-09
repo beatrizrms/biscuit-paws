@@ -84,6 +84,7 @@
     "label": "Barra de itens"
   },
   "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
+  "hintMoving": "Clique: soltar aqui · Q: guardar na mochila · botão direito ou Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
   "problems": {
@@ -540,7 +541,8 @@
   "phoneApp": {
     "home": "Início",
     "back": "voltar",
-    "close": "fechar"
+    "close": "fechar",
+    "balance": "Saldo"
   },
   "weekdays": [
     "seg",

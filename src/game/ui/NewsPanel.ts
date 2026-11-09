@@ -54,7 +54,7 @@ export class NewsPanel {
     this.phoneEl.style.borderImage = `url(${phone.frame}) ${slice.join(' ')} / ${slice.map((n) => `${n}px`).join(' ')} stretch`;
     this.phoneEl.style.borderWidth = slice.map((n) => `${n}px`).join(' ');
     this.phoneEl.innerHTML = `<div class="phone-screen">
-        <div class="phone-status"><span class="p-clock"></span><img src="${phone.status}" alt="" /></div>
+        <div class="phone-status"><span class="p-clock"></span><span class="p-money" title="${uiText.phoneApp.balance}"><img src="assets/ui/hud/ui_coin_16.png" alt="" /><b></b></span><img class="p-signal" src="${phone.status}" alt="" /></div>
         <header class="phone-bar"><button class="p-back" title="${uiText.phoneApp.back}">‹</button><h2></h2><button class="p-close" title="${uiText.phoneApp.close}">✕</button></header>
         <div class="phone-body"></div>
       </div>`;
@@ -72,6 +72,13 @@ export class NewsPanel {
 
     for (const ev of ['arrival.started', 'arrival.finished', 'arrival.step', 'job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
       session.bus.on(ev, () => this.render());
+    // Saldo na barra do celular (ele cobre as moedas do HUD): só o número muda, o app aberto fica como está.
+    session.bus.on('money.changed', () => this.showMoney());
+  }
+
+  private showMoney(): void {
+    const el = this.phoneEl?.querySelector('.p-money b');
+    if (el) el.textContent = String(this.session.state.money);
   }
 
   isOpen(): boolean {
@@ -120,6 +127,7 @@ export class NewsPanel {
     this.phoneEl.dataset.app = this.app;
     (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
     (this.phoneEl.querySelector('.p-clock') as HTMLElement).textContent = formatClock(this.session.state.time, 10);
+    this.showMoney();
     const body = this.phoneBody;
     if (this.app === 'market') return this.market.render(body);
     if (this.app === 'schedule') return this.scheduleApp.render(body);
