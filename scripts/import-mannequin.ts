@@ -4,6 +4,8 @@
 // Os quadros do PixelLab têm 176x176 com a figura no meio; cada um é recortado numa caixa fixa
 // (data/character.json, mannequin.frameWidth x frameHeight) com os pés na base, e perde os pontinhos soltos.
 // A ação (limpar, máquinas...) só existe de frente e de costas: as linhas de lado repetem a de frente.
+// Caminhada, bandeja, colo e parada são as versões "2" (passos com os pés juntos, decisão 076); a parada tem 3 quadros
+// (respiração) e a 4ª coluna repete o do meio.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 import type { CharacterData } from '../src/core/appearance';
@@ -20,10 +22,11 @@ const FRAMES = 4;
 const ROWS = ['south', 'west', 'east', 'north'] as const;
 
 /** Arquivo da folha -> pasta da animação no PixelLab e direções que existem. */
-const SHEETS: Record<string, { anim: string; only?: Partial<Record<(typeof ROWS)[number], (typeof ROWS)[number]>> }> = {
-  'mannequin_walk.png': { anim: 'man_walk' },
-  'mannequin_tray.png': { anim: 'm_tray' },
-  'mannequin_carry.png': { anim: 'm_carry' },
+const SHEETS: Record<string, { anim: string; only?: Partial<Record<(typeof ROWS)[number], (typeof ROWS)[number]>>; frames?: number[] }> = {
+  'mannequin_walk.png': { anim: 'm_walk2' },
+  'mannequin_tray.png': { anim: 'm_tray2' },
+  'mannequin_carry.png': { anim: 'm_carry2' },
+  'mannequin_idle.png': { anim: 'm_idle2', frames: [0, 1, 2, 1] },
   'mannequin_work.png': { anim: 'm_work', only: { west: 'south', east: 'south' } },
 };
 
@@ -74,12 +77,12 @@ function dropSpecks(p: PNG): number {
 
 let specks = 0;
 let cut = 0;
-for (const [file, { anim, only }] of Object.entries(SHEETS)) {
+for (const [file, { anim, only, frames }] of Object.entries(SHEETS)) {
   const sheet = new PNG({ width: W * FRAMES, height: H * ROWS.length });
   ROWS.forEach((row, r) => {
     const dir = only?.[row] ?? row;
     for (let f = 0; f < FRAMES; f++) {
-      const src = PNG.sync.read(readFileSync(`${SRC}/${anim}/${dir}/frame_${String(f).padStart(3, '0')}.png`));
+      const src = PNG.sync.read(readFileSync(`${SRC}/${anim}/${dir}/frame_${String(frames?.[f] ?? f).padStart(3, '0')}.png`));
       if (src.width !== CANVAS || src.height !== CANVAS) throw new Error(`${anim}/${dir}/${f}: quadro ${src.width}x${src.height}, esperado ${CANVAS}x${CANVAS}`);
       specks += dropSpecks(src);
       // Algo fora da caixa ficaria cortado: avisa.
@@ -91,25 +94,5 @@ for (const [file, { anim, only }] of Object.entries(SHEETS)) {
   writeFileSync(`${OUT}/${file}`, PNG.sync.write(sheet));
 }
 
-// Pose parada: as rotações do personagem (128x128, em pé, pernas juntas), alinhadas pelos pés e pelo centro da figura
-// do 1º quadro da caminhada na mesma direção (não pula ao começar a andar). As 4 colunas repetem o mesmo quadro.
-if (m.idle) {
-  const box = (p: PNG) => {
-    let x0 = p.width, x1 = -1, y1 = -1;
-    for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) if (p.data[(y * p.width + x) * 4 + 3]! > 0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
-    return { cx: Math.round((x0 + x1) / 2), bottom: y1 };
-  };
-  const sheet = new PNG({ width: W * FRAMES, height: H * ROWS.length });
-  ROWS.forEach((row, r) => {
-    const walk = PNG.sync.read(readFileSync(`${SRC}/man_walk/${row}/frame_000.png`));
-    const rot = PNG.sync.read(readFileSync(`${SRC}/../rotations/${row}.png`));
-    dropSpecks(rot);
-    const a = box(walk), b = box(rot);
-    const canvas = new PNG({ width: CANVAS, height: CANVAS });
-    PNG.bitblt(rot, canvas, 0, 0, rot.width, rot.height, a.cx - b.cx, a.bottom - b.bottom);
-    for (let f = 0; f < FRAMES; f++) PNG.bitblt(canvas, sheet, X0, Y0, W, H, f * W, r * H);
-  });
-  writeFileSync(`${OUT}/${m.idle}`, PNG.sync.write(sheet));
-}
 console.log(`✓ manequim: ${Object.keys(SHEETS).length} folhas em ${OUT} (quadros ${W}x${H}, resolução ${m.resolution}); ${specks} pixels soltos apagados`);
 if (cut > 0) console.warn(`! ${cut} pixels ficaram fora da caixa (aumente frameWidth/frameHeight ou ajuste FEET_Y)`);

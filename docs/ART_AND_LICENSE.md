@@ -179,7 +179,7 @@ Feito por código em cima da arte gerada (sem gerar de novo): letreiros (fonte d
 
 **Ainda fora da arte nova:**
 - Gatos (Cosy Cats, leckie1989): **nunca** gerar por IA (licença).
-- Personagem, NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`). Já no jogo: o **manequim** da personagem principal (careca, roupa íntima bege, 64 px; caminhada, bandeja, colo e ação; decisão 075), montado por `npm run mannequin` em `public/assets/characters/player_mannequin/`. Defeitos conhecidos: borrão marrom atrás das costas em 2 quadros da caminhada (leste quadro 2, oeste quadro 0) e pernas um pouco abertas na caminhada.
+- Personagem, NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`). Já no jogo: o **manequim** da personagem principal (careca, roupa íntima bege, 64 px; caminhada, bandeja, colo e ação; decisão 075), montado por `npm run mannequin` em `public/assets/characters/player_mannequin/`. Caminhada, bandeja, colo e parada refeitas com os pés juntos (decisão 076); de lado, o braço de trás aparece escuro atrás das costas em 1 quadro.
 - Interface (menus, HUD, celular, balões de atendimento, louça 16 px na mão) e os pacotes dos mini games (Gato em fuga, Pescaria, Latte art, Entrega).
 - Lençol sobre móvel (sujeira do café abandonado) e os provisórios por código da lista de pendências (caixa de areia, cocô, pegadas, peças da feira de adoção).
 
