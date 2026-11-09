@@ -1854,6 +1854,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Vai direto para um mapa (como se tivesse passado pela porta). */
+  /** Debug (F9): redesenha o mapa do zero depois de mudar a história ou os cômodos; com mapId, vai para ele. */
+  debugReload(mapId?: string): void {
+    this.ui.skipDialogue();
+    if (mapId && mapId !== this.session.location()) return this.goTo(mapId);
+    this.loadMap(this.session.location(), this.feetCell());
+  }
+
   goTo(mapId: string, spawn?: Cell): void {
     this.session.enter(mapId);
     this.loadMap(mapId, spawn);

@@ -32,5 +32,6 @@ export function attachDebugTools(scene: WorldScene, root: HTMLElement): DebugPan
     turnOff: () => setDebug(false),
     openMiniGame: (id, difficulty, catId) => void scene.openMiniGame(id, { difficulty, ...(catId ? { catId } : {}) }),
     miniGames: () => MiniGameRegistry.ids(),
+    reloadWorld: (mapId) => scene.debugReload(mapId),
   });
 }

@@ -1272,3 +1272,28 @@ describe('tutorial da dica "E"', () => {
     expect(session.hintWanted('int_shelf')).toBe(true); // cada tipo conta à parte
   });
 });
+
+describe('debug da história e dos cômodos', () => {
+  it('pular introdução: conclui até o fim do prólogo, com o gato abrigado e com nome; depois um marco por vez', () => {
+    const { session } = newSession(false);
+    const n = session.debugCompleteStory('story.prologue_end');
+    expect(n).toBeGreaterThan(5);
+    expect(session.state.story.completed).toContain('story.prologue_end');
+    expect(session.state.story.completed).not.toContain('story.inauguration');
+    expect(session.shelteredCats().length).toBeGreaterThan(0);
+    expect(session.shelteredCats().every((id) => session.state.cats[id]!.name)).toBe(true);
+    const next = session.debugCompleteBeat();
+    expect(next).toBeTruthy();
+    expect(session.state.story.completed).toContain(next!);
+  });
+
+  it('concluir história: todos os marcos; abrir cômodos: todos reformados, com as passagens abertas', () => {
+    const { session } = newSession(false);
+    session.debugCompleteStory();
+    expect(session.state.story.completed).toEqual(expect.arrayContaining(content.story.beats.map((b) => b.id)));
+    expect(session.debugCompleteBeat()).toBeNull();
+    session.debugUnlockRooms();
+    for (const room of content.rooms.rooms) expect(session.roomState(room.id)).toBe('restored');
+    for (const d of content.rooms.doors) expect(session.doorState(d.id)).toBe('open');
+  });
+});

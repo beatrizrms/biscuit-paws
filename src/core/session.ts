@@ -1115,6 +1115,65 @@ export class GameSession {
     if (cat?.sheltered) addCare(cat, stat, delta, this.content.health.care);
   }
 
+  /**
+   * Debug: conclui o próximo marco da história sem esperar a condição. Os efeitos que mudam o estado valem (itens,
+   * flags, dinheiro, gato, cômodo); falas, cenas, roteiros e saltos de hora/dia ficam de fora (não abrem uma fila de
+   * diálogos). Gato abrigado sem nome ganha o primeiro nome sugerido. Devolve o marco concluído (ou null: acabou).
+   */
+  debugCompleteBeat(): string | null {
+    this.debugNaming = true;
+    try {
+      return this.completeBeatQuietly();
+    } finally {
+      this.debugNaming = false;
+    }
+  }
+
+  /** Gato abrigado durante o debug da história já ganha nome (sem a caixa de nome). */
+  private debugNaming = false;
+
+  private completeBeatQuietly(): string | null {
+    // Ignora também a condição de início (ex.: "a partir do dia 3"): só a ordem (after) vale.
+    const done = this.state.story.completed;
+    const next = this.content.story.beats.find((b) => !done.includes(b.id) && (b.after ?? []).every((d) => done.includes(d)));
+    if (!next) return null;
+    this.state.story.completed.push(next.id);
+    this.state.story.completedOn[next.id] = this.state.day;
+    for (const e of next.effects) {
+      if ('dialogue' in e || 'cutscene' in e || 'script' in e || 'endDay' in e || 'setTime' in e) continue;
+      if ('discoverRoom' in e) {
+        if (this.roomState(e.discoverRoom) === 'locked') this.state.rooms[e.discoverRoom] = 'discovered';
+        continue;
+      }
+      this.applyEffect(e);
+    }
+    for (const id of this.shelteredCats()) if (!this.state.cats[id]!.name) this.state.cats[id]!.name = this.suggestCatName(id, 0);
+    this.bus.emit('story.beat_completed', { beatId: next.id });
+    return next.id;
+  }
+
+  /** Debug: conclui marcos até `untilId` (inclusive) ou até o fim da história; a sujeira de vassoura sai junto (a faxina). */
+  debugCompleteStory(untilId?: string): number {
+    for (const d of this.visibleDirt()) if (!d.clearedBy) this.state.cleaned.push(d.id);
+    let n = 0;
+    for (let id = this.debugCompleteBeat(); id; id = untilId === id ? null : this.debugCompleteBeat()) n++;
+    this.advanceStory();
+    return n;
+  }
+
+  /** Debug: todos os cômodos descobertos, abertos e reformados (passagens abertas, sujeira deles limpa). */
+  debugUnlockRooms(): void {
+    for (const room of this.content.rooms.rooms) {
+      for (const d of this.content.rooms.doors.filter((x) => x.to === room.id)) this.state.doors[d.id] = 'open';
+      const tag = room.restore?.dirtTag;
+      if (tag) for (const d of this.visibleDirt().filter((x) => x.tags.includes(tag))) this.state.cleaned.push(d.id);
+      if (this.roomState(room.id) === 'restored') continue;
+      this.state.rooms[room.id] = 'restored';
+      this.bus.emit('room.restored', { roomId: room.id });
+    }
+    this.advanceStory();
+  }
+
   /** Debug: o gato fica doente e já com receita (3 dias), para testar o remédio sem passar pela clínica. */
   debugSickWithPrescription(catId: string): void {
     const cat = this.state.cats[catId];
@@ -1960,7 +2019,8 @@ export class GameSession {
     const profile = condition ? this.content.catProfiles.conditions[condition] : undefined;
     this.state.cats[catId] = {
       sheltered: true,
-      name: def?.name ?? '',
+      // Debug (concluir marcos): já nomeado, para a caixa de nome não abrir no meio da fila.
+      name: def?.name || (this.debugNaming ? this.suggestCatName(catId, 0) : ''),
       map: this.content.map.id,
       shelteredOn: this.state.day,
       health: profile?.health ?? this.content.health.start,

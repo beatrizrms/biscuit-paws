@@ -12,6 +12,8 @@ export interface DebugActions {
   /** catId: o gato da linha Cuidados (os mini games de cuidado sobem a alegria/higiene dele). */
   openMiniGame(gameId: string, difficulty: 'easy' | 'normal' | 'hard', catId?: string): void;
   miniGames(): string[];
+  /** Redesenha o mapa atual (depois de concluir marcos ou abrir cômodos); com mapId, vai para ele. */
+  reloadWorld(mapId?: string): void;
 }
 
 export class DebugPanel {
@@ -53,6 +55,13 @@ export class DebugPanel {
         <button data-act="new">Jogo novo</button>
         <button data-act="off">Desligar</button>
       </div>
+      <div class="buttons story">
+        <strong>História</strong>
+        <button data-act="skip-intro">pular introdução</button>
+        <button data-act="beat">concluir marco</button>
+        <button data-act="story-all">concluir história</button>
+        <button data-act="rooms">abrir cômodos</button>
+      </div>
       <div class="buttons care">
         <strong>Cuidados</strong>
         <select data-dbg="care-cat"></select>
@@ -90,6 +99,31 @@ export class DebugPanel {
     on('clean-up', care('hygiene', 20));
     on('clean-down', care('hygiene', -20));
     on('sick-rx', () => careCat.value && session.debugSickWithPrescription(careCat.value));
+    // História: concluir marcos sem esperar a condição (sem as falas) e abrir/reformar os cômodos.
+    const story = (text: string) => {
+      this.note = text;
+      this.render();
+    };
+    on('skip-intro', () => {
+      const n = session.debugCompleteStory('story.prologue_end');
+      actions.reloadWorld(session.content.map.id);
+      story(`introdução pulada (${n} marcos)`);
+    });
+    on('beat', () => {
+      const id = session.debugCompleteBeat();
+      actions.reloadWorld();
+      story(id ? `concluído: ${id}` : 'história completa');
+    });
+    on('story-all', () => {
+      const n = session.debugCompleteStory();
+      actions.reloadWorld();
+      story(`história completa (${n} marcos)`);
+    });
+    on('rooms', () => {
+      session.debugUnlockRooms();
+      actions.reloadWorld();
+      story('cômodos abertos e reformados');
+    });
     on('money', () => session.addMoney(100, 'debug'));
     on('rep', () => session.addReputation(10, 'debug'));
     // Feira de adoção sem precisar dos 9 gatos; e pular os dias até a data marcada (de manhã).
@@ -129,7 +163,7 @@ export class DebugPanel {
     });
     on('gen-cat', () => session.arrivals.debugGenerate(sel('personality').value, sel('condition').value));
     on('triggers', () => {
-      this.note = session.arrivals.triggerReport().filter((r) => r.holds).map((r) => r.id.replace('arr.', '')).join(', ') || 'nenhum';
+      this.note = `gatilhos: ${session.arrivals.triggerReport().filter((r) => r.holds).map((r) => r.id.replace('arr.', '')).join(', ') || 'nenhum'}`;
       this.render();
     });
     // Chegadas: põe na fila agora (ignora o gatilho e o sorteio; respeita a vez).
@@ -156,7 +190,7 @@ export class DebugPanel {
     const ar = this.session.state.arrivals;
     const weather = weatherOf(this.session.content.seasons, this.session.state.day);
     const forced = this.session.arrivals.debug;
-    const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${forced.weather ?? weather}${forced.cafeFull ? ' · CAFÉ CHEIO' : ''}${this.note ? ` · gatilhos: ${this.note}` : ''}`;
+    const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${forced.weather ?? weather}${forced.cafeFull ? ' · CAFÉ CHEIO' : ''}${this.note ? ` · ${this.note}` : ''}`;
     this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · ${arrivals} · marcos: ${done}`;
   }
 }
