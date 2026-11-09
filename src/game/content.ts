@@ -88,7 +88,7 @@ export const content: Content = buildContent({
 export const serviceArt = serviceArtJson as unknown as {
   boards: Record<string, { image: string; size: [number, number]; slots: { icon: [number, number, number, number]; price: [number, number, number, number] }[] }>;
   soldOut: { veil: string; mark: string };
-  bubble: { normal: string; impatient: string; furious: string; iconSlot: [number, number, number, number]; impatientBelow: number; furiousBelow: number; waiting: string[] };
+  bubble: { normal: string; impatient: string; furious: string; iconSlot: [number, number, number, number]; impatientBelow: number; furiousBelow: number; scale: number; waiting: string[] };
   progress: string[];
   coin: string;
   readyMarker: string[];

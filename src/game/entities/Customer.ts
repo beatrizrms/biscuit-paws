@@ -39,11 +39,11 @@ export class CustomerSprite {
     this.target = at;
     // Balão: 40x44, ícone no slot dos dados; a ponta embaixo, no meio.
     this.bubbleBg = scene.add.image(0, 0, 'bubble_normal').setOrigin(0.5, 1);
-    this.bubble = scene.add.container(0, 0, [this.bubbleBg]).setVisible(false).setDepth(99_500);
+    this.bubble = scene.add.container(0, 0, [this.bubbleBg]).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
     if (!scene.anims.exists('bubble-wait')) {
       scene.anims.create({ key: 'bubble-wait', frames: serviceArt.bubble.waiting.map((_, i) => ({ key: `bubble_wait_${i}` })), frameRate: 3, repeat: -1 });
     }
-    this.waiting = scene.add.sprite(0, 0, 'bubble_wait_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_500);
+    this.waiting = scene.add.sprite(0, 0, 'bubble_wait_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
     this.consuming = scene.add.image(0, 0, 'progress_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_400);
   }
 
@@ -115,19 +115,25 @@ export class CustomerSprite {
     this.bubbleBg.setTexture(`bubble_${mood}`);
   }
 
+  /** Altura da ponta do balão acima dos pés: sentado, a cabeça fica mais baixa. */
+  private bubbleLift(): number {
+    return this.seated ? 50 : 60;
+  }
+
   /** Caixa do balão à mostra (pedido ou aguardando), pela ponta; null = sem balão. */
   bubbleBox(): AnchoredBox | null {
-    if (this.bubble.visible) return { x: this.sprite.x, y: this.sprite.y - 60, w: this.bubbleBg.width, h: this.bubbleBg.height };
-    if (this.waiting.visible) return { x: this.sprite.x + 6, y: this.sprite.y - 60, w: this.waiting.width, h: this.waiting.height };
+    const k = serviceArt.bubble.scale;
+    if (this.bubble.visible) return { x: this.sprite.x, y: this.sprite.y - this.bubbleLift(), w: this.bubbleBg.width * k, h: this.bubbleBg.height * k };
+    if (this.waiting.visible) return { x: this.sprite.x + 6, y: this.sprite.y - this.bubbleLift(), w: this.waiting.width * k, h: this.waiting.height * k };
     return null;
   }
 
   /** Mantém o balão em cima da cabeça; `offset` afasta dos balões vizinhos (mesa cheia). */
   update(offset: readonly [number, number] = [0, 0]): void {
     const [ox, oy] = offset;
-    this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - 60 + oy);
-    this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - 60 + oy);
-    this.consuming.setPosition(this.sprite.x, this.sprite.y - 52);
+    this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - this.bubbleLift() + oy);
+    this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy);
+    this.consuming.setPosition(this.sprite.x, this.sprite.y - this.bubbleLift() + 8);
   }
 
   destroy(): void {
