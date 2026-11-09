@@ -207,7 +207,9 @@
   font-size: 9px;
 }
 .dialogue .speaker:empty { display: none; }
-.dialogue.narrator { font-style: italic; color: var(--ink2); }
+/* Narrador (fala sem personagem): quadro lilás, texto itálico e negrito, para não confundir com quem fala */
+.dialogue.narrator { color: #4a3a60; font-style: italic; font-weight: bold; } /* a moldura lavanda fica em skin.css */
+.dialogue.narrator .more { color: #7a6596; }
 .dialogue .more {
   position: absolute;
   right: 8px;
@@ -413,7 +415,8 @@
   transition: opacity 0.3s;
 }
 .cs-text.visible { opacity: 1; }
-.cs-text.narrator .text { font-style: italic; color: var(--cream2); }
+.cs-text.narrator { background: #54406acc; border-top-color: #c0b0d6; }
+.cs-text.narrator .text { font-style: italic; font-weight: bold; color: #f1eafa; }
 .cs-text .speaker { display: block; font-weight: bold; color: var(--pink2); font-size: 9px; margin-bottom: 2px; }
 .cs-text .speaker:empty { display: none; }
 .cs-hint { position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; font-size: 7px; color: #ffffff66; }

@@ -12,6 +12,8 @@ export interface CareConfig {
   daily: Record<CareStat, number>;
   /** Abaixo disto, o balão em cima do gato avisa (por enquanto, a única consequência). */
   low: Record<CareStat, number>;
+  /** O balão de cada necessidade, na arte do jogo: ícone (dentro do balão de pedido) ou emote (balão pronto). */
+  bubbles: Record<CareNeed, { icon?: string; emote?: string }>;
   /** Ganho de cada mini game de cuidado, por resultado (ok, great). */
   gains: Record<string, Partial<Record<CareStat, { ok: number; great: number }>>>;
 }

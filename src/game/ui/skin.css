@@ -90,6 +90,8 @@
 .menu-panel.pause,
 .menu-confirm .menu-panel { border-image-source: url('/assets/ui/menu/ui_panel_pink.png'); }
 .catalog.menu-board { border-image-source: url('/assets/ui/menu/ui_panel_wood.png'); }
+/* Narrador (fala sem personagem): a moldura lavanda do pacote, para não confundir com quem fala. */
+.dialogue-layer .dialogue.narrator { border-image-source: url('/assets/ui/menu/ui_panel_lavender.png'); }
 
 /* Título dos painéis numa faixa (3 partes: ponta, meio, ponta). */
 .menu-panel h2 {

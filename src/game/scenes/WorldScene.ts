@@ -183,7 +183,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.dayNight = new DayNightLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
-    this.careBubbles = new CareBubbles(this);
+    this.careBubbles = new CareBubbles(this, this.session.content.health.care);
     this.ambience = new AmbienceLayer(this, this.session.content.dayNight.ambience);
     this.loadMap(this.session.location());
 
