@@ -2,6 +2,7 @@
 // assets/_pixellab/personagens/<pasta>/Idle/animations e copia o retrato de 128 px.
 // Folha: quadros 112x128 (a figura tem ~120 px de altura, ~1,9 tile), pés na base, centro da figura no meio.
 // Linhas: caminhada baixo, esquerda, direita, cima (4 quadros) e, na linha 4, acenar; na 5, segurar (5 quadros).
+// NPC só com caminhada (a Fernanda): só as 4 primeiras linhas.
 // Rodar: npm run npcs. Saída em public/assets/characters/npcs/v64/ (fora do git, como toda a arte).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,8 +14,14 @@ const W = 112;
 const H = 128;
 const COLUMNS = 5;
 
-/** Pasta do PixelLab -> id do NPC (data/npcs.json). */
-const NPCS: Record<string, string> = { gabi: 'npc.gabi', corretora: 'npc.realtor', neusa: 'npc.neusa', entregadora: 'npc.mail_carrier' };
+/** Pasta do PixelLab -> id do NPC (data/npcs.json) e se tem só a caminhada (sem acenar e segurar). */
+const NPCS: Record<string, { id: string; walkOnly?: boolean }> = {
+  gabi: { id: 'npc.gabi' },
+  corretora: { id: 'npc.realtor' },
+  neusa: { id: 'npc.neusa' },
+  entregadora: { id: 'npc.mail_carrier' },
+  fernanda: { id: 'npc.fernanda', walkOnly: true },
+};
 
 /** Linha da folha -> animação e direção do PixelLab. */
 const ROWS: [string, string][] = [
@@ -74,9 +81,10 @@ function blit(dst: PNG, src: PNG, dx: number, dy: number, a: { cx: number; feet:
 }
 
 fs.mkdirSync(OUT, { recursive: true });
-for (const [folder, id] of Object.entries(NPCS)) {
-  const sheet = new PNG({ width: W * COLUMNS, height: H * ROWS.length });
-  ROWS.forEach(([anim, dir], row) => {
+for (const [folder, { id, walkOnly }] of Object.entries(NPCS)) {
+  const rows = walkOnly ? ROWS.filter(([anim]) => anim === 'walk') : ROWS;
+  const sheet = new PNG({ width: W * COLUMNS, height: H * rows.length });
+  rows.forEach(([anim, dir], row) => {
     const list = frames(folder, anim, dir);
     const a = anchor(list);
     list.slice(0, COLUMNS).forEach((p, col) => blit(sheet, p, col * W, row * H, a));
@@ -84,5 +92,5 @@ for (const [folder, id] of Object.entries(NPCS)) {
   const name = id.replace('npc.', 'npc_');
   fs.writeFileSync(path.join(OUT, `${name}.png`), PNG.sync.write(sheet));
   fs.copyFileSync(path.join(SRC, folder, `${folder}_retrato_128.png`), path.join(OUT, `${name}_portrait.png`));
-  console.log(`${id}: ${OUT}/${name}.png (${W}x${H} por quadro, ${COLUMNS}x${ROWS.length}) + retrato`);
+  console.log(`${id}: ${OUT}/${name}.png (${W}x${H} por quadro, ${COLUMNS}x${rows.length}) + retrato`);
 }

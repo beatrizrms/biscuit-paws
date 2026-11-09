@@ -1385,13 +1385,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           .filter((x): x is { h: HandItem; img: Phaser.GameObjects.Image } => !!x.img)
           .map(({ h, img }) => img.setScale(this.handScale(h) * ((img.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 0.5));
       }
-      // Gato no colo: some do chão e aparece nos braços (o sprite do gato).
-      for (const cat of this.cats) {
-        if (cat.catId === catId) {
-          cat.setVisible(false).setVelocity(0, 0);
-          const variant = this.session.catDef(catId)?.variant ?? '';
-          this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.6).play(`${catTexture(variant)}-sit`);
-        }
+      // Gato no colo: aparece nos braços (o sprite do gato) em qualquer mapa; no café, some do chão.
+      // Fora do café (rua, clínica) o gato não está entre os gatos do mapa, mas continua no colo.
+      if (catId) {
+        for (const cat of this.cats) if (cat.catId === catId) cat.setVisible(false).setVelocity(0, 0);
+        const variant = this.session.catDef(catId)?.variant ?? '';
+        this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.6).play(`${catTexture(variant)}-sit`);
       }
     }
     const dir = this.player.facingDirection();

@@ -26,7 +26,7 @@ npm run art:placeholders  # arte provisória desenhada por código (caixa de are
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
 npm run mannequin   # monta as peças da personagem (manequim, roupas e cabelos do PixelLab, 64 px) em public/assets/characters/player_mannequin
-npm run npcs        # monta as folhas dos NPCs na arte nova (Gabi, Corretora, Dona Neusa, Entregadora) em public/assets/characters/npcs/v64
+npm run npcs        # monta as folhas dos NPCs na arte nova (Gabi, Corretora, Dona Neusa, Entregadora e Fernanda, esta só com a caminhada) em public/assets/characters/npcs/v64
 npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)

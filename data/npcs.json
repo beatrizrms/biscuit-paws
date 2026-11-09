@@ -320,10 +320,11 @@
     {
       "id": "npc.fernanda",
       "name": "Fernanda",
-      "sheet": "assets/characters/npcs/npc_fernanda.png",
-      "frameWidth": 32,
-      "frameHeight": 64,
-      "columns": 4,
+      "sheet": "assets/characters/npcs/v64/npc_fernanda.png",
+      "portrait": "assets/characters/npcs/v64/npc_fernanda_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
       "fps": 8,
       "walk": {
         "down": 0,
@@ -332,7 +333,7 @@
         "up": 3
       },
       "extras": {},
-      "portrait": "assets/characters/npcs/npc_fernanda_portrait.png"
+      "resolution": 2
     }
   ]
 }
