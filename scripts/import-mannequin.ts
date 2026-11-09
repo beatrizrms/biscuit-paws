@@ -90,5 +90,26 @@ for (const [file, { anim, only }] of Object.entries(SHEETS)) {
   });
   writeFileSync(`${OUT}/${file}`, PNG.sync.write(sheet));
 }
+
+// Pose parada: as rotações do personagem (128x128, em pé, pernas juntas), alinhadas pelos pés e pelo centro da figura
+// do 1º quadro da caminhada na mesma direção (não pula ao começar a andar). As 4 colunas repetem o mesmo quadro.
+if (m.idle) {
+  const box = (p: PNG) => {
+    let x0 = p.width, x1 = -1, y1 = -1;
+    for (let y = 0; y < p.height; y++) for (let x = 0; x < p.width; x++) if (p.data[(y * p.width + x) * 4 + 3]! > 0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    return { cx: Math.round((x0 + x1) / 2), bottom: y1 };
+  };
+  const sheet = new PNG({ width: W * FRAMES, height: H * ROWS.length });
+  ROWS.forEach((row, r) => {
+    const walk = PNG.sync.read(readFileSync(`${SRC}/man_walk/${row}/frame_000.png`));
+    const rot = PNG.sync.read(readFileSync(`${SRC}/../rotations/${row}.png`));
+    dropSpecks(rot);
+    const a = box(walk), b = box(rot);
+    const canvas = new PNG({ width: CANVAS, height: CANVAS });
+    PNG.bitblt(rot, canvas, 0, 0, rot.width, rot.height, a.cx - b.cx, a.bottom - b.bottom);
+    for (let f = 0; f < FRAMES; f++) PNG.bitblt(canvas, sheet, X0, Y0, W, H, f * W, r * H);
+  });
+  writeFileSync(`${OUT}/${m.idle}`, PNG.sync.write(sheet));
+}
 console.log(`✓ manequim: ${Object.keys(SHEETS).length} folhas em ${OUT} (quadros ${W}x${H}, resolução ${m.resolution}); ${specks} pixels soltos apagados`);
 if (cut > 0) console.warn(`! ${cut} pixels ficaram fora da caixa (aumente frameWidth/frameHeight ou ajuste FEET_Y)`);

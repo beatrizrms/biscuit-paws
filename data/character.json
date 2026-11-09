@@ -20,6 +20,7 @@
     "frameWidth": 80,
     "frameHeight": 128,
     "walk": "mannequin_walk.png",
+    "idle": "mannequin_idle.png",
     "poses": {
       "tray": "mannequin_tray.png",
       "cat": "mannequin_carry.png",

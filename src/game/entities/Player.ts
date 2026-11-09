@@ -4,7 +4,7 @@ import { movementFromInput, type Direction, type InputState } from '../../core/m
 import { ySortDepth } from '../../core/map';
 import type { Pose } from '../../core/appearance';
 import { content } from '../content';
-import { allPoseTextures, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
+import { allPoseTextures, PLAYER_IDLE_TEXTURE, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
 
 const DIRECTIONS = playerJson.directions as Direction[];
 const C = content.character;
@@ -113,6 +113,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private idle(): void {
     this.anims.stop();
-    this.setTexture(this.look, DIRECTIONS.indexOf(this.facing) * playerJson.walkFrames);
+    // Andando normal e com a folha parada (manequim): em pé, pernas juntas. Nas poses (bandeja, gato), o 1º quadro delas.
+    const still = this.look === PLAYER_TEXTURE && this.scene.textures.exists(PLAYER_IDLE_TEXTURE) ? PLAYER_IDLE_TEXTURE : this.look;
+    this.setTexture(still, DIRECTIONS.indexOf(this.facing) * playerJson.walkFrames);
   }
 }

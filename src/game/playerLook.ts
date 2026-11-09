@@ -13,6 +13,8 @@ export const layerUrl = (file: string) => `${C.basePath}/${file}`;
 
 /** Textura da caminhada normal e de cada pose (gato: uma por cor de gato). */
 export const PLAYER_TEXTURE = 'player';
+/** Pose parada do manequim (folha à parte; sem ela, parada = 1º quadro da caminhada). */
+export const PLAYER_IDLE_TEXTURE = 'player_idle';
 export function poseTexture(pose: Pose, catColor?: string): string {
   return C.poses[pose].catProp ? `player-${pose}-${catColor ?? C.catProp.fallback}` : `player-${pose}`;
 }
@@ -78,7 +80,7 @@ export const poseDrawsProp = (): boolean => !C.mannequin;
 function loadMannequin(scene: Phaser.Scene): Promise<void> {
   const m = C.mannequin!;
   const frame = { frameWidth: m.frameWidth, frameHeight: m.frameHeight };
-  const sheets = [{ key: PLAYER_TEXTURE, file: m.walk }, ...allPoseTextures().map(({ key, pose }) => ({ key, file: m.poses[pose] }))];
+  const sheets = [{ key: PLAYER_TEXTURE, file: m.walk }, ...(m.idle ? [{ key: PLAYER_IDLE_TEXTURE, file: m.idle }] : []), ...allPoseTextures().map(({ key, pose }) => ({ key, file: m.poses[pose] }))];
   for (const { key } of sheets) if (scene.textures.exists(key)) scene.textures.remove(key);
   return new Promise((resolve) => {
     for (const { key, file } of sheets) scene.load.spritesheet(key, `${m.basePath}/${file}`, frame);

@@ -64,6 +64,8 @@ export interface MannequinData {
   walk: string;
   /** Folha de cada pose. */
   poses: Record<Pose, string>;
+  /** Folha da pose parada (em pé, pernas juntas; mesmo formato da caminhada). Sem ela, parada = 1º quadro da caminhada. */
+  idle?: string;
 }
 
 export interface CharacterData {
