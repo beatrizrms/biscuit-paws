@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { allFilesFor, cleanPlayerName, cycle, hidesBottom, layerFiles, normalizeAppearance, randomAppearance, catPropColor } from '../../src/core/appearance';
+import { allFilesFor, cleanPlayerName, cycle, hidesBottom, layerFiles, normalizeAppearance, POSES, randomAppearance, catPropColor, validateCharacter } from '../../src/core/appearance';
 import { createRng } from '../../src/core/rng';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
@@ -104,5 +104,22 @@ describe('aparência no save', () => {
 
   it('jogo novo começa sem nome (o criador preenche)', () => {
     expect(newGameState(100).player).toEqual({ name: '', appearance: null });
+  });
+});
+
+describe('aparência: manequim (arte em 64 px)', () => {
+  const m = C.mannequin!;
+
+  it('os dados atuais do manequim são válidos e cobrem todas as poses', () => {
+    expect(validateCharacter(C)).toEqual([]);
+    for (const pose of POSES) expect(m.poses[pose]).toMatch(/\.png$/);
+  });
+
+  it('acusa pose sem folha e quadro que não divide pela resolução', () => {
+    const { wash: _, ...poses } = m.poses;
+    const bad = { ...C, mannequin: { ...m, frameWidth: 81, poses: poses as typeof m.poses } };
+    const errors = validateCharacter(bad);
+    expect(errors.some((e) => e.includes('"wash"'))).toBe(true);
+    expect(errors.some((e) => e.includes('múltiplo de resolution'))).toBe(true);
   });
 });

@@ -13,6 +13,23 @@
     ]
   },
   "basePath": "assets/characters/player",
+  "mannequin": {
+    "_comment": "Manequim do PixelLab (arte em 64 px por tile): enquanto existir, a jogadora é desenhada com estas folhas no lugar das camadas do criador (o save continua guardando a aparência escolhida). Folhas montadas por scripts/import-mannequin.ts (npm run mannequin) em quadros frameWidth x frameHeight na escala resolution; 4 colunas; linhas baixo, esquerda, direita, cima. poses: folha de cada pose do jogo (as ações paradas usam a mesma folha de ação). Sem objetos na mão: bandeja, gato e vassoura são desenhados pelo jogo.",
+    "basePath": "assets/characters/player_mannequin",
+    "resolution": 2,
+    "frameWidth": 80,
+    "frameHeight": 128,
+    "walk": "mannequin_walk.png",
+    "poses": {
+      "tray": "mannequin_tray.png",
+      "cat": "mannequin_carry.png",
+      "sweep": "mannequin_work.png",
+      "wipe_table": "mannequin_work.png",
+      "operate": "mannequin_work.png",
+      "stir": "mannequin_work.png",
+      "wash": "mannequin_work.png"
+    }
+  },
   "layerOrder": [
     "body",
     "eyes",

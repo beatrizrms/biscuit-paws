@@ -532,6 +532,7 @@ Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidif
 - `presets`: os exemplos do botão "Exemplos". "Aleatório" sorteia com RNG injetado.
 - Textos: `{player}` nas falas vira o nome dela (falas dela usam `"speaker": "{player}"`). Sem nome (save antigo), `", {player}"` some com a vírgula e o falante vira "Você" (`ui_text.playerFallback`).
 - Importar os arquivos: `npm run character`.
+- `mannequin` (opcional; decisão 075): folhas prontas do manequim do PixelLab que **substituem as camadas no jogo** enquanto o bloco existir. `basePath` (em public/), `resolution` (2 = arte em 64 px por tile; o sprite é desenhado na escala 1/resolution e a caixa dos pés de `player.json` é multiplicada por ela), `frameWidth` x `frameHeight` (80 x 128; múltiplos de resolution), `walk` e `poses` (uma folha por pose; as ações paradas podem repetir a mesma). Folhas no formato das camadas: 4 colunas, linhas baixo, esquerda, direita, cima. Sem objeto na mão: com o manequim, o jogo desenha bandeja, gato e vassoura (`playerLook.poseDrawsProp`). Montadas por `npm run mannequin` (`scripts/import-mannequin.ts`: recorte na caixa com os pés na base, pontinhos soltos apagados).
 
 ## Cômodos do café (`data/rooms.json`)
 

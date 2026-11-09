@@ -26,6 +26,7 @@ npm run art         # gera os tiles "velhos" a partir da folha do pacote (roda s
 npm run art:placeholders  # arte provisória desenhada por código (caixa de areia, cocô); roda sozinho no dev
 npm run check       # tipos + validação de todo o conteúdo (mapas, itens, história, falas)
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
+npm run mannequin   # monta as folhas do manequim da personagem (PixelLab, 64 px) em public/assets/characters/player_mannequin
 npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
@@ -104,6 +105,8 @@ O formato está em `docs/DATA_CONTRACTS.md`. Rode `npm run check`: ele acusa ref
 
 ### Ajustar a personagem
 `data/player.json`: velocidade, quadros por segundo e tamanho da caixa dos pés.
+
+**Hoje a personagem aparece como o manequim do PixelLab** (careca, de roupa íntima, arte em 64 px; decisão 075), para ver as poses no jogo: caminhada, bandeja e colo andando, e uma ação parada que vale para varrer, lavar, mexer e operar. As folhas vêm de `npm run mannequin` (`assets/_pixellab/personagens/protagonista/manequim` -> `public/assets/characters/player_mannequin/`). O criador continua no Novo jogo e o save guarda a escolha, mas ela não aparece enquanto existir o bloco `mannequin` em `data/character.json` (apague o bloco para voltar às camadas do criador). Bandeja, gato no colo e vassoura são desenhados pelo jogo por cima.
 
 ## Como o código está organizado
 

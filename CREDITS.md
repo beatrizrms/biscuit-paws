@@ -6,6 +6,7 @@
 - Interface dos menus (botões, painéis, faixas, ícone do carrinho), arte da inauguração e rua nas quatro estações: arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam).
 - Músicas, sons ambientes, jingles e efeitos: sintetizados por código, sem amostras de terceiros (uso de IA declarado na página da Steam).
 - Ambientes, móveis, fachadas, objetos, cômodos, quintal e ícones em 64 px (café, mercado, clínica, rua nas 4 estações, quintal secreto, louça, peixes): arte gerada por IA no PixelLab (https://www.pixellab.ai) e ajustada por código pela equipe (uso declarado na página da Steam; detalhes em docs/ART_AND_LICENSE.md, "Arte nova do PixelLab").
+- Manequim da personagem principal (caminhada e poses, 64 px): arte gerada por IA no PixelLab (https://www.pixellab.ai), recortada por código pela equipe (uso declarado na página da Steam).
 - Personagem principal personalizável (pacote `personagem_principal`: corpo, olhos, cabelo, roupas, calçados, acessórios e 7 poses): arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam). A personagem provisória (`mulher_placeholder_32x64.png`) não é mais usada.
 
 - Rua e vila (4 estações) e sujeira do café abandonado: arte gerada por IA na paleta do Cat Cafe (uso declarado na página da Steam).

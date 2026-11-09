@@ -52,12 +52,28 @@ export interface Appearance {
 
 export const APPEARANCE_KEYS = ['skin', 'eyes', 'hairStyle', 'hairColor', 'top', 'topColor', 'bottom', 'bottomColor', 'shoes', 'shoesColor', 'glasses', 'head'] as const satisfies readonly (keyof Appearance)[];
 
+export interface MannequinData {
+  _comment?: string;
+  /** Pasta das folhas (em public/). */
+  basePath: string;
+  /** Pixels da arte por pixel do jogo (2 = arte em 64 px por tile). */
+  resolution: number;
+  frameWidth: number;
+  frameHeight: number;
+  /** Folha da caminhada (mesmo formato da folha das camadas: 4 colunas, linhas baixo, esquerda, direita, cima). */
+  walk: string;
+  /** Folha de cada pose. */
+  poses: Record<Pose, string>;
+}
+
 export interface CharacterData {
   schemaVersion: number;
   _comment?: string;
   sheet: { frameWidth: number; frameHeight: number; columns: number; rows: string[] };
   /** Pasta das camadas (em public/). */
   basePath: string;
+  /** Folhas prontas do manequim (arte em 64 px): enquanto existir, substituem as camadas no jogo. */
+  mannequin?: MannequinData;
   layerOrder: string[];
   skins: CharacterOption[];
   eyes: CharacterOption[];
@@ -248,5 +264,12 @@ export function validateCharacter(data: CharacterData): string[] {
   for (const pose of POSES) if (!data.poses[pose]) errors.push(`character: falta a pose "${pose}"`);
   if (!data.catProp.colors.includes(data.catProp.fallback)) errors.push(`character: catProp.fallback "${data.catProp.fallback}" não está em colors`);
   for (const [v, c] of Object.entries(data.catProp.byVariant)) if (!data.catProp.colors.includes(c)) errors.push(`character: gato "${v}" com cor inexistente "${c}"`);
+  const m = data.mannequin;
+  if (m) {
+    if (!Number.isInteger(m.resolution) || m.resolution < 1) errors.push(`character: mannequin.resolution "${m.resolution}" (inteiro, 1 ou mais)`);
+    if (m.frameWidth % m.resolution !== 0 || m.frameHeight % m.resolution !== 0) errors.push('character: mannequin: quadro precisa ser múltiplo de resolution');
+    if (!m.walk) errors.push('character: mannequin sem folha de caminhada');
+    for (const pose of POSES) if (!m.poses[pose]) errors.push(`character: mannequin sem folha da pose "${pose}"`);
+  }
   return errors;
 }

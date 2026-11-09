@@ -113,6 +113,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Fachada da clínica veterinária na primavera, no verão e no outono (hoje fica a de inverno)
 - [x] Ícone do carrinho no HUD
 - [ ] Pose da personagem carregando saco pesado (o pacote não tem; o saco é desenhado na mão)
+- [x] Manequim do PixelLab (64 px) como personagem no jogo, para ver as poses (decisão 075)
+- [ ] Personagem em 64 px com roupas e cabelos em camadas sobre o manequim (testes em `assets/_pixellab/personagens/protagonista/manequim`)
 
 ## Depois
 - Adoção de gatos (`adoption.completed`)

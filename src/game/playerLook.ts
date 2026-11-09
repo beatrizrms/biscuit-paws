@@ -65,8 +65,31 @@ function composeSheet(textures: Phaser.Textures.TextureManager, key: string, lay
   for (let i = 0; i < columns * rows.length; i++) tex.add(i, 0, (i % columns) * w, Math.floor(i / columns) * h, w, h);
 }
 
+/** Tamanho do quadro e escala do desenho da jogadora: o do manequim (arte em 64 px) ou o das camadas. */
+export function playerFrame(): { width: number; height: number; resolution: number } {
+  const m = C.mannequin;
+  return m ? { width: m.frameWidth, height: m.frameHeight, resolution: m.resolution } : { width: C.sheet.frameWidth, height: C.sheet.frameHeight, resolution: 1 };
+}
+
+/** A pose já desenha o objeto (bandeja, gato, vassoura)? O manequim não: aí o jogo desenha. */
+export const poseDrawsProp = (): boolean => !C.mannequin;
+
+/** Carrega as folhas prontas do manequim com as chaves da caminhada e das poses. Folha que falha fica de fora. */
+function loadMannequin(scene: Phaser.Scene): Promise<void> {
+  const m = C.mannequin!;
+  const frame = { frameWidth: m.frameWidth, frameHeight: m.frameHeight };
+  const sheets = [{ key: PLAYER_TEXTURE, file: m.walk }, ...allPoseTextures().map(({ key, pose }) => ({ key, file: m.poses[pose] }))];
+  for (const { key } of sheets) if (scene.textures.exists(key)) scene.textures.remove(key);
+  return new Promise((resolve) => {
+    for (const { key, file } of sheets) scene.load.spritesheet(key, `${m.basePath}/${file}`, frame);
+    scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+    scene.load.start();
+  });
+}
+
 /** Monta a caminhada e todas as poses da aparência (antes de abrir o mundo). */
 export async function buildPlayerTextures(scene: Phaser.Scene, a: Appearance): Promise<void> {
+  if (C.mannequin) return loadMannequin(scene);
   await loadLayers(scene, allFilesFor(C, a));
   composeSheet(scene.textures, PLAYER_TEXTURE, layerFiles(C, a));
   for (const pose of POSES) {

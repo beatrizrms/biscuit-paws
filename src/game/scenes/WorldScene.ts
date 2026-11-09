@@ -30,7 +30,7 @@ import { openPause } from '../ui/menu/PauseMenu';
 import { t } from '../i18n';
 import { formatClock, tintAt } from '../../core/time';
 import { catPropColor, type Pose } from '../../core/appearance';
-import { poseTexture } from '../playerLook';
+import { poseDrawsProp, poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
@@ -1248,7 +1248,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const catColor = catPropColor(this.session.content.character, this.session.catDef(catId ?? '')?.variant);
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela; senão, a normal.
       this.player.setCarryPose(st.tray ? 'tray' : catId ? 'cat' : null, catColor);
-      const posed = this.textures.exists(st.tray ? poseTexture('tray') : poseTexture('cat', catColor));
+      const posed = poseDrawsProp() && this.textures.exists(st.tray ? poseTexture('tray') : poseTexture('cat', catColor));
       if (st.tray && posed) {
         // Bandeja na pose: as louças vão em cima dela, lado a lado.
         this.handIcons = st.hands
@@ -1281,7 +1281,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const hx = this.player.x - 16 + ax;
     const hy = this.player.y - 64 + ay;
     const front = this.player.depth + (dir === 'up' ? -1 : 2);
-    if (st.tray && this.textures.exists(poseTexture('tray'))) {
+    if (st.tray && poseDrawsProp() && this.textures.exists(poseTexture('tray'))) {
       // Em cima da bandeja da pose: no centro, na altura dos braços.
       const [tx, ty] = TRAY_TOP[dir];
       const n = this.handIcons.length;
@@ -1527,7 +1527,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       .setDepth(this.player.depth + 1);
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
     const frameMs = 1000 / broom.sweepFps;
-    tool.setVisible(!posed);
+    tool.setVisible(!posed || !poseDrawsProp());
     for (let t = 0, i = 0; t < broom.sweepMs; t += frameMs, i++) {
       tool.setFrame(i % 2 === 0 ? 'varrer_1' : 'varrer_2');
       dust.setFrame(`poeira_${(i % 3) + 1}`);

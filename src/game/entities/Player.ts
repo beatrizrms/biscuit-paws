@@ -4,7 +4,7 @@ import { movementFromInput, type Direction, type InputState } from '../../core/m
 import { ySortDepth } from '../../core/map';
 import type { Pose } from '../../core/appearance';
 import { content } from '../content';
-import { allPoseTextures, PLAYER_TEXTURE, poseTexture } from '../playerLook';
+import { allPoseTextures, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
 
 const DIRECTIONS = playerJson.directions as Direction[];
 const C = content.character;
@@ -24,12 +24,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
+    // Arte em 64 px (manequim): o quadro tem `resolution` pixels por pixel do jogo.
+    const frame = playerFrame();
+    this.setScale(1 / frame.resolution);
 
-    // Colisão só nos pés, centrada na base do quadro.
-    const { width, height } = playerJson.feet;
+    // Colisão só nos pés, centrada na base do quadro (em pixels do quadro: a escala do sprite reduz).
+    const width = playerJson.feet.width * frame.resolution;
+    const height = playerJson.feet.height * frame.resolution;
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(width, height);
-    body.setOffset((playerJson.frameWidth - width) / 2, playerJson.frameHeight - height);
+    body.setOffset((frame.width - width) / 2, frame.height - height);
     body.setCollideWorldBounds(true);
 
     Player.createAnimations(scene);
