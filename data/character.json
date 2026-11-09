@@ -35,7 +35,7 @@
       "anims": ["walk", "idle", "tray", "carry", "work"],
       "poseAnim": { "tray": "tray", "cat": "carry", "sweep": "work", "wipe_table": "work", "operate": "work", "stir": "work", "wash": "work" },
       "outfits": { "hoodie": true, "dress": true, "collar_shirt": true, "tshirt": true, "blazer": false, "winter_coat": false },
-      "hair": { "long": true, "short": false, "bob": false, "bun": false, "ponytail": false, "afro": false, "curly": false, "short_afro": false, "side_part": false, "quiff": false },
+      "hair": { "long": true, "short": true, "bob": true, "bun": true, "ponytail": true, "afro": false, "curly": false, "short_afro": false, "side_part": false, "quiff": false },
       "fallback": { "outfit": "hoodie", "hair": "long" },
       "ramps": {
         "skin": {

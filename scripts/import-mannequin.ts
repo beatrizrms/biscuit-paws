@@ -111,6 +111,10 @@ if (L) {
     'outfit:collar_shirt': { dir: `${MAN}/roupa_collar_shirt`, prefix: 'c' },
     'outfit:tshirt': { dir: `${MAN}/roupa_tshirt`, prefix: 't' },
     'hair:long': { dir: `${MAN}/cabelo_longo`, prefix: 'l' },
+    'hair:short': { dir: `${MAN}/cabelo_short`, prefix: 's' },
+    'hair:bob': { dir: `${MAN}/cabelo_bob`, prefix: 'b' },
+    'hair:bun': { dir: `${MAN}/cabelo_bun`, prefix: 'u' },
+    'hair:ponytail': { dir: `${MAN}/cabelo_ponytail`, prefix: 'p' },
   };
   /** Peças só de frente: imagem 128x128 editada sobre a rotação sul do manequim (cabelo sobre o manequim verde). */
   const FRONT: Record<string, string> = {
@@ -304,7 +308,14 @@ if (L) {
   const frameOf = (dir: string, prefix: string, anim: string, row: (typeof ROWS)[number], f: number) => {
     const a = ANIM[anim]!;
     const d = a.only?.[row] ?? row;
-    return PNG.sync.read(readFileSync(`${dir}/Idle/animations/${prefix}_${a.name}/${d}/frame_${String(a.frames?.[f] ?? f).padStart(3, '0')}.png`));
+    const p = PNG.sync.read(readFileSync(`${dir}/Idle/animations/${prefix}_${a.name}/${d}/frame_${String(a.frames?.[f] ?? f).padStart(3, '0')}.png`));
+    // O PixelLab aumenta o quadro quando o movimento precisa de espaço (176, 192...), com a figura no meio:
+    // corta (ou completa) pelo centro para 176, o tamanho do manequim, antes de comparar ou montar.
+    if (p.width === CANVAS && p.height === CANVAS) return p;
+    const out = new PNG({ width: CANVAS, height: CANVAS });
+    const ox = (p.width - CANVAS) / 2, oy = (p.height - CANVAS) / 2;
+    PNG.bitblt(p, out, Math.max(0, ox), Math.max(0, oy), Math.min(CANVAS, p.width), Math.min(CANVAS, p.height), Math.max(0, -ox), Math.max(0, -oy));
+    return out;
   };
 
   /**
@@ -336,6 +347,12 @@ if (L) {
         for (let k = 0; k < 4; k++) hair.data[i + k] = cap.data[i + k]!;
       }
   };
+  /**
+   * Cabelo de um quadro animado, recortado contra o mesmo quadro do manequim (mesmo movimento: cabeça no mesmo lugar,
+   * ±1 px). Um encaixe automático (deslocar até a cabeça "bater") foi testado e errou: o couro cabeludo careca engana.
+   */
+  const hairFrame = (piece: PNG, man: PNG): PNG => hairCut(piece, man);
+  const capFrames = new Map<string, PNG>();
   let capFront: PNG | null = null;
   let manFront: PNG | null = null;
 
@@ -356,7 +373,19 @@ if (L) {
                 dropSpecks(piece);
                 PNG.bitblt(piece, sheet, X0, Y0, W, H, f * W, r * H);
                 PNG.bitblt(outfitMask(piece), mask, X0, Y0, W, H, f * W, r * H);
-              } else PNG.bitblt(hairCut(piece, frameOf(MAN, 'm', anim, row, f)), sheet, X0, Y0, W, H, f * W, r * H);
+              } else {
+                const man = frameOf(MAN, 'm', anim, row, f);
+                const cut = hairFrame(piece, man);
+                // Base do cabelo do molde também nas animações: o cabelo longo do mesmo quadro por baixo.
+                const capKey = `${anim}/${row}/${f}`;
+                if (id === CAP_HAIR) capFrames.set(capKey, cut);
+                else {
+                  const cap = capFrames.get(capKey);
+                  if (!cap) throw new Error(`cabelo "${CAP_HAIR}" (base) precisa vir antes dos outros em mannequin.layers.hair`);
+                  capUnder(cut, cap, man);
+                }
+                PNG.bitblt(cut, sheet, X0, Y0, W, H, f * W, r * H);
+              }
             }
           });
           writeFileSync(`${OUT}/${kind}_${id}_${anim}.png`, PNG.sync.write(sheet));
@@ -367,7 +396,7 @@ if (L) {
       let front: PNG;
       if (full) {
         front = frameOf(FULL[key]!.dir, FULL[key]!.prefix, 'idle', 'south', 0);
-        if (kind === 'hair') front = hairCut(front, frameOf(MAN, 'm', 'idle', 'south', 0));
+        if (kind === 'hair') front = hairFrame(front, frameOf(MAN, 'm', 'idle', 'south', 0));
       }
       else {
         const file = FRONT[key];
