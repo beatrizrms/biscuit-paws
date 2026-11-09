@@ -2,7 +2,6 @@
 // Ao confirmar, cada par ganha um veredito (boa, ok, ruim) e um porquê, pelas regras de data/adoption.json.
 // Puro: sem Phaser, DOM ou window.
 import type { Outcome } from './minigame';
-import type { FairConfig } from './fair';
 import type { Rng } from './rng';
 
 export type Verdict = 'good' | 'ok' | 'bad';
@@ -36,8 +35,22 @@ export interface AdoptionData {
   protectedCats: string[];
   cats: AdoptCat[];
   families: FamilyProfile[];
-  /** A feira de adoção (organizada pela protagonista; src/core/fair.ts). */
-  fair: FairConfig;
+  /** Gatos do café na feira (eventos de data/festivals.json): o jeito pela personalidade e os traços padrão. */
+  fair: CafeTraitsConfig;
+}
+
+export interface CafeTraitsConfig {
+  /** Personalidade do gato do café -> jeito na adoção (calm, playful, shy). */
+  personalityFrom: Record<string, string>;
+  /** Traços de quem não tem adoptionTraits nem tradução. */
+  defaultTraits: Record<string, string>;
+}
+
+export function validateCafeTraits(cfg: CafeTraitsConfig, traits: Record<string, Record<string, string>>): string[] {
+  const errors: string[] = [];
+  for (const [from, to] of Object.entries(cfg.personalityFrom)) if (!traits.personality?.[to]) errors.push(`adoption: fair: personalityFrom "${from}" -> jeito inexistente "${to}"`);
+  for (const [g, v] of Object.entries(cfg.defaultTraits)) if (!traits[g]?.[v]) errors.push(`adoption: fair: defaultTraits com traço inexistente "${g}.${v}"`);
+  return errors;
 }
 
 export interface AdoptionParams {

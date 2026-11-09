@@ -35,8 +35,11 @@ export class DebugPanel {
         <button data-act="money">+100 moedas</button>
         <button data-act="rep">+10 reputação</button>
         <button data-act="rep-zero">Zerar reputação</button>
-        <button data-act="fair">Feira: começar</button>
-        <button data-act="fair-day">Feira: ir ao dia</button>
+      </div>
+      <div class="buttons festivals">
+        <strong>Eventos</strong>
+        ${session.content.festivals.map((f) => `<button data-festival="${f.id}">${f.name}</button>`).join('')}
+        <button data-act="fest-day">Ir ao dia do evento</button>
       </div>
       <div class="buttons arrivals">
         <strong>Chegadas</strong>
@@ -126,10 +129,15 @@ export class DebugPanel {
     });
     on('money', () => session.addMoney(100, 'debug'));
     on('rep', () => session.addReputation(10, 'debug'));
-    // Feira de adoção sem precisar dos 9 gatos; e pular os dias até a data marcada (de manhã).
-    on('fair', () => session.debugStartFair());
-    on('fair-day', () => {
-      const day = session.state.fair.day;
+    // Eventos sem as condições (nem a data: no dia de hoje, ou a preparação começa); e pular até o dia marcado (de manhã).
+    panel.querySelectorAll<HTMLButtonElement>('[data-festival]').forEach((b) =>
+      b.addEventListener('click', () => {
+        session.debugStartFestival(b.dataset.festival!);
+        actions.reloadWorld();
+      }),
+    );
+    on('fest-day', () => {
+      const day = session.state.festivals.active?.day ?? null;
       if (day !== null && session.state.day < day) {
         session.state.day = day;
         session.state.time = 9 * 60;

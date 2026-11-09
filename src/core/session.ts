@@ -20,7 +20,7 @@ import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
-import { doFairPoint, fairCanStart, fairDayEnded, finishFair, isFairDay, pendingFairPoints } from './fair';
+import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import {
   activeFeatures,
@@ -398,7 +398,8 @@ export class GameSession {
     this.state.jobs.progress = {};
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
     this.healthAtDayEnd(day);
-    if (fairDayEnded(this.state.fair, day + 1)) this.bus.emit('fair.missed', { day });
+    const missed = festivalDayEnded(this.state.festivals, day + 1);
+    if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
@@ -690,8 +691,9 @@ export class GameSession {
     }
     // A chegada de gato da vez: o lugar do encontro ou a pista.
     out.push(...this.arrivals.pendingPoints(mapId));
-    // A feira de adoção usa pontos de pedido sem ser um pedido (as etapas ficam em state.fair).
-    for (const id of pendingFairPoints(this.state.fair, this.content.adoption.fair, this.state.day)) {
+    // Os festivais usam pontos de pedido sem ser um pedido (as etapas ficam em state.festivals).
+    const fest = this.activeFestival();
+    for (const id of fest ? pendingFestivalPoints(this.state.festivals, fest, this.state.day) : []) {
       const p = this.content.jobPoints[id];
       if (p && p.map === mapId) out.push(p);
     }
@@ -723,7 +725,7 @@ export class GameSession {
     const arrival = this.arrivals.interact(pointId);
     if (typeof arrival === 'string') return { ok: false, reason: arrival };
     if (arrival) return { ok: true };
-    if (this.isFairPoint(pointId)) return this.doFairStep(pointId);
+    if (this.isFestivalPoint(pointId)) return this.doFestivalStep(pointId);
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
     const point = this.content.jobPoints[pointId];
     if (!job || !point) return { ok: false, reason: 'not_found' };
@@ -1274,11 +1276,14 @@ export class GameSession {
       this.advanceStory();
       return;
     }
-    // A mesa da feira: a feira acontece com qualquer resultado (as adoções boas já foram boas).
-    if (params.jobPoint && params.jobPoint === this.content.adoption.fair.table && isFairDay(this.state.fair, this.state.day)) {
+    // Atividade de um festival: conta com qualquer resultado (a feira acontece mesmo sem o match perfeito).
+    const fest = this.activeFestival();
+    const activity = params.jobPoint ? fest?.activities.find((a) => a.point === params.jobPoint) : undefined;
+    if (fest && activity && isFestivalDay(this.state.festivals, this.state.day)) {
       const adopted = (result.adoptions ?? []).filter((a) => a.verdict === 'good').length;
-      finishFair(this.state.fair, this.content.seasons.daysPerSeason);
-      this.bus.emit('fair.finished', { adopted });
+      this.festivalAdopted += adopted;
+      const step = recordActivity(this.state.festivals, fest, activity.point, { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped }, this.state.day);
+      if (step === 'finished') this.endFestival(fest);
       this.advanceStory();
     } else if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
     else this.advanceStory();
@@ -1317,6 +1322,7 @@ export class GameSession {
     const { from, to, crossed } = addReputation(this.state.reputation, this.content.reputation, amount, reason, this.state.day);
     if (from !== to) this.bus.emit('reputation.changed', { from, to, amount: to - from, reason });
     for (const t of crossed) this.bus.emit('reputation.threshold_reached', { thresholdId: t.id, value: to });
+    if (crossed.length > 0) this.maybeStartFestivals();
   }
 
   /** Corações entre a protagonista e um gato. */
@@ -1407,7 +1413,7 @@ export class GameSession {
     const rooms = this.roomsMapParts();
     const base = {
       ...this.content.map,
-      objects: [...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId), ...this.fairObjects()],
+      objects: [...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId), ...this.festivalObjects()],
       interactions: [...(this.content.map.interactions ?? []), ...rooms.interactions],
     };
     const legend = { ...base.legend, ...rooms.legend };
@@ -1518,53 +1524,91 @@ export class GameSession {
   }
 
   /** Marcadores dos pontos de pedido pendentes (ex.: montes de neve a varrer). */
-  // ---------- Feira de adoção (src/core/fair.ts) ----------
+  // ---------- Festivais (src/core/festival.ts; data/festivals.json) ----------
 
-  /** Começa a organizar a feira quando dá (gatos de sobra, nenhuma feira nesta estação). */
-  private maybeStartFair(): void {
-    const cfg = this.content.adoption.fair;
-    if (!fairCanStart(this.state.fair, cfg, this.shelteredCats().length, this.state.day, this.content.seasons.daysPerSeason)) return;
-    if (cfg.startWhen && !evaluate(cfg.startWhen as Condition, this.state, this.storyContext())) return;
-    this.state.fair.stage = 'flyers';
-    this.state.fair.done = [];
-    this.bus.emit('fair.started', {});
+  /** Gatos adotados nas atividades do festival de hoje (para o resumo; não vai para o save). */
+  private festivalAdopted = 0;
+
+  /** O festival em andamento (ou undefined). */
+  activeFestival(): FestivalDef | undefined {
+    const id = this.state.festivals.active?.id;
+    return id ? this.content.festivals.find((f) => f.id === id) : undefined;
   }
 
-  /** Debug: começa a organizar a feira sem precisar dos gatos (para testar). */
-  debugStartFair(): void {
-    if (this.state.fair.stage !== 'idle') return;
-    this.state.fair.stage = 'flyers';
-    this.state.fair.done = [];
-    this.state.fair.lastSeason = null;
-    this.state.fair.heldOn = null;
-    this.bus.emit('fair.started', {});
+  /** Começa o primeiro festival disponível: a protagonista tem a ideia (fala) e a meta aparece. */
+  private maybeStartFestivals(): void {
+    if (this.state.festivals.active) return;
+    const { season, day: dayOfSeason } = this.seasonDay();
+    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()) };
+    const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));
+    if (def) this.beginFestival(def);
   }
 
-  private isFairPoint(pointId: string): boolean {
-    const f = this.content.adoption.fair;
-    return f.flyers.includes(pointId) || f.sign.point === pointId || f.decorations.some((d) => d.point === pointId) || f.table === pointId;
+  private beginFestival(def: FestivalDef): void {
+    startFestival(this.state.festivals, def, { day: this.state.day, dayOfSeason: this.seasonDay().day });
+    this.festivalAdopted = 0;
+    this.bus.emit('festival.started', { festivalId: def.id });
+    if (def.idea) this.bus.emit('dialogue.requested', { dialogueId: def.idea });
+    const a = this.state.festivals.active!;
+    if (a.stage === 'scheduled') this.bus.emit('festival.scheduled', { festivalId: def.id, day: a.day! });
   }
 
-  private doFairStep(pointId: string): ActionResult {
-    const step = doFairPoint(this.state.fair, this.content.adoption.fair, pointId, this.state.day);
+  /**
+   * Debug: começa um festival agora, sem as condições (nem data: fica marcado para hoje, ou a preparação começa).
+   * Um em andamento é trocado.
+   */
+  debugStartFestival(id: string): void {
+    const def = this.content.festivals.find((f) => f.id === id);
+    if (!def) return;
+    this.state.festivals.active = null;
+    this.state.festivals.heldOn = null;
+    delete this.state.festivals.last[id];
+    this.beginFestival({ ...def, date: undefined });
+    this.advanceStory();
+  }
+
+  private isFestivalPoint(pointId: string): boolean {
+    const def = this.activeFestival();
+    return !!def && pendingFestivalPoints(this.state.festivals, def, this.state.day).includes(pointId);
+  }
+
+  private doFestivalStep(pointId: string): ActionResult {
+    const def = this.activeFestival()!;
+    const step = doFestivalPoint(this.state.festivals, def, pointId, this.state.day);
     if (!step) return { ok: false, reason: 'not_found' };
-    this.bus.emit('fair.progress', { step, pointId });
-    if (step === 'scheduled') this.bus.emit('fair.scheduled', { day: this.state.fair.day! });
+    if (step === 'scheduled') this.bus.emit('festival.scheduled', { festivalId: def.id, day: this.state.festivals.active!.day! });
+    else this.bus.emit('festival.progress', { festivalId: def.id, step, pointId });
     this.advanceStory();
     return { ok: true };
   }
 
-  /** O que a feira mostra agora (para o balão): a etapa, o dia marcado e quantos pontos faltam. */
-  fairStatus(): { stage: 'idle' | 'flyers' | 'waiting' | 'today'; day: number | null; left: number; total: number; next: 'flyers' | 'sign' | 'decor' | 'table' | null } {
-    const f = this.state.fair;
-    const cfg = this.content.adoption.fair;
-    const pending = pendingFairPoints(f, cfg, this.state.day);
-    if (f.stage === 'idle') return { stage: 'idle', day: null, left: 0, total: 0, next: null };
-    if (f.stage === 'flyers') return { stage: 'flyers', day: null, left: pending.length, total: cfg.flyers.length, next: 'flyers' };
-    if (!isFairDay(f, this.state.day)) return { stage: 'waiting', day: f.day, left: 0, total: 0, next: null };
-    const next = pending[0] === cfg.sign.point ? 'sign' : pending[0] === cfg.table ? 'table' : 'decor';
-    const decorLeft = cfg.decorations.filter((d) => !f.done.includes(d.point)).length;
-    return { stage: 'today', day: f.day, left: next === 'decor' ? decorLeft : 0, total: cfg.decorations.length, next };
+  /** A última atividade acabou: prêmios do evento e o resumo. */
+  private endFestival(def: FestivalDef): void {
+    const done = finishFestival(this.state.festivals);
+    if (!done) return;
+    const coins = def.rewards?.coins ?? 0;
+    const reputation = def.rewards?.reputation ?? 0;
+    if (coins > 0) this.addMoney(coins, `festival:${def.id}`);
+    if (reputation > 0) this.addReputation(reputation, `festival:${def.id}`);
+    const adopted = this.festivalAdopted;
+    this.festivalAdopted = 0;
+    this.bus.emit('festival.finished', { festivalId: def.id, results: done.results, coins: coins + done.results.reduce((n, r) => n + r.coins, 0), reputation, adopted });
+  }
+
+  /** O que o festival mostra agora (para o balão): a etapa, o dia marcado, o que falta e a atividade da vez. */
+  festivalStatus(): { def: FestivalDef; stage: 'prep' | 'waiting' | 'today'; day: number | null; left: number; total: number; next: 'prep' | 'close' | 'decor' | 'activity' | null; game: string | null } | null {
+    const def = this.activeFestival();
+    const a = this.state.festivals.active;
+    if (!def || !a) return null;
+    const pending = pendingFestivalPoints(this.state.festivals, def, this.state.day);
+    const base = { def, day: a.day, game: null };
+    if (a.stage === 'prep') return { ...base, stage: 'prep', left: pending.length, total: def.prep?.points.length ?? 0, next: 'prep' };
+    if (!isFestivalDay(this.state.festivals, this.state.day)) return { ...base, stage: 'waiting', left: 0, total: 0, next: null };
+    const decor = def.decorations ?? [];
+    if (pending[0] && pending[0] === def.closePoint?.point) return { ...base, stage: 'today', left: 0, total: 0, next: 'close' };
+    if (pending[0] && decor.some((d) => d.point === pending[0])) return { ...base, stage: 'today', left: pending.length, total: decor.length, next: 'decor' };
+    const act = def.activities.find((x) => x.point === pending[0]);
+    return { ...base, stage: 'today', left: 0, total: 0, next: act ? 'activity' : null, game: act?.game ?? null };
   }
 
   /** Parâmetros extras de um mini game aberto por um ponto (a mesa da feira leva os gatos do café). */
@@ -1576,7 +1620,9 @@ export class GameSession {
       const catId = this.shelteredCats().find((id) => needsMedicine(this.state.cats[id]!, this.state.day));
       return catId ? { catId } : {};
     }
-    if (pointId !== this.content.adoption.fair.table) return {};
+    // Atividade de adoção de um festival (a feira): os gatos do café vão para a mesa.
+    const fest = this.activeFestival();
+    if (!fest?.activities.some((a) => a.point === pointId && a.game === 'adoption')) return {};
     const protectedCats = this.content.adoption.protectedCats;
     const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]
       .filter((id) => !protectedCats.includes(id) && this.catDef(id))
@@ -1587,14 +1633,18 @@ export class GameSession {
     return { adoptCats: cafeAdoptCats(this.content.adoption, cats) };
   }
 
-  /** No dia da feira: a placa na porta e as decorações já feitas aparecem no salão (até o fim do dia). */
-  private fairObjects(): MapData['objects'] {
-    const f = this.state.fair;
-    const held = f.heldOn === this.state.day;
-    if (!isFairDay(f, this.state.day) && !held) return [];
-    const cfg = this.content.adoption.fair;
-    const placed = [cfg.sign, ...cfg.decorations].filter((d) => held || f.done.includes(d.point));
-    return placed.map((d) => ({ id: `fair.${d.point}`, tile: d.tile, at: [...this.content.jobPoints[d.point]!.at] as Cell }));
+  /** No dia do festival: a placa na porta e as decorações já feitas aparecem no mapa (até o fim do dia). */
+  private festivalObjects(): MapData['objects'] {
+    const f = this.state.festivals;
+    const held = f.heldOn?.day === this.state.day ? f.heldOn.id : null;
+    const id = held ?? (isFestivalDay(f, this.state.day) ? f.active!.id : null);
+    const def = id ? this.content.festivals.find((d) => d.id === id) : undefined;
+    if (!def) return [];
+    const pieces = [...(def.closePoint ? [def.closePoint] : []), ...(def.decorations ?? [])];
+    const done = held ? null : f.active!.done;
+    return pieces
+      .filter((d) => !done || done.includes(d.point))
+      .map((d) => ({ id: `fest.${d.point}`, tile: d.tile, at: [...this.content.jobPoints[d.point]!.at] as Cell }));
   }
 
   private jobMarkers(mapId: string): MapData['objects'] {
@@ -1706,9 +1756,10 @@ export class GameSession {
   /** Marcações do calendário (app "Calendário") de `from` a `to`: começos de estação e eventos ainda valendo. */
   calendar(from: number, to: number): CalendarEntry[] {
     const out = calendarEntries(this.content.seasons, from, to, (e) => !!e.hideWhen && evaluate(e.hideWhen as Condition, this.state, this.storyContext()));
-    // A feira marcada (o título vem da interface: id cal.adoption_fair).
-    const f = this.state.fair;
-    if (f.stage === 'scheduled' && f.day !== null && f.day >= from && f.day <= to) out.push({ id: 'cal.adoption_fair', day: f.day, title: '', kind: 'event' });
+    // O festival marcado, com o nome dele.
+    const a = this.state.festivals.active;
+    const def = this.activeFestival();
+    if (def && a?.stage === 'scheduled' && a.day !== null && a.day >= from && a.day <= to) out.push({ id: `cal.${def.id}`, day: a.day, title: def.name, kind: 'event' });
     return out.sort((a, b) => a.day - b.day);
   }
 
@@ -1988,7 +2039,7 @@ export class GameSession {
    * Repete porque concluir um marco pode liberar o próximo. Marcos concluídos não voltam atrás.
    */
   private advanceStory(): void {
-    this.maybeStartFair();
+    this.maybeStartFestivals();
     this.arrivals?.tick(); // (o construtor chama a história antes de criar o sistema)
     for (let guard = 0; guard < 1000; guard++) {
       if (this.advanceRooms()) continue;

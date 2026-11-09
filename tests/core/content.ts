@@ -44,6 +44,7 @@ export function rawContent(): RawContent {
     reputation: read('data/reputation.json'),
     catProfiles: read('data/cat_profiles.json'),
     arrivals: read('data/arrivals.json'),
+    festivals: read('data/festivals.json'),
   };
 }
 

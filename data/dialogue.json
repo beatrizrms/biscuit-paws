@@ -616,6 +616,30 @@
           "text": "Mas... dizem que aqui ele estaria bem. Só estou dizendo."
         }
       ]
+    },
+    "dlg.fest_idea_fair": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Tantos gatos aqui... e o quintal pronto. E se eu fizesse uma feira de adoção lá?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Primeiro, panfletos pela rua. Depois é só marcar o dia."
+        }
+      ]
+    },
+    "dlg.fest_idea_cat_day": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Daqui a pouco é o Dia do Gato! A vila já conhece o café... merece uma festa no quintal."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Já vou deixar marcado no calendário."
+        }
+      ]
     }
   }
 }

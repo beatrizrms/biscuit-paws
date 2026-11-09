@@ -1,6 +1,7 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
+import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
 import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData } from './cutscene';
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceDef, type SurfaceKind } from './map';
@@ -14,12 +15,11 @@ import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData 
 import { validateHealth, type HealthConfig } from './health';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
-import { validateAdoption, type AdoptionData } from './adoption';
+import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
 import { validateArrivals, type ArrivalsData } from './arrivals';
 import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { validateDelivery } from './delivery';
-import { validateFair } from './fair';
 import { validateHideouts } from './kittenHunt';
 import { validateLattePatterns } from './latte';
 import type { RelationshipsConfig } from './relationships';
@@ -303,6 +303,8 @@ export interface Content {
   catProfiles: CatProfilesData;
   /** Chegadas de gatos (data/arrivals.json). */
   arrivals: ArrivalsData;
+  /** Eventos de festival (data/festivals.json). */
+  festivals: FestivalDef[];
   /** A fachada do café (superfície do pintor na rua), se configurada. */
   facade: FinishesData['facade'] | null;
   jobs: Record<string, JobDef>;
@@ -347,6 +349,7 @@ export interface RawContent {
   reputation: ReputationConfig;
   catProfiles: CatProfilesData;
   arrivals: ArrivalsData;
+  festivals: FestivalsData;
 }
 
 /** Correio (data/delivery.json). */
@@ -382,7 +385,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -436,7 +439,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateReputation(raw.reputation));
   const adoptGame = raw.minigames.games.adoption;
-  errors.push(...validateFair(raw.adoption.fair, { points: new Set(raw.jobs.points.map((p) => p.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), traits: raw.adoption.traits }));
+  errors.push(...validateCafeTraits(raw.adoption.fair, raw.adoption.traits));
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
@@ -637,7 +640,6 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateBusiness(raw.business, surfaceIds));
   errors.push(...validateCharacter(raw.character));
   errors.push(...validateScheduleRules(raw.service.schedule, raw.seasons.startWeekday));
-  if (raw.adoption.fair.startWhen) checkCondition('adoption: fair.startWhen', raw.adoption.fair.startWhen as Condition);
   // Chegadas de gatos e perfis (personalidades, condições, gatos gerados).
   const variants = new Set(Object.keys(raw.catSprites.variants));
   errors.push(
@@ -671,6 +673,23 @@ export function validateContent(raw: RawContent): string[] {
       (where, c) => checkCondition(where, c as Condition),
     ),
   );
+  errors.push(
+    ...validateFestivals(raw.festivals, {
+      points: new Set(raw.jobs.points.map((p) => p.id)),
+      tiles: new Set(Object.keys(raw.catalog.tiles)),
+      games: new Set(Object.keys(raw.minigames.games)),
+      dialogues: dialogueIds,
+      thresholds: new Set(raw.reputation.thresholds.map((t) => t.id)),
+      seasons: new Set(raw.seasons.order),
+    }),
+  );
+  // A atividade abre o mini game do ponto dela: os dois precisam bater.
+  for (const f of raw.festivals.festivals)
+    for (const x of f.activities) {
+      const pt = raw.jobs.points.find((p) => p.id === x.point);
+      if (pt && (pt.action !== 'minigame' || pt.minigame?.id !== x.game)) errors.push(`festivals: "${f.id}": o ponto "${x.point}" não abre o mini game "${x.game}"`);
+    }
+  for (const f of raw.festivals.festivals) if (f.when !== undefined) checkCondition(`festivals: "${f.id}"`, f.when as Condition);
   for (const e of raw.seasons.events ?? []) if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(

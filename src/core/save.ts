@@ -10,13 +10,13 @@ import { normalizeRoomsState, type RoomsData } from './rooms';
 import { WEEK, type Schedule } from './schedule';
 import type { ArrivalsState } from './arrivals';
 import type { CatDef } from './cats';
-import type { FairState } from './fair';
+import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 21;
+export const SAVE_SCHEMA_VERSION = 22;
 
-export interface SaveV21 extends GameState {
-  schemaVersion: 21;
+export interface SaveV22 extends GameState {
+  schemaVersion: 22;
   savedAt: string;
 }
 
@@ -112,10 +112,26 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   }),
   /** v20 -> v21: ela ou ele (escolha do criador). Saves antigos: ela (o jogo foi escrito assim até aqui). */
   20: (save) => ({ ...save, schemaVersion: 21, player: { ...((save.player ?? {}) as object), pronoun: DEFAULT_PRONOUN } }),
+  /**
+   * v21 -> v22: a feira de adoção vira um festival (fest.adoption_fair). Panfletos -> preparação; marcada -> marcada;
+   * a estação da última feira vira o primeiro dia dela (30 dias por estação naquela época); o dia em que aconteceu fica.
+   */
+  21: (save) => {
+    const { fair, ...rest } = save as RawSave & { fair?: { stage?: string; day?: number | null; done?: string[]; lastSeason?: number | null; heldOn?: number | null } | null };
+    const id = 'fest.adoption_fair';
+    const f = fair ?? {};
+    const active =
+      f.stage === 'flyers' ? { id, stage: 'prep', day: null, done: f.done ?? [], results: [] }
+      : f.stage === 'scheduled' && typeof f.day === 'number' ? { id, stage: 'scheduled', day: f.day, done: f.done ?? [], results: [] }
+      : null;
+    const last = typeof f.lastSeason === 'number' ? { [id]: f.lastSeason * 30 + 1 } : {};
+    const heldOn = typeof f.heldOn === 'number' ? { id, day: f.heldOn } : null;
+    return { ...rest, schemaVersion: 22, festivals: { active, last, heldOn } };
+  },
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV21 = { schemaVersion: 21, savedAt: now.toISOString(), ...state };
+  const save: SaveV22 = { schemaVersion: 22, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -145,6 +161,8 @@ export interface KnownIds {
   reputationStart?: number;
   /** Chegadas de data/arrivals.json (a que sumiu sai da fila). */
   arrivals?: ReadonlySet<string>;
+  /** Festivais de data/festivals.json (o em andamento que sumiu é esquecido). */
+  festivals?: ReadonlySet<string>;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -160,7 +178,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV21>;
+  const v2 = save as unknown as Partial<SaveV22>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -277,7 +295,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       pronoun: isPronoun(v2.player?.pronoun) ? v2.player.pronoun : DEFAULT_PRONOUN,
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
-    fair: normalizeFair(v2.fair),
+    festivals: normalizeFestivals(v2.festivals, known.festivals, warnings),
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
     hintUses: Object.fromEntries(
@@ -340,19 +358,25 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
   };
 }
 
-/** Feira salva (ou parada, em save antigo ou quebrado). */
-function normalizeFair(f: unknown): FairState {
-  const x = f as Partial<FairState> | null | undefined;
-  const stage = x?.stage === 'flyers' || x?.stage === 'scheduled' ? x.stage : 'idle';
+/** Festivais salvos; o evento em andamento que sumiu dos dados é esquecido. */
+function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, warnings: string[]): FestivalsState {
+  const x = f as Partial<FestivalsState> | null | undefined;
+  if (!x || typeof x !== 'object') return newFestivals();
   const num = (n: unknown) => (typeof n === 'number' && Number.isInteger(n) ? n : null);
-  const day = num(x?.day);
-  return {
-    stage: stage === 'scheduled' && day === null ? 'idle' : stage,
-    day: stage === 'scheduled' ? day : null,
-    done: Array.isArray(x?.done) ? x.done.filter((id): id is string => typeof id === 'string') : [],
-    lastSeason: num(x?.lastSeason),
-    heldOn: num(x?.heldOn),
-  };
+  const ok = (id: unknown): id is string => typeof id === 'string' && (!known || known.has(id));
+  const strings = (a: unknown) => (Array.isArray(a) ? a.filter((v): v is string => typeof v === 'string') : []);
+  let active: FestivalsState['active'] = null;
+  const a = x.active;
+  if (a && ok(a.id) && (a.stage === 'prep' || (a.stage === 'scheduled' && num(a.day) !== null))) {
+    const results = Array.isArray(a.results)
+      ? a.results.filter((r): r is ActivityResult => !!r && typeof r.game === 'string' && ['fail', 'ok', 'great'].includes(r.outcome) && typeof r.coins === 'number')
+      : [];
+    active = { id: a.id, stage: a.stage, day: a.stage === 'scheduled' ? num(a.day) : null, done: strings(a.done), results: results.map((r) => ({ ...r, skipped: !!r.skipped })) };
+  } else if (a) warnings.push(`festival "${String(a.id)}" não existe mais; esquecido`);
+  const last = Object.fromEntries(Object.entries(x.last ?? {}).filter((e): e is [string, number] => ok(e[0]) && num(e[1]) !== null));
+  const h = x.heldOn;
+  const heldOn = h && ok(h.id) && num(h.day) !== null ? { id: h.id, day: h.day } : null;
+  return { active, last, heldOn };
 }
 
 /** Reputação salva (ou a inicial, em save antigo ou quebrado). */
@@ -389,6 +413,7 @@ export function knownIds(content: {
   facade?: { surface: { id: string } } | null;
   reputation?: { start: number };
   arrivals?: { arrivals: { id: string }[] };
+  festivals?: { id: string }[];
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -404,5 +429,6 @@ export function knownIds(content: {
     rooms: content.rooms,
     reputationStart: content.reputation?.start ?? 0,
     ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
+    ...(content.festivals ? { festivals: new Set(content.festivals.map((f) => f.id)) } : {}),
   };
 }

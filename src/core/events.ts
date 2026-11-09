@@ -38,11 +38,11 @@ export interface GameEvents {
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };
-  'fair.started': Record<string, never>;
-  'fair.progress': { step: 'flyer' | 'scheduled' | 'sign' | 'decor' | 'ready'; pointId: string };
-  'fair.scheduled': { day: number };
-  'fair.missed': { day: number };
-  'fair.finished': { adopted: number };
+  'festival.started': { festivalId: string };
+  'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready'; pointId: string };
+  'festival.scheduled': { festivalId: string; day: number };
+  'festival.missed': { festivalId: string; day: number };
+  'festival.finished': { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean }[]; coins: number; reputation: number; adopted: number };
   'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };

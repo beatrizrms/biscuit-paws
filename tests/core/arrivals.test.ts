@@ -153,7 +153,8 @@ describe('chegadas na sessão', () => {
     pool.session.arrivals.tick();
     expect(pool.session.arrivals.finish('accepted')).toBe('shelter_pool');
     expect(pool.state.arrivals.shelterPool).toEqual(['cat.gen.1']);
-    expect(pool.session.miniGameExtras(content.adoption.fair.table).adoptCats?.map((c) => c.id)).toContain('cat.gen.1');
+    pool.session.debugStartFestival('fest.adoption_fair');
+    expect(pool.session.miniGameExtras('pt.fair_table').adoptCats?.map((c) => c.id)).toContain('cat.gen.1');
 
     const later = cafe([arrival({ whenFull: 'postpone' })]);
     fillCafe(later.state, later.session.catCapacity());

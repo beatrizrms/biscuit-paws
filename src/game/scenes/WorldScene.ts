@@ -263,7 +263,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (door && this.session.atHome()) this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
-    for (const ev of ['arrival.started', 'arrival.step', 'arrival.needs', 'arrival.need_met', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'fair.started', 'fair.progress', 'fair.finished', 'fair.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    for (const ev of ['arrival.started', 'arrival.step', 'arrival.needs', 'arrival.need_met', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'festival.started', 'festival.scheduled', 'festival.progress', 'festival.finished', 'festival.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {

@@ -96,7 +96,7 @@ cat-cafe-game/
 | `cart.changed` | carrinho do mercado mudou | `count, total` |
 | `reputation.changed` | a reputação felina mudou | `from, to, amount, reason` |
 | `reputation.threshold_reached` | passou de um limiar pela primeira vez (só o gancho) | `thresholdId, value` |
-| `fair.started` / `fair.progress` / `fair.scheduled` / `fair.missed` / `fair.finished` | etapas da feira de adoção | `step, pointId` / `day` / `day` / `adopted` |
+| `festival.started` / `festival.progress` / `festival.scheduled` / `festival.missed` / `festival.finished` | etapas de um festival (feira de adoção, Dia do Gato...) | `festivalId` / `+ step, pointId` / `+ day` / `+ day` / `+ results, coins, reputation, adopted` |
 | `arrival.queued` / `arrival.started` / `arrival.step` / `arrival.finished` | chegada de gato: na fila, começou, etapa, terminou (onde o gato ficou) | `arrivalId` / `+catId, model` / `step` / `outcome, placement` |
 | `arrival.choice` | a chegada pergunta sim/não (a resposta volta por `session.answerArrival`) | `arrivalId, key` |
 | `arrival.needs` / `arrival.need_met` | aceito, o gato espera as necessidades da condição (ração, cobertor, vet) / uma foi atendida | `arrivalId, needs` / `arrivalId, need, left` |

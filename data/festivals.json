@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Eventos de festival no café (src/core/festival.ts), ideia da protagonista, no quintal. Disponível quando: unlockReputation (limiar de data/reputation.json alcançado), when (condição das metas), date (estação + dia; a ideia vem noticeDays antes) e o intervalo cooldownDays desde a última edição. Um evento por vez. Começa com a fala idea; prep (pontos em qualquer ordem, ex.: panfletos) marca o dia daysAfter depois; sem prep, já fica marcado (a data, ou hoje). No dia: closePoint (a placa na porta fecha o atendimento), decorations (cada ponto põe a peça no mapa) e activities (mini games, em ordem; qualquer resultado conta). Acabou: resumo com os resultados, mais rewards. Perdeu o dia: volta ao começo. texts: as linhas do balão de metas deste evento (prep, close, decor e uma por mini game das atividades).",
+  "festivals": [
+    {
+      "id": "fest.adoption_fair",
+      "name": "Feira de adoção",
+      "idea": "dlg.fest_idea_fair",
+      "when": { "all": [{ "cats": { "gte": 9 } }, { "daysSince": { "beat": "story.backyard", "gte": 7 } }] },
+      "cooldownDays": 30,
+      "prep": { "points": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"], "daysAfter": 3 },
+      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+      "decorations": [
+        { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting" },
+        { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
+        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting" }
+      ],
+      "activities": [{ "point": "pt.fair_table", "game": "adoption" }],
+      "rewards": { "reputation": 2 },
+      "texts": {
+        "prep": "Distribuir panfletos da feira pela rua.",
+        "close": "Hoje é a feira! Pôr a placa de fechado na porta do café.",
+        "decor": "Decorar o quintal para a feira.",
+        "activities": { "adoption": "Abrir a feira na mesa do quintal (Match de adoção)." }
+      }
+    },
+    {
+      "id": "fest.cat_day",
+      "name": "Dia do Gato",
+      "idea": "dlg.fest_idea_cat_day",
+      "unlockReputation": "rep.noticed",
+      "when": { "room": "room.backyard", "atLeast": "restored" },
+      "date": { "season": "summer", "day": 8, "noticeDays": 3 },
+      "cooldownDays": 60,
+      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+      "decorations": [
+        { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting" },
+        { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" }
+      ],
+      "activities": [{ "point": "pt.fair_table", "game": "adoption" }],
+      "rewards": { "coins": 30, "reputation": 4 },
+      "texts": {
+        "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café.",
+        "decor": "Enfeitar o quintal para a festa.",
+        "activities": { "adoption": "A feira do Dia do Gato, na mesa do quintal." }
+      }
+    }
+  ]
+}

@@ -212,17 +212,12 @@ export class GameUi {
     });
     bus.on('arrival.provisional_settled', () => this.toast(at.settled, 4000));
     bus.on('arrival.provisional_expired', () => this.toast(at.expired, 4500));
-    const ft = uiText.fair;
-    bus.on('fair.started', () => this.toast(ft.started, 4500));
-    bus.on('fair.progress', ({ step }) => {
-      if (step === 'flyer') this.toast(ft.flyer);
-      else if (step === 'sign') this.toast(ft.sign_done, 3500);
-      else if (step === 'decor') this.toast(ft.decor_done);
-      else if (step === 'ready') this.toast(ft.ready, 3500);
-    });
-    bus.on('fair.scheduled', ({ day }) => this.toast(ft.scheduled.replace('{date}', this.fairDate(day)), 4500));
-    bus.on('fair.missed', () => this.toast(ft.missed, 4500));
-    bus.on('fair.finished', ({ adopted }) => this.toast(ft.finished.replace('{n}', String(adopted)), 4500));
+    const ft = uiText.festival;
+    const festName = (id: string) => content.festivals.find((f) => f.id === id)?.name ?? '';
+    bus.on('festival.progress', ({ step }) => this.toast(ft[step], step === 'prep' || step === 'decor' ? 2500 : 3500));
+    bus.on('festival.scheduled', ({ festivalId, day }) => this.toast(ft.scheduled.replace('{name}', festName(festivalId)).replace('{date}', this.festivalDate(day)), 4500));
+    bus.on('festival.missed', ({ festivalId }) => this.toast(ft.missed.replace('{name}', festName(festivalId)), 4500));
+    bus.on('festival.finished', (e) => void this.festivalSummary(e));
     bus.on('reputation.changed', () => {
       const el = this.root.querySelector<HTMLElement>('.hud-rep');
       el?.classList.remove('bump');
@@ -327,9 +322,9 @@ export class GameUi {
     // Chegada de gato em andamento: o que fazer agora.
     const arrival = this.arrivalLine();
     if (arrival) items.push(arrival);
-    // Feira de adoção: a etapa da vez (src/core/fair.ts).
-    const fair = this.fairLine();
-    if (fair) items.push(fair);
+    // Festival em andamento: a etapa da vez (src/core/festival.ts).
+    const fest = this.festivalLine();
+    if (fest) items.push(fest);
     const sv = this.session.service;
     // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
     if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) items.push(`<li class="job"><span>${esc(uiText.service.closed.replace('{when}', openingText(this.session)))}</span></li>`);
@@ -429,29 +424,64 @@ export class GameUi {
     return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
   }
 
-  /** Linha da feira de adoção no balão (ou vazio, sem feira em andamento). */
-  private fairLine(): string {
-    const f = this.session.fairStatus();
-    const t = uiText.fair;
-    if (f.stage === 'idle') return '';
+  /** Linha do festival no balão (ou vazio, sem evento em andamento). Os textos vêm do festival (festivals.json: texts). */
+  private festivalLine(): string {
+    const f = this.session.festivalStatus();
+    if (!f) return '';
+    const t = f.def.texts;
     const count = f.total > 1 && f.left > 0 ? ` <span class="count">${f.total - f.left}/${f.total}</span>` : '';
     let text = '';
-    if (f.stage === 'flyers') text = t.flyers;
+    if (f.stage === 'prep') text = t.prep ?? '';
     else if (f.stage === 'waiting') {
       const n = (f.day ?? 0) - this.session.state.day;
       const when = n === 1 ? uiText.calendarApp.tomorrow : uiText.calendarApp.inDays.replace('{n}', String(n));
-      text = t.waiting.replace('{date}', this.fairDate(f.day ?? 0)).replace('{when}', when);
-    } else text = f.next === 'sign' ? t.sign : f.next === 'decor' ? t.decor : t.table;
-    return `<li class="job"><span><b>${esc(t.title)}:</b> ${esc(text)}${count}</span></li>`;
+      text = uiText.festival.waiting.replace('{name}', f.def.name).replace('{date}', this.festivalDate(f.day ?? 0)).replace('{when}', when);
+    } else if (f.next === 'close') text = t.close ?? '';
+    else if (f.next === 'decor') text = t.decor ?? '';
+    else if (f.game) text = t.activities[f.game] ?? '';
+    return text ? `<li class="job"><span><b>${esc(f.def.name)}:</b> ${esc(text)}${count}</span></li>` : '';
   }
 
   /** "Inverno 15 (sex)". */
-  private fairDate(day: number): string {
+  private festivalDate(day: number): string {
     const s = content.seasons;
-    return uiText.fair.date
+    return uiText.festival.date
       .replace('{season}', s.names[seasonOf(s, day)] ?? '')
       .replace('{day}', String(dayInSeason(s, day)))
       .replace('{weekday}', uiText.weekdays[this.session.service.weekday(day)] ?? '');
+  }
+
+  /** Fim do festival: o resumo (cada atividade com o resultado, moedas, reputação e adoções). Enter ou o botão fecha. */
+  private festivalSummary(e: { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; skipped: boolean }[]; coins: number; reputation: number; adopted: number }): Promise<void> {
+    const t = uiText.festival.summary;
+    const name = content.festivals.find((f) => f.id === e.festivalId)?.name ?? '';
+    const rows = e.results.map((r) => {
+      const game = content.minigames.games[r.game]?.name ?? r.game;
+      return `<li>${esc(t.activity.replace('{game}', game).replace('{outcome}', r.skipped ? t.outcomes.skipped : t.outcomes[r.outcome]))}</li>`;
+    });
+    if (e.adopted > 0) rows.push(`<li>${esc(t.adopted.replace('{n}', String(e.adopted)))}</li>`);
+    if (e.coins > 0) rows.push(`<li class="gain">${esc(t.coins.replace('{n}', String(e.coins)))}</li>`);
+    if (e.reputation > 0) rows.push(`<li class="gain">${esc(t.reputation.replace('{n}', String(e.reputation)))}</li>`);
+    const el = document.createElement('div');
+    el.className = 'confirm-layer';
+    el.innerHTML = `<div class="panel confirm festival-summary"><p class="title">${esc(t.title.replace('{name}', name))}</p><ul>${rows.join('')}</ul><div class="buttons"><button class="yes">${esc(t.close)}</button></div></div>`;
+    this.root.appendChild(el);
+    this.reveal = { el, done: () => undefined };
+    this.refresh();
+    return new Promise((resolve) => {
+      const finish = () => {
+        window.removeEventListener('keydown', onKey);
+        el.remove();
+        this.reveal = null;
+        this.refresh();
+        resolve();
+      };
+      const onKey = (k: KeyboardEvent) => {
+        if (k.code === 'Enter' || k.code === 'Escape') finish();
+      };
+      window.setTimeout(() => window.addEventListener('keydown', onKey), 150);
+      (el.querySelector('.yes') as HTMLElement).addEventListener('click', finish);
+    });
   }
 
   /** Reputação felina no HUD: barrinha e número (embaixo do dinheiro). */
