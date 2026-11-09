@@ -54,6 +54,22 @@
       }
     },
     {
+      "id": "item.cat_brush",
+      "name": "Escova de pelo",
+      "price": 15,
+      "kind": "tool",
+      "use": "brush",
+      "iconImage": "assets/objects/placeholders/icon_brush.png",
+      "tags": [
+        "pet",
+        "tool",
+        "grooming"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.cat_litter",
       "name": "Areia",
       "price": 12,

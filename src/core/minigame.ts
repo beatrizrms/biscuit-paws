@@ -1,6 +1,7 @@
 // Mini games: o contrato de resultado, a dificuldade, o cronômetro e as moedas (data/minigames.json).
 // Puro: sem Phaser, DOM ou window. A cena só joga e diz como foi (outcome + score); quanto vale é daqui.
 import type { FishDef } from './fishing';
+import { validateGrooming, type MatDef, type ZoneDef } from './grooming';
 import type { AdoptCat } from './adoption';
 import type { DeliveryItem, ObstacleRoute } from './delivery';
 import type { HeatLevel, Hideout } from './kittenHunt';
@@ -74,6 +75,10 @@ export interface MiniGameDef {
   hideoutKinds?: string[];
   heat?: HeatLevel[];
   heatRange?: number;
+  /** Escovação: os emaranhados e as zonas do corpo (pixels do sprite de lado) e quanto o gato é ampliado. */
+  mats?: MatDef[];
+  zones?: ZoneDef[];
+  bodyScale?: number;
   /** Área de jogo em px lógicos (x, y, largura, altura), quando o jogo é numa tela fixa sem mapa (ex.: a varinha). */
   arena?: [number, number, number, number];
   /** Parte da arena mostrada (coluna, linha, largura, altura em células), quando a tela é fixa. */
@@ -212,6 +217,7 @@ export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySe
       const r = g.rewards[d];
       if (!r || !(r.ok >= 0) || !(r.great >= r.ok)) err(`"${id}": rewards.${d} precisa de ok >= 0 e great >= ok`);
     }
+    if (g.mats || g.zones) errors.push(...validateGrooming(g.mats ?? [], g.zones ?? [], DIFFICULTIES.map((d) => Number(g.difficulties[d]?.mats ?? 0))));
   }
   return errors;
 }

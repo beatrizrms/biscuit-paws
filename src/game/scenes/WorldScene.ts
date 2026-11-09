@@ -830,7 +830,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const cell = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: r * ts, kind });
     const floor = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: (r + 0.4) * ts, kind }); // rente ao chão: a dica mais perto
     const nearCat = () => this.cats.find((c) => c.visible && near(c.cell()));
-    const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9, kind });
+    // Nos gatos, um pouco mais alto: o balão de cuidado (careBubbles) fica logo acima da cabeça.
+    const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9 - 12, kind });
     if (s.atHome()) {
       const sv = s.service;
       const customer = sv.customerToServe(feet);

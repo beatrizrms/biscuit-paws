@@ -527,6 +527,14 @@
       "pounce": "Bote!",
       "result": "Botes: {pounces} · enjoou {bored} vez(es).",
       "failed": "Ele perdeu a graça e foi deitar."
+    },
+    "grooming": {
+      "hud": "Paciência {patience}% · Pelo {done}%",
+      "clean": "Desembaraçou!",
+      "sensitive": "Hss!",
+      "allClean": "Pelo lisinho!",
+      "result": "Pelo lisinho, com paciência {patience}%.",
+      "failed": "Ele perdeu a paciência e fugiu."
     }
   },
   "phoneApp": {

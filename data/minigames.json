@@ -252,6 +252,41 @@
         "normal": {"timeSec":40,"catSpeed":160,"catAccel":400,"arriveRadius":40,"gainPerSec":8,"variety":180,"stillSpeed":12,"tooFast":560,"boringVariety":55,"boredAfterSec":2.5,"giveUpAfterSec":1.2,"boredLoss":18,"idleLossPerSec":3,"pounceDelaySec":0.5,"pounceRange":80,"crouchSec":0.8,"pounceGain":9,"wiggleBonus":7,"wiggleMin":15,"wiggleMax":120,"okAt":60},
         "hard": {"timeSec":30,"catSpeed":175,"catAccel":380,"arriveRadius":40,"gainPerSec":8,"variety":200,"stillSpeed":12,"tooFast":500,"boringVariety":65,"boredAfterSec":2,"giveUpAfterSec":1,"boredLoss":20,"idleLossPerSec":4,"pounceDelaySec":0.5,"pounceRange":70,"crouchSec":0.7,"pounceGain":8,"wiggleBonus":6,"wiggleMin":15,"wiggleMax":100,"okAt":65}
       }
+    },
+    "grooming": {
+      "name": "Banho e escovação",
+      "instructions": "Arraste a escova sobre cada ponto de pelo embaraçado até desembaraçar. Barriga, cauda e patas são sensíveis: escovar ali gasta a paciência dele. Costas e bochechas ele adora: escovar ali recupera um pouco.",
+      "tutorial": {"lines":["Segure o botão e arraste a escova sobre os nós de pelo, de um lado para o outro.","Barriga, cauda e patas: ele perde a paciência. Costas e bochechas: ele relaxa.","Tudo limpo com a paciência acima da metade = Perfeito!"]},
+      "reputation": {"ok":1,"great":2},
+      "bodyScale": 8,
+      "sounds": {"clean":"success","sensitive":"error","comfort":"purr","done":"success","fled":"error"},
+      "mats": [
+        {"id":"back","at":[12,16],"radius":3,"need":40},
+        {"id":"shoulder","at":[18,17],"radius":3,"need":40},
+        {"id":"cheek","at":[26,14],"radius":2.5,"need":30},
+        {"id":"hip","at":[8,19],"radius":3,"need":40},
+        {"id":"chest","at":[21,21],"radius":3,"need":40},
+        {"id":"belly","at":[15,22],"radius":3,"need":35},
+        {"id":"tail","at":[5,10],"radius":2.5,"need":35},
+        {"id":"paw","at":[22,27],"radius":2.5,"need":30}
+      ],
+      "zones": [
+        {"id":"belly","kind":"sensitive","rect":[10,21,11,4]},
+        {"id":"tail","kind":"sensitive","rect":[1,4,8,14]},
+        {"id":"paws","kind":"sensitive","rect":[5,25,22,6]},
+        {"id":"back","kind":"comfort","rect":[7,14,13,3]},
+        {"id":"cheeks","kind":"comfort","rect":[23,11,7,6]}
+      ],
+      "rewards": {
+        "easy": {"ok":4,"great":8},
+        "normal": {"ok":6,"great":12},
+        "hard": {"ok":8,"great":16}
+      },
+      "difficulties": {
+        "easy": {"mats":4,"needScale":0.8,"drainPerPx":0.5,"recoverPerPx":0.25,"greatAbove":50},
+        "normal": {"mats":6,"needScale":1,"drainPerPx":0.7,"recoverPerPx":0.2,"greatAbove":50},
+        "hard": {"mats":8,"needScale":1.1,"drainPerPx":0.6,"recoverPerPx":0.15,"greatAbove":50}
+      }
     }
   }
 }
