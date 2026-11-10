@@ -315,6 +315,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
+    this.session.bus.on('curtain.toggled', rebuildIfHome);
     // Cômodos: o mapa, a câmera (só o que ela conhece) e a luz do quintal mudam; descobrir tem um momento.
     for (const ev of ['room.opened', 'room.restored'] as const) this.session.bus.on(ev, () => this.session.atHome() && this.refreshRooms());
     this.session.bus.on('room.discovered', ({ trigger, highlight }) => {
@@ -1058,6 +1059,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
       else if ('sleep' in it.action) this.askSleep();
       else if ('hours' in it.action) this.ui.showHours(it.action.hours);
+      else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue);
       else this.ui.openNews('board');
       return true;
     }

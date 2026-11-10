@@ -993,6 +993,10 @@
         },
         "padlock": {
           "solid": false
+        },
+        "window_open": {
+          "layer": "wall",
+          "solid": false
         }
       }
     },

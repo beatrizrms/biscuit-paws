@@ -99,6 +99,7 @@ export interface GameEvents {
   'item.upgraded': { uid: string; from: string; to: string; cost: number };
   'item.refunded': { itemId: string; amount: number };
   'dirt.cleaned': { dirtId: string };
+  'curtain.toggled': { objectId: string; open: boolean };
   'surface.painted': { surfaceId: string; finishId: string; price: number };
   /** Obras (src/core/construction.ts): ligação com o orçamento, resposta, fim da obra e a pergunta dele depois. */
   'construction.call': { kind: string };

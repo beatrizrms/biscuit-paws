@@ -202,14 +202,55 @@ function pantryCabinet(): Canvas {
   return c.outline();
 }
 
+// PLACEHOLDER(arte): janela do café com a cortina aberta (2x2), até a arte do PixelLab. Mesma moldura da janela de
+// cortina fechada; atrás do vidro, o céu e muitos galhos secos (o terreno do quintal, ainda abandonado).
+/** Janela aberta: moldura de madeira, vidro com céu claro e galhos, cortinas rosa franzidas nos cantos e o varão. */
+function windowOpen(): Canvas {
+  const c = new Canvas(T * 2, T * 2);
+  c.rect(6, 8, 52, 50, at(P.oak, 3)); // moldura
+  c.rect(6, 8, 52, 2, at(P.oak, 4));
+  c.rect(9, 11, 46, 42, at(P.sky, 4)); // vidro
+  c.rect(9, 11, 46, 14, at(P.sky, 5)); // céu mais claro em cima
+  // Muitos galhos secos atravessando a vista.
+  const twig = at(P.coffee, 2);
+  c.line(9, 44, 30, 30, twig);
+  c.line(9, 45, 30, 31, twig);
+  c.line(18, 38, 22, 24, twig);
+  c.line(30, 30, 40, 18, twig);
+  c.line(30, 30, 46, 34, twig);
+  c.line(54, 22, 38, 40, twig);
+  c.line(54, 23, 38, 41, twig);
+  c.line(44, 31, 50, 46, twig);
+  c.line(12, 26, 24, 20, twig);
+  c.line(40, 18, 44, 12, twig);
+  c.line(26, 52, 34, 40, twig);
+  c.vline(31, 11, 42, at(P.oak, 3)); // a travessa do meio
+  c.hline(9, 31, 46, at(P.oak, 3));
+  c.rect(4, 56, 56, 4, at(P.oak, 4)); // peitoril
+  c.rect(4, 59, 56, 1, at(P.oak, 2));
+  // Cortinas abertas, franzidas nos cantos, e o varão por cima.
+  for (const x of [4, 50]) {
+    c.rect(x, 7, 10, 40, at(P.rose, 4));
+    c.vline(x + 3, 9, 36, at(P.rose, 3));
+    c.vline(x + 7, 9, 36, at(P.rose, 3));
+    c.rect(x + 1, 30, 8, 3, at(P.rose, 2)); // a faixa que prende
+    c.rect(x, 46, 10, 3, at(P.rose, 5)); // barra de renda
+  }
+  c.rect(2, 4, 60, 3, at(P.oak, 2)); // varão
+  c.rect(1, 3, 3, 5, at(P.oak, 4));
+  c.rect(60, 3, 3, 5, at(P.oak, 4));
+  return c.outline();
+}
+
 // Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa, pegadas,
 // parede do porão, piso do porão, cadeado; a porta dos fundos (1x2) por último, ocupando as duas linhas; a escada (2x1) na
 // segunda linha, embaixo das primeiras; ao lado dela, o ponto de montar a feira.
 const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable(), footprints(), basementWall(), basementFloor(), padlock()];
-const sheet = new Canvas((pieces.length + 2) * T, T * 2);
+const sheet = new Canvas((pieces.length + 4) * T, T * 2);
 pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 sheet.blit(backDoor(), pieces.length * T, 0);
 sheet.blit(pantryCabinet(), (pieces.length + 1) * T, 0); // o armário da cozinha (1x2), na coluna depois da porta
+sheet.blit(windowOpen(), (pieces.length + 2) * T, 0); // a janela com a cortina aberta (2x2), depois do armário
 sheet.blit(basementStairs(), 0, T); // 2x1, na segunda linha
 sheet.blit(fairSetup(), 2 * T, T); // o ponto de montar a feira, ao lado da escada
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');

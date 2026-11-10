@@ -353,6 +353,8 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
+    // Cortinas abertas: campo opcional (sem ele, fechadas); só ids em texto.
+    ...(Array.isArray(v2.openCurtains) ? { openCurtains: [...new Set(v2.openCurtains.filter((id: unknown): id is string => typeof id === 'string'))] } : {}),
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };

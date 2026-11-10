@@ -270,6 +270,8 @@ export interface WorldData {
   schemaVersion: 1;
   /** Tutorial: quantas vezes a dica "E" aparece em cada tipo de coisa antes de sumir de vez. */
   hintTimes: number;
+  /** Tipos de dica com outro número de vezes (ex.: a cortina, só uma). */
+  hintTimesBy?: Record<string, number>;
   startMap: string;
   homeMap: string;
   /** Estação atual (dados de todas já existem; o prólogo é no inverno). */
@@ -813,6 +815,13 @@ export function validateContent(raw: RawContent): string[] {
   for (const m of raw.maps) {
     for (const it of m.interactions ?? []) {
       if ('shop' in it.action && !raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
+      if ('curtain' in it.action) {
+        const { curtain, dialogue } = it.action;
+        const obj = m.objects.find((o) => o.id === curtain);
+        if (!obj?.curtainOpen) err(`${m.id}: interação "${it.id}" abre a cortina de "${curtain}", que não existe ou não tem curtainOpen`);
+        else if (!raw.catalog.tiles[obj.curtainOpen]) err(`${m.id}: "${curtain}" com curtainOpen inexistente "${obj.curtainOpen}"`);
+        if (dialogue && !raw.dialogue.dialogues[dialogue]) err(`${m.id}: interação "${it.id}" com fala inexistente "${dialogue}"`);
+      }
       if ('hours' in it.action) {
         const door = (m.doors ?? []).find((d) => d.id === (it.action as { hours: string }).hours);
         if (!door) err(`${m.id}: plaquinha "${it.id}" de porta inexistente neste mapa`);

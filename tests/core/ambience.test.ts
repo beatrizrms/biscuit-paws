@@ -43,7 +43,9 @@ describe('luz e sombra de ambiente', () => {
   });
 
   it('janela: luz no piso só nos interiores, a partir da primeira linha aberta, inclinada para o lado', () => {
-    const map = room({ objects: [{ id: 'w', tile: 'window', at: [1, 0] }] });
+    // Só a janela com a cortina aberta joga luz (windowTiles); a de cortina fechada, nenhuma.
+    expect(ambienceOf(room({ objects: [{ id: 'w', tile: 'window', at: [1, 0] }] }), content.catalog, cfg, true).windows).toHaveLength(0);
+    const map = room({ objects: [{ id: 'w', tile: 'ph_window_open', at: [1, 0] }] });
     expect(ambienceOf(map, content.catalog, cfg, false).windows).toHaveLength(0);
     const [w] = ambienceOf(map, content.catalog, cfg, true).windows;
     expect(w).toBeDefined();
@@ -54,10 +56,10 @@ describe('luz e sombra de ambiente', () => {
     expect(x2).toBeGreaterThan(x0 + ts); // a base vai mais para o lado
   });
 
-  it('o café de verdade: tem sombras, faixas e as duas janelas', () => {
+  it('o café de verdade: tem sombras e faixas; com as cortinas fechadas, nenhuma luz de janela', () => {
     const a = ambienceOf(content.map, content.catalog, cfg, true);
     expect(a.edges.length).toBeGreaterThan(10);
-    expect(a.windows).toHaveLength(2);
+    expect(a.windows).toHaveLength(0);
   });
 });
 

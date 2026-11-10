@@ -58,7 +58,8 @@
       "at": [
         1,
         0
-      ]
+      ],
+      "curtainOpen": "ph_window_open"
     },
     {
       "id": "obj.window_right",
@@ -66,7 +67,8 @@
       "at": [
         10,
         0
-      ]
+      ],
+      "curtainOpen": "ph_window_open"
     },
     {
       "id": "obj.doormat",
@@ -91,6 +93,32 @@
         0,
         3
       ]
+    }
+  ],
+  "interactions": [
+    {
+      "id": "int.curtain_left",
+      "at": [
+        2,
+        1
+      ],
+      "reach": 2,
+      "action": {
+        "curtain": "obj.window_left",
+        "dialogue": "dlg.curtain_view"
+      }
+    },
+    {
+      "id": "int.curtain_right",
+      "at": [
+        10,
+        1
+      ],
+      "reach": 2,
+      "action": {
+        "curtain": "obj.window_right",
+        "dialogue": "dlg.curtain_view"
+      }
     }
   ],
   "spawn": {

@@ -656,6 +656,14 @@
           "text": "Fantasias, desfile, júri... Vou marcar para o fim da primavera!"
         }
       ]
+    },
+    "dlg.curtain_view": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Tem muitos galhos atrapalhando a vista, mas ainda bem que bate um solzinho... De quem será que é esse terreno?"
+        }
+      ]
     }
   }
 }

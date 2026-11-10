@@ -2149,7 +2149,30 @@ export class GameSession {
 
   /** Objetos do mapa que aparecem agora (os com `when` só depois da condição). */
   private visibleObjects(map: MapData): MapData['objects'] {
-    return map.objects.filter((o) => !o.when || evaluate(o.when as Condition, this.state, this.storyContext()));
+    const open = this.state.openCurtains ?? [];
+    return map.objects
+      .filter((o) => !o.when || evaluate(o.when as Condition, this.state, this.storyContext()))
+      .map((o) => (o.curtainOpen && open.includes(o.id) ? { ...o, tile: o.curtainOpen } : o));
+  }
+
+  /** A cortina desta janela está aberta? */
+  curtainOpen(objectId: string): boolean {
+    return (this.state.openCurtains ?? []).includes(objectId);
+  }
+
+  /**
+   * Abre ou fecha a cortina (a luz no piso só sai da janela aberta). Na primeira vez que alguma abre no jogo, a fala
+   * dela sobre a vista (`dialogue`), uma vez só (flag seen.<fala>).
+   */
+  toggleCurtain(objectId: string, dialogue?: string): void {
+    const open = this.state.openCurtains ?? [];
+    const opening = !open.includes(objectId);
+    this.state.openCurtains = opening ? [...open, objectId] : open.filter((id) => id !== objectId);
+    this.bus.emit('curtain.toggled', { objectId, open: opening });
+    if (opening && dialogue && !this.state.flags[`seen.${dialogue}`]) {
+      this.state.flags[`seen.${dialogue}`] = true;
+      this.bus.emit('dialogue.requested', { dialogueId: dialogue });
+    }
   }
 
   /** Sujeira visível numa célula do café (ou undefined). */
@@ -2162,7 +2185,7 @@ export class GameSession {
 
   /** Tutorial: a dica "E" deste tipo de coisa ainda aparece? (some depois de world.hintTimes usos) */
   hintWanted(kind: string): boolean {
-    return (this.state.hintUses[kind] ?? 0) < this.content.world.hintTimes;
+    return (this.state.hintUses[kind] ?? 0) < (this.content.world.hintTimesBy?.[kind] ?? this.content.world.hintTimes);
   }
 
   /** Ela usou o E neste tipo de coisa: conta para o tutorial (até sumir a dica). */
