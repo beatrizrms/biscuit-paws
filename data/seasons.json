@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem. startWeekday: dia da semana do dia 1 (0 = segunda; o jogo começa numa quarta, véspera de Natal). App Calendário: seasonStarts (título do primeiro dia de cada estação) e events (day ou fromSeason; everyYear repete; hideWhen some quando a condição vale). weather: pesos do clima sorteado por dia em cada estação (neve, chuva, sol; usado pelos gatilhos das chegadas).",
+  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem. startWeekday: dia da semana do dia 1 (0 = segunda; o jogo começa numa quarta, véspera de Natal). App Calendário: seasonStarts (título do primeiro dia de cada estação) e events (day ou fromSeason; everyYear repete; hideWhen some quando a condição vale). weather: pesos do clima sorteado por dia em cada estação (neve, chuva, vento, sol; usado pelos gatilhos das chegadas e pelo HUD). weatherFx: o que cai na tela em cada clima, só nos mapas da estação (a rua) e nas áreas ao ar livre do café (o quintal): particle (streak = risco de chuva, flake = floco, leaf = folha), perTile (quantas partículas vivas por tile), lifespan (ms), speedX/speedY (px do mundo por segundo), alpha, colors (sorteadas), spin (gira), darken (um véu por cima da área, a chuva escurece).",
   "daysPerSeason": 30,
   "order": [
     "winter",
@@ -91,8 +91,14 @@
       "rain": 2
     },
     "autumn": {
-      "sun": 5,
-      "rain": 5
+      "wind": 5,
+      "rain": 3,
+      "sun": 2
     }
+  },
+  "weatherFx": {
+    "rain": { "particle": "streak", "perTile": 0.9, "lifespan": [380, 560], "speedX": [-50, -30], "speedY": [300, 360], "alpha": 0.8, "colors": ["#a9c3e3", "#8faed6"], "darken": { "color": "#2c3a58", "alpha": 0.16 } },
+    "snow": { "particle": "flake", "perTile": 0.35, "lifespan": [2600, 4200], "speedX": [-14, 10], "speedY": [16, 30], "alpha": 0.9, "colors": ["#ffffff", "#eef4fb"] },
+    "wind": { "particle": "leaf", "perTile": 0.07, "lifespan": [2200, 3600], "speedX": [70, 120], "speedY": [-6, 18], "alpha": 1, "colors": ["#d9783b", "#c4502f", "#e3a83f", "#9c5a2c"], "spin": true }
   }
 }

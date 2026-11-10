@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, yearOf } from '../../src/core/calendar';
+import { dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, validateSeasons, weatherOf, yearOf } from '../../src/core/calendar';
 import { resolveMap } from '../../src/core/map';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -52,5 +52,24 @@ describe('a rua muda com a estação', () => {
     expect(facade().tile).toBe('facade_loja_menta');
     state.day = 31;
     expect(facade().tile).toBe('spring_facade_loja_menta');
+  });
+});
+
+describe('clima do dia', () => {
+  it('o outono sorteia vento (folhas), chuva e sol; todo clima com partículas tem weatherFx válido', () => {
+    const seasons = content.seasons;
+    const autumn = seasons.order.indexOf('autumn') * seasons.daysPerSeason + 1;
+    const days = Array.from({ length: seasons.daysPerSeason }, (_, i) => weatherOf(seasons, autumn + i));
+    expect(days).toContain('wind');
+    expect(new Set(days).size).toBeGreaterThan(1);
+    expect(seasons.weatherFx?.wind?.particle).toBe('leaf');
+    expect(validateSeasons({ ...seasons, weatherFx: { rain: { ...seasons.weatherFx!.rain!, particle: 'gota' as never } } }, { maps: new Set(), tiles: new Set() }).join()).toMatch(/partícula desconhecida/);
+  });
+
+  it('a sessão usa o clima do dia, e o debug pode trocar', () => {
+    const session = new GameSession(content, newGameState(100));
+    expect(session.weather()).toBe(weatherOf(content.seasons, 1));
+    session.arrivals.debug.weather = 'rain';
+    expect(session.weather()).toBe('rain');
   });
 });

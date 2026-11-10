@@ -19,6 +19,7 @@ import { fillNames } from './text';
 import { services } from '../services';
 import { daysText, workName } from './constructionText';
 import { rewardText } from './StatsApp';
+import { weatherIconSvg } from './weatherIcons';
 
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
@@ -85,6 +86,7 @@ export class GameUi {
       <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
       <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="panel hud-weather"><span class="weather"></span><span class="label"></span></div>
       <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
@@ -900,6 +902,14 @@ export class GameUi {
     this.renderReputation();
     this.renderEnergy();
     const sd = this.session.seasonDay();
+    // Clima do dia (o ícone muda junto com o que cai lá fora).
+    const weather = this.session.weather();
+    const weatherEl = this.root.querySelector<HTMLElement>('.hud-weather');
+    if (weatherEl && weatherEl.dataset.weather !== weather) {
+      weatherEl.dataset.weather = weather;
+      (weatherEl.querySelector('.weather') as HTMLElement).innerHTML = weatherIconSvg(weather);
+      (weatherEl.querySelector('.label') as HTMLElement).textContent = (uiText.weather as Record<string, string>)[weather] ?? '';
+    }
     (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day)).replace('{weekday}', uiText.weekdays[this.session.service.weekday()] ?? '');
     if (bumpMoney) {
       this.money.classList.remove('bump');

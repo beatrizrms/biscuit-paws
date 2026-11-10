@@ -25,6 +25,7 @@ import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
+import { WeatherLayer } from '../WeatherLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
 import { saveNow } from '../startGame';
@@ -127,6 +128,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private debugPanel?: DebugPanel;
   private changingMap = false;
   private dayNight!: DayNightLayer;
+  /** Chuva, neve e folhas ao vento nas áreas ao ar livre; o clima mostrado agora (para refazer quando mudar). */
+  private weatherFx!: WeatherLayer;
+  private shownWeather = '';
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
   /** Sons ligados aos eventos e ao lugar. */
@@ -211,6 +215,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
+    this.weatherFx = new WeatherLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
     this.careBubbles = new CareBubbles(this, this.session.content.health.care);
@@ -433,6 +438,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     this.sounds?.update();
+    if (this.session.weather() !== this.shownWeather) this.refreshWeather();
     this.updateArrivalActors(this.game.loop.delta);
     this.syncNpcBlockers();
     const k = this.keys;
@@ -643,6 +649,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.applyCamera();
   }
 
+  /** Clima do dia nas áreas ao ar livre: o mapa inteiro nos mapas da estação (a rua); no café, as áreas abertas (o quintal). */
+  private refreshWeather(): void {
+    const ts = this.map.tileSize;
+    const seasons = this.session.content.seasons;
+    const home = this.map.id === this.session.content.map.id;
+    const areas = seasons.maps[this.map.id] ? [{ x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts }] : home ? (this.roomView?.outdoorAreas() ?? []) : [];
+    this.shownWeather = this.session.weather();
+    this.weatherFx.set(seasons.weatherFx?.[this.shownWeather], areas, ts);
+  }
+
   /**
    * Câmera: em mapa maior que a tela, segue a personagem. No café, só até onde ela conhece (os cômodos
    * descobertos); andar entre cômodos é contínuo (sem fade: o fade fica só na porta da fachada).
@@ -653,6 +669,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const area = (home && this.roomView?.cameraArea()) || { x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts };
     const cam = this.cameras.main;
     this.dayNight.setOutdoorAreas(home ? (this.roomView?.outdoorAreas() ?? []) : []);
+    this.refreshWeather();
     if (area.w <= GAME_WIDTH && area.h <= GAME_HEIGHT) {
       cam.stopFollow();
       cam.removeBounds();

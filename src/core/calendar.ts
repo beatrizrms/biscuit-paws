@@ -43,14 +43,34 @@ export interface SeasonsData {
   /** "Começa a primavera"...: título do primeiro dia de cada estação no calendário. */
   seasonStarts: Record<string, string>;
   events: CalendarEvent[];
-  /** Clima: pesos por estação (snow, rain, sun...). Sorteado por dia, sem guardar nada no save. */
+  /** Clima: pesos por estação (snow, rain, wind, sun...). Sorteado por dia, sem guardar nada no save. */
   weather?: Record<string, Record<string, number>>;
+  /** O que cai na tela em cada clima (os que não estão aqui, como o sol, não mostram nada). */
+  weatherFx?: Record<string, WeatherFx>;
   /** Ordem das estações; o jogo começa na primeira. */
   order: string[];
   /** Estação cujos tiles são os nomes sem prefixo (a arte de inverno veio primeiro). */
   base: string;
   names: Record<string, string>;
   maps: Record<string, SeasonalMap>;
+}
+
+export const WEATHER_PARTICLES = ['streak', 'flake', 'leaf'] as const;
+export type WeatherParticle = (typeof WEATHER_PARTICLES)[number];
+
+/** Partículas de um clima (data/seasons.json: weatherFx). Velocidades em px do mundo por segundo. */
+export interface WeatherFx {
+  particle: WeatherParticle;
+  /** Quantas partículas vivas por tile da área, em média. */
+  perTile: number;
+  lifespan: [number, number];
+  speedX: [number, number];
+  speedY: [number, number];
+  alpha: number;
+  colors: string[];
+  spin?: boolean;
+  /** Véu por cima da área (a chuva escurece um pouco). */
+  darken?: { color: string; alpha: number };
 }
 
 /** Estação do dia (1 = primeiro dia do jogo). */
@@ -154,6 +174,11 @@ export function validateSeasons(data: SeasonsData, refs: { maps: ReadonlySet<str
   if (!data.order.includes(data.base)) errors.push(`seasons: base "${data.base}" não está em order`);
   for (const s of data.order) if (!data.names[s]) errors.push(`seasons: falta o nome de "${s}"`);
   for (const s of data.order) if (!data.seasonStarts?.[s]) errors.push(`seasons: falta seasonStarts de "${s}"`);
+  for (const [w, fx] of Object.entries(data.weatherFx ?? {})) {
+    if (!(WEATHER_PARTICLES as readonly string[]).includes(fx.particle)) errors.push(`seasons: weatherFx "${w}" com partícula desconhecida "${fx.particle}"`);
+    if (!(fx.perTile > 0) || !(fx.lifespan[0] > 0) || fx.lifespan[1] < fx.lifespan[0]) errors.push(`seasons: weatherFx "${w}" com perTile ou lifespan inválido`);
+    if (fx.colors.length === 0 || fx.colors.some((c) => !/^#[0-9a-f]{6}$/i.test(c))) errors.push(`seasons: weatherFx "${w}" precisa de cores #rrggbb`);
+  }
   const ids = new Set<string>();
   for (const e of data.events ?? []) {
     if (!e.id.startsWith('cal.')) errors.push(`seasons: evento "${e.id}" deve começar com "cal."`);

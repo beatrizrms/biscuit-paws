@@ -27,7 +27,7 @@ import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } fr
 const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, type CalendarEntry } from './calendar';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
 import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
@@ -1582,6 +1582,11 @@ export class GameSession {
         this.bus.emit('cat.infected', { catId: id, fromCatId: sourceId, disease: source.sickness.disease });
       }
     }
+  }
+
+  /** Clima de hoje (data/seasons.json: weather). O debug (F9) pode escolher outro para testar. */
+  weather(): string {
+    return this.arrivals?.debug.weather ?? weatherOf(this.content.seasons, this.state.day);
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */
