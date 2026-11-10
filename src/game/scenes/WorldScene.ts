@@ -27,6 +27,7 @@ import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
+import { FireworksLayer } from '../FireworksLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
 import { saveNow } from '../startGame';
@@ -139,6 +140,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dayNight!: DayNightLayer;
   /** Chuva, neve e folhas ao vento nas áreas ao ar livre; o clima mostrado agora (para refazer quando mudar). */
   private weatherFx!: WeatherLayer;
+  private fireworksFx!: FireworksLayer;
   private shownWeather = '';
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
@@ -225,6 +227,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
     this.weatherFx = new WeatherLayer(this);
+    this.fireworksFx = new FireworksLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
     this.careBubbles = new CareBubbles(this, this.session.content.health.care);
@@ -516,8 +519,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
-      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && (this.session.goHomeProblem() === 'customers_inside' || this.session.goHomeProblem() === 'xmas_party')) {
-        // Já é hora, mas ainda tem cliente (ou a ceia de Natal): ela pode sair para a rua, só não encerra o dia.
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && ['customers_inside', 'xmas_party', 'new_year'].includes(this.session.goHomeProblem() ?? '')) {
+        // Já é hora, mas ainda tem cliente (ou a ceia de Natal, ou os fogos de Ano Novo): ela pode sair para a rua, só não encerra o dia.
         this.ui.problem(this.session.goHomeProblem() ?? 'customers_inside');
         this.useDoor(door);
       }
@@ -534,6 +537,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Mostra um mapa e põe a personagem em `spawn` (ou no ponto de partida do mapa). */
   private loadMap(mapId: string, spawn?: Cell, facing: Facing = 'down'): void {
     this.cancelPlacing();
+    this.fireworksFx?.stop();
     this.ui.closeCatalog();
     this.catColliders.forEach((c) => c.destroy());
     this.catColliders = [];
@@ -2613,6 +2617,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   showItem(itemId: string): Promise<void> {
     return this.ui.showItem(itemId);
+  }
+
+  fireworks(ms: number): void {
+    this.fireworksFx.play(ms, this.session.content.festive.newYear.fireworks);
   }
 
   untilIdle(): Promise<void> {

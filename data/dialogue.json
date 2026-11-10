@@ -1051,6 +1051,87 @@
           "text": "Que surpresa boa! Obrigada, {player}."
         }
       ]
+    },
+    "dlg.ny_call": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Quase meia-noite. Lá fora, a vizinhança vai se juntando na calçada para ver a virada do ano."
+        }
+      ]
+    },
+    "dlg.ny_countdown": {
+      "lines": [
+        {
+          "speaker": "Todos",
+          "text": "Dez, nove, oito, sete, seis, cinco, quatro..."
+        },
+        {
+          "speaker": "Todos",
+          "text": "Três... dois... um... FELIZ ANO NOVO!"
+        }
+      ]
+    },
+    "dlg.ny_happy": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Feliz Ano Novo! Olha o céu... que lindo!"
+        }
+      ]
+    },
+    "dlg.ny_wish_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Feliz Ano Novo, {g:amiga|amigo}! O Joca tá escondido atrás de mim, coitado: ele morre de medo de fogos."
+        }
+      ]
+    },
+    "dlg.ny_wish_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Feliz Ano Novo, {g:querida|querido}! Que esse café encha de gente e de gato."
+        }
+      ]
+    },
+    "dlg.ny_wish_tiao": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Ano novo, obra nova! Pode contar comigo, {player}."
+        }
+      ]
+    },
+    "dlg.ny_wish_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Feliz Ano Novo! E juízo com os gatinhos: vacina em dia, hein?"
+        }
+      ]
+    },
+    "dlg.ny_wish_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Feliz Ano Novo! O melhor negócio que eu fechei foi aquela padaria velha."
+        }
+      ]
+    },
+    "dlg.ny_end": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Os últimos fogos se apagam devagar. Pela frente, um ano inteiro de café, gatos e vizinhos."
+        }
+      ]
     }
   }
 }

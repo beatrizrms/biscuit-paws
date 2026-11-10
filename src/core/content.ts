@@ -28,12 +28,14 @@ import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
 import { validateSecretSanta, type SecretSantaData } from './secretSanta';
+import { validateNewYear, type NewYearData } from './newYear';
 
-/** data/festive.json: a caixa de enfeites de Natal e o amigo secreto. */
+/** data/festive.json: a caixa de enfeites de Natal, o amigo secreto e os fogos de Ano Novo. */
 export interface FestiveData {
   schemaVersion: 1;
   box: { item: string; tag: string; opensIn: string };
   secretSanta: SecretSantaData;
+  newYear: NewYearData;
 }
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
@@ -534,6 +536,7 @@ export function validateContent(raw: RawContent): string[] {
         scripts: new Set(Object.keys(raw.scripts.scripts)),
         seasons: raw.seasons,
       }),
+      ...validateNewYear(raw.festive.newYear, { seasons: raw.seasons, scripts: new Set(Object.keys(raw.scripts.scripts)), passOut: raw.dayNight.passOut }),
     );
   }
   {
@@ -851,6 +854,7 @@ export function validateContent(raw: RawContent): string[] {
   for (const [id, s] of Object.entries(raw.scripts.scripts)) s.steps.forEach((step, i) => step.when && checkCondition(`roteiro "${id}" passo ${i}`, step.when as Condition));
   for (const f of raw.festive.secretSanta.friends) checkCondition(`festive.secretSanta: ${f.npc}`, f.known);
   checkCondition('festive.secretSanta: proposalWhen', raw.festive.secretSanta.proposalWhen);
+  checkCondition('festive.newYear: when', raw.festive.newYear.when);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(
     ...validateRooms(raw.rooms, {

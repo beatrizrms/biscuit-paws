@@ -22,6 +22,8 @@ export interface ScriptStage {
   npcToCat(npcId: string, catId: string): Promise<void>;
   catWalk(catId: string, to: Cell): Promise<void>;
   emote(who: string, balloon: string, ms: number): Promise<void>;
+  /** Fogos de artifício no céu por `ms` (não espera). */
+  fireworks(ms: number): void;
 }
 
 export class ScriptRunner {
@@ -81,6 +83,7 @@ export class ScriptRunner {
     else if ('discoverRoom' in step) this.session.discoverRoom(step.discoverRoom);
     else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
     else if ('setTime' in step) this.session.advanceClockTo(step.setTime);
+    else if ('fireworks' in step) s.fireworks(step.fireworks);
     else if ('secretSanta' in step) {
       // Amigo secreto: a fala vem da sessão (quem recebeu reage; quem a tirou entrega o presente dela).
       if (step.secretSanta === 'exchange') {

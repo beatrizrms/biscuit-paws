@@ -28,6 +28,7 @@ const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, yearOf, type CalendarEntry } from './calendar';
+import { isNewYearEve, newYearFlag } from './newYear';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
@@ -181,6 +182,7 @@ export type ActionResult =
         | 'too_early'
         | 'customers_inside'
         | 'xmas_party'
+        | 'new_year'
         | 'cart_empty'
         | QuoteProblem
         | PlaceProblem;
@@ -710,6 +712,8 @@ export class GameSession {
     if (seasonOf(this.content.seasons, day) === 'winter' && seasonOf(this.content.seasons, day + 1) !== 'winter') this.packXmasBox();
     // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
     if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
+    // Último dia do ano: o aviso dos fogos da meia-noite.
+    if (this.newYearPending()) this.bus.emit('newyear.eve', { gatherAt: this.content.festive.newYear.gatherAt });
     // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
     const menu = this.service.seasonalMenu(day);
     if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
@@ -742,6 +746,7 @@ export class GameSession {
       this.checkBuilderShift();
       this.advanceStory();
       this.checkSecretSanta();
+      this.checkNewYear();
     }
   }
 
@@ -751,7 +756,10 @@ export class GameSession {
    */
   curfew(): number {
     const dn = this.content.dayNight;
-    return parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
+    const normal = parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
+    // Véspera de Ano Novo: dá tempo de ver os fogos da meia-noite.
+    const ny = this.content.festive.newYear;
+    return isNewYearEve(this.content.seasons, ny, this.state.day) ? Math.max(normal, parseClock(ny.curfew)) : normal;
   }
 
   // ---------- Energia ----------
@@ -885,11 +893,13 @@ export class GameSession {
   }
 
   /** Por que ainda não dá para ir para casa: cedo demais, ou ainda tem cliente no café (ela espera o último sair). */
-  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | null {
+  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | 'new_year' | null {
     if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
     if (this.state.service.customers.length > 0) return 'customers_inside';
     // Natal com amigo secreto marcado: só depois da ceia.
     if (this.santaPartyPending()) return 'xmas_party';
+    // Véspera de Ano Novo: só depois dos fogos.
+    if (this.newYearPending()) return 'new_year';
     return null;
   }
 
@@ -1685,6 +1695,28 @@ export class GameSession {
   /** A condição (da história) vale agora? Ex.: o `when` de um passo de roteiro. */
   holds(c: Condition): boolean {
     return evaluate(c, this.state, this.storyContext());
+  }
+
+  // ---------- Ano Novo ----------
+
+  /** Hoje é a véspera de Ano Novo e os fogos ainda vão acontecer (com a condição dos dados valendo). */
+  newYearPending(): boolean {
+    const ny = this.content.festive.newYear;
+    return isNewYearEve(this.content.seasons, ny, this.state.day) && !this.state.flags[newYearFlag(this.content.seasons, this.state.day)] && evaluate(ny.when, this.state, this.storyContext());
+  }
+
+  /**
+   * A cada minuto: na véspera de Ano Novo, na hora de juntar, o roteiro dos fogos (uma vez por ano). Os amigos que
+   * ela conhece vão para a rua com ela e cada um ganha um pouco de coração.
+   */
+  checkNewYear(): void {
+    const ny = this.content.festive.newYear;
+    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt)) return;
+    this.state.flags[newYearFlag(this.content.seasons, this.state.day)] = true;
+    const friends = this.santaGuests();
+    for (const npc of friends) addPoints(this.state, this.content.relationships, PLAYER, npc, ny.points);
+    this.bus.emit('newyear.started', { friends });
+    this.bus.emit('script.requested', { scriptId: ny.script });
   }
 
   // ---------- Amigo secreto de Natal ----------
