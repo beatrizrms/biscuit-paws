@@ -347,7 +347,7 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
 
   it('os itens do quintal só aparecem depois da reforma; os de quintal só ficam no quintal', () => {
     const { session, state } = yardOpen();
-    const yardItems = Object.values(content.items).filter((i) => i.tags.includes('area:yard') || i.tags.includes('area:other'));
+    const yardItems = Object.values(content.items).filter((i) => i.tile?.startsWith('yard_'));
     expect(yardItems.length).toBeGreaterThan(10);
     expect(yardItems.some((i) => session.itemUnlocked(i.id))).toBe(false);
     cleanTag(session, 'backyard', true);
@@ -368,5 +368,23 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     const ui = JSON.parse(readFileSync('data/ui_text.json', 'utf8')) as { market: { tabs: { id: string; groups: { tag: string }[] }[] } };
     const tags = new Set(ui.market.tabs.find((t) => t.id === 'rooms')!.groups.map((g) => g.tag));
     for (const i of Object.values(content.items)) for (const t of i.tags) if (t.startsWith('area:')) expect(tags.has(t), `${i.id} ${t}`).toBe(true);
+  });
+});
+
+describe('quarto: decorações no Market depois do porão reformado', () => {
+  it('só aparecem com o porão reformado; as de quarto só no porão; as de parede na parede', () => {
+    const { session, state } = afterFirstCustomer(2000);
+    const bedroom = Object.values(content.items).filter((i) => i.tile?.startsWith('quarto_'));
+    expect(bedroom.length).toBe(22);
+    expect(bedroom.some((i) => session.itemUnlocked(i.id))).toBe(false);
+    session.openRoom('room.back_room');
+    cleanTag(session, 'back_room');
+    expect(session.restoreRoom('room.back_room')).toEqual({ ok: true });
+    expect(bedroom.every((i) => session.itemUnlocked(i.id))).toBe(true);
+    for (const id of ['item.bedroom_wardrobe', 'item.bedroom_mirror', 'item.bedroom_pouf_pink']) state.inventory[id] = 1;
+    expect(session.checkPlacement('item.bedroom_wardrobe', [10, 7])).toBe('wrong_room');
+    expect(session.checkPlacement('item.bedroom_wardrobe', [21, 5])).toBeNull();
+    expect(session.checkPlacement('item.bedroom_mirror', [21, 1])).toBeNull();
+    expect(session.checkPlacement('item.bedroom_pouf_pink', [10, 7])).toBeNull();
   });
 });

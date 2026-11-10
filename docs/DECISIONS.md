@@ -433,3 +433,7 @@ Decisão: o mato alto (`heavy` na sujeira) não sai com a vassoura; sai numa obr
 ## 106. Atendente no caixa do mercado, de costas (nov/2026)
 Contexto: o caixa do mercado estava sem ninguém, e a peça tinha uma parede em U atrás, bem onde ela deveria ir para pagar. O balcão da recepção da clínica tinha a mesma parede.
 Decisão: a máquina do caixa fica virada para a câmera: a atendente fica do lado de baixo, de costas (corpo inteiro), e ela paga pelo lado de cima. As duas peças perderam a parede em U (edição no PixelLab, o resto igual). NPC parado no mapa ganha dois jeitos de se mexer, em `npcs` do mapa: `idle` (toca a animação uma vez e pausa um tempo sorteado em `pauseMs`) e `busy` (repete a animação enquanto ela está ao alcance da `interaction`, o caixa). O sorteio da pausa é só visual (não usa o RNG do núcleo). `extrasFps` no NPC acerta a velocidade das animações extras (padrão 3).
+
+## 106. Decorações do quarto no PixelLab (nov/2026)
+Contexto: a aba Cômodos (decisão 105) tinha a seção Quarto, mas nenhuma peça.
+Decisão: 22 decorações geradas no PixelLab no estilo da cama do quartinho (folha `pixellab_quarto`), à venda na aba Cômodos só com o porão reformado. Quarto (só no porão): guarda-roupa 2x2, cômoda e escrivaninha 2x1, dois criados-mudos e baú. Outros (em qualquer lugar): pufes, cesto, mesinha, poltrona, luminária e cabideiro 1x2, tapete redondo 2x2 e, na parede, espelho, três quadros, luzinhas, relógio, prateleirinha e porta-retrato. Preços de 15 a 120 moedas.

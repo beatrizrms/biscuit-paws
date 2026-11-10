@@ -1726,6 +1726,320 @@
         "room": "room.backyard",
         "atLeast": "restored"
       }
+    },
+    {
+      "id": "item.bedroom_wardrobe",
+      "name": "Guarda-roupa",
+      "price": 120,
+      "tile": "quarto_guarda_roupa",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_dresser",
+      "name": "Cômoda",
+      "price": 80,
+      "tile": "quarto_comoda",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_desk",
+      "name": "Escrivaninha",
+      "price": 70,
+      "tile": "quarto_escrivaninha",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_nightstand_wood",
+      "name": "Criado-mudo de madeira",
+      "price": 30,
+      "tile": "quarto_criado_madeira",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_nightstand_cream",
+      "name": "Criado-mudo creme",
+      "price": 30,
+      "tile": "quarto_criado_creme",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_trunk",
+      "name": "Baú",
+      "price": 40,
+      "tile": "quarto_bau",
+      "tags": [
+        "furniture",
+        "area:bedroom"
+      ],
+      "room": "room.back_room",
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_pouf_pink",
+      "name": "Pufe rosa",
+      "price": 20,
+      "tile": "quarto_pufe_rosa",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_pouf_sage",
+      "name": "Pufe verde",
+      "price": 20,
+      "tile": "quarto_pufe_salvia",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_laundry_basket",
+      "name": "Cesto de vime",
+      "price": 18,
+      "tile": "quarto_cesto_roupa",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_side_table",
+      "name": "Mesinha lateral",
+      "price": 25,
+      "tile": "quarto_mesinha_lateral",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_armchair",
+      "name": "Poltrona de leitura",
+      "price": 60,
+      "tile": "quarto_poltrona",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_floor_lamp",
+      "name": "Luminária de chão",
+      "price": 35,
+      "tile": "quarto_luminaria",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_coat_rack",
+      "name": "Cabideiro",
+      "price": 25,
+      "tile": "quarto_cabideiro",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_round_rug",
+      "name": "Tapete redondo",
+      "price": 40,
+      "tile": "quarto_tapete_redondo",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_mirror",
+      "name": "Espelho redondo",
+      "price": 30,
+      "tile": "quarto_espelho",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_picture_mountain",
+      "name": "Quadro de montanhas",
+      "price": 25,
+      "tile": "quarto_quadro_montanha",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_picture_flowers",
+      "name": "Quadro de flores",
+      "price": 25,
+      "tile": "quarto_quadro_flores",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_picture_moon",
+      "name": "Quadro de lua",
+      "price": 25,
+      "tile": "quarto_quadro_lua",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_fairy_lights",
+      "name": "Varal de luzinhas de parede",
+      "price": 20,
+      "tile": "quarto_luzinhas",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_wall_clock",
+      "name": "Relógio de parede",
+      "price": 22,
+      "tile": "quarto_relogio",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_small_shelf",
+      "name": "Prateleirinha",
+      "price": 15,
+      "tile": "quarto_prateleira",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.bedroom_paw_frame",
+      "name": "Porta-retrato de patinha",
+      "price": 15,
+      "tile": "quarto_porta_retrato",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.back_room",
+        "atLeast": "restored"
+      }
     }
   ]
 }

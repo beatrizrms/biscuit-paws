@@ -1,0 +1,139 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 6,
+ "pieces": {
+  "criado_madeira": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "criado_creme": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "bau": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pufe_rosa": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pufe_salvia": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cesto_roupa": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "mesinha_lateral": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "poltrona": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "espelho": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_montanha": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_flores": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_lua": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "luzinhas": {
+   "col": 4,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "relogio": {
+   "col": 5,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prateleira": {
+   "col": 6,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "porta_retrato": {
+   "col": 7,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "guarda_roupa": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "comoda": {
+   "col": 2,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "escrivaninha": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "luminaria": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "cabideiro": {
+   "col": 7,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "tapete_redondo": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 2,
+   "h_tiles": 2
+  }
+ }
+}

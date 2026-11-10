@@ -880,6 +880,52 @@
       "solid": true
     },
     {
+      "id": "pixellab_quarto",
+      "image": "assets/objects/pixellab/tile_pixellab_quarto.png",
+      "pieces": "pixellab_quarto.json",
+      "prefix": "quarto_",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "espelho": {
+          "layer": "wall",
+          "solid": false
+        },
+        "quadro_montanha": {
+          "layer": "wall",
+          "solid": false
+        },
+        "quadro_flores": {
+          "layer": "wall",
+          "solid": false
+        },
+        "quadro_lua": {
+          "layer": "wall",
+          "solid": false
+        },
+        "luzinhas": {
+          "layer": "wall",
+          "solid": false
+        },
+        "relogio": {
+          "layer": "wall",
+          "solid": false
+        },
+        "prateleira": {
+          "layer": "wall",
+          "solid": false
+        },
+        "porta_retrato": {
+          "layer": "wall",
+          "solid": false
+        },
+        "tapete_redondo": {
+          "layer": "floor",
+          "solid": false
+        }
+      }
+    },
+    {
       "id": "pixellab_decor",
       "image": "assets/objects/pixellab/tile_pixellab_decor.png",
       "pieces": "pixellab_decor.json",
