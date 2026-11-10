@@ -122,6 +122,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Marcando a área de uma obra (troca de acabamento). */
   private areaSelect: AreaSelect | null = null;
   private builderAsking = false;
+  /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
+  private repairNpcs = new Map<string, NpcSprite>();
+  /** "!" em cima de cada equipamento quebrado. */
+  private brokenIcons = new Map<string, Phaser.GameObjects.Image>();
+  /** Barra do conserto em cima do equipamento (separada das barras de preparo, que são refeitas a cada quadro). */
+  private repairBars = new Map<string, Phaser.GameObjects.Image>();
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -314,6 +320,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
     // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
+    this.session.bus.on('equipment.repair_started', ({ uid }) => this.showRepairNpc(uid));
+    this.session.bus.on('equipment.repaired', ({ uid }) => {
+      const npc = this.repairNpcs.get(uid);
+      this.repairNpcs.delete(uid);
+      void npc?.leave();
+    });
     this.session.bus.on('construction.shift', ({ working, map }) => {
       if (map !== this.map.id || this.builderAsking) return;
       const npcId = this.session.content.construction.npc;
@@ -1199,6 +1211,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (customer) return cell(customer.spot, 'customer');
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
       const washer = sv.washerNear(feet);
+      if (washer && sv.isBroken(washer) && !sv.isRepairing(washer) && st.hands.length === 0) return cell(st.placed.find((p) => p.uid === washer)!.at, 'repair');
       if (washer && sv.washerAction(washer)) return cell(st.placed.find((p) => p.uid === washer)!.at, 'washer');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
@@ -1208,7 +1221,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       const station = this.stationInReach(feet);
-      if (station) {
+      if (station && sv.isBroken(station.uid)) {
+        if (!sv.isRepairing(station.uid)) return cell(station.at, 'repair');
+      } else if (station) {
         const eq = sv.equipmentOf(station.uid);
         const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === eq);
         if ((sv.surfaceAt(station.at) && free) || st.hands.length === 0 || bringsWip) return cell(station.at, 'station');
@@ -1597,6 +1612,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
     const washer = sv.washerNear(feet, target);
+    if (washer && sv.isBroken(washer) && st.hands.length === 0) return this.askRepair(washer);
     if (washer) {
       const act = sv.washerAction(washer);
       if (act === 'deposit') return report(sv.depositInWasher(washer));
@@ -1633,6 +1649,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
     const station = this.stationInReach(feet, target);
+    if (station && sv.isBroken(station.uid)) return this.askRepair(station.uid);
     if (station) {
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
@@ -2008,8 +2025,85 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       bar.destroy();
       this.progressBars.delete(uid);
     }
+    this.updateBroken();
     this.updateSink();
     this.syncCustomers();
+  }
+
+  /** Equipamento quebrado: "!" balançando em cima; com o Tião consertando, a barra do conserto no lugar. */
+  private updateBroken(): void {
+    const sv = this.session.service;
+    const ts = this.map.tileSize;
+    const live = new Set<string>();
+    const repairing = new Set<string>();
+    for (const uid of this.session.atHome() ? sv.brokenEquipment() : []) {
+      const placed = this.session.state.placed.find((p) => p.uid === uid);
+      if (!placed) continue;
+      const top = placed.at[1] * ts - 2 - this.liftOf(uid);
+      const progress = sv.repairProgress(uid);
+      if (progress !== undefined) {
+        // Conserto: a mesma arte da barra dos preparos.
+        repairing.add(uid);
+        let bar = this.repairBars.get(uid);
+        if (!bar) {
+          bar = this.add.image((placed.at[0] + 0.5) * ts, top, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+          this.repairBars.set(uid, bar);
+        }
+        bar.setTexture(`progress_${Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)))}`);
+        if (!this.repairNpcs.has(uid)) this.showRepairNpc(uid);
+        continue;
+      }
+      live.add(uid);
+      if (!this.brokenIcons.has(uid)) {
+        const icon = this.add.image((placed.at[0] + 0.5) * ts, top, 'emotes', 'exclamation').setOrigin(0.5, 1).setDepth(99_000);
+        this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        this.brokenIcons.set(uid, icon);
+      }
+    }
+    for (const [uid, icon] of this.brokenIcons) {
+      if (live.has(uid)) continue;
+      icon.destroy();
+      this.brokenIcons.delete(uid);
+    }
+    for (const [uid, bar] of this.repairBars) {
+      if (repairing.has(uid)) continue;
+      bar.destroy();
+      this.repairBars.delete(uid);
+    }
+  }
+
+  /** E no equipamento quebrado: pergunta se chama o Tião (preço do conserto); sim, ele vem na hora. */
+  private askRepair(uid: string): boolean {
+    const sv = this.session.service;
+    const t = uiText.service;
+    if (sv.isRepairing(uid)) {
+      this.ui.toast(t.repairing, 2000);
+      return true;
+    }
+    const item = this.session.content.items[this.session.state.placed.find((p) => p.uid === uid)?.item ?? ''];
+    const price = String(this.session.content.service.breakdown?.repairPrice ?? 0);
+    void this.ui.confirm(t.repairAsk.replace('{name}', item?.name ?? '').replace('{price}', price), t.repairYes.replace('{price}', price), t.repairNo).then((yes) => {
+      if (!yes) return;
+      const r = sv.callRepair(uid);
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    });
+    return true;
+  }
+
+  /** O Tião ao lado do equipamento, martelando (de preferência à esquerda, virado para ele). */
+  private showRepairNpc(uid: string): void {
+    if (!this.session.atHome() || this.repairNpcs.has(uid)) return;
+    const placed = this.session.state.placed.find((p) => p.uid === uid);
+    const def = this.session.content.npcs[this.session.content.construction.npc];
+    if (!placed || !def) return;
+    const [c, r] = placed.at;
+    const free = ([x, y]: Cell) => this.map.solid[y]?.[x] === false;
+    const spot = ([[c - 1, r], [c - 1, r + 1], [c, r + 1], [c + 1, r + 1]] as Cell[]).find(free);
+    if (!spot) return;
+    const ts = this.map.tileSize;
+    const npc = new NpcSprite(this, def, spot[0] * ts + ts / 2, (spot[1] + 1) * ts - 4, ts);
+    npc.loop('martelando');
+    this.repairNpcs.set(uid, npc);
   }
 
   /** Pia: louça esperando (quadro com louça), lavando (animação + barra), recém-lavada (louça limpa). */
@@ -2187,6 +2281,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.equipAnims.clear();
     this.progressBars.forEach((b) => b.destroy());
     this.progressBars.clear();
+    this.brokenIcons.forEach((i) => i.destroy());
+    this.brokenIcons.clear();
+    this.repairBars.forEach((b) => b.destroy());
+    this.repairBars.clear();
+    this.repairNpcs.forEach((n) => n.destroy());
+    this.repairNpcs.clear();
     this.sinkSprite?.destroy();
     this.sinkSprite = null;
     this.sinkBar?.destroy();

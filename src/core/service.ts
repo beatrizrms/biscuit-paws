@@ -89,6 +89,8 @@ export type ServiceProblem =
   | 'no_tray'
   | 'sink_full'
   | 'washer_full'
+  | 'broken'
+  | 'no_money'
   | 'not_at_home'
   | ScheduleProblem;
 
@@ -593,6 +595,13 @@ export class CafeService {
       this.st.sink.washing = null;
       this.h.bus.emit('dish.washed', { count: loadCount(washing.load) });
     }
+    // Consertos do Tião que terminaram: volta a funcionar, com o contador do zero e outro limite sorteado.
+    const cfgBreak = this.cfg.breakdown;
+    for (const [uid, w] of Object.entries(this.st.wear)) {
+      if (w.repairUntil === undefined || w.repairUntil > now || !cfgBreak) continue;
+      this.st.wear[uid] = { uses: 0, breaksAt: this.h.rng().int(cfgBreak.minUses, cfgBreak.maxUses) };
+      this.h.bus.emit('equipment.repaired', { uid, itemId: this.itemOf(uid) });
+    }
     // Lava-louças.
     for (const [uid, w] of Object.entries(this.st.washers)) {
       if (!w.washing || w.washing.readyAt > now) continue;
@@ -734,6 +743,7 @@ export class CafeService {
     const equipment = this.equipmentOf(stationUid);
     const sv = this.st.service;
     if (!equipment) return { ok: false, reason: 'nothing_to_prepare' };
+    if (this.isBroken(stationUid)) return { ok: false, reason: 'broken' };
     if (sv.preps.some((p) => p.stationUid === stationUid)) return { ok: false, reason: 'station_busy' };
     const station = this.st.placed.find((p) => p.uid === stationUid)!;
     if (this.surfaceAt(station.at)) return { ok: false, reason: 'station_busy' };
@@ -746,6 +756,7 @@ export class CafeService {
       sv.preps.push({ stationUid, recipe: r.id, step: wip!.step, quality: wip!.quality ?? 'simple', readyAt: this.now() + r.steps[wip!.step]!.minutes });
       this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
       this.handsChanged();
+      this.wearOut(stationUid);
       return { ok: true };
     }
     const pending = this.pendingFor(equipment);
@@ -758,7 +769,61 @@ export class CafeService {
     for (const [item, n] of ing.use) this.useDoses(item, n);
     sv.preps.push({ stationUid, recipe: r.id, step: 0, quality: ing.quality, readyAt: this.now() + r.steps[0]!.minutes });
     this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
+    this.wearOut(stationUid);
     return { ok: true };
+  }
+
+  // ---------- Quebra e conserto (o Tião) ----------
+
+  /** Conta um uso; quando chega no limite sorteado (breakdown.minUses a maxUses), o equipamento quebra. */
+  private wearOut(uid: string): void {
+    const cfg = this.cfg.breakdown;
+    if (!cfg) return;
+    const w = (this.st.wear[uid] ??= { uses: 0, breaksAt: this.h.rng().int(cfg.minUses, cfg.maxUses) });
+    w.uses++;
+    if (w.broken || w.uses < w.breaksAt) return;
+    w.broken = true;
+    this.h.bus.emit('equipment.broke', { uid, itemId: this.itemOf(uid) });
+  }
+
+  private itemOf(uid: string): string {
+    return this.st.placed.find((p) => p.uid === uid)?.item ?? '';
+  }
+
+  /** Quebrado (ainda sem conserto pronto; com o Tião trabalhando também conta). */
+  isBroken(uid: string): boolean {
+    return !!this.st.wear[uid]?.broken;
+  }
+
+  /** O Tião está consertando agora. */
+  isRepairing(uid: string): boolean {
+    return this.st.wear[uid]?.repairUntil !== undefined;
+  }
+
+  /** Equipamentos quebrados no café (uids), para o aviso do balão. */
+  brokenEquipment(): string[] {
+    return Object.keys(this.st.wear).filter((uid) => this.isBroken(uid) && this.st.placed.some((p) => p.uid === uid));
+  }
+
+  /** Chama o Tião: ele vem na hora e conserta em breakdown.repairMinutes, por breakdown.repairPrice moedas. */
+  callRepair(uid: string): ServiceResult {
+    const cfg = this.cfg.breakdown;
+    const w = this.st.wear[uid];
+    if (!cfg || !w?.broken) return { ok: false, reason: 'nothing_here' };
+    if (w.repairUntil !== undefined) return { ok: false, reason: 'station_busy' };
+    if (this.st.money < cfg.repairPrice) return { ok: false, reason: 'no_money' };
+    this.h.addMoney(-cfg.repairPrice, `repair:${this.itemOf(uid)}`);
+    w.repairUntil = this.now() + cfg.repairMinutes;
+    this.h.bus.emit('equipment.repair_started', { uid, itemId: this.itemOf(uid) });
+    return { ok: true };
+  }
+
+  /** Quanto do conserto já foi (0 a 1), para a barra; undefined = ninguém consertando. */
+  repairProgress(uid: string): number | undefined {
+    const until = this.st.wear[uid]?.repairUntil;
+    const cfg = this.cfg.breakdown;
+    if (until === undefined || !cfg) return undefined;
+    return Math.min(1, Math.max(0, 1 - (until - this.now()) / cfg.repairMinutes));
   }
 
   /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
@@ -823,6 +888,7 @@ export class CafeService {
     const station = this.st.placed.find((p) => p.uid === stationUid);
     if (!equipment || !station) return false;
     if (this.surfaceAt(station.at)) return true;
+    if (this.isBroken(stationUid)) return !this.isRepairing(stationUid);
     if (this.st.service.preps.some((p) => p.stationUid === stationUid)) return false;
     if (this.st.hands.some((h) => h.kind === 'wip' && this.recipe(h.recipe)?.steps[h.step]?.equipment === equipment)) return true;
     return !!this.pendingFor(equipment);
@@ -1036,10 +1102,12 @@ export class CafeService {
     const def = this.washerDef(uid);
     const w = this.st.washers[uid];
     if (!def || !w || loadCount(w.load) === 0) return { ok: false, reason: 'nothing_here' };
+    if (this.isBroken(uid)) return { ok: false, reason: 'broken' };
     if (w.washing) return { ok: false, reason: 'station_busy' };
     w.washing = { readyAt: this.now() + def.cycleMinutes, load: { ...w.load } };
     w.load = emptyLoad();
     this.h.bus.emit('washer.changed', { uid, load: 0, washing: true });
+    this.wearOut(uid);
     return { ok: true };
   }
 

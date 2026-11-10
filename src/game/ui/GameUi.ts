@@ -193,6 +193,9 @@ export class GameUi {
       this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    const equipName = (id: string) => content.items[id]?.name ?? '';
+    bus.on('equipment.broke', ({ itemId }) => this.toast(s.broke.replace('{name}', equipName(itemId)), 4000));
+    bus.on('equipment.repaired', ({ itemId }) => this.toast(s.repaired.replace('{name}', equipName(itemId)), 3000));
     bus.on('washer.changed', ({ load, washing }) => {
       if (washing && load === 0) this.toast(s.washerOn);
       else if (load > 0) this.toast(s.washerLoaded.replace('{n}', String(load)));
@@ -512,6 +515,12 @@ export class GameUi {
       cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
       const blocked = sv.arrivalsBlocked();
       if (blocked) alerts.push(uiText.service.blocked[blocked]);
+    }
+    // Equipamento quebrado (sem o Tião consertando): o aviso fica no balão até chamar.
+    for (const uid of sv.brokenEquipment()) {
+      if (sv.isRepairing(uid)) continue;
+      const item = this.session.state.placed.find((pl) => pl.uid === uid)?.item ?? '';
+      alerts.push(uiText.service.brokenAlert.replace('{name}', content.items[item]?.name ?? '').replace('{price}', String(content.service.breakdown?.repairPrice ?? 0)));
     }
     if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));

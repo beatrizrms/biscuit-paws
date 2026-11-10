@@ -90,6 +90,11 @@ export interface GameState {
   sink: SinkState;
   /** Lava-louças (v30): a louça de cada uma, pelo uid do móvel (como a pia: esperando e lavando). */
   washers: Record<string, SinkState>;
+  /**
+   * Desgaste dos equipamentos (v32), pelo uid do móvel: usos, o limite sorteado em que ele quebra, se está quebrado e,
+   * no conserto, até quando o Tião fica trabalhando (minutos absolutos).
+   */
+  wear: Record<string, { uses: number; breaksAt: number; broken?: boolean; repairUntil?: number }>;
   /** Estágio do negócio (v11): fechado, funcionamento parcial (sem placa) ou inaugurado (com placa). Só avança. */
   business: BusinessStage;
   /** Fiado (v13): quanto ela ainda deve (a primeira consulta da clínica). Parte de cada ganho paga. */
@@ -222,6 +227,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     tray: false,
     sink: { load: emptyLoad(), washing: null },
     washers: {},
+    wear: {},
     hotbar: newHotbar(),
     business: 'closed',
     player: { name: '', appearance: null, pronoun: DEFAULT_PRONOUN },

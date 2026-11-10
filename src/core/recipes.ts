@@ -84,6 +84,8 @@ export interface ServiceConfig {
   shoppingListBelow: number;
   /** Sem pedido, ela pode adiantar uma receita; cada equipamento (o da 1ª etapa) só tem até tantos itens sem dono. */
   extraPerEquipment: number;
+  /** Quebra: depois de minUses a maxUses usos (sorteado por equipamento); o Tião conserta na hora (preço e minutos). */
+  breakdown?: { minUses: number; maxUses: number; repairPrice: number; repairMinutes: number };
   /** Quanto tempo ele fica consumindo. */
   consumeMinutes: Record<ServiceKind, number>;
   /** Quando o atendimento funciona (ex.: depois das cadeiras, com cafeteira, mesa e cadeira). */
@@ -182,6 +184,10 @@ export function validateRecipes(
   }
   if (!(service.menuSlots >= 1)) errors.push('service: menuSlots precisa ser 1 ou mais');
   if (!Number.isInteger(service.extraPerEquipment) || service.extraPerEquipment < 0) errors.push('service: extraPerEquipment precisa ser um inteiro, 0 ou mais');
+  const b = service.breakdown;
+  if (b && !(Number.isInteger(b.minUses) && b.minUses >= 1 && Number.isInteger(b.maxUses) && b.maxUses >= b.minUses && b.repairPrice >= 0 && b.repairMinutes > 0)) {
+    errors.push('service: breakdown precisa de minUses >= 1, maxUses >= minUses (inteiros), repairPrice >= 0 e repairMinutes > 0');
+  }
   for (const v of VESSELS) {
     const at = service.servedAt?.[v] ?? [];
     if (at.length === 0 || at.some((k) => !['standing', 'table'].includes(k))) errors.push(`service: servedAt "${v}" precisa de "standing" e/ou "table"`);

@@ -16,10 +16,10 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 31;
+export const SAVE_SCHEMA_VERSION = 32;
 
-export interface SaveV31 extends GameState {
-  schemaVersion: 31;
+export interface SaveV32 extends GameState {
+  schemaVersion: 32;
   savedAt: string;
 }
 
@@ -168,10 +168,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   29: (save) => ({ ...save, schemaVersion: 30, displays: {} }),
   /** v30 -> v31: lava-louças. Saves antigos não têm nenhuma. */
   30: (save) => ({ ...save, schemaVersion: 31, washers: {} }),
+  /** v31 -> v32: desgaste dos equipamentos (quebra e conserto). Saves antigos: tudo novo, contador do zero. */
+  31: (save) => ({ ...save, schemaVersion: 32, wear: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV31 = { schemaVersion: 31, savedAt: now.toISOString(), ...state };
+  const save: SaveV32 = { schemaVersion: 32, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -225,7 +227,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV31>;
+  const v2 = save as unknown as Partial<SaveV32>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -347,6 +349,12 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       served: v2.service?.served ?? 0,
     },
     tray: v2.tray === true,
+    // Desgaste: só de móveis que continuam no café; números estranhos são descartados.
+    wear: Object.fromEntries(
+      Object.entries(v2.wear ?? {})
+        .filter(([uid, w]) => (v2.placed ?? []).some((pl) => pl.uid === uid) && Number.isInteger(w?.uses) && w.uses >= 0 && Number.isInteger(w?.breaksAt) && w.breaksAt >= 1)
+        .map(([uid, w]) => [uid, { uses: w.uses, breaksAt: w.breaksAt, ...(w.broken ? { broken: true } : {}), ...(typeof w.repairUntil === 'number' ? { repairUntil: w.repairUntil } : {}) }]),
+    ),
     // Lava-louças: só as que continuam no café (louça de uma que sumiu se perde).
     washers: Object.fromEntries(
       Object.entries(v2.washers ?? {})

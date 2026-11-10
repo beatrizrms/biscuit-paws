@@ -134,6 +134,12 @@ export interface GameEvents {
   'sink.changed': { load: number };
   /** Lava-louças: louça entrou (load: esperando), ligou ou terminou o ciclo (washing). */
   'washer.changed': { uid: string; load: number; washing: boolean };
+  /** Um equipamento (de preparo ou a lava-louças) quebrou depois de muitos usos. */
+  'equipment.broke': { uid: string; itemId: string };
+  /** O Tião chegou para consertar (fica até repairUntil). */
+  'equipment.repair_started': { uid: string; itemId: string };
+  /** Conserto pronto: o equipamento volta a funcionar. */
+  'equipment.repaired': { uid: string; itemId: string };
   'heavy.stored': { itemId: string };
   /** stars e reputation: a avaliação ao sair (sem eles: o café fechou com ele na fila). */
   /** Porta de estabelecimento fora do horário: o nome e quando abre de novo. */
