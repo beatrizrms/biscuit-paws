@@ -12,6 +12,9 @@ export interface BusinessData {
   softOpenWhen: Condition;
   /** Superfícies que precisam estar reformadas (com acabamento do pintor) para poder inaugurar. */
   requiredSurfaces: string[];
+  /** Itens com esta tag (os upgrades) só aparecem para comprar quando upgradesWhen vale (ex.: depois da inauguração). */
+  upgradeTag?: string;
+  upgradesWhen?: Condition;
 }
 
 export const isBusinessStage = (x: unknown): x is BusinessStage => typeof x === 'string' && (BUSINESS_STAGES as readonly string[]).includes(x);

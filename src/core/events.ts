@@ -30,6 +30,11 @@ export interface GameEvents {
   'stats.streak_broken': { streak: StreakId };
   /** Selo do café conquistado (data/milestones.json; os presentes já estão na mochila). */
   'milestone.reached': { milestoneId: string };
+  /** Vitrine: guardou um doce (ou um bolo inteiro) e tirou um (ou uma fatia). */
+  'display.stored': { uid: string; recipeId: string };
+  /** Cardápio da estação (começo do dia): receitas que chegaram e as que saíram do quadro por sair de época. */
+  'menu.season': { day: number; arrived: string[]; left: string[] };
+  'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
   'arrival.step': { arrivalId: string; step: number };
@@ -129,6 +134,14 @@ export interface GameEvents {
   'customer.arrived': { customerId: string; recipeId: string | null };
   'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
   'sink.changed': { load: number };
+  /** Lava-louças: louça entrou (load: esperando), ligou ou terminou o ciclo (washing). */
+  'washer.changed': { uid: string; load: number; washing: boolean };
+  /** Um equipamento (de preparo ou a lava-louças) quebrou depois de muitos usos. */
+  'equipment.broke': { uid: string; itemId: string };
+  /** O Tião chegou para consertar (fica até repairUntil). */
+  'equipment.repair_started': { uid: string; itemId: string };
+  /** Conserto pronto: o equipamento volta a funcionar. */
+  'equipment.repaired': { uid: string; itemId: string };
   'heavy.stored': { itemId: string };
   /** stars e reputation: a avaliação ao sair (sem eles: o café fechou com ele na fila). */
   /** Porta de estabelecimento fora do horário: o nome e quando abre de novo. */

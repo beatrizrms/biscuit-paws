@@ -522,13 +522,17 @@
     {
       "id": "item.display_case",
       "name": "Vitrine de doces",
-      "description": "Vitrine para os doces do café. Decoração do balcão.",
+      "description": "Guarda até 6 doces (um bolo inteiro ocupa um espaço e rende 6 fatias). Os doces só entram no cardápio com uma vitrine no café.",
       "price": 90,
-      "tile": "display_case",
+      "tile": "decor_vitrine_vazia",
       "tags": [
         "furniture",
         "counter"
-      ]
+      ],
+      "display": {
+        "slots": 6,
+        "fullTile": "display_case"
+      }
     },
     {
       "id": "item.table_round",
@@ -1111,7 +1115,8 @@
       "tags": [
         "furniture",
         "counter"
-      ]
+      ],
+      "deprecated": true
     },
     {
       "id": "item.yarn_pink",
@@ -1397,6 +1402,10 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "winter",
+        "autumn"
       ]
     },
     {
@@ -1409,6 +1418,10 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "spring",
+        "summer"
       ]
     },
     {
@@ -1421,6 +1434,26 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "spring",
+        "summer"
+      ]
+    },
+    {
+      "id": "item.pumpkin",
+      "name": "Abóbora",
+      "description": "Abóbora da estação, para o latte de abóbora: rende 4 receitas. Só no outono.",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "abobora",
+      "servings": 4,
+      "tags": [
+        "ingredient",
+        "fruit"
+      ],
+      "seasons": [
+        "autumn"
       ]
     },
     {
@@ -1675,7 +1708,8 @@
         "cat:food",
         "furniture",
         "for:cats",
-        "food_bowl"
+        "food_bowl",
+        "upgrade"
       ],
       "requires": {
         "flag": "has.cat"
@@ -1692,10 +1726,28 @@
         "cat:care",
         "furniture",
         "for:cats",
-        "litter_box"
+        "litter_box",
+        "upgrade"
       ],
       "requires": {
         "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.dishwasher",
+      "name": "Lava-louças",
+      "price": 200,
+      "tile": "eletro_lava_loucas",
+      "description": "Lava até 12 peças de uma vez, em 20 minutos (a pia: 6 peças, 3 minutos cada). E com a louça suja na mão para pôr; E de mãos livres para ligar.",
+      "tags": [
+        "furniture",
+        "equipment",
+        "dishwasher",
+        "upgrade"
+      ],
+      "washer": {
+        "capacity": 12,
+        "cycleMinutes": 20
       }
     },
     {
@@ -1777,6 +1829,84 @@
       "price": 14,
       "kind": "consumable",
       "icon": "chocolate",
+      "servings": 8,
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
+      "id": "item.salt",
+      "name": "Sal",
+      "description": "Sal para o pão e os salgados: rende 20 receitas.",
+      "price": 4,
+      "kind": "consumable",
+      "icon": "sal",
+      "servings": 20,
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.oil",
+      "name": "Óleo",
+      "description": "Óleo para o pão: rende 10 receitas.",
+      "price": 8,
+      "kind": "consumable",
+      "icon": "oleo",
+      "servings": 10,
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.sausage",
+      "name": "Calabresa",
+      "description": "Calabresa para o croissant salgado: rende 6 receitas.",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "calabresa",
+      "servings": 6,
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.beef",
+      "name": "Carne",
+      "description": "Carne para o croissant salgado: rende 6 receitas.",
+      "price": 16,
+      "kind": "consumable",
+      "icon": "carne",
+      "servings": 6,
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.chicken",
+      "name": "Frango",
+      "description": "Frango para o croissant salgado: rende 6 receitas.",
+      "price": 14,
+      "kind": "consumable",
+      "icon": "frango",
+      "servings": 6,
+      "tags": [
+        "ingredient",
+        "pantry"
+      ]
+    },
+    {
+      "id": "item.almond",
+      "name": "Amêndoas",
+      "description": "Amêndoas para os macarons e o croissant de amêndoa: rende 8 receitas.",
+      "price": 18,
+      "kind": "consumable",
+      "icon": "amendoa",
       "servings": 8,
       "tags": [
         "ingredient",
@@ -2698,7 +2828,6 @@
       { "id": "upg.flower_vase", "name": "Vaso de flores", "items": ["item.flower_vase", "item.vase_tulips", "item.vase_lavender"] },
       { "id": "upg.hanging_plant", "name": "Planta pendurada", "items": ["item.plant_hanging", "item.hanging_pothos", "item.hanging_pearls", "item.hanging_ivy", "item.hanging_spider", "item.hanging_heart"] },
       { "id": "upg.menu_board", "name": "Quadro de cardápio", "items": ["item.menu_board", "item.menu_board_cream", "item.menu_board_ears"] },
-      { "id": "upg.display_case", "name": "Vitrine", "items": ["item.display_case", "item.display_case_empty"] },
       { "id": "upg.rug", "name": "Tapete", "items": ["item.paw_rug", "item.rug_b"] },
       { "id": "upg.yarn", "name": "Novelo", "items": ["item.yarn_balls", "item.yarn_pink", "item.yarn_green", "item.yarn_cream", "item.yarn_lilac", "item.yarn_basket"] }
     ]

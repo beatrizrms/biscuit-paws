@@ -9,13 +9,15 @@ export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs
 export const PLACED_PREFIX = 'placed.';
 
 /** Mapa base + móveis da jogadora, como objetos comuns. */
-export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0): MapData {
+/** `stocked`: a vitrine tem algo dentro (desenha a arte cheia, display.fullTile). */
+export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
     if (!item?.tile) return [];
     // Em cima de outro móvel (ex.: cafeteira no balcão): sobe até o tampo.
     const onTop = !!item.placeOn && !!hostAt(placed, items, item.placeOn, p.at);
-    return [{ id: `${PLACED_PREFIX}${p.uid}`, tile: item.tile, at: p.at, ...(onTop ? { lift } : {}) }];
+    const tile = item.display?.fullTile && stocked?.(p.uid) ? item.display.fullTile : item.tile;
+    return [{ id: `${PLACED_PREFIX}${p.uid}`, tile, at: p.at, ...(onTop ? { lift } : {}) }];
   });
   return { ...map, objects: [...map.objects, ...extra] };
 }

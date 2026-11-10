@@ -575,6 +575,16 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Eletrodomésticos de piso (gerados no PixelLab, cafe_equip/): a lava-louças. Nomes eletro_*.
+    image: 'public/assets/objects/pixellab/tile_pixellab_eletro.png',
+    pieces: 'data/tilesets/pixellab_eletro.json',
+    columns: 4,
+    auto: true,
+    layout: {
+      lava_loucas: { file: 'cafe_equip/lava_loucas.png', w: 1, h: 1 },
+    },
+  },
+  {
     // Decorações do quarto (porão reformado), geradas no PixelLab (quarto/): nomes novos quarto_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_quarto.png',
     pieces: 'data/tilesets/pixellab_quarto.json',
@@ -1544,6 +1554,19 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['varinha', 'escova', 'recompondo'] as const).map((name) => ({ name, file: `${SRC}/icones_extra/${name}.png` })),
     // Biscoito de patinha (receita bônus dos selos): o disco verde com pata do pedido 04 (aprovado como almofada, sem uso).
     { name: 'biscoito_patinha', file: `${SRC}/04_cafe_4/obj_5.png` },
+    // Confeitaria (receitas da vitrine): fatias, bolos inteiros, croissants, cupcakes, macarons e biscoitos de peixe dos
+    // pedidos 03 e 04, e as amêndoas e a fatia de matcha do pedido 07 (escolhas.json).
+    ...([
+      ['fatia_morango', '03_cafe_3/obj_2'], ['fatia_chocolate', '03_cafe_3/obj_3'], ['fatia_limao', '03_cafe_3/obj_4'],
+      ['bolo_morango', '03_cafe_3/obj_8'], ['bolo_chocolate_gatinho', '03_cafe_3/obj_9'], ['bolo_matcha', '03_cafe_3/obj_10'],
+      ['croissant', '03_cafe_3/obj_11'], ['croissant_amendoa', '03_cafe_3/obj_12'], ['pain_au_chocolat', '03_cafe_3/obj_13'],
+      ['cupcake_gatinho', '03_cafe_3/obj_14'], ['cupcake_baunilha', '03_cafe_3/obj_15'],
+      ['macarons_pilha', '04_cafe_4/obj_12'], ['macarons_piramide', '04_cafe_4/obj_13'], ['macarons_gatinho', '04_cafe_4/obj_14'],
+      ['biscoito_peixe_laranja', '04_cafe_4/obj_2'], ['biscoito_peixe_glace', '04_cafe_4/obj_3'], ['biscoito_peixe_rosa', '04_cafe_4/obj_4'],
+      ['amendoa', '07_confeitaria/amendoa'], ['fatia_matcha', '07_confeitaria/fatia_matcha'],
+    ] as const).map(([name, file]) => ({ name, file: `${SRC}/${file}.png` })),
+    // Cardápio das estações (pedido 08): os especiais, a abóbora, o panetone (Natal) e a rabanada (Ano Novo).
+    ...(['chocolate_quente', 'cha_camomila_mel', 'torta_morango', 'fatia_torta_morango', 'cha_gelado_frutas_vermelhas', 'sorvete_morango', 'cha_gelado_limao', 'pao_de_mel', 'latte_abobora', 'abobora', 'panetone', 'fatia_panetone', 'rabanada'] as const).map((name) => ({ name, file: `${SRC}/08_estacoes/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

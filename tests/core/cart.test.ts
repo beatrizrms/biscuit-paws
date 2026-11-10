@@ -89,7 +89,7 @@ describe('carrinho do mercado na sessão', () => {
 
   it('o carrinho fica ao sair do mercado e esvazia ao dormir', () => {
     const { session } = market(50);
-    session.addToCart('item.lemon');
+    session.addToCart('item.sugar'); // do ano todo (o limão fresco só na primavera e no verão)
     session.enter('map.street');
     expect(session.cart.count()).toBe(1);
     session.endDay('home');

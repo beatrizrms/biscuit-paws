@@ -496,6 +496,166 @@
       "col": 1,
       "row": 12,
       "sheet": "pixellab"
+    },
+    "fatia_morango": {
+      "col": 2,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "fatia_chocolate": {
+      "col": 3,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "fatia_limao": {
+      "col": 4,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "bolo_morango": {
+      "col": 5,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "bolo_chocolate_gatinho": {
+      "col": 6,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "bolo_matcha": {
+      "col": 7,
+      "row": 12,
+      "sheet": "pixellab"
+    },
+    "croissant": {
+      "col": 0,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "croissant_amendoa": {
+      "col": 1,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "pain_au_chocolat": {
+      "col": 2,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "cupcake_gatinho": {
+      "col": 3,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "cupcake_baunilha": {
+      "col": 4,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "macarons_pilha": {
+      "col": 5,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "macarons_piramide": {
+      "col": 6,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "macarons_gatinho": {
+      "col": 7,
+      "row": 13,
+      "sheet": "pixellab"
+    },
+    "biscoito_peixe_laranja": {
+      "col": 0,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "biscoito_peixe_glace": {
+      "col": 1,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "biscoito_peixe_rosa": {
+      "col": 2,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "amendoa": {
+      "col": 3,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "fatia_matcha": {
+      "col": 4,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "chocolate_quente": {
+      "col": 5,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "cha_camomila_mel": {
+      "col": 6,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "torta_morango": {
+      "col": 7,
+      "row": 14,
+      "sheet": "pixellab"
+    },
+    "fatia_torta_morango": {
+      "col": 0,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "cha_gelado_frutas_vermelhas": {
+      "col": 1,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "sorvete_morango": {
+      "col": 2,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "cha_gelado_limao": {
+      "col": 3,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "pao_de_mel": {
+      "col": 4,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "latte_abobora": {
+      "col": 5,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "abobora": {
+      "col": 6,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "panetone": {
+      "col": 7,
+      "row": 15,
+      "sheet": "pixellab"
+    },
+    "fatia_panetone": {
+      "col": 0,
+      "row": 16,
+      "sheet": "pixellab"
+    },
+    "rabanada": {
+      "col": 1,
+      "row": 16,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

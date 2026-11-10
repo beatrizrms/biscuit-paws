@@ -8,7 +8,7 @@ import { formatClock } from '../../core/time';
 import { content, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
-import { iconHtml, ShopPanel } from './ShopPanel';
+import { iconHtml, listNames, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
 import { openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
@@ -20,6 +20,9 @@ import { services } from '../services';
 import { daysText, workName } from './constructionText';
 import { rewardText } from './StatsApp';
 import { weatherIconSvg } from './weatherIcons';
+
+/** A partir de quanto tempo o aviso é "longo" (espera a vez em vez de apagar outro longo). */
+const LONG_TOAST_MS = 4000;
 
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
@@ -51,6 +54,9 @@ export class GameUi {
   private reveal: { el: HTMLElement; done: () => void } | null = null;
   private typing: { full: string; shown: number; timer: number } | null = null;
   private toastTimer = 0;
+  /** Avisos longos esperando a vez, e até quando o longo da tela fica. */
+  private toastQueue: { text: string; ms: number }[] = [];
+  private longToastUntil = 0;
   /** Último aviso de energia dado (para não repetir a cada tarefa). */
   private energyWarned: 'low' | 'empty' | null = null;
   private hintMode: HintMode = 'walk';
@@ -193,6 +199,13 @@ export class GameUi {
       this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    const equipName = (id: string) => content.items[id]?.name ?? '';
+    bus.on('equipment.broke', ({ itemId }) => this.toast(s.broke.replace('{name}', equipName(itemId)), 4000));
+    bus.on('equipment.repaired', ({ itemId }) => this.toast(s.repaired.replace('{name}', equipName(itemId)), 3000));
+    bus.on('washer.changed', ({ load, washing }) => {
+      if (washing && load === 0) this.toast(s.washerOn);
+      else if (load > 0) this.toast(s.washerLoaded.replace('{n}', String(load)));
+    });
     bus.on('pantry.stored', ({ count }) => this.toast(uiText.backpack.pantryStored.replace('{n}', String(count)), 3000));
     bus.on('storage.changed', ({ count }) => count > 0 && this.toast(uiText.backpack.boxStored.replace('{n}', String(count)), 2500));
     bus.on('heavy.stored', ({ itemId }) => {
@@ -221,6 +234,12 @@ export class GameUi {
     bus.on('recipe.unlocked', ({ recipeId }) => {
       if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
       this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
+    });
+    // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
+    bus.on('menu.season', ({ arrived, left }) => {
+      const names = (ids: string[]) => listNames(ids.map((id) => content.recipes[id]?.name ?? id));
+      const parts = [arrived.length ? uiText.seasonMenu.arrived.replace('{items}', names(arrived)) : '', left.length ? uiText.seasonMenu.left.replace('{items}', names(left)) : ''];
+      this.toast(parts.filter(Boolean).join(' '), 6000);
     });
     // Selo do café: o nome e o que ele deu (app Café em números, aba Selos).
     bus.on('milestone.reached', ({ milestoneId }) => {
@@ -453,11 +472,28 @@ export class GameUi {
     this.renderHint();
   }
 
+  /**
+   * Aviso no alto da tela. Os longos (4 s ou mais: selo, cardápio da estação, receita nova) esperam a vez em fila em
+   * vez de apagar outro longo que ainda está na tela; os curtos aparecem na hora.
+   */
   toast(text: string, ms = 1600): void {
+    if (ms >= LONG_TOAST_MS && Date.now() < this.longToastUntil) {
+      this.toastQueue.push({ text, ms });
+      return;
+    }
+    this.showToast(text, ms);
+  }
+
+  private showToast(text: string, ms: number): void {
     this.toastEl.textContent = text;
     this.toastEl.classList.add('show');
+    if (ms >= LONG_TOAST_MS) this.longToastUntil = Date.now() + ms;
     window.clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => this.toastEl.classList.remove('show'), ms);
+    this.toastTimer = window.setTimeout(() => {
+      this.toastEl.classList.remove('show');
+      const next = this.toastQueue.shift();
+      if (next) this.toastTimer = window.setTimeout(() => this.showToast(next.text, next.ms), 250);
+    }, ms);
   }
 
   /** Aviso com um texto de data/ui_text.json. */
@@ -556,10 +592,20 @@ export class GameUi {
       const blocked = sv.arrivalsBlocked();
       if (blocked) alerts.push(uiText.service.blocked[blocked]);
     }
+    // Equipamento quebrado (sem o Tião consertando): o aviso fica no balão até chamar.
+    for (const uid of sv.brokenEquipment()) {
+      if (sv.isRepairing(uid)) continue;
+      const item = this.session.state.placed.find((pl) => pl.uid === uid)?.item ?? '';
+      alerts.push(uiText.service.brokenAlert.replace('{name}', content.items[item]?.name ?? '').replace('{price}', String(content.service.breakdown?.repairPrice ?? 0)));
+    }
     if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
     if (this.session.state.sink.washing) cafe.push(this.row(uiText.service.sinkWashing, { icon: 'xicara_suja' }));
     else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
+    for (const uid of Object.keys(this.session.state.washers)) {
+      if (sv.washerProgress(uid) !== undefined) cafe.push(this.row(uiText.service.washerWashing, { icon: 'xicara_suja' }));
+      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad.replace('{n}', String(sv.washerLoad(uid))), { icon: 'xicara_suja' }));
+    }
     const d = uiText.delivery;
     const next = this.session.nextArrival();
     if (next !== undefined) {

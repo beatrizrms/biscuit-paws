@@ -122,6 +122,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Marcando a área de uma obra (troca de acabamento). */
   private areaSelect: AreaSelect | null = null;
   private builderAsking = false;
+  /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
+  private repairNpcs = new Map<string, NpcSprite>();
+  /** "!" em cima de cada equipamento quebrado. */
+  private brokenIcons = new Map<string, Phaser.GameObjects.Image>();
+  /** Barra do conserto em cima do equipamento (separada das barras de preparo, que são refeitas a cada quadro). */
+  private repairBars = new Map<string, Phaser.GameObjects.Image>();
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -314,6 +320,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
     // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
+    this.session.bus.on('equipment.repair_started', ({ uid }) => this.showRepairNpc(uid));
+    this.session.bus.on('equipment.repaired', ({ uid }) => {
+      const npc = this.repairNpcs.get(uid);
+      this.repairNpcs.delete(uid);
+      void npc?.leave();
+    });
     this.session.bus.on('construction.shift', ({ working, map }) => {
       if (map !== this.map.id || this.builderAsking) return;
       const npcId = this.session.content.construction.npc;
@@ -1198,6 +1210,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const customer = sv.customerToServe(feet);
       if (customer) return cell(customer.spot, 'customer');
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
+      const washer = sv.washerNear(feet);
+      if (washer && sv.isBroken(washer) && !sv.isRepairing(washer) && st.hands.length === 0) return cell(st.placed.find((p) => p.uid === washer)!.at, 'repair');
+      if (washer && sv.washerAction(washer)) return cell(st.placed.find((p) => p.uid === washer)!.at, 'washer');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
       if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet) && !this.interactionAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
@@ -1206,13 +1221,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       const station = this.stationInReach(feet);
-      if (station) {
+      if (station && sv.isBroken(station.uid)) {
+        if (!sv.isRepairing(station.uid)) return cell(station.at, 'repair');
+      } else if (station) {
         const eq = sv.equipmentOf(station.uid);
         const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === eq);
         if ((sv.surfaceAt(station.at) && free) || st.hands.length === 0 || bringsWip) return cell(station.at, 'station');
       }
       const surface = st.surfaces.find((x) => near(x.at));
       if (surface && free) return cell(surface.at, 'surface');
+      // Vitrine: guardar o doce da mão, ou tirar um (mãos livres, com algo dentro).
+      const display = this.displayInReach(feet);
+      if (display && (st.hands.some((h) => sv.storable(h)) || (free && sv.displayStock(display.uid).length > 0))) {
+        const at = st.placed.find((p) => p.uid === display.uid)!.at;
+        return cell(at, 'display');
+      }
     }
     const point = s.jobPointNear(feet);
     if (point) return cell(point.at, 'job');
@@ -1587,6 +1610,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (act === 'deposit') return report(sv.depositDirty());
       if (act === 'wash') return report(this.withPose(sv.startWash(), 'wash'));
     }
+    // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
+    const washer = sv.washerNear(feet, target);
+    if (washer && sv.isBroken(washer) && st.hands.length === 0) return this.askRepair(washer);
+    if (washer) {
+      const act = sv.washerAction(washer);
+      if (act === 'deposit') return report(sv.depositInWasher(washer));
+      if (act === 'wash') return report(this.withPose(sv.startWasher(washer), 'operate'));
+    }
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
     const pantry = this.session.content.service.pantry;
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
@@ -1618,6 +1649,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
     const station = this.stationInReach(feet, target);
+    if (station && sv.isBroken(station.uid)) return this.askRepair(station.uid);
     if (station) {
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
@@ -1637,11 +1669,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return true;
       }
     }
+    // Vitrine ao alcance com um doce (ou o bolo inteiro) na mão: guarda.
+    const display = this.displayInReach(feet, target);
+    if (display && st.hands.some((h) => sv.storable(h))) return report(sv.storeInDisplay(display.uid));
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
     if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
       // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
       return report(sv.pickUp(surface.at));
+    }
+    // Vitrine com as mãos livres: escolhe o que tirar (do bolo inteiro, sai uma fatia).
+    if (display && st.hands.length < sv.handsCapacity()) {
+      const stock = sv.displayStock(display.uid);
+      if (stock.length === 0) return report({ ok: false, reason: 'display_empty' });
+      const recipes = this.session.content.recipes;
+      const names = stock.map((d) =>
+        recipes[d.recipe]?.batch
+          ? uiText.service.displaySlices.replace('{name}', recipes[d.recipe]?.name ?? '').replace('{n}', String(d.portions))
+          : (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''),
+      );
+      void this.ui.choose(uiText.service.displayAsk, [...names, uiText.service.extraCancel]).then((i) => {
+        if (i < stock.length) report(sv.takeFromDisplay(display.uid, i));
+      });
+      return true;
     }
     // Soltar: na célula clicada (até no chão) ou, com o E, só num balcão, mesa ou equipamento na frente: o E sem nada
     // para pegar ao alcance não larga a louça da bandeja no chão.
@@ -1650,6 +1700,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.canPutDown(at, feet, !!target)) return report(sv.putDown(at, feet, !!target));
     }
     return false;
+  }
+
+  /** Vitrine ao alcance dos pés (`target`: só a clicada), ou undefined. */
+  private displayInReach(feet: readonly Cell[], target?: Cell): { uid: string } | undefined {
+    const c = this.session.content;
+    for (const p of this.session.service.displaysPlaced()) {
+      const def = c.catalog.tiles[c.items[p.item]?.tile ?? ''];
+      const cells: Cell[] = def ? cellsOf(p.at, def) : [p.at];
+      const hit = target
+        ? cells.some(([x, y]) => x === target[0] && y === target[1])
+        : cells.some(([x, y]) => feet.some((f) => Math.max(Math.abs(f[0] - x), Math.abs(f[1] - y)) <= 1));
+      if (hit) return p;
+    }
+    return undefined;
   }
 
   /** Equipamento na célula bem na frente dela (ao alcance), ou undefined. */
@@ -1725,7 +1789,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (f) return this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale * di.scale);
     }
     if (item.kind === 'cat') return undefined; // o gato no colo é desenhado à parte (animado)
-    const icon = item.kind === 'wip' ? c.recipes[item.recipe]?.icon : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon : undefined;
+    const icon =
+      item.kind === 'wip' ? c.recipes[item.recipe]?.icon
+      : item.kind === 'cake' ? c.recipes[item.recipe]?.batch?.icon
+      : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon
+      : undefined;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
     const img = this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale);
@@ -1934,6 +2002,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         }
       }
     }
+    // Lava-louças lavando: a mesma barra de progresso, em cima dela.
+    for (const placed of st.placed) {
+      const progress = sv.washerProgress(placed.uid);
+      if (progress === undefined) continue;
+      working.add(placed.uid);
+      const frame = Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)));
+      let bar = this.progressBars.get(placed.uid);
+      if (!bar) {
+        bar = this.add.image((placed.at[0] + 0.5) * ts, placed.at[1] * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+        this.progressBars.set(placed.uid, bar);
+      }
+      bar.setTexture(`progress_${frame}`);
+    }
     for (const [uid, sprite] of this.equipAnims) {
       if (working.has(uid)) continue;
       sprite.destroy();
@@ -1944,8 +2025,85 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       bar.destroy();
       this.progressBars.delete(uid);
     }
+    this.updateBroken();
     this.updateSink();
     this.syncCustomers();
+  }
+
+  /** Equipamento quebrado: "!" balançando em cima; com o Tião consertando, a barra do conserto no lugar. */
+  private updateBroken(): void {
+    const sv = this.session.service;
+    const ts = this.map.tileSize;
+    const live = new Set<string>();
+    const repairing = new Set<string>();
+    for (const uid of this.session.atHome() ? sv.brokenEquipment() : []) {
+      const placed = this.session.state.placed.find((p) => p.uid === uid);
+      if (!placed) continue;
+      const top = placed.at[1] * ts - 2 - this.liftOf(uid);
+      const progress = sv.repairProgress(uid);
+      if (progress !== undefined) {
+        // Conserto: a mesma arte da barra dos preparos.
+        repairing.add(uid);
+        let bar = this.repairBars.get(uid);
+        if (!bar) {
+          bar = this.add.image((placed.at[0] + 0.5) * ts, top, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+          this.repairBars.set(uid, bar);
+        }
+        bar.setTexture(`progress_${Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)))}`);
+        if (!this.repairNpcs.has(uid)) this.showRepairNpc(uid);
+        continue;
+      }
+      live.add(uid);
+      if (!this.brokenIcons.has(uid)) {
+        const icon = this.add.image((placed.at[0] + 0.5) * ts, top, 'emotes', 'exclamation').setOrigin(0.5, 1).setDepth(99_000);
+        this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        this.brokenIcons.set(uid, icon);
+      }
+    }
+    for (const [uid, icon] of this.brokenIcons) {
+      if (live.has(uid)) continue;
+      icon.destroy();
+      this.brokenIcons.delete(uid);
+    }
+    for (const [uid, bar] of this.repairBars) {
+      if (repairing.has(uid)) continue;
+      bar.destroy();
+      this.repairBars.delete(uid);
+    }
+  }
+
+  /** E no equipamento quebrado: pergunta se chama o Tião (preço do conserto); sim, ele vem na hora. */
+  private askRepair(uid: string): boolean {
+    const sv = this.session.service;
+    const t = uiText.service;
+    if (sv.isRepairing(uid)) {
+      this.ui.toast(t.repairing, 2000);
+      return true;
+    }
+    const item = this.session.content.items[this.session.state.placed.find((p) => p.uid === uid)?.item ?? ''];
+    const price = String(this.session.content.service.breakdown?.repairPrice ?? 0);
+    void this.ui.confirm(t.repairAsk.replace('{name}', item?.name ?? '').replace('{price}', price), t.repairYes.replace('{price}', price), t.repairNo).then((yes) => {
+      if (!yes) return;
+      const r = sv.callRepair(uid);
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    });
+    return true;
+  }
+
+  /** O Tião ao lado do equipamento, martelando (de preferência à esquerda, virado para ele). */
+  private showRepairNpc(uid: string): void {
+    if (!this.session.atHome() || this.repairNpcs.has(uid)) return;
+    const placed = this.session.state.placed.find((p) => p.uid === uid);
+    const def = this.session.content.npcs[this.session.content.construction.npc];
+    if (!placed || !def) return;
+    const [c, r] = placed.at;
+    const free = ([x, y]: Cell) => this.map.solid[y]?.[x] === false;
+    const spot = ([[c - 1, r], [c - 1, r + 1], [c, r + 1], [c + 1, r + 1]] as Cell[]).find(free);
+    if (!spot) return;
+    const ts = this.map.tileSize;
+    const npc = new NpcSprite(this, def, spot[0] * ts + ts / 2, (spot[1] + 1) * ts - 4, ts);
+    npc.loop('martelando');
+    this.repairNpcs.set(uid, npc);
   }
 
   /** Pia: louça esperando (quadro com louça), lavando (animação + barra), recém-lavada (louça limpa). */
@@ -2123,6 +2281,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.equipAnims.clear();
     this.progressBars.forEach((b) => b.destroy());
     this.progressBars.clear();
+    this.brokenIcons.forEach((i) => i.destroy());
+    this.brokenIcons.clear();
+    this.repairBars.forEach((b) => b.destroy());
+    this.repairBars.clear();
+    this.repairNpcs.forEach((n) => n.destroy());
+    this.repairNpcs.clear();
     this.sinkSprite?.destroy();
     this.sinkSprite = null;
     this.sinkBar?.destroy();

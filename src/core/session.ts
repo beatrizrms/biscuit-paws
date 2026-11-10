@@ -129,12 +129,15 @@ export type ActionResult =
       ok: false;
       reason:
         | 'unknown_item'
+        | 'washer_busy'
+        | 'equipment_broken'
         | StorageProblem
         | 'no_money'
         | 'not_in_inventory'
         | 'needs_broom'
         | 'heavy_dirt'
         | 'no_upgrade'
+        | 'display_not_empty'
         | 'needs_food'
         | 'needs_treat'
         | 'needs_medicine'
@@ -213,6 +216,7 @@ export class GameSession {
       customersAway: () => this.customersAway(),
       hallDirt: () => this.hallDirt(),
       playerSeat: () => this.restingCell(),
+      weather: () => this.weather(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
     });
     this.arrivals = new ArrivalSystem({
@@ -359,13 +363,18 @@ export class GameSession {
   }
 
   /**
-   * O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato)
+   * O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato; upgrades só depois da inauguração)
    * Equipamentos e ingredientes seguem a evolução das receitas: só aparecem quando alguma receita
    * destrancada usa eles (o bule chega ao catálogo junto com o chá). Sem receita nenhuma, ficam escondidos.
    */
   itemUnlocked(itemId: string): boolean {
     const item = this.content.items[itemId];
     if (!item || (item.requires && !evaluate(item.requires, this.state, this.storyContext()))) return false;
+    // Upgrades (pote e caixa de areia automáticos, lava-louças): só depois da inauguração (data/business.json).
+    const { upgradeTag, upgradesWhen } = this.content.business;
+    if (upgradeTag && upgradesWhen && item.tags.includes(upgradeTag) && !evaluate(upgradesWhen, this.state, this.storyContext())) return false;
+    // Fruta fresca (e a abóbora): só na época.
+    if (item.seasons && !item.seasons.includes(seasonOf(this.content.seasons, this.state.day))) return false;
     const recipes = Object.values(this.content.recipes);
     const equipment = this.content.service.equipment;
     const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));
@@ -376,7 +385,8 @@ export class GameSession {
     );
     // Ingrediente que nenhuma receita usa ainda (chá de camomila, mel...) fica guardado para quando usar.
     if (usedBy.length === 0) return !isEquipment && !item.tags.includes('ingredient');
-    return usedBy.some((r) => this.service.recipeStatus(r.id) !== 'locked');
+    // Só o que serve para receitas destrancadas e na época (fora de época, o ingrediente sai da prateleira).
+    return usedBy.some((r) => !['locked', 'season'].includes(this.service.recipeStatus(r.id)));
   }
 
   /** Receitas destrancadas que ela ainda não viu: avisa uma vez (o café evoluiu). Na abertura, só marca. */
@@ -688,6 +698,9 @@ export class GameSession {
     this.bus.emit('cart.changed', { count: 0, total: 0 });
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
+    // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
+    const menu = this.service.seasonalMenu(day);
+    if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
     this.advanceStory();
   }
 
@@ -2133,7 +2146,7 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -3050,8 +3063,15 @@ export class GameSession {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
     if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
+    // Vitrine com doces: precisa esvaziar antes de recolher.
+    if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
+    if (this.service.washerBusy(uid)) return { ok: false, reason: 'washer_busy' };
+    // Quebrado: só depois do conserto (senão guardar e pôr de novo consertaria de graça).
+    if (this.service.isBroken(uid)) return { ok: false, reason: 'equipment_broken' };
     const [removed] = this.state.placed.splice(index, 1);
     this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
+    delete this.state.washers[uid];
+    delete this.state.wear[uid];
     // Baú recolhido: o que estava dentro volta para a mochila.
     const box = this.state.petBoxes[uid];
     if (box) {

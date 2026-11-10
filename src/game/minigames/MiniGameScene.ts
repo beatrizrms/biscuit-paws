@@ -188,7 +188,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
     const title = r.skipped ? t.skipped : t.outcome[r.outcome];
     const coins = r.coinsEarned > 0 ? t.coins.replace('{coins}', String(r.coinsEarned)) : t.noCoins;
     this.renderHud();
-    this.overlay(`<h2 class="mg-${r.outcome}">${esc(title)}</h2><p>${esc(this.resultText(r))}</p><p class="mg-coins">${esc(coins)}</p>
+    this.overlay(`<h2 class="mg-${r.outcome}">${esc(title)}</h2>${this.resultHtml(r) ?? `<p>${esc(this.resultText(r))}</p>`}<p class="mg-coins">${esc(coins)}</p>
       <button class="menu-btn" data-act="close">${t.continue}</button>`);
     this.controls.onAction(() => this.phase === 'result' && this.close());
   }
@@ -196,6 +196,11 @@ export abstract class MiniGameScene extends Phaser.Scene {
   /** Frase do resultado (cada jogo pode dizer o que quiser: "Sobraram 20 s", "Pescou um salmão"...). */
   protected resultText(_r: MiniGameResult): string {
     return '';
+  }
+
+  /** Resultado montado em HTML (já escapado), no lugar da frase, para quem precisa de mais que texto (o match de adoção). */
+  protected resultHtml(_r: MiniGameResult): string | null {
+    return null;
   }
 
   private close(): void {

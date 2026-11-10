@@ -21,6 +21,7 @@
         "item.orange",
         "item.strawberry",
         "item.lemon",
+        "item.pumpkin",
         "item.pulp_orange",
         "item.pulp_strawberry",
         "item.pulp_lemon",
@@ -36,7 +37,13 @@
         "item.eggs",
         "item.milk",
         "item.butter",
-        "item.chocolate"
+        "item.chocolate",
+        "item.almond",
+        "item.salt",
+        "item.oil",
+        "item.sausage",
+        "item.beef",
+        "item.chicken"
       ]
     }
   }

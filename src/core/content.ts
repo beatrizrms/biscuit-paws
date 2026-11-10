@@ -63,8 +63,14 @@ export interface ItemDef {
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
   placeOn?: string;
+  /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
+  display?: { slots: number; fullTile?: string };
+  /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
+  seasons?: string[];
   /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
   room?: string;
+  /** Lava-louças: quantas peças cabem e quanto dura um ciclo (qualquer quantidade). E deposita a louça suja / liga. */
+  washer?: { capacity: number; cycleMinutes: number };
   /** Baú (a caixa pet): espaços e tags aceitas; E no móvel abre o baú dele (src/core/storage.ts). */
   storage?: StorageDef;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
@@ -725,10 +731,12 @@ export function validateContent(raw: RawContent): string[] {
     if (item.requires) checkCondition(`items: "${item.id}"`, item.requires);
     if (item.icon && !raw.icons.icons[item.icon]) err(`items: "${item.id}" usa ícone inexistente "${item.icon}"`);
   }
-  errors.push(...validateRecipes(raw.recipes, raw.service, raw.carry, { items: itemIds, icons: new Set(Object.keys(raw.icons.icons)), itemTags }));
+  errors.push(...validateRecipes(raw.recipes, raw.service, raw.carry, { items: itemIds, icons: new Set(Object.keys(raw.icons.icons)), itemTags, seasons: new Set(raw.seasons.order) }));
   for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
   checkCondition('business: softOpenWhen', raw.business.softOpenWhen);
+  if (raw.business.upgradesWhen) checkCondition('business: upgradesWhen', raw.business.upgradesWhen);
+  if (raw.business.upgradeTag && !raw.items.items.some((i) => i.tags.includes(raw.business.upgradeTag!))) err(`business: nenhum item tem a tag de upgrade "${raw.business.upgradeTag}"`);
   for (const r of raw.rooms.rooms) {
     if (r.discover?.when) checkCondition(`rooms: "${r.id}" discover`, r.discover.when);
     if (r.restore?.when) checkCondition(`rooms: "${r.id}" restore`, r.restore.when);
@@ -828,6 +836,7 @@ export function validateContent(raw: RawContent): string[] {
     if (item.placeOn && !itemTags.has(item.placeOn)) err(`items: "${item.id}" vai em cima de "${item.placeOn}", tag que nenhum item tem`);
     if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);
     if (item.storesAs && !item.tags.includes(raw.carry.heavy.tag)) err(`items: "${item.id}" tem storesAs mas não é pesado (tag "${raw.carry.heavy.tag}")`);
+    if (item.washer && !(Number.isInteger(item.washer.capacity) && item.washer.capacity >= 1 && item.washer.cycleMinutes > 0)) err(`items: "${item.id}" washer: capacity (inteiro >= 1) e cycleMinutes (> 0)`);
     if (item.storage) {
       validateStorage(item.id, item.storage).forEach((e) => err(`items: ${e}`));
       if ((item.kind ?? 'furniture') !== 'furniture') err(`items: "${item.id}" tem storage mas não é móvel`);

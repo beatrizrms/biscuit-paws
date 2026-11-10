@@ -29,6 +29,7 @@ export function handItemName(h: HandItem, catName: (id: string) => string = (id)
     return uiText.backpack.wip.replace('{name}', content.recipes[h.recipe]?.name ?? '').replace('{equipment}', (eq && content.service.equipment[eq]?.name) || '');
   }
   if (h.kind === 'cat') return uiText.backpack.cat.replace('{name}', catName(h.catId));
+  if (h.kind === 'cake') return uiText.backpack.cake.replace('{name}', content.recipes[h.recipe]?.batch?.name ?? '').replace('{n}', String(h.portions));
   return content.items[h.item]?.name ?? '';
 }
 

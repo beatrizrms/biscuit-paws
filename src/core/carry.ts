@@ -16,7 +16,9 @@ export type HandItem =
   /** Item pesado (saco de ração, areia): ocupa as mãos sozinho. */
   | { kind: 'heavy'; item: string }
   /** O gato no colo. */
-  | { kind: 'cat'; catId: string };
+  | { kind: 'cat'; catId: string }
+  /** Bolo inteiro de uma fornada (receita com batch): vai para a vitrine, que serve as fatias. Ocupa as duas mãos. */
+  | { kind: 'cake'; recipe: string; portions: number; quality?: Quality };
 
 /** Algo deixado numa superfície do café (balcão, mesa, chão). Uma coisa por célula. */
 export interface SurfaceItem {
@@ -28,7 +30,7 @@ export interface SurfaceItem {
 export const onTray = (item: HandItem): boolean => item.kind === 'drink' || item.kind === 'dirty';
 
 /** O que ocupa as mãos sozinho (nada mais cabe junto). */
-export const exclusive = (item: HandItem): boolean => item.kind === 'heavy' || item.kind === 'cat';
+export const exclusive = (item: HandItem): boolean => item.kind === 'heavy' || item.kind === 'cat' || item.kind === 'cake';
 
 /** Velocidade com o que está nas mãos (nunca abaixo de 40%). */
 export function speedFactor(hands: readonly HandItem[], tray: boolean, cfg: CarryConfig): number {

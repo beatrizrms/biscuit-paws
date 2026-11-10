@@ -872,6 +872,14 @@
       "solid": false
     },
     {
+      "id": "pixellab_eletro",
+      "image": "assets/objects/pixellab/tile_pixellab_eletro.png",
+      "pieces": "pixellab_eletro.json",
+      "prefix": "eletro_",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "pixellab_pet",
       "image": "assets/objects/pixellab/tile_pixellab_pet.png",
       "pieces": "pixellab_pet.json",

@@ -5,13 +5,14 @@ import { reviewReputation, reviewStars, type Waits } from './review';
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
-import type { Rng } from './rng';
+import { pickWeighted, type Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
-import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
+import { inSeason, VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
 import { capacityOf, type CapacityView } from './capacity';
-import { nowAbs, type GameState } from './state';
+import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
+import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordServed } from './stats';
 
@@ -67,6 +68,10 @@ export function newServiceState(): ServiceState {
 export const emptyLoad = (): Record<Vessel, number> => ({ cup: 0, glass: 0, plate: 0 });
 
 export type ServiceProblem =
+  | 'out_of_season'
+  | 'display_full'
+  | 'nothing_to_store'
+  | 'display_empty'
   | 'not_unlocked'
   | 'menu_full'
   | 'hands_full'
@@ -85,6 +90,9 @@ export type ServiceProblem =
   | 'not_on_tray'
   | 'no_tray'
   | 'sink_full'
+  | 'washer_full'
+  | 'broken'
+  | 'no_money'
   | 'not_at_home'
   | ScheduleProblem;
 
@@ -111,6 +119,8 @@ export interface ServiceHost {
   addReputation(amount: number, reason: string): void;
   /** Célula da cadeira em que ela está sentada descansando (ou null): não é lugar livre para cliente. */
   playerSeat(): Cell | null;
+  /** Clima de hoje (pesa no que os clientes pedem). */
+  weather(): string;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -244,6 +254,102 @@ export class CafeService {
     return !!r && (r.steps[0]?.equipment === equipment || r.alternative?.equipment === equipment);
   }
 
+  // ---------- Estações (cardápio) ----------
+
+  /** A receita está na época hoje? */
+  inSeasonNow(r: RecipeDef): boolean {
+    return inSeason(r, this.h.content.seasons, this.st.day);
+  }
+
+  /** Peso da receita no sorteio do pedido: a temperatura dela na estação e no clima de hoje (o resto pesa 1). */
+  demandWeight(r: RecipeDef): number {
+    if (!r.temp) return 1;
+    const d = this.cfg.demand;
+    const season = seasonOf(this.h.content.seasons, this.st.day);
+    return (d?.seasons?.[season]?.[r.temp] ?? 1) * (d?.weather?.[this.h.weather()]?.[r.temp] ?? 1);
+  }
+
+  /**
+   * Começo do dia: tira do quadro o que saiu de época e diz o que chegou (destrancado, na época hoje e não ontem).
+   * `yesterday`: o dia anterior (para comparar).
+   */
+  seasonalMenu(yesterday: number): { arrived: string[]; left: string[] } {
+    const seasons = this.h.content.seasons;
+    const unlocked = Object.values(this.h.content.recipes).filter((r) => !r.unlock || this.h.evaluate(r.unlock));
+    const arrived = unlocked.filter((r) => inSeason(r, seasons, this.st.day) && !inSeason(r, seasons, yesterday)).map((r) => r.id);
+    const left = this.st.menu.filter((id) => {
+      const r = this.recipe(id);
+      return !!r && !inSeason(r, seasons, this.st.day);
+    });
+    if (left.length > 0) {
+      this.st.menu = this.st.menu.filter((id) => !left.includes(id));
+      this.h.bus.emit('menu.changed', { menu: [...this.st.menu] });
+    }
+    return { arrived, left };
+  }
+
+  // ---------- Vitrine (confeitaria) ----------
+
+  /** Vitrines posicionadas (móveis com display). */
+  displaysPlaced(): PlacedItem[] {
+    return this.st.placed.filter((p) => this.h.content.items[p.item]?.display);
+  }
+
+  /** O que está guardado nesta vitrine. */
+  displayStock(uid: string): readonly DisplaySlot[] {
+    return this.st.displays[uid] ?? [];
+  }
+
+  /** Quantas fatias (ou doces) desta receita estão nas vitrines. */
+  displayPortions(recipe: string): number {
+    return Object.values(this.st.displays).reduce((n, slots) => n + slots.filter((s) => s.recipe === recipe).reduce((a, s) => a + s.portions, 0), 0);
+  }
+
+  /** Este objeto da mão vai para a vitrine? (um doce pronto ou um bolo inteiro) */
+  storable(h: HandItem): boolean {
+    return h.kind === 'cake' || (h.kind === 'drink' && !!this.recipe(h.recipe)?.display);
+  }
+
+  /** Guarda na vitrine o doce (ou o bolo inteiro) da mão. O prato do doce volta limpo para o estoque. */
+  storeInDisplay(uid: string): ServiceResult {
+    const def = this.h.content.items[this.st.placed.find((p) => p.uid === uid)?.item ?? '']?.display;
+    if (!def) return { ok: false, reason: 'nothing_here' };
+    const i = this.st.hands.findIndex((h) => this.storable(h));
+    if (i < 0) return { ok: false, reason: 'nothing_to_store' };
+    const slots = (this.st.displays[uid] ??= []);
+    if (slots.length >= def.slots) return { ok: false, reason: 'display_full' };
+    const [h] = this.st.hands.splice(i, 1);
+    if (h!.kind === 'cake') slots.push({ recipe: h!.recipe, portions: h!.portions, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    else if (h!.kind === 'drink') {
+      this.st.dishes[h!.vessel] = (this.st.dishes[h!.vessel] ?? 0) + 1;
+      slots.push({ recipe: h!.recipe, portions: 1, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    }
+    this.h.bus.emit('display.stored', { uid, recipeId: h!.kind === 'cake' || h!.kind === 'drink' ? h!.recipe : '' });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Tira da vitrine um doce (ou uma fatia do bolo do espaço `index`), num prato limpo. */
+  takeFromDisplay(uid: string, index: number): ServiceResult {
+    const slots = this.st.displays[uid] ?? [];
+    const slot = slots[index];
+    if (!slot) return { ok: false, reason: 'display_empty' };
+    const r = this.recipe(slot.recipe);
+    if (!r) return { ok: false, reason: 'nothing_here' };
+    const item: HandItem = { kind: 'drink', recipe: r.id, vessel: r.vessel, ...(slot.quality ? { quality: slot.quality } : {}) };
+    const problem = this.canHold(item);
+    if (problem) return { ok: false, reason: problem };
+    if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
+    this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
+    this.st.hands.push(item);
+    slot.portions -= 1;
+    if (slot.portions <= 0) slots.splice(index, 1);
+    if (slots.length === 0) delete this.st.displays[uid];
+    this.h.bus.emit('display.taken', { uid, recipeId: r.id });
+    this.handsChanged();
+    return { ok: true };
+  }
+
   // ---------- Equipamentos e louça ----------
 
   /** Móveis posicionados que fazem o papel deste equipamento. */
@@ -274,8 +380,9 @@ export class CafeService {
 
   /** Massa entre etapas e preparos em andamento já separam uma louça limpa para o fim. */
   private reserved(v: Vessel): number {
-    const wips = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'wip' && this.recipe(i.recipe)?.vessel === v);
-    return this.st.service.preps.filter((p) => this.recipe(p.recipe)?.vessel === v).length + wips.length;
+    const uses = (id: string) => this.recipe(id)?.vessel === v && !this.recipe(id)?.batch;
+    const wips = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'wip' && uses(i.recipe));
+    return this.st.service.preps.filter((p) => uses(p.recipe)).length + wips.length;
   }
 
   /** Louça limpa que ainda não está separada para um preparo. */
@@ -286,7 +393,8 @@ export class CafeService {
   /** Louça suja espalhada (mãos, superfícies e esperando na pia). */
   dirtyCount(): number {
     const all = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)];
-    return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad());
+    const washers = Object.values(this.st.washers).reduce((n, w) => n + loadCount(w.load) + loadCount(w.washing?.load ?? emptyLoad()), 0);
+    return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad()) + washers;
   }
 
   /** O presente da Gabi (ou outro item com "dishes") entra no estoque de louça limpa. */
@@ -306,6 +414,10 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
+    if (!this.inSeasonNow(r)) return 'season';
+    if (r.display && this.displaysPlaced().length === 0) return 'equipment';
+    // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
+    if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
     // Dois jeitos (receita.alternative): basta um ter os equipamentos e, com eles, os ingredientes.
     const normal = r.steps.every((s) => this.stationsFor(s.equipment).length > 0);
     const alt = !!r.alternative && this.stationsFor(r.alternative.equipment).length > 0;
@@ -318,6 +430,7 @@ export class CafeService {
   /** Primeiro equipamento que falta para a receita (para o quadro dizer qual). */
   missingEquipment(id: string): string | undefined {
     const r = this.recipe(id);
+    if (r?.display && this.displaysPlaced().length === 0) return 'display';
     if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
     return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
   }
@@ -331,7 +444,9 @@ export class CafeService {
     if (this.st.menu.includes(recipeId)) {
       this.st.menu = this.st.menu.filter((id) => id !== recipeId);
     } else {
-      if (this.recipeStatus(recipeId) === 'locked') return { ok: false, reason: 'not_unlocked' };
+      const status = this.recipeStatus(recipeId);
+      if (status === 'locked') return { ok: false, reason: 'not_unlocked' };
+      if (status === 'season') return { ok: false, reason: 'out_of_season' };
       if (this.st.menu.length >= this.cfg.menuSlots) return { ok: false, reason: 'menu_full' };
       this.st.menu.push(recipeId);
     }
@@ -504,7 +619,9 @@ export class CafeService {
       if (this.surfaceAt(station.at)) continue; // equipamento ocupado: espera tirarem o que está nele
       sv.preps = sv.preps.filter((p) => p !== prep);
       const last = prep.step >= r.steps.length - 1;
-      if (last) {
+      if (last && r.batch) {
+        this.st.surfaces.push({ at: [...station.at], item: { kind: 'cake', recipe: r.id, portions: r.batch.yields, quality: prep.quality } });
+      } else if (last) {
         this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
         this.st.surfaces.push({ at: [...station.at], item: { kind: 'drink', recipe: r.id, vessel: r.vessel, quality: prep.quality } });
       } else {
@@ -518,6 +635,22 @@ export class CafeService {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
       this.h.bus.emit('dish.washed', { count: loadCount(washing.load) });
+    }
+    // Consertos do Tião que terminaram: volta a funcionar, com o contador do zero e outro limite sorteado.
+    const cfgBreak = this.cfg.breakdown;
+    for (const [uid, w] of Object.entries(this.st.wear)) {
+      if (w.repairUntil === undefined || w.repairUntil > now || !cfgBreak) continue;
+      this.st.wear[uid] = { uses: 0, breaksAt: this.h.rng().int(cfgBreak.minUses, cfgBreak.maxUses) };
+      this.h.bus.emit('equipment.repaired', { uid, itemId: this.itemOf(uid) });
+    }
+    // Lava-louças.
+    for (const [uid, w] of Object.entries(this.st.washers)) {
+      if (!w.washing || w.washing.readyAt > now) continue;
+      for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (w.washing.load[v] ?? 0);
+      const count = loadCount(w.washing.load);
+      w.washing = null;
+      this.h.bus.emit('dish.washed', { count });
+      this.h.bus.emit('washer.changed', { uid, load: loadCount(w.load), washing: false });
     }
     // Clientes.
     for (const c of [...sv.customers]) {
@@ -587,7 +720,8 @@ export class CafeService {
     c.kind = spot.kind;
     c.spot = [...spot.spot];
     c.dishAt = [...spot.dishAt];
-    c.recipe = favorite && rng.chance(this.cfg.preferences.favoriteWeight) ? favorite.id : options[rng.int(0, options.length - 1)]!.id;
+    // O favorito pesa mais; o resto, pela procura do momento (quente no inverno e na chuva, gelado no verão).
+    c.recipe = favorite && rng.chance(this.cfg.preferences.favoriteWeight) ? favorite.id : pickWeighted(rng, Object.fromEntries(options.map((r) => [r.id, this.demandWeight(r)])));
     c.until = this.now() + this.cfg.patienceMinutes;
     this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: c.recipe });
   }
@@ -651,6 +785,7 @@ export class CafeService {
     const equipment = this.equipmentOf(stationUid);
     const sv = this.st.service;
     if (!equipment) return { ok: false, reason: 'nothing_to_prepare' };
+    if (this.isBroken(stationUid)) return { ok: false, reason: 'broken' };
     if (sv.preps.some((p) => p.stationUid === stationUid)) return { ok: false, reason: 'station_busy' };
     const station = this.st.placed.find((p) => p.uid === stationUid)!;
     if (this.surfaceAt(station.at)) return { ok: false, reason: 'station_busy' };
@@ -663,6 +798,7 @@ export class CafeService {
       sv.preps.push({ stationUid, recipe: r.id, step: wip!.step, quality: wip!.quality ?? 'simple', readyAt: this.now() + r.steps[wip!.step]!.minutes });
       this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
       this.handsChanged();
+      this.wearOut(stationUid);
       return { ok: true };
     }
     const pending = this.pendingFor(equipment);
@@ -671,17 +807,72 @@ export class CafeService {
     const r = this.recipe(pending?.recipe ?? extra!)!;
     const ing = this.ingredientsAt(r, equipment);
     if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
-    if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
+    if (!r.batch && this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
     for (const [item, n] of ing.use) this.useDoses(item, n);
     sv.preps.push({ stationUid, recipe: r.id, step: 0, quality: ing.quality, readyAt: this.now() + r.steps[0]!.minutes });
     this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
+    this.wearOut(stationUid);
     return { ok: true };
+  }
+
+  // ---------- Quebra e conserto (o Tião) ----------
+
+  /** Conta um uso; quando chega no limite sorteado (breakdown.minUses a maxUses), o equipamento quebra. */
+  private wearOut(uid: string): void {
+    const cfg = this.cfg.breakdown;
+    if (!cfg) return;
+    const w = (this.st.wear[uid] ??= { uses: 0, breaksAt: this.h.rng().int(cfg.minUses, cfg.maxUses) });
+    w.uses++;
+    if (w.broken || w.uses < w.breaksAt) return;
+    w.broken = true;
+    this.h.bus.emit('equipment.broke', { uid, itemId: this.itemOf(uid) });
+  }
+
+  private itemOf(uid: string): string {
+    return this.st.placed.find((p) => p.uid === uid)?.item ?? '';
+  }
+
+  /** Quebrado (ainda sem conserto pronto; com o Tião trabalhando também conta). */
+  isBroken(uid: string): boolean {
+    return !!this.st.wear[uid]?.broken;
+  }
+
+  /** O Tião está consertando agora. */
+  isRepairing(uid: string): boolean {
+    return this.st.wear[uid]?.repairUntil !== undefined;
+  }
+
+  /** Equipamentos quebrados no café (uids), para o aviso do balão. */
+  brokenEquipment(): string[] {
+    return Object.keys(this.st.wear).filter((uid) => this.isBroken(uid) && this.st.placed.some((p) => p.uid === uid));
+  }
+
+  /** Chama o Tião: ele vem na hora e conserta em breakdown.repairMinutes, por breakdown.repairPrice moedas. */
+  callRepair(uid: string): ServiceResult {
+    const cfg = this.cfg.breakdown;
+    const w = this.st.wear[uid];
+    if (!cfg || !w?.broken) return { ok: false, reason: 'nothing_here' };
+    if (w.repairUntil !== undefined) return { ok: false, reason: 'station_busy' };
+    if (this.st.money < cfg.repairPrice) return { ok: false, reason: 'no_money' };
+    this.h.addMoney(-cfg.repairPrice, `repair:${this.itemOf(uid)}`);
+    w.repairUntil = this.now() + cfg.repairMinutes;
+    this.h.bus.emit('equipment.repair_started', { uid, itemId: this.itemOf(uid) });
+    return { ok: true };
+  }
+
+  /** Quanto do conserto já foi (0 a 1), para a barra; undefined = ninguém consertando. */
+  repairProgress(uid: string): number | undefined {
+    const until = this.st.wear[uid]?.repairUntil;
+    const cfg = this.cfg.breakdown;
+    if (until === undefined || !cfg) return undefined;
+    return Math.min(1, Math.max(0, 1 - (until - this.now()) / cfg.repairMinutes));
   }
 
   /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
   private covered(recipe: string): number {
     return (
-      this.st.service.preps.filter((p) => p.recipe === recipe).length +
+      this.st.service.preps.filter((p) => p.recipe === recipe).length * (this.recipe(recipe)?.batch?.yields ?? 1) +
+      this.displayPortions(recipe) +
       [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length
     );
   }
@@ -719,7 +910,12 @@ export class CafeService {
     // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
     if (recipes.length === 0) return 'nothing_to_prepare';
     const unlocked = recipes.filter((r) => this.recipeStatus(r.id) !== 'locked');
-    if (unlocked.length === 0) return 'equipment_locked';
+    // Nenhuma receita que começa nele liberada: mas se ele já é etapa de uma liberada (o forno do pão de queijo), só
+    // não tem nada a fazer agora.
+    const midStep = Object.values(this.h.content.recipes).some(
+      (r) => r.steps.slice(1).some((s) => s.equipment === equipment) && this.recipeStatus(r.id) !== 'locked',
+    );
+    if (unlocked.length === 0) return midStep ? 'nothing_to_prepare' : 'equipment_locked';
     if (!unlocked.some((r) => this.st.menu.includes(r.id))) return 'equipment_off_menu';
     if (this.extraCount(equipment) >= this.cfg.extraPerEquipment) return 'extra_ready';
     return 'nothing_to_prepare';
@@ -734,6 +930,7 @@ export class CafeService {
     const station = this.st.placed.find((p) => p.uid === stationUid);
     if (!equipment || !station) return false;
     if (this.surfaceAt(station.at)) return true;
+    if (this.isBroken(stationUid)) return !this.isRepairing(stationUid);
     if (this.st.service.preps.some((p) => p.stationUid === stationUid)) return false;
     if (this.st.hands.some((h) => h.kind === 'wip' && this.recipe(h.recipe)?.steps[h.step]?.equipment === equipment)) return true;
     return !!this.pendingFor(equipment);
@@ -796,7 +993,7 @@ export class CafeService {
   putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
     if (!item) return { ok: false, reason: 'hands_empty' };
-    if (exclusive(item) || !this.canPutDown(at, feet, allowFloor)) return { ok: false, reason: 'cannot_put_here' };
+    if ((exclusive(item) && item.kind !== 'cake') || !this.canPutDown(at, feet, allowFloor && item.kind !== 'cake')) return { ok: false, reason: 'cannot_put_here' };
     this.st.hands.pop();
     this.st.surfaces.push({ at: [...at], item });
     this.handsChanged();
@@ -888,6 +1085,91 @@ export class CafeService {
 
   sinkLoad(): number {
     return loadCount(this.st.sink.load);
+  }
+
+  // ---------- Lava-louças ----------
+
+  /** Lava-louças (móvel com washer) ao alcance dos pés, no café (`target`: só a célula clicada). */
+  washerNear(feet: readonly Cell[], target?: Cell): string | undefined {
+    if (!this.h.atHome()) return undefined;
+    return this.st.placed.find((p) => {
+      if (!this.h.content.items[p.item]?.washer) return false;
+      const cells = this.cellsOfPlaced(p.item, p.at);
+      if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
+      return cells.some((c) => near(feet, c));
+    })?.uid;
+  }
+
+  private washerDef(uid: string): { capacity: number; cycleMinutes: number } | undefined {
+    const placed = this.st.placed.find((p) => p.uid === uid);
+    return placed ? this.h.content.items[placed.item]?.washer : undefined;
+  }
+
+  private washerState(uid: string): SinkState {
+    return (this.st.washers[uid] ??= { load: emptyLoad(), washing: null });
+  }
+
+  /** O que a lava-louças faria com um E agora: receber a louça suja das mãos ou ligar (como a pia). */
+  washerAction(uid: string): 'deposit' | 'wash' | null {
+    if (!this.washerDef(uid)) return null;
+    if (this.st.hands.some((h) => h.kind === 'dirty')) return 'deposit';
+    const w = this.st.washers[uid];
+    if (this.st.hands.length === 0 && w && !w.washing && loadCount(w.load) > 0) return 'wash';
+    return null;
+  }
+
+  /** Põe na lava-louças a louça suja das mãos (até a capacidade; lavando, também dá para ir enchendo a próxima). */
+  depositInWasher(uid: string): ServiceResult {
+    const def = this.washerDef(uid);
+    if (!def) return { ok: false, reason: 'nothing_here' };
+    if (!this.st.hands.some((h) => h.kind === 'dirty')) return { ok: false, reason: 'hands_empty' };
+    const w = this.washerState(uid);
+    let room = def.capacity - loadCount(w.load);
+    if (room <= 0) return { ok: false, reason: 'washer_full' };
+    const kept: HandItem[] = [];
+    for (const h of this.st.hands) {
+      if (h.kind === 'dirty' && room > 0) {
+        w.load[h.vessel] = (w.load[h.vessel] ?? 0) + 1;
+        room--;
+      } else kept.push(h);
+    }
+    this.st.hands = kept;
+    this.h.bus.emit('washer.changed', { uid, load: loadCount(w.load), washing: !!w.washing });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Liga a lava-louças: o ciclo dura cycleMinutes, com qualquer quantidade (ela pode fazer outra coisa). */
+  startWasher(uid: string): ServiceResult {
+    const def = this.washerDef(uid);
+    const w = this.st.washers[uid];
+    if (!def || !w || loadCount(w.load) === 0) return { ok: false, reason: 'nothing_here' };
+    if (this.isBroken(uid)) return { ok: false, reason: 'broken' };
+    if (w.washing) return { ok: false, reason: 'station_busy' };
+    w.washing = { readyAt: this.now() + def.cycleMinutes, load: { ...w.load } };
+    w.load = emptyLoad();
+    this.h.bus.emit('washer.changed', { uid, load: 0, washing: true });
+    this.wearOut(uid);
+    return { ok: true };
+  }
+
+  /** Quanto falta do ciclo (0 a 1), para a barra em cima dela; undefined = desligada. */
+  washerProgress(uid: string): number | undefined {
+    const w = this.st.washers[uid]?.washing;
+    const def = this.washerDef(uid);
+    if (!w || !def) return undefined;
+    return Math.min(1, Math.max(0, 1 - (w.readyAt - this.now()) / def.cycleMinutes));
+  }
+
+  /** Louça suja esperando na lava-louças (não conta a que está lavando). */
+  washerLoad(uid: string): number {
+    return loadCount(this.st.washers[uid]?.load ?? emptyLoad());
+  }
+
+  /** Tem louça dentro (esperando ou lavando)? Assim ela não pode ser guardada na mochila. */
+  washerBusy(uid: string): boolean {
+    const w = this.st.washers[uid];
+    return !!w && (loadCount(w.load) > 0 || !!w.washing);
   }
 
   // ---------- Bandeja, mochila, peso e gato ----------
