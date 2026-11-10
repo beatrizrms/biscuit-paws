@@ -334,8 +334,8 @@ test('rua: anda até a porta da padaria, entra e sai sem ficar indo e voltando',
   await skipDialogue(page);
   await page.screenshot({ path: testInfo.outputPath('10-dentro.png') });
 
-  // Segura a seta para cima: sai pela porta de dentro e fica na rua (não entra de novo).
-  await hold(page, 'ArrowUp', 2500);
+  // A porta de dentro é embaixo (só o capacho): segura a seta para baixo, sai e fica na rua (não entra de novo).
+  await hold(page, 'ArrowDown', 2500);
   await expect.poll(async () => (await player(page)).map).toBe('map.street');
   await page.waitForTimeout(500);
   expect((await player(page)).map).toBe('map.street');

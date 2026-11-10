@@ -35,7 +35,7 @@ describe('cafe_main.json', () => {
     expect(hall[3]![0]).toBe(true); // a pia
     expect(hall[3]![1]).toBe(true); // o armário da cozinha (despensa)
     for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c <= 1))).toBe(false);
-    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'eq_pia', 'ph_pantry_cabinet']));
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'doormat', 'eq_pia', 'ph_pantry_cabinet'])); // a entrada é embaixo, só o capacho
     for (const letter of ['P', 'R', 'X', 'M']) expect(cafe.legend[letter]!.endsWith('_old')).toBe(true);
   });
 
@@ -185,5 +185,25 @@ describe('reachableCells', () => {
 
   it('partindo de célula sólida, nada é alcançável', () => {
     expect(reachableCells([[true, false]], [0, 0])).toEqual([[false, false]]);
+  });
+});
+
+describe('rua: a frente do café fica livre', () => {
+  it('em nenhuma estação um objeto cobre o lugar dos pacotes da entrega, o lugar do Tião na fachada nem a chegada na rua', () => {
+    const street = JSON.parse(readFileSync('data/maps/street.json', 'utf8')) as MapData;
+    const delivery = JSON.parse(readFileSync('data/delivery.json', 'utf8')) as { door: { at: [number, number] } };
+    const finishes = JSON.parse(readFileSync('data/finishes.json', 'utf8')) as { construction: { repairs: { outside: { site: { at: [number, number] } } } } };
+    const keep = [delivery.door.at, finishes.construction.repairs.outside.site.at, street.spawn.player];
+    // Os objetos da rua são os mesmos o ano todo (a estação só troca a arte e tira os de inverno): basta olhar o mapa.
+    for (const o of street.objects) {
+      const def = getTile(catalog, o.tile);
+      if (def.layer === 'wall') continue; // fachadas
+      for (let dy = 0; dy < def.h; dy++) {
+        for (let dx = 0; dx < def.w; dx++) {
+          const [c, r] = [o.at[0] + dx, o.at[1] + dy];
+          expect(keep.some(([kc, kr]) => kc === c && kr === r), `${o.id} cobre (${c},${r})`).toBe(false);
+        }
+      }
+    }
   });
 });

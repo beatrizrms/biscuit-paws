@@ -90,7 +90,7 @@
     { "id": "obj.chalkboard", "tile": "prop_lousa_cafe", "at": [16, 7], "overlay": "snow_prop_lousa_cafe", "when": { "all": [{ "business": "inaugurated" }, { "received": "item.cafe_sign" }] } },
     { "id": "obj.crate_apples", "tile": "prop_caixote_macas", "at": [20, 8], "overlay": "snow_prop_caixote_macas" },
     { "id": "obj.crate_oranges", "tile": "prop_caixote_laranjas", "at": [21, 8], "overlay": "snow_prop_caixote_laranjas" },
-    { "id": "obj.christmas_tree", "tile": "prop_abeto_natal", "at": [15, 7], "overlay": "snow_prop_abeto_natal" },
+    { "id": "obj.christmas_tree", "tile": "prop_abeto_natal", "at": [22, 7], "overlay": "snow_prop_abeto_natal" },
     { "id": "obj.bin", "tile": "prop_lixeira", "at": [23, 8], "overlay": "snow_prop_lixeira" },
     { "id": "obj.snow_pile_1", "tile": "snow_monte_neve", "at": [2, 9] },
     { "id": "obj.season_deco_a", "tile": "prop_enfeite_a", "at": [0, 8], "overlay": "snow_prop_enfeite_a" },
@@ -128,8 +128,8 @@
       "to": "map.cafe_main",
       "requires": { "owned": "item.key_bakery" },
       "locked": "dlg.door_locked_bakery",
-      "spawn": [14, 4],
-      "facing": "down"
+      "spawn": [14, 9],
+      "facing": "up"
     }
   ]
 }

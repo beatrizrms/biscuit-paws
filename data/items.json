@@ -51,7 +51,7 @@
       "price": 18,
       "kind": "tool",
       "use": "wand",
-      "iconImage": "assets/objects/placeholders/icon_wand.png",
+      "icon": "varinha",
       "tags": [
         "cat:toy",
         "pet",
@@ -68,7 +68,7 @@
       "price": 15,
       "kind": "tool",
       "use": "brush",
-      "iconImage": "assets/objects/placeholders/icon_brush.png",
+      "icon": "escova",
       "tags": [
         "cat:care",
         "pet",

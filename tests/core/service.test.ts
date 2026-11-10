@@ -703,3 +703,20 @@ describe('vários equipamentos ao alcance', () => {
   });
 });
 
+describe('soltar louça', () => {
+  it('sem permitir o chão (o E), só solta em balcão, mesa ou equipamento', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    const sv = session.service;
+    state.hands.push({ kind: 'dirty', vessel: 'cup' });
+    const feet: [number, number][] = [[8, 7]];
+    expect(sv.canPutDown([8, 6], feet, false)).toBe(false); // chão livre
+    expect(sv.putDown([8, 6], feet, false)).toEqual({ ok: false, reason: 'cannot_put_here' });
+    expect(state.hands).toHaveLength(1);
+    expect(sv.canPutDown([8, 6], feet)).toBe(true); // clicando, o chão vale
+    state.placed.push({ uid: 't1', item: 'item.table_round', at: [8, 6] });
+    expect(sv.canPutDown([8, 6], feet, false)).toBe(true); // mesa
+  });
+});
+

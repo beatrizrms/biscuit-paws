@@ -476,6 +476,21 @@
       "col": 5,
       "row": 11,
       "sheet": "pixellab"
+    },
+    "varinha": {
+      "col": 6,
+      "row": 11,
+      "sheet": "pixellab"
+    },
+    "escova": {
+      "col": 7,
+      "row": 11,
+      "sheet": "pixellab"
+    },
+    "recompondo": {
+      "col": 0,
+      "row": 12,
+      "sheet": "pixellab"
     }
   },
   "sheets": {
