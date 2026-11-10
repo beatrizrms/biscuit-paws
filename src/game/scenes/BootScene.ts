@@ -61,7 +61,7 @@ export class BootScene extends Phaser.Scene {
       if (item?.iconImage) this.load.image(itemIconKey(item.id), item.iconImage);
     }
     const art = serviceArt;
-    for (const [k, path] of Object.entries({ bubble_normal: art.bubble.normal, bubble_impatient: art.bubble.impatient, bubble_furious: art.bubble.furious, coin16: art.coin })) this.load.image(k, path);
+    for (const [k, path] of Object.entries({ bubble_normal: art.bubble.normal, bubble_impatient: art.bubble.impatient, bubble_furious: art.bubble.furious, coin16: art.coin, review_happy: art.review.happy, review_sad: art.review.sad, review_star: art.review.star })) this.load.image(k, path);
     art.bubble.waiting.forEach((p, i) => this.load.image(`bubble_wait_${i}`, p));
     art.progress.forEach((p, i) => this.load.image(`progress_${i}`, p));
     art.readyMarker.forEach((p, i) => this.load.image(`ready_${i}`, p));

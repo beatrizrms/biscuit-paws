@@ -1757,3 +1757,13 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   writeFileSync(`${dir}/obj_pitcher_pixellab.png`, PNG.sync.write(readPng(`${SRC}/minigames/latte/pitcher.png`)));
   console.log(`${dir}: xícara e jarra`);
 }
+
+// ---------- Avaliação do cliente: carinha feliz, triste e a estrela (24 x 24; data/service_art.json: review) ----------
+{
+  const dir = 'public/assets/ui/hud';
+  mkdirSync(dir, { recursive: true });
+  for (const [from, to] of [['face_happy', 'happy'], ['face_sad', 'sad'], ['star', 'star']]) {
+    writeFileSync(`${dir}/ui_review_${to}.png`, PNG.sync.write(readPng(`${SRC}/review_icones/${from}.png`)));
+  }
+  console.log(`${dir}: carinhas e estrela da avaliação`);
+}

@@ -644,3 +644,7 @@ Decisão: o gato tem um espaço pessoal sorteado (`comfortRange`) que muda a cad
 ## 158. Almoço: a paciência fica parada (nov/2026)
 Pedido: no almoço, quem espera não pode perder a paciência (não dava tempo de fazer nada); quem está tomando café continua.
 Decisão: durante o almoço, `CafeService.tick` empurra o prazo (`until`) de quem está na fila ou esperando o pedido pelos minutos que passaram (o relógio pode pular mais de um; a sessão passa quantos). A barrinha e o humor ficam parados; a nota (espera usada) e a gorjeta também. Quem está consumindo segue normal. Sem campo novo no save.
+
+## 159. Avaliação do cliente com carinha e estrela em arte (nov/2026)
+Pedido: as estrelas da avaliação (texto ★☆) ficavam pixeladas; trocar por arte do PixelLab: carinha feliz, triste e a estrela, sem variações (estrela unitária: o jogo repete).
+Decisão: 3 ícones de 24 x 24 (PixelLab, `create_1_direction_object`, desenhados em meia escala; fontes em assets/_pixellab/review_icones, copiadas por `npm run pixellab` para `public/assets/ui/hud/ui_review_*.png`). Quem sai mostra a carinha e uma estrela por ponto da nota (sem estrela vazia), com a reputação embaixo como antes. Feliz com `happyFrom` (3) estrelas ou mais e sem desistir; senão, triste. Dados em `data/service_art.json: review`; sem a arte, volta às estrelas em texto.
