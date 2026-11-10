@@ -1310,6 +1310,23 @@
           }
         },
         {
+          "playerFace": "left"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "dialogue": "dlg.ny_pets"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1000
+        },
+        {
+          "playerFace": "up"
+        },
+        {
           "wait": 2500
         },
         {

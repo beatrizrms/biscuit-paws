@@ -1132,6 +1132,14 @@
           "text": "Os últimos fogos se apagam devagar. Pela frente, um ano inteiro de café, gatos e vizinhos."
         }
       ]
+    },
+    "dlg.ny_pets": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A gente acha os fogos lindos, mas sabia que os animais sentem muito medo? Preparei um cantinho confortável pra eles lá dentro, bem protegido, pra que eles não fiquem assustados ❤️ Todo cuidado é pouco!"
+        }
+      ]
     }
   }
 }
