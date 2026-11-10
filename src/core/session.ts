@@ -51,6 +51,7 @@ import {
   type RoomState,
 } from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -115,6 +116,7 @@ export type ActionResult =
         | 'not_in_inventory'
         | 'needs_broom'
         | 'heavy_dirt'
+        | 'no_upgrade'
         | 'needs_food'
         | 'needs_treat'
         | 'needs_medicine'
@@ -2503,9 +2505,6 @@ export class GameSession {
   checkPlacement(itemId: string, at: Cell, reserved: readonly Cell[] = []): PlaceProblem | null {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
-    // Upgrade (ex.: o pote automático): só em cima da peça comum que ele substitui.
-    const upgrades = this.content.items[itemId]?.upgrades;
-    if (upgrades) return this.placedAt(at)?.item === upgrades ? null : 'upgrade_target';
     const placeOn = this.content.items[itemId]?.placeOn;
     if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
     const cells = cellsOf(at, def);
@@ -2534,20 +2533,43 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
 
     this.removeFromInventory(itemId);
-    // Upgrade: a peça comum vira a nova no mesmo lugar (a comum não volta para a mochila).
-    if (this.content.items[itemId]!.upgrades) {
-      const old = this.placedAt(at)!;
-      old.item = itemId;
-      delete old.refilledOn;
-      delete old.stock;
-      delete old.stockItem;
-      this.bus.emit('item.placed', { itemId, uid: old.uid, at: [old.at[0], old.at[1]] });
-      this.advanceStory();
-      return { ok: true };
-    }
     const uid = `p${this.state.nextUid++}`;
     this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]] });
     this.bus.emit('item.placed', { itemId, uid, at: [at[0], at[1]] });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  // ---------- Assistência técnica: upgrade do móvel no lugar (src/core/upgrades.ts; data/items.json upgrades) ----------
+
+  /** As peças em que este móvel pode virar (mesmo grupo, liberadas, que podem ficar naquele cômodo) e o preço de cada troca. */
+  upgradeOptions(uid: string): { itemId: string; cost: number }[] {
+    const p = this.state.placed.find((x) => x.uid === uid);
+    if (!p) return [];
+    const group = upgradeGroupOf(this.content.upgrades, p.item);
+    if (!group) return [];
+    const room = this.roomAt(p.at)?.id;
+    return group.items
+      .filter((id) => id !== p.item && this.itemUnlocked(id) && (!this.content.items[id]?.room || this.content.items[id]!.room === room))
+      .map((id) => ({ itemId: id, cost: upgradeCost(this.content.upgrades, this.content.items, p.item, id) }));
+  }
+
+  /** Troca o móvel pela peça escolhida, no mesmo lugar (o que está em cima fica). Paga a diferença + o serviço. */
+  upgradePlaced(uid: string, to: string): ActionResult {
+    const p = this.state.placed.find((x) => x.uid === uid);
+    if (!p) return { ok: false, reason: 'not_found' };
+    const option = this.upgradeOptions(uid).find((o) => o.itemId === to);
+    if (!option) return { ok: false, reason: 'no_upgrade' };
+    if (this.state.money < option.cost) return { ok: false, reason: 'no_money' };
+    if (option.cost > 0) this.addMoney(-option.cost, `upgrade:${to}`);
+    // O que estava guardado no automático (ração, areia) volta para a mochila.
+    if (p.stock && p.stockItem) this.state.inventory[p.stockItem] = (this.state.inventory[p.stockItem] ?? 0) + p.stock;
+    delete p.refilledOn;
+    delete p.stock;
+    delete p.stockItem;
+    const from = p.item;
+    p.item = to;
+    this.bus.emit('item.upgraded', { uid, from, to, cost: option.cost });
     this.advanceStory();
     return { ok: true };
   }

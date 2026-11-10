@@ -24,6 +24,10 @@ export interface MarketHost {
   done(text?: string): void;
   /** Troca de acabamento: fecha o celular e ela marca a área no café (retângulo). */
   selectArea(surfaceId: string, finishId: string): void;
+  /** Assistência: fecha o celular e ela escolhe o móvel no café. */
+  pickUpgrade(): void;
+  /** Assistência: confirma e troca o móvel pela peça escolhida. */
+  upgrade(uid: string, to: string): void;
   /** "Pedido feito: chega às 15:00" (ou amanhã). */
   ordered(arrivesAt: number): void;
 }
@@ -32,6 +36,8 @@ type Tab = (typeof uiText.market.tabs)[number];
 
 export class MarketApp {
   private tab: string = uiText.market.tabs[0]!.id;
+  /** Assistência: o móvel escolhido no café (uid), cujas trocas a aba mostra. */
+  private upgradeTarget: string | null = null;
 
   constructor(
     private session: GameSession,
@@ -41,6 +47,13 @@ export class MarketApp {
   /** Abre numa aba (id de data/ui_text.json market.tabs); id que não existe fica onde está. */
   setTab(tabId: string): void {
     if (uiText.market.tabs.some((t) => t.id === tabId)) this.tab = tabId;
+  }
+
+  /** Assistência: abre a aba com as trocas deste móvel. */
+  showUpgrade(uid: string): void {
+    this.upgradeTarget = uid;
+    const tab = uiText.market.tabs.find((t) => 'upgrade' in t && t.upgrade);
+    if (tab) this.tab = tab.id;
   }
 
   /** Desenha o app dentro de `body` (a tela do celular) e liga os botões. */
@@ -111,6 +124,10 @@ export class MarketApp {
         this.host.done();
       }),
     );
+    body.querySelector<HTMLButtonElement>('[data-upgrade-pick]')?.addEventListener('click', () => this.host.pickUpgrade());
+    body.querySelectorAll<HTMLButtonElement>('[data-upgrade-to]').forEach((b) =>
+      b.addEventListener('click', () => this.upgradeTarget && this.host.upgrade(this.upgradeTarget, b.dataset.upgradeTo!)),
+    );
     body.querySelectorAll<HTMLButtonElement>('[data-surface][data-finish]').forEach((b) =>
       b.addEventListener('click', () => this.host.selectArea(b.dataset.surface!, b.dataset.finish!)),
     );
@@ -130,6 +147,7 @@ export class MarketApp {
     });
     if ('rooms' in tab && tab.rooms) blocks.push(this.roomsHtml());
     if ('renovation' in tab && tab.renovation) blocks.push(this.renovationHtml());
+    if ('upgrade' in tab && tab.upgrade) blocks.push(this.upgradeHtml());
     return blocks.join('');
   }
 
@@ -278,6 +296,27 @@ export class MarketApp {
           .join('')}</div>`
       : '';
     return `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint)}</p>${status}${repairs.join('')}<h3>${esc(t.areaTitle)}</h3><p class="m-hint">${esc(inside ? t.areaHint : t.areaLocked)}</p>${areas}${facade}`;
+  }
+
+  /** Assistência técnica: escolher o móvel no café; com ele escolhido, as peças em que ele pode virar e o preço. */
+  private upgradeHtml(): string {
+    const t = uiText.upgrade;
+    const fee = String(content.upgrades.fee);
+    const pick = `<button class="m-row" data-upgrade-pick><span class="m-name">${esc(t.pick)}</span><span class="m-note">${esc(t.pickNote)}</span></button>`;
+    const head = `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint.replace('{fee}', fee))}</p>${pick}`;
+    const target = this.session.state.placed.find((p) => p.uid === this.upgradeTarget);
+    if (!target) return head;
+    const options = this.session.upgradeOptions(target.uid);
+    const current = content.items[target.item]!;
+    const now = `<h4>${esc(t.current)}: ${esc(current.name)}</h4>`;
+    if (options.length === 0) return `${head}${now}<p class="m-hint">${esc(t.none)}</p>`;
+    const cards = options
+      .map(({ itemId, cost }) => {
+        const i = content.items[itemId]!;
+        return `<div class="m-cell"><button class="m-card" data-upgrade-to="${itemId}" ${this.session.state.money < cost ? 'disabled' : ''}><span class="m-thumb">${itemThumbHtml(i, THUMB)}</span><span class="m-name">${esc(i.name)}</span><span class="m-price">${COIN}${cost}</span></button></div>`;
+      })
+      .join('');
+    return `${head}${now}<div class="m-grid">${cards}</div>`;
   }
 
   /** "amanhã", "dia 14". */

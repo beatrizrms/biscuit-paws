@@ -74,6 +74,12 @@
         ]
       },
       {
+        "id": "service",
+        "title": "Assistência",
+        "groups": [],
+        "upgrade": true
+      },
+      {
         "id": "build",
         "title": "Construção",
         "groups": [
@@ -121,6 +127,7 @@
     "label": "Barra de itens"
   },
   "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · Esc: cancelar",
+  "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
   "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: guardar na mochila · Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
@@ -145,6 +152,8 @@
     "repair_first": "Primeiro o reparo (Market, aba Construção).",
     "already_repaired": "Esse reparo já foi feito.",
     "room_not_ready": "Essa obra ainda não dá para pedir.",
+    "no_upgrade": "Esse móvel não tem troca na assistência.",
+    "no_upgradable_near": "Chegue pertinho de um móvel que tem troca (os que brilham).",
     "no_furniture_near": "Chegue pertinho de um móvel para mudar ele de lugar (F).",
     "heavy_dirt": "Esse mato alto não sai com a vassoura. Limpeza pesada: chame o Tião (Market, aba Construção).",
     "no_cells": "Nada para trocar nessa área.",
@@ -193,7 +202,6 @@
     "sink_full": "A pia está cheia. Lave antes de pôr mais.",
     "not_at_home": "Aqui não. Só dentro do café.",
     "needs_counter": "Isso vai em cima de um balcão.",
-    "upgrade_target": "É um upgrade: clique em cima da peça comum (a tigela de ração ou a caixa de areia) para trocar.",
     "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "cart_empty": "O carrinho está vazio.",
@@ -522,6 +530,18 @@
     "closed": "Café fechado · abre {when}"
   },
   "playerFallback": "Você",
+  "upgrade": {
+    "title": "Upgrade",
+    "hint": "A assistência técnica troca o móvel por outro do mesmo tipo, no mesmo lugar: outra peça do balcão, a cadeira virada para outro lado, outra cor, o pote automático. Você paga a diferença entre as peças (se a nova for mais cara) + {fee} moedas do serviço. Comprando do zero, você fica com as duas.",
+    "pick": "Escolher o móvel no café",
+    "pickNote": "os que têm troca brilham",
+    "current": "Trocar",
+    "none": "Esse móvel não tem troca na assistência.",
+    "confirm": "Trocar {from} por {to}? {cost} moedas ({diff} da diferença + {fee} do serviço).",
+    "yes": "Trocar",
+    "no": "Agora não",
+    "done": "Pronto! A assistência trocou a peça."
+  },
   "rooms": {
     "title": "Obras",
     "hint": "O Tião abre os cômodos e termina as reformas (depois da limpeza). Uma obra por vez, junto com as outras.",

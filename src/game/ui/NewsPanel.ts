@@ -86,6 +86,12 @@ export class NewsPanel {
     return this.mode !== null;
   }
 
+  /** Assistência: o Market na aba de upgrade, com as trocas deste móvel. */
+  showUpgrade(uid: string): void {
+    this.market.showUpgrade(uid);
+    this.render();
+  }
+
   /** Muda a aba do Market (e redesenha, se ele estiver aberto). */
   marketTab(tabId: string): void {
     this.market.setTab(tabId);

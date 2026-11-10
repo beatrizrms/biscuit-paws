@@ -1208,7 +1208,6 @@
       "price": 150,
       "tile": "pet_auto_feeder",
       "autoDays": 10,
-      "upgrades": "item.food_bowl",
       "description": "Upgrade da tigela de ração: coloque em cima da tigela comum. Guarda ração para até 10 dias e serve os gatos sozinho.",
       "tags": [
         "furniture",
@@ -1225,7 +1224,6 @@
       "price": 180,
       "tile": "pet_auto_litter",
       "autoDays": 10,
-      "upgrades": "item.litter_box",
       "description": "Upgrade da caixa de areia: coloque em cima da caixa comum. Guarda areia para até 10 dias e se troca sozinha.",
       "tags": [
         "furniture",
@@ -2191,5 +2189,24 @@
         "atLeast": "restored"
       }
     }
-  ]
+  ],
+  "upgrades": {
+    "fee": 5,
+    "groups": [
+      { "id": "upg.counter", "name": "Balcão", "items": ["item.counter_left", "item.counter_mid", "item.counter_right", "item.counter_single", "item.counter_register", "item.counter_a_left", "item.counter_a_mid", "item.counter_a_right", "item.counter_a_single", "item.counter_b_left", "item.counter_b_mid", "item.counter_b_right", "item.counter_b_single"] },
+      { "id": "upg.chair", "name": "Cadeira", "items": ["item.chair_front", "item.chair_back", "item.chair_left", "item.chair_right"] },
+      { "id": "upg.sofa", "name": "Sofá", "items": ["item.sofa", "item.sofa_rosa", "item.sofa_ceu"] },
+      { "id": "upg.cat_bed", "name": "Caminha de gato", "items": ["item.cat_bed", "item.cat_bed_rosa", "item.cat_bed_lilas"] },
+      { "id": "upg.cushion", "name": "Almofada", "items": ["item.cushion_pink", "item.cushion_mint", "item.cushion_sky", "item.cushion_lav", "item.cushion_butter"] },
+      { "id": "upg.food_bowl", "name": "Tigela de ração", "items": ["item.food_bowl", "item.auto_feeder"] },
+      { "id": "upg.litter_box", "name": "Caixa de areia", "items": ["item.litter_box", "item.auto_litter_box"] },
+      { "id": "upg.yard_chair", "name": "Cadeira de vime", "items": ["item.yard_wicker_chair", "item.yard_wicker_chair_left"] },
+      { "id": "upg.yard_lounger", "name": "Espreguiçadeira", "items": ["item.yard_lounger", "item.yard_lounger_left"] },
+      { "id": "upg.yard_low_pot", "name": "Vaso baixo", "items": ["item.yard_low_pot_flowers", "item.yard_low_pot_b", "item.yard_low_pot_c"] },
+      { "id": "upg.yard_potted_tree", "name": "Arvorezinha no vaso", "items": ["item.yard_potted_tree_a", "item.yard_potted_tree_b"] },
+      { "id": "upg.nightstand", "name": "Criado-mudo", "items": ["item.bedroom_nightstand_wood", "item.bedroom_nightstand_cream"] },
+      { "id": "upg.pouf", "name": "Pufe", "items": ["item.bedroom_pouf_pink", "item.bedroom_pouf_sage"] },
+      { "id": "upg.wall_picture", "name": "Quadro", "items": ["item.picture_paw", "item.bedroom_picture_mountain", "item.bedroom_picture_flowers", "item.bedroom_picture_moon", "item.bedroom_paw_frame"] }
+    ]
+  }
 }

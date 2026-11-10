@@ -93,6 +93,8 @@ export interface GameEvents {
   'item.picked_up': { itemId: string; uid: string };
   /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
   'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };
+  /** Assistência técnica: a peça virou outra do mesmo grupo, no mesmo lugar (src/core/upgrades.ts). */
+  'item.upgraded': { uid: string; from: string; to: string; cost: number };
   'item.refunded': { itemId: string; amount: number };
   'dirt.cleaned': { dirtId: string };
   'surface.painted': { surfaceId: string; finishId: string; price: number };

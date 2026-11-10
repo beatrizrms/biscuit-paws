@@ -4,7 +4,7 @@ import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import type { PlacedItem } from './state';
 import type { TileCatalog, TileDef, TileLayer } from './tiles';
 
-export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked' | 'needs_counter' | 'no_free_counter' | 'has_something_on_top' | 'room_closed' | 'wrong_room' | 'blocks_door' | 'upgrade_target';
+export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs_wall' | 'blocked' | 'needs_counter' | 'no_free_counter' | 'has_something_on_top' | 'room_closed' | 'wrong_room' | 'blocks_door';
 
 export const PLACED_PREFIX = 'placed.';
 
