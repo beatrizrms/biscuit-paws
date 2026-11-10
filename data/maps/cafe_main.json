@@ -59,7 +59,11 @@
         1,
         0
       ],
-      "curtainOpen": "ph_window_open"
+      "curtainOpen": "ph_window_open",
+      "curtainOvergrown": {
+        "room": "room.backyard",
+        "tile": "ph_window_branches"
+      }
     },
     {
       "id": "obj.window_right",
@@ -68,7 +72,11 @@
         10,
         0
       ],
-      "curtainOpen": "ph_window_open"
+      "curtainOpen": "ph_window_open",
+      "curtainOvergrown": {
+        "room": "room.backyard",
+        "tile": "ph_window_branches"
+      }
     },
     {
       "id": "obj.doormat",

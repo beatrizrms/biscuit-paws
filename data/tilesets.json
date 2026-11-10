@@ -997,6 +997,10 @@
         "window_open": {
           "layer": "wall",
           "solid": false
+        },
+        "window_branches": {
+          "layer": "wall",
+          "solid": false
         }
       }
     },

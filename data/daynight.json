@@ -12,7 +12,7 @@
     "actorShadow": { "person": 18, "cat": 14 },
     "edgeSize": 16,
     "edgeAlpha": 0.42,
-    "windowTiles": ["ph_window_open", "market_janela", "vet_janela", "vet_janela_azul"],
+    "windowTiles": ["ph_window_open", "ph_window_branches", "market_janela", "vet_janela", "vet_janela_azul"],
     "windowLength": 3,
     "windowSkew": 40,
     "windowColor": "#ffe0a6",

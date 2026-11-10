@@ -31,6 +31,11 @@ export interface MapObject {
   inWall?: boolean;
   /** Janela com cortina: o tile com a cortina aberta (a interação "curtain" troca; só a aberta joga luz no piso). */
   curtainOpen?: string;
+  /**
+   * A vista da janela aberta enquanto o cômodo `room` ainda tem o mato pesado (antes da limpeza do Tião): o tile
+   * `tile` (galhos tapando a vista) no lugar de curtainOpen.
+   */
+  curtainOvergrown?: { room: string; tile: string };
 }
 
 /**

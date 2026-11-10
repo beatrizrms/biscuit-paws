@@ -18,12 +18,23 @@ const light = (s: GameSession) => ambienceOf(s.mapData(), content.catalog, conte
 const tileOf = (s: GameSession, id: string) => s.mapData().objects.find((o) => o.id === id)?.tile;
 
 describe('cortinas do café', () => {
+  it('antes da limpeza pesada do quintal, a vista é de galhos; depois, a janela limpa', () => {
+    const { session } = cafe();
+    session.toggleCurtain(WIN);
+    expect(session.roomOvergrown('room.backyard')).toBe(true);
+    expect(tileOf(session, WIN)).toBe('ph_window_branches');
+    for (const d of content.map.dirt ?? []) if (d.heavy) session.state.cleaned.push(d.id);
+    expect(session.roomOvergrown('room.backyard')).toBe(false);
+    expect(tileOf(session, WIN)).toBe('ph_window_open');
+    expect(light(session)).toBe(1);
+  });
+
   it('fechadas, nenhuma luz no piso; abrir troca o tile e a luz entra só por aquela janela', () => {
     const { session } = cafe();
     expect(light(session)).toBe(0);
     session.toggleCurtain(WIN, 'dlg.curtain_view');
     expect(session.curtainOpen(WIN)).toBe(true);
-    expect(tileOf(session, WIN)).toBe('ph_window_open');
+    expect(tileOf(session, WIN)).toBe('ph_window_branches'); // o quintal ainda tem o mato pesado
     expect(light(session)).toBe(1);
     session.toggleCurtain(WIN);
     expect(tileOf(session, WIN)).toBe('window');

@@ -2152,7 +2152,20 @@ export class GameSession {
     const open = this.state.openCurtains ?? [];
     return map.objects
       .filter((o) => !o.when || evaluate(o.when as Condition, this.state, this.storyContext()))
-      .map((o) => (o.curtainOpen && open.includes(o.id) ? { ...o, tile: o.curtainOpen } : o));
+      .map((o) => {
+        if (!o.curtainOpen || !open.includes(o.id)) return o;
+        const wild = o.curtainOvergrown && this.roomOvergrown(o.curtainOvergrown.room);
+        return { ...o, tile: wild ? o.curtainOvergrown!.tile : o.curtainOpen };
+      });
+  }
+
+  /**
+   * O cômodo ainda tem o mato pesado (antes da limpeza do Tião), aberto ou não: a vista da janela para ele (o quintal)
+   * é de galhos. Diferente de roomHeavyDirtLeft, conta também com o cômodo fechado.
+   */
+  roomOvergrown(roomId: string): boolean {
+    const tag = this.content.rooms.rooms.find((r) => r.id === roomId)?.restore?.dirtTag;
+    return !!tag && (this.content.map.dirt ?? []).some((d) => d.heavy && d.tags.includes(tag) && !isCleaned(this.state, d));
   }
 
   /** A cortina desta janela está aberta? */

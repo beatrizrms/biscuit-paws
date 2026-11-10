@@ -820,6 +820,9 @@ export function validateContent(raw: RawContent): string[] {
         const obj = m.objects.find((o) => o.id === curtain);
         if (!obj?.curtainOpen) err(`${m.id}: interação "${it.id}" abre a cortina de "${curtain}", que não existe ou não tem curtainOpen`);
         else if (!raw.catalog.tiles[obj.curtainOpen]) err(`${m.id}: "${curtain}" com curtainOpen inexistente "${obj.curtainOpen}"`);
+        const wild = obj?.curtainOvergrown;
+        if (wild && !raw.catalog.tiles[wild.tile]) err(`${m.id}: "${curtain}" com curtainOvergrown.tile inexistente "${wild.tile}"`);
+        if (wild && !raw.rooms.rooms.some((r) => r.id === wild.room)) err(`${m.id}: "${curtain}" com curtainOvergrown.room inexistente "${wild.room}"`);
         if (dialogue && !raw.dialogue.dialogues[dialogue]) err(`${m.id}: interação "${it.id}" com fala inexistente "${dialogue}"`);
       }
       if ('hours' in it.action) {
