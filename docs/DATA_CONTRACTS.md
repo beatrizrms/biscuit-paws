@@ -182,7 +182,7 @@ Portas aceitam `"direction"` (padrão `up`): a saída do mercado é `down` (a fr
 
 Roteiro = lista de passos executados em ordem; cada um espera o anterior terminar:
 `npcSpawn`, `npcWalk`, `npcAnim` (extras do NPC: acenar, segurando_chaves...), `npcFace`, `npcLeave`, `playerWalk`, `playerFace`,
-`dialogue` (espera a fala fechar), `enter` (fade para outro mapa levando a personagem e NPCs), `showItem` (item grande no centro), `giveItem`, `wait`.
+`dialogue` (espera a fala fechar), `enter` (fade para outro mapa levando a personagem e NPCs), `showItem` (item grande no centro), `giveItem`, `wait`, `discoverRoom` (o cômodo aparece: a porta escondida surge, com o momento da descoberta) e `openDoor` (abre a porta com o item que ela pede, ex.: a chave no cadeado).
 A história dispara com `{ "script": "scr.id" }`; ao terminar, flag `seen.scr.id`.
 NPCs: folha 32x64, `walk` (linha por direção), `extras` (quadros), `portrait` (aparece nas falas com `"npc": "npc.id"`). Arte nova (PixelLab, `npm run npcs`): `resolution: 2`, quadros 112x128 (pessoas) ou 64x64 (o Joca). Clientes: `sit` (linha do sentado por direção, `sitFrames` quadros, padrão 3): na mesa, o cliente senta virado para a mesa e a cadeira do mapa fica por baixo (na cadeira de costas, por cima dele). Kits do import (`scripts/import-npcs.ts`): completo (caminhada, acenar, segurar), só caminhada, cliente (caminhada e sentado) e cachorro.
 A vassoura fica em `data/tools.json` (quadros, ponto do cabo, tempo de varrer).

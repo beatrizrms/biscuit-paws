@@ -496,18 +496,6 @@
         }
       ]
     },
-    "dlg.room_backyard_found": {
-      "lines": [
-        {
-          "speaker": "{player}",
-          "text": "O {cat:cat.first_stray} não para de miar para a parede dos fundos do salão..."
-        },
-        {
-          "speaker": "{player}",
-          "text": "Atrás do papel de parede solto tem uma porta com cadeado! Será que a chave enferrujada do porão serve?"
-        }
-      ]
-    },
     "dlg.door_backyard_locked": {
       "lines": [
         {
@@ -520,7 +508,11 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Embaixo do lençol... uma chave enferrujada. De onde será?"
+          "text": "Embaixo do lençol... uma chave enferrujada. De onde será essa chave?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Vou guardá-la. Quem sabe um dia eu descubro!"
         }
       ]
     },
@@ -528,7 +520,21 @@
       "lines": [
         {
           "speaker": "{player}",
+          "text": "Abriu! INCRÍVEL!"
+        },
+        {
+          "speaker": "{player}",
           "text": "Um quintal escondido! Tomado de folhas e mato, mas é enorme."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "O quintal do seu Antônio... Quanta saudade."
+        },
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Se precisar de ajuda para arrumar aí fora, é só chamar."
         },
         {
           "speaker": "{player}",
@@ -654,6 +660,142 @@
         {
           "speaker": "{player}",
           "text": "Fantasias, desfile, júri... Vou marcar para o fim da primavera!"
+        }
+      ]
+    },
+    "dlg.garden_knock": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Toc, toc. Alguém conhecido espia pela porta."
+        }
+      ]
+    },
+    "dlg.garden_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Oi! Eu estava aqui pela redondeza e resolvi passar para ver como andam as coisas."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Nossa, que espaço lindo! Nem parece a padaria fechada que eu te mostrei."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Engraçado... Semana passada eu estava revisando as minhas vendas, e tinha certeza de que essa planta tinha um quintal."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Bom, deve ter sido confusão minha. Preciso ir! Qualquer coisa, me liga."
+        }
+      ]
+    },
+    "dlg.garden_think": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Um quintal..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Aquele mato que eu vi lá fora, atrás da janela! Será que é daqui?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "A Dona Neusa conhecia a padaria do seu Antônio. Vou ligar para ela."
+        },
+        {
+          "speaker": "",
+          "text": "Você liga para a Dona Neusa, e ela diz que já está vindo."
+        }
+      ]
+    },
+    "dlg.garden_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que beleza ficou isto aqui! Meu sobrinho fez um ótimo trabalho na reforma, não fez?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Fez, sim! Dona Neusa, a senhora conhecia bem aqui quando era padaria, né? A senhora lembra de ter um quintal?"
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Ai, a minha memória já não é mais a mesma..."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Mas tenho quase certeza que tinha, sim. O seu Antônio deixava as fornadas esfriando lá fora."
+        }
+      ]
+    },
+    "dlg.garden_neusa_points": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Era bem ali, ó. Naquela parede!"
+        }
+      ]
+    },
+    "dlg.garden_call_builder": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Mas aí não tem nada, só parede..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Já sei: vou pedir para o Tião dar uma olhada nessas paredes."
+        },
+        {
+          "speaker": "",
+          "text": "Você liga para o Tião. Ele estava trabalhando aqui perto e chega rapidinho."
+        }
+      ]
+    },
+    "dlg.garden_builder": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Deixa eu ver isso aí..."
+        },
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Hum. Essa parede está oca. Vou tirar um pouco do papel e do cimento."
+        }
+      ]
+    },
+    "dlg.garden_door": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "PÁ!"
+        },
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Olha só! Uma porta, escondida embaixo do papel de parede!"
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Eu não disse?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Tem um cadeado... Espera! A chave enferrujada do porão!"
         }
       ]
     },

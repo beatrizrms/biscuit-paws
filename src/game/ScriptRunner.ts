@@ -77,5 +77,7 @@ export class ScriptRunner {
     else if ('catWalk' in step) await s.catWalk(step.catWalk, step.to);
     else if ('npcToCat' in step) await s.npcToCat(step.npcToCat, step.cat);
     else if ('emote' in step) await s.emote(step.emote, step.balloon, step.ms ?? 1200);
+    else if ('discoverRoom' in step) this.session.discoverRoom(step.discoverRoom);
+    else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
   }
 }

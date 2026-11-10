@@ -348,6 +348,311 @@
           "dialogue": "dlg.clinic_first_visit"
         }
       ]
+    },
+    "scr.secret_garden": {
+      "steps": [
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            10,
+            6
+          ],
+          "facing": "right",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "dialogue": "dlg.garden_knock"
+        },
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            12,
+            6
+          ]
+        },
+        {
+          "npcFace": "npc.realtor",
+          "facing": "left"
+        },
+        {
+          "playerWalk": [
+            10,
+            6
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "npcAnim": "npc.realtor",
+          "anim": "prancheta",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.garden_realtor"
+        },
+        {
+          "npcAnim": "npc.realtor",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.realtor"
+        },
+        {
+          "dialogue": "dlg.garden_think"
+        },
+        {
+          "wait": 900
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            12,
+            6
+          ]
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "left"
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "dialogue": "dlg.garden_neusa"
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            7,
+            4
+          ]
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "up"
+        },
+        {
+          "emote": "npc.neusa",
+          "balloon": "exclamation",
+          "ms": 900
+        },
+        {
+          "playerWalk": [
+            9,
+            5
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "dialogue": "dlg.garden_neusa_points"
+        },
+        {
+          "dialogue": "dlg.garden_call_builder"
+        },
+        {
+          "wait": 900
+        },
+        {
+          "npcSpawn": "npc.builder",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            6,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            6,
+            3
+          ]
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "up"
+        },
+        {
+          "dialogue": "dlg.garden_builder"
+        },
+        {
+          "npcAnim": "npc.builder",
+          "anim": "martelando",
+          "ms": 2400
+        },
+        {
+          "wait": 300
+        },
+        {
+          "npcAnim": "npc.builder",
+          "anim": "martelando",
+          "ms": 1600
+        },
+        {
+          "discoverRoom": "room.backyard"
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            5,
+            4
+          ]
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "right"
+        },
+        {
+          "wait": 2800
+        },
+        {
+          "dialogue": "dlg.garden_door"
+        },
+        {
+          "showItem": "item.key_backyard"
+        },
+        {
+          "openDoor": "door.backyard"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1100
+        },
+        {
+          "dialogue": "dlg.room_backyard_opened"
+        },
+        {
+          "npcAnim": "npc.neusa",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            7,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.neusa"
+        },
+        {
+          "npcAnim": "npc.builder",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            5,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.builder"
+        }
+      ]
     }
   }
 }
