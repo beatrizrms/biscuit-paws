@@ -201,7 +201,8 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
   "sleepMap": null,                                     // onde dorme; null = em casa, fora do mapa
   "goHomeDoors": ["door.street"],                       // portas do café onde ela pode encerrar o dia
   "dailyDirt": 2,                                       // poeiras (tag "daily") que voltam a cada manhã
-  "objectBaseDepth": 0.5                                // parte de baixo da célula da base de um móvel que bloqueia (0.1 a 1)
+  "objectBaseDepth": 0.5,                               // parte de baixo da célula da base de um móvel que bloqueia (0.1 a 1)
+  "playerBlockTiles": ["food_bowl", "cat_bed"]          // não sólidos (os gatos usam), mas a personagem não atravessa
 }
 ```
 

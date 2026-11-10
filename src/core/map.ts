@@ -432,6 +432,22 @@ export function solidBoxes(map: MapData, catalog: TileCatalog, baseDepth = 1): P
   return boxes;
 }
 
+/**
+ * Caixas que só a personagem não atravessa: peças não sólidas da lista (potes, caminhas), na parte de baixo da
+ * célula (como a base dos móveis). Os gatos não colidem com elas, e a grade de caminhos não muda.
+ */
+export function playerBlockBoxes(map: MapData, catalog: TileCatalog, tiles: readonly string[], baseDepth = 1): PixelRect[] {
+  const ts = map.tileSize;
+  const h = Math.round(ts * Math.min(1, Math.max(0.1, baseDepth)));
+  const boxes: PixelRect[] = [];
+  for (const obj of map.objects) {
+    const def = catalog.tiles[obj.tile];
+    if (!def || def.solid || !tiles.includes(obj.tile)) continue;
+    for (const [c, r] of footprintOf(obj.at, def)) boxes.push({ x: c * ts, y: (r + 1) * ts - h, w: ts, h });
+  }
+  return boxes;
+}
+
 /** Junta células sólidas em retângulos (faixas horizontais), para criar menos corpos de colisão. */
 export function solidRects(solid: boolean[][]): Rect[] {
   const rects: Rect[] = [];

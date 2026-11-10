@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { doorAt, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
+import { doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
@@ -102,6 +102,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private mapImages?: Phaser.GameObjects.Group;
   private solids?: Phaser.Physics.Arcade.StaticGroup;
   private solidCollider?: Phaser.Physics.Arcade.Collider;
+  /** Potes e caminhas: colidem só com ela (world.playerBlockTiles). */
+  private playerSolids?: Phaser.Physics.Arcade.StaticGroup;
+  private playerSolidCollider?: Phaser.Physics.Arcade.Collider;
   /**
    * Posicionando: um item da mochila, ou (moveUid) um móvel do café mudando de lugar, com o que está em cima dele
    * (riders: fantasmas que acompanham, já na altura do tampo).
@@ -591,6 +594,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.solids.add(this.add.zone(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h));
     }
     this.solidCollider = this.physics.add.collider(this.player, this.solids);
+    // Potes e caminhas: só ela não atravessa (os gatos comem em volta e deitam na caminha).
+    this.playerSolidCollider?.destroy();
+    this.playerSolids?.destroy(true);
+    this.playerSolids = this.physics.add.staticGroup();
+    const { world } = this.session.content;
+    for (const b of playerBlockBoxes(this.session.mapData(mapId), this.session.content.catalog, world.playerBlockTiles ?? [], world.objectBaseDepth)) {
+      this.playerSolids.add(this.add.zone(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h));
+    }
+    this.playerSolidCollider = this.physics.add.collider(this.player, this.playerSolids);
     this.catColliders.forEach((c) => c.destroy());
     this.catColliders = this.cats.map((cat) => this.physics.add.collider(cat, this.solids!));
     this.roomView ??= new RoomView(this, this.session, ts);
@@ -1499,17 +1511,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /**
-   * Equipamento ao alcance dos pés (`target`: só o clicado). Com vários (cafeteira e bule lado a lado), o que tem
-   * trabalho (pronto para pegar, massa para ele, cliente esperando); senão, o mais perto da célula da frente dela.
+   * Equipamento ao alcance dos pés (`target`: só o clicado). Com vários (cafeteira e bule lado a lado): o que está
+   * bem na frente dela; senão, o que tem trabalho (pronto para pegar, massa para ele, cliente esperando); senão, o
+   * mais perto da célula da frente.
    */
   private stationInReach(feet: readonly Cell[], target?: Cell): { uid: string; at: Cell; cells: Cell[] } | undefined {
     const sv = this.session.service;
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     const all = sv.allStations().filter((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
     if (all.length <= 1) return all[0];
+    // Bem na frente dela: esse (faz o pedido ou diz por que não dá), mesmo que o do lado tenha algo pronto.
+    const [fc, fr] = this.facingCell();
+    const ahead = all.find((s) => s.cells.some(([c, r]) => c === fc && r === fr));
+    if (ahead) return ahead;
     const busy = all.find((s) => sv.stationHasWork(s.uid));
     if (busy) return busy;
-    const [fc, fr] = this.facingCell();
     const dist = (s: { cells: Cell[] }) => Math.min(...s.cells.map(([c, r]) => Math.abs(c - fc) + Math.abs(r - fr)));
     return [...all].sort((a, b) => dist(a) - dist(b))[0];
   }
