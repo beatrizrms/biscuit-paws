@@ -120,6 +120,21 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.state.construction.quote).toBeNull();
   });
 
+  it('Ctrl + arrastar: duas áreas separadas viram uma obra só; célula repetida conta uma vez', () => {
+    const s = session();
+    s.state.construction.repaired = ['inside', 'outside'];
+    const one = s.finishQuote('surface.hall_floor', 'finish.wood_planks', a, b)!;
+    const far: [Cell, Cell] = [[b[0] + 2, a[1]], [b[0] + 3, a[1] + 1]];
+    const other = s.finishQuote('surface.hall_floor', 'finish.wood_planks', far[0], far[1])!;
+    expect(other.cells.length).toBeGreaterThan(0);
+    const both = s.finishQuote('surface.hall_floor', 'finish.wood_planks', a, b, [far])!;
+    expect(both.cells.length).toBe(one.cells.length + other.cells.length);
+    // A mesma área duas vezes não cobra em dobro.
+    expect(s.finishQuote('surface.hall_floor', 'finish.wood_planks', a, b, [[a, b]])!.cells.length).toBe(one.cells.length);
+    expect(s.quoteFinish('surface.hall_floor', 'finish.wood_planks', a, b, [far])).toEqual({ ok: true });
+    expect(s.state.construction.quote?.cells?.length).toBe(both.cells.length);
+  });
+
   it('aceita: área isolada (fita, não dá para pisar), ele trabalha ao lado; no fim, só aquelas células mudam', () => {
     const s = session();
     s.state.construction.repaired = ['inside', 'outside'];

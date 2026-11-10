@@ -2298,23 +2298,29 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Orçamento de uma troca de acabamento na área (sem cobrar). Paredes pegam a coluna inteira. */
-  finishQuote(surfaceId: string, finishId: string, a: Cell, b: Cell): { cells: Cell[]; material: number; labor: number; days: number } | null {
+  /**
+   * Orçamento de uma troca de acabamento na área (sem cobrar). Paredes pegam a coluna inteira. `more`: outras áreas
+   * marcadas junto (Ctrl + arrastar): tudo vira uma obra só, e a célula que está em duas áreas conta uma vez.
+   */
+  finishQuote(surfaceId: string, finishId: string, a: Cell, b: Cell, more: readonly (readonly [Cell, Cell])[] = []): { cells: Cell[]; material: number; labor: number; days: number } | null {
     const surface = this.surfaces().find((x) => x.id === surfaceId);
     const finish = this.content.finishes[finishId];
     if (!surface || !finish || finish.kind !== surface.kind || surface.kind === 'facade') return null;
     const c = this.content.construction;
-    const cells = surfaceCells(this.content.map, surface, a, b).filter((cell) => this.finishAt(surface, cell) !== finishId);
+    const seen = new Set<string>();
+    const cells = [[a, b] as const, ...more]
+      .flatMap(([x, y]) => surfaceCells(this.content.map, surface, x, y))
+      .filter((cell) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.finishAt(surface, cell) !== finishId));
     const perTile = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
     return { cells, material: cells.length * perTile, labor: cells.length * c.laborPerTile, days: jobDays(cells.length, c) };
   }
 
-  /** Pede a troca de acabamento na área: ela compra o material (sai agora) e liga para o construtor. */
-  quoteFinish(surfaceId: string, finishId: string, a: Cell, b: Cell): ActionResult {
+  /** Pede a troca de acabamento na área (e nas outras marcadas junto): ela compra o material (sai agora) e liga para o construtor. */
+  quoteFinish(surfaceId: string, finishId: string, a: Cell, b: Cell, more: readonly (readonly [Cell, Cell])[] = []): ActionResult {
     const s = this.state.construction;
     const problem = quoteBlocker(s, 'finish', this.painterUnlocked());
     if (problem) return { ok: false, reason: problem };
-    const q = this.finishQuote(surfaceId, finishId, a, b);
+    const q = this.finishQuote(surfaceId, finishId, a, b, more);
     if (!q) return { ok: false, reason: 'wrong_surface' };
     if (q.cells.length === 0) return { ok: false, reason: 'no_cells' };
     // O total precisa caber: a mão de obra é paga logo em seguida, na ligação.

@@ -2109,17 +2109,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         start: this.feetCell(),
         cols: this.map.cols,
         rows: this.map.rows,
-        quote: (a, b) => {
-          const q = this.session.finishQuote(surfaceId, finishId, a, b);
+        quote: ([first, ...more]) => {
+          const [a, b] = first!;
+          const q = this.session.finishQuote(surfaceId, finishId, a, b, more);
           if (!q) return null;
           return { cells: q.cells, text: t.selectInfo.replace('{n}', String(q.cells.length)).replace('{material}', String(q.material)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days)) };
         },
-        onConfirm: (a, b) => {
+        onConfirm: ([first, ...more]) => {
+          const [a, b] = first!;
           this.areaSelect = null;
-          const r = this.session.quoteFinish(surfaceId, finishId, a, b);
+          const r = this.session.quoteFinish(surfaceId, finishId, a, b, more);
           if (!r.ok) this.ui.problem(r.reason as keyof typeof uiText.problems);
         },
         onCancel: () => (this.areaSelect = null),
+        onEmpty: () => this.ui.toast(t.selectEmpty, 2500),
       },
       t.selectHint,
     );
