@@ -442,3 +442,7 @@ Decisão: 22 decorações geradas no PixelLab no estilo da cama do quartinho (fo
 Pedido: modelos da personagem sentada de frente, que encaixem no sofá e nas cadeiras de frente; e de lado também.
 Consequência: pose `sit` no manequim (`data/character.json`), gerada no PixelLab para as 16 peças e o manequim (skeleton-v3 `sit_seat`, sem móvel desenhado; 68 gerações com o teste). Na folha: baixo = `sit_front` (sul, quadro 1), esquerda = `sit_side` (oeste, quadro 1), direita = a esquerda espelhada; de costas ainda não tem (usa a de frente). De lado a figura é mais larga: `shiftX` recentraliza no recorte. No sofá ela senta de frente, na frente do encosto, com os pés no chão (`Player.sit`/`standUp`); sem a folha, volta o corte provisório. De lado, a camiseta e o casaco saíram com os joelhos mais encolhidos.
 
+
+## 107. Mudar móvel de lugar pelo teclado: F (nov/2026)
+Contexto: mudar um móvel de lugar (decisão 084) só funcionava com o botão direito do mouse e não aparecia em nenhuma dica.
+Decisão: F (de "furniture"; o M continua no cardápio) pega o móvel da frente dela, senão um encostado nela (olhando para cima, também os da parede); balcão com cafeteira pega o balcão com ela. Com o fantasma na mão, setas e WASD andam com ele uma célula por toque (a personagem fica parada) e F ou Enter soltam; Q guarda, Esc cancela; o mouse continua valendo. Posicionar item novo do Market também aceita setas e Enter (o fantasma começa na frente dela). As dicas do rodapé mostram os controles.

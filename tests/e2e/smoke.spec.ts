@@ -592,3 +592,31 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
   await advance(5);
   await expect(page.locator('.hud-goals')).not.toContainText('Pia:');
 });
+
+test('mover pelo teclado: F pega a mesa ao lado, setas levam o fantasma, Enter solta; sem móvel perto, avisa', async ({ page }, testInfo) => {
+  await openGame(page);
+  await skipDialogue(page);
+  await enterCafe(page);
+  const placed = () =>
+    page.evaluate(() =>
+      ((window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.session.state as unknown as { placed: { item: string; at: [number, number] }[] }).placed.map(
+        (p) => `${p.item}@${p.at.join(',')}`,
+      ),
+    );
+  const ok = await page.evaluate(() => {
+    const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
+    session.addMoney(100, 'test');
+    return session.buy('item.table_round').ok && session.place('item.table_round', [8, 7]).ok;
+  });
+  expect(ok).toBe(true);
+  await teleport(page, 7, 7);
+  await hold(page, 'ArrowRight', 60); // virada para a mesa
+  await page.keyboard.press('f');
+  for (const k of ['ArrowRight', 'ArrowRight', 'ArrowUp']) await page.keyboard.press(k);
+  await page.screenshot({ path: testInfo.outputPath('mover-fantasma.png') });
+  await page.keyboard.press('Enter');
+  await expect.poll(placed).toContain('item.table_round@10,6');
+  await teleport(page, 3, 9);
+  await page.keyboard.press('f');
+  await expect(page.getByText('Chegue pertinho de um móvel')).toBeVisible();
+});

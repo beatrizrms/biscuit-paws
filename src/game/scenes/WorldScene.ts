@@ -64,6 +64,9 @@ type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'r
 
 const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
+
+/** Setas e WASD com o fantasma na mão: uma célula por toque. */
+const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
 const FADE_MS = 160;
 /** Quantas vezes o relógio corre mais rápido ao "Esperar". */
@@ -216,6 +219,24 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
+    // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
+    // na mão, F (ou Enter) solta; setas e WASD andam com ele uma célula por toque e a personagem fica parada.
+    this.onKey('F', () => {
+      if (this.ui.isBusy() || this.areaSelect || this.changingMap || this.scripts.isRunning()) return;
+      if (this.placing) return this.dropPlacing();
+      if (!this.session.atHome()) return this.ui.toastText('notHome');
+      const uid = this.furnitureNearPlayer();
+      if (!uid) return this.ui.problem('no_furniture_near');
+      this.startMoving(uid, true);
+    });
+    this.onKey('ENTER', () => {
+      if (this.placing && !this.ui.isBusy()) this.dropPlacing();
+    });
+    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
+      const step = GHOST_STEPS[e.code];
+      if (!step || !this.placing || this.ui.isBusy()) return;
+      this.nudgeGhost(step);
+    });
     this.onKey('ESC', () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.placing) this.cancelPlacing();
@@ -377,7 +398,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateAmbience();
     const input = this.autoWalk
       ? this.autoWalkInput()
-      : busy
+      : busy || this.placing
       ? NO_INPUT
       : {
           up: k.up.isDown || k.w.isDown,
@@ -667,9 +688,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         );
       }
     }
-    this.placing = { itemId, ghosts, at: [0, 0] };
+    // Começa na frente dela (dá para levar com as setas); mexendo o mouse, o fantasma vai para o cursor.
+    const [fc, fr] = this.feetCell();
+    this.placing = { itemId, ghosts, at: [fc, Math.max(0, fr + 1 - (def.h - 1))] };
     this.ui.setHint('placing');
-    this.moveGhost(this.input.activePointer);
+    this.refreshGhost();
   }
 
   /**
@@ -685,8 +708,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
   }
 
-  /** Botão direito num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
-  private startMoving(uid: string): void {
+  /** Botão direito (ou F) num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
+  private startMoving(uid: string, fromKeys = false): void {
     this.cancelPlacing();
     const group = this.session.movingGroup(uid);
     const host = group[0];
@@ -705,7 +728,49 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // O original fica no lugar, esmaecido, até soltar (cancelar não muda nada).
     for (const p of group) this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => img.setAlpha(0.35));
     this.ui.setHint('moving');
-    this.moveGhost(this.input.activePointer);
+    // Pelo teclado, o fantasma começa no lugar do móvel; pelo mouse, no cursor.
+    if (fromKeys) this.refreshGhost();
+    else this.moveGhost(this.input.activePointer);
+  }
+
+  /** Solta o fantasma onde ele está: posiciona o item novo ou muda o móvel de lugar. */
+  private dropPlacing(): void {
+    if (!this.placing) return;
+    const { itemId, at, moveUid } = this.placing;
+    const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
+    if (!result.ok) return this.ui.problem(result.reason);
+    this.cancelPlacing();
+  }
+
+  /** Setas com o fantasma na mão: uma célula por toque, sem sair do mapa. */
+  private nudgeGhost([dc, dr]: Cell): void {
+    if (!this.placing) return;
+    const def = this.ghostDef();
+    const [c, r] = this.placing.at;
+    this.placing.at = [Phaser.Math.Clamp(c + dc, 0, this.map.cols - def.w), Phaser.Math.Clamp(r + dr, 0, this.map.rows - def.h)];
+    this.refreshGhost();
+  }
+
+  /**
+   * O móvel da jogadora que o F pega: o da frente dela, senão um encostado nela. Olhando para cima, também os da
+   * parede (quadros, relógio). Balcão com cafeteira: pega o balcão (ela vai junto).
+   */
+  private furnitureNearPlayer(): string | null {
+    const [c, r] = this.feetCell();
+    const dir = this.player.facingDirection();
+    const ahead: Cell[] =
+      dir === 'up' ? [[c, r - 1], [c, r - 2], [c, r - 3]] : dir === 'down' ? [[c, r + 1]] : dir === 'left' ? [[c - 1, r]] : [[c + 1, r]];
+    const around = ([[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([dc, dr]): Cell => [c + dc, r + dr]);
+    const { items } = this.session.content;
+    for (const cell of [...ahead, ...around]) {
+      const placed = this.session.placedAt(cell);
+      if (!placed) continue;
+      const host = items[placed.item]?.placeOn
+        ? this.session.state.placed.find((p) => p !== placed && !items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1])
+        : undefined;
+      return (host ?? placed).uid;
+    }
+    return null;
   }
 
   /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila. */
@@ -756,10 +821,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.placing) {
       if (pointer.rightButtonDown()) return this.cancelPlacing();
       this.moveGhost(pointer);
-      const { itemId, at, moveUid } = this.placing;
-      const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
-      if (!result.ok) return this.ui.problem(result.reason);
-      this.cancelPlacing();
+      this.dropPlacing();
       return;
     }
     if (!pointer.rightButtonDown()) {

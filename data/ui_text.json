@@ -115,13 +115,13 @@
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
-  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular",
+  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "hotbar": {
     "label": "Barra de itens"
   },
-  "hintPlacing": "Clique: posicionar · botão direito ou Esc: cancelar",
-  "hintMoving": "Clique: soltar aqui · Q: guardar na mochila · botão direito ou Esc: cancelar",
+  "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · Esc: cancelar",
+  "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: guardar na mochila · Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
   "problems": {
@@ -144,6 +144,7 @@
     "repair_first": "Primeiro o reparo (Market, aba Construção).",
     "already_repaired": "Esse reparo já foi feito.",
     "room_not_ready": "Essa obra ainda não dá para pedir.",
+    "no_furniture_near": "Chegue pertinho de um móvel para mudar ele de lugar (F).",
     "heavy_dirt": "Esse mato alto não sai com a vassoura. Limpeza pesada: chame o Tião (Market, aba Construção).",
     "no_cells": "Nada para trocar nessa área.",
     "too_far": "Preciso chegar mais perto.",
