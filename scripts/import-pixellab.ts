@@ -1505,6 +1505,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['chave_padaria', 'chave_enferrujada', 'vassoura'] as const).map((name) => ({ name, file: `${SRC}/icones_chave_vassoura/${name}.png` })),
     // Varinha e escova (itens dos cuidados) e o balão "se recompondo" (energia), gerados depois.
     ...(['varinha', 'escova', 'recompondo'] as const).map((name) => ({ name, file: `${SRC}/icones_extra/${name}.png` })),
+    // Biscoito de patinha (receita bônus dos selos): o disco verde com pata do pedido 04 (aprovado como almofada, sem uso).
+    { name: 'biscoito_patinha', file: `${SRC}/04_cafe_4/obj_5.png` },
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

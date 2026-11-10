@@ -50,11 +50,7 @@
             {
               "beat": "story.inauguration"
             },
-            {
-              "served": {
-                "gte": 40
-              }
-            }
+            { "milestone": "milestone.customers_40" }
           ]
         },
         "dialogue": "dlg.room_back_found",

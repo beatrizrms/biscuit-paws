@@ -491,6 +491,11 @@
       "col": 0,
       "row": 12,
       "sheet": "pixellab"
+    },
+    "biscoito_patinha": {
+      "col": 1,
+      "row": 12,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

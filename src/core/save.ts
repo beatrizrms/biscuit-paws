@@ -14,11 +14,12 @@ import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
+import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 27;
+export const SAVE_SCHEMA_VERSION = 28;
 
-export interface SaveV27 extends GameState {
-  schemaVersion: 27;
+export interface SaveV28 extends GameState {
+  schemaVersion: 28;
   savedAt: string;
 }
 
@@ -156,10 +157,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
    * atendidos já existia em service.served e os gatos já abrigados vêm de cats).
    */
   26: (save) => ({ ...save, schemaVersion: 27, stats: null }),
+  /**
+   * v27 -> v28: selos do café. Saves antigos: nenhum anotado; a leitura marca catchUp e a primeira conferida da sessão
+   * anota os que já valem sem avisar nem dar presente (as receitas já estavam destrancadas por clientes atendidos).
+   */
+  27: (save) => ({ ...save, schemaVersion: 28, milestones: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV27 = { schemaVersion: 27, savedAt: now.toISOString(), ...state };
+  const save: SaveV28 = { schemaVersion: 28, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -195,6 +201,8 @@ export interface KnownIds {
   arrivals?: ReadonlySet<string>;
   /** Festivais de data/festivals.json (o em andamento que sumiu é esquecido). */
   festivals?: ReadonlySet<string>;
+  /** Selos de data/milestones.json (o que sumiu é esquecido). */
+  milestones?: ReadonlySet<string>;
 }
 
 /** Lê um save de qualquer versão conhecida e devolve o estado atual. */
@@ -211,7 +219,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV27>;
+  const v2 = save as unknown as Partial<SaveV28>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -357,6 +365,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     ),
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     stats: normalizeStats(v2.stats, (id) => known.items.has(id)),
+    milestones: normalizeMilestones(v2.milestones, known.milestones),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
@@ -365,6 +374,14 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
+}
+
+/** Selos: só ids com o dia (número inteiro); sem o campo (save antigo), catchUp. */
+function normalizeMilestones(m: unknown, known?: ReadonlySet<string>): MilestonesState {
+  if (!m || typeof m !== 'object') return { reached: {}, catchUp: true };
+  const x = m as Partial<MilestonesState>;
+  const reached = Object.fromEntries(Object.entries(x.reached ?? {}).filter((e): e is [string, number] => (!known || known.has(e[0])) && Number.isInteger(e[1]) && e[1] >= 1));
+  return { reached, ...(x.catchUp === true ? { catchUp: true } : {}) };
 }
 
 /** Definições de gatos gerados (só as com o formato certo). */
@@ -505,6 +522,7 @@ export function knownIds(content: {
   reputation?: { start: number };
   arrivals?: { arrivals: { id: string }[] };
   festivals?: { id: string }[];
+  milestones?: { milestones: { id: string }[] };
 }): KnownIds {
   return {
     items: new Set(Object.keys(content.items)),
@@ -521,6 +539,7 @@ export function knownIds(content: {
     reputationStart: content.reputation?.start ?? 0,
     ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
     ...(content.festivals ? { festivals: new Set(content.festivals.map((f) => f.id)) } : {}),
+    ...(content.milestones ? { milestones: new Set(content.milestones.milestones.map((m) => m.id)) } : {}),
     notInBag: new Set(Object.entries(content.items).filter(([, i]) => (i as { inBag?: boolean }).inBag === false).map(([id]) => id)),
     ingredients: new Set(Object.entries(content.items).filter(([, i]) => (i as { tags?: string[] }).tags?.includes('ingredient')).map(([id]) => id)),
   };

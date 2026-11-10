@@ -17,6 +17,7 @@ import type { CatDef } from './cats';
 import { newFestivals, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 import { newStats, type StatsState } from './stats';
+import { newMilestones, type MilestonesState } from './milestones';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -121,6 +122,8 @@ export interface GameState {
   hintUses: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;
+  /** Selos do café (v28): o dia em que cada um foi conquistado. */
+  milestones: MilestonesState;
 }
 
 export interface PlayerState {
@@ -217,6 +220,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     catDefs: {},
     hintUses: {},
     stats: newStats(),
+    milestones: newMilestones(),
   };
 }
 

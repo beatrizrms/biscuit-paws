@@ -9,6 +9,7 @@ const content = loadContent();
 function richSession() {
   const state = newGameState(10_000);
   state.flags['has.cat'] = true; // itens de gato liberados
+  state.milestones.reached['milestone.cats_3'] = 1; // a árvore de gato vem com o selo de 3 gatos
   return new GameSession(content, state);
 }
 

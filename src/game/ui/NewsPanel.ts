@@ -78,7 +78,7 @@ export class NewsPanel {
     for (const ev of ['arrival.started', 'arrival.finished', 'arrival.step', 'job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
       session.bus.on(ev, () => this.render());
     // Café em números aberto: os números andam junto com o atendimento.
-    for (const ev of ['customer.served', 'customer.left', 'reputation.changed', 'stats.day_closed'] as const)
+    for (const ev of ['customer.served', 'customer.left', 'reputation.changed', 'stats.day_closed', 'milestone.reached'] as const)
       session.bus.on(ev, () => {
         if (this.mode === 'phone' && this.app === 'stats') this.render();
       });
