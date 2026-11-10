@@ -191,14 +191,13 @@ export class ConsultPanel {
         <span>${c.tests}</span><b>${esc(tests)}</b>
         <span>${c.status}</span><b>${esc(status)}${exam.earTipped ? ` · ${esc(uiText.cats.earTipped)}` : ''}</b>
       </div>
-      <p class="choose">${c.choose}</p>
-      ${this.neuterOption(exam)}
-      ${this.option('home', c.takeHome, exam.neuter?.readyDay ? fill(catSexText(s, c.takeHomeNoteWait, m.catId), { day: exam.neuter.readyDay }) : c.takeHomeNote)}`;
+      <div class="options">${this.neuterOption(exam)}${this.option('home', exam.neuter ? c.takeHomeDone : c.takeHome)}</div>`;
   }
 
-  /** Um cartão de opção: o botão e, embaixo, o que acontece. */
-  private option(act: string, title: string, note: string, extra = '', disabled = false): string {
-    return `<div class="option${disabled ? ' off' : ''}"><button class="pay" data-act="${act}"${disabled ? ' disabled' : ''}>${esc(title)}</button><p class="desc">${esc(note)}</p>${extra ? `<p class="desc note">${esc(extra)}</p>` : ''}</div>`;
+  // Sem castração a fazer agora (já castrado, novo demais...): o único botão é levar para o café.
+  /** Um botão de opção (a fala da Fernanda, acima, já explica o que acontece); `note` só quando ele não dá. */
+  private option(act: string, title: string, note = '', disabled = false): string {
+    return `<button class="pay" data-act="${act}"${disabled ? ' disabled' : ''}>${esc(title)}</button>${note ? `<p class="desc note">${esc(note)}</p>` : ''}`;
   }
 
   /** A opção de castrar: à vista (com a conta anterior junto), no fiado ou sem dinheiro. Não opera: sem cartão. */
@@ -206,13 +205,11 @@ export class ConsultPanel {
     if (exam.neuter) return '';
     const c = uiText.clinic;
     const cur = content.economy.currency;
-    const name = this.session.catName(exam.catId);
-    const note = fill(c.neuterNote, { name });
     const price = `${exam.neuterPrice} ${cur}`;
-    const debt = `${exam.debt} ${cur}`;
-    if (exam.neuterPay === 'no_money') return this.option('neuter', fill(c.neuter, { price }), note, fill(c.neuterNoMoney, { debt }), true);
-    if (exam.neuterPay === 'credit') return this.option('neuter', c.neuterCredit, note, fill(c.neuterCreditNote, { price }));
-    return this.option('neuter', fill(c.neuter, { price: `${exam.neuterPrice + exam.debt} ${cur}` }), note, exam.debt > 0 ? fill(c.neuterDebt, { debt }) : '');
+    if (exam.neuterPay === 'no_money') return this.option('neuter', fill(c.neuter, { price }), fill(c.neuterNoMoney, { debt: `${exam.debt} ${cur}` }), true);
+    if (exam.neuterPay === 'credit') return this.option('neuter', c.neuterCredit);
+    // A conta anterior (fiado) vem junto no preço.
+    return this.option('neuter', fill(c.neuter, { price: `${exam.neuterPrice + exam.debt} ${cur}` }));
   }
 
   /** Ficha reaberta (gato trazido depois): a fala sobre a castração pelo estado de agora. */
