@@ -796,13 +796,25 @@ export class GameSession {
     this.state.cleaned = this.state.cleaned.filter((id) => !back.some((d) => d.id === id));
   }
 
-  /** Rotina do dia, depois do prólogo: comida para cada gato do café e a poeira que voltou. */
-  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry'; catId?: string; done: boolean; progress?: [number, number] }[] {
+  /**
+   * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
+   * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
+   */
+  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
     for (const id of this.shelteredCats()) {
       if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
+    }
+    // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
+    const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
+    const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', medicine: 'medicine' };
+    for (const id of this.homeCats()) {
+      for (const need of this.catCare(id)?.needs ?? []) {
+        const use = toolFor[need];
+        out.push({ kind: 'care', catId: id, need, hasTool: !use || owns(use), done: false });
+      }
     }
     const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
     const left = daily.filter((d) => !isCleaned(this.state, d)).length;

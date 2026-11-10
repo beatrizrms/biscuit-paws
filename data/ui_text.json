@@ -466,6 +466,11 @@
     "sweep": "Varrer a poeira do dia",
     "pantry": "Guardar as compras na despensa",
     "sick": "Gatos doentes: clientes não entram",
+    "care": {
+      "dirty": { "do": "Escovar {cat}: o pelo está sujo", "buy": "Escovar {cat}: comprar uma escova (mercado, Cuidados)" },
+      "sad": { "do": "Brincar com {cat}: anda sem ânimo", "buy": "Brincar com {cat}: comprar uma varinha (mercado, Brinquedos)" },
+      "medicine": { "do": "Dar o remédio de hoje para {cat}", "buy": "Remédio de {cat}: passar na clínica" }
+    },
     "job": "Pedido"
   },
   "goHome": {

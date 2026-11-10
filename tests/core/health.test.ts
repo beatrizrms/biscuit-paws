@@ -269,3 +269,18 @@ describe('gato de lembrança', () => {
     expect(session.catProfiles().map((p) => p.id)).toEqual([CAT]);
   });
 });
+
+describe('lembretes de cuidado no subconsciente', () => {
+  it('gato sujo vira lembrete de escovar, dizendo se falta a escova', () => {
+    const { session, state, cat } = withCat();
+    state.flags['prologue.done'] = true;
+    expect(session.chores().some((c) => c.kind === 'care')).toBe(false);
+    cat().hygiene = cfg.care.low.hygiene - 1;
+    expect(session.chores().find((c) => c.kind === 'care')).toMatchObject({ catId: CAT, need: 'dirty', hasTool: false });
+    state.inventory['item.cat_brush'] = 1;
+    expect(session.chores().find((c) => c.kind === 'care')).toMatchObject({ need: 'dirty', hasTool: true });
+    cat().hygiene = cfg.care.max;
+    expect(session.chores().some((c) => c.kind === 'care')).toBe(false);
+  });
+});
+
