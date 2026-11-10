@@ -15,6 +15,8 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 /** Espaços da grade da mochila (cresce de 8 em 8 se ela tiver mais coisas). */
 const BAG_SLOTS = 16;
+/** Espaços da despensa (3 linhas de 8); com mais ingredientes, ganha linhas. */
+const PANTRY_SLOTS = 24;
 
 /** Nome de um objeto da mão (bebida, louça suja, item). */
 export function handItemName(h: HandItem, catName: (id: string) => string = (id) => content.cats[id]?.name ?? ''): string {
@@ -79,7 +81,8 @@ export class BackpackPanel {
     this.body.addEventListener('click', (e) => this.onClick(e));
     this.body.addEventListener('dragstart', (e) => this.onDragStart(e));
     this.body.addEventListener('dragover', (e) => {
-      if ((e.target as HTMLElement).closest('[data-bar], .bp-bag')) e.preventDefault();
+      // A despensa só recebe no armário (arrastar um ingrediente até ela guarda os pacotes dele).
+      if ((e.target as HTMLElement).closest(this.atPantry ? '[data-bar], .bp-bag, .bp-pantry' : '[data-bar], .bp-bag')) e.preventDefault();
     });
     this.body.addEventListener('drop', (e) => this.onDrop(e));
     session.bus.onAny(() => this.render());
@@ -154,6 +157,10 @@ export class BackpackPanel {
         case 'pantry-store':
           report(sv.storeInPantry());
           return this.render();
+        case 'pantry-one':
+          if (id) report(sv.storeInPantry(id));
+          this.selected = null;
+          return this.render();
         case 'to-bar':
           if (id) this.assign(id, this.freeSlot());
           return;
@@ -224,6 +231,15 @@ export class BackpackPanel {
       if (from === 'bag' && fitsHotbar(content.items[value])) return this.assign(value, slot);
       return;
     }
+    // Ingrediente arrastado até a despensa (no armário): guarda os pacotes dele.
+    if (this.atPantry && (e.target as HTMLElement).closest('.bp-pantry')) {
+      const id = from === 'bar' ? this.session.state.hotbar.slots[Number(value)] : value;
+      if (!id || !this.session.service.isIngredient(id)) return;
+      const r = this.session.service.storeInPantry(id);
+      if (!r.ok && r.reason) this.onProblem(r.reason);
+      this.selected = null;
+      return this.render();
+    }
     // Da barra de volta para a mochila: sai da barra (o item continua na mochila).
     if (from === 'bar' && (e.target as HTMLElement).closest('.bp-bag')) {
       const id = this.session.state.hotbar.slots[Number(value)];
@@ -265,6 +281,8 @@ export class BackpackPanel {
       if (onBar >= 0) buttons.push(`<button data-act="off-bar">${t.offBar}</button>`);
       else buttons.push(`<button data-act="to-bar">${t.toBar.replace('{n}', String(this.freeSlot() + 1))}</button>`);
     }
+    // Ingrediente, no armário: guardar só ele na despensa.
+    if (this.atPantry && this.session.service.isIngredient(item.id)) buttons.push(`<button data-act="pantry-one">${t.pantryOne}</button>`);
     if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
     if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);
     return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22, item.hue) : itemIconHtml(item, 22)}</span>
@@ -288,11 +306,13 @@ export class BackpackPanel {
         return `<span class="bp-slot bp-pantry-slot" title="${esc(item.name)} · ${esc(t.doses.replace('{n}', String(sv.doses(id))))}">${itemIconHtml(item, 18)}<span class="count">${sv.doses(id)}</span></span>`;
       })
       .join('');
+    const total = Math.max(PANTRY_SLOTS, Math.ceil(ids.length / 8) * 8);
+    const empty = '<span class="bp-slot is-empty"></span>'.repeat(total - ids.length);
     const inBag = sv.ingredientsInBag();
     const action = inBag === 0 ? '' : this.atPantry ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>` : `<span class="why">${esc(t.pantryWhere)}</span>`;
     // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
     const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
-    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3>${slots ? `<div class="bp-row">${slots}</div>` : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
+    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3><div class="bp-row">${slots}${empty}</div>${slots ? '' : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
   }
 
   private render(): void {

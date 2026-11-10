@@ -465,6 +465,7 @@
     "bag": "Mochila",
     "pantry": "Despensa",
     "pantryStore": "guardar da mochila ({n})",
+    "pantryOne": "guardar na despensa",
     "pantryWhere": "guarde no armário, ao lado da pia",
     "pantryEmpty": "Vazia. Compre ingredientes no mercado e guarde aqui: só o que está na despensa vale nas receitas.",
     "pantryStored": "Guardado na despensa: {n} pacote(s).",
