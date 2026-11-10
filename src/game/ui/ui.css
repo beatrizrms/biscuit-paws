@@ -982,6 +982,40 @@
 .c-list li b { font-size: 7.5px; }
 .c-list li span { font-size: 6.5px; color: var(--ink2); }
 
+/* App Café em números (StatsApp): quadrinhos com o número grande, o gráfico de palitos, o consumo e as sequências */
+.p-icon.stats { background: #f3c6a0; }
+.p-icon .stats-face { display: flex; align-items: flex-end; gap: 2px; width: 22px; height: 20px; padding: 0 2px 2px; border-bottom: 2px solid var(--wood4); box-sizing: border-box; }
+.p-icon .stats-face i { flex: 1; border-radius: 1px 1px 0 0; background: var(--wood4); }
+.p-icon .stats-face i:nth-child(1) { height: 6px; background: var(--mint3); }
+.p-icon .stats-face i:nth-child(2) { height: 11px; background: var(--butter3); }
+.p-icon .stats-face i:nth-child(3) { height: 16px; background: var(--pink3); }
+.stats-app { padding-bottom: 4px; }
+.s-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.s-tiles.two { grid-template-columns: repeat(2, 1fr); }
+.s-tile { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 2px; border-radius: 5px; background: #fffaf0; }
+.s-tile b { font-size: 11px; color: var(--wood4); font-variant-numeric: tabular-nums; }
+.s-tile span { font-size: 6px; text-align: center; color: var(--ink2); }
+.s-chart { display: flex; align-items: flex-end; gap: 2px; height: 34px; margin-top: 4px; padding: 3px 3px 0; border-radius: 5px; background: #fffaf0; }
+.s-bar { flex: 1; display: flex; align-items: flex-end; height: 100%; }
+.s-bar i { width: 100%; border-radius: 2px 2px 0 0; background: var(--pink3); }
+.s-bar.closed i { background: repeating-linear-gradient(135deg, transparent 0 2px, #efe3d0 2px 4px); }
+.s-note { margin: 2px 0 0; font-size: 6px; color: var(--grey2); }
+.s-list { margin: 0; padding: 0; list-style: none; }
+.s-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 2px 0; border-bottom: 1px solid #efe3d0; font-size: 7.5px; color: var(--ink); }
+.s-list .s-item { display: flex; align-items: center; gap: 3px; }
+.s-list b { font-size: 7.5px; color: var(--wood4); font-variant-numeric: tabular-nums; }
+.s-rep { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; padding: 3px 5px; border-radius: 5px; background: #fffaf0; font-size: 7px; }
+.s-rep-label { flex: none; color: var(--ink2); }
+.s-rep-label i { font-style: normal; color: var(--pink3); font-weight: bold; }
+.s-rep .bar { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
+.s-rep .fill { position: absolute; inset: 0 auto 0 0; background: var(--pink3); }
+.s-rep b { min-width: 12px; text-align: right; color: var(--wood4); font-variant-numeric: tabular-nums; }
+.s-streaks { margin: 0; padding: 0; list-style: none; }
+.s-streaks li { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3px; padding: 3px 6px; border-left: 3px solid var(--mint3); border-radius: 4px; background: #fffaf0; }
+.s-streaks strong { font-size: 7.5px; color: var(--ink); }
+.s-streaks span { font-size: 6.5px; color: var(--ink2); }
+.s-streaks span b { color: var(--mint3); }
+
 /* Tutorial da intro dos mini games: ícone + 1 a 3 linhas numeradas */
 .minigame-layer .mg-tutorial { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; padding: 6px 8px; border-radius: 6px; background: var(--cream2); text-align: left; }
 .minigame-layer .mg-tut-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: var(--cream); }
