@@ -10,6 +10,7 @@ const NY = content.festive.newYear;
 const S = content.seasons;
 const YEAR = S.daysPerSeason * S.order.length;
 const EVE = NY.day; // inverno 30 do primeiro ano
+const HALL: [number, number] = [10, 7];
 
 function cafe(day: number, time: number) {
   const state = newGameState(500, 'map.cafe_main', time);
@@ -18,6 +19,7 @@ function cafe(day: number, time: number) {
   state.story.completed.push(...content.story.beats.map((b) => b.id));
   Object.assign(state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
   const session = new GameSession(content, state);
+  session.setPlayerCell(HALL); // no salão
   const events: { name: string; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   return { session, state, events };
@@ -45,6 +47,16 @@ describe('Ano Novo: fogos à meia-noite na rua', () => {
     expect(named(events, 'newyear.started')).toEqual([{ friends: ['npc.gabi', 'npc.joca', 'npc.neusa', 'npc.realtor'] }]);
     expect(state.relationships[pairKey('player', 'npc.neusa')]).toBe(NY.points);
     expect(session.goHomeProblem()).toBeNull();
+  });
+
+  it('com ela no porão, os fogos esperam ela voltar para o salão', () => {
+    const { session, events } = cafe(EVE, parseClock(NY.gatherAt));
+    session.setPlayerCell([20, 5]);
+    session.checkNewYear();
+    expect(named(events, 'script.requested')).toEqual([]);
+    session.setPlayerCell(HALL);
+    session.checkNewYear();
+    expect(named(events, 'script.requested')).toEqual([{ scriptId: NY.script }]);
   });
 
   it('antes do fim do prólogo, não tem fogos; no ano seguinte, tem de novo', () => {

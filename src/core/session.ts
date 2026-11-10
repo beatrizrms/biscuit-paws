@@ -1711,7 +1711,7 @@ export class GameSession {
    */
   checkNewYear(): void {
     const ny = this.content.festive.newYear;
-    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt)) return;
+    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt) || !evaluate(ny.startWhen, this.state, this.storyContext())) return;
     this.state.flags[newYearFlag(this.content.seasons, this.state.day)] = true;
     const friends = this.santaGuests();
     for (const npc of friends) addPoints(this.state, this.content.relationships, PLAYER, npc, ny.points);
@@ -1755,6 +1755,14 @@ export class GameSession {
     return Object.values(this.content.items).filter((i) => i.tags.includes(tag)).map((i) => i.id);
   }
 
+  /** Onde ela está (o jogo avisa a cada quadro; não vai para o save): para a condição playerRoom. */
+  private playerCell: Cell | null = null;
+
+  /** O jogo avisa a célula dos pés dela (as cenas de Natal só começam com ela no salão). */
+  setPlayerCell(cell: Cell): void {
+    this.playerCell = cell;
+  }
+
   /** Dia da ceia em que o roteiro já foi pedido (não pede de novo a cada minuto). */
   private santaPartyRequestedOn = 0;
 
@@ -1775,7 +1783,7 @@ export class GameSession {
       this.bus.emit('script.requested', { scriptId: ss.proposalScript });
       return;
     }
-    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day) {
+    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day && evaluate(ss.partyWhen, this.state, this.storyContext())) {
       this.santaPartyRequestedOn = day;
       this.bus.emit('script.requested', { scriptId: ss.partyScript });
     }
@@ -2788,6 +2796,7 @@ export class GameSession {
         return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
+      playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };
   }
 

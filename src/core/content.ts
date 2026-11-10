@@ -216,7 +216,9 @@ export type Condition =
   /** A estação de hoje (ex.: a guirlanda da Dona Neusa, só no inverno). */
   | { season: string }
   /** O amigo vem para o amigo secreto deste ano: ela já o conhece (data/festive.json: secretSanta.friends). */
-  | { santaGuest: string };
+  | { santaGuest: string }
+  /** Ela está no café, neste cômodo (data/rooms.json; ex.: as cenas de Natal só começam com ela no salão). */
+  | { playerRoom: string };
 
 export type Effect =
   | { dialogue: string }
@@ -744,6 +746,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('playerRoom' in c) {
+      if (!raw.rooms.rooms.some((r) => r.id === c.playerRoom)) err(`${where}: cômodo inexistente "${c.playerRoom}"`);
     } else if ('santaGuest' in c) {
       if (!raw.festive.secretSanta.friends.some((f) => f.npc === c.santaGuest)) err(`${where}: "${c.santaGuest}" não está no amigo secreto`);
     } else if ('season' in c) {
@@ -855,6 +859,8 @@ export function validateContent(raw: RawContent): string[] {
   for (const f of raw.festive.secretSanta.friends) checkCondition(`festive.secretSanta: ${f.npc}`, f.known);
   checkCondition('festive.secretSanta: proposalWhen', raw.festive.secretSanta.proposalWhen);
   checkCondition('festive.newYear: when', raw.festive.newYear.when);
+  checkCondition('festive.newYear: startWhen', raw.festive.newYear.startWhen);
+  checkCondition('festive.secretSanta: partyWhen', raw.festive.secretSanta.partyWhen);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(
     ...validateRooms(raw.rooms, {

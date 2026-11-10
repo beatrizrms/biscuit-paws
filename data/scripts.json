@@ -1260,6 +1260,40 @@
           "wait": 900
         },
         {
+          "playerFace": "left"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "dialogue": "dlg.ny_pets"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.ny_joca",
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "emote": "npc.joca",
+          "balloon": "exclamation",
+          "ms": 900,
+          "when": {
+            "santaGuest": "npc.joca"
+          }
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "wait": 400
+        },
+        {
           "dialogue": "dlg.ny_countdown"
         },
         {
@@ -1310,21 +1344,12 @@
           }
         },
         {
-          "playerFace": "left"
-        },
-        {
-          "wait": 300
-        },
-        {
-          "dialogue": "dlg.ny_pets"
-        },
-        {
           "emote": "player",
           "balloon": "heart",
-          "ms": 1000
+          "ms": 900
         },
         {
-          "playerFace": "up"
+          "dialogue": "dlg.ny_thanks"
         },
         {
           "wait": 2500

@@ -27,6 +27,8 @@ export interface NewYearData {
   curfew: string;
   /** Condição para ter a festa (ex.: depois do prólogo). */
   when: Condition;
+  /** Condição para o roteiro começar, já na hora (ex.: fora do café, ou no salão). Até lá, ela anda livre. */
+  startWhen: Condition;
   script: string;
   /** Pontos de coração com cada amigo que estava na rua. */
   points: number;

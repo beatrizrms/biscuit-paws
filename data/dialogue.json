@@ -1076,7 +1076,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Feliz Ano Novo! Olha o céu... que lindo!"
+          "text": "Olha o céu... que lindo!"
         }
       ]
     },
@@ -1085,7 +1085,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Feliz Ano Novo, {g:amiga|amigo}! O Joca tá escondido atrás de mim, coitado: ele morre de medo de fogos."
+          "text": "Feliz Ano Novo, {g:amiga|amigo}! Que venham muitos cafés por aqui."
         }
       ]
     },
@@ -1138,6 +1138,23 @@
         {
           "speaker": "{player}",
           "text": "A gente acha os fogos lindos, mas sabia que os animais sentem muito medo? Preparei um cantinho confortável pra eles lá dentro, bem protegido, pra que eles não fiquem assustados ❤️ Todo cuidado é pouco!"
+        }
+      ]
+    },
+    "dlg.ny_joca": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Nem me fala! O Joca já tá escondido atrás de mim, coitado. Ele morre de medo de fogos."
+        }
+      ]
+    },
+    "dlg.ny_thanks": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Feliz Ano Novo, gente! E {g:obrigada|obrigado} por me receberem tão bem na vila. Esse lugar já virou a minha casa."
         }
       ]
     }

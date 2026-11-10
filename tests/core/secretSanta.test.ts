@@ -12,6 +12,8 @@ const SS = content.festive.secretSanta;
 const S = content.seasons;
 const YEAR = S.daysPerSeason * S.order.length;
 const XMAS = SS.day; // inverno 25 do primeiro ano
+const HALL: [number, number] = [10, 7];
+const CELLAR: [number, number] = [20, 5]; // o porão (o quarto)
 
 /** Café funcionando, depois do prólogo; ela conhece a Gabi (e o Joca) e a Dona Neusa. */
 function cafe(day: number, time = 10 * 60) {
@@ -21,6 +23,7 @@ function cafe(day: number, time = 10 * 60) {
   state.story.completed.push(...content.story.beats.map((b) => b.id));
   Object.assign(state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
   const session = new GameSession(content, state);
+  session.setPlayerCell(HALL); // no salão
   const events: { name: string; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   return { session, state, events };
@@ -66,6 +69,16 @@ describe('amigo secreto: o sorteio', () => {
     expect(night.state.secretSanta).toBeNull();
   });
 
+  it('com ela em outro cômodo (o porão), a Gabi espera ela voltar para o salão', () => {
+    const { session, state } = cafe(SS.drawDay);
+    session.setPlayerCell(CELLAR);
+    session.checkSecretSanta();
+    expect(state.secretSanta).toBeNull();
+    session.setPlayerCell(HALL);
+    session.checkSecretSanta();
+    expect(state.secretSanta).not.toBeNull();
+  });
+
   it('o sorteio do ano passado não vale: no inverno seguinte, sorteia de novo', () => {
     const { session, state } = cafe(YEAR + SS.drawDay);
     state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'done', result: 'loved' };
@@ -103,6 +116,17 @@ describe('amigo secreto: o Natal', () => {
     expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
     session.secretSantaExchange();
     expect(session.goHomeProblem()).toBeNull();
+  });
+
+  it('a ceia só começa com ela no salão ou fora do café (no porão, ela anda livre até sair de lá)', () => {
+    const { session, state, events } = cafe(XMAS, 19 * 60);
+    state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
+    session.setPlayerCell(CELLAR);
+    session.checkSecretSanta();
+    expect(named(events, 'script.requested')).toEqual([]);
+    state.location = 'map.street';
+    session.checkSecretSanta();
+    expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
   });
 
   it('o presente que a pessoa gosta vale mais; os convidados ganham um pouco pela noite', () => {
