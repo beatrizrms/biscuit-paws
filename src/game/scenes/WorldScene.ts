@@ -447,8 +447,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Som: eventos -> efeitos e jingles; música e ambiente do lugar (dia/noite) a cada quadro (data/audio.json).
     this.sounds = new SoundEvents(this.session, services().audio);
     this.session.start(this.isNew);
-    // F5: o jogo volta pausado (menu de pausa aberto e música parada), onde ela estiver; uma vez por carregamento.
-    if (!reloadPauseShown && pageWasReloaded()) {
+    // F5: o jogo salvo volta pausado (menu de pausa aberto e música parada), onde ela estiver; uma vez por carregamento.
+    // Jogo novo começa direto, sem a pausa.
+    if (!reloadPauseShown && !this.isNew && pageWasReloaded()) {
       reloadPauseShown = true;
       this.time.delayedCall(0, () => this.openPause());
     }
@@ -459,6 +460,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.ui.paused = true;
     // A música de fundo para enquanto o menu de pausa está aberto.
     services().audio.setMusicPaused(true);
+    // Congela tudo: a cena inteira para (gatos, clientes, animações, tweens, física e relógio); o menu é HTML e segue.
+    this.scene.pause();
     openPause(document.getElementById('ui')!, {
       save: async () => {
         await saveNow(this.session, this.slot);
@@ -467,11 +470,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       toMenu: async () => {
         await saveNow(this.session, this.slot);
         services().audio.fadeOutAll();
+        this.scene.resume(); // o fade da câmera só anda com a cena rodando
         this.cameras.main.fadeOut(400, 27, 33, 64);
         // Recarrega sem os atalhos da URL: volta à Home com tudo limpo.
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (window.location.href = window.location.pathname));
       },
       onClose: () => {
+        this.scene.resume();
         this.ui.paused = false;
         services().audio.setMusicPaused(false);
       },
