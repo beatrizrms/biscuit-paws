@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
+import { cellsOf, doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
@@ -1082,8 +1082,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
     // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
-    const bowl = this.session.bowlNear(this.playerCells(), target);
-    const box = bowl ? undefined : this.session.litterNear(this.playerCells(), target);
+    // As duas por perto (a tigela e a caixa lado a lado): vale a que está na frente dela.
+    const { bowl, box } = this.stationForHand(this.playerCells(), target);
     if (!bowl && !box) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
     if (this.usingItem) return true;
     if (box) {
@@ -1160,9 +1160,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (it) return cell(it.at, `int_${Object.keys(it.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
     const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
     if (dirt) return floor(dirt.at, 'dirt');
-    const bowl = s.bowlNear(feet);
+    const { bowl, box } = this.stationForHand(feet);
     if (bowl && !s.feedProblem(bowl)) return floor(st.placed.find((p) => p.uid === bowl)!.at, 'bowl');
-    const box = s.litterNear(feet);
     if (box && !s.litterProblem(box)) return floor(st.placed.find((p) => p.uid === box)!.at, 'litter');
     if (!s.atHome()) return null;
     const cat = nearCat();
@@ -1451,6 +1450,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   // ---------- Atendimento ----------
+
+  /**
+   * Tigela ou caixa de areia ao alcance. Com as duas perto (lado a lado), vale a que está bem na frente dela; senão, a
+   * mais perto da célula da frente (como os equipamentos do café: stationInReach).
+   */
+  private stationForHand(feet: readonly Cell[], target?: Cell): { bowl?: string; box?: string } {
+    const bowl = this.session.bowlNear(feet, target);
+    const box = this.session.litterNear(feet, target);
+    if (!bowl || !box) return bowl ? { bowl } : box ? { box } : {};
+    const [fc, fr] = this.facingCell();
+    const { tiles } = this.session.content.catalog;
+    const dist = (uid: string) => {
+      const p = this.session.state.placed.find((x) => x.uid === uid)!;
+      const def = tiles[this.session.content.items[p.item]?.tile ?? ''];
+      const cells: Cell[] = def ? cellsOf(p.at, def) : [p.at];
+      return Math.min(...cells.map(([c, r]) => Math.abs(c - fc) + Math.abs(r - fr)));
+    };
+    return dist(box) < dist(bowl) ? { box } : { bowl };
+  }
 
   /** Célula na frente dela (para soltar o que está nas mãos). */
   private facingCell(): Cell {
