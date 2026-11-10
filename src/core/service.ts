@@ -13,6 +13,7 @@ import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem } from './schedule';
+import { recordDoses, recordGaveUp, recordServed } from './stats';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
@@ -183,6 +184,7 @@ export class CafeService {
       this.st.pantryOpen[itemId]! -= 1;
       if (this.st.pantryOpen[itemId] === 0) delete this.st.pantryOpen[itemId];
     }
+    recordDoses(this.st.stats, itemId, n);
   }
 
   /** Dá para fazer com os ingredientes de agora? E sai premium (todas as trocas premium disponíveis)? */
@@ -558,6 +560,8 @@ export class CafeService {
       this.h.bus.emit('customer.left', { customerId: c.id, happy });
       return;
     }
+    // Desistiu (a paciência acabou): conta nas estatísticas e quebra a sequência "ninguém sai de mãos vazias".
+    if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
     const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy);
     const reputation = reviewReputation(cfg, stars);
@@ -746,6 +750,7 @@ export class CafeService {
     c.stage = 'drinking';
     c.until = this.now() + this.cfg.consumeMinutes[c.kind];
     this.st.service.served++;
+    recordServed(this.st.stats);
     this.h.addMoney(price + tip, `sale:${r.id}`);
     this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality });
     this.handsChanged();

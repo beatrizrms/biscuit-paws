@@ -13,11 +13,12 @@ import type { ArrivalsState } from './arrivals';
 import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
+import { normalizeStats } from './stats';
 
-export const SAVE_SCHEMA_VERSION = 26;
+export const SAVE_SCHEMA_VERSION = 27;
 
-export interface SaveV26 extends GameState {
-  schemaVersion: 26;
+export interface SaveV27 extends GameState {
+  schemaVersion: 27;
   savedAt: string;
 }
 
@@ -150,10 +151,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
    * lá); a leitura (pantry null) passa todos para a despensa, para o café não parar.
    */
   25: (save) => ({ ...save, schemaVersion: 26, pantry: null }),
+  /**
+   * v26 -> v27: estatísticas do café (app Café em números e selos). Saves antigos começam do zero (o total de
+   * atendidos já existia em service.served e os gatos já abrigados vêm de cats).
+   */
+  26: (save) => ({ ...save, schemaVersion: 27, stats: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV26 = { schemaVersion: 26, savedAt: now.toISOString(), ...state };
+  const save: SaveV27 = { schemaVersion: 27, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -205,7 +211,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV26>;
+  const v2 = save as unknown as Partial<SaveV27>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -350,6 +356,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       Object.entries(v2.hintUses ?? {}).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0),
     ),
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
+    stats: normalizeStats(v2.stats, (id) => known.items.has(id)),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),

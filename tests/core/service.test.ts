@@ -640,6 +640,8 @@ describe('avaliação dos clientes (estrelas)', () => {
     expect(left(events)).toEqual([{ customerId: 'c1', happy: true, stars: 5, reputation: content.service.review.reputation['5'] }].map(({ customerId, ...r }) => ({ customerId, ...r })));
     expect(state.reputation.value).toBe(content.service.review.reputation['5']!);
     expect(session.hallDirt()).toBe(1);
+    // Estatísticas do dia: um atendido e as doses do café preto.
+    expect(state.stats.today).toMatchObject({ served: 1, gaveUp: 0, doses: content.recipes['recipe.black_coffee']!.ingredients });
   });
 
   it('esperou muito sentado: perde estrelas; salão sujo também', () => {
@@ -668,6 +670,7 @@ describe('avaliação dos clientes (estrelas)', () => {
     expect(gaveUp.length).toBeGreaterThanOrEqual(2); // o sentado e o da fila
     expect(gaveUp.every((e) => e.stars === content.service.review.gaveUp)).toBe(true);
     expect(state.reputation.value).toBeLessThan(10);
+    expect(state.stats.today.gaveUp).toBe(gaveUp.length);
   });
 });
 

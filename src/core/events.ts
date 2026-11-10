@@ -3,6 +3,7 @@
 import type { Cell } from './map';
 import type { BusinessStage } from './business';
 import type { Schedule } from './schedule';
+import type { StreakId } from './stats';
 
 /** Por que o dia acabou (ver 'day.ended'). */
 export type DayEndReason = 'home' | 'passOut' | 'story' | 'sleep' | 'curfew' | 'tired';
@@ -24,6 +25,9 @@ export interface GameEvents {
   /** Um mini game acabou (as moedas já entraram). */
   'reputation.changed': { from: number; to: number; amount: number; reason: string };
   'reputation.threshold_reached': { thresholdId: string; value: number };
+  /** Estatísticas (src/core/stats.ts): o dia fechou no registro; uma sequência de bom comportamento quebrou. */
+  'stats.day_closed': { day: number; served: number; gaveUp: number; open: boolean; untreated: number };
+  'stats.streak_broken': { streak: StreakId };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
   'arrival.step': { arrivalId: string; step: number };
