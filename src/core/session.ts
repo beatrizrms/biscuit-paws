@@ -27,7 +27,7 @@ import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } fr
 const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, yearOf, type CalendarEntry } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, weatherOf, yearLength, yearOf, type CalendarEntry } from './calendar';
 import { isNewYearEve, newYearFlag } from './newYear';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
@@ -2522,6 +2522,29 @@ export class GameSession {
     if (def.idea) this.bus.emit('dialogue.requested', { dialogueId: def.idea });
     const a = this.state.festivals.active!;
     if (a.stage === 'scheduled') this.bus.emit('festival.scheduled', { festivalId: def.id, day: a.day! });
+  }
+
+  /**
+   * Debug: pula para um momento de Natal/Ano Novo (deste ano, ou do próximo se já passou), forçando as condições
+   * (prólogo feito; Gabi, Joca e Dona Neusa conhecidos). "draw": inverno 18, 9:59 (o sorteio; a interface leva ao café); "party":
+   * inverno 25, 18:59, com um amigo já tirado (a ceia); "newyear": inverno 30, 23:29 (os fogos).
+   */
+  debugFestive(what: 'draw' | 'party' | 'newyear'): void {
+    const { secretSanta: ss, newYear: ny } = this.content.festive;
+    const seasons = this.content.seasons;
+    const [season, d, clock] = what === 'draw' ? [ss.season, ss.drawDay, '09:59'] : what === 'party' ? [ss.season, ss.day, '18:59'] : [ny.season, ny.day, '23:29'];
+    let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, season) + d - 1;
+    if (day < this.state.day) day += yearLength(seasons);
+    Object.assign(this.state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
+    this.state.day = day;
+    this.state.time = parseClock(clock);
+    this.santaPartyRequestedOn = 0;
+    if (what === 'draw') this.state.secretSanta = null;
+    else if (what === 'party') {
+      const drawn = drawFriend(this.santaGuests(), createRng(day));
+      if (drawn) this.state.secretSanta = { year: yearOf(seasons, day), drawn, stage: 'drawn' };
+    } else delete this.state.flags[newYearFlag(seasons, day)];
+    this.bus.emit('day.started', { day });
   }
 
   /**

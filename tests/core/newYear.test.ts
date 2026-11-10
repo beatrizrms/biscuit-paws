@@ -60,6 +60,19 @@ describe('Ano Novo: fogos à meia-noite na rua', () => {
     expect(state.flags['newyear.seen.2']).toBe(true);
   });
 
+  it('debug: pula para o sorteio, a ceia e os fogos, um minuto antes', () => {
+    const { session, state } = cafe(3, 10 * 60);
+    session.debugFestive('draw');
+    expect([state.day, state.time, state.secretSanta]).toEqual([content.festive.secretSanta.drawDay, 9 * 60 + 59, null]);
+    session.debugFestive('party');
+    expect([state.day, state.time, state.secretSanta?.stage]).toEqual([content.festive.secretSanta.day, 18 * 60 + 59, 'drawn']);
+    state.flags['newyear.seen.1'] = true;
+    session.debugFestive('newyear');
+    expect([state.day, state.time, session.newYearPending()]).toEqual([EVE, 23 * 60 + 29, true]);
+    session.debugFestive('draw'); // já passou: o do ano que vem
+    expect(state.day).toBe(YEAR + content.festive.secretSanta.drawDay);
+  });
+
   it('a manhã do último dia do ano avisa dos fogos', () => {
     const { session, events } = cafe(EVE - 1, 20 * 60);
     session.endDay('home');

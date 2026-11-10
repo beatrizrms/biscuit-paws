@@ -74,6 +74,8 @@ const UPGRADE_BLINK_MS = 420;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
+/** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
+const AUTOWALK_STUCK_MS = 700;
 const FADE_MS = 160;
 /** Quantas vezes o relógio corre mais rápido ao "Esperar". */
 const WAIT_SPEED = 40;
@@ -203,7 +205,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Esperas dos roteiros: resolvem quando a condição vale (conferido a cada quadro). */
   private waiters: { until: () => boolean; resolve: () => void }[] = [];
   /** Caminhada da jogadora guiada por roteiro. */
-  private autoWalk: { x: number; y: number; resolve: () => void } | null = null;
+  /**
+   * Caminhada de roteiro (playerWalk): o alvo, a menor distância já alcançada e desde quando ela não melhora (para
+   * perceber que travou num móvel ou parede) e se já tentou ir primeiro na vertical.
+   */
+  private autoWalk: { x: number; y: number; resolve: () => void; best?: number; since?: number; verticalFirst?: boolean } | null = null;
   private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
   private doorLocked = false;
@@ -2689,19 +2695,38 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     );
   }
 
-  /** Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). */
+  /**
+   * Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). Se ela parar de chegar mais
+   * perto (um móvel ou parede no caminho), tenta primeiro na vertical; travou de novo, desiste e fica onde está, e o
+   * roteiro segue (antes, ela ficava empurrando a parede para sempre).
+   */
   private autoWalkInput(): { up: boolean; down: boolean; left: boolean; right: boolean } {
     const t = this.autoWalk!;
     const dx = t.x - this.player.x;
     const dy = t.y - this.player.y;
-    if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
-      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+    const done = () => {
       this.autoWalk = null;
       t.resolve();
       return NO_INPUT;
+    };
+    if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+      return done();
     }
-    if (Math.abs(dx) > 1.5) return { up: false, down: false, left: dx < 0, right: dx > 0 };
-    return { up: dy < 0, down: dy > 0, left: false, right: false };
+    const dist = Math.abs(dx) + Math.abs(dy);
+    const now = this.time.now;
+    if (t.best === undefined || dist < t.best - 1) {
+      t.best = dist;
+      t.since = now;
+    } else if (now - (t.since ?? now) > AUTOWALK_STUCK_MS) {
+      if (t.verticalFirst) return done();
+      t.verticalFirst = true;
+      t.best = dist;
+      t.since = now;
+    }
+    const vertical = Math.abs(dy) > 1.5 && (t.verticalFirst || Math.abs(dx) <= 1.5);
+    if (vertical) return { up: dy < 0, down: dy > 0, left: false, right: false };
+    return { up: false, down: false, left: dx < 0, right: dx > 0 };
   }
 
   // ---------- Para testes e depuração ----------
