@@ -106,6 +106,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Potes e caminhas: colidem só com ela (world.playerBlockTiles). */
   private playerSolids?: Phaser.Physics.Arcade.StaticGroup;
   private playerSolidCollider?: Phaser.Physics.Arcade.Collider;
+  /** Clientes sentados: a cadeira dele vira sólida só para ela (refeito quando alguém senta ou levanta). */
+  private seatedSolids?: Phaser.Physics.Arcade.StaticGroup;
+  private seatedCollider?: Phaser.Physics.Arcade.Collider;
+  private seatedKey = '';
   /**
    * Posicionando: um item da mochila, ou (moveUid) um móvel do café mudando de lugar, com o que está em cima dele
    * (riders: fantasmas que acompanham, já na altura do tampo).
@@ -1538,7 +1542,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
       if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) return report(sv.pickUp(station.at));
-      if (st.hands.length === 0 || bringsWip) return report(this.withPose(sv.prepare(station.uid), equipment === 'stove' ? 'stir' : 'operate'));
+      if (st.hands.length === 0 || bringsWip) {
+        const pose = equipment === 'stove' ? 'stir' : 'operate';
+        const r = sv.prepare(station.uid);
+        if (r.ok || r.reason !== 'nothing_to_prepare') return report(this.withPose(r, pose));
+        // Ninguém pediu: ela pode adiantar uma receita do cardápio (escolhe na lista; uma só, já começa).
+        const options = sv.extraRecipes(station.uid);
+        if (options.length === 0) return report(r);
+        if (options.length === 1) return report(this.withPose(sv.prepare(station.uid, options[0]), pose));
+        const names = options.map((id) => this.session.content.recipes[id]?.name ?? id);
+        void this.ui.choose(uiText.service.extraAsk, [...names, uiText.service.extraCancel]).then((i) => {
+          if (i < options.length) report(this.withPose(sv.prepare(station.uid, options[i]), pose));
+        });
+        return true;
+      }
     }
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
@@ -1900,6 +1917,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const street = this.session.content.map.doors?.find((d) => d.id === 'door.street');
     const door: Cell = street ? [street.at[0], street.at[1]] : [14, 10];
     const alive = new Set<string>();
+    const seated: Cell[] = [];
     for (const c of this.session.state.service.customers) {
       alive.add(c.id);
       let view = this.customerViews.get(c.id);
@@ -1935,10 +1953,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const dx = c.dishAt[0] - c.spot[0];
         const dy = c.dishAt[1] - c.spot[1];
         view.sit(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down', ySortDepth((c.spot[1] + 1) * ts));
+        seated.push(c.spot);
       }
       view.update();
     }
     this.customersFresh = false;
+    this.syncSeatedSolids(seated);
     for (const [id, view] of this.customerViews) {
       if (alive.has(id) || view.leaving) {
         if (view.leaving) view.update();
@@ -1962,7 +1982,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     withBubble.forEach(({ v }, i) => v.update(offsets[i]));
   }
 
+  /** Ela não atravessa quem está sentado: a base da cadeira ocupada bloqueia, como a dos móveis (objectBaseDepth). */
+  private syncSeatedSolids(seated: readonly Cell[]): void {
+    const key = seated.map(([c, r]) => `${c},${r}`).sort().join(' ');
+    if (key === this.seatedKey && this.seatedSolids) return;
+    this.seatedKey = key;
+    this.seatedCollider?.destroy();
+    this.seatedSolids?.destroy(true);
+    this.seatedSolids = this.physics.add.staticGroup();
+    const ts = this.map.tileSize;
+    const h = Math.round(ts * Math.min(1, Math.max(0.1, this.session.content.world.objectBaseDepth ?? 1)));
+    for (const [c, r] of seated) this.seatedSolids.add(this.add.zone(c * ts + ts / 2, (r + 1) * ts - h / 2, ts, h));
+    this.seatedCollider = this.physics.add.collider(this.player, this.seatedSolids);
+  }
+
   private clearCustomers(): void {
+    this.syncSeatedSolids([]);
     this.customerViews.forEach((v) => v.destroy());
     this.customerViews.clear();
     this.equipAnims.forEach((s) => s.destroy());

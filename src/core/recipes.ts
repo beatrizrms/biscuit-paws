@@ -70,6 +70,8 @@ export interface ServiceConfig {
   patienceMinutes: number;
   /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */
   shoppingListBelow: number;
+  /** Sem pedido, ela pode adiantar uma receita; cada equipamento (o da 1ª etapa) só tem até tantos itens sem dono. */
+  extraPerEquipment: number;
   /** Quanto tempo ele fica consumindo. */
   consumeMinutes: Record<ServiceKind, number>;
   /** Quando o atendimento funciona (ex.: depois das cadeiras, com cafeteira, mesa e cadeira). */
@@ -152,6 +154,7 @@ export function validateRecipes(
     if (!(r.price > 0)) errors.push(`${where}: preço precisa ser positivo`);
   }
   if (!(service.menuSlots >= 1)) errors.push('service: menuSlots precisa ser 1 ou mais');
+  if (!Number.isInteger(service.extraPerEquipment) || service.extraPerEquipment < 0) errors.push('service: extraPerEquipment precisa ser um inteiro, 0 ou mais');
   for (const v of VESSELS) {
     const at = service.servedAt?.[v] ?? [];
     if (at.length === 0 || at.some((k) => !['standing', 'table'].includes(k))) errors.push(`service: servedAt "${v}" precisa de "standing" e/ou "table"`);

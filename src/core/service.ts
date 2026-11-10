@@ -74,6 +74,7 @@ export type ServiceProblem =
   | 'nothing_to_prepare'
   | 'equipment_locked'
   | 'equipment_off_menu'
+  | 'extra_ready'
   | 'station_busy'
   | 'no_ingredients'
   | 'no_vessel'
@@ -590,9 +591,10 @@ export class CafeService {
 
   /**
    * No equipamento: se ela traz a massa da etapa anterior, começa a próxima etapa; senão, começa a primeira etapa
-   * do pedido mais antigo que este equipamento sabe começar e que ninguém está fazendo.
+   * do pedido mais antigo que este equipamento sabe começar e que ninguém está fazendo. Sem pedido, faz `extra`
+   * (uma receita do cardápio que ela escolheu), se o equipamento ainda não tem um item sem dono.
    */
-  prepare(stationUid: string): ServiceResult {
+  prepare(stationUid: string, extra?: string): ServiceResult {
     const equipment = this.equipmentOf(stationUid);
     const sv = this.st.service;
     if (!equipment) return { ok: false, reason: 'nothing_to_prepare' };
@@ -611,8 +613,9 @@ export class CafeService {
       return { ok: true };
     }
     const pending = this.pendingFor(equipment);
-    if (!pending) return { ok: false, reason: this.idleReason(equipment) };
-    const r = this.recipe(pending.recipe!)!;
+    if (!pending && !extra) return { ok: false, reason: this.idleReason(equipment) };
+    if (!pending && !this.extraRecipes(stationUid).includes(extra!)) return { ok: false, reason: this.idleReason(equipment) };
+    const r = this.recipe(pending?.recipe ?? extra!)!;
     const ing = this.ingredientsFor(r);
     if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
     if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
@@ -622,27 +625,50 @@ export class CafeService {
     return { ok: true };
   }
 
+  /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
+  private covered(recipe: string): number {
+    return (
+      this.st.service.preps.filter((p) => p.recipe === recipe).length +
+      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length
+    );
+  }
+
   /** Cliente esperando um pedido que começa neste equipamento e ainda não tem nada a caminho (preparando, massa ou pronto). */
   private pendingFor(equipment: string): Customer | undefined {
-    const sv = this.st.service;
-    const covered = (recipe: string) =>
-      sv.preps.filter((p) => p.recipe === recipe).length +
-      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length;
-    const waiting = sv.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
-    return waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= covered(c.recipe!));
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
+    return waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= this.covered(c.recipe!));
+  }
+
+  /** Itens sem dono das receitas que começam neste equipamento: a caminho além dos pedidos esperando. */
+  extraCount(equipment: string): number {
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting');
+    return Object.values(this.h.content.recipes)
+      .filter((r) => r.steps[0]?.equipment === equipment)
+      .reduce((n, r) => n + Math.max(0, this.covered(r.id) - waiting.filter((c) => c.recipe === r.id).length), 0);
   }
 
   /**
-   * Por que o equipamento não tem o que preparar: nenhuma receita dele liberada ainda, nenhuma no cardápio, ou
-   * nenhum cliente pediu agora.
+   * Sem pedido: as receitas do cardápio (liberadas) que ela pode adiantar neste equipamento, na ordem do quadro.
+   * Vazio se o equipamento já tem `extraPerEquipment` itens sem dono.
    */
-  private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'nothing_to_prepare' {
+  extraRecipes(stationUid: string): string[] {
+    const equipment = this.equipmentOf(stationUid);
+    if (!equipment || this.extraCount(equipment) >= this.cfg.extraPerEquipment) return [];
+    return this.st.menu.filter((id) => this.recipe(id)?.steps[0]?.equipment === equipment && this.recipeStatus(id) !== 'locked');
+  }
+
+  /**
+   * Por que o equipamento não tem o que preparar: nenhuma receita dele liberada ainda, nenhuma no cardápio, já tem
+   * um item sem dono dele, ou nenhum cliente pediu agora (aí ela pode escolher uma receita para adiantar).
+   */
+  private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'extra_ready' | 'nothing_to_prepare' {
     const recipes = Object.values(this.h.content.recipes).filter((r) => r.steps[0]?.equipment === equipment);
     // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
     if (recipes.length === 0) return 'nothing_to_prepare';
     const unlocked = recipes.filter((r) => this.recipeStatus(r.id) !== 'locked');
     if (unlocked.length === 0) return 'equipment_locked';
     if (!unlocked.some((r) => this.st.menu.includes(r.id))) return 'equipment_off_menu';
+    if (this.extraCount(equipment) >= this.cfg.extraPerEquipment) return 'extra_ready';
     return 'nothing_to_prepare';
   }
 

@@ -231,6 +231,7 @@
     "hands_full": "Suas mãos estão ocupadas.",
     "hands_empty": "Você não está segurando nada.",
     "nothing_to_prepare": "Nenhum cliente pediu nada deste equipamento agora.",
+    "extra_ready": "Já tem um feito aqui sem ninguém ter pedido. Espere alguém pedir.",
     "equipment_locked": "Ainda não tem receita liberada para este equipamento. Atenda mais clientes para liberar.",
     "equipment_off_menu": "Nenhuma receita deste equipamento está no cardápio. Ponha uma no quadro (M).",
     "station_busy": "O equipamento está ocupado. Pegue o que está pronto primeiro.",
@@ -567,6 +568,8 @@
   "service": {
     "prepStarted": "Preparando: {name}",
     "prepReady": "{name} pronto!",
+    "extraAsk": "Ninguém pediu ainda. Adiantar o quê?",
+    "extraCancel": "Nada agora",
     "served": "+{price} ({name})",
     "left": "Um cliente cansou de esperar e foi embora.",
     "washed": "Louça lavada.",

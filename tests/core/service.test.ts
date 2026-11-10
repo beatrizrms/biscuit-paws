@@ -168,10 +168,34 @@ describe('ciclo do pedido', () => {
     expect(state.dishes.cup).toBe(6);
   });
 
-  it('só prepara o que foi pedido; sem pedido, nada', () => {
-    const { session, sv } = openCafe();
+  it('sem pedido: ela escolhe uma receita do cardápio para adiantar, mas só 1 sem dono por equipamento', () => {
+    const { session, sv, state } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
-    expect(sv.prepare(coffeeMachineUid(session))).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+    const machine = coffeeMachineUid(session);
+    // Sem receita escolhida: diz que ninguém pediu (a cena abre a lista com as opções).
+    expect(sv.prepare(machine)).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+    expect(sv.extraRecipes(machine)).toEqual(['recipe.black_coffee']);
+    // Fora do cardápio, não.
+    expect(sv.prepare(machine, 'recipe.cafe_latte')).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+    expect(sv.prepare(machine, 'recipe.black_coffee')).toEqual({ ok: true });
+    expect(sv.extraCount('coffee_machine')).toBe(1);
+    expect(sv.doses('item.coffee_ground')).toBe(9);
+    // Pronto e levado para o balcão: continua sem dono, e a cafeteira não faz outro sem pedido.
+    state.service.preps = [];
+    state.surfaces.push({ at: [4, 5], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup', quality: 'simple' } });
+    expect(sv.extraRecipes(machine)).toEqual([]);
+    expect(sv.prepare(machine)).toEqual({ ok: false, reason: 'extra_ready' });
+    expect(sv.prepare(machine, 'recipe.black_coffee')).toEqual({ ok: false, reason: 'extra_ready' });
+    // Um cliente pede café: o pronto é dele (nada a preparar para ele) e ela pode adiantar outro.
+    state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: 99999, favorite: null, wantsPremium: false });
+    expect(sv.extraCount('coffee_machine')).toBe(0);
+    expect(sv.stationHasWork(machine)).toBe(false);
+    expect(sv.prepare(machine)).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+    expect(sv.extraRecipes(machine)).toEqual(['recipe.black_coffee']);
+    // Com pedido esperando e nada a caminho, o pedido vem antes da receita escolhida.
+    state.surfaces = [];
+    expect(sv.prepare(machine, 'recipe.black_coffee')).toEqual({ ok: true });
+    expect(sv.extraCount('coffee_machine')).toBe(0);
   });
 
   it('sem ingrediente ou sem louça limpa, a receita fica esgotada e ninguém pede', () => {
