@@ -122,7 +122,9 @@ function sheet(rows: PNG[][]): PNG {
   return out;
 }
 
-const cats: Record<string, () => PNG[][]> = { ruivo, frajola: fromBase('frajola') };
+// O ruivo é a âncora; cada pasta base_<pelagem> (fora a do ruivo) vira a folha cat_<pelagem>.png.
+const coats = fs.readdirSync(SRC).filter((d) => d.startsWith('base_') && d !== 'base_ruivo').map((d) => d.slice(5));
+const cats: Record<string, () => PNG[][]> = { ruivo, ...Object.fromEntries(coats.map((c) => [c, fromBase(c)])) };
 fs.mkdirSync(OUT, { recursive: true });
 for (const [variant, build] of Object.entries(cats)) {
   const file = path.join(OUT, `cat_${variant}.png`);

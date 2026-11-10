@@ -89,10 +89,30 @@
     "snowdrop": "assets/characters/cats/cat_snowdrop.png",
     "toffee": "assets/characters/cats/cat_toffee.png",
     "ruivo": "assets/characters/cats/cat_ruivo.png",
-    "frajola": "assets/characters/cats/cat_frajola.png"
+    "frajola": "assets/characters/cats/cat_frajola.png",
+    "preto": "assets/characters/cats/cat_preto.png",
+    "siames": "assets/characters/cats/cat_siames.png",
+    "tricolor": "assets/characters/cats/cat_tricolor.png",
+    "escaminha": "assets/characters/cats/cat_escaminha.png",
+    "cinza": "assets/characters/cats/cat_cinza.png",
+    "branco": "assets/characters/cats/cat_branco.png",
+    "tigrado": "assets/characters/cats/cat_tigrado.png",
+    "blue_point": "assets/characters/cats/cat_blue_point.png",
+    "red_point": "assets/characters/cats/cat_red_point.png",
+    "creme": "assets/characters/cats/cat_creme.png"
   },
   "resolutions": {
     "ruivo": 2,
-    "frajola": 2
+    "frajola": 2,
+    "preto": 2,
+    "siames": 2,
+    "tricolor": 2,
+    "escaminha": 2,
+    "cinza": 2,
+    "branco": 2,
+    "tigrado": 2,
+    "blue_point": 2,
+    "red_point": 2,
+    "creme": 2
   }
 }
