@@ -7,6 +7,7 @@
 import type { CatProfile, GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
 import { content, phone, uiText } from '../content';
+import { catSexText } from './vetText';
 import { CalendarApp } from './CalendarApp';
 import { MarketApp, type MarketHost } from './MarketApp';
 import { fillNames } from './text';
@@ -307,6 +308,21 @@ export class NewsPanel {
     return bar(t.happiness, t.happinessTitle, care.happiness, cfg.low.happiness) + bar(t.hygiene, t.hygieneTitle, care.hygiene, cfg.low.hygiene);
   }
 
+  /** Ficha do gato: castração (castrado, não castrado ou "não sei ainda"), clínica/cercadinho, remédio e adoção. */
+  private clinicLines(p: CatProfile): string {
+    const t = uiText.cats;
+    const sexed = (text: string) => catSexText(this.session, text, p.id);
+    const repro = sexed(t.repro[p.repro.known]) + (p.repro.sex ? ` · ${t.sex[p.repro.sex]}` : '') + (p.repro.earTipped ? ` · ${t.earTipped}` : '');
+    const lines = [`<span class="repro">${esc(repro)}</span>`];
+    if (p.care) {
+      const text = p.care.complication ? t.care.complication : t.care[p.care.stage].replace('{day}', String(p.care.until ?? ''));
+      lines.push(`<span class="clinic-badge">${esc(text)}</span>`);
+    }
+    if (p.aftercare) lines.push(`<span class="clinic-badge">${esc(t.aftercare.replace('{given}', String(p.aftercare.dosesGiven)).replace('{days}', String(p.aftercare.days)))}</span>`);
+    if (p.adoption && p.adoption.reason !== 'in_care') lines.push(`<span class="adoption">${esc(sexed(t.adoption[p.adoption.reason]).replace('{day}', String(p.adoption.readyDay ?? '')))}</span>`);
+    return lines.join('');
+  }
+
   /** App "Meus gatos": uma ficha por gato abrigado, com o gato sentado (animado), corações e a rotina. */
   private catsHtml(): string {
     const t = uiText.cats;
@@ -327,6 +343,7 @@ export class NewsPanel {
           <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
           ${this.careBars(p.id)}
           ${p.sickness ? `<span class="sick-badge">${esc(this.sickText(p.sickness))}</span>` : ''}
+          ${this.clinicLines(p)}
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;
     });

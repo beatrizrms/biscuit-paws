@@ -24,6 +24,8 @@ export class DebugPanel {
   private cell = '-';
   /** Resultado do botão "gatilhos agora". */
   private note = '';
+  /** O estado reprodutivo real do gato escolhido (linha Castração), mesmo quando ela não sabe. */
+  private reproReal: () => string = () => '';
 
   constructor(
     root: HTMLElement,
@@ -83,6 +85,21 @@ export class DebugPanel {
         <button data-act="clean-down">higiene −20</button>
         <button data-act="sick-rx">doente c/ receita</button>
       </div>
+      <div class="buttons neuter">
+        <strong>Castração</strong>
+        <select data-dbg="repro-status"><option value="intact">inteiro</option><option value="neutered">castrado</option></select>
+        <select data-dbg="repro-known"><option value="unknown">ela não sabe</option><option value="intact">sabe: inteiro</option><option value="neutered">sabe: castrado</option></select>
+        <button data-act="repro-set">aplicar estado</button>
+        <input data-dbg="age" type="number" min="0" max="200" value="2" style="width:3.5em" title="idade (meses)"><button data-act="age-set">idade</button>
+        <input data-dbg="health" type="number" min="0" max="100" value="80" style="width:3.5em" title="saúde"><button data-act="health-set">saúde</button>
+        <button data-act="intake">→ consulta de entrada</button>
+        <button data-act="neuter-book">castrar (volta amanhã)</button>
+        <button data-act="clinic-morning">manhã da clínica</button>
+        <button data-act="recovery-end">fim do cercadinho</button>
+        <button data-act="clinic-full">lotar agenda</button>
+        <button data-act="complication">complicação</button>
+        <span data-dbg="repro-real"></span>
+      </div>
       <div class="buttons minigames">${actions
         .miniGames()
         .map((id) => ['easy', 'normal', 'hard'].map((d) => `<button data-mg="${id}" data-dif="${d}">${id} ${d}</button>`).join(''))
@@ -130,6 +147,28 @@ export class DebugPanel {
     on('clean-up', care('hygiene', 20));
     on('clean-down', care('hygiene', -20));
     on('sick-rx', () => careCat.value && session.debugSickWithPrescription(careCat.value));
+    // Castração: o gato da linha Cuidados.
+    const val = (name: string) => (panel.querySelector(`[data-dbg="${name}"]`) as HTMLInputElement | HTMLSelectElement).value;
+    const neuter = (fn: (catId: string) => void) => () => {
+      if (!careCat.value) return;
+      fn(careCat.value);
+      this.render();
+    };
+    on('repro-set', neuter((id) => session.debugRepro(id, val('repro-status') as 'intact' | 'neutered', val('repro-known') as 'unknown' | 'intact' | 'neutered')));
+    on('age-set', neuter((id) => session.debugAge(id, Number(val('age')))));
+    on('health-set', neuter((id) => session.debugHealth(id, Number(val('health')))));
+    on('intake', neuter((id) => session.debugIntake(id)));
+    on('neuter-book', neuter((id) => session.debugBookNeuter(id)));
+    on('clinic-morning', neuter(() => session.debugClinicMorning()));
+    on('recovery-end', neuter((id) => session.debugAdvanceRecovery(id)));
+    on('clinic-full', neuter(() => session.debugFillClinic()));
+    on('complication', neuter((id) => session.debugComplication(id)));
+    this.reproReal = () => {
+      const r = careCat.value ? session.state.cats[careCat.value]?.repro : undefined;
+      const stage = careCat.value ? session.state.cats[careCat.value]?.clinic?.stage : undefined;
+      return r ? `real: ${r.status === 'neutered' ? 'castrado' : 'inteiro'} (${r.sex === 'male' ? 'macho' : 'fêmea'}), ela sabe: ${r.known}${stage ? `, ${stage}` : ''}` : '';
+    };
+    careCat.addEventListener('change', () => this.render());
     // História: concluir marcos sem esperar a condição (sem as falas) e abrir/reformar os cômodos.
     const story = (text: string) => {
       this.note = text;
@@ -236,6 +275,8 @@ export class DebugPanel {
     const weather = weatherOf(this.session.content.seasons, this.session.state.day);
     const forced = this.session.arrivals.debug;
     const arrivals = `chegada ${ar.active ? `${ar.active.id} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'} · clima ${forced.weather ?? weather}${forced.cafeFull ? ' · CAFÉ CHEIO' : ''}${this.note ? ` · ${this.note}` : ''}`;
+    const real = this.status.parentElement?.querySelector('[data-dbg="repro-real"]');
+    if (real) real.textContent = this.reproReal();
     this.status.textContent = `célula ${this.cell} · reputação ${rep.value}${last ? ` (${last})` : ''} · ${arrivals} · marcos: ${done}`;
   }
 }

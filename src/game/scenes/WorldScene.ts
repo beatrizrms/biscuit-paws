@@ -25,7 +25,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, catObjectUses, itemUse, serviceArt, uiText } from '../content';
+import { broom, catObjectUses, content, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
 import { FireworksLayer } from '../FireworksLayer';
@@ -44,6 +44,7 @@ import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
 import { PLACED_PREFIX } from '../../core/placement';
+import type { PlacedItem } from '../../core/state';
 import { CareBubbles } from '../careBubbles';
 import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
@@ -54,6 +55,17 @@ import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
+/** Cercadinho (3x2): as 4 vagas dos gatos (x dos pés, px do mundo a partir do canto) e a linha dos pés. */
+const PEN_SLOTS_X = [26, 42, 58, 74];
+const PEN_FEET_Y = 43;
+/** A cerca da frente começa nesta fração da fileira de baixo (o que fica por cima dos gatos). */
+const PEN_FENCE_FROM = 14 / 64;
+
+/** A caixinha de transporte (tile do catálogo): o gato no colo fora do café e quem espera sem cercadinho. */
+function clinicBoxTile(): { sheet: string; frame: number } | null {
+  const def = content.catalog.tiles['vet_caixinha_gato'];
+  return def ? { sheet: def.sheet, frame: frameOf(content.catalog, def) } : null;
+}
 const PARCEL_PILE_STEP = 12;
 const PARCEL_HAND_SCALE = 0.36;
 const PARCEL_HAND_STEP = 9;
@@ -140,6 +152,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
+  /** Clínica: gatos que a cena segura (isolados ou internados: sem andar nem colidir) e as caixinhas do canto. */
+  private clinicHeld = new Set<string>();
+  private isoBoxes = new Map<string, Phaser.GameObjects.Image>();
   private debugPanel?: DebugPanel;
   private changingMap = false;
   private dayNight!: DayNightLayer;
@@ -520,7 +535,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.player.updateDepth();
     }
     this.updateRecoverIcon();
-    for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);
+    this.layoutClinicCats();
+    for (const cat of this.cats) if (cat.visible && !this.clinicHeld.has(cat.catId)) cat.tick(this.time.now);
     // Dica "E": recalcula 10 vezes por segundo (procurar o que está perto passa pelos pedidos todos).
     if (busy || this.placing) this.hint.show(null);
     else if (this.time.now - this.hintCheckedAt >= 100) {
@@ -663,6 +679,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.mapImages.add(img);
       if (s.obj) this.objectImages.set(s.obj, [...(this.objectImages.get(s.obj) ?? []), img]);
     }
+    this.buildPenFronts();
     // Luz e sombra de ambiente: refeitas junto com o mapa (inclui os móveis colocados).
     const { content } = this.session;
     // O céu das janelas abertas (as que jogam luz) segue a hora de fora: à noite, o vidro escurece.
@@ -758,6 +775,121 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     cam.pan(this.player.x, this.player.y - ts, 500, 'Sine.easeInOut');
     await this.wait(520);
     this.applyCamera();
+  }
+
+  // ---------- Clínica no café: cercadinho e caixinha ----------
+
+  /** Os cercadinhos posicionados neste mapa. */
+  private placedPens(): PlacedItem[] {
+    if (!this.session.atHome()) return [];
+    const item = this.session.content.clinic.pen.item;
+    return this.session.state.placed.filter((p) => p.item === item);
+  }
+
+  /** A cerca da frente de cada cercadinho, de novo por cima dos gatos lá dentro (a fileira de baixo, da cerca para baixo). */
+  private buildPenFronts(): void {
+    for (const p of this.placedPens()) {
+      const imgs = this.objectImages.get(PLACED_PREFIX + p.uid) ?? [];
+      const bottom = Math.max(...imgs.map((i) => i.y));
+      for (const img of imgs.filter((i) => i.y === bottom)) {
+        const fw = img.frame.width;
+        const cut = Math.round(fw * PEN_FENCE_FROM);
+        const front = this.add.image(img.x, img.y, img.texture.key, img.frame.name).setOrigin(0).setScale(img.scaleX).setCrop(0, cut, fw, img.frame.height - cut).setDepth(img.depth + 2);
+        this.mapImages?.add(front);
+      }
+    }
+  }
+
+  /**
+   * A cada quadro: internado some; isolado (esperando a consulta ou se recuperando) fica numa vaga do cercadinho
+   * (sentado ou dormindo) ou, sem vaga, na caixinha num canto; quem volta para a turma é solto na frente do cercadinho.
+   */
+  private layoutClinicCats(): void {
+    if (!this.session.atHome()) return;
+    const ts = this.map.tileSize;
+    const carried = this.session.service.carriedCat();
+    const a = this.session.penAssignments();
+    const slots = new Map<string, { x: number; y: number; depth: number }>();
+    for (const p of this.placedPens()) {
+      const depth = Math.max(...(this.objectImages.get(PLACED_PREFIX + p.uid) ?? []).map((i) => i.depth)) + 1;
+      (a.pen[p.uid] ?? []).forEach((id, i) => slots.set(id, { x: p.at[0] * ts + PEN_SLOTS_X[i % PEN_SLOTS_X.length]!, y: p.at[1] * ts + PEN_FEET_Y, depth }));
+    }
+    const inBox = new Set(a.box);
+    for (const cat of this.cats) {
+      const id = cat.catId;
+      if (id === carried) continue;
+      const place = this.session.catPlace(id);
+      const body = cat.body as Phaser.Physics.Arcade.Body;
+      if (place === 'with_others') {
+        if (this.clinicHeld.delete(id)) {
+          // Saiu do cercadinho (ou voltou da clínica): solto num lugar livre perto de onde estava.
+          const [c, r] = this.freeCellNear(cat.cell(), createRng(cellHash(id.length, ts)));
+          body.enable = true;
+          cat.setPosition(c * ts + ts / 2, (r + 1) * ts - 6).setVisible(true);
+          body.reset(cat.x, cat.y);
+        }
+        continue;
+      }
+      this.clinicHeld.add(id);
+      body.enable = false;
+      cat.setVelocity(0, 0);
+      const slot = slots.get(id);
+      if (place === 'ward' || !slot) cat.setVisible(false);
+      else {
+        cat.setVisible(true).setPosition(slot.x, slot.y).setDepth(slot.depth);
+        // Esperando a consulta: sentado; voltou da cirurgia: dormindo.
+        const anim = `${catTexture(this.session.catDef(id)?.variant ?? '')}-${this.session.state.cats[id]?.clinic?.stage === 'isolation' ? 'sleep' : 'sit'}`;
+        if (cat.anims.currentAnim?.key !== anim) cat.play(anim, true);
+      }
+      if (place === 'isolated' && inBox.has(id) && !this.isoBoxes.has(id)) this.isoBoxes.set(id, this.boxImage(id));
+    }
+    for (const [id, img] of this.isoBoxes) {
+      if (inBox.has(id) && id !== carried) continue;
+      img.destroy();
+      this.isoBoxes.delete(id);
+    }
+  }
+
+  /** A caixinha de um gato que espera sem cercadinho, num canto livre do salão. */
+  private boxImage(catId: string): Phaser.GameObjects.Image {
+    const ts = this.map.tileSize;
+    const box = clinicBoxTile()!;
+    const [c, r] = this.freeCellNear(this.map.spawn, createRng(cellHash(catId.length * 7, this.isoBoxes.size + 3)));
+    const bottom = (r + 1) * ts;
+    return this.add.image((c + 0.5) * ts, bottom, box.sheet, box.frame).setOrigin(0.5, 1).setScale(tileScale(box.sheet)).setDepth(ySortDepth(bottom));
+  }
+
+  /** E no cercadinho (ou na caixinha do canto): com a latinha, alimenta quem está lá; de mãos livres, pega um gato. */
+  private penInteract(target?: Cell): boolean {
+    if (!this.session.atHome()) return false;
+    const feet = this.playerCells();
+    const ts = this.map.tileSize;
+    const near = (cells: Cell[]) => cells.some((c) => (!target || (c[0] === target[0] && c[1] === target[1])) && feet.some((f) => Math.max(Math.abs(f[0] - c[0]), Math.abs(f[1] - c[1])) <= 1));
+    const a = this.session.penAssignments();
+    let where: string | null = null;
+    for (const p of this.placedPens()) {
+      const cells: Cell[] = [];
+      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 3; dx++) cells.push([p.at[0] + dx, p.at[1] + dy]);
+      if (near(cells)) where = p.uid;
+    }
+    if (!where) for (const [id, img] of this.isoBoxes) if (near([[Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)]])) where = 'box', void id;
+    if (!where) return false;
+    const st = this.session.state;
+    if (this.session.holdingRecoveryFood()) {
+      const r = this.session.feedIsolated(where);
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      return true;
+    }
+    // Remédio (ou outra ferramenta) ativo: o E segue para o gato (o remédio escondido do pós-cirurgia).
+    if (st.hands.length > 0 || st.tray || this.session.holdingMedicine() || this.session.careGameInHand()) return false;
+    // De mãos livres: pega quem precisa ir à clínica primeiro (consulta ou pontinho), senão o primeiro.
+    const cats = where === 'box' ? a.box : (a.pen[where] ?? []);
+    const urgent = cats.find((id) => { const c = st.cats[id]?.clinic; return c?.stage === 'intake' || (c?.stage === 'isolation' && c.complication); });
+    const pick = urgent ?? cats[0];
+    if (!pick) return false;
+    const r = this.session.service.pickUpCat(pick);
+    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    return true;
   }
 
   /** Põe um gato no mapa atual, perto de `near` (ou num lugar livre qualquer). */
@@ -1113,6 +1245,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
+    if (this.penInteract(target)) return true;
     const ahead = !target ? this.catAhead() : undefined;
     if (ahead && !this.handStationReady()) {
       const at = ahead.cell();
@@ -1357,7 +1490,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const [fc, fr] = this.facingCell();
     const feet = this.playerCells();
     return this.cats.find((c) => {
-      if (!c.visible) return false;
+      // No cercadinho (isolado) não conta: lá o E vai no cercadinho.
+      if (!c.visible || this.clinicHeld.has(c.catId)) return false;
       const [cc, cr] = c.cell();
       return (cc === fc && cr === fr) || feet.some((f) => f[0] === cc && f[1] === cr);
     });
@@ -1374,7 +1508,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.session.atHome()) return false;
     const feet = this.playerCells();
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
-    const cat = this.cats.find((c) => c.visible && this.session.catSettling(c.catId) && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    const cat = this.cats.find((c) => c.visible && !this.clinicHeld.has(c.catId) && this.session.catSettling(c.catId) && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
     if (!cat) return false;
     void this.openMiniGame('trust', { difficulty: this.session.settleDifficulty(cat.catId), catId: cat.catId });
     return true;
@@ -2038,7 +2172,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Mãos: o ícone vai na frente dela.
     // Caixas nas mãos: a pose de carregar, a mesma do gato no colo, sem gato desenhado.
     const boxes = this.carriedImages.length > 0;
-    const key = JSON.stringify([st.hands, st.tray, boxes]);
+    const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome()]);
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
@@ -2073,8 +2207,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         for (const cat of this.cats) if (cat.catId === catId) cat.setVisible(false).setVelocity(0, 0);
         const variant = this.session.catDef(catId)?.variant ?? '';
         CatSprite.createAnimations(this, variant); // fora do café o gato pode não ter aparecido no mapa ainda
+        // Fora do café (indo ou voltando da clínica), ele vai na caixinha de transporte.
+        const box = !this.session.atHome() ? clinicBoxTile() : null;
+        if (box) this.carriedCatSprite = this.add.sprite(0, 0, box.sheet, box.frame).setOrigin(0.5, 0.95).setScale(tileScale(box.sheet));
         // Na pose de dormir o corpo fica na parte de baixo do quadro: origem 1,05 põe o gato na altura das mãos.
-        this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
+        else this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
       }
     }
     const dir = this.player.facingDirection();

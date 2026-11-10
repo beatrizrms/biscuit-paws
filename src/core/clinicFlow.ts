@@ -96,7 +96,7 @@ export type ClinicProblem =
   | 'not_ready'
   | 'not_here'
   | 'no_complication'
-  | 'needs_food'
+  | 'needs_recovery_food'
   | 'nobody_here';
 
 export class ClinicFlow {
@@ -207,7 +207,7 @@ export class ClinicFlow {
   /** A latinha no cercadinho (ou na caixinha): alimenta todos os isolados de lá. Gasta uma latinha. */
   feedIsolated(where: string): { ok: true; fed: string[] } | { ok: false; reason: ClinicProblem } {
     const item = this.h.activeUse('recovery_pen');
-    if (!item) return { ok: false, reason: 'needs_food' };
+    if (!item) return { ok: false, reason: 'needs_recovery_food' };
     const a = this.penAssignments();
     const cats = (where === 'box' ? a.box : (a.pen[where] ?? [])).filter((id) => this.st.cats[id]!.fedOn !== this.st.day);
     if (cats.length === 0) return { ok: false, reason: 'nobody_here' };
@@ -227,7 +227,8 @@ export class ClinicFlow {
     const cat = this.st.cats[catId];
     if (!this.h.atClinic()) return { problem: 'not_at_clinic' };
     if (!cat?.sheltered || this.h.carriedCat() !== catId) return { problem: 'bring_cat' };
-    if (cat.clinic?.stage !== 'intake') return { problem: 'not_pending' };
+    // A consulta de entrada: quem acabou de chegar, ou quem nunca foi examinado (saves antigos). Isolado em outra etapa, não.
+    if (cat.tests || (cat.clinic && cat.clinic.stage !== 'intake')) return { problem: 'not_pending' };
     const days = cat.sickness && !cat.sickness.treatment ? this.h.prescriptionDays(catId) : 0;
     const medicine = days * this.h.health.prices.medicinePerDay;
     const bill = clinicBill(this.h.clinic, this.st.clinic, { consult: this.h.health.prices.consult, medicine, procedure: 0 });
@@ -380,7 +381,10 @@ export class ClinicFlow {
         this.st.flags['vet.neutered_once'] = true;
         this.h.bus.emit('cat.neutered', { catId: id, procedure: s.procedure });
         const inPen = !this.penAssignments().box.includes(id);
-        this.h.bus.emit('clinic.delivered', { catId: id, inPen, isolationDays: proc.isolationDays, aftercareDays: proc.aftercareDays });
+        // A primeira entrega: a Fernanda explica as fraldas do cercadinho e as latinhas.
+        const first = !this.st.flags['vet.first_delivery'];
+        this.st.flags['vet.first_delivery'] = true;
+        this.h.bus.emit('clinic.delivered', { catId: id, inPen, first, isolationDays: proc.isolationDays, aftercareDays: proc.aftercareDays });
         if (rngForCat(id, day * 31 + 7).next() < proc.complication.chance) this.complicate(id);
       } else if (s.stage === 'isolation' && s.until <= day && !s.complication) {
         cat.clinic = undefined;

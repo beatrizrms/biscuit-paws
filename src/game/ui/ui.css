@@ -180,7 +180,10 @@
   border-radius: 8px;
   opacity: 0;
   transition: opacity 0.2s;
-  white-space: nowrap;
+  /* Curto: uma linha; longo (as falas da Fernanda): quebra, sem passar da tela. */
+  width: max-content;
+  max-width: 420px;
+  text-align: center;
 }
 .toast-item.show { opacity: 1; }
 
@@ -793,6 +796,9 @@
 .news .cat-info .health .fill.low { background: var(--butter3); }
 .news .cat-info .health .fill.sick { background: #c0596a; }
 .news .cat-info .sick-badge { font-size: 6.5px; color: #c0596a; font-weight: bold; }
+.news .cat-info .repro { font-size: 6.5px; color: #6b5a4e; }
+.news .cat-info .clinic-badge { font-size: 6.5px; color: #4f7f9a; font-weight: bold; }
+.news .cat-info .adoption { font-size: 6.5px; color: #9a7b4f; }
 
 /* Consulta na clínica: ficha no centro */
 .catalog.consult { left: 50%; right: auto; top: 40px; bottom: auto; width: 220px; transform: translateX(-50%); }
@@ -806,6 +812,8 @@
 .catalog.consult .bill { display: grid; grid-template-columns: 1fr auto; gap: 1px 8px; padding: 4px 6px; border-top: 1px dashed var(--cream3); border-bottom: 1px dashed var(--cream3); }
 .catalog.consult .bill .total { font-size: 9px; color: var(--ink); }
 .catalog.consult .credit { margin: 5px 0 0; font-size: 7px; color: #5d4a8a; }
+.catalog.consult .vet-line { margin: 0 0 4px; font-size: 7.5px; font-style: italic; color: var(--ink2); }
+.catalog.consult > .list > .desc { margin: 2px 0 4px; font-size: 7px; color: var(--ink2); }
 .catalog.consult .pay { display: block; margin: 6px 0 0 auto; padding: 2px 10px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
 
 /* Cena com imagem de tela cheia (ex.: a inauguração) */

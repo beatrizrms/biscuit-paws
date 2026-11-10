@@ -1701,11 +1701,16 @@ export class GameSession {
     const st = c?.clinic;
     return {
       carried,
-      intake: st?.stage === 'intake',
+      intake: st?.stage === 'intake' || (!!c && !c.tests && !st),
       examined: !!c?.tests && !st,
       recheck: st?.stage === 'isolation' && !!st.complication,
       pickups: carried ? [] : this.clinic.readyForPickup(),
     };
+  }
+
+  /** A latinha Recovery está ativa na barra? (aí o E no cercadinho alimenta quem está lá) */
+  holdingRecoveryFood(): boolean {
+    return !!this.activeUse('recovery_pen');
   }
 
   /** A latinha Recovery no cercadinho (uid) ou na caixinha do canto ('box'). */

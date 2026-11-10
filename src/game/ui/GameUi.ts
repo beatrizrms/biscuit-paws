@@ -14,6 +14,7 @@ import { openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
+import { vetLine } from './vetText';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
@@ -348,6 +349,22 @@ export class GameUi {
     bus.on('cat.named', ({ catId, name }) => session.catSettling(catId) && this.toast(uiText.cats.arrivedScared.replace('{cat}', name), 5000));
     bus.on('cat.settled', ({ catId }) => this.toast(uiText.cats.settled.replace('{cat}', session.catName(catId)), 4000));
     bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
+    // Clínica: as falas da Fernanda (data/vet_text.json) quando ela traz o gato, quando ele sai do cercadinho, a
+    // complicação e o desconto de amiga. Avisos (empilham), sem prender o jogo.
+    const fernanda = (text: string) => `${content.npcs['npc.fernanda']?.name ?? 'Fernanda'}: ${text}`;
+    bus.on('clinic.delivered', ({ catId, inPen, first, isolationDays, aftercareDays }) => {
+      this.toast(fernanda(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId)), 7000);
+      // A primeira vez: o cercadinho com fraldas e as latinhas.
+      if (first) {
+        this.toast(fernanda(vetLine(session, 'neuter.diapers', {}, catId)), 7000);
+      }
+    });
+    bus.on('clinic.released', ({ catId }) => this.toast(fernanda(vetLine(session, 'neuter.released', {}, catId)), 4500));
+    bus.on('clinic.complication', ({ catId, missedFeed }) => {
+      this.toast(fernanda(vetLine(session, 'neuter.complication', {}, catId)), 6000);
+      if (missedFeed) this.toast(fernanda(vetLine(session, 'neuter.missedFeed', {}, catId)), 5000);
+    });
+    bus.on('clinic.friend_discount', () => this.toast(fernanda(vetLine(session, 'discount.friend')), 7000));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
@@ -596,6 +613,12 @@ export class GameUi {
       }
       if (ch.kind === 'toys') {
         today.push(this.row(c.toys, { right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        continue;
+      }
+      // Clínica: consulta de entrada, buscar, pontinho e a latinha do cercadinho.
+      if (ch.kind === 'clinic') {
+        const text = c.clinic[ch.clinic!].replace('{cat}', ch.catId ? this.session.catName(ch.catId) : '');
+        today.push(this.row(text, { icon: ch.clinic === 'pen_food' ? content.items[content.clinic.pen.food]?.icon : 'remedio', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       // Gato que acabou de chegar: a confiança.
