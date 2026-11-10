@@ -6,6 +6,7 @@
 import type { GameSession } from '../../core/session';
 import type { StreakId } from '../../core/stats';
 import type { MilestoneDef } from '../../core/milestones';
+import type { RecipeDef } from '../../core/recipes';
 import { content, uiText } from '../content';
 import { iconHtml } from './ShopPanel';
 
@@ -15,10 +16,18 @@ const num = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 
 /** Quantos ingredientes a lista de consumo mostra. */
 const DOSES_SHOWN = 6;
 
+/** Quando a receita está no cardápio: o nome da janela ("Semana do Natal") ou as estações ("inverno"); vazio = o ano todo. */
+export function seasonLabel(r: RecipeDef | undefined): string {
+  if (!r) return '';
+  if (r.window) return r.window.name;
+  if (!r.seasons) return '';
+  return r.seasons.map((s) => (content.seasons.names[s] ?? s).toLowerCase()).join(uiText.statsApp.seasonJoin);
+}
+
 /** O nome de cada recompensa do selo ("Petisco de biscoito ×3" quando repete). */
 function rewardNames(m: MilestoneDef): string {
   const name = (id: string) =>
-    m.reward.kind === 'recipe' ? content.recipes[id]?.name
+    m.reward.kind === 'recipe' ? recipeWithSeason(id)
     : m.reward.kind === 'room' ? content.rooms.rooms.find((r) => r.id === id)?.name
     : m.reward.kind === 'event' ? content.festivals.find((f) => f.id === id)?.name
     : content.items[id]?.name;
@@ -28,6 +37,12 @@ function rewardNames(m: MilestoneDef): string {
 }
 
 /** "Nova receita: Café com leite" (o que o selo deu). */
+function recipeWithSeason(id: string): string | undefined {
+  const r = content.recipes[id];
+  const when = seasonLabel(r);
+  return r && (when ? `${r.name} (${when})` : r.name);
+}
+
 export function rewardText(m: MilestoneDef): string {
   return `${uiText.statsApp.rewardKinds[m.reward.kind]}: ${rewardNames(m)}`;
 }

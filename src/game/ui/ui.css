@@ -649,6 +649,13 @@
 .catalog.menu-board h3 { font-size: 8px; color: var(--butter2); }
 .catalog.menu-board .recipe { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding: 5px 6px; border-radius: 6px; background: var(--cream2); font-size: 8.5px; }
 .catalog.menu-board .recipe .name { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--ink); }
+/* Cardápio das estações: a etiqueta da época e a linha recolhida com o que está fora de época. */
+.catalog.menu-board .recipe .desc.season { color: #6f8f5a; font-weight: bold; }
+.catalog.menu-board .off-season { margin: 6px 0 4px; padding: 4px 6px; border-radius: 6px; background: #ffffff14; color: var(--cream2); font-size: 8.5px; }
+.catalog.menu-board .off-season summary { cursor: pointer; color: var(--butter2); font-weight: bold; }
+.catalog.menu-board .off-season ul { margin: 4px 0 0; padding: 0; list-style: none; }
+.catalog.menu-board .off-season li { display: flex; align-items: center; gap: 4px; padding: 2px 0; opacity: 0.8; }
+.catalog.menu-board .off-season li span { color: var(--cream3); }
 .catalog.menu-board .recipe .price { margin-left: auto; font-weight: bold; }
 .catalog.menu-board .recipe .desc { color: var(--ink2); font-size: 7.5px; }
 .catalog.menu-board .recipe .status { font-size: 8px; color: #3f7a55; }

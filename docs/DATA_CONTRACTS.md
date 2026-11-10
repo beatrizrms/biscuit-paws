@@ -529,6 +529,9 @@ Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o fur
   // "alternative": { "equipment": "juicer", "ingredients": {...} }   // opcional, só 1 etapa: outro equipamento, sempre premium
   // "display": true   // opcional: confeitaria, precisa de uma vitrine (item com display: { slots, fullTile })
   // "batch": { "yields": 6, "name": "Bolo de morango", "icon": "bolo_morango" }   // opcional: fornada, rende o bolo inteiro (vai para a vitrine); o cliente pede a fatia
+  // "temp": "hot" | "cold"   // opcional: a procura muda com a estação e o clima (service.json: demand)
+  // "seasons": ["winter"]   // opcional: só nessas estações (fora: status "season", sai do quadro na virada, evento menu.season)
+  // "window": { "season": "winter", "from": 1, "to": 7, "name": "Semana do Natal" }   // opcional: só nesses dias
 }
 ```
 

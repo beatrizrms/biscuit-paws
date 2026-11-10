@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). alternative (só receita de uma etapa): outro equipamento com os próprios ingredientes, e sai sempre premium (os sucos de fruta fresca no espremedor; no liquidificador, a polpa). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro (evolução: os selos do café, data/milestones.json; o Biscoito de patinha é a receita bônus da sequência \"bigodes bem cuidados\" ícone biscoito_patinha, do pedido 04 do PixelLab; o equipamento e os ingredientes só aparecem no catálogo/mercado quando alguma receita destrancada usa eles).",
+  "_comment": "Receitas. temp: hot ou cold (a procura muda com a estação e o clima, service.json: demand). seasons: só nessas estações (sem: o ano todo; fora de época sai do quadro na virada e os ingredientes que só servem a ela saem da prateleira). window: só nesses dias de uma estação (Natal, Ano Novo, Dia do Gato), com o nome que aparece no quadro. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). alternative (só receita de uma etapa): outro equipamento com os próprios ingredientes, e sai sempre premium (os sucos de fruta fresca no espremedor; no liquidificador, a polpa). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro (evolução: os selos do café, data/milestones.json; o Biscoito de patinha é a receita bônus da sequência \"bigodes bem cuidados\" ícone biscoito_patinha, do pedido 04 do PixelLab; o equipamento e os ingredientes só aparecem no catálogo/mercado quando alguma receita destrancada usa eles).",
   "recipes": [
     {
       "id": "recipe.black_coffee",
@@ -20,7 +20,8 @@
           "equipment": "coffee_machine",
           "minutes": 10
         }
-      ]
+      ],
+      "temp": "hot"
     },
     {
       "id": "recipe.black_tea",
@@ -42,7 +43,8 @@
       ],
       "unlock": {
         "milestone": "milestone.customers_6"
-      }
+      },
+      "temp": "hot"
     },
     {
       "id": "recipe.orange_juice",
@@ -69,7 +71,8 @@
       ],
       "unlock": {
         "milestone": "milestone.customers_15"
-      }
+      },
+      "temp": "cold"
     },
     {
       "id": "recipe.cafe_latte",
@@ -93,7 +96,8 @@
           "equipment": "coffee_machine",
           "minutes": 12
         }
-      ]
+      ],
+      "temp": "hot"
     },
     {
       "id": "recipe.green_tea",
@@ -115,7 +119,8 @@
           "equipment": "teapot",
           "minutes": 8
         }
-      ]
+      ],
+      "temp": "hot"
     },
     {
       "id": "recipe.strawberry_juice",
@@ -142,7 +147,8 @@
           "equipment": "blender",
           "minutes": 6
         }
-      ]
+      ],
+      "temp": "cold"
     },
     {
       "id": "recipe.lemonade",
@@ -169,7 +175,8 @@
           "equipment": "blender",
           "minutes": 6
         }
-      ]
+      ],
+      "temp": "cold"
     },
     {
       "id": "recipe.cheese_bread",
@@ -285,7 +292,10 @@
         "yields": 6,
         "name": "Bolo de morango",
         "icon": "bolo_morango"
-      }
+      },
+      "seasons": [
+        "spring"
+      ]
     },
     {
       "id": "recipe.bread",
@@ -327,7 +337,10 @@
       "unlock": {
         "milestone": "milestone.customers_120"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "recipe.pain_au_chocolat",
@@ -349,7 +362,10 @@
       "unlock": {
         "milestone": "milestone.customers_120"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "recipe.fish_crackers",
@@ -371,7 +387,10 @@
       "unlock": {
         "milestone": "milestone.customers_130"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "recipe.fish_cookies_glazed",
@@ -393,7 +412,10 @@
       "unlock": {
         "milestone": "milestone.customers_130"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "autumn"
+      ]
     },
     {
       "id": "recipe.fish_cookies_pink",
@@ -416,7 +438,10 @@
       "unlock": {
         "milestone": "milestone.customers_130"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "spring"
+      ]
     },
     {
       "id": "recipe.cookie",
@@ -462,7 +487,10 @@
       "unlock": {
         "milestone": "milestone.customers_140"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "recipe.matcha_cake_slice",
@@ -495,7 +523,10 @@
         "yields": 6,
         "name": "Bolo de matcha",
         "icon": "bolo_matcha"
-      }
+      },
+      "seasons": [
+        "autumn"
+      ]
     },
     {
       "id": "recipe.lemon_cake_slice",
@@ -523,7 +554,10 @@
       "unlock": {
         "milestone": "milestone.customers_160"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "recipe.sausage_croissant",
@@ -549,7 +583,10 @@
       "unlock": {
         "milestone": "milestone.customers_180"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "autumn"
+      ]
     },
     {
       "id": "recipe.beef_croissant",
@@ -575,7 +612,10 @@
       "unlock": {
         "milestone": "milestone.customers_180"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "recipe.chicken_croissant",
@@ -601,7 +641,10 @@
       "unlock": {
         "milestone": "milestone.customers_180"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "spring"
+      ]
     },
     {
       "id": "recipe.cat_cupcake",
@@ -628,7 +671,10 @@
       "unlock": {
         "milestone": "milestone.customers_200"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "spring"
+      ]
     },
     {
       "id": "recipe.vanilla_cupcake",
@@ -656,7 +702,10 @@
       "unlock": {
         "milestone": "milestone.customers_200"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "recipe.macarons",
@@ -682,7 +731,10 @@
       "unlock": {
         "milestone": "milestone.customers_220"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "recipe.cat_macarons",
@@ -709,7 +761,10 @@
       "unlock": {
         "milestone": "milestone.customers_250"
       },
-      "display": true
+      "display": true,
+      "seasons": [
+        "autumn"
+      ]
     },
     {
       "id": "recipe.macaron_tower",
@@ -735,7 +790,298 @@
       "unlock": {
         "milestone": "milestone.customers_250"
       },
+      "display": true,
+      "window": {
+        "season": "summer",
+        "from": 5,
+        "to": 11,
+        "name": "Semana do Dia do Gato"
+      }
+    },
+    {
+      "id": "recipe.hot_chocolate",
+      "name": "Chocolate quente",
+      "icon": "chocolate_quente",
+      "ingredients": {
+        "item.chocolate": 1,
+        "item.milk": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 6
+        }
+      ],
+      "vessel": "cup",
+      "price": 14,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "hot",
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "recipe.chamomile_honey",
+      "name": "Chá de camomila com mel",
+      "icon": "cha_camomila_mel",
+      "ingredients": {
+        "item.tea_chamomile_box": 1,
+        "item.honey": 1
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 5
+        }
+      ],
+      "vessel": "cup",
+      "price": 10,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "hot",
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "recipe.strawberry_tart_slice",
+      "name": "Fatia de torta de morango",
+      "icon": "fatia_torta_morango",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.eggs": 1,
+        "item.strawberry": 2
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 30
+        }
+      ],
+      "vessel": "plate",
+      "price": 20,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "seasons": [
+        "spring"
+      ],
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Torta de morango",
+        "icon": "torta_morango"
+      }
+    },
+    {
+      "id": "recipe.iced_berry_tea",
+      "name": "Chá gelado de frutas vermelhas",
+      "icon": "cha_gelado_frutas_vermelhas",
+      "ingredients": {
+        "item.tea_black_bag": 1,
+        "item.pulp_strawberry": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 5
+        }
+      ],
+      "vessel": "glass",
+      "price": 11,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "cold",
+      "seasons": [
+        "spring"
+      ]
+    },
+    {
+      "id": "recipe.strawberry_ice_cream",
+      "name": "Sorvete de morango",
+      "icon": "sorvete_morango",
+      "ingredients": {
+        "item.milk": 1,
+        "item.sugar": 1,
+        "item.strawberry": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 6
+        }
+      ],
+      "vessel": "plate",
+      "price": 13,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "cold",
+      "seasons": [
+        "summer"
+      ]
+    },
+    {
+      "id": "recipe.iced_lemon_tea",
+      "name": "Chá gelado de limão",
+      "icon": "cha_gelado_limao",
+      "ingredients": {
+        "item.tea_black_bag": 1,
+        "item.pulp_lemon": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 5
+        }
+      ],
+      "vessel": "glass",
+      "price": 11,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "cold",
+      "seasons": [
+        "summer"
+      ]
+    },
+    {
+      "id": "recipe.honey_cake",
+      "name": "Pão de mel",
+      "icon": "pao_de_mel",
+      "ingredients": {
+        "item.flour": 1,
+        "item.honey": 1,
+        "item.chocolate": 1,
+        "item.eggs": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 20
+        }
+      ],
+      "vessel": "plate",
+      "price": 14,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "seasons": [
+        "autumn"
+      ],
       "display": true
+    },
+    {
+      "id": "recipe.pumpkin_latte",
+      "name": "Latte de abóbora",
+      "icon": "latte_abobora",
+      "ingredients": {
+        "item.coffee_ground": 1,
+        "item.paper_filter": 1,
+        "item.milk_powder": 1,
+        "item.pumpkin": 1
+      },
+      "steps": [
+        {
+          "equipment": "coffee_machine",
+          "minutes": 5
+        }
+      ],
+      "vessel": "cup",
+      "price": 17,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "hot",
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "recipe.panettone_slice",
+      "name": "Fatia de panetone",
+      "icon": "fatia_panetone",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.honey": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 40
+        }
+      ],
+      "vessel": "plate",
+      "price": 20,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Panetone",
+        "icon": "panetone"
+      },
+      "window": {
+        "season": "winter",
+        "from": 1,
+        "to": 7,
+        "name": "Semana do Natal"
+      }
+    },
+    {
+      "id": "recipe.rabanada",
+      "name": "Rabanada",
+      "icon": "rabanada",
+      "ingredients": {
+        "item.flour": 1,
+        "item.milk": 1,
+        "item.eggs": 1,
+        "item.sugar": 1,
+        "item.oil": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 8
+        }
+      ],
+      "vessel": "plate",
+      "price": 14,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "window": {
+        "season": "winter",
+        "from": 8,
+        "to": 10,
+        "name": "Ano Novo"
+      }
     }
   ]
 }

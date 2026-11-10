@@ -1402,6 +1402,10 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "winter",
+        "autumn"
       ]
     },
     {
@@ -1414,6 +1418,10 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "spring",
+        "summer"
       ]
     },
     {
@@ -1426,6 +1434,26 @@
       "tags": [
         "ingredient",
         "fruit"
+      ],
+      "seasons": [
+        "spring",
+        "summer"
+      ]
+    },
+    {
+      "id": "item.pumpkin",
+      "name": "Abóbora",
+      "description": "Abóbora da estação, para o latte de abóbora: rende 4 receitas. Só no outono.",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "abobora",
+      "servings": 4,
+      "tags": [
+        "ingredient",
+        "fruit"
+      ],
+      "seasons": [
+        "autumn"
       ]
     },
     {

@@ -5,13 +5,14 @@ import { reviewReputation, reviewStars, type Waits } from './review';
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
-import type { Rng } from './rng';
+import { pickWeighted, type Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
-import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
+import { inSeason, VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
 import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
+import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordServed } from './stats';
 
@@ -67,6 +68,7 @@ export function newServiceState(): ServiceState {
 export const emptyLoad = (): Record<Vessel, number> => ({ cup: 0, glass: 0, plate: 0 });
 
 export type ServiceProblem =
+  | 'out_of_season'
   | 'display_full'
   | 'nothing_to_store'
   | 'display_empty'
@@ -117,6 +119,8 @@ export interface ServiceHost {
   addReputation(amount: number, reason: string): void;
   /** Célula da cadeira em que ela está sentada descansando (ou null): não é lugar livre para cliente. */
   playerSeat(): Cell | null;
+  /** Clima de hoje (pesa no que os clientes pedem). */
+  weather(): string;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -250,6 +254,40 @@ export class CafeService {
     return !!r && (r.steps[0]?.equipment === equipment || r.alternative?.equipment === equipment);
   }
 
+  // ---------- Estações (cardápio) ----------
+
+  /** A receita está na época hoje? */
+  inSeasonNow(r: RecipeDef): boolean {
+    return inSeason(r, this.h.content.seasons, this.st.day);
+  }
+
+  /** Peso da receita no sorteio do pedido: a temperatura dela na estação e no clima de hoje (o resto pesa 1). */
+  demandWeight(r: RecipeDef): number {
+    if (!r.temp) return 1;
+    const d = this.cfg.demand;
+    const season = seasonOf(this.h.content.seasons, this.st.day);
+    return (d?.seasons?.[season]?.[r.temp] ?? 1) * (d?.weather?.[this.h.weather()]?.[r.temp] ?? 1);
+  }
+
+  /**
+   * Começo do dia: tira do quadro o que saiu de época e diz o que chegou (destrancado, na época hoje e não ontem).
+   * `yesterday`: o dia anterior (para comparar).
+   */
+  seasonalMenu(yesterday: number): { arrived: string[]; left: string[] } {
+    const seasons = this.h.content.seasons;
+    const unlocked = Object.values(this.h.content.recipes).filter((r) => !r.unlock || this.h.evaluate(r.unlock));
+    const arrived = unlocked.filter((r) => inSeason(r, seasons, this.st.day) && !inSeason(r, seasons, yesterday)).map((r) => r.id);
+    const left = this.st.menu.filter((id) => {
+      const r = this.recipe(id);
+      return !!r && !inSeason(r, seasons, this.st.day);
+    });
+    if (left.length > 0) {
+      this.st.menu = this.st.menu.filter((id) => !left.includes(id));
+      this.h.bus.emit('menu.changed', { menu: [...this.st.menu] });
+    }
+    return { arrived, left };
+  }
+
   // ---------- Vitrine (confeitaria) ----------
 
   /** Vitrines posicionadas (móveis com display). */
@@ -376,6 +414,7 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
+    if (!this.inSeasonNow(r)) return 'season';
     if (r.display && this.displaysPlaced().length === 0) return 'equipment';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
     if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
@@ -405,7 +444,9 @@ export class CafeService {
     if (this.st.menu.includes(recipeId)) {
       this.st.menu = this.st.menu.filter((id) => id !== recipeId);
     } else {
-      if (this.recipeStatus(recipeId) === 'locked') return { ok: false, reason: 'not_unlocked' };
+      const status = this.recipeStatus(recipeId);
+      if (status === 'locked') return { ok: false, reason: 'not_unlocked' };
+      if (status === 'season') return { ok: false, reason: 'out_of_season' };
       if (this.st.menu.length >= this.cfg.menuSlots) return { ok: false, reason: 'menu_full' };
       this.st.menu.push(recipeId);
     }
@@ -679,7 +720,8 @@ export class CafeService {
     c.kind = spot.kind;
     c.spot = [...spot.spot];
     c.dishAt = [...spot.dishAt];
-    c.recipe = favorite && rng.chance(this.cfg.preferences.favoriteWeight) ? favorite.id : options[rng.int(0, options.length - 1)]!.id;
+    // O favorito pesa mais; o resto, pela procura do momento (quente no inverno e na chuva, gelado no verão).
+    c.recipe = favorite && rng.chance(this.cfg.preferences.favoriteWeight) ? favorite.id : pickWeighted(rng, Object.fromEntries(options.map((r) => [r.id, this.demandWeight(r)])));
     c.until = this.now() + this.cfg.patienceMinutes;
     this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: c.recipe });
   }

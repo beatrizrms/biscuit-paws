@@ -15,6 +15,7 @@
     { "id": "milestone.customers_35", "track": "customers", "name": "Cheirinho de forno", "at": 35, "reward": { "kind": "recipe", "ids": ["recipe.cheese_bread"] } },
     { "id": "milestone.customers_40", "track": "customers", "name": "Hora de crescer", "at": 40, "when": { "beat": "story.inauguration" }, "whenText": "depois da inauguração", "reward": { "kind": "room", "ids": ["room.back_room"] } },
     { "id": "milestone.customers_45", "track": "customers", "name": "Freguesia fiel", "at": 45, "reward": { "kind": "recipe", "ids": ["recipe.green_tea"] } },
+    { "id": "milestone.customers_50", "track": "customers", "name": "Cardápio da estação", "at": 50, "reward": { "kind": "recipe", "ids": ["recipe.hot_chocolate", "recipe.chamomile_honey", "recipe.strawberry_tart_slice", "recipe.iced_berry_tea", "recipe.strawberry_ice_cream", "recipe.iced_lemon_tea", "recipe.honey_cake", "recipe.pumpkin_latte", "recipe.panettone_slice", "recipe.rabanada"] } },
     { "id": "milestone.customers_55", "track": "customers", "name": "Doce como morango", "at": 55, "reward": { "kind": "recipe", "ids": ["recipe.strawberry_juice"] } },
     { "id": "milestone.customers_65", "track": "customers", "name": "Refresco da vila", "at": 65, "reward": { "kind": "recipe", "ids": ["recipe.lemonade"] } },
     { "id": "milestone.customers_80", "track": "customers", "name": "Café de respeito", "at": 80, "reward": { "kind": "recipe", "ids": ["recipe.cake_slice"] } },

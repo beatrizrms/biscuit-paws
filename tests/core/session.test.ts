@@ -794,7 +794,7 @@ describe('mercado: matéria-prima', () => {
     // O café a granel saiu do mercado (nenhuma receita usava); o ID continua para saves antigos.
     const retired = ['item.coffee_beans_loose'];
     const ingredients = Object.values(content.items).filter((i) => i.tags.includes('ingredient') && !retired.includes(i.id));
-    expect(ingredients.length).toBe(29); // 18 de bebidas + 5 da padaria + 6 da confeitaria (sal, óleo, calabresa, carne, frango, amêndoas)
+    expect(ingredients.length).toBe(30); // 18 de bebidas + 5 da padaria + 6 da confeitaria (sal, óleo, calabresa, carne, frango, amêndoas) + a abóbora
     for (const i of ingredients) expect(sold.has(i.id)).toBe(true);
     for (const id of retired) expect(sold.has(id)).toBe(false);
     for (const r of Object.values(content.recipes)) for (const id of Object.keys(r.ingredients)) expect(sold.has(id)).toBe(true);

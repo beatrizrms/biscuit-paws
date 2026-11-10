@@ -216,6 +216,7 @@ export class GameSession {
       customersAway: () => this.customersAway(),
       hallDirt: () => this.hallDirt(),
       playerSeat: () => this.restingCell(),
+      weather: () => this.weather(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
     });
     this.arrivals = new ArrivalSystem({
@@ -372,6 +373,8 @@ export class GameSession {
     // Upgrades (pote e caixa de areia automáticos, lava-louças): só depois da inauguração (data/business.json).
     const { upgradeTag, upgradesWhen } = this.content.business;
     if (upgradeTag && upgradesWhen && item.tags.includes(upgradeTag) && !evaluate(upgradesWhen, this.state, this.storyContext())) return false;
+    // Fruta fresca (e a abóbora): só na época.
+    if (item.seasons && !item.seasons.includes(seasonOf(this.content.seasons, this.state.day))) return false;
     const recipes = Object.values(this.content.recipes);
     const equipment = this.content.service.equipment;
     const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));
@@ -382,7 +385,8 @@ export class GameSession {
     );
     // Ingrediente que nenhuma receita usa ainda (chá de camomila, mel...) fica guardado para quando usar.
     if (usedBy.length === 0) return !isEquipment && !item.tags.includes('ingredient');
-    return usedBy.some((r) => this.service.recipeStatus(r.id) !== 'locked');
+    // Só o que serve para receitas destrancadas e na época (fora de época, o ingrediente sai da prateleira).
+    return usedBy.some((r) => !['locked', 'season'].includes(this.service.recipeStatus(r.id)));
   }
 
   /** Receitas destrancadas que ela ainda não viu: avisa uma vez (o café evoluiu). Na abertura, só marca. */
@@ -694,6 +698,9 @@ export class GameSession {
     this.bus.emit('cart.changed', { count: 0, total: 0 });
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
+    // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
+    const menu = this.service.seasonalMenu(day);
+    if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
     this.advanceStory();
   }
 

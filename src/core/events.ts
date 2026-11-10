@@ -32,6 +32,8 @@ export interface GameEvents {
   'milestone.reached': { milestoneId: string };
   /** Vitrine: guardou um doce (ou um bolo inteiro) e tirou um (ou uma fatia). */
   'display.stored': { uid: string; recipeId: string };
+  /** Cardápio da estação (começo do dia): receitas que chegaram e as que saíram do quadro por sair de época. */
+  'menu.season': { day: number; arrived: string[]; left: string[] };
   'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };

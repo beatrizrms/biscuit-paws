@@ -1565,6 +1565,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
       ['biscoito_peixe_laranja', '04_cafe_4/obj_2'], ['biscoito_peixe_glace', '04_cafe_4/obj_3'], ['biscoito_peixe_rosa', '04_cafe_4/obj_4'],
       ['amendoa', '07_confeitaria/amendoa'], ['fatia_matcha', '07_confeitaria/fatia_matcha'],
     ] as const).map(([name, file]) => ({ name, file: `${SRC}/${file}.png` })),
+    // Cardápio das estações (pedido 08): os especiais, a abóbora, o panetone (Natal) e a rabanada (Ano Novo).
+    ...(['chocolate_quente', 'cha_camomila_mel', 'torta_morango', 'fatia_torta_morango', 'cha_gelado_frutas_vermelhas', 'sorvete_morango', 'cha_gelado_limao', 'pao_de_mel', 'latte_abobora', 'abobora', 'panetone', 'fatia_panetone', 'rabanada'] as const).map((name) => ({ name, file: `${SRC}/08_estacoes/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

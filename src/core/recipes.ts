@@ -1,5 +1,6 @@
 // Receitas, cardápio e configuração do atendimento (data/recipes.json, data/service.json, data/carry.json).
 // Puro: sem Phaser, DOM ou window. Quem decide se dá para fazer é o CafeService (service.ts).
+import { dayInSeason, seasonOf, type SeasonsData } from './calendar';
 import type { ReviewConfig } from './review';
 import type { Cell } from './map';
 import type { Condition } from './content';
@@ -50,6 +51,23 @@ export interface RecipeDef {
    * pede a fatia (esta receita). `name` e `icon`: o bolo inteiro.
    */
   batch?: { yields: number; name: string; icon: string };
+  /** Quente ou gelada: os clientes pedem mais conforme a estação e o clima (service.json: demand). */
+  temp?: 'hot' | 'cold';
+  /** Só entra no cardápio nestas estações (sem o campo: o ano todo). */
+  seasons?: string[];
+  /** Só entra no cardápio nestes dias (ex.: a semana do Natal); `name` aparece no quadro e nos avisos. */
+  window?: { season: string; from: number; to: number; name: string };
+}
+
+/** A receita está na época hoje? (estações e janela de dias; sem nada, o ano todo) */
+export function inSeason(r: RecipeDef, seasons: SeasonsData, day: number): boolean {
+  const season = seasonOf(seasons, day);
+  if (r.seasons && !r.seasons.includes(season)) return false;
+  if (r.window) {
+    const d = dayInSeason(seasons, day);
+    if (r.window.season !== season || d < r.window.from || d > r.window.to) return false;
+  }
+  return true;
 }
 
 /** Receitas em que o item é a troca premium (ex.: café em grãos no café preto), na ordem dos dados. */
@@ -62,7 +80,12 @@ export interface RecipesData {
   recipes: RecipeDef[];
 }
 
+/** Peso da procura por temperatura (hot/cold) numa estação ou num clima; o que não está aqui pesa 1. */
+export type DemandWeights = Partial<Record<'hot' | 'cold', number>>;
+
 export interface ServiceConfig {
+  /** Os clientes pedem mais quente no inverno e na chuva, mais gelado no verão (multiplica o sorteio do pedido). */
+  demand?: { seasons?: Record<string, DemandWeights>; weather?: Record<string, DemandWeights> };
   /** Avaliação ao sair (estrelas) e a reputação de cada nota (src/core/review.ts). */
   review: ReviewConfig;
   schemaVersion: 1;
@@ -134,13 +157,13 @@ export interface CarryConfig {
 }
 
 /** Por que uma receita não pode ser pedida agora. */
-export type RecipeStatus = 'available' | 'locked' | 'equipment' | 'ingredients' | 'vessel';
+export type RecipeStatus = 'available' | 'locked' | 'season' | 'equipment' | 'ingredients' | 'vessel';
 
 export function validateRecipes(
   recipes: RecipesData,
   service: ServiceConfig,
   carry: CarryConfig,
-  refs: { items: ReadonlySet<string>; icons: ReadonlySet<string>; itemTags: ReadonlySet<string> },
+  refs: { items: ReadonlySet<string>; icons: ReadonlySet<string>; itemTags: ReadonlySet<string>; seasons?: ReadonlySet<string> },
 ): string[] {
   const errors: string[] = [];
   const ids = new Set<string>();
@@ -174,6 +197,12 @@ export function validateRecipes(
       if (!Number.isInteger(r.batch.yields) || r.batch.yields < 2) errors.push(`${where}: batch.yields precisa ser 2 ou mais`);
       if (!refs.icons.has(r.batch.icon)) errors.push(`${where}: ícone do bolo inteiro inexistente "${r.batch.icon}"`);
     }
+    for (const s of r.seasons ?? []) if (refs.seasons && !refs.seasons.has(s)) errors.push(`${where}: estação inexistente "${s}"`);
+    if (r.window) {
+      if (refs.seasons && !refs.seasons.has(r.window.season)) errors.push(`${where}: janela numa estação inexistente "${r.window.season}"`);
+      if (!(r.window.from >= 1 && r.window.to >= r.window.from)) errors.push(`${where}: janela de dias inválida`);
+    }
+    if (r.temp && r.temp !== 'hot' && r.temp !== 'cold') errors.push(`${where}: temp precisa ser hot ou cold`);
     if (r.steps.length === 0) errors.push(`${where}: sem etapas`);
     for (const s of r.steps) {
       if (!service.equipment[s.equipment]) errors.push(`${where}: equipamento inexistente "${s.equipment}"`);

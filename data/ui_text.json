@@ -261,6 +261,7 @@
     "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "display_full": "A vitrine está cheia (6 espaços).",
+    "out_of_season": "Essa receita está fora de época agora.",
     "nothing_to_store": "Só doces vão para a vitrine.",
     "display_empty": "A vitrine está vazia.",
     "display_not_empty": "Tire os doces da vitrine antes de recolher.",
@@ -535,6 +536,9 @@
     "premiumAt": "(no {equipment}, com a fruta fresca)",
     "display": "Vitrine",
     "batch": "Fornada: {name}, {n} fatias (fica na vitrine).",
+    "seasonal": "Cardápio: {when}",
+    "outOfSeason": "Fora de época: volta em {when}",
+    "offSeason": "Fora de época ({n})",
     "shoppingAdd": "📝 anotar o que falta",
     "shoppingAdded": "Anotado nas Notas: {items}",
     "shoppingNothing": "Nada faltando: o cardápio está abastecido.",
@@ -927,6 +931,7 @@
     "oneDay": "1 dia",
     "days": "{n} dias",
     "tabs": { "numbers": "Números", "seals": "Selos" },
+    "seasonJoin": " e ",
     "sealsHint": "Cada selo dá uma recompensa. As sequências dão mimos.",
     "rewardKinds": { "recipe": "Nova receita", "room": "Novo cômodo", "item": "Novo no Market", "event": "Novo evento", "gift": "Presente" },
     "allDone": "Todos os selos desta trilha. Por enquanto!",
@@ -954,6 +959,10 @@
     "label": "Reputação",
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
+  },
+  "seasonMenu": {
+    "arrived": "Novidades no cardápio: {items}.",
+    "left": "Saíram do quadro (fora de época): {items}."
   },
   "weather": {
     "snow": "Neve",

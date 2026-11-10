@@ -4,6 +4,7 @@ import type { GameSession } from '../../core/session';
 import type { RecipeDef, RecipeStatus } from '../../core/recipes';
 import { content, serviceArt, uiText } from '../content';
 import { iconHtml, listNames } from './ShopPanel';
+import { seasonLabel } from './StatsApp';
 
 /** Largura do quadro desenhado no painel (cabe no painel de 178 px). */
 const BOARD_WIDTH = 176;
@@ -59,6 +60,7 @@ export class MenuBoardPanel {
   private statusText(r: RecipeDef, status: RecipeStatus): string {
     const t = uiText.menuBoard;
     if (status === 'available') return t.available;
+    if (status === 'season') return t.outOfSeason.replace('{when}', seasonLabel(r));
     if (status === 'equipment') return t.soldOut.replace('{why}', t.missingEquipment.replace('{name}', this.equipmentName(this.session.service.missingEquipment(r.id))));
     if (status === 'ingredients') return t.soldOut.replace('{why}', t.missingIngredients);
     if (status === 'vessel') return t.soldOut.replace('{why}', t.missingVessel.replace('{name}', content.service.vessels[r.vessel].name.toLowerCase()));
@@ -73,6 +75,7 @@ export class MenuBoardPanel {
       <span class="name">${iconHtml(r.icon)}<b>${esc(r.name)}</b> <span class="price">${r.price}</span></span>
       <span class="desc">${esc(ingredients)} · ${esc(content.service.vessels[r.vessel].name)}</span>
       ${r.steps.length > 1 ? `<span class="desc">${esc(uiText.menuBoard.steps.replace('{steps}', r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → ')))}</span>` : ''}
+      ${seasonLabel(r) ? `<span class="desc season">${esc(uiText.menuBoard.seasonal.replace('{when}', seasonLabel(r)))}</span>` : ''}
       ${r.batch ? `<span class="desc">${esc(uiText.menuBoard.batch.replace('{name}', r.batch.name).replace('{n}', String(r.batch.yields)))}</span>` : ''}
       ${r.premium || r.alternative ? `<span class="desc">${uiText.service.premium} ${esc(uiText.menuBoard.premiumPrice.replace('{price}', String(this.session.service.priceOf(r.id, 'premium'))))}${r.alternative ? ` ${esc(uiText.menuBoard.premiumAt.replace('{equipment}', (content.service.equipment[r.alternative.equipment]?.name ?? '').toLowerCase()))}` : ''}</span>` : ''}
       <span class="status">${esc(this.statusText(r, status))}</span>
@@ -116,7 +119,10 @@ export class MenuBoardPanel {
     const menu = this.session.state.menu;
     const slots = content.service.menuSlots;
     const inMenu = menu.map((id) => sv.recipe(id)).filter((r): r is RecipeDef => !!r);
-    const rest = sv.unlockedRecipes().filter((r) => !menu.includes(r.id));
+    const unlocked = sv.unlockedRecipes().filter((r) => !menu.includes(r.id));
+    // Só o que está na época; o resto fica numa linha recolhida (para não perder a jogadora).
+    const rest = unlocked.filter((r) => sv.recipeStatus(r.id) !== 'season');
+    const off = unlocked.filter((r) => sv.recipeStatus(r.id) === 'season');
     const empty = Array.from({ length: Math.max(0, slots - inMenu.length) }, () => `<div class="recipe slot-empty">${uiText.menuBoard.emptySlot}</div>`);
     const scroll = this.body.scrollTop; // redesenhar não pode mexer na rolagem de quem está lendo
     this.body.innerHTML = `${this.boardHtml(inMenu)}
@@ -125,7 +131,8 @@ export class MenuBoardPanel {
       <h3>${uiText.menuBoard.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${inMenu.map((r) => this.row(r, true)).join('')}${empty.join('')}
       <h3>${uiText.menuBoard.recipes}</h3>
-      ${rest.map((r) => this.row(r, false)).join('') || `<p class="empty">${uiText.menuBoard.noRecipes}</p>`}`;
+      ${rest.map((r) => this.row(r, false)).join('') || `<p class="empty">${uiText.menuBoard.noRecipes}</p>`}
+      ${off.length ? `<details class="off-season"><summary>${esc(uiText.menuBoard.offSeason.replace('{n}', String(off.length)))}</summary><ul>${off.map((r) => `<li>${iconHtml(r.icon)}${esc(r.name)} <span>(${esc(seasonLabel(r))})</span></li>`).join('')}</ul></details>` : ''}`;
     this.body.querySelectorAll<HTMLButtonElement>('[data-recipe]').forEach((b) =>
       b.addEventListener('click', () => {
         const result = sv.toggleMenu(b.dataset.recipe!);
