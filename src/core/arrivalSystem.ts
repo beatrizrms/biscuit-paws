@@ -231,6 +231,8 @@ export class ArrivalSystem {
         needs.splice(needs.indexOf('vet'), 1);
         this.payVet();
       }
+      // O que fica para dentro do café (needsInside: o gato que a vizinha traz come do pote lá dentro).
+      for (const n of a.def.needsInside ?? []) if (needs.includes(n)) needs.splice(needs.indexOf(n), 1);
       // Quem já comeu na etapa feed (gato carteiro) não precisa de mais ração.
       if (a.def.steps.some((s) => 'feed' in s) && needs.includes('food')) needs.splice(needs.indexOf('food'), 1);
       st.needs = needs;

@@ -78,10 +78,18 @@
         ]
       },
       {
+        "id": "xmas",
+        "title": "Natal",
+        "seasonal": true,
+        "groups": [
+          { "tag": "xmas", "except": ["xmas_gift"], "title": "Enfeites" },
+          { "tag": "xmas_gift", "title": "Presentes de Natal" }
+        ]
+      },
+      {
         "id": "decor",
         "title": "Decor",
         "groups": [
-          { "tag": "xmas", "title": "Natal" },
           {
             "tag": "decor",
             "title": "Decoração"

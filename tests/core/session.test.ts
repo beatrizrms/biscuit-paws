@@ -1306,6 +1306,21 @@ describe('debug da história e dos cômodos', () => {
     expect(session.state.story.completed).toContain(next!);
   });
 
+  it('pular introdução: ela fica com o que os roteiros pulados dariam (a chave da padaria, a vassoura)', () => {
+    const { session } = newSession(false);
+    session.debugCompleteStory('story.prologue_end');
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+    expect(session.state.inventory['item.broom']).toBe(1);
+    expect(session.state.flags['seen.scr.realtor_tour']).toBe(true);
+    // Save de debug que pulou antes (sem a chave): pular de novo conserta, sem dar a vassoura em dobro.
+    delete session.state.flags['received.item.key_bakery'];
+    const before = session.state.story.completed.length;
+    expect(session.debugCompleteStory('story.prologue_end')).toBe(0);
+    expect(session.state.story.completed).toHaveLength(before);
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+    expect(session.state.inventory['item.broom']).toBe(1);
+  });
+
   it('concluir história: todos os marcos; abrir cômodos: todos reformados, com as passagens abertas', () => {
     const { session } = newSession(false);
     session.debugCompleteStory();

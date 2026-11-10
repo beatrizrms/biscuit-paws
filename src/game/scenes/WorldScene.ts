@@ -1097,7 +1097,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
     if (this.session.atHome() && !lookingAt && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
-    if (point) {
+    // A caixa da entrega na porta e um ponto (ex.: o gato de uma chegada, que alcança mais longe) ao alcance juntos:
+    // vale a caixa, a não ser que ela esteja em cima do ponto.
+    const onPoint = !!point && this.playerCells().some((f) => f[0] === point.at[0] && f[1] === point.at[1]);
+    const parcelFirst = !target && !!point && !onPoint && this.session.parcelsNear(this.playerCells()) !== undefined;
+    if (point && !parcelFirst) {
       const problem = this.session.jobPointProblem(point.id);
       if (problem) {
         this.ui.problem(problem);

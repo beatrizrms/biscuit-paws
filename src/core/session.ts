@@ -1991,9 +1991,37 @@ export class GameSession {
   debugCompleteStory(untilId?: string): number {
     for (const d of this.visibleDirt()) if (!d.clearedBy) this.state.cleaned.push(d.id);
     let n = 0;
-    for (let id = this.debugCompleteBeat(); id; id = untilId === id ? null : this.debugCompleteBeat()) n++;
+    // Já passou do marco pedido (pular a introdução de novo): não conclui mais nada, só entrega o que faltou.
+    const already = untilId !== undefined && this.state.story.completed.includes(untilId);
+    if (!already) for (let id = this.debugCompleteBeat(); id; id = untilId === id ? null : this.debugCompleteBeat()) n++;
+    this.debugGiveSkippedItems();
     this.advanceStory();
     return n;
+  }
+
+  /**
+   * Debug: o que os roteiros dos marcos concluídos dão (a chave da padaria, a vassoura, a louça da Gabi) e ela ainda
+   * não tem. Também conserta saves de debug que pularam a história antes disto (e ficaram trancados para fora).
+   */
+  private debugGiveSkippedItems(): void {
+    const done = new Set(this.state.story.completed);
+    for (const beat of this.content.story.beats) {
+      if (!done.has(beat.id)) continue;
+      for (const e of beat.effects) {
+        if (!('script' in e)) continue;
+        this.state.flags[seenFlag(e.script)] = true;
+        for (const step of this.content.scripts[e.script]?.steps ?? []) {
+          if ('giveItem' in step && !evaluate({ owned: step.giveItem }, this.state, this.storyContext())) this.giveQuietly(step.giveItem);
+        }
+      }
+    }
+  }
+
+  /** Como receiveItem, mas sem avisar nem andar a história (o debug que pula marcos). */
+  private giveQuietly(itemId: string): void {
+    if (this.content.items[itemId]?.inBag === false) this.state.flags[`received.${itemId}`] = true;
+    else this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.service.stockDishes(itemId);
   }
 
   /** Debug: todos os cômodos descobertos, abertos e reformados (passagens abertas, sujeira deles limpa). */

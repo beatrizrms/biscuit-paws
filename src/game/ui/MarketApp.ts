@@ -1,5 +1,5 @@
 // App "Market" do celular: as compras online (chegam pela entregadora na porta do café), em abas
-// Pet, Móveis, Decor e Construção (data/ui_text.json: market.tabs). Cada item é um cartão com a miniatura do móvel.
+// Pet, Móveis, Eletro, Natal (só quando tem itens da estação), Decor e Construção (data/ui_text.json: market.tabs). Cada item é um cartão com a miniatura do móvel.
 // Construção também tem as obras dos cômodos e o pintor. Quem decide (preço, limites, entrega) é a sessão.
 // Como no mercado, nada é comprado no toque: o item vai para o pedido (session.orderCart) e só sai ao confirmar.
 import { daysText, workName } from './constructionText';
@@ -59,8 +59,10 @@ export class MarketApp {
   /** Desenha o app dentro de `body` (a tela do celular) e liga os botões. */
   render(body: HTMLElement): void {
     const m = uiText.market;
-    const tab = m.tabs.find((t) => t.id === this.tab) ?? m.tabs[0]!;
-    const tabs = m.tabs.map((t) => `<button class="m-tab${t.id === tab.id ? ' on' : ''}" data-tab="${t.id}">${esc(t.title)}</button>`).join('');
+    // Aba da estação (seasonal: a de Natal) só aparece quando tem algo à venda.
+    const visible = m.tabs.filter((t) => !('seasonal' in t && t.seasonal) || this.tabHtml(t) !== '');
+    const tab = visible.find((t) => t.id === this.tab) ?? visible[0]!;
+    const tabs = visible.map((t) => `<button class="m-tab${t.id === tab.id ? ' on' : ''}" data-tab="${t.id}">${esc(t.title)}</button>`).join('');
     const content = this.tabHtml(tab);
     // A tela é redesenhada a cada mudança (dinheiro, entregas): mantém a rolagem se a aba é a mesma.
     const old = body.querySelector<HTMLElement>('.m-scroll');
