@@ -1055,6 +1055,320 @@
           "dialogue": "dlg.santa_party_after"
         }
       ]
+    },
+    "scr.new_year": {
+      "steps": [
+        {
+          "dialogue": "dlg.ny_call"
+        },
+        {
+          "enter": "map.street",
+          "spawn": [
+            17,
+            9
+          ],
+          "facing": "up",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.street",
+          "at": [
+            11,
+            9
+          ],
+          "facing": "right",
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            16,
+            9
+          ],
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.street",
+          "at": [
+            11,
+            10
+          ],
+          "facing": "right",
+          "when": {
+            "santaGuest": "npc.joca"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            16,
+            10
+          ],
+          "when": {
+            "santaGuest": "npc.joca"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.joca"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.street",
+          "at": [
+            11,
+            9
+          ],
+          "facing": "right",
+          "when": {
+            "santaGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            15,
+            9
+          ],
+          "when": {
+            "santaGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcSpawn": "npc.builder",
+          "map": "map.street",
+          "at": [
+            23,
+            10
+          ],
+          "facing": "left",
+          "when": {
+            "santaGuest": "npc.builder"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            18,
+            10
+          ],
+          "when": {
+            "santaGuest": "npc.builder"
+          }
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.builder"
+          }
+        },
+        {
+          "npcSpawn": "npc.fernanda",
+          "map": "map.street",
+          "at": [
+            23,
+            9
+          ],
+          "facing": "left",
+          "when": {
+            "santaGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            19,
+            9
+          ],
+          "when": {
+            "santaGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcFace": "npc.fernanda",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.street",
+          "at": [
+            23,
+            9
+          ],
+          "facing": "left",
+          "when": {
+            "santaGuest": "npc.realtor"
+          }
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            18,
+            9
+          ],
+          "when": {
+            "santaGuest": "npc.realtor"
+          }
+        },
+        {
+          "npcFace": "npc.realtor",
+          "facing": "up",
+          "when": {
+            "santaGuest": "npc.realtor"
+          }
+        },
+        {
+          "playerWalk": [
+            17,
+            9
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "wait": 900
+        },
+        {
+          "playerFace": "left"
+        },
+        {
+          "wait": 300
+        },
+        {
+          "dialogue": "dlg.ny_pets"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.ny_joca",
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "emote": "npc.joca",
+          "balloon": "exclamation",
+          "ms": 900,
+          "when": {
+            "santaGuest": "npc.joca"
+          }
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "dialogue": "dlg.ny_countdown"
+        },
+        {
+          "setTime": "24:00"
+        },
+        {
+          "fireworks": 45000
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1100
+        },
+        {
+          "dialogue": "dlg.ny_happy"
+        },
+        {
+          "dialogue": "dlg.ny_wish_gabi",
+          "when": {
+            "santaGuest": "npc.gabi"
+          }
+        },
+        {
+          "dialogue": "dlg.ny_wish_neusa",
+          "when": {
+            "santaGuest": "npc.neusa"
+          }
+        },
+        {
+          "dialogue": "dlg.ny_wish_tiao",
+          "when": {
+            "santaGuest": "npc.builder"
+          }
+        },
+        {
+          "dialogue": "dlg.ny_wish_fernanda",
+          "when": {
+            "santaGuest": "npc.fernanda"
+          }
+        },
+        {
+          "dialogue": "dlg.ny_wish_realtor",
+          "when": {
+            "santaGuest": "npc.realtor"
+          }
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.ny_thanks"
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "dialogue": "dlg.ny_end"
+        },
+        {
+          "setTime": "24:20"
+        },
+        {
+          "enter": "map.street",
+          "spawn": [
+            17,
+            9
+          ],
+          "facing": "down"
+        }
+      ]
     }
   }
 }

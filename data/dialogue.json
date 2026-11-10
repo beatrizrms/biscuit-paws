@@ -865,7 +865,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Os presentes de Natal estão no Market, no grupo Natal. Até o dia 25!"
+          "text": "Os presentes de Natal estão no Market, na aba Natal. Até o dia 25!"
         }
       ]
     },
@@ -1049,6 +1049,112 @@
           "speaker": "Corretora",
           "npc": "npc.realtor",
           "text": "Que surpresa boa! Obrigada, {player}."
+        }
+      ]
+    },
+    "dlg.ny_call": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Quase meia-noite. Lá fora, a vizinhança vai se juntando na calçada para ver a virada do ano."
+        }
+      ]
+    },
+    "dlg.ny_countdown": {
+      "lines": [
+        {
+          "speaker": "Todos",
+          "text": "Dez, nove, oito, sete, seis, cinco, quatro..."
+        },
+        {
+          "speaker": "Todos",
+          "text": "Três... dois... um... FELIZ ANO NOVO!"
+        }
+      ]
+    },
+    "dlg.ny_happy": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Olha o céu... que lindo!"
+        }
+      ]
+    },
+    "dlg.ny_wish_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Feliz Ano Novo, {g:amiga|amigo}! Que venham muitos cafés por aqui."
+        }
+      ]
+    },
+    "dlg.ny_wish_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Feliz Ano Novo, {g:querida|querido}! Que esse café encha de gente e de gato."
+        }
+      ]
+    },
+    "dlg.ny_wish_tiao": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Ano novo, obra nova! Pode contar comigo, {player}."
+        }
+      ]
+    },
+    "dlg.ny_wish_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Feliz Ano Novo! E juízo com os gatinhos: vacina em dia, hein?"
+        }
+      ]
+    },
+    "dlg.ny_wish_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Feliz Ano Novo! O melhor negócio que eu fechei foi aquela padaria velha."
+        }
+      ]
+    },
+    "dlg.ny_end": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Os últimos fogos se apagam devagar. Pela frente, um ano inteiro de café, gatos e vizinhos."
+        }
+      ]
+    },
+    "dlg.ny_pets": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A gente acha os fogos lindos, mas sabia que os animais sentem muito medo? Preparei um cantinho confortável pra eles lá dentro, bem protegido, pra que eles não fiquem assustados ❤️ Todo cuidado é pouco!"
+        }
+      ]
+    },
+    "dlg.ny_joca": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Nem me fala! O Joca já tá escondido atrás de mim, coitado. Ele morre de medo de fogos."
+        }
+      ]
+    },
+    "dlg.ny_thanks": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Feliz Ano Novo, gente! E {g:obrigada|obrigado} por me receberem tão bem na vila. Esse lugar já virou a minha casa."
         }
       ]
     }

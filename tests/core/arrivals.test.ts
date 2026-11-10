@@ -469,7 +469,11 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     second.session.doJobPoint('arrival:arr.second_cat');
     expect(second.events).toContainEqual({ name: 'dialogue.requested', payload: { dialogueId: 'dlg.arrival_second_cat' } });
     second.session.answerArrival(true);
-    careFor(second.session);
+    // Com fome, mas a ração fica para dentro (needsInside): aceitou, ele já entra e come do pote no café.
+    const catId = [...second.session.shelteredCats()].find((id) => id !== 'cat.first_stray');
+    expect(catId).toBeTruthy();
+    expect(second.state.arrivals.active).toBeNull();
+    expect(second.events.map((e) => e.name)).not.toContain('arrival.needs');
     expect(second.state.relationships['player|npc.neusa']).toBe(80);
     const third = cafe(12);
     shelter(third.state, ['cat.first_stray', 'cat.gen.1']);

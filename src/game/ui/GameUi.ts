@@ -247,6 +247,7 @@ export class GameUi {
       this.toast((party ? t.dayParty : t.day).replace('{close}', closeAt).replace('{time}', partyAt), 6000);
       if (stockingCats > 0) this.toast(t.stockings, 5000);
     });
+    bus.on('newyear.eve', () => this.toast(uiText.newYear.eve, 6000));
     bus.on('xmas.santa_missed', () => this.toast(uiText.secretSanta.missed, 6000));
     // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
     bus.on('menu.season', ({ arrived, left }) => {

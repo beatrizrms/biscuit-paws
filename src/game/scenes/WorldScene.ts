@@ -27,6 +27,7 @@ import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
+import { FireworksLayer } from '../FireworksLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
 import { saveNow } from '../startGame';
@@ -73,6 +74,8 @@ const UPGRADE_BLINK_MS = 420;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
+/** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
+const AUTOWALK_STUCK_MS = 700;
 const FADE_MS = 160;
 /** Quantas vezes o relógio corre mais rápido ao "Esperar". */
 const WAIT_SPEED = 40;
@@ -139,6 +142,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dayNight!: DayNightLayer;
   /** Chuva, neve e folhas ao vento nas áreas ao ar livre; o clima mostrado agora (para refazer quando mudar). */
   private weatherFx!: WeatherLayer;
+  private fireworksFx!: FireworksLayer;
   private shownWeather = '';
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
@@ -201,7 +205,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Esperas dos roteiros: resolvem quando a condição vale (conferido a cada quadro). */
   private waiters: { until: () => boolean; resolve: () => void }[] = [];
   /** Caminhada da jogadora guiada por roteiro. */
-  private autoWalk: { x: number; y: number; resolve: () => void } | null = null;
+  /**
+   * Caminhada de roteiro (playerWalk): o alvo, a menor distância já alcançada e desde quando ela não melhora (para
+   * perceber que travou num móvel ou parede) e se já tentou ir primeiro na vertical.
+   */
+  private autoWalk: { x: number; y: number; resolve: () => void; best?: number; since?: number; verticalFirst?: boolean } | null = null;
   private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
   private doorLocked = false;
@@ -225,6 +233,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
     this.weatherFx = new WeatherLayer(this);
+    this.fireworksFx = new FireworksLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
     this.careBubbles = new CareBubbles(this, this.session.content.health.care);
@@ -474,6 +483,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
+    // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).
+    if (!this.changingMap) this.session.setPlayerCell(this.feetCell());
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
     if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.waitUntilAbs !== null ? WAIT_SPEED : 1));
@@ -525,8 +536,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
-      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && (this.session.goHomeProblem() === 'customers_inside' || this.session.goHomeProblem() === 'xmas_party')) {
-        // Já é hora, mas ainda tem cliente (ou a ceia de Natal): ela pode sair para a rua, só não encerra o dia.
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && ['customers_inside', 'xmas_party', 'new_year'].includes(this.session.goHomeProblem() ?? '')) {
+        // Já é hora, mas ainda tem cliente (ou a ceia de Natal, ou os fogos de Ano Novo): ela pode sair para a rua, só não encerra o dia.
         this.ui.problem(this.session.goHomeProblem() ?? 'customers_inside');
         this.useDoor(door);
       }
@@ -543,6 +554,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Mostra um mapa e põe a personagem em `spawn` (ou no ponto de partida do mapa). */
   private loadMap(mapId: string, spawn?: Cell, facing: Facing = 'down'): void {
     this.cancelPlacing();
+    this.fireworksFx?.stop();
     this.ui.closeCatalog();
     this.catColliders.forEach((c) => c.destroy());
     this.catColliders = [];
@@ -1094,7 +1106,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
     if (this.session.atHome() && !lookingAt && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
-    if (point) {
+    // A caixa da entrega na porta e um ponto (ex.: o gato de uma chegada, que alcança mais longe) ao alcance juntos:
+    // vale a caixa, a não ser que ela esteja em cima do ponto.
+    const onPoint = !!point && this.playerCells().some((f) => f[0] === point.at[0] && f[1] === point.at[1]);
+    const parcelFirst = !target && !!point && !onPoint && this.session.parcelsNear(this.playerCells()) !== undefined;
+    if (point && !parcelFirst) {
       const problem = this.session.jobPointProblem(point.id);
       if (problem) {
         this.ui.problem(problem);
@@ -2624,6 +2640,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return this.ui.showItem(itemId);
   }
 
+  fireworks(ms: number): void {
+    this.fireworksFx.play(ms, this.session.content.festive.newYear.fireworks);
+  }
+
   untilIdle(): Promise<void> {
     return new Promise((resolve) => this.waiters.push({ until: () => !this.ui.isBusy() && !this.changingMap, resolve }));
   }
@@ -2690,19 +2710,38 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     );
   }
 
-  /** Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). */
+  /**
+   * Teclas "falsas" que levam a jogadora até o alvo do roteiro (primeiro na horizontal). Se ela parar de chegar mais
+   * perto (um móvel ou parede no caminho), tenta primeiro na vertical; travou de novo, desiste e fica onde está, e o
+   * roteiro segue (antes, ela ficava empurrando a parede para sempre).
+   */
   private autoWalkInput(): { up: boolean; down: boolean; left: boolean; right: boolean } {
     const t = this.autoWalk!;
     const dx = t.x - this.player.x;
     const dy = t.y - this.player.y;
-    if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
-      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+    const done = () => {
       this.autoWalk = null;
       t.resolve();
       return NO_INPUT;
+    };
+    if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+      return done();
     }
-    if (Math.abs(dx) > 1.5) return { up: false, down: false, left: dx < 0, right: dx > 0 };
-    return { up: dy < 0, down: dy > 0, left: false, right: false };
+    const dist = Math.abs(dx) + Math.abs(dy);
+    const now = this.time.now;
+    if (t.best === undefined || dist < t.best - 1) {
+      t.best = dist;
+      t.since = now;
+    } else if (now - (t.since ?? now) > AUTOWALK_STUCK_MS) {
+      if (t.verticalFirst) return done();
+      t.verticalFirst = true;
+      t.best = dist;
+      t.since = now;
+    }
+    const vertical = Math.abs(dy) > 1.5 && (t.verticalFirst || Math.abs(dx) <= 1.5);
+    if (vertical) return { up: dy < 0, down: dy > 0, left: false, right: false };
+    return { up: false, down: false, left: dx < 0, right: dx > 0 };
   }
 
   // ---------- Para testes e depuração ----------

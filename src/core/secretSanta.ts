@@ -37,6 +37,8 @@ export interface SecretSantaData {
   proposalWhen: Condition;
   proposalScript: string;
   partyScript: string;
+  /** Condição para a ceia começar na hora (ex.: fora do café, ou no salão: o roteiro não a tira de outro cômodo). */
+  partyWhen: Condition;
   /** Tag dos presentes (o que ela pode dar). */
   giftTag: string;
   /** Pontos de coração: com quem ela tirou (loved/liked) e com cada convidado da ceia (party). */

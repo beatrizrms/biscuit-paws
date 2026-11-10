@@ -38,7 +38,9 @@ type ScriptAction =
    */
   | { secretSanta: 'exchange' | 'receive' }
   /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
-  | { setTime: string };
+  | { setTime: string }
+  /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
+  | { fireworks: number };
 
 export interface ScriptsData {
   schemaVersion: 1;
@@ -121,6 +123,8 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!refs.balloons.has(step.balloon)) errors.push(`${where(i)}: balão inexistente "${step.balloon}"`);
       } else if ('discoverRoom' in step) {
         if (!refs.rooms.has(step.discoverRoom)) errors.push(`${where(i)}: cômodo inexistente "${step.discoverRoom}"`);
+      } else if ('fireworks' in step) {
+        if (!(step.fireworks > 0)) errors.push(`${where(i)}: fireworks precisa de uma duração (ms)`);
       } else if ('setTime' in step) {
         if (!/^\d{1,2}:\d{2}$/.test(step.setTime)) errors.push(`${where(i)}: hora inválida "${step.setTime}"`);
       } else if ('secretSanta' in step) {

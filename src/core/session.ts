@@ -27,7 +27,8 @@ import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } fr
 const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, yearOf, type CalendarEntry } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, weatherOf, yearLength, yearOf, type CalendarEntry } from './calendar';
+import { isNewYearEve, newYearFlag } from './newYear';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
@@ -181,6 +182,7 @@ export type ActionResult =
         | 'too_early'
         | 'customers_inside'
         | 'xmas_party'
+        | 'new_year'
         | 'cart_empty'
         | QuoteProblem
         | PlaceProblem;
@@ -710,6 +712,8 @@ export class GameSession {
     if (seasonOf(this.content.seasons, day) === 'winter' && seasonOf(this.content.seasons, day + 1) !== 'winter') this.packXmasBox();
     // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
     if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
+    // Último dia do ano: o aviso dos fogos da meia-noite.
+    if (this.newYearPending()) this.bus.emit('newyear.eve', { gatherAt: this.content.festive.newYear.gatherAt });
     // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
     const menu = this.service.seasonalMenu(day);
     if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
@@ -742,6 +746,7 @@ export class GameSession {
       this.checkBuilderShift();
       this.advanceStory();
       this.checkSecretSanta();
+      this.checkNewYear();
     }
   }
 
@@ -751,7 +756,10 @@ export class GameSession {
    */
   curfew(): number {
     const dn = this.content.dayNight;
-    return parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
+    const normal = parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
+    // Véspera de Ano Novo: dá tempo de ver os fogos da meia-noite.
+    const ny = this.content.festive.newYear;
+    return isNewYearEve(this.content.seasons, ny, this.state.day) ? Math.max(normal, parseClock(ny.curfew)) : normal;
   }
 
   // ---------- Energia ----------
@@ -885,11 +893,13 @@ export class GameSession {
   }
 
   /** Por que ainda não dá para ir para casa: cedo demais, ou ainda tem cliente no café (ela espera o último sair). */
-  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | null {
+  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | 'new_year' | null {
     if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
     if (this.state.service.customers.length > 0) return 'customers_inside';
     // Natal com amigo secreto marcado: só depois da ceia.
     if (this.santaPartyPending()) return 'xmas_party';
+    // Véspera de Ano Novo: só depois dos fogos.
+    if (this.newYearPending()) return 'new_year';
     return null;
   }
 
@@ -1687,6 +1697,28 @@ export class GameSession {
     return evaluate(c, this.state, this.storyContext());
   }
 
+  // ---------- Ano Novo ----------
+
+  /** Hoje é a véspera de Ano Novo e os fogos ainda vão acontecer (com a condição dos dados valendo). */
+  newYearPending(): boolean {
+    const ny = this.content.festive.newYear;
+    return isNewYearEve(this.content.seasons, ny, this.state.day) && !this.state.flags[newYearFlag(this.content.seasons, this.state.day)] && evaluate(ny.when, this.state, this.storyContext());
+  }
+
+  /**
+   * A cada minuto: na véspera de Ano Novo, na hora de juntar, o roteiro dos fogos (uma vez por ano). Os amigos que
+   * ela conhece vão para a rua com ela e cada um ganha um pouco de coração.
+   */
+  checkNewYear(): void {
+    const ny = this.content.festive.newYear;
+    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt) || !evaluate(ny.startWhen, this.state, this.storyContext())) return;
+    this.state.flags[newYearFlag(this.content.seasons, this.state.day)] = true;
+    const friends = this.santaGuests();
+    for (const npc of friends) addPoints(this.state, this.content.relationships, PLAYER, npc, ny.points);
+    this.bus.emit('newyear.started', { friends });
+    this.bus.emit('script.requested', { scriptId: ny.script });
+  }
+
   // ---------- Amigo secreto de Natal ----------
 
   /** O amigo secreto deste ano (null: ainda não teve sorteio). */
@@ -1723,6 +1755,14 @@ export class GameSession {
     return Object.values(this.content.items).filter((i) => i.tags.includes(tag)).map((i) => i.id);
   }
 
+  /** Onde ela está (o jogo avisa a cada quadro; não vai para o save): para a condição playerRoom. */
+  private playerCell: Cell | null = null;
+
+  /** O jogo avisa a célula dos pés dela (as cenas de Natal só começam com ela no salão). */
+  setPlayerCell(cell: Cell): void {
+    this.playerCell = cell;
+  }
+
   /** Dia da ceia em que o roteiro já foi pedido (não pede de novo a cada minuto). */
   private santaPartyRequestedOn = 0;
 
@@ -1743,7 +1783,7 @@ export class GameSession {
       this.bus.emit('script.requested', { scriptId: ss.proposalScript });
       return;
     }
-    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day) {
+    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day && evaluate(ss.partyWhen, this.state, this.storyContext())) {
       this.santaPartyRequestedOn = day;
       this.bus.emit('script.requested', { scriptId: ss.partyScript });
     }
@@ -1951,9 +1991,37 @@ export class GameSession {
   debugCompleteStory(untilId?: string): number {
     for (const d of this.visibleDirt()) if (!d.clearedBy) this.state.cleaned.push(d.id);
     let n = 0;
-    for (let id = this.debugCompleteBeat(); id; id = untilId === id ? null : this.debugCompleteBeat()) n++;
+    // Já passou do marco pedido (pular a introdução de novo): não conclui mais nada, só entrega o que faltou.
+    const already = untilId !== undefined && this.state.story.completed.includes(untilId);
+    if (!already) for (let id = this.debugCompleteBeat(); id; id = untilId === id ? null : this.debugCompleteBeat()) n++;
+    this.debugGiveSkippedItems();
     this.advanceStory();
     return n;
+  }
+
+  /**
+   * Debug: o que os roteiros dos marcos concluídos dão (a chave da padaria, a vassoura, a louça da Gabi) e ela ainda
+   * não tem. Também conserta saves de debug que pularam a história antes disto (e ficaram trancados para fora).
+   */
+  private debugGiveSkippedItems(): void {
+    const done = new Set(this.state.story.completed);
+    for (const beat of this.content.story.beats) {
+      if (!done.has(beat.id)) continue;
+      for (const e of beat.effects) {
+        if (!('script' in e)) continue;
+        this.state.flags[seenFlag(e.script)] = true;
+        for (const step of this.content.scripts[e.script]?.steps ?? []) {
+          if ('giveItem' in step && !evaluate({ owned: step.giveItem }, this.state, this.storyContext())) this.giveQuietly(step.giveItem);
+        }
+      }
+    }
+  }
+
+  /** Como receiveItem, mas sem avisar nem andar a história (o debug que pula marcos). */
+  private giveQuietly(itemId: string): void {
+    if (this.content.items[itemId]?.inBag === false) this.state.flags[`received.${itemId}`] = true;
+    else this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.service.stockDishes(itemId);
   }
 
   /** Debug: todos os cômodos descobertos, abertos e reformados (passagens abertas, sujeira deles limpa). */
@@ -2493,6 +2561,29 @@ export class GameSession {
   }
 
   /**
+   * Debug: pula para um momento de Natal/Ano Novo (deste ano, ou do próximo se já passou), forçando as condições
+   * (prólogo feito; Gabi, Joca e Dona Neusa conhecidos). "draw": inverno 18, 9:59 (o sorteio; a interface leva ao café); "party":
+   * inverno 25, 18:59, com um amigo já tirado (a ceia); "newyear": inverno 30, 23:29 (os fogos).
+   */
+  debugFestive(what: 'draw' | 'party' | 'newyear'): void {
+    const { secretSanta: ss, newYear: ny } = this.content.festive;
+    const seasons = this.content.seasons;
+    const [season, d, clock] = what === 'draw' ? [ss.season, ss.drawDay, '09:59'] : what === 'party' ? [ss.season, ss.day, '18:59'] : [ny.season, ny.day, '23:29'];
+    let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, season) + d - 1;
+    if (day < this.state.day) day += yearLength(seasons);
+    Object.assign(this.state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
+    this.state.day = day;
+    this.state.time = parseClock(clock);
+    this.santaPartyRequestedOn = 0;
+    if (what === 'draw') this.state.secretSanta = null;
+    else if (what === 'party') {
+      const drawn = drawFriend(this.santaGuests(), createRng(day));
+      if (drawn) this.state.secretSanta = { year: yearOf(seasons, day), drawn, stage: 'drawn' };
+    } else delete this.state.flags[newYearFlag(seasons, day)];
+    this.bus.emit('day.started', { day });
+  }
+
+  /**
    * Debug: começa um festival agora, sem as condições (nem data: fica marcado para hoje, ou a preparação começa).
    * Um em andamento é trocado.
    */
@@ -2733,6 +2824,7 @@ export class GameSession {
         return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
+      playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };
   }
 

@@ -24,6 +24,8 @@ export interface StoryContext {
   milestoneMet?: (id: string) => boolean;
   /** O amigo vem para o amigo secreto deste ano (condição santaGuest). */
   santaGuest?: (npc: string) => boolean;
+  /** O cômodo do café em que ela está agora (fora do café ou sem posição: undefined). */
+  playerRoom?: () => string | undefined;
 }
 
 /** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda a do salão (saves antigos; cômodos novos não contam). */
@@ -55,6 +57,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
   if ('santaGuest' in c) return !!ctx.santaGuest?.(c.santaGuest);
+  if ('playerRoom' in c) return ctx.playerRoom?.() === c.playerRoom;
   if ('season' in c) return seasonOf(ctx.seasons, state.day) === c.season;
   if ('milestone' in c) return state.milestones.reached[c.milestone] !== undefined || !!ctx.milestoneMet?.(c.milestone);
   if ('daysSince' in c) {

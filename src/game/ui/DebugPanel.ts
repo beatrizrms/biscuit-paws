@@ -2,6 +2,9 @@
 import type { GameSession } from '../../core/session';
 import { weatherOf } from '../../core/calendar';
 
+/** O painel recolhido (só o título) fica lembrado entre as sessões. */
+const FOLD_KEY = 'biscuit-paws:debug-panel-collapsed';
+
 export interface DebugActions {
   skipDialogue(): void;
   toggleCollision(): boolean;
@@ -30,7 +33,7 @@ export class DebugPanel {
     const panel = document.createElement('section');
     panel.className = 'panel debug-panel';
     panel.innerHTML = `
-      <header><strong>DEBUG</strong> · save de teste · F9 desliga</header>
+      <header title="Clique para recolher ou abrir"><strong>DEBUG</strong> · save de teste · F9 desliga <span class="fold"></span></header>
       <div class="buttons">
         <button data-act="money">+100 moedas</button>
         <button data-act="rep">+10 reputação</button>
@@ -40,6 +43,12 @@ export class DebugPanel {
         <strong>Eventos</strong>
         ${session.content.festivals.map((f) => `<button data-festival="${f.id}">${f.name}</button>`).join('')}
         <button data-act="fest-day">Ir ao dia do evento</button>
+      </div>
+      <div class="buttons festive">
+        <strong>Natal e Ano Novo</strong>
+        <button data-festive="draw">Sorteio (inv. 18)</button>
+        <button data-festive="party">Ceia (inv. 25)</button>
+        <button data-festive="newyear">Fogos (inv. 30)</button>
       </div>
       <div class="buttons arrivals">
         <strong>Chegadas</strong>
@@ -80,6 +89,25 @@ export class DebugPanel {
         .join('')}</div>
       <div class="status"></div>`;
     root.appendChild(panel);
+    // Recolher: clicar no título deixa só a faixa de cima (lembra na próxima vez).
+    const header = panel.querySelector('header') as HTMLElement;
+    const fold = (collapsed: boolean) => {
+      panel.classList.toggle('collapsed', collapsed);
+      (header.querySelector('.fold') as HTMLElement).textContent = collapsed ? '▸ abrir' : '▾ recolher';
+      try {
+        window.localStorage.setItem(FOLD_KEY, collapsed ? '1' : '0');
+      } catch {
+        // sem armazenamento: só não lembra
+      }
+    };
+    let collapsed = false;
+    try {
+      collapsed = window.localStorage.getItem(FOLD_KEY) === '1';
+    } catch {
+      collapsed = false;
+    }
+    fold(collapsed);
+    header.addEventListener('click', () => fold(!panel.classList.contains('collapsed')));
     this.status = panel.querySelector('.status') as HTMLElement;
 
     const on = (act: string, fn: (btn: HTMLButtonElement) => void) => {
@@ -134,6 +162,15 @@ export class DebugPanel {
       b.addEventListener('click', () => {
         session.debugStartFestival(b.dataset.festival!);
         actions.reloadWorld();
+      }),
+    );
+    // Natal e Ano Novo: pula para um minuto antes (o sorteio, a ceia, os fogos), já com as condições.
+    panel.querySelectorAll<HTMLButtonElement>('[data-festive]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const what = b.dataset.festive as 'draw' | 'party' | 'newyear';
+        session.debugFestive(what);
+        // O sorteio só acontece com ela no café.
+        actions.reloadWorld(what === 'draw' ? session.content.map.id : undefined);
       }),
     );
     on('fest-day', () => {

@@ -78,10 +78,18 @@
         ]
       },
       {
+        "id": "xmas",
+        "title": "Natal",
+        "seasonal": true,
+        "groups": [
+          { "tag": "xmas", "except": ["xmas_gift"], "title": "Enfeites" },
+          { "tag": "xmas_gift", "title": "Presentes de Natal" }
+        ]
+      },
+      {
         "id": "decor",
         "title": "Decor",
         "groups": [
-          { "tag": "xmas", "title": "Natal" },
           {
             "tag": "decor",
             "title": "Decoração"
@@ -280,6 +288,7 @@
     "no_facade": "A fachada só se pinta pelo Market, no café.",
     "customers_inside": "Ainda tem cliente no café: só vou para casa quando o último sair.",
     "xmas_party": "Hoje tem a ceia do amigo secreto às 19h: não posso ir para casa antes!",
+    "new_year": "Hoje tem fogos à meia-noite na rua: não vou para casa antes da virada!",
     "no_days": "Escolha pelo menos um dia para abrir.",
     "too_short": "O café precisa ficar aberto mais tempo.",
     "out_of_range": "Fora do horário possível.",
@@ -994,6 +1003,9 @@
     "dayParty": "Feliz Natal! Hoje o café fecha às {close} e a ceia do amigo secreto é às {time}.",
     "stockings": "Os gatos acharam petiscos nas meias de Natal!",
     "missed": "A ceia do amigo secreto passou... A turma guardou um pedaço de panetone para você."
+  },
+  "newYear": {
+    "eve": "Último dia do ano! À meia-noite tem fogos na rua, com a vizinhança."
   },
   "seasonMenu": {
     "arrived": "Novidades no cardápio: {items}.",

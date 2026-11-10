@@ -42,6 +42,10 @@ export interface GameEvents {
   'xmas.santa_exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };
   'xmas.santa_missed': { npc: string };
   'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number };
+  /** Véspera de Ano Novo: a vizinhança chamou para a rua (os amigos que ela conhece vão juntos). */
+  'newyear.started': { friends: string[] };
+  /** Manhã do último dia do ano (o aviso dos fogos). */
+  'newyear.eve': { gatherAt: string };
   'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
