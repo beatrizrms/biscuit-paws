@@ -696,7 +696,7 @@ export class CafeService {
   }
 
   /** Dá para soltar aqui? Balcão, mesa ou equipamento (superfícies) ou chão livre, ao lado dela, sem nada em cima. */
-  canPutDown(at: Cell, feet: readonly Cell[]): boolean {
+  canPutDown(at: Cell, feet: readonly Cell[], allowFloor = true): boolean {
     if (!near(feet, at) || this.surfaceAt(at)) return false;
     if (this.st.service.customers.some((c) => same(c.spot, at))) return false;
     const items = this.h.content.items;
@@ -705,15 +705,16 @@ export class CafeService {
       (p) => items[p.item]?.tags.some((t) => surfaceTags.includes(t)) && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)),
     );
     if (onSurface) return true;
+    if (!allowFloor) return false;
     const solid = solidGrid(this.h.homeMap(), this.h.content.catalog);
     return !!solid[at[1]] && solid[at[1]]![at[0]] === false;
   }
 
-  /** Solta o último objeto da mão (o gato e o saco têm ações próprias). */
-  putDown(at: Cell, feet: readonly Cell[]): ServiceResult {
+  /** Solta o último objeto da mão (o gato e o saco têm ações próprias). `allowFloor`: false = só em superfície. */
+  putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
     if (!item) return { ok: false, reason: 'hands_empty' };
-    if (exclusive(item) || !this.canPutDown(at, feet)) return { ok: false, reason: 'cannot_put_here' };
+    if (exclusive(item) || !this.canPutDown(at, feet, allowFloor)) return { ok: false, reason: 'cannot_put_here' };
     this.st.hands.pop();
     this.st.surfaces.push({ at: [...at], item });
     this.handsChanged();

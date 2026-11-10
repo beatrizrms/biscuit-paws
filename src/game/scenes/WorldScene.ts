@@ -1501,14 +1501,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
     if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
-      // Recolher louça suja: a pose de limpar a mesa.
-      const dirty = surface.item.kind === 'dirty';
-      return report(dirty ? this.withPose(sv.pickUp(surface.at), 'wipe_table') : sv.pickUp(surface.at));
+      // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
+      return report(sv.pickUp(surface.at));
     }
-    // Soltar: na célula clicada ou na da frente.
+    // Soltar: na célula clicada (até no chão) ou, com o E, só num balcão, mesa ou equipamento na frente: o E sem nada
+    // para pegar ao alcance não larga a louça da bandeja no chão.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
-      if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
+      if (sv.canPutDown(at, feet, !!target)) return report(sv.putDown(at, feet, !!target));
     }
     return false;
   }
