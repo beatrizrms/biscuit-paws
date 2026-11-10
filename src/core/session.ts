@@ -11,6 +11,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus, type DayEndReason } from './events';
+import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
@@ -211,6 +212,14 @@ export class GameSession {
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
+    // Energia: cada tarefa gasta o que está nos dados (louça: por peça; mini game pulado não gasta).
+    for (const name of ENERGY_EVENTS) {
+      this.bus.on(name, (e) => {
+        if ('skipped' in e && e.skipped) return;
+        const cost = this.content.dayNight.energy.costs[name] ?? 0;
+        this.spendEnergy(cost * ('count' in e && typeof e.count === 'number' ? e.count : 1));
+      });
+    }
     // Lista de compras: o que ela compra sai da lista (no caixa ou um a um).
     this.bus.on('item.bought', ({ itemId }) => {
       this.state.shoppingList = this.state.shoppingList.filter((id) => id !== itemId);
@@ -237,6 +246,8 @@ export class GameSession {
 
   /** Itens que ela tinha no último evento (para achar os que acabaram de chegar). */
   private ownedIds = new Set<string>();
+  /** Dia em que já lembrou da hora-limite (não vai para o save: recarregar pode lembrar de novo). */
+  private curfewRemindedOn = 0;
 
   private ownedNow(): Set<string> {
     return new Set(Object.keys(this.state.inventory).filter((id) => (this.state.inventory[id] ?? 0) > 0));
@@ -518,7 +529,10 @@ export class GameSession {
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.constructionDayEnded(day + 1);
+    // Dormiu depois da meia-noite: acorda com menos energia.
+    const late = this.state.time > 24 * 60;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
+    this.setEnergy(late ? this.content.dayNight.energy.wakeAfterLateNight : this.content.dayNight.energy.max);
     this.state.today = { earned: 0, jobs: 0 };
     this.playgroundDay();
     const sleepRoom = this.sleepRoom();
@@ -546,6 +560,12 @@ export class GameSession {
     else if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
     // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) {
+      // Uma vez por dia, um pouco antes da hora-limite: "está ficando tarde".
+      const remind = this.content.dayNight.curfewReminder;
+      if (remind > 0 && this.curfewRemindedOn !== this.state.day && this.state.time >= this.curfew() - remind) {
+        this.curfewRemindedOn = this.state.day;
+        this.bus.emit('curfew.soon', { minutes: Math.round(this.curfew() - this.state.time) });
+      }
       this.deliverArrived();
       this.service.tick();
       this.advanceStory();
@@ -559,6 +579,40 @@ export class GameSession {
   curfew(): number {
     const dn = this.content.dayNight;
     return parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
+  }
+
+  // ---------- Energia ----------
+
+  /** Energia agora (sem o campo no save: cheia). */
+  energy(): number {
+    const cfg = this.content.dayNight.energy;
+    return clampEnergy(this.state.energy ?? cfg.max, cfg);
+  }
+
+  energyLevel(): EnergyLevel {
+    return energyLevel(this.energy(), this.content.dayNight.energy);
+  }
+
+  /** Fator da velocidade de andar (cansada anda mais devagar). */
+  energySpeed(): number {
+    return energySpeed(this.energy(), this.content.dayNight.energy);
+  }
+
+  /** Dá para correr? Cansada, não. */
+  canRun(): boolean {
+    return this.energyLevel() === 'ok';
+  }
+
+  spendEnergy(amount: number): void {
+    if (amount > 0) this.setEnergy(this.energy() - amount);
+  }
+
+  private setEnergy(value: number): void {
+    const cfg = this.content.dayNight.energy;
+    const next = clampEnergy(value, cfg);
+    if (next === this.state.energy) return;
+    this.state.energy = next;
+    this.bus.emit('energy.changed', { energy: next, max: cfg.max, level: energyLevel(next, cfg) });
   }
 
   /** Já dá para encerrar o dia na porta do café? */

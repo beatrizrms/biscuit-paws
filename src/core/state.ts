@@ -98,6 +98,8 @@ export interface GameState {
   doors: Record<string, DoorState>;
   /** Horário de funcionamento escolhido (v15; app "Horário"). null = o padrão de data/service.json. */
   schedule: Schedule | null;
+  /** Energia da protagonista (energy.ts). Sem o campo (save antigo ou jogo novo): cheia. */
+  energy?: number;
   /** Reputação felina da cidade (v16): valor, limiares já alcançados e o log curto dos motivos. */
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */

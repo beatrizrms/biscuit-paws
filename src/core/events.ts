@@ -65,6 +65,10 @@ export interface GameEvents {
    * "curfew" (deu a hora-limite e amanhã tem expediente), "tired" (a hora-limite da véspera de folga).
    */
   'day.ended': { day: number; reason: DayEndReason; earned: number; jobs: number };
+  /** A energia mudou (gastou numa tarefa ou acordou). level: 'ok', 'low' (cansada) ou 'empty'. */
+  'energy.changed': { energy: number; max: number; level: 'ok' | 'low' | 'empty' };
+  /** Falta `minutes` para a hora-limite (uma vez por dia). */
+  'curfew.soon': { minutes: number };
   'day.started': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };

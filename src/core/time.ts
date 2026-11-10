@@ -1,6 +1,7 @@
 // Relógio do jogo e cor do ciclo dia/noite. Puro: sem Phaser, DOM ou window.
 // A hora é guardada em minutos desde 00:00 do dia atual; pode passar de 24:00 (madrugada) até passOut.
 import type { AmbienceConfig } from './ambience';
+import { validateEnergy, type EnergyConfig } from './energy';
 
 export interface DayNightConfig {
   /** Luz e sombra de ambiente (ambience.ts). */
@@ -18,6 +19,10 @@ export interface DayNightConfig {
   curfew: string;
   /** Hora-limite na véspera de um dia em que o café não abre ("26:00"). */
   curfewBeforeDayOff: string;
+  /** Minutos antes da hora-limite em que ela lembra que está ficando tarde. */
+  curfewReminder: number;
+  /** Energia da protagonista (energy.ts). */
+  energy: EnergyConfig;
   /** Se desmaiar de sono, o dia seguinte começa mais tarde ("10:00"). */
   wakeAfterPassOut: string;
   /** Interiores: 0 = sem tinta, 1 = igual à rua. */
@@ -95,6 +100,8 @@ export function validateDayNight(config: DayNightConfig): string[] {
   check('wakeAfterPassOut', config.wakeAfterPassOut);
   check('curfew', config.curfew);
   check('curfewBeforeDayOff', config.curfewBeforeDayOff);
+  if (!(config.curfewReminder >= 0)) errors.push('daynight: curfewReminder deve ser 0 ou mais');
+  errors.push(...validateEnergy(config.energy).map((e) => `daynight: ${e}`));
   if (errors.length === 0) {
     const order = [config.goHomeFrom, config.curfew, config.curfewBeforeDayOff, config.passOut].map(parseClock);
     if (order.some((t, i) => i > 0 && t < order[i - 1]!)) errors.push('daynight: precisa de goHomeFrom <= curfew <= curfewBeforeDayOff <= passOut');

@@ -47,6 +47,8 @@ export class GameUi {
   private reveal: { el: HTMLElement; done: () => void } | null = null;
   private typing: { full: string; shown: number; timer: number } | null = null;
   private toastTimer = 0;
+  /** Último aviso de energia dado (para não repetir a cada tarefa). */
+  private energyWarned: 'low' | 'empty' | null = null;
   private hintMode: HintMode = 'walk';
   private cutscene!: CutsceneView;
   private naming!: NamingBox;
@@ -80,6 +82,7 @@ export class GameUi {
       <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
       <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <div class="dialogue-layer">
@@ -265,6 +268,13 @@ export class GameUi {
       void el?.offsetWidth; // reinicia a animação
       el?.classList.add('bump');
     });
+    // Energia: a barrinha acompanha; avisa uma vez ao ficar cansada e ao zerar.
+    bus.on('energy.changed', ({ level }) => {
+      this.renderEnergy();
+      if (level !== 'ok' && level !== this.energyWarned) this.toast(uiText.energy[level], 4000);
+      this.energyWarned = level === 'ok' ? null : level;
+    });
+    bus.on('curfew.soon', () => this.toast(uiText.energy.curfewSoon, 4500));
     bus.on('reputation.threshold_reached', ({ thresholdId }) => {
       const t = content.reputation.thresholds.find((x) => x.id === thresholdId);
       if (t) this.toast(uiText.reputation.reached.replace('{name}', t.name), 4000);
@@ -573,6 +583,18 @@ export class GameUi {
     });
   }
 
+  /** Energia no HUD: barrinha e número (embaixo da reputação); cansada, a barra fica laranja. */
+  private renderEnergy(): void {
+    const el = this.root.querySelector<HTMLElement>('.hud-energy');
+    if (!el) return;
+    const max = content.dayNight.energy.max;
+    const value = this.session.energy();
+    (el.querySelector('.fill') as HTMLElement).style.width = `${Math.round((value / max) * 100)}%`;
+    (el.querySelector('.value') as HTMLElement).textContent = String(Math.round(value));
+    el.classList.toggle('low', this.session.energyLevel() !== 'ok');
+    el.title = uiText.energy.title.replace('{value}', String(Math.round(value))).replace('{max}', String(max));
+  }
+
   /** Reputação felina no HUD: barrinha e número (embaixo do dinheiro). */
   private renderReputation(): void {
     const el = this.root.querySelector<HTMLElement>('.hud-rep');
@@ -782,6 +804,7 @@ export class GameUi {
     const { state } = this.session;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
     this.renderReputation();
+    this.renderEnergy();
     const sd = this.session.seasonDay();
     (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day)).replace('{weekday}', uiText.weekdays[this.session.service.weekday()] ?? '');
     if (bumpMoney) {

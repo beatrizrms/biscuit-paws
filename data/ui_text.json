@@ -734,6 +734,13 @@
     "prev": "estação anterior",
     "next": "próxima estação"
   },
+  "energy": {
+    "label": "Energia",
+    "title": "Energia: {value} de {max}. Cada tarefa gasta um pouco; dormir recupera.",
+    "low": "Pouca energia: andar fica mais devagar e não dá para correr.",
+    "empty": "Sem energia nenhuma. Melhor encerrar o dia e descansar.",
+    "curfewSoon": "Está ficando tarde: daqui a uma hora preciso ir para casa."
+  },
   "reputation": {
     "label": "Reputação",
     "title": "Reputação felina da cidade: {value} de {max}",

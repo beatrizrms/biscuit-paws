@@ -370,9 +370,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           left: k.left.isDown || k.a.isDown,
           right: k.right.isDown || k.d.isDown,
         };
-    this.player.speedFactor = this.session.service.speed();
+    // Cansada (pouca energia), anda mais devagar e não corre.
+    this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
     // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
-    this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown, this.session.service.carrying(), playerRun);
+    this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown && this.session.canRun(), this.session.service.carrying(), playerRun);
     this.player.move(input);
     this.player.updateDepth();
     for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);

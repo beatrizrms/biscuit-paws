@@ -408,3 +408,8 @@ Consequência: `daynight.json: curfew` (24:00) e `curfewBeforeDayOff` (26:00); v
 ## 100. A chave da padaria e o presente da Gabi não ficam na mochila (nov/2026)
 Motivo: a Beatriz quis o presente da Gabi virando louça na despensa (não um pacote de presente na mochila) e a chave só mostrada na entrega, sem guardar.
 Consequência: item com `inBag: false` não entra na mochila ao ser recebido; fica a marca `received.<id>`, e a condição `owned` conta com ela (a porta do café pede a chave). O presente continua virando 6 xícaras, 6 copos e 6 pratos limpos, e a louça limpa agora aparece na seção Despensa da mochila (saiu da faixa de cima). Saves antigos: a leitura tira os dois da mochila e grava a marca (o formato não muda). A chave enferrujada do quintal continua na mochila: ela é usada (e gasta) para abrir a porta.
+
+## 101. Energia da protagonista, versão básica (nov/2026)
+Pedido: um método de energia básico, e um lembrete às 23h da hora-limite.
+Consequência: `daynight.json: energy` (`src/core/energy.ts`). Cada tarefa gasta um pouco, pelo evento que ela já dispara (limpar, preparar, servir, lavar louça por peça, mini game não pulado, alimentar, trocar areia). Com 25 ou menos ela anda mais devagar e não corre; com 0, mais devagar ainda (não bloqueia tarefas). Acorda cheia; se o dia acabou depois da meia-noite, com 75. Barra "Energia" no HUD, embaixo da reputação, e um aviso ao ficar cansada e ao zerar. Save: campo opcional `energy` (sem ele, cheia), sem subir a versão. Lembrete: `curfew.soon`, `curfewReminder` (60) minutos antes da hora-limite (23h, ou 1h na véspera de folga). Próximos passos possíveis: comer/beber algo para recuperar, cochilo, bloquear tarefas pesadas sem energia.
+

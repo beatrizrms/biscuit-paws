@@ -96,5 +96,15 @@
   "_curfew": "Hora-limite da noite: nela ela vai para casa sozinha (sem a penalidade do desmaio). curfew quando o café abre amanhã; curfewBeforeDayOff na véspera de um dia em que o café não abre.",
   "curfew": "24:00",
   "curfewBeforeDayOff": "26:00",
+  "curfewReminder": 60,
+  "_energy": "Energia da protagonista (src/core/energy.ts): cada evento de costs gasta um pouco (mini game pulado não gasta). Com lowAt ou menos ela anda a tiredSpeed e não corre; com 0, a emptySpeed. Acorda cheia; se o dia acabou depois da meia-noite, com wakeAfterLateNight. curfewReminder: minutos antes da hora-limite em que ela lembra que está tarde.",
+  "energy": {
+    "max": 100,
+    "lowAt": 25,
+    "tiredSpeed": 0.8,
+    "emptySpeed": 0.6,
+    "wakeAfterLateNight": 75,
+    "costs": { "dirt.cleaned": 2, "prep.started": 2, "customer.served": 1, "dish.washed": 1, "minigame.finished": 6, "cat.fed": 1, "litter.refilled": 2 }
+  },
   "wakeAfterPassOut": "10:00"
 }

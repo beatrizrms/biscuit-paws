@@ -997,6 +997,13 @@
 .hud-rep .fill { position: absolute; inset: 0 auto 0 0; background: var(--pink3); }
 .hud-rep .value { min-width: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--wood4); }
 .hud-rep.bump { animation: bump 0.35s; }
+/* Energia (embaixo da reputação): mesma barrinha; cansada, laranja */
+.hud-energy { position: absolute; top: 40px; right: 6px; display: flex; align-items: center; gap: 4px; padding: 1px 7px; font-size: 7.5px; font-weight: bold; transition: opacity 0.2s; }
+.hud-energy .label { color: var(--ink2); font-weight: normal; }
+.hud-energy .bar { position: relative; width: 36px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
+.hud-energy .fill { position: absolute; inset: 0 auto 0 0; background: #6fae5a; transition: width 0.3s; }
+.hud-energy.low .fill { background: #e08a3a; }
+.hud-energy .value { min-width: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--wood4); }
 
 /* Cartaz de gato precisando de lar (chegada modelo mural), no mural e no Vila Hoje */
 .news .cat-card.poster { border: 1px dashed var(--pink3); background: #fff4f2; }

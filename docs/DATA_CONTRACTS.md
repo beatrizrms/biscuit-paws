@@ -221,6 +221,13 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
   "goHomeFrom": "17:00",       // a partir daí, a porta do café pergunta se ela quer encerrar o dia
   "curfew": "24:00",           // hora-limite: ela vai para casa sozinha ("amanhã tem expediente")
   "curfewBeforeDayOff": "26:00", // hora-limite na véspera de um dia em que o café não abre ("preciso ir descansar")
+  "curfewReminder": 60,        // minutos antes da hora-limite: o aviso "está ficando tarde" (0 = sem aviso)
+  "energy": {                  // energia da protagonista (src/core/energy.ts)
+    "max": 100, "lowAt": 25,   // com lowAt ou menos, cansada: anda a tiredSpeed e não corre; com 0, a emptySpeed
+    "tiredSpeed": 0.8, "emptySpeed": 0.6,
+    "wakeAfterLateNight": 75,  // acorda com isso se o dia acabou depois da meia-noite (senão, cheia)
+    "costs": { "dirt.cleaned": 2, "dish.washed": 1 } // evento -> gasto (só os de ENERGY_EVENTS; louça: por peça; mini game pulado: nada)
+  },
   "wakeAfterPassOut": "10:00", // se desmaiou, o dia seguinte começa mais tarde
   "indoorStrength": 0.35,      // mapas "indoor" recebem só 55% da cor
   "keyframes": [{ "time": "07:00", "color": "#ffe8d0" }, { "time": "12:00", "color": "#ffffff" }],
