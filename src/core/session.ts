@@ -1,5 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
+import { isOpenAt, nextOpening, weekdayOf } from './schedule';
 import { type QuoteProblem, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
@@ -329,6 +330,7 @@ export class GameSession {
 
   /** Esta porta, agora, mostra uma cena ou roda um roteiro em vez de deixar passar? Devolve o id da cena ou do roteiro. */
   doorIntercept(door: MapDoor): string | undefined {
+    if (this.doorClosedNow(door)) return undefined;
     const i = door.intercept;
     if (!i || !evaluate(i.when as Condition, this.state, this.storyContext())) return undefined;
     if (i.script) {
@@ -1457,13 +1459,32 @@ export class GameSession {
     this.advanceStory();
   }
 
-  /** A porta deixa passar? (requisito em dados, ex.: ter a chave). */
+  /** A porta deixa passar? (requisito em dados, ex.: ter a chave; e o horário do estabelecimento). */
   canUseDoor(door: MapDoor): boolean {
+    if (this.doorClosedNow(door)) return false;
     return !door.requires || evaluate(door.requires as Condition, this.state, this.storyContext());
   }
 
-  /** Tentou abrir uma porta trancada: mostra a fala de trancada, se houver. */
+  /** O estabelecimento desta porta está fora do horário agora? (porta sem horário: nunca). */
+  doorClosedNow(door: MapDoor): boolean {
+    const h = door.hours;
+    return !!h && !isOpenAt(h, weekdayOf(this.state.day, this.content.seasons.startWeekday), this.state.time);
+  }
+
+  /** Quando o estabelecimento da porta abre de novo (ou null). */
+  doorOpening(door: MapDoor): { day: number; open: string } | null {
+    return door.hours ? nextOpening(door.hours, this.state.day, this.state.time, this.content.seasons.startWeekday) : null;
+  }
+
+  /** Tentou abrir uma porta trancada: a fala de trancada (requisito) ou o aviso de fechado (horário). */
   doorLocked(door: MapDoor): void {
+    // Trancada pela história (ex.: a clínica ainda é obra): a fala dela vale mais que o horário.
+    const unmet = door.requires && !evaluate(door.requires as Condition, this.state, this.storyContext());
+    if (!unmet && this.doorClosedNow(door)) {
+      const next = this.doorOpening(door);
+      this.bus.emit('door.closed', { doorId: door.id, name: door.hours!.name, opensDay: next?.day ?? null, opensAt: next?.open ?? null });
+      return;
+    }
     if (door.locked) this.bus.emit('dialogue.requested', { dialogueId: door.locked });
   }
 

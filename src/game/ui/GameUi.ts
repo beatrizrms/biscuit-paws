@@ -188,6 +188,13 @@ export class GameUi {
       this.toast((tip > 0 ? s.servedTip : s.served).replace('{price}', String(price)).replace('{name}', name).replace('{tip}', String(tip)));
     });
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
+    // Estabelecimento fechado: o aviso da porta, com quando abre (hoje, amanhã ou o dia da semana).
+    bus.on('door.closed', ({ name, opensDay, opensAt }) => {
+      const t = uiText.scheduleApp;
+      const ahead = opensDay === null ? null : opensDay - this.session.state.day;
+      const when = ahead === null || opensAt === null ? '' : (ahead === 0 ? t.today : ahead === 1 ? t.tomorrow : t.onDay.replace('{weekday}', uiText.weekdays[this.session.service.weekday(opensDay!)] ?? '')).replace('{time}', opensAt);
+      this.toast((when ? uiText.doorClosed.text : uiText.doorClosed.noTime).replace('{name}', name).replace('{when}', when), 4000);
+    });
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).

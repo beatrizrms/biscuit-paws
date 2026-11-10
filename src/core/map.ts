@@ -79,6 +79,18 @@ export interface MapDoor {
    * roteiro no mundo (script, ex.: a clínica que abriu; o roteiro pode levar para dentro com o passo "enter").
    */
   intercept?: { when: DoorCondition; cutscene?: string; script?: string };
+  /**
+   * Horário do estabelecimento (mercado, clínica): fora dele a porta não deixa entrar (nem roda o intercept) e avisa
+   * quando abre. Quem já está dentro termina. `days`: segunda a domingo; `name`: como aparece no aviso.
+   */
+  hours?: DoorHours;
+}
+
+export interface DoorHours {
+  name: string;
+  days: boolean[];
+  open: string;
+  close: string;
 }
 
 /** Mesma forma das condições da história (content.ts); repetida aqui para o mapa não depender do conteúdo. */
@@ -270,6 +282,12 @@ export function validateMap(map: MapData, catalog: TileCatalog): string[] {
     if (doorIds.has(door.id)) err(`porta "${door.id}" repetida`);
     doorIds.add(door.id);
     if (!inBounds(...door.at)) err(`porta "${door.id}" fora do mapa`);
+    const h = door.hours;
+    if (h) {
+      const clock = /^([01]\d|2[0-3]):[0-5]\d$/;
+      if (h.days.length !== 7 || !h.days.some(Boolean)) err(`porta "${door.id}": hours.days precisa de 7 dias (segunda a domingo) com pelo menos um aberto`);
+      if (!clock.test(h.open) || !clock.test(h.close) || h.open >= h.close) err(`porta "${door.id}": hours.open/close inválidos`);
+    }
   }
 
   // Ponto de partida

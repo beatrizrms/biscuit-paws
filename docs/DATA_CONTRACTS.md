@@ -124,7 +124,7 @@ Opcional: `arrivesSick: true` (já chega doente; ver Saúde).
 }
 ```
 
-Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Opcional: `"intercept": { "when": condição, "cutscene": "cs.id" }` ou `{ "when": condição, "script": "scr.id" }` (em vez de atravessar, mostra a cena, ex.: o gatinho na porta, ou roda um roteiro no mundo, ex.: a clínica que inaugurou, que leva para dentro com o passo `enter`; o roteiro marca `seen.scr.id` no fim, e a condição costuma usar isso para não repetir), `"requires"` (condição, ex.: `{ "owned": "item.key_bakery" }`) e `"locked"` (fala mostrada quando trancada). Depois de passar, só outra porta funciona quando a seta para cima for solta.
+Porta: andar **para cima** na célula `at` leva ao mapa `to`, na célula `spawn`. Opcional: `"intercept": { "when": condição, "cutscene": "cs.id" }` ou `{ "when": condição, "script": "scr.id" }` (em vez de atravessar, mostra a cena, ex.: o gatinho na porta, ou roda um roteiro no mundo, ex.: a clínica que inaugurou, que leva para dentro com o passo `enter`; o roteiro marca `seen.scr.id` no fim, e a condição costuma usar isso para não repetir), `"requires"` (condição, ex.: `{ "owned": "item.key_bakery" }`), `"locked"` (fala mostrada quando trancada) e `"hours"` (estabelecimento: `{ name, days: [7, segunda a domingo], open, close }`; fora do horário não entra, o intercept não roda e sai o evento `door.closed` com quando abre; quem já está dentro termina; trancada pela história, vale a fala de trancada). Depois de passar, só outra porta funciona quando a seta para cima for solta.
 Pisos marcados como sólidos (asfalto, água) bloqueiam como paredes.
 
 ### Sujeira do café (`dirt`, no mapa)

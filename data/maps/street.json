@@ -113,9 +113,10 @@
       "locked": "dlg.door_locked_clinic",
       "spawn": [5, 9],
       "facing": "up",
-      "intercept": { "when": { "all": [{ "beat": "story.cat_falls_ill" }, { "not": { "flag": "seen.scr.clinic_opening" } }, { "not": { "flag": "vet.consulted" } }] }, "script": "scr.clinic_opening" }
+      "intercept": { "when": { "all": [{ "beat": "story.cat_falls_ill" }, { "not": { "flag": "seen.scr.clinic_opening" } }, { "not": { "flag": "vet.consulted" } }] }, "script": "scr.clinic_opening" },
+      "hours": { "name": "Clínica", "days": [true, true, true, true, true, true, false], "open": "09:00", "close": "18:00" }
     },
-    { "id": "door.market", "at": [24, 8], "to": "map.market", "spawn": [10, 10], "facing": "up" },
+    { "id": "door.market", "at": [24, 8], "to": "map.market", "spawn": [10, 10], "facing": "up", "hours": { "name": "Mercado", "days": [true, true, true, true, true, true, true], "open": "07:00", "close": "20:00" } },
     {
       "id": "door.cafe",
       "at": [17, 8],

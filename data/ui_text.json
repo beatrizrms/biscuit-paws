@@ -76,6 +76,10 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
+  "doorClosed": {
+    "text": "{name} · fechado agora. Abre {when}.",
+    "noTime": "{name} · fechado agora."
+  },
   "review": {
     "reputation": "reputação"
   },
