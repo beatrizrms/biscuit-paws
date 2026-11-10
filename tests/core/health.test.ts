@@ -3,6 +3,7 @@ import type { EventName } from '../../src/core/events';
 import { isContagious, pickDisease, prescriptionDays, rollsIllness, validateHealth } from '../../src/core/health';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
+import { weekdayOf } from '../../src/core/schedule';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -284,3 +285,40 @@ describe('lembretes de cuidado no subconsciente', () => {
   });
 });
 
+
+describe('nenhum gato adoece em dia de clínica fechada', () => {
+  const sunday = [1, 2, 3, 4, 5, 6, 7].find((d) => weekdayOf(d, content.seasons.startWeekday) === 6)! + 7;
+
+  it('a clínica fecha no domingo (o horário da porta dela na rua)', () => {
+    const { session } = withCat();
+    expect(session.clinicOpensOn(sunday)).toBe(false);
+    expect(session.clinicOpensOn(sunday + 1)).toBe(true);
+  });
+
+  it('saúde baixa na véspera do domingo: a doença fica para domingo à noite (amanhece na segunda)', () => {
+    const { session, state, cat } = withCat();
+    state.day = sunday - 1;
+    cat().health = cfg.sickBelow; // sem comer, cai abaixo do limite hoje
+    session.endDay('home');
+    expect(state.day).toBe(sunday);
+    expect(cat().sickness).toBeNull();
+    session.endDay('home');
+    expect(cat().sickness).not.toBeNull();
+    expect(session.clinicOpensOn(state.day)).toBe(true);
+  });
+
+  it('o sorteio da manhã não adoece ninguém no domingo', () => {
+    const c = { ...content, health: { ...cfg, randomIllness: { ...cfg.randomIllness, chancePerDay: 1, fromDay: 1 } } };
+    const state = newGameState(500, 'map.cafe_main', 9 * 60);
+    state.flags[cfg.randomIllness.requiresFlag] = true;
+    state.cats[CAT] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: cfg.max, sickness: null };
+    state.day = sunday - 1;
+    const session = new GameSession(c, state);
+    state.cats[CAT]!.fedOn = state.day;
+    session.endDay('home');
+    expect(state.cats[CAT]!.sickness).toBeNull();
+    state.cats[CAT]!.fedOn = state.day;
+    session.endDay('home');
+    expect(state.cats[CAT]!.sickness).not.toBeNull();
+  });
+});

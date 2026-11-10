@@ -847,6 +847,37 @@
     "prev": "estação anterior",
     "next": "próxima estação"
   },
+  "statsApp": {
+    "app": "Café em números",
+    "customers": "Clientes",
+    "servedTotal": "atendidos",
+    "servedToday": "hoje",
+    "perOpenDay": "por dia",
+    "weekHint": "Média da última semana: só os dias em que o café abriu ({n}).",
+    "chartDay": "Dia {day}: {n} cliente(s)",
+    "closedDay": "fechado",
+    "chartHint": "Últimos dias · listrado: café fechado",
+    "noDays": "O gráfico começa quando o primeiro dia terminar.",
+    "consumption": "Consumo por dia (semana)",
+    "perDay": "{n}/dia",
+    "noConsumption": "Ainda sem preparos nesta semana.",
+    "cafe": "Café",
+    "coinsPerDay": "moedas/dia",
+    "openDays": "dias abertos",
+    "gaveUp": "desistiram",
+    "cats": "Gatos",
+    "catsNow": "no café agora",
+    "catsEver": "já passaram por aqui",
+    "streaksTitle": "Sequências",
+    "streakNow": "agora",
+    "streakBest": "melhor",
+    "oneDay": "1 dia",
+    "days": "{n} dias",
+    "streaks": {
+      "no_gave_up": { "name": "Ninguém sai de mãos vazias", "hint": "Dias seguidos com clientes e ninguém desistindo da espera. Dia sem cliente não conta nem quebra." },
+      "cats_cared": { "name": "Bigodes bem cuidados", "hint": "Dias seguidos com todo gato que amanheceu doente tomando o remédio do dia." }
+    }
+  },
   "energy": {
     "label": "Energia",
     "title": "Energia: {value} de {max}. Cada tarefa gasta um pouco; dormir recupera.",

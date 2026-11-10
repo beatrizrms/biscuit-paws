@@ -1410,9 +1410,14 @@ export class GameSession {
     this.bus.emit('cat.sick', { catId, disease: cat.sickness.disease });
   }
 
-  /** Fim do dia: comeu sobe (mais com a ração premium), não comeu desce (descuido), doente sem o remédio do dia desce mais; baixa demais, adoece. */
+  /**
+   * Fim do dia: comeu sobe (mais com a ração premium), não comeu desce (descuido), doente sem o remédio do dia desce mais;
+   * baixa demais, adoece. Nenhum gato amanhece doente num dia de clínica fechada: a doença da saúde baixa fica para a
+   * véspera do próximo dia de clínica, e o contágio espera.
+   */
   private healthAtDayEnd(day: number): void {
     const cfg = this.content.health;
+    const clinicTomorrow = this.clinicOpensOn(day + 1);
     for (const id of this.shelteredCats()) {
       const cat = this.state.cats[id]!;
       // A ração premium (healthMultiplier) rende mais saúde que a comum.
@@ -1420,10 +1425,11 @@ export class GameSession {
       let delta = cat.fedOn === day ? Math.round(cfg.daily.fed * mult) : cfg.daily.hungry;
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
-      if (!cat.sickness && cat.health < cfg.sickBelow) this.makeSick(id);
+      if (!cat.sickness && cat.health < cfg.sickBelow && clinicTomorrow) this.makeSick(id);
       careAtDayEnd(cat, cfg.care, day, this.playRoom());
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
+    if (!clinicTomorrow) return;
     for (const sourceId of this.shelteredCats()) {
       const source = this.state.cats[sourceId]!;
       if (!source.sickness || !isContagious(cfg, source.sickness, day)) continue;
@@ -1436,6 +1442,16 @@ export class GameSession {
     }
   }
 
+  /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */
+  clinicOpensOn(day: number): boolean {
+    const clinic = this.content.health.clinic.map;
+    for (const map of Object.values(this.content.maps)) {
+      const door = (map.doors ?? []).find((d) => d.to === clinic && d.hours);
+      if (door) return door.hours!.days[weekdayOf(day, this.content.seasons.startWeekday)] === true;
+    }
+    return true;
+  }
+
   /** Gatos doentes agora (ids). */
   sickCats(): string[] {
     return this.shelteredCats().filter((id) => this.state.cats[id]!.sickness);
@@ -1446,10 +1462,10 @@ export class GameSession {
     return this.sickCats().length >= this.content.health.customers.stopAtSickCats;
   }
 
-  /** Manhã: um gato pode adoecer à toa (evento aleatório com semente), só depois que a clínica abre. */
+  /** Manhã: um gato pode adoecer à toa (evento aleatório com semente), só depois que a clínica abre e num dia em que ela atende. */
   private randomIllness(): void {
     const r = this.content.health.randomIllness;
-    if (this.state.day < r.fromDay || !this.state.flags[r.requiresFlag]) return;
+    if (this.state.day < r.fromDay || !this.state.flags[r.requiresFlag] || !this.clinicOpensOn(this.state.day)) return;
     for (const id of this.shelteredCats()) {
       if (!this.state.cats[id]!.sickness && rollsIllness(this.content.health, this.state.day, id)) this.makeSick(id);
     }
