@@ -44,7 +44,7 @@ describe('energia na sessão', () => {
     const before = session.energy();
     session.bus.emit('minigame.finished', { gameId: 'wand', outcome: 'ok', coins: 0, skipped: true });
     expect(session.energy()).toBe(before);
-    for (let i = 0; i < 200; i++) session.bus.emit('minigame.finished', { gameId: 'wand', outcome: 'ok', coins: 0, skipped: false });
+    for (let i = 0; i < 200; i++) session.bus.emit('minigame.finished', { gameId: 'grooming', outcome: 'ok', coins: 0, skipped: false });
     expect(session.energy()).toBe(0);
     expect(session.canRun()).toBe(false);
     expect(session.energySpeed()).toBe(cfg.emptySpeed);
@@ -80,5 +80,44 @@ describe('energia na sessão', () => {
     expect(new GameSession(content, parseSave(JSON.stringify(raw), known).state).energy()).toBe(cfg.max);
     expect(parseSave(JSON.stringify({ ...raw, energy: state.energy }), known).state.energy).toBe(cfg.max - 40);
     expect(parseSave(JSON.stringify({ ...raw, energy: 'muita' }), known).state.energy).toBeUndefined();
+  });
+
+  it('café pronto na mão: toma, recompõe e a xícara fica suja na mão; cheia, não toma', () => {
+    const { session, state } = cafe();
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' });
+    expect(session.drinkCoffee()).toEqual({ ok: false, reason: 'energy_full' });
+    session.spendEnergy(50);
+    expect(session.drinkCoffee()).toEqual({ ok: true });
+    expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.coffee.amount);
+    expect(state.hands).toEqual([{ kind: 'dirty', vessel: 'cup' }]);
+    state.hands = [{ kind: 'drink', recipe: 'recipe.orange_juice', vessel: 'glass' }];
+    expect(session.holdingCoffee()).toBe(false);
+  });
+
+  it('sofá: senta, recompõe a cada minuto e levanta sozinha quando enche', () => {
+    const { session, state } = cafe();
+    state.placed.push({ uid: 's1', item: cfg.restore.sofa.items[0]!, at: [5, 6] });
+    expect(session.sofaNear([[5, 7]])).toBe('s1');
+    expect(session.startRest('s1')).toEqual({ ok: false, reason: 'energy_full' });
+    session.spendEnergy(10);
+    const changes: (string | null)[] = [];
+    session.bus.on('rest.changed', ({ uid }) => changes.push(uid));
+    expect(session.startRest('s1')).toEqual({ ok: true });
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(session.energy()).toBe(cfg.max - 10 + cfg.restore.sofa.perMinute);
+    for (let i = 0; i < 10; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(session.energy()).toBe(cfg.max);
+    expect(session.resting()).toBeNull();
+    expect(changes).toEqual(['s1', null]);
+  });
+
+  it('brincar com o gato (varinha) recompõe em vez de gastar; outro mini game gasta', () => {
+    const { session } = cafe();
+    session.spendEnergy(50);
+    session.bus.emit('minigame.finished', { gameId: 'wand', outcome: 'ok', coins: 0, skipped: false });
+    session.bus.emit('cat.cared', { catId: 'cat.first_stray', gameId: 'wand', happiness: 80, hygiene: 70 });
+    expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.play.amount);
+    session.bus.emit('minigame.finished', { gameId: 'grooming', outcome: 'ok', coins: 0, skipped: false });
+    expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.play.amount - cfg.costs['minigame.finished']!);
   });
 });

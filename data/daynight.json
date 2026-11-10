@@ -104,7 +104,13 @@
     "tiredSpeed": 0.8,
     "emptySpeed": 0.6,
     "wakeAfterLateNight": 75,
-    "costs": { "dirt.cleaned": 2, "prep.started": 2, "customer.served": 1, "dish.washed": 1, "minigame.finished": 6, "cat.fed": 1, "litter.refilled": 2 }
+    "costs": { "dirt.cleaned": 2, "prep.started": 2, "customer.served": 1, "dish.washed": 1, "minigame.finished": 6, "cat.fed": 1, "litter.refilled": 2 },
+    "_restore": "Como ela se recompõe: coffee = tomar um café pronto que está na mão (E sem nada por perto; a xícara fica suja na mão); sofa = sentar num sofá do café (perMinute por minuto do jogo, até encher ou andar); play = brincar com o gato nos mini games listados (quando dá certo, ganha em vez de gastar).",
+    "restore": {
+      "coffee": { "recipes": ["recipe.black_coffee", "recipe.cafe_latte"], "amount": 25 },
+      "sofa": { "items": ["item.sofa", "item.sofa_rosa", "item.sofa_ceu"], "perMinute": 3 },
+      "play": { "games": ["wand"], "amount": 10 }
+    }
   },
   "wakeAfterPassOut": "10:00"
 }

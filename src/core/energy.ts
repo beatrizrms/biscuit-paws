@@ -18,6 +18,17 @@ export interface EnergyConfig {
   costs: Record<string, number>;
   /** Energia ao acordar quando o dia acabou depois da meia-noite. */
   wakeAfterLateNight: number;
+  /** Como ela se recompõe durante o dia. */
+  restore: EnergyRestore;
+}
+
+export interface EnergyRestore {
+  /** Tomar um café pronto (das receitas listadas) que está na mão: a xícara fica suja na mão. */
+  coffee: { recipes: string[]; amount: number };
+  /** Sentar num sofá do café: ganha perMinute a cada minuto do jogo, até encher ou ela levantar. */
+  sofa: { items: string[]; perMinute: number };
+  /** Brincar com um gato (mini games listados, quando dão certo): ganha em vez de gastar. */
+  play: { games: string[]; amount: number };
 }
 
 export type EnergyLevel = 'ok' | 'low' | 'empty';
@@ -45,6 +56,8 @@ export function validateEnergy(cfg: EnergyConfig): string[] {
   if (!(cfg.lowAt >= 0 && cfg.lowAt < cfg.max)) errors.push('energy: lowAt deve ficar entre 0 e max');
   if (!(cfg.wakeAfterLateNight > 0 && cfg.wakeAfterLateNight <= cfg.max)) errors.push('energy: wakeAfterLateNight deve ficar entre 1 e max');
   for (const k of ['tiredSpeed', 'emptySpeed'] as const) if (!(cfg[k] > 0 && cfg[k] <= 1)) errors.push(`energy: ${k} deve ficar entre 0 e 1`);
+  const r = cfg.restore;
+  if (!(r.coffee.amount > 0 && r.sofa.perMinute > 0 && r.play.amount > 0)) errors.push('energy: restore precisa de valores maiores que 0');
   for (const [name, cost] of Object.entries(cfg.costs)) {
     if (!eventNames.has(name)) errors.push(`energy: evento "${name}" não está em ENERGY_EVENTS`);
     if (!(cost >= 0)) errors.push(`energy: custo de "${name}" inválido`);

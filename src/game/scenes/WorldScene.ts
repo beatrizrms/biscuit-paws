@@ -70,6 +70,11 @@ const FADE_MS = 160;
 const WAIT_SPEED = 40;
 
 const NO_INPUT = { up: false, down: false, left: false, right: false };
+/** No sofá: a borda do assento fica tanto acima da base do sofá; o quadril dela, tanto acima dos pés (px lógicos). */
+const SOFA_SEAT = 9;
+const HIP_HEIGHT = 28;
+/** Quanto tempo o ícone "se recompondo" fica depois de um café ou de brincar com o gato (ms). */
+const RECOVER_ICON_MS = 1800;
 
 /**
  * O mundo: desenha o mapa onde a personagem está (rua, café...), move a jogadora,
@@ -156,6 +161,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** gato_leva: o gato do café que guia e a próxima célula do caminho. */
   private arrivalGuide: { sprite: Phaser.GameObjects.Sprite; next: number; variant: string } | null = null;
   private lastDay: { reason: DayEndReason; earned: number; jobs: number } | null = null;
+  /** Onde ela estava quando sentou no sofá (para levantar no mesmo lugar). */
+  private restFrom: { x: number; y: number } | null = null;
+  private recoverIcon!: Phaser.GameObjects.Image;
+  private recoverIconUntil = 0;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
   private scripts!: ScriptRunner;
@@ -305,6 +314,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
     // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
+    // Energia: sentar/levantar do sofá e o ícone depois de um café ou de brincar com o gato.
+    this.session.bus.on('rest.changed', ({ uid }) => (uid ? this.sitOnSofa(uid) : this.standUp()));
+    this.session.bus.on('energy.recovered', () => (this.recoverIconUntil = this.time.now + RECOVER_ICON_MS));
+    this.recoverIcon = this.add.image(0, 0, recoverIconTexture(this)).setScale(0.5).setVisible(false);
     this.session.bus.on('day.started', ({ day }) => {
       this.changingMap = true;
       const cam = this.cameras.main;
@@ -370,12 +383,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           left: k.left.isDown || k.a.isDown,
           right: k.right.isDown || k.d.isDown,
         };
-    // Cansada (pouca energia), anda mais devagar e não corre.
-    this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
-    // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
-    this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown && this.session.canRun(), this.session.service.carrying(), playerRun);
-    this.player.move(input);
-    this.player.updateDepth();
+    // Sentada no sofá: fica parada; andar levanta.
+    if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
+    if (this.session.resting()) this.player.move(NO_INPUT);
+    else {
+      // Cansada (pouca energia), anda mais devagar e não corre.
+      this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
+      // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
+      this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown && this.session.canRun(), this.session.service.carrying(), playerRun);
+      this.player.move(input);
+      this.player.updateDepth();
+    }
+    this.updateRecoverIcon();
     for (const cat of this.cats) if (cat.visible) cat.tick(this.time.now);
     // Dica "E": recalcula 10 vezes por segundo (procurar o que está perto passa pelos pedidos todos).
     if (busy || this.placing) this.hint.show(null);
@@ -779,7 +798,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private updateAmbience(): void {
     const { content } = this.session;
     const sh = content.dayNight.ambience.actorShadow;
-    const actors: AmbienceActor[] = [{ x: this.player.x, y: this.player.y - 1, w: sh.person, visible: this.player.visible }];
+    // Sentada no sofá: sem sombra no chão (os pés estão escondidos).
+    const actors: AmbienceActor[] = [{ x: this.player.x, y: this.player.y - 1, w: sh.person, visible: this.player.visible && !this.session.resting() }];
     for (const c of this.cats) actors.push({ x: c.x, y: c.y - 1, w: sh.cat, visible: c.visible });
     for (const n of this.npcs.values()) actors.push({ x: n.x, y: n.y - 1, w: sh.person, visible: n.visible });
     for (const v of this.customerViews.values()) actors.push({ x: v.sprite.x, y: v.sprite.y - 1, w: sh.person, visible: v.sprite.visible });
@@ -900,7 +920,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
     const bowl = this.session.bowlNear(this.playerCells(), target);
     const box = bowl ? undefined : this.session.litterNear(this.playerCells(), target);
-    if (!bowl && !box) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target);
+    if (!bowl && !box) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
     if (this.usingItem) return true;
     if (box) {
       const problem = this.session.litterProblem(box);
@@ -1393,6 +1413,76 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Pega o gato que estiver ao lado (mãos livres). */
+  /** E perto de um sofá do café: senta e se recompõe (levanta ao andar, com E de novo ou ao encher). */
+  private tryRest(target?: Cell): boolean {
+    if (this.session.resting()) {
+      this.session.stopRest();
+      return true;
+    }
+    const uid = this.session.sofaNear(this.playerCells(), target);
+    if (!uid) return false;
+    const r = this.session.startRest(uid);
+    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    return true;
+  }
+
+  /** E com um café pronto na mão e nada por perto: ela toma (a xícara fica suja na mão). */
+  private tryDrinkCoffee(): boolean {
+    if (!this.session.holdingCoffee()) return false;
+    const r = this.session.drinkCoffee();
+    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+    return true;
+  }
+
+  /**
+   * Senta no sofá. PLACEHOLDER(arte): sem pose sentada, ela fica de frente na frente do encosto, com as pernas
+   * cortadas na borda do assento (o quadril no assento).
+   */
+  private sitOnSofa(uid: string): void {
+    const p = this.session.state.placed.find((x) => x.uid === uid);
+    const def = p ? this.session.content.catalog.tiles[this.session.content.items[p.item]?.tile ?? ''] : undefined;
+    if (!p || !def) return;
+    const ts = this.map.tileSize;
+    const base = (p.at[1] + def.h) * ts;
+    this.restFrom = { x: this.player.x, y: this.player.y };
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.reset(this.player.x, this.player.y);
+    body.enable = false;
+    const seat = base - SOFA_SEAT;
+    this.player.setPosition((p.at[0] + def.w / 2) * ts, seat - 2 + HIP_HEIGHT);
+    this.player.face('down');
+    this.player.move(NO_INPUT);
+    // Só o que fica acima da borda do assento aparece (crop em pixels do quadro, antes da escala).
+    const top = this.player.y - this.player.displayHeight * this.player.originY;
+    this.player.setCrop(0, 0, this.player.frame.width, (seat - top) / this.player.scaleY);
+    this.player.setDepth(ySortDepth(base) + 1);
+  }
+
+  /** Levanta do sofá: volta para onde estava quando sentou. */
+  private standUp(): void {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    body.enable = true;
+    this.player.setCrop();
+    const from = this.restFrom ?? { x: this.player.x, y: this.player.y };
+    this.restFrom = null;
+    body.reset(from.x, from.y);
+    this.player.updateDepth();
+  }
+
+  /** Ícone "se recompondo" em cima da cabeça (no sofá, o tempo todo; depois do café ou da brincadeira, um instante). */
+  private updateRecoverIcon(): void {
+    const show = this.session.resting() !== null || this.time.now < this.recoverIconUntil;
+    if (!show) {
+      this.recoverIcon.setVisible(false);
+      return;
+    }
+    const bob = Math.sin(this.time.now / 260) * 1.5;
+    this.recoverIcon
+      .setVisible(true)
+      .setPosition(this.player.x, this.player.y - this.player.displayHeight - 4 + bob)
+      .setDepth(this.player.depth + 1);
+  }
+
   private tryPickUpCat(target?: Cell): boolean {
     const st = this.session.state;
     if (st.hands.length > 0 || st.tray || !this.session.atHome()) return false;
@@ -2053,4 +2143,24 @@ function exposeDebug(scene: WorldScene): void {
     const d = q.get('dificuldade');
     scene.time.delayedCall(300, () => void scene.openMiniGame(id, { difficulty: d === 'easy' || d === 'hard' ? d : 'normal' }));
   }
+}
+
+/**
+ * Ícone "se recompondo": balãozinho creme com um raio verde (desenhado em 2x; a cena usa escala 0.5).
+ * PLACEHOLDER(arte): ícone 16x16 lógico (32x32 na arte) no estilo dos balões, para trocar depois.
+ */
+function recoverIconTexture(scene: Phaser.Scene): string {
+  const key = 'icon-recover';
+  if (scene.textures.exists(key)) return key;
+  const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  g.fillStyle(0x5a3a28, 1).fillCircle(16, 15, 14);
+  g.fillStyle(0xfff6e4, 1).fillCircle(16, 15, 12);
+  g.fillStyle(0xfff6e4, 1).fillTriangle(11, 25, 17, 25, 9, 31);
+  g.fillStyle(0x5a3a28, 1).fillTriangle(9, 31, 10, 28, 12, 29);
+  g.fillStyle(0x5aa04a, 1).fillPoints([
+    { x: 18, y: 5 }, { x: 10, y: 17 }, { x: 15, y: 17 }, { x: 13, y: 26 }, { x: 22, y: 13 }, { x: 17, y: 13 }, { x: 20, y: 5 },
+  ], true);
+  g.generateTexture(key, 32, 32);
+  g.destroy();
+  return key;
 }

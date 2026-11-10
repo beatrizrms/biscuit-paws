@@ -103,6 +103,7 @@
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",
   "problems": {
+    "energy_full": "A energia já está cheia.",
     "no_money": "Moedas insuficientes.",
     "out_of_bounds": "Fora do café.",
     "occupied": "Já tem algo aí.",
@@ -739,7 +740,11 @@
     "title": "Energia: {value} de {max}. Cada tarefa gasta um pouco; dormir recupera.",
     "low": "Pouca energia: andar fica mais devagar e não dá para correr.",
     "empty": "Sem energia nenhuma. Melhor encerrar o dia e descansar.",
-    "curfewSoon": "Está ficando tarde: daqui a uma hora preciso ir para casa."
+    "curfewSoon": "Está ficando tarde: daqui a uma hora preciso ir para casa.",
+    "coffee": "Um cafezinho para se recompor: +{n} de energia.",
+    "play": "Brincar com o gato recarrega: +{n} de energia.",
+    "sofa": "Descansando no sofá... (ande ou aperte E para levantar)",
+    "rested": "Energia cheia de novo!"
   },
   "reputation": {
     "label": "Reputação",

@@ -130,6 +130,7 @@ export type ActionResult =
         | 'no_litter'
         | 'needs_litter'
         | 'full'
+        | 'energy_full'
         | 'other_item'
         | 'unknown_job'
         | 'job_full'
@@ -212,10 +213,16 @@ export class GameSession {
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
+    this.bus.on('cat.cared', ({ gameId }) => {
+      const play = this.content.dayNight.energy.restore.play;
+      if (play.games.includes(gameId)) this.recover('play', play.amount);
+    });
     // Energia: cada tarefa gasta o que está nos dados (louça: por peça; mini game pulado não gasta).
     for (const name of ENERGY_EVENTS) {
       this.bus.on(name, (e) => {
         if ('skipped' in e && e.skipped) return;
+        // Brincar com o gato não cansa: recompõe (cat.cared, abaixo).
+        if ('gameId' in e && this.content.dayNight.energy.restore.play.games.includes(e.gameId)) return;
         const cost = this.content.dayNight.energy.costs[name] ?? 0;
         this.spendEnergy(cost * ('count' in e && typeof e.count === 'number' ? e.count : 1));
       });
@@ -246,6 +253,8 @@ export class GameSession {
 
   /** Itens que ela tinha no último evento (para achar os que acabaram de chegar). */
   private ownedIds = new Set<string>();
+  /** Sofá em que ela está sentada (uid), recompondo a energia. Não vai para o save. */
+  private restingOn: string | null = null;
   /** Dia em que já lembrou da hora-limite (não vai para o save: recarregar pode lembrar de novo). */
   private curfewRemindedOn = 0;
 
@@ -529,6 +538,7 @@ export class GameSession {
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.constructionDayEnded(day + 1);
+    this.stopRest();
     // Dormiu depois da meia-noite: acorda com menos energia.
     const late = this.state.time > 24 * 60;
     this.state.time = parseClock(reason === 'passOut' ? this.content.dayNight.wakeAfterPassOut : this.content.dayNight.dayStart);
@@ -560,6 +570,12 @@ export class GameSession {
     else if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
     // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) {
+      // No sofá: recompõe a cada minuto, até encher.
+      if (this.restingOn) {
+        const gain = this.content.dayNight.energy.restore.sofa.perMinute * (Math.floor(this.state.time) - before);
+        this.setEnergy(this.energy() + gain);
+        if (this.energyFull()) this.stopRest(true);
+      }
       // Uma vez por dia, um pouco antes da hora-limite: "está ficando tarde".
       const remind = this.content.dayNight.curfewReminder;
       if (remind > 0 && this.curfewRemindedOn !== this.state.day && this.state.time >= this.curfew() - remind) {
@@ -601,6 +617,85 @@ export class GameSession {
   /** Dá para correr? Cansada, não. */
   canRun(): boolean {
     return this.energyLevel() === 'ok';
+  }
+
+  energyFull(): boolean {
+    return this.energy() >= this.content.dayNight.energy.max;
+  }
+
+  /** Sofá do café ao alcance dos pés (`target`: só a célula clicada). */
+  sofaNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+    if (!this.atHome()) return undefined;
+    const sofas = this.content.dayNight.energy.restore.sofa.items;
+    const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+    return this.state.placed.find((p) => {
+      if (!sofas.includes(p.item)) return false;
+      const cells = cellsOf(p.at, this.content.catalog.tiles[this.content.items[p.item]!.tile!]!);
+      if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
+      return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
+    })?.uid;
+  }
+
+  /** Por que não dá para sentar agora (ou null). */
+  restProblem(): 'energy_full' | 'hands_full' | null {
+    if (this.energyFull()) return 'energy_full';
+    if (this.state.hands.length > 0 || this.state.tray) return 'hands_full';
+    return null;
+  }
+
+  /** Senta no sofá: recompõe a cada minuto do jogo (tickClock) até encher ou levantar. */
+  startRest(uid: string): ActionResult {
+    const problem = this.restProblem();
+    if (problem) return { ok: false, reason: problem };
+    if (!this.state.placed.some((p) => p.uid === uid)) return { ok: false, reason: 'not_found' };
+    this.restingOn = uid;
+    this.bus.emit('rest.changed', { uid, full: false });
+    return { ok: true };
+  }
+
+  /** Levanta do sofá (`full`: porque a energia encheu). */
+  stopRest(full = false): void {
+    if (!this.restingOn) return;
+    this.restingOn = null;
+    this.bus.emit('rest.changed', { uid: null, full });
+  }
+
+  /** O sofá em que ela está sentada (ou null). Não vai para o save. */
+  resting(): string | null {
+    return this.restingOn;
+  }
+
+  /** O café que ela pode tomar: o último da mão entre as receitas de restore.coffee. */
+  private coffeeInHands(): number {
+    const recipes = this.content.dayNight.energy.restore.coffee.recipes;
+    for (let i = this.state.hands.length - 1; i >= 0; i--) {
+      const h = this.state.hands[i]!;
+      if (h.kind === 'drink' && recipes.includes(h.recipe)) return i;
+    }
+    return -1;
+  }
+
+  holdingCoffee(): boolean {
+    return this.coffeeInHands() >= 0;
+  }
+
+  /** Toma o café da mão: recompõe e a xícara fica suja na mão (vai para a pia como as outras). */
+  drinkCoffee(): ActionResult {
+    const i = this.coffeeInHands();
+    if (i < 0) return { ok: false, reason: 'not_found' };
+    if (this.energyFull()) return { ok: false, reason: 'energy_full' };
+    const drink = this.state.hands[i]!;
+    if (drink.kind !== 'drink') return { ok: false, reason: 'not_found' };
+    this.state.hands[i] = { kind: 'dirty', vessel: drink.vessel };
+    this.bus.emit('hands.changed', { count: this.state.hands.length });
+    this.recover('coffee', this.content.dayNight.energy.restore.coffee.amount);
+    return { ok: true };
+  }
+
+  private recover(source: 'coffee' | 'play', amount: number): void {
+    const before = this.energy();
+    this.setEnergy(before + amount);
+    this.bus.emit('energy.recovered', { source, amount: Math.round(this.energy() - before) });
   }
 
   spendEnergy(amount: number): void {

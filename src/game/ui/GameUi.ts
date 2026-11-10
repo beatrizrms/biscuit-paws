@@ -275,6 +275,11 @@ export class GameUi {
       this.energyWarned = level === 'ok' ? null : level;
     });
     bus.on('curfew.soon', () => this.toast(uiText.energy.curfewSoon, 4500));
+    bus.on('energy.recovered', ({ source, amount }) => this.toast(uiText.energy[source].replace('{n}', String(amount)), 3000));
+    bus.on('rest.changed', ({ uid, full }) => {
+      if (uid) this.toast(uiText.energy.sofa, 3500);
+      else if (full) this.toast(uiText.energy.rested, 3000);
+    });
     bus.on('reputation.threshold_reached', ({ thresholdId }) => {
       const t = content.reputation.thresholds.find((x) => x.id === thresholdId);
       if (t) this.toast(uiText.reputation.reached.replace('{name}', t.name), 4000);

@@ -510,6 +510,9 @@ export function validateContent(raw: RawContent): string[] {
   }
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
+  const restore = raw.dayNight.energy.restore;
+  for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
+  for (const id of restore.sofa.items) if (!raw.items.items.some((i) => i.id === id)) err(`daynight: energy.restore.sofa: item "${id}" não existe`);
   for (const m of raw.maps) {
     for (const n of m.npcs ?? []) if (!raw.npcs.npcs.some((x) => x.id === n.npc)) err(`${m.id}: NPC inexistente "${n.npc}"`);
     for (const door of m.doors ?? []) {

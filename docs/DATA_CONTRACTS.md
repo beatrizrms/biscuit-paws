@@ -226,7 +226,12 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
     "max": 100, "lowAt": 25,   // com lowAt ou menos, cansada: anda a tiredSpeed e não corre; com 0, a emptySpeed
     "tiredSpeed": 0.8, "emptySpeed": 0.6,
     "wakeAfterLateNight": 75,  // acorda com isso se o dia acabou depois da meia-noite (senão, cheia)
-    "costs": { "dirt.cleaned": 2, "dish.washed": 1 } // evento -> gasto (só os de ENERGY_EVENTS; louça: por peça; mini game pulado: nada)
+    "costs": { "dirt.cleaned": 2, "dish.washed": 1 }, // evento -> gasto (só os de ENERGY_EVENTS; louça: por peça; mini game pulado: nada)
+    "restore": {               // como ela se recompõe (ícone de raio em cima da cabeça)
+      "coffee": { "recipes": ["recipe.black_coffee"], "amount": 25 }, // E com um desses prontos na mão e nada por perto: toma; a xícara fica suja na mão
+      "sofa": { "items": ["item.sofa"], "perMinute": 3 },             // E perto de um sofá do café: senta; ganha por minuto até encher, andar ou E de novo
+      "play": { "games": ["wand"], "amount": 10 }                    // mini game de brincar com o gato que deu certo: ganha em vez de gastar
+    }
   },
   "wakeAfterPassOut": "10:00", // se desmaiou, o dia seguinte começa mais tarde
   "indoorStrength": 0.35,      // mapas "indoor" recebem só 55% da cor
