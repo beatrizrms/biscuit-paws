@@ -6,7 +6,14 @@ export const ARRIVAL_CAT = 'arrival';
 
 export type CutsceneStep =
   | { type: 'text'; speaker: string; text: string }
-  | { type: 'cat'; cat: string; animation: string; caption?: string; /** Quadros por segundo só nesta cena (sem: o da animação). */ fps?: number }
+  | {
+      type: 'cat';
+      cat: string;
+      animation: string;
+      caption?: string;
+      /** Poses em sequência, cada uma por `seconds`, repetindo enquanto o gato está na tela (a primeira deve ser `animation`). */
+      loop?: { animation: string; seconds: number }[];
+    }
   | { type: 'hide' }
   | {
       type: 'phone';
@@ -60,7 +67,10 @@ export function validateCutscenes(data: CutscenesData, catIds: ReadonlySet<strin
         // "arrival": o gato da chegada em andamento (data/arrivals.json), que pode ser gerado.
         if (step.cat !== ARRIVAL_CAT && !catIds.has(step.cat)) errors.push(`${where} passo ${i}: gato inexistente "${step.cat}"`);
         if (!animations.has(step.animation)) errors.push(`${where} passo ${i}: animação inexistente "${step.animation}"`);
-        if (step.fps !== undefined && !(step.fps > 0)) errors.push(`${where} passo ${i}: fps precisa ser maior que 0`);
+        for (const l of step.loop ?? []) {
+          if (!animations.has(l.animation)) errors.push(`${where} passo ${i}: loop com animação inexistente "${l.animation}"`);
+          if (!(l.seconds > 0)) errors.push(`${where} passo ${i}: loop "${l.animation}" precisa de seconds maior que 0`);
+        }
       }
       if (step.type === 'phone' && step.mode === 'call' && !step.caller) errors.push(`${where} passo ${i}: ligação sem caller`);
       if (step.type === 'phone' && step.mode !== 'lock' && step.mode !== 'call' && step.lines.length === 0) errors.push(`${where} passo ${i}: anúncio sem texto`);

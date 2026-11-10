@@ -17,6 +17,8 @@ export class CutsceneView {
   private queue: string[] = [];
   private playing: { id: string; def: CutsceneDef; index: number } | null = null;
   private typing: { full: string; target: HTMLElement; timer: number } | null = null;
+  /** O ciclo de poses do gato na tela (passo cat com loop). */
+  private catLoop = 0;
 
   constructor(
     root: HTMLElement,
@@ -109,7 +111,8 @@ export class CutsceneView {
         this.type(this.stage.querySelector('.cs-card') as HTMLElement, fillNames(this.session, step.text));
         break;
       case 'cat':
-        this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption, step.fps);
+        this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption);
+        this.startCatLoop(step.loop);
         break;
       case 'phone':
         this.stage.innerHTML = this.phoneHtml(step);
@@ -172,8 +175,39 @@ export class CutsceneView {
     </div>`;
   }
 
+  /** Troca a pose do gato a cada etapa do loop; para sozinho quando o gato sai do palco. */
+  private startCatLoop(loop: { animation: string; seconds: number }[] | undefined): void {
+    window.clearTimeout(this.catLoop);
+    const el = this.stage.querySelector('.cs-cat') as HTMLElement | null;
+    if (!el || !loop?.length) return;
+    let i = 0;
+    const tick = () => {
+      if (!el.isConnected) return;
+      i = (i + 1) % loop.length;
+      const anim = content.catSprites.animations.find((a) => a.name === loop[i]!.animation);
+      if (anim) {
+        for (const decl of this.animStyle(anim)) {
+          const [prop, value] = decl.split(':') as [string, string];
+          el.style.setProperty(prop, value);
+        }
+        // Recomeça do primeiro quadro da pose nova.
+        el.style.animationName = 'none';
+        void el.offsetWidth;
+        el.style.animationName = '';
+      }
+      this.catLoop = window.setTimeout(tick, loop[i]!.seconds * 1000);
+    };
+    this.catLoop = window.setTimeout(tick, loop[0]!.seconds * 1000);
+  }
+
+  /** A parte do estilo que muda com a animação (linha da folha, quadros e ritmo). */
+  private animStyle(anim: { row: number; frames: number; fps: number }): string[] {
+    const size = content.catSprites.frameSize;
+    return [`background-position-y:${-anim.row * size}px`, `--frames:${anim.frames}`, `animation-duration:${anim.frames / anim.fps}s`, `animation-timing-function:steps(${anim.frames})`];
+  }
+
   /** Um gato animado com os quadros da folha do Cosy Cats (CSS, sem Phaser). */
-  private catHtml(catId: string, animation: string, caption?: string, fps?: number): string {
+  private catHtml(catId: string, animation: string, caption?: string): string {
     // "arrival": o gato da chegada em andamento (pode ser gerado).
     if (catId === ARRIVAL_CAT) catId = this.session.arrivals.active()?.catId ?? '';
     const cat = this.session.catDef(catId);
@@ -185,11 +219,8 @@ export class CutsceneView {
       `background-image:url(${sprites.variants[cat.variant]})`,
       // Folha em 64 px: encolhida para o tamanho do jogo (o detalhe volta com o scale).
       `background-size:${sprites.columns * size}px auto`,
-      `background-position-y:${-anim.row * size}px`,
-      `--frames:${anim.frames}`,
+      ...this.animStyle(anim),
       `--frame-size:${size}px`,
-      `animation-duration:${anim.frames / (fps ?? anim.fps)}s`,
-      `animation-timing-function:steps(${anim.frames})`,
       `transform:scale(${CAT_SCALE})`,
     ].join(';');
     return `<div class="cs-cat-wrap"><div class="cs-glow"></div><div class="cs-cat" style="${style}"></div>${

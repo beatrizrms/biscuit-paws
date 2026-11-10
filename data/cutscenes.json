@@ -20,7 +20,11 @@
           "type": "cat",
           "cat": "cat.tekinha",
           "animation": "play",
-          "fps": 4,
+          "loop": [
+            { "animation": "play", "seconds": 1.5 },
+            { "animation": "sit", "seconds": 2.5 },
+            { "animation": "sleep", "seconds": 3.5 }
+          ],
           "caption": "Tekinha"
         },
         {
