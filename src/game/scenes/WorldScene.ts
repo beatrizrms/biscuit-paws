@@ -1176,6 +1176,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
       if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet) && !this.interactionAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
+      const petBox = st.hands.length === 0 && !this.stationAhead(feet) && !this.interactionAhead(feet) ? s.storageNear(feet) : undefined;
+      if (petBox) return cell(st.placed.find((p) => p.uid === petBox)!.at, 'pet_box');
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       const station = this.stationInReach(feet);
@@ -1556,6 +1558,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // A janela (ou outra interação) na direção em que ela olha ganha da despensa ao lado.
     if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry && (target || (!this.stationAhead(feet) && !this.interactionAhead(feet)))) {
       this.ui.openPantry();
+      return true;
+    }
+    // Caixa pet, de mãos livres: abre a mochila com o baú dela (equipamento bem na frente ganha, como na despensa).
+    const petBox = st.hands.length === 0 ? this.session.storageNear(feet, target) : undefined;
+    if (petBox && (target || (!this.stationAhead(feet) && !this.interactionAhead(feet)))) {
+      this.ui.openPetBox(petBox);
       return true;
     }
     // Saco pesado: no café, vai para o estoque.

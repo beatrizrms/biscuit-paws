@@ -56,6 +56,12 @@
    "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "box": {
+   "col": 1,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
   }
  }
 }

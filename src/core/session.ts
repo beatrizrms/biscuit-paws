@@ -8,6 +8,7 @@ import { parseClock } from './time';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
 import { createRng } from './rng';
 import { CafeService } from './service';
+import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus, type DayEndReason } from './events';
@@ -128,6 +129,7 @@ export type ActionResult =
       ok: false;
       reason:
         | 'unknown_item'
+        | StorageProblem
         | 'no_money'
         | 'not_in_inventory'
         | 'needs_broom'
@@ -410,6 +412,81 @@ export class GameSession {
   /** Itens à venda numa loja (na ordem dos dados). */
   shopItems(shopId: string): string[] {
     return this.content.shops[shopId]?.items ?? [];
+  }
+
+  // ---------- Baús (a caixa pet) ----------
+
+  /** O baú de um móvel colocado (o storage do item dele), ou undefined. */
+  storageDef(uid: string): StorageDef | undefined {
+    const placed = this.state.placed.find((p) => p.uid === uid);
+    return placed ? this.content.items[placed.item]?.storage : undefined;
+  }
+
+  /** Móvel com baú ao alcance dos pés, no café (`target`: só a célula clicada). */
+  storageNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+    if (!this.atHome()) return undefined;
+    const { catalog, items } = this.content;
+    const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+    return this.state.placed.find((p) => {
+      const item = items[p.item];
+      const def = item?.storage && catalog.tiles[item.tile ?? ''];
+      if (!def) return false;
+      const cells = cellsOf(p.at, def);
+      if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
+      return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
+    })?.uid;
+  }
+
+  /** O que está guardado no baú do móvel `uid` (item -> quantidade). */
+  storageContents(uid: string): StorageContents {
+    return this.state.petBoxes[uid] ?? {};
+  }
+
+  /** Por que não dá para guardar `itemId` (todas as unidades da mochila) neste baú agora, ou null. */
+  storageProblem(uid: string, itemId: string): StorageProblem | 'not_found' | null {
+    const def = this.storageDef(uid);
+    if (!def) return 'not_found';
+    if ((this.state.inventory[itemId] ?? 0) <= 0) return 'nothing_here';
+    // O saco pesado que está nas mãos (selecionado na barra) não vai: troque de item na barra antes.
+    if (this.state.hands.some((h) => h.kind === 'heavy' && h.item === itemId)) return 'in_hands';
+    return storeProblem(def, this.storageContents(uid), this.content.items[itemId]);
+  }
+
+  /** Guarda no baú todas as unidades de `itemId` que estão na mochila. */
+  storeInStorage(uid: string, itemId: string): ActionResult {
+    const problem = this.storageProblem(uid, itemId);
+    if (problem) return { ok: false, reason: problem };
+    const box = (this.state.petBoxes[uid] ??= {});
+    const n = moveBetween(this.state.inventory, box, itemId);
+    this.bus.emit('storage.changed', { uid, count: n });
+    return { ok: true };
+  }
+
+  /** Tira do baú todas as unidades de `itemId` (voltam para a mochila). */
+  takeFromStorage(uid: string, itemId: string): ActionResult {
+    const box = this.state.petBoxes[uid];
+    if (!box || (box[itemId] ?? 0) <= 0) return { ok: false, reason: 'nothing_here' };
+    const n = moveBetween(box, this.state.inventory, itemId);
+    if (Object.keys(box).length === 0) delete this.state.petBoxes[uid];
+    this.bus.emit('storage.changed', { uid, count: -n });
+    return { ok: true };
+  }
+
+  /** Quanto o "empilhar" passaria agora da mochila para o baú (só o que o baú já tem). */
+  storageStackable(uid: string): number {
+    const box = this.storageContents(uid);
+    return Object.keys(box).reduce((n, id) => n + (this.storageProblem(uid, id) ? 0 : this.state.inventory[id] ?? 0), 0);
+  }
+
+  /** Empilhar (como no Stardew Valley): da mochila para o baú, só os itens que já estão nele (repor). */
+  stackIntoStorage(uid: string): ActionResult {
+    const box = this.state.petBoxes[uid];
+    if (!box || !this.storageDef(uid)) return { ok: false, reason: 'nothing_here' };
+    const moved = stackInto(this.state.inventory, box, (id) => this.storageProblem(uid, id) !== null);
+    const n = moved.reduce((sum, [, q]) => sum + q, 0);
+    if (n === 0) return { ok: false, reason: 'nothing_here' };
+    this.bus.emit('storage.changed', { uid, count: n });
+    return { ok: true };
   }
 
   /** Tigela de ração (comum ou o pote automático) posicionada ao alcance dos pés (`target`: só a célula clicada). */
@@ -2958,6 +3035,12 @@ export class GameSession {
     if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
     const [removed] = this.state.placed.splice(index, 1);
     this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
+    // Baú recolhido: o que estava dentro volta para a mochila.
+    const box = this.state.petBoxes[uid];
+    if (box) {
+      for (const id of Object.keys(box)) moveBetween(box, this.state.inventory, id);
+      delete this.state.petBoxes[uid];
+    }
     this.bus.emit('item.picked_up', { itemId: removed!.item, uid });
     this.advanceStory();
     return { ok: true };

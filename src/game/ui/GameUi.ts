@@ -192,6 +192,7 @@ export class GameUi {
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
     bus.on('pantry.stored', ({ count }) => this.toast(uiText.backpack.pantryStored.replace('{n}', String(count)), 3000));
+    bus.on('storage.changed', ({ count }) => count > 0 && this.toast(uiText.backpack.boxStored.replace('{n}', String(count)), 2500));
     bus.on('heavy.stored', ({ itemId }) => {
       const to = content.items[itemId]?.storesAs;
       this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
@@ -771,7 +772,14 @@ export class GameUi {
   openPantry(): void {
     this.closeCatalog();
     this.closeShop();
-    this.backpack.show(true);
+    this.backpack.show('pantry');
+  }
+
+  /** A caixa pet (móvel `uid`): a mochila aberta com o baú dela embaixo. */
+  openPetBox(uid: string): void {
+    this.closeCatalog();
+    this.closeShop();
+    this.backpack.show({ box: uid });
   }
 
   isPanelOpen(): boolean {

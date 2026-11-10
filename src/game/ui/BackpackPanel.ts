@@ -1,6 +1,8 @@
 // Mochila (tecla I): painel no centro com a barra (1 a 8) em cima e a grade da mochila embaixo, só ícones e quantidade.
 // Selecionar um item mostra o nome, para que serve e as ações numa linha de detalhes. Para pôr na barra: arrastar
 // até um espaço, clicar no espaço com o item selecionado ou apertar 1 a 8. Arrastar da barra para a grade tira da barra.
+// No armário da cozinha e na caixa pet, o storage aparece embaixo: guardar (clicar ou arrastar), pegar de volta e o
+// "empilhar", que leva da mochila só o que já está no storage (repor, como no Stardew Valley).
 import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
 import { fitsHotbar } from '../../core/hotbar';
@@ -57,7 +59,7 @@ function purpose(item: ItemDef): string {
   return d.other;
 }
 
-type Selection = { from: 'bag'; id: string } | { from: 'bar'; slot: number } | null;
+type Selection = { from: 'bag'; id: string } | { from: 'bar'; slot: number } | { from: 'box'; id: string } | null;
 
 export class BackpackPanel {
   private el: HTMLElement;
@@ -82,7 +84,8 @@ export class BackpackPanel {
     this.body.addEventListener('dragstart', (e) => this.onDragStart(e));
     this.body.addEventListener('dragover', (e) => {
       // A despensa só recebe no armário (arrastar um ingrediente até ela guarda os pacotes dele).
-      if ((e.target as HTMLElement).closest(this.atPantry ? '[data-bar], .bp-bag, .bp-pantry' : '[data-bar], .bp-bag')) e.preventDefault();
+      const into = ['[data-bar]', '.bp-bag', ...(this.atPantry ? ['.bp-pantry'] : []), ...(this.boxUid ? ['.bp-box'] : [])].join(', ');
+      if ((e.target as HTMLElement).closest(into)) e.preventDefault();
     });
     this.body.addEventListener('drop', (e) => this.onDrop(e));
     session.bus.onAny(() => this.render());
@@ -94,10 +97,13 @@ export class BackpackPanel {
 
   /** Aberta pelo armário da cozinha: a despensa aparece com o botão de guardar o que está na mochila. */
   private atPantry = false;
+  /** Aberta pela caixa pet: o uid do móvel (o baú dele aparece no lugar da despensa). */
+  private boxUid: string | null = null;
 
-  show(atPantry = false): void {
+  show(at: 'pantry' | { box: string } | null = null): void {
     this.open = true;
-    this.atPantry = atPantry;
+    this.atPantry = at === 'pantry';
+    this.boxUid = at && at !== 'pantry' ? at.box : null;
     this.selected = null;
     this.render();
     this.el.classList.add('open');
@@ -129,7 +135,12 @@ export class BackpackPanel {
   private selectedItem(): string | null {
     const s = this.selected;
     if (!s) return null;
-    return s.from === 'bag' ? s.id : this.session.state.hotbar.slots[s.slot] ?? null;
+    return s.from === 'bar' ? this.session.state.hotbar.slots[s.slot] ?? null : s.id;
+  }
+
+  /** O que está na caixa aberta agora (item -> quantidade). */
+  private boxContents(): Record<string, number> {
+    return this.boxUid ? this.session.storageContents(this.boxUid) : {};
   }
 
   private owned(id: string | null): id is string {
@@ -148,6 +159,7 @@ export class BackpackPanel {
     const target = e.target as HTMLElement;
     const bar = target.closest<HTMLElement>('[data-bar]');
     const bag = target.closest<HTMLElement>('[data-bag]');
+    const boxSlot = target.closest<HTMLElement>('[data-box]');
     const act = target.closest<HTMLButtonElement>('button[data-act]');
     const sv = this.session.service;
     if (act) {
@@ -160,6 +172,20 @@ export class BackpackPanel {
         case 'pantry-one':
           if (id) report(sv.storeInPantry(id));
           this.selected = null;
+          return this.render();
+        case 'pantry-stack':
+          report(sv.stackInPantry());
+          return this.render();
+        case 'box-stack':
+          if (this.boxUid) report(this.session.stackIntoStorage(this.boxUid));
+          return this.render();
+        case 'box-one':
+          if (id && this.boxUid) report(this.session.storeInStorage(this.boxUid, id));
+          this.selected = id && this.boxUid && this.boxContents()[id] ? { from: 'box', id } : null;
+          return this.render();
+        case 'box-take':
+          if (id && this.boxUid) report(this.session.takeFromStorage(this.boxUid, id));
+          this.selected = id && this.owned(id) ? { from: 'bag', id } : null;
           return this.render();
         case 'to-bar':
           if (id) this.assign(id, this.freeSlot());
@@ -207,13 +233,17 @@ export class BackpackPanel {
       this.selected = { from: 'bag', id: bag.dataset.bag };
       this.render();
     }
+    if (boxSlot?.dataset.box) {
+      this.selected = { from: 'box', id: boxSlot.dataset.box };
+      this.render();
+    }
   }
 
   private onDragStart(e: DragEvent): void {
-    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-bar], [data-bag]');
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-bar], [data-bag], [data-box]');
     if (!el || !e.dataTransfer) return;
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', el.dataset.bar !== undefined ? `bar:${el.dataset.bar}` : `bag:${el.dataset.bag}`);
+    e.dataTransfer.setData('text/plain', el.dataset.bar !== undefined ? `bar:${el.dataset.bar}` : el.dataset.box !== undefined ? `box:${el.dataset.box}` : `bag:${el.dataset.bag}`);
   }
 
   private onDrop(e: DragEvent): void {
@@ -221,6 +251,23 @@ export class BackpackPanel {
     const data = e.dataTransfer?.getData('text/plain') ?? '';
     const [from, value] = [data.slice(0, 3), data.slice(4)];
     const bar = (e.target as HTMLElement).closest<HTMLElement>('[data-bar]');
+    const report = (r: { ok: boolean; reason?: string }) => !r.ok && r.reason && this.onProblem(r.reason);
+    // Da mochila (ou da barra) para a caixa pet: guarda todas as unidades.
+    if (this.boxUid && from !== 'box' && (e.target as HTMLElement).closest('.bp-box')) {
+      const id = from === 'bar' ? this.session.state.hotbar.slots[Number(value)] : value;
+      if (id) report(this.session.storeInStorage(this.boxUid, id));
+      this.selected = id && this.boxContents()[id] ? { from: 'box', id } : null;
+      return this.render();
+    }
+    // Da caixa de volta para a mochila (ou para a barra: vai para a mochila e ocupa o espaço).
+    if (this.boxUid && from === 'box') {
+      if (!bar && !(e.target as HTMLElement).closest('.bp-bag')) return;
+      const r = this.session.takeFromStorage(this.boxUid, value);
+      report(r);
+      if (r.ok && bar && fitsHotbar(content.items[value])) return this.assign(value, Number(bar.dataset.bar));
+      this.selected = this.owned(value) ? { from: 'bag', id: value } : null;
+      return this.render();
+    }
     if (bar) {
       const slot = Number(bar.dataset.bar);
       if (from === 'bar') {
@@ -265,6 +312,13 @@ export class BackpackPanel {
   private detailHtml(): string {
     const t = uiText.backpack;
     const id = this.selectedItem();
+    // Item da caixa pet: quanto tem lá e pegar de volta.
+    if (this.selected?.from === 'box' && id && this.boxContents()[id]) {
+      const boxed = content.items[id]!;
+      return `<div class="bp-detail"><span class="bp-detail-icon">${itemIconHtml(boxed, 22)}</span>
+      <span class="bp-detail-text"><b>${esc(boxed.name)}</b> <span class="amount">x${this.boxContents()[id]} ${esc(t.boxInside)}</span><br /><span class="purpose">${esc(purpose(boxed))}</span></span>
+      <span class="bp-detail-actions"><button data-act="box-take">${t.boxTake}</button></span></div>`;
+    }
     const item = this.owned(id) ? content.items[id] : undefined;
     if (!item) return `<p class="bp-hint">${t.gridHint}</p>`;
     const st = this.session.state;
@@ -283,6 +337,8 @@ export class BackpackPanel {
     }
     // Ingrediente, no armário: guardar só ele na despensa.
     if (this.atPantry && this.session.service.isIngredient(item.id)) buttons.push(`<button data-act="pantry-one">${t.pantryOne}</button>`);
+    // Na caixa pet: guardar (o que ela não aceita nem mostra o botão).
+    if (this.boxUid && this.session.storageProblem(this.boxUid, item.id) !== 'not_accepted') buttons.push(`<button data-act="box-one">${t.boxOne}</button>`);
     if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
     if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);
     return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22, item.hue) : itemIconHtml(item, 22)}</span>
@@ -309,17 +365,44 @@ export class BackpackPanel {
     const total = Math.max(PANTRY_SLOTS, Math.ceil(ids.length / 8) * 8);
     const empty = '<span class="bp-slot is-empty"></span>'.repeat(total - ids.length);
     const inBag = sv.ingredientsInBag();
-    const action = inBag === 0 ? '' : this.atPantry ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>` : `<span class="why">${esc(t.pantryWhere)}</span>`;
+    const stack = this.atPantry ? sv.pantryStackable() : 0;
+    const action =
+      inBag === 0
+        ? ''
+        : this.atPantry
+        ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>${stack > 0 ? `<button data-act="pantry-stack" title="${esc(t.stackTip)}">${esc(t.stack.replace('{n}', String(stack)))}</button>` : ''}`
+        : `<span class="why">${esc(t.pantryWhere)}</span>`;
     // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
     const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
     return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3><div class="bp-row">${slots}${empty}</div>${slots ? '' : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
+  }
+
+  /** A caixa pet aberta: os espaços dela (um tipo de item por espaço), o "empilhar" e a dica quando está vazia. */
+  private boxHtml(uid: string): string {
+    const t = uiText.backpack;
+    const box = this.session.storageContents(uid);
+    const slots = this.session.storageDef(uid)?.slots ?? 0;
+    const ids = Object.keys(box).filter((id) => content.items[id] && (box[id] ?? 0) > 0);
+    ids.sort((a, b) => bagOrder(content.items[a]!) - bagOrder(content.items[b]!));
+    const cells = Array.from({ length: Math.max(slots, ids.length) }, (_, i) => {
+      const id = ids[i];
+      if (!id) return '<span class="bp-slot is-empty"></span>';
+      const item = content.items[id]!;
+      const sel = this.selected?.from === 'box' && this.selected.id === id ? ' selected' : '';
+      const qty = box[id] ?? 0;
+      return `<button class="bp-slot${sel}" data-box="${id}" title="${esc(item.name)}" draggable="true">${itemIconHtml(item, 18)}${qty > 1 ? `<span class="count">${qty}</span>` : ''}</button>`;
+    }).join('');
+    const stack = this.session.storageStackable(uid);
+    const action = stack > 0 ? `<button data-act="box-stack" title="${esc(t.stackTip)}">${esc(t.stack.replace('{n}', String(stack)))}</button>` : '';
+    return `<div class="bp-box"><h3>${t.box}${action ? ` ${action}` : ''}</h3><div class="bp-row">${cells}</div>${ids.length ? '' : `<p class="bp-hint">${t.boxEmpty}</p>`}</div>`;
   }
 
   private render(): void {
     if (!this.open) return;
     const t = uiText.backpack;
     const st = this.session.state;
-    if (this.selected && !this.owned(this.selectedItem())) this.selected = null;
+    const stillThere = this.selected?.from === 'box' ? (this.boxContents()[this.selected.id] ?? 0) > 0 : this.owned(this.selectedItem());
+    if (this.selected && !stillThere) this.selected = null;
     // Faixa de cima: o que está nas mãos e a louça limpa.
     const hands = st.hands.length
       ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '')
@@ -336,7 +419,8 @@ export class BackpackPanel {
       <h3>${t.bar}</h3><div class="bp-row">${bar}</div>
       <h3>${t.bag}</h3><div class="bp-row bp-bag">${bag}</div>
       ${this.detailHtml()}
-      ${this.pantryHtml()}`;
+      ${this.boxUid ? this.boxHtml(this.boxUid) : this.pantryHtml()}`;
     if (this.atPantry) this.body.querySelector('.bp-pantry')?.scrollIntoView({ block: 'nearest' });
+    if (this.boxUid) this.body.querySelector('.bp-box')?.scrollIntoView({ block: 'nearest' });
   }
 }

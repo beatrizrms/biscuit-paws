@@ -1120,9 +1120,9 @@
 .area-select-hint b { color: #ffe9a8; }
 
 /* Despensa (armário da cozinha), na mochila: só ver; no armário, o botão de guardar as compras. */
-.catalog.backpack .bp-pantry { margin-top: 5px; }
-.catalog.backpack .bp-pantry h3 { display: flex; align-items: center; gap: 6px; }
-.catalog.backpack .bp-pantry h3 button { padding: 0 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
+.catalog.backpack .bp-pantry, .catalog.backpack .bp-box { margin-top: 5px; }
+.catalog.backpack .bp-pantry h3, .catalog.backpack .bp-box h3 { display: flex; align-items: center; gap: 6px; }
+.catalog.backpack .bp-pantry h3 button, .catalog.backpack .bp-box h3 button { padding: 0 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
 .catalog.backpack .bp-pantry h3 .why { font-size: 6.5px; font-weight: normal; color: var(--grey2); }
 .catalog.backpack span.bp-pantry-slot { opacity: 1; }
 /* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */

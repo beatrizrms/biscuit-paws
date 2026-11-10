@@ -37,6 +37,10 @@
             "title": "Descanso"
           },
           {
+            "tag": "pet_storage",
+            "title": "Organização"
+          },
+          {
             "tag": "playground",
             "title": "Playground (quintal)"
           },
@@ -233,6 +237,9 @@
     "hands_full": "Suas mãos estão ocupadas.",
     "hands_empty": "Você não está segurando nada.",
     "nothing_to_prepare": "Nenhum cliente pediu nada deste equipamento agora.",
+    "not_accepted": "Isso não vai na caixa pet: ela guarda ração, areia, brinquedos e cuidados dos gatos.",
+    "storage_full": "A caixa pet está cheia (8 tipos de item). Tire alguma coisa antes.",
+    "in_hands": "Esse saco está nas suas mãos. Escolha outro item na barra antes de guardar.",
     "extra_ready": "Já tem um feito aqui sem ninguém ter pedido. Espere alguém pedir.",
     "equipment_locked": "Ainda não tem receita liberada para este equipamento. Atenda mais clientes para liberar.",
     "equipment_off_menu": "Nenhuma receita deste equipamento está no cardápio. Ponha uma no quadro (M).",
@@ -546,6 +553,14 @@
     "pantryWhere": "guarde no armário, ao lado da pia",
     "pantryEmpty": "Vazia. Compre ingredientes no mercado e guarde aqui: só o que está na despensa vale nas receitas.",
     "pantryStored": "Guardado na despensa: {n} pacote(s).",
+    "stack": "empilhar ({n})",
+    "stackTip": "Leva da mochila só o que já está aqui (repor).",
+    "box": "Caixa pet",
+    "boxOne": "guardar na caixa",
+    "boxTake": "pegar",
+    "boxInside": "na caixa",
+    "boxEmpty": "Vazia. Guarde aqui ração, areia, petiscos, brinquedos e cuidados dos gatos: clique no item da mochila ou arraste até a caixa.",
+    "boxStored": "Guardado na caixa pet: {n} item(ns).",
     "place": "posicionar",
     "placeAtHome": "só dentro do café",
     "toBar": "pôr na barra ({n})",
@@ -1024,6 +1039,7 @@
     "customer": "Atender",
     "sink": "Pia",
     "pantry": "Despensa",
+    "pet_box": "Caixa pet",
     "station": "Preparar / pegar",
     "surface": "Pegar",
     "job": "Interagir",

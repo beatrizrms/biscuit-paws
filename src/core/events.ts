@@ -135,6 +135,8 @@ export interface GameEvents {
   'door.closed': { doorId: string; name: string; opensDay: number | null; opensAt: string | null };
   /** Ela guardou na despensa os ingredientes da mochila (pacotes). */
   'pantry.stored': { count: number };
+  /** Um baú (a caixa pet) mudou: guardou, pegou ou empilhou. count: quantos itens passaram (positivo = entrou no baú). */
+  'storage.changed': { uid: string; count: number };
   'customer.left': { customerId: string; happy: boolean; stars?: number; reputation?: number };
   'hands.changed': { count: number };
   'dish.washed': { count: number };

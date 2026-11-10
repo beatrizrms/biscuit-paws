@@ -16,10 +16,10 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 28;
+export const SAVE_SCHEMA_VERSION = 29;
 
-export interface SaveV28 extends GameState {
-  schemaVersion: 28;
+export interface SaveV29 extends GameState {
+  schemaVersion: 29;
   savedAt: string;
 }
 
@@ -162,10 +162,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
    * anota os que já valem sem avisar nem dar presente (as receitas já estavam destrancadas por clientes atendidos).
    */
   27: (save) => ({ ...save, schemaVersion: 28, milestones: null }),
+  /** v28 -> v29: baús do café (a caixa pet). Saves antigos não têm nenhum: começam vazios. */
+  28: (save) => ({ ...save, schemaVersion: 29, petBoxes: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV28 = { schemaVersion: 28, savedAt: now.toISOString(), ...state };
+  const save: SaveV29 = { schemaVersion: 29, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -219,7 +221,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV28>;
+  const v2 = save as unknown as Partial<SaveV29>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -323,6 +325,12 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     pantryOpen: Object.fromEntries(Object.entries(v2.pantryOpen ?? {}).filter(([id]) => known.items.has(id))),
     pantry: Object.fromEntries(
       Object.entries(v2.pantry ?? migratedPantry).filter((e): e is [string, number] => known.items.has(e[0]) && typeof e[1] === 'number' && e[1] > 0),
+    ),
+    // Baús: só os de móveis que continuam no café e itens que existem; quantidade positiva.
+    petBoxes: Object.fromEntries(
+      Object.entries(v2.petBoxes ?? {})
+        .filter(([uid]) => (v2.placed ?? []).some((pl) => pl.uid === uid))
+        .map(([uid, box]) => [uid, Object.fromEntries(Object.entries(box ?? {}).filter((e): e is [string, number] => knownItem(e[0], `caixa ${uid}`) && typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0))]),
     ),
     dishes: { cup: v2.dishes?.cup ?? 0, glass: v2.dishes?.glass ?? 0, plate: v2.dishes?.plate ?? 0 },
     hands: (v2.hands ?? []).filter((h) => knownHand(h)),
