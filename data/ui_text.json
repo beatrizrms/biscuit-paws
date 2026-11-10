@@ -9,6 +9,38 @@
         "title": "Pet",
         "groups": [
           {
+            "tag": "cat:food",
+            "except": [
+              "pet"
+            ],
+            "title": "Alimentação"
+          },
+          {
+            "tag": "cat:care",
+            "except": [
+              "pet"
+            ],
+            "title": "Cuidados"
+          },
+          {
+            "tag": "cat:toy",
+            "except": [
+              "pet"
+            ],
+            "title": "Brinquedos"
+          },
+          {
+            "tag": "cat:rest",
+            "except": [
+              "pet"
+            ],
+            "title": "Descanso"
+          },
+          {
+            "tag": "playground",
+            "title": "Playground (quintal)"
+          },
+          {
             "tag": "for:cats",
             "title": "Para os gatos"
           }
@@ -256,6 +288,18 @@
     "premium": "★ premium em {recipes}",
     "close": "fechar",
     "sections": [
+      {
+        "tag": "cat:food",
+        "title": "Alimentação"
+      },
+      {
+        "tag": "cat:care",
+        "title": "Cuidados"
+      },
+      {
+        "tag": "cat:toy",
+        "title": "Brinquedos"
+      },
       {
         "tag": "pet",
         "title": "Para os gatos"

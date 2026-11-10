@@ -9,6 +9,7 @@
       "kind": "consumable",
       "icon": "racao_simples",
       "tags": [
+        "cat:food",
         "pet",
         "food"
       ],
@@ -22,6 +23,7 @@
       "kind": "consumable",
       "icon": "racao_premium",
       "tags": [
+        "cat:food",
         "pet",
         "food"
       ],
@@ -36,6 +38,7 @@
       "kind": "consumable",
       "icon": "petisco_biscoito",
       "tags": [
+        "cat:food",
         "pet",
         "treat"
       ],
@@ -50,6 +53,7 @@
       "use": "wand",
       "iconImage": "assets/objects/placeholders/icon_wand.png",
       "tags": [
+        "cat:toy",
         "pet",
         "toy"
       ],
@@ -66,6 +70,7 @@
       "use": "brush",
       "iconImage": "assets/objects/placeholders/icon_brush.png",
       "tags": [
+        "cat:care",
         "pet",
         "grooming"
       ],
@@ -82,6 +87,7 @@
       "use": "litter_box",
       "description": "Uma troca de areia. Ponha na caixa de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "tags": [
+        "cat:care",
         "pet",
         "litter"
       ]
@@ -94,6 +100,7 @@
       "kind": "consumable",
       "icon": "mantinha",
       "tags": [
+        "cat:care",
         "pet",
         "blanket"
       ],
@@ -131,6 +138,7 @@
       "price": 25,
       "tile": "cat_bed",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats"
       ],
@@ -145,6 +153,7 @@
       "price": 25,
       "tile": "cat_bed_rosa",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats"
       ],
@@ -159,6 +168,7 @@
       "price": 25,
       "tile": "cat_bed_lilas",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats"
       ],
@@ -173,6 +183,7 @@
       "price": 15,
       "tile": "ph_litter_box",
       "tags": [
+        "cat:care",
         "furniture",
         "for:cats",
         "litter_box"
@@ -188,6 +199,7 @@
       "price": 8,
       "tile": "water_bowl",
       "tags": [
+        "cat:food",
         "furniture",
         "for:cats"
       ],
@@ -202,6 +214,7 @@
       "price": 8,
       "tile": "food_bowl",
       "tags": [
+        "cat:food",
         "furniture",
         "for:cats",
         "food_bowl"
@@ -217,6 +230,7 @@
       "price": 6,
       "tile": "yarn_balls",
       "tags": [
+        "cat:toy",
         "furniture",
         "for:cats"
       ],
@@ -231,6 +245,7 @@
       "price": 10,
       "tile": "cushion_pink",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats",
         "cushion"
@@ -246,6 +261,7 @@
       "price": 10,
       "tile": "cushion_mint",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats",
         "cushion"
@@ -261,6 +277,7 @@
       "price": 10,
       "tile": "cushion_sky",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats",
         "cushion"
@@ -276,6 +293,7 @@
       "price": 10,
       "tile": "cushion_lav",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats",
         "cushion"
@@ -291,6 +309,7 @@
       "price": 10,
       "tile": "cushion_butter",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats",
         "cushion"
@@ -306,6 +325,7 @@
       "price": 35,
       "tile": "scratch_post",
       "tags": [
+        "cat:toy",
         "furniture",
         "for:cats"
       ],
@@ -320,6 +340,7 @@
       "price": 140,
       "tile": "cat_condo",
       "tags": [
+        "cat:rest",
         "furniture",
         "for:cats"
       ],
@@ -334,6 +355,7 @@
       "price": 180,
       "tile": "cat_tree",
       "tags": [
+        "cat:toy",
         "furniture",
         "for:cats"
       ],
@@ -1146,6 +1168,7 @@
       "kind": "consumable",
       "icon": "racao_simples",
       "tags": [
+        "cat:food",
         "pet",
         "heavy"
       ],
@@ -1162,6 +1185,7 @@
       "kind": "consumable",
       "icon": "areia",
       "tags": [
+        "cat:care",
         "pet",
         "heavy"
       ],
@@ -1178,6 +1202,7 @@
       "icon": "racao_10kg",
       "description": "Saco grande: rende 10 porções de ração simples. Enche o pote automático de uma vez.",
       "tags": [
+        "cat:food",
         "pet",
         "heavy"
       ],
@@ -1194,6 +1219,7 @@
       "icon": "areia_10kg",
       "description": "Saco grande: rende 10 trocas de areia. Enche a caixa de areia automática de uma vez.",
       "tags": [
+        "cat:care",
         "pet",
         "heavy"
       ],
@@ -1211,6 +1237,7 @@
       "upgrades": "item.food_bowl",
       "description": "Upgrade da tigela de ração: coloque em cima da tigela comum. Guarda ração para até 10 dias e serve os gatos sozinho.",
       "tags": [
+        "cat:food",
         "furniture",
         "for:cats",
         "food_bowl"
@@ -1228,6 +1255,7 @@
       "upgrades": "item.litter_box",
       "description": "Upgrade da caixa de areia: coloque em cima da caixa comum. Guarda areia para até 10 dias e se troca sozinha.",
       "tags": [
+        "cat:care",
         "furniture",
         "for:cats",
         "litter_box"
@@ -1338,6 +1366,7 @@
       "icon": "remedio",
       "use": "medicine",
       "tags": [
+        "cat:care",
         "pet",
         "medicine"
       ]
