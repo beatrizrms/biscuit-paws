@@ -917,7 +917,8 @@
   "weather": {
     "snow": "Neve",
     "sun": "Sol",
-    "rain": "Chuva"
+    "rain": "Chuva",
+    "wind": "Vento"
   },
   "arrivals": {
     "title": "Um gato",
