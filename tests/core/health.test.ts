@@ -322,3 +322,31 @@ describe('nenhum gato adoece em dia de clínica fechada', () => {
     expect(state.cats[CAT]!.sickness).not.toBeNull();
   });
 });
+
+describe('areia suja há dias: cocô no chão', () => {
+  it('no 2º dia seguido sem areia limpa, cada gato faz cocô no chão (lugar livre sorteado); varrer tira; trocar a areia zera', () => {
+    const { session, state } = withCat();
+    state.flags['prologue.done'] = true;
+    const lp = cfg.care.litterPoop!;
+    const poops = () => session.visibleDirt().filter((d) => d.tags.includes(lp.tag));
+    session.endDay('home'); // 1º dia sem areia
+    expect(state.litterMissedDays).toBe(1);
+    expect(poops()).toHaveLength(0);
+    session.endDay('home'); // 2º dia: cocô
+    expect(state.litterMissedDays).toBe(2);
+    expect(poops()).toHaveLength(lp.perCat * session.homeCats().length);
+    expect(session.chores().some((c) => c.kind === 'poop')).toBe(true);
+    // O cocô do dia 2 da história (tag poop) não conta como estes.
+    expect(poops().every((d) => !d.tags.includes('poop'))).toBe(true);
+    for (let i = 0; i < 5; i++) session.endDay('home');
+    expect(poops().length).toBeLessThanOrEqual(lp.maxOnFloor);
+    for (const d of poops()) session.clean(d.id);
+    expect(poops()).toHaveLength(0);
+    expect(session.chores().some((c) => c.kind === 'poop')).toBe(false);
+    // Areia trocada hoje: a contagem zera.
+    state.placed.push({ uid: 'box', item: 'item.litter_box', at: [3, 9], refilledOn: state.day });
+    session.endDay('home');
+    expect(state.litterMissedDays).toBe(0);
+  });
+});
+

@@ -548,6 +548,10 @@ export class GameSession {
       for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -this.content.health.care.litterMissed, this.content.health.care);
       this.bus.emit('litter.missed', { day });
     }
+    // Dias seguidos sem areia limpa: a partir de litterPoop.afterDays, os gatos fazem cocô no chão.
+    this.state.litterMissedDays = r.litterOk ? 0 : (this.state.litterMissedDays ?? 0) + 1;
+    const lp = this.content.health.care.litterPoop;
+    if (lp && this.state.litterMissedDays >= lp.afterDays) this.catsPoopOnFloor(cats.length, day);
     for (const l of r.low) this.bus.emit('pet.low', { itemId: l.item, days: l.days });
   }
 
@@ -818,6 +822,29 @@ export class GameSession {
     }
   }
 
+  /** Os gatos fazem cocô no chão (areia suja há dias): os cocôs do mapa (tag) aparecem em lugares livres sorteados. */
+  private catsPoopOnFloor(catCount: number, day: number): void {
+    const lp = this.content.health.care.litterPoop!;
+    const all = (this.content.map.dirt ?? []).filter((d) => d.tags.includes(lp.tag));
+    // Primeira vez: os cocôs começam todos guardados (escondidos); a flag deixa eles aparecerem quando voltam.
+    if (!this.state.flags[lp.flag]) {
+      this.state.flags[lp.flag] = true;
+      for (const d of all) if (!this.state.cleaned.includes(d.id)) this.state.cleaned.push(d.id);
+    }
+    const onFloor = all.filter((d) => !isCleaned(this.state, d)).length;
+    const hidden = all.filter((d) => isCleaned(this.state, d));
+    const add = Math.min(catCount * lp.perCat, lp.maxOnFloor - onFloor, hidden.length);
+    if (add <= 0) return;
+    const rng = createRng(day * 53 + 11);
+    this.state.dirtAt = { ...(this.state.dirtAt ?? {}) };
+    for (const d of hidden.slice(0, add)) {
+      this.state.cleaned = this.state.cleaned.filter((id) => id !== d.id);
+      const at = this.randomDirtSpot(d, rng);
+      if (at) this.state.dirtAt[d.id] = at;
+    }
+    this.bus.emit('litter.pooped', { count: add });
+  }
+
   /**
    * Uma célula livre do chão para a peça de sujeira inteira (as de 2 tiles também): sem móvel, parede, cômodo fechado
    * nem outra sujeira por cima. Sorteada com o RNG do dia; null se não houver lugar (fica no ponto do mapa).
@@ -846,13 +873,16 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
     for (const id of this.shelteredCats()) {
       if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
     }
+    // Cocô no chão (areia suja há dias): varrer e trocar a areia.
+    const lpTag = this.content.health.care.litterPoop?.tag;
+    if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
     // Brinquedos de menos para os gatos do café (1 a cada catsPerToy): eles pedem para brincar todo dia.
     const room = this.playRoom();
     const missing = toysMissing(this.content.health.care, room);
@@ -2100,7 +2130,7 @@ export class GameSession {
         if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
         return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
       })
-      .map((d) => (d.when ? this.freeSpotFor(d) : this.state.dirtAt?.[d.id] ? { ...d, at: this.state.dirtAt[d.id]! } : d));
+      .map((d) => (this.state.dirtAt?.[d.id] ? { ...d, at: this.state.dirtAt[d.id]! } : d.when ? this.freeSpotFor(d) : d));
   }
 
   /** A célula não fica num cômodo ainda fechado. */

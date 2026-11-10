@@ -106,6 +106,8 @@ export interface GameState {
   openCurtains?: string[];
   /** Onde a poeira do dia voltou (id da sujeira -> célula), sorteado a cada manhã. Sem o campo: o lugar do mapa. */
   dirtAt?: Record<string, Cell>;
+  /** Dias seguidos sem areia limpa na caixa (zera quando troca). Sem o campo: 0. */
+  litterMissedDays?: number;
   /** Reputação felina da cidade (v16): valor, limiares já alcançados e o log curto dos motivos. */
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */

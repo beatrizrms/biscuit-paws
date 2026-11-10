@@ -14,6 +14,11 @@ export interface CareConfig {
   low: Record<CareStat, number>;
   /** Fim de um dia sem areia limpa (nenhuma caixa trocada nem automática com areia): a higiene cai mais isto. */
   litterMissed: number;
+  /**
+   * Areia suja por `afterDays` dias seguidos: no fim do dia, cada gato do café deixa `perCat` cocô no chão (lugar livre
+   * sorteado), até `maxOnFloor` no chão. Os cocôs são as sujeiras do mapa com `tag` (escondidas até a `flag` valer).
+   */
+  litterPoop?: { afterDays: number; perCat: number; maxOnFloor: number; tag: string; flag: string };
   /** O balão de cada necessidade, na arte do jogo: ícone (dentro do balão de pedido), o ícone de um item ou emote (balão pronto). */
   bubbles: Record<CareNeed, { icon?: string; item?: string; emote?: string }>;
   /**
@@ -115,6 +120,8 @@ export function validateCare(cfg: CareConfig): string[] {
       if (!(v >= 0 && v <= cfg.max)) errors.push(`health.care.${k}.${stat} precisa estar entre 0 e ${cfg.max}`);
     }
   }
+  const lp = cfg.litterPoop;
+  if (lp && !(Number.isInteger(lp.afterDays) && lp.afterDays >= 1 && lp.perCat >= 1 && lp.maxOnFloor >= 1)) errors.push('health.care.litterPoop: afterDays, perCat e maxOnFloor precisam ser 1 ou mais');
   const p = cfg.play;
   if (!(p && Number.isInteger(p.everyDays) && p.everyDays >= 1 && Number.isInteger(p.maxDays) && p.maxDays >= p.everyDays)) errors.push('health.care.play: everyDays >= 1 e maxDays >= everyDays (inteiros)');
   if (p && !(Number.isInteger(p.catsPerToy) && p.catsPerToy >= 1)) errors.push('health.care.play.catsPerToy precisa ser inteiro >= 1');

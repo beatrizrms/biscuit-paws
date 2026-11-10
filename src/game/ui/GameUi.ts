@@ -473,6 +473,10 @@ export class GameUi {
         today.push(this.row(line, { icon }));
         continue;
       }
+      if (ch.kind === 'poop') {
+        today.push(this.row(c.poop, { icon: 'areia' }));
+        continue;
+      }
       if (ch.kind === 'toys') {
         today.push(this.row(c.toys, { right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;

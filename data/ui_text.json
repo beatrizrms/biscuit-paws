@@ -477,6 +477,7 @@
       "play": { "do": "{cat} quer brincar: a varinha", "buy": "{cat} quer brincar: comprar uma varinha (mercado, Brinquedos)" }
     },
     "toys": "Brinquedos para os gatos (1 a cada 3): Market, aba Pet",
+    "poop": "Cocô no chão: varrer e trocar a areia da caixa",
     "job": "Pedido"
   },
   "goHome": {

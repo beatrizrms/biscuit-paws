@@ -51,7 +51,7 @@
     { "id": "tip.feed", "title": "Comida todo dia", "text": "Encha a tigela de ração uma vez por dia: uma porção serve todos os gatos do café. Dia sem comer, a saúde deles cai." },
     { "id": "tip.toys", "title": "Um brinquedo a cada 3 gatos", "text": "Novelos, arranhador e árvore de gato contam como brinquedo. Com menos de 1 brinquedo para cada 3 gatos, eles pedem para brincar todo dia e ficam tristes se ninguém brincar." },
     { "id": "tip.play", "title": "Quando o gato quer brincar", "text": "Com brinquedo suficiente, o gato pede para brincar (o balão da varinha) a cada 4 dias. Cada brinquedo a mais e cada outro gato no café dá mais 1 dia, até 8." },
-    { "id": "tip.litter", "title": "Areia limpa", "text": "Troque a areia da caixa todo dia. Um dia sem areia limpa e a higiene de todos os gatos cai bem mais." },
+    { "id": "tip.litter", "title": "Areia limpa", "text": "Troque a areia da caixa todo dia. Um dia sem areia limpa e a higiene de todos os gatos cai bem mais; com 2 dias seguidos, eles começam a fazer cocô no chão." },
     { "id": "tip.brush", "title": "Pegadas de lama no balão", "text": "É gato sujo: ponha a escova na barra e aperte E perto dele. A escovação deixa o pelo limpo e o gato um pouco mais feliz." },
     { "id": "tip.wand", "title": "Varinha de penas", "text": "Brincar com a varinha deixa o gato feliz e ainda recupera a sua energia. Coração no balão é gato triste: brinque com ele." },
     { "id": "tip.premium", "title": "Ração premium", "text": "No dia em que comem a ração premium, os gatos ganham 1,5 vez mais saúde que com a ração simples." },

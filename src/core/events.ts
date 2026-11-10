@@ -66,6 +66,7 @@ export interface GameEvents {
   'litter.refilled': { uid: string };
   /** Fim de um dia sem areia limpa: a higiene dos gatos caiu mais. */
   'litter.missed': { day: number };
+  'litter.pooped': { count: number };
   /**
    * reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia), "sleep" (dormiu no porão),
    * "curfew" (deu a hora-limite e amanhã tem expediente), "tired" (a hora-limite da véspera de folga).

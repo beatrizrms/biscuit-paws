@@ -660,6 +660,48 @@
           }
         ]
       }
+    },
+    {
+      "id": "dirt.litter_poop_1",
+      "tile": "ph_poop",
+      "at": [
+        8,
+        6
+      ],
+      "tags": [
+        "litter_poop"
+      ],
+      "when": {
+        "flag": "litter.poop"
+      }
+    },
+    {
+      "id": "dirt.litter_poop_2",
+      "tile": "ph_poop",
+      "at": [
+        8,
+        6
+      ],
+      "tags": [
+        "litter_poop"
+      ],
+      "when": {
+        "flag": "litter.poop"
+      }
+    },
+    {
+      "id": "dirt.litter_poop_3",
+      "tile": "ph_poop",
+      "at": [
+        8,
+        6
+      ],
+      "tags": [
+        "litter_poop"
+      ],
+      "when": {
+        "flag": "litter.poop"
+      }
     }
   ],
   "surfaces": [
