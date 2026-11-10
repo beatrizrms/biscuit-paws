@@ -540,6 +540,8 @@ const SHEETS: Sheet[] = [
       ph_window_open: { file: '02_cafe_2/janela_aberta_128.png', w: 2, h: 2 },
       // A mesma, com galhos tapando a vista: antes da limpeza pesada do quintal (curtainOvergrown no mapa).
       ph_window_branches: { file: '02_cafe_2/janela_aberta_galhos_128.png', w: 2, h: 2 },
+      // Porta dos fundos (do salão para o quintal), 1x2: a porta de madeira guardada na reserva.
+      ph_back_door: { file: 'reserva/porta_madeira_64x128.png', w: 1, h: 2 },
     },
   },
   {
