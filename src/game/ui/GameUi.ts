@@ -21,8 +21,10 @@ import { daysText, workName } from './constructionText';
 import { rewardText } from './StatsApp';
 import { weatherIconSvg } from './weatherIcons';
 
-/** A partir de quanto tempo o aviso é "longo" (espera a vez em vez de apagar outro longo). */
+/** A partir de quanto tempo o aviso é "longo" (sobrevive à troca de mapa). */
 const LONG_TOAST_MS = 4000;
+/** Avisos na tela ao mesmo tempo: o novo entra embaixo; passou disso, o mais antigo some. */
+const MAX_TOASTS = 3;
 
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
@@ -55,10 +57,8 @@ export class GameUi {
   private dialogueQueue: { speaker: string; text: string; npc?: string }[] = [];
   private reveal: { el: HTMLElement; done: () => void } | null = null;
   private typing: { full: string; shown: number; timer: number } | null = null;
-  private toastTimer = 0;
-  /** Avisos longos esperando a vez, e até quando o longo da tela fica. */
-  private toastQueue: { text: string; ms: number }[] = [];
-  private longToastUntil = 0;
+  /** Os avisos na tela (o mais antigo primeiro), cada um com o seu tempo. */
+  private toasts: { el: HTMLElement; text: string; timer: number; long: boolean }[] = [];
   /** Último aviso de energia dado (para não repetir a cada tarefa). */
   private energyWarned: 'low' | 'empty' | null = null;
   private hintMode: HintMode = 'walk';
@@ -223,8 +223,7 @@ export class GameUi {
     // Estabelecimento fechado: o aviso da porta, com quando abre (hoje, amanhã ou o dia da semana).
     // Trocou de lugar: o aviso de antes (ex.: a porta fechada) não acompanha.
     bus.on('map.entered', () => {
-      window.clearTimeout(this.toastTimer);
-      this.toastEl.classList.remove('show');
+      for (const t of this.toasts.filter((x) => !x.long)) this.dropToast(t);
     });
     bus.on('door.closed', ({ name, opensDay, opensAt }) => {
       const when = opensDay === null || opensAt === null ? '' : this.whenText({ day: opensDay, open: opensAt });
@@ -248,7 +247,10 @@ export class GameUi {
       if (stockingCats > 0) this.toast(t.stockings, 5000);
     });
     bus.on('newyear.eve', () => this.toast(uiText.newYear.eve, 6000));
-    bus.on('xmas.santa_missed', () => this.toast(uiText.secretSanta.missed, 6000));
+    bus.on('xmas.santa_missed', ({ itemId }) => this.toast(itemId ? uiText.secretSanta.missedGift.replace('{item}', content.items[itemId]?.name ?? '') : uiText.secretSanta.missed, 6000));
+    // Evento começando agora (se ela não for, sem problema) e os fogos perdidos.
+    bus.on('event.starting', ({ id }) => this.toast(id === 'new_year' ? uiText.newYear.starting : uiText.secretSanta.starting, 6000));
+    bus.on('newyear.missed', () => this.toast(uiText.newYear.missed, 5000));
     // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
     bus.on('menu.season', ({ arrived, left }) => {
       const names = (ids: string[]) => listNames(ids.map((id) => content.recipes[id]?.name ?? id));
@@ -493,24 +495,36 @@ export class GameUi {
    * Aviso no alto da tela. Os longos (4 s ou mais: selo, cardápio da estação, receita nova) esperam a vez em fila em
    * vez de apagar outro longo que ainda está na tela; os curtos aparecem na hora.
    */
+  /**
+   * Aviso na pilha: o novo entra embaixo dos que estão na tela, cada um some no seu tempo; com mais de MAX_TOASTS, o
+   * mais antigo sai na hora. O mesmo texto de novo não duplica: só renova o tempo dele.
+   */
   toast(text: string, ms = 1600): void {
-    if (ms >= LONG_TOAST_MS && Date.now() < this.longToastUntil) {
-      this.toastQueue.push({ text, ms });
+    const same = this.toasts.find((t) => t.text === text);
+    if (same) {
+      window.clearTimeout(same.timer);
+      same.timer = window.setTimeout(() => this.dropToast(same), ms);
       return;
     }
-    this.showToast(text, ms);
+    const el = document.createElement('div');
+    el.className = 'toast-item';
+    el.textContent = text;
+    this.toastEl.appendChild(el);
+    // No próximo quadro: a transição de opacidade aparece.
+    requestAnimationFrame(() => el.classList.add('show'));
+    const t = { el, text, long: ms >= LONG_TOAST_MS, timer: 0 };
+    t.timer = window.setTimeout(() => this.dropToast(t), ms);
+    this.toasts.push(t);
+    while (this.toasts.length > MAX_TOASTS) this.dropToast(this.toasts[0]!);
   }
 
-  private showToast(text: string, ms: number): void {
-    this.toastEl.textContent = text;
-    this.toastEl.classList.add('show');
-    if (ms >= LONG_TOAST_MS) this.longToastUntil = Date.now() + ms;
-    window.clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => {
-      this.toastEl.classList.remove('show');
-      const next = this.toastQueue.shift();
-      if (next) this.toastTimer = window.setTimeout(() => this.showToast(next.text, next.ms), 250);
-    }, ms);
+  private dropToast(t: { el: HTMLElement; text: string; timer: number; long: boolean }): void {
+    const i = this.toasts.indexOf(t);
+    if (i < 0) return;
+    this.toasts.splice(i, 1);
+    window.clearTimeout(t.timer);
+    t.el.classList.remove('show');
+    window.setTimeout(() => t.el.remove(), 200);
   }
 
   /** Aviso com um texto de data/ui_text.json. */
@@ -954,8 +968,29 @@ ${rep}`;
     });
   }
 
+  /** Perguntas na tela: uma de cada vez (a próxima espera a anterior ser respondida e as falas acabarem). */
+  private modalQueue: Promise<unknown> = Promise.resolve();
+
+  private oneAtATime<T>(open: () => Promise<T>): Promise<T> {
+    const run = this.modalQueue.then(() => this.afterNaming()).then(() => this.afterDialogue()).then(open);
+    this.modalQueue = run.catch(() => undefined);
+    return run;
+  }
+
+  /** Espera a caixa de nome do gato fechar (a pergunta não abre por cima dela). */
+  private afterNaming(): Promise<void> {
+    return new Promise((resolve) => {
+      const check = () => (this.naming.isOpen() ? window.setTimeout(check, 120) : resolve());
+      check();
+    });
+  }
+
   /** Escolha entre várias opções (ex.: as dicas dos vizinhos). Clique ou 1 a 9. Devolve o índice. */
   choose(question: string, options: string[]): Promise<number> {
+    return this.oneAtATime(() => this.chooseNow(question, options));
+  }
+
+  private chooseNow(question: string, options: string[]): Promise<number> {
     const el = document.createElement('div');
     el.className = 'confirm-layer';
     el.innerHTML = `<div class="panel confirm choose"><p>${esc(question)}</p><div class="options">${options
@@ -983,6 +1018,10 @@ ${rep}`;
 
   /** Pergunta sim/não (ex.: encerrar o dia). Enter = sim, Esc = não. */
   confirm(question: string, yes: string, no: string): Promise<boolean> {
+    return this.oneAtATime(() => this.confirmNow(question, yes, no));
+  }
+
+  private confirmNow(question: string, yes: string, no: string): Promise<boolean> {
     const el = document.createElement('div');
     el.className = 'confirm-layer';
     el.innerHTML = `<div class="panel confirm"><p>${esc(question)}</p><div class="buttons"><button class="no">${esc(no)}</button><button class="yes">${esc(yes)}</button></div></div>`;

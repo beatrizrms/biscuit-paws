@@ -310,6 +310,8 @@ export interface WorldData {
   morning: { map: string; spawn: Cell };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
+  /** Cômodo do café onde as cenas começam (com ela em outro cômodo, esperam ela voltar). */
+  sceneRoom: string;
   /** Quantas poeiras do café voltam a cada manhã (rotina de varrer). */
   dailyDirt: number;
   /** Pixels que um equipamento sobe quando está em cima do balcão. */
@@ -498,6 +500,7 @@ export function validateContent(raw: RawContent): string[] {
   if (!mapIds.has(raw.world.homeMap)) err(`world: homeMap "${raw.world.homeMap}" não existe`);
   if (!raw.items.items.some((i) => i.id === raw.world.tools?.sweep && i.kind === 'tool')) err(`world: tools.sweep "${raw.world.tools?.sweep}" não é uma ferramenta (kind "tool") de items.json`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
+  if (!raw.rooms.rooms.some((r) => r.id === raw.world.sceneRoom)) err(`world: sceneRoom "${raw.world.sceneRoom}" não é cômodo`);
   for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);
   {
     const dv = raw.delivery;

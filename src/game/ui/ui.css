@@ -160,12 +160,20 @@
 .hotbar .count { position: absolute; bottom: 0; right: 1px; font-size: 5.5px; line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
 
 /* Aviso rápido */
+/* Avisos: uma pilha no alto da tela (o mais novo embaixo; o mais antigo some primeiro). */
 .toast {
   position: absolute;
   z-index: 3; /* por cima dos painéis (mochila, catálogo) */
   top: 40px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+.toast-item {
   padding: 3px 10px;
   background: var(--ink);
   color: var(--cream);
@@ -174,7 +182,7 @@
   transition: opacity 0.2s;
   white-space: nowrap;
 }
-.toast.show { opacity: 1; }
+.toast-item.show { opacity: 1; }
 
 /* Falas */
 .dialogue-layer {
