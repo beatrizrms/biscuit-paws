@@ -70,7 +70,18 @@ export function ambienceOf(map: MapData, catalog: TileCatalog, cfg: AmbienceConf
   const walls = map.layers.walls ?? [];
   const rows = map.size.rows;
   const cols = map.size.cols;
-  const isWall = (c: number, r: number) => r >= 0 && r < rows && c >= 0 && c < cols && (walls[r]?.[c] ?? EMPTY) !== EMPTY;
+  // Também contam como parede: peças da camada "wall" (a parede divisória que esconde uma passagem) e a base de uma
+  // porta de passagem ainda desenhada (trancada): sem isso, o vão da passagem fechada ficava sem a sombra da parede.
+  const extraWalls = new Set<string>();
+  for (const obj of map.objects) {
+    const def = catalog.tiles[obj.tile];
+    if (!def) continue;
+    const door = obj.id.startsWith('obj.door.');
+    if (def.layer !== 'wall' && !door) continue;
+    for (let dy = door ? def.h - 1 : 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) extraWalls.add(`${obj.at[0] + dx},${obj.at[1] + dy}`);
+  }
+  const isWall = (c: number, r: number) =>
+    r >= 0 && r < rows && c >= 0 && c < cols && ((walls[r]?.[c] ?? EMPTY) !== EMPTY || extraWalls.has(`${c},${r}`));
   const isOpen = (c: number, r: number) => r >= 0 && r < rows && c >= 0 && c < cols && !isWall(c, r);
 
   const shadows: ContactShadow[] = [];
