@@ -16,6 +16,7 @@ import type { ArrivalsState } from './arrivals';
 import type { CatDef } from './cats';
 import { newFestivals, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
+import { newStats, type StatsState } from './stats';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -118,6 +119,8 @@ export interface GameState {
   catDefs: Record<string, CatDef>;
   /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa (a dica "E" some depois de algumas). */
   hintUses: Record<string, number>;
+  /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
+  stats: StatsState;
 }
 
 export interface PlayerState {
@@ -213,6 +216,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
     hintUses: {},
+    stats: newStats(),
   };
 }
 

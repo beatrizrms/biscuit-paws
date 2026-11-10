@@ -52,6 +52,7 @@ import {
 } from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
+import { closeDay, statsView, type StatsView } from './stats';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -561,6 +562,7 @@ export class GameSession {
   endDay(reason: DayEndReason = 'story'): void {
     const day = this.state.day;
     const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
+    this.statsAtDayEnd(day);
     // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
     this.state.jobs.active = [];
     this.state.jobs.progress = {};
@@ -585,6 +587,8 @@ export class GameSession {
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
     this.randomIllness();
+    // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
+    this.state.stats.today.sickAtStart = this.sickCats();
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
     this.service.endOfDay();
     this.cart.clear();
@@ -1715,6 +1719,42 @@ export class GameSession {
     if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId)) return false;
     cat.sheltered = false;
     return true;
+  }
+
+  // ---------- Estatísticas do café ----------
+
+  /** Gatos que já foram abrigados no café (adotados continuam contando; os de lembrança nunca). */
+  catsEverSheltered(): number {
+    return Object.keys(this.state.cats).filter((id) => !this.catDef(id)?.memory).length;
+  }
+
+  /** O raio X do café (app Café em números): totais, médias da última semana, sequências e o gráfico. */
+  stats(): StatsView {
+    return statsView(this.state.stats, {
+      day: this.state.day,
+      servedTotal: this.state.service.served,
+      reputation: this.reputation(),
+      catsNow: this.shelteredCats().length,
+      catsEver: this.catsEverSheltered(),
+    });
+  }
+
+  /** Fim do dia nas estatísticas: guarda o dia e anda as sequências (antes da saúde do fim do dia, que pode adoecer gatos). */
+  private statsAtDayEnd(day: number): void {
+    const cats = this.shelteredCats();
+    const untreated = this.state.stats.today.sickAtStart.filter((id) => {
+      const s = this.state.cats[id];
+      return s?.sheltered && s.sickness && s.sickness.treatment?.lastDoseDay !== day;
+    }).length;
+    const { record, broken } = closeDay(this.state.stats, {
+      day,
+      open: this.service.opensOn(day),
+      earned: this.state.today.earned,
+      cats: cats.length,
+      untreated,
+    });
+    this.bus.emit('stats.day_closed', { day, served: record.served, gaveUp: record.gaveUp, open: record.open, untreated });
+    for (const streak of broken) this.bus.emit('stats.streak_broken', { streak });
   }
 
   // ---------- Reputação felina ----------
