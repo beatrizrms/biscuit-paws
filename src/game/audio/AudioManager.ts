@@ -58,6 +58,13 @@ export class AudioManager {
   private current: Record<Channel, Playing | null> = { music: null, ambient: null };
   private loops = new Map<string, Phaser.Sound.BaseSound>();
   private fades = new Set<number>();
+  /**
+   * O volume que o gerenciador pôs em cada som (o navegador demora a refletir setVolume: logo depois de criar com
+   * volume 0, ler o volume ainda dá 1, e o fade começava cheio; com a música desligada, cada faixa nova estourava).
+   */
+  private vols = new WeakMap<Phaser.Sound.BaseSound, number>();
+  /** O fade em andamento de cada som (um novo cancela o anterior: dois fades no mesmo som brigavam). */
+  private fadeOf = new WeakMap<Phaser.Sound.BaseSound, number>();
   /** Menu de pausa aberto: a música fica parada (o ambiente e os efeitos, não). */
   private musicPaused = false;
 
@@ -144,7 +151,7 @@ export class AudioManager {
       this.play('music', p.id);
       return;
     }
-    (p.sound as Phaser.Sound.WebAudioSound).setVolume?.(0);
+    this.setVol(p.sound, 0);
     p.sound.resume();
     this.fadeTo(p.sound, this.volume('music', p.id));
   }
@@ -167,6 +174,7 @@ export class AudioManager {
       return;
     }
     const sound = this.game.sound.add(trackKey(channel, id), { loop: audioData[channel][id]!.loop, volume: 0 });
+    this.setVol(sound, 0);
     sound.play();
     this.current[channel] = { id, sound };
     this.fadeTo(sound, this.volume(channel, id));
@@ -188,6 +196,7 @@ export class AudioManager {
     const playing = this.loops.get(id);
     if (on && !playing && this.canPlay('sfx', id)) {
       const sound = this.game.sound.add(trackKey('sfx', id), { loop: true, volume: 0 });
+      this.setVol(sound, 0);
       sound.play();
       this.loops.set(id, sound);
       this.fadeTo(sound, this.volume('sfx', id));
@@ -229,20 +238,37 @@ export class AudioManager {
     for (const id of [...this.loops.keys()]) this.setLoop(id, false);
   }
 
-  private fadeTo(sound: Phaser.Sound.BaseSound, target: number, done?: () => void): void {
+  /** Põe o volume no som e lembra dele (o fade parte daqui, não do que o navegador devolve). */
+  private setVol(sound: Phaser.Sound.BaseSound, v: number): void {
     const s = sound as Phaser.Sound.WebAudioSound;
-    const from = typeof s.volume === 'number' ? s.volume : 0;
+    if (typeof s.setVolume === 'function') s.setVolume(v);
+    // Na hora: setVolume agenda a mudança para o próximo ciclo de áudio, e o som novo tocava um instante no volume cheio.
+    const gain = (s as unknown as { volumeNode?: GainNode }).volumeNode?.gain;
+    if (gain) gain.value = v;
+    this.vols.set(sound, v);
+  }
+
+  private fadeTo(sound: Phaser.Sound.BaseSound, target: number, done?: () => void): void {
+    const running = this.fadeOf.get(sound);
+    if (running !== undefined) {
+      window.clearInterval(running);
+      this.fades.delete(running);
+    }
+    // Som novo (criado com volume 0) ou que o gerenciador nunca mexeu: parte de 0.
+    const from = this.vols.get(sound) ?? 0;
     const ms = audioData.fadeMs;
     const start = performance.now();
     const id = window.setInterval(() => {
       const k = Math.min(1, (performance.now() - start) / ms);
-      if (typeof s.setVolume === 'function') s.setVolume(from + (target - from) * k);
+      this.setVol(sound, from + (target - from) * k);
       if (k >= 1) {
         window.clearInterval(id);
         this.fades.delete(id);
+        this.fadeOf.delete(sound);
         done?.();
       }
     }, 40);
     this.fades.add(id);
+    this.fadeOf.set(sound, id);
   }
 }
