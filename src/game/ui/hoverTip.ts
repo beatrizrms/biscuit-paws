@@ -1,8 +1,8 @@
-// Dica de hover: com o mouse parado 3 segundos em cima de um elemento com data-tip, aparece um balão com o texto
+// Dica de hover: com o mouse parado 1,5 segundo em cima de um elemento com data-tip, aparece um balão com o texto
 // (para que serve o item, no mercado e no app Market). Sai ao tirar o mouse, clicar ou rolar a lista.
 
 /** Quanto tempo o mouse fica em cima antes do balão aparecer. */
-export const TIP_DELAY_MS = 3000;
+export const TIP_DELAY_MS = 1500;
 
 /** Largura e altura da tela da UI (pixels do jogo, #ui). */
 const UI_W = 640;

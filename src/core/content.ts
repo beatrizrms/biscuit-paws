@@ -54,6 +54,8 @@ export interface ItemDef {
   carrySprite?: string;
   /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "litter_box" = pôr areia na caixa; "cat" = dar ao gato (petisco); "wand"/"brush" = abrir o cuidado no gato (varinha, escova). */
   use?: ItemUse;
+  /** Ração: multiplica a saúde que o gato ganha no fim do dia por ter comido (health.json: daily.fed). Padrão 1. */
+  healthMultiplier?: number;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
@@ -774,6 +776,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
+    if (item.healthMultiplier !== undefined && !(item.healthMultiplier > 0)) err(`items: "${item.id}" healthMultiplier inválido`);
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
     if (item.placeOn && !itemTags.has(item.placeOn)) err(`items: "${item.id}" vai em cima de "${item.placeOn}", tag que nenhum item tem`);
     if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);

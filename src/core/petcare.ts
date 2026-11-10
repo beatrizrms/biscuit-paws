@@ -36,6 +36,8 @@ export function load(p: PlacedItem, item: ItemDef, itemId: string, available: nu
 export interface StationsDayEnd {
   /** Os gatos comeram hoje (pela tigela ou pelo pote automático, que gastou uma porção). */
   fed: boolean;
+  /** A ração que o pote automático serviu hoje (só quando foi ele). */
+  fedWith?: string;
   /** Houve areia limpa hoje (uma caixa trocada ou a automática, que gastou uma troca). */
   litterOk: boolean;
   /** Automáticos que gastaram hoje e ficaram com poucos dias (avisar): uid, item e dias que sobraram. */
@@ -55,9 +57,11 @@ export function stationsAtDayEnd(placed: PlacedItem[], items: Record<string, Ite
     if (p.stock === 0) delete p.stockItem;
   };
   let fed = fedToday;
+  let fedWith: string | undefined;
   if (!fed) {
     const feeder = autoOf('food_bowl');
     if (feeder) {
+      fedWith = feeder.stockItem;
       spend(feeder);
       fed = true;
     }
@@ -70,5 +74,5 @@ export function stationsAtDayEnd(placed: PlacedItem[], items: Record<string, Ite
       litterOk = true;
     }
   }
-  return { fed, litterOk, low };
+  return { fed, ...(fedWith ? { fedWith } : {}), litterOk, low };
 }

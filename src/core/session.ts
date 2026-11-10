@@ -463,6 +463,7 @@ export class GameSession {
       if (this.state.cats[catId]!.fedOn === this.state.day) continue;
       this.state.flags[`fed.${catId}`] = true;
       this.state.cats[catId]!.fedOn = this.state.day;
+      this.state.cats[catId]!.fedWith = food;
       this.bus.emit('cat.fed', { catId, itemId: food, bowlUid });
       this.addCatAffection(catId, this.content.relationships.feedPoints);
     }
@@ -507,7 +508,13 @@ export class GameSession {
     if (cats.length === 0) return;
     const fedToday = cats.some((id) => this.state.cats[id]!.fedOn === day);
     const r = stationsAtDayEnd(this.state.placed, this.content.items, day, fedToday, PET_LOW_DAYS);
-    if (r.fed && !fedToday) for (const id of cats) this.state.cats[id]!.fedOn = day;
+    if (r.fed && !fedToday)
+      for (const id of cats) {
+        const cat = this.state.cats[id]!;
+        cat.fedOn = day;
+        if (r.fedWith) cat.fedWith = r.fedWith;
+        else delete cat.fedWith;
+      }
     if (!r.litterOk) {
       for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -this.content.health.care.litterMissed, this.content.health.care);
       this.bus.emit('litter.missed', { day });
@@ -1341,12 +1348,14 @@ export class GameSession {
     this.bus.emit('cat.sick', { catId, disease: cat.sickness.disease });
   }
 
-  /** Fim do dia: comeu sobe, não comeu desce (descuido), doente sem o remédio do dia desce mais; baixa demais, adoece. */
+  /** Fim do dia: comeu sobe (mais com a ração premium), não comeu desce (descuido), doente sem o remédio do dia desce mais; baixa demais, adoece. */
   private healthAtDayEnd(day: number): void {
     const cfg = this.content.health;
     for (const id of this.shelteredCats()) {
       const cat = this.state.cats[id]!;
-      let delta = cat.fedOn === day ? cfg.daily.fed : cfg.daily.hungry;
+      // A ração premium (healthMultiplier) rende mais saúde que a comum.
+      const mult = (cat.fedWith && this.content.items[cat.fedWith]?.healthMultiplier) || 1;
+      let delta = cat.fedOn === day ? Math.round(cfg.daily.fed * mult) : cfg.daily.hungry;
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
       if (!cat.sickness && cat.health < cfg.sickBelow) this.makeSick(id);

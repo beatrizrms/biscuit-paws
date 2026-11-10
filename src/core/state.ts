@@ -149,6 +149,8 @@ export interface CatState {
   map: string;
   /** Último dia em que comeu (v6; rotina diária). */
   fedOn?: number;
+  /** Ração que comeu no dia `fedOn` (id do item; sem = a comum). A premium dá mais saúde (healthMultiplier). */
+  fedWith?: string;
   /** Dia em que foi abrigado (v13; app "Meus gatos": dias no café). */
   shelteredOn: number;
   /** Saúde de 0 a health.max (v13). */

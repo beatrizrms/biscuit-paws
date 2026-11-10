@@ -58,6 +58,21 @@ describe('saúde no dia a dia', () => {
     expect(events.some((e) => e.name === 'cat.sick')).toBe(true);
   });
 
+  it('a ração premium (healthMultiplier) dá mais saúde que a simples', () => {
+    const premium = Object.values(content.items).find((i) => i.use === 'food_bowl' && i.healthMultiplier)!;
+    expect(premium.healthMultiplier).toBe(1.5);
+    const simple = withCat();
+    simple.cat().fedOn = 1;
+    simple.cat().fedWith = 'item.cat_food_basic';
+    simple.session.endDay('home');
+    const rich = withCat();
+    rich.cat().fedOn = 1;
+    rich.cat().fedWith = premium.id;
+    rich.session.endDay('home');
+    expect(simple.cat().health).toBe(cfg.start + cfg.daily.fed);
+    expect(rich.cat().health).toBe(cfg.start + Math.round(cfg.daily.fed * 1.5));
+  });
+
   it('adoecer à toa só depois que a clínica abre', () => {
     const { session, state, cat } = withCat();
     // Sem a clínica, nenhum dia sorteia doença (ela come todo dia).

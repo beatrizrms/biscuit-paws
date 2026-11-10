@@ -17,7 +17,7 @@
     {
       "id": "item.cat_food_premium",
       "name": "Ração premium",
-      "description": "Ração de qualidade: enche a tigela de ração como a simples. Também serve para um gato com fome que chega na porta.",
+      "description": "Ração de qualidade: no dia em que comem a premium, os gatos ganham 1,5x mais saúde que com a simples. Também serve para um gato com fome que chega na porta.",
       "price": 35,
       "kind": "consumable",
       "icon": "racao_premium",
@@ -25,7 +25,8 @@
         "pet",
         "food"
       ],
-      "use": "food_bowl"
+      "use": "food_bowl",
+      "healthMultiplier": 1.5
     },
     {
       "id": "item.cat_treat_biscuit",
@@ -50,7 +51,6 @@
       "iconImage": "assets/objects/placeholders/icon_wand.png",
       "tags": [
         "pet",
-        "tool",
         "toy"
       ],
       "requires": {
@@ -67,7 +67,6 @@
       "iconImage": "assets/objects/placeholders/icon_brush.png",
       "tags": [
         "pet",
-        "tool",
         "grooming"
       ],
       "requires": {
