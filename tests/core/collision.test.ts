@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { solidBoxes, solidGrid } from '../../src/core/map';
+import { playerBlockBoxes, solidBoxes, solidGrid } from '../../src/core/map';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -27,3 +27,13 @@ describe('colisão em pixels', () => {
     expect(area(full)).toBeGreaterThan(area(half));
   });
 });
+
+describe('potes e caminhas: só a personagem não atravessa', () => {
+  it('peça não sólida da lista vira caixa na base da célula; fora da lista, nada; e não entra na colisão comum', () => {
+    const map = { ...cafe, objects: [{ id: 'placed.b', tile: 'food_bowl', at: [5, 6] as [number, number] }, { id: 'placed.r', tile: 'floor_rug', at: [8, 6] as [number, number] }] };
+    const boxes = playerBlockBoxes(map, content.catalog, content.world.playerBlockTiles ?? [], 0.5);
+    expect(boxes).toEqual([{ x: 5 * ts, y: 7 * ts - ts / 2, w: ts, h: ts / 2 }]);
+    expect(solidBoxes(map, content.catalog, 0.5).some((b) => b.x === 5 * ts && b.y >= 6 * ts && b.y < 7 * ts)).toBe(false);
+  });
+});
+

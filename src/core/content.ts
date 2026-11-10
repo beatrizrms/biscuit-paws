@@ -294,6 +294,8 @@ export interface WorldData {
    * 1 = a célula inteira). Paredes e pisos sólidos bloqueiam a célula inteira. Sem isso, 1.
    */
   objectBaseDepth?: number;
+  /** Tiles não sólidos que a personagem não atravessa (potes, caminhas); os gatos continuam usando. */
+  playerBlockTiles?: string[];
 }
 
 /** Todo o conteúdo que uma sessão de jogo precisa. */
@@ -519,6 +521,7 @@ export function validateContent(raw: RawContent): string[] {
     if (![[c, r], [c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]].some(([x, y]) => reach[y!]?.[x!])) err(`jobs: ponto "${p.id}" em (${c},${r}) de "${p.map}" não dá para alcançar a pé`);
   }
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
+  for (const tile of raw.world.playerBlockTiles ?? []) if (!raw.catalog.tiles[tile]) err(`world: playerBlockTiles: tile "${tile}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
   const restore = raw.dayNight.energy.restore;
   for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
