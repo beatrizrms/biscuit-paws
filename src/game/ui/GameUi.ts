@@ -484,7 +484,7 @@ export class GameUi {
     for (const job of this.session.activeJobs()) {
       const step = job.steps[this.session.jobStep(job.id)];
       const [done, total] = this.session.jobStepProgress(job.id);
-      today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_entrega_fechada', html: true, right: total > 1 ? this.pips(done, total) : '' }));
+      today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_bilhete', html: true, right: total > 1 ? this.pips(done, total) : '' }));
     }
     // Chegada de gato e festival em andamento: o que fazer agora.
     const arrival = this.arrivalLine();

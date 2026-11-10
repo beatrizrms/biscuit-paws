@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 2,
+ "rows": 10,
  "pieces": {
   "floreira": {
    "col": 0,
@@ -48,6 +48,162 @@
   "obra_cone": {
    "col": 1,
    "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "planta_alta_b": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "planta_alta_c": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "cacto_bola": {
+   "col": 4,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cacto_bracos": {
+   "col": 5,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pendente_jiboia": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pendente_perolas": {
+   "col": 1,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pendente_hera": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pendente_clorofito": {
+   "col": 3,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pendente_coracao": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vaso_suculenta": {
+   "col": 5,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vaso_lirio": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vaso_tulipas": {
+   "col": 1,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "vaso_lavanda": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_patinhas": {
+   "col": 3,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_coracao": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "quadro_gato": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "capacho_gato": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "tapete_b": {
+   "col": 1,
+   "row": 5,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "lousa_b": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "lousa_c": {
+   "col": 0,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "vitrine_vazia": {
+   "col": 2,
+   "row": 7,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "geladeira_bebidas": {
+   "col": 4,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "expositor_a": {
+   "col": 5,
+   "row": 7,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "expositor_b": {
+   "col": 0,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "expositor_c": {
+   "col": 1,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pote_biscoitos": {
+   "col": 2,
+   "row": 9,
    "w_tiles": 1,
    "h_tiles": 1
   }

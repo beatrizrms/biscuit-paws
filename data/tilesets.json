@@ -877,7 +877,15 @@
       "pieces": "pixellab_pet.json",
       "prefix": "pet_",
       "layer": "object",
-      "solid": true
+      "solid": true,
+      "overrides": {
+        "novelo_rosa": { "solid": false },
+        "novelo_verde": { "solid": false },
+        "novelo_creme": { "solid": false },
+        "novelo_lilas": { "solid": false },
+        "cesta_novelos": { "solid": false },
+        "almofada_capitone": { "solid": false }
+      }
     },
     {
       "id": "pixellab_quarto",
@@ -944,7 +952,24 @@
         },
         "obra_fita": {
           "solid": true
-        }
+        },
+        "pendente_jiboia": { "solid": false, "layer": "wall" },
+        "pendente_perolas": { "solid": false, "layer": "wall" },
+        "pendente_hera": { "solid": false, "layer": "wall" },
+        "pendente_clorofito": { "solid": false, "layer": "wall" },
+        "pendente_coracao": { "solid": false, "layer": "wall" },
+        "quadro_patinhas": { "solid": false, "layer": "wall" },
+        "quadro_coracao": { "solid": false, "layer": "wall" },
+        "quadro_gato": { "solid": false, "layer": "wall" },
+        "lousa_b": { "solid": false, "layer": "wall" },
+        "lousa_c": { "solid": false, "layer": "wall" },
+        "capacho_gato": { "solid": false, "layer": "floor" },
+        "tapete_b": { "solid": false, "layer": "floor" },
+        "expositor_a": { "solid": false },
+        "expositor_b": { "solid": false },
+        "expositor_c": { "solid": false },
+        "pote_biscoitos": { "solid": false },
+        "vaso_suculenta": { "solid": false }
       }
     },
     {

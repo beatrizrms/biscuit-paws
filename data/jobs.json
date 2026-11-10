@@ -69,7 +69,7 @@
       ],
       "action": "press",
       "gives": "item.parcel",
-      "icon": "caixa_entrega_fechada"
+      "icon": "caixa_bilhete"
     },
     {
       "id": "pt.parcel_dropoff",
@@ -127,7 +127,7 @@
       ],
       "action": "press",
       "gives": "item.parcel",
-      "icon": "caixa_entrega_fechada"
+      "icon": "caixa_bilhete"
     },
     {
       "id": "pt.parcel_dropoff_house_a",
@@ -148,7 +148,7 @@
       ],
       "action": "press",
       "gives": "item.parcel",
-      "icon": "caixa_entrega_fechada"
+      "icon": "caixa_bilhete"
     },
     {
       "id": "pt.parcel_dropoff_house_c",

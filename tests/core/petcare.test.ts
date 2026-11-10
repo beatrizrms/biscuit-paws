@@ -118,7 +118,10 @@ describe('automáticos', () => {
     expect(session.upgradePlaced('p90', 'item.food_bowl')).toEqual({ ok: true });
     expect(state.money).toBe(money - content.upgrades.fee);
     expect(state.inventory['item.cat_food_basic']).toBe(3);
-    expect(session.upgradeOptions('p91')).toEqual([{ itemId: 'item.litter_box', cost: content.upgrades.fee }]);
+    expect(session.upgradeOptions('p91')).toEqual([
+      { itemId: 'item.litter_box', cost: content.upgrades.fee },
+      { itemId: 'item.litter_box_green', cost: content.upgrades.fee },
+    ]);
     const back = cafe();
     back.state.flags['has.cat'] = true;
     const price = content.items['item.auto_feeder']!.price - content.items['item.food_bowl']!.price + content.upgrades.fee;
