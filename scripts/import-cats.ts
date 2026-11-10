@@ -4,7 +4,8 @@
 // 7-8 comer (pote à direita/à esquerda) e 9-10 estranhar (virado para a direita/esquerda).
 // Cada linha anda inteira junto: os pés da animação vão para a linha 56 e o centro para o meio do quadro.
 // O lado esquerdo é o direito espelhado. Dormir respira por código (o alto do corpo sobe 1 px); estranhar treme 1 px.
-// Fonte: os quadros exportados em assets/_pixellab/gatos/<gato>_* (personagens e imagens do PixelLab).
+// Fonte: o ruivo, dos quadros exportados em assets/_pixellab/gatos/ruivo_* (personagens e imagens do PixelLab); as outras
+// pelagens, de base_<pelagem>/ (fromBase).
 // Rodar: npm run gatos. Saída em public/assets/characters/cats/ (fora do git, como toda a arte).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -74,6 +75,34 @@ function ruivo(): PNG[][] {
   ];
 }
 
+/**
+ * As outras pelagens: os 30 quadros únicos da folha do ruivo (base_ruivo/, tirados da folha pronta) repintados pelo
+ * transfer_outfit do PixelLab em base_<pelagem>/, na mesma ordem dos nomes (00_sit_0 ... 29_startle_right_0).
+ * Vêm já no lugar (mesmo quadro de 64); a montagem só espelha os lados esquerdos e refaz respiração e tremor.
+ */
+function fromBase(coat: string): () => PNG[][] {
+  return () => {
+    const dir = `base_${coat}`;
+    const f = fs.readdirSync(path.join(SRC, dir)).filter((n) => n.endsWith('.png')).sort().map((n) => read(`${dir}/${n}`));
+    if (f.length !== 30) throw new Error(`${dir}: esperava 30 quadros, achei ${f.length}`);
+    const right = f.slice(12, 16);
+    const [sleep, play, eat, startle] = [f[16]!, f.slice(17, 23), f.slice(23, 29), f[29]!];
+    return [
+      f.slice(0, 4),
+      f.slice(4, 8),
+      f.slice(8, 12),
+      right,
+      right.map(mirror),
+      [sleep, breathe(sleep), breathe(sleep), sleep],
+      play,
+      eat,
+      eat.map(mirror),
+      [startle, breathe(startle)],
+      [mirror(startle), breathe(mirror(startle))],
+    ];
+  };
+}
+
 function sheet(rows: PNG[][]): PNG {
   const out = new PNG({ width: S * COLS, height: S * rows.length });
   rows.forEach((imgs, r) => {
@@ -93,7 +122,7 @@ function sheet(rows: PNG[][]): PNG {
   return out;
 }
 
-const cats: Record<string, () => PNG[][]> = { ruivo };
+const cats: Record<string, () => PNG[][]> = { ruivo, frajola: fromBase('frajola') };
 fs.mkdirSync(OUT, { recursive: true });
 for (const [variant, build] of Object.entries(cats)) {
   const file = path.join(OUT, `cat_${variant}.png`);

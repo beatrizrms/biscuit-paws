@@ -88,9 +88,11 @@
     "pebble": "assets/characters/cats/cat_pebble.png",
     "snowdrop": "assets/characters/cats/cat_snowdrop.png",
     "toffee": "assets/characters/cats/cat_toffee.png",
-    "ruivo": "assets/characters/cats/cat_ruivo.png"
+    "ruivo": "assets/characters/cats/cat_ruivo.png",
+    "frajola": "assets/characters/cats/cat_frajola.png"
   },
   "resolutions": {
-    "ruivo": 2
+    "ruivo": 2,
+    "frajola": 2
   }
 }
