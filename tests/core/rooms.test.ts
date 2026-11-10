@@ -103,6 +103,14 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.goals().map((g) => g.title)).toContain('O porão');
   });
 
+  it('reformado sem limpar (save antigo): a sujeira do porão não aparece', () => {
+    const { session, state } = afterFirstCustomer();
+    state.rooms['room.back_room'] = 'abandoned';
+    expect(session.visibleDirt().some((d) => d.id === 'dirt.back_room_junk')).toBe(true);
+    state.rooms['room.back_room'] = 'restored';
+    expect(session.visibleDirt().some((d) => d.tags.includes('back_room'))).toBe(false);
+  });
+
   it('a porta de obra não abre com E: avisa e pede a obra no catálogo', () => {
     const { session, events } = afterFirstCustomer();
     expect(session.useRoomDoor('door.back_room')).toMatchObject({ ok: false, problem: 'needs_money' });

@@ -2288,6 +2288,8 @@ export class GameSession {
         // Cômodo ainda fechado: a sujeira dele não aparece nem se limpa.
         const room = this.roomAt(d.at);
         if (room && !isOpen(this.roomState(room.id))) return false;
+        // Cômodo reformado: a sujeira dele não fica (save que chegou ao reformado sem limpar tudo).
+        if (room && this.roomState(room.id) === 'restored' && room.restore?.dirtTag && d.tags.includes(room.restore.dirtTag)) return false;
         // Sujeira que só aparece a partir de uma condição (o cocô do dia 2).
         if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
         return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
