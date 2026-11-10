@@ -44,6 +44,12 @@
    "row": 1,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "obra_cone": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
   }
  }
 }

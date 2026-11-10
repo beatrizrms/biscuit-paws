@@ -28,6 +28,8 @@ export interface ConstructionData {
   facadeDays: number;
   /** Tile da fita que isola a área da obra (sólido). */
   tapeTile: string;
+  /** Cone que marca o lugar dele (sólido). */
+  coneTile?: string;
 }
 
 type Facing = 'down' | 'left' | 'right' | 'up';
@@ -162,6 +164,22 @@ export function isolatedCells(s: ConstructionState, map: MapData, day: number): 
     }
   }
   return [...out.values()];
+}
+
+/**
+ * Marcas da obra em volta do lugar dele, o dia todo: o cone do lado oposto à parede e, nos reparos e obras de cômodo
+ * (sem a área isolada da troca de acabamento), a fita logo abaixo dele. `map`: o mapa da obra.
+ */
+export function siteMarkers(s: ConstructionState, map: MapData, day: number, d: ConstructionData): { map?: string; at: Cell[]; tile: string }[] {
+  const spot = builderSpot(s, map, day, d);
+  if (!spot) return [];
+  const [c, r] = spot.at;
+  const dx = spot.facing === 'left' ? 1 : -1;
+  const out: { map?: string; at: Cell[]; tile: string }[] = [];
+  // Fita primeiro (embaixo dele); o cone vai no primeiro lugar livre: atrás dele, uma linha abaixo, e só então na frente.
+  if (s.job?.kind !== 'finish') out.push({ map: spot.map, at: [[c, r + 1]], tile: d.tapeTile });
+  if (d.coneTile) out.push({ map: spot.map, at: [[c + dx, r], [c + dx, r + 1], [c - dx, r + 1], [c - dx, r]], tile: d.coneTile });
+  return out;
 }
 
 /**

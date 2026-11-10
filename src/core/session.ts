@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { isOpenAt, nextOpening, weekdayOf } from './schedule';
-import { type QuoteProblem, builderOnShift, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
+import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
@@ -1801,7 +1801,13 @@ export class GameSession {
       const inSeason = mapInSeason(this.content.seasons, painted, this.season(), (t) => !!this.content.catalog.tiles[t]);
       const builder = this.builderAt(mapId);
       const npcs = [...(inSeason.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-      return { ...inSeason, npcs, objects: [...inSeason.objects, ...this.jobMarkers(mapId)] };
+      // Com ele trabalhando, a peça solta da calçada no lugar dele (a árvore de Natal, a lousa) sai de lá; a fachada fica.
+      const { tiles } = this.content.catalog;
+      const onHim = (o: MapData['objects'][number]) => !!builder && tiles[o.tile]?.layer === 'object' && cellsOf(o.at, tiles[o.tile]!).some(([c, r]) => c === builder.at[0] && r === builder.at[1]);
+      const kept = inSeason.objects.filter((o) => !onHim(o));
+      const blocked = new Set([inSeason.spawn.player, ...(inSeason.doors ?? []).map((d) => d.at)].map((c) => cellKey(c)));
+      for (const o of kept) { const def = tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
+      return { ...inSeason, npcs, objects: [...kept, ...this.jobMarkers(mapId), ...this.siteMarkerObjects({ ...inSeason, objects: kept }, blocked)] };
     }
     const rooms = this.roomsMapParts();
     const base = {
@@ -2305,6 +2311,22 @@ export class GameSession {
     return { at: spot.at, facing: spot.facing };
   }
 
+  /** Cone e fita em volta do lugar do Tião neste mapa (nos dias de obra): cada um no primeiro lugar livre, só no chão. */
+  private siteMarkerObjects(map: MapData, blocked: Set<string>): MapData['objects'] {
+    const free = ([c, r]: Cell) => (map.layers.floor[r]?.[c] ?? '.') !== '.' && (map.layers.walls[r]?.[c] ?? '.') === '.' && !blocked.has(cellKey([c, r]));
+    const builder = this.builderAt(map.id) ?? builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
+    if (builder) blocked.add(cellKey(builder.at)); // nada em cima dele
+    const out: MapData['objects'] = [];
+    for (const m of siteMarkers(this.state.construction, this.content.map, this.state.day, this.content.construction)) {
+      if ((m.map ?? this.content.map.id) !== map.id) continue;
+      const at = m.at.find(free);
+      if (!at) continue;
+      blocked.add(cellKey(at));
+      out.push({ id: `obj.construction.site_${at[0]}_${at[1]}`, tile: m.tile, at: [at[0], at[1]] });
+    }
+    return out;
+  }
+
   /** Fim do dia: a obra que terminou entra no café (ou na fachada). */
   private constructionDayEnded(newDay: number): void {
     const facade = this.content.facade?.surface.id ?? 'surface.facade';
@@ -2361,6 +2383,9 @@ export class GameSession {
     const objects = isolatedCells(this.state.construction, base, this.state.day)
       .filter((cell) => !blocked.has(cellKey(cell)))
       .map(([c, r]) => ({ id: `obj.construction.${c}_${r}`, tile: this.content.construction.tapeTile, at: [c, r] as Cell }));
+    // O cone (e a fita dos reparos) em volta dele, só onde ficar livre.
+    for (const o of objects) blocked.add(cellKey(o.at));
+    objects.push(...this.siteMarkerObjects(base, blocked));
     return { layers, legend, objects };
   }
 
