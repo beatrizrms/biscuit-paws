@@ -12,6 +12,8 @@ const C = content.character;
 /** A jogadora. A posição (x, y) é o meio da base dos pés. Desenho: playerLook.ts (camadas do criador). */
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private facing: Direction = 'down';
+  /** Sentada (sit): parada no quadro da pose até levantar. */
+  private sitting = false;
   /** Multiplica a velocidade (ex.: carregando coisas). */
   speedFactor = 1;
   /** Correndo (R): multiplica a velocidade e o ritmo da animação de andar. */
@@ -83,6 +85,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!this.acting) this.idle();
   }
 
+  /** Sentada (sofá, cadeira): o quadro parado da pose "sit" na direção dada. false se a folha não existe. */
+  sit(direction: Direction): boolean {
+    const key = poseTexture('sit');
+    if (!this.scene.textures.exists(key)) return false;
+    this.facing = direction;
+    this.setVelocity(0, 0);
+    this.anims.stop();
+    this.sitting = true;
+    this.setTexture(key, DIRECTIONS.indexOf(direction) * playerJson.walkFrames);
+    return true;
+  }
+
+  /** Levanta: volta a ficar em pé, parada. */
+  standUp(): void {
+    if (!this.sitting) return;
+    this.sitting = false;
+    this.idle();
+  }
+
   /** Pose de carregar, que anda junto: bandeja, gato no colo (o gato é desenhado pelo jogo) ou nenhuma. */
   setCarryPose(pose: Extract<Pose, 'tray' | 'cat'> | null): void {
     const look = pose ? poseTexture(pose) : PLAYER_TEXTURE;
@@ -117,6 +138,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private idle(): void {
     this.anims.stop();
+    // Sentada: fica no quadro da pose (virar só troca a direção).
+    if (this.sitting) {
+      this.setTexture(poseTexture('sit'), DIRECTIONS.indexOf(this.facing) * playerJson.walkFrames);
+      return;
+    }
     // Andando normal e com a folha parada (manequim): em pé, pernas juntas. Nas poses (bandeja, gato), o 1º quadro delas.
     const still = this.look === PLAYER_TEXTURE && this.scene.textures.exists(PLAYER_IDLE_TEXTURE) ? PLAYER_IDLE_TEXTURE : this.look;
     this.setTexture(still, DIRECTIONS.indexOf(this.facing) * playerJson.walkFrames);

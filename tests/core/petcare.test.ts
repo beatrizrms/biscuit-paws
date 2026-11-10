@@ -100,16 +100,32 @@ describe('automáticos', () => {
     expect(session.feedProblem('p90')).toBe('other_item');
   });
 
-  it('upgrade: o automático só vai em cima da peça comum, que vira ele no mesmo lugar (e não volta para a mochila)', () => {
+  it('comprar o automático do zero: posiciona em qualquer lugar e ela fica com a tigela e o pote', () => {
     const { session, state } = cafe();
     state.inventory['item.auto_feeder'] = 1;
-    const bowl = state.placed.find((p) => p.uid === 'p90')!;
-    expect(session.checkPlacement('item.auto_feeder', [9, 9])).toBe('upgrade_target');
-    expect(session.checkPlacement('item.auto_feeder', [5, 8])).toBe('upgrade_target'); // a caixa de areia não serve
-    expect(session.place('item.auto_feeder', bowl.at)).toEqual({ ok: true });
-    expect(state.placed.find((p) => p.uid === 'p90')!.item).toBe('item.auto_feeder');
-    expect(state.inventory['item.auto_feeder'] ?? 0).toBe(0);
-    expect(state.inventory['item.food_bowl'] ?? 0).toBe(0);
+    expect(session.place('item.auto_feeder', [9, 9])).toEqual({ ok: true });
+    expect(state.placed.filter((p) => p.item === 'item.food_bowl' || p.item === 'item.auto_feeder').length).toBe(2);
+  });
+
+  it('pela assistência técnica: a tigela vira o pote no mesmo lugar (diferença + serviço) e a ração guardada volta', () => {
+    const { session, state } = cafe({ auto: true });
+    state.flags['has.cat'] = true; // os itens de gato só depois do primeiro gato
+    const options = session.upgradeOptions('p90');
+    expect(options).toEqual([{ itemId: 'item.food_bowl', cost: content.upgrades.fee }]); // mais barata: só o serviço
+    state.placed.find((p) => p.uid === 'p90')!.stock = 3;
+    state.placed.find((p) => p.uid === 'p90')!.stockItem = 'item.cat_food_basic';
+    const money = state.money;
+    expect(session.upgradePlaced('p90', 'item.food_bowl')).toEqual({ ok: true });
+    expect(state.money).toBe(money - content.upgrades.fee);
+    expect(state.inventory['item.cat_food_basic']).toBe(3);
+    expect(session.upgradeOptions('p91')).toEqual([{ itemId: 'item.litter_box', cost: content.upgrades.fee }]);
+    const back = cafe();
+    back.state.flags['has.cat'] = true;
+    const price = content.items['item.auto_feeder']!.price - content.items['item.food_bowl']!.price + content.upgrades.fee;
+    expect(back.session.upgradeOptions('p90')).toEqual([{ itemId: 'item.auto_feeder', cost: price }]);
+    expect(back.session.upgradePlaced('p90', 'item.auto_feeder')).toEqual({ ok: true });
+    expect(back.state.placed.find((p) => p.uid === 'p90')!.item).toBe('item.auto_feeder');
+    expect(back.state.inventory['item.auto_feeder'] ?? 0).toBe(0);
   });
 
   it('o estoque dos automáticos e a areia do dia vão no save', () => {

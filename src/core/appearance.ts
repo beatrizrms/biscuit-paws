@@ -15,7 +15,7 @@ export interface StyledPart {
   colors: CharacterOption[];
 }
 
-export const POSES = ['tray', 'cat', 'sweep', 'wipe_table', 'operate', 'stir', 'wash'] as const;
+export const POSES = ['tray', 'cat', 'sweep', 'wipe_table', 'operate', 'stir', 'wash', 'sit'] as const;
 export type Pose = (typeof POSES)[number];
 
 export interface PoseDef {

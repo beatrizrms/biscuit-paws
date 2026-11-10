@@ -93,6 +93,8 @@ export interface GameEvents {
   'item.picked_up': { itemId: string; uid: string };
   /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
   'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };
+  /** Assistência técnica: a peça virou outra do mesmo grupo, no mesmo lugar (src/core/upgrades.ts). */
+  'item.upgraded': { uid: string; from: string; to: string; cost: number };
   'item.refunded': { itemId: string; amount: number };
   'dirt.cleaned': { dirtId: string };
   'surface.painted': { surfaceId: string; finishId: string; price: number };
@@ -102,6 +104,8 @@ export interface GameEvents {
   'construction.declined': { kind: string };
   'construction.done': { kind: string };
   'construction.asked': { more: boolean };
+  /** O Tião chegou para o expediente (working) ou foi embora; map: onde fica a obra. */
+  'construction.shift': { working: boolean; map: string };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };
   'cutscene.requested': { cutsceneId: string };

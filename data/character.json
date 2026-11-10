@@ -21,7 +21,8 @@
       "idle",
       "tray",
       "carry",
-      "work"
+      "work",
+      "sit"
     ],
     "poseAnim": {
       "tray": "tray",
@@ -30,7 +31,8 @@
       "wipe_table": "work",
       "operate": "work",
       "stir": "work",
-      "wash": "work"
+      "wash": "work",
+      "sit": "sit"
     },
     "outfits": {
       "hoodie": true,
@@ -521,6 +523,10 @@
       "walks": false,
       "fps": 6,
       "actionMs": 1200
+    },
+    "sit": {
+      "walks": false,
+      "fps": 1
     }
   },
   "default": {

@@ -58,6 +58,7 @@ export class LatteScene extends MiniGameScene {
 
     // Balcão de madeira e a xícara no meio; o contorno fica no centro do café (cupCenter, na arte).
     this.cameras.main.setBackgroundColor('#7f4b33');
+    this.drawBackdrop();
     const cupScale = def.cupScale ?? 1;
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2 + 10;
@@ -75,7 +76,9 @@ export class LatteScene extends MiniGameScene {
       guide.strokePath();
     }
     this.milk = this.add.graphics().setDepth(6);
-    this.pitcher = this.add.image(cx + 120, cy - 60, LATTE.pitcher.key, 0).setScale(cupScale).setOrigin(0.15, 0.85).setDepth(10);
+    // A jarra no tamanho dela (não cresce com a xícara), com o bico (em cima, à esquerda) na ponta do mouse: o corpo fica
+    // de lado e não cobre o desenho.
+    this.pitcher = this.add.image(cx + 120, cy - 60, LATTE.pitcher.key, 0).setOrigin(0.12, 0.22).setDepth(10);
     this.cursor = { x: cx + 80, y: cy };
     this.input.keyboard!.on('keydown-ENTER', this.serve, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard?.off('keydown-ENTER', this.serve, this));

@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { isOpenAt, nextOpening, weekdayOf } from './schedule';
-import { type QuoteProblem, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
+import { type QuoteProblem, builderOnShift, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
@@ -11,7 +11,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus, type DayEndReason } from './events';
-import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel } from './energy';
+import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
@@ -51,6 +51,7 @@ import {
   type RoomState,
 } from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -127,6 +128,7 @@ export type ActionResult =
         | 'not_in_inventory'
         | 'needs_broom'
         | 'heavy_dirt'
+        | 'no_upgrade'
         | 'needs_food'
         | 'needs_treat'
         | 'needs_medicine'
@@ -154,6 +156,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'seat_taken'
         | 'other_item'
         | 'unknown_job'
         | 'job_full'
@@ -204,6 +207,7 @@ export class GameSession {
       catAffection: (catId, points) => this.addCatAffection(catId, points),
       customersAway: () => this.customersAway(),
       hallDirt: () => this.hallDirt(),
+      playerSeat: () => this.restingCell(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
     });
     this.arrivals = new ArrivalSystem({
@@ -276,7 +280,7 @@ export class GameSession {
 
   /** Itens que ela tinha no último evento (para achar os que acabaram de chegar). */
   private ownedIds = new Set<string>();
-  /** Sofá em que ela está sentada (uid), recompondo a energia. Não vai para o save. */
+  /** Sofá ou cadeira em que ela está sentada (uid), recompondo a energia. Não vai para o save. */
   private restingOn: string | null = null;
   /** Dia em que já lembrou da hora-limite (não vai para o save: recarregar pode lembrar de novo). */
   private curfewRemindedOn = 0;
@@ -602,7 +606,7 @@ export class GameSession {
     else if (Math.floor(this.state.time) !== before) {
       // No sofá: recompõe a cada minuto, até encher.
       if (this.restingOn) {
-        const gain = this.content.dayNight.energy.restore.sofa.perMinute * (Math.floor(this.state.time) - before);
+        const gain = this.content.dayNight.energy.restore.seat.perMinute * (Math.floor(this.state.time) - before);
         this.setEnergy(this.energy() + gain);
         if (this.energyFull()) this.stopRest(true);
       }
@@ -614,6 +618,7 @@ export class GameSession {
       }
       this.deliverArrived();
       this.service.tick();
+      this.checkBuilderShift();
       this.advanceStory();
     }
   }
@@ -653,29 +658,42 @@ export class GameSession {
     return this.energy() >= this.content.dayNight.energy.max;
   }
 
-  /** Sofá do café ao alcance dos pés (`target`: só a célula clicada). */
-  sofaNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+  /** Onde dá para sentar (sofá, cadeira) pelo tile do item, ou undefined. */
+  seatDef(itemId: string): SeatDef | undefined {
+    const tile = this.content.items[itemId]?.tile;
+    return tile ? this.content.dayNight.energy.restore.seat.tiles[tile] : undefined;
+  }
+
+  /** Sofá ou cadeira do café ao alcance dos pés (`target`: só a célula clicada). */
+  seatNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
     if (!this.atHome()) return undefined;
-    const sofas = this.content.dayNight.energy.restore.sofa.items;
     const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
     return this.state.placed.find((p) => {
-      if (!sofas.includes(p.item)) return false;
+      if (!this.seatDef(p.item)) return false;
       const cells = cellsOf(p.at, this.content.catalog.tiles[this.content.items[p.item]!.tile!]!);
       if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
       return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
     })?.uid;
   }
 
-  /** Por que não dá para sentar agora (ou null). */
-  restProblem(): 'energy_full' | 'hands_full' | null {
+  /** Por que não dá para sentar agora (ou null). Cadeira com cliente sentado (ou a caminho) não serve. */
+  restProblem(uid?: string): 'energy_full' | 'hands_full' | 'seat_taken' | null {
     if (this.energyFull()) return 'energy_full';
     if (this.state.hands.length > 0 || this.state.tray) return 'hands_full';
+    const p = uid ? this.state.placed.find((x) => x.uid === uid) : undefined;
+    if (p && this.state.service.customers.some((c) => c.stage !== 'queue' && c.spot[0] === p.at[0] && c.spot[1] === p.at[1])) return 'seat_taken';
     return null;
   }
 
-  /** Senta no sofá: recompõe a cada minuto do jogo (tickClock) até encher ou levantar. */
+  /** Célula do móvel em que ela está sentada (ou null). */
+  private restingCell(): Cell | null {
+    const p = this.restingOn ? this.state.placed.find((x) => x.uid === this.restingOn) : undefined;
+    return p ? [p.at[0], p.at[1]] : null;
+  }
+
+  /** Senta no sofá ou na cadeira: recompõe a cada minuto do jogo (tickClock) até encher ou levantar. */
   startRest(uid: string): ActionResult {
-    const problem = this.restProblem();
+    const problem = this.restProblem(uid);
     if (problem) return { ok: false, reason: problem };
     if (!this.state.placed.some((p) => p.uid === uid)) return { ok: false, reason: 'not_found' };
     this.restingOn = uid;
@@ -683,14 +701,14 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Levanta do sofá (`full`: porque a energia encheu). */
+  /** Levanta (`full`: porque a energia encheu). */
   stopRest(full = false): void {
     if (!this.restingOn) return;
     this.restingOn = null;
     this.bus.emit('rest.changed', { uid: null, full });
   }
 
-  /** O sofá em que ela está sentada (ou null). Não vai para o save. */
+  /** O sofá ou a cadeira em que ela está sentada (ou null). Não vai para o save. */
   resting(): string | null {
     return this.restingOn;
   }
@@ -2296,10 +2314,23 @@ export class GameSession {
     this.bus.emit('construction.asked', { more });
   }
 
+  /** Se o Tião estava no expediente no último minuto (para avisar quando ele chega e quando vai embora). */
+  private builderWasWorking: boolean | null = null;
+
+  /** A cada minuto: ele chegou (workFrom) ou foi embora (fim do expediente)? Avisa a cena para pôr ou tirar ele. */
+  private checkBuilderShift(): void {
+    const spot = builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
+    const working = !!spot && builderOnShift(this.content.construction, this.state.time);
+    if (this.builderWasWorking !== null && working !== this.builderWasWorking) this.bus.emit('construction.shift', { working, map: spot?.map ?? this.content.map.id });
+    this.builderWasWorking = working;
+  }
+
   /** O construtor está trabalhando hoje neste mapa: onde e virado para onde. */
   builderAt(mapId: string): { at: Cell; facing: Facing } | null {
     const spot = builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
     if (!spot || (spot.map ?? this.content.map.id) !== mapId) return null;
+    // Só no expediente dele (chega às 08:00 e vai embora depois de 8 horas).
+    if (!builderOnShift(this.content.construction, this.state.time)) return null;
     return { at: spot.at, facing: spot.facing };
   }
 
@@ -2517,9 +2548,6 @@ export class GameSession {
   checkPlacement(itemId: string, at: Cell, reserved: readonly Cell[] = []): PlaceProblem | null {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
-    // Upgrade (ex.: o pote automático): só em cima da peça comum que ele substitui.
-    const upgrades = this.content.items[itemId]?.upgrades;
-    if (upgrades) return this.placedAt(at)?.item === upgrades ? null : 'upgrade_target';
     const placeOn = this.content.items[itemId]?.placeOn;
     if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
     const cells = cellsOf(at, def);
@@ -2548,20 +2576,43 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
 
     this.removeFromInventory(itemId);
-    // Upgrade: a peça comum vira a nova no mesmo lugar (a comum não volta para a mochila).
-    if (this.content.items[itemId]!.upgrades) {
-      const old = this.placedAt(at)!;
-      old.item = itemId;
-      delete old.refilledOn;
-      delete old.stock;
-      delete old.stockItem;
-      this.bus.emit('item.placed', { itemId, uid: old.uid, at: [old.at[0], old.at[1]] });
-      this.advanceStory();
-      return { ok: true };
-    }
     const uid = `p${this.state.nextUid++}`;
     this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]] });
     this.bus.emit('item.placed', { itemId, uid, at: [at[0], at[1]] });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  // ---------- Assistência técnica: upgrade do móvel no lugar (src/core/upgrades.ts; data/items.json upgrades) ----------
+
+  /** As peças em que este móvel pode virar (mesmo grupo, liberadas, que podem ficar naquele cômodo) e o preço de cada troca. */
+  upgradeOptions(uid: string): { itemId: string; cost: number }[] {
+    const p = this.state.placed.find((x) => x.uid === uid);
+    if (!p) return [];
+    const group = upgradeGroupOf(this.content.upgrades, p.item);
+    if (!group) return [];
+    const room = this.roomAt(p.at)?.id;
+    return group.items
+      .filter((id) => id !== p.item && this.itemUnlocked(id) && (!this.content.items[id]?.room || this.content.items[id]!.room === room))
+      .map((id) => ({ itemId: id, cost: upgradeCost(this.content.upgrades, this.content.items, p.item, id) }));
+  }
+
+  /** Troca o móvel pela peça escolhida, no mesmo lugar (o que está em cima fica). Paga a diferença + o serviço. */
+  upgradePlaced(uid: string, to: string): ActionResult {
+    const p = this.state.placed.find((x) => x.uid === uid);
+    if (!p) return { ok: false, reason: 'not_found' };
+    const option = this.upgradeOptions(uid).find((o) => o.itemId === to);
+    if (!option) return { ok: false, reason: 'no_upgrade' };
+    if (this.state.money < option.cost) return { ok: false, reason: 'no_money' };
+    if (option.cost > 0) this.addMoney(-option.cost, `upgrade:${to}`);
+    // O que estava guardado no automático (ração, areia) volta para a mochila.
+    if (p.stock && p.stockItem) this.state.inventory[p.stockItem] = (this.state.inventory[p.stockItem] ?? 0) + p.stock;
+    delete p.refilledOn;
+    delete p.stock;
+    delete p.stockItem;
+    const from = p.item;
+    p.item = to;
+    this.bus.emit('item.upgraded', { uid, from, to, cost: option.cost });
     this.advanceStory();
     return { ok: true };
   }

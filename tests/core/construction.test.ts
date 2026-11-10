@@ -63,6 +63,9 @@ describe('obras: reparos', () => {
     // Hoje ele ainda não está; amanhã está no café.
     expect(s.builderAt('map.cafe_main')).toBeNull();
     s.endDay('home');
+    // Amanhece às 07:00: ele chega às 08:00 e vai embora depois de 8 horas (16:00).
+    expect(s.builderAt('map.cafe_main')).toBeNull();
+    s.state.time = 10 * 60;
     expect(s.builderAt('map.cafe_main')).toEqual(c.repairs.inside.site);
     expect(s.mapData().npcs?.some((n) => n.npc === c.npc && n.anim === 'martelando')).toBe(true);
     s.endDay('home');
@@ -129,7 +132,8 @@ describe('obras: troca de acabamento por área', () => {
     expect(tape.length).toBe(16);
     const solid = resolveMap(map, content.catalog).solid;
     expect(solid[6]![9]).toBe(true);
-    // Encostado na parede do fundo, na coluna à esquerda da área.
+    // Encostado na parede do fundo, na coluna à esquerda da área (no expediente).
+    s.state.time = 10 * 60;
     expect(s.builderAt('map.cafe_main')).toEqual({ at: [8, 3], facing: 'right' });
     s.endDay('home');
     const done = s.mapData();
@@ -173,5 +177,26 @@ describe('obras: save', () => {
     expect(parseSave(JSON.stringify(all), knownIds(content)).state.construction.repaired).toEqual(['inside', 'outside']);
     const some = { ...v24, finishes: { 'surface.wallpaper': 'finish.wallpaper_mint' } };
     expect(parseSave(JSON.stringify(some), knownIds(content)).state.construction).toMatchObject({ repaired: [], job: null, cells: {} });
+  });
+});
+
+describe('obras: expediente do Tião', () => {
+  it('chega às 08:00 e vai embora depois de 8 horas; a cena é avisada na chegada e na saída', () => {
+    const s = session();
+    expect(s.quoteRepair('inside')).toEqual({ ok: true });
+    expect(s.answerQuote(true)).toEqual({ ok: true });
+    s.endDay('home');
+    const shifts: boolean[] = [];
+    s.bus.on('construction.shift', ({ working }) => shifts.push(working));
+    const at = (clock: string) => {
+      const [h, m] = clock.split(':').map(Number);
+      s.tickClock(((h! * 60 + m! - s.state.time) / content.dayNight.minutesPerSecond));
+      return s.builderAt('map.cafe_main');
+    };
+    expect(at('07:30')).toBeNull();
+    expect(at('08:05')).toEqual(c.repairs.inside.site);
+    expect(at('15:55')).toEqual(c.repairs.inside.site);
+    expect(at('16:05')).toBeNull();
+    expect(shifts).toEqual([true, false]);
   });
 });

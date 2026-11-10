@@ -8,13 +8,14 @@ import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
 import { CatSprite, catTexture } from '../entities/Cat';
 import { services } from '../services';
+import { GROOMING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
 export const GROOMING_SCENE = 'MiniGame.grooming';
 
 /**
- * PLACEHOLDER(arte): nó de pelo, escova e a toalha do fundo são desenhados por código. Para trocar, carregue
- * imagens com estas chaves (o desenho só acontece se a chave não existir).
+ * Nó de pelo, escova e toalha: arte do PixelLab (assets.ts: GROOMING). Sem os arquivos, são desenhados por código
+ * (o desenho só acontece se a chave não existir).
  */
 export const GROOMING_KEYS = { mat: 'grooming_mat', brush: 'grooming_brush', towel: 'grooming_towel' } as const;
 
@@ -42,6 +43,10 @@ export class GroomingScene extends MiniGameScene {
     super('grooming', GROOMING_SCENE);
   }
 
+  preload(): void {
+    loadSheets(this, Object.values(GROOMING));
+  }
+
   protected buildGame(): void {
     this.p = paramsOf<GroomingParams>(content.minigames, 'grooming', this.launch.params.difficulty);
     this.mats = this.def.mats ?? [];
@@ -54,9 +59,12 @@ export class GroomingScene extends MiniGameScene {
     this.ensureArt();
 
     this.cameras.main.setBackgroundColor('#cfe3ea');
+    this.drawBackdrop();
     const size = 32 * this.zoom;
     this.origin = { x: Math.round(320 - size / 2), y: Math.round(180 - size / 2) + 6 };
-    this.add.image(320, this.origin.y + size - 40, GROOMING_KEYS.towel).setDisplaySize(size + 80, 90);
+    const towel = this.add.image(320, this.origin.y + size - 40, GROOMING_KEYS.towel);
+    if (towel.width === GROOMING.towel.frameWidth) towel.setScale(3);
+    else towel.setDisplaySize(size + 80, 90);
 
     // O gato parado de lado: o primeiro quadro da caminhada para a direita, ampliado (pixel art, sem suavizar).
     const variant = this.launch.catVariant;
@@ -70,11 +78,14 @@ export class GroomingScene extends MiniGameScene {
       if (this.s.left[m.id] === undefined) continue;
       const img = this.add
         .image(this.toScreen(m.at[0]), this.toScreen(m.at[1], true), GROOMING_KEYS.mat)
-        .setDisplaySize(m.radius * 2 * this.zoom, m.radius * 2 * this.zoom)
+        // Arte do PixelLab no tamanho natural (menor que a escova); a desenhada por código, do tamanho da área.
+        .setDisplaySize(...((this.textures.get(GROOMING_KEYS.mat).getSourceImage().width === GROOMING.mat.frameWidth ? [GROOMING.mat.frameWidth, GROOMING.mat.frameHeight] : [m.radius * 2 * this.zoom, m.radius * 2 * this.zoom]) as [number, number]))
         .setDepth(10);
       this.matImgs.set(m.id, img);
     }
     this.brush = this.add.image(0, 0, GROOMING_KEYS.brush).setOrigin(0.2, 0.15).setDepth(100).setVisible(false);
+    // A escova do PixelLab em 2x, com as cerdas (embaixo da cabeça, à esquerda) na ponta do mouse.
+    if (this.brush.width === GROOMING.brush.frameWidth) this.brush.setScale(2).setOrigin(0.3, 0.85);
     this.bar = this.add.graphics().setDepth(100);
     this.input.setDefaultCursor('none');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.setDefaultCursor('default'));
@@ -88,11 +99,13 @@ export class GroomingScene extends MiniGameScene {
 
   protected updateGame(delta: number): void {
     if (this.ended) return;
-    const ptr = this.input.activePointer;
-    const at = { x: (ptr.worldX - this.origin.x) / this.zoom, y: (ptr.worldY - this.origin.y) / this.zoom };
-    const ev = stepGrooming(this.s, this.p, this.mats, this.zones, { ...at, down: ptr.isDown }, delta);
+    // Pelo controls.pointer(): o worldX do Phaser vem em pixels do canvas quando a cena abre por cima de outra.
+    const raw = this.input.activePointer;
+    const ptr = this.controls.pointer();
+    const at = { x: (ptr.x - this.origin.x) / this.zoom, y: (ptr.y - this.origin.y) / this.zoom };
+    const ev = stepGrooming(this.s, this.p, this.mats, this.zones, { ...at, down: ptr.down }, delta);
     // Antes do mouse se mexer, a posição é (0, 0): a escova só aparece depois.
-    this.brush.setVisible(!!(ptr.worldX || ptr.worldY)).setPosition(ptr.worldX, ptr.worldY).setAngle(ptr.isDown ? Math.sin(this.time.now / 60) * 10 : -15);
+    this.brush.setVisible(!!(raw.x || raw.y)).setPosition(ptr.x, ptr.y).setAngle(ptr.down ? Math.sin(this.time.now / 60) * 10 : -15);
     this.onEvents(ev);
     this.draw();
     const out = groomingOutcome(this.s, this.p);

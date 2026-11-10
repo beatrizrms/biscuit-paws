@@ -3,6 +3,7 @@
 // e trabalha os dias combinados (0,5 h por tile, 8 h por dia). Também abre e reforma os cômodos (data/rooms.json). O material da troca de acabamento é ela que compra
 // (sai na hora do pedido; volta se ela recusar o orçamento). Puro: sem Phaser, DOM ou window.
 import type { Cell, MapData, SurfaceDef } from './map';
+import { parseClock } from './time';
 
 export type RepairKind = 'inside' | 'outside';
 
@@ -11,6 +12,8 @@ export interface ConstructionData {
   npc: string;
   hoursPerTile: number;
   hoursPerDay: number;
+  /** Hora em que ele chega nos dias de obra ("08:00"); vai embora depois de hoursPerDay horas. */
+  workFrom?: string;
   /** Mão de obra por tile (troca de acabamento). */
   laborPerTile: number;
   /** Material por tile, pelo tipo da superfície (piso, papel de parede, lambri). */
@@ -105,6 +108,12 @@ export function quoteBlocker(s: ConstructionState, kind: ConstructionJob['kind']
 /** O construtor aceitou: a obra começa amanhã e dura `days` dias. */
 export function scheduleJob(job: ConstructionJob, today: number): ConstructionJob {
   return { ...job, startDay: today + 1, endDay: today + job.days };
+}
+
+/** Expediente do construtor: de workFrom (08:00) até hoursPerDay horas depois. `time`: minutos do dia. */
+export function builderOnShift(d: ConstructionData, time: number): boolean {
+  const from = parseClock(d.workFrom ?? '08:00');
+  return time >= from && time < from + d.hoursPerDay * 60;
 }
 
 /** Obra em andamento hoje (ele está no lugar). */

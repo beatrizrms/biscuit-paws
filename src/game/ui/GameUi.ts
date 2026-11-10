@@ -22,7 +22,7 @@ import { daysText, workName } from './constructionText';
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
 
-type HintMode = 'walk' | 'placing' | 'moving' | 'dialogue';
+type HintMode = 'walk' | 'placing' | 'moving' | 'upgradePick' | 'dialogue';
 
 const TYPE_SPEED_MS = 22;
 
@@ -33,6 +33,8 @@ export interface UiHandlers {
   onWait(until: number): void;
   /** Obra: marcar a área da troca de acabamento no café. */
   onSelectArea(surfaceId: string, finishId: string): void;
+  /** Assistência técnica: escolher no café o móvel para trocar. */
+  onPickUpgrade(): void;
 }
 
 export class GameUi {
@@ -144,6 +146,11 @@ export class GameUi {
         this.news.close();
         this.handlers.onSelectArea(surfaceId, finishId);
       },
+      pickUpgrade: () => {
+        this.news.close();
+        this.handlers.onPickUpgrade();
+      },
+      upgrade: (uid, to) => void this.confirmUpgrade(uid, to),
       ordered: (arrivesAt) => {
         const { time, tomorrow } = this.clockOf(arrivesAt);
         this.toast((tomorrow ? uiText.delivery.orderedTomorrow : uiText.delivery.ordered).replace('{time}', time));
@@ -311,6 +318,33 @@ export class GameUi {
   /** O Market (app do celular) está aberto: a tecla C abre e fecha ele. */
   isCatalogOpen(): boolean {
     return this.news.isMarketOpen();
+  }
+
+  /** Assistência: o Market aberto com as trocas do móvel escolhido no café. */
+  openUpgrade(uid: string): void {
+    this.closeShop();
+    this.news.open('phone', 'market');
+    this.news.showUpgrade(uid);
+  }
+
+  /** "Trocar X por Y? N moedas (diferença + serviço)": sim troca no lugar e fecha o celular para ver. */
+  private async confirmUpgrade(uid: string, to: string): Promise<void> {
+    const t = uiText.upgrade;
+    const p = this.session.state.placed.find((x) => x.uid === uid);
+    const option = this.session.upgradeOptions(uid).find((o) => o.itemId === to);
+    if (!p || !option) return this.problem('no_upgrade');
+    const fee = content.upgrades.fee;
+    const text = t.confirm
+      .replace('{from}', content.items[p.item]!.name)
+      .replace('{to}', content.items[to]!.name)
+      .replace('{cost}', String(option.cost))
+      .replace('{diff}', String(option.cost - fee))
+      .replace('{fee}', String(fee));
+    if (!(await this.confirm(text, t.yes, t.no))) return;
+    const r = this.session.upgradePlaced(uid, to);
+    if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
+    this.news.close();
+    this.toast(t.done);
   }
 
   /** O Market aberto na aba Construção (o Tião perguntou se ela quer mais algum serviço). */
@@ -882,7 +916,8 @@ export class GameUi {
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    this.hint.textContent = mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : uiText.hintWalk;
+    this.hint.textContent =
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
   }
 
   private queueDialogue(dialogueId: string): void {

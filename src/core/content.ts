@@ -15,6 +15,7 @@ import { ROOM_STATES, validateRooms, type RoomsData, type RoomState } from './ro
 import { validateSeasons, type SeasonsData } from './calendar';
 import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStage } from './business';
 import { validateConstruction, type ConstructionData } from './construction';
+import { NO_UPGRADES, validateUpgrades, type UpgradesData } from './upgrades';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import { validateHealth, type HealthConfig } from './health';
@@ -79,8 +80,6 @@ export interface ItemDef {
   hue?: number;
   /** Automático (pote de ração, caixa de areia): guarda até tantos dias e serve sozinho, um por dia. */
   autoDays?: number;
-  /** Upgrade de outro móvel: em vez de posicionar em qualquer lugar, vai em cima desse (que some) e fica no lugar dele. */
-  upgrades?: string;
 }
 
 /** Lojas (data/shops.json): o que cada uma vende. */
@@ -104,6 +103,8 @@ export interface IconsData {
 export interface ItemsData {
   schemaVersion: 1;
   items: ItemDef[];
+  /** Assistência técnica: grupos de peças que trocam entre si no lugar (src/core/upgrades.ts). */
+  upgrades?: UpgradesData;
 }
 
 /** Acabamento que o pintor aplica numa superfície (piso, papel de parede, lambri). */
@@ -308,6 +309,8 @@ export interface Content {
   /** Flag que libera o pintor. */
   painterUnlockFlag?: string;
   construction: ConstructionData;
+  /** Assistência técnica (upgrade de móvel no lugar). */
+  upgrades: UpgradesData;
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -426,7 +429,7 @@ export function buildContent(raw: RawContent): Content {
   for (const item of raw.items.items) items[item.id] = item;
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
+  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
     npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
@@ -485,6 +488,11 @@ export function validateContent(raw: RawContent): string[] {
   const adoptGame = raw.minigames.games.adoption;
   errors.push(...validateCafeTraits(raw.adoption.fair, raw.adoption.traits));
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
+  for (const [id, g] of Object.entries(raw.minigames.games)) {
+    for (const t of [...(g.backdrop?.floor ?? []), g.backdrop?.rug]) if (t && !raw.catalog.tiles[t]) err(`minigames: "${id}" usa no fundo um tile inexistente "${t}"`);
+    const k = g.backdrop?.rugScale;
+    if (k !== undefined && !(Number.isInteger(k) && k >= 1)) err(`minigames: "${id}": backdrop.rugScale deve ser um inteiro >= 1`);
+  }
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
   // O item do ponto: na entrega, um item de entrega (minigames.json: items); nos outros, um item do jogo (o petisco).
@@ -498,7 +506,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
-  for (const i of raw.items.items) if (i.upgrades && !raw.items.items.some((x) => x.id === i.upgrades)) err(`items: "${i.id}" upgrades aponta para "${i.upgrades}", que não existe`);
+  errors.push(...validateUpgrades(raw.items.upgrades ?? NO_UPGRADES, Object.fromEntries(raw.items.items.map((i) => [i.id, i])), raw.catalog));
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
   // Todo ponto de pedido precisa ser alcançável a pé a partir do spawn do mapa (ele ou um vizinho).
   for (const p of raw.jobs.points) {
@@ -514,7 +522,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateDayNight(raw.dayNight));
   const restore = raw.dayNight.energy.restore;
   for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
-  for (const id of restore.sofa.items) if (!raw.items.items.some((i) => i.id === id)) err(`daynight: energy.restore.sofa: item "${id}" não existe`);
+  for (const tile of Object.keys(restore.seat.tiles)) if (!raw.catalog.tiles[tile]) err(`daynight: energy.restore.seat: tile "${tile}" não existe`);
   for (const m of raw.maps) {
     for (const n of m.npcs ?? []) {
       const def = raw.npcs.npcs.find((x) => x.id === n.npc);

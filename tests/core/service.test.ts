@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -670,3 +670,36 @@ describe('avaliação dos clientes (estrelas)', () => {
     expect(state.reputation.value).toBeLessThan(10);
   });
 });
+
+describe('vários equipamentos ao alcance', () => {
+  it('o que tem trabalho é o que tem cliente esperando um pedido dele (o bule ao lado da cafeteira)', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    state.business = 'soft_open';
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    state.placed.push({ uid: 'cm', item: 'item.coffee_machine', at: [3, 4] }, { uid: 'tp', item: 'item.teapot', at: [4, 4] });
+    const sv = session.service;
+    expect(sv.stationHasWork('cm')).toBe(false);
+    expect(sv.stationHasWork('tp')).toBe(false);
+    state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 5], dishAt: [4, 4], recipe: 'recipe.black_tea', until: 99999, favorite: null, wantsPremium: false });
+    expect(sv.stationHasWork('tp')).toBe(true);
+    expect(sv.stationHasWork('cm')).toBe(false);
+  });
+
+  it('sem pedido: diz se é porque nada foi liberado, se não está no cardápio ou se ninguém pediu', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    state.business = 'soft_open';
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    state.placed.push({ uid: 'tp', item: 'item.teapot', at: [4, 4] });
+    const sv = session.service;
+    const tea = content.recipes['recipe.black_tea']!;
+    if (sv.recipeStatus(tea.id) === 'locked') expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'equipment_locked' });
+    vi.spyOn(sv, 'recipeStatus').mockReturnValue('available');
+    state.menu = state.menu.filter((id) => content.recipes[id]?.steps[0]?.equipment !== 'teapot');
+    expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'equipment_off_menu' });
+    state.menu.push(tea.id);
+    expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+  });
+});
+

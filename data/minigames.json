@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "_comment": "Mini games. introMs: tempo da tela de instruções. skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa. fishing (Pescaria): fish = tabela (id, name, rarity: junk/common/uncommon/rare/legendary, speed = fração da barra por segundo, zone = tamanho da zona verde, value = moedas extras, item = vai para a mochila, icon = quadro na folha 3 x 2); sounds: efeitos de data/audio.json (sfx). Por dificuldade: timeSec, waitMs [min, max] (boia esperando), biteWindowMs (tempo para fisgar), rarityWeights, zoneScale e speedScale (multiplicam a tabela), progressGain e progressLoss (por segundo), startProgress, lift e gravity (o indicador), greatAccuracy (fração do tempo dentro da zona). latte (Latte art): guideSize (lado do quadrado dos padrões), cupCenter (centro do café na arte da xícara), guideScale (o contorno dentro do café), cupScale (tamanho da xícara na tela), milkWidth (espessura do traço), patterns (id, name, lines: linhas de pontos [x, y] de 0 a guideSize; para um padrão novo, basta outra entrada). Por dificuldade: timeSec, patterns (quais sorteia), tolerance (px do contorno que ainda contam como em cima da linha), starAt (nota mínima para 1, 2 e 3 estrelas), tipPerStar (gorjeta de 0 a 3 estrelas, soma às moedas), coverageWeight (peso da cobertura; o resto é precisão). tutorial: 1 a 3 linhas e um ícone (data/icons.json) mostrados na intro. Sem timeSec na dificuldade, o jogo não tem cronômetro. reputation: reputação felina por resultado (fail/ok/great; pular não vale nada; data/reputation.json).",
-  "introMs": 2000,
+  "_comment": "Mini games. introMs: tempo da tela de instruções (0: espera o botão Começar, E ou Espaço). skipRewardShare: fração das moedas de 'ok' ao pular. Cada jogo: name, instructions (texto da intro), rewards por dificuldade (moedas para ok e great; fail = 0) e difficulties com os parâmetros do jogo. chase (Gato em fuga): timeSec, catSpeed (px/s), turnEveryMs [min, max] (o gato muda de direção), hideChance (por mudança de direção, perto de um esconderijo), hidingSpots (quantos esconderijos na arena), hideMs [min, max] (quanto fica escondido se ninguém espiar), noticeRadius (px: perto disso o gato nota a jogadora e foge dela), catchRadius (px), greatTimeShare (sobrou mais que isso do tempo = great). spots: células possíveis de esconderijo na arena (kind: box, trash, bush, car); a partida sorteia hidingSpots delas. catSpawn: onde o gato começa. fishing (Pescaria): fish = tabela (id, name, rarity: junk/common/uncommon/rare/legendary, speed = fração da barra por segundo, zone = tamanho da zona verde, value = moedas extras, item = vai para a mochila, icon = quadro na folha 3 x 2); sounds: efeitos de data/audio.json (sfx). Por dificuldade: timeSec, waitMs [min, max] (boia esperando), biteWindowMs (tempo para fisgar), rarityWeights, zoneScale e speedScale (multiplicam a tabela), progressGain e progressLoss (por segundo), startProgress, lift e gravity (o indicador), greatAccuracy (fração do tempo dentro da zona). latte (Latte art): guideSize (lado do quadrado dos padrões), cupCenter (centro do café na arte da xícara), guideScale (o contorno dentro do café), cupScale (tamanho da xícara na tela), milkWidth (espessura do traço), patterns (id, name, lines: linhas de pontos [x, y] de 0 a guideSize; para um padrão novo, basta outra entrada). Por dificuldade: timeSec, patterns (quais sorteia), tolerance (px do contorno que ainda contam como em cima da linha), starAt (nota mínima para 1, 2 e 3 estrelas), tipPerStar (gorjeta de 0 a 3 estrelas, soma às moedas), coverageWeight (peso da cobertura; o resto é precisão). tutorial: 1 a 3 linhas e um ícone (data/icons.json) mostrados na intro. Sem timeSec na dificuldade, o jogo não tem cronômetro. reputation: reputação felina por resultado (fail/ok/great; pular não vale nada; data/reputation.json).",
+  "introMs": 0,
   "skipRewardShare": 0.25,
   "games": {
     "chase": {
@@ -32,8 +32,8 @@
     },
     "fishing": {
       "name": "Pescaria",
-      "instructions": "Aperte E (ou clique na água) para lançar a linha. Quando a boia afundar, aperte E rápido para fisgar! Depois segure E (ou o botão do mouse) para manter o indicador dentro da zona verde até encher a barra.",
-      "tutorial": {"icon":"peixe_sardinha","lines":["E ou clique para lançar; de novo quando morder (!).","Segure para subir a zona verde e mantenha o peixe nela."]},
+      "instructions": "Aperte E (ou clique na água) para lançar a linha. Quando a boia afundar, aperte E rápido para fisgar! Depois, na barra, segure ENTER (ou o botão do mouse) para a caixa subir e solte para descer: mantenha o peixe dentro dela (verde) até encher o medidor.",
+      "tutorial": {"icon":"peixe_sardinha","lines":["E ou clique para lançar; de novo quando morder (!).","Na barra, a caixa é sua: segure ENTER (ou o mouse) para ela subir e solte para descer.","Peixe dentro da caixa (verde) enche o medidor e você pesca; fora (rosa), ele esvazia e o peixe escapa."]},
       "reputation": {"ok":1,"great":2},
       "sounds": {
         "bite": "new_order",
@@ -61,13 +61,14 @@
     },
     "latte": {
       "name": "Latte art",
+      "backdrop": {"floor":["floor_wood_b"]},
       "instructions": "Desenhe por cima do contorno com o leite: segure o botão do mouse e passe pela linha (ou setas para mover a jarra e segurar E para despejar). Quando terminar, aperte Enter ou o botão Servir.",
       "tutorial": {"icon":"cafe_com_leite_gato","lines":["Segure o botão do mouse e desenhe por cima do contorno.","Enter ou \"Servir\" entrega a xícara."]},
       "reputation": {"ok":1,"great":3},
       "guideSize": 128,
-      "cupCenter": [95, 96],
-      "guideScale": 0.78,
-      "cupScale": 1,
+      "cupCenter": [90, 90],
+      "guideScale": 0.6,
+      "cupScale": 2,
       "milkWidth": 4,
       "rewards": {
         "easy": { "ok": 8, "great": 15 },
@@ -287,6 +288,7 @@
       }
     },
     "wand": {
+      "backdrop": {"floor":["floor_wood_b"],"rug":"floor_rug","rugScale":4},
       "name": "Brincar com a varinha",
       "instructions": "O mouse é a ponta da varinha. Mude de rumo e de ritmo para o gato se empolgar; linha reta constante ou rápido demais e ele enjoa. Pare a ponta perto dele e ele dá o bote; balance de leve enquanto ele se agacha.",
       "tutorial": {"lines":["Mexa o mouse: a ponta da varinha segue. Mude de rumo e de ritmo!","Reta e sempre igual, ou rápido demais: ele enjoa.","Pare perto dele: ele se agacha. Balance de leve e ele dá o bote. Barra cheia sem enjoar = Perfeito!"]},
@@ -306,6 +308,7 @@
     },
     "grooming": {
       "name": "Banho e escovação",
+      "backdrop": {"floor":["floor_wood_b"]},
       "instructions": "Arraste a escova sobre cada ponto de pelo embaraçado até desembaraçar. Barriga, cauda e patas são sensíveis: escovar ali gasta a paciência dele. Costas e bochechas ele adora: escovar ali recupera um pouco.",
       "tutorial": {"lines":["Segure o botão e arraste a escova sobre os nós de pelo, de um lado para o outro.","Barriga, cauda e patas: ele perde a paciência. Costas e bochechas: ele relaxa.","Tudo limpo com a paciência acima da metade = Perfeito!"]},
       "reputation": {"ok":1,"great":2},
@@ -341,6 +344,7 @@
     },
     "pill": {
       "name": "Remédio escondido",
+      "backdrop": {"floor":["floor_wood_b"],"rug":"floor_rug","rugAt":[470,236]},
       "instructions": "Primeiro, cubra o comprimido com a pasta, arrastando até não aparecer nada. Depois ofereça a tigela quando ele estiver distraído. Se ele estiver olhando, desconfia; desconfiança cheia, ele recusa e foge.",
       "tutorial": {"lines":["Segure e arraste a pasta sobre o comprimido até cobrir 100%. Depois, Pronto (E).","Ofereça (E) quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Oferecer olhando ou com o comprimido aparecendo: desconfiança. Comeu na primeira = Perfeito!"]},
       "reputation": {"ok":1,"great":2},

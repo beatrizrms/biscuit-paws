@@ -96,15 +96,15 @@ describe('energia na sessão', () => {
 
   it('sofá: senta, recompõe a cada minuto e levanta sozinha quando enche', () => {
     const { session, state } = cafe();
-    state.placed.push({ uid: 's1', item: cfg.restore.sofa.items[0]!, at: [5, 6] });
-    expect(session.sofaNear([[5, 7]])).toBe('s1');
+    state.placed.push({ uid: 's1', item: 'item.sofa', at: [5, 6] });
+    expect(session.seatNear([[5, 7]])).toBe('s1');
     expect(session.startRest('s1')).toEqual({ ok: false, reason: 'energy_full' });
     session.spendEnergy(10);
     const changes: (string | null)[] = [];
     session.bus.on('rest.changed', ({ uid }) => changes.push(uid));
     expect(session.startRest('s1')).toEqual({ ok: true });
     session.tickClock(1 / content.dayNight.minutesPerSecond);
-    expect(session.energy()).toBe(cfg.max - 10 + cfg.restore.sofa.perMinute);
+    expect(session.energy()).toBe(cfg.max - 10 + cfg.restore.seat.perMinute);
     for (let i = 0; i < 10; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(session.energy()).toBe(cfg.max);
     expect(session.resting()).toBeNull();
@@ -119,5 +119,22 @@ describe('energia na sessão', () => {
     expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.play.amount);
     session.bus.emit('minigame.finished', { gameId: 'grooming', outcome: 'ok', coins: 0, skipped: false });
     expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.play.amount - cfg.costs['minigame.finished']!);
+  });
+
+  it('cadeira: senta virada para o lado da cadeira; com cliente nela, não; a dela sai dos lugares dos clientes', () => {
+    const { session, state } = cafe();
+    state.business = 'soft_open';
+    state.placed.push({ uid: 'c1', item: 'item.chair_left', at: [8, 6] }, { uid: 't1', item: 'item.table_round', at: [7, 6] });
+    session.spendEnergy(30);
+    expect(session.seatDef('item.chair_left')?.facing).toBe('left');
+    expect(session.seatDef('item.chair_back')).toBeUndefined(); // sem pose de costas ainda
+    expect(session.seatNear([[8, 7]])).toBe('c1');
+    const spot = (cells: { spot: [number, number] }[]) => cells.some((s) => s.spot[0] === 8 && s.spot[1] === 6);
+    expect(spot(session.service.spots())).toBe(true);
+    expect(session.startRest('c1')).toEqual({ ok: true });
+    expect(spot((session.service as unknown as { freeSpots(): { spot: [number, number] }[] }).freeSpots())).toBe(false);
+    session.stopRest();
+    state.service.customers.push({ id: 'x', look: 0, stage: 'waiting', kind: 'table', spot: [8, 6], dishAt: [7, 6], recipe: null, until: 99999, favorite: null, wantsPremium: false });
+    expect(session.startRest('c1')).toEqual({ ok: false, reason: 'seat_taken' });
   });
 });

@@ -857,7 +857,7 @@
 
 /* App Market: abas, cartões com a miniatura do móvel */
 .phone-ui[data-app='market'] .phone-body { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
-.m-tabs { display: flex; gap: 1px; padding: 3px 4px; background: var(--cream2); border-bottom: 1px solid var(--cream3); }
+.m-tabs { display: flex; flex-wrap: wrap; gap: 1px; padding: 3px 4px; background: var(--cream2); border-bottom: 1px solid var(--cream3); }
 .m-tab { flex: auto; padding: 2px 3px; border: 1px solid transparent; border-radius: 6px; background: none; font: inherit; font-size: 7px; font-weight: bold; color: var(--ink2); cursor: pointer; }
 .m-tab:hover { background: var(--cream); }
 .m-tab.on { background: var(--cream); border-color: var(--pink3); color: var(--pink3); }

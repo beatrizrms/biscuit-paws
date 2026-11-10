@@ -51,13 +51,14 @@ describe('Pescaria: barra de timing', () => {
     expect(play(fish('fish.silver'), 'idle').status).toBe('escaped');
   });
 
-  it('o indicador e a zona ficam dentro da barra', () => {
+  it('a caixa da jogadora e a zona ficam inteiras dentro da barra (a caixa bate na ponta e para)', () => {
     const rng = createRng(5);
     let s = startReel(fish('fish.golden'), p, rng);
     for (let i = 0; i < 600; i++) {
       s = stepReel(s, 1 / 60, i % 50 < 30, fish('fish.golden'), p, rng);
-      expect(s.indicator).toBeGreaterThanOrEqual(0);
-      expect(s.indicator).toBeLessThanOrEqual(1);
+      // A caixa (do tamanho da zona, centrada no indicador) não passa das pontas.
+      expect(s.indicator - s.zoneSize / 2).toBeGreaterThanOrEqual(-1e-9);
+      expect(s.indicator + s.zoneSize / 2).toBeLessThanOrEqual(1 + 1e-9);
       expect(s.zone - s.zoneSize / 2).toBeGreaterThanOrEqual(-1e-9);
       expect(s.zone + s.zoneSize / 2).toBeLessThanOrEqual(1 + 1e-9);
       if (s.status !== 'reeling') break;

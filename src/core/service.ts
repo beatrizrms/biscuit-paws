@@ -71,6 +71,8 @@ export type ServiceProblem =
   | 'hands_full'
   | 'hands_empty'
   | 'nothing_to_prepare'
+  | 'equipment_locked'
+  | 'equipment_off_menu'
   | 'station_busy'
   | 'no_ingredients'
   | 'no_vessel'
@@ -105,6 +107,8 @@ export interface ServiceHost {
   /** Sujeira do salão agora (sujeiras visíveis e louça suja nas mesas): pesa na avaliação. */
   hallDirt(): number;
   addReputation(amount: number, reason: string): void;
+  /** Célula da cadeira em que ela está sentada descansando (ou null): não é lugar livre para cliente. */
+  playerSeat(): Cell | null;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -360,6 +364,8 @@ export class CafeService {
 
   private freeSpots(): { kind: ServiceKind; spot: Cell; dishAt: Cell }[] {
     const taken = this.st.service.customers.filter((c) => c.stage !== 'queue').map((c) => c.spot);
+    const mine = this.h.playerSeat();
+    if (mine) taken.push(mine);
     return this.spots().filter((s) => !taken.some((t) => same(t, s.spot)));
   }
 
@@ -601,13 +607,8 @@ export class CafeService {
       this.handsChanged();
       return { ok: true };
     }
-    // Pedidos ainda sem nada a caminho: espera - (preparando + massas + prontos).
-    const covered = (recipe: string) =>
-      sv.preps.filter((p) => p.recipe === recipe).length +
-      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length;
-    const waiting = sv.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
-    const pending = waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= covered(c.recipe!));
-    if (!pending) return { ok: false, reason: 'nothing_to_prepare' };
+    const pending = this.pendingFor(equipment);
+    if (!pending) return { ok: false, reason: this.idleReason(equipment) };
     const r = this.recipe(pending.recipe!)!;
     const ing = this.ingredientsFor(r);
     if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
@@ -616,6 +617,44 @@ export class CafeService {
     sv.preps.push({ stationUid, recipe: r.id, step: 0, quality: ing.quality, readyAt: this.now() + r.steps[0]!.minutes });
     this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
     return { ok: true };
+  }
+
+  /** Cliente esperando um pedido que começa neste equipamento e ainda não tem nada a caminho (preparando, massa ou pronto). */
+  private pendingFor(equipment: string): Customer | undefined {
+    const sv = this.st.service;
+    const covered = (recipe: string) =>
+      sv.preps.filter((p) => p.recipe === recipe).length +
+      [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length;
+    const waiting = sv.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
+    return waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= covered(c.recipe!));
+  }
+
+  /**
+   * Por que o equipamento não tem o que preparar: nenhuma receita dele liberada ainda, nenhuma no cardápio, ou
+   * nenhum cliente pediu agora.
+   */
+  private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'nothing_to_prepare' {
+    const recipes = Object.values(this.h.content.recipes).filter((r) => r.steps[0]?.equipment === equipment);
+    // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
+    if (recipes.length === 0) return 'nothing_to_prepare';
+    const unlocked = recipes.filter((r) => this.recipeStatus(r.id) !== 'locked');
+    if (unlocked.length === 0) return 'equipment_locked';
+    if (!unlocked.some((r) => this.st.menu.includes(r.id))) return 'equipment_off_menu';
+    return 'nothing_to_prepare';
+  }
+
+  /**
+   * O equipamento tem o que fazer agora? Pedido pronto em cima dele, massa na mão para ele ou cliente esperando um
+   * pedido dele. Com vários ao alcance (cafeteira e bule lado a lado), o E vai no que tem trabalho.
+   */
+  stationHasWork(stationUid: string): boolean {
+    const equipment = this.equipmentOf(stationUid);
+    const station = this.st.placed.find((p) => p.uid === stationUid);
+    if (!equipment || !station) return false;
+    if (this.surfaceAt(station.at)) return true;
+    if (this.st.service.preps.some((p) => p.stationUid === stationUid)) return false;
+    if (this.st.hands.some((h) => h.kind === 'wip' && this.recipe(h.recipe)?.steps[h.step]?.equipment === equipment)) return true;
+    return !!this.pendingFor(equipment);
   }
 
   /** Progresso de uma etapa (0 a 1), para a barra em cima do equipamento. */
