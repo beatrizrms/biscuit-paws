@@ -113,6 +113,8 @@ export interface MiniGameDef {
   /** Escovação: os emaranhados e as zonas do corpo (pixels do sprite de lado) e quanto o gato é ampliado. */
   mats?: MatDef[];
   zones?: ZoneDef[];
+  /** Os nós e as zonas no gato da arte nova (folha de 64 px; o corpo fica noutro lugar do quadro). */
+  art64?: { mats: MatDef[]; zones: ZoneDef[]; bodyScale?: number };
   bodyScale?: number;
   /** Área de jogo em px lógicos (x, y, largura, altura), quando o jogo é numa tela fixa sem mapa (ex.: a varinha). */
   arena?: [number, number, number, number];
@@ -255,7 +257,9 @@ export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySe
       const r = g.rewards[d];
       if (!r || !(r.ok >= 0) || !(r.great >= r.ok)) err(`"${id}": rewards.${d} precisa de ok >= 0 e great >= ok`);
     }
-    if (g.mats || g.zones) errors.push(...validateGrooming(g.mats ?? [], g.zones ?? [], DIFFICULTIES.map((d) => Number(g.difficulties[d]?.mats ?? 0))));
+    const matCounts = DIFFICULTIES.map((d) => Number(g.difficulties[d]?.mats ?? 0));
+    if (g.mats || g.zones) errors.push(...validateGrooming(g.mats ?? [], g.zones ?? [], matCounts));
+    if (g.art64) errors.push(...validateGrooming(g.art64.mats, g.art64.zones, matCounts).map((e) => `art64: ${e}`));
   }
   return errors;
 }

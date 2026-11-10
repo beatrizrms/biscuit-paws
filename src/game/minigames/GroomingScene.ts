@@ -49,9 +49,11 @@ export class GroomingScene extends MiniGameScene {
 
   protected buildGame(): void {
     this.p = paramsOf<GroomingParams>(content.minigames, 'grooming', this.launch.params.difficulty);
-    this.mats = this.def.mats ?? [];
-    this.zones = this.def.zones ?? [];
-    this.zoom = this.def.bodyScale ?? 8;
+    // O gato da arte nova (64 px) tem o corpo noutro lugar do quadro: nós e zonas próprios.
+    const art = catScale(this.launch.catVariant) < 1 && this.def.art64 ? this.def.art64 : this.def;
+    this.mats = art.mats ?? [];
+    this.zones = art.zones ?? [];
+    this.zoom = (art === this.def.art64 ? this.def.art64.bodyScale : undefined) ?? this.def.bodyScale ?? 8;
     this.s = newGrooming(this.mats, this.p);
     this.ended = false;
     this.reactAt = { sensitive: -Infinity, comfort: -Infinity };
