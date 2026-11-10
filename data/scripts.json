@@ -55,7 +55,7 @@
           "enter": "map.cafe_main",
           "spawn": [
             13,
-            5
+            9
           ],
           "facing": "right",
           "npcs": [
@@ -63,7 +63,7 @@
               "npc": "npc.realtor",
               "at": [
                 15,
-                5
+                9
               ],
               "facing": "left"
             }
@@ -100,7 +100,7 @@
           "npcWalk": "npc.realtor",
           "to": [
             14,
-            4
+            10
           ]
         },
         {
@@ -127,9 +127,9 @@
           "map": "map.cafe_main",
           "at": [
             14,
-            4
+            10
           ],
-          "facing": "down"
+          "facing": "up"
         },
         {
           "npcWalk": "npc.gabi",
@@ -143,9 +143,9 @@
           "map": "map.cafe_main",
           "at": [
             14,
-            4
+            10
           ],
-          "facing": "down"
+          "facing": "up"
         },
         {
           "npcWalk": "npc.joca",
@@ -223,7 +223,7 @@
           "npcWalk": "npc.joca",
           "to": [
             14,
-            4
+            10
           ]
         },
         {
@@ -233,7 +233,7 @@
           "npcWalk": "npc.gabi",
           "to": [
             14,
-            4
+            10
           ]
         },
         {
@@ -251,9 +251,9 @@
           "map": "map.cafe_main",
           "at": [
             14,
-            4
+            10
           ],
-          "facing": "down"
+          "facing": "up"
         },
         {
           "npcWalk": "npc.neusa",
@@ -306,7 +306,7 @@
           "npcWalk": "npc.neusa",
           "to": [
             14,
-            4
+            10
           ]
         },
         {

@@ -1854,7 +1854,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private syncCustomers(): void {
     const cfg = this.session.content.service;
     const ts = this.map.tileSize;
-    const door: Cell = [14, 4];
+    // Entram pela porta da rua (embaixo, no capacho).
+    const street = this.session.content.map.doors?.find((d) => d.id === 'door.street');
+    const door: Cell = street ? [street.at[0], street.at[1]] : [14, 10];
     const alive = new Set<string>();
     for (const c of this.session.state.service.customers) {
       alive.add(c.id);

@@ -128,8 +128,8 @@
       "to": "map.cafe_main",
       "requires": { "owned": "item.key_bakery" },
       "locked": "dlg.door_locked_bakery",
-      "spawn": [14, 4],
-      "facing": "down"
+      "spawn": [14, 9],
+      "facing": "up"
     }
   ]
 }

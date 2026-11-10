@@ -35,7 +35,7 @@ describe('cafe_main.json', () => {
     expect(hall[3]![0]).toBe(true); // a pia
     expect(hall[3]![1]).toBe(true); // o armário da cozinha (despensa)
     for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c <= 1))).toBe(false);
-    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'eq_pia', 'ph_pantry_cabinet']));
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'doormat', 'eq_pia', 'ph_pantry_cabinet'])); // a entrada é embaixo, só o capacho
     for (const letter of ['P', 'R', 'X', 'M']) expect(cafe.legend[letter]!.endsWith('_old')).toBe(true);
   });
 
