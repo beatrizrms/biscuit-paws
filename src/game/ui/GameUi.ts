@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import type { GameSession } from '../../core/session';
+import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
 import { dayInSeason, seasonOf } from '../../core/calendar';
 import { formatClock } from '../../core/time';
@@ -590,7 +591,7 @@ export class GameUi {
   }
 
   /** Fim do dia: "Você foi para casa." e o dia seguinte. Resolve sozinho ou com clique/tecla. */
-  showDayTransition(day: number, summary?: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number }): Promise<void> {
+  showDayTransition(day: number, summary?: { reason: DayEndReason; earned: number; jobs: number }): Promise<void> {
     const el = document.createElement('div');
     el.className = 'day-transition';
     const t = uiText.dayTransition;
@@ -601,7 +602,7 @@ export class GameUi {
     const report = summary && summary.reason !== 'story'
       ? `<ul class="summary"><li>${t.earned}: <b>${summary.earned}</b></li><li>${t.jobs}: <b>${summary.jobs}</b></li>${hearts}</ul>`
       : '';
-    el.innerHTML = `<p class="home">${t[summary?.reason ?? 'home']}</p>${report}<p class="next">${uiText.day} ${day}</p>`;
+    el.innerHTML = `<p class="home">${esc(this.fillNames(t[summary?.reason ?? 'home']))}</p>${report}<p class="next">${uiText.day} ${day}</p>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     this.reveal = { el, done: () => undefined };

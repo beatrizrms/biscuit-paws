@@ -4,6 +4,9 @@ import type { Cell } from './map';
 import type { BusinessStage } from './business';
 import type { Schedule } from './schedule';
 
+/** Por que o dia acabou (ver 'day.ended'). */
+export type DayEndReason = 'home' | 'passOut' | 'story' | 'sleep' | 'curfew' | 'tired';
+
 export interface GameEvents {
   'game.started': { isNew: boolean };
   'map.entered': { mapId: string };
@@ -57,8 +60,11 @@ export interface GameEvents {
   'litter.refilled': { uid: string };
   /** Fim de um dia sem areia limpa: a higiene dos gatos caiu mais. */
   'litter.missed': { day: number };
-  /** reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia). */
-  'day.ended': { day: number; reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number };
+  /**
+   * reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia), "sleep" (dormiu no porão),
+   * "curfew" (deu a hora-limite e amanhã tem expediente), "tired" (a hora-limite da véspera de folga).
+   */
+  'day.ended': { day: number; reason: DayEndReason; earned: number; jobs: number };
   'day.started': { day: number };
   'money.changed': { from: number; to: number; reason: string };
   'item.bought': { itemId: string; price: number };

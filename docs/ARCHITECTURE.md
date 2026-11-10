@@ -70,7 +70,7 @@ cat-cafe-game/
 | `cat.named` | a jogadora deu nome ao gato | `catId, name` |
 | `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
 | `day.started` | amanheceu (ela chega de casa) | `day` |
-| `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou), `reason` (`home`, `passOut`, `story`), `earned`, `jobs` (resumo do dia) |
+| `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou), `reason` (`home`, `passOut`, `story`, `sleep`, `curfew`, `tired`), `earned`, `jobs` (resumo do dia) |
 | `delivery.ordered` | compra no catálogo: vai pelo correio | `deliveryId, itemId, arrivesAt` |
 | `delivery.arrived` | a caixa chegou na porta do café | `deliveryId, itemId` |
 | `delivery.picked_up` | ela pegou as caixas da porta | `count` |

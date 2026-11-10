@@ -10,7 +10,7 @@ import { createRng } from './rng';
 import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
-import { EventBus } from './events';
+import { EventBus, type DayEndReason } from './events';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
@@ -504,7 +504,7 @@ export class GameSession {
    * Fim do dia: ela vai para casa e amanhece chegando pela rua; com o quartinho reformado
    * ("sleep"), ela dorme no café e acorda lá (inclusive quando desmaia).
    */
-  endDay(reason: 'home' | 'passOut' | 'story' | 'sleep' = 'story'): void {
+  endDay(reason: DayEndReason = 'story'): void {
     const day = this.state.day;
     const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
     // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
@@ -541,13 +541,24 @@ export class GameSession {
   tickClock(seconds: number): void {
     const before = Math.floor(this.state.time);
     this.state.time += seconds * this.content.dayNight.minutesPerSecond;
-    if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
+    // A hora-limite vem antes do desmaio (curfew <= passOut): ela vai para casa sem a penalidade de acordar tarde.
+    if (this.state.time >= this.curfew()) this.endDay(this.service.opensOn(this.state.day + 1) ? 'curfew' : 'tired');
+    else if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
     // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) {
       this.deliverArrived();
       this.service.tick();
       this.advanceStory();
     }
+  }
+
+  /**
+   * Hora-limite da noite (minutos): nela ela vai para casa sozinha. Meia-noite quando o café abre amanhã;
+   * na véspera de folga, até as 2h. Ponto de extensão: escolher entre ir para casa e dormir no porão.
+   */
+  curfew(): number {
+    const dn = this.content.dayNight;
+    return parseClock(this.service.opensOn(this.state.day + 1) ? dn.curfew : dn.curfewBeforeDayOff);
   }
 
   /** Já dá para encerrar o dia na porta do café? */

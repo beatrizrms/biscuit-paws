@@ -14,6 +14,10 @@ export interface DayNightConfig {
   passOut: string;
   /** A partir desta hora ela pode encerrar o dia na porta do café ("17:00"). */
   goHomeFrom: string;
+  /** Hora-limite: nela ela vai para casa sozinha, quando o café abre amanhã ("24:00"). */
+  curfew: string;
+  /** Hora-limite na véspera de um dia em que o café não abre ("26:00"). */
+  curfewBeforeDayOff: string;
   /** Se desmaiar de sono, o dia seguinte começa mais tarde ("10:00"). */
   wakeAfterPassOut: string;
   /** Interiores: 0 = sem tinta, 1 = igual à rua. */
@@ -89,6 +93,12 @@ export function validateDayNight(config: DayNightConfig): string[] {
   check('passOut', config.passOut);
   check('goHomeFrom', config.goHomeFrom);
   check('wakeAfterPassOut', config.wakeAfterPassOut);
+  check('curfew', config.curfew);
+  check('curfewBeforeDayOff', config.curfewBeforeDayOff);
+  if (errors.length === 0) {
+    const order = [config.goHomeFrom, config.curfew, config.curfewBeforeDayOff, config.passOut].map(parseClock);
+    if (order.some((t, i) => i > 0 && t < order[i - 1]!)) errors.push('daynight: precisa de goHomeFrom <= curfew <= curfewBeforeDayOff <= passOut');
+  }
   const lists = [config.keyframes, ...Object.values(config.seasons ?? {}).map((s) => s.keyframes ?? [])];
   for (const list of lists) {
     for (const k of list) {

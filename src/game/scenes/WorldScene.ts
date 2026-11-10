@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { doorAt, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
+import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
@@ -154,7 +155,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private arrivalFeedKey = '';
   /** gato_leva: o gato do café que guia e a próxima célula do caminho. */
   private arrivalGuide: { sprite: Phaser.GameObjects.Sprite; next: number; variant: string } | null = null;
-  private lastDay: { reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number } | null = null;
+  private lastDay: { reason: DayEndReason; earned: number; jobs: number } | null = null;
   private cats: CatSprite[] = [];
   private npcs = new Map<string, NpcSprite>();
   private scripts!: ScriptRunner;

@@ -287,7 +287,9 @@
     "story": "Você foi para casa.",
     "earned": "Moedas ganhas",
     "jobs": "Pedidos feitos",
-    "sleep": "Você dormiu no porão do café."
+    "sleep": "Você dormiu no porão do café.",
+    "curfew": "“Está muito tarde, amanhã tem expediente e preciso acordar cedo.”",
+    "tired": "“Não aguento mais de cansaço, preciso ir descansar.”"
   },
   "installed": "na porta",
   "phone": {

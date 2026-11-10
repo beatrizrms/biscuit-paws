@@ -401,6 +401,12 @@ export class CafeService {
     return s && !scheduleProblem(s, this.cfg.schedule) ? s : this.cfg.schedule.default;
   }
 
+  /** O atendimento abre neste dia do jogo (liberado, dia aberto no horário e sem evento fechando o café)? */
+  opensOn(day: number): boolean {
+    if (festivalClosesCafe(this.st.festivals, this.h.content.festivals, day)) return false;
+    return this.enabled() && this.schedule().days[this.weekday(day)] === true;
+  }
+
   /** Dia da semana de hoje (0 = segunda). */
   weekday(day = this.st.day): number {
     return weekdayOf(day, this.h.content.seasons.startWeekday);

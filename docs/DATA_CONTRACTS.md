@@ -217,8 +217,10 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
   "schemaVersion": 1,
   "minutesPerSecond": 1.2,     // minutos de jogo por segundo real (um dia ≈ 16 min; o relógio para só em falas, cenas e transições)
   "dayStart": "07:00",         // hora em que ela chega de manhã
-  "passOut": "26:00",          // 2h da madrugada: ela desmaia de sono e o dia acaba
+  "passOut": "26:00",          // teto do relógio: desmaio de sono (na prática, a hora-limite chega antes)
   "goHomeFrom": "17:00",       // a partir daí, a porta do café pergunta se ela quer encerrar o dia
+  "curfew": "24:00",           // hora-limite: ela vai para casa sozinha ("amanhã tem expediente")
+  "curfewBeforeDayOff": "26:00", // hora-limite na véspera de um dia em que o café não abre ("preciso ir descansar")
   "wakeAfterPassOut": "10:00", // se desmaiou, o dia seguinte começa mais tarde
   "indoorStrength": 0.35,      // mapas "indoor" recebem só 55% da cor
   "keyframes": [{ "time": "07:00", "color": "#ffe8d0" }, { "time": "12:00", "color": "#ffffff" }],

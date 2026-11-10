@@ -690,13 +690,13 @@ describe('relógio', () => {
     expect(events.find((e) => e.name === 'day.started')?.payload).toEqual({ day: 2 });
   });
 
-  it('às 2h da madrugada ela desmaia de sono: o dia acaba sozinho', () => {
+  it('às 2h da madrugada, no mais tardar, o dia acaba sozinho (hora-limite: ela vai para casa e acorda no horário)', () => {
     const { session } = newSession();
     session.state.time = 26 * 60 - 1;
     session.tickClock(5);
     expect(session.state.day).toBe(2);
-    // Desmaiou: acorda tarde.
-    expect(session.state.time).toBe(10 * 60);
+    // A hora-limite (tests/core/curfew.test.ts) vem antes do desmaio: sem a penalidade de acordar tarde.
+    expect(session.state.time).toBe(7 * 60);
   });
 });
 
