@@ -1,0 +1,24 @@
+/* Controles de toque: a camada #touch, irmã do #ui (que é reescrito pela interface), na mesma escala (640 x 360).
+   Só com #touch.touch-on (o último controle usado foi o toque). */
+#touch { position: absolute; left: 0; top: 0; width: 640px; height: 360px; transform-origin: 0 0; z-index: 2; pointer-events: none; }
+.touch-layer { position: absolute; inset: 0; pointer-events: none; display: none; }
+#touch.touch-on .touch-layer { display: block; }
+.touch-layer .t-stick {
+  position: absolute; left: 14px; bottom: 18px; width: 68px; height: 68px; border-radius: 50%;
+  background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none;
+}
+.touch-layer .t-stick.down { background: #3b2a3255; }
+.touch-layer .t-knob {
+  position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%;
+  background: #fff4e0cc; border: 2px solid var(--ink, #3b2a32); pointer-events: none;
+}
+.touch-layer .t-btn {
+  position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; border: 2px solid var(--ink, #3b2a32);
+  background: #fff4e0d9; color: var(--ink, #3b2a32); font: bold 9px 'Trebuchet MS', sans-serif; padding: 0;
+}
+.touch-layer .t-btn.down { background: #f4c06a; }
+.touch-layer .t-action { right: 18px; bottom: 26px; width: 46px; height: 46px; font-size: 16px; }
+.touch-layer .t-shortcuts { position: absolute; right: 8px; top: 96px; display: flex; flex-direction: column; gap: 5px; }
+.touch-layer .t-small { position: static; width: 34px; height: 22px; border-radius: 8px; font-size: 6.5px; }
+/* Nos mini games: só o direcional e o botão de ação. */
+#ui.minigame-on ~ #touch .t-shortcuts { display: none; }

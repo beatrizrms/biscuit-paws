@@ -20,6 +20,8 @@ import { MiniGameRegistry } from './minigames/MiniGameRegistry';
 import './ui/menu/menu.css';
 import './ui/skin.css';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './screen';
+import { touch } from './touch';
+import './touch.css';
 
 /** Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). */
 function integerZoom(): number {
@@ -62,9 +64,12 @@ function layout(): void {
   stage.style.width = `${GAME_WIDTH * zoom}px`;
   stage.style.height = `${GAME_HEIGHT * zoom}px`;
   document.getElementById('ui')!.style.transform = `scale(${zoom})`;
+  document.getElementById('touch')!.style.transform = `scale(${zoom})`;
 }
 
 layout();
+// Controles de toque (celular e tablet): aparecem sozinhos quando ela toca na tela.
+touch.attach(document.getElementById('touch')!);
 window.addEventListener('resize', layout);
 
 // F9 liga/desliga o modo debug (só em npm run dev; some do build de produção).

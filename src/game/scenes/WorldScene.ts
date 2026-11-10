@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { touch, type TouchAction } from '../touch';
 import { cellsOf, doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
@@ -526,10 +527,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       : busy || this.placing
       ? NO_INPUT
       : {
-          up: k.up.isDown || k.w.isDown,
-          down: k.down.isDown || k.s.isDown,
-          left: k.left.isDown || k.a.isDown,
-          right: k.right.isDown || k.d.isDown,
+          // Teclado ou o direcional de toque.
+          up: k.up.isDown || k.w.isDown || touch.dir.up,
+          down: k.down.isDown || k.s.isDown || touch.dir.down,
+          left: k.left.isDown || k.a.isDown || touch.dir.left,
+          right: k.right.isDown || k.d.isDown || touch.dir.right,
         };
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
@@ -537,7 +539,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Cansada (pouca energia), anda mais devagar e não corre.
       this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
       // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
-      this.player.runFactor = runFactor(!this.autoWalk && k.run.isDown && this.session.canRun(), this.session.service.carrying(), playerRun);
+      this.player.runFactor = runFactor(!this.autoWalk && (k.run.isDown || touch.run) && this.session.canRun(), this.session.service.carrying(), playerRun);
       this.player.move(input);
       this.player.updateDepth();
     }
@@ -975,6 +977,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * (apertar e soltar no mesmo quadro): sem isto, um toque rápido no C abria e fechava o Market.
    */
   private onKey(key: string, fn: () => void): void {
+    // O botão de toque da mesma tecla faz o mesmo (só com o mundo ativo: num mini game, os botões são do jogo).
+    if (['E', 'I', 'C', 'M', 'P', 'F', 'ESC'].includes(key)) touch.on(key as TouchAction, () => this.scene.isActive() && !this.miniGameOpen && fn());
     let last: KeyboardEvent | null = null;
     this.input.keyboard!.on(`keydown-${key}`, (e: KeyboardEvent) => {
       if (e === last) return;

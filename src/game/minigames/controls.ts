@@ -3,6 +3,7 @@
 // direction() e chamar os mesmos callbacks de ação e pausa.
 import Phaser from 'phaser';
 import type { InputState } from '../../core/movement';
+import { touch } from '../touch';
 
 const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -33,6 +34,8 @@ export class MiniGameControls {
     kb.on('keydown-SPACE', action);
     kb.on('keydown-ESC', pause);
     scene.input.on('pointerdown', click);
+    // Toque: o botão de ação e a pausa (o direcional entra em direction()).
+    const offTouch = [touch.on('E', () => action()), touch.on('ESC', pause)];
     // A cena é reaberta a cada partida: sem isso, os ouvintes da partida anterior continuariam vivos.
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb.off('keydown', move);
@@ -40,18 +43,20 @@ export class MiniGameControls {
       kb.off('keydown-SPACE', action);
       kb.off('keydown-ESC', pause);
       scene.input.off('pointerdown', click);
+      offTouch.forEach((off) => off());
     });
   }
 
   /** Direção pedida agora (mesmo formato da caminhada do jogo). */
   direction(): InputState {
     const k = this.keys;
-    return { up: k.up.isDown || k.w.isDown, down: k.down.isDown || k.s.isDown, left: k.left.isDown || k.a.isDown, right: k.right.isDown || k.d.isDown };
+    const t = touch.dir;
+    return { up: k.up.isDown || k.w.isDown || t.up, down: k.down.isDown || k.s.isDown || t.down, left: k.left.isDown || k.a.isDown || t.left, right: k.right.isDown || k.d.isDown || t.right };
   }
 
   /** A ação está sendo segurada agora (E, Espaço ou botão do mouse): para jogos de segurar, como a pescaria. */
   holding(): boolean {
-    return this.keys.e.isDown || this.keys.space.isDown || this.scene.input.activePointer.isDown;
+    return this.keys.e.isDown || this.keys.space.isDown || this.scene.input.activePointer.isDown || touch.holding;
   }
 
   /**
@@ -59,7 +64,7 @@ export class MiniGameControls {
    * e o Enter puxa).
    */
   holdingEnter(): boolean {
-    return this.keys.enter.isDown || this.scene.input.activePointer.isDown;
+    return this.keys.enter.isDown || this.scene.input.activePointer.isDown || touch.holding;
   }
 
   /** E/Espaço ou clique (com o ponto do mundo, quando foi clique). */

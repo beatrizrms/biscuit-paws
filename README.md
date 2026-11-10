@@ -76,6 +76,9 @@ O jogo abre na tela inicial (Home): toque/clique, depois Continuar, Novo jogo, C
 
 Atalhos para testar (pulam a Home): `http://localhost:5173/?novo` começa um jogo novo no slot 1; `?jogar` continua o save mais recente (ou começa um novo).
 
+### Celular e tablet (toque)
+No celular ou tablet (tela de toque sem mouse), aparecem sozinhos um direcional à esquerda (empurrando até a borda, corre), o botão **E** à direita e os atalhos (pausa, celular, Market, cardápio, mochila, mover móvel). Tocar nas coisas também interage, e tocar na fala avança. Os botões seguem o último controle usado: tocou, aparecem; usou teclado ou mouse, somem. Nos mini games ficam só o direcional e o E. Para testar no PC: `?toque` na URL. Código em `src/game/touch.ts` (o mundo e os mini games leem a direção dali junto com o teclado). Para abrir de outro aparelho na mesma rede: `http://<IP do PC>:5173`.
+
 ### Modo debug (só em `npm run dev`)
 **F9** liga e desliga (ou abra `?debug=1`). Aparece um painel com: +100 moedas, pular falas, ver as caixas de colisão,
 ver a grade (com a célula sob o mouse), jogo novo e os marcos já concluídos. As metas mostram as notas de desenvolvimento (`devNote`).
