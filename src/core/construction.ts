@@ -1,6 +1,6 @@
 // Obras com o construtor (o Tião): reparos (interno e da fachada) e troca de acabamento por área.
 // Uma obra por vez: ela pede pelo celular, ouve o orçamento numa ligação e paga adiantado; ele vem no dia seguinte
-// e trabalha os dias combinados (0,5 h por tile, 8 h por dia). O material da troca de acabamento é ela que compra
+// e trabalha os dias combinados (0,5 h por tile, 8 h por dia). Também abre e reforma os cômodos (data/rooms.json). O material da troca de acabamento é ela que compra
 // (sai na hora do pedido; volta se ela recusar o orçamento). Puro: sem Phaser, DOM ou window.
 import type { Cell, MapData, SurfaceDef } from './map';
 
@@ -31,7 +31,10 @@ type Facing = 'down' | 'left' | 'right' | 'up';
 
 /** O que foi pedido (orçamento) ou está em obra. */
 export interface ConstructionJob {
-  kind: 'inside' | 'outside' | 'finish' | 'facade';
+  kind: 'inside' | 'outside' | 'finish' | 'facade' | 'room_open' | 'room_restore';
+  /** Obra de cômodo (data/rooms.json): qual cômodo e onde ele trabalha. */
+  roomId?: string;
+  site?: { at: Cell; facing: Facing };
   /** Troca de acabamento: superfície, acabamento e células. */
   surfaceId?: string;
   finishId?: string;
@@ -86,13 +89,14 @@ export function surfaceCells(map: MapData, surface: SurfaceDef, [c0, r0]: Cell, 
   return cells;
 }
 
-export type QuoteProblem = 'locked' | 'busy' | 'repair_first' | 'already_repaired' | 'no_cells' | 'already_painted' | 'wrong_surface' | 'no_money';
+export type QuoteProblem = 'locked' | 'busy' | 'repair_first' | 'already_repaired' | 'no_cells' | 'already_painted' | 'wrong_surface' | 'no_money' | 'room_not_ready';
 
 /** O que impede pedir uma obra agora (ou nada). */
 export function quoteBlocker(s: ConstructionState, kind: ConstructionJob['kind'], unlocked: boolean): QuoteProblem | null {
   if (!unlocked) return 'locked';
   if (s.job || s.quote) return 'busy';
   if ((kind === 'inside' || kind === 'outside') && s.repaired.includes(kind)) return 'already_repaired';
+  if ((kind === 'room_open' || kind === 'room_restore') && !isRenovated(s)) return 'repair_first';
   if (kind === 'finish' && !s.repaired.includes('inside')) return 'repair_first';
   if (kind === 'facade' && !s.repaired.includes('outside')) return 'repair_first';
   return null;
@@ -158,6 +162,7 @@ export function isolatedCells(s: ConstructionState, map: MapData, day: number): 
 export function builderSpot(s: ConstructionState, map: MapData, day: number, d: ConstructionData): { map?: string; at: Cell; facing: Facing } | null {
   if (!workingToday(s, day) || !s.job) return null;
   const job = s.job;
+  if (job.site) return job.site;
   if (job.kind === 'inside') return d.repairs.inside.site;
   if (job.kind === 'outside' || job.kind === 'facade') return d.repairs.outside.site;
   const area = isolatedCells(s, map, day);

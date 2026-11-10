@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { catCapacity, resolvedLook, visibleArea } from '../../src/core/rooms';
-import { knownIds, parseSave } from '../../src/core/save';
+import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { parseClock } from '../../src/core/time';
@@ -211,5 +211,85 @@ describe('saves antigos ("*" = salão todo limpo)', () => {
     state.cleaned = ['*'];
     session.endDay('home');
     expect(state.cleaned.some((id) => id.startsWith('dirt.back_room') || id.startsWith('dirt.backyard'))).toBe(false);
+  });
+});
+
+describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
+  /** Café inaugurado, com os dois reparos feitos e o Tião conhecido. */
+  function withBuilder(money = 1000) {
+    const ctx = afterFirstCustomer(money);
+    ctx.state.flags['painter.available'] = true;
+    ctx.state.construction.repaired = ['inside', 'outside'];
+    return ctx;
+  }
+  /** Aceita o orçamento e passa os dias até a obra terminar. */
+  function acceptAndWait(session: GameSession, onWorkDay?: () => void): void {
+    expect(session.answerQuote(true)).toEqual({ ok: true });
+    const end = session.state.construction.job!.endDay!;
+    while (session.state.day <= end) {
+      session.endDay('home');
+      if (session.state.day <= end) onWorkDay?.();
+    }
+  }
+
+  it('abrir o porão: ligação, paga adiantado, ele trabalha 1 dia ao lado da passagem; no dia seguinte a porta abre', () => {
+    const { session, state, events } = withBuilder();
+    expect(session.roomWork('room.back_room')).toMatchObject({ kind: 'room_open', cost: 200, days: 1 });
+    expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
+    expect(events.some((e) => e.name === 'construction.call')).toBe(true);
+    expect(state.money).toBe(1000); // só paga ao aceitar
+    const spots: unknown[] = [];
+    acceptAndWait(session, () => spots.push(session.builderAt('map.cafe_main')));
+    expect(spots).toEqual([{ at: [15, 7], facing: 'right' }]);
+    expect(state.money).toBe(1000 - 200);
+    expect(session.roomState('room.back_room')).toBe('abandoned');
+    expect(session.doorState('door.back_room')).toBe('open');
+    expect(dialogues(events)).toContain('dlg.room_back_opened');
+    expect(state.construction.job).toBeNull();
+  });
+
+  it('reforma: só depois de limpar; 2 dias dentro do porão; termina reformado', () => {
+    const { session, state } = withBuilder();
+    session.openRoom('room.back_room');
+    expect(session.quoteRoom('room.back_room')).toEqual({ ok: false, reason: 'room_not_ready' });
+    cleanTag(session, 'back_room');
+    expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
+    const spots: unknown[] = [];
+    acceptAndWait(session, () => spots.push(session.builderAt('map.cafe_main')));
+    expect(spots).toEqual([{ at: [24, 4], facing: 'right' }, { at: [24, 4], facing: 'right' }]);
+    expect(session.roomState('room.back_room')).toBe('restored');
+    expect(state.money).toBe(1000 - 200 - 150);
+  });
+
+  it('uma obra por vez; antes dos reparos não dá; sem dinheiro, avisa', () => {
+    const { session } = withBuilder();
+    expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
+    expect(session.answerQuote(true)).toEqual({ ok: true });
+    expect(session.quoteRepair('inside')).toEqual({ ok: false, reason: 'busy' });
+    const early = withBuilder();
+    early.state.construction.repaired = ['inside'];
+    expect(early.session.quoteRoom('room.back_room')).toEqual({ ok: false, reason: 'repair_first' });
+    expect(withBuilder(50).session.quoteRoom('room.back_room')).toEqual({ ok: false, reason: 'no_money' });
+  });
+
+  it('o lugar dele em cada obra é piso livre do mapa', () => {
+    const s = new GameSession(content, newGameState(100, 'map.cafe_main'));
+    for (const id of ['room.back_room', 'room.backyard']) s.state.rooms[id] = 'abandoned';
+    const map = resolveMap(s.mapData(), content.catalog);
+    for (const room of content.rooms.rooms) {
+      for (const b of [room.unlock?.builder, room.restore?.builder]) {
+        if (!b) continue;
+        const [c, r] = b.site.at;
+        expect(map.solid[r]![c], `${room.id} ${b.site.at}`).toBe(false);
+      }
+    }
+  });
+
+  it('a obra do cômodo volta do save', () => {
+    const { session } = withBuilder();
+    session.quoteRoom('room.back_room');
+    session.answerQuote(true);
+    const back = parseSave(serializeSave(session.state, new Date(0)), knownIds(content));
+    expect(back.state.construction.job).toMatchObject({ kind: 'room_open', roomId: 'room.back_room', site: { at: [15, 7] } });
   });
 });

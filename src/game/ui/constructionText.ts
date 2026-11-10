@@ -2,9 +2,14 @@
 import type { ConstructionJob } from '../../core/construction';
 import { content, uiText } from '../content';
 
-/** "Reparo interno", "Piso do salão: Tacos de madeira", "Cor da fachada: Menta". */
-export function workName(job: Pick<ConstructionJob, 'kind' | 'surfaceId' | 'finishId'>): string {
+/** "Reparo interno", "Piso do salão: Tacos de madeira", "Cor da fachada: Menta", "Abrir o acesso ao porão". */
+export function workName(job: Pick<ConstructionJob, 'kind' | 'surfaceId' | 'finishId' | 'roomId'>): string {
   const c = content.construction;
+  if (job.kind === 'room_open' || job.kind === 'room_restore') {
+    const room = content.rooms.rooms.find((r) => r.id === job.roomId);
+    const work = job.kind === 'room_open' ? room?.unlock : room?.restore;
+    return work?.label ?? room?.name ?? '';
+  }
   if (job.kind === 'inside') return c.repairs.inside.name;
   if (job.kind === 'outside') return c.repairs.outside.name;
   const finish = content.finishes[job.finishId ?? '']?.name ?? '';

@@ -121,6 +121,7 @@
     "busy": "O Tião já está com uma obra. Uma por vez.",
     "repair_first": "Primeiro o reparo (Market, aba Construção).",
     "already_repaired": "Esse reparo já foi feito.",
+    "room_not_ready": "Essa obra ainda não dá para pedir.",
     "no_cells": "Nada para trocar nessa área.",
     "too_far": "Preciso chegar mais perto.",
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
@@ -497,7 +498,8 @@
   "playerFallback": "Você",
   "rooms": {
     "title": "Obras",
-    "hint": "Abrir cômodos e terminar reformas.",
+    "hint": "O Tião abre os cômodos e termina as reformas (depois da limpeza). Uma obra por vez, junto com as outras.",
+    "inWork": "em obra",
     "open": "abrir",
     "restore": "reformar",
     "needsMoney": "falta dinheiro",

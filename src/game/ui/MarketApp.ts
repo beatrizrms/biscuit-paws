@@ -86,7 +86,8 @@ export class MarketApp {
     body.querySelectorAll<HTMLButtonElement>('[data-room]').forEach((b) =>
       b.addEventListener('click', () => {
         const id = b.dataset.room!;
-        const r = b.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
+        // Com o Tião (builder nos dados): a ligação com o orçamento; sem, a obra paga na hora.
+        const r = this.session.roomWork(id) ? this.session.quoteRoom(id) : b.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
         if (!r.ok) return this.host.problem(r.reason);
         this.host.done();
       }),
@@ -181,6 +182,15 @@ export class MarketApp {
   /** Obras dos cômodos (data/rooms.json): abrir os descobertos e terminar a reforma dos abertos. E quantos gatos cabem. */
   private roomsHtml(): string {
     const r = uiText.rooms;
+    const cs = this.session.state.construction;
+    // Pelo Tião: uma obra por vez (com as outras), os dias no aviso e "em obra" no cômodo que ele está fazendo.
+    const builder = (id: string, note: string, disabled: boolean) => {
+      const work = this.session.roomWork(id);
+      if (!work) return { note, disabled };
+      const mine = [cs.job, cs.quote].some((j) => j?.roomId === id);
+      if (mine) return { note: r.inWork, disabled: true };
+      return { note: [note, daysText(work.days)].filter(Boolean).join(' · '), disabled: disabled || !!(cs.job || cs.quote) };
+    };
     const why: Record<string, string> = { needs_money: r.needsMoney, needs_beat: r.needsBeat, needs_cats: r.needsCats, needs_item: r.needsItem };
     const row = (id: string, work: string, label: string, price: number, note: string, disabled: boolean) =>
       `<button class="m-row" data-room="${id}" data-work="${work}" ${disabled ? 'disabled' : ''}>
@@ -191,12 +201,14 @@ export class MarketApp {
         const s = this.session.roomState(room.id);
         if (s === 'discovered' && (room.unlock?.cost ?? 0) > 0) {
           const p = this.session.openRoomProblem(room.id);
-          return row(room.id, 'open', room.unlock?.label ?? room.name, room.unlock?.cost ?? 0, p ? (why[p] ?? '') : '', !!p);
+          const b = builder(room.id, p ? (why[p] ?? '') : '', !!p);
+          return row(room.id, 'open', room.unlock?.label ?? room.name, room.unlock?.cost ?? 0, b.note, b.disabled);
         }
         if (s === 'abandoned' && room.restore && !room.restore.when) {
           const p = this.session.restoreRoomProblem(room.id);
           const note = p === 'still_dirty' ? r.stillDirty.replace('{n}', String(this.session.roomDirtLeft(room.id))) : p === 'needs_money' ? r.needsMoney : '';
-          return row(room.id, 'restore', room.restore.label ?? room.name, room.restore.cost ?? 0, note, !!p);
+          const b = builder(room.id, note, !!p);
+          return row(room.id, 'restore', room.restore.label ?? room.name, room.restore.cost ?? 0, b.note, b.disabled);
         }
         return '';
       })

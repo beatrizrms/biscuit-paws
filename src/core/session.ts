@@ -1100,6 +1100,13 @@ export class GameSession {
     const room = this.content.rooms.rooms.find((r) => r.id === roomId)!;
     const cost = room.unlock?.cost ?? 0;
     if (cost > 0) this.addMoney(-cost, `room:${roomId}`);
+    this.applyRoomOpen(room);
+    return { ok: true };
+  }
+
+  /** As portas do cômodo abrem e ele fica "abandonado" (sujo): pela chave, pela obra paga ou no fim da obra do Tião. */
+  private applyRoomOpen(room: RoomDef): void {
+    const roomId = room.id;
     for (const d of this.content.rooms.doors.filter((x) => x.to === roomId)) {
       this.state.doors[d.id] = 'open';
       if (d.requires?.item && d.consumesItem) this.removeFromInventory(d.requires.item);
@@ -1108,6 +1115,31 @@ export class GameSession {
     if (room.unlock?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.unlock.dialogue });
     this.bus.emit('room.opened', { roomId });
     this.advanceStory();
+  }
+
+  /** A obra do cômodo que o Tião faz agora (abrir o descoberto ou reformar o aberto), se ele fizer. */
+  roomWork(roomId: string): { kind: 'room_open' | 'room_restore'; cost: number; days: number; label: string } | null {
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId);
+    const s = this.roomState(roomId);
+    if (s === 'discovered' && room?.unlock?.builder) return { kind: 'room_open', cost: room.unlock.cost ?? 0, days: room.unlock.builder.days, label: room.unlock.label ?? room.name };
+    if (s === 'abandoned' && room?.restore?.builder) return { kind: 'room_restore', cost: room.restore.cost ?? 0, days: room.restore.builder.days, label: room.restore.label ?? room.name };
+    return null;
+  }
+
+  /** Pede ao Tião a obra do cômodo (abrir ou reformar): abre a ligação com o orçamento. A limpeza vem antes da reforma. */
+  quoteRoom(roomId: string): ActionResult {
+    const work = this.roomWork(roomId);
+    if (!work) return { ok: false, reason: 'room_not_ready' };
+    const s = this.state.construction;
+    const blocker = quoteBlocker(s, work.kind, this.painterUnlocked());
+    if (blocker) return { ok: false, reason: blocker };
+    const problem = work.kind === 'room_open' ? this.openRoomProblem(roomId) : this.restoreRoomProblem(roomId);
+    if (problem === 'needs_money') return { ok: false, reason: 'no_money' };
+    if (problem) return { ok: false, reason: 'room_not_ready' };
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId)!;
+    const site = (work.kind === 'room_open' ? room.unlock?.builder : room.restore?.builder)!.site;
+    s.quote = { kind: work.kind, roomId, site, material: 0, labor: work.cost, days: work.days };
+    this.bus.emit('construction.call', { kind: work.kind });
     return { ok: true };
   }
 
@@ -2209,7 +2241,15 @@ export class GameSession {
   private constructionDayEnded(newDay: number): void {
     const facade = this.content.facade?.surface.id ?? 'surface.facade';
     const done = finishJobIfDone(this.state.construction, this.state.finishes, newDay, this.content.construction, facade);
-    if (done) this.bus.emit('construction.done', { kind: done.kind });
+    if (!done) return;
+    // Obra de cômodo: abre (as portas) ou termina a reforma (o visual e as funcionalidades).
+    const room = this.content.rooms.rooms.find((r) => r.id === done.roomId);
+    if (room && done.kind === 'room_open' && this.roomState(room.id) === 'discovered') this.applyRoomOpen(room);
+    if (room && done.kind === 'room_restore' && this.roomState(room.id) === 'abandoned') {
+      this.markRestored(room);
+      this.advanceStory();
+    }
+    this.bus.emit('construction.done', { kind: done.kind });
   }
 
   /** O que a obra põe no mapa do café hoje: o acabamento por célula e a área isolada (fita). */

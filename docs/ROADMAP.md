@@ -89,7 +89,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 ## Marco 5: reforma e decoração
 - [x] Loja abandonada -> reformada (pintor; a reforma completa libera a inauguração)
 - [x] Obras com o Tião: reparos interno e da fachada (pré-requisito), troca de acabamento por área, ligação e orçamento adiantado (decisão 094)
-- [ ] Obras dos cômodos (porão, quintal) pelo sistema do Tião (hoje são pagas no catálogo)
+- [x] Obras dos cômodos (abrir o porão, reformar porão e quintal) pelo sistema do Tião (decisão 104)
 - [x] Compra e posicionamento de móveis (feito no Marco 0.5)
 
 ## Expansão do café

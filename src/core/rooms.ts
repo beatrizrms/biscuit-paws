@@ -28,6 +28,12 @@ export interface RoomLook {
   objectsByState?: Partial<Record<RoomState, MapObject[]>>;
 }
 
+/** Obra de cômodo feita pelo Tião (src/core/construction.ts): quantos dias e onde ele trabalha (encostado numa parede). */
+export interface RoomBuilderWork {
+  days: number;
+  site: { at: Cell; facing: 'down' | 'left' | 'right' | 'up' };
+}
+
 export interface RoomDef {
   /** ID estável (nunca reaproveitado nem renomeado). */
   id: string;
@@ -41,9 +47,9 @@ export interface RoomDef {
   /** Descoberta: o gatilho (só para a cena), a condição (automática) e o momento. */
   discover?: { trigger: DiscoveryTrigger; when?: Condition; dialogue?: string; highlight?: string };
   /** Abrir (discovered -> abandoned): obra paga no catálogo e/ou porta com chave. */
-  unlock?: { cost?: number; minCats?: number; beats?: string[]; label?: string; dialogue?: string };
+  unlock?: { cost?: number; minCats?: number; beats?: string[]; label?: string; dialogue?: string; builder?: RoomBuilderWork };
   /** Restaurar (abandoned -> restored): limpar a sujeira com esta tag e pagar a obra; ou sozinho quando `when` valer. */
-  restore?: { cost?: number; dirtTag?: string; when?: Condition; label?: string; dialogue?: string };
+  restore?: { cost?: number; dirtTag?: string; when?: Condition; label?: string; dialogue?: string; builder?: RoomBuilderWork };
   /** Quantos gatos moram aqui; clientes: só informação (o atendimento não tem teto fixo). */
   capacity: { cats: number; customers: number };
   features?: RoomFeature[];
@@ -216,6 +222,9 @@ export function validateRooms(
     for (const dlg of [r.discover?.dialogue, r.unlock?.dialogue, r.restore?.dialogue]) if (dlg && !refs.dialogues.has(dlg)) errors.push(`${w}: fala inexistente "${dlg}"`);
     for (const b of r.unlock?.beats ?? []) if (!refs.beats.has(b)) errors.push(`${w}: marco inexistente "${b}"`);
     if (r.restore?.dirtTag && !refs.dirtTags.has(r.restore.dirtTag)) errors.push(`${w}: nenhuma sujeira com a tag "${r.restore.dirtTag}"`);
+    for (const b of [r.unlock?.builder, r.restore?.builder]) {
+      if (b && (!Number.isInteger(b.days) || b.days < 1 || !inMap(b.site.at))) errors.push(`${w}: obra do construtor com dias ou lugar inválidos`);
+    }
     for (const f of r.features ?? []) if (!(ROOM_FEATURES as readonly string[]).includes(f)) errors.push(`${w}: funcionalidade inválida "${f}"`);
     if (r.features?.includes('sleep') && (!r.sleep || !inArea(r, r.sleep.bed) || !inArea(r, r.sleep.wake))) errors.push(`${w}: "sleep" precisa de cama e lugar de acordar dentro do cômodo`);
     if (r.variant && !r.variants?.[r.variant]) errors.push(`${w}: variante inexistente "${r.variant}"`);
