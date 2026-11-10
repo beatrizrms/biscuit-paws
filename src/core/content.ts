@@ -485,6 +485,11 @@ export function validateContent(raw: RawContent): string[] {
   const adoptGame = raw.minigames.games.adoption;
   errors.push(...validateCafeTraits(raw.adoption.fair, raw.adoption.traits));
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
+  for (const [id, g] of Object.entries(raw.minigames.games)) {
+    for (const t of [...(g.backdrop?.floor ?? []), g.backdrop?.rug]) if (t && !raw.catalog.tiles[t]) err(`minigames: "${id}" usa no fundo um tile inexistente "${t}"`);
+    const k = g.backdrop?.rugScale;
+    if (k !== undefined && !(Number.isInteger(k) && k >= 1)) err(`minigames: "${id}": backdrop.rugScale deve ser um inteiro >= 1`);
+  }
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
   // O item do ponto: na entrega, um item de entrega (minigames.json: items); nos outros, um item do jogo (o petisco).

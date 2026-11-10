@@ -5,8 +5,10 @@
 import Phaser from 'phaser';
 import { Countdown, makeResult, type MiniGameParams, type MiniGameResult, type Outcome } from '../../core/minigame';
 import { createRng, type Rng } from '../../core/rng';
+import { frameOf } from '../../core/tiles';
 import { content, uiText } from '../content';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
+import { addTileImage } from '../tileArt';
 import { iconHtml } from '../ui/ShopPanel';
 import { MiniGameControls } from './controls';
 
@@ -82,6 +84,32 @@ export abstract class MiniGameScene extends Phaser.Scene {
   /** A cada quadro, só enquanto joga. */
   protected abstract updateGame(deltaMs: number): void;
 
+  /** Fundo com os tiles do mundo (data/minigames.json: backdrop), atrás de tudo. Sem backdrop, fica a cor da câmera. */
+  protected drawBackdrop(): void {
+    const b = this.def.backdrop;
+    if (!b) return;
+    const cat = content.catalog;
+    const ts = cat.tileSize;
+    for (let r = 0; r * ts < GAME_HEIGHT; r++) {
+      for (let c = 0; c * ts < GAME_WIDTH; c++) {
+        const t = cat.tiles[b.floor[r % b.floor.length]!]!;
+        addTileImage(this, c * ts, r * ts, t.sheet, frameOf(cat, t)).setDepth(-1000);
+      }
+    }
+    const rug = b.rug ? cat.tiles[b.rug] : undefined;
+    if (!rug) return;
+    const [cx, cy] = b.rugAt ?? [GAME_WIDTH / 2, GAME_HEIGHT / 2];
+    const k = b.rugScale ?? 1;
+    const left = Math.round(cx - (rug.w * ts * k) / 2);
+    const top = Math.round(cy - (rug.h * ts * k) / 2);
+    for (let dy = 0; dy < rug.h; dy++) {
+      for (let dx = 0; dx < rug.w; dx++) {
+        const img = addTileImage(this, left + dx * ts * k, top + dy * ts * k, rug.sheet, frameOf(cat, rug, dx, dy)).setDepth(-999);
+        img.setScale(img.scaleX * k);
+      }
+    }
+  }
+
   /** Definição do jogo em data/minigames.json. */
   protected get def() {
     return content.minigames.games[this.gameId]!;
@@ -110,8 +138,8 @@ export abstract class MiniGameScene extends Phaser.Scene {
     this.overlay(`<h2>${esc(this.def.name)}</h2>${this.tutorialHtml()}
       <p class="mg-difficulty">${esc(t.difficulty[this.launch.params.difficulty])}</p>
       <button class="menu-btn" data-act="start">${t.start}</button>`);
-    // Instruções por introMs e começa sozinho; ou antes, pelo botão / E / Espaço.
-    this.time.delayedCall(content.minigames.introMs, () => this.begin());
+    // Começa pelo botão / E / Espaço. Com introMs > 0, começa sozinho depois desse tempo; 0 espera a jogadora ler.
+    if (content.minigames.introMs > 0) this.time.delayedCall(content.minigames.introMs, () => this.begin());
     this.controls.onAction(() => this.phase === 'intro' && this.begin());
   }
 

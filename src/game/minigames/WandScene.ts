@@ -7,12 +7,14 @@ import { FULL_EXCITEMENT, newWand, stepWand, wandOutcome, type WandEvents, type 
 import { content, uiText } from '../content';
 import { CatSprite, catTexture } from '../entities/Cat';
 import { services } from '../services';
+import { loadSheets, WAND } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
 export const WAND_SCENE = 'MiniGame.wand';
 
 /**
- * PLACEHOLDER(arte): a ponta da varinha (pompom com penas) e o tapete da sala são desenhados por código.
+ * A ponta da varinha (pompom com penas) é do PixelLab (assets.ts: WAND) e o tapete é o do café (data/minigames.json:
+ * backdrop). Sem eles, os dois são desenhados por código.
  * Para trocar, carregue imagens com estas chaves (o desenho só acontece se a chave não existir).
  */
 export const WAND_KEYS = { toy: 'wand_toy', rug: 'wand_rug' } as const;
@@ -36,6 +38,10 @@ export class WandScene extends MiniGameScene {
     super('wand', WAND_SCENE);
   }
 
+  preload(): void {
+    loadSheets(this, Object.values(WAND));
+  }
+
   protected buildGame(): void {
     this.p = paramsOf<WandParams>(content.minigames, 'wand', this.launch.params.difficulty);
     this.ended = false;
@@ -45,7 +51,9 @@ export class WandScene extends MiniGameScene {
     this.ensureArt();
 
     this.cameras.main.setBackgroundColor('#e9d3b4');
-    this.add.image(this.arena.centerX, this.arena.centerY, WAND_KEYS.rug).setDisplaySize(aw, ah);
+    // O tapete do café (backdrop); sem ele, o desenhado por código, do tamanho da arena.
+    if (this.def.backdrop?.rug) this.drawBackdrop();
+    else this.add.image(this.arena.centerX, this.arena.centerY, WAND_KEYS.rug).setDisplaySize(aw, ah);
 
     const start = { x: this.arena.centerX - 120, y: this.arena.centerY + 40 };
     const tip = { x: this.arena.centerX + 80, y: this.arena.centerY - 30 };
@@ -53,7 +61,8 @@ export class WandScene extends MiniGameScene {
     CatSprite.createAnimations(this, this.launch.catVariant);
     this.cat = this.add.sprite(start.x, start.y, catTexture(this.launch.catVariant), 0).setOrigin(0.5, 28 / 32).setScale(CAT_SCALE);
     this.stick = this.add.graphics().setDepth(1e4);
-    this.toy = this.add.image(tip.x, tip.y, WAND_KEYS.toy).setScale(1.5).setDepth(1e4 + 1);
+    this.toy = this.add.image(tip.x, tip.y, WAND_KEYS.toy).setDepth(1e4 + 1);
+    if (this.toy.width < WAND.toy.frameWidth) this.toy.setScale(1.5); // o desenhado por código é menor
     this.bar = this.add.graphics().setDepth(1e5);
     // A ponta segue o mouse: o cursor some dentro do jogo (a varinha é o cursor).
     this.input.setDefaultCursor('none');
@@ -67,9 +76,11 @@ export class WandScene extends MiniGameScene {
 
   protected updateGame(delta: number): void {
     if (this.ended) return;
-    const ptr = this.input.activePointer;
+    // Pelo controls.pointer(): o worldX do Phaser vem em pixels do canvas quando a cena abre por cima de outra.
+    const raw = this.input.activePointer;
+    const ptr = this.controls.pointer();
     // Antes de mexer o mouse a primeira vez, a ponta fica onde começou.
-    const tip = ptr.worldX || ptr.worldY ? { x: Phaser.Math.Clamp(ptr.worldX, this.arena.left, this.arena.right), y: Phaser.Math.Clamp(ptr.worldY, this.arena.top, this.arena.bottom) } : this.s.tip;
+    const tip = raw.x || raw.y ? { x: Phaser.Math.Clamp(ptr.x, this.arena.left, this.arena.right), y: Phaser.Math.Clamp(ptr.y, this.arena.top, this.arena.bottom) } : this.s.tip;
     const ev = stepWand(this.s, this.p, tip, delta);
     this.onEvents(ev);
     this.draw();

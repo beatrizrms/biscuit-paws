@@ -9,18 +9,23 @@ import { coverage, FULL_SUSPICION, newPill, offer, pillOutcome, spread, startOff
 import { content, uiText } from '../content';
 import { CatSprite, catTexture } from '../entities/Cat';
 import { services } from '../services';
+import { loadSheets, PILL as PILL_ART } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
 export const PILL_SCENE = 'MiniGame.pill';
 
 /**
- * PLACEHOLDER(arte): tigela com comida, comprimido, a pasta (e o tubo no lugar do cursor) desenhados por código.
- * Para trocar, carregue imagens com estas chaves (o desenho só acontece se a chave não existir).
+ * Tigela, comprimido e tubo: arte do PixelLab (assets.ts: PILL). A pasta (bolinhas) é desenhada por código; sem os
+ * arquivos, o resto também (o desenho só acontece se a chave não existir).
  */
 export const PILL_KEYS = { bowl: 'pill_bowl', pill: 'pill_capsule', paste: 'pill_paste', tube: 'pill_tube' } as const;
 
-/** Onde fica o comprimido (px lógicos): a pasta conta só aqui. */
-const PILL = { x: 200, y: 196, w: 84, h: 36 };
+/**
+ * Onde fica o comprimido (px lógicos): a pasta conta só aqui. A arte vai em meia escala (ART: a densidade do mundo,
+ * a tigela menor que o gato); dy: o meio da comida na tigela.
+ */
+const ART = 0.5;
+const PILL = { x: 200, y: 210, w: 24, h: 12, dy: -4 };
 const CAT = { x: 470, y: 250, scale: 4 };
 const BAR_W = 120;
 
@@ -42,6 +47,10 @@ export class PillScene extends MiniGameScene {
     super('pill', PILL_SCENE);
   }
 
+  preload(): void {
+    loadSheets(this, Object.values(PILL_ART));
+  }
+
   protected buildGame(): void {
     this.p = paramsOf<PillParams>(content.minigames, 'pill', this.launch.params.difficulty);
     // O jeito do gato: desconfiado, a distração dura menos (cat_profiles.json: pillWindow).
@@ -50,11 +59,12 @@ export class PillScene extends MiniGameScene {
     this.lastPaste = { x: -99, y: -99 };
     this.ensureArt();
     this.cameras.main.setBackgroundColor('#f3e3cc');
+    this.drawBackdrop();
 
     // Tigela (com o comprimido no meio) e a camada da pasta por cima.
-    const bowlImg = this.add.image(0, 0, PILL_KEYS.bowl);
-    const pill = this.add.image(0, 0, PILL_KEYS.pill).setDisplaySize(PILL.w, PILL.h);
-    this.pasteLayer = this.add.container(0, 0);
+    const bowlImg = this.add.image(0, 0, PILL_KEYS.bowl).setScale(ART);
+    const pill = this.add.image(0, PILL.dy, PILL_KEYS.pill).setDisplaySize(PILL.w, PILL.h);
+    this.pasteLayer = this.add.container(0, PILL.dy);
     this.bowl = this.add.container(PILL.x, PILL.y, [bowlImg, pill, this.pasteLayer]);
 
     // O gato grande: de frente (atento) ou de costas (distraído), pelos quadros parados das animações.
@@ -67,7 +77,7 @@ export class PillScene extends MiniGameScene {
       .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
       .setOrigin(0.5);
     this.bar = this.add.graphics().setDepth(100);
-    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setOrigin(0.15, 0.85).setDepth(200).setVisible(false);
+    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(ART).setOrigin(0.15, 0.85).setDepth(200).setVisible(false);
 
     this.btn = this.hudButton(uiText.minigames.pill.ready, () => this.act());
     this.controls.onAction((world) => {
@@ -138,11 +148,11 @@ export class PillScene extends MiniGameScene {
     if (Math.hypot(x - this.lastPaste.x, y - this.lastPaste.y) < 3) return;
     this.lastPaste = { x, y };
     const u = (x - (PILL.x - PILL.w / 2)) / PILL.w;
-    const v = (y - (PILL.y - PILL.h / 2)) / PILL.h;
+    const v = (y - (PILL.y + PILL.dy - PILL.h / 2)) / PILL.h;
     const n = spread(this.s, this.p, u, v);
     if (u < -0.3 || u > 1.3 || v < -0.6 || v > 1.6) return;
     // O desenho da pasta acompanha o arraste (perto do comprimido), mesmo onde já estava coberto.
-    this.pasteLayer.add(this.add.image(x - PILL.x, y - PILL.y, PILL_KEYS.paste).setScale(0.9 + Math.random() * 0.3).setAngle(Math.random() * 360));
+    this.pasteLayer.add(this.add.image(x - PILL.x, y - PILL.y - PILL.dy, PILL_KEYS.paste).setScale(ART).setFlip(Math.random() < 0.5, Math.random() < 0.5));
     if (n > 0 && this.pasteLayer.length % 6 === 0) this.sfx(this.def.sounds?.spread);
   }
 
@@ -225,10 +235,11 @@ export class PillScene extends MiniGameScene {
       g.fillStyle(0xffffff, 1).fillRoundedRect(19, 1, 22, 16, 8);
       g.lineStyle(1, 0x3b2a32, 0.8).strokeRoundedRect(1, 1, 40, 16, 8);
     });
-    make(PILL_KEYS.paste, 18, 18, (g) => {
-      // Bolinha de pasta (patê): marrom-clara, com brilho.
-      g.fillStyle(0xc49270, 1).fillCircle(9, 9, 8);
-      g.fillStyle(0xe0b48a, 1).fillCircle(7, 7, 3);
+    make(PILL_KEYS.paste, 12, 10, (g) => {
+      // Bolinha de pasta (patê) em pixel, sem contorno (as bolinhas se juntam numa camada só), com brilho e sombra.
+      const rows = ['...mmmmmm...', '.mmhhmmmmmm.', 'mmhhmmmmmmmm', 'mhhmmmmmmmmd', 'mmmmmmmmmmdd', 'mmmmmmmmmddd', '.dmmmmmmddd.', '..dddddddd..', '............', '............'];
+      const color: Record<string, number> = { o: 0x5a2e1c, m: 0xb07a52, h: 0xdcae86, d: 0x8e5a3a };
+      rows.forEach((line, y) => [...line].forEach((ch, x) => color[ch] !== undefined && g.fillStyle(color[ch]!, 1).fillRect(x, y, 1, 1)));
     });
     make(PILL_KEYS.tube, 40, 40, (g) => {
       // Tubo de pasta inclinado (o bico na ponta de baixo, à esquerda).

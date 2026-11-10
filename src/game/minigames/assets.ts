@@ -32,20 +32,38 @@ export const CHASE = {
   alerts: { key: 'mg.chase.alerts', file: `${DIR}/chase/ui_alerts.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xfff4e0 },
 } satisfies Record<string, SheetSpec>;
 
-/** Pescaria. A barra de timing é só a moldura: a zona verde, o indicador e o progresso são desenhados por cima. */
+/** Pescaria. Água, cais e boia do PixelLab (npm run pixellab). A barra de puxar é desenhada por código (FishingScene). a zona verde, o indicador e o progresso são desenhados por cima. */
 export const FISHING = {
-  water: { key: 'mg.fishing.water', file: `${DIR}/fishing/anim_water.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x6fa8c8 },
-  bobber: { key: 'mg.fishing.bobber', file: `${DIR}/fishing/anim_bobber.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xd9475d },
-  pier: { key: 'mg.fishing.pier', file: `${DIR}/fishing/tile_pier.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x9b6a45 },
-  bar: { key: 'mg.fishing.bar', file: `${DIR}/fishing/ui_timing_bar.png`, frameWidth: 48, frameHeight: 192, placeholder: 0xfff7e6 },
+  water: { key: 'mg.fishing.water', file: `${DIR}/fishing/anim_water_pixellab.png`, frameWidth: 64, frameHeight: 64, placeholder: 0x6fa8c8 },
+  bobber: { key: 'mg.fishing.bobber', file: `${DIR}/fishing/anim_bobber_pixellab.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xd9475d },
+  pier: { key: 'mg.fishing.pier', file: `${DIR}/fishing/tile_pier_pixellab.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x9b6a45 },
   /** Peixes em 64 px (arte nova, npm run pixellab): desenhados em um quarto da escala, do tamanho dos antigos de 32 px. */
   fish: { key: 'mg.fishing.fish', file: `${DIR}/fishing/icons_fish_pixellab.png`, frameWidth: 64, frameHeight: 64, placeholder: 0xe0a94e },
 } satisfies Record<string, SheetSpec>;
 
-/** Latte art. Os contornos são desenhados dos pontos dos dados (as imagens-guia do pacote ficam de reserva). */
+/** Remédio escondido (PixelLab, npm run pixellab): tigela com comida, comprimido e tubo de pasta. */
+export const PILL = {
+  bowl: { key: 'pill_bowl', file: `${DIR}/pill/bowl.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x86b0d8 },
+  capsule: { key: 'pill_capsule', file: `${DIR}/pill/capsule.png`, frameWidth: 48, frameHeight: 24, placeholder: 0xd9475d },
+  tube: { key: 'pill_tube', file: `${DIR}/pill/tube.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xf6e8cc },
+} satisfies Record<string, SheetSpec>;
+
+/** Banho e escovação (PixelLab, npm run pixellab): toalha, nó de pelo e escova. */
+export const GROOMING = {
+  towel: { key: 'grooming_towel', file: `${DIR}/grooming/towel.png`, frameWidth: 192, frameHeight: 64, placeholder: 0xf6f0e8 },
+  mat: { key: 'grooming_mat', file: `${DIR}/grooming/mat.png`, frameWidth: 32, frameHeight: 32, placeholder: 0x8a6a4a },
+  brush: { key: 'grooming_brush', file: `${DIR}/grooming/brush.png`, frameWidth: 48, frameHeight: 24, placeholder: 0xa8663e },
+} satisfies Record<string, SheetSpec>;
+
+/** Brincar com a varinha (PixelLab, npm run pixellab): o pompom com penas da ponta. */
+export const WAND = {
+  toy: { key: 'wand_toy', file: `${DIR}/wand/toy.png`, frameWidth: 32, frameHeight: 32, placeholder: 0xd9475d },
+} satisfies Record<string, SheetSpec>;
+
+/** Latte art. Xícara e jarra do PixelLab (npm run pixellab). Os contornos são desenhados dos pontos dos dados (as imagens-guia do pacote ficam de reserva). */
 export const LATTE = {
-  cup: { key: 'mg.latte.cup', file: `${DIR}/latte/obj_cup.png`, frameWidth: 192, frameHeight: 192, placeholder: 0xf5d7ac },
-  pitcher: { key: 'mg.latte.pitcher', file: `${DIR}/latte/obj_pitcher.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xc8ccd0 },
+  cup: { key: 'mg.latte.cup', file: `${DIR}/latte/obj_cup_pixellab.png`, frameWidth: 192, frameHeight: 192, placeholder: 0xf5d7ac },
+  pitcher: { key: 'mg.latte.pitcher', file: `${DIR}/latte/obj_pitcher_pixellab.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xc8ccd0 },
 } satisfies Record<string, SheetSpec>;
 
 /**
@@ -69,8 +87,6 @@ export const DELIVERY = {
   door: { key: 'mg.delivery.door', file: `${DIR}/delivery/goal_door.png`, frameWidth: 64, frameHeight: 128, placeholder: 0x9fd8b5 },
 } satisfies Record<string, SheetSpec>;
 
-/** Onde fica a parte de dentro da barra de timing (pixels da arte, 48 x 192): o trilho e o tubo do progresso. */
-export const BAR_TRACK = { x: 8, w: 19, y: 40, h: 113, progressX: 28, progressW: 3 };
 
 /** Tipos de esconderijo (data/minigames.json: games.chase.spots[].kind) -> textura. */
 export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, trash: CHASE.hideTrash, bush: CHASE.hideBush, car: CHASE.hideCar };

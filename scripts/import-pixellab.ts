@@ -1548,3 +1548,84 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   writeFileSync(`${dir}/obj_van_pixellab_left.png`, PNG.sync.write(signText(mirror(van()), 'DELIVERY', [75, 84, 177, 132], ink, shade)));
   console.log(`${dir}: furgão para a direita e para a esquerda`);
 }
+
+// ---------- Remédio escondido: tigela com comida (192 x 128), comprimido (48 x 24) e tubo de pasta (48 x 48) ----------
+// Desenhados em meia escala na cena (src/game/minigames/assets.ts: PILL); fontes em assets/_pixellab/minigames/pill.
+{
+  const dir = 'public/assets/minigames/pill';
+  mkdirSync(dir, { recursive: true });
+  for (const f of ['bowl', 'capsule', 'tube']) writeFileSync(`${dir}/${f}.png`, PNG.sync.write(readPng(`${SRC}/minigames/pill/${f}.png`)));
+  console.log(`${dir}: tigela, comprimido e tubo`);
+}
+
+// ---------- Banho e escovação: toalha (192 x 64, desenhada em 3x), nó de pelo (32 x 32) e escova (48 x 24) ----------
+// src/game/minigames/assets.ts: GROOMING; fontes em assets/_pixellab/minigames/grooming.
+{
+  const dir = 'public/assets/minigames/grooming';
+  mkdirSync(dir, { recursive: true });
+  for (const f of ['towel', 'mat', 'brush']) writeFileSync(`${dir}/${f}.png`, PNG.sync.write(readPng(`${SRC}/minigames/grooming/${f}.png`)));
+  console.log(`${dir}: toalha, nó de pelo e escova`);
+}
+
+// ---------- Varinha: o pompom com penas da ponta (32 x 32) ----------
+{
+  const dir = 'public/assets/minigames/wand';
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/toy.png`, PNG.sync.write(readPng(`${SRC}/minigames/wand/toy.png`)));
+  console.log(`${dir}/toy.png: pompom da varinha`);
+}
+
+// ---------- Pescaria: água (4 quadros de 64, o mesmo tile deslocado: balança devagar), cais (192 x 128) e boia ----------
+// Boia: 4 quadros de 32 (0 boiando, 1 um pixel abaixo, 2 afundando: a metade de baixo some, 3 no ar = 0).
+{
+  const dir = 'public/assets/minigames/fishing';
+  const shift = (src: PNG, dx: number, dy: number): PNG => {
+    const out = new PNG({ width: src.width, height: src.height });
+    for (let y = 0; y < src.height; y++) {
+      for (let x = 0; x < src.width; x++) {
+        const sx = (((x - dx) % src.width) + src.width) % src.width;
+        const sy = (((y - dy) % src.height) + src.height) % src.height;
+        const i = (sy * src.width + sx) * 4;
+        const o = (y * src.width + x) * 4;
+        for (let k = 0; k < 4; k++) out.data[o + k] = src.data[i + k]!;
+      }
+    }
+    return out;
+  };
+  const strip = (frames: PNG[]): PNG => {
+    const w = frames[0]!.width;
+    const out = new PNG({ width: w * frames.length, height: frames[0]!.height });
+    frames.forEach((f, i) => PNG.bitblt(f, out, 0, 0, w, f.height, i * w, 0));
+    return out;
+  };
+  const water = readPng(`${SRC}/minigames/fishing/water.png`);
+  writeFileSync(`${dir}/anim_water_pixellab.png`, PNG.sync.write(strip([water, shift(water, 2, 1), shift(water, 4, 2), shift(water, 2, 1)])));
+  writeFileSync(`${dir}/tile_pier_pixellab.png`, PNG.sync.write(readPng(`${SRC}/minigames/fishing/pier.png`)));
+  const bob = readPng(`${SRC}/minigames/fishing/bobber.png`);
+  let bottom = 0;
+  for (let y = 0; y < bob.height; y++) for (let x = 0; x < bob.width; x++) if (bob.data[(y * bob.width + x) * 4 + 3]! > 40) bottom = y;
+  // Sem o wrap: a boia é deslocada para baixo e corta na linha da água (a base dela).
+  const down = (dy: number, clip = Infinity) => {
+    const out = new PNG({ width: bob.width, height: bob.height });
+    for (let y = bob.height - 1; y >= dy; y--) {
+      if (y >= clip) continue;
+      for (let x = 0; x < bob.width; x++) {
+        const i = ((y - dy) * bob.width + x) * 4;
+        const o = (y * bob.width + x) * 4;
+        for (let k = 0; k < 4; k++) out.data[o + k] = bob.data[i + k]!;
+      }
+    }
+    return out;
+  };
+  writeFileSync(`${dir}/anim_bobber_pixellab.png`, PNG.sync.write(strip([bob, down(1), down(5, bottom - 1), bob])));
+  console.log(`${dir}: água, cais e boia`);
+}
+
+// ---------- Latte art: xícara vista de cima (192 x 192; o meio do café em data/minigames.json: cupCenter) e jarra (48 x 48) ----------
+{
+  const dir = 'public/assets/minigames/latte';
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/obj_cup_pixellab.png`, PNG.sync.write(readPng(`${SRC}/minigames/latte/cup.png`)));
+  writeFileSync(`${dir}/obj_pitcher_pixellab.png`, PNG.sync.write(readPng(`${SRC}/minigames/latte/pitcher.png`)));
+  console.log(`${dir}: xícara e jarra`);
+}

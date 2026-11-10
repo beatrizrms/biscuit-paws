@@ -85,6 +85,12 @@ export interface MiniGameDef {
   reputation?: Partial<Record<Outcome, number>>;
   /** Mapa da arena, quando o jogo usa um (ex.: a rua da fuga). */
   map?: string;
+  /**
+   * Fundo com os tiles do mundo (no lugar da cor chapada): `floor` cobre a tela (com mais de um, alterna por linha) e
+   * `rug` (um tile maior, ex.: o tapete) vai centrado em `rugAt` (px lógicos, 640 x 360), `rugScale` vezes maior
+   * (inteiro: a arena da varinha é o tapete em 4x).
+   */
+  backdrop?: { floor: string[]; rug?: string; rugAt?: [number, number]; rugScale?: number };
   rewards: Record<Difficulty, { ok: number; great: number }>;
   /** Parâmetros do jogo por dificuldade (cada jogo define os seus). */
   difficulties: Record<Difficulty, Record<string, unknown>>;

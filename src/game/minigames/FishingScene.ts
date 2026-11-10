@@ -9,18 +9,22 @@ import { content, uiText } from '../content';
 import { Player } from '../entities/Player';
 import { services } from '../services';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
-import { ART_SCALE, BAR_TRACK, CHASE, ensurePlaceholders, FISHING, loadSheets } from './assets';
+import { ART_SCALE, CHASE, ensurePlaceholders, FISHING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
 export const FISHING_SCENE = 'MiniGame.fishing';
 
 /** Linha d'água (y lógico) e de onde a jogadora pesca (a ponta do cais). */
 const WATER_TOP = 168;
-const PLAYER_AT = { x: 104, y: 176 };
+/** Os pés em cima do deck, perto da ponta (cais do PixelLab: tábuas nas linhas 22 a 70 da arte, postes até a 100). */
+const PLAYER_AT = { x: 104, y: 152 };
+/** Canto do cais (meia escala): a frente do deck (linha 70) encosta na linha da água e os postes entram nela. */
+const PIER_AT = { x: 32, y: WATER_TOP - 35 };
 /** Onde a boia cai quando a jogadora lança com E (sem clicar). */
 const DEFAULT_CAST = { x: 330, y: 252 };
-/** Barra de timing na tela (canto de cima à esquerda, lógico). */
-const BAR_AT = { x: 580, y: 120 };
+/** Barra de puxar (px lógicos): canto de cima à esquerda do painel; trilho (onde o peixe nada) e o medidor ao lado. */
+const BAR_AT = { x: 504, y: 64 };
+const BAR = { w: 76, h: 232, track: { x: 10, y: 10, w: 36, h: 212 }, meter: { x: 56, y: 10, w: 10, h: 212 } };
 
 type Stage = 'aim' | 'cast' | 'wait' | 'bite' | 'reel' | 'landed';
 
@@ -28,6 +32,11 @@ export class FishingScene extends MiniGameScene {
   private p!: FishingParams;
   private table: FishDef[] = [];
   private stage: Stage = 'aim';
+  /** Folga da linha (fração da distância que ela cai no meio) e quanto a ponta da vara verga (px): seguem o alvo da etapa. */
+  private slack = 0.2;
+  private bend = 0;
+  /** Onde a boia caiu: ela balança em volta deste ponto (esperando e no puxão). */
+  private bobberRest = { x: 0, y: 0 };
   private stageUntil = 0;
   private elapsed = 0;
   private fish: FishDef | null = null;
@@ -38,6 +47,7 @@ export class FishingScene extends MiniGameScene {
   private bar!: Phaser.GameObjects.Container;
   private barGfx!: Phaser.GameObjects.Graphics;
   private barFish!: Phaser.GameObjects.Image;
+  private barHelp!: Phaser.GameObjects.Text;
   private hint!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -66,7 +76,7 @@ export class FishingScene extends MiniGameScene {
     for (let y = WATER_TOP; y < GAME_HEIGHT; y += tile) {
       for (let x = 0; x < GAME_WIDTH; x += tile) this.add.sprite(x, y, FISHING.water.key, 0).setOrigin(0).setScale(ART_SCALE).play({ key: 'mg.fishing.water', startFrame: Math.floor(x / tile + y / tile) % 4 });
     }
-    this.add.image(24, WATER_TOP - 40, FISHING.pier.key, 0).setOrigin(0).setScale(ART_SCALE).setDepth(10);
+    this.add.image(PIER_AT.x, PIER_AT.y, FISHING.pier.key, 0).setOrigin(0).setScale(ART_SCALE).setDepth(10);
     this.player = new Player(this, PLAYER_AT.x, PLAYER_AT.y);
     this.player.face('right');
     this.player.setDepth(20);
@@ -92,16 +102,19 @@ export class FishingScene extends MiniGameScene {
     if (this.stage === 'wait') {
       // A boia balança calma e, de vez em quando, dá uma beliscada.
       this.bobber.setFrame(Math.floor(this.elapsed / 450) % 2);
+      this.bobber.setPosition(this.bobberRest.x + Math.sin(this.elapsed / 900) * 0.8, this.bobberRest.y + Math.sin(this.elapsed / 520) * 0.6);
       if (this.elapsed >= this.stageUntil) this.toBite();
     } else if (this.stage === 'bite') {
       if (this.elapsed >= this.stageUntil) this.escaped(uiText.minigames.fishing.missed);
     } else if (this.stage === 'reel' && this.reel && this.fish) {
-      this.reel = stepReel(this.reel, delta / 1000, this.controls.holding(), this.fish, this.p, this.rng);
+      this.reel = stepReel(this.reel, delta / 1000, this.controls.holdingEnter(), this.fish, this.p, this.rng);
+      // O peixe puxa: a boia treme e corre um pouco de um lado para o outro.
+      this.bobber.setPosition(this.bobberRest.x + Math.sin(this.elapsed / 110) * 2 + Math.sin(this.elapsed / 37) * 0.6, this.bobberRest.y + Math.sin(this.elapsed / 80) * 0.8);
       this.drawBar();
       if (this.reel.status === 'caught') this.landed();
       else if (this.reel.status === 'escaped') this.escaped(uiText.minigames.fishing.escaped);
     }
-    this.drawLine();
+    this.drawLine(delta);
   }
 
   protected resultText(r: MiniGameResult): string {
@@ -142,6 +155,9 @@ export class FishingScene extends MiniGameScene {
       },
       onComplete: () => {
         this.bobber.setFrame(3);
+        this.bobberRest = { x: this.bobber.x, y: this.bobber.y };
+        // Splash: a linha bate na água e fica bamba, depois assenta.
+        this.slack = 0.3;
         this.stage = 'wait';
         this.stageUntil = this.elapsed + this.rng.int(this.p.waitMs[0], this.p.waitMs[1]);
         this.say(uiText.minigames.fishing.waiting);
@@ -201,46 +217,96 @@ export class FishingScene extends MiniGameScene {
 
   // ---------- Desenho ----------
 
-  /** Ponta da vara (provisória, desenhada por código até existir a pose de pescar). */
+  /** Ponta da vara (provisória, desenhada por código até existir a pose de pescar): desce e recua quando verga. */
   private rodTip(): { x: number; y: number } {
-    return { x: PLAYER_AT.x + 26, y: PLAYER_AT.y - 46 };
+    const sway = this.stage === 'wait' || this.stage === 'aim' ? Math.sin(this.elapsed / 700) * 0.8 : 0;
+    return { x: PLAYER_AT.x + 26 - this.bend * 0.35, y: PLAYER_AT.y - 46 + this.bend + sway };
   }
 
-  private drawLine(): void {
+  /**
+   * Vara e linha como curvas. A linha é uma curva com a barriga para baixo (a folga) e um pouco de vento; a folga e o
+   * vergar da vara mudam devagar até o alvo de cada etapa: lançando, bamba; esperando, caída e balançando; na mordida,
+   * esticada com trancos; puxando, esticada e tremendo.
+   */
+  private drawLine(delta = 16): void {
+    const t = this.elapsed;
+    const target =
+      this.stage === 'cast' ? { slack: 0.32, bend: 0 }
+      : this.stage === 'wait' ? { slack: 0.16, bend: 0 }
+      : this.stage === 'bite' ? { slack: 0.02, bend: 6 + Math.abs(Math.sin(t / 70)) * 3 }
+      : this.stage === 'reel' ? { slack: 0.04, bend: 4 + Math.sin(t / 55) * 1.5 + (this.controls.holdingEnter() ? 2 : 0) }
+      : { slack: 0.2, bend: 0 };
+    this.slack += (target.slack - this.slack) * Math.min(1, delta / 260);
+    this.bend += (target.bend - this.bend) * Math.min(1, delta / 110);
+
     const g = this.line.clear();
     const hand = { x: PLAYER_AT.x + 6, y: PLAYER_AT.y - 28 };
     const tip = this.rodTip();
-    g.lineStyle(2, 0x6b4a33, 1).lineBetween(hand.x, hand.y, tip.x, tip.y); // vara
-    if (this.bobber.visible) g.lineStyle(1, 0xfff4e0, 0.9).lineBetween(tip.x, tip.y, this.bobber.x, this.bobber.y - 3);
+    // Vara: curva da mão até a ponta; vergada, o meio fica acima da reta (o arco da vara puxada).
+    const rodMid = { x: (hand.x + tip.x) / 2 - this.bend * 0.15, y: (hand.y + tip.y) / 2 - 1 - this.bend * 0.45 };
+    g.lineStyle(2, 0x6b4a33, 1).strokePoints(this.curve(hand, rodMid, tip, 8), false);
+    if (!this.bobber.visible) return;
+    const end = { x: this.bobber.x, y: this.bobber.y - 3 };
+    const dist = Math.hypot(end.x - tip.x, end.y - tip.y);
+    const sag = Math.min(46, this.slack * dist);
+    const wind = Math.sin(t / 1100) * 3 * (this.slack / 0.16) + Math.sin(t / 430) * 0.8 * this.slack * 4;
+    const mid = { x: (tip.x + end.x) / 2 + wind, y: (tip.y + end.y) / 2 + sag };
+    // A linha não passa da água: o que cairia abaixo da boia fica rente à superfície.
+    const pts = this.curve(tip, mid, end, 20).map((q) => new Phaser.Math.Vector2(q.x, Math.min(q.y, end.y)));
+    g.lineStyle(1, 0xfff4e0, 0.9).strokePoints(pts, false);
   }
 
+  /** Pontos de uma curva quadrática (de `a` a `c`, puxada por `b`). */
+  private curve(a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }, n: number): Phaser.Math.Vector2[] {
+    return Array.from({ length: n + 1 }, (_, i) => {
+      const k = i / n;
+      const u = 1 - k;
+      return new Phaser.Math.Vector2(u * u * a.x + 2 * u * k * b.x + k * k * c.x, u * u * a.y + 2 * u * k * b.y + k * k * c.y);
+    });
+  }
+
+  /** Painel da barra (desenhado por código): trilho com a caixa verde e o peixe, medidor ao lado e a ajuda embaixo. */
   private buildBar(): void {
     this.bar = this.add.container(BAR_AT.x, BAR_AT.y).setDepth(90).setVisible(false);
-    // A arte traz um peixinho parado do lado da barra: recorta só a barra (o peixe de verdade se move, desenhado à parte).
-    const frame = this.add.image(0, 0, FISHING.bar.key, 0).setOrigin(0).setScale(ART_SCALE).setCrop(0, 0, BAR_TRACK.progressX + BAR_TRACK.progressW + 2, FISHING.bar.frameHeight);
     this.barGfx = this.add.graphics();
-    this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale((ART_SCALE * 32) / FISHING.fish.frameWidth);
-    this.bar.add([frame, this.barGfx, this.barFish]);
+    // O peixe da partida, em meia escala (32 px lógicos), virado para cima como quem nada contra a corrente.
+    this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale(0.5).setAngle(-90);
+    this.barHelp = this.add
+      .text(BAR.w / 2, BAR.h + 6, uiText.minigames.fishing.reelHelp, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#3b2a32', align: 'center', backgroundColor: '#fff4e0e6', padding: { x: 4, y: 2 } })
+      .setOrigin(0.5, 0)
+      .setResolution(4);
+    this.bar.add([this.barGfx, this.barFish, this.barHelp]);
   }
 
-  /** Trilho por cima da arte: fundo, zona verde (o peixe), indicador e o tubo do progresso. */
+  /**
+   * A caixa verde é da jogadora: centrada no indicador, do tamanho da zona (a regra é a mesma: o peixe conta dentro
+   * dela). O peixe nada sozinho. Peixe na caixa: ela brilha e o medidor enche; fora, a caixa fica rosa e ele esvazia.
+   */
   private drawBar(): void {
     const r = this.reel;
     if (!r) return;
-    const s = ART_SCALE;
-    const x = BAR_TRACK.x * s;
-    const w = BAR_TRACK.w * s;
-    const top = BAR_TRACK.y * s;
-    const h = BAR_TRACK.h * s;
-    const yOf = (v: number) => top + (1 - v) * h; // 1 = em cima
+    const { track: t, meter: m } = BAR;
+    const yOf = (v: number) => t.y + (1 - v) * t.h; // 1 = em cima
+    const inside = Math.abs(r.indicator - r.zone) <= r.zoneSize / 2;
     const g = this.barGfx.clear();
-    g.fillStyle(0xfff7e6, 1).fillRect(x, top, w, h);
-    g.fillStyle(0xa8b77c, 1).fillRect(x, yOf(r.zone + r.zoneSize / 2), w, r.zoneSize * h);
-    g.fillStyle(0x463027, 1).fillRect(x - 0.5, yOf(r.indicator) - 1, w + 1, 2);
-    // Progresso: o tubo da direita enche de baixo para cima (verde perto de pescar, rosa perto de escapar).
-    g.fillStyle(0xe3c49e, 1).fillRect(BAR_TRACK.progressX * s, top, BAR_TRACK.progressW * s, h);
-    g.fillStyle(r.progress > 0.66 ? 0x68ad8a : r.progress > 0.33 ? 0xe0a94e : 0xd97890, 1).fillRect(BAR_TRACK.progressX * s, yOf(r.progress), BAR_TRACK.progressW * s, r.progress * h);
-    this.barFish.setPosition(x + w + 14, yOf(r.zone));
+    // Painel de madeira clara com borda escura (a moldura das outras telas).
+    g.fillStyle(0x3b2a32, 1).fillRoundedRect(-2, -2, BAR.w + 4, BAR.h + 4, 8);
+    g.fillStyle(0xe8c79a, 1).fillRoundedRect(0, 0, BAR.w, BAR.h, 6);
+    // Trilho: água funda embaixo, clara em cima.
+    g.fillStyle(0x3b2a32, 1).fillRect(t.x - 2, t.y - 2, t.w + 4, t.h + 4);
+    g.fillGradientStyle(0x9fd3e0, 0x9fd3e0, 0x4f8fa8, 0x4f8fa8, 1).fillRect(t.x, t.y, t.w, t.h);
+    // A caixa da jogadora.
+    const boxTop = yOf(Math.min(1, r.indicator + r.zoneSize / 2));
+    const boxBottom = yOf(Math.max(0, r.indicator - r.zoneSize / 2));
+    g.fillStyle(inside ? 0x7fd18f : 0xe7a0b4, 0.75).fillRect(t.x, boxTop, t.w, boxBottom - boxTop);
+    g.lineStyle(2, inside ? 0x2f7a46 : 0xb0496a, 1).strokeRect(t.x + 1, boxTop + 1, t.w - 2, boxBottom - boxTop - 2);
+    // Medidor: enche de baixo para cima (verde perto de pescar, rosa perto de escapar).
+    g.fillStyle(0x3b2a32, 1).fillRect(m.x - 2, m.y - 2, m.w + 4, m.h + 4);
+    g.fillStyle(0xfff4e0, 1).fillRect(m.x, m.y, m.w, m.h);
+    g.fillStyle(r.progress > 0.66 ? 0x68ad8a : r.progress > 0.33 ? 0xe0a94e : 0xd97890, 1).fillRect(m.x, yOf(r.progress), m.w, r.progress * m.h);
+    // O peixe: dentro da caixa, se debate (balança de lado).
+    const wiggle = inside ? Math.sin(this.elapsed / 45) * 2 : Math.sin(this.elapsed / 160) * 1;
+    this.barFish.setPosition(t.x + t.w / 2 + wiggle, yOf(r.zone));
   }
 
   private say(text: string): void {

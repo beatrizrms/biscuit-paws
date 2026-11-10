@@ -88,11 +88,13 @@ export function startReel(fish: FishDef, p: FishingParams, rng: Rng): ReelState 
 /** Avança a barra `dt` segundos. `holding`: a jogadora está segurando (botão ou E). */
 export function stepReel(s: ReelState, dt: number, holding: boolean, fish: FishDef, p: FishingParams, rng: Rng): ReelState {
   if (s.status !== 'reeling') return s;
-  // Indicador: segurar acelera para cima, soltar cai; bate nas pontas e para.
+  // Indicador: segurar acelera para cima, soltar cai. Ele é o meio da caixa da jogadora (do tamanho da zona): a caixa
+  // bate na ponta da barra e para ali, sem passar dela (o indicador fica a meia caixa das pontas).
+  const edge = s.zoneSize / 2;
   let vel = s.indicatorVel + (holding ? p.lift : -p.gravity) * dt;
   let indicator = s.indicator + vel * dt;
-  if (indicator <= 0 || indicator >= 1) {
-    indicator = Math.min(1, Math.max(0, indicator));
+  if (indicator <= edge || indicator >= 1 - edge) {
+    indicator = Math.min(1 - edge, Math.max(edge, indicator));
     vel = 0;
   }
   // Zona (o peixe): vai até um alvo sorteado; chegando, sorteia outro. Peixe raro é mais rápido (tabela).

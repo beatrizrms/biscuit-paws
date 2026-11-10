@@ -9,14 +9,14 @@ const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
 };
 
 export class MiniGameControls {
-  private keys: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'e' | 'space', Phaser.Input.Keyboard.Key>;
+  private keys: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'e' | 'space' | 'enter', Phaser.Input.Keyboard.Key>;
   private actionCbs: ((world?: { x: number; y: number }) => void)[] = [];
   private moveCbs: ((dir: 'up' | 'down' | 'left' | 'right') => void)[] = [];
   private pauseCbs: (() => void)[] = [];
 
   constructor(private scene: Phaser.Scene) {
     const K = Phaser.Input.Keyboard.KeyCodes;
-    this.keys = scene.input.keyboard!.addKeys({ up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, e: K.E, space: K.SPACE }, false) as typeof this.keys;
+    this.keys = scene.input.keyboard!.addKeys({ up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, e: K.E, space: K.SPACE, enter: K.ENTER }, false) as typeof this.keys;
     const kb = scene.input.keyboard!;
     const action = () => this.actionCbs.forEach((cb) => cb());
     const pause = () => this.pauseCbs.forEach((cb) => cb());
@@ -52,6 +52,14 @@ export class MiniGameControls {
   /** A ação está sendo segurada agora (E, Espaço ou botão do mouse): para jogos de segurar, como a pescaria. */
   holding(): boolean {
     return this.keys.e.isDown || this.keys.space.isDown || this.scene.input.activePointer.isDown;
+  }
+
+  /**
+   * Enter (ou o botão do mouse) segurado: para segurar sem confundir com a ação do E (na pescaria, o E lança e fisga
+   * e o Enter puxa).
+   */
+  holdingEnter(): boolean {
+    return this.keys.enter.isDown || this.scene.input.activePointer.isDown;
   }
 
   /** E/Espaço ou clique (com o ponto do mundo, quando foi clique). */
