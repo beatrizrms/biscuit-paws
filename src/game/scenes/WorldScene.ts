@@ -296,6 +296,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
+    // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
+    this.session.bus.on('construction.shift', ({ working, map }) => {
+      if (map !== this.map.id || this.builderAsking) return;
+      const npcId = this.session.content.construction.npc;
+      const spot = this.session.builderAt(map);
+      if (working && spot) {
+        this.spawnNpc(npcId, spot.at, spot.facing);
+        this.npcs.get(npcId)?.loop('martelando');
+      } else if (!working) {
+        const npc = this.npcs.get(npcId);
+        this.npcs.delete(npcId);
+        void npc?.leave();
+      }
+    });
     this.session.bus.on('surface.painted', rebuildIfHome);
     this.session.bus.on('dirt.cleaned', rebuildIfHome);
     // Cômodos: o mapa, a câmera (só o que ela conhece) e a luz do quintal mudam; descobrir tem um momento.

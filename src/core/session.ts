@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { isOpenAt, nextOpening, weekdayOf } from './schedule';
-import { type QuoteProblem, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
+import { type QuoteProblem, builderOnShift, builderSpot, cellKey, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
@@ -606,6 +606,7 @@ export class GameSession {
       }
       this.deliverArrived();
       this.service.tick();
+      this.checkBuilderShift();
       this.advanceStory();
     }
   }
@@ -2284,10 +2285,23 @@ export class GameSession {
     this.bus.emit('construction.asked', { more });
   }
 
+  /** Se o Tião estava no expediente no último minuto (para avisar quando ele chega e quando vai embora). */
+  private builderWasWorking: boolean | null = null;
+
+  /** A cada minuto: ele chegou (workFrom) ou foi embora (fim do expediente)? Avisa a cena para pôr ou tirar ele. */
+  private checkBuilderShift(): void {
+    const spot = builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
+    const working = !!spot && builderOnShift(this.content.construction, this.state.time);
+    if (this.builderWasWorking !== null && working !== this.builderWasWorking) this.bus.emit('construction.shift', { working, map: spot?.map ?? this.content.map.id });
+    this.builderWasWorking = working;
+  }
+
   /** O construtor está trabalhando hoje neste mapa: onde e virado para onde. */
   builderAt(mapId: string): { at: Cell; facing: Facing } | null {
     const spot = builderSpot(this.state.construction, this.content.map, this.state.day, this.content.construction);
     if (!spot || (spot.map ?? this.content.map.id) !== mapId) return null;
+    // Só no expediente dele (chega às 08:00 e vai embora depois de 8 horas).
+    if (!builderOnShift(this.content.construction, this.state.time)) return null;
     return { at: spot.at, facing: spot.facing };
   }
 

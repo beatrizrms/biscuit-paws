@@ -104,6 +104,8 @@ export interface GameEvents {
   'construction.declined': { kind: string };
   'construction.done': { kind: string };
   'construction.asked': { more: boolean };
+  /** O Tião chegou para o expediente (working) ou foi embora; map: onde fica a obra. */
+  'construction.shift': { working: boolean; map: string };
   'story.beat_completed': { beatId: string };
   'dialogue.requested': { dialogueId: string };
   'cutscene.requested': { cutsceneId: string };

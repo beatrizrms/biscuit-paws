@@ -246,7 +246,10 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
     expect(events.some((e) => e.name === 'construction.call')).toBe(true);
     expect(state.money).toBe(1000); // só paga ao aceitar
     const spots: unknown[] = [];
-    acceptAndWait(session, () => spots.push(session.builderAt('map.cafe_main')));
+    acceptAndWait(session, () => {
+      session.state.time = 10 * 60; // no expediente dele
+      spots.push(session.builderAt('map.cafe_main'));
+    });
     expect(spots).toEqual([{ at: [15, 7], facing: 'right' }]);
     expect(state.money).toBe(1000 - 200);
     expect(session.roomState('room.back_room')).toBe('abandoned');
@@ -262,7 +265,10 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
     cleanTag(session, 'back_room');
     expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
     const spots: unknown[] = [];
-    acceptAndWait(session, () => spots.push(session.builderAt('map.cafe_main')));
+    acceptAndWait(session, () => {
+      session.state.time = 10 * 60; // no expediente dele
+      spots.push(session.builderAt('map.cafe_main'));
+    });
     expect(spots).toEqual([{ at: [24, 4], facing: 'right' }, { at: [24, 4], facing: 'right' }]);
     expect(session.roomState('room.back_room')).toBe('restored');
     expect(state.money).toBe(1000 - 200 - 150);
