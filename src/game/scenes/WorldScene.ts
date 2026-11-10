@@ -45,7 +45,7 @@ import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
-import { daysText } from '../ui/constructionText';
+import { daysText, workName } from '../ui/constructionText';
 import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
@@ -1036,6 +1036,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
+    // O Tião trabalhando ali do lado: conversar diz quantos dias faltam para terminar a obra.
+    if (this.talkToBuilder(target)) return true;
     // Olhando para uma interação do mapa (a janela, uma plaquinha) até o alcance dela: ela vence o atendimento em volta
     // (equipamento, despensa, pia), menos um equipamento bem na frente dela. Clique: vale o que foi clicado.
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
@@ -1165,6 +1167,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const nearCat = () => this.cats.find((c) => c.visible && near(c.cell()));
     // Nos gatos, um pouco mais alto: o balão de cuidado (careBubbles) fica logo acima da cabeça.
     const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9 - 12, kind });
+    // O Tião trabalhando do lado: a dica de falar com ele.
+    const builder = s.builderNear(feet);
+    if (builder) {
+      const at = s.builderAt(s.location())!.at;
+      return { x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' as HintKind };
+    }
     // A interação na direção em que ela olha vence o atendimento em volta (a mesma regra do E).
     const ahead = s.atHome() && !this.stationAhead(feet) ? this.interactionAhead(feet) : undefined;
     if (ahead) return cell(ahead.at, `int_${Object.keys(ahead.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
@@ -1522,6 +1530,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const [dx, dy] = d === 'up' ? [0, -1] : d === 'down' ? [0, 1] : d === 'left' ? [-1, 0] : [1, 0];
     for (let k = 1; k <= (it.reach ?? 1); k++) if (cells.some(([x, y]) => x === c + dx * k && y === r + dy * k)) return it;
     return undefined;
+  }
+
+  /** Perto do Tião trabalhando (ou clicou nele): ele diz quantos dias faltam (hoje, amanhã ou N dias). */
+  private talkToBuilder(target?: Cell): boolean {
+    const b = this.session.builderNear(this.playerCells(), target);
+    if (!b) return false;
+    const t = uiText.construction;
+    const work = workName(b.job);
+    const text = b.daysLeft === 0 ? t.talkToday : b.daysLeft === 1 ? t.talkTomorrow : t.talkDays.replace('{n}', daysText(b.daysLeft));
+    this.ui.npcSay(this.session.content.construction.npc, text.replace('{work}', work));
+    return true;
   }
 
   /** Célula na frente dela (para soltar o que está nas mãos). */

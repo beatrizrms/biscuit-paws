@@ -135,6 +135,36 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.state.construction.quote?.cells?.length).toBe(both.cells.length);
   });
 
+  it('falar com o Tião trabalhando diz quantos dias faltam (hoje, amanhã, N); longe dele ou fora do expediente, nada', () => {
+    const s = session();
+    s.state.construction.repaired = ['inside', 'outside'];
+    expect(s.quoteFinish('surface.hall_floor', 'finish.wood_planks', [9, 4], [15, 9])).toEqual({ ok: true });
+    expect(s.answerQuote(true)).toEqual({ ok: true });
+    s.endDay('home');
+    s.state.location = 'map.cafe_main';
+    s.state.time = 10 * 60;
+    const at = s.builderAt('map.cafe_main')!.at;
+    const job = s.state.construction.job!;
+    const near: [number, number][] = [[at[0] + 1, at[1]]];
+    expect(s.builderNear(near)?.daysLeft).toBe(job.endDay! - s.state.day);
+    expect(s.builderNear([[at[0] + 4, at[1]]])).toBeNull();
+    // Dia a dia, a contagem desce até 0 ("hoje eu termino") no último dia de obra.
+    const seen: number[] = [];
+    for (let i = 0; i < 10 && s.state.construction.job; i++) {
+      s.state.time = 10 * 60;
+      s.state.location = 'map.cafe_main'; // de manhã ela chega pela rua
+      const spot = s.builderAt('map.cafe_main');
+      if (spot) seen.push(s.builderNear([[spot.at[0] + 1, spot.at[1]]])!.daysLeft);
+      s.endDay('home');
+    }
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.at(-1)).toBe(0);
+    expect(seen.every((n, i) => i === 0 || n === seen[i - 1]! - 1)).toBe(true);
+    // Fora do expediente ou sem obra: nada.
+    s.state.time = 22 * 60;
+    expect(s.builderNear(near)).toBeNull();
+  });
+
   it('aceita: área isolada (fita, não dá para pisar), ele trabalha ao lado; no fim, só aquelas células mudam', () => {
     const s = session();
     s.state.construction.repaired = ['inside', 'outside'];

@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
-import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
+import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
@@ -2595,6 +2595,19 @@ export class GameSession {
     // Só no expediente dele (chega às 08:00 e vai embora depois de 8 horas).
     if (!builderOnShift(this.content.construction, this.state.time)) return null;
     return { at: spot.at, facing: spot.facing };
+  }
+
+  /**
+   * O Tião trabalhando neste mapa, perto dos pés dela (até `reach` células): a obra e quantos dias faltam para ele
+   * terminar (0 = termina hoje, 1 = amanhã). null se ele não está aqui trabalhando ou está longe.
+   */
+  builderNear(feet: readonly Cell[], target?: Cell, reach = 1): { job: ConstructionJob; daysLeft: number } | null {
+    const b = this.builderAt(this.state.location);
+    const job = this.state.construction.job;
+    if (!b || !job || job.endDay === undefined) return null;
+    if (target && (target[0] !== b.at[0] || target[1] !== b.at[1])) return null;
+    if (!feet.some((f) => Math.max(Math.abs(f[0] - b.at[0]), Math.abs(f[1] - b.at[1])) <= reach)) return null;
+    return { job, daysLeft: Math.max(0, job.endDay - this.state.day) };
   }
 
   /** Cone e fita em volta do lugar do Tião neste mapa (nos dias de obra): cada um no primeiro lugar livre, só no chão. */

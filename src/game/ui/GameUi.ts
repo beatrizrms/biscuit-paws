@@ -950,6 +950,12 @@ export class GameUi {
       mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
   }
 
+  /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */
+  npcSay(npcId: string, text: string): void {
+    this.dialogueQueue.push({ speaker: content.npcs[npcId]?.name ?? '', text, npc: npcId });
+    this.openDialogueIfFree();
+  }
+
   private queueDialogue(dialogueId: string): void {
     const lines = content.dialogue.dialogues[dialogueId]?.lines ?? [];
     this.dialogueQueue.push(...lines.map((l) => ({ speaker: this.fillNames(l.speaker), text: this.fillNames(l.text), npc: l.npc })));
