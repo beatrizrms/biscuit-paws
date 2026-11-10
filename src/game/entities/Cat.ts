@@ -8,8 +8,9 @@ import { content } from '../content';
 const SPEED = 40;
 const ARRIVE_PX = 2;
 const STUCK_MS = 1500;
-/** Comendo de lado: quanto ele chega mais perto do pote (px do jogo; 14 = a boca encosta no pote). */
-const EAT_NUDGE = 14;
+/** Comendo de lado: quanto ele chega mais perto do pote e sobe (px do jogo), para a boca cair na abertura do pote. */
+const EAT_NUDGE = 21;
+const EAT_RISE = 10;
 
 /** Os objetos dos gatos no mapa (caminha, arranhador, árvore) e quais estão ocupados (um gato por lugar). */
 export interface CatPlaces {
@@ -53,6 +54,8 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private eatFacing: 'left' | 'right' | null = null;
   /** Até quando fica sentado comendo (ms do relógio da cena). */
   private eatingUntil = 0;
+  /** Comendo: a linha dos pés antes de subir até o pote (desenhado na frente do pote). */
+  private eatBaseY: number | null = null;
   /** Lugar de um objeto que ele está usando (ocupado em places.taken) e se subiu nele (sem colisão). */
   private using: CatSpot | null = null;
   private perched = false;
@@ -151,7 +154,9 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
           const eat = this.eatFacing && catAnim(this.scene, this.variant, `eat_${this.eatFacing}`);
           if (eat && !eat.endsWith('-sit')) {
             // A cabeça baixa vai até o pote: chega meio passo para o lado dele (o corpo não encosta no pote).
+            this.eatBaseY = this.y;
             this.x += this.eatFacing === 'right' ? EAT_NUDGE : -EAT_NUDGE;
+            this.y -= EAT_RISE;
             this.play(eat, true);
           } else this.play(`${catTexture(this.variant)}-sit`, true);
           this.eatFacing = null;
@@ -168,7 +173,8 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
       }
     }
     // Em cima do objeto: na frente dele (a profundidade da base do objeto); no chão, pelos pés.
-    this.setDepth(this.perched && this.using?.perch ? ySortDepth(this.using.perch.baseY) + 1 : ySortDepth(this.y));
+    if (this.eatBaseY !== null && now >= this.eatingUntil) this.eatBaseY = null;
+    this.setDepth(this.perched && this.using?.perch ? ySortDepth(this.using.perch.baseY) + 1 : this.eatBaseY !== null ? ySortDepth(this.eatBaseY) + 1 : ySortDepth(this.y));
   }
 
   /** Indo até o lugar do objeto (ainda não chegou). */
