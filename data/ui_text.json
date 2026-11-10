@@ -141,14 +141,18 @@
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
   "hoursSign": {
-    "text": "{name} · {days}, das {open} às {close}.",
-    "open": "Aberto agora (fecha às {close}).",
-    "closed": "Fechado agora · abre {when}.",
-    "closedNoTime": "Fechado agora.",
     "cafe": "Café",
-    "notYet": "{name} · ainda não atende clientes.",
-    "lunch": " Almoço das {from} às {to}.",
-    "lunchNow": "Almoço agora (volta às {back})."
+    "open": "Aberto agora · fecha às {close}",
+    "closed": "Fechado agora · abre {when}",
+    "closedNoTime": "Fechado agora",
+    "notYet": "Ainda não atende clientes",
+    "lunchNow": "Almoço agora · volta às {back}",
+    "lunch": "Almoço",
+    "closedDay": "fechado",
+    "today": "hoje",
+    "hours": "{open} – {close}",
+    "close": "E, Esc ou clique para fechar",
+    "weekdays": ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
   },
   "doorClosed": {
     "text": "{name} · fechado agora. Abre {when}.",

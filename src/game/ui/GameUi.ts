@@ -10,7 +10,7 @@ import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
-import { daysText as weekDaysText, openingText } from './ScheduleApp';
+import { openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
@@ -205,6 +205,11 @@ export class GameUi {
     });
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
     // Estabelecimento fechado: o aviso da porta, com quando abre (hoje, amanhã ou o dia da semana).
+    // Trocou de lugar: o aviso de antes (ex.: a porta fechada) não acompanha.
+    bus.on('map.entered', () => {
+      window.clearTimeout(this.toastTimer);
+      this.toastEl.classList.remove('show');
+    });
     bus.on('door.closed', ({ name, opensDay, opensAt }) => {
       const when = opensDay === null || opensAt === null ? '' : this.whenText({ day: opensDay, open: opensAt });
       this.toast((when ? uiText.doorClosed.text : uiText.doorClosed.noTime).replace('{name}', name).replace('{when}', when), 4000);
@@ -376,17 +381,59 @@ export class GameUi {
     return (ahead === 0 ? t.today : ahead === 1 ? t.tomorrow : t.onDay.replace('{weekday}', uiText.weekdays[this.session.service.weekday(next.day)] ?? '')).replace('{time}', next.open);
   }
 
-  /** Plaquinha de horário na fachada: os dias e as horas do estabelecimento e se está aberto agora. */
+  /**
+   * Plaquinha de horário na fachada: um quadro no centro da tela (como um mural), com o status de agora, a semana dia
+   * por dia (hoje em destaque, dias fechados escritos) e, no café, o almoço. Um por vez; E, Esc ou clique fecham, e o
+   * relógio para enquanto ele está aberto (como a caixa de confirmação).
+   */
   showHours(doorId: string): void {
     const h = this.session.placeHours(doorId);
-    if (!h) return;
+    if (!h || this.reveal) return;
     const t = uiText.hoursSign;
     const name = h.cafe ? t.cafe : h.name;
-    if (!h.enabled) return this.toast(t.notYet.replace('{name}', name), 5000);
-    const hours = t.text.replace('{name}', name).replace('{days}', weekDaysText(h.days)).replace('{open}', h.open).replace('{close}', h.close);
-    const lunch = h.lunch ? t.lunch.replace('{from}', h.lunch.from).replace('{to}', h.lunch.to) : '';
-    const now = h.lunch?.now ? t.lunchNow.replace('{back}', h.lunch.to) : h.openNow ? t.open.replace('{close}', h.close) : h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime;
-    this.toast(`${hours}${lunch} ${now}`, 5000);
+    const [status, tone] = !h.enabled
+      ? [t.notYet, 'closed']
+      : h.lunch?.now
+        ? [t.lunchNow.replace('{back}', h.lunch.to), 'lunch']
+        : h.openNow
+          ? [t.open.replace('{close}', h.close), 'open']
+          : [h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime, 'closed'];
+    const today = this.session.service.weekday();
+    const hours = t.hours.replace('{open}', h.open).replace('{close}', h.close);
+    const rows = t.weekdays
+      .map((day, i) => {
+        const label = i === today ? `${day} · ${t.today}` : day;
+        return `<tr class="${i === today ? 'today' : ''}${h.days[i] ? '' : ' off'}"><td>${esc(label)}</td><td>${esc(h.days[i] ? hours : t.closedDay)}</td></tr>`;
+      })
+      .join('');
+    const lunch = h.lunch ? `<p class="hb-lunch">${esc(t.lunch)}: ${esc(t.hours.replace('{open}', h.lunch.from).replace('{close}', h.lunch.to))}</p>` : '';
+    const el = document.createElement('div');
+    el.className = 'confirm-layer hours-layer';
+    el.innerHTML = `<div class="hours-board"><div class="hb-paper">
+        <h2>${esc(name)}</h2>
+        <p class="hb-status ${tone}">${esc(status)}</p>
+        <table>${rows}</table>${lunch}
+        <p class="hb-close">${esc(t.close)}</p>
+      </div></div>`;
+    this.root.appendChild(el);
+    const close = () => {
+      window.removeEventListener('keydown', onKey);
+      el.remove();
+      this.reveal = null;
+      this.refresh();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (['KeyE', 'Escape', 'Enter', 'Space'].includes(e.code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+      }
+    };
+    this.reveal = { el, done: close };
+    this.refresh();
+    // Espera um instante: o mesmo E que abriu não fecha.
+    window.setTimeout(() => window.addEventListener('keydown', onKey), 200);
+    el.addEventListener('click', close);
   }
 
   toggleCatalog(): void {

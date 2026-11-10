@@ -588,3 +588,7 @@ Decisão: `health.json: care.litterPoop` (`afterDays` 2, `perCat` 1, `maxOnFloor
 ## 144. Falar com o Tião trabalhando mostra quantos dias faltam (nov/2026)
 Pedido: interagir com o Tião durante a obra mostra quantos dias faltam para terminar.
 Decisão: perto dele no expediente (ou clicando nele), E abre uma fala dele com o retrato: "Hoje eu termino!", "Termino amanhã." ou "Ainda faltam N dias para terminar.", com o nome da obra (`session.builderNear`, `GameUi.npcSay`). A dica "E Falar com o Tião" aparece em cima dele.
+
+## 145. Quadro de horário no centro da tela (nov/2026)
+Pedido: o horário das plaquinhas aparecia como aviso no topo, e clicar várias vezes fazia ele continuar aparecendo depois de entrar no estabelecimento; mostrar no centro da tela, como um mural.
+Decisão: a plaquinha (decisão 131) abre um quadro centralizado (), com moldura de madeira, dois pregos e papel creme: o nome, o status de agora numa faixa (verde aberto, rosa fechado com quando abre, amarelo no almoço), a semana dia por dia (hoje em destaque, dias fechados escritos "fechado") e, no café, o almoço. Um por vez; E, Esc ou clique fecham, e o relógio para enquanto está aberto (o mesmo mecanismo da caixa de confirmação). O aviso curto da porta fechada continua, mas some ao trocar de mapa ().
