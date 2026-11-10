@@ -87,6 +87,7 @@ cat-cafe-game/
 | `customer.served` | pedido entregue: o cliente paga (e gorjeta, se satisfeito) | `customerId, recipeId, price, tip, quality` |
 | `sink.changed` | louça entrou na pia ou começou a lavagem | `load` |
 | `heavy.stored` | saco pesado guardado no estoque do café | `itemId` |
+| `storage.changed` | um baú (a caixa pet) mudou: guardou, pegou ou empilhou (`count` positivo = entrou no baú) | `uid, count` |
 | `customer.left` | cliente foi embora (`happy`: foi atendido) | `customerId, happy` |
 | `menu.changed` | quadro do cardápio mudou | `menu` |
 | `prep.started` / `prep.ready` | etapa começou / ficou pronta no equipamento (`final`: o pedido; senão, massa para a próxima etapa) | `stationUid, recipeId` (+ `final`) |

@@ -172,6 +172,30 @@ export class CafeService {
     return { ok: true };
   }
 
+  /** Ingredientes que a despensa já tem (pacote fechado ou aberto): os que o "empilhar" repõe. */
+  private inPantry(itemId: string): boolean {
+    return (this.st.pantry[itemId] ?? 0) > 0 || (this.st.pantryOpen[itemId] ?? 0) > 0;
+  }
+
+  /** Quanto o "empilhar" passaria agora da mochila para a despensa (pacotes). */
+  pantryStackable(): number {
+    return Object.entries(this.st.inventory).filter(([id]) => this.isIngredient(id) && this.inPantry(id)).reduce((n, [, q]) => n + q, 0);
+  }
+
+  /** Empilhar (como no Stardew Valley): da mochila para a despensa, só os ingredientes que ela já tem (repor). */
+  stackInPantry(): ServiceResult {
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    const moved = Object.entries(this.st.inventory).filter(([id, q]) => q > 0 && this.isIngredient(id) && this.inPantry(id));
+    if (moved.length === 0) return { ok: false, reason: 'nothing_here' };
+    for (const [id, q] of moved) {
+      this.st.pantry[id] = (this.st.pantry[id] ?? 0) + q;
+      delete this.st.inventory[id];
+    }
+    this.h.bus.emit('pantry.stored', { count: moved.reduce((n, [, q]) => n + q, 0) });
+    this.h.advanceStory();
+    return { ok: true };
+  }
+
   private useDoses(itemId: string, n: number): void {
     const servings = this.h.content.items[itemId]?.servings ?? 1;
     for (let i = 0; i < n; i++) {

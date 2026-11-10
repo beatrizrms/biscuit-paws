@@ -554,7 +554,7 @@ const SHEETS: Sheet[] = [
     },
   },
   {
-    // Upgrades dos gatos (gerados no PixelLab, automaticos/): pote de ração e caixa de areia automáticos. Nomes pet_*.
+    // Upgrades dos gatos (gerados no PixelLab, automaticos/): pote de ração e caixa de areia automáticos e a caixa pet. Nomes pet_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_pet.png',
     pieces: 'data/tilesets/pixellab_pet.json',
     columns: 2,
@@ -570,6 +570,8 @@ const SHEETS: Sheet[] = [
       cesta_novelos: { file: '05_06_cafe/obj_14.png', w: 1, h: 1 },
       almofada_capitone: { file: '04_cafe_4/obj_6.png', w: 1, h: 1 },
       caixa_areia_verde: { file: 'icones/loja/obj_1.png', w: 1, h: 1 },
+      // Caixa pet (baú dos itens dos gatos, 8 espaços): gerada em 2026-11-10, Pro Flash 64x64 com o pote como âncora.
+      box: { file: 'automaticos/caixa_pet.png', w: 1, h: 1 },
     },
   },
   {

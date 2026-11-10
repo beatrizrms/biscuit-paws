@@ -1,6 +1,7 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
 import { validateReview } from './review';
+import { validateStorage, type StorageDef } from './storage';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
 import { validateFairSetup, type FairSetupData, type FairSetupParams } from './fairSetup';
@@ -64,6 +65,8 @@ export interface ItemDef {
   placeOn?: string;
   /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
   room?: string;
+  /** Baú (a caixa pet): espaços e tags aceitas; E no móvel abre o baú dele (src/core/storage.ts). */
+  storage?: StorageDef;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
   storesAs?: { item: string; qty: number };
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
@@ -825,6 +828,11 @@ export function validateContent(raw: RawContent): string[] {
     if (item.placeOn && !itemTags.has(item.placeOn)) err(`items: "${item.id}" vai em cima de "${item.placeOn}", tag que nenhum item tem`);
     if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);
     if (item.storesAs && !item.tags.includes(raw.carry.heavy.tag)) err(`items: "${item.id}" tem storesAs mas não é pesado (tag "${raw.carry.heavy.tag}")`);
+    if (item.storage) {
+      validateStorage(item.id, item.storage).forEach((e) => err(`items: ${e}`));
+      if ((item.kind ?? 'furniture') !== 'furniture') err(`items: "${item.id}" tem storage mas não é móvel`);
+      for (const tag of item.storage.accepts ?? []) if (!itemTags.has(tag)) err(`items: "${item.id}" storage aceita a tag "${tag}", que nenhum item tem`);
+    }
   }
   for (const [id, icon] of Object.entries(raw.icons.icons)) {
     if (icon.sheet && !raw.icons.sheets?.[icon.sheet]) err(`icons: "${id}" usa folha inexistente "${icon.sheet}"`);

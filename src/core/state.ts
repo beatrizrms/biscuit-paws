@@ -72,6 +72,8 @@ export interface GameState {
    * pantryOpen) conta para as receitas; as compras vão para a mochila e ela guarda no armário.
    */
   pantry: Record<string, number>;
+  /** Baús do café (v29): o conteúdo de cada móvel com storage (a caixa pet), pelo uid dele: item -> quantidade. */
+  petBoxes: Record<string, Record<string, number>>;
   /** Louça limpa no estoque (v8): xícaras, copos, pratos. A suja está nas mãos ou nas superfícies. */
   dishes: Record<Vessel, number>;
   /** O que está nas mãos (v8). */
@@ -201,6 +203,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     menu: [],
     pantryOpen: {},
     pantry: {},
+    petBoxes: {},
     dishes: { cup: 0, glass: 0, plate: 0 },
     hands: [],
     surfaces: [],

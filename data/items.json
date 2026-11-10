@@ -1699,6 +1699,26 @@
       }
     },
     {
+      "id": "item.pet_box",
+      "name": "Caixa pet",
+      "price": 60,
+      "tile": "pet_box",
+      "description": "Caixa para guardar as coisas dos gatos: ração, areia, petiscos, brinquedos e cuidados. 8 espaços. E nela para abrir.",
+      "tags": [
+        "furniture",
+        "pet_storage"
+      ],
+      "storage": {
+        "slots": 8,
+        "accepts": [
+          "pet"
+        ]
+      },
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.flour",
       "name": "Farinha",
       "description": "Farinha para o pão de queijo e o bolo: rende 10 receitas.",
