@@ -3,7 +3,7 @@
 import { newConstruction, type ConstructionState } from './construction';
 import type { HandItem } from './carry';
 import { HOTBAR_SIZE, newHotbar } from './hotbar';
-import type { GameState } from './state';
+import type { GameState, PlacedItem } from './state';
 import { DEFAULT_PRONOUN, isPronoun } from './pronoun';
 import { isBusinessStage } from './business';
 import { cleanPlayerName, normalizeAppearance, type CharacterData } from './appearance';
@@ -226,7 +226,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     money: v2.money ?? 0,
     flags: { ...(v2.flags ?? {}) },
     inventory,
-    placed: (v2.placed ?? []).filter((p) => knownItem(p.item, `móvel ${p.uid}`)).map((p) => ({ ...p, at: [p.at[0], p.at[1]] })),
+    placed: (v2.placed ?? []).filter((p) => knownItem(p.item, `móvel ${p.uid}`)).map((p) => normalizePlaced(p, known)),
     nextUid: v2.nextUid ?? 1,
     story: { completed: [...(v2.story?.completed ?? [])], completedOn: { ...(v2.story?.completedOn ?? {}) } },
     cats: Object.fromEntries(
@@ -413,6 +413,17 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
 }
 
 /** A melhor foto salva (quebrada = nenhuma); gatos que sumiram saem da lista. */
+/** Móvel posicionado: só os campos que existem; areia do dia e o estoque do automático (inteiros, item conhecido). */
+function normalizePlaced(p: PlacedItem, known: KnownIds): PlacedItem {
+  const out: PlacedItem = { uid: p.uid, item: p.item, at: [p.at[0], p.at[1]] };
+  if (Number.isInteger(p.refilledOn)) out.refilledOn = p.refilledOn;
+  if (Number.isInteger(p.stock) && p.stock! > 0 && p.stockItem && known.items.has(p.stockItem)) {
+    out.stock = p.stock;
+    out.stockItem = p.stockItem;
+  }
+  return out;
+}
+
 function normalizeBestPhoto(p: unknown, knownCat: (id: string) => boolean): GameState['bestPhoto'] {
   const x = p as Partial<NonNullable<GameState['bestPhoto']>> | null | undefined;
   if (!x || typeof x.pose !== 'string' || typeof x.score !== 'number' || typeof x.day !== 'number') return null;

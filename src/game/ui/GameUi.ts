@@ -197,6 +197,12 @@ export class GameUi {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
         this.toast((session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic).replace('{name}', session.catName(catId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4000);
     });
+    // Tigela, areia e automáticos: abasteceu, está acabando, faltou areia.
+    const pet = uiText.pet;
+    const itemName = (id: string) => content.items[id]?.name ?? '';
+    bus.on('pet.loaded', ({ itemId, days }) => this.toast(pet.loaded.replace('{name}', itemName(itemId)).replace('{days}', String(days)), 3500));
+    bus.on('pet.low', ({ itemId, days }) => this.toast((days > 0 ? pet.low : pet.empty).replace('{name}', itemName(itemId)).replace('{days}', String(days)), 4500));
+    bus.on('litter.missed', () => this.toast(pet.litterMissed, 4500));
     bus.on('cat.medicated', ({ catId, dosesGiven, days }) => {
       if (dosesGiven < days) this.toast(uiText.health.dose.replace('{name}', session.catName(catId)).replace('{n}', String(dosesGiven)).replace('{days}', String(days)));
     });

@@ -75,6 +75,8 @@
       "price": 12,
       "kind": "consumable",
       "icon": "areia",
+      "use": "litter_box",
+      "description": "Uma troca de areia. Ponha na caixa de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "tags": [
         "pet",
         "litter"
@@ -1075,6 +1077,72 @@
       "storesAs": {
         "item": "item.cat_litter",
         "qty": 4
+      }
+    },
+    {
+      "id": "item.cat_food_10kg",
+      "name": "Ração 10 kg (10 dias)",
+      "price": 110,
+      "kind": "consumable",
+      "icon": "racao_10kg",
+      "description": "Saco grande: rende 10 porções de ração simples. Enche o pote automático de uma vez.",
+      "tags": [
+        "pet",
+        "heavy"
+      ],
+      "storesAs": {
+        "item": "item.cat_food_basic",
+        "qty": 10
+      }
+    },
+    {
+      "id": "item.litter_10kg",
+      "name": "Areia 10 kg (10 dias)",
+      "price": 85,
+      "kind": "consumable",
+      "icon": "areia_10kg",
+      "description": "Saco grande: rende 10 trocas de areia. Enche a caixa de areia automática de uma vez.",
+      "tags": [
+        "pet",
+        "heavy"
+      ],
+      "storesAs": {
+        "item": "item.cat_litter",
+        "qty": 10
+      }
+    },
+    {
+      "id": "item.auto_feeder",
+      "name": "Pote de ração automático",
+      "price": 150,
+      "tile": "food_bowl",
+      "hue": 160,
+      "autoDays": 10,
+      "description": "Upgrade: guarda ração para até 10 dias e serve os gatos sozinho todo dia. Abasteça com a ração na barra.",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "food_bowl"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.auto_litter_box",
+      "name": "Caixa de areia automática",
+      "price": 180,
+      "tile": "ph_litter_box",
+      "hue": 160,
+      "autoDays": 10,
+      "description": "Upgrade: guarda areia para até 10 dias e se troca sozinha todo dia. Abasteça com a areia na barra.",
+      "tags": [
+        "furniture",
+        "for:cats",
+        "litter_box"
+      ],
+      "requires": {
+        "flag": "has.cat"
       }
     },
     {

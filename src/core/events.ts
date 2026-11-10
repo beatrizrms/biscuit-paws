@@ -49,6 +49,14 @@ export interface GameEvents {
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };
+  /** Abasteceu um automático (pote de ração, caixa de areia): o item e quantos dias ficou guardado. */
+  'pet.loaded': { itemId: string; days: number };
+  /** Um automático gastou e ficou com poucos dias (ou vazio). */
+  'pet.low': { itemId: string; days: number };
+  /** Areia limpa na caixa comum. */
+  'litter.refilled': { uid: string };
+  /** Fim de um dia sem areia limpa: a higiene dos gatos caiu mais. */
+  'litter.missed': { day: number };
   /** reason: "home" (foi para casa), "passOut" (desmaiou às 2h), "story" (a história encerrou o dia). */
   'day.ended': { day: number; reason: 'home' | 'passOut' | 'story' | 'sleep'; earned: number; jobs: number };
   'day.started': { day: number };

@@ -134,7 +134,12 @@
     "no_food": "Não tenho ração. O mercado fica ali na rua.",
     "no_cat": "Ainda não tem gatinho para comer.",
     "already_owned": "Você já tem isso.",
-    "already_fed": "Já comeu hoje. Amanhã tem mais!",
+    "already_fed": "Já comeram hoje. Amanhã tem mais!",
+    "already_clean": "A areia já está limpa hoje.",
+    "no_litter": "Não tenho areia. O mercado fica ali na rua.",
+    "needs_litter": "Preciso da areia na mão. Escolha ela na barra (teclas 1 a 8).",
+    "full": "Já está cheio. Volte quando estiver acabando.",
+    "other_item": "Ainda tem da outra no pote. Espere acabar para trocar.",
     "unknown_job": "Pedido desconhecido.",
     "job_full": "Um pedido de cada vez. Termine o que você aceitou.",
     "job_unavailable": "Esse pedido não está disponível agora.",
@@ -655,6 +660,12 @@
       "failed": "Ele desconfiou e não comeu."
     }
   },
+  "pet": {
+    "loaded": "{name}: {days} dias guardados.",
+    "low": "{name}: só mais {days} dia(s). Hora de abastecer.",
+    "empty": "{name} acabou. Abasteça com a barra.",
+    "litterMissed": "Ficou sem areia limpa: os gatos estão menos limpinhos."
+  },
   "notesApp": {
     "app": "Notas",
     "title": "Lista de compras",
@@ -837,6 +848,7 @@
     "int_sleep": "Dormir",
     "dirt": "Varrer",
     "bowl": "Encher a tigela",
+    "litter": "Pôr areia",
     "cat_treat": "Dar o petisco",
     "cat_medicine": "Dar o remédio",
     "cat_pickup": "Pegar no colo",

@@ -5,7 +5,7 @@ import { content } from '../content';
 import { itemIconHtml } from './Hotbar';
 
 /** O tile inteiro (w x h células, mais as linhas de rise) reduzido para caber em box x box pixels do jogo. */
-export function tileThumbHtml(tileName: string | undefined, box: number): string {
+export function tileThumbHtml(tileName: string | undefined, box: number, hue?: number): string {
   const catalog = content.catalog;
   const def = tileName ? catalog.tiles[tileName] : undefined;
   const sheet = def ? catalog.sheets[def.sheet] : undefined;
@@ -15,12 +15,12 @@ export function tileThumbHtml(tileName: string | undefined, box: number): string
   const h = def.h + rise;
   const k = Math.min(box / (def.w * cell), box / (h * cell));
   const px = (n: number) => `${+(n * k).toFixed(2)}px`;
-  return `<span class="thumb" style="width:${px(def.w * cell)};height:${px(h * cell)};background-image:url(${sheet.image});background-size:${px(
+  return `<span class="thumb" style="${hue ? `filter:hue-rotate(${hue}deg);` : ''}width:${px(def.w * cell)};height:${px(h * cell)};background-image:url(${sheet.image});background-size:${px(
     sheet.columns * cell,
   )} auto;background-position:-${px(def.col * cell)} -${px((def.row - rise) * cell)}"></span>`;
 }
 
 /** Miniatura de um item: o móvel (tile) ou o ícone. */
 export function itemThumbHtml(item: ItemDef, box: number): string {
-  return item.tile ? tileThumbHtml(item.tile, box) : itemIconHtml(item, Math.min(box, 32));
+  return item.tile ? tileThumbHtml(item.tile, box, item.hue) : itemIconHtml(item, Math.min(box, 32));
 }

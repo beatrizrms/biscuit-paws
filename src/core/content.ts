@@ -52,7 +52,7 @@ export interface ItemDef {
   iconImage?: string;
   /** Quadro de data/emotes.json desenhado acima da cabeça dela enquanto tiver o item (ex.: a caixa de uma entrega). */
   carrySprite?: string;
-  /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "cat" = dar ao gato (petisco); "wand"/"brush" = abrir o cuidado no gato (varinha, escova). */
+  /** Uso a partir da barra (item ativo): "food_bowl" = encher a tigela; "litter_box" = pôr areia na caixa; "cat" = dar ao gato (petisco); "wand"/"brush" = abrir o cuidado no gato (varinha, escova). */
   use?: ItemUse;
   /** Ingredientes: doses que um pacote rende (padrão 1). */
   servings?: number;
@@ -66,6 +66,12 @@ export interface ItemDef {
   dishes?: Partial<Record<Vessel, number>>;
   tags: string[];
   deprecated?: boolean;
+  /** Texto curto do que o item faz (loja, Market e mochila). */
+  description?: string;
+  /** Giro de cor (graus) no desenho do móvel: o mesmo tile com outra cor (ex.: o pote automático). */
+  hue?: number;
+  /** Automático (pote de ração, caixa de areia): guarda até tantos dias e serve sozinho, um por dia. */
+  autoDays?: number;
 }
 
 /** Lojas (data/shops.json): o que cada uma vende. */
@@ -82,7 +88,8 @@ export interface IconsData {
   columns: number;
   /** Outras folhas de ícones (o ícone aponta com `sheet`); tileSize da folha quando não é o padrão (arte nova em 64 px). */
   sheets?: Record<string, { image: string; columns: number; tileSize?: number }>;
-  icons: Record<string, { col: number; row: number; sheet?: string }>;
+  /** hue: giro de cor (graus) do mesmo ícone (ex.: os sacos de 10 kg). */
+  icons: Record<string, { col: number; row: number; sheet?: string; hue?: number }>;
 }
 
 export interface ItemsData {
@@ -120,8 +127,8 @@ export interface EconomyData {
 
 /** Condição de história, escrita em JSON. */
 /** Onde um item da barra é usado. */
-export type ItemUse = 'food_bowl' | 'cat' | 'medicine' | 'wand' | 'brush';
-export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'cat', 'medicine', 'wand', 'brush'];
+export type ItemUse = 'food_bowl' | 'litter_box' | 'cat' | 'medicine' | 'wand' | 'brush';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'litter_box', 'cat', 'medicine', 'wand', 'brush'];
 
 export type Condition =
   | { all: Condition[] }

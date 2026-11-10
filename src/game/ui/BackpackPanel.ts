@@ -41,6 +41,7 @@ function bagOrder(item: ItemDef): number {
 /** Para que serve (linha de detalhes). */
 function purpose(item: ItemDef): string {
   const d = uiText.backpack.purpose;
+  if (item.description) return item.description;
   if (item.id === content.world.tools.sweep) return d.sweep;
   if (item.id === content.carry.tray.item) return d.tray;
   if (item.use === 'food_bowl') return d.food;
@@ -231,7 +232,7 @@ export class BackpackPanel {
     const item = this.owned(id) ? content.items[id] : undefined;
     const servings = item?.servings ?? 1;
     const qty = !item ? 0 : servings > 1 ? sv.doses(item.id) : st.inventory[item.id] ?? 0;
-    const icon = !item ? '' : isFurniture(item) ? tileThumbHtml(item.tile, 18) : itemIconHtml(item, 18);
+    const icon = !item ? '' : isFurniture(item) ? tileThumbHtml(item.tile, 18, item.hue) : itemIconHtml(item, 18);
     const sel = item && this.selectedItem() === item.id ? ' selected' : '';
     const label = item ? ` title="${esc(item.name)}" draggable="true"` : '';
     return `<button class="bp-slot${active ? ' active' : ''}${sel}${item ? '' : ' is-empty'}" ${attrs}${label}>${
@@ -262,7 +263,7 @@ export class BackpackPanel {
     }
     if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
     if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);
-    return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22) : itemIconHtml(item, 22)}</span>
+    return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22, item.hue) : itemIconHtml(item, 22)}</span>
       <span class="bp-detail-text"><b>${esc(item.name)}</b> <span class="amount">${amount}</span><br /><span class="purpose">${esc(purpose(item))}</span></span>
       <span class="bp-detail-actions">${buttons.join('')}</span></div>`;
   }

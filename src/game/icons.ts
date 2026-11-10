@@ -3,7 +3,7 @@ import type Phaser from 'phaser';
 import { content } from './content';
 
 /** Miniatura de um móvel (tile do catálogo) em HTML: o desenho inteiro (w x h células) cabendo em `px`. */
-export function tileThumbHtml(tileName: string | undefined, px: number): string {
+export function tileThumbHtml(tileName: string | undefined, px: number, hue?: number): string {
   const { tiles, sheets, tileSize } = content.catalog;
   const def = tileName ? tiles[tileName] : undefined;
   const sheet = def ? sheets[def.sheet] : undefined;
@@ -12,7 +12,7 @@ export function tileThumbHtml(tileName: string | undefined, px: number): string 
   const scale = px / (Math.max(def.w, def.h + rise) * tileSize);
   const w = def.w * tileSize * scale;
   const h = (def.h + rise) * tileSize * scale;
-  return `<span class="icon tile-thumb" style="width:${w}px;height:${h}px;background-image:url(${sheet.image});background-size:${sheet.columns * tileSize * scale}px auto;background-position:${-def.col * tileSize * scale}px ${-(def.row - rise) * tileSize * scale}px"></span>`;
+  return `<span class="icon tile-thumb" style="${hue ? `filter:hue-rotate(${hue}deg);` : ''}width:${w}px;height:${h}px;background-image:url(${sheet.image});background-size:${sheet.columns * tileSize * scale}px auto;background-position:${-def.col * tileSize * scale}px ${-(def.row - rise) * tileSize * scale}px"></span>`;
 }
 
 /** Chave da textura de uma folha de ícones. */

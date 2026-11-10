@@ -6,6 +6,8 @@ import { content, uiText } from '../content';
 
 const ICON_PX = 16;
 
+const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]!);
+
 /** "A", "A e B", "A, B e C". */
 export function listNames(names: string[]): string {
   return names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`;
@@ -134,6 +136,7 @@ export class ShopPanel {
       return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}">
           <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
+          ${item.description ? `<span class="desc">${esc(item.description)}</span>` : ''}
           ${premium.length > 0 ? `<span class="premium">${uiText.shop.premium.replace('{recipes}', listNames(premium.map((r) => r.name)))}</span>` : ''}
         </div>`;
     };
@@ -189,7 +192,8 @@ export function iconHtml(icon: string | undefined, px = ICON_PX): string {
   const columns = sheet?.columns ?? icons.columns;
   const size = sheet?.tileSize ?? icons.tileSize;
   const scale = px / size;
-  return `<span class="icon" style="width:${px}px;height:${px}px;background-image:url(${image});background-size:${columns * px}px auto;background-position:${
+  const hue = pos.hue ? `filter:hue-rotate(${pos.hue}deg);` : '';
+  return `<span class="icon" style="${hue}width:${px}px;height:${px}px;background-image:url(${image});background-size:${columns * px}px auto;background-position:${
     -pos.col * size * scale
   }px ${-pos.row * size * scale}px"></span>`;
 }

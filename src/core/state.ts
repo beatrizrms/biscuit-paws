@@ -22,6 +22,11 @@ export interface PlacedItem {
   uid: string;
   item: string;
   at: Cell;
+  /** Caixa de areia comum: o dia em que ela pôs areia limpa. */
+  refilledOn?: number;
+  /** Automático (pote de ração, caixa de areia): quantos dias guardados e de qual item (a ração escolhida). */
+  stock?: number;
+  stockItem?: string;
 }
 
 export interface GameState {

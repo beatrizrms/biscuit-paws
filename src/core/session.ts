@@ -18,6 +18,10 @@ import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, type CareNeed, type CareStat } from './care';
+import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
+
+/** Automático com tantos dias ou menos: avisa que está acabando. */
+const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, type CalendarEntry } from './calendar';
@@ -120,6 +124,11 @@ export type ActionResult =
         | 'no_food'
         | 'no_cat'
         | 'already_fed'
+        | 'already_clean'
+        | 'no_litter'
+        | 'needs_litter'
+        | 'full'
+        | 'other_item'
         | 'unknown_job'
         | 'job_full'
         | 'job_unavailable'
@@ -341,18 +350,33 @@ export class GameSession {
     return this.content.shops[shopId]?.items ?? [];
   }
 
-  /** Tigela de ração posicionada ao alcance dos pés (`target`: só a célula clicada). */
+  /** Tigela de ração (comum ou o pote automático) posicionada ao alcance dos pés (`target`: só a célula clicada). */
   bowlNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+    return this.stationNear('food_bowl', feet, target, reach);
+  }
+
+  /** Caixa de areia (comum ou automática) ao alcance dos pés. */
+  litterNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+    return this.stationNear('litter_box', feet, target, reach);
+  }
+
+  private stationNear(kind: StationKind, feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
     if (!this.atHome()) return undefined;
     const { catalog, items } = this.content;
     const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
     return this.state.placed.find((p) => {
       const item = items[p.item];
-      if (!item?.tags.includes('food_bowl') || !item.tile) return false;
-      const cells = cellsOf(p.at, catalog.tiles[item.tile]!);
+      if (stationKind(item) !== kind) return false;
+      const cells = cellsOf(p.at, catalog.tiles[item!.tile!]!);
       if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
       return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
     })?.uid;
+  }
+
+  /** Quantos dias o automático ainda tem (undefined: não é automático). */
+  stationStock(uid: string): number | undefined {
+    const p = this.state.placed.find((x) => x.uid === uid);
+    return p && this.content.items[p.item]?.autoDays ? (p.stock ?? 0) : undefined;
   }
 
   /** Item ativo da barra, se ele tiver este uso (ração para a tigela, petisco para o gato). */
@@ -361,30 +385,101 @@ export class GameSession {
     return id && this.content.items[id]?.use === use ? id : null;
   }
 
-  /** Por que não dá para encher a tigela agora (ou null). A interface confere antes de tocar a animação. */
-  feedProblem(bowlUid: string): 'not_found' | 'already_fed' | 'no_food' | 'no_cat' | 'needs_food' | null {
-    if (!this.state.placed.some((p) => p.uid === bowlUid)) return 'not_found';
-    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id);
-    if (catId && this.state.cats[catId]!.fedOn === this.state.day) return 'already_fed';
-    const hasFood = Object.values(this.content.items).some((i) => i.use === 'food_bowl' && (this.state.inventory[i.id] ?? 0) > 0);
-    if (!hasFood) return 'no_food';
-    if (!catId) return 'no_cat';
-    // A ração vai da barra para a mão: precisa estar no espaço ativo (simples ou premium, a que ela escolher).
-    return this.activeUse('food_bowl') ? null : 'needs_food';
+  /** Gatos do café (os que comem na tigela e usam a caixa de areia). */
+  private homeCats(): string[] {
+    return this.shelteredCats().filter((id) => this.state.cats[id]!.map === this.content.map.id);
   }
 
-  /** Enche a tigela com a ração ativa na barra e um gato do café come (ganha corações). */
+  /**
+   * Por que não dá para encher a tigela agora (ou null). A interface confere antes de tocar a animação.
+   * Pote automático: abastece (até autoDays dias) em vez de servir na hora.
+   */
+  feedProblem(bowlUid: string): 'not_found' | 'already_fed' | 'no_food' | 'no_cat' | 'needs_food' | 'full' | 'other_item' | null {
+    const p = this.state.placed.find((x) => x.uid === bowlUid);
+    const item = p ? this.content.items[p.item] : undefined;
+    if (!p || !item) return 'not_found';
+    const cats = this.homeCats();
+    if (!item.autoDays && cats.length > 0 && cats.every((id) => this.state.cats[id]!.fedOn === this.state.day)) return 'already_fed';
+    const hasFood = Object.values(this.content.items).some((i) => i.use === 'food_bowl' && (this.state.inventory[i.id] ?? 0) > 0);
+    if (!hasFood) return 'no_food';
+    if (!item.autoDays && cats.length === 0) return 'no_cat';
+    // A ração vai da barra para a mão: precisa estar no espaço ativo (simples ou premium, a que ela escolher).
+    const food = this.activeUse('food_bowl');
+    if (!food) return 'needs_food';
+    return item.autoDays ? loadProblem(p, item, food) : null;
+  }
+
+  /**
+   * Enche a tigela com a ração ativa na barra: uma porção serve todos os gatos do café hoje (ganham corações).
+   * Pote automático: guarda a ração da mochila (até autoDays dias) e serve sozinho no fim de cada dia.
+   */
   feedFromBowl(bowlUid: string): ActionResult {
     const problem = this.feedProblem(bowlUid);
     if (problem) return { ok: false, reason: problem };
-    const catId = this.shelteredCats().find((id) => this.state.cats[id]!.map === this.content.map.id)!;
+    const p = this.state.placed.find((x) => x.uid === bowlUid)!;
+    const item = this.content.items[p.item]!;
     const food = this.activeUse('food_bowl')!;
+    if (item.autoDays) {
+      const qty = load(p, item, food, this.state.inventory[food] ?? 0);
+      for (let i = 0; i < qty; i++) this.removeFromInventory(food);
+      this.bus.emit('pet.loaded', { itemId: p.item, days: p.stock ?? 0 });
+      return { ok: true };
+    }
     this.removeFromInventory(food);
-    this.state.flags[`fed.${catId}`] = true;
-    this.state.cats[catId]!.fedOn = this.state.day;
-    this.bus.emit('cat.fed', { catId, itemId: food, bowlUid });
-    this.addCatAffection(catId, this.content.relationships.feedPoints);
+    for (const catId of this.homeCats()) {
+      if (this.state.cats[catId]!.fedOn === this.state.day) continue;
+      this.state.flags[`fed.${catId}`] = true;
+      this.state.cats[catId]!.fedOn = this.state.day;
+      this.bus.emit('cat.fed', { catId, itemId: food, bowlUid });
+      this.addCatAffection(catId, this.content.relationships.feedPoints);
+    }
     return { ok: true };
+  }
+
+  /** Por que não dá para pôr areia na caixa agora (ou null). Automática: abastece até autoDays dias. */
+  litterProblem(boxUid: string): 'not_found' | 'already_clean' | 'no_litter' | 'needs_litter' | 'full' | 'other_item' | null {
+    const p = this.state.placed.find((x) => x.uid === boxUid);
+    const item = p ? this.content.items[p.item] : undefined;
+    if (!p || !item) return 'not_found';
+    if (!item.autoDays && p.refilledOn === this.state.day) return 'already_clean';
+    const hasLitter = Object.values(this.content.items).some((i) => i.use === 'litter_box' && (this.state.inventory[i.id] ?? 0) > 0);
+    if (!hasLitter) return 'no_litter';
+    const litter = this.activeUse('litter_box');
+    if (!litter) return 'needs_litter';
+    return item.autoDays ? loadProblem(p, item, litter) : null;
+  }
+
+  /** Põe areia limpa na caixa (a areia ativa na barra). Automática: guarda a areia da mochila (até autoDays dias). */
+  refillLitter(boxUid: string): ActionResult {
+    const problem = this.litterProblem(boxUid);
+    if (problem) return { ok: false, reason: problem };
+    const p = this.state.placed.find((x) => x.uid === boxUid)!;
+    const item = this.content.items[p.item]!;
+    const litter = this.activeUse('litter_box')!;
+    if (item.autoDays) {
+      const qty = load(p, item, litter, this.state.inventory[litter] ?? 0);
+      for (let i = 0; i < qty; i++) this.removeFromInventory(litter);
+      this.bus.emit('pet.loaded', { itemId: p.item, days: p.stock ?? 0 });
+      return { ok: true };
+    }
+    this.removeFromInventory(litter);
+    p.refilledOn = this.state.day;
+    this.bus.emit('litter.refilled', { uid: boxUid });
+    return { ok: true };
+  }
+
+  /** Fim do dia: os automáticos servem o que faltou; sem areia limpa, a higiene dos gatos do café cai mais. */
+  private stationsAtDayEnd(day: number): void {
+    const cats = this.homeCats();
+    if (cats.length === 0) return;
+    const fedToday = cats.some((id) => this.state.cats[id]!.fedOn === day);
+    const r = stationsAtDayEnd(this.state.placed, this.content.items, day, fedToday, PET_LOW_DAYS);
+    if (r.fed && !fedToday) for (const id of cats) this.state.cats[id]!.fedOn = day;
+    if (!r.litterOk) {
+      for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -this.content.health.care.litterMissed, this.content.health.care);
+      this.bus.emit('litter.missed', { day });
+    }
+    for (const l of r.low) this.bus.emit('pet.low', { itemId: l.item, days: l.days });
   }
 
   /** O item ativo é um petisco? (aí clicar no gato dá o petisco em vez de pegar no colo) */
@@ -414,6 +509,7 @@ export class GameSession {
     this.state.jobs.active = [];
     this.state.jobs.progress = {};
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
+    this.stationsAtDayEnd(day);
     this.healthAtDayEnd(day);
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });

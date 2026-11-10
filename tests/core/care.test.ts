@@ -56,7 +56,8 @@ describe('cuidados na sessão', () => {
     const { session, state } = cafe();
     expect(session.catCare('cat.first_stray')).toMatchObject(cfg.start);
     session.endDay('home');
-    expect(state.cats['cat.first_stray']).toMatchObject({ happiness: cfg.start.happiness - cfg.daily.happiness, hygiene: cfg.start.hygiene - cfg.daily.hygiene });
+    // Sem caixa de areia trocada no dia, a higiene cai mais (litterMissed).
+    expect(state.cats['cat.first_stray']).toMatchObject({ happiness: cfg.start.happiness - cfg.daily.happiness, hygiene: cfg.start.hygiene - cfg.daily.hygiene - cfg.litterMissed });
   });
 
   it('mini game de cuidado com o gato sobe os atributos (e avisa); falhou ou pulou, nada', () => {

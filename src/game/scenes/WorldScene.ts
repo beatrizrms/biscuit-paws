@@ -10,7 +10,7 @@ import { CatSprite, catTexture } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
-import { addTileImage, tileScale } from '../tileArt';
+import { addTileImage, applyHue, tileScale } from '../tileArt';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import { actorsOf } from '../../core/arrivalModels';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
@@ -504,6 +504,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.objectImages.clear();
     for (const s of this.map.sprites) {
       const img = addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
+      // Móvel com outra cor (o mesmo desenho, ex.: os automáticos): giro de cor do item.
+      if (s.obj?.startsWith(PLACED_PREFIX)) {
+        const placed = this.session.state.placed.find((p) => PLACED_PREFIX + p.uid === s.obj);
+        applyHue(img, placed ? this.session.content.items[placed.item]?.hue : undefined);
+      }
       this.mapImages.add(img);
       if (s.obj) this.objectImages.set(s.obj, [...(this.objectImages.get(s.obj) ?? []), img]);
     }
@@ -883,9 +888,27 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return true;
     }
     // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
+    // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
     const bowl = this.session.bowlNear(this.playerCells(), target);
-    if (!bowl) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target);
+    const box = bowl ? undefined : this.session.litterNear(this.playerCells(), target);
+    if (!bowl && !box) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target);
     if (this.usingItem) return true;
+    if (box) {
+      const problem = this.session.litterProblem(box);
+      if (problem) {
+        this.ui.problem(problem);
+        return true;
+      }
+      const litter = this.session.activeItem()!;
+      const at = this.session.state.placed.find((p) => p.uid === box)!.at;
+      const ts = this.map.tileSize;
+      void this.playUse(litter, (at[0] + 0.5) * ts, (at[1] + 0.5) * ts, 'pour').then(() => {
+        const result = this.session.refillLitter(box);
+        if (!result.ok) this.ui.problem(result.reason);
+      });
+      return true;
+    }
+    if (!bowl) return true;
     const problem = this.session.feedProblem(bowl);
     if (problem) {
       this.ui.problem(problem);
@@ -943,6 +966,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (dirt) return floor(dirt.at, 'dirt');
     const bowl = s.bowlNear(feet);
     if (bowl && !s.feedProblem(bowl)) return floor(st.placed.find((p) => p.uid === bowl)!.at, 'bowl');
+    const box = s.litterNear(feet);
+    if (box && !s.litterProblem(box)) return floor(st.placed.find((p) => p.uid === box)!.at, 'litter');
     if (!s.atHome()) return null;
     const cat = nearCat();
     const care = s.careGameInHand();

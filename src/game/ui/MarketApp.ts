@@ -147,7 +147,7 @@ export class MarketApp {
       inOrder > 0 ? `<div class="m-qty"><button class="m-less" data-less="${id}">−</button><span>${esc(uiText.market.orderCount.replace('{n}', String(inOrder)))}</span></div>` : '';
     return `<div class="m-cell"><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
         <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>
-        <span class="m-name">${esc(i.name)}</span>
+        <span class="m-name">${esc(i.name)}</span>${i.description ? `<span class="m-desc">${esc(i.description)}</span>` : ''}
         <span class="m-price">${COIN}${i.price}</span>${status}
       </button>${order}${refund}</div>`;
   }
