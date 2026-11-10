@@ -274,6 +274,15 @@ describe('ciclo do pedido', () => {
     expect(state.service.customers).not.toContain(c);
   });
 
+  it('nota do café: começa sem nota; quem desiste entra na média com a nota de desistência', () => {
+    const { session, sv } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    expect(session.rating()).toEqual({ average: null, count: 0 });
+    advance(session, 6 + content.service.patienceMinutes + 1);
+    expect(session.rating().count).toBeGreaterThan(0);
+    expect(session.rating().average).toBe(content.service.review.gaveUp);
+  });
+
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');

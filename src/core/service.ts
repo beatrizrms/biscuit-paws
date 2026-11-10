@@ -14,7 +14,7 @@ import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
-import { recordDoses, recordGaveUp, recordServed } from './stats';
+import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
@@ -757,6 +757,7 @@ export class CafeService {
     if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
     const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy);
+    recordReview(this.st.stats, stars);
     const reputation = reviewReputation(cfg, stars);
     if (reputation !== 0) this.h.addReputation(reputation, `review:${stars}`);
     this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation });

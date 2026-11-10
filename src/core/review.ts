@@ -20,6 +20,8 @@ export interface ReviewConfig {
   gaveUp: number;
   /** Reputação por nota ("1" a "5"). */
   reputation: Record<string, number>;
+  /** A nota do café (HUD) é a média das últimas tantas avaliações. */
+  averageOf: number;
 }
 
 /** O quanto da paciência ele já gastou (0 a 1). */
@@ -47,6 +49,7 @@ export function validateReview(cfg: ReviewConfig | undefined): string[] {
   const err = (m: string) => errors.push(`service: review: ${m}`);
   if (!(cfg.start >= 1 && cfg.start <= 5)) err('start precisa ser de 1 a 5');
   if (!(cfg.gaveUp >= 1 && cfg.gaveUp <= 5)) err('gaveUp precisa ser de 1 a 5');
+  if (!(Number.isInteger(cfg.averageOf) && cfg.averageOf >= 1)) err('averageOf precisa ser um inteiro maior que 0');
   for (let s = 1; s <= 5; s++) if (typeof cfg.reputation[String(s)] !== 'number') err(`falta a reputação de ${s} estrela(s)`);
   for (const [name, bands] of [['queue', cfg.queue], ['seated', cfg.seated], ['dirt', cfg.dirt]] as const) {
     for (const b of bands) if (!(b.minus > 0)) err(`${name}: minus precisa ser maior que 0`);

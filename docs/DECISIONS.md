@@ -648,3 +648,7 @@ Decisão: durante o almoço, `CafeService.tick` empurra o prazo (`until`) de que
 ## 159. Avaliação do cliente com carinha e estrela em arte (nov/2026)
 Pedido: as estrelas da avaliação (texto ★☆) ficavam pixeladas; trocar por arte do PixelLab: carinha feliz, triste e a estrela, sem variações (estrela unitária: o jogo repete).
 Decisão: 3 ícones de 24 x 24 (PixelLab, `create_1_direction_object`, desenhados em meia escala; fontes em assets/_pixellab/review_icones, copiadas por `npm run pixellab` para `public/assets/ui/hud/ui_review_*.png`). Quem sai mostra a carinha e uma estrela por ponto da nota (sem estrela vazia), com a reputação embaixo como antes. Feliz com `happyFrom` (3) estrelas ou mais e sem desistir; senão, triste. Dados em `data/service_art.json: review`; sem a arte, volta às estrelas em texto.
+
+## 160. Nota do café em estrelas (nov/2026)
+Pedido: a reputação em estrelas, começando zerada e fazendo a média das notas.
+Decisão: nota separada da reputação felina (que continua de 0 a 100 por trás, com mini games, adoções, chegadas, eventos e os selos). A nota é a média das últimas `review.averageOf` (50) avaliações dos clientes (`data/service.json`); o save guarda as últimas 200 em `stats.reviews` (saves antigos começam sem nota, sem versão nova). No HUD, a linha "Reputação" mostra 5 estrelas apagadas e as douradas recortadas na largura da média, com o número (0,0 sem avaliações); o texto de ajuda mostra a nota e a reputação felina.

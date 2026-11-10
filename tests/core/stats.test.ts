@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
-import { closeDay, newStats, normalizeStats, recordDoses, recordGaveUp, recordServed, statsView, STATS_HISTORY_DAYS } from '../../src/core/stats';
+import { closeDay, newStats, normalizeStats, recordDoses, recordGaveUp, recordReview, recordServed, reviewAverage, REVIEWS_KEPT, statsView, STATS_HISTORY_DAYS } from '../../src/core/stats';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -177,6 +177,23 @@ describe('estatísticas na sessão', () => {
     expect(v.catsNow).toBe(1);
     expect(v.catsEver).toBe(2);
     expect(v.reputation).toBe(state.reputation.value);
+  });
+});
+
+describe('nota do café (média das avaliações)', () => {
+  it('começa zerada e faz a média só das últimas', () => {
+    const s = newStats();
+    expect(reviewAverage(s, 3)).toEqual({ average: null, count: 0 });
+    for (const n of [1, 5, 4, 3]) recordReview(s, n);
+    expect(reviewAverage(s, 3)).toEqual({ average: 4, count: 3 });
+    expect(reviewAverage(s, 50).average).toBeCloseTo(13 / 4);
+  });
+
+  it('guarda no máximo REVIEWS_KEPT; o save descarta nota fora de 1 a 5', () => {
+    const s = newStats();
+    for (let i = 0; i < REVIEWS_KEPT + 10; i++) recordReview(s, 5);
+    expect(s.reviews).toHaveLength(REVIEWS_KEPT);
+    expect(normalizeStats({ ...s, reviews: [5, 0, 2.5, 'x', 3, 6] }, () => true).reviews).toEqual([5, 3]);
   });
 });
 

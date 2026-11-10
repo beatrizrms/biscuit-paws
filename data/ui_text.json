@@ -972,6 +972,8 @@
   },
   "reputation": {
     "label": "Reputação",
+    "rating": "Nota do café: {value} de 5 (média das últimas {n} avaliações)",
+    "noRating": "Nota do café: ainda sem avaliações",
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
   },

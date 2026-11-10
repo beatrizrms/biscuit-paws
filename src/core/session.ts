@@ -53,7 +53,7 @@ import {
 } from './rooms';
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
-import { closeDay, statsView, type StatsView } from './stats';
+import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -2046,6 +2046,11 @@ export class GameSession {
   /** Valor de 0 a max (data/reputation.json). */
   reputation(): number {
     return this.state.reputation.value;
+  }
+
+  /** Nota do café (0 a 5 estrelas): média das últimas avaliações dos clientes (service.json: review.averageOf). Sem nenhuma, null. */
+  rating(): { average: number | null; count: number } {
+    return reviewAverage(this.state.stats, this.content.service.review.averageOf);
   }
 
   /**

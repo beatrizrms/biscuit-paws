@@ -7,6 +7,9 @@ export const STATS_HISTORY_DAYS = 28;
 /** A média da semana: os últimos 7 dias fechados, divididos só pelos que o café abriu. */
 export const STATS_WEEK_DAYS = 7;
 
+/** Quantas avaliações de cliente ficam no save (a nota do café usa as últimas review.averageOf). */
+export const REVIEWS_KEPT = 200;
+
 /** Sequências de bom comportamento (dias seguidos sem recaída). */
 export const STREAKS = ['no_gave_up', 'cats_cared'] as const;
 export type StreakId = (typeof STREAKS)[number];
@@ -44,6 +47,8 @@ export interface StatsState {
   /** Totais do jogo (a partir do save v27; antes disso só havia o total de atendidos). */
   totals: { openDays: number; gaveUp: number; doses: Record<string, number> };
   streaks: Record<StreakId, Streak>;
+  /** As últimas REVIEWS_KEPT avaliações (1 a 5 estrelas), da mais antiga à mais nova. Saves antigos: vazio. */
+  reviews: number[];
 }
 
 export function newStats(): StatsState {
@@ -52,6 +57,7 @@ export function newStats(): StatsState {
     days: [],
     totals: { openDays: 0, gaveUp: 0, doses: {} },
     streaks: { no_gave_up: { current: 0, best: 0 }, cats_cared: { current: 0, best: 0 } },
+    reviews: [],
   };
 }
 
@@ -62,6 +68,18 @@ export function recordServed(s: StatsState): void {
 export function recordGaveUp(s: StatsState): void {
   s.today.gaveUp++;
   s.totals.gaveUp++;
+}
+
+/** Guarda a nota de quem saiu (a nota do café é a média das últimas). */
+export function recordReview(s: StatsState, stars: number): void {
+  s.reviews.push(stars);
+  if (s.reviews.length > REVIEWS_KEPT) s.reviews.splice(0, s.reviews.length - REVIEWS_KEPT);
+}
+
+/** Nota do café: média das últimas `last` avaliações (null sem nenhuma) e quantas entraram na conta. */
+export function reviewAverage(s: StatsState, last: number): { average: number | null; count: number } {
+  const recent = s.reviews.slice(-last);
+  return { average: recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : null, count: recent.length };
 }
 
 export function recordDoses(s: StatsState, itemId: string, n: number): void {
@@ -193,5 +211,6 @@ export function normalizeStats(v: unknown, knownItem: (id: string) => boolean): 
       })),
     totals: { openDays: count(x.totals?.openDays), gaveUp: count(x.totals?.gaveUp), doses: doseMap(x.totals?.doses, knownItem) },
     streaks: x.streaks ? { no_gave_up: streak(x.streaks.no_gave_up), cats_cared: streak(x.streaks.cats_cared) } : base.streaks,
+    reviews: (Array.isArray(x.reviews) ? x.reviews : []).filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= 5).slice(-REVIEWS_KEPT),
   };
 }

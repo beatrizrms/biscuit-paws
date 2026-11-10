@@ -5,7 +5,7 @@ import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
 import { dayInSeason, seasonOf } from '../../core/calendar';
 import { formatClock } from '../../core/time';
-import { content, uiText } from '../content';
+import { content, serviceArt, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, listNames, ShopPanel } from './ShopPanel';
@@ -93,7 +93,7 @@ export class GameUi {
       <div class="panel hud-goals"></div>
       <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
-      <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
       <div class="panel hud-weather"><span class="weather"></span><span class="label"></span></div>
       <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
@@ -311,6 +311,7 @@ export class GameUi {
     bus.on('festival.missed', ({ festivalId }) => this.toast(ft.missed.replace('{name}', festName(festivalId)), 4500));
     bus.on('festival.finished', (e) => void this.festivalSummary(e));
     bus.on('photo.best', () => this.toast(uiText.minigames.photo.record, 3500));
+    bus.on('customer.left', ({ stars }) => stars !== undefined && this.renderReputation());
     bus.on('reputation.changed', () => {
       const el = this.root.querySelector<HTMLElement>('.hud-rep');
       el?.classList.remove('bump');
@@ -782,15 +783,21 @@ export class GameUi {
     el.title = uiText.energy.title.replace('{value}', String(Math.round(value))).replace('{max}', String(max));
   }
 
-  /** Reputação felina no HUD: barrinha e número (embaixo do dinheiro). */
+  /**
+   * Nota do café no HUD (embaixo do dinheiro): 5 estrelas preenchidas até a média das últimas avaliações e o número
+   * (0,0 sem nenhuma). A reputação felina (0 a max) continua por trás: aparece no texto de ajuda.
+   */
   private renderReputation(): void {
     const el = this.root.querySelector<HTMLElement>('.hud-rep');
     if (!el) return;
-    const max = content.reputation.max;
-    const value = this.session.reputation();
-    (el.querySelector('.fill') as HTMLElement).style.width = `${Math.round((value / max) * 100)}%`;
-    (el.querySelector('.value') as HTMLElement).textContent = String(Math.round(value));
-    el.title = uiText.reputation.title.replace('{value}', String(Math.round(value))).replace('{max}', String(max));
+    const { average, count } = this.session.rating();
+    const avg = average ?? 0;
+    (el.querySelector('.fill') as HTMLElement).style.width = `${(avg / 5) * 100}%`;
+    (el.querySelector('.value') as HTMLElement).textContent = avg.toFixed(1).replace('.', ',');
+    const rating = count ? uiText.reputation.rating.replace('{value}', avg.toFixed(1).replace('.', ',')).replace('{n}', String(count)) : uiText.reputation.noRating;
+    const rep = uiText.reputation.title.replace('{value}', String(Math.round(this.session.reputation()))).replace('{max}', String(content.reputation.max));
+    el.title = `${rating}
+${rep}`;
   }
 
   /** Hora no HUD (só mexe no texto quando muda). */
