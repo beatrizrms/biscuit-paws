@@ -381,8 +381,9 @@ export class GameUi {
     const name = h.cafe ? t.cafe : h.name;
     if (!h.enabled) return this.toast(t.notYet.replace('{name}', name), 5000);
     const hours = t.text.replace('{name}', name).replace('{days}', weekDaysText(h.days)).replace('{open}', h.open).replace('{close}', h.close);
-    const now = h.openNow ? t.open.replace('{close}', h.close) : h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime;
-    this.toast(`${hours} ${now}`, 5000);
+    const lunch = h.lunch ? t.lunch.replace('{from}', h.lunch.from).replace('{to}', h.lunch.to) : '';
+    const now = h.lunch?.now ? t.lunchNow.replace('{back}', h.lunch.to) : h.openNow ? t.open.replace('{close}', h.close) : h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime;
+    this.toast(`${hours}${lunch} ${now}`, 5000);
   }
 
   toggleCatalog(): void {

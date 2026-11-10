@@ -142,7 +142,9 @@
     "closed": "Fechado agora · abre {when}.",
     "closedNoTime": "Fechado agora.",
     "cafe": "Café",
-    "notYet": "{name} · ainda não atende clientes."
+    "notYet": "{name} · ainda não atende clientes.",
+    "lunch": " Almoço das {from} às {to}.",
+    "lunchNow": "Almoço agora (volta às {back})."
   },
   "doorClosed": {
     "text": "{name} · fechado agora. Abre {when}.",
@@ -822,8 +824,13 @@
     "status": {
       "open": "Aberto agora · fecha às {close}",
       "closed": "Fechado agora · abre {when}",
+      "lunch": "Almoço agora · volta às {back}",
       "disabled": "O café ainda não atende clientes."
     },
+    "lunch": "Almoço",
+    "lunchOn": "com almoço",
+    "lunchOff": "sem almoço",
+    "lunchSummary": " Almoço das {from} às {to}: não chega cliente novo (quem já está termina).",
     "today": "hoje às {time}",
     "tomorrow": "amanhã às {time}",
     "onDay": "{weekday} às {time}",

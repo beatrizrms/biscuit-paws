@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { calendarEntries } from '../../src/core/calendar';
-import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule } from '../../src/core/schedule';
+import { inLunch, isOpenAt, lunchEnd, lunchStart, nextOpening, scheduleProblem, weekdayOf, type Schedule } from '../../src/core/schedule';
+import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
@@ -85,6 +86,55 @@ describe('horário no atendimento', () => {
     sv.tick();
     expect(state.service.customers).toEqual([]);
     expect(session.canGoHome()).toBe(true);
+  });
+});
+
+describe('horário de almoço', () => {
+  function cafe() {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    state.business = 'soft_open';
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    const session = new GameSession(content, state);
+    return { session, state, sv: session.service };
+  }
+
+  it('o padrão tem almoço às 12:00, por 1 h; sem o campo vale o padrão; null desliga', () => {
+    expect(lunchStart(weekdays, rules)).toBe(rules.default.lunch);
+    expect(lunchEnd('12:00', rules)).toBe('13:00');
+    expect(inLunch({ ...weekdays, lunch: '12:00' }, rules, 12 * 60 + 30)).toBe(true);
+    expect(inLunch({ ...weekdays, lunch: '12:00' }, rules, 13 * 60)).toBe(false);
+    expect(inLunch({ ...weekdays, lunch: null }, rules, 12 * 60 + 30)).toBe(false);
+    expect(scheduleProblem({ ...weekdays, lunch: '12:15' }, rules)).toBe('bad_step');
+    expect(scheduleProblem({ ...weekdays, lunch: '13:30' }, rules)).toBeNull();
+  });
+
+  it('no almoço não chega cliente novo; a fila e quem já pediu continuam; o café segue aberto', () => {
+    const { sv, state } = cafe();
+    expect(sv.setSchedule({ ...weekdays, days: Array(7).fill(true), lunch: '12:00' })).toEqual({ ok: true });
+    state.service.customers.push({ id: 'c1', look: 0, stage: 'queue', kind: 'standing', spot: [13, 5], dishAt: [13, 5], recipe: null, until: 99999, favorite: null, wantsPremium: false });
+    state.time = 12 * 60 + 10;
+    state.service.nextCustomerAt = 0;
+    const before = state.service.customers.length;
+    for (let i = 0; i < 30; i++) {
+      state.time += 1;
+      sv.tick();
+    }
+    expect(sv.isOpen()).toBe(true);
+    expect(sv.lunchNow()).toBe(true);
+    expect(state.service.customers.length).toBeLessThanOrEqual(before); // ninguém novo; c1 continua ou foi sentar
+    expect(state.service.customers.some((c) => c.id === 'c1')).toBe(true);
+    // Sem almoço: no mesmo horário, chega gente de novo.
+    expect(sv.setSchedule({ ...weekdays, days: Array(7).fill(true), lunch: null })).toEqual({ ok: true });
+    expect(sv.lunchNow()).toBe(false);
+  });
+
+  it('o save guarda o almoço escolhido (e o desligado)', () => {
+    const { session, sv } = cafe();
+    const known = knownIds(content);
+    sv.setSchedule({ ...weekdays, lunch: '13:00' });
+    expect(parseSave(serializeSave(session.state, new Date(0)), known).state.schedule?.lunch).toBe('13:00');
+    sv.setSchedule({ ...weekdays, lunch: null });
+    expect(parseSave(serializeSave(session.state, new Date(0)), known).state.schedule?.lunch).toBeNull();
   });
 });
 

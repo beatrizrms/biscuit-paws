@@ -12,7 +12,7 @@ import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type GameState } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
-import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem } from './schedule';
+import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordServed } from './stats';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
@@ -402,6 +402,11 @@ export class CafeService {
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 
+  /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina. */
+  lunchNow(): boolean {
+    return this.isOpen() && inLunch(this.schedule(), this.cfg.schedule, this.st.time);
+  }
+
   // ---------- Horário de funcionamento ----------
 
   /** O horário que vale: o escolhido (se ainda vale pelas regras) ou o padrão dos dados. */
@@ -425,7 +430,7 @@ export class CafeService {
   setSchedule(s: Schedule): ServiceResult {
     const problem = scheduleProblem(s, this.cfg.schedule);
     if (problem) return { ok: false, reason: problem };
-    this.st.schedule = { days: [...s.days], open: s.open, close: s.close };
+    this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}) };
     this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
     return { ok: true };
   }
@@ -491,6 +496,8 @@ export class CafeService {
   private maybeSpawn(now: number): void {
     const sv = this.st.service;
     if (!this.isOpen()) return;
+    // Almoço: por uma hora, ninguém novo chega (a fila e quem já pediu continuam).
+    if (this.lunchNow()) return;
     // Prejuízo: com gatos doentes demais, as pessoas não querem entrar (quem já está fica até o fim).
     if (this.h.customersAway()) return;
     if (sv.nextCustomerAt === null) sv.nextCustomerAt = now + this.cfg.firstArrivalMinutes;

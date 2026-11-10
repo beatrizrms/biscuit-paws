@@ -958,6 +958,9 @@
 .s-time b { min-width: 30px; text-align: center; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--wood4); }
 .s-time button { width: 16px; height: 16px; padding: 0; border: 1px solid var(--cream3); border-radius: 50%; background: var(--cream2); font: inherit; font-size: 10px; line-height: 1; color: var(--wood4); cursor: pointer; }
 .s-time button:hover { border-color: var(--wood3); }
+/* Almoço: o botão de ligar/desligar ocupa o lugar do rótulo (largo, não redondo). */
+.s-time .s-lunch-toggle { flex: 1; width: auto; height: auto; padding: 2px 6px; border-radius: 5px; font-size: 7.5px; text-align: left; color: var(--grey2); }
+.s-time .s-lunch-toggle[aria-pressed="true"] { background: var(--mint2); border-color: var(--mint3); color: #24402e; }
 .s-summary { margin: 4px 0 2px; font-size: 7.5px; color: var(--ink); }
 
 /* App Calendário */

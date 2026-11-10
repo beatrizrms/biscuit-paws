@@ -239,6 +239,19 @@ describe('ciclo do pedido', () => {
     expect(state.service.customers.length).toBeGreaterThan(0);
   });
 
+  it('almoço: por 1 h ninguém novo chega; sem almoço, chega gente no mesmo horário', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const all = Array(7).fill(true);
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '09:00' })).toEqual({ ok: true });
+    advance(session, 55);
+    expect(sv.lunchNow()).toBe(true);
+    expect(state.service.customers).toHaveLength(0);
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
+    advance(session, 60);
+    expect(state.service.customers.length).toBeGreaterThan(0);
+  });
+
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');

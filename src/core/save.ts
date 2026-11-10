@@ -366,7 +366,15 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     stats: normalizeStats(v2.stats, (id) => known.items.has(id)),
     milestones: normalizeMilestones(v2.milestones, known.milestones),
-    schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
+    schedule: validSchedule(v2.schedule)
+      ? {
+          days: [...v2.schedule.days],
+          open: v2.schedule.open,
+          close: v2.schedule.close,
+          // Almoço: campo opcional (sem ele, o do horário padrão); null = sem almoço.
+          ...(v2.schedule.lunch === null || (typeof v2.schedule.lunch === 'string' && /^\d{1,2}:\d{2}$/.test(v2.schedule.lunch)) ? { lunch: v2.schedule.lunch } : {}),
+        }
+      : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
     // Cortinas abertas: campo opcional (sem ele, fechadas); só ids em texto.

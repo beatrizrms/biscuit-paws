@@ -1,6 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
-import { isOpenAt, nextOpening, weekdayOf } from './schedule';
+import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
@@ -73,6 +73,8 @@ import {
 /** O que a plaquinha de horário mostra (placeHours). `cafe`: o nome vem da UI; `enabled` false = ainda não atende. */
 export interface PlaceHours {
   name: string;
+  /** Almoço do café (começo e fim), se tiver; `lunchNow`: é agora. */
+  lunch?: { from: string; to: string; now: boolean };
   cafe: boolean;
   enabled: boolean;
   days: boolean[];
@@ -1883,7 +1885,10 @@ export class GameSession {
     }
     if (door.to !== this.content.map.id) return null;
     const s = this.service.schedule();
-    return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening() };
+    const rules = this.content.service.schedule;
+    const start = lunchStart(s, rules);
+    const lunch = start ? { from: start, to: lunchEnd(start, rules), now: this.service.lunchNow() } : undefined;
+    return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}) };
   }
 
   /** Tentou abrir uma porta trancada: a fala de trancada (requisito) ou o aviso de fechado (horário). */
