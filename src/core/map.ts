@@ -41,6 +41,8 @@ export interface DirtSpot {
   at: Cell;
   tags: string[];
   clearedBy?: string;
+  /** Pesada (mato alto): a vassoura não tira; sai na limpeza pesada do Tião (data/rooms.json clear). */
+  heavy?: boolean;
   /** Embaixo dela tem um item (ex.: a chave do quintal): limpar entrega o item, com esta fala. */
   gives?: string;
   foundDialogue?: string;

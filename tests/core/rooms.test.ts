@@ -34,9 +34,15 @@ function afterFirstCustomer(money = 1000, progress: { served?: number; day?: num
 const dialogues = (events: { name: EventName; payload: unknown }[]) =>
   events.filter((e) => e.name === 'dialogue.requested').map((e) => (e.payload as { dialogueId: string }).dialogueId);
 
-/** Limpa toda a sujeira visível com esta tag (de pé ao lado). */
-function cleanTag(session: GameSession, tag: string) {
-  for (const d of session.visibleDirt().filter((x) => x.tags.includes(tag))) expect(session.clean(d.id, [d.at])).toEqual({ ok: true });
+/** Limpa com a vassoura toda a sujeira visível com esta tag (de pé ao lado); `heavy`: a pesada também sai (como na limpeza do Tião). */
+function cleanTag(session: GameSession, tag: string, heavy = false) {
+  for (const d of session.visibleDirt().filter((x) => x.tags.includes(tag))) {
+    if (d.heavy) {
+      if (heavy) session.state.cleaned.push(d.id);
+      continue;
+    }
+    expect(session.clean(d.id, [d.at])).toEqual({ ok: true });
+  }
 }
 
 describe('cômodos: dados e regras', () => {
@@ -51,7 +57,8 @@ describe('cômodos: dados e regras', () => {
     expect(resolvedLook(yard, 'abandoned').legend.g).toBeUndefined(); // grama do mapa (seca)
     expect(resolvedLook(yard, 'restored').legend.g).toBe('yard_grama_a');
     expect(Object.keys(yard.variants!)).toEqual(['hedge']); // a variante de tijolo saiu na arte nova (decisão 065)
-    expect(resolvedLook(yard, 'restored').objects.some((o) => o.id === 'obj.yard_lights')).toBe(true);
+    // Reformado, o quintal começa só com a grama, o caminho e as árvores: o resto ela compra (aba Cômodos).
+    expect(new Set(resolvedLook(yard, 'restored').objects.filter((o) => o.tile.startsWith('yard_') && o.tile !== 'yard_fundo_ceu_telhados').map((o) => o.tile))).toEqual(new Set(['yard_arvore']));
   });
 
   it('todas as variantes do quintal, em todos os estados, dão um mapa válido', () => {
@@ -166,7 +173,7 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
     const { session, state } = withBackRoomOpen();
     session.useRoomDoor('door.backyard');
     expect(session.itemUnlocked('item.playground_tunnel')).toBe(false);
-    cleanTag(session, 'backyard');
+    cleanTag(session, 'backyard', true);
     session.restoreRoom('room.backyard');
     expect(session.itemUnlocked('item.playground_tunnel')).toBe(false); // ainda 1 gato
     for (let i = 0; i < 9; i++) state.cats[`cat.test_${i}`] = { sheltered: true, name: `G${i}`, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
@@ -234,7 +241,7 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
 
   it('abrir o porão: ligação, paga adiantado, ele trabalha 1 dia ao lado da passagem; no dia seguinte a porta abre', () => {
     const { session, state, events } = withBuilder();
-    expect(session.roomWork('room.back_room')).toMatchObject({ kind: 'room_open', cost: 200, days: 1 });
+    expect(session.roomWorks('room.back_room')).toMatchObject([{ kind: 'room_open', cost: 200, days: 1 }]);
     expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
     expect(events.some((e) => e.name === 'construction.call')).toBe(true);
     expect(state.money).toBe(1000); // só paga ao aceitar
@@ -291,5 +298,75 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
     session.answerQuote(true);
     const back = parseSave(serializeSave(session.state, new Date(0)), knownIds(content));
     expect(back.state.construction.job).toMatchObject({ kind: 'room_open', roomId: 'room.back_room', site: { at: [15, 7] } });
+  });
+});
+
+describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', () => {
+  /** Quintal aberto (com a chave), Tião conhecido e os reparos feitos. */
+  function yardOpen(money = 2000) {
+    const ctx = afterFirstCustomer(money, { served: 100, day: 12 });
+    ctx.state.flags['painter.available'] = true;
+    ctx.state.construction.repaired = ['inside', 'outside'];
+    ctx.session.openRoom('room.back_room');
+    cleanTag(ctx.session, 'back_room');
+    ctx.session.restoreRoom('room.back_room');
+    ctx.session.useRoomDoor('door.backyard');
+    return ctx;
+  }
+  const finishJob = (session: GameSession) => {
+    expect(session.answerQuote(true)).toEqual({ ok: true });
+    const end = session.state.construction.job!.endDay!;
+    while (session.state.day <= end) session.endDay('home');
+  };
+
+  it('o mato alto não sai com a vassoura; as folhas sim', () => {
+    const { session } = yardOpen();
+    const heavy = session.visibleDirt().filter((d) => d.heavy);
+    expect(heavy.length).toBe(5);
+    expect(session.cleanProblem(heavy[0]!.id, [heavy[0]!.at])).toBe('heavy_dirt');
+    expect(session.dirtNear([heavy[0]!.at], 0)).toBeUndefined();
+    cleanTag(session, 'backyard'); // as folhas
+    expect(session.roomDirtLeft('room.backyard')).toBe(5);
+  });
+
+  it('a reforma espera a limpeza pesada: o Tião tira o mato num dia e depois reforma', () => {
+    const { session, state } = yardOpen();
+    cleanTag(session, 'backyard');
+    const money = state.money;
+    expect(session.roomWorks('room.backyard').map((w) => w.kind)).toEqual(['room_clear', 'room_restore']);
+    expect(session.quoteRoom('room.backyard', 'room_restore')).toEqual({ ok: false, reason: 'room_not_ready' });
+    expect(session.quoteRoom('room.backyard', 'room_clear')).toEqual({ ok: true });
+    finishJob(session);
+    expect(session.roomHeavyDirtLeft('room.backyard')).toBe(0);
+    expect(session.roomWorks('room.backyard').map((w) => w.kind)).toEqual(['room_restore']);
+    expect(session.quoteRoom('room.backyard')).toEqual({ ok: true });
+    finishJob(session);
+    expect(session.roomState('room.backyard')).toBe('restored');
+    expect(state.money).toBe(money - 80 - 120);
+  });
+
+  it('os itens do quintal só aparecem depois da reforma; os de quintal só ficam no quintal', () => {
+    const { session, state } = yardOpen();
+    const yardItems = Object.values(content.items).filter((i) => i.tags.includes('area:yard') || i.tags.includes('area:other'));
+    expect(yardItems.length).toBeGreaterThan(10);
+    expect(yardItems.some((i) => session.itemUnlocked(i.id))).toBe(false);
+    cleanTag(session, 'backyard', true);
+    expect(session.restoreRoom('room.backyard')).toEqual({ ok: true });
+    expect(yardItems.every((i) => session.itemUnlocked(i.id))).toBe(true);
+    state.inventory['item.yard_garden_bench'] = 1;
+    expect(session.checkPlacement('item.yard_garden_bench', [10, 8])).toBe('wrong_room');
+    state.inventory['item.yard_topiary'] = 1;
+    expect(session.checkPlacement('item.yard_topiary', [10, 8])).toBeNull();
+    // As de parede vão na sebe do fundo; a pérgola cabe onde ficava antes.
+    state.inventory['item.yard_hedge_lamp'] = 1;
+    expect(session.checkPlacement('item.yard_hedge_lamp', [30, 2])).toBeNull();
+    state.inventory['item.yard_pergola_oven'] = 1;
+    expect(session.checkPlacement('item.yard_pergola_oven', [31, 3])).toBeNull();
+  });
+
+  it('toda peça de "área" tem uma seção na aba Cômodos do Market', () => {
+    const ui = JSON.parse(readFileSync('data/ui_text.json', 'utf8')) as { market: { tabs: { id: string; groups: { tag: string }[] }[] } };
+    const tags = new Set(ui.market.tabs.find((t) => t.id === 'rooms')!.groups.map((g) => g.tag));
+    for (const i of Object.values(content.items)) for (const t of i.tags) if (t.startsWith('area:')) expect(tags.has(t), `${i.id} ${t}`).toBe(true);
   });
 });

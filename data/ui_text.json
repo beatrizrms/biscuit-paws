@@ -52,6 +52,28 @@
         ]
       },
       {
+        "id": "rooms",
+        "title": "Cômodos",
+        "groups": [
+          {
+            "tag": "area:kitchen",
+            "title": "Cozinha"
+          },
+          {
+            "tag": "area:bedroom",
+            "title": "Quarto"
+          },
+          {
+            "tag": "area:yard",
+            "title": "Quintal"
+          },
+          {
+            "tag": "area:other",
+            "title": "Outros"
+          }
+        ]
+      },
+      {
         "id": "build",
         "title": "Construção",
         "groups": [
@@ -122,6 +144,7 @@
     "repair_first": "Primeiro o reparo (Market, aba Construção).",
     "already_repaired": "Esse reparo já foi feito.",
     "room_not_ready": "Essa obra ainda não dá para pedir.",
+    "heavy_dirt": "Esse mato alto não sai com a vassoura. Limpeza pesada: chame o Tião (Market, aba Construção).",
     "no_cells": "Nada para trocar nessa área.",
     "too_far": "Preciso chegar mais perto.",
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
@@ -500,6 +523,7 @@
     "title": "Obras",
     "hint": "O Tião abre os cômodos e termina as reformas (depois da limpeza). Uma obra por vez, junto com as outras.",
     "inWork": "em obra",
+    "needsHeavy": "falta a limpeza pesada",
     "open": "abrir",
     "restore": "reformar",
     "needsMoney": "falta dinheiro",

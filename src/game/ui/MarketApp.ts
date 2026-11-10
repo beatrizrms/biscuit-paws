@@ -3,7 +3,7 @@
 // Construção também tem as obras dos cômodos e o pintor. Quem decide (preço, limites, entrega) é a sessão.
 // Como no mercado, nada é comprado no toque: o item vai para o pedido (session.orderCart) e só sai ao confirmar.
 import { daysText, workName } from './constructionText';
-import type { GameSession } from '../../core/session';
+import type { GameSession, RoomWork } from '../../core/session';
 import { content, uiText } from '../content';
 import { itemThumbHtml, tileThumbHtml } from './thumbs';
 
@@ -87,7 +87,8 @@ export class MarketApp {
       b.addEventListener('click', () => {
         const id = b.dataset.room!;
         // Com o Tião (builder nos dados): a ligação com o orçamento; sem, a obra paga na hora.
-        const r = this.session.roomWork(id) ? this.session.quoteRoom(id) : b.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
+        const kind = b.dataset.kind as RoomWork['kind'] | undefined;
+        const r = kind ? this.session.quoteRoom(id, kind) : b.dataset.work === 'open' ? this.session.openRoom(id) : this.session.restoreRoom(id);
         if (!r.ok) return this.host.problem(r.reason);
         this.host.done();
       }),
@@ -183,32 +184,37 @@ export class MarketApp {
   private roomsHtml(): string {
     const r = uiText.rooms;
     const cs = this.session.state.construction;
-    // Pelo Tião: uma obra por vez (com as outras), os dias no aviso e "em obra" no cômodo que ele está fazendo.
-    const builder = (id: string, note: string, disabled: boolean) => {
-      const work = this.session.roomWork(id);
-      if (!work) return { note, disabled };
-      const mine = [cs.job, cs.quote].some((j) => j?.roomId === id);
-      if (mine) return { note: r.inWork, disabled: true };
-      return { note: [note, daysText(work.days)].filter(Boolean).join(' · '), disabled: disabled || !!(cs.job || cs.quote) };
+    // Pelo Tião: uma obra por vez (com as outras), os dias no aviso e "em obra" na que ele está fazendo.
+    const builder = (id: string, kind: RoomWork['kind'], note: string, disabled: boolean) => {
+      const work = this.session.roomWorks(id).find((w) => w.kind === kind);
+      if (!work) return null;
+      if ([cs.job, cs.quote].some((j) => j?.roomId === id && j.kind === kind)) return { work, note: r.inWork, disabled: true };
+      return { work, note: [note, daysText(work.days)].filter(Boolean).join(' · '), disabled: disabled || !!(cs.job || cs.quote) };
     };
     const why: Record<string, string> = { needs_money: r.needsMoney, needs_beat: r.needsBeat, needs_cats: r.needsCats, needs_item: r.needsItem };
-    const row = (id: string, work: string, label: string, price: number, note: string, disabled: boolean) =>
-      `<button class="m-row" data-room="${id}" data-work="${work}" ${disabled ? 'disabled' : ''}>
+    const row = (id: string, work: string, label: string, price: number, note: string, disabled: boolean, kind?: string) =>
+      `<button class="m-row" data-room="${id}" data-work="${work}"${kind ? ` data-kind="${kind}"` : ''} ${disabled ? 'disabled' : ''}>
         <span class="m-name">${esc(label)}</span><span class="m-price">${COIN}${price}</span>${note ? `<span class="m-note">${esc(note)}</span>` : ''}</button>`;
+    const money = this.session.state.money;
     const rows = this.session
       .rooms()
       .map((room) => {
         const s = this.session.roomState(room.id);
         if (s === 'discovered' && (room.unlock?.cost ?? 0) > 0) {
           const p = this.session.openRoomProblem(room.id);
-          const b = builder(room.id, p ? (why[p] ?? '') : '', !!p);
-          return row(room.id, 'open', room.unlock?.label ?? room.name, room.unlock?.cost ?? 0, b.note, b.disabled);
+          const note = p ? (why[p] ?? '') : '';
+          const b = builder(room.id, 'room_open', note, !!p);
+          return row(room.id, 'open', room.unlock?.label ?? room.name, room.unlock?.cost ?? 0, b?.note ?? note, b?.disabled ?? !!p, b ? 'room_open' : undefined);
         }
         if (s === 'abandoned' && room.restore && !room.restore.when) {
+          // A limpeza pesada (se ainda houver mato alto) vem antes da reforma, numa linha própria.
+          const heavy = this.session.roomHeavyDirtLeft(room.id);
+          const clear = heavy > 0 ? builder(room.id, 'room_clear', money < (room.clear?.cost ?? 0) ? r.needsMoney : '', money < (room.clear?.cost ?? 0)) : null;
+          const clearRow = clear ? row(room.id, 'clear', clear.work.label, clear.work.cost, clear.note, clear.disabled, 'room_clear') : '';
           const p = this.session.restoreRoomProblem(room.id);
-          const note = p === 'still_dirty' ? r.stillDirty.replace('{n}', String(this.session.roomDirtLeft(room.id))) : p === 'needs_money' ? r.needsMoney : '';
-          const b = builder(room.id, note, !!p);
-          return row(room.id, 'restore', room.restore.label ?? room.name, room.restore.cost ?? 0, b.note, b.disabled);
+          const note = heavy > 0 ? r.needsHeavy : p === 'still_dirty' ? r.stillDirty.replace('{n}', String(this.session.roomDirtLeft(room.id))) : p === 'needs_money' ? r.needsMoney : '';
+          const b = builder(room.id, 'room_restore', note, !!p);
+          return clearRow + row(room.id, 'restore', room.restore.label ?? room.name, room.restore.cost ?? 0, b?.note ?? note, b?.disabled ?? !!p, b ? 'room_restore' : undefined);
         }
         return '';
       })

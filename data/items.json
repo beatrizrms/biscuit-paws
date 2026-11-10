@@ -1464,6 +1464,268 @@
       "tags": [
         "junk"
       ]
+    },
+    {
+      "id": "item.yard_pergola_oven",
+      "name": "Pérgola com forno",
+      "price": 180,
+      "tile": "yard_pergola_forno",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_string_lights",
+      "name": "Varal de luzinhas",
+      "price": 30,
+      "tile": "yard_luzinhas_fio",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_hedge_lamp",
+      "name": "Luminária de sebe",
+      "price": 20,
+      "tile": "yard_luminaria_parede_sebe",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_floor_lamp",
+      "name": "Lampião de jardim",
+      "price": 25,
+      "tile": "yard_lampada_chao",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_wicker_chair",
+      "name": "Cadeira de vime",
+      "price": 30,
+      "tile": "yard_cadeira_vime",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_wicker_chair_left",
+      "name": "Cadeira de vime (para a esquerda)",
+      "price": 30,
+      "tile": "yard_cadeira_vime_esq",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_round_table",
+      "name": "Mesa redonda de jardim",
+      "price": 45,
+      "tile": "yard_mesa_redonda_branca",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_lounger",
+      "name": "Espreguiçadeira",
+      "price": 50,
+      "tile": "yard_espreguicadeira_lado",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_lounger_left",
+      "name": "Espreguiçadeira (para a esquerda)",
+      "price": 50,
+      "tile": "yard_espreguicadeira_lado_esp",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_garden_bench",
+      "name": "Banco de jardim",
+      "price": 40,
+      "tile": "yard_banco_lado",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_topiary",
+      "name": "Topiaria",
+      "price": 35,
+      "tile": "yard_topiaria",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_dracaena",
+      "name": "Dracena",
+      "price": 30,
+      "tile": "yard_dracena",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_potted_tree_a",
+      "name": "Arvorezinha no vaso",
+      "price": 40,
+      "tile": "yard_vaso_arvore_a",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_potted_tree_b",
+      "name": "Arvorezinha no vaso alto",
+      "price": 40,
+      "tile": "yard_vaso_arvore_b",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_low_pot_flowers",
+      "name": "Vaso baixo com flores",
+      "price": 15,
+      "tile": "yard_vaso_baixo_flores",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_low_pot_b",
+      "name": "Vaso baixo de cerâmica",
+      "price": 12,
+      "tile": "yard_vaso_baixo_b",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_low_pot_c",
+      "name": "Vaso baixo de barro",
+      "price": 12,
+      "tile": "yard_vaso_baixo_c",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_ceramic_stool",
+      "name": "Banquinho de cerâmica",
+      "price": 18,
+      "tile": "yard_banquinho_ceramica",
+      "tags": [
+        "furniture",
+        "area:other"
+      ],
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
     }
   ]
 }

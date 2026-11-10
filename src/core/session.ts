@@ -46,6 +46,7 @@ import {
   type DoorState,
   type OpenProblem,
   type RestoreProblem,
+  type RoomBuilderWork,
   type RoomDef,
   type RoomState,
 } from './rooms';
@@ -95,6 +96,15 @@ export interface CatProfile {
   sickness: { disease: string; treatment: { days: number; dosesGiven: number; dosedToday: boolean } | null } | null;
 }
 
+/** Uma obra de cômodo que o Tião faz (abrir, limpeza pesada, reforma). */
+export interface RoomWork {
+  kind: 'room_open' | 'room_clear' | 'room_restore';
+  cost: number;
+  days: number;
+  label: string;
+  site: RoomBuilderWork['site'];
+}
+
 export type ActionResult =
   | { ok: true }
   | {
@@ -104,6 +114,7 @@ export type ActionResult =
         | 'no_money'
         | 'not_in_inventory'
         | 'needs_broom'
+        | 'heavy_dirt'
         | 'needs_food'
         | 'needs_treat'
         | 'needs_medicine'
@@ -1117,28 +1128,44 @@ export class GameSession {
     this.advanceStory();
   }
 
-  /** A obra do cômodo que o Tião faz agora (abrir o descoberto ou reformar o aberto), se ele fizer. */
-  roomWork(roomId: string): { kind: 'room_open' | 'room_restore'; cost: number; days: number; label: string } | null {
+  /**
+   * As obras do cômodo que o Tião faz agora: abrir o descoberto; no aberto, a limpeza pesada (enquanto houver
+   * sujeira "heavy") e a reforma. Cada uma com o preço, os dias e o lugar dele.
+   */
+  roomWorks(roomId: string): RoomWork[] {
     const room = this.content.rooms.rooms.find((r) => r.id === roomId);
+    if (!room) return [];
     const s = this.roomState(roomId);
-    if (s === 'discovered' && room?.unlock?.builder) return { kind: 'room_open', cost: room.unlock.cost ?? 0, days: room.unlock.builder.days, label: room.unlock.label ?? room.name };
-    if (s === 'abandoned' && room?.restore?.builder) return { kind: 'room_restore', cost: room.restore.cost ?? 0, days: room.restore.builder.days, label: room.restore.label ?? room.name };
-    return null;
+    const out: RoomWork[] = [];
+    const add = (kind: RoomWork['kind'], w: { cost?: number; label?: string; builder?: RoomBuilderWork } | undefined) => {
+      if (w?.builder) out.push({ kind, cost: w.cost ?? 0, days: w.builder.days, label: w.label ?? room.name, site: w.builder.site });
+    };
+    if (s === 'discovered') add('room_open', room.unlock);
+    if (s === 'abandoned') {
+      if (this.roomHeavyDirtLeft(roomId) > 0) add('room_clear', room.clear);
+      add('room_restore', room.restore);
+    }
+    return out;
   }
 
-  /** Pede ao Tião a obra do cômodo (abrir ou reformar): abre a ligação com o orçamento. A limpeza vem antes da reforma. */
-  quoteRoom(roomId: string): ActionResult {
-    const work = this.roomWork(roomId);
+  /** Sujeira pesada que falta no cômodo (mato alto: só o Tião tira, na limpeza pesada). */
+  roomHeavyDirtLeft(roomId: string): number {
+    const tag = this.content.rooms.rooms.find((r) => r.id === roomId)?.restore?.dirtTag;
+    return tag ? this.visibleDirt().filter((d) => d.heavy && d.tags.includes(tag)).length : 0;
+  }
+
+  /** Pede ao Tião uma obra do cômodo (abrir, limpeza pesada ou reforma): abre a ligação com o orçamento. A limpeza vem antes da reforma. */
+  quoteRoom(roomId: string, kind?: RoomWork['kind']): ActionResult {
+    const works = this.roomWorks(roomId);
+    const work = kind ? works.find((w) => w.kind === kind) : works[0];
     if (!work) return { ok: false, reason: 'room_not_ready' };
     const s = this.state.construction;
     const blocker = quoteBlocker(s, work.kind, this.painterUnlocked());
     if (blocker) return { ok: false, reason: blocker };
-    const problem = work.kind === 'room_open' ? this.openRoomProblem(roomId) : this.restoreRoomProblem(roomId);
-    if (problem === 'needs_money') return { ok: false, reason: 'no_money' };
+    const problem = work.kind === 'room_open' ? this.openRoomProblem(roomId) : work.kind === 'room_restore' ? this.restoreRoomProblem(roomId) : null;
+    if (problem === 'needs_money' || this.state.money < work.cost) return { ok: false, reason: 'no_money' };
     if (problem) return { ok: false, reason: 'room_not_ready' };
-    const room = this.content.rooms.rooms.find((r) => r.id === roomId)!;
-    const site = (work.kind === 'room_open' ? room.unlock?.builder : room.restore?.builder)!.site;
-    s.quote = { kind: work.kind, roomId, site, material: 0, labor: work.cost, days: work.days };
+    s.quote = { kind: work.kind, roomId, site: work.site, material: 0, labor: work.cost, days: work.days };
     this.bus.emit('construction.call', { kind: work.kind });
     return { ok: true };
   }
@@ -2059,7 +2086,7 @@ export class GameSession {
     const dist = (d: DirtSpot) =>
       Math.min(...cellsOf(d.at, catalog.tiles[d.tile]!).flatMap(([c, r]) => from.map(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)))));
     return this.visibleDirt()
-      .filter((d) => !d.clearedBy && catalog.tiles[d.tile] && dist(d) <= reach)
+      .filter((d) => !d.clearedBy && !d.heavy && catalog.tiles[d.tile] && dist(d) <= reach)
       .sort((a, b) => dist(a) - dist(b))[0];
   }
 
@@ -2084,10 +2111,11 @@ export class GameSession {
   }
 
   /** Por que não dá para limpar agora (ou null): a interface confere antes de varrer. */
-  cleanProblem(dirtId: string, from: readonly Cell[] = [], reach = 2): 'not_found' | 'needs_repair' | 'too_far' | 'needs_broom' | null {
+  cleanProblem(dirtId: string, from: readonly Cell[] = [], reach = 2): 'not_found' | 'needs_repair' | 'heavy_dirt' | 'too_far' | 'needs_broom' | null {
     const d = this.visibleDirt().find((x) => x.id === dirtId);
     if (!d) return 'not_found';
     if (d.clearedBy) return 'needs_repair';
+    if (d.heavy) return 'heavy_dirt';
     const def = this.content.catalog.tiles[d.tile]!;
     if (from.length > 0) {
       const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
@@ -2245,6 +2273,14 @@ export class GameSession {
     // Obra de cômodo: abre (as portas) ou termina a reforma (o visual e as funcionalidades).
     const room = this.content.rooms.rooms.find((r) => r.id === done.roomId);
     if (room && done.kind === 'room_open' && this.roomState(room.id) === 'discovered') this.applyRoomOpen(room);
+    if (room && done.kind === 'room_clear') {
+      // Limpeza pesada: o mato alto do cômodo sai todo de uma vez.
+      for (const d of this.visibleDirt().filter((x) => x.heavy && x.tags.includes(room.restore?.dirtTag ?? ''))) {
+        this.state.cleaned.push(d.id);
+        this.bus.emit('dirt.cleaned', { dirtId: d.id });
+      }
+      this.advanceStory();
+    }
     if (room && done.kind === 'room_restore' && this.roomState(room.id) === 'abandoned') {
       this.markRestored(room);
       this.advanceStory();

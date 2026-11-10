@@ -31,7 +31,7 @@ type Facing = 'down' | 'left' | 'right' | 'up';
 
 /** O que foi pedido (orçamento) ou está em obra. */
 export interface ConstructionJob {
-  kind: 'inside' | 'outside' | 'finish' | 'facade' | 'room_open' | 'room_restore';
+  kind: 'inside' | 'outside' | 'finish' | 'facade' | 'room_open' | 'room_clear' | 'room_restore';
   /** Obra de cômodo (data/rooms.json): qual cômodo e onde ele trabalha. */
   roomId?: string;
   site?: { at: Cell; facing: Facing };
@@ -96,7 +96,7 @@ export function quoteBlocker(s: ConstructionState, kind: ConstructionJob['kind']
   if (!unlocked) return 'locked';
   if (s.job || s.quote) return 'busy';
   if ((kind === 'inside' || kind === 'outside') && s.repaired.includes(kind)) return 'already_repaired';
-  if ((kind === 'room_open' || kind === 'room_restore') && !isRenovated(s)) return 'repair_first';
+  if ((kind === 'room_open' || kind === 'room_clear' || kind === 'room_restore') && !isRenovated(s)) return 'repair_first';
   if (kind === 'finish' && !s.repaired.includes('inside')) return 'repair_first';
   if (kind === 'facade' && !s.repaired.includes('outside')) return 'repair_first';
   return null;

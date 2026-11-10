@@ -524,7 +524,7 @@ function normalizeConstruction(c: unknown, known: KnownIds): ConstructionState {
   out.repaired = (Array.isArray(x.repaired) ? x.repaired : []).filter((k): k is 'inside' | 'outside' => k === 'inside' || k === 'outside');
   const job = (j: unknown): ConstructionState['job'] => {
     const v = j as ConstructionState['job'];
-    if (!v || !['inside', 'outside', 'finish', 'facade', 'room_open', 'room_restore'].includes(v.kind)) return null;
+    if (!v || !['inside', 'outside', 'finish', 'facade', 'room_open', 'room_clear', 'room_restore'].includes(v.kind)) return null;
     if (v.roomId && !known.rooms.rooms.some((r) => r.id === v.roomId)) return null;
     if (v.finishId && !known.finishes.has(v.finishId)) return null;
     if (v.surfaceId && !known.surfaces.has(v.surfaceId)) return null;

@@ -5,9 +5,9 @@ import { content, uiText } from '../content';
 /** "Reparo interno", "Piso do salão: Tacos de madeira", "Cor da fachada: Menta", "Abrir o acesso ao porão". */
 export function workName(job: Pick<ConstructionJob, 'kind' | 'surfaceId' | 'finishId' | 'roomId'>): string {
   const c = content.construction;
-  if (job.kind === 'room_open' || job.kind === 'room_restore') {
+  if (job.kind === 'room_open' || job.kind === 'room_clear' || job.kind === 'room_restore') {
     const room = content.rooms.rooms.find((r) => r.id === job.roomId);
-    const work = job.kind === 'room_open' ? room?.unlock : room?.restore;
+    const work = job.kind === 'room_open' ? room?.unlock : job.kind === 'room_clear' ? room?.clear : room?.restore;
     return work?.label ?? room?.name ?? '';
   }
   if (job.kind === 'inside') return c.repairs.inside.name;

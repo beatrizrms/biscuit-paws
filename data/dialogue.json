@@ -544,6 +544,10 @@
         },
         {
           "speaker": "{player}",
+          "text": "Por enquanto é só grama e árvore. O resto eu monto do meu jeito (Market, aba Cômodos)."
+        },
+        {
+          "speaker": "{player}",
           "text": "Com 10 gatos no abrigo, dá para montar um playground (Market, aba Pet)."
         }
       ]

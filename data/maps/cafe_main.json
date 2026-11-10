@@ -492,6 +492,7 @@
     {
       "id": "dirt.backyard_weeds_a",
       "tile": "room_mato",
+      "heavy": true,
       "at": [
         33,
         5
@@ -504,6 +505,7 @@
     {
       "id": "dirt.backyard_weeds_b",
       "tile": "room_mato",
+      "heavy": true,
       "at": [
         39,
         8
@@ -516,9 +518,36 @@
     {
       "id": "dirt.backyard_weeds_c",
       "tile": "room_mato",
+      "heavy": true,
       "at": [
         30,
         9
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_weeds_d",
+      "tile": "room_mato",
+      "heavy": true,
+      "at": [
+        37,
+        5
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_weeds_e",
+      "tile": "room_mato",
+      "heavy": true,
+      "at": [
+        27,
+        8
       ],
       "tags": [
         "room",

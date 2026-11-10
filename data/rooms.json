@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost; com builder, o Tião faz a obra: days e site, onde ele trabalha), gatos mínimos, marcos; a porta com requires.item abre com o item. restore: limpar a sujeira com dirtTag e pagar cost (com builder, pelo Tião, como no unlock) (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo. Porta com tiles.open continua desenhada depois de aberta; sem tiles.hidden, escondida não desenha nada (parede lisa). A porta do jardim (door.backyard) fica na parede de cima do salão: a passagem em si são as portas do mapa (door.to_backyard / door.from_backyard em cafe_main.json), que só deixam passar com o jardim aberto. O quartinho virou o porão (mesmo ID room.back_room), com a escadinha (2 tiles) na passagem entre o salão e o porão.",
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost; com builder, o Tião faz a obra: days e site, onde ele trabalha), gatos mínimos, marcos; a porta com requires.item abre com o item. clear (opcional): limpeza pesada do Tião antes da reforma, tira a sujeira heavy do cômodo (cost, label, builder). restore: limpar a sujeira com dirtTag e pagar cost (com builder, pelo Tião, como no unlock) (ou sozinho quando `when` valer). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração na primavera, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo. Porta com tiles.open continua desenhada depois de aberta; sem tiles.hidden, escondida não desenha nada (parede lisa). A porta do jardim (door.backyard) fica na parede de cima do salão: a passagem em si são as portas do mapa (door.to_backyard / door.from_backyard em cafe_main.json), que só deixam passar com o jardim aberto. O quartinho virou o porão (mesmo ID room.back_room), com a escadinha (2 tiles) na passagem entre o salão e o porão.",
   "rooms": [
     {
       "id": "room.hall",
@@ -170,6 +170,11 @@
         "label": "Abrir o cadeado",
         "dialogue": "dlg.room_backyard_opened"
       },
+      "clear": {
+        "cost": 80,
+        "label": "Limpeza pesada do quintal",
+        "builder": { "days": 1, "site": { "at": [42, 5], "facing": "right" } }
+      },
       "restore": {
         "cost": 120,
         "dirtTag": "backyard",
@@ -229,166 +234,8 @@
           ],
           "objectsByState": {
             "restored": [
-              {
-                "id": "obj.yard_lights",
-                "tile": "yard_luzinhas_fio",
-                "at": [
-                  33,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_lamp_wall_a",
-                "tile": "yard_luminaria_parede_sebe",
-                "at": [
-                  30,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_lamp_wall_b",
-                "tile": "yard_luminaria_parede_sebe",
-                "at": [
-                  39,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_oven",
-                "tile": "yard_pergola_forno",
-                "at": [
-                  26,
-                  3
-                ]
-              },
-              {
-                "id": "obj.yard_pot_a",
-                "tile": "yard_vaso_arvore_a",
-                "at": [
-                  32,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_pot_b",
-                "tile": "yard_vaso_arvore_b",
-                "at": [
-                  38,
-                  2
-                ]
-              },
-              {
-                "id": "obj.yard_pot_low_a",
-                "tile": "yard_vaso_baixo_flores",
-                "at": [
-                  31,
-                  3
-                ]
-              },
-              {
-                "id": "obj.yard_pot_low_b",
-                "tile": "yard_vaso_baixo_b",
-                "at": [
-                  37,
-                  3
-                ]
-              },
-              {
-                "id": "obj.yard_topiary",
-                "tile": "yard_topiaria",
-                "at": [
-                  35,
-                  3
-                ]
-              },
-              {
-                "id": "obj.yard_tree",
-                "tile": "yard_arvore",
-                "at": [
-                  40,
-                  3
-                ]
-              },
-              {
-                "id": "obj.yard_floor_lamp",
-                "tile": "yard_lampada_chao",
-                "at": [
-                  33,
-                  6
-                ]
-              },
-              {
-                "id": "obj.yard_chair",
-                "tile": "yard_cadeira_vime",
-                "at": [
-                  27,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_table",
-                "tile": "yard_mesa_redonda_branca",
-                "at": [
-                  28,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_chair_b",
-                "tile": "yard_cadeira_vime_esq",
-                "at": [
-                  30,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_lounger_a",
-                "tile": "yard_espreguicadeira_lado",
-                "at": [
-                  36,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_lounger_b",
-                "tile": "yard_espreguicadeira_lado_esp",
-                "at": [
-                  37,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_bench",
-                "tile": "yard_banco_lado",
-                "at": [
-                  42,
-                  8
-                ]
-              },
-              {
-                "id": "obj.yard_dracaena",
-                "tile": "yard_dracena",
-                "at": [
-                  40,
-                  9
-                ]
-              },
-              {
-                "id": "obj.yard_pot_low_c",
-                "tile": "yard_vaso_baixo_c",
-                "at": [
-                  31,
-                  10
-                ]
-              },
-              {
-                "id": "obj.yard_stool",
-                "tile": "yard_banquinho_ceramica",
-                "at": [
-                  32,
-                  10
-                ]
-              }
+              { "id": "obj.yard_tree", "tile": "yard_arvore", "at": [40,3] },
+              { "id": "obj.yard_tree_b", "tile": "yard_arvore", "at": [27,3] }
             ]
           }
         }
