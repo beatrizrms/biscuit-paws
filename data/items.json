@@ -112,6 +112,7 @@
       "price": 0,
       "kind": "key",
       "icon": "chave_padaria",
+      "inBag": false,
       "tags": [
         "key"
       ]
@@ -978,6 +979,7 @@
       "price": 0,
       "kind": "gift",
       "icon": "caixa_presente_laco",
+      "inBag": false,
       "tags": [
         "gift",
         "dishes"

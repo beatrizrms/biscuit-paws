@@ -55,3 +55,26 @@ describe('despensa', () => {
     expect(state.inventory['item.cat_food_basic']).toBe(2);
   });
 });
+
+describe('presente da Gabi e chave da padaria (não ficam na mochila)', () => {
+  it('o presente vira louça limpa; a chave só deixa a marca (e abre a porta do café)', () => {
+    const { session, state } = cafe();
+    session.receiveItem('item.dishes_set');
+    expect(state.inventory['item.dishes_set']).toBeUndefined();
+    expect(state.dishes).toEqual({ cup: 6, glass: 6, plate: 6 });
+    session.receiveItem('item.key_bakery');
+    expect(state.inventory['item.key_bakery']).toBeUndefined();
+    const door = content.maps['map.street']!.doors!.find((d) => d.id === 'door.cafe')!;
+    expect(session.canUseDoor(door)).toBe(true);
+  });
+
+  it('save antigo com a chave e o presente na mochila: saem dela e viram a marca', () => {
+    const old = JSON.parse(readFileSync('tests/fixtures/save_v25.json', 'utf8'));
+    old.inventory = { ...old.inventory, 'item.key_bakery': 1, 'item.dishes_set': 1 };
+    const { state } = parseSave(JSON.stringify(old), knownIds(content));
+    expect(state.inventory['item.key_bakery']).toBeUndefined();
+    expect(state.inventory['item.dishes_set']).toBeUndefined();
+    expect(state.flags['received.item.key_bakery']).toBe(true);
+    expect(state.flags['received.item.dishes_set']).toBe(true);
+  });
+});

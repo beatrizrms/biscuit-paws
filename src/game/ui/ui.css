@@ -1060,3 +1060,4 @@
 .catalog.backpack .bp-pantry h3 button { padding: 0 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
 .catalog.backpack .bp-pantry h3 .why { font-size: 6.5px; font-weight: normal; color: var(--grey2); }
 .catalog.backpack span.bp-pantry-slot { opacity: 1; }
+.catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: 7px; }

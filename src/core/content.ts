@@ -64,6 +64,11 @@ export interface ItemDef {
   storesAs?: { item: string; qty: number };
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
   dishes?: Partial<Record<Vessel, number>>;
+  /**
+   * false: ao receber, não vai para a mochila (a chave da padaria só aparece na entrega; o presente da Gabi vira louça).
+   * Fica a marca received.<id>, e a condição "owned" conta com ela (a porta do café pede a chave).
+   */
+  inBag?: boolean;
   tags: string[];
   deprecated?: boolean;
   /** Texto curto do que o item faz (loja, Market e mochila). */

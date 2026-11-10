@@ -114,7 +114,8 @@ describe('começo da história', () => {
     expect(session.atHome()).toBe(true);
     expect(session.state.visited).toEqual(['map.street', 'map.cafe_main']);
     expect(events.some((e) => e.name === 'map.entered')).toBe(true);
-    expect(session.state.inventory['item.key_bakery']).toBe(1);
+    expect(session.state.flags['received.item.key_bakery']).toBe(true); // a chave não fica na mochila
+    expect(session.state.inventory['item.key_bakery']).toBeUndefined();
     expect(session.state.flags['bought.old_bakery']).toBe(true);
     expect(session.state.flags['seen.scr.realtor_tour']).toBe(true);
     expect(dialogues()).toEqual([{ dialogueId: 'dlg.intro' }, { dialogueId: 'dlg.inside' }]);
@@ -486,7 +487,8 @@ describe('chave e portas', () => {
     session.finishCutscene('cs.prologue_thoughts'); // chegada
     expect(session.state.inventory['item.key_bakery']).toBeUndefined();
     realtorTour(session); // a corretora entrega a chave
-    expect(session.state.inventory['item.key_bakery']).toBe(1);
+    expect(session.state.flags['received.item.key_bakery']).toBe(true); // a chave não fica na mochila
+    expect(session.state.inventory['item.key_bakery']).toBeUndefined();
     expect(session.canUseDoor(streetDoor())).toBe(true);
   });
 

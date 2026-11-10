@@ -525,8 +525,10 @@ test('corretora: aparece na rua, leva para dentro e a chave aparece no centro da
   expect((await player(page)).map).toBe('map.cafe_main');
   await page.screenshot({ path: testInfo.outputPath('20-chave.png') });
   await skipDialogue(page);
-  const key = await page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { inventory: Record<string, number> } } } }).__biscuitPaws.cafe.sessionState().inventory['item.key_bakery']);
-  expect(key).toBe(1);
+  // A chave só aparece na entrega: não fica na mochila (fica a marca de que chegou).
+  const key = await page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { inventory: Record<string, number>; flags: Record<string, boolean> } } } }).__biscuitPaws.cafe.sessionState());
+  expect(key.inventory['item.key_bakery']).toBeUndefined();
+  expect(key.flags['received.item.key_bakery']).toBe(true);
   await expect(page.locator('.hud-goals')).toContainText('Uma boa faxina');
 });
 

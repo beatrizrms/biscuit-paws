@@ -42,7 +42,8 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   }
   if ('placed' in c) return placedCount(state, c.placed) >= (c.gte ?? 1);
   // Comprado = na bolsa, posicionado ou já encomendado pelo correio.
-  if ('owned' in c) return ownedCount(state, c.owned) + deliveredCount(state, c.owned) >= (c.gte ?? 1);
+  // Item que não fica na mochila (a chave da padaria) conta pela marca de que chegou.
+  if ('owned' in c) return ownedCount(state, c.owned) + deliveredCount(state, c.owned) + (state.flags[`received.${c.owned}`] ? 1 : 0) >= (c.gte ?? 1);
   if ('money' in c) return state.money >= c.money.gte;
   if ('day' in c) return state.day >= c.day.gte;
   if ('clock' in c) return state.time >= parseClock(c.clock.gte);

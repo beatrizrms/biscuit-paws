@@ -1503,7 +1503,9 @@ export class GameSession {
 
   /** Recebe um item (história ou roteiro): vai para a bolsa. */
   receiveItem(itemId: string): void {
-    this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    // Item que não fica na mochila (a chave, o presente de louça): só a marca de que chegou.
+    if (this.content.items[itemId]?.inBag === false) this.state.flags[`received.${itemId}`] = true;
+    else this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
     this.service.stockDishes(itemId);
     this.bus.emit('item.received', { itemId });
     this.advanceStory();

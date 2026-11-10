@@ -290,7 +290,9 @@ export class BackpackPanel {
       .join('');
     const inBag = sv.ingredientsInBag();
     const action = inBag === 0 ? '' : this.atPantry ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>` : `<span class="why">${esc(t.pantryWhere)}</span>`;
-    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3>${slots ? `<div class="bp-row">${slots}</div>` : `<p class="bp-hint">${t.pantryEmpty}</p>`}</div>`;
+    // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
+    const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
+    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3>${slots ? `<div class="bp-row">${slots}</div>` : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
   }
 
   private render(): void {
@@ -302,7 +304,6 @@ export class BackpackPanel {
     const hands = st.hands.length
       ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '')
       : t.handsEmpty;
-    const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
     // A barra (mesmos espaços da barra de baixo da tela).
     const bar = st.hotbar.slots.map((id, i) => this.slotHtml(id, `data-bar="${i}"`, i === st.hotbar.active, i + 1)).join('');
     // A mochila: tudo o que ela tem e não está na barra.
@@ -311,7 +312,7 @@ export class BackpackPanel {
     const total = Math.max(BAG_SLOTS, Math.ceil(ids.length / 8) * 8);
     const bag = Array.from({ length: total }, (_, i) => (ids[i] ? this.slotHtml(ids[i]!, `data-bag="${ids[i]}"`, false) : `<span class="bp-slot is-empty"></span>`)).join('');
     this.body.innerHTML = `
-      <div class="bp-strip"><span><b>${t.hands}:</b> ${hands}</span><span class="dishes"><b>${t.dishes}:</b> ${dishes}</span></div>
+      <div class="bp-strip"><span><b>${t.hands}:</b> ${hands}</span></div>
       <h3>${t.bar}</h3><div class="bp-row">${bar}</div>
       <h3>${t.bag}</h3><div class="bp-row bp-bag">${bag}</div>
       ${this.detailHtml()}

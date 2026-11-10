@@ -512,7 +512,7 @@ Evolução das receitas: o café abre só com o café preto; as outras destranca
 
 `data/carry.json`: `carryCapacity` (1 na Fase 1) e `speedPenaltyPerItem`. Bandeja (`tray.item`): vale quando está **selecionada na barra de itens** (`service.syncTray`); com ela, leva até `tray.capacity` louças; sem ela, uma por vez. Com mais louça nas mãos do que cabe sem bandeja, ela só sai quando sobrar o que cabe. Gato ou saco pesado com as mãos vazias: larga a bandeja. No jogo, bandeja ou louça na mão aparecem sempre como a bandeja nas mãos com uma louça em cima (o número não aparece).
 
-Itens: `servings` (doses por pacote; pó de café 10) e `dishes` (conjunto de louça: `item.dishes_set`, presente da Gabi = 6 xícaras + 6 copos + 6 pratos).
+Itens: `servings` (doses por pacote; pó de café 10), `dishes` (conjunto de louça: `item.dishes_set`, presente da Gabi = 6 xícaras + 6 copos + 6 pratos) e `inBag` (`false`: ao receber, não vai para a mochila; fica a marca `received.<id>`, que a condição `owned` conta: a chave da padaria e o presente da Gabi, que vira louça limpa. Save antigo com eles na mochila: a leitura tira e grava a marca).
 
 Regras:
 - **Esgotado**: falta equipamento posicionado, dose de ingrediente ou louça limpa livre. Aparece no quadro e não é pedido.

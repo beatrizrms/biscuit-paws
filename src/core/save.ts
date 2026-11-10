@@ -181,6 +181,8 @@ export interface KnownIds {
   rooms: RoomsData;
   /** Reputação de quem não tem (saves antigos). */
   reputationStart?: number;
+  /** Itens que não ficam na mochila (inBag false): num save antigo, saem dela e viram a marca received.<id>. */
+  notInBag?: ReadonlySet<string>;
   /** Ingredientes (tag ingredient): na migração da despensa, saem da mochila. */
   ingredients?: ReadonlySet<string>;
   /** Chegadas de data/arrivals.json (a que sumiu sai da fila). */
@@ -207,6 +209,12 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
+  // A chave da padaria e o presente da Gabi não ficam mais na mochila: viram a marca de que chegaram.
+  for (const id of known.notInBag ?? []) {
+    if (!v2.inventory?.[id]) continue;
+    delete (v2.inventory as Record<string, number>)[id];
+    v2.flags = { ...(v2.flags ?? {}), [`received.${id}`]: true };
+  }
   // Migração da despensa (v26): os ingredientes saem da mochila e entram na despensa.
   const migratedPantry: Record<string, number> = {};
   if (migrated && v2.inventory) {
@@ -343,6 +351,8 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     ),
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     schedule: validSchedule(v2.schedule) ? { days: [...v2.schedule.days], open: v2.schedule.open, close: v2.schedule.close } : null,
+    // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
+    ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
   return { state, warnings };
@@ -502,6 +512,7 @@ export function knownIds(content: {
     reputationStart: content.reputation?.start ?? 0,
     ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
     ...(content.festivals ? { festivals: new Set(content.festivals.map((f) => f.id)) } : {}),
+    notInBag: new Set(Object.entries(content.items).filter(([, i]) => (i as { inBag?: boolean }).inBag === false).map(([id]) => id)),
     ingredients: new Set(Object.entries(content.items).filter(([, i]) => (i as { tags?: string[] }).tags?.includes('ingredient')).map(([id]) => id)),
   };
 }
