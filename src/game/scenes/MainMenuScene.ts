@@ -64,6 +64,8 @@ export class MainMenuScene extends Phaser.Scene {
     const root = document.getElementById('ui')!;
     root.innerHTML = '';
     const { audio } = services();
+    // Tela "Toque ou clique para começar": nada toca até o clique (que começa a música da Home).
+    audio.silence();
     this.menu = new MainMenu(root, {
       started: () => audio.playScene('home'),
       play: async (slot) => this.go(() => startGame(this, { mode: 'load', from: slot })),

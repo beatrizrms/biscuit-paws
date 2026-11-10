@@ -203,6 +203,23 @@ export class AudioManager {
   }
 
   /** Abaixa tudo devagar (ao sair de uma cena). */
+  /**
+   * Silêncio na hora: para música, ambiente, loops e qualquer som do jogo, e esquece o que estava pedido (a tela
+   * "Toque ou clique para começar" é como uma pausa: nada toca até o clique).
+   */
+  silence(): void {
+    for (const id of this.fades) window.clearInterval(id);
+    this.fades.clear();
+    for (const ch of ['music', 'ambient'] as const) {
+      this.current[ch]?.sound?.destroy();
+      this.current[ch] = null;
+    }
+    for (const sound of this.loops.values()) sound.destroy();
+    this.loops.clear();
+    this.musicPaused = false;
+    this.game.sound.stopAll();
+  }
+
   fadeOutAll(): void {
     for (const ch of ['music', 'ambient'] as const) {
       const sound = this.current[ch]?.sound;
