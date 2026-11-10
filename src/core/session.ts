@@ -173,8 +173,6 @@ export type ActionResult =
         | 'job_full'
         | 'job_unavailable'
         | 'missing_item'
-        | 'need_food'
-        | 'need_warmth'
         | 'door_full'
         | 'hands_full'
         | 'nothing_here'
@@ -240,7 +238,7 @@ export class GameSession {
       capacity: () => this.catCapacity(),
       exclusiveActive: () => this.exclusiveActive(),
       reputation: () => this.reputation(),
-      shelterCat: (id, condition, until, treated) => this.shelterCat(id, condition, until, treated),
+      shelterCat: (id, condition, until, treated, settling) => this.shelterCat(id, condition, until, treated, settling),
       money: () => this.state.money,
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
@@ -987,13 +985,17 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
-    for (const id of this.shelteredCats()) {
-      if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
-    }
+    // Gato que acabou de chegar: ganhar a confiança dele (E nele).
+    for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
+    // Comida: com um gato só, "Comida para Botinhas"; com mais, uma tarefa só (a ração no pote serve todos).
+    const home = this.homeCats();
+    const fed = home.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
+    if (home.length === 1) out.push({ kind: 'feed', catId: home[0]!, done: fed === 1 });
+    else if (home.length > 1) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
     // Cocô no chão (areia suja há dias): varrer e trocar a areia.
     const lpTag = this.content.health.care.litterPoop?.tag;
     if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
@@ -1692,6 +1694,16 @@ export class GameSession {
     this.state.time = Math.max(this.state.time, parseClock(clock));
   }
 
+  /** O gato acabou de chegar e ainda precisa da confiança (E nele abre o mini game)? */
+  catSettling(catId: string): boolean {
+    return !!this.state.cats[catId]?.settling;
+  }
+
+  /** Dificuldade da confiança do gato que chegou: a da personalidade (tímido = difícil). */
+  settleDifficulty(catId: string): 'easy' | 'normal' | 'hard' {
+    return this.content.catProfiles.personalities[this.catDef(catId)?.personality ?? '']?.trust ?? 'normal';
+  }
+
   /** A condição (da história) vale agora? Ex.: o `when` de um passo de roteiro. */
   holds(c: Condition): boolean {
     return evaluate(c, this.state, this.storyContext());
@@ -2114,6 +2126,12 @@ export class GameSession {
       // Cada adoção vale a sua reputação (boa vale mais que ok: data/adoption.json).
       const rep = this.content.adoption.reputation[a.verdict] ?? 0;
       if (rep !== 0) this.addReputation(rep, `adoption:${a.catId}:${a.verdict}`);
+    }
+    // Gato que acabou de chegar: a confiança deu certo (sem pular), ele fica de boa no café.
+    const newcomer = params.catId ? this.state.cats[params.catId] : undefined;
+    if (result.gameId === 'trust' && newcomer?.settling && result.outcome !== 'fail' && !result.skipped) {
+      delete newcomer.settling;
+      this.bus.emit('cat.settled', { catId: params.catId! });
     }
     // Remédio escondido: deu certo (sem pular), a dose do dia vai.
     if (result.gameId === 'pill' && params.catId && result.outcome !== 'fail' && !result.skipped) this.pillDose(params.catId);
@@ -3452,7 +3470,7 @@ export class GameSession {
    * Abriga um gato no café. Com a condição de chegada (data/cat_profiles.json), a saúde e a doença vêm dela; sem
    * ela (o gato da história), a saúde inicial e o arrivesSick dos dados. provisionalUntil: café cheio, com prazo.
    */
-  shelterCat(catId: string, condition?: string, provisionalUntil?: number, treated = false): void {
+  shelterCat(catId: string, condition?: string, provisionalUntil?: number, treated = false, settling = false): void {
     const def = this.catDef(catId);
     const profile = condition ? this.content.catProfiles.conditions[condition] : undefined;
     this.state.cats[catId] = {
@@ -3466,6 +3484,7 @@ export class GameSession {
       happiness: this.content.health.care.start.happiness,
       hygiene: this.content.health.care.start.hygiene,
       ...(provisionalUntil !== undefined ? { provisionalUntil } : {}),
+      ...(settling ? { settling: true } : {}),
     };
     this.bus.emit('cat.sheltered', { catId });
     // Chega doente pela condição (ferido) ou pelos dados, a não ser que o vet já tenha cuidado na chegada.

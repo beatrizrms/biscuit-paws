@@ -667,18 +667,22 @@ Decisão: a folha segue o layout do Cosy Cats (6 colunas; sentado, andar nas 4 d
 Escovação: o gato novo tem o corpo noutro lugar do quadro de lado e é mais esguio; `art64` em `data/minigames.json` (grooming) traz nós e zonas próprios e `bodyScale` 10 (o do Cosy continua com os de antes).
 Consequência: os outros 10 tipos de pelagem entram trocando só a folha (mesmo layout, mesmos nós). O andar para baixo do ruivo tem a cabeça um pouco menor (template); fica assim por ora.
 
-## 164. Almoço: a paciência fica parada (nov/2026)
+## 164. Regras gerais dos gatos: entram na hora, confiança na chegada, um por vez no pote (nov/2026)
+Pedido: todo gato acolhido aparece na hora dentro do café; ao chegar, precisa do mini game da confiança para ficar de boa; a ração no pote serve todos, mas eles vão comer um de cada vez, algumas vezes no dia; a tarefa do dia é "Comida para Botinhas" com um gato e "Ração para os gatos" com mais; o pelo arrepiado quando a escova deixa o gato bravo.
+Decisão: sai a espera na porta (ração, cobertor e vet antes de entrar; `needs`, `needsPlace`, o ponto `pt.arrival_vet`, os avisos e o `needsInside` da decisão 162): aceito, o gato entra no café; fome e frio se resolvem lá, o ferido entra doente; o em_perigo continua pagando a consulta (`cat_profiles.json: rescueVetCost`). Saves antigos com o gato esperando na porta: ele entra no próximo minuto. O gato principal entra com `settling` (save v35): o E nele abre a Confiança do gato (dificuldade pela personalidade), que ao dar certo o deixa de boa (evento `cat.settled`); quem já passou pela confiança na chegada entra tranquilo, e os filhotes seguem a mãe. Tarefas: `settle` ("Ganhar a confiança de X") e a comida numa linha só com mais de um gato (com quantos já comeram). Pote: a fila é só de desenho (`WorldScene`: um gato por vez, comendo de lado como na decisão 163, e um que já comeu volta para beliscar a cada 150 a 240 minutos de jogo). Escovação: na zona sensível, tufos de pelo (2 a 3 pixels do jogo, também na arte em 64 px, na cor do pelo com a ponta do contorno) se levantam nas costas e no rabo por meio segundo, desenhados por código (a folha do gato não tem esse quadro).
+
+## 165. Almoço: a paciência fica parada (nov/2026)
 Pedido: no almoço, quem espera não pode perder a paciência (não dava tempo de fazer nada); quem está tomando café continua.
 Decisão: durante o almoço, `CafeService.tick` empurra o prazo (`until`) de quem está na fila ou esperando o pedido pelos minutos que passaram desde o tick anterior (`passed`, o mesmo da pia; o relógio pode pular mais de um). A barrinha e o humor ficam parados; a nota (espera usada) e a gorjeta também. Quem está consumindo segue normal. Sem campo novo no save.
 
-## 165. Avaliação do cliente com carinha e estrela em arte (nov/2026)
+## 166. Avaliação do cliente com carinha e estrela em arte (nov/2026)
 Pedido: as estrelas da avaliação (texto ★☆) ficavam pixeladas; trocar por arte do PixelLab: carinha feliz, triste e a estrela, sem variações (estrela unitária: o jogo repete).
 Decisão: 3 ícones de 24 x 24 (PixelLab, `create_1_direction_object`, desenhados em meia escala; fontes em assets/_pixellab/review_icones, copiadas por `npm run pixellab` para `public/assets/ui/hud/ui_review_*.png`). Quem sai mostra a carinha e uma estrela por ponto da nota (sem estrela vazia), com a reputação embaixo como antes. Feliz com `happyFrom` (3) estrelas ou mais e sem desistir; senão, triste. Dados em `data/service_art.json: review`; sem a arte, volta às estrelas em texto.
 
-## 166. Nota do café em estrelas (nov/2026)
+## 167. Nota do café em estrelas (nov/2026)
 Pedido: a reputação em estrelas, começando zerada e fazendo a média das notas.
 Decisão: nota separada da reputação felina (que continua de 0 a 100 por trás, com mini games, adoções, chegadas, eventos e os selos). A nota é a média das últimas `review.averageOf` (50) avaliações dos clientes (`data/service.json`); o save guarda as últimas 200 em `stats.reviews` (saves antigos começam sem nota, sem versão nova). No HUD, a linha "Reputação" mostra 5 estrelas apagadas e as douradas recortadas na largura da média, com o número (0,0 sem avaliações); o texto de ajuda mostra a nota e a reputação felina.
 
-## 167. Enfeites pequenos de Natal no balcão ou no chão (nov/2026)
+## 168. Enfeites pequenos de Natal no balcão ou no chão (nov/2026)
 Pedido: a caneca natalina não saía da mochila: só ia em cima de um balcão livre, e não havia nenhum. Pode ficar no chão, no balcão, na mão ou na mochila.
 Decisão: campo `orFloor` nos itens com `placeOn` (caneca natalina, globo de neve com gatinho e vela): numa célula com o apoio, vai em cima (sobe até o tampo, como antes); fora dele, vale como móvel de chão. Sem apoio livre, o "posicionar" da mochila continua liberado. A cafeteira, o bule e os outros itens de balcão seguem só no balcão.

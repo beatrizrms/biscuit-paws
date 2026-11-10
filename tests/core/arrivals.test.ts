@@ -26,18 +26,6 @@ const arrival = (over: Partial<ArrivalDef> = {}): ArrivalDef => ({
   ...over,
 });
 
-/** Atende as necessidades da condição do gato aceito (ração, cobertor, vet), para ele entrar. */
-function careFor(session: GameSession): void {
-  const cfg = session.content.catProfiles.needs;
-  for (const id of [cfg.food.items[0]!, cfg.warmth.items[0]!]) session.state.inventory[id] = (session.state.inventory[id] ?? 0) + 1;
-  for (let guard = 0; guard < 5; guard++) {
-    const a = session.arrivals.active();
-    const needs = session.arrivals.pendingNeeds();
-    if (!a || !needs?.length) return;
-    session.doJobPoint(needs.every((n) => n === 'vet') ? cfg.vet.point : `arrival:${a.def.id}:need`);
-  }
-}
-
 describe('chegadas (puro)', () => {
   it('gatilho: dias, horas, estação, clima, gatos, reputação e condição da história', () => {
     expect(triggerHolds({ days: [5, 12], hours: ['06:00', '09:00'], seasons: ['winter'], weather: ['snow'], cats: { gte: 1, lte: 3 }, reputation: { gte: 0 } }, ctx())).toBe(true);
@@ -246,7 +234,6 @@ describe('modelos de chegada (etapa b)', () => {
     session.finishCutscene('cs.arrival_door');
     expect(events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.door_meow', key: 'take_in' } });
     session.answerArrival(true);
-    careFor(session);
     const catId = 'cat.gen.1';
     expect(state.cats[catId]?.sheltered).toBe(true);
     expect(names()).toContain('cat.sheltered'); // a caixa de nome abre com este evento
@@ -260,7 +247,6 @@ describe('modelos de chegada (etapa b)', () => {
     yes.session.doJobPoint('arrival:arr.neusa_brings');
     expect(yes.events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.neusa_brings', key: 'neighbor_offer' } });
     yes.session.answerArrival(true);
-    careFor(yes.session);
     expect(yes.state.relationships['player|npc.neusa']).toBe(60);
     expect(yes.session.catDef('cat.gen.1')?.personality).toBe('needy');
 
@@ -279,7 +265,6 @@ describe('modelos de chegada (etapa b)', () => {
     expect(session.arrivals.currentStep()).toEqual({ poster: true });
     expect(session.pendingJobPoints('map.market')).toEqual([]);
     session.answerArrival(true);
-    careFor(session);
     expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
   });
 
@@ -323,7 +308,6 @@ describe('modelos de chegada (etapa c)', () => {
     expect(session.arrivals.trailNow().length).toBeLessThan(def.place.trail!.length);
     session.doJobPoint('arrival:arr.snow_trail');
     session.answerArrival(true);
-    careFor(session);
     expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
   });
 
@@ -387,7 +371,6 @@ describe('modelos de chegada com mini game (etapa d)', () => {
     expect(p.minigame?.id).toBe('kitten_hunt');
     session.finishMiniGame(result('kitten_hunt', 'ok'), { difficulty: 'hard', jobPoint: p.id });
     session.answerArrival(true);
-    careFor(session);
     const capacity = session.catCapacity();
     const inCafe = ['cat.gen.1', 'cat.gen.2', 'cat.gen.3', 'cat.gen.4'].filter((id) => state.cats[id]?.sheltered).length;
     const pool = state.arrivals.shelterPool.length;
@@ -405,7 +388,6 @@ describe('modelos de chegada com mini game (etapa d)', () => {
     session.doJobPoint('pt.arrival_ask_clinic');
     expect(events).toContainEqual({ name: 'arrival.choice', payload: { arrivalId: 'arr.delivery_box', key: 'keep_box_cat' } });
     session.answerArrival(true);
-    careFor(session);
     expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
   });
 
@@ -423,7 +405,7 @@ describe('modelos de chegada com mini game (etapa d)', () => {
     expect(run.minigame).toEqual({ id: 'delivery', difficulty: 'normal', itemId: 'hurt_cat' });
     session.finishMiniGame(result('delivery', 'ok'), { difficulty: 'normal', jobPoint: run.id });
     expect(state.cats['cat.gen.1']).toMatchObject({ sheltered: true, sickness: null }); // a corrida até a clínica já conta como o vet
-    expect(state.money).toBe(500 - content.catProfiles.needs.vet.cost);
+    expect(state.money).toBe(500 - content.catProfiles.rescueVetCost);
   });
 });
 
@@ -537,11 +519,11 @@ describe('gato carteiro (etapa f)', () => {
   });
 });
 
-describe('necessidades da condição (ração, cobertor, vet)', () => {
-  function accept(condition: string, money = 500) {
-    const state = newGameState(money, 'map.street', 10 * 60);
+describe('o gato aceito entra no café na hora e chega assustado (confiança)', () => {
+  function accept(condition: string, steps: ArrivalDef['steps'] = [{ choice: 'take_in' }]) {
+    const state = newGameState(500, 'map.street', 10 * 60);
     state.story.completed.push(...content.story.beats.map((b) => b.id));
-    const def = arrival({ cat: { generate: { condition } }, place: { kind: 'cafe_door', map: 'map.street', at: [15, 9] }, steps: [{ choice: 'take_in' }], result: { startPoints: 30 } });
+    const def = arrival({ cat: { generate: { condition } }, place: { kind: 'cafe_door', map: 'map.street', at: [15, 9] }, steps, result: { startPoints: 30 } });
     const session = new GameSession({ ...content, arrivals: { ...content.arrivals, arrivals: [def] } }, state);
     const events: string[] = [];
     session.bus.onAny((name) => events.push(name));
@@ -549,54 +531,65 @@ describe('necessidades da condição (ração, cobertor, vet)', () => {
     session.answerArrival(true);
     return { session, state, events };
   }
-  const need = 'arrival:arr.test:need';
+  const trust = (session: GameSession, outcome: 'fail' | 'ok') =>
+    session.finishMiniGame({ gameId: 'trust', outcome, coinsEarned: 0, skipped: false } as Parameters<GameSession['finishMiniGame']>[0], { difficulty: 'easy', catId: 'cat.gen.1' });
 
-  it('sem necessidade (saudável): entra na hora', () => {
+  it('com fome, com frio ou saudável: aceitou, já está no café (sem esperar ração nem cobertor na porta)', () => {
+    for (const condition of ['healthy', 'hungry', 'cold', 'kitten']) {
+      const { state } = accept(condition);
+      expect(state.arrivals.active).toBeNull();
+      expect(state.cats['cat.gen.1']).toMatchObject({ sheltered: true, map: content.map.id, settling: true });
+      expect(state.relationships['player|cat.gen.1']).toBe(30);
+    }
+  });
+
+  it('ferido: entra doente (vai à clínica como qualquer gato do café)', () => {
+    const { state } = accept('injured');
+    expect(state.cats['cat.gen.1']?.sickness).not.toBeNull();
+    expect(state.money).toBe(500);
+  });
+
+  it('a confiança (mini game trust) deixa ele de boa; se não der, continua assustado e dá para tentar de novo', () => {
     const { session, state } = accept('healthy');
-    expect(session.arrivals.pendingNeeds()).toBeNull();
-    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+    expect(session.catSettling('cat.gen.1')).toBe(true);
+    expect(session.settleDifficulty('cat.gen.1')).toBe(content.catProfiles.personalities[session.catDef('cat.gen.1')!.personality]!.trust);
+    trust(session, 'fail');
+    expect(session.catSettling('cat.gen.1')).toBe(true);
+    trust(session, 'ok');
+    expect(session.catSettling('cat.gen.1')).toBe(false);
+    expect(state.cats['cat.gen.1']?.settling).toBeUndefined();
   });
 
-  it('com fome: espera no lugar até ganhar ração; sem ração avisa; com ração entra (e o afeto vem só então)', () => {
-    const { session, state, events } = accept('hungry');
-    expect(events).toContain('arrival.needs');
-    expect(session.arrivals.pendingNeeds()).toEqual(['food']);
-    expect(state.cats['cat.gen.1']).toBeUndefined();
-    expect(state.relationships['player|cat.gen.1']).toBeUndefined();
-    expect(session.pendingJobPoints('map.street')).toContainEqual({ id: need, map: 'map.street', at: [15, 9], action: 'press' });
-    expect(session.doJobPoint(need)).toEqual({ ok: false, reason: 'need_food' });
-    state.inventory['item.cat_food_premium'] = 1; // qualquer ração serve
-    expect(session.doJobPoint(need)).toEqual({ ok: true });
-    expect(state.inventory['item.cat_food_premium'] ?? 0).toBe(0);
-    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
-    expect(state.relationships['player|cat.gen.1']).toBe(30);
+  it('quem já ganhou a confiança na chegada (o do poste) entra tranquilo', () => {
+    const { session, state } = accept('healthy', [{ minigame: { id: 'trust', difficulty: 'easy' } }, { choice: 'take_in' }]);
+    const mg = session.pendingJobPoints('map.street').find((pt) => pt.minigame?.id === 'trust')!;
+    session.finishMiniGame({ gameId: 'trust', outcome: 'ok', coinsEarned: 0, skipped: false } as Parameters<GameSession['finishMiniGame']>[0], { difficulty: 'easy', jobPoint: mg.id });
+    session.answerArrival(true);
+    expect(state.cats['cat.gen.1']).toMatchObject({ sheltered: true });
+    expect(session.catSettling('cat.gen.1')).toBe(false);
   });
 
-  it('com frio: precisa do cobertor (vendido no mercado)', () => {
-    const { session, state } = accept('cold');
-    expect(content.shops['shop.market']?.items).toContain('item.cat_blanket');
-    expect(session.doJobPoint(need)).toEqual({ ok: false, reason: 'need_warmth' });
-    state.inventory['item.cat_blanket'] = 1;
-    expect(session.doJobPoint(need)).toEqual({ ok: true });
-    expect(state.cats['cat.gen.1']?.sheltered).toBe(true);
+  it('save antigo com o gato esperando na porta (ração, cobertor): entra no café no próximo minuto', () => {
+    const { session, state } = accept('healthy', [{ choice: 'take_in' }]);
+    // Como um save de antes da regra: a chegada parada depois da última etapa.
+    state.arrivals.active = { id: 'arr.test', catId: 'cat.gen.2', condition: 'cold', startedOn: state.day, step: 1 } as typeof state.arrivals.active;
+    state.catDefs['cat.gen.2'] = { ...state.catDefs['cat.gen.1']!, id: 'cat.gen.2' };
+    session.arrivals.tick();
+    expect(state.arrivals.active).toBeNull();
+    expect(state.cats['cat.gen.2']).toMatchObject({ sheltered: true, settling: true });
   });
 
-  it('ferido: a Fernanda cuida na clínica, pagando a consulta; ele entra tratado (sem doença)', () => {
-    const vet = content.catProfiles.needs.vet;
-    const poor = accept('injured', vet.cost - 1);
-    expect(poor.session.pendingJobPoints('map.vet_clinic').map((p) => p.id)).toContain(vet.point);
-    expect(poor.session.pendingJobPoints('map.street').map((p) => p.id)).not.toContain(need); // o vet é na clínica
-    expect(poor.session.doJobPoint(vet.point)).toEqual({ ok: false, reason: 'no_money' });
-    const { session, state } = accept('injured');
-    expect(session.doJobPoint(vet.point)).toEqual({ ok: true });
-    expect(state.money).toBe(500 - vet.cost);
-    expect(state.cats['cat.gen.1']).toMatchObject({ sheltered: true, sickness: null });
+  it('save_v35 guarda o gato que chegou; save v34 (antigo) carrega todos de boa', () => {
+    const v35 = parseSave(readFileSync('tests/fixtures/save_v35.json', 'utf8'), knownIds(content)).state;
+    expect(v35.cats['cat.gen.1']?.settling).toBe(true);
+    expect(v35.cats['cat.first_stray']?.settling).toBeUndefined();
+    const v34 = parseSave(readFileSync('tests/fixtures/save_v34.json', 'utf8'), knownIds(content)).state;
+    expect(Object.values(v34.cats).some((c) => c.settling)).toBe(false);
   });
 
-  it('save: a fase das necessidades volta como estava', () => {
-    const { session, state } = accept('cold');
+  it('save: o gato que chegou continua precisando da confiança', () => {
+    const { state } = accept('healthy');
     const back = parseSave(serializeSave(state, new Date(0)), knownIds({ ...content, arrivals: { ...content.arrivals, arrivals: [arrival()] } })).state;
-    expect(back.arrivals.active).toMatchObject({ id: 'arr.test', needs: ['warmth'] });
-    void session;
+    expect(back.cats['cat.gen.1']?.settling).toBe(true);
   });
 });

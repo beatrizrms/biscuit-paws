@@ -4,6 +4,7 @@ import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
+import { stationKind } from '../../core/petcare';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
@@ -76,6 +77,8 @@ const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], Arr
 const GHOST_DEPTH = 100_000;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
 const AUTOWALK_STUCK_MS = 700;
+/** A cada quantos minutos de jogo (mín, máx) um gato que já comeu volta ao pote para beliscar. */
+const SNACK_EVERY_MIN = [150, 240] as const;
 const FADE_MS = 160;
 /** Quantas vezes o relógio corre mais rápido ao "Esperar". */
 const WAIT_SPEED = 40;
@@ -209,6 +212,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * Caminhada de roteiro (playerWalk): o alvo, a menor distância já alcançada e desde quando ela não melhora (para
    * perceber que travou num móvel ou parede) e se já tentou ir primeiro na vertical.
    */
+  /** A fila do pote (ids de gatos esperando a vez), o pote da última ração e quando um gato volta para beliscar. */
+  private eatQueue: string[] = [];
+  private bowlUid = '';
+  private nextSnackAt = 0;
   private autoWalk: { x: number; y: number; resolve: () => void; best?: number; since?: number; verticalFirst?: boolean } | null = null;
   private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
@@ -374,7 +381,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (door && this.session.atHome() && this.session.doorState(door.id) !== 'hidden') this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
-    for (const ev of ['arrival.started', 'arrival.step', 'arrival.needs', 'arrival.need_met', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'festival.started', 'festival.scheduled', 'festival.progress', 'festival.finished', 'festival.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
+    for (const ev of ['arrival.started', 'arrival.step', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'festival.started', 'festival.scheduled', 'festival.progress', 'festival.finished', 'festival.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
@@ -399,19 +406,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
+    // Ração no pote: todos comeram (núcleo), mas vão até o pote um de cada vez (a fila do pote).
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
-      const bowl = this.session.state.placed.find((p) => p.uid === bowlUid);
-      const cat = this.cats.find((c) => c.catId === catId);
-      if (!bowl || !cat) return;
-      // Come de lado, com a cabeça no pote: a célula livre ao lado (a mais perto dele); sem nenhuma, senta na frente.
-      const [bc, br] = bowl.at;
-      // Livre = chão sem móvel (cadeira e pote não são sólidos, mas não são lugar de comer).
-      const free = (c: number) => this.map.solid[br]?.[c] === false && !this.session.placedAt([c, br]);
-      const sides = ([[bc - 1, 'right'], [bc + 1, 'left']] as const).filter(([c]) => free(c));
-      const [cc] = cat.cell();
-      const side = sides.sort((a, b) => Math.abs(a[0] - cc) - Math.abs(b[0] - cc))[0];
-      if (side) cat.goEat([side[0], br], this.time.now, side[1]);
-      else cat.goEat([bc, br + 1], this.time.now);
+      this.bowlUid = bowlUid;
+      if (!this.eatQueue.includes(catId)) this.eatQueue.push(catId);
     });
     // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
     // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
@@ -483,6 +481,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
+    this.updateEatQueue();
     // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).
     if (!this.changingMap) this.session.setPlayerCell(this.feetCell());
     // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
@@ -1185,7 +1184,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
     // As duas por perto (a tigela e a caixa lado a lado): vale a que está na frente dela.
     const { bowl, box } = this.stationForHand(this.playerCells(), target);
-    if (!bowl && !box) return this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
+    if (!bowl && !box) return this.trySettleCat(target) || this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
     if (this.usingItem) return true;
     if (box) {
       const problem = this.session.litterProblem(box);
@@ -1315,6 +1314,47 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!cat) return false;
     void this.openMiniGame(game, { difficulty: this.session.careDifficulty(cat.catId), catId: cat.catId });
     return true;
+  }
+
+  /** Gato que acabou de chegar, perto: o E abre a confiança dele (ele ainda não deixa pegar no colo nem fazer carinho). */
+  private trySettleCat(target?: Cell): boolean {
+    if (!this.session.atHome()) return false;
+    const feet = this.playerCells();
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const cat = this.cats.find((c) => c.visible && this.session.catSettling(c.catId) && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    if (!cat) return false;
+    void this.openMiniGame('trust', { difficulty: this.session.settleDifficulty(cat.catId), catId: cat.catId });
+    return true;
+  }
+
+  /**
+   * A fila do pote: um gato por vez vai até o pote (quem comeu hoje, na ordem em que a ração serviu). Com a fila vazia,
+   * de tempos em tempos um gato que já comeu volta para beliscar (algumas vezes no dia). Só desenho: quem comeu é o núcleo.
+   */
+  private updateEatQueue(): void {
+    if (this.map.id !== this.session.content.map.id) return;
+    const now = this.time.now;
+    if (this.cats.some((c) => c.eating(now))) return;
+    const st = this.session.state;
+    const bowl = st.placed.find((p) => p.uid === this.bowlUid) ?? st.placed.find((p) => stationKind(this.session.content.items[p.item]) === 'food_bowl');
+    if (!bowl) return;
+    let next = this.eatQueue.shift();
+    if (!next && nowAbs(st) >= this.nextSnackAt) {
+      const fed = this.cats.filter((c) => st.cats[c.catId]?.fedOn === st.day);
+      next = fed.length ? fed[Math.floor(Math.random() * fed.length)]!.catId : undefined;
+      this.nextSnackAt = nowAbs(st) + SNACK_EVERY_MIN[0] + Math.random() * (SNACK_EVERY_MIN[1] - SNACK_EVERY_MIN[0]);
+    }
+    const cat = next ? this.cats.find((c) => c.catId === next) : undefined;
+    if (!cat) return;
+    // Come de lado, com a cabeça no pote: a célula livre ao lado (a mais perto dele); sem nenhuma, senta na frente.
+    const [bc, br] = bowl.at;
+    // Livre = chão sem móvel (cadeira e pote não são sólidos, mas não são lugar de comer).
+    const free = (c: number) => this.map.solid[br]?.[c] === false && !this.session.placedAt([c, br]);
+    const sides = ([[bc - 1, 'right'], [bc + 1, 'left']] as const).filter(([c]) => free(c));
+    const [cc] = cat.cell();
+    const side = sides.sort((x, y) => Math.abs(x[0] - cc) - Math.abs(y[0] - cc))[0];
+    if (side) cat.goEat([side[0], br], now, side[1]);
+    else cat.goEat([bc, br + 1], now);
   }
 
   /** Petisco ou remédio ativo na barra e um gato perto: vai da mão até o gato. */
@@ -1452,18 +1492,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const a = this.session.arrivals.active();
     const step = this.session.arrivals.currentStep();
     const ts = this.map.tileSize;
-    // Esperando as necessidades: o gato sentado no lugar dele (com a ração e o cobertor ela aperta E nele).
-    if (a && !step && this.session.arrivals.pendingNeeds()?.length) {
-      const spot = this.session.arrivals.needsSpot();
-      const variant = this.session.catDef(a.catId)?.variant;
-      if (spot.map !== this.map.id || !variant || !this.textures.exists(catTexture(variant))) return;
-      CatSprite.createAnimations(this, variant);
-      const feet = (spot.at[1] + 1) * ts - 4;
-      const cat = this.add.sprite((spot.at[0] + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(variant)).setDepth(ySortDepth(feet));
-      cat.play(`${catTexture(variant)}-sit`);
-      this.arrivalActors.push(cat);
-      return;
-    }
     if (!a || !step || a.def.place.map !== this.map.id) return;
     const who = actorsOf(a.def);
     const sitCat = (catId: string | undefined, [c, r]: [number, number], lift = 0) => {

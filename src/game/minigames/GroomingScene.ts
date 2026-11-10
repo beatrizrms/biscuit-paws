@@ -6,7 +6,7 @@ import { FULL_PATIENCE, groomingOutcome, groomingProgress, newGrooming, stepGroo
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { CatSprite, catScale, catTexture } from '../entities/Cat';
+import { CatSprite, catFrameSize, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { GROOMING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
@@ -24,6 +24,11 @@ const SIDE_ANIM = 'walk_right';
 const BAR_W = 160;
 /** As reações (balão, som) não repetem mais rápido que isto. */
 const REACT_MS = 650;
+/** Pelo arrepiado (o gato ficou bravo): quanto dura e a cada quanto os tufos tremem (ms). */
+const FUZZ_MS = 520;
+const FUZZ_STEP_MS = 65;
+/** Os tufos só nas costas e no rabo: a parte de trás do contorno (o gato olha para a direita). */
+const FUZZ_BACK_SHARE = 0.62;
 
 export class GroomingScene extends MiniGameScene {
   private p!: GroomingParams;
@@ -38,6 +43,11 @@ export class GroomingScene extends MiniGameScene {
   private bar!: Phaser.GameObjects.Graphics;
   private reactAt = { sensitive: -Infinity, comfort: -Infinity };
   private ended = false;
+  /** O contorno de cima do gato (por coluna do quadro: a linha do primeiro pixel e a cor do pelo ali). */
+  private furTop: { x: number; y: number; color: number; fur: number }[] = [];
+  private fuzzing = false;
+  /** Pixels da folha por pixel do jogo (2 na arte em 64 px): o tufo tem o mesmo tamanho na tela. */
+  private furRes = 1;
 
   constructor() {
     super('grooming', GROOMING_SCENE);
@@ -74,6 +84,9 @@ export class GroomingScene extends MiniGameScene {
     const sprites = content.catSprites;
     const row = sprites.animations.find((a) => a.name === SIDE_ANIM)?.row ?? 3;
     this.cat = this.add.sprite(this.origin.x, this.origin.y, catTexture(variant), row * sprites.columns).setOrigin(0, 0).setScale(this.zoom * catScale(variant));
+    this.furTop = this.topContour(catTexture(variant), row * sprites.columns, catFrameSize(variant));
+    this.fuzzing = false;
+    this.furRes = Math.max(1, Math.round(catFrameSize(variant) / 32));
 
     // Os nós da partida (os primeiros da lista, pela dificuldade).
     for (const m of this.mats) {
@@ -169,6 +182,7 @@ export class GroomingScene extends MiniGameScene {
       this.cat.setTint(0xffb0b0);
       this.time.delayedCall(180, () => !this.ended && this.cat.clearTint());
       this.tweens.add({ targets: this.cat, x: this.origin.x + 3, duration: 50, yoyo: true, repeat: 1 });
+      this.fuzz();
     }
     if (ev.comfort && now - this.reactAt.comfort > REACT_MS * 1.5) {
       this.reactAt.comfort = now;
@@ -191,6 +205,56 @@ export class GroomingScene extends MiniGameScene {
       this.float(uiText.minigames.grooming.allClean, '#68ad8a', 320, this.origin.y);
     }
     this.time.delayedCall(800, () => this.finish(outcome, Math.round(this.s.patience)));
+  }
+
+  /** Primeiro pixel de cima de cada coluna do quadro do gato (onde nascem os tufos do pelo arrepiado). */
+  private topContour(key: string, frame: number, size: number): { x: number; y: number; color: number; fur: number }[] {
+    const out: { x: number; y: number; color: number; fur: number }[] = [];
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        const c = this.textures.getPixel(x, y, key, frame);
+        if (c && c.alpha > 0) {
+          // A cor do contorno (a ponta do tufo) e a do pelo logo abaixo dela (o corpo do tufo).
+          const below = this.textures.getPixel(x, y + 1, key, frame);
+          out.push({ x, y, color: c.color, fur: below && below.alpha > 0 ? below.color : c.color });
+          break;
+        }
+      }
+    }
+    // Só as costas e o rabo (a cabeça fica à direita): a parte de trás do contorno.
+    if (out.length === 0) return out;
+    const from = out[0]!.x;
+    const to = out[out.length - 1]!.x;
+    return out.filter((p) => p.x <= from + (to - from) * FUZZ_BACK_SHARE);
+  }
+
+  /**
+   * Pelo arrepiado (ele ficou bravo com a escova): tufos de 2 a 3 pixels sobem das costas e do rabo, na cor do pelo,
+   * tremendo um pouco, e baixam. Desenhado por código: a folha do gato não tem esse quadro.
+   */
+  private fuzz(): void {
+    if (this.fuzzing || this.furTop.length === 0) return;
+    this.fuzzing = true;
+    const g = this.add.graphics().setDepth(5);
+    // Um pixel da folha na tela (a arte em 64 px é desenhada na metade).
+    const z = this.cat.scaleX;
+    let step = 0;
+    const draw = () => {
+      g.clear();
+      this.furTop.forEach((p, i) => {
+        // Um tufo por coluna: o pelo (2 ou 3 pixels, alternando a cada passo: treme) com a ponta escura do contorno.
+        const h = (2 + ((Math.floor(i / this.furRes) + step) % 2)) * this.furRes;
+        const x = this.cat.x + p.x * z;
+        g.fillStyle(p.fur, 1).fillRect(x, this.cat.y + (p.y - h + this.furRes) * z, z, (h - this.furRes) * z);
+        g.fillStyle(p.color, 1).fillRect(x, this.cat.y + (p.y - h) * z, z, z * this.furRes);
+      });
+      step++;
+    };
+    draw();
+    this.time.addEvent({ delay: FUZZ_STEP_MS, repeat: Math.round(FUZZ_MS / FUZZ_STEP_MS) - 1, callback: draw });
+    this.time.delayedCall(FUZZ_MS, () =>
+      this.tweens.add({ targets: g, alpha: 0, duration: 160, onComplete: () => (g.destroy(), (this.fuzzing = false)) }),
+    );
   }
 
   private float(text: string, color: string, x: number, y: number): void {

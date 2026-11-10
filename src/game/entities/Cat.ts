@@ -51,6 +51,8 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private eatAfterWalk = false;
   /** Lado do pote ao chegar para comer (come de lado, com a cabeça no pote); sem lado, senta. */
   private eatFacing: 'left' | 'right' | null = null;
+  /** Até quando fica sentado comendo (ms do relógio da cena). */
+  private eatingUntil = 0;
   /** Lugar de um objeto que ele está usando (ocupado em places.taken) e se subiu nele (sem colisão). */
   private using: CatSpot | null = null;
   private perched = false;
@@ -101,6 +103,11 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /** Indo comer ou comendo na tigela (a fila do pote espera ele terminar). */
+  eating(now: number): boolean {
+    return this.eatAfterWalk || now < this.eatingUntil;
+  }
+
   /** Vai até a célula e fica lá por um tempo: comendo virado para o pote (facing) ou sentado. */
   goEat(cell: Cell, now: number, facing: 'left' | 'right' | null = null): void {
     this.leaveSpot();
@@ -140,6 +147,7 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
           this.eatAfterWalk = false;
           this.goal = { kind: 'sit', seconds: 6 };
           this.goalUntil = now + 6000;
+          this.eatingUntil = this.goalUntil;
           const eat = this.eatFacing && catAnim(this.scene, this.variant, `eat_${this.eatFacing}`);
           if (eat && !eat.endsWith('-sit')) {
             // A cabeça baixa vai até o pote: chega meio passo para o lado dele (o corpo não encosta no pote).
