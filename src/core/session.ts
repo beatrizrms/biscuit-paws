@@ -589,9 +589,9 @@ export class GameSession {
   }
 
   /** Rotina do dia, depois do prólogo: comida para cada gato do café e a poeira que voltou. */
-  chores(): { kind: 'feed' | 'sweep' | 'sick'; catId?: string; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry'; catId?: string; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep' | 'sick'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry'; catId?: string; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
     for (const id of this.shelteredCats()) {
       if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
@@ -600,6 +600,8 @@ export class GameSession {
     const left = daily.filter((d) => !isCleaned(this.state, d)).length;
     const back = this.content.world.dailyDirt;
     if (left > 0 || this.state.day > 2) out.push({ kind: 'sweep', done: left === 0, progress: [Math.max(0, back - left), back] });
+    // Compras de ingrediente na mochila: guardar na despensa (só assim contam para as receitas).
+    if (this.service.ingredientsInBag() > 0) out.push({ kind: 'pantry', done: false });
     return out;
   }
 

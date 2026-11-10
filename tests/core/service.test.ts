@@ -37,6 +37,7 @@ function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number }
   if (opts.coffee !== false) {
     session.buy('item.coffee_ground');
     session.buy('item.paper_filter');
+    session.service.storeInPantry(); // da mochila para a despensa: só assim vale nas receitas
   }
   return { session, events, sv: session.service, state };
 }
@@ -63,6 +64,9 @@ describe('receitas e cardápio', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
     session.buy('item.coffee_ground');
     session.buy('item.paper_filter');
+    // Comprado e ainda na mochila: não vale; guardado na despensa, vale.
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
+    expect(sv.storeInPantry()).toEqual({ ok: true });
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('vessel');
     session.receiveItem('item.dishes_set');
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
@@ -185,6 +189,7 @@ describe('ciclo do pedido', () => {
     expect(sv.arrivalsBlocked()).toBe('ingredients');
     session.buy('item.coffee_ground');
     session.buy('item.paper_filter');
+    sv.storeInPantry();
     expect(sv.arrivalsBlocked()).toBeNull();
     state.dishes = { cup: 0, glass: 0, plate: 0 };
     expect(sv.arrivalsBlocked()).toBe('vessel');
@@ -443,6 +448,7 @@ describe('fase 2: forno e receitas em etapas', () => {
       session.place(id, [at[0], at[1]]);
     }
     for (const id of ['item.flour', 'item.eggs', 'item.milk']) session.buy(id);
+    sv.storeInPantry();
     sv.toggleMenu('recipe.cheese_bread');
     return ctx;
   };
@@ -488,6 +494,7 @@ describe('fase 2: qualidade e preferências', () => {
   it('com café em grãos sai premium: mais caro; quem gosta de premium deixa gorjeta só assim', () => {
     const { session, sv, state, events } = openCafe();
     session.buy('item.coffee_beans_bag');
+    sv.storeInPantry();
     sv.toggleMenu('recipe.black_coffee');
     advance(session, 6);
     const c = state.service.customers[0]!;

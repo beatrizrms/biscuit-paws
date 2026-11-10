@@ -28,13 +28,14 @@ describe('cafe_main.json', () => {
     expect(cafe.size).toEqual({ cols: 44, rows: 11 });
   });
 
-  it('o salão é a loja velha e vazia: só paredes sólidas e a pia velha no canto, nenhum móvel nem balcão', () => {
+  it('o salão é a loja velha e vazia: só paredes sólidas, a pia velha e o armário da cozinha no canto, nenhum móvel nem balcão', () => {
     const { solid } = resolveMap(cafe, catalog);
     const hall = solid.map((line) => line.slice(0, 16));
     for (let r = 0; r <= 2; r++) expect(hall[r]!.every(Boolean)).toBe(true);
     expect(hall[3]![0]).toBe(true); // a pia
-    for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c === 0))).toBe(false);
-    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'eq_pia']));
+    expect(hall[3]![1]).toBe(true); // o armário da cozinha (despensa)
+    for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c <= 1))).toBe(false);
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'door', 'doormat', 'eq_pia', 'ph_pantry_cabinet']));
     for (const letter of ['P', 'R', 'X', 'M']) expect(cafe.legend[letter]!.endsWith('_old')).toBe(true);
   });
 

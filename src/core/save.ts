@@ -14,10 +14,10 @@ import type { CatDef } from './cats';
 import { newFestivals, type ActivityResult, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 
-export const SAVE_SCHEMA_VERSION = 25;
+export const SAVE_SCHEMA_VERSION = 26;
 
-export interface SaveV25 extends GameState {
-  schemaVersion: 25;
+export interface SaveV26 extends GameState {
+  schemaVersion: 26;
   savedAt: string;
 }
 
@@ -145,10 +145,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     ];
     return { ...save, schemaVersion: 25, construction: { repaired, quote: null, job: null, askPending: false, cells: {} } };
   },
+  /**
+   * v25 -> v26: despensa. Saves antigos: os ingredientes da mochila já estavam "no café" (as receitas usavam de
+   * lá); a leitura (pantry null) passa todos para a despensa, para o café não parar.
+   */
+  25: (save) => ({ ...save, schemaVersion: 26, pantry: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV25 = { schemaVersion: 25, savedAt: now.toISOString(), ...state };
+  const save: SaveV26 = { schemaVersion: 26, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -176,6 +181,8 @@ export interface KnownIds {
   rooms: RoomsData;
   /** Reputação de quem não tem (saves antigos). */
   reputationStart?: number;
+  /** Ingredientes (tag ingredient): na migração da despensa, saem da mochila. */
+  ingredients?: ReadonlySet<string>;
   /** Chegadas de data/arrivals.json (a que sumiu sai da fila). */
   arrivals?: ReadonlySet<string>;
   /** Festivais de data/festivals.json (o em andamento que sumiu é esquecido). */
@@ -195,10 +202,20 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     version++;
   }
 
-  const v2 = save as unknown as Partial<SaveV25>;
+  const migrated = (save as { pantry?: unknown }).pantry === null;
+  const v2 = save as unknown as Partial<SaveV26>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
+  // Migração da despensa (v26): os ingredientes saem da mochila e entram na despensa.
+  const migratedPantry: Record<string, number> = {};
+  if (migrated && v2.inventory) {
+    for (const [id, n] of Object.entries(v2.inventory)) {
+      if (!known.ingredients?.has(id)) continue;
+      migratedPantry[id] = n;
+      delete (v2.inventory as Record<string, number>)[id];
+    }
+  }
   const warnings: string[] = [];
   const knownItem = (id: string, where: string) => {
     if (known.items.has(id)) return true;
@@ -282,6 +299,9 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       return false;
     }),
     pantryOpen: Object.fromEntries(Object.entries(v2.pantryOpen ?? {}).filter(([id]) => known.items.has(id))),
+    pantry: Object.fromEntries(
+      Object.entries(v2.pantry ?? migratedPantry).filter((e): e is [string, number] => known.items.has(e[0]) && typeof e[1] === 'number' && e[1] > 0),
+    ),
     dishes: { cup: v2.dishes?.cup ?? 0, glass: v2.dishes?.glass ?? 0, plate: v2.dishes?.plate ?? 0 },
     hands: (v2.hands ?? []).filter((h) => knownHand(h)),
     surfaces: (v2.surfaces ?? []).filter((s) => knownHand(s.item)).map((s) => ({ at: [s.at[0], s.at[1]] as [number, number], item: s.item })),
@@ -482,6 +502,7 @@ export function knownIds(content: {
     reputationStart: content.reputation?.start ?? 0,
     ...(content.arrivals ? { arrivals: new Set(content.arrivals.arrivals.map((a) => a.id)) } : {}),
     ...(content.festivals ? { festivals: new Set(content.festivals.map((f) => f.id)) } : {}),
+    ingredients: new Set(Object.entries(content.items).filter(([, i]) => (i as { tags?: string[] }).tags?.includes('ingredient')).map(([id]) => id)),
   };
 }
 

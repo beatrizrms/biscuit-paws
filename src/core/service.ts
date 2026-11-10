@@ -132,20 +132,48 @@ export class CafeService {
 
   // ---------- Ingredientes (doses) ----------
 
-  /** Doses disponíveis: pacotes fechados na mochila x rendimento + o que sobrou do pacote aberto. */
+  /** Doses disponíveis: pacotes fechados na despensa x rendimento + o que sobrou do pacote aberto. */
   doses(itemId: string): number {
     const servings = this.h.content.items[itemId]?.servings ?? 1;
-    return (this.st.inventory[itemId] ?? 0) * servings + (this.st.pantryOpen[itemId] ?? 0);
+    return (this.st.pantry[itemId] ?? 0) * servings + (this.st.pantryOpen[itemId] ?? 0);
+  }
+
+  /** Ingredientes ainda na mochila (comprados e não guardados): pacotes. */
+  ingredientsInBag(): number {
+    return Object.entries(this.st.inventory).filter(([id]) => this.isIngredient(id)).reduce((n, [, q]) => n + q, 0);
+  }
+
+  private isIngredient(itemId: string): boolean {
+    return !!this.h.content.items[itemId]?.tags.includes('ingredient');
+  }
+
+  /** Perto do armário da cozinha (despensa)? */
+  pantryNear(feet: readonly Cell[]): boolean {
+    return near(feet, this.cfg.pantry);
+  }
+
+  /** Guarda na despensa todos os ingredientes da mochila (no café). */
+  storeInPantry(): ServiceResult {
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    const moved = Object.entries(this.st.inventory).filter(([id, q]) => this.isIngredient(id) && q > 0);
+    if (moved.length === 0) return { ok: false, reason: 'nothing_here' };
+    for (const [id, q] of moved) {
+      this.st.pantry[id] = (this.st.pantry[id] ?? 0) + q;
+      delete this.st.inventory[id];
+    }
+    this.h.bus.emit('pantry.stored', { count: moved.reduce((n, [, q]) => n + q, 0) });
+    this.h.advanceStory();
+    return { ok: true };
   }
 
   private useDoses(itemId: string, n: number): void {
     const servings = this.h.content.items[itemId]?.servings ?? 1;
     for (let i = 0; i < n; i++) {
       if ((this.st.pantryOpen[itemId] ?? 0) === 0) {
-        // Abre um pacote novo.
-        const left = (this.st.inventory[itemId] ?? 0) - 1;
-        if (left > 0) this.st.inventory[itemId] = left;
-        else delete this.st.inventory[itemId];
+        // Abre um pacote novo (da despensa).
+        const left = (this.st.pantry[itemId] ?? 0) - 1;
+        if (left > 0) this.st.pantry[itemId] = left;
+        else delete this.st.pantry[itemId];
         this.st.pantryOpen[itemId] = servings;
       }
       this.st.pantryOpen[itemId]! -= 1;

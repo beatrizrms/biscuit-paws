@@ -85,6 +85,14 @@
       ]
     },
     {
+      "id": "obj.pantry",
+      "tile": "ph_pantry_cabinet",
+      "at": [
+        1,
+        2
+      ]
+    },
+    {
       "id": "obj.sink",
       "tile": "eq_pia",
       "at": [

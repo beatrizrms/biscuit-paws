@@ -183,13 +183,32 @@ function fairSetup(): Canvas {
   return c.outline();
 }
 
+// PLACEHOLDER(arte): armário da cozinha (despensa), 1x2, ao lado da pia.
+/** Armário de cozinha de madeira: duas portas embaixo, prateleira aberta com potes em cima. */
+function pantryCabinet(): Canvas {
+  const c = new Canvas(T, T * 2);
+  c.rect(3, 6, 26, 56, at(P.oak, 2)); // corpo
+  c.rect(3, 6, 26, 3, at(P.oak, 4)); // tampo
+  c.rect(5, 11, 22, 18, at(P.oak, 1)); // vão da prateleira
+  c.rect(7, 20, 5, 9, at(P.cream, 4)); // potes
+  c.rect(14, 22, 5, 7, at(P.rose, 3));
+  c.rect(21, 19, 4, 10, at(P.butter, 3));
+  c.rect(5, 32, 10, 27, at(P.oak, 3)); // portas
+  c.rect(17, 32, 10, 27, at(P.oak, 3));
+  c.rect(13, 44, 1, 4, at(P.gold, 3)); // puxadores
+  c.rect(18, 44, 1, 4, at(P.gold, 3));
+  c.rect(3, 61, 26, 2, at(P.oak, 1)); // rodapé
+  return c.outline();
+}
+
 // Ordem das peças na folha (data/tilesets/placeholders.json): caixa, cocô, placa, bandeirinhas, balões, mesa, pegadas,
 // parede do porão, piso do porão, cadeado; a porta dos fundos (1x2) por último, ocupando as duas linhas; a escada (2x1) na
 // segunda linha, embaixo das primeiras; ao lado dela, o ponto de montar a feira.
 const pieces = [litterBox(), poop(), fairSign(), fairBunting(), fairBalloons(), fairTable(), footprints(), basementWall(), basementFloor(), padlock()];
-const sheet = new Canvas((pieces.length + 1) * T, T * 2);
+const sheet = new Canvas((pieces.length + 2) * T, T * 2);
 pieces.forEach((piece, i) => sheet.blit(piece, i * T, 0));
 sheet.blit(backDoor(), pieces.length * T, 0);
+sheet.blit(pantryCabinet(), (pieces.length + 1) * T, 0); // o armário da cozinha (1x2), na coluna depois da porta
 sheet.blit(basementStairs(), 0, T); // 2x1, na segunda linha
 sheet.blit(fairSetup(), 2 * T, T); // o ponto de montar a feira, ao lado da escada
 writeWithBackup(sheet, 'public/assets/objects/placeholders/tile_placeholders.png');

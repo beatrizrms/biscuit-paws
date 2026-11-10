@@ -65,6 +65,11 @@ export interface GameState {
   menu: string[];
   /** Doses que sobraram do pacote aberto de cada ingrediente (v8). Os fechados ficam em inventory. */
   pantryOpen: Record<string, number>;
+  /**
+   * Despensa (v26): pacotes de ingrediente guardados no armário da cozinha. Só o que está aqui (e o pacote aberto,
+   * pantryOpen) conta para as receitas; as compras vão para a mochila e ela guarda no armário.
+   */
+  pantry: Record<string, number>;
   /** Louça limpa no estoque (v8): xícaras, copos, pratos. A suja está nas mãos ou nas superfícies. */
   dishes: Record<Vessel, number>;
   /** O que está nas mãos (v8). */
@@ -177,6 +182,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     deliveries: [],
     menu: [],
     pantryOpen: {},
+    pantry: {},
     dishes: { cup: 0, glass: 0, plate: 0 },
     hands: [],
     surfaces: [],

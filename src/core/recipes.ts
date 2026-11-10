@@ -78,6 +78,8 @@ export interface ServiceConfig {
   queue: Cell[];
   /** Pia (célula do café). */
   sink: Cell;
+  /** Armário da cozinha (despensa): a célula da frente, onde ela guarda os ingredientes e vê o que tem. */
+  pantry: Cell;
   /** Quanta louça cabe na pia e quantos minutos leva cada peça. */
   sinkCapacity: number;
   washMinutesPerDish: number;

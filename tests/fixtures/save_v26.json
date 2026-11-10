@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 26,
+  "savedAt": "2026-11-09T22:00:00.000Z",
+  "day": 12,
+  "time": 600,
+  "money": 700,
+  "flags": {
+    "painter.available": true
+  },
+  "inventory": {},
+  "placed": [],
+  "nextUid": 1,
+  "story": {
+    "completed": [],
+    "completedOn": {}
+  },
+  "cats": {},
+  "relationships": {},
+  "finishes": {
+    "surface.hall_floor": "finish.check_pink"
+  },
+  "location": "map.cafe_main",
+  "visited": [
+    "map.cafe_main"
+  ],
+  "cleaned": [],
+  "timers": {},
+  "today": {
+    "earned": 0,
+    "jobs": 0
+  },
+  "jobs": {
+    "active": [],
+    "progress": {},
+    "doneOn": {}
+  },
+  "deliveries": [],
+  "menu": [],
+  "pantryOpen": {},
+  "pantry": {
+    "item.coffee_ground": 2,
+    "item.paper_filter": 1
+  },
+  "dishes": {
+    "cup": 0,
+    "glass": 0,
+    "plate": 0
+  },
+  "hands": [],
+  "surfaces": [],
+  "service": {
+    "customers": [],
+    "preps": [],
+    "nextCustomerAt": null,
+    "nextCustomerId": 1,
+    "served": 0
+  },
+  "tray": false,
+  "sink": {
+    "load": {
+      "cup": 0,
+      "glass": 0,
+      "plate": 0
+    },
+    "washing": null
+  },
+  "hotbar": {
+    "slots": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "active": 0
+  },
+  "business": "closed",
+  "player": {
+    "name": "",
+    "appearance": null,
+    "pronoun": "she"
+  },
+  "debt": 0,
+  "rooms": {},
+  "doors": {},
+  "schedule": null,
+  "reputation": {
+    "value": 0,
+    "reached": [],
+    "log": []
+  },
+  "festivals": {
+    "active": null,
+    "last": {},
+    "heldOn": null
+  },
+  "bestPhoto": null,
+  "shoppingList": [],
+  "construction": {
+    "repaired": [
+      "inside"
+    ],
+    "quote": null,
+    "job": {
+      "kind": "outside",
+      "finishId": "finish.facade_sky",
+      "material": 0,
+      "labor": 200,
+      "days": 2,
+      "startDay": 13,
+      "endDay": 14
+    },
+    "askPending": false,
+    "cells": {
+      "9,6": "finish.wood_planks"
+    }
+  },
+  "arrivals": {
+    "active": null,
+    "queue": [],
+    "last": {},
+    "nextOn": null,
+    "seq": 0,
+    "shelterPool": []
+  },
+  "catDefs": {},
+  "hintUses": {}
+}

@@ -89,8 +89,12 @@ export class BackpackPanel {
     return this.open;
   }
 
-  show(): void {
+  /** Aberta pelo armário da cozinha: a despensa aparece com o botão de guardar o que está na mochila. */
+  private atPantry = false;
+
+  show(atPantry = false): void {
     this.open = true;
+    this.atPantry = atPantry;
     this.selected = null;
     this.render();
     this.el.classList.add('open');
@@ -127,7 +131,7 @@ export class BackpackPanel {
 
   private owned(id: string | null): id is string {
     const st = this.session.state;
-    return !!id && ((st.inventory[id] ?? 0) > 0 || (st.pantryOpen[id] ?? 0) > 0);
+    return !!id && (st.inventory[id] ?? 0) > 0;
   }
 
   private assign(itemId: string, slot: number): void {
@@ -147,6 +151,9 @@ export class BackpackPanel {
       const id = this.selectedItem();
       const report = (r: { ok: boolean; reason?: string }) => !r.ok && r.reason && this.onProblem(r.reason);
       switch (act.dataset.act) {
+        case 'pantry-store':
+          report(sv.storeInPantry());
+          return this.render();
         case 'to-bar':
           if (id) this.assign(id, this.freeSlot());
           return;
@@ -228,10 +235,9 @@ export class BackpackPanel {
 
   private slotHtml(id: string | null, attrs: string, active: boolean, key?: number): string {
     const st = this.session.state;
-    const sv = this.session.service;
     const item = this.owned(id) ? content.items[id] : undefined;
-    const servings = item?.servings ?? 1;
-    const qty = !item ? 0 : servings > 1 ? sv.doses(item.id) : st.inventory[item.id] ?? 0;
+    // Na mochila e na barra: pacotes (as doses ficam na despensa).
+    const qty = !item ? 0 : st.inventory[item.id] ?? 0;
     const icon = !item ? '' : isFurniture(item) ? tileThumbHtml(item.tile, 18, item.hue) : itemIconHtml(item, 18);
     const sel = item && this.selectedItem() === item.id ? ' selected' : '';
     const label = item ? ` title="${esc(item.name)}" draggable="true"` : '';
@@ -246,9 +252,7 @@ export class BackpackPanel {
     const item = this.owned(id) ? content.items[id] : undefined;
     if (!item) return `<p class="bp-hint">${t.gridHint}</p>`;
     const st = this.session.state;
-    const sv = this.session.service;
-    const servings = item.servings ?? 1;
-    const amount = servings > 1 ? t.doses.replace('{n}', String(sv.doses(item.id))) : `x${st.inventory[item.id] ?? 0}`;
+    const amount = `x${st.inventory[item.id] ?? 0}`;
     const onBar = st.hotbar.slots.indexOf(item.id);
     const buttons: string[] = [];
     if (isFurniture(item)) {
@@ -268,6 +272,27 @@ export class BackpackPanel {
       <span class="bp-detail-actions">${buttons.join('')}</span></div>`;
   }
 
+  /**
+   * A despensa (só ver): os ingredientes guardados no armário e as doses de cada um. No armário, o botão guarda o que
+   * está na mochila; longe dele, a dica de onde guardar.
+   */
+  private pantryHtml(): string {
+    const t = uiText.backpack;
+    const st = this.session.state;
+    const sv = this.session.service;
+    const ids = [...new Set([...Object.keys(st.pantry), ...Object.keys(st.pantryOpen)])].filter((id) => content.items[id] && sv.doses(id) > 0);
+    ids.sort((a, b) => bagOrder(content.items[a]!) - bagOrder(content.items[b]!));
+    const slots = ids
+      .map((id) => {
+        const item = content.items[id]!;
+        return `<span class="bp-slot bp-pantry-slot" title="${esc(item.name)} · ${esc(t.doses.replace('{n}', String(sv.doses(id))))}">${itemIconHtml(item, 18)}<span class="count">${sv.doses(id)}</span></span>`;
+      })
+      .join('');
+    const inBag = sv.ingredientsInBag();
+    const action = inBag === 0 ? '' : this.atPantry ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>` : `<span class="why">${esc(t.pantryWhere)}</span>`;
+    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3>${slots ? `<div class="bp-row">${slots}</div>` : `<p class="bp-hint">${t.pantryEmpty}</p>`}</div>`;
+  }
+
   private render(): void {
     if (!this.open) return;
     const t = uiText.backpack;
@@ -281,7 +306,7 @@ export class BackpackPanel {
     // A barra (mesmos espaços da barra de baixo da tela).
     const bar = st.hotbar.slots.map((id, i) => this.slotHtml(id, `data-bar="${i}"`, i === st.hotbar.active, i + 1)).join('');
     // A mochila: tudo o que ela tem e não está na barra.
-    const ids = [...new Set([...Object.keys(st.inventory), ...Object.keys(st.pantryOpen)])].filter((id) => this.owned(id) && !st.hotbar.slots.includes(id) && content.items[id] && content.items[id]!.kind !== 'fixture');
+    const ids = Object.keys(st.inventory).filter((id) => this.owned(id) && !st.hotbar.slots.includes(id) && content.items[id] && content.items[id]!.kind !== 'fixture');
     ids.sort((a, b) => bagOrder(content.items[a]!) - bagOrder(content.items[b]!));
     const total = Math.max(BAG_SLOTS, Math.ceil(ids.length / 8) * 8);
     const bag = Array.from({ length: total }, (_, i) => (ids[i] ? this.slotHtml(ids[i]!, `data-bag="${ids[i]}"`, false) : `<span class="bp-slot is-empty"></span>`)).join('');
@@ -289,6 +314,8 @@ export class BackpackPanel {
       <div class="bp-strip"><span><b>${t.hands}:</b> ${hands}</span><span class="dishes"><b>${t.dishes}:</b> ${dishes}</span></div>
       <h3>${t.bar}</h3><div class="bp-row">${bar}</div>
       <h3>${t.bag}</h3><div class="bp-row bp-bag">${bag}</div>
-      ${this.detailHtml()}`;
+      ${this.detailHtml()}
+      ${this.pantryHtml()}`;
+    if (this.atPantry) this.body.querySelector('.bp-pantry')?.scrollIntoView({ block: 'nearest' });
   }
 }

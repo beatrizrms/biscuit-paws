@@ -1053,3 +1053,10 @@
 /* Obras: o aviso da seleção da área (instruções e o orçamento ao vivo), no alto da tela. */
 .area-select-hint { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 8px 14px; border-radius: 8px; background: #3a2a2ee6; color: #fff4e0; font: 15px 'Trebuchet MS', sans-serif; text-align: center; pointer-events: none; }
 .area-select-hint b { color: #ffe9a8; }
+
+/* Despensa (armário da cozinha), na mochila: só ver; no armário, o botão de guardar as compras. */
+.catalog.backpack .bp-pantry { margin-top: 5px; }
+.catalog.backpack .bp-pantry h3 { display: flex; align-items: center; gap: 6px; }
+.catalog.backpack .bp-pantry h3 button { padding: 0 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
+.catalog.backpack .bp-pantry h3 .why { font-size: 6.5px; font-weight: normal; color: var(--grey2); }
+.catalog.backpack span.bp-pantry-slot { opacity: 1; }

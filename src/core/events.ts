@@ -105,6 +105,8 @@ export interface GameEvents {
   /** stars e reputation: a avaliação ao sair (sem eles: o café fechou com ele na fila). */
   /** Porta de estabelecimento fora do horário: o nome e quando abre de novo. */
   'door.closed': { doorId: string; name: string; opensDay: number | null; opensAt: string | null };
+  /** Ela guardou na despensa os ingredientes da mochila (pacotes). */
+  'pantry.stored': { count: number };
   'customer.left': { customerId: string; happy: boolean; stars?: number; reputation?: number };
   'hands.changed': { count: number };
   'dish.washed': { count: number };

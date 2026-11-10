@@ -372,6 +372,7 @@
     "title": "hoje",
     "feed": "Comida para {cat}",
     "sweep": "Varrer a poeira do dia",
+    "pantry": "Guardar as compras na despensa",
     "sick": "Gatos doentes: clientes não entram",
     "job": "Pedido"
   },
@@ -434,6 +435,11 @@
     "dirty": "{name} suja",
     "bar": "Barra (1 a 8)",
     "bag": "Mochila",
+    "pantry": "Despensa",
+    "pantryStore": "guardar da mochila ({n})",
+    "pantryWhere": "guarde no armário, ao lado da pia",
+    "pantryEmpty": "Vazia. Compre ingredientes no mercado e guarde aqui: só o que está na despensa vale nas receitas.",
+    "pantryStored": "Guardado na despensa: {n} pacote(s).",
     "place": "posicionar",
     "placeAtHome": "só dentro do café",
     "toBar": "pôr na barra ({n})",
@@ -839,6 +845,7 @@
   "hints": {
     "customer": "Atender",
     "sink": "Pia",
+    "pantry": "Despensa",
     "station": "Preparar / pegar",
     "surface": "Pegar",
     "job": "Interagir",

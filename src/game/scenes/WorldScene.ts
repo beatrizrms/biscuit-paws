@@ -945,6 +945,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const customer = sv.customerToServe(feet);
       if (customer) return cell(customer.spot, 'customer');
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
+      // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
+      const pantry = s.content.service.pantry;
+      if (st.hands.length === 0 && sv.pantryNear(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       for (const eq of Object.keys(s.content.service.equipment)) {
@@ -1274,6 +1277,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const act = sv.sinkAction();
       if (act === 'deposit') return report(sv.depositDirty());
       if (act === 'wash') return report(this.withPose(sv.startWash(), 'wash'));
+    }
+    // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
+    const pantry = this.session.content.service.pantry;
+    const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
+    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry) {
+      this.ui.openPantry();
+      return true;
     }
     // Saco pesado: no café, vai para o estoque.
     if (st.hands.some((h) => h.kind === 'heavy')) return report(sv.storeHeavy());

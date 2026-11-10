@@ -536,7 +536,7 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
   await skipDialogue(page);
   // Atalho: tudo até as cadeiras, com balcão, cafeteira, mesa, cadeira, louça da Gabi e café.
   await page.evaluate(() => {
-    type W = { session: { content: { story: { beats: { id: string }[] } }; state: Record<string, unknown> & { story: { completed: string[] }; flags: Record<string, boolean>; cats: Record<string, unknown>; money: number; time: number; cleaned: string[] }; buy(id: string): unknown; place(id: string, at: [number, number]): unknown; receiveItem(id: string): void }; goTo(m: string, at?: [number, number]): void };
+    type W = { session: { content: { story: { beats: { id: string }[] } }; state: Record<string, unknown> & { story: { completed: string[] }; flags: Record<string, boolean>; cats: Record<string, unknown>; money: number; time: number; cleaned: string[] }; buy(id: string): unknown; place(id: string, at: [number, number]): unknown; receiveItem(id: string): void; service: { storeInPantry(): unknown } }; goTo(m: string, at?: [number, number]): void };
     const w = (window as unknown as { __biscuitPaws: { cafe: W } }).__biscuitPaws.cafe;
     const s = w.session;
     const beats = s.content.story.beats;
@@ -552,6 +552,7 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
     s.receiveItem('item.dishes_set');
     s.buy('item.coffee_ground');
     s.buy('item.paper_filter');
+    s.service.storeInPantry(); // da mochila para a despensa (só assim vale nas receitas)
     w.goTo('map.cafe_main', [6, 7]);
   });
   await skipDialogue(page);

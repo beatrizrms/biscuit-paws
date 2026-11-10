@@ -179,6 +179,7 @@ export class GameUi {
       this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    bus.on('pantry.stored', ({ count }) => this.toast(uiText.backpack.pantryStored.replace('{n}', String(count)), 3000));
     bus.on('heavy.stored', ({ itemId }) => {
       const to = content.items[itemId]?.storesAs;
       this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
@@ -383,8 +384,9 @@ export class GameUi {
         doneToday++;
         continue;
       }
-      const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : c.sweep;
-      today.push(this.row(text, { icon: ch.kind === 'feed' ? 'racao_simples' : 'vassoura', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+      const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : ch.kind === 'pantry' ? c.pantry : c.sweep;
+      const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
+      today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }
     for (const job of this.session.activeJobs()) {
       const step = job.steps[this.session.jobStep(job.id)];
@@ -654,6 +656,13 @@ export class GameUi {
     this.closeCatalog();
     this.closeShop();
     this.backpack.show();
+  }
+
+  /** O armário da cozinha: a mochila aberta na despensa, com o botão de guardar as compras. */
+  openPantry(): void {
+    this.closeCatalog();
+    this.closeShop();
+    this.backpack.show(true);
   }
 
   isPanelOpen(): boolean {
