@@ -104,6 +104,8 @@ export interface GameState {
   energy?: number;
   /** Janelas com a cortina aberta (ids dos objetos). Sem o campo (save antigo ou jogo novo): todas fechadas. */
   openCurtains?: string[];
+  /** Onde a poeira do dia voltou (id da sujeira -> célula), sorteado a cada manhã. Sem o campo: o lugar do mapa. */
+  dirtAt?: Record<string, Cell>;
   /** Reputação felina da cidade (v16): valor, limiares já alcançados e o log curto dos motivos. */
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */

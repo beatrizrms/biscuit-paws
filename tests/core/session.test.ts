@@ -963,6 +963,26 @@ describe('passagem dos dias e rotina', () => {
     session.endDay('home');
     expect(dust()).toBe(content.world.dailyDirt);
   });
+
+  it('a poeira volta em lugares sorteados do chão (livres), variando de um dia para o outro', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    const spots = new Set<string>();
+    for (let day = 0; day < 6; day++) {
+      for (const d of session.visibleDirt().filter((x) => x.tags.includes('daily'))) session.clean(d.id);
+      session.endDay('home');
+      const map = session.mapData();
+      for (const d of session.visibleDirt().filter((x) => x.tags.includes('daily'))) {
+        spots.add(d.at.join(','));
+        // Nunca embaixo de móvel nem em célula sólida.
+        expect(session.state.placed.some((p) => p.at[0] === d.at[0] && p.at[1] === d.at[1])).toBe(false);
+        expect(map.objects.some((o) => o.at[0] === d.at[0] && o.at[1] === d.at[1] && content.catalog.tiles[o.tile]?.solid)).toBe(false);
+      }
+    }
+    // Com só 4 pontos fixos no mapa, seriam no máximo 4 lugares; sorteando no chão, aparecem mais.
+    expect(spots.size).toBeGreaterThan(4);
+  });
 });
 
 describe('correio: compras do catálogo chegam na porta', () => {

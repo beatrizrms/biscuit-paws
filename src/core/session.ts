@@ -809,6 +809,37 @@ export class GameSession {
     }
     const back = pool.slice(0, this.content.world.dailyDirt);
     this.state.cleaned = this.state.cleaned.filter((id) => !back.some((d) => d.id === id));
+    // Cada poeira que voltou cai num lugar livre sorteado do chão (não sempre nos mesmos pontos do mapa).
+    this.state.dirtAt = { ...(this.state.dirtAt ?? {}) };
+    for (const d of back) delete this.state.dirtAt[d.id];
+    for (const d of back) {
+      const at = this.randomDirtSpot(d, rng);
+      if (at) this.state.dirtAt[d.id] = at;
+    }
+  }
+
+  /**
+   * Uma célula livre do chão para a peça de sujeira inteira (as de 2 tiles também): sem móvel, parede, cômodo fechado
+   * nem outra sujeira por cima. Sorteada com o RNG do dia; null se não houver lugar (fica no ponto do mapa).
+   */
+  private randomDirtSpot(d: DirtSpot, rng: { int(min: number, max: number): number }): Cell | null {
+    const def = this.content.catalog.tiles[d.tile];
+    if (!def) return null;
+    const free = this.floorFree();
+    const others = new Set(
+      this.visibleDirt()
+        .filter((x) => x.id !== d.id)
+        .flatMap((x) => (this.content.catalog.tiles[x.tile] ? cellsOf(x.at, this.content.catalog.tiles[x.tile]!) : [x.at]))
+        .map((c) => `${c[0]},${c[1]}`),
+    );
+    const { cols, rows } = this.content.map.size;
+    const spots: Cell[] = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const cells = cellsOf([c, r], def);
+        if (cells.every((x) => free(x) && !others.has(`${x[0]},${x[1]}`))) spots.push([c, r]);
+      }
+    return spots.length > 0 ? spots[rng.int(0, spots.length - 1)]! : null;
   }
 
   /**
@@ -2069,7 +2100,7 @@ export class GameSession {
         if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
         return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
       })
-      .map((d) => (d.when ? this.freeSpotFor(d) : d));
+      .map((d) => (d.when ? this.freeSpotFor(d) : this.state.dirtAt?.[d.id] ? { ...d, at: this.state.dirtAt[d.id]! } : d));
   }
 
   /** A célula não fica num cômodo ainda fechado. */
@@ -2082,7 +2113,8 @@ export class GameSession {
    * Sujeira que aparece no meio do jogo (com `when`): se a jogadora já pôs um móvel naquela célula, ela vai para a
    * célula livre mais próxima (senão ficaria escondida embaixo dele).
    */
-  private freeSpotFor(d: DirtSpot): DirtSpot {
+  /** Célula do chão do café livre: sem móvel posicionado, sem parede/objeto sólido e num cômodo aberto. */
+  private floorFree(): (c: Cell) => boolean {
     const { catalog, items } = this.content;
     const taken = new Set<string>();
     for (const p of this.state.placed) {
@@ -2090,7 +2122,11 @@ export class GameSession {
       if (def) for (const [c, r] of cellsOf(p.at, def)) taken.add(`${c},${r}`);
     }
     const solid = solidGrid({ ...this.content.map, objects: this.visibleObjects(this.content.map) }, catalog);
-    const free = ([c, r]: Cell) => !taken.has(`${c},${r}`) && solid[r]?.[c] === false && this.cellOpen([c, r]);
+    return ([c, r]: Cell) => !taken.has(`${c},${r}`) && solid[r]?.[c] === false && this.cellOpen([c, r]);
+  }
+
+  private freeSpotFor(d: DirtSpot): DirtSpot {
+    const free = this.floorFree();
     if (free(d.at)) return d;
     for (let dist = 1; dist <= 6; dist++)
       for (let dr = -dist; dr <= dist; dr++)

@@ -378,6 +378,16 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
     // Cortinas abertas: campo opcional (sem ele, fechadas); só ids em texto.
+    // Poeira do dia em lugar sorteado: campo opcional (sem ele, o lugar do mapa); só células de números inteiros.
+    ...(v2.dirtAt && typeof v2.dirtAt === 'object'
+      ? {
+          dirtAt: Object.fromEntries(
+            Object.entries(v2.dirtAt as Record<string, unknown>).filter(
+              (e): e is [string, [number, number]] => Array.isArray(e[1]) && e[1].length === 2 && e[1].every((n) => Number.isInteger(n)),
+            ),
+          ),
+        }
+      : {}),
     ...(Array.isArray(v2.openCurtains) ? { openCurtains: [...new Set(v2.openCurtains.filter((id: unknown): id is string => typeof id === 'string'))] } : {}),
   };
   if (v2.location && !known.maps.has(v2.location)) warnings.push(`local "${v2.location}" não existe mais; volta ao início`);
