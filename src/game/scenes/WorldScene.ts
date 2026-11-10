@@ -73,9 +73,7 @@ const FADE_MS = 160;
 const WAIT_SPEED = 40;
 
 const NO_INPUT = { up: false, down: false, left: false, right: false };
-/** No sofá, sentada: os pés ficam no chão, tanto abaixo da base do sofá (px lógicos). */
-const SOFA_FEET = 3;
-/** Sem a folha da pose sentada: a borda do assento acima da base e o quadril acima dos pés (corte provisório). */
+/** Sem a folha da pose sentada, no sofá: a borda do assento acima da base e o quadril acima dos pés (corte provisório). */
 const SOFA_SEAT = 9;
 const HIP_HEIGHT = 28;
 /** Quanto tempo o ícone "se recompondo" fica depois de um café ou de brincar com o gato (ms). */
@@ -338,7 +336,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
     // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
     // Energia: sentar/levantar do sofá e o ícone depois de um café ou de brincar com o gato.
-    this.session.bus.on('rest.changed', ({ uid }) => (uid ? this.sitOnSofa(uid) : this.standUp()));
+    this.session.bus.on('rest.changed', ({ uid }) => (uid ? this.sitOn(uid) : this.standUp()));
     this.session.bus.on('energy.recovered', () => (this.recoverIconUntil = this.time.now + RECOVER_ICON_MS));
     this.recoverIcon = this.add.image(0, 0, recoverIconTexture(this)).setScale(0.5).setVisible(false);
     this.session.bus.on('day.started', ({ day }) => {
@@ -1478,13 +1476,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Pega o gato que estiver ao lado (mãos livres). */
-  /** E perto de um sofá do café: senta e se recompõe (levanta ao andar, com E de novo ou ao encher). */
+  /** E perto de um sofá ou cadeira do café: senta e se recompõe (levanta ao andar, com E de novo ou ao encher). */
   private tryRest(target?: Cell): boolean {
     if (this.session.resting()) {
       this.session.stopRest();
       return true;
     }
-    const uid = this.session.sofaNear(this.playerCells(), target);
+    const uid = this.session.seatNear(this.playerCells(), target);
     if (!uid) return false;
     const r = this.session.startRest(uid);
     if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
@@ -1503,10 +1501,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * Senta no sofá. PLACEHOLDER(arte): sem pose sentada, ela fica de frente na frente do encosto, com as pernas
    * cortadas na borda do assento (o quadril no assento).
    */
-  private sitOnSofa(uid: string): void {
+  private sitOn(uid: string): void {
     const p = this.session.state.placed.find((x) => x.uid === uid);
     const def = p ? this.session.content.catalog.tiles[this.session.content.items[p.item]?.tile ?? ''] : undefined;
-    if (!p || !def) return;
+    const seat = p ? this.session.seatDef(p.item) : undefined;
+    if (!p || !def || !seat) return;
     const ts = this.map.tileSize;
     const base = (p.at[1] + def.h) * ts;
     this.restFrom = { x: this.player.x, y: this.player.y };
@@ -1514,20 +1513,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     body.reset(this.player.x, this.player.y);
     body.enable = false;
     const x = (p.at[0] + def.w / 2) * ts;
-    // Sentada de frente, na frente do encosto, com os pés no chão.
-    if (this.player.sit('down')) {
-      this.player.setPosition(x, base + SOFA_FEET);
+    // Sentada virada para onde o móvel olha (sofá: de frente, na frente do encosto), com os pés no chão.
+    if (this.player.sit(seat.facing)) {
+      this.player.setPosition(x, base + seat.feet);
       this.player.setDepth(ySortDepth(base) + 1);
       return;
     }
     // Sem a folha (assets não importados): cortada na borda do assento.
-    const seat = base - SOFA_SEAT;
-    this.player.setPosition(x, seat - 2 + HIP_HEIGHT);
-    this.player.face('down');
+    const seatY = base - SOFA_SEAT;
+    this.player.setPosition(x, seatY - 2 + HIP_HEIGHT);
+    this.player.face(seat.facing);
     this.player.move(NO_INPUT);
     // Só o que fica acima da borda do assento aparece (crop em pixels do quadro, antes da escala).
     const top = this.player.y - this.player.displayHeight * this.player.originY;
-    this.player.setCrop(0, 0, this.player.frame.width, (seat - top) / this.player.scaleY);
+    this.player.setCrop(0, 0, this.player.frame.width, (seatY - top) / this.player.scaleY);
     this.player.setDepth(ySortDepth(base) + 1);
   }
 

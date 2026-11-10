@@ -126,6 +126,7 @@
   "narrator": "",
   "problems": {
     "energy_full": "A energia já está cheia.",
+    "seat_taken": "Esse lugar está ocupado por um cliente.",
     "no_money": "Moedas insuficientes.",
     "out_of_bounds": "Fora do café.",
     "occupied": "Já tem algo aí.",
@@ -771,7 +772,7 @@
     "curfewSoon": "Está ficando tarde: daqui a uma hora preciso ir para casa.",
     "coffee": "Um cafezinho para se recompor: +{n} de energia.",
     "play": "Brincar com o gato recarrega: +{n} de energia.",
-    "sofa": "Descansando no sofá... (ande ou aperte E para levantar)",
+    "sofa": "Descansando um pouco... (ande ou aperte E para levantar)",
     "rested": "Energia cheia de novo!"
   },
   "reputation": {

@@ -446,3 +446,8 @@ Consequência: pose `sit` no manequim (`data/character.json`), gerada no PixelLa
 ## 107. Mudar móvel de lugar pelo teclado: F (nov/2026)
 Contexto: mudar um móvel de lugar (decisão 084) só funcionava com o botão direito do mouse e não aparecia em nenhuma dica.
 Decisão: F (de "furniture"; o M continua no cardápio) pega o móvel da frente dela, senão um encostado nela (olhando para cima, também os da parede); balcão com cafeteira pega o balcão com ela. Com o fantasma na mão, setas e WASD andam com ele uma célula por toque (a personagem fica parada) e F ou Enter soltam; Q guarda, Esc cancela; o mouse continua valendo. Posicionar item novo do Market também aceita setas e Enter (o fantasma começa na frente dela). As dicas do rodapé mostram os controles.
+
+## 108. Descansar nas cadeiras (nov/2026)
+Pedido: sentar também nas cadeiras, como no sofá, para recuperar energia.
+Consequência: `energy.restore.sofa` virou `restore.seat`, por tile: para onde ela olha e onde ficam os pés (sofás e cadeiras de frente: para baixo; cadeira esquerda/direita: de lado). A cadeira de costas fica de fora até existir a pose de costas. Cadeira com cliente sentado (ou a caminho) não serve ("Esse lugar está ocupado por um cliente."), e a cadeira em que ela está sai dos lugares livres dos clientes (`ServiceHost.playerSeat`).
+

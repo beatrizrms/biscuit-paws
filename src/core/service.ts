@@ -105,6 +105,8 @@ export interface ServiceHost {
   /** Sujeira do salão agora (sujeiras visíveis e louça suja nas mesas): pesa na avaliação. */
   hallDirt(): number;
   addReputation(amount: number, reason: string): void;
+  /** Célula da cadeira em que ela está sentada descansando (ou null): não é lugar livre para cliente. */
+  playerSeat(): Cell | null;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -360,6 +362,8 @@ export class CafeService {
 
   private freeSpots(): { kind: ServiceKind; spot: Cell; dishAt: Cell }[] {
     const taken = this.st.service.customers.filter((c) => c.stage !== 'queue').map((c) => c.spot);
+    const mine = this.h.playerSeat();
+    if (mine) taken.push(mine);
     return this.spots().filter((s) => !taken.some((t) => same(t, s.spot)));
   }
 

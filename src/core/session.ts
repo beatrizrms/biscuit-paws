@@ -11,7 +11,7 @@ import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus, type DayEndReason } from './events';
-import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel } from './energy';
+import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
@@ -142,6 +142,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'seat_taken'
         | 'other_item'
         | 'unknown_job'
         | 'job_full'
@@ -192,6 +193,7 @@ export class GameSession {
       catAffection: (catId, points) => this.addCatAffection(catId, points),
       customersAway: () => this.customersAway(),
       hallDirt: () => this.hallDirt(),
+      playerSeat: () => this.restingCell(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
     });
     this.arrivals = new ArrivalSystem({
@@ -264,7 +266,7 @@ export class GameSession {
 
   /** Itens que ela tinha no último evento (para achar os que acabaram de chegar). */
   private ownedIds = new Set<string>();
-  /** Sofá em que ela está sentada (uid), recompondo a energia. Não vai para o save. */
+  /** Sofá ou cadeira em que ela está sentada (uid), recompondo a energia. Não vai para o save. */
   private restingOn: string | null = null;
   /** Dia em que já lembrou da hora-limite (não vai para o save: recarregar pode lembrar de novo). */
   private curfewRemindedOn = 0;
@@ -590,7 +592,7 @@ export class GameSession {
     else if (Math.floor(this.state.time) !== before) {
       // No sofá: recompõe a cada minuto, até encher.
       if (this.restingOn) {
-        const gain = this.content.dayNight.energy.restore.sofa.perMinute * (Math.floor(this.state.time) - before);
+        const gain = this.content.dayNight.energy.restore.seat.perMinute * (Math.floor(this.state.time) - before);
         this.setEnergy(this.energy() + gain);
         if (this.energyFull()) this.stopRest(true);
       }
@@ -641,29 +643,42 @@ export class GameSession {
     return this.energy() >= this.content.dayNight.energy.max;
   }
 
-  /** Sofá do café ao alcance dos pés (`target`: só a célula clicada). */
-  sofaNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
+  /** Onde dá para sentar (sofá, cadeira) pelo tile do item, ou undefined. */
+  seatDef(itemId: string): SeatDef | undefined {
+    const tile = this.content.items[itemId]?.tile;
+    return tile ? this.content.dayNight.energy.restore.seat.tiles[tile] : undefined;
+  }
+
+  /** Sofá ou cadeira do café ao alcance dos pés (`target`: só a célula clicada). */
+  seatNear(feet: readonly Cell[], target?: Cell, reach = 1): string | undefined {
     if (!this.atHome()) return undefined;
-    const sofas = this.content.dayNight.energy.restore.sofa.items;
     const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
     return this.state.placed.find((p) => {
-      if (!sofas.includes(p.item)) return false;
+      if (!this.seatDef(p.item)) return false;
       const cells = cellsOf(p.at, this.content.catalog.tiles[this.content.items[p.item]!.tile!]!);
       if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
       return cells.some((c) => feet.some((f) => dist(c, f) <= reach));
     })?.uid;
   }
 
-  /** Por que não dá para sentar agora (ou null). */
-  restProblem(): 'energy_full' | 'hands_full' | null {
+  /** Por que não dá para sentar agora (ou null). Cadeira com cliente sentado (ou a caminho) não serve. */
+  restProblem(uid?: string): 'energy_full' | 'hands_full' | 'seat_taken' | null {
     if (this.energyFull()) return 'energy_full';
     if (this.state.hands.length > 0 || this.state.tray) return 'hands_full';
+    const p = uid ? this.state.placed.find((x) => x.uid === uid) : undefined;
+    if (p && this.state.service.customers.some((c) => c.stage !== 'queue' && c.spot[0] === p.at[0] && c.spot[1] === p.at[1])) return 'seat_taken';
     return null;
   }
 
-  /** Senta no sofá: recompõe a cada minuto do jogo (tickClock) até encher ou levantar. */
+  /** Célula do móvel em que ela está sentada (ou null). */
+  private restingCell(): Cell | null {
+    const p = this.restingOn ? this.state.placed.find((x) => x.uid === this.restingOn) : undefined;
+    return p ? [p.at[0], p.at[1]] : null;
+  }
+
+  /** Senta no sofá ou na cadeira: recompõe a cada minuto do jogo (tickClock) até encher ou levantar. */
   startRest(uid: string): ActionResult {
-    const problem = this.restProblem();
+    const problem = this.restProblem(uid);
     if (problem) return { ok: false, reason: problem };
     if (!this.state.placed.some((p) => p.uid === uid)) return { ok: false, reason: 'not_found' };
     this.restingOn = uid;
@@ -671,14 +686,14 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Levanta do sofá (`full`: porque a energia encheu). */
+  /** Levanta (`full`: porque a energia encheu). */
   stopRest(full = false): void {
     if (!this.restingOn) return;
     this.restingOn = null;
     this.bus.emit('rest.changed', { uid: null, full });
   }
 
-  /** O sofá em que ela está sentada (ou null). Não vai para o save. */
+  /** O sofá ou a cadeira em que ela está sentada (ou null). Não vai para o save. */
   resting(): string | null {
     return this.restingOn;
   }

@@ -25,10 +25,18 @@ export interface EnergyConfig {
 export interface EnergyRestore {
   /** Tomar um café pronto (das receitas listadas) que está na mão: a xícara fica suja na mão. */
   coffee: { recipes: string[]; amount: number };
-  /** Sentar num sofá do café: ganha perMinute a cada minuto do jogo, até encher ou ela levantar. */
-  sofa: { items: string[]; perMinute: number };
+  /**
+   * Sentar num sofá ou cadeira do café: ganha perMinute a cada minuto do jogo, até encher ou ela levantar.
+   * tiles: móveis em que dá para sentar (pelo tile), para onde ela olha e os pés abaixo da base (px lógicos).
+   */
+  seat: { perMinute: number; tiles: Record<string, SeatDef> };
   /** Brincar com um gato (mini games listados, quando dão certo): ganha em vez de gastar. */
   play: { games: string[]; amount: number };
+}
+
+export interface SeatDef {
+  facing: 'down' | 'left' | 'right' | 'up';
+  feet: number;
 }
 
 export type EnergyLevel = 'ok' | 'low' | 'empty';
@@ -57,7 +65,7 @@ export function validateEnergy(cfg: EnergyConfig): string[] {
   if (!(cfg.wakeAfterLateNight > 0 && cfg.wakeAfterLateNight <= cfg.max)) errors.push('energy: wakeAfterLateNight deve ficar entre 1 e max');
   for (const k of ['tiredSpeed', 'emptySpeed'] as const) if (!(cfg[k] > 0 && cfg[k] <= 1)) errors.push(`energy: ${k} deve ficar entre 0 e 1`);
   const r = cfg.restore;
-  if (!(r.coffee.amount > 0 && r.sofa.perMinute > 0 && r.play.amount > 0)) errors.push('energy: restore precisa de valores maiores que 0');
+  if (!(r.coffee.amount > 0 && r.seat.perMinute > 0 && r.play.amount > 0)) errors.push('energy: restore precisa de valores maiores que 0');
   for (const [name, cost] of Object.entries(cfg.costs)) {
     if (!eventNames.has(name)) errors.push(`energy: evento "${name}" não está em ENERGY_EVENTS`);
     if (!(cost >= 0)) errors.push(`energy: custo de "${name}" inválido`);
