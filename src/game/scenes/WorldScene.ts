@@ -470,6 +470,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const n of this.session.mapData(mapId).npcs ?? []) {
       this.spawnNpc(n.npc, n.at, n.facing);
       if (n.anim) this.npcs.get(n.npc)?.loop(n.anim); // o Tião martelando na obra
+      // A atendente do mercado: mexe à toa com pausas e, com ela no caixa, passa as compras.
+      if (n.idle || n.busy) this.npcs.get(n.npc)?.attend(n.idle, n.busy, () => this.session.interactionAt(this.playerCells())?.id === n.busy?.interaction);
     }
     // A obra terminou: no café, o Tião vem perguntar se ela quer mais algum serviço.
     if (mapId === this.session.content.map.id && this.session.state.construction.askPending) void this.builderAsk();

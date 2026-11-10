@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Cell, Facing } from '../../core/map';
+import type { Cell, Facing, NpcBusy, NpcIdle } from '../../core/map';
 import type { NpcDef } from '../../core/script';
 import { ySortDepth } from '../../core/map';
 
@@ -44,7 +44,7 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     for (const [anim, frames] of Object.entries(def.extras)) {
       const name = `${key}-${anim}`;
       if (scene.anims.exists(name)) continue;
-      scene.anims.create({ key: name, frames: frames.map((f) => ({ key, frame: f })), frameRate: 3, repeat: -1 });
+      scene.anims.create({ key: name, frames: frames.map((f) => ({ key, frame: f })), frameRate: def.extrasFps ?? 3, repeat: -1 });
     }
   }
 
@@ -99,6 +99,38 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
   /** Fica repetindo uma animação extra (o construtor martelando na obra). */
   loop(anim: string): void {
     if (this.active) this.play(`${npcTexture(this.def.id)}-${anim}`, true);
+  }
+
+  /**
+   * Parada no posto (a atendente no caixa): com `near()` verdadeiro, repete a animação de atender; senão, toca a
+   * animação à toa uma vez e fica parada um tempo sorteado. Só visual (o sorteio não mexe em regra do jogo).
+   */
+  attend(idle: NpcIdle | undefined, busy: NpcBusy | undefined, near: () => boolean): void {
+    const key = npcTexture(this.def.id);
+    const rest = this.frame.name;
+    let mode: 'busy' | 'idle' | 'pause' = 'pause';
+    let pauseLeft = 0;
+    const tick = (_: number, delta: number) => {
+      if (!this.active) return;
+      if (busy && near()) {
+        if (mode !== 'busy') this.play(`${key}-${busy.anim}`, true);
+        mode = 'busy';
+        return;
+      }
+      if (mode === 'busy' || (mode === 'idle' && !this.anims.isPlaying)) {
+        this.anims.stop();
+        this.setFrame(rest);
+        mode = 'pause';
+        pauseLeft = idle ? Phaser.Math.Between(idle.pauseMs[0], idle.pauseMs[1]) : Infinity;
+      }
+      if (mode !== 'pause' || !idle) return;
+      pauseLeft -= delta;
+      if (pauseLeft > 0) return;
+      this.play({ key: `${key}-${idle.anim}`, repeat: 0 });
+      mode = 'idle';
+    };
+    this.scene.events.on(Phaser.Scenes.Events.UPDATE, tick);
+    this.once(Phaser.GameObjects.Events.DESTROY, () => this.scene?.events.off(Phaser.Scenes.Events.UPDATE, tick));
   }
 
   /** Sai de cena (some devagar). */

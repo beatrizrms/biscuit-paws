@@ -243,7 +243,8 @@ const SHEETS: Sheet[] = [
     layout: {
       gondola_mercearia: { file: 'mercado_C/gondola_mercearia.png', w: 3, h: 2 },
       gondola_pet: { file: '', w: 3, h: 2, build: () => withLeftPost(readPng(`${SRC}/mercado_C/gondola_pet.png`), 175, 182) },
-      caixa: { file: 'mercado_C/caixa_3x2.png', w: 3, h: 2, dy: 12 },
+      // Sem a parede em U (edição do PixelLab sobre a peça já montada, por isso sem dy): a atendente fica do lado de baixo, de costas.
+      caixa: { file: 'mercado_C/caixa_3x2_sem_parede.png', w: 3, h: 2 },
       banca_a: { file: 'mercado_C/banca_a.png', w: 3, h: 1 },
       banca_b: { file: 'mercado_C/banca_b.png', w: 3, h: 1 },
       carrinhos_fila: { file: 'mercado_A/obj_10.png', w: 1, h: 1, dy: 3 },
@@ -263,7 +264,8 @@ const SHEETS: Sheet[] = [
       vet_piso_xadrez: { file: 'clinica/piso.png', w: 1, h: 1 },
       vet_tapete_entrada: { file: '', w: 3, h: 1, build: () => compose(3 * TS, TS, [['04_cafe_4/obj_7.png', TS, 0], ['04_cafe_4/obj_7.png', 2 * TS, 0]]) },
       vet_armario_medicamentos: { file: 'clinica/armario_2x2.png', w: 2, h: 2 },
-      vet_balcao_recepcao: { file: 'clinica/recepcao_3x2.png', w: 3, h: 2, dy: 10 },
+      // Sem a parede em U (edição do PixelLab sobre a peça já montada, por isso sem dy).
+      vet_balcao_recepcao: { file: 'clinica/recepcao_3x2_sem_parede.png', w: 3, h: 2 },
       vet_mesa_exame: { file: 'clinica/mesa_exame_2x2.png', w: 2, h: 2, dy: 4 },
       vet_gaiola_vazia: { file: 'clinica/gaiolas_2x2.png', w: 2, h: 2, dy: 8 },
       vet_gaiola_gato: { file: 'clinica/gaiolas_2x2.png', w: 2, h: 2, dy: 8 },

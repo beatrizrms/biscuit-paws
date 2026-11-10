@@ -514,7 +514,16 @@ export function validateContent(raw: RawContent): string[] {
   for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
   for (const id of restore.sofa.items) if (!raw.items.items.some((i) => i.id === id)) err(`daynight: energy.restore.sofa: item "${id}" não existe`);
   for (const m of raw.maps) {
-    for (const n of m.npcs ?? []) if (!raw.npcs.npcs.some((x) => x.id === n.npc)) err(`${m.id}: NPC inexistente "${n.npc}"`);
+    for (const n of m.npcs ?? []) {
+      const def = raw.npcs.npcs.find((x) => x.id === n.npc);
+      if (!def) {
+        err(`${m.id}: NPC inexistente "${n.npc}"`);
+        continue;
+      }
+      for (const a of [n.anim, n.idle?.anim, n.busy?.anim]) if (a && !def.extras[a]) err(`${m.id}: ${n.npc} não tem a animação "${a}"`);
+      if (n.idle && !(n.idle.pauseMs[0] >= 0 && n.idle.pauseMs[1] >= n.idle.pauseMs[0])) err(`${m.id}: ${n.npc}: idle.pauseMs inválido`);
+      if (n.busy && !(m.interactions ?? []).some((i) => i.id === n.busy!.interaction)) err(`${m.id}: ${n.npc}: interação "${n.busy.interaction}" não existe no mapa`);
+    }
     for (const door of m.doors ?? []) {
       const target = raw.maps.find((t) => t.id === door.to);
       if (!target) err(`${m.id}: porta "${door.id}" leva a "${door.to}", que não existe`);

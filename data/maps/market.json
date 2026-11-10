@@ -334,6 +334,15 @@
       ]
     }
   ],
+  "npcs": [
+    {
+      "npc": "npc.market_clerk",
+      "at": [13, 10],
+      "facing": "up",
+      "idle": { "anim": "olhando_de_lado", "pauseMs": [2500, 6000] },
+      "busy": { "anim": "passando_compras", "interaction": "int.market_cashier" }
+    }
+  ],
   "spawn": {
     "player": [
       10,

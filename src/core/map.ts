@@ -98,6 +98,18 @@ export interface DoorHours {
 /** Mesma forma das condições da história (content.ts); repetida aqui para o mapa não depender do conteúdo. */
 export type DoorCondition = Record<string, unknown>;
 
+/** NPC parado que se mexe à toa: toca a animação uma vez e fica parado um tempo sorteado entre pauseMs[0] e pauseMs[1]. */
+export interface NpcIdle {
+  anim: string;
+  pauseMs: [number, number];
+}
+
+/** NPC atendendo: com ela ao alcance da interação (o caixa), repete a animação. */
+export interface NpcBusy {
+  anim: string;
+  interaction: string;
+}
+
 export interface MapData {
   schemaVersion: 1;
   id: string;
@@ -112,7 +124,7 @@ export interface MapData {
   interactions?: MapInteraction[];
   /** NPCs que ficam no mapa (ex.: a Fernanda no balcão da clínica). */
   /** NPCs parados no mapa; anim: animação extra em repetição (o construtor martelando). */
-  npcs?: { npc: string; at: Cell; facing?: Facing; anim?: string }[];
+  npcs?: { npc: string; at: Cell; facing?: Facing; anim?: string; idle?: NpcIdle; busy?: NpcBusy }[];
   /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */
