@@ -27,7 +27,8 @@ import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } fr
 const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, type CalendarEntry } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, mapInSeason, seasonOf, weatherOf, yearOf, type CalendarEntry } from './calendar';
+import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
 import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
@@ -179,6 +180,7 @@ export type ActionResult =
         | 'already_owned'
         | 'too_early'
         | 'customers_inside'
+        | 'xmas_party'
         | 'cart_empty'
         | QuoteProblem
         | PlaceProblem;
@@ -671,6 +673,12 @@ export class GameSession {
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
     this.stationsAtDayEnd(day);
     this.healthAtDayEnd(day);
+    // Natal: o dia acabou sem a ceia (ela não estava): fica como perdida.
+    const santa = this.santaRecord();
+    if (santa?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, day)) {
+      santa.stage = 'missed';
+      this.bus.emit('xmas.santa_missed', { npc: santa.drawn });
+    }
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     this.arrivals.dayEnded(day + 1);
@@ -700,6 +708,8 @@ export class GameSession {
     this.bus.emit('day.started', { day: day + 1 });
     // Fim do inverno: os enfeites de Natal vão para a caixa (na mochila), que só abre no próximo inverno.
     if (seasonOf(this.content.seasons, day) === 'winter' && seasonOf(this.content.seasons, day + 1) !== 'winter') this.packXmasBox();
+    // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
+    if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
     // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
     const menu = this.service.seasonalMenu(day);
     if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
@@ -731,6 +741,7 @@ export class GameSession {
       this.service.tick();
       this.checkBuilderShift();
       this.advanceStory();
+      this.checkSecretSanta();
     }
   }
 
@@ -874,9 +885,11 @@ export class GameSession {
   }
 
   /** Por que ainda não dá para ir para casa: cedo demais, ou ainda tem cliente no café (ela espera o último sair). */
-  goHomeProblem(): 'too_early' | 'customers_inside' | null {
+  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | null {
     if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
     if (this.state.service.customers.length > 0) return 'customers_inside';
+    // Natal com amigo secreto marcado: só depois da ceia.
+    if (this.santaPartyPending()) return 'xmas_party';
     return null;
   }
 
@@ -1662,6 +1675,130 @@ export class GameSession {
     if (this.xmasBoxCount() === 0) delete this.state.inventory[box.item];
     this.bus.emit('xmas.box_opened', { itemId: id, left: this.xmasBoxCount() });
     return { ok: true, itemId: id };
+  }
+
+  /** Adianta o relógio até a hora ("HH:MM"), se ainda não passou (roteiros: a ceia foi até tarde). */
+  advanceClockTo(clock: string): void {
+    this.state.time = Math.max(this.state.time, parseClock(clock));
+  }
+
+  /** A condição (da história) vale agora? Ex.: o `when` de um passo de roteiro. */
+  holds(c: Condition): boolean {
+    return evaluate(c, this.state, this.storyContext());
+  }
+
+  // ---------- Amigo secreto de Natal ----------
+
+  /** O amigo secreto deste ano (null: ainda não teve sorteio). */
+  santaRecord(): SantaRecord | null {
+    return recordOfYear(this.content.seasons, this.state.secretSanta, this.state.day);
+  }
+
+  /** Quem entra no amigo secreto: os amigos que ela já conhece (na ordem dos dados). */
+  santaGuests(): string[] {
+    const ctx = { ...this.storyContext(), santaGuest: undefined };
+    return this.content.festive.secretSanta.friends.filter((f) => evaluate(f.known, this.state, ctx)).map((f) => f.npc);
+  }
+
+  private santaFriend(npc: string): SantaFriend | undefined {
+    return this.content.festive.secretSanta.friends.find((f) => f.npc === npc);
+  }
+
+  /** Para a interface: quem ela tirou, a dica, se já tem um presente na mochila e se hoje é o Natal. */
+  secretSanta(): { record: SantaRecord; friend: SantaFriend; hasGift: boolean; lovedGift: boolean; christmas: boolean } | null {
+    const record = this.santaRecord();
+    const friend = record && this.santaFriend(record.drawn);
+    if (!record || !friend) return null;
+    const pick = pickGift(this.state.inventory, this.santaGiftIds(), friend);
+    return { record, friend, hasGift: pick.item !== null, lovedGift: pick.result === 'loved', christmas: isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day) };
+  }
+
+  /** Hoje é Natal e a ceia ainda vai acontecer. */
+  santaPartyPending(): boolean {
+    return this.santaRecord()?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day);
+  }
+
+  private santaGiftIds(): string[] {
+    const tag = this.content.festive.secretSanta.giftTag;
+    return Object.values(this.content.items).filter((i) => i.tags.includes(tag)).map((i) => i.id);
+  }
+
+  /** Dia da ceia em que o roteiro já foi pedido (não pede de novo a cada minuto). */
+  private santaPartyRequestedOn = 0;
+
+  /**
+   * A cada minuto: no período do sorteio, a Gabi aparece e ela tira um amigo (o roteiro da proposta); no Natal, na
+   * hora da ceia, o roteiro da ceia.
+   */
+  checkSecretSanta(): void {
+    const ss = this.content.festive.secretSanta;
+    const day = this.state.day;
+    if (!this.santaRecord() && inDrawWindow(this.content.seasons, ss, day)) {
+      const guests = this.santaGuests();
+      if (!guests.includes(ss.proposer) || !evaluate(ss.proposalWhen, this.state, this.storyContext())) return;
+      const drawn = drawFriend(guests, createRng(day * 7919 + 25));
+      if (!drawn) return;
+      this.state.secretSanta = { year: yearOf(this.content.seasons, day), drawn, stage: 'drawn' };
+      this.bus.emit('xmas.santa_drawn', { npc: drawn });
+      this.bus.emit('script.requested', { scriptId: ss.proposalScript });
+      return;
+    }
+    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day) {
+      this.santaPartyRequestedOn = day;
+      this.bus.emit('script.requested', { scriptId: ss.partyScript });
+    }
+  }
+
+  /**
+   * Na ceia, ela entrega o presente (o que a pessoa gosta, se tiver; senão outro presente de Natal; senão nada).
+   * Devolve a fala de quem recebeu. Todos os convidados ganham um pouco de coração pela noite.
+   */
+  secretSantaExchange(): { dialogue: string } | null {
+    const ss = this.content.festive.secretSanta;
+    const record = this.santaRecord();
+    const friend = record && this.santaFriend(record.drawn);
+    if (!record || !friend || record.stage === 'done') return null;
+    const { item, result } = pickGift(this.state.inventory, this.santaGiftIds(), friend);
+    if (item) this.removeFromInventory(item);
+    const rel = this.content.relationships;
+    for (const g of this.santaGuests()) addPoints(this.state, rel, PLAYER, g, ss.points.party);
+    if (result !== 'none') addPoints(this.state, rel, PLAYER, friend.npc, ss.points[result]);
+    record.stage = 'done';
+    record.result = result;
+    if (item) record.gift = item;
+    this.bus.emit('xmas.santa_exchanged', { npc: friend.npc, result, itemId: item });
+    return { dialogue: result === 'none' ? ss.noGiftDialogue : friend.dialogues[result] };
+  }
+
+  /** Quem a tirou entrega o presente dela: o fixo no primeiro amigo secreto; depois, um dos outros. */
+  secretSantaReceive(): { dialogue: string; itemId: string } | null {
+    const ss = this.content.festive.secretSanta;
+    const record = this.santaRecord();
+    if (!record || record.received) return null;
+    const rng = createRng(this.state.day * 104729 + 3);
+    const first = !this.state.flags['xmas.santa_received'];
+    record.giver = pickGiver(this.santaGuests(), record.drawn, rng) ?? ss.proposer;
+    record.received = playerGift(ss, first, rng);
+    this.state.flags['xmas.santa_received'] = true;
+    this.receiveItem(record.received);
+    return { dialogue: ss.receiveDialogue, itemId: record.received };
+  }
+
+  /** Manhã de Natal: aviso do dia (o café fecha mais cedo) e, com meia posicionada, um petisco para cada gato. */
+  private christmasMorning(): void {
+    const ss = this.content.festive.secretSanta;
+    const st = ss.stockings;
+    let cats = 0;
+    if (this.state.placed.some((p) => p.item === st.item)) {
+      for (const id of this.homeCats()) {
+        const cat = this.state.cats[id];
+        if (!cat?.sheltered) continue;
+        addCare(cat, 'happiness', st.happiness, this.content.health.care);
+        addPoints(this.state, this.content.relationships, PLAYER, id, st.points);
+        cats++;
+      }
+    }
+    this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats });
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */
@@ -2595,6 +2732,7 @@ export class GameSession {
         const m = this.content.milestones.milestones.find((x) => x.id === id);
         return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
       },
+      santaGuest: (npc) => this.santaGuests().includes(npc),
     };
   }
 

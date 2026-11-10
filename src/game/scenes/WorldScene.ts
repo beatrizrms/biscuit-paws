@@ -516,9 +516,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
-      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.goHomeProblem() === 'customers_inside') {
-        // Já é hora, mas ainda tem cliente: ela pode sair para a rua, só não encerra o dia.
-        this.ui.problem('customers_inside');
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && (this.session.goHomeProblem() === 'customers_inside' || this.session.goHomeProblem() === 'xmas_party')) {
+        // Já é hora, mas ainda tem cliente (ou a ceia de Natal): ela pode sair para a rua, só não encerra o dia.
+        this.ui.problem(this.session.goHomeProblem() ?? 'customers_inside');
         this.useDoor(door);
       }
       else if (this.session.canUseDoor(door)) this.useDoor(door);

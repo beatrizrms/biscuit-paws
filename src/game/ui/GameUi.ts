@@ -241,6 +241,13 @@ export class GameUi {
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
     bus.on('xmas.packed', ({ count }) => this.toast(uiText.xmasBox.packed.replace('{n}', String(count)), 6000));
     bus.on('xmas.box_opened', ({ itemId, left }) => this.toast((left > 0 ? uiText.xmasBox.opened : uiText.xmasBox.lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
+    // Natal: o aviso da manhã (o café fecha mais cedo; a ceia), as meias e a ceia perdida.
+    bus.on('xmas.day', ({ closeAt, partyAt, party, stockingCats }) => {
+      const t = uiText.secretSanta;
+      this.toast((party ? t.dayParty : t.day).replace('{close}', closeAt).replace('{time}', partyAt), 6000);
+      if (stockingCats > 0) this.toast(t.stockings, 5000);
+    });
+    bus.on('xmas.santa_missed', () => this.toast(uiText.secretSanta.missed, 6000));
     // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
     bus.on('menu.season', ({ arrived, left }) => {
       const names = (ids: string[]) => listNames(ids.map((id) => content.recipes[id]?.name ?? id));
@@ -587,6 +594,8 @@ export class GameUi {
     if (arrival) today.push(arrival);
     const fest = this.festivalLine();
     if (fest) today.push(fest);
+    const santa = this.santaLine();
+    if (santa) today.push(santa);
     if (doneToday > 0) today.push(`<li class="done-sum">${esc(g.doneToday.replace('{n}', String(doneToday)))}</li>`);
 
     const sv = this.session.service;
@@ -711,6 +720,21 @@ export class GameUi {
   }
 
   /** Linha do festival no balão (ou vazio, sem evento em andamento). Os textos vêm do festival (festivals.json: texts). */
+  /** Amigo secreto: para quem é o presente (e se já está na mochila); no Natal, a hora da ceia. */
+  private santaLine(): string {
+    const s = this.session.secretSanta();
+    if (!s || s.record.stage !== 'drawn') return '';
+    const t = uiText.secretSanta;
+    const ss = content.festive.secretSanta;
+    const goal = t.goal.replace('{name}', s.friend.name);
+    const parts = [goal];
+    if (s.christmas) parts.push(t.party.replace('{time}', ss.partyAt));
+    const text = `<b>${esc(t.title)}:</b> ${esc(parts.join('; '))}`;
+    const right = s.hasGift ? `<span class="count">${esc(s.lovedGift ? t.readyLoved : t.ready)}</span>` : '';
+    // A dica do gosto fica no título (passar o mouse).
+    return `<li class="job" title="${esc(s.friend.hint)}"><span>${text} ${right}</span></li>`;
+  }
+
   private festivalLine(): string {
     const f = this.session.festivalStatus();
     if (!f) return '';

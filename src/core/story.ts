@@ -22,6 +22,8 @@ export interface StoryContext {
   seasons: SeasonsData;
   /** O selo vale agora, mesmo que a conferida ainda não tenha anotado (condição milestone). */
   milestoneMet?: (id: string) => boolean;
+  /** O amigo vem para o amigo secreto deste ano (condição santaGuest). */
+  santaGuest?: (npc: string) => boolean;
 }
 
 /** Esta sujeira (das que saem com faxina) já foi limpa? "*" = toda a do salão (saves antigos; cômodos novos não contam). */
@@ -52,6 +54,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
+  if ('santaGuest' in c) return !!ctx.santaGuest?.(c.santaGuest);
   if ('season' in c) return seasonOf(ctx.seasons, state.day) === c.season;
   if ('milestone' in c) return state.milestones.reached[c.milestone] !== undefined || !!ctx.milestoneMet?.(c.milestone);
   if ('daysSince' in c) {
