@@ -203,6 +203,23 @@ export class CafeService {
     return { ok: true, quality: 'simple', use };
   }
 
+  /** Ingredientes do jeito alternativo (receita.alternative): todos precisam ter doses, e sai sempre premium. */
+  private alternativeIngredients(r: RecipeDef): { ok: boolean; quality: Quality; use: [string, number][] } {
+    const use = Object.entries(r.alternative?.ingredients ?? {});
+    const ok = use.length > 0 && use.every(([item, n]) => this.doses(item) >= n);
+    return { ok, quality: 'premium', use: ok ? use : [] };
+  }
+
+  /** Ingredientes para começar a receita neste equipamento (o alternativo ou o normal). */
+  private ingredientsAt(r: RecipeDef, equipment: string): { ok: boolean; quality: Quality; use: [string, number][] } {
+    return r.alternative?.equipment === equipment ? this.alternativeIngredients(r) : this.ingredientsFor(r);
+  }
+
+  /** A receita começa neste equipamento (pela primeira etapa ou pelo jeito alternativo)? */
+  private startsAt(r: RecipeDef | undefined, equipment: string): boolean {
+    return !!r && (r.steps[0]?.equipment === equipment || r.alternative?.equipment === equipment);
+  }
+
   // ---------- Equipamentos e louça ----------
 
   /** Móveis posicionados que fazem o papel deste equipamento. */
@@ -265,15 +282,20 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
-    if (r.steps.some((s) => this.stationsFor(s.equipment).length === 0)) return 'equipment';
-    if (!this.ingredientsFor(r).ok) return 'ingredients';
+    // Dois jeitos (receita.alternative): basta um ter os equipamentos e, com eles, os ingredientes.
+    const normal = r.steps.every((s) => this.stationsFor(s.equipment).length > 0);
+    const alt = !!r.alternative && this.stationsFor(r.alternative.equipment).length > 0;
+    if (!normal && !alt) return 'equipment';
+    if (!(normal && this.ingredientsFor(r).ok) && !(alt && this.alternativeIngredients(r).ok)) return 'ingredients';
     if (this.cleanFree(r.vessel) < 1) return 'vessel';
     return 'available';
   }
 
   /** Primeiro equipamento que falta para a receita (para o quadro dizer qual). */
   missingEquipment(id: string): string | undefined {
-    return this.recipe(id)?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
+    const r = this.recipe(id);
+    if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
+    return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
   }
 
   unlockedRecipes(): RecipeDef[] {
@@ -623,7 +645,7 @@ export class CafeService {
     if (!pending && !extra) return { ok: false, reason: this.idleReason(equipment) };
     if (!pending && !this.extraRecipes(stationUid).includes(extra!)) return { ok: false, reason: this.idleReason(equipment) };
     const r = this.recipe(pending?.recipe ?? extra!)!;
-    const ing = this.ingredientsFor(r);
+    const ing = this.ingredientsAt(r, equipment);
     if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
     if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
     for (const [item, n] of ing.use) this.useDoses(item, n);
@@ -642,7 +664,7 @@ export class CafeService {
 
   /** Cliente esperando um pedido que começa neste equipamento e ainda não tem nada a caminho (preparando, massa ou pronto). */
   private pendingFor(equipment: string): Customer | undefined {
-    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.recipe(c.recipe)?.steps[0]?.equipment === equipment);
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe && this.startsAt(this.recipe(c.recipe), equipment));
     return waiting.find((c) => waiting.filter((x) => x.recipe === c.recipe).indexOf(c) >= this.covered(c.recipe!));
   }
 
@@ -650,7 +672,7 @@ export class CafeService {
   extraCount(equipment: string): number {
     const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting');
     return Object.values(this.h.content.recipes)
-      .filter((r) => r.steps[0]?.equipment === equipment)
+      .filter((r) => this.startsAt(r, equipment))
       .reduce((n, r) => n + Math.max(0, this.covered(r.id) - waiting.filter((c) => c.recipe === r.id).length), 0);
   }
 
@@ -661,7 +683,7 @@ export class CafeService {
   extraRecipes(stationUid: string): string[] {
     const equipment = this.equipmentOf(stationUid);
     if (!equipment || this.extraCount(equipment) >= this.cfg.extraPerEquipment) return [];
-    return this.st.menu.filter((id) => this.recipe(id)?.steps[0]?.equipment === equipment && this.recipeStatus(id) !== 'locked');
+    return this.st.menu.filter((id) => this.startsAt(this.recipe(id), equipment) && this.recipeStatus(id) !== 'locked');
   }
 
   /**
@@ -669,7 +691,7 @@ export class CafeService {
    * um item sem dono dele, ou nenhum cliente pediu agora (aí ela pode escolher uma receita para adiantar).
    */
   private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'extra_ready' | 'nothing_to_prepare' {
-    const recipes = Object.values(this.h.content.recipes).filter((r) => r.steps[0]?.equipment === equipment);
+    const recipes = Object.values(this.h.content.recipes).filter((r) => this.startsAt(r, equipment));
     // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
     if (recipes.length === 0) return 'nothing_to_prepare';
     const unlocked = recipes.filter((r) => this.recipeStatus(r.id) !== 'locked');

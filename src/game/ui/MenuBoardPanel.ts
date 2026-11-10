@@ -67,7 +67,7 @@ export class MenuBoardPanel {
       <span class="name">${iconHtml(r.icon)}<b>${esc(r.name)}</b> <span class="price">${r.price}</span></span>
       <span class="desc">${esc(ingredients)} · ${esc(content.service.vessels[r.vessel].name)}</span>
       ${r.steps.length > 1 ? `<span class="desc">${esc(uiText.menuBoard.steps.replace('{steps}', r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → ')))}</span>` : ''}
-      ${r.premium ? `<span class="desc">${uiText.service.premium} ${esc(uiText.menuBoard.premiumPrice.replace('{price}', String(this.session.service.priceOf(r.id, 'premium'))))}</span>` : ''}
+      ${r.premium || r.alternative ? `<span class="desc">${uiText.service.premium} ${esc(uiText.menuBoard.premiumPrice.replace('{price}', String(this.session.service.priceOf(r.id, 'premium'))))}${r.alternative ? ` ${esc(uiText.menuBoard.premiumAt.replace('{equipment}', (content.service.equipment[r.alternative.equipment]?.name ?? '').toLowerCase()))}` : ''}</span>` : ''}
       <span class="status">${esc(this.statusText(r, status))}</span>
       <button data-recipe="${r.id}">${action}</button></div>`;
   }

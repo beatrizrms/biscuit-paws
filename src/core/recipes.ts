@@ -38,11 +38,16 @@ export interface RecipeDef {
   price: number;
   /** Condição para aparecer no quadro (marco, equipamento comprado, cômodo restaurado...). */
   unlock?: Condition;
+  /**
+   * Outro jeito de fazer, só em receitas de uma etapa: noutro equipamento, com os próprios ingredientes, e sai sempre
+   * premium (o suco de fruta fresca no espremedor; no liquidificador continua a polpa).
+   */
+  alternative?: { equipment: string; ingredients: Record<string, number> };
 }
 
 /** Receitas em que o item é a troca premium (ex.: café em grãos no café preto), na ordem dos dados. */
 export function premiumIn(recipes: Record<string, RecipeDef>, itemId: string): RecipeDef[] {
-  return Object.values(recipes).filter((r) => Object.values(r.premium ?? {}).includes(itemId));
+  return Object.values(recipes).filter((r) => Object.values(r.premium ?? {}).includes(itemId) || (r.alternative && itemId in r.alternative.ingredients));
 }
 
 export interface RecipesData {
@@ -144,6 +149,16 @@ export function validateRecipes(
     for (const [base, better] of Object.entries(r.premium ?? {})) {
       if (!(base in r.ingredients)) errors.push(`${where}: troca premium de "${base}", que não é ingrediente`);
       if (!refs.items.has(better)) errors.push(`${where}: item premium inexistente "${better}"`);
+    }
+    if (r.alternative) {
+      if (r.steps.length !== 1) errors.push(`${where}: alternative só em receita de uma etapa`);
+      if (!service.equipment[r.alternative.equipment]) errors.push(`${where}: equipamento inexistente "${r.alternative.equipment}" (alternative)`);
+      if (r.alternative.equipment === r.steps[0]?.equipment) errors.push(`${where}: alternative no mesmo equipamento da etapa`);
+      if (Object.keys(r.alternative.ingredients).length === 0) errors.push(`${where}: alternative sem ingredientes`);
+      for (const [item, n] of Object.entries(r.alternative.ingredients)) {
+        if (!refs.items.has(item)) errors.push(`${where}: item inexistente "${item}" (alternative)`);
+        if (!Number.isInteger(n) || n < 1) errors.push(`${where}: doses inválidas de "${item}" (alternative)`);
+      }
     }
     if (r.steps.length === 0) errors.push(`${where}: sem etapas`);
     for (const s of r.steps) {

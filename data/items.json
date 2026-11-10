@@ -1390,7 +1390,7 @@
     {
       "id": "item.orange",
       "name": "Laranja",
-      "description": "Laranja fresca, para o suco no liquidificador. Uma por copo.",
+      "description": "Laranja fresca, para o suco no espremedor (sai premium). Uma por copo.",
       "price": 3,
       "kind": "consumable",
       "icon": "fruta_laranja",
@@ -1402,7 +1402,7 @@
     {
       "id": "item.strawberry",
       "name": "Morango",
-      "description": "Morango fresco, para o suco no liquidificador. Um por copo.",
+      "description": "Morango fresco, para o suco no espremedor (sai premium). Um por copo.",
       "price": 4,
       "kind": "consumable",
       "icon": "fruta_morango",
@@ -1414,7 +1414,7 @@
     {
       "id": "item.lemon",
       "name": "Limão",
-      "description": "Limão fresco, para o suco no liquidificador. Um por copo.",
+      "description": "Limão fresco, para o suco no espremedor (sai premium). Um por copo.",
       "price": 2,
       "kind": "consumable",
       "icon": "fruta_limao",
@@ -1559,7 +1559,7 @@
     {
       "id": "item.blender",
       "name": "Liquidificador",
-      "description": "Equipamento: vai em cima do balcão e faz os sucos (e a massa do bolo).",
+      "description": "Equipamento: vai em cima do balcão e faz os sucos de polpa (e a massa do bolo).",
       "price": 70,
       "tile": "eq_liquidificador",
       "tags": [
@@ -1567,6 +1567,20 @@
         "counter",
         "equipment",
         "blender"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.juicer",
+      "name": "Espremedor",
+      "description": "Equipamento: vai em cima do balcão e faz os sucos com a fruta fresca, que saem premium.",
+      "price": 110,
+      "tile": "eq_espremedor",
+      "tags": [
+        "furniture",
+        "counter",
+        "equipment",
+        "juicer"
       ],
       "placeOn": "bar"
     },

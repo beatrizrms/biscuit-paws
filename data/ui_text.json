@@ -514,6 +514,7 @@
     "missingVessel": "sem {name} limpo(a)",
     "steps": "Etapas: {steps}",
     "premiumPrice": "premium {price}",
+    "premiumAt": "(no {equipment}, com a fruta fresca)",
     "shoppingAdd": "📝 anotar o que falta",
     "shoppingAdded": "Anotado nas Notas: {items}",
     "shoppingNothing": "Nada faltando: o cardápio está abastecido.",
