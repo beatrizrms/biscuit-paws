@@ -1,6 +1,194 @@
 {
   "schemaVersion": 1,
-  "_comment": "id é permanente; o nome que a jogadora escolhe fica no save. nameSuggestions: sugestões da caixa de nome. memory: só aparece em lembranças.",
+  "_comment": "id é permanente; o nome que a jogadora escolhe fica no save. nameSuggestions: sugestões da caixa de nome. memory: só aparece em lembranças. objectUses: O que os gatos fazem nos objetos deles, pelo tile (src/core/cats.ts catSpots). cell: a célula onde ele fica, relativa ao canto do objeto (a caminha; ao lado do arranhador). px: em cima do objeto, em pixels do jogo a partir do canto (as plataformas da árvore); ele chega pela célula livre na frente. action: sleep (dorme), play (brinca), sit (senta). Um gato por lugar.",
+  "objectUses": {
+    "cat_bed": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cat_bed_rosa": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cat_bed_lilas": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cushion_pink": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cushion_mint": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cushion_sky": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cushion_lav": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "cushion_butter": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "room_cama_ao_sol": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "yarn_balls": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "scratch_post": [
+      {
+        "action": "play",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "action": "play",
+        "cell": [
+          1,
+          0
+        ]
+      }
+    ],
+    "room_tora": [
+      {
+        "action": "play",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "action": "play",
+        "cell": [
+          2,
+          0
+        ]
+      }
+    ],
+    "room_tunel": [
+      {
+        "action": "play",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "action": "play",
+        "cell": [
+          2,
+          0
+        ]
+      }
+    ],
+    "room_casinha": [
+      {
+        "action": "sleep",
+        "cell": [
+          0,
+          1
+        ]
+      }
+    ],
+    "cat_tree": [
+      {
+        "action": "sleep",
+        "px": [
+          19,
+          16
+        ]
+      },
+      {
+        "action": "sit",
+        "px": [
+          36,
+          32
+        ]
+      },
+      {
+        "action": "sit",
+        "px": [
+          19,
+          49
+        ]
+      }
+    ],
+    "cat_condo": [
+      {
+        "action": "sleep",
+        "px": [
+          38,
+          14
+        ]
+      },
+      {
+        "action": "sit",
+        "px": [
+          21,
+          21
+        ]
+      }
+    ]
+  },
   "cats": [
     {
       "id": "cat.tekinha",

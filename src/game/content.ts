@@ -1,4 +1,5 @@
 // Junta os arquivos de data/ num Content para a sessão de jogo.
+import type { CatsData } from '../core/cats';
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
 import streetJson from '../../data/maps/street.json';
@@ -107,6 +108,9 @@ export const serviceArt = serviceArtJson as unknown as {
 export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]> };
 
 export const uiText = uiTextJson;
+
+/** O que os gatos fazem nos objetos deles, pelo tile (data/cats.json objectUses). */
+export const catObjectUses = (catsJson as unknown as CatsData).objectUses ?? {};
 
 /** Vassoura (quadros e tempos). */
 export const broom = toolsJson.broom as unknown as {

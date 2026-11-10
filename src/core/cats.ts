@@ -20,6 +20,8 @@ export interface CatDef {
 
 export interface CatsData {
   schemaVersion: 1;
+  /** O que os gatos fazem nos objetos deles, pelo tile (catSpots). */
+  objectUses?: Record<string, CatObjectSpot[]>;
   cats: CatDef[];
 }
 
@@ -33,6 +35,13 @@ export interface CatSpritesData {
 
 export function validateCats(data: CatsData, sprites: CatSpritesData): string[] {
   const errors: string[] = [];
+  for (const [tile, list] of Object.entries(data.objectUses ?? {})) {
+    for (const u of list) {
+      if (!['sleep', 'play', 'sit'].includes(u.action)) errors.push(`objectUses "${tile}": ação inválida "${u.action}"`);
+      if (!u.cell === !u.px) errors.push(`objectUses "${tile}": cada lugar tem cell ou px (um dos dois)`);
+      if (!sprites.animations.some((an) => an.name === u.action)) errors.push(`objectUses "${tile}": o Cosy Cats não tem a animação "${u.action}"`);
+    }
+  }
   const ids = new Set<string>();
   for (const cat of data.cats) {
     const where = `gato "${cat.id}"`;
@@ -59,17 +68,96 @@ export function suggestCatName(cat: CatDef, attempt: number): string {
   return list[((attempt % list.length) + list.length) % list.length]!;
 }
 
-export type CatGoal = { kind: 'walk'; to: [number, number] } | { kind: 'sit'; seconds: number } | { kind: 'sleep'; seconds: number };
+export type CatGoal =
+  | { kind: 'walk'; to: [number, number] }
+  | { kind: 'sit'; seconds: number }
+  | { kind: 'sleep'; seconds: number }
+  | { kind: 'use'; spot: CatSpot; seconds: number };
+
+export type CatAction = 'sleep' | 'play' | 'sit';
 
 /**
- * O que o gato faz a seguir: andar até uma célula livre perto, sentar ou cochilar.
+ * Um lugar de um objeto dos gatos (data/cats.json objectUses, pelo tile): `cell` = célula onde ele fica (relativa à
+ * origem do objeto; ex.: a caminha, ou ao lado do arranhador); `px` = em cima do objeto (pixels do jogo a partir do
+ * canto do objeto; ex.: a plataforma da árvore), aonde ele chega pela célula livre na frente.
+ */
+export interface CatObjectSpot {
+  action: CatAction;
+  cell?: [number, number];
+  px?: [number, number];
+}
+
+/** Um lugar pronto no mapa: a célula aonde ele anda e, se for em cima do objeto, onde desenhar e com que profundidade. */
+export interface CatSpot {
+  id: string;
+  action: CatAction;
+  cell: [number, number];
+  perch?: { x: number; y: number; baseY: number };
+}
+
+/** Quanto tempo (segundos) ele fica em cada ação num objeto. */
+/** Chance de ir a um objeto (quando há um perto) e a distância máxima (células, andando em linha reta). */
+export const SPOT_CHANCE = 0.4;
+export const SPOT_REACH = 12;
+
+export const SPOT_SECONDS: Record<CatAction, [number, number]> = { sleep: [15, 30], play: [6, 10], sit: [6, 12] };
+
+/** Os lugares dos objetos dos gatos que estão no mapa (só os que dá para alcançar: célula livre). */
+export function catSpots(
+  objects: readonly { id: string; tile: string; at: [number, number] }[],
+  tiles: Record<string, { w: number; h: number }>,
+  uses: Record<string, CatObjectSpot[]>,
+  solid: boolean[][],
+  tileSize: number,
+): CatSpot[] {
+  const free = ([c, r]: [number, number]) => solid[r]?.[c] === false;
+  const out: CatSpot[] = [];
+  for (const o of objects) {
+    const list = uses[o.tile];
+    const def = tiles[o.tile];
+    if (!list || !def) continue;
+    const [c0, r0] = o.at;
+    list.forEach((u, i) => {
+      const id = `${o.id}#${i}`;
+      if (u.cell) {
+        const cell: [number, number] = [c0 + u.cell[0], r0 + u.cell[1]];
+        if (!free(cell)) return;
+        // Em cima do próprio objeto (caminha, almofada, novelos): desenhado na frente dele, não por baixo.
+        const inside = u.cell[0] >= 0 && u.cell[0] < def.w && u.cell[1] >= 0 && u.cell[1] < def.h;
+        out.push({ id, action: u.action, cell, ...(inside ? { perch: { x: cell[0] * tileSize + tileSize / 2, y: (cell[1] + 1) * tileSize - 8, baseY: (r0 + def.h) * tileSize } } : {}) });
+        return;
+      }
+      if (!u.px) return;
+      // Em cima: chega pela célula livre logo abaixo do objeto mais perto do lugar (ou de um lado).
+      const want = c0 + Math.floor(u.px[0] / tileSize);
+      const below = Array.from({ length: def.w }, (_, k) => [c0 + k, r0 + def.h] as [number, number]).sort((a, b) => Math.abs(a[0] - want) - Math.abs(b[0] - want));
+      const cell = [...below, [c0 - 1, r0 + def.h - 1] as [number, number], [c0 + def.w, r0 + def.h - 1] as [number, number]].find(free);
+      if (cell) out.push({ id, action: u.action, cell, perch: { x: c0 * tileSize + u.px[0], y: r0 * tileSize + u.px[1], baseY: (r0 + def.h) * tileSize } });
+    });
+  }
+  return out;
+}
+
+
+/**
+ * O que o gato faz a seguir: ir a um objeto dele perto (`spots`, que nenhum outro esteja usando), andar até uma
+ * célula livre perto, sentar ou cochilar.
  * Puro e com RNG injetado (repetível nos testes).
  */
 export function nextCatGoal(
   rng: { next(): number; int(min: number, max: number): number },
   at: [number, number],
   solid: boolean[][],
+  spots: readonly CatSpot[] = [],
+  taken: ReadonlySet<string> = new Set(),
 ): CatGoal {
+  // Às vezes vai até um objeto dele perto (caminha, arranhador, árvore) que ninguém está usando.
+  const near = spots.filter((p) => !taken.has(p.id) && Math.abs(p.cell[0] - at[0]) + Math.abs(p.cell[1] - at[1]) <= SPOT_REACH);
+  if (near.length > 0 && rng.next() < SPOT_CHANCE) {
+    const spot = near[rng.int(0, near.length - 1)]!;
+    const [min, max] = SPOT_SECONDS[spot.action];
+    return { kind: 'use', spot, seconds: rng.int(min, max) };
+  }
   const roll = rng.next();
   if (roll < 0.25) return { kind: 'sit', seconds: rng.int(2, 5) };
   if (roll < 0.35) return { kind: 'sleep', seconds: rng.int(6, 12) };

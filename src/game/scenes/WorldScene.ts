@@ -6,7 +6,7 @@ import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { CatSprite, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame } from '../icons';
@@ -22,7 +22,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, itemUse, serviceArt, uiText } from '../content';
+import { broom, catObjectUses, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
@@ -44,6 +44,7 @@ import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
 import { daysText } from '../ui/constructionText';
+import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
@@ -421,6 +422,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.catColliders = [];
     this.cats.forEach((c) => c.destroy());
     this.cats = [];
+    this.catPlaces.taken.clear();
     this.careBubbles?.clear();
     this.careCheckedAt = -Infinity;
     this.npcs.forEach((n) => n.destroy());
@@ -594,10 +596,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const rng = createRng(cellHash(catId.length, this.cats.length + 1) ^ 0x9e37);
     const [c, r] = this.freeCellNear(near ?? this.map.spawn, rng);
     const ts = this.map.tileSize;
-    const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.map.solid);
+    const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.map.solid, this.catPlaces);
     this.cats.push(cat);
     this.catColliders.push(this.physics.add.collider(cat, this.solids!));
   }
+
+  /** Os objetos dos gatos neste mapa (caminha, arranhador, árvore...) e os lugares ocupados (um gato por lugar). */
+  private readonly catPlaces: CatPlaces = {
+    spots: () => catSpots(this.session.mapData(this.map.id).objects, this.session.content.catalog.tiles, catObjectUses, this.map.solid, this.map.tileSize),
+    taken: new Set<string>(),
+  };
 
   private freeCellNear([c0, r0]: Cell, rng: { int(min: number, max: number): number }): Cell {
     for (let i = 0; i < 30; i++) {

@@ -162,6 +162,8 @@ A história dispara com o efeito `{ "cutscene": "cs.id" }`. Ao terminar, a flag 
 `id` é permanente; o nome escolhido pela jogadora fica no save. Gatos sem `name` fixo precisam de `nameSuggestions` (caixa de nome ao abrigar).
 `variant`: folha do Cosy Cats (`cat_sprites.json`: 6 colunas x 7 linhas de 32x32; animações sit, walk_*, sleep, play). `memory: true`: só aparece em lembranças (Tekinha).
 
+`objectUses` (tile -> lugares): o que os gatos fazem nos objetos deles. Cada lugar tem `action` (`sleep`, `play`, `sit`) e `cell` (célula relativa ao canto do objeto, onde ele fica: a caminha, ao lado do arranhador) **ou** `px` (em cima do objeto, em pixels do jogo a partir do canto: as plataformas da árvore; ele chega pela célula livre na frente). Um gato por lugar; o jogo sorteia (`src/core/cats.ts`: `catSpots`, `nextCatGoal`). Objeto novo de gato: uma entrada aqui.
+
 ## Lojas e ícones (`data/shops.json`, `data/icons.json`)
 
 ```jsonc
