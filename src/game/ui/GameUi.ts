@@ -201,6 +201,7 @@ export class GameUi {
       this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    bus.on('sink.paused', ({ paused }) => paused && this.toast(s.sinkLeft, 2500));
     const equipName = (id: string) => content.items[id]?.name ?? '';
     bus.on('equipment.broke', ({ itemId }) => this.toast(s.broke.replace('{name}', equipName(itemId)), 4000));
     bus.on('equipment.repaired', ({ itemId }) => this.toast(s.repaired.replace('{name}', equipName(itemId)), 3000));
@@ -605,7 +606,7 @@ export class GameUi {
     }
     if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
-    if (this.session.state.sink.washing) cafe.push(this.row(uiText.service.sinkWashing, { icon: 'xicara_suja' }));
+    if (this.session.state.sink.washing) cafe.push(this.row(sv.sinkPaused() ? uiText.service.sinkPaused : uiText.service.sinkWashing, { icon: 'xicara_suja' }));
     else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
     for (const uid of Object.keys(this.session.state.washers)) {
       if (sv.washerProgress(uid) !== undefined) cafe.push(this.row(uiText.service.washerWashing, { icon: 'xicara_suja' }));

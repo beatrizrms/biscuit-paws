@@ -646,6 +646,8 @@
     "tray": "Bandeja: {n}/{max}",
     "sinkLoad": "Pia: {n} para lavar",
     "sinkWashing": "Pia: lavando",
+    "sinkPaused": "Pia: lavagem parada (volte à pia)",
+    "sinkLeft": "A louça espera você voltar à pia.",
     "blocked": {
       "empty_menu": "Ninguém entra: o quadro está vazio. Ponha receitas (M).",
       "vessel": "Ninguém entra: tudo do quadro esgotado. Lave a louça na pia.",

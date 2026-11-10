@@ -86,6 +86,7 @@ cat-cafe-game/
 | `customer.arrived` | cliente entrou (na fila: `recipeId` null) | `customerId, recipeId` |
 | `customer.served` | pedido entregue: o cliente paga (e gorjeta, se satisfeito) | `customerId, recipeId, price, tip, quality` |
 | `sink.changed` | louça entrou na pia ou começou a lavagem | `load` |
+| `sink.paused` | a lavagem na pia pausou (ela saiu da frente da pia) ou voltou a andar | `paused` |
 | `washer.changed` | lava-louças: louça entrou, ligou ou terminou o ciclo | `uid, load, washing` |
 | `equipment.broke` / `equipment.repair_started` / `equipment.repaired` | equipamento quebrou (300 a 500 usos) / o Tião chegou para consertar / conserto pronto | `uid, itemId` |
 | `heavy.stored` | saco pesado guardado no estoque do café | `itemId` |

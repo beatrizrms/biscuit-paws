@@ -603,9 +603,31 @@ export class CafeService {
 
   // ---------- Relógio ----------
 
+  /**
+   * Ela está em frente à pia? A cena avisa a cada quadro. Lavar na pia é à mão: fora dela, a lavagem pausa (a
+   * lava-louças lava sozinha). Padrão true (sem cena, como nos testes, a pia lava direto).
+   */
+  private sinkAttended = true;
+  /** Minuto do último tick, para saber quanto tempo a lavagem ficou pausada. */
+  private lastTickAt: number | null = null;
+
+  setSinkAttended(attended: boolean): void {
+    if (attended === this.sinkAttended) return;
+    this.sinkAttended = attended;
+    // Avisa (o balão do subconsciente troca "lavando" por "parada") só se há lavagem em andamento.
+    if (this.st.sink.washing) this.h.bus.emit('sink.paused', { paused: !attended });
+  }
+
+  /** Lavando na pia, mas pausado (ela saiu da frente da pia). */
+  sinkPaused(): boolean {
+    return !!this.st.sink.washing && !this.sinkAttended;
+  }
+
   /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
   tick(): void {
     const now = this.now();
+    const passed = this.lastTickAt === null ? 0 : Math.max(0, now - this.lastTickAt);
+    this.lastTickAt = now;
     const sv = this.st.service;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
@@ -629,8 +651,9 @@ export class CafeService {
       }
       this.h.bus.emit('prep.ready', { stationUid: station.uid, recipeId: r.id, final: last });
     }
-    // Pia.
+    // Pia: só lava com ela em frente; fora, o fim da lavagem anda junto com o relógio (pausa).
     const washing = this.st.sink.washing;
+    if (washing && !this.sinkAttended) washing.readyAt += passed;
     if (washing && washing.readyAt <= now) {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
@@ -1080,7 +1103,9 @@ export class CafeService {
     const w = this.st.sink.washing;
     if (!w) return undefined;
     const total = loadCount(w.load) * this.cfg.washMinutesPerDish;
-    return Math.min(1, Math.max(0, 1 - (w.readyAt - this.now()) / total));
+    // Pausada (ela saiu da pia): a barra fica parada no último minuto lavado.
+    const at = this.sinkPaused() && this.lastTickAt !== null ? this.lastTickAt : this.now();
+    return Math.min(1, Math.max(0, 1 - (w.readyAt - at) / total));
   }
 
   sinkLoad(): number {

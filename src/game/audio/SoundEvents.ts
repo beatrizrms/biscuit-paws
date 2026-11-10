@@ -42,7 +42,8 @@ export class SoundEvents {
     const equipment = home ? st.service.preps.map((p) => session.service.equipmentOf(p.stationUid) ?? '') : [];
     audio.setLoop('coffee_brewing', equipment.some((e) => e && !SIZZLE.has(e)));
     audio.setLoop('stove_sizzle', equipment.some((e) => SIZZLE.has(e)));
-    audio.setLoop('sink_water', home && (st.sink.washing !== null || Object.values(st.washers).some((w) => w.washing !== null)));
+    // A água da pia só corre com ela lavando ali (fora, a lavagem pausa); a lava-louças lava sozinha.
+    audio.setLoop('sink_water', home && ((st.sink.washing !== null && !session.service.sinkPaused()) || Object.values(st.washers).some((w) => w.washing !== null)));
     audio.setLoop('purr', session.service.carriedCat() !== undefined);
   }
 }

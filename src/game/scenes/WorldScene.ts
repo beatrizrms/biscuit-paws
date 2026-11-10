@@ -1983,6 +1983,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front);
     });
     this.carriedCatSprite?.setPosition(hx, hy).setDepth(front).setFlipX(dir === 'left');
+    // Lavar na pia é à mão: só anda com ela em frente à pia (fora do café, também não).
+    sv.setSinkAttended(this.session.atHome() && sv.sinkNear(this.playerCells()));
     if (!this.session.atHome()) return;
     // Preparo: barra em cima do equipamento e animação (bule, liquidificador).
     const ts = this.map.tileSize;
@@ -2119,7 +2121,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.repairNpcs.set(uid, npc);
   }
 
-  /** Pia: louça esperando (quadro com louça), lavando (animação + barra), recém-lavada (louça limpa). */
+  /** Pia: louça esperando (quadro com louça), lavando (animação + barra; pausada sem ela na frente), recém-lavada (louça limpa). */
   private updateSink(): void {
     const sv = this.session.service;
     const sheet = (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[]; dirty?: number; clean?: number } }[]).find((s) => s.id === 'sink');
@@ -2133,7 +2135,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     const progress = sv.washProgress();
     if (progress !== undefined) {
-      if (!this.sinkSprite.anims.isPlaying) this.sinkSprite.setVisible(true).play('sink-wash');
+      // Pausada (ela saiu da frente da pia): a água para e fica a louça esperando; a barra fica parada.
+      if (sv.sinkPaused()) {
+        this.sinkSprite.stop();
+        if (sheet.animation.dirty !== undefined) this.sinkSprite.setVisible(true).setFrame(sheet.animation.dirty);
+      } else if (!this.sinkSprite.anims.isPlaying) this.sinkSprite.setVisible(true).play('sink-wash');
       if (!this.sinkBar || !this.sinkBar.active) this.sinkBar = this.add.image((c + 0.5) * ts, r * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
       this.sinkBar.setTexture(`progress_${Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)))}`);
       return;

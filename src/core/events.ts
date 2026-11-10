@@ -137,6 +137,8 @@ export interface GameEvents {
   'customer.arrived': { customerId: string; recipeId: string | null };
   'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
   'sink.changed': { load: number };
+  /** A lavagem na pia pausou (ela saiu da frente da pia) ou voltou a andar. */
+  'sink.paused': { paused: boolean };
   /** Lava-louças: louça entrou (load: esperando), ligou ou terminou o ciclo (washing). */
   'washer.changed': { uid: string; load: number; washing: boolean };
   /** Um equipamento (de preparo ou a lava-louças) quebrou depois de muitos usos. */
