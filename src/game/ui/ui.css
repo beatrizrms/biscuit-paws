@@ -1098,8 +1098,10 @@
 /* Reputação felina: embaixo do dinheiro (barrinha + número); o carrinho fica logo abaixo dela */
 .hud-rep { position: absolute; top: 26px; right: 6px; display: flex; align-items: center; gap: 4px; padding: 1px 7px; font-size: 7.5px; font-weight: bold; transition: opacity 0.2s; }
 .hud-rep .label { color: var(--ink2); font-weight: normal; }
-.hud-rep .bar { position: relative; width: 36px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
-.hud-rep .fill { position: absolute; inset: 0 auto 0 0; background: var(--pink3); }
+/* Nota do café: 5 estrelas apagadas por baixo e as douradas recortadas na largura da média. */
+.hud-rep .stars { position: relative; width: 40px; height: 8px; }
+.hud-rep .stars::before, .hud-rep .stars .fill { content: ''; position: absolute; inset: 0 auto 0 0; background: var(--star) repeat-x 0 0 / 8px 8px; image-rendering: pixelated; }
+.hud-rep .stars::before { right: 0; filter: grayscale(1) opacity(0.35); }
 .hud-rep .value { min-width: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--wood4); }
 .hud-rep.bump { animation: bump 0.35s; }
 /* Energia (embaixo da reputação): mesma barrinha; cansada, laranja */

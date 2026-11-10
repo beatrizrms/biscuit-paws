@@ -259,6 +259,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
+    // T: toma o café pronto que está na mão (recompõe energia; um por hora do jogo).
+    this.onKey('T', () => {
+      if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
+      this.tryDrinkCoffee();
+    });
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
     // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
@@ -393,7 +398,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
-    this.session.bus.on('customer.left', ({ customerId, stars, reputation }) => stars !== undefined && this.showReview(customerId, stars, reputation ?? 0));
+    this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip }) => {
       const view = this.customerViews.get(customerId);
@@ -1171,7 +1176,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
     // As duas por perto (a tigela e a caixa lado a lado): vale a que está na frente dela.
     const { bowl, box } = this.stationForHand(this.playerCells(), target);
-    if (!bowl && !box) return this.trySettleCat(target) || this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
+    if (!bowl && !box) return this.trySettleCat(target) || this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target);
     if (this.usingItem) return true;
     if (box) {
       const problem = this.session.litterProblem(box);
@@ -1930,12 +1935,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
-  /** E com um café pronto na mão e nada por perto: ela toma (a xícara fica suja na mão). */
-  private tryDrinkCoffee(): boolean {
-    if (!this.session.holdingCoffee()) return false;
+  /** T com um café pronto na mão: ela toma (a xícara fica suja na mão). Um por hora do jogo. */
+  private tryDrinkCoffee(): void {
+    if (!this.session.holdingCoffee()) return;
     const r = this.session.drinkCoffee();
-    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
-    return true;
+    if (r.ok) return;
+    if (r.reason === 'coffee_too_soon') this.ui.problem('coffee_too_soon', { n: String(this.session.coffeeWait()) });
+    else this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
   }
 
   /**
@@ -2248,14 +2254,30 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else this.sinkSprite.setVisible(false);
   }
 
-  /** A avaliação de quem saiu: 1 a 5 estrelas subindo em cima dele, com a reputação embaixo (+2, −1). */
-  private showReview(customerId: string, stars: number, reputation: number): void {
+  /**
+   * A avaliação de quem saiu, subindo em cima dele: a carinha (feliz ou triste) e uma estrela por ponto da nota, com a
+   * reputação embaixo (+2, −1). Arte em data/service_art.json: review; sem ela, as estrelas em texto.
+   */
+  private showReview(customerId: string, happy: boolean, stars: number, reputation: number): void {
     const view = this.customerViews.get(customerId);
     if (!view) return; // só existe no café: fora dele, ninguém vê
     const x = view.sprite.x;
     const y = view.sprite.y - 52;
     const style = (size: number, color: string) => ({ fontFamily: 'Trebuchet MS, sans-serif', fontSize: `${size}px`, fontStyle: 'bold', color, stroke: '#3b2a2f', strokeThickness: 2, resolution: 4 });
-    const row = this.add.text(x, y, '★'.repeat(stars) + '☆'.repeat(5 - stars), style(11, '#f2c45a')).setOrigin(0.5, 1).setDepth(99_800);
+    const art = serviceArt.review;
+    const face = happy && stars >= art.happyFrom ? 'review_happy' : 'review_sad';
+    let row: Phaser.GameObjects.Container | Phaser.GameObjects.Text;
+    if (this.textures.exists(face) && this.textures.exists('review_star')) {
+      const keys = [face, ...Array<string>(stars).fill('review_star')];
+      const icons = keys.map((k) => this.add.image(0, 0, k).setOrigin(0, 1).setScale(art.scale));
+      const width = icons.reduce((w, i) => w + i.displayWidth, 0) + art.gap * (icons.length - 1);
+      let left = -width / 2;
+      for (const i of icons) {
+        i.x = left;
+        left += i.displayWidth + art.gap;
+      }
+      row = this.add.container(x, y, icons).setDepth(99_800);
+    } else row = this.add.text(x, y, '★'.repeat(stars) + '☆'.repeat(5 - stars), style(11, '#f2c45a')).setOrigin(0.5, 1).setDepth(99_800);
     const rep = reputation ? this.add.text(x, y + 1, (reputation > 0 ? '+' : '−') + Math.abs(reputation) + ' ' + uiText.review.reputation, style(7, reputation > 0 ? '#a8e6a1' : '#ff9aa8')).setOrigin(0.5, 0).setDepth(99_800) : null;
     const targets = rep ? [row, rep] : [row];
     this.tweens.add({ targets, y: '-=14', duration: 1400, ease: 'Sine.easeOut' });

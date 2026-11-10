@@ -91,12 +91,14 @@ export type CatAction = 'sleep' | 'play' | 'sit';
 /**
  * Um lugar de um objeto dos gatos (data/cats.json objectUses, pelo tile): `cell` = célula onde ele fica (relativa à
  * origem do objeto; ex.: a caminha, ou ao lado do arranhador); `px` = em cima do objeto (pixels do jogo a partir do
- * canto do objeto; ex.: a plataforma da árvore), aonde ele chega pela célula livre na frente.
+ * canto do objeto; ex.: a plataforma da árvore), aonde ele chega pela célula livre na frente. `toward`: com `cell` ao lado
+ * do objeto, chega tantos px mais perto dele e fica virado para ele (encostado no arranhador).
  */
 export interface CatObjectSpot {
   action: CatAction;
   cell?: [number, number];
   px?: [number, number];
+  toward?: number;
 }
 
 /** Um lugar pronto no mapa: a célula aonde ele anda e, se for em cima do objeto, onde desenhar e com que profundidade. */
@@ -105,6 +107,8 @@ export interface CatSpot {
   action: CatAction;
   cell: [number, number];
   perch?: { x: number; y: number; baseY: number };
+  /** Virado para este lado enquanto usa (encostado num objeto ao lado). */
+  face?: 'left' | 'right';
 }
 
 /** Quanto tempo (segundos) ele fica em cada ação num objeto. */
@@ -136,6 +140,13 @@ export function catSpots(
         if (!free(cell)) return;
         // Em cima do próprio objeto (caminha, almofada, novelos): desenhado na frente dele, não por baixo.
         const inside = u.cell[0] >= 0 && u.cell[0] < def.w && u.cell[1] >= 0 && u.cell[1] < def.h;
+        if (!inside && u.toward && u.cell[1] >= 0 && u.cell[1] < def.h && (u.cell[0] < 0 || u.cell[0] >= def.w)) {
+          // Ao lado do objeto: encosta nele (perto dos pés de sempre, só mais para o lado dele) e olha para ele.
+          const face = u.cell[0] < 0 ? 'right' : 'left';
+          const y = (cell[1] + 1) * tileSize - 6;
+          out.push({ id, action: u.action, cell, face, perch: { x: cell[0] * tileSize + tileSize / 2 + (face === 'right' ? u.toward : -u.toward), y, baseY: y } });
+          return;
+        }
         out.push({ id, action: u.action, cell, ...(inside ? { perch: { x: cell[0] * tileSize + tileSize / 2, y: (cell[1] + 1) * tileSize - 8, baseY: (r0 + def.h) * tileSize } } : {}) });
         return;
       }

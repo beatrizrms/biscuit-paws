@@ -94,6 +94,26 @@ describe('energia na sessão', () => {
     expect(session.holdingCoffee()).toBe(false);
   });
 
+  it('café: um por hora do jogo; o save lembra a hora do último', () => {
+    const { session, state } = cafe();
+    const every = cfg.restore.coffee.everyMinutes;
+    session.spendEnergy(80);
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' });
+    expect(session.drinkCoffee()).toEqual({ ok: true });
+    state.hands = [{ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' }];
+    expect(session.drinkCoffee()).toEqual({ ok: false, reason: 'coffee_too_soon' });
+    expect(session.coffeeWait()).toBe(every);
+    state.time += every - 1;
+    expect(session.drinkCoffee()).toEqual({ ok: false, reason: 'coffee_too_soon' });
+    expect(session.coffeeWait()).toBe(1);
+    const known = knownIds(content);
+    const raw = JSON.parse(readFileSync('tests/fixtures/save_v20.json', 'utf8'));
+    expect(parseSave(JSON.stringify({ ...raw, lastCoffeeAt: state.lastCoffeeAt }), known).state.lastCoffeeAt).toBe(state.lastCoffeeAt);
+    state.time += 1;
+    expect(session.drinkCoffee()).toEqual({ ok: true });
+    expect(session.energy()).toBe(cfg.max - 80 + 2 * cfg.restore.coffee.amount);
+  });
+
   it('sofá: senta (até cheia), recompõe a cada minuto e, ao encher, avisa e continua sentada', () => {
     const { session, state } = cafe();
     state.placed.push({ uid: 's1', item: 'item.sofa', at: [5, 6] });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { GameSession } from '../../src/core/session';
-import { newGameState } from '../../src/core/state';
+import { newGameState, nowAbs } from '../../src/core/state';
 import { validateRecipes, type RecipeDef } from '../../src/core/recipes';
 import { loadContent } from './content';
 
@@ -250,6 +250,37 @@ describe('ciclo do pedido', () => {
     expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
     advance(session, 60);
     expect(state.service.customers.length).toBeGreaterThan(0);
+  });
+
+  it('almoço: a paciência de quem espera fica parada; volta a correr depois', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const all = Array(7).fill(true);
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
+    advance(session, 6);
+    const c = state.service.customers.find((x) => x.stage === 'waiting')!;
+    expect(c).toBeDefined();
+    // Almoço das 09:00 às 10:00 (já começou): o relógio anda e a paciência dele não.
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '09:00' })).toEqual({ ok: true });
+    const left = c.until - nowAbs(state);
+    advance(session, 40);
+    // O relógio pulando vários minutos de uma vez também conta.
+    session.tickClock(5.5 / content.dayNight.minutesPerSecond);
+    expect(sv.lunchNow()).toBe(true);
+    expect(state.service.customers).toContain(c);
+    expect(Math.abs(c.until - nowAbs(state) - left)).toBeLessThan(1);
+    // Acabou o almoço: a paciência volta a correr e ele desiste.
+    advance(session, 15 + content.service.patienceMinutes);
+    expect(state.service.customers).not.toContain(c);
+  });
+
+  it('nota do café: começa sem nota; quem desiste entra na média com a nota de desistência', () => {
+    const { session, sv } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    expect(session.rating()).toEqual({ average: null, count: 0 });
+    advance(session, 6 + content.service.patienceMinutes + 1);
+    expect(session.rating().count).toBeGreaterThan(0);
+    expect(session.rating().average).toBe(content.service.review.gaveUp);
   });
 
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
@@ -599,6 +630,29 @@ describe('equipamentos em cima do balcão', () => {
     expect(sv.spots().filter((s) => s.kind === 'standing').map((s) => s.spot)).toEqual([[4, 6]]);
     // No mapa, a cafeteira fica em cima do tampo.
     expect(session.mapData().objects.find((o) => o.id === 'placed.' + machine.uid)?.lift).toBe(content.world.counterLift);
+  });
+});
+
+describe('enfeites pequenos (orFloor): no balcão ou no chão', () => {
+  it('sem balcão livre ainda dá para posicionar; no chão fica sem subir, no balcão sobe até o tampo', () => {
+    const { session, state } = openCafe({ counter: false });
+    session.receiveItem('item.xmas_mug');
+    session.receiveItem('item.xmas_candle');
+    // O único balcão tem a cafeteira: sem apoio livre, mas o chão serve.
+    expect(session.missingHost('item.xmas_mug')).toBeNull();
+    expect(session.missingHost('item.teapot')).toBe('no_free_counter');
+    expect(session.place('item.xmas_mug', [3, 7])).toEqual({ ok: true });
+    const mug = state.placed.find((p) => p.item === 'item.xmas_mug')!;
+    expect(session.mapData().objects.find((o) => o.id === 'placed.' + mug.uid)?.lift).toBeUndefined();
+    // Num balcão ocupado, não.
+    expect(session.place('item.xmas_candle', [7, 5])).toEqual({ ok: false, reason: 'occupied' });
+    // Num balcão livre, vai em cima.
+    session.state.money += 100;
+    session.buy('item.counter_single');
+    expect(session.place('item.counter_single', [4, 5])).toEqual({ ok: true });
+    expect(session.place('item.xmas_candle', [4, 5])).toEqual({ ok: true });
+    const candle = state.placed.find((p) => p.item === 'item.xmas_candle')!;
+    expect(session.mapData().objects.find((o) => o.id === 'placed.' + candle.uid)?.lift).toBe(content.world.counterLift);
   });
 });
 

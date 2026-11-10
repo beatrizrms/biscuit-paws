@@ -73,6 +73,8 @@ export interface ItemDef {
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
   placeOn?: string;
+  /** Com placeOn: também pode ficar solta no chão, sem apoio (os enfeites pequenos de Natal). */
+  orFloor?: boolean;
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
@@ -887,6 +889,7 @@ export function validateContent(raw: RawContent): string[] {
     if (item.healthMultiplier !== undefined && !(item.healthMultiplier > 0)) err(`items: "${item.id}" healthMultiplier inválido`);
     if (item.servings !== undefined && !(Number.isInteger(item.servings) && item.servings >= 1)) err(`items: "${item.id}" servings inválido`);
     if (item.placeOn && !itemTags.has(item.placeOn)) err(`items: "${item.id}" vai em cima de "${item.placeOn}", tag que nenhum item tem`);
+    if (item.orFloor && !item.placeOn) err(`items: "${item.id}" tem orFloor sem placeOn`);
     if (item.storesAs && (!itemIds.has(item.storesAs.item) || !(item.storesAs.qty >= 1))) err(`items: "${item.id}" storesAs inválido`);
     if (item.storesAs && !item.tags.includes(raw.carry.heavy.tag)) err(`items: "${item.id}" tem storesAs mas não é pesado (tag "${raw.carry.heavy.tag}")`);
     if (item.washer && !(Number.isInteger(item.washer.capacity) && item.washer.capacity >= 1 && item.washer.cycleMinutes > 0)) err(`items: "${item.id}" washer: capacity (inteiro >= 1) e cycleMinutes (> 0)`);

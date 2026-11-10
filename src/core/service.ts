@@ -15,7 +15,7 @@ import { festivalClosesCafe } from './festival';
 import { isChristmas } from './secretSanta';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
-import { recordDoses, recordGaveUp, recordServed } from './stats';
+import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
@@ -567,7 +567,7 @@ export class CafeService {
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 
-  /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina. */
+  /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina, com a paciência parada. */
   lunchNow(): boolean {
     return this.isOpen() && inLunch(this.schedule(), this.cfg.schedule, this.st.time);
   }
@@ -633,6 +633,8 @@ export class CafeService {
     const passed = this.lastTickAt === null ? 0 : Math.max(0, now - this.lastTickAt);
     this.lastTickAt = now;
     const sv = this.st.service;
+    // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
+    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += passed;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
@@ -702,7 +704,7 @@ export class CafeService {
   private maybeSpawn(now: number): void {
     const sv = this.st.service;
     if (!this.isOpen()) return;
-    // Almoço: por uma hora, ninguém novo chega (a fila e quem já pediu continuam).
+    // Almoço: por uma hora, ninguém novo chega (a fila e quem já pediu continuam, sem perder a paciência).
     if (this.lunchNow()) return;
     // Prejuízo: com gatos doentes demais, as pessoas não querem entrar (quem já está fica até o fim).
     if (this.h.customersAway()) return;
@@ -779,6 +781,7 @@ export class CafeService {
     if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
     const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy);
+    recordReview(this.st.stats, stars);
     const reputation = reviewReputation(cfg, stars);
     if (reputation !== 0) this.h.addReputation(reputation, `review:${stars}`);
     this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation });

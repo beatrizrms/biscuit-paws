@@ -112,6 +112,8 @@ export interface GameState {
   schedule: Schedule | null;
   /** Energia da protagonista (energy.ts). Sem o campo (save antigo ou jogo novo): cheia. */
   energy?: number;
+  /** Quando ela tomou o último café (minuto absoluto, nowAbs). Sem o campo: pode tomar já. */
+  lastCoffeeAt?: number;
   /** Janelas com a cortina aberta (ids dos objetos). Sem o campo (save antigo ou jogo novo): todas fechadas. */
   openCurtains?: string[];
   /** Onde a poeira do dia voltou (id da sujeira -> célula), sorteado a cada manhã. Sem o campo: o lugar do mapa. */

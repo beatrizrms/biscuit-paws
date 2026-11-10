@@ -432,6 +432,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.
     ...(typeof v2.energy === 'number' && Number.isFinite(v2.energy) && v2.energy >= 0 ? { energy: v2.energy } : {}),
+    ...(typeof v2.lastCoffeeAt === 'number' && Number.isFinite(v2.lastCoffeeAt) ? { lastCoffeeAt: v2.lastCoffeeAt } : {}),
     // Cortinas abertas: campo opcional (sem ele, fechadas); só ids em texto.
     ...(typeof v2.litterMissedDays === 'number' && Number.isInteger(v2.litterMissedDays) && v2.litterMissedDays > 0 ? { litterMissedDays: v2.litterMissedDays } : {}),
     // Poeira do dia em lugar sorteado: campo opcional (sem ele, o lugar do mapa); só células de números inteiros.

@@ -53,9 +53,9 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
-import { closeDay, statsView, type StatsView } from './stats';
+import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
@@ -167,6 +167,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'coffee_too_soon'
         | 'seat_taken'
         | 'other_item'
         | 'unknown_job'
@@ -863,15 +864,24 @@ export class GameSession {
     return this.coffeeInHands() >= 0;
   }
 
-  /** Toma o café da mão: recompõe e a xícara fica suja na mão (vai para a pia como as outras). */
+  /** Minutos do jogo até poder tomar outro café (0 = já pode). */
+  coffeeWait(): number {
+    const last = this.state.lastCoffeeAt;
+    if (last === undefined) return 0;
+    return Math.max(0, Math.ceil(last + this.content.dayNight.energy.restore.coffee.everyMinutes - nowAbs(this.state)));
+  }
+
+  /** Toma o café da mão (tecla T): recompõe e a xícara fica suja na mão (vai para a pia como as outras). Um por hora. */
   drinkCoffee(): ActionResult {
     const i = this.coffeeInHands();
     if (i < 0) return { ok: false, reason: 'not_found' };
     if (this.energyFull()) return { ok: false, reason: 'energy_full' };
+    if (this.coffeeWait() > 0) return { ok: false, reason: 'coffee_too_soon' };
     const drink = this.state.hands[i]!;
     if (drink.kind !== 'drink') return { ok: false, reason: 'not_found' };
     this.state.hands[i] = { kind: 'dirty', vessel: drink.vessel };
     this.bus.emit('hands.changed', { count: this.state.hands.length });
+    this.state.lastCoffeeAt = nowAbs(this.state);
     this.recover('coffee', this.content.dayNight.energy.restore.coffee.amount);
     return { ok: true };
   }
@@ -2295,6 +2305,11 @@ export class GameSession {
     return this.state.reputation.value;
   }
 
+  /** Nota do café (0 a 5 estrelas): média das últimas avaliações dos clientes (service.json: review.averageOf). Sem nenhuma, null. */
+  rating(): { average: number | null; count: number } {
+    return reviewAverage(this.state.stats, this.content.service.review.averageOf);
+  }
+
   /**
    * Soma (ou tira) reputação, com o motivo (fica no log curto do save, para debug). Emite reputation.changed e,
    * para cada limiar cruzado pela primeira vez, reputation.threshold_reached; e confere os selos do café (a trilha de reputação).
@@ -2530,6 +2545,8 @@ export class GameSession {
         // Cômodo ainda fechado: a sujeira dele não aparece nem se limpa.
         const room = this.roomAt(d.at);
         if (room && !isOpen(this.roomState(room.id))) return false;
+        // Cômodo reformado: a sujeira dele não fica (save que chegou ao reformado sem limpar tudo).
+        if (room && this.roomState(room.id) === 'restored' && room.restore?.dirtTag && d.tags.includes(room.restore.dirtTag)) return false;
         // Sujeira que só aparece a partir de uma condição (o cocô do dia 2).
         if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
         return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
@@ -3188,10 +3205,14 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Item que vai em cima de algo (ex.: bule no balcão) sem nenhum apoio livre no café: não dá para posicionar agora. */
+  /**
+   * Item que vai em cima de algo (ex.: bule no balcão) sem nenhum apoio livre no café: não dá para posicionar agora.
+   * Com orFloor, o chão serve.
+   */
   missingHost(itemId: string): PlaceProblem | null {
-    const placeOn = this.content.items[itemId]?.placeOn;
-    if (!placeOn || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    const item = this.content.items[itemId];
+    const placeOn = item?.placeOn;
+    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
     return 'no_free_counter';
   }
 
@@ -3279,7 +3300,10 @@ export class GameSession {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
-    if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    // Em cima de um apoio; com orFloor, fora de um apoio vale como móvel de chão.
+    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at))) {
+      return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    }
     const cells = cellsOf(at, def);
     const roomsOf = cells.map((c) => this.roomAt(c));
     if (roomsOf.some((r) => !r)) return 'out_of_bounds'; // fora do mapa, ou na parede entre cômodos

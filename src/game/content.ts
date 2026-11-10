@@ -103,6 +103,7 @@ export const serviceArt = serviceArtJson as unknown as {
   bubble: { normal: string; impatient: string; furious: string; iconSlot: [number, number, number, number]; impatientBelow: number; furiousBelow: number; scale: number; patienceBar: { x: number; y: number; w: number; h: number; border: string; back: string; colors: Record<'normal' | 'impatient' | 'furious', string> }; waiting: string[] };
   progress: string[];
   coin: string;
+  review: { happy: string; sad: string; star: string; scale: number; gap: number; happyFrom: number };
   readyMarker: string[];
   trayIcons: string[];
   handAnchor: Record<'down' | 'left' | 'right' | 'up', [number, number]>;

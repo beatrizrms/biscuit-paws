@@ -86,6 +86,12 @@
    "row": 4,
    "w_tiles": 2,
    "h_tiles": 2
+  },
+  "ph_back_door": {
+   "col": 2,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 2
   }
  }
 }
