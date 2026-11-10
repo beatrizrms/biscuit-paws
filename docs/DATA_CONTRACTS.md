@@ -230,7 +230,7 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
     "costs": { "dirt.cleaned": 2, "dish.washed": 1 }, // evento -> gasto (só os de ENERGY_EVENTS; louça: por peça; mini game pulado: nada)
     "restore": {               // como ela se recompõe (ícone de raio em cima da cabeça)
       "coffee": { "recipes": ["recipe.black_coffee"], "amount": 25 }, // E com um desses prontos na mão e nada por perto: toma; a xícara fica suja na mão
-      "seat": { "perMinute": 3, "tiles": { "sofa": { "facing": "down", "feet": 3 } } }, // E perto de um sofá ou cadeira (pelo tile): senta virada para facing, pés feet px abaixo da base; ganha por minuto até encher, andar ou E de novo; cadeira com cliente não serve, e a dela sai dos lugares dos clientes
+      "seat": { "perMinute": 3, "tiles": { "sofa": { "facing": "down", "feet": 3 } } }, // E perto de um sofá ou cadeira (pelo tile): senta virada para facing (mesmo com a energia cheia), pés feet px abaixo da base; ganha por minuto até encher e fica sentada até andar ou E de novo; cadeira com cliente não serve, e a dela sai dos lugares dos clientes
       "play": { "games": ["wand"], "amount": 10 }                    // mini game de brincar com o gato que deu certo: ganha em vez de gastar
     }
   },
