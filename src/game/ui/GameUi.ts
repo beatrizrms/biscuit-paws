@@ -455,7 +455,13 @@ export class GameUi {
         // O mesmo ícone do balão em cima do gato; sem a escova/varinha, diz onde comprar.
         const t = c.care[ch.need!];
         const line = (ch.hasTool ? t.do : t.buy).replace('{cat}', this.session.catName(ch.catId!));
-        today.push(this.row(line, { icon: content.health.care.bubbles[ch.need!]?.icon }));
+        const art = content.health.care.bubbles[ch.need!];
+        const icon = art?.icon ?? (art?.item ? content.items[art.item]?.icon : undefined);
+        today.push(this.row(line, { icon }));
+        continue;
+      }
+      if (ch.kind === 'toys') {
+        today.push(this.row(c.toys, { right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : ch.kind === 'pantry' ? c.pantry : c.sweep;

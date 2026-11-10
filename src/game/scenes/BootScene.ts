@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { itemIconKey } from '../careBubbles';
 import { broom, content, emotes, serviceArt } from '../content';
 import { preloadAudio } from '../audio/AudioManager';
 import { t } from '../i18n';
@@ -54,6 +55,11 @@ export class BootScene extends Phaser.Scene {
     // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.
     this.load.image(iconSheetKey(), content.icons.image);
     for (const [id, sheet] of Object.entries(content.icons.sheets ?? {})) this.load.image(iconSheetKey(id), sheet.image);
+    // Itens com imagem própria nos balões dos gatos (health.json: care.bubbles, ex.: a varinha do pedido de brincar).
+    for (const b of Object.values(content.health.care.bubbles)) {
+      const item = b.item ? content.items[b.item] : undefined;
+      if (item?.iconImage) this.load.image(itemIconKey(item.id), item.iconImage);
+    }
     const art = serviceArt;
     for (const [k, path] of Object.entries({ bubble_normal: art.bubble.normal, bubble_impatient: art.bubble.impatient, bubble_furious: art.bubble.furious, coin16: art.coin })) this.load.image(k, path);
     art.bubble.waiting.forEach((p, i) => this.load.image(`bubble_wait_${i}`, p));

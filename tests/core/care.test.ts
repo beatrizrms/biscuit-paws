@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf } from '../../src/core/care';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, playInterval, toysMissing } from '../../src/core/care';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState, type CatState } from '../../src/core/state';
@@ -20,19 +20,44 @@ describe('cuidados (puro)', () => {
     expect(c.hygiene).toBe(0);
   });
 
-  it('fim do dia: felicidade e higiene caem o que está nos dados', () => {
+  it('fim do dia: a higiene cai; com brinquedo, a felicidade fica', () => {
     const c = cat({ happiness: 50, hygiene: 50 });
-    careAtDayEnd(c, cfg);
+    careAtDayEnd(c, cfg, 5, { toys: 1, cats: 1 });
     expect(c).toMatchObject({ happiness: 50 - cfg.daily.happiness, hygiene: 50 - cfg.daily.hygiene });
+  });
+
+  it('sem brinquedo suficiente (1 a cada 3 gatos): pede todo dia e fica triste se ninguém brincar', () => {
+    expect(toysMissing(cfg, { toys: 0, cats: 1 })).toBe(1);
+    expect(toysMissing(cfg, { toys: 1, cats: 3 })).toBe(0);
+    expect(toysMissing(cfg, { toys: 1, cats: 4 })).toBe(1);
+    expect(playInterval(cfg, { toys: 1, cats: 4 })).toBe(1);
+    const c = cat({ happiness: 50, playedOn: 4 });
+    careAtDayEnd(c, cfg, 5, { toys: 0, cats: 1 });
+    expect(c.happiness).toBe(50 - cfg.play.missedHappiness);
+    const played = cat({ happiness: 50, playedOn: 5 });
+    careAtDayEnd(played, cfg, 5, { toys: 0, cats: 1 });
+    expect(played.happiness).toBe(50);
+  });
+
+  it('com brinquedo: pede a cada 4 dias, +1 por brinquedo a mais e por outro gato, até 8', () => {
+    expect(playInterval(cfg, { toys: 1, cats: 1 })).toBe(cfg.play.everyDays);
+    expect(playInterval(cfg, { toys: 2, cats: 2 })).toBe(cfg.play.everyDays + 2);
+    expect(playInterval(cfg, { toys: 9, cats: 9 })).toBe(cfg.play.maxDays);
+    const c = cat({ playedOn: 1 });
+    const room = { toys: 1, cats: 1 };
+    expect(careNeeds(c, 1 + cfg.play.everyDays - 1, cfg, room)).toEqual([]);
+    expect(careNeeds(c, 1 + cfg.play.everyDays, cfg, room)).toEqual(['play']);
   });
 
   it('o que falta, por urgência: remédio (dose de hoje pendente), banho, carinho', () => {
     const sick = { disease: 'disease.whisker_fever', since: 1, treatment: { days: 3, dosesGiven: 1, lastDoseDay: 4 } };
     const c = cat({ happiness: cfg.low.happiness - 1, hygiene: cfg.low.hygiene - 1, sickness: sick });
-    expect(careNeeds(c, 5, cfg)).toEqual(['medicine', 'dirty', 'sad']);
-    expect(careNeeds(c, 4, cfg)).toEqual(['dirty', 'sad']); // já tomou a de hoje
-    expect(careNeeds(cat({ sickness: { ...sick, treatment: null } }), 5, cfg)).toEqual([]); // doente sem receita: o vet primeiro
-    expect(careNeeds(cat(), 5, cfg)).toEqual([]);
+    const room = { toys: 1, cats: 1 };
+    const fresh = { playedOn: 5 };
+    expect(careNeeds({ ...c, ...fresh }, 5, cfg, room)).toEqual(['medicine', 'dirty', 'sad']);
+    expect(careNeeds({ ...c, playedOn: 4 }, 4, cfg, room)).toEqual(['dirty', 'sad']); // já tomou a de hoje
+    expect(careNeeds(cat({ sickness: { ...sick, treatment: null }, ...fresh }), 5, cfg, room)).toEqual([]); // doente sem receita: o vet primeiro
+    expect(careNeeds(cat(fresh), 5, cfg, room)).toEqual([]);
   });
 
   it('ganho por mini game: só quando dá certo, e great vale mais', () => {

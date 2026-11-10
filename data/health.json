@@ -5,14 +5,16 @@
   "care": {
     "max": 100,
     "start": { "happiness": 70, "hygiene": 70 },
-    "daily": { "happiness": 8, "hygiene": 6 },
+    "daily": { "happiness": 0, "hygiene": 6 },
     "low": { "happiness": 35, "hygiene": 35 },
     "litterMissed": 12,
     "bubbles": {
       "medicine": { "icon": "remedio" },
       "dirty": { "icon": "pegadas_lama" },
-      "sad": { "emote": "heart" }
+      "sad": { "emote": "heart" },
+      "play": { "item": "item.cat_wand" }
     },
+    "play": { "everyDays": 4, "maxDays": 8, "catsPerToy": 3, "toyTag": "cat:toy", "missedHappiness": 12 },
     "gains": {
       "wand": { "happiness": { "ok": 15, "great": 25 } },
       "grooming": { "hygiene": { "ok": 30, "great": 45 }, "happiness": { "ok": 3, "great": 6 } },

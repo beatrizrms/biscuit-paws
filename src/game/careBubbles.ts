@@ -3,13 +3,16 @@
 // (data/health.json: care.bubbles). Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
 import Phaser from 'phaser';
 import type { CareConfig, CareNeed } from '../core/care';
-import { serviceArt } from './content';
+import { content, serviceArt } from './content';
 import { iconFrame } from './icons';
 
 /** O balão de pedido (40x44) em cima de um gato fica na metade: do tamanho dos emotes. */
 const BUBBLE_SCALE = 0.5;
 /** Acima da cabeça do gato (px a partir dos pés). */
 const ABOVE_FEET = 22;
+
+/** Textura da imagem própria de um item usado num balão (carregada no BootScene). */
+export const itemIconKey = (itemId: string) => `itemicon:${itemId}`;
 
 export class CareBubbles {
   private readonly bubbles = new Map<string, { need: CareNeed; view: Phaser.GameObjects.Container }>();
@@ -29,8 +32,16 @@ export class CareBubbles {
     }
     const bg = this.scene.add.image(0, 0, 'bubble_normal').setOrigin(0.5, 1).setScale(BUBBLE_SCALE);
     view.add(bg);
-    const f = art?.icon ? iconFrame(this.scene, art.icon) : undefined;
-    if (f) {
+    const item = art?.item ? content.items[art.item] : undefined;
+    const icon = art?.icon ?? item?.icon;
+    const f = icon ? iconFrame(this.scene, icon) : undefined;
+    const own = !f && item?.iconImage && this.scene.textures.exists(itemIconKey(item.id)) ? itemIconKey(item.id) : undefined;
+    if (own) {
+      // Imagem própria do item (ex.: a varinha): no slot do ícone, do tamanho de um ícone da folha.
+      const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
+      const img = this.scene.add.image((sx + sw / 2 - bg.width / 2) * BUBBLE_SCALE, (sy + sh / 2 - bg.height) * BUBBLE_SCALE, own);
+      view.add(img.setScale((Math.min(sw, sh) * BUBBLE_SCALE) / Math.max(img.width, img.height)));
+    } else if (f) {
       // O ícone no slot do balão (dados do atendimento), na mesma escala do balão.
       const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
       const x = (sx + sw / 2 - bg.width / 2) * BUBBLE_SCALE;

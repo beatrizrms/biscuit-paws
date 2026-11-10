@@ -19,7 +19,7 @@ import { lowIngredients } from './shopping';
 import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, type CareNeed, type CareStat } from './care';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
 import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
 
 /** Automático com tantos dias ou menos: avisa que está acabando. */
@@ -800,16 +800,20 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
     for (const id of this.shelteredCats()) {
       if (this.state.cats[id]!.map === this.content.map.id) out.push({ kind: 'feed', catId: id, done: this.state.cats[id]!.fedOn === this.state.day });
     }
+    // Brinquedos de menos para os gatos do café (1 a cada catsPerToy): eles pedem para brincar todo dia.
+    const room = this.playRoom();
+    const missing = toysMissing(this.content.health.care, room);
+    if (missing > 0) out.push({ kind: 'toys', done: false, progress: [room.toys, room.toys + missing] });
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
     const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
-    const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', medicine: 'medicine' };
+    const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
     for (const id of this.homeCats()) {
       for (const need of this.catCare(id)?.needs ?? []) {
         const use = toolFor[need];
@@ -1401,7 +1405,7 @@ export class GameSession {
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
       if (!cat.sickness && cat.health < cfg.sickBelow) this.makeSick(id);
-      careAtDayEnd(cat, cfg.care);
+      careAtDayEnd(cat, cfg.care, day, this.playRoom());
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
     for (const sourceId of this.shelteredCats()) {
@@ -1500,7 +1504,13 @@ export class GameSession {
     const cat = this.state.cats[catId];
     if (!cat?.sheltered) return null;
     const cfg = this.content.health.care;
-    return { ...careOf(cat, cfg), needs: careNeeds(cat, this.state.day, cfg) };
+    return { ...careOf(cat, cfg), needs: careNeeds(cat, this.state.day, cfg, this.playRoom()) };
+  }
+
+  /** Brinquedos posicionados (health.json: care.play.toyTag) e gatos no café, para o pedido de brincar. */
+  playRoom(): PlayRoom {
+    const tag = this.content.health.care.play.toyTag;
+    return { toys: this.state.placed.filter((p) => this.content.items[p.item]?.tags.includes(tag)).length, cats: this.homeCats().length };
   }
 
   /** Debug: muda felicidade ou higiene de um gato (F9, linha Cuidados). */
@@ -1653,6 +1663,8 @@ export class GameSession {
     if (careCat?.sheltered && !result.skipped) {
       const gain = careGain(this.content.health.care, result.gameId, result.outcome);
       for (const [stat, v] of Object.entries(gain) as [CareStat, number][]) addCare(careCat, stat, v, this.content.health.care);
+      // Brincou de verdade (a varinha): o pedido de brincar volta a contar daqui.
+      if (result.gameId === 'wand' && result.outcome !== 'fail') careCat.playedOn = this.state.day;
       if (Object.keys(gain).length > 0) this.bus.emit('cat.cared', { catId: params.catId!, gameId: result.gameId, ...careOf(careCat, this.content.health.care) });
     }
     // Foto perfeita: a melhor de sempre fica guardada (pose, nota, gatos, dia).
