@@ -1048,8 +1048,8 @@
       },
       "window": {
         "season": "winter",
-        "from": 1,
-        "to": 7,
+        "from": 19,
+        "to": 25,
         "name": "Semana do Natal"
       }
     },
@@ -1078,8 +1078,8 @@
       "display": true,
       "window": {
         "season": "winter",
-        "from": 8,
-        "to": 10,
+        "from": 28,
+        "to": 30,
         "name": "Ano Novo"
       }
     }

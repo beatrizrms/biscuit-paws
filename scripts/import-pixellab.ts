@@ -669,6 +669,15 @@ const SHEETS: Sheet[] = [
       expositor_b: { file: '03_cafe_3/obj_6.png', w: 1, h: 1 },
       expositor_c: { file: '03_cafe_3/obj_7.png', w: 1, h: 1 },
       pote_biscoitos: { file: '04_cafe_4/obj_1.png', w: 1, h: 1 },
+      // Natal (pedido 09): enfeites de parede, de balcão e a poinsétia; à venda só no inverno.
+      natal_guirlanda: { file: '09_natal/guirlanda.png', w: 1, h: 1 },
+      natal_luzinhas: { file: '09_natal/luzinhas.png', w: 1, h: 1 },
+      natal_meia: { file: '09_natal/meia_natal.png', w: 1, h: 1 },
+      natal_poinsetia: { file: '09_natal/poinsetia.png', w: 1, h: 1 },
+      natal_caneca: { file: '09_natal/caneca_natal.png', w: 1, h: 1 },
+      natal_globo_gato: { file: '09_natal/globo_neve_gato.png', w: 1, h: 1 },
+      natal_vela: { file: '09_natal/vela_natal.png', w: 1, h: 1 },
+      natal_globo_cafe: { file: '09_natal/globo_neve_cafe.png', w: 1, h: 1 },
     },
   },
 ];
@@ -1607,6 +1616,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ] as const).map(([name, file]) => ({ name, file: `${SRC}/${file}.png` })),
     // Cardápio das estações (pedido 08): os especiais, a abóbora, o panetone (Natal) e a rabanada (Ano Novo).
     ...(['chocolate_quente', 'cha_camomila_mel', 'torta_morango', 'fatia_torta_morango', 'cha_gelado_frutas_vermelhas', 'sorvete_morango', 'cha_gelado_limao', 'pao_de_mel', 'latte_abobora', 'abobora', 'panetone', 'fatia_panetone', 'rabanada'] as const).map((name) => ({ name, file: `${SRC}/08_estacoes/${name}.png` })),
+    // Natal (pedido 09): os presentes que não são enfeite (o cachecol do Tião e os biscoitos do Joca).
+    ...(['cachecol', 'biscoito_osso'] as const).map((name) => ({ name, file: `${SRC}/09_natal/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

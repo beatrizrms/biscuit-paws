@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 10,
+ "rows": 11,
  "pieces": {
   "floreira": {
    "col": 0,
@@ -204,6 +204,54 @@
   "pote_biscoitos": {
    "col": 2,
    "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_guirlanda": {
+   "col": 3,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_luzinhas": {
+   "col": 4,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_meia": {
+   "col": 5,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_poinsetia": {
+   "col": 0,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_caneca": {
+   "col": 1,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_globo_gato": {
+   "col": 2,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_vela": {
+   "col": 3,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "natal_globo_cafe": {
+   "col": 4,
+   "row": 10,
    "w_tiles": 1,
    "h_tiles": 1
   }

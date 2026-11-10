@@ -44,8 +44,8 @@ describe('calendário', () => {
   it('começos de estação, Natal todo ano e a inauguração até acontecer', () => {
     const s = content.seasons;
     const year = s.daysPerSeason * s.order.length;
-    const all = calendarEntries(s, 1, year + 10);
-    expect(all.filter((e) => e.id === 'cal.christmas').map((e) => e.day)).toEqual([2, year + 2]);
+    const all = calendarEntries(s, 1, year + 30);
+    expect(all.filter((e) => e.id === 'cal.christmas').map((e) => e.day)).toEqual([25, year + 25]);
     expect(all.find((e) => e.id === 'cal.inauguration')?.day).toBe(s.daysPerSeason + 1);
     expect(all.find((e) => e.kind === 'season')).toEqual({ id: `season.spring.${s.daysPerSeason + 1}`, day: s.daysPerSeason + 1, title: 'Começa a primavera', kind: 'season' });
     const hidden = calendarEntries(s, 1, year, (e) => e.id === 'cal.inauguration');

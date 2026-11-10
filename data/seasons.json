@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (véspera de Natal, inverno). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem. startWeekday: dia da semana do dia 1 (0 = segunda; o jogo começa numa quarta, véspera de Natal). App Calendário: seasonStarts (título do primeiro dia de cada estação) e events (day ou fromSeason; everyYear repete; hideWhen some quando a condição vale). weather: pesos do clima sorteado por dia em cada estação (neve, chuva, vento, sol; usado pelos gatilhos das chegadas e pelo HUD). weatherFx: o que cai na tela em cada clima, só nos mapas da estação (a rua) e nas áreas ao ar livre do café (o quintal): particle (streak = risco de chuva, flake = floco, leaf = folha), perTile (quantas partículas vivas por tile), lifespan (ms), speedX/speedY (px do mundo por segundo), alpha, colors (sorteadas), spin (gira), darken (um véu por cima da área, a chuva escurece).",
+  "_comment": "Calendário: daysPerSeason dias por estação, na ordem de order; o jogo começa na primeira (inverno, época de Natal; o Natal é o dia 25 e a virada do ano, à meia-noite do dia 30). A estação sai do dia do save (nada novo no save). base: estação cujos tiles são os nomes sem prefixo (a arte de inverno). maps: mapas que mudam com a estação; tiles com estes prefixos ganham o prefixo da estação (street_x -> spring_street_x); peças com snowPrefix (neve, montes) somem fora do inverno; peça sem arte da estação fica como está, menos as de winterOnly (abeto de Natal, pegadas), que somem. startWeekday: dia da semana do dia 1 (0 = segunda; o jogo começa numa quarta). App Calendário: seasonStarts (título do primeiro dia de cada estação) e events (day ou fromSeason; everyYear repete; hideWhen some quando a condição vale). weather: pesos do clima sorteado por dia em cada estação (neve, chuva, vento, sol; usado pelos gatilhos das chegadas e pelo HUD). weatherFx: o que cai na tela em cada clima, só nos mapas da estação (a rua) e nas áreas ao ar livre do café (o quintal): particle (streak = risco de chuva, flake = floco, leaf = folha), perTile (quantas partículas vivas por tile), lifespan (ms), speedX/speedY (px do mundo por segundo), alpha, colors (sorteadas), spin (gira), darken (um véu por cima da área, a chuva escurece).",
   "daysPerSeason": 30,
   "order": [
     "winter",
@@ -26,13 +26,13 @@
     {
       "id": "cal.christmas",
       "title": "Natal",
-      "day": 2,
+      "day": 25,
       "everyYear": true
     },
     {
       "id": "cal.new_year",
-      "title": "Ano Novo",
-      "day": 9,
+      "title": "Véspera de Ano Novo: fogos à meia-noite",
+      "day": 30,
       "everyYear": true
     },
     {

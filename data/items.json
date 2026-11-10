@@ -1107,6 +1107,181 @@
       "placeOn": "bar"
     },
     {
+      "id": "item.christmas_tree",
+      "name": "Árvore de Natal",
+      "description": "Enfeite de Natal: árvore de Natal para o café.",
+      "price": 60,
+      "tile": "prop_abeto_natal",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "plant"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.xmas_wreath",
+      "name": "Guirlanda de Natal",
+      "description": "Enfeite de parede: guirlanda com laço e sininhos.",
+      "price": 18,
+      "tile": "decor_natal_guirlanda",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "wall"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.xmas_lights",
+      "name": "Luzinhas de Natal",
+      "description": "Enfeite de parede: luzinhas coloridas.",
+      "price": 12,
+      "tile": "decor_natal_luzinhas",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "wall"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.xmas_stocking",
+      "name": "Meia de Natal",
+      "description": "Enfeite de parede: no Natal, cada gato ganha um petisco na meia.",
+      "price": 10,
+      "tile": "decor_natal_meia",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "wall"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.poinsettia",
+      "name": "Poinsétia",
+      "description": "A flor do Natal, num vaso com laço dourado. Presente que a Dona Neusa adora.",
+      "price": 16,
+      "tile": "decor_natal_poinsetia",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "plant",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.xmas_mug",
+      "name": "Caneca natalina",
+      "description": "Caneca listrada de Natal. A Gabi adora coisas de cozinha.",
+      "price": 12,
+      "tile": "decor_natal_caneca",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.snow_globe_cat",
+      "name": "Globo de neve com gatinho",
+      "description": "Um gatinho dormindo debaixo da neve. A Fernanda vai amar.",
+      "price": 20,
+      "tile": "decor_natal_globo_gato",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.xmas_candle",
+      "name": "Vela de Natal",
+      "description": "Vela vermelha com azevinho. Um presente elegante para a corretora.",
+      "price": 12,
+      "tile": "decor_natal_vela",
+      "tags": [
+        "furniture",
+        "decor",
+        "xmas",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.knit_scarf",
+      "name": "Cachecol de tricô",
+      "description": "Cachecol listrado e quentinho. O Tião vive com frio na obra.",
+      "price": 18,
+      "kind": "consumable",
+      "icon": "cachecol",
+      "tags": [
+        "xmas",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.bone_biscuits",
+      "name": "Biscoitos de osso",
+      "description": "Biscoitos para cachorro, com laço vermelho. O Joca vai abanar o rabo.",
+      "price": 8,
+      "kind": "consumable",
+      "icon": "biscoito_osso",
+      "tags": [
+        "xmas",
+        "xmas_gift"
+      ],
+      "seasons": [
+        "winter"
+      ]
+    },
+    {
+      "id": "item.snow_globe_cafe",
+      "name": "Globo de neve do café",
+      "description": "O café dentro de um globo de neve: o presente do amigo secreto. Único.",
+      "price": 0,
+      "kind": "gift",
+      "tile": "decor_natal_globo_cafe",
+      "tags": [
+        "furniture",
+        "xmas_reward"
+      ],
+      "placeOn": "bar"
+    },
+    {
       "id": "item.display_case_empty",
       "name": "Vitrine de doces (vazia)",
       "description": "Vitrine para os doces do café, ainda sem nada dentro. Decoração do balcão.",

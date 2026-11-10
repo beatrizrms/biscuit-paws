@@ -81,6 +81,7 @@
         "id": "decor",
         "title": "Decor",
         "groups": [
+          { "tag": "xmas", "title": "Natal" },
           {
             "tag": "decor",
             "title": "Decoração"

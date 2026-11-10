@@ -656,6 +656,16 @@
       "col": 1,
       "row": 16,
       "sheet": "pixellab"
+    },
+    "cachecol": {
+      "col": 2,
+      "row": 16,
+      "sheet": "pixellab"
+    },
+    "biscoito_osso": {
+      "col": 3,
+      "row": 16,
+      "sheet": "pixellab"
     }
   },
   "sheets": {
