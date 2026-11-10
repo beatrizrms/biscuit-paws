@@ -767,3 +767,52 @@ describe('soltar louça', () => {
   });
 });
 
+
+describe('espremedor: suco de fruta fresca, sempre premium', () => {
+  /** Café com 15 clientes (o suco de laranja destrancado), um equipamento de suco num balcão e polpa, fruta e açúcar. */
+  function juiceBar(equipment: 'item.blender' | 'item.juicer') {
+    const ctx = openCafe({ served: 15 });
+    const { session, state, sv } = ctx;
+    state.money = 2000;
+    expect(session.buy(equipment)).toEqual({ ok: true });
+    expect(session.place(equipment, [4, 5])).toEqual({ ok: true });
+    for (const id of ['item.pulp_orange', 'item.orange', 'item.sugar']) session.buy(id);
+    sv.storeInPantry();
+    sv.toggleMenu('recipe.orange_juice');
+    const uid = state.placed.find((p) => p.item === equipment)!.uid;
+    return { ...ctx, uid };
+  }
+
+  it('o espremedor aparece no Market junto com o suco', () => {
+    expect(openCafe().session.itemUnlocked('item.juicer')).toBe(false);
+    expect(openCafe({ served: 15 }).session.itemUnlocked('item.juicer')).toBe(true);
+  });
+
+  it('no liquidificador o suco usa a polpa e sai simples', () => {
+    const { sv, state, uid } = juiceBar('item.blender');
+    expect(sv.recipeStatus('recipe.orange_juice')).toBe('available');
+    const orange = sv.doses('item.orange');
+    expect(sv.prepare(uid, 'recipe.orange_juice')).toEqual({ ok: true });
+    expect(state.service.preps.at(-1)).toMatchObject({ recipe: 'recipe.orange_juice', quality: 'simple' });
+    expect(sv.doses('item.orange')).toBe(orange);
+  });
+
+  it('no espremedor o suco usa a fruta fresca e sai premium', () => {
+    const { sv, state, uid } = juiceBar('item.juicer');
+    expect(sv.recipeStatus('recipe.orange_juice')).toBe('available');
+    expect(sv.missingEquipment('recipe.orange_juice')).toBeUndefined();
+    const pulp = sv.doses('item.pulp_orange');
+    const orange = sv.doses('item.orange');
+    expect(sv.prepare(uid, 'recipe.orange_juice')).toEqual({ ok: true });
+    expect(state.service.preps.at(-1)).toMatchObject({ recipe: 'recipe.orange_juice', quality: 'premium' });
+    expect(sv.doses('item.orange')).toBe(orange - 1);
+    expect(sv.doses('item.pulp_orange')).toBe(pulp);
+  });
+
+  it('só com o espremedor e sem fruta: falta ingrediente', () => {
+    const { sv, state } = juiceBar('item.juicer');
+    delete state.pantry['item.orange'];
+    delete state.pantryOpen['item.orange'];
+    expect(sv.recipeStatus('recipe.orange_juice')).toBe('ingredients');
+  });
+});

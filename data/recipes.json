@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro (evolução: os selos do café, data/milestones.json; o Biscoito de patinha é a receita bônus da sequência \"bigodes bem cuidados\" ícone biscoito_patinha, do pedido 04 do PixelLab; o equipamento e os ingredientes só aparecem no catálogo/mercado quando alguma receita destrancada usa eles).",
+  "_comment": "Receitas. ingredients: item -> doses (um pacote rende `servings`). premium: troca de um ingrediente pelo melhor (sai premium quando dá para trocar todos). alternative (só receita de uma etapa): outro equipamento com os próprios ingredientes, e sai sempre premium (os sucos de fruta fresca no espremedor; no liquidificador, a polpa). steps: etapas em ordem, cada uma num equipamento (chave em service.json) por alguns minutos de jogo; entre etapas, ela leva a massa na mão. vessel: cup/glass/plate. service: standing (em pé, xícara ou copo) ou table (mesa + cadeira + prato). price: venda (premium multiplica). unlock: condição para aparecer no quadro (evolução: os selos do café, data/milestones.json; o Biscoito de patinha é a receita bônus da sequência \"bigodes bem cuidados\" ícone biscoito_patinha, do pedido 04 do PixelLab; o equipamento e os ingredientes só aparecem no catálogo/mercado quando alguma receita destrancada usa eles).",
   "recipes": [
     {
       "id": "recipe.black_coffee",
@@ -54,8 +54,12 @@
       },
       "vessel": "glass",
       "price": 10,
-      "premium": {
-        "item.pulp_orange": "item.orange"
+      "alternative": {
+        "equipment": "juicer",
+        "ingredients": {
+          "item.orange": 1,
+          "item.sugar": 1
+        }
       },
       "steps": [
         {
@@ -126,8 +130,12 @@
       "unlock": {
         "milestone": "milestone.customers_55"
       },
-      "premium": {
-        "item.pulp_strawberry": "item.strawberry"
+      "alternative": {
+        "equipment": "juicer",
+        "ingredients": {
+          "item.strawberry": 1,
+          "item.sugar": 1
+        }
       },
       "steps": [
         {
@@ -149,8 +157,12 @@
       "unlock": {
         "milestone": "milestone.customers_65"
       },
-      "premium": {
-        "item.pulp_lemon": "item.lemon"
+      "alternative": {
+        "equipment": "juicer",
+        "ingredients": {
+          "item.lemon": 1,
+          "item.sugar": 1
+        }
       },
       "steps": [
         {

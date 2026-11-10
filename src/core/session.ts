@@ -370,8 +370,8 @@ export class GameSession {
     const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));
     const usedBy = recipes.filter((r) =>
       isEquipment
-        ? r.steps.some((st) => item.tags.includes(equipment[st.equipment]?.tag ?? ''))
-        : item.tags.includes('ingredient') && (itemId in r.ingredients || Object.values(r.premium ?? {}).includes(itemId)),
+        ? [...r.steps.map((st) => st.equipment), ...(r.alternative ? [r.alternative.equipment] : [])].some((eq) => item.tags.includes(equipment[eq]?.tag ?? ''))
+        : item.tags.includes('ingredient') && (itemId in r.ingredients || Object.values(r.premium ?? {}).includes(itemId) || itemId in (r.alternative?.ingredients ?? {})),
     );
     // Ingrediente que nenhuma receita usa ainda (chá de camomila, mel...) fica guardado para quando usar.
     if (usedBy.length === 0) return !isEquipment && !item.tags.includes('ingredient');

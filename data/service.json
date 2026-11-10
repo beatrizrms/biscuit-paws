@@ -91,6 +91,10 @@
       "name": "Liquidificador",
       "tag": "blender"
     },
+    "juicer": {
+      "name": "Espremedor",
+      "tag": "juicer"
+    },
     "stove": {
       "name": "Fogão",
       "tag": "stove"

@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 2,
- "rows": 1,
+ "rows": 5,
  "pieces": {
   "auto_feeder": {
    "col": 0,
@@ -12,6 +12,48 @@
   "auto_litter": {
    "col": 1,
    "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "novelo_rosa": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "novelo_verde": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "novelo_creme": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "novelo_lilas": {
+   "col": 1,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cesta_novelos": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "almofada_capitone": {
+   "col": 1,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixa_areia_verde": {
+   "col": 0,
+   "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
   }

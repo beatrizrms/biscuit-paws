@@ -799,6 +799,428 @@
       ]
     },
     {
+      "id": "item.plant_tall_areca",
+      "name": "Palmeira-areca",
+      "description": "Decoração: planta alta para os cantos.",
+      "price": 45,
+      "tile": "decor_planta_alta_b",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.plant_tall_olive",
+      "name": "Oliveira no vaso",
+      "description": "Decoração: oliveirinha alta para os cantos.",
+      "price": 45,
+      "tile": "decor_planta_alta_c",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.cactus_ball",
+      "name": "Cacto bola com flor",
+      "description": "Decoração: cacto redondo que dá flor.",
+      "price": 14,
+      "tile": "decor_cacto_bola",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.cactus_arms",
+      "name": "Cacto de braços",
+      "description": "Decoração: cacto de braços no vaso verde.",
+      "price": 14,
+      "tile": "decor_cacto_bracos",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.succulent_pot",
+      "name": "Vaso de suculenta",
+      "description": "Decoração: suculenta no vaso de barro.",
+      "price": 12,
+      "tile": "decor_vaso_suculenta",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.peace_lily",
+      "name": "Lírio-da-paz",
+      "description": "Decoração: lírio-da-paz no vaso de barro.",
+      "price": 22,
+      "tile": "decor_vaso_lirio",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.vase_tulips",
+      "name": "Vaso de tulipas",
+      "description": "Decoração: tulipas cor-de-rosa.",
+      "price": 16,
+      "tile": "decor_vaso_tulipas",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.vase_lavender",
+      "name": "Garrafa de lavanda",
+      "description": "Decoração: raminhos de lavanda numa garrafa.",
+      "price": 16,
+      "tile": "decor_vaso_lavanda",
+      "tags": [
+        "furniture",
+        "decor",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.hanging_pothos",
+      "name": "Jiboia pendurada",
+      "description": "Decoração de parede: jiboia com ramos compridos.",
+      "price": 20,
+      "tile": "decor_pendente_jiboia",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.hanging_pearls",
+      "name": "Colar-de-pérolas",
+      "description": "Decoração de parede: planta pendurada de bolinhas.",
+      "price": 20,
+      "tile": "decor_pendente_perolas",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.hanging_ivy",
+      "name": "Hera pendurada",
+      "description": "Decoração de parede: hera com ramos compridos.",
+      "price": 20,
+      "tile": "decor_pendente_hera",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.hanging_spider",
+      "name": "Clorofito pendurado",
+      "description": "Decoração de parede: clorofito no vaso suspenso.",
+      "price": 18,
+      "tile": "decor_pendente_clorofito",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.hanging_heart",
+      "name": "Coração pendurado",
+      "description": "Decoração de parede: planta de folhas em coração.",
+      "price": 20,
+      "tile": "decor_pendente_coracao",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall",
+        "plant"
+      ]
+    },
+    {
+      "id": "item.picture_paws_pink",
+      "name": "Quadro de patinhas rosa",
+      "description": "Decoração de parede: quadro com patinhas.",
+      "price": 20,
+      "tile": "decor_quadro_patinhas",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.picture_paw_heart",
+      "name": "Quadro de coração de patas",
+      "description": "Decoração de parede: coração feito de patinhas.",
+      "price": 20,
+      "tile": "decor_quadro_coracao",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.picture_cat",
+      "name": "Quadro de gatinho",
+      "description": "Decoração de parede: silhueta de gato.",
+      "price": 22,
+      "tile": "decor_quadro_gato",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.menu_board_cream",
+      "name": "Quadro de cardápio creme",
+      "description": "Decoração de parede: quadro creme com gatinho.",
+      "price": 40,
+      "tile": "decor_lousa_b",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.menu_board_ears",
+      "name": "Lousa de orelhinhas",
+      "description": "Decoração de parede: lousa verde com orelhas de gato.",
+      "price": 40,
+      "tile": "decor_lousa_c",
+      "tags": [
+        "furniture",
+        "decor",
+        "wall"
+      ]
+    },
+    {
+      "id": "item.doormat_cat",
+      "name": "Capacho de gatinho",
+      "description": "Decoração: capacho rosa com gatinho.",
+      "price": 18,
+      "tile": "decor_capacho_gato",
+      "tags": [
+        "furniture",
+        "decor",
+        "rug"
+      ]
+    },
+    {
+      "id": "item.rug_b",
+      "name": "Tapete grande",
+      "description": "Decoração: tapete grande no chão.",
+      "price": 60,
+      "tile": "decor_tapete_b",
+      "tags": [
+        "furniture",
+        "decor",
+        "rug"
+      ]
+    },
+    {
+      "id": "item.drinks_fridge",
+      "name": "Geladeira de bebidas",
+      "description": "Decoração: geladeira com garrafinhas coloridas.",
+      "price": 120,
+      "tile": "decor_geladeira_bebidas",
+      "tags": [
+        "furniture",
+        "decor"
+      ]
+    },
+    {
+      "id": "item.cake_stand_a",
+      "name": "Expositor de doces",
+      "description": "Decoração do balcão: expositor de dois andares com docinhos.",
+      "price": 30,
+      "tile": "decor_expositor_a",
+      "tags": [
+        "furniture",
+        "decor"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.cake_stand_b",
+      "name": "Expositor de cupcakes",
+      "description": "Decoração do balcão: expositor de madeira com minicupcakes.",
+      "price": 30,
+      "tile": "decor_expositor_b",
+      "tags": [
+        "furniture",
+        "decor"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.cake_stand_c",
+      "name": "Expositor de macarons",
+      "description": "Decoração do balcão: expositor menta com macarons.",
+      "price": 30,
+      "tile": "decor_expositor_c",
+      "tags": [
+        "furniture",
+        "decor"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.cookie_jar",
+      "name": "Pote de biscoitos",
+      "description": "Decoração do balcão: pote com tampa de gatinho.",
+      "price": 15,
+      "tile": "decor_pote_biscoitos",
+      "tags": [
+        "furniture",
+        "decor"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.display_case_empty",
+      "name": "Vitrine de doces (vazia)",
+      "description": "Vitrine para os doces do café, ainda sem nada dentro. Decoração do balcão.",
+      "price": 80,
+      "tile": "decor_vitrine_vazia",
+      "tags": [
+        "furniture",
+        "counter"
+      ]
+    },
+    {
+      "id": "item.yarn_pink",
+      "name": "Novelo rosa",
+      "description": "Os gatos brincam com o novelo.",
+      "price": 4,
+      "tile": "pet_novelo_rosa",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.yarn_green",
+      "name": "Novelo verde",
+      "description": "Os gatos brincam com o novelo.",
+      "price": 4,
+      "tile": "pet_novelo_verde",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.yarn_cream",
+      "name": "Novelo creme",
+      "description": "Os gatos brincam com o novelo.",
+      "price": 4,
+      "tile": "pet_novelo_creme",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.yarn_lilac",
+      "name": "Novelo lilás",
+      "description": "Os gatos brincam com o novelo.",
+      "price": 4,
+      "tile": "pet_novelo_lilas",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.yarn_basket",
+      "name": "Cesta de novelos",
+      "description": "Uma cesta cheia de novelos para os gatos.",
+      "price": 12,
+      "tile": "pet_cesta_novelos",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cushion_tufted",
+      "name": "Almofada capitonê",
+      "description": "Os gatos tiram cochilos nela.",
+      "price": 14,
+      "tile": "pet_almofada_capitone",
+      "tags": [
+        "cat:rest",
+        "furniture",
+        "for:cats",
+        "cushion"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.litter_box_green",
+      "name": "Caixa de areia verde",
+      "description": "Ponha uma troca de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
+      "price": 18,
+      "tile": "pet_caixa_areia_verde",
+      "tags": [
+        "cat:care",
+        "furniture",
+        "for:cats",
+        "litter_box"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.wall_shelf",
       "name": "Prateleira",
       "description": "Decoração de parede: prateleira.",
@@ -968,7 +1390,7 @@
     {
       "id": "item.orange",
       "name": "Laranja",
-      "description": "Laranja fresca, para o suco no liquidificador. Uma por copo.",
+      "description": "Laranja fresca, para o suco no espremedor (sai premium). Uma por copo.",
       "price": 3,
       "kind": "consumable",
       "icon": "fruta_laranja",
@@ -980,7 +1402,7 @@
     {
       "id": "item.strawberry",
       "name": "Morango",
-      "description": "Morango fresco, para o suco no liquidificador. Um por copo.",
+      "description": "Morango fresco, para o suco no espremedor (sai premium). Um por copo.",
       "price": 4,
       "kind": "consumable",
       "icon": "fruta_morango",
@@ -992,7 +1414,7 @@
     {
       "id": "item.lemon",
       "name": "Limão",
-      "description": "Limão fresco, para o suco no liquidificador. Um por copo.",
+      "description": "Limão fresco, para o suco no espremedor (sai premium). Um por copo.",
       "price": 2,
       "kind": "consumable",
       "icon": "fruta_limao",
@@ -1114,7 +1536,7 @@
       "description": "Encomenda de um pedido da vila: leve até quem está esperando.",
       "price": 0,
       "kind": "key",
-      "icon": "caixa_entrega_fechada",
+      "icon": "caixa_bilhete",
       "tags": [
         "job"
       ],
@@ -1137,7 +1559,7 @@
     {
       "id": "item.blender",
       "name": "Liquidificador",
-      "description": "Equipamento: vai em cima do balcão e faz os sucos (e a massa do bolo).",
+      "description": "Equipamento: vai em cima do balcão e faz os sucos de polpa (e a massa do bolo).",
       "price": 70,
       "tile": "eq_liquidificador",
       "tags": [
@@ -1145,6 +1567,20 @@
         "counter",
         "equipment",
         "blender"
+      ],
+      "placeOn": "bar"
+    },
+    {
+      "id": "item.juicer",
+      "name": "Espremedor",
+      "description": "Equipamento: vai em cima do balcão e faz os sucos com a fruta fresca, que saem premium.",
+      "price": 110,
+      "tile": "eq_espremedor",
+      "tags": [
+        "furniture",
+        "counter",
+        "equipment",
+        "juicer"
       ],
       "placeOn": "bar"
     },
@@ -2226,16 +2662,25 @@
       { "id": "upg.chair", "name": "Cadeira", "items": ["item.chair_front", "item.chair_back", "item.chair_left", "item.chair_right"] },
       { "id": "upg.sofa", "name": "Sofá", "items": ["item.sofa", "item.sofa_rosa", "item.sofa_ceu"] },
       { "id": "upg.cat_bed", "name": "Caminha de gato", "items": ["item.cat_bed", "item.cat_bed_rosa", "item.cat_bed_lilas"] },
-      { "id": "upg.cushion", "name": "Almofada", "items": ["item.cushion_pink", "item.cushion_mint", "item.cushion_sky", "item.cushion_lav", "item.cushion_butter"] },
+      { "id": "upg.cushion", "name": "Almofada", "items": ["item.cushion_pink", "item.cushion_mint", "item.cushion_sky", "item.cushion_lav", "item.cushion_butter", "item.cushion_tufted"] },
       { "id": "upg.food_bowl", "name": "Tigela de ração", "items": ["item.food_bowl", "item.auto_feeder"] },
-      { "id": "upg.litter_box", "name": "Caixa de areia", "items": ["item.litter_box", "item.auto_litter_box"] },
+      { "id": "upg.litter_box", "name": "Caixa de areia", "items": ["item.litter_box", "item.auto_litter_box", "item.litter_box_green"] },
       { "id": "upg.yard_chair", "name": "Cadeira de vime", "items": ["item.yard_wicker_chair", "item.yard_wicker_chair_left"] },
       { "id": "upg.yard_lounger", "name": "Espreguiçadeira", "items": ["item.yard_lounger", "item.yard_lounger_left"] },
       { "id": "upg.yard_low_pot", "name": "Vaso baixo", "items": ["item.yard_low_pot_flowers", "item.yard_low_pot_b", "item.yard_low_pot_c"] },
       { "id": "upg.yard_potted_tree", "name": "Arvorezinha no vaso", "items": ["item.yard_potted_tree_a", "item.yard_potted_tree_b"] },
       { "id": "upg.nightstand", "name": "Criado-mudo", "items": ["item.bedroom_nightstand_wood", "item.bedroom_nightstand_cream"] },
       { "id": "upg.pouf", "name": "Pufe", "items": ["item.bedroom_pouf_pink", "item.bedroom_pouf_sage"] },
-      { "id": "upg.wall_picture", "name": "Quadro", "items": ["item.picture_paw", "item.bedroom_picture_mountain", "item.bedroom_picture_flowers", "item.bedroom_picture_moon", "item.bedroom_paw_frame"] }
+      { "id": "upg.wall_picture", "name": "Quadro", "items": ["item.picture_paw", "item.bedroom_picture_mountain", "item.bedroom_picture_flowers", "item.bedroom_picture_moon", "item.bedroom_paw_frame", "item.picture_paws_pink", "item.picture_paw_heart", "item.picture_cat"] },
+      { "id": "upg.plant_tall", "name": "Planta alta", "items": ["item.plant_tall", "item.plant_tall_areca", "item.plant_tall_olive"] },
+      { "id": "upg.cactus", "name": "Cacto", "items": ["item.cactus", "item.cactus_ball", "item.cactus_arms"] },
+      { "id": "upg.plant_pot", "name": "Vaso de planta", "items": ["item.plant_pot", "item.succulent_pot", "item.peace_lily"] },
+      { "id": "upg.flower_vase", "name": "Vaso de flores", "items": ["item.flower_vase", "item.vase_tulips", "item.vase_lavender"] },
+      { "id": "upg.hanging_plant", "name": "Planta pendurada", "items": ["item.plant_hanging", "item.hanging_pothos", "item.hanging_pearls", "item.hanging_ivy", "item.hanging_spider", "item.hanging_heart"] },
+      { "id": "upg.menu_board", "name": "Quadro de cardápio", "items": ["item.menu_board", "item.menu_board_cream", "item.menu_board_ears"] },
+      { "id": "upg.display_case", "name": "Vitrine", "items": ["item.display_case", "item.display_case_empty"] },
+      { "id": "upg.rug", "name": "Tapete", "items": ["item.paw_rug", "item.rug_b"] },
+      { "id": "upg.yarn", "name": "Novelo", "items": ["item.yarn_balls", "item.yarn_pink", "item.yarn_green", "item.yarn_cream", "item.yarn_lilac", "item.yarn_basket"] }
     ]
   }
 }
