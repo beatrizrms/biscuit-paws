@@ -882,12 +882,11 @@
   box-shadow: 0 1px 0 var(--cream3);
 }
 .m-card:hover:not(:disabled) { border-color: var(--wood3); background: #fff; }
-.m-card:disabled { opacity: 0.45; cursor: default; }
+.m-card:disabled { opacity: 0.45; cursor: default; pointer-events: none; /* o hover (dica) vai para a célula */ }
 .m-card.has { border-color: var(--mint3); }
 .m-thumb { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 4px; background: var(--cream2); }
 .m-thumb .thumb { display: block; image-rendering: pixelated; background-repeat: no-repeat; }
 .m-name { font-size: 7px; line-height: 1.15; text-align: center; }
-.m-desc { font-size: 5.5px; line-height: 1.2; text-align: center; color: var(--ink2); }
 .m-price { display: flex; align-items: center; gap: 2px; font-size: 7.5px; font-weight: bold; color: var(--wood4); }
 .m-price .coin { width: 7px; height: 7px; image-rendering: pixelated; }
 .m-owned { font-size: 6px; line-height: 1.2; text-align: center; color: var(--mint3); }
@@ -1068,3 +1067,21 @@
 .catalog.backpack .bp-pantry h3 .why { font-size: 6.5px; font-weight: normal; color: var(--grey2); }
 .catalog.backpack span.bp-pantry-slot { opacity: 1; }
 .catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: 7px; }
+
+/* Dica de hover (hoverTip.ts): para que serve o item, depois de 3 s com o mouse em cima. */
+.hover-tip {
+  position: absolute;
+  z-index: 50;
+  max-width: 150px;
+  padding: 3px 5px;
+  font-size: 7px;
+  line-height: 1.3;
+  color: var(--ink);
+  background: #fffaf0;
+  border: 1px solid var(--wood3);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--cream3);
+  pointer-events: none;
+  animation: hover-tip-in 0.12s ease-out;
+}
+@keyframes hover-tip-in { from { opacity: 0; } }

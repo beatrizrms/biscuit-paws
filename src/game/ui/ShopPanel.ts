@@ -2,7 +2,9 @@
 // total e cobra. A regra (preço, limites, tudo ou nada) mora na sessão (src/core/cart.ts + session.checkout).
 import type { GameSession } from '../../core/session';
 import { premiumIn } from '../../core/recipes';
+import type { ItemDef } from '../../core/content';
 import { content, uiText } from '../content';
+import { hoverTips } from './hoverTip';
 
 const ICON_PX = 16;
 
@@ -11,6 +13,13 @@ const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&
 /** "A", "A e B", "A, B e C". */
 export function listNames(names: string[]): string {
   return names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`;
+}
+
+/** Para que serve o item (balão de hover): a descrição e, se for o caso, as receitas em que ele é premium. */
+export function itemTip(item: ItemDef): string {
+  const premium = premiumIn(content.recipes, item.id);
+  const extra = premium.length > 0 ? uiText.shop.premium.replace('{recipes}', listNames(premium.map((r) => r.name))) : '';
+  return [item.description ?? '', extra].filter(Boolean).join(' ');
 }
 
 type Mode = { kind: 'shelf'; shopId: string; tags: string[] } | { kind: 'checkout'; shopId: string };
@@ -35,6 +44,7 @@ export class ShopPanel {
     this.el.innerHTML = `<header><h2></h2><button class="close">${uiText.shop.close}</button></header><div class="list"></div><footer class="cart-bar"></footer>`;
     root.appendChild(this.el);
     this.list = this.el.querySelector('.list') as HTMLElement;
+    hoverTips(this.list);
     this.bar = this.el.querySelector('.cart-bar') as HTMLElement;
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
     // Um só ouvinte para os botões (a lista é redesenhada a cada mudança).
@@ -132,12 +142,10 @@ export class ShopPanel {
     const row = (id: string) => {
       const item = content.items[id]!;
       const owned = state.inventory[id] ?? 0;
-      const premium = premiumIn(content.recipes, id);
-      return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}">
+      const tip = itemTip(item);
+      return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}"${tip ? ` data-tip="${esc(tip)}"` : ''}>
           <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
-          ${item.description ? `<span class="desc">${esc(item.description)}</span>` : ''}
-          ${premium.length > 0 ? `<span class="premium">${uiText.shop.premium.replace('{recipes}', listNames(premium.map((r) => r.name)))}</span>` : ''}
         </div>`;
     };
     // Seções pela primeira tag que bate (ui_text: shop.sections); o resto vai no fim, sem título.

@@ -4,6 +4,7 @@
     {
       "id": "item.cat_food_basic",
       "name": "Ração simples",
+      "description": "Uma porção de ração. Selecione na barra e use na tigela de ração para alimentar os gatos do dia. Também serve para um gato com fome que chega na porta.",
       "price": 15,
       "kind": "consumable",
       "icon": "racao_simples",
@@ -16,6 +17,7 @@
     {
       "id": "item.cat_food_premium",
       "name": "Ração premium",
+      "description": "Ração de qualidade: enche a tigela de ração como a simples. Também serve para um gato com fome que chega na porta.",
       "price": 35,
       "kind": "consumable",
       "icon": "racao_premium",
@@ -28,6 +30,7 @@
     {
       "id": "item.cat_treat_biscuit",
       "name": "Petisco de biscoito",
+      "description": "Petisco: selecione na barra e dê a um gato para ganhar mais carinho dele.",
       "price": 8,
       "kind": "consumable",
       "icon": "petisco_biscoito",
@@ -40,6 +43,7 @@
     {
       "id": "item.cat_wand",
       "name": "Varinha de penas",
+      "description": "Brinquedo: selecione na barra e use num gato para brincar com ele. Ganha carinho e recupera a sua energia.",
       "price": 18,
       "kind": "tool",
       "use": "wand",
@@ -56,6 +60,7 @@
     {
       "id": "item.cat_brush",
       "name": "Escova de pelo",
+      "description": "Selecione na barra e use num gato para escovar o pelo. Deixa o gato limpo e mais próximo de você.",
       "price": 15,
       "kind": "tool",
       "use": "brush",
@@ -85,6 +90,7 @@
     {
       "id": "item.cat_blanket",
       "name": "Cobertor de gato",
+      "description": "Esquenta um gato com frio que chega na porta, para ele poder entrar no café.",
       "price": 12,
       "kind": "consumable",
       "icon": "mantinha",
@@ -99,6 +105,7 @@
     {
       "id": "item.broom",
       "name": "Vassoura",
+      "description": "Varre a sujeira do café e a neve da rua.",
       "price": 0,
       "kind": "tool",
       "icon": "vassoura",
@@ -109,6 +116,7 @@
     {
       "id": "item.key_bakery",
       "name": "Chave da padaria",
+      "description": "Abre a porta da padaria.",
       "price": 0,
       "kind": "key",
       "icon": "chave_padaria",
@@ -120,6 +128,7 @@
     {
       "id": "item.cat_bed",
       "name": "Caminha de gato",
+      "description": "Os gatos dormem nela.",
       "price": 25,
       "tile": "cat_bed",
       "tags": [
@@ -133,6 +142,7 @@
     {
       "id": "item.cat_bed_rosa",
       "name": "Caminha rosa",
+      "description": "Os gatos dormem nela. Versão rosa.",
       "price": 25,
       "tile": "cat_bed_rosa",
       "tags": [
@@ -146,6 +156,7 @@
     {
       "id": "item.cat_bed_lilas",
       "name": "Caminha lilás",
+      "description": "Os gatos dormem nela. Versão lilás.",
       "price": 25,
       "tile": "cat_bed_lilas",
       "tags": [
@@ -159,6 +170,7 @@
     {
       "id": "item.litter_box",
       "name": "Caixa de areia",
+      "description": "Ponha uma troca de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "price": 15,
       "tile": "ph_litter_box",
       "tags": [
@@ -173,6 +185,7 @@
     {
       "id": "item.water_bowl",
       "name": "Tigela de água",
+      "description": "Água fresca para os gatos.",
       "price": 8,
       "tile": "water_bowl",
       "tags": [
@@ -186,6 +199,7 @@
     {
       "id": "item.food_bowl",
       "name": "Tigela de ração",
+      "description": "Encha com ração todo dia para alimentar os gatos.",
       "price": 8,
       "tile": "food_bowl",
       "tags": [
@@ -200,6 +214,7 @@
     {
       "id": "item.yarn_balls",
       "name": "Novelos",
+      "description": "Os gatos brincam com os novelos.",
       "price": 6,
       "tile": "yarn_balls",
       "tags": [
@@ -213,6 +228,7 @@
     {
       "id": "item.cushion_pink",
       "name": "Almofada rosa",
+      "description": "Os gatos tiram cochilos nela.",
       "price": 10,
       "tile": "cushion_pink",
       "tags": [
@@ -227,6 +243,7 @@
     {
       "id": "item.cushion_mint",
       "name": "Almofada menta",
+      "description": "Os gatos tiram cochilos nela.",
       "price": 10,
       "tile": "cushion_mint",
       "tags": [
@@ -241,6 +258,7 @@
     {
       "id": "item.cushion_sky",
       "name": "Almofada azul",
+      "description": "Os gatos tiram cochilos nela.",
       "price": 10,
       "tile": "cushion_sky",
       "tags": [
@@ -255,6 +273,7 @@
     {
       "id": "item.cushion_lav",
       "name": "Almofada lavanda",
+      "description": "Os gatos tiram cochilos nela.",
       "price": 10,
       "tile": "cushion_lav",
       "tags": [
@@ -269,6 +288,7 @@
     {
       "id": "item.cushion_butter",
       "name": "Almofada amarela",
+      "description": "Os gatos tiram cochilos nela.",
       "price": 10,
       "tile": "cushion_butter",
       "tags": [
@@ -283,6 +303,7 @@
     {
       "id": "item.scratch_post",
       "name": "Arranhador",
+      "description": "Os gatos brincam e afiam as unhas nele (dois por vez).",
       "price": 35,
       "tile": "scratch_post",
       "tags": [
@@ -296,6 +317,7 @@
     {
       "id": "item.cat_condo",
       "name": "Casinha de gato",
+      "description": "Os gatos dormem dentro e sentam em cima.",
       "price": 140,
       "tile": "cat_condo",
       "tags": [
@@ -309,6 +331,7 @@
     {
       "id": "item.cat_tree",
       "name": "Árvore de gato",
+      "description": "Os gatos sobem nas plataformas para sentar e dormir.",
       "price": 180,
       "tile": "cat_tree",
       "tags": [
@@ -322,6 +345,7 @@
     {
       "id": "item.counter_left",
       "name": "Balcão (ponta esquerda)",
+      "description": "Ponta esquerda do balcão. Cliente em pé é atendido no balcão, e a cafeteira, o bule e o liquidificador vão em cima.",
       "price": 20,
       "tile": "bar_balcao_esq",
       "tags": [
@@ -333,6 +357,7 @@
     {
       "id": "item.counter_mid",
       "name": "Balcão (meio)",
+      "description": "Meio do balcão: junte com as pontas para fazer um balcão comprido. Cliente em pé é atendido nele, e os equipamentos vão em cima.",
       "price": 15,
       "tile": "bar_balcao_meio",
       "tags": [
@@ -344,6 +369,7 @@
     {
       "id": "item.counter_right",
       "name": "Balcão (ponta direita)",
+      "description": "Ponta direita do balcão. Cliente em pé é atendido no balcão, e os equipamentos vão em cima.",
       "price": 20,
       "tile": "bar_balcao_dir",
       "tags": [
@@ -355,6 +381,7 @@
     {
       "id": "item.counter_single",
       "name": "Balcão pequeno",
+      "description": "Balcão de uma peça só. Cliente em pé é atendido nele, e um equipamento vai em cima.",
       "price": 25,
       "tile": "counter_single",
       "tags": [
@@ -366,6 +393,7 @@
     {
       "id": "item.counter_register",
       "name": "Balcão com caixa",
+      "description": "Balcão com a caixa registradora. Cliente em pé é atendido nele.",
       "price": 45,
       "tile": "counter_register",
       "tags": [
@@ -377,6 +405,7 @@
     {
       "id": "item.counter_a_left",
       "name": "Balcão verde (ponta esquerda)",
+      "description": "Ponta esquerda do balcão verde. Cliente em pé é atendido no balcão, e os equipamentos vão em cima.",
       "price": 20,
       "tile": "counter_a_left",
       "tags": [
@@ -388,6 +417,7 @@
     {
       "id": "item.counter_a_mid",
       "name": "Balcão verde (meio)",
+      "description": "Meio do balcão verde: junte com as pontas. Cliente em pé é atendido nele, e os equipamentos vão em cima.",
       "price": 15,
       "tile": "counter_a_mid",
       "tags": [
@@ -399,6 +429,7 @@
     {
       "id": "item.counter_a_right",
       "name": "Balcão verde (ponta direita)",
+      "description": "Ponta direita do balcão verde. Cliente em pé é atendido no balcão, e os equipamentos vão em cima.",
       "price": 20,
       "tile": "counter_a_right",
       "tags": [
@@ -410,6 +441,7 @@
     {
       "id": "item.counter_a_single",
       "name": "Balcão verde pequeno",
+      "description": "Balcão verde de uma peça só. Cliente em pé é atendido nele, e um equipamento vai em cima.",
       "price": 25,
       "tile": "counter_a_single",
       "tags": [
@@ -421,6 +453,7 @@
     {
       "id": "item.counter_b_left",
       "name": "Balcão de ripas (ponta esquerda)",
+      "description": "Ponta esquerda do balcão de ripas. Cliente em pé é atendido no balcão, e os equipamentos vão em cima.",
       "price": 20,
       "tile": "counter_b_left",
       "tags": [
@@ -432,6 +465,7 @@
     {
       "id": "item.counter_b_mid",
       "name": "Balcão de ripas (meio)",
+      "description": "Meio do balcão de ripas: junte com as pontas. Cliente em pé é atendido nele, e os equipamentos vão em cima.",
       "price": 15,
       "tile": "counter_b_mid",
       "tags": [
@@ -443,6 +477,7 @@
     {
       "id": "item.counter_b_right",
       "name": "Balcão de ripas (ponta direita)",
+      "description": "Ponta direita do balcão de ripas. Cliente em pé é atendido no balcão, e os equipamentos vão em cima.",
       "price": 20,
       "tile": "counter_b_right",
       "tags": [
@@ -454,6 +489,7 @@
     {
       "id": "item.counter_b_single",
       "name": "Balcão de ripas pequeno",
+      "description": "Balcão de ripas de uma peça só. Cliente em pé é atendido nele, e um equipamento vai em cima.",
       "price": 25,
       "tile": "counter_b_single",
       "tags": [
@@ -465,6 +501,7 @@
     {
       "id": "item.display_case",
       "name": "Vitrine de doces",
+      "description": "Vitrine para os doces do café. Decoração do balcão.",
       "price": 90,
       "tile": "display_case",
       "tags": [
@@ -475,6 +512,7 @@
     {
       "id": "item.table_round",
       "name": "Mesa redonda",
+      "description": "Mesa para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_round",
       "tags": [
@@ -486,6 +524,7 @@
     {
       "id": "item.chair_front",
       "name": "Cadeira (de frente)",
+      "description": "Cadeira para os clientes. Ao lado de uma mesa, vira um lugar para sentar e pedir.",
       "price": 15,
       "tile": "chair_front",
       "tags": [
@@ -497,6 +536,7 @@
     {
       "id": "item.chair_back",
       "name": "Cadeira (de costas)",
+      "description": "Cadeira para os clientes. Ao lado de uma mesa, vira um lugar para sentar e pedir.",
       "price": 15,
       "tile": "chair_back",
       "tags": [
@@ -508,6 +548,7 @@
     {
       "id": "item.chair_left",
       "name": "Cadeira (virada para a esquerda)",
+      "description": "Cadeira para os clientes. Ao lado de uma mesa, vira um lugar para sentar e pedir.",
       "price": 15,
       "tile": "chair_left",
       "tags": [
@@ -519,6 +560,7 @@
     {
       "id": "item.chair_right",
       "name": "Cadeira (virada para a direita)",
+      "description": "Cadeira para os clientes. Ao lado de uma mesa, vira um lugar para sentar e pedir.",
       "price": 15,
       "tile": "chair_right",
       "tags": [
@@ -530,6 +572,7 @@
     {
       "id": "item.sofa",
       "name": "Sofá menta",
+      "description": "Sente para descansar e recuperar energia.",
       "price": 120,
       "tile": "sofa",
       "tags": [
@@ -540,6 +583,7 @@
     {
       "id": "item.sofa_rosa",
       "name": "Sofá rosa",
+      "description": "Sente para descansar e recuperar energia. Versão rosa.",
       "price": 120,
       "tile": "sofa_rosa",
       "tags": [
@@ -550,6 +594,7 @@
     {
       "id": "item.sofa_ceu",
       "name": "Sofá céu",
+      "description": "Sente para descansar e recuperar energia. Versão azul-céu.",
       "price": 120,
       "tile": "sofa_ceu",
       "tags": [
@@ -560,6 +605,7 @@
     {
       "id": "item.bookshelf",
       "name": "Estante de livros",
+      "description": "Decoração: estante cheia de livros.",
       "price": 80,
       "tile": "bookshelf",
       "tags": [
@@ -570,6 +616,7 @@
     {
       "id": "item.plant_pot",
       "name": "Vaso de planta",
+      "description": "Decoração: um vasinho verde.",
       "price": 20,
       "tile": "plant_pot",
       "tags": [
@@ -581,6 +628,7 @@
     {
       "id": "item.plant_tall",
       "name": "Planta alta",
+      "description": "Decoração: planta alta para os cantos.",
       "price": 45,
       "tile": "plant_tall",
       "tags": [
@@ -592,6 +640,7 @@
     {
       "id": "item.cactus",
       "name": "Cacto",
+      "description": "Decoração: cacto que quase não dá trabalho.",
       "price": 12,
       "tile": "cactus",
       "tags": [
@@ -603,6 +652,7 @@
     {
       "id": "item.flower_vase",
       "name": "Vaso de flores",
+      "description": "Decoração: flores frescas.",
       "price": 14,
       "tile": "flower_vase",
       "tags": [
@@ -614,6 +664,7 @@
     {
       "id": "item.paw_rug",
       "name": "Tapete de patinhas",
+      "description": "Decoração: tapete no chão.",
       "price": 60,
       "tile": "floor_rug",
       "tags": [
@@ -625,6 +676,7 @@
     {
       "id": "item.menu_board",
       "name": "Quadro de cardápio",
+      "description": "Decoração de parede: quadro com o cardápio.",
       "price": 40,
       "tile": "menu_board",
       "tags": [
@@ -636,6 +688,7 @@
     {
       "id": "item.wall_clock",
       "name": "Relógio de gato",
+      "description": "Decoração de parede: relógio em forma de gato.",
       "price": 25,
       "tile": "wall_clock",
       "tags": [
@@ -647,6 +700,7 @@
     {
       "id": "item.picture_paw",
       "name": "Quadro de patinha",
+      "description": "Decoração de parede: quadro de patinha.",
       "price": 20,
       "tile": "picture_paw",
       "tags": [
@@ -658,6 +712,7 @@
     {
       "id": "item.decor_planter",
       "name": "Floreira de flores",
+      "description": "Decoração: floreira cheia de flores.",
       "price": 18,
       "tile": "decor_floreira",
       "tags": [
@@ -669,6 +724,7 @@
     {
       "id": "item.decor_leafy_pot",
       "name": "Vaso de folhagem",
+      "description": "Decoração: vaso de folhagem.",
       "price": 16,
       "tile": "decor_vaso_folhagem",
       "tags": [
@@ -680,6 +736,7 @@
     {
       "id": "item.decor_watering_can",
       "name": "Regador",
+      "description": "Decoração: regador.",
       "price": 8,
       "tile": "decor_regador",
       "tags": [
@@ -690,6 +747,7 @@
     {
       "id": "item.decor_picnic_basket",
       "name": "Cesta de piquenique",
+      "description": "Decoração: cesta de piquenique.",
       "price": 14,
       "tile": "decor_cesta_piquenique",
       "tags": [
@@ -700,6 +758,7 @@
     {
       "id": "item.decor_lantern",
       "name": "Lampião",
+      "description": "Decoração: lampião.",
       "price": 18,
       "tile": "decor_lampiao",
       "tags": [
@@ -710,6 +769,7 @@
     {
       "id": "item.decor_books",
       "name": "Pilha de livros",
+      "description": "Decoração: pilha de livros.",
       "price": 10,
       "tile": "decor_livros",
       "tags": [
@@ -720,6 +780,7 @@
     {
       "id": "item.wall_shelf",
       "name": "Prateleira",
+      "description": "Decoração de parede: prateleira.",
       "price": 30,
       "tile": "wall_shelf",
       "tags": [
@@ -731,6 +792,7 @@
     {
       "id": "item.plant_hanging",
       "name": "Planta pendurada",
+      "description": "Decoração de parede: planta pendurada.",
       "price": 18,
       "tile": "plant_hanging",
       "tags": [
@@ -743,6 +805,7 @@
     {
       "id": "item.cafe_sign",
       "name": "Lousa do café",
+      "description": "Lousa na fachada do café, para quem passa na rua ver o cardápio.",
       "price": 45,
       "kind": "fixture",
       "tile": "prop_lousa_cafe",
@@ -756,6 +819,7 @@
     {
       "id": "item.coffee_beans_bag",
       "name": "Café em grãos (saco)",
+      "description": "Café em grãos: rende 15 doses de café.",
       "price": 28,
       "kind": "consumable",
       "icon": "graos_cafe_saco",
@@ -768,6 +832,7 @@
     {
       "id": "item.coffee_beans_loose",
       "name": "Café em grãos a granel",
+      "description": "Café em grãos a granel: rende 5 doses.",
       "price": 12,
       "kind": "consumable",
       "icon": "graos_cafe_soltos",
@@ -780,6 +845,7 @@
     {
       "id": "item.coffee_ground",
       "name": "Pó de café",
+      "description": "Pó de café para a cafeteira: rende 10 doses de café.",
       "price": 18,
       "kind": "consumable",
       "icon": "po_cafe_pacote",
@@ -792,6 +858,7 @@
     {
       "id": "item.paper_filter",
       "name": "Filtros de papel",
+      "description": "Filtro da cafeteira: cada café passado usa um. O pacote rende 10.",
       "price": 6,
       "kind": "consumable",
       "icon": "filtro_papel",
@@ -804,6 +871,7 @@
     {
       "id": "item.tea_black_box",
       "name": "Chá preto (caixa)",
+      "description": "Caixa de chá preto: rende 10 xícaras.",
       "price": 14,
       "kind": "consumable",
       "icon": "cha_preto_caixa",
@@ -816,6 +884,7 @@
     {
       "id": "item.tea_green_box",
       "name": "Chá verde (caixa)",
+      "description": "Caixa de chá verde: rende 10 xícaras.",
       "price": 14,
       "kind": "consumable",
       "icon": "cha_verde_caixa",
@@ -828,6 +897,7 @@
     {
       "id": "item.tea_chamomile_box",
       "name": "Chá de camomila (caixa)",
+      "description": "Caixa de chá de camomila: rende 10 xícaras.",
       "price": 14,
       "kind": "consumable",
       "icon": "cha_camomila_caixa",
@@ -840,6 +910,7 @@
     {
       "id": "item.tea_black_bag",
       "name": "Saquinho de chá preto",
+      "description": "Um saquinho: uma xícara de chá preto no bule.",
       "price": 3,
       "kind": "consumable",
       "icon": "saquinho_cha_preto",
@@ -851,6 +922,7 @@
     {
       "id": "item.tea_green_bag",
       "name": "Saquinho de chá verde",
+      "description": "Um saquinho: uma xícara de chá verde no bule.",
       "price": 3,
       "kind": "consumable",
       "icon": "saquinho_cha_verde",
@@ -862,6 +934,7 @@
     {
       "id": "item.tea_leaves_tin",
       "name": "Lata de folhas de chá",
+      "description": "Folhas de chá soltas: rende 15 xícaras no bule.",
       "price": 22,
       "kind": "consumable",
       "icon": "lata_folhas_cha",
@@ -874,6 +947,7 @@
     {
       "id": "item.orange",
       "name": "Laranja",
+      "description": "Laranja fresca, para o suco no liquidificador. Uma por copo.",
       "price": 3,
       "kind": "consumable",
       "icon": "fruta_laranja",
@@ -885,6 +959,7 @@
     {
       "id": "item.strawberry",
       "name": "Morango",
+      "description": "Morango fresco, para o suco no liquidificador. Um por copo.",
       "price": 4,
       "kind": "consumable",
       "icon": "fruta_morango",
@@ -896,6 +971,7 @@
     {
       "id": "item.lemon",
       "name": "Limão",
+      "description": "Limão fresco, para o suco no liquidificador. Um por copo.",
       "price": 2,
       "kind": "consumable",
       "icon": "fruta_limao",
@@ -907,6 +983,7 @@
     {
       "id": "item.pulp_orange",
       "name": "Polpa de laranja",
+      "description": "Polpa para o suco de laranja no liquidificador. Uma por copo.",
       "price": 6,
       "kind": "consumable",
       "icon": "polpa_laranja",
@@ -918,6 +995,7 @@
     {
       "id": "item.pulp_strawberry",
       "name": "Polpa de morango",
+      "description": "Polpa para o suco de morango no liquidificador. Uma por copo.",
       "price": 7,
       "kind": "consumable",
       "icon": "polpa_morango",
@@ -929,6 +1007,7 @@
     {
       "id": "item.pulp_lemon",
       "name": "Polpa de limão",
+      "description": "Polpa para o suco de limão no liquidificador. Uma por copo.",
       "price": 6,
       "kind": "consumable",
       "icon": "polpa_limao",
@@ -940,6 +1019,7 @@
     {
       "id": "item.sugar",
       "name": "Açúcar",
+      "description": "Adoça os sucos: rende 10 copos.",
       "price": 5,
       "kind": "consumable",
       "icon": "acucar_pacote",
@@ -952,6 +1032,7 @@
     {
       "id": "item.honey",
       "name": "Mel",
+      "description": "Pote de mel: rende 10 doses.",
       "price": 15,
       "kind": "consumable",
       "icon": "mel_pote",
@@ -964,6 +1045,7 @@
     {
       "id": "item.milk_powder",
       "name": "Leite em pó",
+      "description": "Leite em pó para o café com leite: rende 10 xícaras.",
       "price": 12,
       "kind": "consumable",
       "icon": "leite_po_lata",
@@ -976,6 +1058,7 @@
     {
       "id": "item.dishes_set",
       "name": "Conjunto de louças",
+      "description": "Xícaras, copos e pratos para servir os clientes.",
       "price": 0,
       "kind": "gift",
       "icon": "caixa_presente_laco",
@@ -993,6 +1076,7 @@
     {
       "id": "item.coffee_machine",
       "name": "Cafeteira",
+      "description": "Equipamento: vai em cima do balcão e faz o café preto e o café com leite.",
       "price": 180,
       "tile": "eq_cafeteira",
       "tags": [
@@ -1006,6 +1090,7 @@
     {
       "id": "item.parcel",
       "name": "Caixa de encomenda",
+      "description": "Encomenda de um pedido da vila: leve até quem está esperando.",
       "price": 0,
       "kind": "key",
       "icon": "caixa_entrega_fechada",
@@ -1017,6 +1102,7 @@
     {
       "id": "item.teapot",
       "name": "Bule com fogareiro",
+      "description": "Equipamento: vai em cima do balcão e faz os chás.",
       "price": 45,
       "tile": "eq_bule",
       "tags": [
@@ -1030,6 +1116,7 @@
     {
       "id": "item.blender",
       "name": "Liquidificador",
+      "description": "Equipamento: vai em cima do balcão e faz os sucos (e a massa do bolo).",
       "price": 70,
       "tile": "eq_liquidificador",
       "tags": [
@@ -1043,6 +1130,7 @@
     {
       "id": "item.tray",
       "name": "Bandeja",
+      "description": "Selecionada na barra, leva até 3 louças de uma vez.",
       "price": 20,
       "kind": "tool",
       "icon": "bandeja_vazia",
@@ -1054,6 +1142,7 @@
     {
       "id": "item.cat_food_sack",
       "name": "Saco de ração (5 porções)",
+      "description": "Saco pesado: guardado, vira 5 porções de ração simples.",
       "price": 60,
       "kind": "consumable",
       "icon": "racao_simples",
@@ -1069,6 +1158,7 @@
     {
       "id": "item.litter_sack",
       "name": "Saco de areia (4 trocas)",
+      "description": "Saco pesado: guardado, vira 4 trocas de areia.",
       "price": 40,
       "kind": "consumable",
       "icon": "areia",
@@ -1150,6 +1240,7 @@
     {
       "id": "item.flour",
       "name": "Farinha",
+      "description": "Farinha para o pão de queijo e o bolo: rende 10 receitas.",
       "price": 12,
       "kind": "consumable",
       "icon": "farinha",
@@ -1162,6 +1253,7 @@
     {
       "id": "item.eggs",
       "name": "Ovos (dúzia)",
+      "description": "Ovos para o pão de queijo e o bolo: 12 receitas.",
       "price": 10,
       "kind": "consumable",
       "icon": "ovos",
@@ -1174,6 +1266,7 @@
     {
       "id": "item.milk",
       "name": "Leite",
+      "description": "Leite para o pão de queijo: rende 5 receitas.",
       "price": 8,
       "kind": "consumable",
       "icon": "leite",
@@ -1186,6 +1279,7 @@
     {
       "id": "item.butter",
       "name": "Manteiga",
+      "description": "Manteiga para o bolo: rende 8 receitas.",
       "price": 9,
       "kind": "consumable",
       "icon": "manteiga",
@@ -1198,6 +1292,7 @@
     {
       "id": "item.chocolate",
       "name": "Chocolate",
+      "description": "Chocolate para o bolo: rende 8 receitas.",
       "price": 14,
       "kind": "consumable",
       "icon": "chocolate",
@@ -1210,6 +1305,7 @@
     {
       "id": "item.stove",
       "name": "Fogão",
+      "description": "Equipamento: vai em cima do balcão. Primeira etapa do pão de queijo.",
       "price": 120,
       "tile": "eq_fogao",
       "tags": [
@@ -1223,6 +1319,7 @@
     {
       "id": "item.oven",
       "name": "Forno",
+      "description": "Equipamento: vai em cima do balcão. Assa o pão de queijo e o bolo.",
       "price": 160,
       "tile": "eq_forno",
       "tags": [
@@ -1236,6 +1333,7 @@
     {
       "id": "item.vet_medicine",
       "name": "Remédio da Fernanda",
+      "description": "Remédio da veterinária: dê ao gato doente para ele sarar.",
       "price": 0,
       "kind": "consumable",
       "icon": "remedio",
@@ -1248,6 +1346,7 @@
     {
       "id": "item.key_backyard",
       "name": "Chave enferrujada",
+      "description": "Uma chave velha e enferrujada. Abre a porta do jardim.",
       "price": 0,
       "kind": "key",
       "icon": "chave_enferrujada",
@@ -1258,6 +1357,7 @@
     {
       "id": "item.playground_tunnel",
       "name": "Túnel de gato",
+      "description": "Módulo do playground (quintal, com 10 gatos): os gatos brincam no túnel. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 45,
       "tile": "room_tunel",
       "tags": [
@@ -1283,6 +1383,7 @@
     {
       "id": "item.playground_house",
       "name": "Casinha de gato",
+      "description": "Módulo do playground (quintal, com 10 gatos): os gatos dormem na casinha. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 60,
       "tile": "room_casinha",
       "tags": [
@@ -1308,6 +1409,7 @@
     {
       "id": "item.playground_log",
       "name": "Tora de arranhar",
+      "description": "Módulo do playground (quintal, com 10 gatos): os gatos brincam e arranham a tora. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 35,
       "tile": "room_tora",
       "tags": [
@@ -1333,6 +1435,7 @@
     {
       "id": "item.playground_sun_bed",
       "name": "Cama ao sol",
+      "description": "Módulo do playground (quintal, com 10 gatos): os gatos cochilam ao sol. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 40,
       "tile": "room_cama_ao_sol",
       "tags": [
@@ -1358,6 +1461,7 @@
     {
       "id": "item.playground_bowl",
       "name": "Tigela do quintal",
+      "description": "Módulo do playground (quintal, com 10 gatos): água para os gatos. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 15,
       "tile": "water_bowl",
       "tags": [
@@ -1383,6 +1487,7 @@
     {
       "id": "item.playground_cat_tree",
       "name": "Árvore de gato do quintal",
+      "description": "Módulo do playground (quintal, com 10 gatos): os gatos sobem para sentar e dormir. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 90,
       "tile": "cat_tree",
       "tags": [
@@ -1408,6 +1513,7 @@
     {
       "id": "item.fish_silver",
       "name": "Peixe prateado",
+      "description": "Peixe comum, pescado na vila.",
       "price": 0,
       "kind": "consumable",
       "icon": "peixe_prateado",
@@ -1418,6 +1524,7 @@
     {
       "id": "item.fish_sardine",
       "name": "Sardinha",
+      "description": "Peixe comum, pescado na vila.",
       "price": 0,
       "kind": "consumable",
       "icon": "peixe_sardinha",
@@ -1428,6 +1535,7 @@
     {
       "id": "item.fish_tuna",
       "name": "Atum azul",
+      "description": "Peixe incomum, pescado na vila.",
       "price": 0,
       "kind": "consumable",
       "icon": "peixe_atum",
@@ -1438,6 +1546,7 @@
     {
       "id": "item.fish_salmon",
       "name": "Salmão",
+      "description": "Peixe raro, pescado na vila.",
       "price": 0,
       "kind": "consumable",
       "icon": "peixe_salmao",
@@ -1448,6 +1557,7 @@
     {
       "id": "item.fish_golden",
       "name": "Peixe dourado",
+      "description": "Peixe lendário! Pouca gente consegue pescar.",
       "price": 0,
       "kind": "consumable",
       "icon": "peixe_dourado",
@@ -1458,6 +1568,7 @@
     {
       "id": "item.old_boot",
       "name": "Bota velha",
+      "description": "Veio no anzol. Não serve para nada.",
       "price": 0,
       "kind": "consumable",
       "icon": "bota_velha",
@@ -1468,6 +1579,7 @@
     {
       "id": "item.yard_pergola_oven",
       "name": "Pérgola com forno",
+      "description": "Decoração do quintal: pérgola com forno a lenha.",
       "price": 180,
       "tile": "yard_pergola_forno",
       "tags": [
@@ -1483,6 +1595,7 @@
     {
       "id": "item.yard_string_lights",
       "name": "Varal de luzinhas",
+      "description": "Decoração do quintal: varal de luzinhas.",
       "price": 30,
       "tile": "yard_luzinhas_fio",
       "tags": [
@@ -1498,6 +1611,7 @@
     {
       "id": "item.yard_hedge_lamp",
       "name": "Luminária de sebe",
+      "description": "Decoração do quintal: luminária para a sebe.",
       "price": 20,
       "tile": "yard_luminaria_parede_sebe",
       "tags": [
@@ -1513,6 +1627,7 @@
     {
       "id": "item.yard_floor_lamp",
       "name": "Lampião de jardim",
+      "description": "Decoração do quintal: lampião de jardim.",
       "price": 25,
       "tile": "yard_lampada_chao",
       "tags": [
@@ -1528,6 +1643,7 @@
     {
       "id": "item.yard_wicker_chair",
       "name": "Cadeira de vime",
+      "description": "Decoração do quintal: cadeira de vime.",
       "price": 30,
       "tile": "yard_cadeira_vime",
       "tags": [
@@ -1543,6 +1659,7 @@
     {
       "id": "item.yard_wicker_chair_left",
       "name": "Cadeira de vime (para a esquerda)",
+      "description": "Decoração do quintal: cadeira de vime virada para a esquerda.",
       "price": 30,
       "tile": "yard_cadeira_vime_esq",
       "tags": [
@@ -1558,6 +1675,7 @@
     {
       "id": "item.yard_round_table",
       "name": "Mesa redonda de jardim",
+      "description": "Decoração do quintal: mesa redonda de jardim.",
       "price": 45,
       "tile": "yard_mesa_redonda_branca",
       "tags": [
@@ -1573,6 +1691,7 @@
     {
       "id": "item.yard_lounger",
       "name": "Espreguiçadeira",
+      "description": "Decoração do quintal: espreguiçadeira.",
       "price": 50,
       "tile": "yard_espreguicadeira_lado",
       "tags": [
@@ -1588,6 +1707,7 @@
     {
       "id": "item.yard_lounger_left",
       "name": "Espreguiçadeira (para a esquerda)",
+      "description": "Decoração do quintal: espreguiçadeira virada para a esquerda.",
       "price": 50,
       "tile": "yard_espreguicadeira_lado_esp",
       "tags": [
@@ -1603,6 +1723,7 @@
     {
       "id": "item.yard_garden_bench",
       "name": "Banco de jardim",
+      "description": "Decoração do quintal: banco de jardim.",
       "price": 40,
       "tile": "yard_banco_lado",
       "tags": [
@@ -1618,6 +1739,7 @@
     {
       "id": "item.yard_topiary",
       "name": "Topiaria",
+      "description": "Decoração: topiaria podada.",
       "price": 35,
       "tile": "yard_topiaria",
       "tags": [
@@ -1632,6 +1754,7 @@
     {
       "id": "item.yard_dracaena",
       "name": "Dracena",
+      "description": "Decoração: dracena no vaso.",
       "price": 30,
       "tile": "yard_dracena",
       "tags": [
@@ -1646,6 +1769,7 @@
     {
       "id": "item.yard_potted_tree_a",
       "name": "Arvorezinha no vaso",
+      "description": "Decoração: arvorezinha no vaso.",
       "price": 40,
       "tile": "yard_vaso_arvore_a",
       "tags": [
@@ -1660,6 +1784,7 @@
     {
       "id": "item.yard_potted_tree_b",
       "name": "Arvorezinha no vaso alto",
+      "description": "Decoração: arvorezinha num vaso alto.",
       "price": 40,
       "tile": "yard_vaso_arvore_b",
       "tags": [
@@ -1674,6 +1799,7 @@
     {
       "id": "item.yard_low_pot_flowers",
       "name": "Vaso baixo com flores",
+      "description": "Decoração: vaso baixo com flores.",
       "price": 15,
       "tile": "yard_vaso_baixo_flores",
       "tags": [
@@ -1688,6 +1814,7 @@
     {
       "id": "item.yard_low_pot_b",
       "name": "Vaso baixo de cerâmica",
+      "description": "Decoração: vaso baixo de cerâmica.",
       "price": 12,
       "tile": "yard_vaso_baixo_b",
       "tags": [
@@ -1702,6 +1829,7 @@
     {
       "id": "item.yard_low_pot_c",
       "name": "Vaso baixo de barro",
+      "description": "Decoração: vaso baixo de barro.",
       "price": 12,
       "tile": "yard_vaso_baixo_c",
       "tags": [
@@ -1716,6 +1844,7 @@
     {
       "id": "item.yard_ceramic_stool",
       "name": "Banquinho de cerâmica",
+      "description": "Decoração: banquinho de cerâmica.",
       "price": 18,
       "tile": "yard_banquinho_ceramica",
       "tags": [
