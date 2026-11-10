@@ -470,3 +470,7 @@ Decisão: nos dias de obra, um cone (`coneTile` em `data/finishes.json` construc
 ## 115. Entrada do café embaixo, só com o capacho (nov/2026)
 Contexto: a porta da rua ficava na parede de cima do salão, mas na visão de cima não dá para ver a porta de quem entra pela frente; e o alto da parede vai ser o lugar da porta oculta do quintal secreto.
 Decisão: a entrada e a saída do café ficam na face sul: `door.street` em [14,10] (`direction: down`: andar para baixo sobre o capacho sai para a rua), marcada só pelo capacho; a peça da porta na parede de cima saiu. Ela chega da rua em [14,9], virada para dentro. Acompanharam a porta: quem entra nos roteiros (Gabi, Joca, Dona Neusa) aparece no capacho e sai por ele; a corretora entra com ela logo acima da porta; os clientes entram pela porta da rua (lida do mapa); a fila do atendimento ([13,9], [12,9]), a pilha das entregas de dentro ([15,9]) e a placa de fechado da feira ([15,10]) foram para perto da entrada.
+
+## 116. A frente do café na rua fica livre (nov/2026)
+Contexto: a árvore de Natal ficava em frente ao café, bem onde a entregadora deixa os pacotes (e onde o Tião trabalha na fachada).
+Decisão: a árvore de Natal foi para a vitrine do mercado ([22,7]). Nenhum objeto da rua (fora as fachadas) pode cobrir o lugar dos pacotes (`delivery.json` door), o lugar do Tião na fachada nem a chegada na rua, em nenhuma estação: um teste em `tests/core/map.test.ts` confere.
