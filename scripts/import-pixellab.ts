@@ -576,6 +576,9 @@ const SHEETS: Sheet[] = [
       caixa_areia_verde: { file: 'icones/loja/obj_1.png', w: 1, h: 1 },
       // Caixa pet (baú dos itens dos gatos, 8 espaços): gerada em 2026-11-10, Pro Flash 64x64 com o pote como âncora.
       box: { file: 'automaticos/caixa_pet.png', w: 1, h: 1 },
+      // Vieram junto na geração do robô aspirador (robo_aspirador/), à venda na aba Pet: toquinha e arranhador de papelão.
+      toquinha: { file: 'robo_aspirador/toquinha.png', w: 1, h: 1 },
+      arranhador_papelao: { file: 'robo_aspirador/arranhador_papelao.png', w: 1, h: 1 },
     },
   },
   {
@@ -595,6 +598,10 @@ const SHEETS: Sheet[] = [
     auto: true,
     layout: {
       lava_loucas: { file: 'cafe_equip/lava_loucas.png', w: 1, h: 1 },
+      // Robô aspirador (robo_aspirador/): a base de carregar (o item; base.png é o frame_3 com o desenho encostado no
+      // alto da célula, junto da parede) e o robô (a cena desenha estacionado na frente da base e andando).
+      robo_base: { file: 'robo_aspirador/base.png', w: 1, h: 1 },
+      robo: { file: 'robo_aspirador/robo.png', w: 1, h: 1 },
     },
   },
   {

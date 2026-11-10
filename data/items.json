@@ -334,6 +334,36 @@
       }
     },
     {
+      "id": "item.scratch_pad_cardboard",
+      "name": "Arranhador de papelão",
+      "description": "Arranhador horizontal de papelão: os gatos sobem nele para afiar as unhas e brincar.",
+      "price": 30,
+      "tile": "pet_arranhador_papelao",
+      "tags": [
+        "cat:toy",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.cat_cave",
+      "name": "Toquinha",
+      "description": "Uma toquinha macia: os gatos dormem nela.",
+      "price": 40,
+      "tile": "pet_toquinha",
+      "tags": [
+        "cat:rest",
+        "furniture",
+        "for:cats"
+      ],
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
       "id": "item.cat_condo",
       "name": "Casinha de gato",
       "description": "Os gatos dormem dentro e sentam em cima.",
@@ -1937,6 +1967,18 @@
         "capacity": 12,
         "cycleMinutes": 20
       }
+    },
+    {
+      "id": "item.robot_vacuum",
+      "name": "Robô aspirador",
+      "price": 600,
+      "tile": "eletro_robo_base",
+      "description": "Aspira e passa pano no café toda noite: de manhã, a poeira do dia já está limpa. Posicione a base num canto; é para lá que ele volta. Não tira manchas, teias nem cocô.",
+      "tags": [
+        "furniture",
+        "equipment",
+        "robot_vacuum"
+      ]
     },
     {
       "id": "item.pet_box",

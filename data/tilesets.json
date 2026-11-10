@@ -900,7 +900,9 @@
         "novelo_creme": { "solid": false },
         "novelo_lilas": { "solid": false },
         "cesta_novelos": { "solid": false },
-        "almofada_capitone": { "solid": false }
+        "almofada_capitone": { "solid": false },
+        "toquinha": { "solid": false },
+        "arranhador_papelao": { "solid": false }
       }
     },
     {

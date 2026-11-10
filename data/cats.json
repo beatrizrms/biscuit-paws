@@ -96,6 +96,8 @@
       { "action": "play", "cell": [-1, 0], "toward": 18 },
       { "action": "play", "cell": [1, 0], "toward": 18 }
     ],
+    "pet_arranhador_papelao": [{ "action": "play", "cell": [0, 0] }],
+    "pet_toquinha": [{ "action": "sleep", "cell": [0, 0] }],
     "ph_litter_box": [{ "action": "sit", "px": [16, 24] }],
     "pet_caixa_areia_verde": [{ "action": "sit", "px": [16, 24] }],
     "pet_auto_litter": [{ "action": "sit", "px": [16, 24] }],

@@ -8,6 +8,18 @@
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "robo_base": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "robo": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
   }
  }
 }
