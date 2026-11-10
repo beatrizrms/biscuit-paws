@@ -93,7 +93,8 @@ function footprints(): Canvas {
   return c;
 }
 
-// PLACEHOLDER(arte): porão (no lugar do quartinho): parede de pedra, piso de lajotas e a escadinha da entrada.
+// Porão (no lugar do quartinho): parede de pedra, piso de lajotas e a escadinha da entrada. Reserva: a arte do PixelLab
+// (folha pixellab_provisorios, npm run pixellab) troca estes pelo nome.
 /** Porão: parede de blocos de pedra cinza-amarronzada, fiadas desencontradas. */
 function basementWall(): Canvas {
   const c = new Canvas(T, T);
@@ -183,7 +184,7 @@ function fairSetup(): Canvas {
   return c.outline();
 }
 
-// PLACEHOLDER(arte): armário da cozinha (despensa), 1x2, ao lado da pia.
+// Armário da cozinha (despensa), 1x2, ao lado da pia. Reserva: a arte do PixelLab (pixellab_provisorios) troca pelo nome.
 /** Armário de cozinha de madeira: duas portas embaixo, prateleira aberta com potes em cima. */
 function pantryCabinet(): Canvas {
   const c = new Canvas(T, T * 2);
@@ -224,7 +225,7 @@ function blanketIcon(): Canvas {
 }
 writeWithBackup(blanketIcon(), 'public/assets/objects/placeholders/icon_blanket.png');
 
-// PLACEHOLDER(arte): ícones da varinha (item.cat_wand) e da escova (item.cat_brush), 32x32 (lista em assets-pendentes).
+// Ícones de reserva da varinha e da escova, 32x32: os itens usam os da folha de 64 px (varinha, escova).
 /** Varinha de penas: cabo de madeira na diagonal, fio e o pompom com penas na ponta. */
 function wandIcon(): Canvas {
   const c = new Canvas(T, T);

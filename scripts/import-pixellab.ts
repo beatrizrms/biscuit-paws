@@ -527,6 +527,13 @@ const SHEETS: Sheet[] = [
       ph_fair_table: { file: '', w: 1, h: 1, dy: 4, build: () => heartSign(readPng(`${SRC}/provisorios/obj_6.png`), 28, 20) },
       // Armário da cozinha (despensa), 1x2: gerado no PixelLab com a estante do café como âncora (base encostada embaixo).
       ph_pantry_cabinet: { file: 'provisorios/pantry_cabinet.png', w: 1, h: 2 },
+      // Porão (no lugar do quartinho): parede de pedra e piso de lajotas (tiles sem emenda) e a escadinha vista de cima,
+      // 2x1, descendo para a direita (do salão para o porão). Gerados no PixelLab com a estante do café como âncora.
+      ph_basement_wall: { file: 'provisorios/basement_wall.png', w: 1, h: 1 },
+      ph_basement_floor: { file: 'provisorios/basement_floor.png', w: 1, h: 1 },
+      ph_basement_stairs: { file: 'provisorios/basement_stairs.png', w: 2, h: 1 },
+      // Ponto de montar a feira no quintal: caixotes empilhados com um pano xadrez.
+      ph_fair_setup: { file: 'provisorios/fair_setup_crates.png', w: 1, h: 1, dy: 1 },
     },
   },
   {
@@ -1492,6 +1499,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...([['mantinha', 7], ['caixa_bilhete', 8], ['pegadas_lama', 3]] as const).map(([name, i]) => ({ name, file: `${SRC}/provisorios/obj_${i}.png` })),
     // Chaves e vassoura na arte nova (icones_chave_vassoura/escolhas.json).
     ...(['chave_padaria', 'chave_enferrujada', 'vassoura'] as const).map((name) => ({ name, file: `${SRC}/icones_chave_vassoura/${name}.png` })),
+    // Varinha e escova (itens dos cuidados) e o balão "se recompondo" (energia), gerados depois.
+    ...(['varinha', 'escova', 'recompondo'] as const).map((name) => ({ name, file: `${SRC}/icones_extra/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
