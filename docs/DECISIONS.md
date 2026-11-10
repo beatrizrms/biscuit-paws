@@ -690,3 +690,7 @@ Decisão: campo `orFloor` nos itens com `placeOn` (caneca natalina, globo de nev
 ## 169. Tomar café com T, um por hora (nov/2026)
 Pedido: a energia não tinha um jeito visível de tomar café; com o café na mão, T toma e a energia sobe 30%; o próximo só depois de 1 h.
 Decisão: `restore.coffee` em `data/daynight.json` passa a `amount` 30 (de 100) e `everyMinutes` 60. A tecla T toma o café pronto da mão (o E não toma mais, para não disputar com servir e interagir). O save guarda `lastCoffeeAt` (minuto absoluto; opcional, sem versão nova); antes da hora, o aviso diz quantos minutos faltam. Nada muda com a energia cheia (continua não tomando).
+
+## 170. Gatos encostam nos objetos (nov/2026)
+Pedido: a interação do gato precisa ser mais próxima dos objetos: encostar no arranhador, encostar a boca no pote e subir na caixa de areia e ficar parado.
+Decisão: `objectUses` (data/cats.json) ganha `toward`: com o lugar ao lado do objeto, o gato chega tantos px mais perto e fica virado para ele (arranhador: 18 px, encostado na base). As caixas de areia (`ph_litter_box`, `pet_caixa_areia_verde`, `pet_auto_litter`) ganham um lugar em cima (`px` 16, 24): ele chega pela frente, sobe e fica sentado. No pote, comendo de lado, ele chega 14 px mais perto (era 9; `EAT_NUDGE` em Cat.ts), com a boca no pote.

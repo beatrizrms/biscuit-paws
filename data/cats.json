@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "id é permanente; o nome que a jogadora escolhe fica no save. nameSuggestions: sugestões da caixa de nome. memory: só aparece em lembranças. objectUses: O que os gatos fazem nos objetos deles, pelo tile (src/core/cats.ts catSpots). cell: a célula onde ele fica, relativa ao canto do objeto (a caminha; ao lado do arranhador). px: em cima do objeto, em pixels do jogo a partir do canto (as plataformas da árvore); ele chega pela célula livre na frente. action: sleep (dorme), play (brinca), sit (senta). Um gato por lugar.",
+  "_comment": "id é permanente; o nome que a jogadora escolhe fica no save. nameSuggestions: sugestões da caixa de nome. memory: só aparece em lembranças. objectUses: O que os gatos fazem nos objetos deles, pelo tile (src/core/cats.ts catSpots). cell: a célula onde ele fica, relativa ao canto do objeto (a caminha; ao lado do arranhador). px: em cima do objeto, em pixels do jogo a partir do canto (as plataformas da árvore); ele chega pela célula livre na frente. toward: com cell ao lado do objeto, chega tantos px mais perto e fica virado para ele (encostado no arranhador). As caixas de areia têm o lugar em cima (px): ele sobe e fica sentado parado. action: sleep (dorme), play (brinca), sit (senta). Um gato por lugar.",
   "objectUses": {
     "cat_bed": [
       {
@@ -93,21 +93,12 @@
       }
     ],
     "scratch_post": [
-      {
-        "action": "play",
-        "cell": [
-          -1,
-          0
-        ]
-      },
-      {
-        "action": "play",
-        "cell": [
-          1,
-          0
-        ]
-      }
+      { "action": "play", "cell": [-1, 0], "toward": 18 },
+      { "action": "play", "cell": [1, 0], "toward": 18 }
     ],
+    "ph_litter_box": [{ "action": "sit", "px": [16, 24] }],
+    "pet_caixa_areia_verde": [{ "action": "sit", "px": [16, 24] }],
+    "pet_auto_litter": [{ "action": "sit", "px": [16, 24] }],
     "room_tora": [
       {
         "action": "play",

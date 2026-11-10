@@ -8,8 +8,8 @@ import { content } from '../content';
 const SPEED = 40;
 const ARRIVE_PX = 2;
 const STUCK_MS = 1500;
-/** Comendo de lado: quanto ele chega mais perto do pote (px do jogo; 9 = o corpo de 14 px encosta na célula do pote sem entrar). */
-const EAT_NUDGE = 9;
+/** Comendo de lado: quanto ele chega mais perto do pote (px do jogo; 14 = a boca encosta no pote). */
+const EAT_NUDGE = 14;
 
 /** Os objetos dos gatos no mapa (caminha, arranhador, árvore) e quais estão ocupados (um gato por lugar). */
 export interface CatPlaces {
@@ -184,6 +184,7 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
       this.setPosition(perch.x, perch.y);
       this.perched = true;
     }
+    if (goal.spot.face) this.setFlipX(goal.spot.face === 'left');
     this.goalUntil = now + goal.seconds * 1000;
     this.play(`${catTexture(this.variant)}-${goal.spot.action}`, true);
   }
@@ -191,6 +192,7 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   /** Larga o lugar do objeto (e desce dele, de volta à célula da frente). */
   private leaveSpot(): void {
     if (!this.using) return;
+    this.setFlipX(false);
     this.places?.taken.delete(this.using.id);
     if (this.perched) {
       const ts = this.tileSize;

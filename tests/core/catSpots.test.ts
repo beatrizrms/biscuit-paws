@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 const content = loadContent();
 const catsJson = JSON.parse(readFileSync('data/cats.json', 'utf8')) as { objectUses: Record<string, CatObjectSpot[]> };
 const uses = catsJson.objectUses;
-const tiles = { cat_bed: { w: 1, h: 1 }, scratch_post: { w: 1, h: 1 }, cat_tree: { w: 2, h: 3 } };
+const tiles = { cat_bed: { w: 1, h: 1 }, scratch_post: { w: 1, h: 1 }, cat_tree: { w: 2, h: 3 }, ph_litter_box: { w: 1, h: 1 } };
 /** 10x10 livre, com o arranhador (2,2) e a árvore (5..6, 1..3) sólidos. */
 function grid(): boolean[][] {
   const g = Array.from({ length: 10 }, () => Array<boolean>(10).fill(false));
@@ -38,6 +38,16 @@ describe('gatos e os objetos deles', () => {
     }
     // O sofá não é dos gatos.
     expect(spots.some((s) => s.id.startsWith('placed.p4'))).toBe(false);
+  });
+
+  it('arranhador: encosta nele, virado para ele; caixa de areia: sobe e senta em cima', () => {
+    const spots = catSpots([...objects, { id: 'placed.p5', tile: 'ph_litter_box', at: [8, 5] }], tiles, uses, grid(), 32);
+    const lean = uses.scratch_post![0]!.toward!;
+    const [left, right] = spots.filter((s) => s.id.startsWith('placed.p2'));
+    expect(left).toMatchObject({ face: 'right', perch: { x: 1 * 32 + 16 + lean, y: 3 * 32 - 6 } });
+    expect(right).toMatchObject({ face: 'left', perch: { x: 3 * 32 + 16 - lean, y: 3 * 32 - 6 } });
+    // A caixa é sólida: ele chega pela célula da frente e fica sentado dentro dela, na frente da base.
+    expect(spots.find((s) => s.id === 'placed.p5#0')).toMatchObject({ action: 'sit', cell: [8, 6], perch: { x: 8 * 32 + 16, y: 5 * 32 + 24, baseY: 6 * 32 } });
   });
 
   it('lugar que cai numa célula sólida fica de fora', () => {
