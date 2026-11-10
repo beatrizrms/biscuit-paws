@@ -20,8 +20,8 @@ export function fitsHotbar(item: ItemDef | undefined): boolean {
   return !!item && (item.kind ?? 'furniture') !== 'furniture' && item.kind !== 'fixture';
 }
 
-/** Entra sozinho na barra: ferramentas (vassoura) e itens com uso (ração, petisco). */
-const autoSlotted = (item: ItemDef | undefined) => item?.kind === 'tool' || !!item?.use;
+/** Entra sozinho na barra: ferramentas (vassoura), itens com uso (ração, petisco) e sacos (storesAs: selecionado, vai na mão). */
+const autoSlotted = (item: ItemDef | undefined) => item?.kind === 'tool' || !!item?.use || !!item?.storesAs;
 
 const owned = (inventory: Record<string, number>, id: string | null) => !!id && (inventory[id] ?? 0) > 0;
 

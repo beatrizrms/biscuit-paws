@@ -1163,7 +1163,7 @@
     {
       "id": "item.cat_food_sack",
       "name": "Saco de ração (5 porções)",
-      "description": "Saco pesado: guardado, vira 5 porções de ração simples.",
+      "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 5 porções de ração simples.",
       "price": 60,
       "kind": "consumable",
       "icon": "racao_simples",
@@ -1180,7 +1180,7 @@
     {
       "id": "item.litter_sack",
       "name": "Saco de areia (4 trocas)",
-      "description": "Saco pesado: guardado, vira 4 trocas de areia.",
+      "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 4 trocas de areia.",
       "price": 40,
       "kind": "consumable",
       "icon": "areia",

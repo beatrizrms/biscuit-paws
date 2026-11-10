@@ -397,18 +397,25 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     expect(state.tray).toBe(false);
   });
 
-  it('saco pesado: vai para as mãos ao comprar, deixa lenta e, no café, vira estoque', () => {
+  it('saco: vai para a mochila e a barra; só na mão (e lenta) quando selecionado; no café, E guarda e vira porções', () => {
     const { session, sv, state } = openCafe();
     state.location = 'map.market';
     expect(session.buy('item.cat_food_sack')).toEqual({ ok: true });
+    expect(state.inventory['item.cat_food_sack']).toBe(1);
+    expect(state.hotbar.slots).toContain('item.cat_food_sack');
+    // Outro item selecionado: nada na mão, velocidade normal.
+    session.selectHotbarSlot((state.hotbar.slots.indexOf('item.cat_food_sack') + 1) % state.hotbar.slots.length);
+    expect(state.hands).toEqual([]);
+    expect(sv.speed()).toBe(1);
+    // Selecionado: na mão e lenta.
+    expect(session.selectHotbarItem('item.cat_food_sack')).toBe(true);
     expect(state.hands).toEqual([{ kind: 'heavy', item: 'item.cat_food_sack' }]);
     expect(sv.speed()).toBe(content.carry.heavy.speedFactor);
-    // Com as mãos ocupadas, não dá para comprar outro.
-    expect(session.buy('item.litter_sack')).toEqual({ ok: false, reason: 'hands_full' });
     expect(sv.storeHeavy()).toEqual({ ok: false, reason: 'not_at_home' });
     state.location = 'map.cafe_main';
     expect(sv.storeHeavy()).toEqual({ ok: true });
     expect(state.inventory['item.cat_food_basic']).toBe(5);
+    expect(state.inventory['item.cat_food_sack']).toBeUndefined();
     expect(state.hands).toEqual([]);
   });
 
@@ -425,11 +432,11 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     expect(sv.carriedCat()).toBeUndefined();
   });
 
-  it('fim do dia: o saco vai para o estoque e o gato volta para casa', () => {
+  it('fim do dia: o saco continua na mochila (não vira porções sozinho) e o gato volta para casa', () => {
     const { session, sv, state } = openCafe();
     session.buy('item.cat_food_sack');
     session.endDay('home');
-    expect(state.inventory['item.cat_food_basic']).toBe(5);
+    expect(state.inventory['item.cat_food_sack']).toBe(1);
     state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     sv.pickUpCat('cat.first_stray');
     session.endDay('home');

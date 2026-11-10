@@ -72,16 +72,19 @@ describe('carrinho do mercado na sessão', () => {
     expect(market(50).session.checkout()).toEqual({ ok: false, reason: 'cart_empty' });
   });
 
-  it('ferramenta: só uma; saco pesado: um por compra, vai para as mãos', () => {
+  it('ferramenta: só uma; sacos: vários, vão para a mochila como saco (nada nas mãos sem selecionar)', () => {
     const { session } = market(500);
     expect(session.addToCart('item.tray')).toEqual({ ok: true });
     expect(session.addToCart('item.tray').ok).toBe(false);
     expect(session.addToCart('item.cat_food_sack')).toEqual({ ok: true });
-    expect(session.addToCart('item.litter_sack')).toEqual({ ok: false, reason: 'one_heavy_per_trip' });
+    expect(session.addToCart('item.litter_sack')).toEqual({ ok: true });
+    expect(session.addToCart('item.litter_sack')).toEqual({ ok: true });
     expect(session.checkout()).toEqual({ ok: true });
     expect(session.state.inventory['item.tray']).toBe(1);
-    expect(session.state.inventory['item.cat_food_sack']).toBeUndefined();
-    expect(session.state.hands.some((h) => h.kind === 'heavy' && h.item === 'item.cat_food_sack')).toBe(true);
+    expect(session.state.inventory['item.cat_food_sack']).toBe(1);
+    expect(session.state.inventory['item.litter_sack']).toBe(2);
+    expect(session.state.hotbar.slots).toContain('item.litter_sack');
+    expect(session.state.hands.some((h) => h.kind === 'heavy')).toBe(session.activeItem() === 'item.cat_food_sack' || session.activeItem() === 'item.litter_sack');
   });
 
   it('o carrinho fica ao sair do mercado e esvazia ao dormir', () => {

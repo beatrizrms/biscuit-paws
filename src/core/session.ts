@@ -264,6 +264,14 @@ export class GameSession {
     this.bus.on('hotbar.changed', syncTray);
     this.bus.on('hands.changed', syncTray);
     syncTray();
+    // Saco pesado: só fica na mão (e deixa lenta) quando está selecionado na barra. Save antigo com o saco nas mãos:
+    // ele volta para a mochila (antes, o saco comprado ia direto para as mãos, fora da mochila).
+    for (const h of state.hands) if (h.kind === 'heavy') state.inventory[h.item] = (state.inventory[h.item] ?? 0) + 1;
+    state.hands = state.hands.filter((h) => h.kind !== 'heavy');
+    const syncHeavy = () => this.service.syncHeavy(this.activeItem());
+    this.bus.on('hotbar.changed', syncHeavy);
+    this.bus.on('hands.changed', syncHeavy);
+    syncHeavy();
   }
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
@@ -2565,8 +2573,9 @@ export class GameSession {
     return null;
   }
 
-  private isHeavy(itemId: string): boolean {
-    return this.content.items[itemId]?.tags.includes(this.content.carry.heavy.tag) ?? false;
+  /** Item comprado entra na mochila (o saco também: ele vai para a barra; selecionado, fica na mão). */
+  private receive(itemId: string, qty: number): void {
+    this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + qty;
   }
 
   /** Compra uma unidade na hora (usado pelos testes e pelo debug; no mercado a compra passa pelo carrinho). */
@@ -2575,14 +2584,8 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     const item = this.content.items[itemId]!;
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
-    // Pesado (saco de ração, areia): vai direto para as mãos; precisa estar com elas livres.
-    const heavy = this.isHeavy(itemId);
-    if (heavy) {
-      const r = this.service.carryHeavy(itemId);
-      if (!r.ok) return { ok: false, reason: r.reason === 'hands_full' ? 'hands_full' : 'unknown_item' };
-    }
     this.addMoney(-item.price, `buy:${itemId}`);
-    if (!heavy) this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.receive(itemId, 1);
     this.bus.emit('item.bought', { itemId, price: item.price });
     this.advanceStory();
     return { ok: true };
@@ -2602,10 +2605,10 @@ export class GameSession {
     return this.cart.total((id) => this.content.items[id]?.price ?? 0);
   }
 
-  /** Quantos deste item cabem no carrinho: ferramenta e fixo só 1; pesado, um por viagem (vai nas mãos). */
+  /** Quantos deste item cabem no carrinho: ferramenta e fixo só 1. */
   private cartMax(itemId: string): number {
     const kind = this.content.items[itemId]?.kind;
-    if (kind === 'tool' || kind === 'fixture' || this.isHeavy(itemId)) return 1;
+    if (kind === 'tool' || kind === 'fixture') return 1;
     return MAX_QTY_PER_ITEM;
   }
 
@@ -2617,9 +2620,7 @@ export class GameSession {
   addToCart(itemId: string): ActionResult {
     const problem = this.buyProblem(itemId);
     if (problem) return { ok: false, reason: problem };
-    if (this.cart.qty(itemId) >= this.cartMax(itemId)) return { ok: false, reason: this.isHeavy(itemId) ? 'one_heavy_per_trip' : 'already_owned' };
-    // Pesados ocupam as mãos sozinhos: um só por compra, de qualquer tipo.
-    if (this.isHeavy(itemId) && this.cart.countWhere((id) => this.isHeavy(id)) > 0) return { ok: false, reason: 'one_heavy_per_trip' };
+    if (this.cart.qty(itemId) >= this.cartMax(itemId)) return { ok: false, reason: 'already_owned' };
     this.cart.add(itemId, 1, this.cartMax(itemId));
     this.cartChanged();
     return { ok: true };
@@ -2661,14 +2662,11 @@ export class GameSession {
       if (problem) return { ok: false, reason: problem };
     }
     if (this.cartShortfall() > 0) return { ok: false, reason: 'no_money' };
-    const heavy = this.cart.lines().find((l) => this.isHeavy(l.itemId));
-    if (heavy && this.service.holdProblem({ kind: 'heavy', item: heavy.itemId })) return { ok: false, reason: 'hands_full' };
     const total = this.cartTotal();
     const lines = this.cart.lines();
     this.addMoney(-total, 'checkout');
     for (const { itemId, qty } of lines) {
-      if (this.isHeavy(itemId)) this.service.carryHeavy(itemId);
-      else this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + qty;
+      this.receive(itemId, qty);
       const price = this.content.items[itemId]!.price;
       for (let i = 0; i < qty; i++) this.bus.emit('item.bought', { itemId, price });
     }

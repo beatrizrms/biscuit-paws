@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Mãos: quantos objetos ela carrega e quanto cada um a deixa mais lenta. tray: bandeja (item da mochila), leva até `capacity` louças. heavy: itens com esta tag ocupam as mãos sozinhos e deixam lenta. cat: gato no colo.",
+  "_comment": "Mãos: quantos objetos ela carrega e quanto cada um a deixa mais lenta. tray: bandeja (item da mochila), leva até `capacity` louças. heavy: saco (itens com esta tag) vai para a mochila e a barra; selecionado na barra, fica nas mãos sozinho e deixa lenta; no café, E guarda (vira as porções de storesAs). cat: gato no colo.",
   "carryCapacity": 1,
   "speedPenaltyPerItem": 0.1,
   "tray": {

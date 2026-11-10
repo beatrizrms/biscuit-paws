@@ -579,7 +579,6 @@ export class CafeService {
     sv.customers = [];
     sv.preps = [];
     sv.nextCustomerAt = null;
-    for (const h of this.st.hands.filter((x) => x.kind === 'heavy')) if (h.kind === 'heavy') this.storeItem(h.item);
     this.st.hands = this.st.hands.filter((x) => !exclusive(x));
   }
 
@@ -827,6 +826,24 @@ export class CafeService {
     this.handsChanged();
   }
 
+  /**
+   * O saco pesado selecionado na barra fica nas mãos (ocupa as mãos sozinho e deixa lenta); outro item selecionado,
+   * ele volta a ser só da mochila. Com as mãos ocupadas (louça, gato), não pega. O saco continua contado na mochila.
+   */
+  syncHeavy(activeId: string | null): void {
+    const heavy = activeId && this.isHeavy(activeId) ? activeId : null;
+    const held = this.st.hands.find((h) => h.kind === 'heavy');
+    if ((held?.kind === 'heavy' ? held.item : null) === heavy) return;
+    if (held) this.st.hands = this.st.hands.filter((h) => h.kind !== 'heavy');
+    if (heavy && this.st.hands.length === 0 && !this.st.tray) this.st.hands.push({ kind: 'heavy', item: heavy });
+    else if (!held) return;
+    this.handsChanged();
+  }
+
+  private isHeavy(itemId: string): boolean {
+    return this.h.content.items[itemId]?.tags.includes(this.carry.heavy.tag) ?? false;
+  }
+
   /** Pega ou guarda a bandeja (precisa tê-la na mochila; com ela, as mãos levam várias louças). */
   toggleTray(): ServiceResult {
     if (this.st.tray) {
@@ -879,7 +896,12 @@ export class CafeService {
     if (i < 0) return { ok: false, reason: 'hands_empty' };
     if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
     const [h] = this.st.hands.splice(i, 1);
-    if (h!.kind === 'heavy') this.storeItem(h!.item);
+    // O saco sai da mochila e vira as porções/trocas (storesAs); se houver outro, o próximo vai para a mão.
+    if (h!.kind === 'heavy') {
+      this.st.inventory[h!.item] = Math.max(0, (this.st.inventory[h!.item] ?? 0) - 1);
+      if (this.st.inventory[h!.item] === 0) delete this.st.inventory[h!.item];
+      this.storeItem(h!.item);
+    }
     this.h.bus.emit('heavy.stored', { itemId: h!.kind === 'heavy' ? h!.item : '' });
     this.handsChanged();
     this.h.advanceStory();
