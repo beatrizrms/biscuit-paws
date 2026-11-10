@@ -149,26 +149,11 @@
       },
       "outdoor": true,
       "discover": {
-        "trigger": "cat_leads",
-        "when": {
-          "all": [
-            {
-              "room": "room.back_room",
-              "atLeast": "restored"
-            },
-            {
-              "served": {
-                "gte": 100
-              }
-            }
-          ]
-        },
-        "dialogue": "dlg.room_backyard_found",
+        "trigger": "renovation",
         "highlight": "door.backyard"
       },
       "unlock": {
-        "label": "Abrir o cadeado",
-        "dialogue": "dlg.room_backyard_opened"
+        "label": "Abrir o cadeado"
       },
       "clear": {
         "cost": 80,

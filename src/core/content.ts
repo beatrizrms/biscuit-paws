@@ -574,6 +574,8 @@ export function validateContent(raw: RawContent): string[] {
       cats: catIds,
       balloons: new Set(Object.keys(raw.emotes.frames)),
       npcAnims: (id) => new Set(Object.keys(raw.npcs.npcs.find((n) => n.id === id)?.extras ?? {})),
+      rooms: new Set(raw.rooms.rooms.map((r) => r.id)),
+      doors: new Set(raw.rooms.doors.map((d) => d.id)),
     }),
   );
   for (const [id, d] of Object.entries(raw.dialogue.dialogues)) {

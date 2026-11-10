@@ -756,6 +756,59 @@
           "dialogue": "dlg.inauguration"
         }
       ]
+    },
+    {
+      "id": "story.back_room_opened",
+      "act": 2,
+      "after": [
+        "story.inauguration"
+      ],
+      "when": {
+        "room": "room.back_room",
+        "atLeast": "abandoned"
+      },
+      "effects": []
+    },
+    {
+      "id": "story.secret_garden",
+      "act": 2,
+      "after": [
+        "story.back_room_opened"
+      ],
+      "when": {
+        "all": [
+          {
+            "daysSince": {
+              "beat": "story.back_room_opened",
+              "gte": 30
+            }
+          },
+          {
+            "received": "item.key_backyard"
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "18:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.secret_garden"
+        }
+      ],
+      "exclusive": true
     }
   ]
 }

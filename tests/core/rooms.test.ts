@@ -4,7 +4,7 @@ import type { EventName } from '../../src/core/events';
 import { catCapacity, resolvedLook, visibleArea } from '../../src/core/rooms';
 import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
-import { newGameState } from '../../src/core/state';
+import { newGameState, type GameState } from '../../src/core/state';
 import { parseClock } from '../../src/core/time';
 import { resolveMap } from '../../src/core/map';
 import { loadContent } from './content';
@@ -33,6 +33,19 @@ function afterFirstCustomer(money = 1000, progress: { served?: number; day?: num
 
 const dialogues = (events: { name: EventName; payload: unknown }[]) =>
   events.filter((e) => e.name === 'dialogue.requested').map((e) => (e.payload as { dialogueId: string }).dialogueId);
+
+/**
+ * A cena do jardim secreto: um mês depois de abrir o porão, no café de dia, o marco roda o roteiro; o roteiro (no jogo)
+ * faz a porta aparecer (discoverRoom) e abre com a chave (openDoor). Aqui: o marco e a descoberta.
+ */
+function secretGarden(ctx: { session: GameSession; state: GameState }): void {
+  ctx.state.day += 31;
+  ctx.state.time = 10 * 60;
+  ctx.state.location = 'map.cafe_main';
+  ctx.session.tickClock(1 / content.dayNight.minutesPerSecond);
+  expect(ctx.state.story.completed).toContain('story.secret_garden');
+  ctx.session.discoverRoom('room.backyard');
+}
 
 /** Limpa com a vassoura toda a sujeira visível com esta tag (de pé ao lado); `heavy`: a pesada também sai (como na limpeza do Tião). */
 function cleanTag(session: GameSession, tag: string, heavy = false) {
@@ -143,22 +156,31 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
 });
 
 describe('quintal secreto: chave, porta com cadeado, playground', () => {
-  /** Quartinho aberto, limpo (a chave já achada) e reformado; 100 clientes, dia 12: o quintal aparece. */
+  /** Porão aberto e limpo (a chave achada); 30 dias depois, no café de dia: a cena do jardim secreto acha a porta. */
   function withBackRoomOpen() {
     const ctx = afterFirstCustomer(1000, { served: 100, day: 12 });
     ctx.session.openRoom('room.back_room');
     cleanTag(ctx.session, 'back_room');
-    expect(ctx.session.roomState('room.backyard')).toBe('locked'); // ainda não: falta reformar
-    ctx.session.restoreRoom('room.back_room');
+    secretGarden(ctx);
     return ctx;
   }
 
-  it('o gato leva até a porta com cadeado; a chave (achada no quartinho) abre e é usada', () => {
-    const { session, state, events } = withBackRoomOpen();
-    expect(session.roomState('room.backyard')).toBe('discovered');
-    expect(events.find((e) => e.name === 'room.discovered' && (e.payload as { roomId: string }).roomId === 'room.backyard')?.payload).toMatchObject({ trigger: 'cat_leads', highlight: 'door.backyard' });
+  it('jardim secreto: 30 dias depois de abrir o porão, com a chave, a cena acha a porta; a chave abre e é usada', () => {
+    const ctx = afterFirstCustomer(1000, { served: 100, day: 12 });
+    const { session, state, events } = ctx;
+    ctx.session.openRoom('room.back_room');
+    cleanTag(session, 'back_room');
     expect(state.inventory['item.key_backyard']).toBe(1);
     expect(dialogues(events)).toContain('dlg.key_backyard_found');
+    const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
+    state.day += 29;
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(scripts()).not.toContain('scr.secret_garden'); // ainda não fez um mês
+    expect(session.roomState('room.backyard')).toBe('locked');
+    secretGarden(ctx);
+    expect(scripts()).toContain('scr.secret_garden');
+    expect(session.roomState('room.backyard')).toBe('discovered');
+    expect(events.find((e) => e.name === 'room.discovered' && (e.payload as { roomId: string }).roomId === 'room.backyard')?.payload).toMatchObject({ trigger: 'renovation', highlight: 'door.backyard' });
     delete state.inventory['item.key_backyard'];
     expect(session.useRoomDoor('door.backyard')).toMatchObject({ ok: false, problem: 'needs_item' });
     expect(dialogues(events)).toContain('dlg.door_backyard_locked');
@@ -316,6 +338,7 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     ctx.session.openRoom('room.back_room');
     cleanTag(ctx.session, 'back_room');
     ctx.session.restoreRoom('room.back_room');
+    secretGarden(ctx);
     ctx.session.useRoomDoor('door.backyard');
     return ctx;
   }

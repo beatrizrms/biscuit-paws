@@ -474,3 +474,8 @@ Decisão: a entrada e a saída do café ficam na face sul: `door.street` em [14,
 ## 116. A frente do café na rua fica livre (nov/2026)
 Contexto: a árvore de Natal ficava em frente ao café, bem onde a entregadora deixa os pacotes (e onde o Tião trabalha na fachada).
 Decisão: a árvore de Natal foi para a vitrine do mercado ([22,7]). Nenhum objeto da rua (fora as fachadas) pode cobrir o lugar dos pacotes (`delivery.json` door), o lugar do Tião na fachada nem a chegada na rua, em nenhuma estação: um teste em `tests/core/map.test.ts` confere.
+
+## 117. O jardim secreto: a corretora, a Dona Neusa e o Tião acham a porta (nov/2026)
+Pedido: a chave enferrujada fica guardada como mistério ("De onde será essa chave? Vou guardá-la, quem sabe um dia eu descubro!"); um mês depois de abrir o porão, a corretora passa no café e comenta que a planta tinha um quintal; ela lembra do mato atrás da janela e chama a Dona Neusa, que elogia a reforma do sobrinho e lembra (sem muita certeza) que o quintal era ali, apontando a parede; o Tião é chamado, tira o papel de parede e o cimento, e acha a porta; a chave abre.
+Consequência: marcos `story.back_room_opened` (silencioso: guarda o dia em que o porão abriu) e `story.secret_garden` (30 dias depois, com a chave, no café entre 09:00 e 18:00) que roda `scr.secret_garden`. Passos novos de roteiro: `discoverRoom` e `openDoor`. Saiu o gatilho antigo (porão reformado + 100 clientes + o gato miando para a parede; `dlg.room_backyard_found` removida). A chave continua embaixo do lençol do porão (limpeza); o destaque da porta ao achar a chave só aparece com a porta à vista.
+

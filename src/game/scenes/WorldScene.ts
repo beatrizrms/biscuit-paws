@@ -323,9 +323,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (highlight) void this.discoveryMoment(highlight, trigger);
     });
     this.session.bus.on('item.received', ({ itemId }) => {
-      // A chave achada na sujeira: destaca a porta que ela abre.
+      // A chave achada na sujeira: destaca a porta que ela abre, se a porta já está à vista (a do quintal ainda está
+      // escondida quando ela acha a chave: é um mistério até a cena do jardim secreto).
       const door = this.session.content.rooms.doors.find((d) => d.requires?.item === itemId);
-      if (door && this.session.atHome()) this.roomView?.highlight(door.at);
+      if (door && this.session.atHome() && this.session.doorState(door.id) !== 'hidden') this.roomView?.highlight(door.at);
     });
     // Pontos de pedido: marcadores (neve...) e o "!" em cima de cada ponto pendente.
     for (const ev of ['arrival.started', 'arrival.step', 'arrival.needs', 'arrival.need_met', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'festival.started', 'festival.scheduled', 'festival.progress', 'festival.finished', 'festival.missed'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));

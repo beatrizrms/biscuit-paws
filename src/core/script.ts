@@ -23,7 +23,11 @@ export type ScriptStep =
   /** O gato vem até a célula e senta (espera chegar, no máximo alguns segundos). */
   | { catWalk: string; to: Cell }
   /** Balão de emoção em cima de alguém: "player", um NPC ou um gato. */
-  | { emote: string; balloon: string; ms?: number };
+  | { emote: string; balloon: string; ms?: number }
+  /** O cômodo aparece (a porta escondida surge, com o momento da descoberta). Ex.: o Tião acha a porta do quintal. */
+  | { discoverRoom: string }
+  /** Abre a porta de um cômodo com o item que ela pede (ex.: a chave enferrujada no cadeado do quintal). */
+  | { openDoor: string };
 
 export interface ScriptsData {
   schemaVersion: 1;
@@ -67,6 +71,8 @@ export interface ScriptRefs {
   cats: ReadonlySet<string>;
   balloons: ReadonlySet<string>;
   npcAnims: (npcId: string) => ReadonlySet<string>;
+  rooms: ReadonlySet<string>;
+  doors: ReadonlySet<string>;
 }
 
 export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
@@ -102,6 +108,10 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
       } else if ('emote' in step) {
         if (step.emote !== 'player' && !refs.npcs.has(step.emote) && !refs.cats.has(step.emote)) errors.push(`${where(i)}: ninguém chamado "${step.emote}"`);
         if (!refs.balloons.has(step.balloon)) errors.push(`${where(i)}: balão inexistente "${step.balloon}"`);
+      } else if ('discoverRoom' in step) {
+        if (!refs.rooms.has(step.discoverRoom)) errors.push(`${where(i)}: cômodo inexistente "${step.discoverRoom}"`);
+      } else if ('openDoor' in step) {
+        if (!refs.doors.has(step.openDoor)) errors.push(`${where(i)}: porta inexistente "${step.openDoor}"`);
       } else if ('showItem' in step || 'giveItem' in step) {
         const item = 'showItem' in step ? step.showItem : step.giveItem;
         if (!refs.items.has(item)) errors.push(`${where(i)}: item inexistente "${item}"`);
