@@ -38,6 +38,7 @@ import seasonsJson from '../../data/seasons.json';
 import adoptionJson from '../../data/adoption.json';
 import reputationJson from '../../data/reputation.json';
 import milestonesJson from '../../data/milestones.json';
+import festiveJson from '../../data/festive.json';
 import catProfilesJson from '../../data/cat_profiles.json';
 import arrivalsJson from '../../data/arrivals.json';
 import festivalsJson from '../../data/festivals.json';
@@ -84,6 +85,7 @@ export const content: Content = buildContent({
   adoption: adoptionJson,
   reputation: reputationJson,
   milestones: milestonesJson,
+  festive: festiveJson,
   catProfiles: catProfilesJson,
   arrivals: arrivalsJson,
   festivals: festivalsJson,

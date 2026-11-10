@@ -129,6 +129,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private brokenIcons = new Map<string, Phaser.GameObjects.Image>();
   /** Barra do conserto em cima do equipamento (separada das barras de preparo, que são refeitas a cada quadro). */
   private repairBars = new Map<string, Phaser.GameObjects.Image>();
+  /** O enfeite no fantasma saiu da caixa de Natal: ao posicionar, sai o próximo. */
+  private placingFromBox = false;
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -317,6 +319,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     const rebuildIfHome = () => this.session.atHome() && this.buildMap();
     this.session.bus.on('item.placed', rebuildIfHome);
+    // Caixa de Natal aberta: o enfeite que saiu vai direto para o fantasma de posicionar.
+    this.session.bus.on('xmas.box_opened', ({ itemId }) => {
+      this.startPlacing(itemId);
+      this.placingFromBox = !!this.placing;
+    });
     this.session.bus.on('item.picked_up', rebuildIfHome);
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
@@ -887,7 +894,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { itemId, at, moveUid } = this.placing;
     const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
     if (!result.ok) return this.ui.problem(result.reason);
+    // Da caixa de Natal: posicionou, sai o próximo enfeite (até a caixa esvaziar).
+    const chain = this.placingFromBox && !moveUid;
     this.cancelPlacing();
+    if (chain && this.session.xmasBoxCount() > 0) this.session.openXmasBox();
   }
 
   /** Setas com o fantasma na mão: uma célula por toque, sem sair do mapa. */
@@ -936,6 +946,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placing?.riders?.forEach((r) => r.ghosts.forEach((g) => g.destroy()));
     if (this.placing?.moveUid) for (const imgs of this.objectImages.values()) imgs.forEach((img) => img.setAlpha(1));
     this.placing = null;
+    this.placingFromBox = false;
     this.ui?.setHint('walk');
   }
 

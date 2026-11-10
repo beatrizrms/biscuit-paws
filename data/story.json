@@ -809,6 +809,36 @@
         }
       ],
       "exclusive": true
+    },
+    {
+      "id": "story.xmas_wreath_gift",
+      "act": 1,
+      "when": {
+        "all": [
+          {
+            "flag": "met.old_neighbor"
+          },
+          {
+            "season": "winter"
+          },
+          {
+            "day": {
+              "gte": 5
+            }
+          },
+          {
+            "location": "map.cafe_main"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "dialogue": "dlg.neusa_xmas_wreath"
+        },
+        {
+          "giveItem": "item.xmas_wreath"
+        }
+      ]
     }
   ]
 }

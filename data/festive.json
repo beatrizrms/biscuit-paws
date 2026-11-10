@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Datas festivas. box: a caixa de enfeites de Natal. No fim do inverno, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar.",
+  "box": {
+    "item": "item.xmas_box",
+    "tag": "xmas",
+    "opensIn": "winter"
+  }
+}

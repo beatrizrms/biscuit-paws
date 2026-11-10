@@ -7,7 +7,7 @@ import { parseClock } from './time';
 import { stageAtLeast } from './business';
 import { isRenovated } from './construction';
 import { atLeast as roomAtLeast, roomState, type RoomsData } from './rooms';
-import { firstDayOf, type SeasonsData } from './calendar';
+import { firstDayOf, type SeasonsData, seasonOf } from './calendar';
 
 /** O que as condições precisam saber além do estado. */
 export interface StoryContext {
@@ -52,6 +52,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
+  if ('season' in c) return seasonOf(ctx.seasons, state.day) === c.season;
   if ('milestone' in c) return state.milestones.reached[c.milestone] !== undefined || !!ctx.milestoneMet?.(c.milestone);
   if ('daysSince' in c) {
     const on = state.story.completedOn[c.daysSince.beat];

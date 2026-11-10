@@ -199,6 +199,14 @@ export class BackpackPanel {
           if (!id) return;
           this.close();
           return this.onPlace(id);
+        case 'open-box': {
+          const r = this.session.openXmasBox();
+          if (!r.ok) {
+            report(r);
+            return;
+          }
+          return this.close();
+        }
         case 'hold':
           if (id) report(sv.hold(id));
           return;
@@ -341,6 +349,14 @@ export class BackpackPanel {
     // Na caixa pet: guardar (o que ela não aceita nem mostra o botão).
     if (this.boxUid && this.session.storageProblem(this.boxUid, item.id) !== 'not_accepted') buttons.push(`<button data-act="box-one">${t.boxOne}</button>`);
     if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
+    // Caixa de enfeites de Natal: abre só no inverno (e no café), e os enfeites saem um por um para posicionar.
+    if (item.id === content.festive.box.item) {
+      const closed = this.session.seasonDay().season !== content.festive.box.opensIn;
+      const away = !this.session.atHome();
+      buttons.push(`<button data-act="open-box" ${closed || away ? 'disabled' : ''}>${t.openBox.replace('{n}', String(this.session.xmasBoxCount()))}</button>`);
+      if (closed) buttons.push(`<span class="why">${t.boxOpensInWinter}</span>`);
+      else if (away) buttons.push(`<span class="why">${t.placeAtHome}</span>`);
+    }
     if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);
     return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22, item.hue) : itemIconHtml(item, 22)}</span>
       <span class="bp-detail-text"><b>${esc(item.name)}</b> <span class="amount">${amount}</span><br /><span class="purpose">${esc(purpose(item))}</span></span>

@@ -27,6 +27,12 @@ import { validateArrivals, type ArrivalsData } from './arrivals';
 import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
+
+/** data/festive.json: a caixa de enfeites de Natal. */
+export interface FestiveData {
+  schemaVersion: 1;
+  box: { item: string; tag: string; opensIn: string };
+}
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
 import { validateLattePatterns } from './latte';
@@ -202,7 +208,9 @@ export type Condition =
   /** A partir da primeira vez que esta estação chega (data/seasons.json). Ex.: a inauguração, na primavera. */
   | { fromSeason: string }
   /** O selo do café já foi conquistado (data/milestones.json). Só selos de quantidade podem segurar a história. */
-  | { milestone: string };
+  | { milestone: string }
+  /** A estação de hoje (ex.: a guirlanda da Dona Neusa, só no inverno). */
+  | { season: string };
 
 export type Effect =
   | { dialogue: string }
@@ -355,6 +363,8 @@ export interface Content {
   reputation: ReputationConfig;
   /** Selos do café: trilhas e metas (data/milestones.json). */
   milestones: MilestonesData;
+  /** Datas festivas: a caixa de enfeites de Natal (data/festive.json). */
+  festive: FestiveData;
   /** Perfis de gato (personalidades, condições, sorteio de gatos gerados: data/cat_profiles.json). */
   catProfiles: CatProfilesData;
   /** Chegadas de gatos (data/arrivals.json). */
@@ -410,6 +420,7 @@ export interface RawContent {
   adoption: AdoptionData;
   reputation: ReputationConfig;
   milestones: MilestonesData;
+  festive: FestiveData;
   catProfiles: CatProfilesData;
   arrivals: ArrivalsData;
   festivals: FestivalsData;
@@ -451,7 +462,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -504,6 +515,14 @@ export function validateContent(raw: RawContent): string[] {
     errors.push(...validateDelivery(g.items, g.obstacles, most, new Set(Object.keys(raw.icons.icons))));
   }
   errors.push(...validateReputation(raw.reputation));
+  {
+    const box = raw.festive.box;
+    const item = raw.items.items.find((i) => i.id === box.item);
+    if (!item) err(`festive: a caixa "${box.item}" não existe`);
+    else if ((item.kind ?? 'furniture') === 'furniture') err(`festive: a caixa "${box.item}" não pode ser móvel`);
+    if (!raw.seasons.order.includes(box.opensIn)) err(`festive: estação inexistente "${box.opensIn}"`);
+    if (!raw.items.items.some((i) => i.tags.includes(box.tag))) err(`festive: nenhum item tem a tag "${box.tag}"`);
+  }
   {
     const ids: Record<string, Set<string>> = {
       recipe: new Set(raw.recipes.recipes.map((r) => r.id)),
@@ -709,6 +728,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('season' in c) {
+      if (!raw.seasons.order.includes(c.season)) err(`${where}: estação inexistente "${c.season}"`);
     } else if ('milestone' in c) {
       if (!raw.milestones.milestones.some((m) => m.id === c.milestone)) err(`${where}: selo inexistente "${c.milestone}"`);
     } else if ('fromSeason' in c) {
