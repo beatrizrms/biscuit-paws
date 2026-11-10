@@ -18,6 +18,7 @@ import { newFestivals, type FestivalsState } from './festival';
 import type { ReputationState } from './reputation';
 import { newStats, type StatsState } from './stats';
 import { newMilestones, type MilestonesState } from './milestones';
+import type { SantaRecord } from './secretSanta';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -141,6 +142,8 @@ export interface GameState {
   displays: Record<string, DisplaySlot[]>;
   /** Caixa de enfeites de Natal (v33): o que foi guardado na virada do inverno (itemId -> quantidade). Abre no inverno. */
   xmasBox: Record<string, number>;
+  /** Amigo secreto do ano (v34): quem ela tirou e como foi a ceia. null = nenhum ainda. */
+  secretSanta: SantaRecord | null;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -250,6 +253,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     milestones: newMilestones(),
     displays: {},
     xmasBox: {},
+    secretSanta: null,
   };
 }
 

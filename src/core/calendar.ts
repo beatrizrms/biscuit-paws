@@ -45,6 +45,8 @@ export interface SeasonsData {
   events: CalendarEvent[];
   /** Clima: pesos por estação (snow, rain, wind, sun...). Sorteado por dia, sem guardar nada no save. */
   weather?: Record<string, Record<string, number>>;
+  /** Clima garantido em alguns dias (ex.: neve na véspera e no dia de Natal), por cima do sorteio. */
+  weatherFixed?: { season: string; from: number; to: number; weather: string }[];
   /** O que cai na tela em cada clima (os que não estão aqui, como o sol, não mostram nada). */
   weatherFx?: Record<string, WeatherFx>;
   /** Ordem das estações; o jogo começa na primeira. */
@@ -101,6 +103,9 @@ export function daysUntil(data: SeasonsData, day: number, season: string): numbe
 
 /** Clima do dia (sorteio com semente do dia, pelos pesos da estação). Sem pesos para a estação: "sun". */
 export function weatherOf(data: SeasonsData, day: number): string {
+  const d = dayInSeason(data, day);
+  const fixed = data.weatherFixed?.find((f) => f.season === seasonOf(data, day) && d >= f.from && d <= f.to);
+  if (fixed) return fixed.weather;
   const weights = data.weather?.[seasonOf(data, day)];
   if (!weights) return 'sun';
   return pickWeighted(createRng(Math.imul(Math.max(1, day), 2654435761) ^ 0x5eed), weights);
@@ -174,6 +179,11 @@ export function validateSeasons(data: SeasonsData, refs: { maps: ReadonlySet<str
   if (!data.order.includes(data.base)) errors.push(`seasons: base "${data.base}" não está em order`);
   for (const s of data.order) if (!data.names[s]) errors.push(`seasons: falta o nome de "${s}"`);
   for (const s of data.order) if (!data.seasonStarts?.[s]) errors.push(`seasons: falta seasonStarts de "${s}"`);
+  for (const f of data.weatherFixed ?? []) {
+    if (!data.order.includes(f.season)) errors.push(`seasons: weatherFixed com estação inexistente "${f.season}"`);
+    if (!(f.from >= 1 && f.to >= f.from && f.to <= data.daysPerSeason)) errors.push(`seasons: weatherFixed ${f.season} ${f.from}-${f.to} fora da estação`);
+    if (!Object.values(data.weather ?? {}).some((w) => f.weather in w)) errors.push(`seasons: weatherFixed com clima desconhecido "${f.weather}"`);
+  }
   for (const [w, fx] of Object.entries(data.weatherFx ?? {})) {
     if (!(WEATHER_PARTICLES as readonly string[]).includes(fx.particle)) errors.push(`seasons: weatherFx "${w}" com partícula desconhecida "${fx.particle}"`);
     if (!(fx.perTile > 0) || !(fx.lifespan[0] > 0) || fx.lifespan[1] < fx.lifespan[0]) errors.push(`seasons: weatherFx "${w}" com perTile ou lifespan inválido`);

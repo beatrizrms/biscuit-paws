@@ -12,6 +12,7 @@ import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
+import { isChristmas } from './secretSanta';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordServed } from './stats';
@@ -560,6 +561,9 @@ export class CafeService {
   isOpen(): boolean {
     // A placa de um evento (feira de adoção, Dia do Gato...) na porta: hoje o atendimento não abre.
     if (festivalClosesCafe(this.st.festivals, this.h.content.festivals, this.st.day)) return false;
+    // Natal: fecha mais cedo (data/festive.json: secretSanta.closeAt).
+    const xmas = this.h.content.festive.secretSanta;
+    if (isChristmas(this.h.content.seasons, xmas, this.st.day) && this.st.time >= parseClock(xmas.closeAt)) return false;
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 

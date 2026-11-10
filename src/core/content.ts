@@ -27,11 +27,13 @@ import { validateArrivals, type ArrivalsData } from './arrivals';
 import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
+import { validateSecretSanta, type SecretSantaData } from './secretSanta';
 
-/** data/festive.json: a caixa de enfeites de Natal. */
+/** data/festive.json: a caixa de enfeites de Natal e o amigo secreto. */
 export interface FestiveData {
   schemaVersion: 1;
   box: { item: string; tag: string; opensIn: string };
+  secretSanta: SecretSantaData;
 }
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
@@ -210,7 +212,9 @@ export type Condition =
   /** O selo do café já foi conquistado (data/milestones.json). Só selos de quantidade podem segurar a história. */
   | { milestone: string }
   /** A estação de hoje (ex.: a guirlanda da Dona Neusa, só no inverno). */
-  | { season: string };
+  | { season: string }
+  /** O amigo vem para o amigo secreto deste ano: ela já o conhece (data/festive.json: secretSanta.friends). */
+  | { santaGuest: string };
 
 export type Effect =
   | { dialogue: string }
@@ -522,6 +526,15 @@ export function validateContent(raw: RawContent): string[] {
     else if ((item.kind ?? 'furniture') === 'furniture') err(`festive: a caixa "${box.item}" não pode ser móvel`);
     if (!raw.seasons.order.includes(box.opensIn)) err(`festive: estação inexistente "${box.opensIn}"`);
     if (!raw.items.items.some((i) => i.tags.includes(box.tag))) err(`festive: nenhum item tem a tag "${box.tag}"`);
+    errors.push(
+      ...validateSecretSanta(raw.festive.secretSanta, {
+        items: new Map(raw.items.items.map((i) => [i.id, i])),
+        npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+        dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
+        scripts: new Set(Object.keys(raw.scripts.scripts)),
+        seasons: raw.seasons,
+      }),
+    );
   }
   {
     const ids: Record<string, Set<string>> = {
@@ -728,6 +741,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('santaGuest' in c) {
+      if (!raw.festive.secretSanta.friends.some((f) => f.npc === c.santaGuest)) err(`${where}: "${c.santaGuest}" não está no amigo secreto`);
     } else if ('season' in c) {
       if (!raw.seasons.order.includes(c.season)) err(`${where}: estação inexistente "${c.season}"`);
     } else if ('milestone' in c) {
@@ -832,6 +847,10 @@ export function validateContent(raw: RawContent): string[] {
     }
   for (const f of raw.festivals.festivals) if (f.when !== undefined) checkCondition(`festivals: "${f.id}"`, f.when as Condition);
   for (const e of raw.seasons.events ?? []) if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
+  // Passos de roteiro com condição (when): só rodam se ela valer na hora.
+  for (const [id, s] of Object.entries(raw.scripts.scripts)) s.steps.forEach((step, i) => step.when && checkCondition(`roteiro "${id}" passo ${i}`, step.when as Condition));
+  for (const f of raw.festive.secretSanta.friends) checkCondition(`festive.secretSanta: ${f.npc}`, f.known);
+  checkCondition('festive.secretSanta: proposalWhen', raw.festive.secretSanta.proposalWhen);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
   errors.push(
     ...validateRooms(raw.rooms, {

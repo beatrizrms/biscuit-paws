@@ -15,11 +15,12 @@ import { newFestivals, type ActivityResult, type FestivalsState } from './festiv
 import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
+import type { SantaRecord, SantaResult } from './secretSanta';
 
-export const SAVE_SCHEMA_VERSION = 33;
+export const SAVE_SCHEMA_VERSION = 34;
 
-export interface SaveV33 extends GameState {
-  schemaVersion: 33;
+export interface SaveV34 extends GameState {
+  schemaVersion: 34;
   savedAt: string;
 }
 
@@ -172,10 +173,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   31: (save) => ({ ...save, schemaVersion: 32, wear: {} }),
   /** v32 -> v33: caixa de enfeites de Natal. Saves antigos: caixa vazia. */
   32: (save) => ({ ...save, schemaVersion: 33, xmasBox: {} }),
+  /** v33 -> v34: amigo secreto de Natal. Saves antigos: nenhum ainda. */
+  33: (save) => ({ ...save, schemaVersion: 34, secretSanta: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV33 = { schemaVersion: 33, savedAt: now.toISOString(), ...state };
+  const save: SaveV34 = { schemaVersion: 34, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -229,7 +232,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV33>;
+  const v2 = save as unknown as Partial<SaveV34>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -402,6 +405,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     milestones: normalizeMilestones(v2.milestones, known.milestones),
     // Vitrines: só as de móveis posicionados, com receitas que existem e fatias inteiras.
     // Caixa de Natal: só itens que existem, em quantidades inteiras.
+    secretSanta: normalizeSanta(v2.secretSanta, known.items),
     xmasBox: Object.fromEntries(Object.entries((v2.xmasBox ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => known.items.has(e[0]) && Number.isInteger(e[1]) && (e[1] as number) > 0)),
     displays: Object.fromEntries(
       Object.entries(v2.displays ?? {})
@@ -573,6 +577,19 @@ function validSchedule(s: unknown): s is Schedule {
 }
 
 /** Os IDs conhecidos a partir do conteúdo. */
+/** Amigo secreto: registro com ano, quem ela tirou e etapa; item que sumiu dos dados é esquecido. */
+function normalizeSanta(raw: unknown, items: ReadonlySet<string>): SantaRecord | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  if (!Number.isInteger(r.year) || typeof r.drawn !== 'string' || !['drawn', 'done', 'missed'].includes(r.stage as string)) return null;
+  const out: SantaRecord = { year: r.year as number, drawn: r.drawn, stage: r.stage as SantaRecord['stage'] };
+  if (['loved', 'liked', 'none'].includes(r.result as string)) out.result = r.result as SantaResult;
+  if (typeof r.gift === 'string' && items.has(r.gift)) out.gift = r.gift;
+  if (typeof r.giver === 'string') out.giver = r.giver;
+  if (typeof r.received === 'string' && items.has(r.received)) out.received = r.received;
+  return out;
+}
+
 export function knownIds(content: {
   items: Record<string, unknown>;
   finishes: Record<string, unknown>;
