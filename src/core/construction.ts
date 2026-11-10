@@ -151,7 +151,10 @@ export function isolatedCells(s: ConstructionState, map: MapData, day: number): 
   return [...out.values()];
 }
 
-/** Onde ele trabalha hoje: o lugar fixo do reparo ou, numa troca de acabamento, à esquerda da área (virado para ela). */
+/**
+ * Onde ele trabalha hoje, sempre encostado numa parede (a animação martela para a direita): o lugar fixo do reparo
+ * ou, numa troca de acabamento, a primeira fileira de piso (colada na parede do fundo), na coluna à esquerda da área.
+ */
 export function builderSpot(s: ConstructionState, map: MapData, day: number, d: ConstructionData): { map?: string; at: Cell; facing: Facing } | null {
   if (!workingToday(s, day) || !s.job) return null;
   const job = s.job;
@@ -159,9 +162,11 @@ export function builderSpot(s: ConstructionState, map: MapData, day: number, d: 
   if (job.kind === 'outside' || job.kind === 'facade') return d.repairs.outside.site;
   const area = isolatedCells(s, map, day);
   if (area.length === 0) return null;
-  const left = Math.min(...area.map(([c]) => c));
-  const bottom = Math.max(...area.map(([, r]) => r));
-  return { at: [Math.max(0, left - 1), bottom], facing: 'right' };
+  const col = Math.max(0, Math.min(...area.map(([c]) => c)) - 1);
+  const floor = map.layers.floor;
+  let row = 0;
+  while (row < floor.length - 1 && (floor[row]?.[col] ?? '.') === '.') row++;
+  return { at: [col, row], facing: 'right' };
 }
 
 export function validateConstruction(d: ConstructionData, refs: { npcs: ReadonlySet<string>; finishes: ReadonlySet<string>; surfaces: ReadonlySet<string> }): string[] {

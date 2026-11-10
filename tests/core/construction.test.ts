@@ -129,7 +129,8 @@ describe('obras: troca de acabamento por área', () => {
     expect(tape.length).toBe(16);
     const solid = resolveMap(map, content.catalog).solid;
     expect(solid[6]![9]).toBe(true);
-    expect(s.builderAt('map.cafe_main')).toEqual({ at: [8, 9], facing: 'right' });
+    // Encostado na parede do fundo, na coluna à esquerda da área.
+    expect(s.builderAt('map.cafe_main')).toEqual({ at: [8, 3], facing: 'right' });
     s.endDay('home');
     const done = s.mapData();
     const tileAt = (col: number, row: number) => done.legend[done.layers.floor[row]![col]!];
