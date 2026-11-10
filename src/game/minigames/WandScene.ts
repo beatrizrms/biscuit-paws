@@ -140,7 +140,7 @@ export class WandScene extends MiniGameScene {
     const t = uiText.minigames.wand;
     const snd = this.def.sounds ?? {};
     if (ev.bored) {
-      this.float(ev.bored === 'too_fast' ? t.tooFast : t.bored, '#8a7a80');
+      this.float(ev.bored === 'too_fast' ? t.tooFast : ev.bored === 'still' ? t.still : t.bored, '#8a7a80');
       this.sfx(snd.bored);
       this.tweens.add({ targets: this.cat, alpha: 0.6, duration: 150, yoyo: true, repeat: 1 });
     }

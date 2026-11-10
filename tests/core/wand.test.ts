@@ -58,6 +58,47 @@ describe('varinha', () => {
     expect(s.wiggles).toBe(1);
   });
 
+  it('varinha parada perto dele o jogo todo: um bote só, depois a presa parada dá tédio e ele enjoa; não completa', () => {
+    const s = newWand({ x: 300, y: 200 }, { x: 330, y: 200 });
+    const ev = run(s, p.timeSec, () => ({ x: 330, y: 200 }));
+    expect(s.pounces).toBe(1);
+    expect(ev).toContain('bored:still');
+    expect(s.bored).toBeGreaterThanOrEqual(3);
+    expect(wandOutcome(s, p, true)).toBe('fail');
+  });
+
+  it('a presa fugindo de novo recarrega o bote: mexer depois do bote, parar perto e ele salta outra vez', () => {
+    const s = newWand({ x: 300, y: 200 }, { x: 330, y: 200 });
+    run(s, p.pounceDelaySec + p.crouchSec + 1, () => ({ x: 330, y: 200 }));
+    expect(s.pounces).toBe(1);
+    expect(s.armed).toBe(false);
+    // Foge em zigue-zague o bastante para recarregar...
+    run(s, p.rearmSec + 0.6, (t) => ({ x: 330 + 50 * Math.sin(t * 4), y: 200 + 30 * Math.sin(t * 6.3) }));
+    expect(s.armed).toBe(true);
+    // ...e para perto dele: outro bote.
+    const stop = { x: s.tip.x, y: s.tip.y };
+    run(s, 3, () => stop);
+    expect(s.pounces).toBe(2);
+  });
+
+  it('jogando bem (zigue-zague e paradas perto dele para o bote), completa a tempo nas três dificuldades', () => {
+    for (const d of ['easy', 'normal', 'hard'] as const) {
+      const q = paramsOf<WandParams>(content.minigames, 'wand', d);
+      const s = newWand({ x: 300, y: 200 }, { x: 330, y: 200 });
+      let stopAt: { x: number; y: number } | null = null;
+      for (let t = 0; t < q.timeSec * 1000 && wandOutcome(s, q, false) === null; t += DT) {
+        const sec = s.elapsed / 1000;
+        // Ciclos de ~3 s: 2 s fugindo em zigue-zague, ~1 s parada (o gato chega, agacha e salta).
+        const fleeing = sec % 3 < 2;
+        if (fleeing) stopAt = null;
+        const tip = fleeing ? { x: 300 + 110 * Math.sin(sec * 2.9) * Math.cos(sec * 0.8), y: 190 + 55 * Math.sin(sec * 4.7) } : (stopAt ??= { ...s.tip });
+        stepWand(s, q, tip, DT);
+      }
+      expect(wandOutcome(s, q, true), d).not.toBe('fail');
+      expect(s.excitement, d).toBeGreaterThanOrEqual(q.okAt);
+    }
+  });
+
   it('resultado: barra cheia sem enjoo = great; com enjoo = ok; no tempo, okAt decide', () => {
     const s = newWand({ x: 0, y: 0 }, { x: 0, y: 0 });
     expect(wandOutcome(s, p, false)).toBeNull();

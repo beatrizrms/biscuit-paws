@@ -301,9 +301,9 @@
         "hard": {"ok":8,"great":16}
       },
       "difficulties": {
-        "easy": {"timeSec":45,"catSpeed":150,"catAccel":420,"arriveRadius":40,"gainPerSec":9,"variety":160,"stillSpeed":12,"tooFast":620,"boringVariety":45,"boredAfterSec":3,"giveUpAfterSec":1.5,"boredLoss":15,"idleLossPerSec":2,"pounceDelaySec":0.5,"pounceRange":90,"crouchSec":0.9,"pounceGain":10,"wiggleBonus":8,"wiggleMin":15,"wiggleMax":140,"okAt":55},
-        "normal": {"timeSec":40,"catSpeed":160,"catAccel":400,"arriveRadius":40,"gainPerSec":8,"variety":180,"stillSpeed":12,"tooFast":560,"boringVariety":55,"boredAfterSec":2.5,"giveUpAfterSec":1.2,"boredLoss":18,"idleLossPerSec":3,"pounceDelaySec":0.5,"pounceRange":80,"crouchSec":0.8,"pounceGain":9,"wiggleBonus":7,"wiggleMin":15,"wiggleMax":120,"okAt":60},
-        "hard": {"timeSec":30,"catSpeed":175,"catAccel":380,"arriveRadius":40,"gainPerSec":8,"variety":200,"stillSpeed":12,"tooFast":500,"boringVariety":65,"boredAfterSec":2,"giveUpAfterSec":1,"boredLoss":20,"idleLossPerSec":4,"pounceDelaySec":0.5,"pounceRange":70,"crouchSec":0.7,"pounceGain":8,"wiggleBonus":6,"wiggleMin":15,"wiggleMax":100,"okAt":65}
+        "easy": {"timeSec":45,"catSpeed":150,"catAccel":420,"arriveRadius":40,"gainPerSec":9,"variety":160,"stillSpeed":12,"tooFast":620,"boringVariety":45,"boredAfterSec":3,"giveUpAfterSec":1.5,"boredLoss":15,"idleLossPerSec":2,"pounceDelaySec":0.5,"pounceRange":90,"crouchSec":0.9,"pounceGain":10,"rearmSec":0.8,"wiggleBonus":8,"wiggleMin":15,"wiggleMax":140,"okAt":55},
+        "normal": {"timeSec":40,"catSpeed":160,"catAccel":400,"arriveRadius":40,"gainPerSec":8,"variety":180,"stillSpeed":12,"tooFast":560,"boringVariety":55,"boredAfterSec":2.5,"giveUpAfterSec":1.2,"boredLoss":18,"idleLossPerSec":3,"pounceDelaySec":0.5,"pounceRange":80,"crouchSec":0.8,"pounceGain":9,"rearmSec":1,"wiggleBonus":7,"wiggleMin":15,"wiggleMax":120,"okAt":60},
+        "hard": {"timeSec":30,"catSpeed":175,"catAccel":380,"arriveRadius":40,"gainPerSec":8,"variety":200,"stillSpeed":12,"tooFast":500,"boringVariety":65,"boredAfterSec":2,"giveUpAfterSec":1,"boredLoss":20,"idleLossPerSec":4,"pounceDelaySec":0.5,"pounceRange":70,"crouchSec":0.7,"pounceGain":8,"rearmSec":1.2,"wiggleBonus":6,"wiggleMin":15,"wiggleMax":100,"okAt":65}
       }
     },
     "grooming": {

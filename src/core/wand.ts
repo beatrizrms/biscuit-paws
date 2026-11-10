@@ -2,6 +2,8 @@
 // A empolgação sobe quando a ponta muda de rumo e de ritmo; cai quando o movimento fica previsível (linha reta
 // constante) ou rápido demais (ele desiste): cada vez que isso dura, o gato "enjoa" uma vez.
 // Ponta parada ~0,5 s com o gato perto: ele se agacha e dá o bote; balançar de leve durante o agachar dá bônus.
+// Depois de um bote, a "presa" precisa fugir de novo (a ponta se mexer por rearmSec) para valer outro; parada perto
+// dele sem bote disponível, a graça acaba: ele enjoa como na linha reta (deixar a varinha parada não enche a barra).
 // Puro: sem Phaser, DOM ou window. A cena chama stepWand a cada quadro com a posição da ponta.
 import type { Outcome } from './minigame';
 
@@ -32,6 +34,8 @@ export interface WandParams {
   crouchSec: number;
   /** Ganho do bote e o bônus de balançar de leve (velocidade entre wiggleMin e wiggleMax) durante o agachar. */
   pounceGain: number;
+  /** Depois de um bote, quantos segundos a ponta precisa se mexer (sem ser rápido demais) para valer outro. */
+  rearmSec: number;
   wiggleBonus: number;
   wiggleMin: number;
   wiggleMax: number;
@@ -66,11 +70,15 @@ export interface WandState {
   wiggled: boolean;
   wiggles: number;
   elapsed: number;
+  /** O próximo bote vale (a presa fugiu de novo desde o último) e quanto ela já se mexeu desde o último bote (ms). */
+  armed: boolean;
+  movedMs: number;
 }
 
 /** O que aconteceu neste passo (para a cena tocar som e mostrar balões). */
 export interface WandEvents {
-  bored?: 'boring' | 'too_fast';
+  /** boring: previsível; too_fast: rápido demais; still: a presa ficou parada perto dele depois do bote. */
+  bored?: 'boring' | 'too_fast' | 'still';
   crouched?: boolean;
   wiggle?: boolean;
   pounced?: boolean;
@@ -96,7 +104,16 @@ export function newWand(cat: Vec, tip: Vec): WandState {
     wiggled: false,
     wiggles: 0,
     elapsed: 0,
+    armed: true,
+    movedMs: 0,
   };
+}
+
+/** Enjoou mais uma vez (conta para o resultado e tira empolgação). */
+function getBored(s: WandState, p: WandParams, ev: WandEvents, why: NonNullable<WandEvents['bored']>): void {
+  s.bored++;
+  s.excitement = Math.max(0, s.excitement - p.boredLoss);
+  ev.bored = why;
 }
 
 /** Quanto a média da ponta acompanha o movimento: ~0,6 s de memória (o gato "aprende" o padrão nesse tempo). */
@@ -141,6 +158,9 @@ export function stepWand(s: WandState, p: WandParams, tip: Vec, dtMs: number): W
       s.modeMs = 0;
       ev.pounced = true;
       s.pounces++;
+      // A presa foi pega: o próximo bote só depois de ela fugir de novo.
+      s.armed = false;
+      s.movedMs = 0;
       s.excitement = Math.min(FULL_EXCITEMENT, s.excitement + p.pounceGain);
     }
     return ev;
@@ -174,14 +194,24 @@ export function stepWand(s: WandState, p: WandParams, tip: Vec, dtMs: number): W
   if (speed < p.stillSpeed) {
     // Parada: com o gato perto, ele se prepara para o bote; longe, a graça vai passando.
     s.stillMs += dtMs;
-    s.boringMs = 0;
     s.fastMs = 0;
-    if (s.stillMs >= p.pounceDelaySec * 1000 && dist <= p.pounceRange) {
+    if (s.armed && s.stillMs >= p.pounceDelaySec * 1000 && dist <= p.pounceRange) {
+      s.boringMs = 0;
       s.mode = 'crouch';
       s.modeMs = 0;
       s.wiggled = false;
       ev.crouched = true;
-    } else s.excitement = Math.max(0, s.excitement - p.idleLossPerSec * dt);
+      return ev;
+    }
+    s.excitement = Math.max(0, s.excitement - p.idleLossPerSec * dt);
+    // Presa parada perto dele, sem bote para dar: que tédio (enjoa no mesmo tempo da linha reta).
+    if (!s.armed && dist <= p.pounceRange) {
+      s.boringMs += dtMs;
+      if (s.boringMs >= p.boredAfterSec * 1000) {
+        s.boringMs = 0;
+        getBored(s, p, ev, 'still');
+      }
+    } else s.boringMs = 0;
     return ev;
   }
   s.stillMs = 0;
@@ -192,22 +222,21 @@ export function stepWand(s: WandState, p: WandParams, tip: Vec, dtMs: number): W
     s.boringMs = 0;
     if (s.fastMs >= p.giveUpAfterSec * 1000) {
       s.fastMs = 0;
-      s.bored++;
-      s.excitement = Math.max(0, s.excitement - p.boredLoss);
-      ev.bored = 'too_fast';
+      getBored(s, p, ev, 'too_fast');
     }
     return ev;
   }
   s.fastMs = 0;
+  // A presa se mexendo (sem fugir rápido demais): depois de rearmSec, o próximo bote vale de novo.
+  s.movedMs += dtMs;
+  if (!s.armed && s.movedMs >= p.rearmSec * 1000) s.armed = true;
 
   if (variety < p.boringVariety) {
     // Previsível (mesmo rumo, mesmo ritmo): a graça acaba.
     s.boringMs += dtMs;
     if (s.boringMs >= p.boredAfterSec * 1000) {
       s.boringMs = 0;
-      s.bored++;
-      s.excitement = Math.max(0, s.excitement - p.boredLoss);
-      ev.bored = 'boring';
+      getBored(s, p, ev, 'boring');
     }
     return ev;
   }

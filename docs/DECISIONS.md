@@ -644,3 +644,7 @@ Decisão: o gato tem um espaço pessoal sorteado (`comfortRange`) que muda a cad
 ## 158. Lavar na pia é à mão (nov/2026)
 Pedido: a barra de lavar louça continuava mesmo com a jogadora longe da pia.
 Decisão: a lavagem na pia só anda com ela em frente à pia (`sinkNear`); fora (ou fora do café), pausa: a cada minuto o fim da lavagem anda junto com o relógio, a barra fica parada no último minuto lavado, a água e a animação param, o balão do subconsciente mostra "Pia: lavagem parada (volte à pia)" e, ao sair, um aviso "A louça espera você voltar à pia" (evento `sink.paused`). Voltando, continua de onde parou. A cena avisa o núcleo a cada quadro (`setSinkAttended`; sem cena, como nos testes, a pia lava direto). A lava-louças continua lavando sozinha (é máquina). Nada no save.
+
+## 159. Varinha: o bote precisa ser recarregado (nov/2026)
+Pedido: deixando a varinha parada o tempo todo, o gato ficava dando bote sem parar e a empolgação enchia; o esperado era ele ficar entediado.
+Decisão: depois de um bote, o próximo só vale depois de a ponta se mexer de novo (sem ser rápido demais) por `rearmSec` (0,8 / 1 / 1,2 s no fácil, normal e difícil): a presa precisa fugir. Parada perto dele sem bote disponível, a graça acaba: no mesmo tempo da linha reta previsível (`boredAfterSec`) ele enjoa (conta um enjoo e perde `boredLoss`), com o aviso "Presa parada, que tédio..." (motivo `still`). Varinha parada o jogo todo: 1 bote e depois só enjoo (falha). Jogando bem (fugir em zigue-zague e parar perto para o bote), completa a tempo nas três dificuldades.

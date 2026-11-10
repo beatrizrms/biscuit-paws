@@ -772,6 +772,7 @@
       "hud": "Empolgação {n}% · Enjoou {bored}",
       "bored": "Enjoou...",
       "tooFast": "Rápido demais!",
+      "still": "Presa parada, que tédio...",
       "wiggle": "Balançou!",
       "pounce": "Bote!",
       "result": "Botes: {pounces} · enjoou {bored} vez(es).",
