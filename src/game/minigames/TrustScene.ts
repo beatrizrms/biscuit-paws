@@ -7,7 +7,7 @@ import { mapInSeason } from '../../core/calendar';
 import { resolveMap } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
-import { FULL_TRUST, newTrust, stepTrust, trustOutcome, useTreat, type CatMood, type TrustParams, type TrustState } from '../../core/trust';
+import { crowded, FULL_TRUST, newTrust, stepTrust, trustOutcome, useTreat, type CatMood, type TrustParams, type TrustState } from '../../core/trust';
 import { content, uiText } from '../content';
 import { CatSprite, catTexture } from '../entities/Cat';
 import { Player } from '../entities/Player';
@@ -38,6 +38,11 @@ export class TrustScene extends MiniGameScene {
   private lastMood: CatMood = 'calm';
   private lastTrust = 0;
   private heartAt = 0;
+  /** Já avisou que ela está perto demais para o humor de agora (avisa de novo depois que ela respeitar o espaço). */
+  private crowdWarned = false;
+  /** Quando subiu o último texto flutuante e quantos estão subindo juntos (o seguinte nasce mais acima, sem encavalar). */
+  private floatAt = -Infinity;
+  private floatStack = 0;
   private ended = false;
 
   constructor() {
@@ -53,7 +58,8 @@ export class TrustScene extends MiniGameScene {
     const def = this.def;
     this.p = paramsOf<TrustParams>(content.minigames, 'trust', this.launch.params.difficulty);
     // O petisco da missão (params.itemId) vale um a mais que os da dificuldade.
-    this.s = newTrust(this.p, def.treatItem && this.launch.params.itemId === def.treatItem ? 1 : 0);
+    this.s = newTrust(this.p, this.rng, def.treatItem && this.launch.params.itemId === def.treatItem ? 1 : 0);
+    this.crowdWarned = false;
     this.lastMood = 'calm';
     this.lastTrust = 0;
     this.heartAt = 0;
@@ -108,7 +114,16 @@ export class TrustScene extends MiniGameScene {
     const dir = this.controls.direction();
     const approach = this.controls.holding() || dir.right;
     const back = dir.left;
-    const { scared } = stepTrust(this.s, this.p, { approach, back }, delta);
+    const { scared, startled } = stepTrust(this.s, this.p, { approach, back }, delta, this.rng);
+    if (startled) {
+      this.float(uiText.minigames.trust.startled, '#c48a1e');
+      this.sfx(this.def.sounds?.hiss);
+    }
+    // Perto demais para o humor de agora: avisa uma vez (o "!" de alerta aparece quando a tensão subir).
+    if (crowded(this.s) && !this.crowdWarned) {
+      this.crowdWarned = true;
+      this.float(uiText.minigames.trust.crowded, '#9a86b4');
+    } else if (!crowded(this.s)) this.crowdWarned = false;
     // Personagem: anda (animação) só quando a distância muda; parada, olha para o gato.
     const prev = this.player.x;
     const x = this.catX - this.s.distance;
@@ -198,8 +213,11 @@ export class TrustScene extends MiniGameScene {
   }
 
   private float(text: string, color: string): void {
+    // Dois avisos juntos ("Ele quer espaço" e "Um barulho!"): o segundo sobe uma linha acima do primeiro.
+    this.floatStack = this.time.now - this.floatAt < 1000 ? this.floatStack + 1 : 0;
+    this.floatAt = this.time.now;
     const label = this.add
-      .text(this.cat.x, this.cat.y - 52, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(this.cat.x, this.cat.y - 52 - this.floatStack * 11, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     this.tweens.add({ targets: label, y: label.y - 14, alpha: 0, delay: 300, duration: 700, onComplete: () => label.destroy() });

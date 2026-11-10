@@ -742,7 +742,9 @@
       "scared": "Assustou!",
       "result": "Confiança conquistada com {scares} susto(s).",
       "failed": "Ele se assustou demais e fugiu.",
-      "treatGiven": "Petisco!"
+      "treatGiven": "Petisco!",
+      "startled": "Um barulho!",
+      "crowded": "Ele quer espaço"
     },
     "adoption": {
       "confirm": "Confirmar (Enter)",

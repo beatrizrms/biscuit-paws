@@ -201,7 +201,7 @@
     "trust": {
       "name": "Confiança do gato",
       "instructions": "Um gato assustado na rua. Segure para chegar perto, devagar. Se ele ficar alerta, pare e espere ele relaxar. Se ele bufar e você continuar andando, ele se assusta. Perto e com ele calmo, a confiança sobe.",
-      "tutorial": {"icon":"petisco_biscoito","lines":["Segure → (ou E, Espaço, mouse) para chegar perto devagar; ← se afasta.","Ele ficou alerta (!)? Pare e espere relaxar. Bufou? Não ande!","Petisco (P) acelera a confiança. Sem nenhum susto = \"Perfeito!\"."]},
+      "tutorial": {"icon":"petisco_biscoito","lines":["Segure → (ou E, Espaço, mouse) para chegar perto devagar; ← se afasta.","Ele ficou alerta (!)? Pare e espere relaxar; se não passar, ele quer espaço: recue um pouco. Bufou? Não ande!","Petisco (P) acelera a confiança. Sem nenhum susto = \"Perfeito!\"."]},
       "reputation": {"fail":-2,"ok":3,"great":6},
       "map": "map.minigame_praca",
       "view": [0,0,20,12],
@@ -214,9 +214,9 @@
         "hard": {"ok":24,"great":40}
       },
       "difficulties": {
-        "easy": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.35,"relaxRate":0.35,"gainPerSec":4,"treats":2},
-        "normal": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.45,"relaxRate":0.3,"gainPerSec":3.5,"treats":1},
-        "hard": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.6,"relaxRate":0.25,"gainPerSec":3,"treats":0}
+        "easy": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.35,"relaxRate":0.35,"gainPerSec":3,"treats":2,"comfortRange":[30,50],"comfortEverySec":[3,6],"crowdRate":0.25,"closeBonus":1,"startleEverySec":[14,22],"startleTension":0.45},
+        "normal": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.45,"relaxRate":0.3,"gainPerSec":2.5,"treats":1,"comfortRange":[30,62],"comfortEverySec":[3,6],"crowdRate":0.35,"closeBonus":1,"startleEverySec":[10,16],"startleTension":0.5},
+        "hard": {"startDistance":220,"nearDistance":70,"minDistance":30,"approachSpeed":32,"backSpeed":50,"farTension":0.2,"alertAt":0.4,"hissAt":0.75,"movingGain":0.5,"scareLoss":15,"scarePushback":40,"maxScares":3,"scareCooldownMs":1200,"treatGain":2,"treatSec":6,"treatCalm":0.3,"tensionRate":0.6,"relaxRate":0.25,"gainPerSec":2.4,"treats":0,"comfortRange":[35,68],"comfortEverySec":[3,6],"crowdRate":0.45,"closeBonus":1,"startleEverySec":[7,12],"startleTension":0.6}
       }
     },
     "adoption": {
