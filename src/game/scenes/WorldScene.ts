@@ -1159,7 +1159,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
-      if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
+      if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet) && !this.interactionAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       const station = this.stationInReach(feet);
@@ -1489,6 +1489,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return dist(box) < dist(bowl) ? { box } : { bowl };
   }
 
+  /**
+   * Interação do mapa (janela, plaquinha...) na direção em que ela olha, até o alcance dela: as células à frente
+   * batem com o ponto da interação ou com a peça que ela usa (a janela inteira, para a cortina).
+   */
+  private interactionAhead(feet: readonly Cell[]): MapInteraction | undefined {
+    const it = this.session.interactionAt(feet);
+    if (!it) return undefined;
+    const { tiles } = this.session.content.catalog;
+    const obj = 'curtain' in it.action ? this.map.sprites.find((x) => x.obj === (it.action as { curtain: string }).curtain) : undefined;
+    const objDef = obj ? tiles[obj.tile] : undefined;
+    const placedObj = obj && objDef ? this.session.mapData().objects.find((o) => o.id === obj.obj) : undefined;
+    const cells: Cell[] = [it.at, ...(placedObj && objDef ? cellsOf(placedObj.at, objDef) : [])];
+    const [c, r] = this.feetCell();
+    const d = this.player.facingDirection();
+    const [dx, dy] = d === 'up' ? [0, -1] : d === 'down' ? [0, 1] : d === 'left' ? [-1, 0] : [1, 0];
+    for (let k = 1; k <= (it.reach ?? 1); k++) if (cells.some(([x, y]) => x === c + dx * k && y === r + dy * k)) return it;
+    return undefined;
+  }
+
   /** Célula na frente dela (para soltar o que está nas mãos). */
   private facingCell(): Cell {
     const [c, r] = this.feetCell();
@@ -1518,7 +1537,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const pantry = this.session.content.service.pantry;
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
     // Equipamento bem na frente dela (o bule ao lado do armário) ganha da despensa.
-    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry && (target || !this.stationAhead(feet))) {
+    // A janela (ou outra interação) na direção em que ela olha ganha da despensa ao lado.
+    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry && (target || (!this.stationAhead(feet) && !this.interactionAhead(feet)))) {
       this.ui.openPantry();
       return true;
     }
