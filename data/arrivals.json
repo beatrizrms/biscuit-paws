@@ -19,7 +19,6 @@
       "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
       "clue": "neighbor",
       "cat": { "generate": { "personality": "needy", "condition": "hungry", "variant": "toffee" } },
-      "needsInside": ["food"],
       "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_second_cat" }, { "choice": "neighbor_offer" }],
       "result": { "startPoints": 60, "npc": { "id": "npc.neusa", "points": 80 } },
       "whenFull": "provisional"
@@ -79,7 +78,6 @@
       "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
       "clue": "neighbor",
       "cat": { "generate": { "personality": "needy" } },
-      "needsInside": ["food"],
       "steps": [],
       "result": { "startPoints": 60, "npc": { "id": "npc.neusa", "points": 60 } },
       "whenFull": "adoption"

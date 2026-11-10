@@ -292,9 +292,7 @@
     "no_days": "Escolha pelo menos um dia para abrir.",
     "too_short": "O café precisa ficar aberto mais tempo.",
     "out_of_range": "Fora do horário possível.",
-    "bad_step": "Horário inválido.",
-    "need_food": "Você precisa de ração de gato (o mercado vende).",
-    "need_warmth": "Você precisa de um cobertor de gato (o mercado vende)."
+    "bad_step": "Horário inválido."
   },
   "construction": {
     "title": "Obras do Tião",
@@ -467,6 +465,8 @@
   },
   "cats": {
     "app": "Meus gatos",
+    "arrivedScared": "{cat} chegou no café meio assustado: ganhe a confiança dele (E nele).",
+    "settled": "{cat} já se sente em casa!",
     "none": "Nenhum gato abrigado ainda. Quem sabe um miado na porta...",
     "fed": "Comeu hoje",
     "hungry": "Ainda não comeu",
@@ -504,6 +504,8 @@
   "chores": {
     "title": "hoje",
     "feed": "Comida para {cat}",
+    "feedAll": "Ração para os gatos",
+    "settle": "Ganhar a confiança de {cat} (E nele)",
     "sweep": "Varrer a poeira do dia",
     "pantry": "Guardar as compras na despensa",
     "sick": "Gatos doentes: clientes não entram",
@@ -1049,10 +1051,7 @@
       "danger": "Pegar o gato ferido e correr com ele até a clínica!",
       "box": "Ver a caixa que mia na porta do café.",
       "ask": "Os vizinhos estão dando palpites: ouvir um deles.",
-      "feed": "Deixar ração para o gato tímido da rua ({n}/{total}), entre {from} e {to}.",
-      "need_food": "Dar ração ao gato antes de ele entrar (E no gato).",
-      "need_warmth": "Esquentar o gato com um cobertor (E no gato).",
-      "need_vet": "Levar o gato à clínica: falar com a Fernanda ({cost} moedas)."
+      "feed": "Deixar ração para o gato tímido da rua ({n}/{total}), entre {from} e {to}."
     },
     "choices": {
       "take_in": {
@@ -1110,13 +1109,7 @@
       "pole_ladder": "Pega a escada e sobe rápido, antes que ele pule!"
     },
     "fed": "Ele comeu de longe, de olho em você... Amanhã ele chega um pouco mais perto.",
-    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto.",
-    "needsStart": "Ele ainda não está pronto para entrar: veja o balão.",
-    "needMet": {
-      "food": "Ele comeu tudo, rapidinho.",
-      "warmth": "Enrolado no cobertor, ele parou de tremer.",
-      "vet": "A Fernanda cuidou dele. Vai ficar bem."
-    }
+    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto."
   },
   "hints": {
     "customer": "Atender",

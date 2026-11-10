@@ -6,7 +6,7 @@
 import { stepsOf } from './arrivalModels';
 import { arrivalsToQueue, nextGap, triggerHolds, visibleTrail, type ArrivalDef, type ArrivalStep } from './arrivals';
 import type { JobPoint } from './jobs';
-import { generateCat, type CatNeed } from './catGen';
+import { generateCat } from './catGen';
 import { parseClock } from './time';
 import { seasonOf, weatherOf } from './calendar';
 import type { Content } from './content';
@@ -21,9 +21,6 @@ export const minigamePointId = (arrivalId: string, step: number) => `arrival:${a
 
 /** Id do ponto onde ela deixa a comida (etapa feed). */
 export const feedPointId = (arrivalId: string) => `arrival:${arrivalId}:feed`;
-/** Id do ponto do gato esperando as necessidades (ração, cobertor). */
-export const needPointId = (arrivalId: string) => `arrival:${arrivalId}:need`;
-
 /** Id do destino do guia (gato_leva). */
 export const destPointId = (arrivalId: string) => `arrival:${arrivalId}:dest`;
 
@@ -49,8 +46,11 @@ export interface ArrivalHost {
   takeItem(itemId: string): boolean;
   /** Personalidade do gato (data/cats.json ou o gerado). */
   catPersonality(catId: string): string;
-  /** Abriga o gato no café com a condição de chegada (saúde, doença, fome); treated: o vet já cuidou (sem doença). */
-  shelterCat(catId: string, condition: string, provisionalUntil?: number, treated?: boolean): void;
+  /**
+   * Abriga o gato no café com a condição de chegada (saúde, doença); treated: o vet já cuidou (sem doença); settling:
+   * acabou de chegar e precisa da confiança para ficar de boa.
+   */
+  shelterCat(catId: string, condition: string, provisionalUntil?: number, treated?: boolean, settling?: boolean): void;
   money(): number;
   addMoney(delta: number, reason: string): void;
   addReputation(amount: number, reason: string): void;
@@ -129,6 +129,8 @@ export class ArrivalSystem {
       else this.st.queue.push(id);
       this.h.bus.emit('arrival.queued', { arrivalId: id });
     }
+    // Save de antes da regra (o gato esperando ração/cobertor/vet na porta): entra agora.
+    if (this.st.active && !this.currentStep()) this.enterCafe();
     this.tryStart();
   }
 
@@ -200,7 +202,7 @@ export class ArrivalSystem {
       if (!a) return;
       const step = this.currentStep();
       if (!step) {
-        this.startNeeds();
+        this.enterCafe();
         return;
       }
       this.h.bus.emit('arrival.step', { arrivalId: a.id, step: a.step });
@@ -218,51 +220,22 @@ export class ArrivalSystem {
   }
 
   /**
-   * Aceito: antes de entrar, as necessidades da condição (cat_profiles.json: conditions[].needs). Sem nenhuma, entra.
-   * O em_perigo já chegou à clínica correndo: o vet conta (e cobra) sozinho. A etapa feed conta como a ração.
+   * Aceito: o gato entra no café na hora (regra geral). Fome e frio se resolvem lá dentro (o pote, o calor); o ferido
+   * entra doente e vai à clínica como qualquer gato. O em_perigo já chegou correndo à clínica: lá ele é tratado (e pago).
    */
-  private startNeeds(): void {
+  private enterCafe(): void {
     const a = this.active();
-    const st = this.st.active;
-    if (!a || !st) return;
-    if (!st.needs) {
-      const needs = [...(this.h.content.catProfiles.conditions[a.condition]?.needs ?? [])];
-      if (a.def.model === 'em_perigo' && needs.includes('vet')) {
-        needs.splice(needs.indexOf('vet'), 1);
-        this.payVet();
-      }
-      // O que fica para dentro do café (needsInside: o gato que a vizinha traz come do pote lá dentro).
-      for (const n of a.def.needsInside ?? []) if (needs.includes(n)) needs.splice(needs.indexOf(n), 1);
-      // Quem já comeu na etapa feed (gato carteiro) não precisa de mais ração.
-      if (a.def.steps.some((s) => 'feed' in s) && needs.includes('food')) needs.splice(needs.indexOf('food'), 1);
-      st.needs = needs;
-      if (needs.length > 0) this.h.bus.emit('arrival.needs', { arrivalId: a.def.id, needs: [...needs] });
-    }
-    if (st.needs.length === 0) this.finish('accepted');
+    if (!a || !this.st.active) return;
+    if (a.def.model === 'em_perigo' && this.h.content.catProfiles.conditions[a.condition]?.sick) this.payVet();
+    this.finish('accepted');
   }
 
   private payVet(): void {
     const st = this.st.active;
     if (!st) return;
-    const cost = this.h.content.catProfiles.needs.vet.cost;
+    const cost = this.h.content.catProfiles.rescueVetCost;
     if (cost) this.h.addMoney(-cost, `arrival:vet`);
     st.treated = true;
-  }
-
-  /** As necessidades que ainda faltam (null: não está nessa fase). */
-  pendingNeeds(): CatNeed[] | null {
-    const st = this.st.active;
-    return st && st.needs && !this.currentStep() ? st.needs : null;
-  }
-
-  /** Onde o gato espera as necessidades: o fim do caminho, o lugar da chegada ou o lugar padrão (mural). */
-  needsSpot(): { map: string; at: [number, number] } {
-    const a = this.active();
-    const p = a?.def.place;
-    const route = p?.route;
-    if (p?.map && route?.length) return { map: p.map, at: route[route.length - 1]! };
-    if (p?.map && p.at) return { map: p.map, at: p.at };
-    return this.h.content.catProfiles.needsPlace;
   }
 
   /** Passa para a próxima etapa. */
@@ -276,15 +249,6 @@ export class ArrivalSystem {
   /** Pontos no mapa que esta chegada pede agora (ir até o lugar, ou a pista). */
   pendingPoints(mapId: string): JobPoint[] {
     const a = this.active();
-    const needs = this.pendingNeeds();
-    if (a && needs && needs.length > 0) {
-      const out: JobPoint[] = [];
-      const spot = this.needsSpot();
-      if ((needs.includes('food') || needs.includes('warmth')) && spot.map === mapId) out.push({ id: needPointId(a.def.id), map: mapId, at: spot.at, action: 'press' });
-      const vet = this.h.content.jobPoints[this.h.content.catProfiles.needs.vet.point];
-      if (needs.includes('vet') && vet && vet.map === mapId) out.push(vet);
-      return out;
-    }
     const step = this.currentStep();
     if (!a || !step) return [];
     if ('meet' in step && a.def.place.map === mapId && a.def.place.at) return [{ id: meetPointId(a.def.id), map: mapId, at: a.def.place.at, action: 'press' }];
@@ -322,10 +286,8 @@ export class ArrivalSystem {
   }
 
   /** Ela apertou E num ponto: é desta chegada? (o lugar do encontro ou a pista da vez). Sem a ração: "missing_item". */
-  interact(pointId: string): boolean | 'missing_item' | 'need_food' | 'need_warmth' | 'no_money' {
+  interact(pointId: string): boolean | 'missing_item' {
     const a = this.active();
-    const needs = this.pendingNeeds();
-    if (a && needs && needs.length > 0) return this.meetNeed(pointId);
     const step = this.currentStep();
     if (!a || !step) return false;
     if ('feed' in step && pointId === feedPointId(a.def.id) && this.feedSpot()) {
@@ -381,30 +343,6 @@ export class ArrivalSystem {
     this.advance();
   }
 
-  /** E no gato (ração, cobertor) ou na Fernanda (vet): atende uma necessidade. Todas atendidas: o gato entra. */
-  private meetNeed(pointId: string): boolean | 'need_food' | 'need_warmth' | 'no_money' {
-    const a = this.active()!;
-    const st = this.st.active!;
-    const cfg = this.h.content.catProfiles.needs;
-    let met: CatNeed | null = null;
-    if (pointId === needPointId(a.def.id)) {
-      // Ração antes do cobertor (quem está com fome come primeiro).
-      const want = (['food', 'warmth'] as const).find((n) => st.needs!.includes(n));
-      if (!want) return false;
-      const item = cfg[want].items.find((id) => this.h.takeItem(id));
-      if (!item) return want === 'food' ? 'need_food' : 'need_warmth';
-      met = want;
-    } else if (pointId === cfg.vet.point && st.needs!.includes('vet')) {
-      if (this.h.money() < cfg.vet.cost) return 'no_money';
-      this.payVet();
-      met = 'vet';
-    } else return false;
-    st.needs = st.needs!.filter((n) => n !== met);
-    this.h.bus.emit('arrival.need_met', { arrivalId: a.def.id, need: met, left: [...st.needs] });
-    if (st.needs.length === 0) this.finish('accepted');
-    return true;
-  }
-
   /** Uma cena ou roteiro terminou: se era a etapa da vez, segue. */
   stepFinished(what: { cutscene?: string; script?: string }): void {
     const step = this.currentStep();
@@ -433,15 +371,19 @@ export class ArrivalSystem {
     let placement: Placement = null;
     if (outcome === 'accepted') {
       // Cada gato (o principal e os filhotes da ninhada) pela vaga: no café, provisório ou abrigo da vila.
-      const place = (catId: string, condition: string): Placement => {
+      // Regra geral: o gato entra no café na hora, ainda assustado, e precisa da confiança (mini game trust) para
+      // ficar de boa. Quem já ganhou a confiança na chegada (o do poste, o de dentro do café) entra tranquilo.
+      const trusted = stepsOf(def).some((st) => 'minigame' in st && st.minigame.id === 'trust');
+      const place = (catId: string, condition: string, settling: boolean): Placement => {
         const full = this.h.shelteredCount() >= this.capacity();
         const where: Placement = !full ? 'sheltered' : def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
         if (where === 'shelter_pool') this.st.shelterPool.push(catId);
-        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined, a.treated);
+        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined, a.treated, settling);
         return where;
       };
-      placement = place(a.catId, a.condition);
-      for (const kit of a.extraCats ?? []) place(kit, 'kitten');
+      placement = place(a.catId, a.condition, !trusted);
+      // Os filhotes da ninhada seguem a mãe (sem confiança à parte).
+      for (const kit of a.extraCats ?? []) place(kit, 'kitten', false);
       const r = def.result ?? {};
       if (r.startPoints) this.h.addPoints('player', a.catId, r.startPoints);
       if (r.npc) this.h.addPoints('player', r.npc.id, r.npc.points);
