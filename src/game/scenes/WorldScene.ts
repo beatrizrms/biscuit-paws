@@ -9,6 +9,7 @@ import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
 import { CatSprite, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
+import { findPath, pathCorners } from '../../core/path';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
@@ -334,9 +335,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.spawnNpc(npcId, spot.at, spot.facing);
         this.npcs.get(npcId)?.loop('martelando');
       } else if (!working) {
+        // Fim do expediente: ele anda até a saída (a porta da rua, no café) e some lá, em vez de sumir no lugar.
         const npc = this.npcs.get(npcId);
         this.npcs.delete(npcId);
-        void npc?.leave();
+        if (npc) void this.walkOutAndLeave(npc);
       }
     });
     this.session.bus.on('surface.painted', rebuildIfHome);
@@ -2506,10 +2508,30 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const t = uiText.construction;
     const more = await this.ui.confirm(t.ask, t.askYes, t.askNo);
     this.session.answerBuilder(more);
-    await this.npcs.get(npcId)?.leave();
+    // Ele vai embora andando até a saída; o Market (se ela quis mais serviço) abre enquanto ele sai.
+    const npc = this.npcs.get(npcId);
     this.npcs.delete(npcId);
+    if (npc) void this.walkOutAndLeave(npc);
     this.builderAsking = false;
     if (more) this.ui.openConstruction();
+  }
+
+  /**
+   * Um NPC indo embora a pé: anda pelas células livres (desvia de móveis e da fita) até a saída e some lá. No café, a
+   * saída é a porta da rua (world.goHomeDoors); nos outros mapas, a ponta mais perto da linha dele. Sem caminho, some no lugar.
+   */
+  private async walkOutAndLeave(npc: NpcSprite): Promise<void> {
+    const ts = this.map.tileSize;
+    const from: Cell = [Math.floor(npc.x / ts), Math.floor(npc.y / ts)];
+    const home = this.map.id === this.session.content.map.id;
+    const door = home ? this.map.doors.find((d) => this.session.content.world.goHomeDoors.includes(d.id)) : undefined;
+    const exit: Cell = door ? door.at : [from[0] < this.map.cols / 2 ? 0 : this.map.cols - 1, from[1]];
+    const path = findPath(this.map.solid, from, exit);
+    for (const corner of path ? pathCorners(path) : []) {
+      if (!npc.active) return;
+      await npc.walkTo(corner);
+    }
+    if (npc.active) await npc.leave();
   }
 
   // ---------- Roteiros (ScriptStage) ----------

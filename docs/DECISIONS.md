@@ -616,3 +616,7 @@ Decisão: um cartão por par: o retrato do gato (o mesmo quadro do tabuleiro, co
 ## 151. Quadro de horário no centro da tela (nov/2026)
 Pedido: o horário das plaquinhas aparecia como aviso no topo, e clicar várias vezes fazia ele continuar aparecendo depois de entrar no estabelecimento; mostrar no centro da tela, como um mural.
 Decisão: a plaquinha (decisão 131) abre um quadro centralizado (`GameUi.showHours`), com moldura de madeira, dois pregos e papel creme: o nome, o status de agora numa faixa (verde aberto, rosa fechado com quando abre, amarelo no almoço), a semana dia por dia (hoje em destaque, dias fechados escritos "fechado") e, no café, o almoço. Um por vez; E, Esc ou clique fecham, e o relógio para enquanto está aberto (o mesmo mecanismo da caixa de confirmação). O aviso curto da porta fechada continua, mas some ao trocar de mapa (evento `map.entered`).
+
+## 152. O Tião vai embora andando até a porta (nov/2026)
+Pedido: quando o Tião ia embora, ele simplesmente desaparecia; ele deve andar até a porta.
+Decisão: `src/core/path.ts` (`findPath`, busca em largura pelas células livres, 4 direções; `pathCorners`, só as esquinas). No fim do expediente e depois de perguntar "mais algum serviço?", `WorldScene.walkOutAndLeave` faz ele andar desviando dos móveis e da fita até a saída e sumir lá: no café, a porta da rua (`world.goHomeDoors`); nos outros mapas (a obra da fachada), a ponta mais perto da linha dele. Sem caminho, some no lugar, como antes.
