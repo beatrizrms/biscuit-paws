@@ -29,6 +29,7 @@ import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
 import { saveNow } from '../startGame';
 import { openPause } from '../ui/menu/PauseMenu';
+import { pageWasReloaded } from '../../platform/navigation';
 import { t } from '../i18n';
 import { darkness, formatClock, tintAt } from '../../core/time';
 import { ambienceOf } from '../../core/ambience';
@@ -391,11 +392,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Som: eventos -> efeitos e jingles; música e ambiente do lugar (dia/noite) a cada quadro (data/audio.json).
     this.sounds = new SoundEvents(this.session, services().audio);
     this.session.start(this.isNew);
+    // F5: o jogo volta pausado (menu de pausa aberto e música parada), onde ela estiver; uma vez por carregamento.
+    if (!reloadPauseShown && pageWasReloaded()) {
+      reloadPauseShown = true;
+      this.time.delayedCall(0, () => this.openPause());
+    }
   }
 
   /** Pausa: Continuar, Opções, Salvar, Voltar ao menu (salva antes). */
   private openPause(): void {
     this.ui.paused = true;
+    // A música de fundo para enquanto o menu de pausa está aberto.
+    services().audio.setMusicPaused(true);
     openPause(document.getElementById('ui')!, {
       save: async () => {
         await saveNow(this.session, this.slot);
@@ -408,7 +416,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         // Recarrega sem os atalhos da URL: volta à Home com tudo limpo.
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (window.location.href = window.location.pathname));
       },
-      onClose: () => (this.ui.paused = false),
+      onClose: () => {
+        this.ui.paused = false;
+        services().audio.setMusicPaused(false);
+      },
     });
   }
 
@@ -2373,6 +2384,9 @@ function miniGameCatVariant(scene: WorldScene, catId?: string): string {
   const id = catId ?? scene.session.shelteredCats()[0] ?? 'cat.first_stray';
   return scene.session.catDef(id)?.variant ?? 'marmalade';
 }
+
+/** Já abriu a pausa do F5 neste carregamento da página (voltar ao mundo depois não pausa de novo). */
+let reloadPauseShown = false;
 
 /** Em desenvolvimento, deixa a cena acessível no console e no Playwright. */
 function exposeDebug(scene: WorldScene): void {

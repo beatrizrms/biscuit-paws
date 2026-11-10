@@ -58,6 +58,8 @@ export class AudioManager {
   private current: Record<Channel, Playing | null> = { music: null, ambient: null };
   private loops = new Map<string, Phaser.Sound.BaseSound>();
   private fades = new Set<number>();
+  /** Menu de pausa aberto: a música fica parada (o ambiente e os efeitos, não). */
+  private musicPaused = false;
 
   constructor(
     private game: Phaser.Game,
@@ -124,6 +126,29 @@ export class AudioManager {
     return t >= toMin(audioData.nightFrom) || t < toMin(audioData.nightUntil);
   }
 
+  /**
+   * Pausa (menu de pausa) ou retoma a música de fundo: para na hora e volta de onde parou, com fade. Faixa pedida
+   * enquanto pausada fica guardada e começa ao retomar.
+   */
+  setMusicPaused(paused: boolean): void {
+    if (this.musicPaused === paused) return;
+    this.musicPaused = paused;
+    const p = this.current.music;
+    if (!p) return;
+    if (paused) {
+      p.sound?.pause();
+      return;
+    }
+    if (!p.sound) {
+      this.current.music = null;
+      this.play('music', p.id);
+      return;
+    }
+    (p.sound as Phaser.Sound.WebAudioSound).setVolume?.(0);
+    p.sound.resume();
+    this.fadeTo(p.sound, this.volume('music', p.id));
+  }
+
   /** Troca a faixa do canal (com fade); null para. */
   play(channel: Channel, id: string | null): void {
     const cur = this.current[channel];
@@ -136,8 +161,8 @@ export class AudioManager {
       this.current[channel] = null;
       return;
     }
-    // Sem arquivo ou ainda bloqueado: guarda o pedido (toca quando tiver/liberar).
-    if (!this.canPlay(channel, id)) {
+    // Sem arquivo, ainda bloqueado ou música pausada (menu de pausa): guarda o pedido (toca quando tiver/liberar/retomar).
+    if (!this.canPlay(channel, id) || (channel === 'music' && this.musicPaused)) {
       this.current[channel] = { id, sound: null };
       return;
     }
