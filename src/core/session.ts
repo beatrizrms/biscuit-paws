@@ -177,7 +177,6 @@ export type ActionResult =
         | 'too_early'
         | 'customers_inside'
         | 'cart_empty'
-        | 'one_heavy_per_trip'
         | QuoteProblem
         | PlaceProblem;
     };
