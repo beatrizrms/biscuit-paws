@@ -17,10 +17,10 @@ import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 import type { SantaRecord, SantaResult } from './secretSanta';
 
-export const SAVE_SCHEMA_VERSION = 34;
+export const SAVE_SCHEMA_VERSION = 35;
 
-export interface SaveV34 extends GameState {
-  schemaVersion: 34;
+export interface SaveV35 extends GameState {
+  schemaVersion: 35;
   savedAt: string;
 }
 
@@ -175,10 +175,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   32: (save) => ({ ...save, schemaVersion: 33, xmasBox: {} }),
   /** v33 -> v34: amigo secreto de Natal. Saves antigos: nenhum ainda. */
   33: (save) => ({ ...save, schemaVersion: 34, secretSanta: null }),
+  /** v34 -> v35: gato que acabou de chegar (cats[].settling). Saves antigos: todos já estão de boa. */
+  34: (save) => ({ ...save, schemaVersion: 35 }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV34 = { schemaVersion: 34, savedAt: now.toISOString(), ...state };
+  const save: SaveV35 = { schemaVersion: 35, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -232,7 +234,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV34>;
+  const v2 = save as unknown as Partial<SaveV35>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -295,7 +297,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
           if (s && !sickness) warnings.push(`doença "${s.disease}" não existe mais; ${id} ficou saudável`);
           // Felicidade e higiene fora de 0..100 (ou quebradas): somem, e a leitura usa o valor inicial (care.ts: careOf).
           const care = (v: unknown) => (typeof v === 'number' && v >= 0 && v <= 100 ? Math.round(v) : undefined);
-          const { happiness: _h, hygiene: _g, ...rest } = c;
+          const { happiness: _h, hygiene: _g, settling: _s, ...rest } = c;
           const happiness = care(c.happiness);
           const hygiene = care(c.hygiene);
           return [
@@ -307,6 +309,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
               sickness,
               ...(happiness !== undefined ? { happiness } : {}),
               ...(hygiene !== undefined ? { hygiene } : {}),
+              ...(c.settling === true ? { settling: true } : {}),
             },
           ];
         }),
@@ -489,7 +492,7 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
           ...(typeof act.leaderId === 'string' && knownCat(act.leaderId) ? { leaderId: act.leaderId } : {}),
           ...(typeof act.tip === 'number' ? { tip: act.tip } : {}),
           ...(typeof act.fed === 'number' ? { fed: act.fed } : {}),
-          ...(Array.isArray(act.needs) ? { needs: act.needs.filter((n): n is 'food' | 'vet' | 'warmth' => n === 'food' || n === 'vet' || n === 'warmth') } : {}),
+          // (needs: a espera na porta por ração/cobertor/vet saiu; o gato de um save antigo entra no café no próximo minuto.)
           ...(act.treated ? { treated: true } : {}),
           ...(typeof act.fedOn === 'number' ? { fedOn: act.fedOn } : {}),
           ...(Array.isArray(act.extraCats) ? { extraCats: act.extraCats.filter((id): id is string => typeof id === 'string' && knownCat(id)) } : {}),

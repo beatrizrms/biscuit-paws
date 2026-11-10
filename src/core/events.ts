@@ -57,8 +57,6 @@ export interface GameEvents {
   /** Aceito: o gato precisa disto antes de entrar (ração, cobertor, vet). */
   /** Um mini game de cuidado subiu a felicidade/higiene do gato (os valores depois). */
   'cat.cared': { catId: string; gameId: string; happiness: number; hygiene: number };
-  'arrival.needs': { arrivalId: string; needs: ('food' | 'vet' | 'warmth')[] };
-  'arrival.need_met': { arrivalId: string; need: 'food' | 'vet' | 'warmth'; left: ('food' | 'vet' | 'warmth')[] };
   'arrival.fed': { arrivalId: string; fed: number; times: number };
   'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
@@ -75,6 +73,8 @@ export interface GameEvents {
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
   'cat.fed': { catId: string; itemId: string; bowlUid: string };
+  /** O gato que acabou de chegar ganhou confiança (mini game trust): está de boa no café. */
+  'cat.settled': { catId: string };
   /** Abasteceu um automático (pote de ração, caixa de areia): o item e quantos dias ficou guardado. */
   'pet.loaded': { itemId: string; days: number };
   /** Um automático gastou e ficou com poucos dias (ou vazio). */

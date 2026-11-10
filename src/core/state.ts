@@ -199,6 +199,11 @@ export interface CatState {
   hygiene?: number;
   /** Abrigado provisório (v18; café cheio): até este dia, a vaga precisa abrir ou ele vai para o abrigo da vila. */
   provisionalUntil?: number;
+  /**
+   * Acabou de chegar e ainda está assustado (v35): até ela ganhar a confiança dele (mini game trust), o E nele abre a
+   * confiança em vez de pegar no colo ou fazer carinho. Ausente = já está de boa no café.
+   */
+  settling?: boolean;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {

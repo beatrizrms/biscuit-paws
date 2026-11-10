@@ -304,8 +304,6 @@ export class GameUi {
         .then(() => this.choose(at.ask.question, list))
         .then((i) => this.session.answerArrivalAsk(i));
     });
-    bus.on('arrival.needs', () => this.toast(at.needsStart, 3500));
-    bus.on('arrival.need_met', ({ need }) => this.toast(at.needMet[need], 3500));
     bus.on('arrival.fed', ({ fed, times }) => this.toast(fed >= times ? at.fedLast : at.fed, 4000));
     bus.on('arrival.finished', ({ outcome, placement }) => {
       const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
@@ -342,6 +340,10 @@ export class GameUi {
       const t = content.reputation.thresholds.find((x) => x.id === thresholdId);
       if (t) this.toast(uiText.reputation.reached.replace('{name}', t.name), 4000);
     });
+    // Gato novo: entra assustado (precisa da confiança) e, depois dela, fica de boa.
+    // (Depois do nome: o gato gerado chega sem nome e a caixa de nome abre primeiro.)
+    bus.on('cat.named', ({ catId, name }) => session.catSettling(catId) && this.toast(uiText.cats.arrivedScared.replace('{cat}', name), 5000));
+    bus.on('cat.settled', ({ catId }) => this.toast(uiText.cats.settled.replace('{cat}', session.catName(catId)), 4000));
     bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
@@ -581,7 +583,14 @@ export class GameUi {
         today.push(this.row(c.toys, { right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
-      const text = ch.kind === 'feed' ? c.feed.replace('{cat}', this.session.catName(ch.catId!)) : ch.kind === 'pantry' ? c.pantry : c.sweep;
+      // Gato que acabou de chegar: a confiança.
+      if (ch.kind === 'settle') {
+        today.push(this.row(c.settle.replace('{cat}', this.session.catName(ch.catId!)), { icon: 'petisco_biscoito' }));
+        continue;
+      }
+      // Comida: com um gato, o nome dele; com mais, "Ração para os gatos" (com quantos já comeram).
+      const feedText = ch.catId ? c.feed.replace('{cat}', this.session.catName(ch.catId)) : c.feedAll;
+      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? c.pantry : c.sweep;
       const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }
@@ -698,13 +707,6 @@ export class GameUi {
   private arrivalLine(): string {
     const a = this.session.arrivals.active();
     const g = uiText.arrivals.goal;
-    // Aceito, esperando as necessidades: a próxima delas (ração antes do cobertor, vet por último).
-    const needs = this.session.arrivals.pendingNeeds();
-    const need = needs && (['food', 'warmth', 'vet'] as const).find((n) => needs.includes(n));
-    if (a && need) {
-      const text = need === 'vet' ? g.need_vet.replace('{cost}', String(this.session.content.catProfiles.needs.vet.cost)) : need === 'food' ? g.need_food : g.need_warmth;
-      return `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(text)}</span></li>`;
-    }
     const step = this.session.arrivals.currentStep();
     if (!a || !step) return '';
     const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : g.meet;

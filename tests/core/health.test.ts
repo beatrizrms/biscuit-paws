@@ -283,6 +283,18 @@ describe('lembretes de cuidado no subconsciente', () => {
     cat().hygiene = cfg.care.max;
     expect(session.chores().some((c) => c.kind === 'care')).toBe(false);
   });
+
+  it('comida: com um gato, "Comida para Botinhas"; com mais, uma tarefa só (a ração no pote serve todos)', () => {
+    const { session, state } = withCat();
+    state.flags['prologue.done'] = true;
+    expect(session.chores().filter((c) => c.kind === 'feed')).toEqual([{ kind: 'feed', catId: CAT, done: false }]);
+    state.catDefs['cat.gen.1'] = { id: 'cat.gen.1', variant: 'toffee', personality: 'needy', tags: [] };
+    state.cats['cat.gen.1'] = { sheltered: true, name: 'Pipoca', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, settling: true };
+    state.cats[CAT]!.fedOn = state.day;
+    expect(session.chores().filter((c) => c.kind === 'feed')).toEqual([{ kind: 'feed', done: false, progress: [1, 2] }]);
+    // O gato que acabou de chegar: a confiança vira lembrete.
+    expect(session.chores().find((c) => c.kind === 'settle')).toEqual({ kind: 'settle', catId: 'cat.gen.1', done: false });
+  });
 });
 
 

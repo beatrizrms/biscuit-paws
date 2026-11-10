@@ -6,8 +6,6 @@ import { pickWeighted, type Rng } from './rng';
 
 export type TrustLevel = 'easy' | 'normal' | 'hard';
 /** O que o gato precisa para entrar bem (a etapa da chegada cuida disso). */
-export type CatNeed = 'food' | 'vet' | 'warmth';
-export const CAT_NEEDS: readonly CatNeed[] = ['food', 'vet', 'warmth'];
 
 export interface PersonalityProfile {
   /** Dificuldade do mini game de confiança com este gato. */
@@ -23,9 +21,6 @@ export interface ConditionProfile {
   health: number;
   /** Chega doente (doença sorteada de data/health.json). */
   sick?: boolean;
-  /** Chega com fome (a etapa pede ração antes de entrar). */
-  hungry?: boolean;
-  needs: CatNeed[];
   /** Idade, para a adoção (sem ela: adulto). */
   age?: 'kitten' | 'senior';
 }
@@ -34,15 +29,8 @@ export interface CatProfilesData {
   schemaVersion: 1;
   personalities: Record<string, PersonalityProfile>;
   conditions: Record<string, ConditionProfile>;
-  /** Como atender cada necessidade antes de o gato entrar. */
-  needs: {
-    food: { items: string[] };
-    warmth: { items: string[] };
-    /** Falar com a Fernanda no ponto (pagando cost): o gato entra tratado. */
-    vet: { point: string; cost: number };
-  };
-  /** Onde o gato espera quando a chegada não tem lugar (o cartaz do mural). */
-  needsPlace: { map: string; at: [number, number] };
+  /** O gato ferido que ela levou correndo à clínica (em_perigo): a consulta da Fernanda, paga na hora. */
+  rescueVetCost: number;
   generated: {
     variants: string[];
     names: string[];
@@ -99,12 +87,8 @@ export function validateCatProfiles(
   }
   for (const [id, c] of Object.entries(data.conditions)) {
     if (!(c.health > 0)) err(`condição "${id}" com saúde inválida`);
-    for (const n of c.needs) if (!CAT_NEEDS.includes(n)) err(`condição "${id}" com necessidade desconhecida "${n}"`);
   }
-  for (const id of [...data.needs.food.items, ...data.needs.warmth.items]) if (refs.items && !refs.items.has(id)) err(`needs com item inexistente "${id}"`);
-  if (refs.points && !refs.points.has(data.needs.vet.point)) err(`needs.vet com ponto inexistente "${data.needs.vet.point}"`);
-  if (!(data.needs.vet.cost >= 0)) err('needs.vet.cost precisa ser 0 ou mais');
-  if (refs.maps && !refs.maps.has(data.needsPlace.map)) err(`needsPlace com mapa inexistente "${data.needsPlace.map}"`);
+  if (!(data.rescueVetCost >= 0)) err('rescueVetCost precisa ser 0 ou mais');
   for (const p of refs.catPersonalities) if (!data.personalities[p]) err(`personalidade "${p}" (data/cats.json) sem perfil`);
   const g = data.generated;
   if (g.variants.length === 0 || g.names.length === 0) err('generated precisa de variantes e nomes');
