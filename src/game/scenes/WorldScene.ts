@@ -535,9 +535,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
       if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
-      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && ['customers_inside', 'xmas_party', 'new_year'].includes(this.session.goHomeProblem() ?? '')) {
-        // Já é hora, mas ainda tem cliente (ou a ceia de Natal, ou os fogos de Ano Novo): ela pode sair para a rua, só não encerra o dia.
-        this.ui.problem(this.session.goHomeProblem() ?? 'customers_inside');
+      else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.goHomeProblem() === 'customers_inside') {
+        // Já é hora, mas ainda tem cliente: ela pode sair para a rua, só não encerra o dia.
+        this.ui.problem('customers_inside');
         this.useDoor(door);
       }
       else if (this.session.canUseDoor(door)) this.useDoor(door);
@@ -1100,16 +1100,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private interact(target?: Cell): boolean {
     // O Tião trabalhando ali do lado: conversar diz quantos dias faltam para terminar a obra.
     if (this.talkToBuilder(target)) return true;
+    // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
+    // antes); depois o resto (atendimento, pontos, interações).
+    if (this.parcelInteract(target)) return true;
+    const ahead = !target ? this.catAhead() : undefined;
+    if (ahead && !this.handStationReady()) {
+      const at = ahead.cell();
+      if (this.trySettleCat(at) || this.tryCareGame(at) || this.tryTreatCat(at) || this.tryPickUpCat(at)) return true;
+    }
     // Olhando para uma interação do mapa (a janela, uma plaquinha) até o alcance dela: ela vence o atendimento em volta
     // (equipamento, despensa, pia), menos um equipamento bem na frente dela. Clique: vale o que foi clicado.
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
     if (this.session.atHome() && !lookingAt && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
-    // A caixa da entrega na porta e um ponto (ex.: o gato de uma chegada, que alcança mais longe) ao alcance juntos:
-    // vale a caixa, a não ser que ela esteja em cima do ponto.
-    const onPoint = !!point && this.playerCells().some((f) => f[0] === point.at[0] && f[1] === point.at[1]);
-    const parcelFirst = !target && !!point && !onPoint && this.session.parcelsNear(this.playerCells()) !== undefined;
-    if (point && !parcelFirst) {
+    if (point) {
       const problem = this.session.jobPointProblem(point.id);
       if (problem) {
         this.ui.problem(problem);
@@ -1133,23 +1137,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Clique num ponto de pedido de longe: avisa em vez de não fazer nada.
     if (target && this.session.jobPointAt(target)) {
       this.ui.problem('too_far');
-      return true;
-    }
-    const parcels = this.session.parcelsNear(this.playerCells(), target);
-    if (parcels === 'door') {
-      const result = this.session.pickUpParcels();
-      if (!result.ok) this.ui.problem(result.reason);
-      return true;
-    }
-    if (parcels === 'inside') {
-      const result = this.session.unpackParcel();
-      if (!result.ok) {
-        this.ui.problem(result.reason);
-        return true;
-      }
-      // Móvel: já vai para a mão, para posicionar (Esc guarda na bolsa).
-      const kind = this.session.content.items[result.itemId]?.kind ?? 'furniture';
-      if (kind === 'furniture') this.startPlacing(result.itemId);
       return true;
     }
     const it = this.session.interactionAt(this.playerCells(), target);
@@ -1192,7 +1179,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(problem);
         return true;
       }
-      const litter = this.session.activeItem()!;
+      const litter = this.session.supplyFor('litter_box')!;
       const at = this.session.state.placed.find((p) => p.uid === box)!.at;
       const ts = this.map.tileSize;
       void this.playUse(litter, (at[0] + 0.5) * ts, (at[1] + 0.5) * ts, 'pour').then(() => {
@@ -1207,7 +1194,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.ui.problem(problem);
       return true;
     }
-    const food = this.session.activeItem()!;
+    const food = this.session.supplyFor('food_bowl')!;
     const placed = this.session.state.placed.find((p) => p.uid === bowl)!;
     const ts = this.map.tileSize;
     void this.playUse(food, (placed.at[0] + 0.5) * ts, (placed.at[1] + 0.5) * ts, 'pour').then(() => {
@@ -1238,6 +1225,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (builder) {
       const at = s.builderAt(s.location())!.at;
       return { x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' as HintKind };
+    }
+    // A mesma ordem do E: a caixa da entrega; o gato bem na frente (a não ser que o pote/caixa de areia seja o óbvio).
+    const parcelsFirst = s.parcelsNear(feet);
+    if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
+    const catFront = this.catAhead();
+    if (catFront && !this.handStationReady()) {
+      const hint = this.catHint(catFront);
+      if (hint) return catTop(catFront, hint);
     }
     // A interação na direção em que ela olha vence o atendimento em volta (a mesma regra do E).
     const ahead = s.atHome() && !this.stationAhead(feet) ? this.interactionAhead(feet) : undefined;
@@ -1287,11 +1282,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (box && !s.litterProblem(box)) return floor(st.placed.find((p) => p.uid === box)!.at, 'litter');
     if (!s.atHome()) return null;
     const cat = nearCat();
+    const hint = cat && this.catHint(cat);
+    return cat && hint ? catTop(cat, hint) : null;
+  }
+
+  /** O que o E faz neste gato agora (a dica), ou null: confiança (o que chegou), cuidado na mão, remédio, petisco, colo. */
+  private catHint(cat: CatSprite): HintKind | null {
+    const s = this.session;
+    if (s.catSettling(cat.catId)) return 'cat_trust';
     const care = s.careGameInHand();
-    if (cat && care) return catTop(cat, care === 'wand' ? 'cat_wand' : 'cat_brush');
-    if (cat && s.holdingMedicine()) return catTop(cat, 'cat_medicine');
-    if (cat && s.holdingTreat()) return catTop(cat, 'cat_treat');
-    if (cat && st.hands.length === 0 && !st.tray) return catTop(cat, 'cat_pickup');
+    if (care) return care === 'wand' ? 'cat_wand' : 'cat_brush';
+    if (s.holdingMedicine()) return 'cat_medicine';
+    if (s.holdingTreat()) return 'cat_treat';
+    if (s.state.hands.length === 0 && !s.state.tray) return 'cat_pickup';
     return null;
   }
 
@@ -1314,6 +1317,46 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!cat) return false;
     void this.openMiniGame(game, { difficulty: this.session.careDifficulty(cat.catId), catId: cat.catId });
     return true;
+  }
+
+  /** A caixa da entrega ao alcance (na porta: pega todas; dentro do café: abre uma e o móvel vai para a mão). */
+  private parcelInteract(target?: Cell): boolean {
+    const parcels = this.session.parcelsNear(this.playerCells(), target);
+    if (parcels === 'door') {
+      const result = this.session.pickUpParcels();
+      if (!result.ok) this.ui.problem(result.reason);
+      return true;
+    }
+    if (parcels === 'inside') {
+      const result = this.session.unpackParcel();
+      if (!result.ok) {
+        this.ui.problem(result.reason);
+        return true;
+      }
+      // Móvel: já vai para a mão, para posicionar (Esc guarda na bolsa).
+      const kind = this.session.content.items[result.itemId]?.kind ?? 'furniture';
+      if (kind === 'furniture') this.startPlacing(result.itemId);
+      return true;
+    }
+    return false;
+  }
+
+  /** O gato bem na frente dela (na célula para onde ela olha, ou nos pés), no café. */
+  private catAhead(): CatSprite | undefined {
+    if (!this.session.atHome()) return undefined;
+    const [fc, fr] = this.facingCell();
+    const feet = this.playerCells();
+    return this.cats.find((c) => {
+      if (!c.visible) return false;
+      const [cc, cr] = c.cell();
+      return (cc === fc && cr === fr) || feet.some((f) => f[0] === cc && f[1] === cr);
+    });
+  }
+
+  /** Com a ração ou a areia na mão e o pote/caixa de areia ao alcance (e dá para usar): o óbvio é o pote. */
+  private handStationReady(): boolean {
+    const { bowl, box } = this.stationForHand(this.playerCells());
+    return (!!bowl && !this.session.feedProblem(bowl)) || (!!box && !this.session.litterProblem(box));
   }
 
   /** Gato que acabou de chegar, perto: o E abre a confiança dele (ele ainda não deixa pegar no colo nem fazer carinho). */
@@ -2670,6 +2713,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   fireworks(ms: number): void {
     this.fireworksFx.play(ms, this.session.content.festive.newYear.fireworks);
+  }
+
+  until(check: () => boolean): Promise<void> {
+    return new Promise((resolve) => this.waiters.push({ until: check, resolve }));
   }
 
   untilIdle(): Promise<void> {
