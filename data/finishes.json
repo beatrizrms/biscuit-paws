@@ -136,6 +136,7 @@
     },
     "workFrom": "08:00",
     "facadeDays": 1,
-    "tapeTile": "decor_obra_fita"
+    "tapeTile": "decor_obra_fita",
+    "coneTile": "decor_obra_cone"
   }
 }

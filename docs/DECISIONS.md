@@ -462,3 +462,7 @@ Decisão: grupos de troca nos dados (`upgrades` em `data/items.json`, `src/core/
 ## 113. Expediente do Tião (nov/2026)
 Contexto: nos dias de obra o Tião ficava no café a noite toda (às 22:00 ainda martelando).
 Decisão: ele chega às 08:00 (`workFrom` em `data/finishes.json` construction) e vai embora depois de `hoursPerDay` horas (16:00). `builderAt` só devolve o lugar dele no expediente; a cada minuto a sessão avisa (`construction.shift`) quando ele chega ou vai embora, e a cena põe ele martelando ou tira ele (some devagar) se ela estiver no mapa da obra. A fita da obra continua o dia todo.
+
+## 114. Cone e fita em volta do Tião (nov/2026)
+Contexto: nos reparos e nas obras de cômodo o lugar dele não tinha nenhuma marca de obra (a fita só aparecia na troca de acabamento por área).
+Decisão: nos dias de obra, um cone (`coneTile` em `data/finishes.json` construction) fica ao lado dele: atrás (do lado oposto à parede), senão uma linha abaixo, e só então na frente; nos reparos e obras de cômodo, um trecho de fita logo abaixo dele. Nada cai na entrada do mapa, em portas, móveis ou em cima dele. Na rua, enquanto ele trabalha, a peça solta da calçada que estiver no lugar dele (a árvore de Natal, a lousa) sai de lá. O cone é provisório, desenhado por código (`trafficCone` no `npm run pixellab`).

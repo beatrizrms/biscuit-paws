@@ -200,3 +200,31 @@ describe('obras: expediente do Tião', () => {
     expect(shifts).toEqual([true, false]);
   });
 });
+
+describe('obras: cone e fita em volta do Tião', () => {
+  it('reparo interno: cone ao lado dele e fita embaixo, o dia todo; mapa válido; sem obra, nada', () => {
+    const s = session();
+    expect(s.quoteRepair('inside')).toEqual({ ok: true });
+    expect(s.answerQuote(true)).toEqual({ ok: true });
+    const marks = () => s.mapData().objects.filter((o) => o.id.startsWith('obj.construction.site_')).map((o) => `${o.tile}@${o.at.join(',')}`);
+    expect(marks()).toEqual([]); // hoje ainda não
+    s.endDay('home');
+    const [x, y] = c0();
+    expect(marks().sort()).toEqual([`${c.coneTile}@${x - 1},${y}`, `${c.tapeTile}@${x},${y + 1}`].sort());
+    expect(() => resolveMap(s.mapData(), content.catalog)).not.toThrow();
+  });
+
+  it('reparo da fachada: as marcas ficam na rua, não no café', () => {
+    const s = session();
+    expect(s.quoteRepair('outside', 'finish.facade_mint')).toEqual({ ok: true });
+    expect(s.answerQuote(true)).toEqual({ ok: true });
+    s.endDay('home');
+    expect(s.mapData('map.street').objects.some((o) => o.tile === c.coneTile)).toBe(true);
+    expect(s.mapData().objects.some((o) => o.tile === c.coneTile)).toBe(false);
+    expect(() => resolveMap(s.mapData('map.street'), content.catalog)).not.toThrow();
+  });
+});
+
+function c0(): [number, number] {
+  return [...c.repairs.inside.site.at] as [number, number];
+}
