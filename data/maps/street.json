@@ -104,6 +104,11 @@
   "spawn": {
     "player": [15, 9]
   },
+  "interactions": [
+    { "id": "int.hours_cafe", "at": [18, 6], "reach": 2, "action": { "hours": "door.cafe" } },
+    { "id": "int.hours_market", "at": [25, 6], "reach": 2, "action": { "hours": "door.market" } },
+    { "id": "int.hours_vet", "at": [35, 7], "reach": 1, "action": { "hours": "door.vet" } }
+  ],
   "doors": [
     {
       "id": "door.vet",

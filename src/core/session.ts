@@ -67,6 +67,18 @@ import {
 } from './map';
 
 /** Orçamento da consulta na clínica. */
+/** O que a plaquinha de horário mostra (placeHours). `cafe`: o nome vem da UI; `enabled` false = ainda não atende. */
+export interface PlaceHours {
+  name: string;
+  cafe: boolean;
+  enabled: boolean;
+  days: boolean[];
+  open: string;
+  close: string;
+  openNow: boolean;
+  next: { day: number; open: string } | null;
+}
+
 export interface ConsultQuote {
   catId: string;
   disease: string;
@@ -1704,6 +1716,23 @@ export class GameSession {
   /** Quando o estabelecimento da porta abre de novo (ou null). */
   doorOpening(door: MapDoor): { day: number; open: string } | null {
     return door.hours ? nextOpening(door.hours, this.state.day, this.state.time, this.content.seasons.startWeekday) : null;
+  }
+
+  /**
+   * Plaquinha de horário (interação "hours"): o horário do estabelecimento da porta `doorId` (mapa atual), se está aberto
+   * agora e quando abre. A porta do café não tem horário nos dados: vale o do app Horário (null em `days` = o café
+   * ainda não atende).
+   */
+  placeHours(doorId: string): PlaceHours | null {
+    const door = (this.mapData(this.state.location).doors ?? []).find((d) => d.id === doorId);
+    if (!door) return null;
+    if (door.hours) {
+      const h = door.hours;
+      return { name: h.name, cafe: false, enabled: true, days: h.days, open: h.open, close: h.close, openNow: !this.doorClosedNow(door), next: this.doorOpening(door) };
+    }
+    if (door.to !== this.content.map.id) return null;
+    const s = this.service.schedule();
+    return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening() };
   }
 
   /** Tentou abrir uma porta trancada: a fala de trancada (requisito) ou o aviso de fechado (horário). */

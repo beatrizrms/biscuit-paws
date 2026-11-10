@@ -70,4 +70,18 @@ describe('horário dos estabelecimentos', () => {
     const errors = validateMap(bad, content.catalog).filter((e) => e.includes('hours'));
     expect(errors).toHaveLength(2);
   });
+
+  it('plaquinha de horário: o do estabelecimento da porta; a do café mostra o do app Horário', () => {
+    const sunday = dayOn(6);
+    const vet = at(sunday, '10:00').session.placeHours('door.vet')!;
+    expect(vet).toMatchObject({ name: 'Clínica', cafe: false, open: '09:00', close: '18:00', openNow: false, next: { day: sunday + 1, open: '09:00' } });
+    expect(at(sunday + 1, '10:00').session.placeHours('door.market')).toMatchObject({ name: 'Mercado', openNow: true });
+    const cafe = at(sunday, '10:00').session.placeHours('door.cafe')!;
+    expect(cafe.cafe).toBe(true);
+    expect(cafe.days).toEqual(content.service.schedule.default.days);
+    expect(at(sunday, '10:00').session.placeHours('door.nada')).toBeNull();
+    // As plaquinhas da rua apontam para portas com horário (ou a do café).
+    const signs = (street.interactions ?? []).filter((i) => 'hours' in i.action);
+    expect(signs.map((i) => (i.action as { hours: string }).hours).sort()).toEqual(['door.cafe', 'door.market', 'door.vet']);
+  });
 });

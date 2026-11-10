@@ -10,7 +10,7 @@ import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, ShopPanel } from './ShopPanel';
 import { NewsPanel } from './NewsPanel';
-import { openingText } from './ScheduleApp';
+import { daysText as weekDaysText, openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
@@ -195,9 +195,7 @@ export class GameUi {
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
     // Estabelecimento fechado: o aviso da porta, com quando abre (hoje, amanhã ou o dia da semana).
     bus.on('door.closed', ({ name, opensDay, opensAt }) => {
-      const t = uiText.scheduleApp;
-      const ahead = opensDay === null ? null : opensDay - this.session.state.day;
-      const when = ahead === null || opensAt === null ? '' : (ahead === 0 ? t.today : ahead === 1 ? t.tomorrow : t.onDay.replace('{weekday}', uiText.weekdays[this.session.service.weekday(opensDay!)] ?? '')).replace('{time}', opensAt);
+      const when = opensDay === null || opensAt === null ? '' : this.whenText({ day: opensDay, open: opensAt });
       this.toast((when ? uiText.doorClosed.text : uiText.doorClosed.noTime).replace('{name}', name).replace('{when}', when), 4000);
     });
     bus.on('dish.washed', () => this.toast(s.washed));
@@ -320,6 +318,25 @@ export class GameUi {
     this.closeShop();
     this.news.open('phone', 'market');
     this.news.marketTab(uiText.market.tabs.find((t) => 'renovation' in t && t.renovation)?.id ?? '');
+  }
+
+  /** "hoje às 07:00", "amanhã às 07:00" ou "seg às 07:00". */
+  private whenText(next: { day: number; open: string }): string {
+    const t = uiText.scheduleApp;
+    const ahead = next.day - this.session.state.day;
+    return (ahead === 0 ? t.today : ahead === 1 ? t.tomorrow : t.onDay.replace('{weekday}', uiText.weekdays[this.session.service.weekday(next.day)] ?? '')).replace('{time}', next.open);
+  }
+
+  /** Plaquinha de horário na fachada: os dias e as horas do estabelecimento e se está aberto agora. */
+  showHours(doorId: string): void {
+    const h = this.session.placeHours(doorId);
+    if (!h) return;
+    const t = uiText.hoursSign;
+    const name = h.cafe ? t.cafe : h.name;
+    if (!h.enabled) return this.toast(t.notYet.replace('{name}', name), 5000);
+    const hours = t.text.replace('{name}', name).replace('{days}', weekDaysText(h.days)).replace('{open}', h.open).replace('{close}', h.close);
+    const now = h.openNow ? t.open.replace('{close}', h.close) : h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime;
+    this.toast(`${hours} ${now}`, 5000);
   }
 
   toggleCatalog(): void {

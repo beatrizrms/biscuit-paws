@@ -18,7 +18,7 @@ export function openingText(session: GameSession): string {
 }
 
 /** "de seg a sex" / "todos os dias" / "seg, qua, sex". */
-function daysText(days: boolean[]): string {
+export function daysText(days: boolean[]): string {
   if (days.every(Boolean)) return uiText.scheduleApp.everyDay;
   return uiText.weekdays.filter((_, i) => days[i]).join(', ');
 }

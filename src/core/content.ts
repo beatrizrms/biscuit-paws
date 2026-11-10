@@ -802,6 +802,11 @@ export function validateContent(raw: RawContent): string[] {
   for (const m of raw.maps) {
     for (const it of m.interactions ?? []) {
       if ('shop' in it.action && !raw.shops.shops[it.action.shop]) err(`${m.id}: interação "${it.id}" abre loja inexistente "${it.action.shop}"`);
+      if ('hours' in it.action) {
+        const door = (m.doors ?? []).find((d) => d.id === (it.action as { hours: string }).hours);
+        if (!door) err(`${m.id}: plaquinha "${it.id}" de porta inexistente neste mapa`);
+        else if (!door.hours && door.to !== raw.world.homeMap) err(`${m.id}: plaquinha "${it.id}": a porta "${door.id}" não tem horário (nem é a do café)`);
+      }
       if ('shelf' in it.action) {
         const shop = raw.shops.shops[it.action.shelf];
         if (!shop) err(`${m.id}: prateleira "${it.id}" de loja inexistente "${it.action.shelf}"`);

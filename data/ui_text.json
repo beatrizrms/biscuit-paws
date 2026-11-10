@@ -130,6 +130,14 @@
   "inBag": "na bolsa",
   "goalsTitle": "subconsciente",
   "goalsPeek": "clique para ver",
+  "hoursSign": {
+    "text": "{name} · {days}, das {open} às {close}.",
+    "open": "Aberto agora (fecha às {close}).",
+    "closed": "Fechado agora · abre {when}.",
+    "closedNoTime": "Fechado agora.",
+    "cafe": "Café",
+    "notYet": "{name} · ainda não atende clientes."
+  },
   "doorClosed": {
     "text": "{name} · fechado agora. Abre {when}.",
     "noTime": "{name} · fechado agora."
@@ -943,6 +951,7 @@
     "int_vet": "Consulta",
     "int_door": "Abrir a porta",
     "int_sleep": "Dormir",
+    "int_hours": "Ver o horário",
     "dirt": "Varrer",
     "bowl": "Encher a tigela",
     "litter": "Pôr areia",
