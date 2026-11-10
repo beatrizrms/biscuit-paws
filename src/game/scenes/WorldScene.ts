@@ -10,7 +10,7 @@ import { Player } from '../entities/Player';
 import { CatSprite, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { CustomerSprite } from '../entities/Customer';
-import { iconFrame } from '../icons';
+import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import { actorsOf } from '../../core/arrivalModels';
@@ -363,7 +363,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Energia: sentar/levantar do sofá e o ícone depois de um café ou de brincar com o gato.
     this.session.bus.on('rest.changed', ({ uid }) => (uid ? this.sitOn(uid) : this.standUp()));
     this.session.bus.on('energy.recovered', () => (this.recoverIconUntil = this.time.now + RECOVER_ICON_MS));
-    this.recoverIcon = this.add.image(0, 0, recoverIconTexture(this)).setScale(0.5).setVisible(false);
+    // O balão da folha de ícones (64 px, no tamanho dos balões de cuidado); sem a folha, o desenhado por código.
+    const recover = this.textures.exists(iconSheetKey('pixellab')) ? iconFrame(this, 'recompondo') : undefined;
+    this.recoverIcon = (recover ? this.add.image(0, 0, recover.key, recover.frame).setScale(recover.scale * 0.5) : this.add.image(0, 0, recoverIconTexture(this)).setScale(0.5)).setVisible(false);
     this.session.bus.on('day.started', ({ day }) => {
       this.changingMap = true;
       const cam = this.cameras.main;
@@ -1135,7 +1137,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
-      if (st.hands.length === 0 && sv.pantryNear(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
+      if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
       const station = this.stationInReach(feet);
@@ -1469,7 +1471,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
     const pantry = this.session.content.service.pantry;
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
-    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry) {
+    // Equipamento bem na frente dela (o bule ao lado do armário) ganha da despensa.
+    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry && (target || !this.stationAhead(feet))) {
       this.ui.openPantry();
       return true;
     }
@@ -1508,6 +1511,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
     }
     return false;
+  }
+
+  /** Equipamento na célula bem na frente dela (ao alcance), ou undefined. */
+  private stationAhead(feet: readonly Cell[]): { uid: string; at: Cell; cells: Cell[] } | undefined {
+    const [fc, fr] = this.facingCell();
+    const s = this.stationInReach(feet);
+    return s?.cells.some(([c, r]) => c === fc && r === fr) ? s : undefined;
   }
 
   /**
@@ -2341,8 +2351,8 @@ function exposeDebug(scene: WorldScene): void {
 }
 
 /**
- * Ícone "se recompondo": balãozinho creme com um raio verde (desenhado em 2x; a cena usa escala 0.5).
- * PLACEHOLDER(arte): ícone 16x16 lógico (32x32 na arte) no estilo dos balões, para trocar depois.
+ * Ícone "se recompondo" de reserva (sem a folha de ícones): balãozinho creme com um raio verde (desenhado em 2x; a
+ * cena usa escala 0.5). A arte é o ícone "recompondo" da folha de 64 px.
  */
 function recoverIconTexture(scene: Phaser.Scene): string {
   const key = 'icon-recover';
