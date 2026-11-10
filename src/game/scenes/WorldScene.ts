@@ -1036,7 +1036,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
-    if (this.session.atHome() && this.serviceInteract(target)) return true;
+    // Olhando para uma interação do mapa (a janela, uma plaquinha) até o alcance dela: ela vence o atendimento em volta
+    // (equipamento, despensa, pia), menos um equipamento bem na frente dela. Clique: vale o que foi clicado.
+    const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
+    if (this.session.atHome() && !lookingAt && this.serviceInteract(target)) return true;
     const point = this.session.jobPointNear(this.playerCells(), target);
     if (point) {
       const problem = this.session.jobPointProblem(point.id);
@@ -1162,6 +1165,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const nearCat = () => this.cats.find((c) => c.visible && near(c.cell()));
     // Nos gatos, um pouco mais alto: o balão de cuidado (careBubbles) fica logo acima da cabeça.
     const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9 - 12, kind });
+    // A interação na direção em que ela olha vence o atendimento em volta (a mesma regra do E).
+    const ahead = s.atHome() && !this.stationAhead(feet) ? this.interactionAhead(feet) : undefined;
+    if (ahead) return cell(ahead.at, `int_${Object.keys(ahead.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
     if (s.atHome()) {
       const sv = s.service;
       const customer = sv.customerToServe(feet);
