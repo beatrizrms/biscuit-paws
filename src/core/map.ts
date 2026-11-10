@@ -382,6 +382,41 @@ export function solidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   return grid;
 }
 
+/** Retângulo em pixels do mundo. */
+export interface PixelRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Corpos de colisão em pixels: paredes e pisos sólidos ocupam a célula inteira; a base de cada móvel sólido só a
+ * parte de baixo da célula (`baseDepth`, fração da célula), onde o desenho encosta no chão. Assim ela chega mais
+ * perto vindo de cima e passa por trás. A grade de células (solidGrid) continua inteira para caminhos e posicionar.
+ */
+export function solidBoxes(map: MapData, catalog: TileCatalog, baseDepth = 1): PixelRect[] {
+  const ts = map.tileSize;
+  const base = baseSolidGrid(map, catalog);
+  const boxes: PixelRect[] = solidRects(base).map((r) => ({ x: r.col * ts, y: r.row * ts, w: r.w * ts, h: r.h * ts }));
+  const depth = Math.min(1, Math.max(0.1, baseDepth));
+  const done = new Set<string>();
+  for (const obj of map.objects) {
+    const def = catalog.tiles[obj.tile];
+    if (!def?.solid) continue;
+    // Objeto dentro da parede: a célula inteira (já é parede na prática).
+    const d = obj.inWall ? 1 : depth;
+    for (const [c, r] of footprintOf(obj.at, def)) {
+      const key = `${c},${r}`;
+      if (base[r]?.[c] || done.has(key) || c < 0 || c >= map.size.cols) continue;
+      done.add(key);
+      const h = Math.round(ts * d);
+      boxes.push({ x: c * ts, y: (r + 1) * ts - h, w: ts, h });
+    }
+  }
+  return boxes;
+}
+
 /** Junta células sólidas em retângulos (faixas horizontais), para criar menos corpos de colisão. */
 export function solidRects(solid: boolean[][]): Rect[] {
   const rects: Rect[] = [];

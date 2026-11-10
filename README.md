@@ -127,7 +127,8 @@ docs/          história, arquitetura, contratos de dados, arte, roadmap, decis�
 
 Três ideias principais:
 1. **O `core` decide, o Phaser só desenha.** Por exemplo, quais células são sólidas e qual a profundidade de cada peça
-   são calculadas em `src/core/map.ts`. A cena só cria as imagens e os corpos de colisão.
+   são calculadas em `src/core/map.ts` (`solidBoxes`: paredes inteiras, móveis só na metade de baixo da célula da base).
+   A cena só cria as imagens e os corpos de colisão.
 2. **Y-sort:** a profundidade de cada objeto é a coordenada Y da base dele, e a da personagem é a base dos pés.
    Quem está mais embaixo na tela é desenhado por cima.
 3. **Tudo passa pela `GameSession`** (`src/core/session.ts`): comprar, posicionar, recolher. Ela avança a história

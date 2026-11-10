@@ -281,6 +281,11 @@ export interface WorldData {
    * Ponto de extensão: quando o quartinho do café for destrancado, vira o id desse mapa.
    */
   sleepMap: string | null;
+  /**
+   * Colisão da base dos móveis: quanto da célula de baixo bloqueia, de baixo para cima (0.5 = a metade de baixo;
+   * 1 = a célula inteira). Paredes e pisos sólidos bloqueiam a célula inteira. Sem isso, 1.
+   */
+  objectBaseDepth?: number;
 }
 
 /** Todo o conteúdo que uma sessão de jogo precisa. */

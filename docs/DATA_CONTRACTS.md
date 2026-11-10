@@ -200,9 +200,12 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
   "morning": { "map": "map.street", "spawn": [16, 9] }, // onde ela aparece de manhã, vindo de casa
   "sleepMap": null,                                     // onde dorme; null = em casa, fora do mapa
   "goHomeDoors": ["door.street"],                       // portas do café onde ela pode encerrar o dia
-  "dailyDirt": 2                                        // poeiras (tag "daily") que voltam a cada manhã
+  "dailyDirt": 2,                                       // poeiras (tag "daily") que voltam a cada manhã
+  "objectBaseDepth": 0.5                                // parte de baixo da célula da base de um móvel que bloqueia (0.1 a 1)
 }
 ```
+
+`objectBaseDepth`: a base de um móvel sólido só bloqueia essa fração de baixo da célula, para ela chegar perto e passar por trás (o y-sort cuida do desenho). Paredes, chão sólido e peças `inWall` bloqueiam a célula inteira. A grade de células (caminhos, posicionar móveis) não muda.
 
 `startMap`: onde um jogo novo começa. `homeMap`: o café, único mapa onde dá para decorar e reformar.
 `sleepMap` é o ponto de extensão para dormir fora de casa (hoje quem faz isso é o porão reformado, pelo cômodo com `sleep`): hoje o fim do dia mostra "Você foi para casa." e ela amanhece em `morning`.

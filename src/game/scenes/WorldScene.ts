@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { doorAt, resolveMap, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
+import { doorAt, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
@@ -521,10 +521,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.solidCollider?.destroy();
     this.solids?.destroy(true);
     this.solids = this.physics.add.staticGroup();
-    for (const r of solidRects(this.map.solid)) {
-      const w = r.w * ts;
-      const h = r.h * ts;
-      this.solids.add(this.add.zone(r.col * ts + w / 2, r.row * ts + h / 2, w, h));
+    // Paredes inteiras; a base dos móveis só na parte de baixo da célula (world.objectBaseDepth): ela passa por trás.
+    for (const b of solidBoxes(this.session.mapData(mapId), this.session.content.catalog, this.session.content.world.objectBaseDepth)) {
+      this.solids.add(this.add.zone(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h));
     }
     this.solidCollider = this.physics.add.collider(this.player, this.solids);
     this.catColliders.forEach((c) => c.destroy());
