@@ -415,10 +415,10 @@ const SHEETS: Sheet[] = [
     columns: 8,
     auto: true,
     layout: {
-      ...enfeite('a', 'sazonais/obj_13', 'sazonais/obj_2', 'sazonais/obj_4', 'sazonais/obj_6'),
-      ...enfeite('b', 'sazonais/obj_14', 'sazonais/obj_0', 'obj_8', 'sazonais/obj_7'),
-      ...enfeite('c', 'sazonais/obj_15', 'sazonais/obj_2', 'obj_15', 'sazonais/obj_8'),
-      ...enfeite('d', 'sazonais/obj_11', 'obj_15', 'sazonais/obj_3', 'sazonais/obj_5'),
+      ...enfeite('a', 'sazonais/obj_11', 'sazonais/obj_2', 'sazonais/obj_4', 'sazonais/obj_6'),
+      ...enfeite('b', 'obj_15', 'sazonais/obj_0', 'obj_8', 'sazonais/obj_7'),
+      ...enfeite('c', 'obj_15', 'sazonais/obj_2', 'obj_15', 'sazonais/obj_8'),
+      ...enfeite('d', 'obj_15', 'obj_15', 'sazonais/obj_3', 'sazonais/obj_5'),
     },
   },
   {

@@ -367,7 +367,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
 }
 
 /**
- * Grade de células sólidas: paredes e pisos sólidos (asfalto, água) inteiros + a base
+ * Grade de células sólidas: paredes e pisos sólidos (água) inteiros + a base
  * (última linha) de cada objeto sólido (decisão 010).
  */
 export function solidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
@@ -454,7 +454,7 @@ export function reachableCells(solid: boolean[][], [sc, sr]: Cell, jumps: readon
   return seen;
 }
 
-/** Células sólidas das grades: paredes sólidas e pisos sólidos (asfalto, água). */
+/** Células sólidas das grades: paredes sólidas e pisos sólidos (água). */
 function baseSolidGrid(map: MapData, catalog: TileCatalog): boolean[][] {
   const { cols, rows } = map.size;
   const solidAt = (grid: string[] | undefined, r: number, c: number) => {

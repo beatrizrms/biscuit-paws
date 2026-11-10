@@ -10,15 +10,6 @@
       "layer": "floor",
       "solid": false,
       "overrides": {
-        "asfalto_a": {
-          "solid": true
-        },
-        "asfalto_b": {
-          "solid": true
-        },
-        "asfalto_faixa": {
-          "solid": true
-        },
         "agua_a": {
           "solid": true
         },
@@ -545,15 +536,6 @@
       "layer": "floor",
       "solid": false,
       "overrides": {
-        "asfalto_a": {
-          "solid": true
-        },
-        "asfalto_b": {
-          "solid": true
-        },
-        "asfalto_faixa": {
-          "solid": true
-        },
         "agua_a": {
           "solid": true
         },
@@ -606,15 +588,6 @@
       "layer": "floor",
       "solid": false,
       "overrides": {
-        "asfalto_a": {
-          "solid": true
-        },
-        "asfalto_b": {
-          "solid": true
-        },
-        "asfalto_faixa": {
-          "solid": true
-        },
         "agua_a": {
           "solid": true
         },
@@ -667,15 +640,6 @@
       "layer": "floor",
       "solid": false,
       "overrides": {
-        "asfalto_a": {
-          "solid": true
-        },
-        "asfalto_b": {
-          "solid": true
-        },
-        "asfalto_faixa": {
-          "solid": true
-        },
         "agua_a": {
           "solid": true
         },
