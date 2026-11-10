@@ -534,6 +534,8 @@ const SHEETS: Sheet[] = [
       ph_basement_stairs: { file: 'provisorios/basement_stairs.png', w: 2, h: 1 },
       // Ponto de montar a feira no quintal: caixotes empilhados com um pano xadrez.
       ph_fair_setup: { file: 'provisorios/fair_setup_crates.png', w: 1, h: 1, dy: 1 },
+      // Janela do café com a cortina aberta (par da fechada, `window`): a cortina abre pela ação na janela.
+      ph_window_open: { file: '02_cafe_2/janela_aberta_128.png', w: 2, h: 2 },
     },
   },
   {
