@@ -1051,9 +1051,23 @@
 .minigame-layer .mg-tutorial ol { margin: 0; padding-left: 12px; font-size: 8px; line-height: 1.45; }
 .minigame-layer .mg-info { padding: 2px 8px; border-radius: 8px; background: #3b2a32cc; color: var(--cream); font-size: 8px; }
 .minigame-layer .mg-info:empty { display: none; }
-/* Resultado com uma linha por par (match de adoção): painel mais largo, texto à esquerda, quebras de linha */
-.minigame-layer .mg-panel[data-game='adoption'] { width: 420px; }
-.minigame-layer .mg-panel[data-game='adoption'] p:not(.mg-coins) { white-space: pre-line; text-align: left; font-size: 7.5px; }
+/* Resultado do match de adoção: um cartão por par (retrato, gato → família, selo do veredito e o porquê) e o resumo em selos. */
+.minigame-layer .mg-panel[data-game='adoption'] { width: 330px; }
+.minigame-layer .ad-results { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px; padding: 0; list-style: none; text-align: left; }
+.minigame-layer .ad-row { display: flex; align-items: center; gap: 6px; padding: 2px 6px 2px 2px; border: 1px solid #e3cfb4; border-left: 3px solid var(--ad-color); border-radius: 6px; background: #fffaf1; }
+.minigame-layer .ad-good { --ad-color: #68ad8a; --ad-bg: #e4f3e9; --ad-text: #2f6b4b; }
+.minigame-layer .ad-ok { --ad-color: #e0a94e; --ad-bg: #fbf0d9; --ad-text: #8a5d12; }
+.minigame-layer .ad-bad { --ad-color: #d9475d; --ad-bg: #fbe3e6; --ad-text: #9c2638; }
+.minigame-layer .ad-cat { flex: none; width: 24px; height: 24px; image-rendering: pixelated; }
+.minigame-layer .ad-pair { flex: 1; min-width: 0; font-size: 8px; line-height: 1.25; color: #5c3428; }
+.minigame-layer .ad-arrow { margin: 0 3px; color: var(--ad-color); font-weight: bold; }
+.minigame-layer .ad-pair small { display: block; font-size: 6.5px; color: #7a6168; }
+.minigame-layer .ad-trait { padding: 0 3px; border-radius: 3px; background: var(--ad-bg); color: var(--ad-text); font-weight: bold; }
+.minigame-layer .ad-verdict { flex: none; padding: 1px 6px; border-radius: 8px; background: var(--ad-color); color: #fff; font-size: 7px; font-weight: bold; }
+.minigame-layer .ad-summary { display: flex; justify-content: center; gap: 4px; margin-bottom: 5px; }
+.minigame-layer .ad-chip { padding: 1px 7px; border-radius: 8px; background: var(--ad-bg); color: var(--ad-text); font-size: 7.5px; }
+.minigame-layer .ad-chip b { font-size: 9px; }
+.minigame-layer .ad-chip.ad-zero { opacity: 0.4; }
 
 /* Reputação felina: embaixo do dinheiro (barrinha + número); o carrinho fica logo abaixo dela */
 .hud-rep { position: absolute; top: 26px; right: 6px; display: flex; align-items: center; gap: 4px; padding: 1px 7px; font-size: 7.5px; font-weight: bold; transition: opacity 0.2s; }

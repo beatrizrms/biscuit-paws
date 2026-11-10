@@ -1,6 +1,7 @@
 // Match de adoção: cartões de gatos do abrigo à esquerda, famílias com um lugar vazio à direita. Arraste cada
 // gato até o lugar de uma família (soltar num lugar ocupado troca; soltar de volta na coluna tira) e confirme.
-// Ao confirmar, cada família mostra se ficou boa, ok ou ruim, e o resultado lista o porquê de cada par.
+// Ao confirmar, cada família mostra se ficou boa, ok ou ruim, e o resultado mostra um cartão por par (retrato do gato,
+// família, selo do veredito e o porquê) e o resumo em selos coloridos.
 // Regras e conteúdo: data/adoption.json + src/core/adoption.ts. Arrastar: dragDrop.ts (framework da fase 2).
 import Phaser from 'phaser';
 import { adoptionOutcome, judge, setupMatch, type AdoptCat, type AdoptionParams, type FamilyProfile, type Judgement } from '../../core/adoption';
@@ -14,6 +15,8 @@ import { DragDrop, type ZoneState } from './dragDrop';
 import { MiniGameScene } from './MiniGameScene';
 
 export const ADOPTION_SCENE = 'MiniGame.adoption';
+
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 // Layout em px lógicos (tela de 640 x 360). Os cartões de gato cabem no lugar da família.
 const CARD_W = 132;
@@ -102,17 +105,29 @@ export class AdoptionScene extends MiniGameScene {
 
   protected updateGame(): void {}
 
-  protected resultText(r: MiniGameResult): string {
-    if (r.skipped) return '';
+  /**
+   * Um cartão por par: o retrato do gato, "gato → família", o selo do veredito (verde, amarelo, vermelho) e, embaixo,
+   * o traço que pesou e o porquê. Embaixo de tudo, o resumo em selos (zerado fica apagado).
+   */
+  protected resultHtml(r: MiniGameResult): string | null {
+    if (r.skipped) return null;
     const t = uiText.minigames.adoption;
-    const count = (v: string) => this.judgements.filter((j) => j.verdict === v).length;
-    const lines = this.judgements.map((j) => {
+    const rows = this.judgements.map((j) => {
       const cat = this.cats.find((c) => c.id === j.catId)!;
       const family = this.slots.find((s) => s.family.id === j.familyId)!.family;
-      const reason = j.trait ? t.reason.replace('{trait}', this.traitName(j.trait)).replace('{note}', j.note ?? '') : t.noReason;
-      return t.line.replace('{cat}', cat.name).replace('{family}', family.name).replace('{verdict}', t.verdict[j.verdict]).replace('{reason}', reason);
+      const reason = j.trait ? `<span class="ad-trait">${esc(this.traitName(j.trait))}</span> ${esc(j.note ?? '')}` : esc(t.noReason);
+      return `<li class="ad-row ad-${j.verdict}">${this.catPortrait(cat)}<span class="ad-pair"><b>${esc(cat.name)}</b><span class="ad-arrow">→</span><b>${esc(family.name)}</b><small>${reason}</small></span><span class="ad-verdict">${esc(t.verdict[j.verdict])}</span></li>`;
     });
-    return [...lines, t.summary.replace('{good}', String(count('good'))).replace('{ok}', String(count('ok'))).replace('{bad}', String(count('bad')))].join('\n');
+    const count = (v: 'good' | 'ok' | 'bad') => this.judgements.filter((j) => j.verdict === v).length;
+    const chip = (v: 'good' | 'ok' | 'bad') => `<span class="ad-chip ad-${v}${count(v) === 0 ? ' ad-zero' : ''}"><b>${count(v)}</b> ${esc(t.count[v])}</span>`;
+    return `<ul class="ad-results">${rows.join('')}</ul><div class="ad-summary">${chip('good')}${chip('ok')}${chip('bad')}</div>`;
+  }
+
+  /** O gato sentado do cartão, como imagem (o mesmo quadro do tabuleiro). */
+  private catPortrait(cat: AdoptCat): string {
+    const tex = this.textures.exists(catTexture(cat.variant)) ? catTexture(cat.variant) : catTexture(this.launch.catVariant);
+    const src = this.textures.exists(tex) ? this.textures.getBase64(tex, 0) : '';
+    return src ? `<img class="ad-cat" src="${src}" alt="" />` : '<span class="ad-cat"></span>';
   }
 
   // ---------- Montagem ----------

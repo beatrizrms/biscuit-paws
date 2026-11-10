@@ -746,10 +746,12 @@
         "ok": "Ok.",
         "bad": "Não combina."
       },
-      "line": "{cat} → {family}: {verdict} {reason}",
-      "reason": "{trait}: {note}.",
       "noReason": "Nada contra, nada a favor.",
-      "summary": "{good} boa(s), {ok} ok, {bad} ruim(ns)."
+      "count": {
+        "good": "boas",
+        "ok": "ok",
+        "bad": "não combinam"
+      }
     },
     "wand": {
       "hud": "Empolgação {n}% · Enjoou {bored}",
