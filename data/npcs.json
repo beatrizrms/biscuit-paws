@@ -439,6 +439,27 @@
       },
       "extras": {},
       "resolution": 2
+    },
+    {
+      "id": "npc.market_clerk",
+      "name": "Atendente do mercado",
+      "sheet": "assets/characters/npcs/v64/npc_market_clerk.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
+      "fps": 6,
+      "extrasFps": 6,
+      "walk": {
+        "down": 0,
+        "left": 0,
+        "right": 0,
+        "up": 0
+      },
+      "extras": {
+        "olhando_de_lado": [0, 1, 2, 3, 4, 4, 4, 3, 2, 1],
+        "passando_compras": [6, 7, 8, 9, 8, 7]
+      },
+      "resolution": 2
     }
   ]
 }

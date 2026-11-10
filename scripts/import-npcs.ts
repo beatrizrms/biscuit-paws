@@ -6,6 +6,8 @@
 // (2 quadros, sem o 1º, que às vezes ainda é a descida; baixo, esquerda, direita, cima), para a cadeira do jogo ficar
 // por baixo (o cliente na mesa). O sentado para a direita é o da esquerda espelhado (de lado a IA virava 3/4).
 // Construtor: quadros 144x128 (o martelo), linha 6 = martelando para a direita.
+// Atendente do mercado: só de costas (fica atrás do caixa); linha 0 = à toa (vira a cabeça), linha 1 = passando as
+// compras. As duas linhas com o mesmo recorte, para ela não pular ao trocar de animação.
 // Cachorro (o Joca): quadros 64x64, 6 colunas; caminhada, latindo (frente e lado), sentado e dormindo.
 // Rodar: npm run npcs. Saída em public/assets/characters/npcs/v64/ (fora do git, como toda a arte).
 import fs from 'node:fs';
@@ -14,7 +16,7 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_pixellab/personagens';
 const OUT = 'public/assets/characters/npcs/v64';
-type Kit = 'full' | 'walk' | 'customer' | 'dog' | 'builder';
+type Kit = 'full' | 'walk' | 'customer' | 'dog' | 'builder' | 'clerk';
 
 /** Quadro (largura x altura) e colunas da folha de cada kit. */
 const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
@@ -24,6 +26,7 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
   dog: { w: 64, h: 64, columns: 6 },
   // O construtor: quadros mais largos para o martelo caber (o golpe vai longe para a direita).
   builder: { w: 144, h: 128, columns: 5 },
+  clerk: { w: 112, h: 128, columns: 5 },
 };
 
 /** Pasta do PixelLab -> id do NPC (data/npcs.json) e o kit: completo (acenar, segurar), só caminhada ou cliente (sentado). */
@@ -35,6 +38,7 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },
   construtor: { id: 'npc.builder', kit: 'builder', portrait: true },
+  atendente: { id: 'npc.market_clerk', kit: 'clerk', portrait: false },
   ...Object.fromEntries(
     Array.from({ length: 10 }, (_, i) => String(i + 1).padStart(2, '0')).map((n) => [`cliente${n}`, { id: `npc.customer_${n}`, kit: 'customer' as Kit, portrait: false }]),
   ),
@@ -58,6 +62,7 @@ const ROWS: Record<Kit, Row[]> = {
   dog: [...WALK, ['bark', 'south'], ['bark', 'east'], ['sit', 'south'], ['sleep', 'south']],
   // Construtor: caminhada, acenar, segurar (2ª versão) e, na linha 6, martelando para a direita (com o martelo).
   builder: [...WALK, ['wave', 'south'], ['hold_v2', 'south'], ['hammer_v3', 'east']],
+  clerk: [['idle', 'north'], ['scan', 'north']],
 };
 
 function frames(folder: string, anim: string, dir: string): PNG[] {
@@ -121,9 +126,10 @@ for (const [folder, { id, kit, portrait }] of Object.entries(NPCS)) {
   }
   const { w: W, h: H, columns: COLUMNS } = SIZE[kit];
   const sheet = new PNG({ width: W * COLUMNS, height: H * rows.length });
+  const shared = kit === 'clerk' ? anchor(rows.flatMap(([anim, dir]) => frames(folder, anim, dir))) : undefined;
   rows.forEach(([anim, dir, opt], row) => {
     const list = frames(folder, anim, dir).slice(opt?.skip ?? 0);
-    const a = anchor(list);
+    const a = shared ?? anchor(list);
     list.slice(0, COLUMNS).forEach((p, col) => blit(sheet, p, col * W, row * H, a, W, H, opt?.mirror));
   });
   const name = id.replace('npc.', 'npc_');

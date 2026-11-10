@@ -1066,6 +1066,8 @@
 .catalog.backpack .bp-pantry h3 button { padding: 0 6px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; font-size: 7px; cursor: pointer; }
 .catalog.backpack .bp-pantry h3 .why { font-size: 6.5px; font-weight: normal; color: var(--grey2); }
 .catalog.backpack span.bp-pantry-slot { opacity: 1; }
+/* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */
+#ui:has(.catalog.backpack.open) > .hotbar { display: none; }
 .catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: 7px; }
 
 /* Dica de hover (hoverTip.ts): para que serve o item, depois de 3 s com o mouse em cima. */

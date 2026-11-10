@@ -243,7 +243,8 @@ const SHEETS: Sheet[] = [
     layout: {
       gondola_mercearia: { file: 'mercado_C/gondola_mercearia.png', w: 3, h: 2 },
       gondola_pet: { file: '', w: 3, h: 2, build: () => withLeftPost(readPng(`${SRC}/mercado_C/gondola_pet.png`), 175, 182) },
-      caixa: { file: 'mercado_C/caixa_3x2.png', w: 3, h: 2, dy: 12 },
+      // Sem a parede em U (edição do PixelLab sobre a peça já montada, por isso sem dy): a atendente fica do lado de baixo, de costas.
+      caixa: { file: 'mercado_C/caixa_3x2_sem_parede.png', w: 3, h: 2 },
       banca_a: { file: 'mercado_C/banca_a.png', w: 3, h: 1 },
       banca_b: { file: 'mercado_C/banca_b.png', w: 3, h: 1 },
       carrinhos_fila: { file: 'mercado_A/obj_10.png', w: 1, h: 1, dy: 3 },
@@ -263,7 +264,8 @@ const SHEETS: Sheet[] = [
       vet_piso_xadrez: { file: 'clinica/piso.png', w: 1, h: 1 },
       vet_tapete_entrada: { file: '', w: 3, h: 1, build: () => compose(3 * TS, TS, [['04_cafe_4/obj_7.png', TS, 0], ['04_cafe_4/obj_7.png', 2 * TS, 0]]) },
       vet_armario_medicamentos: { file: 'clinica/armario_2x2.png', w: 2, h: 2 },
-      vet_balcao_recepcao: { file: 'clinica/recepcao_3x2.png', w: 3, h: 2, dy: 10 },
+      // Sem a parede em U (edição do PixelLab sobre a peça já montada, por isso sem dy).
+      vet_balcao_recepcao: { file: 'clinica/recepcao_3x2_sem_parede.png', w: 3, h: 2 },
       vet_mesa_exame: { file: 'clinica/mesa_exame_2x2.png', w: 2, h: 2, dy: 4 },
       vet_gaiola_vazia: { file: 'clinica/gaiolas_2x2.png', w: 2, h: 2, dy: 8 },
       vet_gaiola_gato: { file: 'clinica/gaiolas_2x2.png', w: 2, h: 2, dy: 8 },
@@ -549,6 +551,37 @@ const SHEETS: Sheet[] = [
     layout: {
       auto_feeder: { file: 'automaticos/comedouro_automatico.png', w: 1, h: 1 },
       auto_litter: { file: 'automaticos/caixa_areia_automatica.png', w: 1, h: 1 },
+    },
+  },
+  {
+    // Decorações do quarto (porão reformado), geradas no PixelLab (quarto/): nomes novos quarto_*.
+    image: 'public/assets/objects/pixellab/tile_pixellab_quarto.png',
+    pieces: 'data/tilesets/pixellab_quarto.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      criado_madeira: { file: 'quarto/criado_madeira_1x1.png', w: 1, h: 1, dy: 6 },
+      criado_creme: { file: 'quarto/criado_creme_1x1.png', w: 1, h: 1, dy: 6 },
+      bau: { file: 'quarto/bau_1x1.png', w: 1, h: 1, dy: 8 },
+      pufe_rosa: { file: 'quarto/pufe_rosa_1x1.png', w: 1, h: 1, dy: 5 },
+      pufe_salvia: { file: 'quarto/pufe_salvia_1x1.png', w: 1, h: 1, dy: 5 },
+      cesto_roupa: { file: 'quarto/cesto_roupa_1x1.png', w: 1, h: 1, dy: 6 },
+      mesinha_lateral: { file: 'quarto/mesinha_lateral_1x1.png', w: 1, h: 1, dy: 6 },
+      poltrona: { file: 'quarto/poltrona_1x1.png', w: 1, h: 1, dy: 2 },
+      espelho: { file: 'quarto/espelho_1x1.png', w: 1, h: 1 },
+      quadro_montanha: { file: 'quarto/quadro_montanha_1x1.png', w: 1, h: 1 },
+      quadro_flores: { file: 'quarto/quadro_flores_1x1.png', w: 1, h: 1 },
+      quadro_lua: { file: 'quarto/quadro_lua_1x1.png', w: 1, h: 1 },
+      luzinhas: { file: 'quarto/luzinhas_parede_1x1.png', w: 1, h: 1 },
+      relogio: { file: 'quarto/relogio_parede_1x1.png', w: 1, h: 1 },
+      prateleira: { file: 'quarto/prateleira_parede_1x1.png', w: 1, h: 1 },
+      porta_retrato: { file: 'quarto/porta_retrato_pata_1x1.png', w: 1, h: 1 },
+      guarda_roupa: { file: 'quarto/guarda_roupa_largo_2x2.png', w: 2, h: 2, dy: 8 },
+      comoda: { file: 'quarto/comoda_2x1.png', w: 2, h: 1, dy: 2 },
+      escrivaninha: { file: 'quarto/escrivaninha_2x1.png', w: 2, h: 1, dy: 1 },
+      luminaria: { file: 'quarto/luminaria_chao_1x2.png', w: 1, h: 2, dy: 2 },
+      cabideiro: { file: 'quarto/cabideiro_1x2.png', w: 1, h: 2 },
+      tapete_redondo: { file: 'quarto/tapete_redondo_2x2.png', w: 2, h: 2 },
     },
   },
   {

@@ -35,6 +35,19 @@ describe('despensa', () => {
     expect(sv.storeInPantry()).toEqual({ ok: false, reason: 'nothing_here' });
   });
 
+  it('guardar um item só: os pacotes dele vão, o resto fica na mochila', () => {
+    const { session, state, sv } = cafe();
+    session.buy('item.coffee_ground');
+    session.buy('item.coffee_ground');
+    session.buy('item.paper_filter');
+    session.buy('item.cat_food_basic');
+    expect(sv.storeInPantry('item.coffee_ground')).toEqual({ ok: true });
+    expect(state.pantry).toEqual({ 'item.coffee_ground': 2 });
+    expect(state.inventory['item.paper_filter']).toBe(1);
+    expect(sv.storeInPantry('item.cat_food_basic')).toEqual({ ok: false, reason: 'nothing_here' }); // não é ingrediente
+    expect(sv.storeInPantry('item.coffee_ground')).toEqual({ ok: false, reason: 'nothing_here' }); // já guardado
+  });
+
   it('só no café; o armário fica do lado da pia', () => {
     const { session, sv } = cafe('map.street');
     session.buy('item.coffee_ground');

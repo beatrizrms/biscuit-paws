@@ -43,6 +43,8 @@ export interface NpcDef {
   walk: Record<Facing, number>;
   /** Animações extras: nome -> índices de quadro. */
   extras: Record<string, number[]>;
+  /** Quadros por segundo das animações extras (padrão 3). */
+  extrasFps?: number;
   /** Sentado (clientes na mesa): linha da folha para cada direção, `sitFrames` quadros cada (padrão 3). */
   sit?: Record<Facing, number>;
   sitFrames?: number;

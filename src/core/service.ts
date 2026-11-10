@@ -143,7 +143,7 @@ export class CafeService {
     return Object.entries(this.st.inventory).filter(([id]) => this.isIngredient(id)).reduce((n, [, q]) => n + q, 0);
   }
 
-  private isIngredient(itemId: string): boolean {
+  isIngredient(itemId: string): boolean {
     return !!this.h.content.items[itemId]?.tags.includes('ingredient');
   }
 
@@ -152,10 +152,10 @@ export class CafeService {
     return near(feet, this.cfg.pantry);
   }
 
-  /** Guarda na despensa todos os ingredientes da mochila (no café). */
-  storeInPantry(): ServiceResult {
+  /** Guarda na despensa os ingredientes da mochila (no café): todos, ou só os pacotes de `itemId`. */
+  storeInPantry(itemId?: string): ServiceResult {
     if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
-    const moved = Object.entries(this.st.inventory).filter(([id, q]) => this.isIngredient(id) && q > 0);
+    const moved = Object.entries(this.st.inventory).filter(([id, q]) => (!itemId || id === itemId) && this.isIngredient(id) && q > 0);
     if (moved.length === 0) return { ok: false, reason: 'nothing_here' };
     for (const [id, q] of moved) {
       this.st.pantry[id] = (this.st.pantry[id] ?? 0) + q;
