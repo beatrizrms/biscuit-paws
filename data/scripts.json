@@ -1027,32 +1027,7 @@
           "dialogue": "dlg.santa_party_open"
         },
         {
-          "secretSanta": "exchange"
-        },
-        {
-          "emote": "player",
-          "balloon": "heart",
-          "ms": 900
-        },
-        {
-          "secretSanta": "receive"
-        },
-        {
-          "dialogue": "dlg.santa_party_end"
-        },
-        {
-          "setTime": "22:30"
-        },
-        {
-          "enter": "map.cafe_main",
-          "spawn": [
-            11,
-            8
-          ],
-          "facing": "down"
-        },
-        {
-          "dialogue": "dlg.santa_party_after"
+          "secretSanta": "give"
         }
       ]
     },
@@ -1367,6 +1342,38 @@
             9
           ],
           "facing": "down"
+        }
+      ]
+    },
+    "scr.xmas_party_end": {
+      "steps": [
+        {
+          "secretSanta": "reaction"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 900
+        },
+        {
+          "secretSanta": "receive"
+        },
+        {
+          "dialogue": "dlg.santa_party_end"
+        },
+        {
+          "setTime": "22:30"
+        },
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "down"
+        },
+        {
+          "dialogue": "dlg.santa_party_after"
         }
       ]
     }

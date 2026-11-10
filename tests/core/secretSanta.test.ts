@@ -125,13 +125,26 @@ describe('amigo secreto: o Natal', () => {
     expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
   });
 
+  it('debug "Ceia": mantém quem ela tirou no sorteio do ano (não sorteia outro)', () => {
+    const { session, state } = cafe(SS.drawDay);
+    state.secretSanta = { year: 1, drawn: 'npc.gabi', stage: 'drawn' };
+    session.debugFestive('party');
+    expect(state.secretSanta).toMatchObject({ drawn: 'npc.gabi', stage: 'drawn' });
+  });
+
   it('o presente que a pessoa gosta vale mais; os convidados ganham um pouco pela noite', () => {
     const { session, state, events } = cafe(XMAS, 19 * 60);
     state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
     state.inventory['item.xmas_mug'] = 1;
     state.inventory['item.poinsettia'] = 1;
     expect(session.secretSanta()).toMatchObject({ hasGift: true, lovedGift: true });
-    expect(session.secretSantaExchange()).toEqual({ dialogue: 'dlg.santa_loved_neusa' });
+    // Na ceia, a hora de entregar: ela escolhe o presente da mochila (os de Natal que tiver).
+    session.openSantaGiving();
+    expect(session.santaGivingNow()).toBe(true);
+    expect(session.santaGiftOptions()).toEqual(expect.arrayContaining(['item.xmas_mug', 'item.poinsettia']));
+    expect(session.secretSantaExchange('item.poinsettia')).toEqual({ dialogue: 'dlg.santa_loved_neusa' });
+    expect(session.santaGivingNow()).toBe(false);
+    expect(named(events, 'script.requested')).toContainEqual({ scriptId: SS.partyEndScript });
     expect(state.inventory['item.poinsettia']).toBeUndefined();
     expect(state.inventory['item.xmas_mug']).toBe(1);
     expect(state.relationships[pairKey('player', 'npc.neusa')]).toBe(SS.points.loved + SS.points.party);
@@ -139,20 +152,21 @@ describe('amigo secreto: o Natal', () => {
     expect(state.secretSanta).toMatchObject({ stage: 'done', result: 'loved', gift: 'item.poinsettia' });
     expect(named(events, 'xmas.santa_exchanged')).toEqual([{ npc: 'npc.neusa', result: 'loved', itemId: 'item.poinsettia' }]);
     // Não troca duas vezes.
-    expect(session.secretSantaExchange()).toBeNull();
+    expect(session.secretSantaExchange('item.xmas_mug')).toBeNull();
   });
 
   it('outro presente de Natal agrada menos; sem presente, a fala de quem esqueceu', () => {
     const liked = cafe(XMAS, 19 * 60);
     liked.state.secretSanta = { year: 1, drawn: 'npc.gabi', stage: 'drawn' };
     liked.state.inventory['item.xmas_candle'] = 1;
-    expect(liked.session.secretSantaExchange()).toEqual({ dialogue: 'dlg.santa_liked_gabi' });
+    expect(liked.session.secretSantaExchange('item.xmas_candle')).toEqual({ dialogue: 'dlg.santa_liked_gabi' });
     expect(liked.state.relationships[pairKey('player', 'npc.gabi')]).toBe(SS.points.liked + SS.points.party);
 
     const none = cafe(XMAS, 19 * 60);
     none.state.secretSanta = { year: 1, drawn: 'npc.gabi', stage: 'drawn' };
     expect(none.session.secretSanta()).toMatchObject({ hasGift: false });
-    expect(none.session.secretSantaExchange()).toEqual({ dialogue: SS.noGiftDialogue });
+    expect(none.session.secretSantaExchange(null)).toEqual({ dialogue: SS.noGiftDialogue });
+    expect(none.session.santaReaction()).toBe(SS.noGiftDialogue);
     expect(none.state.secretSanta!.result).toBe('none');
   });
 

@@ -331,6 +331,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     this.onKey('I', () => {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
+      // Posicionando: o item volta para a mochila (o que estava no mapa é recolhido) e a mochila abre (ex.: pôr na barra).
+      if (this.placing) {
+        if (this.placing.moveUid) this.storeMoving();
+        else this.cancelPlacing();
+      }
       this.ui.openBackpack();
     });
     this.onKey('P', () => {
@@ -1212,7 +1217,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const indoor = content.maps[this.map.id]?.lighting === 'indoor';
     const t = this.session.state.time;
     const season = this.session.season();
-    const color = tintAt(t, content.dayNight, season, indoor);
+    // Noite de Natal: o café com as luzes acesas (a cor de dentro de uma hora clara); a rua segue a noite.
+    const lit = indoor && this.map.id === content.map.id ? this.session.cafeLightsAs() : null;
+    const color = tintAt(lit ?? t, content.dayNight, season, indoor);
     this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined);
     this.ui.setClock(formatClock(t));
   }
@@ -1247,6 +1254,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private interact(target?: Cell): boolean {
     // O Tião trabalhando ali do lado: conversar diz quantos dias faltam para terminar a obra.
     if (this.talkToBuilder(target)) return true;
+    // Na ceia, a hora de entregar: E em quem ela tirou abre a escolha do presente.
+    if (this.trySantaGive(target)) return true;
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
@@ -1374,6 +1383,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = s.builderAt(s.location())!.at;
       return { x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' as HintKind };
     }
+    // Na ceia, a hora de entregar: a dica em cima de quem ela tirou.
+    if (s.santaGivingNow()) {
+      const guest = this.santaGuestNear();
+      if (guest && guest[0] === s.santaRecord()!.drawn) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'santa_give' as HintKind };
+    }
     // A mesma ordem do E: a caixa da entrega; o gato bem na frente (a não ser que o pote/caixa de areia seja o óbvio).
     const parcelsFirst = s.parcelsNear(feet);
     if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
@@ -1467,6 +1481,43 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
+  /** O convidado da ceia ao alcance (célula dos pés dele a até 1 da dela), ou o clicado. */
+  private santaGuestNear(target?: Cell): [string, NpcSprite] | undefined {
+    const ts = this.map.tileSize;
+    const feet = this.playerCells();
+    return [...this.npcs].find(([, n]) => {
+      const c: Cell = [Math.floor(n.x / ts), Math.floor(n.y / ts)];
+      if (target && (target[0] !== c[0] || target[1] !== c[1])) return false;
+      return feet.some((f) => Math.max(Math.abs(f[0] - c[0]), Math.abs(f[1] - c[1])) <= 1);
+    });
+  }
+
+  /**
+   * Ceia do amigo secreto, na hora de entregar: E em quem ela tirou abre a escolha dos presentes de Natal da mochila
+   * (ou "não trouxe"); sem nenhum presente, ela entrega nada (a turma ri). Em outro convidado: lembra quem é.
+   */
+  private trySantaGive(target?: Cell): boolean {
+    const s = this.session;
+    if (!s.santaGivingNow()) return false;
+    const guest = this.santaGuestNear(target);
+    if (!guest) return false;
+    const t = uiText.secretSanta;
+    const drawn = s.santaRecord()!.drawn;
+    const name = s.content.festive.secretSanta.friends.find((f) => f.npc === drawn)?.name ?? '';
+    if (guest[0] !== drawn) {
+      this.ui.toast(t.otherGuest.replace('{name}', name), 3000);
+      return true;
+    }
+    const options = s.santaGiftOptions();
+    if (options.length === 0) {
+      s.secretSantaExchange(null);
+      return true;
+    }
+    const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
+    void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
+    return true;
+  }
+
   /** A caixa da entrega ao alcance (na porta: pega todas; dentro do café: abre uma e o móvel vai para a mão). */
   private parcelInteract(target?: Cell): boolean {
     const parcels = this.session.parcelsNear(this.playerCells(), target);
@@ -1481,9 +1532,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(result.reason);
         return true;
       }
-      // Móvel: já vai para a mão, para posicionar (Esc guarda na bolsa).
-      const kind = this.session.content.items[result.itemId]?.kind ?? 'furniture';
-      if (kind === 'furniture') this.startPlacing(result.itemId);
+      // Móvel: ela escolhe se posiciona agora ou guarda na mochila (já está nela).
+      const item = this.session.content.items[result.itemId];
+      if ((item?.kind ?? 'furniture') === 'furniture') {
+        const t = uiText.delivery;
+        void this.ui.choose(t.unpackAsk.replace('{name}', item?.name ?? ''), [t.unpackPlace, t.unpackStore]).then((i) => {
+          if (i === 0) this.startPlacing(result.itemId);
+          else this.ui.toast(t.unpackStored.replace('{name}', item?.name ?? ''));
+        });
+      }
       return true;
     }
     return false;

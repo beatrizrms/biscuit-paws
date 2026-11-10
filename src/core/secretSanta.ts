@@ -31,12 +31,16 @@ export interface SecretSantaData {
   day: number;
   closeAt: string;
   partyAt: string;
+  /** Na noite da ceia (de partyAt em diante), o café fica com as luzes acesas: a cor de dentro é a desta hora. */
+  partyLights: string;
   /** Quem propõe (sem conhecê-la, não tem amigo secreto naquele ano). */
   proposer: string;
   /** Condição extra para a proposta aparecer (ela no café, de dia, depois do prólogo...). */
   proposalWhen: Condition;
   proposalScript: string;
   partyScript: string;
+  /** O fim da ceia, depois que ela entrega o presente (a reação, o presente dela, a noite que acaba). */
+  partyEndScript: string;
   /** Condição para a ceia começar na hora (ex.: fora do café, ou no salão: o roteiro não a tira de outro cômodo). */
   partyWhen: Condition;
   /** Tag dos presentes (o que ela pode dar). */
@@ -129,8 +133,9 @@ export function validateSecretSanta(data: SecretSantaData, refs: SantaRefs): str
   if (!(data.drawDay >= 1 && data.drawDay < data.day && data.day <= days)) err('drawDay precisa vir antes de day, dentro da estação');
   clock(data.closeAt, 'closeAt');
   clock(data.partyAt, 'partyAt');
+  clock(data.partyLights, 'partyLights');
   if (!refs.npcs.has(data.proposer)) err(`NPC inexistente "${data.proposer}"`);
-  for (const s of [data.proposalScript, data.partyScript]) if (!refs.scripts.has(s)) err(`roteiro inexistente "${s}"`);
+  for (const s of [data.proposalScript, data.partyScript, data.partyEndScript]) if (!refs.scripts.has(s)) err(`roteiro inexistente "${s}"`);
   for (const d of [data.noGiftDialogue, data.receiveDialogue]) if (!refs.dialogues.has(d)) err(`fala inexistente "${d}"`);
   const gifts = [...refs.items].filter(([, i]) => i.tags.includes(data.giftTag)).map(([id]) => id);
   if (gifts.length === 0) err(`nenhum item tem a tag "${data.giftTag}"`);

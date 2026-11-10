@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Datas festivas. box: a caixa de enfeites de Natal. No fim do inverno, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e faz a troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta).",
+  "_comment": "Datas festivas. box: a caixa de enfeites de Natal. No fim do inverno, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação, o presente dela e o fim da noite). A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
   "box": {
     "item": "item.xmas_box",
     "tag": "xmas",
@@ -12,6 +12,7 @@
     "day": 25,
     "closeAt": "12:00",
     "partyAt": "19:00",
+    "partyLights": "16:30",
     "proposer": "npc.gabi",
     "proposalWhen": {
       "all": [
@@ -40,6 +41,7 @@
     },
     "proposalScript": "scr.xmas_santa_draw",
     "partyScript": "scr.xmas_party",
+    "partyEndScript": "scr.xmas_party_end",
     "partyWhen": {
       "playerRoom": "room.hall"
     },

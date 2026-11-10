@@ -1,5 +1,6 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
+import { itemThumbHtml } from './thumbs';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
@@ -702,7 +703,8 @@ export class GameUi {
     const item = content.items[itemId];
     const el = document.createElement('div');
     el.className = 'item-reveal';
-    const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : iconHtml(item?.icon, 64);
+    // Imagem própria, ícone ou, sem ícone (móvel como o globo de neve do café), a miniatura da peça do mapa.
+    const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : item?.icon ? iconHtml(item.icon, 64) : item ? itemThumbHtml(item, 64) : '';
     el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${uiText.itemReveal.continue}</div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
@@ -772,7 +774,9 @@ export class GameUi {
     const ss = content.festive.secretSanta;
     const goal = t.goal.replace('{name}', s.friend.name);
     const parts = [goal];
-    if (s.christmas) parts.push(t.party.replace('{time}', ss.partyAt));
+    // Na ceia, a hora de entregar: o que fazer agora.
+    if (this.session.santaGivingNow()) parts.splice(0, 1, t.give.replace('{name}', s.friend.name));
+    else if (s.christmas) parts.push(t.party.replace('{time}', ss.partyAt));
     const text = `<b>${esc(t.title)}:</b> ${esc(parts.join('; '))}`;
     const right = s.hasGift ? `<span class="count">${esc(s.lovedGift ? t.readyLoved : t.ready)}</span>` : '';
     // A dica do gosto fica no título (passar o mouse).

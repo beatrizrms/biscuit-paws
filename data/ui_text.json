@@ -185,7 +185,7 @@
   "hotbar": {
     "label": "Barra de itens"
   },
-  "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · Esc: cancelar",
+  "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · I: guardar na mochila · Esc: cancelar",
   "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
   "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: guardar na mochila · Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
@@ -595,6 +595,10 @@
     "no": "Ainda não"
   },
   "delivery": {
+    "unpackAsk": "{name}: posicionar agora ou guardar na mochila?",
+    "unpackPlace": "Posicionar agora",
+    "unpackStore": "Guardar na mochila",
+    "unpackStored": "{name} foi para a mochila.",
     "ordered": "Pedido feito! Chega às {time} na porta do café.",
     "orderedTomorrow": "Pedido feito! O correio entrega amanhã às {time}.",
     "arrivedAway": "Chegou uma entrega na porta do café!",
@@ -1078,7 +1082,11 @@
     "stockings": "Os gatos acharam petiscos nas meias de Natal!",
     "missed": "A ceia do amigo secreto passou... A turma guardou panetone para você.",
     "missedGift": "A ceia do amigo secreto passou... Deixaram seu presente na porta: {item}.",
-    "starting": "A ceia do amigo secreto está começando no café!"
+    "starting": "A ceia do amigo secreto está começando no café!",
+    "give": "entregar o presente para {name} (E perto)",
+    "giveAsk": "Qual presente você dá para {name}?",
+    "giveNone": "Não trouxe presente",
+    "otherGuest": "Seu amigo secreto é {name}!"
   },
   "newYear": {
     "eve": "Último dia do ano! À meia-noite tem fogos na rua, com a vizinhança.",
@@ -1216,6 +1224,7 @@
     "cat_medicine": "Dar o remédio",
     "cat_pickup": "Pegar no colo",
     "cat_trust": "Ganhar confiança",
+    "santa_give": "Dar o presente",
     "cat_wand": "Brincar",
     "cat_brush": "Escovar"
   },

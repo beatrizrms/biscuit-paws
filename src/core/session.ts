@@ -2002,6 +2002,16 @@ export class GameSession {
     return { record, friend, hasGift: pick.item !== null, lovedGift: pick.result === 'loved', christmas: isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day) };
   }
 
+  /**
+   * Noite de Natal, da hora da ceia em diante: as luzes do café ficam acesas. Devolve a hora cuja cor vale lá dentro
+   * (data/festive.json: secretSanta.partyLights), ou null fora disso.
+   */
+  cafeLightsAs(): number | null {
+    const ss = this.content.festive.secretSanta;
+    if (!isChristmas(this.content.seasons, ss, this.state.day) || this.state.time < parseClock(ss.partyAt)) return null;
+    return parseClock(ss.partyLights);
+  }
+
   /** Hoje é Natal e a ceia ainda vai acontecer. */
   santaPartyPending(): boolean {
     return this.santaRecord()?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day);
@@ -2057,16 +2067,37 @@ export class GameSession {
     }
   }
 
+  /** Na ceia, a hora de entregar: ela anda até quem tirou e o E abre a escolha do presente (não salva: é da cena). */
+  private santaGiving = false;
+
+  /** A ceia chegou na troca: ela está livre para ir até quem tirou e entregar (passo de roteiro secretSanta: give). */
+  openSantaGiving(): void {
+    if (this.santaRecord()?.stage !== 'drawn') return;
+    this.santaGiving = true;
+    this.bus.emit('xmas.santa_giving', { npc: this.santaRecord()!.drawn });
+  }
+
+  /** Está na hora de entregar o presente (a quem: santaRecord().drawn)? */
+  santaGivingNow(): boolean {
+    return this.santaGiving && this.santaRecord()?.stage === 'drawn';
+  }
+
+  /** Os presentes de Natal que ela tem na mochila (o que dá para entregar), na ordem dos itens. */
+  santaGiftOptions(): string[] {
+    return this.santaGiftIds().filter((id) => (this.state.inventory[id] ?? 0) > 0);
+  }
+
   /**
-   * Na ceia, ela entrega o presente (o que a pessoa gosta, se tiver; senão outro presente de Natal; senão nada).
-   * Devolve a fala de quem recebeu. Todos os convidados ganham um pouco de coração pela noite.
+   * Ela entrega o presente escolhido (itemId; null = não trouxe): o que a pessoa gosta vale mais, outro presente de
+   * Natal vale menos. Todos os convidados ganham um pouco de coração pela noite. Depois, o fim da ceia (partyEndScript).
    */
-  secretSantaExchange(): { dialogue: string } | null {
+  secretSantaExchange(itemId: string | null = null): { dialogue: string } | null {
     const ss = this.content.festive.secretSanta;
     const record = this.santaRecord();
     const friend = record && this.santaFriend(record.drawn);
     if (!record || !friend || record.stage === 'done') return null;
-    const { item, result } = pickGift(this.state.inventory, this.santaGiftIds(), friend);
+    const item = itemId && (this.state.inventory[itemId] ?? 0) > 0 ? itemId : null;
+    const result = !item ? 'none' : item === friend.likes ? 'loved' : 'liked';
     if (item) this.removeFromInventory(item);
     const rel = this.content.relationships;
     for (const g of this.santaGuests()) addPoints(this.state, rel, PLAYER, g, ss.points.party);
@@ -2074,8 +2105,18 @@ export class GameSession {
     record.stage = 'done';
     record.result = result;
     if (item) record.gift = item;
+    this.santaGiving = false;
     this.bus.emit('xmas.santa_exchanged', { npc: friend.npc, result, itemId: item });
-    return { dialogue: result === 'none' ? ss.noGiftDialogue : friend.dialogues[result] };
+    this.bus.emit('script.requested', { scriptId: ss.partyEndScript });
+    return { dialogue: this.santaReaction()! };
+  }
+
+  /** A fala de quem recebeu, pelo resultado da troca (o primeiro passo do fim da ceia). */
+  santaReaction(): string | null {
+    const record = this.santaRecord();
+    const friend = record && this.santaFriend(record.drawn);
+    if (!record?.result || !friend) return null;
+    return record.result === 'none' ? this.content.festive.secretSanta.noGiftDialogue : friend.dialogues[record.result];
   }
 
   /** Quem a tirou entrega o presente dela: o fixo no primeiro amigo secreto; depois, um dos outros. */
@@ -2867,8 +2908,11 @@ export class GameSession {
     this.santaPartyRequestedOn = 0;
     if (what === 'draw') this.state.secretSanta = null;
     else if (what === 'party') {
-      const drawn = drawFriend(this.santaGuests(), createRng(day));
-      if (drawn) this.state.secretSanta = { year: yearOf(seasons, day), drawn, stage: 'drawn' };
+      // Mantém quem ela já tirou neste ano (o sorteio de verdade); sem sorteio, tira um agora.
+      const year = yearOf(seasons, day);
+      const kept = this.state.secretSanta?.year === year ? this.state.secretSanta.drawn : undefined;
+      const drawn = kept ?? drawFriend(this.santaGuests(), createRng(day));
+      if (drawn) this.state.secretSanta = { year, drawn, stage: 'drawn' };
     } else delete this.state.flags[newYearFlag(seasons, day)];
     this.bus.emit('day.started', { day });
   }

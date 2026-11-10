@@ -96,10 +96,11 @@ export class ScriptRunner {
     else if ('fireworks' in step) s.fireworks(step.fireworks);
     else if ('secretSanta' in step) {
       // Amigo secreto: a fala vem da sessão (quem recebeu reage; quem a tirou entrega o presente dela).
-      if (step.secretSanta === 'exchange') {
-        const r = this.session.secretSantaExchange();
-        if (!r) return;
-        this.session.say(r.dialogue);
+      if (step.secretSanta === 'give') this.session.openSantaGiving();
+      else if (step.secretSanta === 'reaction') {
+        const d = this.session.santaReaction();
+        if (!d) return;
+        this.session.say(d);
         await s.untilIdle();
       } else {
         const r = this.session.secretSantaReceive();

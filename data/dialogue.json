@@ -887,11 +887,11 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Bom, todo mundo pronto? Hora do amigo secreto! Você começa!"
+          "text": "Bom, todo mundo pronto? Hora do amigo secreto! Você começa: vai lá entregar o seu presente!"
         },
         {
           "speaker": "{player}",
-          "text": "Meu amigo secreto é... {santa:name}!"
+          "text": "Meu amigo secreto é... {santa:name}! Deixa eu pegar o presente."
         }
       ]
     },

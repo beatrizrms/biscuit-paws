@@ -33,10 +33,10 @@ type ScriptAction =
   /** Abre a porta de um cômodo com o item que ela pede (ex.: a chave enferrujada no cadeado do quintal). */
   | { openDoor: string }
   /**
-   * Amigo secreto (data/festive.json): "exchange" = ela entrega o presente e quem tirou reage (a fala sai dos dados);
-   * "receive" = ela ganha o presente de quem a tirou (mostrado grande no centro).
+   * Amigo secreto (data/festive.json): "give" = o roteiro para e ela vai entregar o presente (E em quem tirou);
+   * "reaction" = a fala de quem recebeu; "receive" = ela ganha o presente de quem a tirou (mostrado grande).
    */
-  | { secretSanta: 'exchange' | 'receive' }
+  | { secretSanta: 'give' | 'reaction' | 'receive' }
   /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
   | { setTime: string }
   /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
@@ -128,7 +128,7 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
       } else if ('setTime' in step) {
         if (!/^\d{1,2}:\d{2}$/.test(step.setTime)) errors.push(`${where(i)}: hora inválida "${step.setTime}"`);
       } else if ('secretSanta' in step) {
-        if (step.secretSanta !== 'exchange' && step.secretSanta !== 'receive') errors.push(`${where(i)}: secretSanta inválido "${String(step.secretSanta)}"`);
+        if (!['give', 'reaction', 'receive'].includes(step.secretSanta)) errors.push(`${where(i)}: secretSanta inválido "${String(step.secretSanta)}"`);
       } else if ('openDoor' in step) {
         if (!refs.doors.has(step.openDoor)) errors.push(`${where(i)}: porta inexistente "${step.openDoor}"`);
       } else if ('showItem' in step || 'giveItem' in step) {
