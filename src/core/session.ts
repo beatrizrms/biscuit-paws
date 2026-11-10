@@ -604,11 +604,11 @@ export class GameSession {
     else if (this.state.time >= parseClock(this.content.dayNight.passOut)) this.endDay('passOut');
     // A cada minuto de jogo: o correio e a história olham de novo (marcos com hora marcada, ex.: a visita da Gabi).
     else if (Math.floor(this.state.time) !== before) {
-      // No sofá: recompõe a cada minuto, até encher.
-      if (this.restingOn) {
+      // Sentada: recompõe a cada minuto; ao encher, avisa e ela continua sentada até levantar.
+      if (this.restingOn && !this.energyFull()) {
         const gain = this.content.dayNight.energy.restore.seat.perMinute * (Math.floor(this.state.time) - before);
         this.setEnergy(this.energy() + gain);
-        if (this.energyFull()) this.stopRest(true);
+        if (this.energyFull()) this.bus.emit('rest.full', {});
       }
       // Uma vez por dia, um pouco antes da hora-limite: "está ficando tarde".
       const remind = this.content.dayNight.curfewReminder;
@@ -676,9 +676,8 @@ export class GameSession {
     })?.uid;
   }
 
-  /** Por que não dá para sentar agora (ou null). Cadeira com cliente sentado (ou a caminho) não serve. */
-  restProblem(uid?: string): 'energy_full' | 'hands_full' | 'seat_taken' | null {
-    if (this.energyFull()) return 'energy_full';
+  /** Por que não dá para sentar agora (ou null). Com a energia cheia também senta. Cadeira com cliente não serve. */
+  restProblem(uid?: string): 'hands_full' | 'seat_taken' | null {
     if (this.state.hands.length > 0 || this.state.tray) return 'hands_full';
     const p = uid ? this.state.placed.find((x) => x.uid === uid) : undefined;
     if (p && this.state.service.customers.some((c) => c.stage !== 'queue' && c.spot[0] === p.at[0] && c.spot[1] === p.at[1])) return 'seat_taken';
@@ -697,15 +696,15 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     if (!this.state.placed.some((p) => p.uid === uid)) return { ok: false, reason: 'not_found' };
     this.restingOn = uid;
-    this.bus.emit('rest.changed', { uid, full: false });
+    this.bus.emit('rest.changed', { uid });
     return { ok: true };
   }
 
-  /** Levanta (`full`: porque a energia encheu). */
-  stopRest(full = false): void {
+  /** Levanta (andou ou apertou E). */
+  stopRest(): void {
     if (!this.restingOn) return;
     this.restingOn = null;
-    this.bus.emit('rest.changed', { uid: null, full });
+    this.bus.emit('rest.changed', { uid: null });
   }
 
   /** O sofá ou a cadeira em que ela está sentada (ou null). Não vai para o save. */

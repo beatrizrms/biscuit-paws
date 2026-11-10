@@ -94,12 +94,15 @@ describe('energia na sessão', () => {
     expect(session.holdingCoffee()).toBe(false);
   });
 
-  it('sofá: senta, recompõe a cada minuto e levanta sozinha quando enche', () => {
+  it('sofá: senta (até cheia), recompõe a cada minuto e, ao encher, avisa e continua sentada', () => {
     const { session, state } = cafe();
     state.placed.push({ uid: 's1', item: 'item.sofa', at: [5, 6] });
     expect(session.seatNear([[5, 7]])).toBe('s1');
-    expect(session.startRest('s1')).toEqual({ ok: false, reason: 'energy_full' });
+    expect(session.startRest('s1')).toEqual({ ok: true }); // cheia também senta
+    session.stopRest();
     session.spendEnergy(10);
+    let full = 0;
+    session.bus.on('rest.full', () => full++);
     const changes: (string | null)[] = [];
     session.bus.on('rest.changed', ({ uid }) => changes.push(uid));
     expect(session.startRest('s1')).toEqual({ ok: true });
@@ -107,7 +110,9 @@ describe('energia na sessão', () => {
     expect(session.energy()).toBe(cfg.max - 10 + cfg.restore.seat.perMinute);
     for (let i = 0; i < 10; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(session.energy()).toBe(cfg.max);
-    expect(session.resting()).toBeNull();
+    expect(session.resting()).toBe('s1');
+    expect(full).toBe(1);
+    session.stopRest();
     expect(changes).toEqual(['s1', null]);
   });
 

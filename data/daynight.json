@@ -105,7 +105,7 @@
     "emptySpeed": 0.6,
     "wakeAfterLateNight": 75,
     "costs": { "dirt.cleaned": 2, "prep.started": 2, "customer.served": 1, "dish.washed": 1, "minigame.finished": 6, "cat.fed": 1, "litter.refilled": 2 },
-    "_restore": "Como ela se recompõe: coffee = tomar um café pronto que está na mão (E sem nada por perto; a xícara fica suja na mão); seat = sentar num sofá ou cadeira do café (perMinute por minuto do jogo, até encher, andar ou E de novo; tiles: os móveis em que dá para sentar, para onde ela olha e quantos px lógicos os pés ficam abaixo da base do móvel; a cadeira de costas fica de fora até existir a pose de costas; cadeira com cliente não serve, e a dela sai dos lugares dos clientes); play = brincar com o gato nos mini games listados (quando dá certo, ganha em vez de gastar).",
+    "_restore": "Como ela se recompõe: coffee = tomar um café pronto que está na mão (E sem nada por perto; a xícara fica suja na mão); seat = sentar num sofá ou cadeira do café (senta mesmo com a energia cheia; perMinute por minuto do jogo até encher, e continua sentada até andar ou apertar E de novo; tiles: os móveis em que dá para sentar, para onde ela olha e quantos px lógicos os pés ficam abaixo da base do móvel; a cadeira de costas fica de fora até existir a pose de costas; cadeira com cliente não serve, e a dela sai dos lugares dos clientes); play = brincar com o gato nos mini games listados (quando dá certo, ganha em vez de gastar).",
     "restore": {
       "coffee": { "recipes": ["recipe.black_coffee", "recipe.cafe_latte"], "amount": 25 },
       "seat": {

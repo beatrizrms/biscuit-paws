@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ambienceOf } from '../../src/core/ambience';
+import { GameSession } from '../../src/core/session';
+import { newGameState } from '../../src/core/state';
 import type { MapData } from '../../src/core/map';
 import { loadContent } from './content';
 
@@ -58,3 +60,16 @@ describe('luz e sombra de ambiente', () => {
     expect(a.windows).toHaveLength(2);
   });
 });
+
+describe('passagem fechada na parede', () => {
+  it('a parede divisória que esconde a passagem tem a mesma sombra que o resto da parede', () => {
+    const session = new GameSession(content, newGameState(500, 'map.cafe_main', 10 * 60));
+    const door = content.rooms.doors.find((d) => d.id === 'door.back_room')!;
+    const map = session.mapData('map.cafe_main');
+    const ts = map.tileSize;
+    const a = ambienceOf(map, content.catalog, content.dayNight.ambience, true);
+    const [c, r] = door.at;
+    expect(a.edges.some((e) => e.wall === 'right' && e.x === c * ts - content.dayNight.ambience.edgeSize && e.y === r * ts)).toBe(true);
+  });
+});
+

@@ -69,8 +69,10 @@ export interface GameEvents {
   'energy.changed': { energy: number; max: number; level: 'ok' | 'low' | 'empty' };
   /** Ela se recompôs (café ou brincadeira; o sofá avisa por rest.changed). */
   'energy.recovered': { source: 'coffee' | 'play'; amount: number };
-  /** Sentou (uid do sofá) ou levantou (null; full: levantou porque encheu). */
-  'rest.changed': { uid: string | null; full: boolean };
+  /** Sentou (uid do sofá ou cadeira) ou levantou (null). */
+  'rest.changed': { uid: string | null };
+  /** Sentada, a energia encheu (ela continua sentada até levantar). */
+  'rest.full': Record<string, never>;
   /** Falta `minutes` para a hora-limite (uma vez por dia). */
   'curfew.soon': { minutes: number };
   'day.started': { day: number };
