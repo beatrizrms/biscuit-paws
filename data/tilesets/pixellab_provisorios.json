@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 1,
+ "rows": 2,
  "pieces": {
   "ph_litter_box": {
    "col": 0,
@@ -44,6 +44,12 @@
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "ph_pantry_cabinet": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
   }
  }
 }

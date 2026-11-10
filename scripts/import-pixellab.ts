@@ -523,6 +523,8 @@ const SHEETS: Sheet[] = [
       ph_fair_bunting: { file: 'rua/sazonais/obj_1.png', w: 1, h: 1 },
       ph_fair_balloons: { file: 'provisorios/obj_5.png', w: 1, h: 1, dy: 6 },
       ph_fair_table: { file: '', w: 1, h: 1, dy: 4, build: () => heartSign(readPng(`${SRC}/provisorios/obj_6.png`), 28, 20) },
+      // Armário da cozinha (despensa), 1x2: gerado no PixelLab com a estante do café como âncora (base encostada embaixo).
+      ph_pantry_cabinet: { file: 'provisorios/pantry_cabinet.png', w: 1, h: 2 },
     },
   },
   {
