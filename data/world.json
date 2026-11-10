@@ -16,6 +16,8 @@
     ]
   },
   "sleepMap": null,
+  "_sceneRoom": "Cômodo do café onde as cenas (roteiros) começam: com ela em outro cômodo (porão, quintal), a cena espera ela voltar para cá; ela anda livre até lá. Fora do café, a cena começa na hora.",
+  "sceneRoom": "room.hall",
   "goHomeDoors": [
     "door.street"
   ],

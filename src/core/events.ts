@@ -40,7 +40,11 @@ export interface GameEvents {
   /** Amigo secreto: ela tirou um amigo; entregou o presente na ceia; perdeu a ceia. Manhã de Natal (avisos e meias). */
   'xmas.santa_drawn': { npc: string };
   'xmas.santa_exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };
-  'xmas.santa_missed': { npc: string };
+  'xmas.santa_missed': { npc: string; itemId: string | null };
+  /** Um evento começou agora (o aviso; se ela não for, sem problema). */
+  'event.starting': { id: 'xmas_party' | 'new_year' };
+  /** A véspera de Ano Novo acabou sem ela ver os fogos (só um aviso). */
+  'newyear.missed': Record<string, never>;
   'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number };
   /** Véspera de Ano Novo: a vizinhança chamou para a rua (os amigos que ela conhece vão juntos). */
   'newyear.started': { friends: string[] };

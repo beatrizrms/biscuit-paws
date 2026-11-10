@@ -27,10 +27,10 @@ function cafe(day: number, time: number) {
 const named = (events: { name: string; payload: unknown }[], name: string) => events.filter((e) => e.name === name).map((e) => e.payload);
 
 describe('Ano Novo: fogos à meia-noite na rua', () => {
-  it('na véspera, a hora-limite vai além da meia-noite e ela só vai para casa depois dos fogos', () => {
+  it('na véspera, a hora-limite vai além da meia-noite; ir para casa antes não é proibido', () => {
     const eve = cafe(EVE, 22 * 60);
     expect(eve.session.curfew()).toBe(parseClock(NY.curfew));
-    expect(eve.session.goHomeProblem()).toBe('new_year');
+    expect(eve.session.goHomeProblem()).toBeNull();
     const before = cafe(EVE - 1, 22 * 60);
     expect(before.session.curfew()).toBeLessThan(parseClock(NY.curfew));
     expect(before.session.goHomeProblem()).toBeNull();
@@ -83,6 +83,21 @@ describe('Ano Novo: fogos à meia-noite na rua', () => {
     expect([state.day, state.time, session.newYearPending()]).toEqual([EVE, 23 * 60 + 29, true]);
     session.debugFestive('draw'); // já passou: o do ano que vem
     expect(state.day).toBe(YEAR + content.festive.secretSanta.drawDay);
+  });
+
+  it('fogos: o aviso de que começaram; a cena só com ela na rua ou no salão; perdeu, só um aviso', () => {
+    const { session, state, events } = cafe(EVE, parseClock(NY.gatherAt));
+    session.setPlayerCell([20, 5]); // no porão
+    session.checkNewYear();
+    session.checkNewYear();
+    expect(named(events, 'event.starting')).toEqual([{ id: 'new_year' }]);
+    expect(named(events, 'script.requested')).toEqual([]);
+    state.location = 'map.street';
+    session.checkNewYear();
+    expect(named(events, 'script.requested')).toEqual([{ scriptId: NY.script }]);
+    const missed = cafe(EVE, 21 * 60);
+    missed.session.endDay('home');
+    expect(named(missed.events, 'newyear.missed')).toEqual([{}]);
   });
 
   it('a manhã do último dia do ano avisa dos fogos', () => {

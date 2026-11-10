@@ -179,8 +179,6 @@ export type ActionResult =
         | 'already_owned'
         | 'too_early'
         | 'customers_inside'
-        | 'xmas_party'
-        | 'new_year'
         | 'cart_empty'
         | QuoteProblem
         | PlaceProblem;
@@ -535,6 +533,14 @@ export class GameSession {
     return id && this.content.items[id]?.use === use ? id : null;
   }
 
+  /**
+   * A ração (ou a areia) que vai no pote (ou na caixa): a ativa na barra, se for uma; senão a primeira que ela tiver na
+   * mochila (na ordem dos itens: a simples antes da premium). Assim um E no pote basta, sem escolher na barra.
+   */
+  supplyFor(use: 'food_bowl' | 'litter_box'): string | null {
+    return this.activeUse(use) ?? Object.values(this.content.items).find((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0)?.id ?? null;
+  }
+
   /** Gatos do café (os que comem na tigela e usam a caixa de areia). */
   private homeCats(): string[] {
     return this.shelteredCats().filter((id) => this.state.cats[id]!.map === this.content.map.id);
@@ -554,7 +560,7 @@ export class GameSession {
     if (!hasFood) return 'no_food';
     if (!item.autoDays && cats.length === 0) return 'no_cat';
     // A ração vai da barra para a mão: precisa estar no espaço ativo (simples ou premium, a que ela escolher).
-    const food = this.activeUse('food_bowl');
+    const food = this.supplyFor('food_bowl');
     if (!food) return 'needs_food';
     return item.autoDays ? loadProblem(p, item, food) : null;
   }
@@ -568,7 +574,7 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     const p = this.state.placed.find((x) => x.uid === bowlUid)!;
     const item = this.content.items[p.item]!;
-    const food = this.activeUse('food_bowl')!;
+    const food = this.supplyFor('food_bowl')!;
     if (item.autoDays) {
       const qty = load(p, item, food, this.state.inventory[food] ?? 0);
       for (let i = 0; i < qty; i++) this.removeFromInventory(food);
@@ -595,7 +601,7 @@ export class GameSession {
     if (!item.autoDays && p.refilledOn === this.state.day) return 'already_clean';
     const hasLitter = Object.values(this.content.items).some((i) => i.use === 'litter_box' && (this.state.inventory[i.id] ?? 0) > 0);
     if (!hasLitter) return 'no_litter';
-    const litter = this.activeUse('litter_box');
+    const litter = this.supplyFor('litter_box');
     if (!litter) return 'needs_litter';
     return item.autoDays ? loadProblem(p, item, litter) : null;
   }
@@ -606,7 +612,7 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     const p = this.state.placed.find((x) => x.uid === boxUid)!;
     const item = this.content.items[p.item]!;
-    const litter = this.activeUse('litter_box')!;
+    const litter = this.supplyFor('litter_box')!;
     if (item.autoDays) {
       const qty = load(p, item, litter, this.state.inventory[litter] ?? 0);
       for (let i = 0; i < qty; i++) this.removeFromInventory(litter);
@@ -677,8 +683,11 @@ export class GameSession {
     const santa = this.santaRecord();
     if (santa?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, day)) {
       santa.stage = 'missed';
-      this.bus.emit('xmas.santa_missed', { npc: santa.drawn });
+      // Sem castigo: quem a tirou deixa o presente dela na porta.
+      const gift = this.secretSantaReceive();
+      this.bus.emit('xmas.santa_missed', { npc: santa.drawn, itemId: gift?.itemId ?? null });
     }
+    if (this.newYearPending()) this.bus.emit('newyear.missed', {});
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     this.arrivals.dayEnded(day + 1);
@@ -891,13 +900,9 @@ export class GameSession {
   }
 
   /** Por que ainda não dá para ir para casa: cedo demais, ou ainda tem cliente no café (ela espera o último sair). */
-  goHomeProblem(): 'too_early' | 'customers_inside' | 'xmas_party' | 'new_year' | null {
+  goHomeProblem(): 'too_early' | 'customers_inside' | null {
     if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
     if (this.state.service.customers.length > 0) return 'customers_inside';
-    // Natal com amigo secreto marcado: só depois da ceia.
-    if (this.santaPartyPending()) return 'xmas_party';
-    // Véspera de Ano Novo: só depois dos fogos.
-    if (this.newYearPending()) return 'new_year';
     return null;
   }
 
@@ -1704,6 +1709,11 @@ export class GameSession {
     return this.content.catProfiles.personalities[this.catDef(catId)?.personality ?? '']?.trust ?? 'normal';
   }
 
+  /** Dá para uma cena começar agora: ela fora do café, ou no cômodo das cenas (o salão). Em outro cômodo, espera. */
+  sceneSpotFree(): boolean {
+    return this.holds({ any: [{ not: { location: this.content.map.id } }, { playerRoom: this.content.world.sceneRoom }] });
+  }
+
   /** A condição (da história) vale agora? Ex.: o `when` de um passo de roteiro. */
   holds(c: Condition): boolean {
     return evaluate(c, this.state, this.storyContext());
@@ -1723,7 +1733,10 @@ export class GameSession {
    */
   checkNewYear(): void {
     const ny = this.content.festive.newYear;
-    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt) || !evaluate(ny.startWhen, this.state, this.storyContext())) return;
+    if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt)) return;
+    // Começou: o aviso (uma vez); a cena espera ela chegar (startWhen). Se não for, sem problema.
+    this.noticeEvent('new_year');
+    if (!evaluate(ny.startWhen, this.state, this.storyContext())) return;
     this.state.flags[newYearFlag(this.content.seasons, this.state.day)] = true;
     const friends = this.santaGuests();
     for (const npc of friends) addPoints(this.state, this.content.relationships, PLAYER, npc, ny.points);
@@ -1775,6 +1788,16 @@ export class GameSession {
     this.playerCell = cell;
   }
 
+  /** Avisos de evento começando já dados (evento -> dia): um por dia cada. */
+  private eventNoticed: Record<string, number> = {};
+
+  /** Aviso de que o evento começou agora ("Fogos começando agora!"), uma vez por dia. */
+  private noticeEvent(id: 'xmas_party' | 'new_year'): void {
+    if (this.eventNoticed[id] === this.state.day) return;
+    this.eventNoticed[id] = this.state.day;
+    this.bus.emit('event.starting', { id });
+  }
+
   /** Dia da ceia em que o roteiro já foi pedido (não pede de novo a cada minuto). */
   private santaPartyRequestedOn = 0;
 
@@ -1795,6 +1818,7 @@ export class GameSession {
       this.bus.emit('script.requested', { scriptId: ss.proposalScript });
       return;
     }
+    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt)) this.noticeEvent('xmas_party');
     if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day && evaluate(ss.partyWhen, this.state, this.storyContext())) {
       this.santaPartyRequestedOn = day;
       this.bus.emit('script.requested', { scriptId: ss.partyScript });

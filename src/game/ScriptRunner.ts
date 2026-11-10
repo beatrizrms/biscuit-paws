@@ -18,6 +18,8 @@ export interface ScriptStage {
   showItem(itemId: string): Promise<void>;
   /** Resolve quando nenhuma fala/cena/caixa estiver aberta. */
   untilIdle(): Promise<void>;
+  /** Resolve quando a condição valer (conferida a cada quadro). */
+  until(check: () => boolean): Promise<void>;
   wait(ms: number): Promise<void>;
   npcToCat(npcId: string, catId: string): Promise<void>;
   catWalk(catId: string, to: Cell): Promise<void>;
@@ -29,6 +31,8 @@ export interface ScriptStage {
 export class ScriptRunner {
   private queue: string[] = [];
   private running = false;
+  /** Um roteiro esperando a vez de começar (não pausa o jogo). */
+  private waiting = false;
 
   constructor(
     private session: GameSession,
@@ -45,11 +49,17 @@ export class ScriptRunner {
   }
 
   private async next(): Promise<void> {
-    if (this.running) return;
+    if (this.running || this.waiting) return;
     const id = this.queue.shift();
     if (!id) return;
+    // Esperando a vez (a fala que pediu o roteiro acabar; ela voltar ao salão se estiver em outro cômodo do café):
+    // ainda não conta como roteiro rodando, então o relógio anda e as portas funcionam (ela anda livre até lá).
+    this.waiting = true;
+    await this.stage.untilIdle();
+    await this.stage.until(() => this.session.sceneSpotFree());
+    await this.stage.untilIdle();
+    this.waiting = false;
     this.running = true;
-    await this.stage.untilIdle(); // espera a fala que pediu o roteiro acabar
     for (const step of this.session.content.scripts[id]?.steps ?? []) await this.run(step);
     this.running = false;
     this.session.finishScript(id);

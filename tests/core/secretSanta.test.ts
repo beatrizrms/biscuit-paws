@@ -104,27 +104,23 @@ describe('amigo secreto: o Natal', () => {
     expect(noon.session.service.isOpen()).toBe(false);
   });
 
-  it('com o amigo secreto marcado, ela só vai para casa depois da ceia; às 19h, o roteiro da ceia', () => {
+  it('às 19h: o aviso de que a ceia começou; a cena só com ela no salão; ir para casa antes não é proibido', () => {
     const { session, state, events } = cafe(XMAS, 18 * 60);
     state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
-    expect(session.goHomeProblem()).toBe('xmas_party');
-    session.checkSecretSanta();
-    expect(named(events, 'script.requested')).toEqual([]);
-    state.time = 19 * 60;
-    session.checkSecretSanta();
-    session.checkSecretSanta();
-    expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
-    session.secretSantaExchange();
     expect(session.goHomeProblem()).toBeNull();
-  });
-
-  it('a ceia só começa com ela no salão ou fora do café (no porão, ela anda livre até sair de lá)', () => {
-    const { session, state, events } = cafe(XMAS, 19 * 60);
-    state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
+    session.checkSecretSanta();
+    expect(named(events, 'event.starting')).toEqual([]);
+    state.time = 19 * 60;
     session.setPlayerCell(CELLAR);
     session.checkSecretSanta();
+    session.checkSecretSanta();
+    expect(named(events, 'event.starting')).toEqual([{ id: 'xmas_party' }]); // uma vez só
     expect(named(events, 'script.requested')).toEqual([]);
-    state.location = 'map.street';
+    state.location = 'map.street'; // fora do café também não puxa
+    session.checkSecretSanta();
+    expect(named(events, 'script.requested')).toEqual([]);
+    state.location = 'map.cafe_main';
+    session.setPlayerCell(HALL);
     session.checkSecretSanta();
     expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
   });
@@ -193,12 +189,13 @@ describe('amigo secreto: o Natal', () => {
     expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: false, stockingCats: 0 }]);
   });
 
-  it('o Natal acabou sem a ceia: fica como perdida', () => {
+  it('o Natal acabou sem a ceia: perdida, sem castigo (o presente dela fica na porta)', () => {
     const { session, state, events } = cafe(XMAS, 23 * 60);
     state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
-    session.endDay('curfew');
+    session.endDay('home');
     expect(state.secretSanta!.stage).toBe('missed');
-    expect(named(events, 'xmas.santa_missed')).toEqual([{ npc: 'npc.neusa' }]);
+    expect(state.inventory[SS.playerGifts.first]).toBe(1);
+    expect(named(events, 'xmas.santa_missed')).toEqual([{ npc: 'npc.neusa', itemId: SS.playerGifts.first }]);
   });
 });
 
