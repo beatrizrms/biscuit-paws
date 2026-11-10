@@ -67,8 +67,9 @@ export interface MapInteraction {
   reach?: number;
   /** shop: o caixa (paga o carrinho); shelf: prateleira da loja (só os itens com estas tags vão para o carrinho); board: mural de pedidos; vet: a consulta na clínica; door: passagem entre cômodos; sleep: a cama do quartinho;
    * hours: a plaquinha de horário na fachada (id da porta do estabelecimento, no mesmo mapa; a do café mostra o horário do app Horário);
-   * curtain: abre/fecha a cortina da janela (id do objeto, com curtainOpen); `dialogue`, a fala da primeira vez que abre (uma vez no jogo). */
-  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true } | { door: string } | { sleep: string } | { hours: string } | { curtain: string; dialogue?: string };
+   * curtain: abre/fecha a cortina da janela (id do objeto, com curtainOpen); `dialogue`, a fala da primeira vez que abre (uma vez no jogo),
+   * só se `dialogueWhen` valer (ex.: o quintal ainda fechado; aberto antes, ela já sabe o que é o terreno e não fala). */
+  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true } | { door: string } | { sleep: string } | { hours: string } | { curtain: string; dialogue?: string; dialogueWhen?: DoorCondition };
 }
 
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */

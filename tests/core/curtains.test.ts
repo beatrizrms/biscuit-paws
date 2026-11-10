@@ -52,6 +52,15 @@ describe('cortinas do café', () => {
     expect(said()).toBe(1);
   });
 
+  it('jardim aberto antes da primeira cortina: ela não fala dos galhos (já sabe de quem é o terreno)', () => {
+    const { session, events } = cafe();
+    session.state.rooms['room.backyard'] = 'abandoned';
+    const it = content.map.interactions!.find((i) => i.id === 'int.curtain_left')!.action as { curtain: string; dialogue: string; dialogueWhen: Record<string, unknown> };
+    session.toggleCurtain(it.curtain, it.dialogue, it.dialogueWhen);
+    expect(events.some((e) => e.name === 'dialogue.requested')).toBe(false);
+    expect(session.curtainOpen(it.curtain)).toBe(true);
+  });
+
   it('a dica "E" da cortina aparece uma vez só; o save guarda as abertas (save antigo: fechadas)', () => {
     const { session } = cafe();
     expect(session.hintWanted('int_curtain')).toBe(true);

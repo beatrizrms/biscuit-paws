@@ -113,7 +113,13 @@
       "reach": 2,
       "action": {
         "curtain": "obj.window_left",
-        "dialogue": "dlg.curtain_view"
+        "dialogue": "dlg.curtain_view",
+        "dialogueWhen": {
+          "not": {
+            "room": "room.backyard",
+            "atLeast": "abandoned"
+          }
+        }
       }
     },
     {
@@ -125,7 +131,13 @@
       "reach": 2,
       "action": {
         "curtain": "obj.window_right",
-        "dialogue": "dlg.curtain_view"
+        "dialogue": "dlg.curtain_view",
+        "dialogueWhen": {
+          "not": {
+            "room": "room.backyard",
+            "atLeast": "abandoned"
+          }
+        }
       }
     }
   ],

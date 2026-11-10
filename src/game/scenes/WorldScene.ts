@@ -1059,7 +1059,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
       else if ('sleep' in it.action) this.askSleep();
       else if ('hours' in it.action) this.ui.showHours(it.action.hours);
-      else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue);
+      else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue, it.action.dialogueWhen);
       else this.ui.openNews('board');
       return true;
     }
