@@ -12,6 +12,7 @@ import { iconSheetKey } from '../icons';
 import { sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
 import { preloadCreatorLayers } from '../playerLook';
+import { ROBOT_IMAGE, ROBOT_KEY } from '../RobotVacuumView';
 
 /**
  * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
@@ -48,6 +49,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('broom', broom.image);
     this.load.image('broom_hold', broom.hold.image);
     this.load.image('emotes', emotes.image);
+    this.load.image(ROBOT_KEY, ROBOT_IMAGE);
     this.load.image('van_left', content.delivery.van.left);
     // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.
     this.load.image(iconSheetKey(), content.icons.image);

@@ -580,6 +580,9 @@ const SHEETS: Sheet[] = [
       caixa_areia_verde: { file: 'icones/loja/obj_1.png', w: 1, h: 1 },
       // Caixa pet (baú dos itens dos gatos, 8 espaços): gerada em 2026-11-10, Pro Flash 64x64 com o pote como âncora.
       box: { file: 'automaticos/caixa_pet.png', w: 1, h: 1 },
+      // Vieram junto na geração do robô aspirador (robo_aspirador/), à venda na aba Pet: toquinha e arranhador de papelão.
+      toquinha: { file: 'robo_aspirador/toquinha.png', w: 1, h: 1 },
+      arranhador_papelao: { file: 'robo_aspirador/arranhador_papelao.png', w: 1, h: 1 },
     },
   },
   {
@@ -599,6 +602,9 @@ const SHEETS: Sheet[] = [
     auto: true,
     layout: {
       lava_loucas: { file: 'cafe_equip/lava_loucas.png', w: 1, h: 1 },
+      // Robô aspirador (robo_aspirador/): a base de carregar (o item; base.png é o frame_3 com o desenho encostado no
+      // alto da célula, junto da parede). O robô (80 px) é uma imagem à parte, copiada no fim deste arquivo.
+      robo_base: { file: 'robo_aspirador/base.png', w: 1, h: 1 },
     },
   },
   {
@@ -1772,4 +1778,12 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     writeFileSync(`${dir}/ui_review_${to}.png`, PNG.sync.write(readPng(`${SRC}/review_icones/${from}.png`)));
   }
   console.log(`${dir}: carinhas e estrela da avaliação`);
+}
+
+// ---------- Robô aspirador: o robô andando (80 x 80, maior que uma célula; src/game/RobotVacuumView.ts) ----------
+{
+  const dir = 'public/assets/objects/pixellab';
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/robo_aspirador.png`, PNG.sync.write(readPng(`${SRC}/robo_aspirador/robo80.png`)));
+  console.log(`${dir}/robo_aspirador.png: robô aspirador`);
 }

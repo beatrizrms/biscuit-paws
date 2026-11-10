@@ -4,7 +4,7 @@
   "hintTimes": 3,
   "hintTimesBy": { "int_curtain": 1 },
   "objectBaseDepth": 0.5,
-  "playerBlockTiles": ["food_bowl", "water_bowl", "cat_bed", "cat_bed_rosa", "cat_bed_lilas", "room_cama_ao_sol"],
+  "playerBlockTiles": ["food_bowl", "water_bowl", "cat_bed", "cat_bed_rosa", "cat_bed_lilas", "room_cama_ao_sol", "pet_toquinha", "pet_arranhador_papelao"],
   "startMap": "map.street",
   "homeMap": "map.cafe_main",
   "season": "winter",

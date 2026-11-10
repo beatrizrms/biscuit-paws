@@ -14,6 +14,7 @@ import { findPath, pathCorners } from '../../core/path';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
+import { RobotVacuumView } from '../RobotVacuumView';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import { actorsOf } from '../../core/arrivalModels';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
@@ -164,6 +165,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private shownWeather = '';
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
+  private robotView?: RobotVacuumView;
   /** Sons ligados aos eventos e ao lugar. */
   private sounds: SoundEvents | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
@@ -709,6 +711,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.catColliders = this.cats.flatMap((cat) => [this.physics.add.collider(cat, this.solids!), this.playerCatCollider(cat)]);
     this.roomView ??= new RoomView(this, this.session, ts);
     this.roomView.refresh(mapId === this.session.content.map.id);
+    this.robotView ??= new RobotVacuumView(this, this.session);
+    this.robotView.refresh(mapId, ts);
   }
 
   /** Cômodos mudaram: mapa, escuro, câmera e luz de fora. */

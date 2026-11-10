@@ -959,10 +959,23 @@ export class GameSession {
     if (this.canGoHome()) this.endDay('home');
   }
 
-  /** De manhã, um pouco da poeira do café volta (depois do prólogo): a rotina de varrer. */
+  /** O robô aspirador posicionado no café (a base dele), se tiver. */
+  robotVacuum(): PlacedItem | undefined {
+    return this.state.placed.find((p) => this.content.items[p.item]?.tags.includes('robot_vacuum'));
+  }
+
+  /**
+   * De manhã, um pouco da poeira do café volta (depois do prólogo): a rotina de varrer. Com o robô aspirador, ele já
+   * aspirou e passou pano antes de ela chegar: a poeira do dia (a que voltou e a que sobrou de ontem) amanhece limpa.
+   */
   private dirtComesBack(): void {
     if (!this.state.flags['prologue.done']) return;
     const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
+    if (this.robotVacuum()) {
+      const dirty = daily.filter((d) => !isCleaned(this.state, d)).map((d) => d.id);
+      if (dirty.length > 0) this.state.cleaned = [...this.state.cleaned, ...dirty];
+      return;
+    }
     const clean = daily.filter((d) => isCleaned(this.state, d));
     if (clean.length === 0) return;
     // "*" (saves antigos: tudo limpo) vira a lista de verdade antes de sujar de novo (só o salão: cômodos novos começam sujos).

@@ -962,6 +962,26 @@ describe('passagem dos dias e rotina', () => {
     expect(dust()).toBe(content.world.dailyDirt);
   });
 
+  it('com o robô aspirador no café, a poeira do dia amanhece limpa (a que voltaria e a que sobrou)', () => {
+    const { session } = newSession();
+    startInCafe(session);
+    finishPrologue(session);
+    const dust = () => session.visibleDirt().filter((d) => d.tags.includes('daily')).length;
+    expect(dust()).toBe(content.world.dailyDirt);
+    session.state.money += 1000;
+    expect(session.buy('item.robot_vacuum')).toEqual({ ok: true });
+    expect(session.place('item.robot_vacuum', [1, 8])).toEqual({ ok: true });
+    expect(session.robotVacuum()?.item).toBe('item.robot_vacuum');
+    // Hoje ela não varreu: amanhã já está limpo, e a rotina de varrer conta como feita.
+    session.endDay('home');
+    expect(dust()).toBe(0);
+    expect(session.chores().find((c) => c.kind === 'sweep')?.done).not.toBe(false);
+    // Sem o robô, a poeira volta.
+    expect(session.pickUp(session.robotVacuum()!.uid)).toMatchObject({ ok: true });
+    session.endDay('home');
+    expect(dust()).toBe(content.world.dailyDirt);
+  });
+
   it('a poeira volta em lugares sorteados do chão (livres), variando de um dia para o outro', () => {
     const { session } = newSession();
     startInCafe(session);
