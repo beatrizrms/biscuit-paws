@@ -728,7 +728,7 @@ export class GameSession {
         this.bus.emit('curfew.soon', { minutes: Math.round(this.curfew() - this.state.time) });
       }
       this.deliverArrived();
-      this.service.tick();
+      this.service.tick(Math.floor(this.state.time) - before);
       this.checkBuilderShift();
       this.advanceStory();
     }

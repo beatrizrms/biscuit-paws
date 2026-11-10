@@ -563,7 +563,7 @@ export class CafeService {
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 
-  /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina. */
+  /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina, com a paciência parada. */
   lunchNow(): boolean {
     return this.isOpen() && inLunch(this.schedule(), this.cfg.schedule, this.st.time);
   }
@@ -603,10 +603,15 @@ export class CafeService {
 
   // ---------- Relógio ----------
 
-  /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
-  tick(): void {
+  /**
+   * A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos.
+   * `minutes`: quantos minutos passaram desde o último tick (o relógio pode pular mais de um).
+   */
+  tick(minutes = 1): void {
     const now = this.now();
     const sv = this.st.service;
+    // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
+    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += minutes;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
@@ -675,7 +680,7 @@ export class CafeService {
   private maybeSpawn(now: number): void {
     const sv = this.st.service;
     if (!this.isOpen()) return;
-    // Almoço: por uma hora, ninguém novo chega (a fila e quem já pediu continuam).
+    // Almoço: por uma hora, ninguém novo chega (a fila e quem já pediu continuam, sem perder a paciência).
     if (this.lunchNow()) return;
     // Prejuízo: com gatos doentes demais, as pessoas não querem entrar (quem já está fica até o fim).
     if (this.h.customersAway()) return;

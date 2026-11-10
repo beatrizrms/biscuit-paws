@@ -11,7 +11,7 @@ export interface Schedule {
   open: string;
   close: string;
   /**
-   * Almoço: começo ("HH:MM"); por rules.lunchMinutes não chega cliente novo (quem já está termina). null = sem almoço.
+   * Almoço: começo ("HH:MM"); por rules.lunchMinutes não chega cliente novo (quem já está termina; quem espera não perde a paciência). null = sem almoço.
    * Sem o campo (save de antes do almoço): o almoço do horário padrão.
    */
   lunch?: string | null;

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { GameSession } from '../../src/core/session';
-import { newGameState } from '../../src/core/state';
+import { newGameState, nowAbs } from '../../src/core/state';
 import { validateRecipes, type RecipeDef } from '../../src/core/recipes';
 import { loadContent } from './content';
 
@@ -250,6 +250,28 @@ describe('ciclo do pedido', () => {
     expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
     advance(session, 60);
     expect(state.service.customers.length).toBeGreaterThan(0);
+  });
+
+  it('almoço: a paciência de quem espera fica parada; volta a correr depois', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const all = Array(7).fill(true);
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
+    advance(session, 6);
+    const c = state.service.customers.find((x) => x.stage === 'waiting')!;
+    expect(c).toBeDefined();
+    // Almoço das 09:00 às 10:00 (já começou): o relógio anda e a paciência dele não.
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '09:00' })).toEqual({ ok: true });
+    const left = c.until - nowAbs(state);
+    advance(session, 40);
+    // O relógio pulando vários minutos de uma vez também conta.
+    session.tickClock(5.5 / content.dayNight.minutesPerSecond);
+    expect(sv.lunchNow()).toBe(true);
+    expect(state.service.customers).toContain(c);
+    expect(Math.abs(c.until - nowAbs(state) - left)).toBeLessThan(1);
+    // Acabou o almoço: a paciência volta a correr e ele desiste.
+    advance(session, 15 + content.service.patienceMinutes);
+    expect(state.service.customers).not.toContain(c);
   });
 
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {

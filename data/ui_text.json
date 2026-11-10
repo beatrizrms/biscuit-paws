@@ -892,7 +892,7 @@
     "lunch": "Almoço",
     "lunchOn": "com almoço",
     "lunchOff": "sem almoço",
-    "lunchSummary": " Almoço das {from} às {to}: não chega cliente novo (quem já está termina).",
+    "lunchSummary": " Almoço das {from} às {to}: não chega cliente novo (quem já está termina, sem perder a paciência).",
     "today": "hoje às {time}",
     "tomorrow": "amanhã às {time}",
     "onDay": "{weekday} às {time}",
