@@ -1,0 +1,13 @@
+{
+ "tileSize": 64,
+ "columns": 4,
+ "rows": 1,
+ "pieces": {
+  "lava_loucas": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

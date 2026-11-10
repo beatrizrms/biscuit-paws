@@ -88,6 +88,7 @@ export type ServiceProblem =
   | 'not_on_tray'
   | 'no_tray'
   | 'sink_full'
+  | 'washer_full'
   | 'not_at_home'
   | ScheduleProblem;
 
@@ -352,7 +353,8 @@ export class CafeService {
   /** Louça suja espalhada (mãos, superfícies e esperando na pia). */
   dirtyCount(): number {
     const all = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)];
-    return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad());
+    const washers = Object.values(this.st.washers).reduce((n, w) => n + loadCount(w.load) + loadCount(w.washing?.load ?? emptyLoad()), 0);
+    return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad()) + washers;
   }
 
   /** O presente da Gabi (ou outro item com "dishes") entra no estoque de louça limpa. */
@@ -590,6 +592,15 @@ export class CafeService {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
       this.h.bus.emit('dish.washed', { count: loadCount(washing.load) });
+    }
+    // Lava-louças.
+    for (const [uid, w] of Object.entries(this.st.washers)) {
+      if (!w.washing || w.washing.readyAt > now) continue;
+      for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (w.washing.load[v] ?? 0);
+      const count = loadCount(w.washing.load);
+      w.washing = null;
+      this.h.bus.emit('dish.washed', { count });
+      this.h.bus.emit('washer.changed', { uid, load: loadCount(w.load), washing: false });
     }
     // Clientes.
     for (const c of [...sv.customers]) {
@@ -966,6 +977,89 @@ export class CafeService {
 
   sinkLoad(): number {
     return loadCount(this.st.sink.load);
+  }
+
+  // ---------- Lava-louças ----------
+
+  /** Lava-louças (móvel com washer) ao alcance dos pés, no café (`target`: só a célula clicada). */
+  washerNear(feet: readonly Cell[], target?: Cell): string | undefined {
+    if (!this.h.atHome()) return undefined;
+    return this.st.placed.find((p) => {
+      if (!this.h.content.items[p.item]?.washer) return false;
+      const cells = this.cellsOfPlaced(p.item, p.at);
+      if (target && !cells.some(([c, r]) => c === target[0] && r === target[1])) return false;
+      return cells.some((c) => near(feet, c));
+    })?.uid;
+  }
+
+  private washerDef(uid: string): { capacity: number; cycleMinutes: number } | undefined {
+    const placed = this.st.placed.find((p) => p.uid === uid);
+    return placed ? this.h.content.items[placed.item]?.washer : undefined;
+  }
+
+  private washerState(uid: string): SinkState {
+    return (this.st.washers[uid] ??= { load: emptyLoad(), washing: null });
+  }
+
+  /** O que a lava-louças faria com um E agora: receber a louça suja das mãos ou ligar (como a pia). */
+  washerAction(uid: string): 'deposit' | 'wash' | null {
+    if (!this.washerDef(uid)) return null;
+    if (this.st.hands.some((h) => h.kind === 'dirty')) return 'deposit';
+    const w = this.st.washers[uid];
+    if (this.st.hands.length === 0 && w && !w.washing && loadCount(w.load) > 0) return 'wash';
+    return null;
+  }
+
+  /** Põe na lava-louças a louça suja das mãos (até a capacidade; lavando, também dá para ir enchendo a próxima). */
+  depositInWasher(uid: string): ServiceResult {
+    const def = this.washerDef(uid);
+    if (!def) return { ok: false, reason: 'nothing_here' };
+    if (!this.st.hands.some((h) => h.kind === 'dirty')) return { ok: false, reason: 'hands_empty' };
+    const w = this.washerState(uid);
+    let room = def.capacity - loadCount(w.load);
+    if (room <= 0) return { ok: false, reason: 'washer_full' };
+    const kept: HandItem[] = [];
+    for (const h of this.st.hands) {
+      if (h.kind === 'dirty' && room > 0) {
+        w.load[h.vessel] = (w.load[h.vessel] ?? 0) + 1;
+        room--;
+      } else kept.push(h);
+    }
+    this.st.hands = kept;
+    this.h.bus.emit('washer.changed', { uid, load: loadCount(w.load), washing: !!w.washing });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Liga a lava-louças: o ciclo dura cycleMinutes, com qualquer quantidade (ela pode fazer outra coisa). */
+  startWasher(uid: string): ServiceResult {
+    const def = this.washerDef(uid);
+    const w = this.st.washers[uid];
+    if (!def || !w || loadCount(w.load) === 0) return { ok: false, reason: 'nothing_here' };
+    if (w.washing) return { ok: false, reason: 'station_busy' };
+    w.washing = { readyAt: this.now() + def.cycleMinutes, load: { ...w.load } };
+    w.load = emptyLoad();
+    this.h.bus.emit('washer.changed', { uid, load: 0, washing: true });
+    return { ok: true };
+  }
+
+  /** Quanto falta do ciclo (0 a 1), para a barra em cima dela; undefined = desligada. */
+  washerProgress(uid: string): number | undefined {
+    const w = this.st.washers[uid]?.washing;
+    const def = this.washerDef(uid);
+    if (!w || !def) return undefined;
+    return Math.min(1, Math.max(0, 1 - (w.readyAt - this.now()) / def.cycleMinutes));
+  }
+
+  /** Louça suja esperando na lava-louças (não conta a que está lavando). */
+  washerLoad(uid: string): number {
+    return loadCount(this.st.washers[uid]?.load ?? emptyLoad());
+  }
+
+  /** Tem louça dentro (esperando ou lavando)? Assim ela não pode ser guardada na mochila. */
+  washerBusy(uid: string): boolean {
+    const w = this.st.washers[uid];
+    return !!w && (loadCount(w.load) > 0 || !!w.washing);
   }
 
   // ---------- Bandeja, mochila, peso e gato ----------

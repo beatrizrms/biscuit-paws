@@ -132,6 +132,8 @@ export interface GameEvents {
   'customer.arrived': { customerId: string; recipeId: string | null };
   'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
   'sink.changed': { load: number };
+  /** Lava-louças: louça entrou (load: esperando), ligou ou terminou o ciclo (washing). */
+  'washer.changed': { uid: string; load: number; washing: boolean };
   'heavy.stored': { itemId: string };
   /** stars e reputation: a avaliação ao sair (sem eles: o café fechou com ele na fila). */
   /** Porta de estabelecimento fora do horário: o nome e quando abre de novo. */

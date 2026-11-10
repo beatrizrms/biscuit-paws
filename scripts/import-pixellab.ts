@@ -575,6 +575,16 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Eletrodomésticos de piso (gerados no PixelLab, cafe_equip/): a lava-louças. Nomes eletro_*.
+    image: 'public/assets/objects/pixellab/tile_pixellab_eletro.png',
+    pieces: 'data/tilesets/pixellab_eletro.json',
+    columns: 4,
+    auto: true,
+    layout: {
+      lava_loucas: { file: 'cafe_equip/lava_loucas.png', w: 1, h: 1 },
+    },
+  },
+  {
     // Decorações do quarto (porão reformado), geradas no PixelLab (quarto/): nomes novos quarto_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_quarto.png',
     pieces: 'data/tilesets/pixellab_quarto.json',

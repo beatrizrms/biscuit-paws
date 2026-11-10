@@ -193,6 +193,10 @@ export class GameUi {
       this.toast(s.wipReady.replace('{equipment}', (eq && content.service.equipment[eq]?.name) || ''));
     });
     bus.on('sink.changed', ({ load }) => this.toast(load > 0 ? s.sinkLoaded.replace('{n}', String(load)) : s.washing));
+    bus.on('washer.changed', ({ load, washing }) => {
+      if (washing && load === 0) this.toast(s.washerOn);
+      else if (load > 0) this.toast(s.washerLoaded.replace('{n}', String(load)));
+    });
     bus.on('pantry.stored', ({ count }) => this.toast(uiText.backpack.pantryStored.replace('{n}', String(count)), 3000));
     bus.on('storage.changed', ({ count }) => count > 0 && this.toast(uiText.backpack.boxStored.replace('{n}', String(count)), 2500));
     bus.on('heavy.stored', ({ itemId }) => {
@@ -513,6 +517,10 @@ export class GameUi {
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
     if (this.session.state.sink.washing) cafe.push(this.row(uiText.service.sinkWashing, { icon: 'xicara_suja' }));
     else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
+    for (const uid of Object.keys(this.session.state.washers)) {
+      if (sv.washerProgress(uid) !== undefined) cafe.push(this.row(uiText.service.washerWashing, { icon: 'xicara_suja' }));
+      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad.replace('{n}', String(sv.washerLoad(uid))), { icon: 'xicara_suja' }));
+    }
     const d = uiText.delivery;
     const next = this.session.nextArrival();
     if (next !== undefined) {

@@ -1704,6 +1704,22 @@
       }
     },
     {
+      "id": "item.dishwasher",
+      "name": "Lava-louças",
+      "price": 200,
+      "tile": "eletro_lava_loucas",
+      "description": "Lava até 12 peças de uma vez, em 20 minutos (a pia: 6 peças, 3 minutos cada). E com a louça suja na mão para pôr; E de mãos livres para ligar.",
+      "tags": [
+        "furniture",
+        "equipment",
+        "dishwasher"
+      ],
+      "washer": {
+        "capacity": 12,
+        "cycleMinutes": 20
+      }
+    },
+    {
       "id": "item.pet_box",
       "name": "Caixa pet",
       "price": 60,

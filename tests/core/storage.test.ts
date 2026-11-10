@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { knownIds, parseSave, serializeSave } from '../../src/core/save';
+import { knownIds, parseSave, SAVE_SCHEMA_VERSION, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { stackInto, storageAccepts, storeProblem } from '../../src/core/storage';
@@ -142,12 +142,12 @@ describe('despensa: empilhar', () => {
 });
 
 describe('caixa pet: save', () => {
-  it('v29 guarda o conteúdo das caixas; caixa que não está mais no café e item que sumiu são esquecidos', () => {
+  it('o save guarda o conteúdo das caixas; caixa que não está mais no café e item que sumiu são esquecidos', () => {
     const { session, state, uid } = cafe();
     state.inventory['item.cat_litter'] = 2;
     session.storeInStorage(uid, 'item.cat_litter');
     const raw = JSON.parse(serializeSave(state, new Date()));
-    expect(raw.schemaVersion).toBeGreaterThanOrEqual(29); // a caixa pet entrou na v29
+    expect(raw.schemaVersion).toBe(SAVE_SCHEMA_VERSION);
     raw.petBoxes[uid]['item.gone'] = 3;
     raw.petBoxes['p999'] = { 'item.cat_litter': 1 };
     const back = parseSave(JSON.stringify(raw), known).state;

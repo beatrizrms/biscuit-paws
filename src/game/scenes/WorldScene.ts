@@ -1198,6 +1198,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const customer = sv.customerToServe(feet);
       if (customer) return cell(customer.spot, 'customer');
       if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
+      const washer = sv.washerNear(feet);
+      if (washer && sv.washerAction(washer)) return cell(st.placed.find((p) => p.uid === washer)!.at, 'washer');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
       const pantry = s.content.service.pantry;
       if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet) && !this.interactionAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
@@ -1593,6 +1595,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (act === 'deposit') return report(sv.depositDirty());
       if (act === 'wash') return report(this.withPose(sv.startWash(), 'wash'));
     }
+    // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
+    const washer = sv.washerNear(feet, target);
+    if (washer) {
+      const act = sv.washerAction(washer);
+      if (act === 'deposit') return report(sv.depositInWasher(washer));
+      if (act === 'wash') return report(this.withPose(sv.startWasher(washer), 'operate'));
+    }
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
     const pantry = this.session.content.service.pantry;
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
@@ -1975,6 +1984,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           this.equipAnims.set(placed.uid, sprite);
         }
       }
+    }
+    // Lava-louças lavando: a mesma barra de progresso, em cima dela.
+    for (const placed of st.placed) {
+      const progress = sv.washerProgress(placed.uid);
+      if (progress === undefined) continue;
+      working.add(placed.uid);
+      const frame = Math.min(serviceArt.progress.length - 1, Math.round(progress * (serviceArt.progress.length - 1)));
+      let bar = this.progressBars.get(placed.uid);
+      if (!bar) {
+        bar = this.add.image((placed.at[0] + 0.5) * ts, placed.at[1] * ts - 2, 'progress_0').setOrigin(0.5, 1).setDepth(99_400);
+        this.progressBars.set(placed.uid, bar);
+      }
+      bar.setTexture(`progress_${frame}`);
     }
     for (const [uid, sprite] of this.equipAnims) {
       if (working.has(uid)) continue;

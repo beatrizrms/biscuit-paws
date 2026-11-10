@@ -88,6 +88,8 @@ export interface GameState {
   hotbar: HotbarState;
   /** Pia (v9): louça suja esperando e a lavagem em andamento. */
   sink: SinkState;
+  /** Lava-louças (v30): a louça de cada uma, pelo uid do móvel (como a pia: esperando e lavando). */
+  washers: Record<string, SinkState>;
   /** Estágio do negócio (v11): fechado, funcionamento parcial (sem placa) ou inaugurado (com placa). Só avança. */
   business: BusinessStage;
   /** Fiado (v13): quanto ela ainda deve (a primeira consulta da clínica). Parte de cada ganho paga. */
@@ -219,6 +221,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     service: newServiceState(),
     tray: false,
     sink: { load: emptyLoad(), washing: null },
+    washers: {},
     hotbar: newHotbar(),
     business: 'closed',
     player: { name: '', appearance: null, pronoun: DEFAULT_PRONOUN },

@@ -129,6 +129,7 @@ export type ActionResult =
       ok: false;
       reason:
         | 'unknown_item'
+        | 'washer_busy'
         | StorageProblem
         | 'no_money'
         | 'not_in_inventory'
@@ -3053,8 +3054,10 @@ export class GameSession {
     if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
     // Vitrine com doces: precisa esvaziar antes de recolher.
     if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
+    if (this.service.washerBusy(uid)) return { ok: false, reason: 'washer_busy' };
     const [removed] = this.state.placed.splice(index, 1);
     this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
+    delete this.state.washers[uid];
     // Baú recolhido: o que estava dentro volta para a mochila.
     const box = this.state.petBoxes[uid];
     if (box) {

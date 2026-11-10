@@ -16,10 +16,10 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 30;
+export const SAVE_SCHEMA_VERSION = 31;
 
-export interface SaveV30 extends GameState {
-  schemaVersion: 30;
+export interface SaveV31 extends GameState {
+  schemaVersion: 31;
   savedAt: string;
 }
 
@@ -166,10 +166,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   28: (save) => ({ ...save, schemaVersion: 29, petBoxes: {} }),
   /** v29 -> v30: vitrines da confeitaria. Saves antigos: nenhuma vitrine com doces. */
   29: (save) => ({ ...save, schemaVersion: 30, displays: {} }),
+  /** v30 -> v31: lava-louças. Saves antigos não têm nenhuma. */
+  30: (save) => ({ ...save, schemaVersion: 31, washers: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV30 = { schemaVersion: 30, savedAt: now.toISOString(), ...state };
+  const save: SaveV31 = { schemaVersion: 31, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -223,7 +225,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV30>;
+  const v2 = save as unknown as Partial<SaveV31>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -345,6 +347,18 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       served: v2.service?.served ?? 0,
     },
     tray: v2.tray === true,
+    // Lava-louças: só as que continuam no café (louça de uma que sumiu se perde).
+    washers: Object.fromEntries(
+      Object.entries(v2.washers ?? {})
+        .filter(([uid]) => (v2.placed ?? []).some((pl) => pl.uid === uid))
+        .map(([uid, w]) => [
+          uid,
+          {
+            load: { cup: w?.load?.cup ?? 0, glass: w?.load?.glass ?? 0, plate: w?.load?.plate ?? 0 },
+            washing: w?.washing ? { readyAt: w.washing.readyAt, load: { cup: w.washing.load?.cup ?? 0, glass: w.washing.load?.glass ?? 0, plate: w.washing.load?.plate ?? 0 } } : null,
+          },
+        ]),
+    ),
     sink: {
       load: { cup: v2.sink?.load?.cup ?? 0, glass: v2.sink?.load?.glass ?? 0, plate: v2.sink?.load?.plate ?? 0 },
       washing: v2.sink?.washing ? { readyAt: v2.sink.washing.readyAt, load: { ...v2.sink.washing.load } } : null,
