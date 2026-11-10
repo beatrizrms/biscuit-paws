@@ -106,10 +106,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Potes e caminhas: colidem só com ela (world.playerBlockTiles). */
   private playerSolids?: Phaser.Physics.Arcade.StaticGroup;
   private playerSolidCollider?: Phaser.Physics.Arcade.Collider;
-  /** Clientes sentados: a cadeira dele vira sólida só para ela (refeito quando alguém senta ou levanta). */
-  private seatedSolids?: Phaser.Physics.Arcade.StaticGroup;
-  private seatedCollider?: Phaser.Physics.Arcade.Collider;
-  private seatedKey = '';
+  /** Clientes no lugar (sentados ou em pé no balcão): a célula deles vira sólida só para ela (refeito quando mudam). */
+  private customerSolids?: Phaser.Physics.Arcade.StaticGroup;
+  private customerCollider?: Phaser.Physics.Arcade.Collider;
+  private customerSolidKey = '';
+  /** NPCs (Gabi, Dona Neusa, o Tião...): um corpo nos pés de cada um, que acompanha o NPC; só bloqueia com ele parado. */
+  private npcBlockers?: Phaser.Physics.Arcade.Group;
+  private npcBlockerCollider?: Phaser.Physics.Arcade.Collider;
+  private npcBlockerOf = new Map<NpcSprite, Phaser.GameObjects.Zone>();
   /**
    * Posicionando: um item da mochila, ou (moveUid) um móvel do café mudando de lugar, com o que está em cima dele
    * (riders: fantasmas que acompanham, já na altura do tampo).
@@ -430,6 +434,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   update(): void {
     this.sounds?.update();
     this.updateArrivalActors(this.game.loop.delta);
+    this.syncNpcBlockers();
     const k = this.keys;
     const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
@@ -627,7 +632,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     this.playerSolidCollider = this.physics.add.collider(this.player, this.playerSolids);
     this.catColliders.forEach((c) => c.destroy());
-    this.catColliders = this.cats.map((cat) => this.physics.add.collider(cat, this.solids!));
+    this.catColliders = this.cats.flatMap((cat) => [this.physics.add.collider(cat, this.solids!), this.playerCatCollider(cat)]);
     this.roomView ??= new RoomView(this, this.session, ts);
     this.roomView.refresh(mapId === this.session.content.map.id);
   }
@@ -697,7 +702,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.map.solid, this.catPlaces);
     this.cats.push(cat);
-    this.catColliders.push(this.physics.add.collider(cat, this.solids!));
+    this.catColliders.push(this.physics.add.collider(cat, this.solids!), this.playerCatCollider(cat));
+  }
+
+  /** Ela não atravessa o gato (nem ele a ela): fora do colo (escondido) e de roteiros. */
+  private playerCatCollider(cat: CatSprite): Phaser.Physics.Arcade.Collider {
+    return this.physics.add.collider(this.player, cat, undefined, () => cat.visible && !this.scripts.isRunning());
   }
 
   /** Os objetos dos gatos neste mapa (caminha, arranhador, árvore...) e os lugares ocupados (um gato por lugar). */
@@ -1917,7 +1927,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const street = this.session.content.map.doors?.find((d) => d.id === 'door.street');
     const door: Cell = street ? [street.at[0], street.at[1]] : [14, 10];
     const alive = new Set<string>();
-    const seated: Cell[] = [];
+    const inPlace: Cell[] = [];
     for (const c of this.session.state.service.customers) {
       alive.add(c.id);
       let view = this.customerViews.get(c.id);
@@ -1953,12 +1963,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const dx = c.dishAt[0] - c.spot[0];
         const dy = c.dishAt[1] - c.spot[1];
         view.sit(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down', ySortDepth((c.spot[1] + 1) * ts));
-        seated.push(c.spot);
       }
+      // No lugar (sentado ou em pé no balcão): ela não atravessa. Na fila, não (para não fechar a passagem da porta).
+      if (c.stage !== 'queue' && view.arrived && view.target[0] === c.spot[0] && view.target[1] === c.spot[1]) inPlace.push(c.spot);
       view.update();
     }
     this.customersFresh = false;
-    this.syncSeatedSolids(seated);
+    this.syncCustomerSolids(inPlace);
     for (const [id, view] of this.customerViews) {
       if (alive.has(id) || view.leaving) {
         if (view.leaving) view.update();
@@ -1982,22 +1993,60 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     withBubble.forEach(({ v }, i) => v.update(offsets[i]));
   }
 
-  /** Ela não atravessa quem está sentado: a base da cadeira ocupada bloqueia, como a dos móveis (objectBaseDepth). */
-  private syncSeatedSolids(seated: readonly Cell[]): void {
-    const key = seated.map(([c, r]) => `${c},${r}`).sort().join(' ');
-    if (key === this.seatedKey && this.seatedSolids) return;
-    this.seatedKey = key;
-    this.seatedCollider?.destroy();
-    this.seatedSolids?.destroy(true);
-    this.seatedSolids = this.physics.add.staticGroup();
+  /** Altura da caixa de colisão nos pés (a base dos móveis: world.objectBaseDepth da célula). */
+  private baseHeight(): number {
+    return Math.round(this.map.tileSize * Math.min(1, Math.max(0.1, this.session.content.world.objectBaseDepth ?? 1)));
+  }
+
+  /** Ela não atravessa cliente no lugar: a base da célula dele bloqueia, como a dos móveis. */
+  private syncCustomerSolids(cells: readonly Cell[]): void {
+    const key = cells.map(([c, r]) => `${c},${r}`).sort().join(' ');
+    if (key === this.customerSolidKey && this.customerSolids) return;
+    this.customerSolidKey = key;
+    this.customerCollider?.destroy();
+    this.customerSolids?.destroy(true);
+    this.customerSolids = this.physics.add.staticGroup();
     const ts = this.map.tileSize;
-    const h = Math.round(ts * Math.min(1, Math.max(0.1, this.session.content.world.objectBaseDepth ?? 1)));
-    for (const [c, r] of seated) this.seatedSolids.add(this.add.zone(c * ts + ts / 2, (r + 1) * ts - h / 2, ts, h));
-    this.seatedCollider = this.physics.add.collider(this.player, this.seatedSolids);
+    const h = this.baseHeight();
+    for (const [c, r] of cells) this.customerSolids.add(this.add.zone(c * ts + ts / 2, (r + 1) * ts - h / 2, ts, h));
+    // Num roteiro (ela andando sozinha), não trava no caminho.
+    this.customerCollider = this.physics.add.collider(this.player, this.customerSolids, undefined, () => !this.scripts.isRunning());
+  }
+
+  /**
+   * A cada quadro: um corpo centrado nos pés de cada NPC do mapa, que acompanha ele (vindo de baixo, ela para um pouco
+   * antes, sem cobrir o NPC todo). Só bloqueia com ele parado e fora de
+   * roteiro: andando (ou numa cena), passa por ela, para não empurrá-la nem travar o roteiro.
+   */
+  private syncNpcBlockers(): void {
+    this.npcBlockers ??= this.physics.add.group();
+    this.npcBlockerCollider ??= this.physics.add.collider(this.player, this.npcBlockers, undefined, (_p, z) => !this.scripts.isRunning() && (z as Phaser.GameObjects.Zone).getData('still') === true);
+    for (const [npc, zone] of this.npcBlockerOf) {
+      if (npc.active && [...this.npcs.values()].includes(npc)) continue;
+      zone.destroy();
+      this.npcBlockerOf.delete(npc);
+    }
+    const h = this.baseHeight();
+    for (const npc of this.npcs.values()) {
+      if (!npc.active) continue;
+      let zone = this.npcBlockerOf.get(npc);
+      if (!zone) {
+        zone = this.add.zone(npc.x, npc.y, Math.round(this.map.tileSize * 0.6), h);
+        this.npcBlockers.add(zone);
+        const body = zone.body as Phaser.Physics.Arcade.Body;
+        body.setImmovable(true).setAllowGravity(false);
+        body.pushable = false;
+        body.moves = false;
+        this.npcBlockerOf.set(npc, zone);
+      }
+      const still = zone.x === npc.x && zone.y === npc.y;
+      zone.setData('still', still && npc.visible && npc.alpha > 0.5);
+      zone.setPosition(npc.x, npc.y);
+    }
   }
 
   private clearCustomers(): void {
-    this.syncSeatedSolids([]);
+    this.syncCustomerSolids([]);
     this.customerViews.forEach((v) => v.destroy());
     this.customerViews.clear();
     this.equipAnims.forEach((s) => s.destroy());
