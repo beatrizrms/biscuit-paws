@@ -1015,6 +1015,25 @@
 .s-streaks strong { font-size: 7.5px; color: var(--ink); }
 .s-streaks span { font-size: 6.5px; color: var(--ink2); }
 .s-streaks span b { color: var(--mint3); }
+.s-tabs { position: sticky; top: -4px; z-index: 1; display: flex; gap: 3px; margin: 0 -7px 2px; padding: 4px 7px 3px; background: var(--cream); }
+.s-tabs button { flex: 1; padding: 3px 0; border: none; border-radius: 6px; background: #fffaf0; font: inherit; font-size: 7.5px; color: var(--ink2); cursor: pointer; }
+.s-tabs button.on { background: var(--pink3); color: #fff; font-weight: bold; }
+.seals .s-track ul { margin: 0; padding: 0; list-style: none; }
+.seals .s-track li { display: flex; flex-direction: column; gap: 1px; margin-bottom: 2px; padding: 3px 6px; border-radius: 4px; background: #fffaf0; }
+.seals .s-track li b { font-size: 7.5px; color: var(--ink); }
+.seals .s-track li span { font-size: 6.5px; color: var(--ink2); }
+.seals .s-done { border-left: 3px solid var(--mint3); }
+.seals .s-done b { color: var(--mint3); }
+.seals .s-next { border-left: 3px solid var(--pink3); }
+.seals .s-progress { display: flex; align-items: center; gap: 4px; }
+.seals .s-progress .bar { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
+.seals .s-progress .fill { position: absolute; inset: 0 auto 0 0; background: var(--pink3); }
+.seals .s-progress i { font-style: normal; font-size: 6.5px; color: var(--wood4); font-variant-numeric: tabular-nums; }
+.seals .s-teaser { align-self: flex-start; padding: 0 5px; border-radius: 6px; background: var(--butter2); color: var(--wood4) !important; font-weight: bold; }
+.seals .s-when { font-style: italic; color: var(--grey2) !important; }
+.seals .s-more, .seals .s-all { background: none !important; padding: 1px 6px !important; font-size: 6.5px; color: var(--grey2); }
+.seals .streak .s-done { border-left-color: var(--butter3); }
+.seals .streak .s-done b { color: var(--butter3); }
 
 /* Tutorial da intro dos mini games: ícone + 1 a 3 linhas numeradas */
 .minigame-layer .mg-tutorial { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; padding: 6px 8px; border-radius: 6px; background: var(--cream2); text-align: left; }

@@ -53,6 +53,7 @@ import {
 import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, statsView, type StatsView } from './stats';
+import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -280,6 +281,7 @@ export class GameSession {
     if (isNew && this.state.reputation.log.length === 0) this.state.reputation.value = this.content.reputation.start;
     // Saves de antes da v8: a louça que ela já ganhou entra no estoque.
     for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
+    this.checkMilestones();
     this.announceRecipes(true);
     this.bus.emit('game.started', { isNew });
     this.advanceStory();
@@ -1781,6 +1783,44 @@ export class GameSession {
     for (const streak of broken) this.bus.emit('stats.streak_broken', { streak });
   }
 
+  // ---------- Selos do café ----------
+
+  /** Os números das trilhas dos selos agora (sequências: a melhor, que nunca diminui). */
+  milestoneValues(): MilestoneValues {
+    const st = this.state.stats.streaks;
+    return {
+      served: this.state.service.served,
+      catsEver: this.catsEverSheltered(),
+      reputation: this.reputation(),
+      'streak.no_gave_up': st.no_gave_up.best,
+      'streak.cats_cared': st.cats_cared.best,
+    };
+  }
+
+  /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
+  milestoneTracks(): TrackView[] {
+    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+  }
+
+  /**
+   * Anota os selos que passaram a valer: presentes na mochila, efeitos e o evento milestone.reached. Save antigo
+   * (catchUp): a primeira conferida anota os que já valiam sem avisar nem dar presente.
+   */
+  private checkMilestones(): void {
+    const s = this.state.milestones;
+    const silent = s.catchUp === true;
+    delete s.catchUp;
+    const met = newlyMet(this.content.milestones, s, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+    // Anota todos antes dos efeitos: receber um presente volta para a história, que confere de novo.
+    for (const m of met) s.reached[m.id] = this.state.day;
+    if (silent) return;
+    for (const m of met) {
+      if (m.reward.kind === 'gift') for (const id of m.reward.ids) this.receiveItem(id);
+      m.effects?.forEach((e) => this.applyEffect(e));
+      this.bus.emit('milestone.reached', { milestoneId: m.id });
+    }
+  }
+
   // ---------- Reputação felina ----------
 
   /** Valor de 0 a max (data/reputation.json). */
@@ -1790,13 +1830,14 @@ export class GameSession {
 
   /**
    * Soma (ou tira) reputação, com o motivo (fica no log curto do save, para debug). Emite reputation.changed e,
-   * para cada limiar cruzado pela primeira vez, reputation.threshold_reached (os desbloqueios ainda não existem).
+   * para cada limiar cruzado pela primeira vez, reputation.threshold_reached; e confere os selos do café (a trilha de reputação).
    */
   addReputation(amount: number, reason: string): void {
     const { from, to, crossed } = addReputation(this.state.reputation, this.content.reputation, amount, reason, this.state.day);
     if (from !== to) this.bus.emit('reputation.changed', { from, to, amount: to - from, reason });
     for (const t of crossed) this.bus.emit('reputation.threshold_reached', { thresholdId: t.id, value: to });
     if (crossed.length > 0) this.maybeStartFestivals();
+    this.checkMilestones();
   }
 
   /** Corações entre a protagonista e um gato. */
@@ -2316,7 +2357,17 @@ export class GameSession {
   }
 
   private storyContext(): StoryContext {
-    return { items: this.content.items, dirt: this.content.map.dirt ?? [], requiredSurfaces: this.content.business.requiredSurfaces, rooms: this.content.rooms, seasons: this.content.seasons };
+    return {
+      items: this.content.items,
+      dirt: this.content.map.dirt ?? [],
+      requiredSurfaces: this.content.business.requiredSurfaces,
+      rooms: this.content.rooms,
+      seasons: this.content.seasons,
+      milestoneMet: (id) => {
+        const m = this.content.milestones.milestones.find((x) => x.id === id);
+        return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+      },
+    };
   }
 
   /** Superfícies que o pintor pode reformar (as do café e a fachada na rua). */
@@ -2846,6 +2897,7 @@ export class GameSession {
    * Repete porque concluir um marco pode liberar o próximo. Marcos concluídos não voltam atrás.
    */
   private advanceStory(): void {
+    this.checkMilestones();
     this.maybeStartFestivals();
     this.arrivals?.tick(); // (o construtor chama a história antes de criar o sistema)
     for (let guard = 0; guard < 1000; guard++) {

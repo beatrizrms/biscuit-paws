@@ -1,8 +1,11 @@
-// App "Café em números" do celular: o raio X do café (session.stats, src/core/stats.ts). Clientes (total, hoje, média
-// da semana e o gráfico dos últimos 14 dias), consumo de ingredientes por dia, reputação e moedas, gatos e as
-// sequências de bom comportamento. Só desenha: as contas são do núcleo.
+// App "Café em números" do celular, em duas abas. Números: o raio X do café (session.stats, src/core/stats.ts):
+// clientes (total, hoje, média da semana e o gráfico dos últimos 14 dias), consumo de ingredientes por dia, reputação e
+// moedas, gatos e as sequências de bom comportamento. Selos (session.milestoneTracks, src/core/milestones.ts): por
+// trilha, os conquistados com a recompensa, o próximo com a barra e a recompensa só pelo tipo ("Nova receita ?").
+// Só desenha: as contas são do núcleo.
 import type { GameSession } from '../../core/session';
 import type { StreakId } from '../../core/stats';
+import type { MilestoneDef } from '../../core/milestones';
 import { content, uiText } from '../content';
 import { iconHtml } from './ShopPanel';
 
@@ -12,10 +15,60 @@ const num = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 
 /** Quantos ingredientes a lista de consumo mostra. */
 const DOSES_SHOWN = 6;
 
+/** O nome de cada recompensa do selo ("Petisco de biscoito ×3" quando repete). */
+function rewardNames(m: MilestoneDef): string {
+  const name = (id: string) =>
+    m.reward.kind === 'recipe' ? content.recipes[id]?.name
+    : m.reward.kind === 'room' ? content.rooms.rooms.find((r) => r.id === id)?.name
+    : m.reward.kind === 'event' ? content.festivals.find((f) => f.id === id)?.name
+    : content.items[id]?.name;
+  const counts = new Map<string, number>();
+  for (const id of m.reward.ids) counts.set(id, (counts.get(id) ?? 0) + 1);
+  return [...counts].map(([id, n]) => (name(id) ?? id) + (n > 1 ? ` ×${n}` : '')).join(', ');
+}
+
+/** "Nova receita: Café com leite" (o que o selo deu). */
+export function rewardText(m: MilestoneDef): string {
+  return `${uiText.statsApp.rewardKinds[m.reward.kind]}: ${rewardNames(m)}`;
+}
+
 export class StatsApp {
+  private tab: 'numbers' | 'seals' = 'numbers';
+
   constructor(private session: GameSession) {}
 
   render(body: HTMLElement): void {
+    const t = uiText.statsApp;
+    const tabs = `<div class="s-tabs">${(['numbers', 'seals'] as const)
+      .map((id) => `<button data-tab="${id}" class="${this.tab === id ? 'on' : ''}">${esc(t.tabs[id])}</button>`)
+      .join('')}</div>`;
+    body.innerHTML = tabs + (this.tab === 'numbers' ? this.numbersHtml() : this.sealsHtml());
+    body.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.tab = b.dataset.tab as 'numbers' | 'seals';
+        this.render(body);
+        body.scrollTop = 0;
+      }),
+    );
+  }
+
+  /** Selos: uma caixinha por trilha. */
+  private sealsHtml(): string {
+    const t = uiText.statsApp;
+    const tracks = this.session.milestoneTracks().map((v) => {
+      const done = v.reached.map((m) => `<li class="s-done"><b>✓ ${esc(m.name)}</b><span>${esc(rewardText(m))}</span></li>`).join('');
+      const n = v.next;
+      const next = n
+        ? `<li class="s-next"><b>${esc(n.def.name)}</b><span class="s-progress"><span class="bar"><span class="fill" style="width:${Math.round((n.value / n.def.at) * 100)}%"></span></span><i>${n.value}/${n.def.at}</i></span>
+            <span class="s-teaser">${esc(t.rewardKinds[n.def.reward.kind])} ?</span>${n.blocked && n.def.whenText ? `<span class="s-when">${esc(n.def.whenText)}</span>` : ''}</li>`
+        : `<li class="s-all">${esc(t.allDone)}</li>`;
+      const more = v.hidden > 0 ? `<li class="s-more">${esc((v.hidden === 1 ? t.moreOne : t.more).replace('{n}', String(v.hidden)))}</li>` : '';
+      return `<section class="s-track ${v.track.kind}"><h3>${esc(v.track.name)}</h3><ul>${done}${next}${more}</ul></section>`;
+    });
+    return `<div class="stats-app seals"><p class="s-note">${esc(t.sealsHint)}</p>${tracks.join('')}</div>`;
+  }
+
+  private numbersHtml(): string {
     const t = uiText.statsApp;
     const v = this.session.stats();
     const avg = (n: number | null) => (n === null ? '–' : num(n));
@@ -46,7 +99,7 @@ export class StatsApp {
       return `<li title="${esc(t.streaks[id].hint)}"><strong>${esc(t.streaks[id].name)}</strong><span>${esc(t.streakNow)} <b>${esc(days(s.current))}</b> · ${esc(t.streakBest)} ${esc(days(s.best))}</span></li>`;
     };
 
-    body.innerHTML = `<div class="stats-app">
+    return `<div class="stats-app">
       <h3>${esc(t.customers)}</h3>
       <div class="s-tiles">
         ${tile(String(v.servedTotal), t.servedTotal)}

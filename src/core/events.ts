@@ -28,6 +28,8 @@ export interface GameEvents {
   /** Estatísticas (src/core/stats.ts): o dia fechou no registro; uma sequência de bom comportamento quebrou. */
   'stats.day_closed': { day: number; served: number; gaveUp: number; open: boolean; untreated: number };
   'stats.streak_broken': { streak: StreakId };
+  /** Selo do café conquistado (data/milestones.json; os presentes já estão na mochila). */
+  'milestone.reached': { milestoneId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
   'arrival.step': { arrivalId: string; step: number };

@@ -345,7 +345,7 @@
         "for:cats"
       ],
       "requires": {
-        "flag": "has.cat"
+        "all": [{ "flag": "has.cat" }, { "milestone": "milestone.cats_6" }]
       }
     },
     {
@@ -360,7 +360,7 @@
         "for:cats"
       ],
       "requires": {
-        "flag": "has.cat"
+        "all": [{ "flag": "has.cat" }, { "milestone": "milestone.cats_3" }]
       }
     },
     {

@@ -18,6 +18,7 @@ import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
 import { daysText, workName } from './constructionText';
+import { rewardText } from './StatsApp';
 
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
@@ -208,7 +209,18 @@ export class GameUi {
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).
-    bus.on('recipe.unlocked', ({ recipeId }) => this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000));
+    // A receita que vem de um selo já sai no aviso do selo (o último aviso apagaria o outro).
+    bus.on('recipe.unlocked', ({ recipeId }) => {
+      if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
+      this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
+    });
+    // Selo do café: o nome e o que ele deu (app Café em números, aba Selos).
+    bus.on('milestone.reached', ({ milestoneId }) => {
+      const m = content.milestones.milestones.find((x) => x.id === milestoneId);
+      if (!m) return;
+      const hint = m.reward.kind === 'recipe' ? uiText.statsApp.toastRecipeHint : '';
+      this.toast(uiText.statsApp.toast.replace('{name}', m.name).replace('{reward}', rewardText(m)) + hint, 5000);
+    });
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
     bus.on('cat.sick', ({ catId, disease }) => {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))

@@ -11,6 +11,8 @@ function newSession(withCat = true) {
   const state = newGameState(content.economy.startingMoney);
   // A maioria dos testes compra itens de gato: libera direto (o fluxo do gato tem testes próprios).
   if (withCat) state.flags['has.cat'] = true;
+  // A árvore de gato (o móvel grande dos testes) vem com o selo de 3 gatos.
+  state.milestones.reached['milestone.cats_3'] = 1;
   // A vassoura da corretora (o roteiro não roda nos testes): já entra ativa no primeiro espaço da barra.
   state.inventory['item.broom'] = 1;
   const session = new GameSession(content, state);

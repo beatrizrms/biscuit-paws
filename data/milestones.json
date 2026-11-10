@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift, ids } e effects (opcional, como os da história). recipe/room/item/event: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
+  "tracks": [
+    { "id": "customers", "name": "Clientes atendidos", "kind": "count", "stat": "served" },
+    { "id": "cats", "name": "Gatos que passaram pelo café", "kind": "count", "stat": "catsEver" },
+    { "id": "reputation", "name": "Reputação", "kind": "count", "stat": "reputation" },
+    { "id": "no_gave_up", "name": "Ninguém sai de mãos vazias", "kind": "streak", "stat": "streak.no_gave_up" },
+    { "id": "cats_cared", "name": "Bigodes bem cuidados", "kind": "streak", "stat": "streak.cats_cared" }
+  ],
+  "milestones": [
+    { "id": "milestone.customers_6", "track": "customers", "name": "Primeira freguesia", "at": 6, "reward": { "kind": "recipe", "ids": ["recipe.black_tea"] } },
+    { "id": "milestone.customers_15", "track": "customers", "name": "Clientela de bairro", "at": 15, "reward": { "kind": "recipe", "ids": ["recipe.orange_juice"] } },
+    { "id": "milestone.customers_25", "track": "customers", "name": "Mesa cheia", "at": 25, "reward": { "kind": "recipe", "ids": ["recipe.cafe_latte"] } },
+    { "id": "milestone.customers_35", "track": "customers", "name": "Cheirinho de forno", "at": 35, "reward": { "kind": "recipe", "ids": ["recipe.cheese_bread"] } },
+    { "id": "milestone.customers_40", "track": "customers", "name": "Hora de crescer", "at": 40, "when": { "beat": "story.inauguration" }, "whenText": "depois da inauguração", "reward": { "kind": "room", "ids": ["room.back_room"] } },
+    { "id": "milestone.customers_45", "track": "customers", "name": "Freguesia fiel", "at": 45, "reward": { "kind": "recipe", "ids": ["recipe.green_tea"] } },
+    { "id": "milestone.customers_55", "track": "customers", "name": "Doce como morango", "at": 55, "reward": { "kind": "recipe", "ids": ["recipe.strawberry_juice"] } },
+    { "id": "milestone.customers_65", "track": "customers", "name": "Refresco da vila", "at": 65, "reward": { "kind": "recipe", "ids": ["recipe.lemonade"] } },
+    { "id": "milestone.customers_80", "track": "customers", "name": "Café de respeito", "at": 80, "reward": { "kind": "recipe", "ids": ["recipe.cake_slice"] } },
+
+    { "id": "milestone.cats_3", "track": "cats", "name": "Casa cheia", "at": 3, "reward": { "kind": "item", "ids": ["item.cat_tree"] } },
+    { "id": "milestone.cats_6", "track": "cats", "name": "Família felina", "at": 6, "reward": { "kind": "item", "ids": ["item.cat_condo"] } },
+
+    { "id": "milestone.reputation_20", "track": "reputation", "name": "Notada na vila", "at": 20, "reward": { "kind": "event", "ids": ["fest.cat_day"] } },
+    { "id": "milestone.reputation_40", "track": "reputation", "name": "De confiança", "at": 40, "reward": { "kind": "event", "ids": ["fest.cuteness_contest"] } },
+
+    { "id": "milestone.no_gave_up_3", "track": "no_gave_up", "name": "Freguesia satisfeita", "at": 3, "reward": { "kind": "gift", "ids": ["item.flower_vase"] } },
+    { "id": "milestone.no_gave_up_7", "track": "no_gave_up", "name": "Atendimento de primeira", "at": 7, "reward": { "kind": "gift", "ids": ["item.wall_clock"] } },
+    { "id": "milestone.no_gave_up_14", "track": "no_gave_up", "name": "Ninguém espera", "at": 14, "reward": { "kind": "gift", "ids": ["item.paw_rug"] } },
+
+    { "id": "milestone.cats_cared_3", "track": "cats_cared", "name": "Bigodes em dia", "at": 3, "reward": { "kind": "gift", "ids": ["item.cat_treat_biscuit", "item.cat_treat_biscuit", "item.cat_treat_biscuit"] } },
+    { "id": "milestone.cats_cared_7", "track": "cats_cared", "name": "Saúde de ferro", "at": 7, "reward": { "kind": "recipe", "ids": ["recipe.paw_cookie"] } },
+    { "id": "milestone.cats_cared_14", "track": "cats_cared", "name": "Ninho quentinho", "at": 14, "reward": { "kind": "gift", "ids": ["item.cat_bed_lilas"] } }
+  ]
+}

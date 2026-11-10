@@ -102,6 +102,7 @@ cat-cafe-game/
 | `reputation.threshold_reached` | passou de um limiar pela primeira vez (só o gancho) | `thresholdId, value` |
 | `stats.day_closed` | o dia fechou nas estatísticas (antes da saúde do fim do dia) | `day, served, gaveUp, open, untreated` |
 | `stats.streak_broken` | uma sequência de bom comportamento voltou a zero | `streak` (`no_gave_up` ou `cats_cared`) |
+| `milestone.reached` | selo do café conquistado (uma vez; presentes já na mochila) | `milestoneId` |
 | `festival.started` / `festival.progress` / `festival.scheduled` / `festival.missed` / `festival.finished` | etapas de um festival (feira de adoção, Dia do Gato...) | `festivalId` / `+ step, pointId` / `+ day` / `+ day` / `+ results, coins, reputation, adopted` |
 | `arrival.queued` / `arrival.started` / `arrival.step` / `arrival.finished` | chegada de gato: na fila, começou, etapa, terminou (onde o gato ficou) | `arrivalId` / `+catId, model` / `step` / `outcome, placement` |
 | `arrival.choice` | a chegada pergunta sim/não (a resposta volta por `session.answerArrival`) | `arrivalId, key` |
