@@ -61,6 +61,23 @@ describe('assistência técnica: upgrade de móvel no lugar', () => {
     state.placed.push({ uid: 'p6', item: 'item.food_bowl', at: [3, 8] });
     expect(session.upgradeOptions('p6')).toEqual([]); // o pote automático pede o primeiro gato
     state.flags['has.cat'] = true;
+    expect(session.upgradeOptions('p6')).toEqual([]); // e, como é upgrade, a inauguração
+    state.business = 'inaugurated';
     expect(session.upgradeOptions('p6').map((o) => o.itemId)).toEqual(['item.auto_feeder']);
+  });
+
+  it('upgrades (tag "upgrade": pote e caixa de areia automáticos, lava-louças) só depois da inauguração', () => {
+    const { session, state } = cafe();
+    state.flags['has.cat'] = true;
+    const upgrades = Object.values(content.items).filter((i) => i.tags.includes(content.business.upgradeTag!)).map((i) => i.id).sort();
+    expect(upgrades).toEqual(['item.auto_feeder', 'item.auto_litter_box', 'item.dishwasher']);
+    for (const stage of ['closed', 'soft_open'] as const) {
+      state.business = stage;
+      for (const id of upgrades) expect(session.itemUnlocked(id)).toBe(false);
+      expect(session.buy('item.dishwasher')).toEqual({ ok: false, reason: 'locked' });
+    }
+    state.business = 'inaugurated';
+    for (const id of upgrades) expect(session.itemUnlocked(id)).toBe(true);
+    expect(session.itemUnlocked('item.food_bowl')).toBe(true); // o que não é upgrade não muda
   });
 });

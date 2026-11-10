@@ -361,13 +361,16 @@ export class GameSession {
   }
 
   /**
-   * O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato)
+   * O item já pode ser comprado? (ex.: coisas de gato só depois de ter um gato; upgrades só depois da inauguração)
    * Equipamentos e ingredientes seguem a evolução das receitas: só aparecem quando alguma receita
    * destrancada usa eles (o bule chega ao catálogo junto com o chá). Sem receita nenhuma, ficam escondidos.
    */
   itemUnlocked(itemId: string): boolean {
     const item = this.content.items[itemId];
     if (!item || (item.requires && !evaluate(item.requires, this.state, this.storyContext()))) return false;
+    // Upgrades (pote e caixa de areia automáticos, lava-louças): só depois da inauguração (data/business.json).
+    const { upgradeTag, upgradesWhen } = this.content.business;
+    if (upgradeTag && upgradesWhen && item.tags.includes(upgradeTag) && !evaluate(upgradesWhen, this.state, this.storyContext())) return false;
     const recipes = Object.values(this.content.recipes);
     const equipment = this.content.service.equipment;
     const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));

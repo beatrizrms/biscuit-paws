@@ -110,6 +110,7 @@ describe('automáticos', () => {
   it('pela assistência técnica: a tigela vira o pote no mesmo lugar (diferença + serviço) e a ração guardada volta', () => {
     const { session, state } = cafe({ auto: true });
     state.flags['has.cat'] = true; // os itens de gato só depois do primeiro gato
+    state.business = 'inaugurated'; // e os upgrades só depois da inauguração
     const options = session.upgradeOptions('p90');
     expect(options).toEqual([{ itemId: 'item.food_bowl', cost: content.upgrades.fee }]); // mais barata: só o serviço
     state.placed.find((p) => p.uid === 'p90')!.stock = 3;
@@ -124,6 +125,7 @@ describe('automáticos', () => {
     ]);
     const back = cafe();
     back.state.flags['has.cat'] = true;
+    back.state.business = 'inaugurated';
     const price = content.items['item.auto_feeder']!.price - content.items['item.food_bowl']!.price + content.upgrades.fee;
     expect(back.session.upgradeOptions('p90')).toEqual([{ itemId: 'item.auto_feeder', cost: price }]);
     expect(back.session.upgradePlaced('p90', 'item.auto_feeder')).toEqual({ ok: true });

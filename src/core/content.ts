@@ -733,6 +733,8 @@ export function validateContent(raw: RawContent): string[] {
   for (const r of raw.recipes.recipes) if (r.unlock) checkCondition(`recipes: "${r.id}"`, r.unlock);
   checkCondition('service: enabledWhen', raw.service.enabledWhen);
   checkCondition('business: softOpenWhen', raw.business.softOpenWhen);
+  if (raw.business.upgradesWhen) checkCondition('business: upgradesWhen', raw.business.upgradesWhen);
+  if (raw.business.upgradeTag && !raw.items.items.some((i) => i.tags.includes(raw.business.upgradeTag!))) err(`business: nenhum item tem a tag de upgrade "${raw.business.upgradeTag}"`);
   for (const r of raw.rooms.rooms) {
     if (r.discover?.when) checkCondition(`rooms: "${r.id}" discover`, r.discover.when);
     if (r.restore?.when) checkCondition(`rooms: "${r.id}" restore`, r.restore.when);

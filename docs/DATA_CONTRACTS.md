@@ -572,6 +572,7 @@ Móveis em cima de outros: `"placeOn": "bar"` no item (cafeteira, bule, liquidif
 - `soft_open` -> `inaugurated`: efeito `{ "setBusiness": "inaugurated" }`, do marco `story.inauguration` (depois do primeiro cliente). As metas são: reforma completa (`{ "renovated": true }`: os dois reparos do construtor, interno e externo) e a placa recebida.
 - A placa (`item.cafe_sign`) tem `"requires": { "renovated": true }`: só aparece à venda depois da reforma. Na fachada, a lousa só aparece inaugurado.
 - Condições: `{ "business": "soft_open" }` (já chegou a esse estágio; inaugurado conta) e `{ "renovated": true }`.
+- Upgrades: `upgradeTag` (`"upgrade"`) e `upgradesWhen` (`{ "business": "inaugurated" }`): item com a tag só aparece para comprar (Market, mercado e Assistência técnica: `itemUnlocked`) quando a condição vale. Hoje: lava-louças, pote de ração e caixa de areia automáticos.
 
 ## Personagem principal (`data/character.json`)
 

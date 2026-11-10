@@ -1680,7 +1680,8 @@
         "cat:food",
         "furniture",
         "for:cats",
-        "food_bowl"
+        "food_bowl",
+        "upgrade"
       ],
       "requires": {
         "flag": "has.cat"
@@ -1697,7 +1698,8 @@
         "cat:care",
         "furniture",
         "for:cats",
-        "litter_box"
+        "litter_box",
+        "upgrade"
       ],
       "requires": {
         "flag": "has.cat"
@@ -1712,7 +1714,8 @@
       "tags": [
         "furniture",
         "equipment",
-        "dishwasher"
+        "dishwasher",
+        "upgrade"
       ],
       "washer": {
         "capacity": 12,
