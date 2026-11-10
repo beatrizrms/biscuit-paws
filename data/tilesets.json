@@ -977,6 +977,13 @@
         "expositor_b": { "solid": false },
         "expositor_c": { "solid": false },
         "pote_biscoitos": { "solid": false },
+        "natal_guirlanda": { "solid": false, "layer": "wall" },
+        "natal_luzinhas": { "solid": false, "layer": "wall" },
+        "natal_meia": { "solid": false, "layer": "wall" },
+        "natal_caneca": { "solid": false },
+        "natal_globo_gato": { "solid": false },
+        "natal_vela": { "solid": false },
+        "natal_globo_cafe": { "solid": false },
         "vaso_suculenta": { "solid": false }
       }
     },

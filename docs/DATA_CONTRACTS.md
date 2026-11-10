@@ -145,7 +145,7 @@ Condição de história: `{ "cleaned": "web" }` = toda a sujeira com essa tag (d
 "cs.prologue_thoughts": {
   "background": "#241c33", "snow": true,
   "steps": [
-    { "type": "text", "speaker": "", "text": "Véspera de Natal..." },
+    { "type": "text", "speaker": "", "text": "Época de Natal..." },
     { "type": "cat", "cat": "cat.tekinha", "animation": "sleep", "caption": "Tekinha" },
     { "type": "hide" },
     { "type": "phone", "mode": "lock", "app": "Classificados", "title": "VENDE-SE...", "lines": [], "time": "23:47", "date": "Quarta-feira, 24 de dezembro" },  // tela de bloqueio com notificação
@@ -611,8 +611,8 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 
 ## Calendário e estações (`data/seasons.json`)
 
-- `daysPerSeason` (30), `order` (inverno, primavera, verão, outono; o jogo começa na primeira, véspera de Natal), `names` (no HUD: "Inverno 12 · dom"). A estação sai de `state.day`: o save não guarda nada novo.
-- `startWeekday`: dia da semana do dia 1 (0 = segunda; 2 = quarta, a véspera de Natal). Usado no HUD, no app Horário e no Calendário.
+- `daysPerSeason` (30), `order` (inverno, primavera, verão, outono; o jogo começa na primeira, na época de Natal; o Natal é o dia 25 do inverno), `names` (no HUD: "Inverno 12 · dom"). A estação sai de `state.day`: o save não guarda nada novo.
+- `startWeekday`: dia da semana do dia 1 (0 = segunda; 2 = quarta, o primeiro dia do jogo). Usado no HUD, no app Horário e no Calendário.
 - App **Calendário**: `seasonStarts` (título do primeiro dia de cada estação) e `events` (`{ "id": "cal.*", "title", "day" | "fromSeason", "everyYear"?, "hideWhen"? }`): Natal e Ano Novo todo ano, a inauguração (`fromSeason: spring`, some depois de `story.inauguration`). `session.calendar(from, to)` junta tudo (`src/core/calendar.ts: calendarEntries`).
 - `maps`: mapas que mudam com a estação (a rua). Tiles com os `prefixes` ganham o da estação (`street_calcada_a` -> `spring_street_calcada_a`); peças com `snowPrefix` (neve, montes, a neve por cima de objetos) somem fora do inverno; o que não existe na estação (abeto de Natal, pegadas) some. A cor do dia e da noite usa a estação do dia (`daynight.json: seasons`).
 - Condição `{ "fromSeason": "spring" }`: a partir da primeira vez que a estação chega (dia 31). Texto `{daysUntil:spring}`: dias que faltam.

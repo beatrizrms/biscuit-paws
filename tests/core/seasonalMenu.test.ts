@@ -24,10 +24,10 @@ describe('cardápio das estações', () => {
     expect(inSeason(r['recipe.hot_chocolate']!, S, firstDay('winter'))).toBe(true);
     expect(inSeason(r['recipe.hot_chocolate']!, S, firstDay('summer'))).toBe(false);
     expect(inSeason(r['recipe.black_coffee']!, S, firstDay('summer'))).toBe(true);
-    const natal = firstDay('winter') + 1; // dia 2 do inverno
+    const natal = firstDay('winter') + 24; // dia 25 do inverno
     expect(inSeason(r['recipe.panettone_slice']!, S, natal)).toBe(true);
     expect(inSeason(r['recipe.panettone_slice']!, S, firstDay('winter') + 9)).toBe(false);
-    expect(inSeason(r['recipe.rabanada']!, S, firstDay('winter') + 8)).toBe(true);
+    expect(inSeason(r['recipe.rabanada']!, S, firstDay('winter') + 28)).toBe(true);
     expect(inSeason(r['recipe.macaron_tower']!, S, firstDay('summer') + 7)).toBe(true);
     expect(inSeason(r['recipe.macaron_tower']!, S, firstDay('summer') + 20)).toBe(false);
   });
@@ -73,5 +73,18 @@ describe('cardápio das estações', () => {
     expect(summer.sv.demandWeight(r['recipe.cookie']!)).toBe(1);
     summer.session.arrivals.debug.weather = 'rain';
     expect(summer.sv.demandWeight(r['recipe.black_coffee']!)).toBeCloseTo((content.service.demand?.seasons?.summer?.hot ?? 1) * (content.service.demand?.weather?.rain?.hot ?? 1));
+  });
+});
+
+describe('itens de Natal', () => {
+  it('à venda só no inverno; o globo de neve do café (o presente exclusivo) nunca está à venda', () => {
+    const winter = cafe(firstDay('winter')).session;
+    const spring = cafe(firstDay('spring')).session;
+    for (const id of ['item.christmas_tree', 'item.xmas_wreath', 'item.poinsettia', 'item.knit_scarf', 'item.bone_biscuits']) {
+      expect(winter.itemUnlocked(id)).toBe(true);
+      expect(spring.itemUnlocked(id)).toBe(false);
+    }
+    expect(content.items['item.snow_globe_cafe']!.tags).not.toContain('decor');
+    expect(content.items['item.snow_globe_cafe']!.tags).not.toContain('xmas');
   });
 });
