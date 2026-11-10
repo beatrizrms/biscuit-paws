@@ -632,7 +632,7 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 ## Áudio v2 (`data/audio.json`)
 
 - Grupos: `music` e `jingles` (volume "Música" das Opções), `ambient` e `sfx` (volume "Sons ambientes"). Faixa: `file` ([ogg, mp3]; null = mudo), `loop`, `gain` (mixagem).
-- `scenes`: por lugar, `day` e `night` (de `nightFrom` a `nightUntil`) com música e ambiente; `busyAmbient`: burburinho quando há clientes no café.
+- `scenes`: por lugar, `day` e `night` (de `nightFrom` a `nightUntil`) com música e ambiente; `busyAmbient`: burburinho quando há clientes no café; `overrides`: exceções por estação (`seasons`), dia da estação (`day`) e dia ou noite (`night`), que trocam `music`/`ambient` na ordem (a rua: cigarras nas noites de primavera e verão, vento nas de outono e inverno, a música de Natal no dia 25 do inverno). Os fogos tocam `sfx: firework` a cada estouro, com o tom variando.
 - `events`: evento do núcleo -> `sfx` ou `jingle` (ex.: `customer.served` -> moeda, `day.started` -> jingle do dia novo). `loops`: cafeteira/liquidificador/bule, fogão/forno, pia e gato no colo tocam em repetição enquanto acontecem (`src/game/audio/SoundEvents.ts`).
 - Menus: clique, abrir e fechar; avisos de problema: som de erro. Arte e som: `npm run ui-audio`.
 

@@ -3,6 +3,7 @@
 import Phaser from 'phaser';
 import type { FireworksFx } from '../core/newYear';
 import { hexToRgb, rgbToHex } from '../core/time';
+import { services } from './services';
 
 /** Acima da cor do dia/noite (150 000) e das luzes (150 001): à meia-noite, os fogos não escurecem. */
 const DEPTH = 150_100;
@@ -98,6 +99,8 @@ export class FireworksLayer {
       .setBlendMode(Phaser.BlendModes.ADD);
     emitter.explode(Phaser.Math.Between(fx.particles[0], fx.particles[1]));
     this.parts.add(emitter);
+    // O estouro: o mesmo som com o tom variando um pouco (não soa repetido).
+    services().audio.sfx('firework', { rate: Phaser.Math.FloatBetween(0.85, 1.15) });
     // O clarão: acende e some rápido.
     const flash = this.scene.add.image(x, y, FLASH).setTint(color).setDepth(DEPTH).setBlendMode(Phaser.BlendModes.ADD).setScale(0.6);
     this.parts.add(flash);

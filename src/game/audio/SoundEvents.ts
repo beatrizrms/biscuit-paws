@@ -1,6 +1,7 @@
 // Liga o jogo ao áudio: eventos do núcleo -> efeitos e jingles (tabela em data/audio.json: events),
 // efeitos em repetição enquanto algo acontece (preparo, pia, gato no colo) e a música/ambiente do lugar
 // (dia ou noite; burburinho com clientes no café). Só toca: não decide regra nenhuma.
+import { dayInSeason } from '../../core/calendar';
 import type { GameSession } from '../../core/session';
 import { AudioManager, audioData } from './AudioManager';
 
@@ -38,6 +39,8 @@ export class SoundEvents {
     audio.playScene(session.location(), {
       night: AudioManager.isNight(st.time),
       busy: home && st.service.customers.length > 0,
+      season: session.season(),
+      dayInSeason: dayInSeason(session.content.seasons, st.day),
     });
     const equipment = home ? st.service.preps.map((p) => session.service.equipmentOf(p.stationUid) ?? '') : [];
     audio.setLoop('coffee_brewing', equipment.some((e) => e && !SIZZLE.has(e)));

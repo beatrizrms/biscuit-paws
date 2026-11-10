@@ -19,6 +19,15 @@ interface SceneTracks {
   music: string | null;
   ambient: string | null;
 }
+/** Exceção de um lugar: numa estação (e num dia dela), de noite ou de dia, outra música ou outro ambiente. */
+interface SceneOverride {
+  seasons?: string[];
+  day?: number;
+  night?: boolean;
+  music?: string | null;
+  ambient?: string | null;
+}
+
 interface AudioData {
   fadeMs: number;
   nightFrom: string;
@@ -27,7 +36,7 @@ interface AudioData {
   jingles: Record<string, TrackDef>;
   ambient: Record<string, TrackDef>;
   sfx: Record<string, TrackDef>;
-  scenes: Record<string, { day: SceneTracks; night?: SceneTracks; busyAmbient?: string }>;
+  scenes: Record<string, { day: SceneTracks; night?: SceneTracks; busyAmbient?: string; overrides?: SceneOverride[] }>;
   events: { event: string; sfx?: string; jingle?: string }[];
   loops: Record<string, string>;
 }
@@ -115,10 +124,18 @@ export class AudioManager {
    * Música e ambiente de um lugar (data/audio.json: scenes), de dia ou de noite. `busy`: há clientes
    * (o café troca o ambiente pelo burburinho). Pode chamar sempre: a mesma faixa não recomeça.
    */
-  playScene(sceneId: string, opts: { night?: boolean; busy?: boolean } = {}): void {
+  playScene(sceneId: string, opts: { night?: boolean; busy?: boolean; season?: string; dayInSeason?: number } = {}): void {
     const s = audioData.scenes[sceneId];
     if (!s) return;
-    const tracks = (opts.night && s.night) || s.day;
+    const tracks = { ...((opts.night && s.night) || s.day) };
+    // Exceções da estação e do dia (ex.: cigarras nas noites de verão, a música de Natal no dia 25).
+    for (const o of s.overrides ?? []) {
+      if (o.seasons && !o.seasons.includes(opts.season ?? '')) continue;
+      if (o.day !== undefined && o.day !== opts.dayInSeason) continue;
+      if (o.night !== undefined && o.night !== !!opts.night) continue;
+      if (o.music !== undefined) tracks.music = o.music;
+      if (o.ambient !== undefined) tracks.ambient = o.ambient;
+    }
     this.play('music', tracks.music);
     this.play('ambient', opts.busy && s.busyAmbient ? s.busyAmbient : tracks.ambient);
   }

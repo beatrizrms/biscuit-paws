@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "_comment": "Áudio (pacote audio, sintetizado por código; npm run ui-audio). Dois canais de volume nas Opções: music (músicas e jingles) e ambient (ambientes e efeitos). file: [ogg, mp3] em public/ (null = ainda sem arquivo: o canal fica pronto e mudo). gain: mixagem da faixa (0..1, multiplica o volume do canal). scenes: música e ambiente de cada lugar, de dia e de noite (night: das nightFrom às nightUntil); busyAmbient: ambiente quando há clientes no café. events: evento do jogo -> efeito (sfx) ou jingle. loops: efeitos em repetição enquanto algo acontece (preparo, pia, gato no colo). fadeMs: transição ao trocar de faixa.",
+  "_comment": "Áudio (pacote audio, sintetizado por código; npm run ui-audio). Dois canais de volume nas Opções: music (músicas e jingles) e ambient (ambientes e efeitos). file: [ogg, mp3] em public/ (null = ainda sem arquivo: o canal fica pronto e mudo). gain: mixagem da faixa (0..1, multiplica o volume do canal). scenes: música e ambiente de cada lugar, de dia e de noite (night: das nightFrom às nightUntil); busyAmbient: ambiente quando há clientes no café. events: evento do jogo -> efeito (sfx) ou jingle. loops: efeitos em repetição enquanto algo acontece (preparo, pia, gato no colo). fadeMs: transição ao trocar de faixa. overrides (em scenes): exceções por estação (seasons), dia da estação (day) e dia/noite (night: true só de noite, false só de dia); as que valem trocam music/ambient, na ordem.",
   "fadeMs": 800,
   "nightFrom": "18:00",
   "nightUntil": "06:00",
@@ -25,6 +25,13 @@
       "file": [
         "assets/audio/music/music_night.ogg",
         "assets/audio/music/music_night.mp3"
+      ],
+      "loop": true,
+      "gain": 0.4
+    },
+    "christmas": {
+      "file": [
+        "assets/audio/music/music_christmas.mp3"
       ],
       "loop": true,
       "gain": 0.4
@@ -104,6 +111,20 @@
       ],
       "loop": true,
       "gain": 0.25
+    },
+    "night_cicadas": {
+      "file": [
+        "assets/audio/ambient/amb_night_cicadas.wav"
+      ],
+      "loop": true,
+      "gain": 0.25
+    },
+    "night_wind": {
+      "file": [
+        "assets/audio/ambient/amb_night_wind.wav"
+      ],
+      "loop": true,
+      "gain": 0.3
     }
   },
   "sfx": {
@@ -282,6 +303,12 @@
       ],
       "loop": true,
       "gain": 0.5
+    },
+    "firework": {
+      "file": [
+        "assets/audio/sfx/sfx_firework.wav"
+      ],
+      "gain": 0.5
     }
   },
   "scenes": {
@@ -299,7 +326,32 @@
       "night": {
         "music": "night",
         "ambient": "night_crickets"
-      }
+      },
+      "overrides": [
+        {
+          "seasons": [
+            "spring",
+            "summer"
+          ],
+          "night": true,
+          "ambient": "night_cicadas"
+        },
+        {
+          "seasons": [
+            "autumn",
+            "winter"
+          ],
+          "night": true,
+          "ambient": "night_wind"
+        },
+        {
+          "seasons": [
+            "winter"
+          ],
+          "day": 25,
+          "music": "christmas"
+        }
+      ]
     },
     "map.market": {
       "day": {
