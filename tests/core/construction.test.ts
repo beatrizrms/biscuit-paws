@@ -135,6 +135,28 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.state.construction.quote?.cells?.length).toBe(both.cells.length);
   });
 
+  it('a primeira ligação para o Tião é a de apresentação; as seguintes, a curta', () => {
+    const s = session();
+    const calls: boolean[] = [];
+    s.bus.on('construction.call', ({ first }) => calls.push(first));
+    expect(s.quoteRepair('inside')).toEqual({ ok: true });
+    expect(s.answerQuote(false)).toEqual({ ok: true });
+    expect(s.quoteRepair('inside')).toEqual({ ok: true });
+    expect(calls).toEqual([true, false]);
+  });
+
+  it('obra nova combinada antes de ele vir perguntar: builderNextJob diz qual é e quando começa', () => {
+    const s = session();
+    expect(s.builderNextJob()).toBeNull();
+    s.state.construction.repaired = ['inside'];
+    s.state.construction.askPending = true; // a obra anterior acabou: ele vai vir perguntar
+    expect(s.quoteRepair('outside', Object.values(content.finishes).find((f) => f.kind === 'facade')!.id)).toEqual({ ok: true });
+    expect(s.answerQuote(true)).toEqual({ ok: true });
+    const next = s.builderNextJob()!;
+    expect(next.job.kind).toBe('outside');
+    expect(next.startDay).toBe(s.state.day + 1);
+  });
+
   it('falar com o Tião trabalhando diz quantos dias faltam (hoje, amanhã, N); longe dele ou fora do expediente, nada', () => {
     const s = session();
     s.state.construction.repaired = ['inside', 'outside'];

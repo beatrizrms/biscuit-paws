@@ -288,6 +288,8 @@
     "hint": "Uma obra por vez. Você liga, ele passa o orçamento (pago adiantado) e começa no dia seguinte, cedinho.",
     "working": "Em obra: {work}. Termina {day}.",
     "talkToday": "Hoje eu termino! ({work})",
+    "nextTomorrow": "Terminei o serviço por aqui! Agora vou fazer a obra que você me pediu: {work}. Amanhã eu começo!",
+    "nextOnDay": "Terminei o serviço por aqui! Agora vou fazer a obra que você me pediu: {work}. Começo no dia {n}!",
     "talkTomorrow": "Termino amanhã. ({work})",
     "talkDays": "Ainda faltam {n} para terminar. ({work})",
     "tomorrow": "amanhã",

@@ -315,6 +315,41 @@
           "type": "hide"
         }
       ]
+    },
+    "cs.builder_call_again": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Tião",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.builder"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "Você liga para o Tião."
+        },
+        {
+          "type": "text",
+          "speaker": "Tião",
+          "text": "Alô! Tião falando. Precisando de mais alguma coisa aí no café?"
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Sim! Tenho mais uma obra para você."
+        },
+        {
+          "type": "text",
+          "speaker": "Tião",
+          "text": "Deixa eu anotar aqui... pronto. Vou fazer as contas."
+        },
+        {
+          "type": "hide"
+        }
+      ]
     }
   }
 }

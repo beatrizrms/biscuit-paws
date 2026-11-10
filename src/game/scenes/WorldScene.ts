@@ -2506,7 +2506,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.npcs.get(npcId)?.face(spot[0] < pc ? 'right' : 'left');
     }
     const t = uiText.construction;
-    const more = await this.ui.confirm(t.ask, t.askYes, t.askNo);
+    // Ela já ligou e combinou a próxima obra (antes de ele vir perguntar): ele avisa quando começa, sem perguntar.
+    const next = this.session.builderNextJob();
+    let more = false;
+    if (next) {
+      const what = workName(next.job);
+      const text = next.startDay === this.session.state.day + 1 ? t.nextTomorrow : t.nextOnDay.replace('{n}', String(next.startDay));
+      await this.ui.npcSay(npcId, text.replace('{work}', what));
+    } else more = await this.ui.confirm(t.ask, t.askYes, t.askNo);
     this.session.answerBuilder(more);
     // Ele vai embora andando até a saída; o Market (se ela quis mais serviço) abre enquanto ele sai.
     const npc = this.npcs.get(npcId);

@@ -1389,7 +1389,7 @@ export class GameSession {
     if (problem === 'needs_money' || this.state.money < work.cost) return { ok: false, reason: 'no_money' };
     if (problem) return { ok: false, reason: 'room_not_ready' };
     s.quote = { kind: work.kind, roomId, site: work.site, material: 0, labor: work.cost, days: work.days };
-    this.bus.emit('construction.call', { kind: work.kind });
+    this.callBuilder(work.kind);
     return { ok: true };
   }
 
@@ -2596,7 +2596,7 @@ export class GameSession {
     if (kind === 'outside' && this.content.finishes[facadeFinishId ?? '']?.kind !== 'facade') return { ok: false, reason: 'unknown_finish' };
     if (this.state.money < r.price) return { ok: false, reason: 'no_money' };
     s.quote = { kind, ...(kind === 'outside' ? { finishId: facadeFinishId } : {}), material: 0, labor: r.price, days: r.days };
-    this.bus.emit('construction.call', { kind });
+    this.callBuilder(kind);
     return { ok: true };
   }
 
@@ -2610,7 +2610,7 @@ export class GameSession {
     if (this.state.finishes[this.content.facade?.surface.id ?? ''] === finishId) return { ok: false, reason: 'already_painted' };
     if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };
     s.quote = { kind: 'facade', finishId, material: 0, labor: finish.price, days: this.content.construction.facadeDays };
-    this.bus.emit('construction.call', { kind: 'facade' });
+    this.callBuilder('facade');
     return { ok: true };
   }
 
@@ -2643,8 +2643,24 @@ export class GameSession {
     if (this.state.money < q.material + q.labor) return { ok: false, reason: 'no_money' };
     if (q.material > 0) this.addMoney(-q.material, `material:${finishId}`);
     s.quote = { kind: 'finish', surfaceId, finishId, cells: q.cells, material: q.material, labor: q.labor, days: q.days };
-    this.bus.emit('construction.call', { kind: 'finish' });
+    this.callBuilder('finish');
     return { ok: true };
+  }
+
+  /**
+   * Liga para o Tião (a cena da ligação, com o orçamento). `first`: a primeira vez no jogo (ele ainda não a conhece:
+   * "a tia Neusa falou de você"); depois, a ligação curta. Saves antigos com obra já feita contam como já ligou.
+   */
+  private callBuilder(kind: string): void {
+    const first = !this.state.flags['builder.called'] && this.state.construction.repaired.length === 0;
+    this.state.flags['builder.called'] = true;
+    this.bus.emit('construction.call', { kind, first });
+  }
+
+  /** Obra já combinada que ainda vai começar (ela ligou antes de ele vir perguntar se quer mais algum serviço). */
+  builderNextJob(): { job: ConstructionJob; startDay: number } | null {
+    const job = this.state.construction.job;
+    return job?.startDay !== undefined && job.startDay > this.state.day ? { job, startDay: job.startDay } : null;
   }
 
   /** Resposta ao orçamento: sim paga adiantado e ele vem amanhã; não devolve o material. */

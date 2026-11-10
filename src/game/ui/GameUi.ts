@@ -26,6 +26,8 @@ const LONG_TOAST_MS = 4000;
 
 /** A ligação para o construtor (data/cutscenes.json). */
 const CALL_CUTSCENE = 'cs.builder_call';
+/** A ligação das vezes seguintes (ela e o Tião já se conhecem): sem a apresentação. */
+const CALL_AGAIN_CUTSCENE = 'cs.builder_call_again';
 
 type HintMode = 'walk' | 'placing' | 'moving' | 'upgradePick' | 'dialogue';
 
@@ -168,10 +170,10 @@ export class GameUi {
 
     const bus = session.bus;
     // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não).
-    bus.on('construction.call', () => this.cutscene.request(CALL_CUTSCENE));
+    bus.on('construction.call', ({ first }) => this.cutscene.request(first ? CALL_CUTSCENE : CALL_AGAIN_CUTSCENE));
     bus.on('cutscene.finished', ({ cutsceneId }) => {
       const q = session.state.construction.quote;
-      if (cutsceneId !== CALL_CUTSCENE || !q) return;
+      if ((cutsceneId !== CALL_CUTSCENE && cutsceneId !== CALL_AGAIN_CUTSCENE) || !q) return;
       const t = uiText.construction;
       const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
       void this.confirm(text, t.yes, t.no).then((yes) => {
@@ -1062,9 +1064,10 @@ export class GameUi {
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */
-  npcSay(npcId: string, text: string): void {
+  npcSay(npcId: string, text: string): Promise<void> {
     this.dialogueQueue.push({ speaker: content.npcs[npcId]?.name ?? '', text, npc: npcId });
     this.openDialogueIfFree();
+    return this.afterDialogue();
   }
 
   private queueDialogue(dialogueId: string): void {

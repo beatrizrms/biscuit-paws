@@ -114,7 +114,7 @@ export interface GameEvents {
   'curtain.toggled': { objectId: string; open: boolean };
   'surface.painted': { surfaceId: string; finishId: string; price: number };
   /** Obras (src/core/construction.ts): ligação com o orçamento, resposta, fim da obra e a pergunta dele depois. */
-  'construction.call': { kind: string };
+  'construction.call': { kind: string; first: boolean };
   'construction.accepted': { kind: string; startDay: number; endDay: number };
   'construction.declined': { kind: string };
   'construction.done': { kind: string };
