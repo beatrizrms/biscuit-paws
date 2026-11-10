@@ -2225,14 +2225,15 @@ export class GameSession {
    * Abre ou fecha a cortina (a luz no piso só sai da janela aberta). Na primeira vez que alguma abre no jogo, a fala
    * dela sobre a vista (`dialogue`), uma vez só (flag seen.<fala>) e só se `when` valer (o quintal ainda fechado).
    */
-  toggleCurtain(objectId: string, dialogue?: string, when?: Record<string, unknown>): void {
+  toggleCurtain(objectId: string, dialogue?: string, when?: Record<string, unknown>, alt?: { when: Record<string, unknown>; dialogue: string }): void {
     const open = this.state.openCurtains ?? [];
     const opening = !open.includes(objectId);
     this.state.openCurtains = opening ? [...open, objectId] : open.filter((id) => id !== objectId);
     this.bus.emit('curtain.toggled', { objectId, open: opening });
     if (opening && dialogue && !this.state.flags[`seen.${dialogue}`] && (!when || evaluate(when as Condition, this.state, this.storyContext()))) {
       this.state.flags[`seen.${dialogue}`] = true;
-      this.bus.emit('dialogue.requested', { dialogueId: dialogue });
+      const night = alt && evaluate(alt.when as Condition, this.state, this.storyContext());
+      this.bus.emit('dialogue.requested', { dialogueId: night ? alt.dialogue : dialogue });
     }
   }
 

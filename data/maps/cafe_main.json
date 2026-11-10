@@ -119,6 +119,25 @@
             "room": "room.backyard",
             "atLeast": "abandoned"
           }
+        },
+        "dialogueAlt": {
+          "when": {
+            "any": [
+              {
+                "clock": {
+                  "gte": "18:00"
+                }
+              },
+              {
+                "not": {
+                  "clock": {
+                    "gte": "07:00"
+                  }
+                }
+              }
+            ]
+          },
+          "dialogue": "dlg.curtain_view_night"
         }
       }
     },
@@ -137,6 +156,25 @@
             "room": "room.backyard",
             "atLeast": "abandoned"
           }
+        },
+        "dialogueAlt": {
+          "when": {
+            "any": [
+              {
+                "clock": {
+                  "gte": "18:00"
+                }
+              },
+              {
+                "not": {
+                  "clock": {
+                    "gte": "07:00"
+                  }
+                }
+              }
+            ]
+          },
+          "dialogue": "dlg.curtain_view_night"
         }
       }
     }

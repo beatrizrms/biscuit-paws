@@ -806,6 +806,14 @@
           "text": "Tem muitos galhos atrapalhando a vista, mas ainda bem que bate um solzinho... De quem será que é esse terreno?"
         }
       ]
+    },
+    "dlg.curtain_view_night": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Tem muitos galhos atrapalhando a vista, e lá fora já está tudo escuro... De quem será que é esse terreno?"
+        }
+      ]
     }
   }
 }

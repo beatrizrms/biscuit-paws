@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import type { MapLight } from '../core/map';
 import { darkness, hexToRgb, rgbToHex, type RGB } from '../core/time';
 import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y } from './screen';
+import { tileScale } from './tileArt';
 
 const TINT_DEPTH = 150_000;
 const LIGHT_DEPTH = 150_001;
@@ -18,6 +19,8 @@ export class DayNightLayer {
   private lights: Phaser.GameObjects.Image[] = [];
   /** Áreas ao ar livre dentro de um mapa interno (ex.: o quintal do café): luz de fora por cima da de dentro. */
   private outdoor: Phaser.GameObjects.Rectangle[] = [];
+  /** O céu das janelas de um mapa interno: só os pixels de céu do vidro, com a cor de fora (à noite, escuro). */
+  private glass: Phaser.GameObjects.Image[] = [];
   private lastKey = '';
 
   constructor(private scene: Phaser.Scene) {
@@ -41,6 +44,47 @@ export class DayNightLayer {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, LIGHT_PX, LIGHT_PX);
     canvas.refresh();
+  }
+
+  /**
+   * Janelas do mapa (as que mostram o céu): uma máscara com só os pixels de céu do vidro (azuis), gerada uma vez por
+   * peça, recebe a cor de fora por cima da de dentro, como as áreas ao ar livre. Moldura, cortina e galhos ficam com
+   * a luz de dentro.
+   */
+  setWindowGlass(windows: readonly { x: number; y: number; sheet: string; frame: number }[]): void {
+    this.glass.forEach((g) => g.destroy());
+    this.glass = windows.map((w) =>
+      this.scene.add
+        .image(w.x, w.y, DayNightLayer.skyMask(this.scene, w.sheet, w.frame))
+        .setOrigin(0)
+        .setScale(tileScale(w.sheet))
+        .setDepth(OUTDOOR_DEPTH)
+        .setBlendMode(Phaser.BlendModes.MULTIPLY)
+        .setVisible(false),
+    );
+    this.lastKey = '';
+  }
+
+  /** Máscara do céu de uma peça: branco onde o pixel é azul (céu e brilho do vidro), transparente no resto. */
+  private static skyMask(scene: Phaser.Scene, sheet: string, frameIndex: number): string {
+    const key = `sky-mask:${sheet}:${frameIndex}`;
+    if (scene.textures.exists(key)) return key;
+    const frame = scene.textures.getFrame(sheet, frameIndex);
+    const w = frame.cutWidth;
+    const h = frame.cutHeight;
+    const canvas = scene.textures.createCanvas(key, w, h)!;
+    const ctx = canvas.getContext();
+    ctx.drawImage(frame.source.image as CanvasImageSource, frame.cutX, frame.cutY, w, h, 0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const sky = d[i + 3]! > 0 && d[i + 2]! > d[i]! + 25 && d[i + 2]! >= d[i + 1]!;
+      d[i] = d[i + 1] = d[i + 2] = 255;
+      d[i + 3] = sky ? 255 : 0;
+    }
+    ctx.putImageData(img, 0, 0);
+    canvas.refresh();
+    return key;
   }
 
   /** Troca as luzes ao mudar de mapa. */
@@ -78,6 +122,7 @@ export class DayNightLayer {
     if (outdoor) {
       const ratio = [0, 1, 2].map((i) => Math.min(255, Math.round((outdoor[i]! / Math.max(1, color[i]!)) * 255))) as RGB;
       for (const r of this.outdoor) r.setFillStyle(rgbToHex(ratio));
+      for (const g of this.glass) g.setTint(rgbToHex(ratio)).setVisible(true);
     }
     const dark = darkness(color);
     for (const l of this.lights) l.setAlpha(dark);

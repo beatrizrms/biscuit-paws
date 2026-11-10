@@ -52,6 +52,20 @@ describe('cortinas do café', () => {
     expect(said()).toBe(1);
   });
 
+  it('à noite, a primeira vez fala do escuro, não do sol (e conta como a fala da vista)', () => {
+    const { session, events } = cafe();
+    session.state.time = 19 * 60;
+    const it = content.map.interactions!.find((i) => i.id === 'int.curtain_left')!.action as { curtain: string; dialogue: string; dialogueWhen: Record<string, unknown>; dialogueAlt: { when: Record<string, unknown>; dialogue: string } };
+    session.toggleCurtain(it.curtain, it.dialogue, it.dialogueWhen, it.dialogueAlt);
+    const said = events.filter((e) => e.name === 'dialogue.requested').map((e) => (e.payload as { dialogueId: string }).dialogueId);
+    expect(said).toEqual(['dlg.curtain_view_night']);
+    // De dia, depois: não fala de novo.
+    session.state.time = 10 * 60;
+    session.toggleCurtain(it.curtain, it.dialogue, it.dialogueWhen, it.dialogueAlt);
+    session.toggleCurtain(it.curtain, it.dialogue, it.dialogueWhen, it.dialogueAlt);
+    expect(events.filter((e) => e.name === 'dialogue.requested')).toHaveLength(1);
+  });
+
   it('jardim aberto antes da primeira cortina: ela não fala dos galhos (já sabe de quem é o terreno)', () => {
     const { session, events } = cafe();
     session.state.rooms['room.backyard'] = 'abandoned';

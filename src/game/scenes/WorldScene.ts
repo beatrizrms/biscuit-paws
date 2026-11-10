@@ -588,6 +588,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Luz e sombra de ambiente: refeitas junto com o mapa (inclui os móveis colocados).
     const { content } = this.session;
+    // O céu das janelas abertas (as que jogam luz) segue a hora de fora: à noite, o vidro escurece.
+    const indoorMap = content.maps[this.map.id]?.lighting === 'indoor';
+    const glass = indoorMap ? this.map.sprites.filter((s) => s.obj && content.dayNight.ambience.windowTiles.includes(s.tile)) : [];
+    this.dayNight.setWindowGlass(glass.map((s) => ({ x: s.col * ts, y: s.row * ts - (s.dy ?? 0), sheet: s.sheet, frame: s.frame })));
     this.ambience?.setAmbience(ambienceOf(this.session.mapData(mapId), content.catalog, content.dayNight.ambience, content.maps[this.map.id]?.lighting === 'indoor'));
 
     this.solidCollider?.destroy();
@@ -1060,7 +1064,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
       else if ('sleep' in it.action) this.askSleep();
       else if ('hours' in it.action) this.ui.showHours(it.action.hours);
-      else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue, it.action.dialogueWhen);
+      else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue, it.action.dialogueWhen, it.action.dialogueAlt);
       else this.ui.openNews('board');
       return true;
     }
