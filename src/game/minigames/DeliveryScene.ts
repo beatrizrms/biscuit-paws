@@ -1,4 +1,4 @@
-// Entrega relâmpago: a rua da fuga, da ponta esquerda (A) até a porta da casa (B) na direita. Pedestres e
+// Entrega relâmpago: a rua da fuga, da ponta esquerda (A) até o cliente que espera o pedido (B) na direita. Pedestres e
 // bicicletas vão e voltam em rotas simples; esbarrar para a personagem por stunMs e estraga o pedido. O pedido
 // (café, ração, bolo) também perde qualidade com o tempo. A regra mora em src/core/delivery.ts.
 import Phaser from 'phaser';
@@ -17,7 +17,7 @@ import {
 import { resolveMap, solidRects, type ResolvedMap } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
-import { content, uiText } from '../content';
+import { content, serviceArt, uiText } from '../content';
 import { NpcSprite, npcTexture } from '../entities/Npc';
 import { Player } from '../entities/Player';
 import { iconFrame } from '../icons';
@@ -28,10 +28,12 @@ import { MiniGameScene } from './MiniGameScene';
 
 export const DELIVERY_SCENE = 'MiniGame.delivery';
 
-/** Altura do ícone do pedido acima da cabeça (px lógicos, a partir dos pés). */
-const CARRY_Y = 42;
+/** Folga entre o topo da cabeça e o ícone do pedido (px lógicos). */
+const CARRY_GAP = 10;
 /** Largura da barrinha de qualidade em cima do pedido. */
 const BAR_W = 18;
+/** O balão de pedido (40x44) em cima do cliente, na metade, como os balões de cuidado dos gatos. */
+const BUBBLE_SCALE = 0.5;
 
 interface Obstacle {
   route: ObstacleRoute;
@@ -52,7 +54,9 @@ export class DeliveryScene extends MiniGameScene {
   private safeUntil = 0;
   private carried!: Phaser.GameObjects.Image;
   private bar!: Phaser.GameObjects.Graphics;
-  private door!: Phaser.GameObjects.Image;
+  /** O cliente que espera o pedido (B): um dos visitantes do café, sorteado. */
+  private customer!: NpcSprite;
+  private goal!: { x: number; y: number };
   private arrow!: Phaser.GameObjects.Image;
   private ended: 'arrived' | 'ruined' | 'late' | null = null;
 
@@ -65,7 +69,7 @@ export class DeliveryScene extends MiniGameScene {
   }
 
   protected buildGame(): void {
-    // Bicicleta e porta viram retângulos se o arquivo faltar (assets.ts: DELIVERY; npm run pixellab).
+    // A bicicleta vira retângulo se o arquivo faltar (assets.ts: DELIVERY; npm run pixellab).
     ensurePlaceholders(this, [CHASE.arrow, ...Object.values(DELIVERY)]);
     const def = this.def;
     this.p = paramsOf<DeliveryParams>(content.minigames, 'delivery', this.launch.params.difficulty);
@@ -89,10 +93,15 @@ export class DeliveryScene extends MiniGameScene {
     const solids = this.physics.add.staticGroup();
     for (const r of solidRects(this.map.solid)) solids.add(this.add.zone(r.col * ts + (r.w * ts) / 2, r.row * ts + (r.h * ts) / 2, r.w * ts, r.h * ts));
 
-    // A porta de entrega (B) e a personagem no ponto A, com o pedido em cima da cabeça.
+    // O cliente que espera (B), virado para quem chega, com o balão do pedido; a personagem no ponto A.
+    const looks = content.service.customerLooks.map((id) => content.npcs[id]).filter((n) => n && this.textures.exists(npcTexture(n.id)));
     const [gc, gr] = def.goal!;
-    this.door = this.add.image(gc * ts + ts / 2, (gr + 1) * ts, DELIVERY.door.key, 0).setOrigin(0.5, 1).setScale(ART_SCALE).setDepth((gr + 1) * ts);
-    this.tweens.add({ targets: this.door, alpha: 0.75, duration: 500, yoyo: true, repeat: -1 });
+    this.goal = { x: gc * ts + ts / 2, y: (gr + 1) * ts - 2 };
+    if (looks.length > 0) {
+      this.customer = new NpcSprite(this, looks[this.rng.int(0, looks.length - 1)]!, this.goal.x, this.goal.y, ts);
+      this.customer.face('left');
+      this.waitingBubble();
+    }
     const [sc, sr] = def.start!;
     this.player = new Player(this, sc * ts + ts / 2, (sr + 1) * ts - 2);
     this.physics.add.collider(this.player, solids);
@@ -101,7 +110,6 @@ export class DeliveryScene extends MiniGameScene {
     this.bar = this.add.graphics().setDepth(1e6);
 
     // Obstáculos: as primeiras rotas da lista (a dificuldade diz quantas).
-    const looks = content.service.customerLooks.map((id) => content.npcs[id]).filter((n) => n && this.textures.exists(npcTexture(n.id)));
     for (const route of def.obstacles!.slice(0, this.p.obstacles)) {
       const sprite =
         route.kind === 'pedestrian' && looks.length > 0
@@ -132,7 +140,7 @@ export class DeliveryScene extends MiniGameScene {
     this.updateCarry();
     this.updateArrow();
     if (this.quality <= 0) return this.end('ruined');
-    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.door.x, this.door.y) < (this.def.goalRadius ?? 18)) this.end('arrived');
+    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.goal.x, this.goal.y) < (this.def.goalRadius ?? 18)) this.end('arrived');
   }
 
   protected resultText(r: MiniGameResult): string {
@@ -178,10 +186,29 @@ export class DeliveryScene extends MiniGameScene {
 
   // ---------- Pedido e fim ----------
 
-  /** O pedido em cima da cabeça e a barrinha de qualidade (verde -> amarela -> vermelha). */
+  /** O balão do cliente com o que ele espera (o ícone do pedido), balançando de leve. */
+  private waitingBubble(): void {
+    const top = this.customer.y - this.customer.displayHeight - 2;
+    const bubble = this.add.container(this.customer.x, top).setDepth(1e6 - 1);
+    const bg = this.add.image(0, 0, 'bubble_normal').setOrigin(0.5, 1).setScale(BUBBLE_SCALE);
+    bubble.add(bg);
+    const f = iconFrame(this, this.item.icon);
+    if (f) {
+      const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
+      bubble.add(this.add.image((sx + sw / 2 - bg.width / 2) * BUBBLE_SCALE, (sy + sh / 2 - bg.height) * BUBBLE_SCALE, f.key, f.frame).setScale(f.scale * BUBBLE_SCALE));
+    }
+    this.tweens.add({ targets: bubble, y: top - 2, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  /** Altura do ícone do pedido: logo acima da cabeça da personagem. */
+  private carryY(): number {
+    return this.player.y - this.player.displayHeight - CARRY_GAP;
+  }
+
+  /** O pedido em cima da cabeça e a barrinha de qualidade (verde -> amarela -> vermelha) logo acima dele. */
   private updateCarry(): void {
     const x = this.player.x;
-    const y = this.player.y - CARRY_Y;
+    const y = this.carryY();
     this.carried.setPosition(x, y);
     const share = this.quality / FULL_QUALITY;
     const color = share > 0.5 ? 0x68ad8a : share > 0.25 ? 0xe0a94e : 0xd9475d;
@@ -190,10 +217,10 @@ export class DeliveryScene extends MiniGameScene {
     this.setHudInfo(t.hud.replace('{item}', this.item.name).replace('{verb}', this.item.verb).replace('{quality}', String(Math.round(this.quality))));
   }
 
-  /** Seta na borda da tela apontando a porta quando ela está fora da vista (como a do gato na fuga). */
+  /** Seta na borda da tela apontando o cliente quando ele está fora da vista (como a do gato na fuga). */
   private updateArrow(): void {
     const view = this.cameras.main.worldView;
-    const t = { x: this.door.x, y: this.door.y - 8 };
+    const t = { x: this.goal.x, y: this.goal.y - 8 };
     if (view.contains(t.x, t.y)) {
       this.arrow.setVisible(false);
       return;
@@ -214,7 +241,7 @@ export class DeliveryScene extends MiniGameScene {
 
   private float(text: string): void {
     const label = this.add
-      .text(this.player.x, this.player.y - CARRY_Y - 14, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(this.player.x, this.carryY() - 14, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e6);
     this.tweens.add({ targets: label, y: label.y - 12, alpha: 0, delay: 400, duration: 500, onComplete: () => label.destroy() });

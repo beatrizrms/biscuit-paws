@@ -160,8 +160,8 @@
     },
     "delivery": {
       "name": "Entrega relâmpago",
-      "instructions": "Leve o pedido até a porta da casa no fim da rua (setas/WASD). Desvie dos pedestres e das bicicletas: cada esbarrão atrasa e estraga um pouco. E corra: o café esfria!",
-      "tutorial": {"icon":"cafe_para_viagem","lines":["Setas ou WASD para andar até a porta marcada.","Esbarrou em alguém? Para 1 s e o pedido estraga um pouco.","Chegue com mais de 50% de qualidade para o \"Perfeito!\"."]},
+      "instructions": "Leve o pedido até o cliente que está esperando no fim da rua (setas/WASD). Desvie dos pedestres e das bicicletas: cada esbarrão atrasa e estraga um pouco. E corra: o café esfria!",
+      "tutorial": {"icon":"cafe_para_viagem","lines":["Setas ou WASD para levar o pedido até o cliente que está esperando.","Esbarrou em alguém? Para 1 s e o pedido estraga um pouco.","Chegue com mais de 50% de qualidade para o \"Perfeito!\"."]},
       "reputation": {"ok":2,"great":4},
       "map": "map.minigame_chase",
       "start": [2,6],
