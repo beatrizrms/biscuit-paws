@@ -1125,9 +1125,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (st.hands.length === 0 && sv.pantryNear(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
       if (sv.carriedCat() || st.hands.some((h) => h.kind === 'heavy')) return null;
       const free = st.hands.length < sv.handsCapacity();
-      for (const eq of Object.keys(s.content.service.equipment)) {
-        const station = sv.stationsFor(eq).find((x) => x.cells.some(near));
-        if (!station) continue;
+      const station = this.stationInReach(feet);
+      if (station) {
+        const eq = sv.equipmentOf(station.uid);
         const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === eq);
         if ((sv.surfaceAt(station.at) && free) || st.hands.length === 0 || bringsWip) return cell(station.at, 'station');
       }
@@ -1475,8 +1475,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (cat && !target) return report(sv.giveToCat(cat.catId));
     }
     // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
-    const stations = Object.keys(this.session.content.service.equipment).flatMap((eq) => sv.stationsFor(eq));
-    const station = stations.find((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
+    const station = this.stationInReach(feet, target);
     if (station) {
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
@@ -1496,6 +1495,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.canPutDown(at, feet)) return report(sv.putDown(at, feet));
     }
     return false;
+  }
+
+  /**
+   * Equipamento ao alcance dos pés (`target`: só o clicado). Com vários (cafeteira e bule lado a lado), o que tem
+   * trabalho (pronto para pegar, massa para ele, cliente esperando); senão, o mais perto da célula da frente dela.
+   */
+  private stationInReach(feet: readonly Cell[], target?: Cell): { uid: string; at: Cell; cells: Cell[] } | undefined {
+    const sv = this.session.service;
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    const all = sv.allStations().filter((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
+    if (all.length <= 1) return all[0];
+    const busy = all.find((s) => sv.stationHasWork(s.uid));
+    if (busy) return busy;
+    const [fc, fr] = this.facingCell();
+    const dist = (s: { cells: Cell[] }) => Math.min(...s.cells.map(([c, r]) => Math.abs(c - fc) + Math.abs(r - fr)));
+    return [...all].sort((a, b) => dist(a) - dist(b))[0];
   }
 
   /** Deu certo: ela faz a pose da ação por um instante (data/character.json, actionMs). */
