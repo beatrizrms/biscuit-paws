@@ -180,7 +180,7 @@
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
-  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
+  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · T: tomar café · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "hotbar": {
     "label": "Barra de itens"
@@ -192,6 +192,7 @@
   "narrator": "",
   "problems": {
     "energy_full": "A energia já está cheia.",
+    "coffee_too_soon": "Acabei de tomar um café. Melhor esperar mais {n} min.",
     "seat_taken": "Esse lugar está ocupado por um cliente.",
     "no_money": "Moedas insuficientes.",
     "out_of_bounds": "Fora do café.",

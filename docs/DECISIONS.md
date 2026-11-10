@@ -686,3 +686,7 @@ Decisão: nota separada da reputação felina (que continua de 0 a 100 por trás
 ## 168. Enfeites pequenos de Natal no balcão ou no chão (nov/2026)
 Pedido: a caneca natalina não saía da mochila: só ia em cima de um balcão livre, e não havia nenhum. Pode ficar no chão, no balcão, na mão ou na mochila.
 Decisão: campo `orFloor` nos itens com `placeOn` (caneca natalina, globo de neve com gatinho e vela): numa célula com o apoio, vai em cima (sobe até o tampo, como antes); fora dele, vale como móvel de chão. Sem apoio livre, o "posicionar" da mochila continua liberado. A cafeteira, o bule e os outros itens de balcão seguem só no balcão.
+
+## 169. Tomar café com T, um por hora (nov/2026)
+Pedido: a energia não tinha um jeito visível de tomar café; com o café na mão, T toma e a energia sobe 30%; o próximo só depois de 1 h.
+Decisão: `restore.coffee` em `data/daynight.json` passa a `amount` 30 (de 100) e `everyMinutes` 60. A tecla T toma o café pronto da mão (o E não toma mais, para não disputar com servir e interagir). O save guarda `lastCoffeeAt` (minuto absoluto; opcional, sem versão nova); antes da hora, o aviso diz quantos minutos faltam. Nada muda com a energia cheia (continua não tomando).

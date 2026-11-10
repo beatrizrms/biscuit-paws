@@ -167,6 +167,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'coffee_too_soon'
         | 'seat_taken'
         | 'other_item'
         | 'unknown_job'
@@ -854,15 +855,24 @@ export class GameSession {
     return this.coffeeInHands() >= 0;
   }
 
-  /** Toma o café da mão: recompõe e a xícara fica suja na mão (vai para a pia como as outras). */
+  /** Minutos do jogo até poder tomar outro café (0 = já pode). */
+  coffeeWait(): number {
+    const last = this.state.lastCoffeeAt;
+    if (last === undefined) return 0;
+    return Math.max(0, Math.ceil(last + this.content.dayNight.energy.restore.coffee.everyMinutes - nowAbs(this.state)));
+  }
+
+  /** Toma o café da mão (tecla T): recompõe e a xícara fica suja na mão (vai para a pia como as outras). Um por hora. */
   drinkCoffee(): ActionResult {
     const i = this.coffeeInHands();
     if (i < 0) return { ok: false, reason: 'not_found' };
     if (this.energyFull()) return { ok: false, reason: 'energy_full' };
+    if (this.coffeeWait() > 0) return { ok: false, reason: 'coffee_too_soon' };
     const drink = this.state.hands[i]!;
     if (drink.kind !== 'drink') return { ok: false, reason: 'not_found' };
     this.state.hands[i] = { kind: 'dirty', vessel: drink.vessel };
     this.bus.emit('hands.changed', { count: this.state.hands.length });
+    this.state.lastCoffeeAt = nowAbs(this.state);
     this.recover('coffee', this.content.dayNight.energy.restore.coffee.amount);
     return { ok: true };
   }

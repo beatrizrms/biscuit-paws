@@ -518,9 +518,9 @@ export class GameUi {
     this.toast(uiText[key]);
   }
 
-  problem(reason: keyof typeof uiText.problems): void {
+  problem(reason: keyof typeof uiText.problems, vars: Record<string, string> = {}): void {
     services().audio.sfx('error');
-    this.toast(uiText.problems[reason] ?? reason);
+    this.toast(Object.entries(vars).reduce((t, [k, v]) => t.replaceAll(`{${k}}`, v), uiText.problems[reason] ?? reason));
   }
 
   private waitButton(until: number): string {

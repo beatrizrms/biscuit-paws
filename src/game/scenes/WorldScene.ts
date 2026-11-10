@@ -259,6 +259,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
+    // T: toma o café pronto que está na mão (recompõe energia; um por hora do jogo).
+    this.onKey('T', () => {
+      if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
+      this.tryDrinkCoffee();
+    });
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
     // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
@@ -1184,7 +1189,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Caixa de areia: a areia ativa vai para a mão e ela despeja (automáticos: abastece).
     // As duas por perto (a tigela e a caixa lado a lado): vale a que está na frente dela.
     const { bowl, box } = this.stationForHand(this.playerCells(), target);
-    if (!bowl && !box) return this.trySettleCat(target) || this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target) || this.tryDrinkCoffee();
+    if (!bowl && !box) return this.trySettleCat(target) || this.tryCareGame(target) || this.tryTreatCat(target) || this.tryPickUpCat(target) || this.tryRest(target);
     if (this.usingItem) return true;
     if (box) {
       const problem = this.session.litterProblem(box);
@@ -1887,12 +1892,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
-  /** E com um café pronto na mão e nada por perto: ela toma (a xícara fica suja na mão). */
-  private tryDrinkCoffee(): boolean {
-    if (!this.session.holdingCoffee()) return false;
+  /** T com um café pronto na mão: ela toma (a xícara fica suja na mão). Um por hora do jogo. */
+  private tryDrinkCoffee(): void {
+    if (!this.session.holdingCoffee()) return;
     const r = this.session.drinkCoffee();
-    if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
-    return true;
+    if (r.ok) return;
+    if (r.reason === 'coffee_too_soon') this.ui.problem('coffee_too_soon', { n: String(this.session.coffeeWait()) });
+    else this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
   }
 
   /**
