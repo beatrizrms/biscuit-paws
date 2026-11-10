@@ -29,8 +29,16 @@ export interface CatSpritesData {
   schemaVersion: 1;
   frameSize: number;
   columns: number;
-  animations: { name: string; row: number; frames: number; fps: number }[];
+  /** optional: só algumas folhas têm a linha (as de 64 px); sem ela, quem pede a animação usa sit. */
+  animations: { name: string; row: number; frames: number; fps: number; optional?: boolean }[];
   variants: Record<string, string>;
+  /** Pixels da folha por pixel do jogo, por variante (2 = arte em 64 px; quadro de frameSize x 2). Sem entrada, 1. */
+  resolutions?: Record<string, number>;
+}
+
+/** Resolução da folha de uma variante (1 = Cosy Cats em 32 px; 2 = arte em 64 px). */
+export function catResolution(sprites: CatSpritesData, variant: string): number {
+  return sprites.resolutions?.[variant] ?? 1;
 }
 
 export function validateCats(data: CatsData, sprites: CatSpritesData): string[] {
@@ -41,6 +49,10 @@ export function validateCats(data: CatsData, sprites: CatSpritesData): string[] 
       if (!u.cell === !u.px) errors.push(`objectUses "${tile}": cada lugar tem cell ou px (um dos dois)`);
       if (!sprites.animations.some((an) => an.name === u.action)) errors.push(`objectUses "${tile}": o Cosy Cats não tem a animação "${u.action}"`);
     }
+  }
+  for (const [variant, r] of Object.entries(sprites.resolutions ?? {})) {
+    if (!sprites.variants[variant]) errors.push(`cat_sprites: resolução para variante inexistente "${variant}"`);
+    if (r !== 1 && r !== 2) errors.push(`cat_sprites: resolução de "${variant}" deve ser 1 ou 2`);
   }
   const ids = new Set<string>();
   for (const cat of data.cats) {

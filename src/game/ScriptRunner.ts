@@ -22,6 +22,8 @@ export interface ScriptStage {
   npcToCat(npcId: string, catId: string): Promise<void>;
   catWalk(catId: string, to: Cell): Promise<void>;
   emote(who: string, balloon: string, ms: number): Promise<void>;
+  /** Fogos de artifício no céu por `ms` (não espera). */
+  fireworks(ms: number): void;
 }
 
 export class ScriptRunner {
@@ -56,6 +58,7 @@ export class ScriptRunner {
 
   private async run(step: ScriptStep): Promise<void> {
     const s = this.stage;
+    if (step.when && !this.session.holds(step.when)) return;
     if ('npcSpawn' in step) {
       if (step.map === this.session.location()) s.spawnNpc(step.npcSpawn, step.at, step.facing);
     } else if ('npcWalk' in step) await s.npcWalk(step.npcWalk, step.to);
@@ -79,5 +82,22 @@ export class ScriptRunner {
     else if ('emote' in step) await s.emote(step.emote, step.balloon, step.ms ?? 1200);
     else if ('discoverRoom' in step) this.session.discoverRoom(step.discoverRoom);
     else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
+    else if ('setTime' in step) this.session.advanceClockTo(step.setTime);
+    else if ('fireworks' in step) s.fireworks(step.fireworks);
+    else if ('secretSanta' in step) {
+      // Amigo secreto: a fala vem da sessão (quem recebeu reage; quem a tirou entrega o presente dela).
+      if (step.secretSanta === 'exchange') {
+        const r = this.session.secretSantaExchange();
+        if (!r) return;
+        this.session.say(r.dialogue);
+        await s.untilIdle();
+      } else {
+        const r = this.session.secretSantaReceive();
+        if (!r) return;
+        this.session.say(r.dialogue);
+        await s.untilIdle();
+        await s.showItem(r.itemId);
+      }
+    }
   }
 }

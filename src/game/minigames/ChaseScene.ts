@@ -10,7 +10,7 @@ import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
 import { addTileImage } from '../tileArt';
 import { Player } from '../entities/Player';
-import { catTexture, CatSprite } from '../entities/Cat';
+import { catScale, catTexture, CatSprite } from '../entities/Cat';
 import { ART_SCALE, CHASE, ensurePlaceholders, HIDE_SHEETS, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
@@ -91,9 +91,10 @@ export class ChaseScene extends MiniGameScene {
     const [cc, cr] = def.catSpawn ?? [Math.floor(this.map.cols / 2), Math.floor(this.map.rows / 2)];
     CatSprite.createAnimations(this, this.launch.catVariant);
     this.cat = this.physics.add.sprite(cc * ts + ts / 2, (cr + 1) * ts - 4, catTexture(this.launch.catVariant), 0);
-    this.cat.setOrigin(0.5, 28 / 32); // pés na linha 28 do quadro (Cosy Cats)
+    this.cat.setOrigin(0.5, 28 / 32).setScale(catScale(this.launch.catVariant)); // pés na linha 28 do quadro (Cosy Cats)
+    const res = 1 / catScale(this.launch.catVariant);
     const body = this.cat.body as Phaser.Physics.Arcade.Body;
-    body.setSize(14, 6).setOffset(9, 23).setCollideWorldBounds(true);
+    body.setSize(14 * res, 6 * res).setOffset(9 * res, 23 * res).setCollideWorldBounds(true);
     this.cat.play(`${catTexture(this.launch.catVariant)}-sit`);
     this.physics.add.collider(this.player, solids);
     this.physics.add.collider(this.cat, solids);

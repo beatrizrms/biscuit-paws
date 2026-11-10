@@ -1,9 +1,13 @@
 // Roteiros no mundo (data/scripts.json): personagens andam, acenam, falam, entram em lugares.
 // Só dados e validação: quem executa é o jogo (ScriptRunner), que avisa a sessão no fim.
 // Puro: sem Phaser, DOM ou window.
+import type { Condition } from './content';
 import type { Cell, Facing } from './map';
 
-export type ScriptStep =
+/** Qualquer passo pode ter `when` (condição da história): sem ela valer na hora, o passo é pulado. */
+export type ScriptStep = ScriptAction & { when?: Condition };
+
+type ScriptAction =
   | { npcSpawn: string; map: string; at: Cell; facing?: Facing }
   | { npcWalk: string; to: Cell }
   | { npcAnim: string; anim: string; ms: number }
@@ -27,7 +31,16 @@ export type ScriptStep =
   /** O cômodo aparece (a porta escondida surge, com o momento da descoberta). Ex.: o Tião acha a porta do quintal. */
   | { discoverRoom: string }
   /** Abre a porta de um cômodo com o item que ela pede (ex.: a chave enferrujada no cadeado do quintal). */
-  | { openDoor: string };
+  | { openDoor: string }
+  /**
+   * Amigo secreto (data/festive.json): "exchange" = ela entrega o presente e quem tirou reage (a fala sai dos dados);
+   * "receive" = ela ganha o presente de quem a tirou (mostrado grande no centro).
+   */
+  | { secretSanta: 'exchange' | 'receive' }
+  /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
+  | { setTime: string }
+  /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
+  | { fireworks: number };
 
 export interface ScriptsData {
   schemaVersion: 1;
@@ -110,6 +123,12 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!refs.balloons.has(step.balloon)) errors.push(`${where(i)}: balão inexistente "${step.balloon}"`);
       } else if ('discoverRoom' in step) {
         if (!refs.rooms.has(step.discoverRoom)) errors.push(`${where(i)}: cômodo inexistente "${step.discoverRoom}"`);
+      } else if ('fireworks' in step) {
+        if (!(step.fireworks > 0)) errors.push(`${where(i)}: fireworks precisa de uma duração (ms)`);
+      } else if ('setTime' in step) {
+        if (!/^\d{1,2}:\d{2}$/.test(step.setTime)) errors.push(`${where(i)}: hora inválida "${step.setTime}"`);
+      } else if ('secretSanta' in step) {
+        if (step.secretSanta !== 'exchange' && step.secretSanta !== 'receive') errors.push(`${where(i)}: secretSanta inválido "${String(step.secretSanta)}"`);
       } else if ('openDoor' in step) {
         if (!refs.doors.has(step.openDoor)) errors.push(`${where(i)}: porta inexistente "${step.openDoor}"`);
       } else if ('showItem' in step || 'giveItem' in step) {

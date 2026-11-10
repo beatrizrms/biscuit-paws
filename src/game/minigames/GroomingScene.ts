@@ -6,7 +6,7 @@ import { FULL_PATIENCE, groomingOutcome, groomingProgress, newGrooming, stepGroo
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { GROOMING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
@@ -49,9 +49,11 @@ export class GroomingScene extends MiniGameScene {
 
   protected buildGame(): void {
     this.p = paramsOf<GroomingParams>(content.minigames, 'grooming', this.launch.params.difficulty);
-    this.mats = this.def.mats ?? [];
-    this.zones = this.def.zones ?? [];
-    this.zoom = this.def.bodyScale ?? 8;
+    // O gato da arte nova (64 px) tem o corpo noutro lugar do quadro: nós e zonas próprios.
+    const art = catScale(this.launch.catVariant) < 1 && this.def.art64 ? this.def.art64 : this.def;
+    this.mats = art.mats ?? [];
+    this.zones = art.zones ?? [];
+    this.zoom = (art === this.def.art64 ? this.def.art64.bodyScale : undefined) ?? this.def.bodyScale ?? 8;
     this.s = newGrooming(this.mats, this.p);
     this.ended = false;
     this.reactAt = { sensitive: -Infinity, comfort: -Infinity };
@@ -71,7 +73,7 @@ export class GroomingScene extends MiniGameScene {
     CatSprite.createAnimations(this, variant);
     const sprites = content.catSprites;
     const row = sprites.animations.find((a) => a.name === SIDE_ANIM)?.row ?? 3;
-    this.cat = this.add.sprite(this.origin.x, this.origin.y, catTexture(variant), row * sprites.columns).setOrigin(0, 0).setScale(this.zoom);
+    this.cat = this.add.sprite(this.origin.x, this.origin.y, catTexture(variant), row * sprites.columns).setOrigin(0, 0).setScale(this.zoom * catScale(variant));
 
     // Os nós da partida (os primeiros da lista, pela dificuldade).
     for (const m of this.mats) {

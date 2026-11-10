@@ -37,6 +37,15 @@ export interface GameEvents {
   /** Caixa de enfeites de Natal: guardou os enfeites (fim do inverno); abriu e saiu um para posicionar. */
   'xmas.packed': { count: number };
   'xmas.box_opened': { itemId: string; left: number };
+  /** Amigo secreto: ela tirou um amigo; entregou o presente na ceia; perdeu a ceia. Manhã de Natal (avisos e meias). */
+  'xmas.santa_drawn': { npc: string };
+  'xmas.santa_exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };
+  'xmas.santa_missed': { npc: string };
+  'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number };
+  /** Véspera de Ano Novo: a vizinhança chamou para a rua (os amigos que ela conhece vão juntos). */
+  'newyear.started': { friends: string[] };
+  /** Manhã do último dia do ano (o aviso dos fogos). */
+  'newyear.eve': { gatherAt: string };
   'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
@@ -137,6 +146,8 @@ export interface GameEvents {
   'customer.arrived': { customerId: string; recipeId: string | null };
   'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
   'sink.changed': { load: number };
+  /** A lavagem na pia pausou (ela saiu da frente da pia) ou voltou a andar. */
+  'sink.paused': { paused: boolean };
   /** Lava-louças: louça entrou (load: esperando), ligou ou terminou o ciclo (washing). */
   'washer.changed': { uid: string; load: number; washing: boolean };
   /** Um equipamento (de preparo ou a lava-louças) quebrou depois de muitos usos. */

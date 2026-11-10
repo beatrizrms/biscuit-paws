@@ -1262,7 +1262,7 @@ describe('meus gatos', () => {
     expect(session.catProfiles()).toEqual([]);
     startInCafe(session);
     const [p] = session.catProfiles();
-    expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'marmalade', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
+    expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'ruivo', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
     finishPrologue(session); // come, ganha um coração e o dia vira
     expect(session.catProfiles()[0]).toMatchObject({ hearts: 1, fedToday: false, daysInCafe: 2 });
     session.state.day = 7;
@@ -1304,6 +1304,21 @@ describe('debug da história e dos cômodos', () => {
     const next = session.debugCompleteBeat();
     expect(next).toBeTruthy();
     expect(session.state.story.completed).toContain(next!);
+  });
+
+  it('pular introdução: ela fica com o que os roteiros pulados dariam (a chave da padaria, a vassoura)', () => {
+    const { session } = newSession(false);
+    session.debugCompleteStory('story.prologue_end');
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+    expect(session.state.inventory['item.broom']).toBe(1);
+    expect(session.state.flags['seen.scr.realtor_tour']).toBe(true);
+    // Save de debug que pulou antes (sem a chave): pular de novo conserta, sem dar a vassoura em dobro.
+    delete session.state.flags['received.item.key_bakery'];
+    const before = session.state.story.completed.length;
+    expect(session.debugCompleteStory('story.prologue_end')).toBe(0);
+    expect(session.state.story.completed).toHaveLength(before);
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+    expect(session.state.inventory['item.broom']).toBe(1);
   });
 
   it('concluir história: todos os marcos; abrir cômodos: todos reformados, com as passagens abertas', () => {

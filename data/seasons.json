@@ -101,6 +101,8 @@
       "sun": 2
     }
   },
+  "_weatherFixed": "Clima garantido em alguns dias, por cima do sorteio: neve na véspera e no dia de Natal.",
+  "weatherFixed": [{ "season": "winter", "from": 24, "to": 25, "weather": "snow" }],
   "weatherFx": {
     "rain": { "particle": "streak", "perTile": 0.9, "lifespan": [380, 560], "speedX": [-50, -30], "speedY": [300, 360], "alpha": 0.8, "colors": ["#a9c3e3", "#8faed6"], "darken": { "color": "#2c3a58", "alpha": 0.16 } },
     "snow": { "particle": "flake", "perTile": 0.35, "lifespan": [2600, 4200], "speedX": [-14, 10], "speedY": [16, 30], "alpha": 0.9, "colors": ["#ffffff", "#eef4fb"] },

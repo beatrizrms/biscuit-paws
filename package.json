@@ -24,6 +24,7 @@
     "pixellab": "tsx scripts/import-pixellab.ts",
     "mannequin": "tsx scripts/import-mannequin.ts",
     "npcs": "tsx scripts/import-npcs.ts",
+    "gatos": "tsx scripts/import-cats.ts",
     "minigames": "tsx scripts/import-minigames.ts"
   },
   "dependencies": {

@@ -1,9 +1,207 @@
 {
   "schemaVersion": 1,
-  "_comment": "Datas festivas. box: a caixa de enfeites de Natal. No fim do inverno, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar.",
+  "_comment": "Datas festivas. box: a caixa de enfeites de Natal. No fim do inverno, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt (com partyWhen valendo: fora do café ou no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e faz a troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt (com startWhen valendo: fora do café ou no salão) o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew e ela só vai para casa depois dos fogos.",
   "box": {
     "item": "item.xmas_box",
     "tag": "xmas",
     "opensIn": "winter"
+  },
+  "secretSanta": {
+    "season": "winter",
+    "drawDay": 18,
+    "day": 25,
+    "closeAt": "12:00",
+    "partyAt": "19:00",
+    "proposer": "npc.gabi",
+    "proposalWhen": {
+      "all": [
+        {
+          "flag": "prologue.done"
+        },
+        {
+          "location": "map.cafe_main"
+        },
+        {
+          "clock": {
+            "gte": "09:00"
+          }
+        },
+        {
+          "not": {
+            "clock": {
+              "gte": "18:00"
+            }
+          }
+        },
+        {
+          "playerRoom": "room.hall"
+        }
+      ]
+    },
+    "proposalScript": "scr.xmas_santa_draw",
+    "partyScript": "scr.xmas_party",
+    "partyWhen": {
+      "any": [
+        {
+          "not": {
+            "location": "map.cafe_main"
+          }
+        },
+        {
+          "playerRoom": "room.hall"
+        }
+      ]
+    },
+    "giftTag": "xmas_gift",
+    "points": {
+      "loved": 150,
+      "liked": 60,
+      "party": 20
+    },
+    "playerGifts": {
+      "first": "item.snow_globe_cafe",
+      "later": [
+        "item.xmas_mug",
+        "item.xmas_candle",
+        "item.snow_globe_cat",
+        "item.poinsettia"
+      ]
+    },
+    "stockings": {
+      "item": "item.xmas_stocking",
+      "happiness": 15,
+      "points": 40
+    },
+    "noGiftDialogue": "dlg.santa_no_gift",
+    "receiveDialogue": "dlg.santa_receive",
+    "friends": [
+      {
+        "npc": "npc.gabi",
+        "name": "a Gabi",
+        "known": {
+          "flag": "seen.scr.gabi_visit"
+        },
+        "likes": "item.xmas_mug",
+        "hint": "A Gabi não larga uma caneca de café quentinho... e quanto mais natalina, melhor.",
+        "dialogues": {
+          "loved": "dlg.santa_loved_gabi",
+          "liked": "dlg.santa_liked_gabi"
+        }
+      },
+      {
+        "npc": "npc.joca",
+        "name": "o Joca",
+        "known": {
+          "flag": "seen.scr.gabi_visit"
+        },
+        "likes": "item.bone_biscuits",
+        "hint": "O Joca?! Um cachorro no amigo secreto... Preciso pensar no que deixa o rabo dele balançando.",
+        "dialogues": {
+          "loved": "dlg.santa_loved_joca",
+          "liked": "dlg.santa_liked_joca"
+        }
+      },
+      {
+        "npc": "npc.neusa",
+        "name": "a Dona Neusa",
+        "known": {
+          "flag": "met.old_neighbor"
+        },
+        "likes": "item.poinsettia",
+        "hint": "A Dona Neusa vive cuidando das plantas da janela dela. Uma flor de Natal, quem sabe?",
+        "dialogues": {
+          "loved": "dlg.santa_loved_neusa",
+          "liked": "dlg.santa_liked_neusa"
+        }
+      },
+      {
+        "npc": "npc.builder",
+        "name": "o Tião",
+        "known": {
+          "flag": "builder.called"
+        },
+        "likes": "item.knit_scarf",
+        "hint": "O Tião vive reclamando do vento gelado nas obras. Algo para esquentar o pescoço...",
+        "dialogues": {
+          "loved": "dlg.santa_loved_tiao",
+          "liked": "dlg.santa_liked_tiao"
+        }
+      },
+      {
+        "npc": "npc.fernanda",
+        "name": "a Fernanda",
+        "known": {
+          "visited": "map.vet_clinic"
+        },
+        "likes": "item.snow_globe_cat",
+        "hint": "A Fernanda coleciona tudo que tem gatinho no consultório.",
+        "dialogues": {
+          "loved": "dlg.santa_loved_fernanda",
+          "liked": "dlg.santa_liked_fernanda"
+        }
+      },
+      {
+        "npc": "npc.realtor",
+        "name": "a corretora",
+        "known": {
+          "beat": "story.realtor_tour"
+        },
+        "likes": "item.xmas_candle",
+        "hint": "A corretora sempre diz que um cheirinho bom fecha qualquer negócio.",
+        "dialogues": {
+          "loved": "dlg.santa_loved_realtor",
+          "liked": "dlg.santa_liked_realtor"
+        }
+      }
+    ]
+  },
+  "newYear": {
+    "season": "winter",
+    "day": 30,
+    "gatherAt": "23:30",
+    "curfew": "25:00",
+    "when": {
+      "flag": "prologue.done"
+    },
+    "startWhen": {
+      "any": [
+        {
+          "not": {
+            "location": "map.cafe_main"
+          }
+        },
+        {
+          "playerRoom": "room.hall"
+        }
+      ]
+    },
+    "script": "scr.new_year",
+    "points": 20,
+    "fireworks": {
+      "everyMs": [
+        200,
+        480
+      ],
+      "particles": [
+        50,
+        70
+      ],
+      "speed": [
+        28,
+        70
+      ],
+      "lifespan": [
+        1000,
+        1700
+      ],
+      "colors": [
+        "#ffd166",
+        "#ef476f",
+        "#06d6a0",
+        "#7fd1ff",
+        "#f4a6ff",
+        "#ffb38a"
+      ]
+    }
   }
 }

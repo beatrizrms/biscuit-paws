@@ -749,6 +749,32 @@ describe('avaliação dos clientes (estrelas)', () => {
   });
 });
 
+describe('lavar na pia é à mão', () => {
+  it('fora da frente da pia a lavagem pausa (a barra fica parada); de volta, continua de onde parou', () => {
+    const { session, sv, state } = openCafe();
+    state.sink.load = { cup: 4, glass: 0, plate: 0 }; // 4 peças x 3 min = 12 min
+    state.service.nextCustomerAt = 1e9;
+    expect(sv.startWash()).toEqual({ ok: true });
+    const cups = state.dishes.cup;
+    advance(session, 6);
+    const half = sv.washProgress()!;
+    expect(half).toBeGreaterThan(0.3);
+    // Saiu da pia: 20 minutos depois, nada lavou e a barra não andou.
+    sv.setSinkAttended(false);
+    expect(sv.sinkPaused()).toBe(true);
+    advance(session, 20);
+    expect(state.dishes.cup).toBe(cups);
+    expect(sv.washProgress()).toBeCloseTo(half, 1);
+    // Voltou: termina no que faltava (uns 6 minutos).
+    sv.setSinkAttended(true);
+    expect(sv.sinkPaused()).toBe(false);
+    advance(session, 4);
+    expect(state.dishes.cup).toBe(cups);
+    advance(session, 4);
+    expect(state.dishes.cup).toBe(cups + 4);
+  });
+});
+
 describe('vários equipamentos ao alcance', () => {
   it('o que tem trabalho é o que tem cliente esperando um pedido dele (o bule ao lado da cafeteira)', () => {
     const state = newGameState(500, 'map.cafe_main', 10 * 60);

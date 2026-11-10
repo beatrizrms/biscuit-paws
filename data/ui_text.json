@@ -78,10 +78,18 @@
         ]
       },
       {
+        "id": "xmas",
+        "title": "Natal",
+        "seasonal": true,
+        "groups": [
+          { "tag": "xmas", "except": ["xmas_gift"], "title": "Enfeites" },
+          { "tag": "xmas_gift", "title": "Presentes de Natal" }
+        ]
+      },
+      {
         "id": "decor",
         "title": "Decor",
         "groups": [
-          { "tag": "xmas", "title": "Natal" },
           {
             "tag": "decor",
             "title": "Decoração"
@@ -279,6 +287,8 @@
     "too_early": "Ainda é cedo para dormir.",
     "no_facade": "A fachada só se pinta pelo Market, no café.",
     "customers_inside": "Ainda tem cliente no café: só vou para casa quando o último sair.",
+    "xmas_party": "Hoje tem a ceia do amigo secreto às 19h: não posso ir para casa antes!",
+    "new_year": "Hoje tem fogos à meia-noite na rua: não vou para casa antes da virada!",
     "no_days": "Escolha pelo menos um dia para abrir.",
     "too_short": "O café precisa ficar aberto mais tempo.",
     "out_of_range": "Fora do horário possível.",
@@ -646,6 +656,8 @@
     "tray": "Bandeja: {n}/{max}",
     "sinkLoad": "Pia: {n} para lavar",
     "sinkWashing": "Pia: lavando",
+    "sinkPaused": "Pia: lavagem parada (volte à pia)",
+    "sinkLeft": "A louça espera você voltar à pia.",
     "blocked": {
       "empty_menu": "Ninguém entra: o quadro está vazio. Ponha receitas (M).",
       "vessel": "Ninguém entra: tudo do quadro esgotado. Lave a louça na pia.",
@@ -742,7 +754,7 @@
     "trust": {
       "hud": "Confiança {trust}% · Sustos {scares}/{max}",
       "treat": "Petisco (P) ×{n}",
-      "hiss": "Fff!",
+      "hiss": "Fuzzzz!",
       "scared": "Assustou!",
       "result": "Confiança conquistada com {scares} susto(s).",
       "failed": "Ele se assustou demais e fugiu.",
@@ -770,6 +782,7 @@
       "hud": "Empolgação {n}% · Enjoou {bored}",
       "bored": "Enjoou...",
       "tooFast": "Rápido demais!",
+      "still": "Presa parada, que tédio...",
       "wiggle": "Balançou!",
       "pounce": "Bote!",
       "result": "Botes: {pounces} · enjoou {bored} vez(es).",
@@ -981,6 +994,20 @@
     "packed": "O Natal acabou: os {n} enfeites foram para a caixa de enfeites, na mochila. Ela abre no próximo inverno.",
     "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
     "lastOne": "Saiu da caixa: {name}. Era o último!"
+  },
+  "secretSanta": {
+    "title": "Amigo secreto",
+    "goal": "presente para {name}",
+    "ready": "presente na mochila",
+    "readyLoved": "o presente perfeito na mochila",
+    "party": "ceia às {time} no café",
+    "day": "Feliz Natal! Hoje o café fecha às {close}.",
+    "dayParty": "Feliz Natal! Hoje o café fecha às {close} e a ceia do amigo secreto é às {time}.",
+    "stockings": "Os gatos acharam petiscos nas meias de Natal!",
+    "missed": "A ceia do amigo secreto passou... A turma guardou um pedaço de panetone para você."
+  },
+  "newYear": {
+    "eve": "Último dia do ano! À meia-noite tem fogos na rua, com a vizinhança."
   },
   "seasonMenu": {
     "arrived": "Novidades no cardápio: {items}.",

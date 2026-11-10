@@ -12,6 +12,7 @@ import { capacityOf, type CapacityView } from './capacity';
 import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
+import { isChristmas } from './secretSanta';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
@@ -560,6 +561,9 @@ export class CafeService {
   isOpen(): boolean {
     // A placa de um evento (feira de adoção, Dia do Gato...) na porta: hoje o atendimento não abre.
     if (festivalClosesCafe(this.st.festivals, this.h.content.festivals, this.st.day)) return false;
+    // Natal: fecha mais cedo (data/festive.json: secretSanta.closeAt).
+    const xmas = this.h.content.festive.secretSanta;
+    if (isChristmas(this.h.content.seasons, xmas, this.st.day) && this.st.time >= parseClock(xmas.closeAt)) return false;
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 
@@ -604,14 +608,33 @@ export class CafeService {
   // ---------- Relógio ----------
 
   /**
-   * A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos.
-   * `minutes`: quantos minutos passaram desde o último tick (o relógio pode pular mais de um).
+   * Ela está em frente à pia? A cena avisa a cada quadro. Lavar na pia é à mão: fora dela, a lavagem pausa (a
+   * lava-louças lava sozinha). Padrão true (sem cena, como nos testes, a pia lava direto).
    */
-  tick(minutes = 1): void {
+  private sinkAttended = true;
+  /** Minuto do último tick, para saber quanto tempo a lavagem ficou pausada. */
+  private lastTickAt: number | null = null;
+
+  setSinkAttended(attended: boolean): void {
+    if (attended === this.sinkAttended) return;
+    this.sinkAttended = attended;
+    // Avisa (o balão do subconsciente troca "lavando" por "parada") só se há lavagem em andamento.
+    if (this.st.sink.washing) this.h.bus.emit('sink.paused', { paused: !attended });
+  }
+
+  /** Lavando na pia, mas pausado (ela saiu da frente da pia). */
+  sinkPaused(): boolean {
+    return !!this.st.sink.washing && !this.sinkAttended;
+  }
+
+  /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
+  tick(): void {
     const now = this.now();
+    const passed = this.lastTickAt === null ? 0 : Math.max(0, now - this.lastTickAt);
+    this.lastTickAt = now;
     const sv = this.st.service;
     // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
-    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += minutes;
+    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += passed;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
@@ -634,8 +657,9 @@ export class CafeService {
       }
       this.h.bus.emit('prep.ready', { stationUid: station.uid, recipeId: r.id, final: last });
     }
-    // Pia.
+    // Pia: só lava com ela em frente; fora, o fim da lavagem anda junto com o relógio (pausa).
     const washing = this.st.sink.washing;
+    if (washing && !this.sinkAttended) washing.readyAt += passed;
     if (washing && washing.readyAt <= now) {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
@@ -1086,7 +1110,9 @@ export class CafeService {
     const w = this.st.sink.washing;
     if (!w) return undefined;
     const total = loadCount(w.load) * this.cfg.washMinutesPerDish;
-    return Math.min(1, Math.max(0, 1 - (w.readyAt - this.now()) / total));
+    // Pausada (ela saiu da pia): a barra fica parada no último minuto lavado.
+    const at = this.sinkPaused() && this.lastTickAt !== null ? this.lastTickAt : this.now();
+    return Math.min(1, Math.max(0, 1 - (w.readyAt - at) / total));
   }
 
   sinkLoad(): number {

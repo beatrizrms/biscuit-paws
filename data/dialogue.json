@@ -828,6 +828,335 @@
           "text": "Tem muitos galhos atrapalhando a vista, e lá fora já está tudo escuro... De quem será que é esse terreno?"
         }
       ]
+    },
+    "dlg.santa_proposal": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Oi, {player}! Tive uma ideia: amigo secreto de Natal com a turma! Todo mundo que já passou por aqui."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "A troca é no dia 25, às 19h, aqui no café. Você fecha mais cedo nesse dia, né? Natal é Natal!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Fecho ao meio-dia. E a ceia fica por minha conta!"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Combinado! Tira o seu papelzinho... e nada de contar pra ninguém, hein?"
+        }
+      ]
+    },
+    "dlg.santa_drawn": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Você desdobra o papelzinho: é {santa:name}!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "{santa:hint}"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Os presentes de Natal estão no Market, na aba Natal. Até o dia 25!"
+        }
+      ]
+    },
+    "dlg.santa_party_arrive": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Já são 19h. A porta do café se abre e a turma vai chegando, com cheirinho de ceia e neve nos casacos."
+        }
+      ]
+    },
+    "dlg.santa_party_open": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Feliz Natal, {player}! Olha só o café, todo iluminado!"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Bom, todo mundo pronto? Hora do amigo secreto! Você começa!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Meu amigo secreto é... {santa:name}!"
+        }
+      ]
+    },
+    "dlg.santa_no_gift": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Eu... esqueci de comprar o presente. Desculpa! Fica valendo um café por minha conta o ano inteiro?"
+        },
+        {
+          "speaker": "",
+          "text": "Todo mundo ri. Ninguém liga: o que vale é a turma reunida."
+        }
+      ]
+    },
+    "dlg.santa_receive": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "E quem tirou você foi {santa:giver}! Um pacotinho embrulhado com fita vermelha..."
+        }
+      ]
+    },
+    "dlg.santa_party_end": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Melhor Natal! Ano que vem tem de novo, hein?"
+        },
+        {
+          "speaker": "",
+          "text": "A ceia vai até tarde, entre risadas, chocolate quente e gatos pedindo um pedacinho de tudo."
+        }
+      ]
+    },
+    "dlg.santa_party_after": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Que noite boa. Esse café está virando uma casa de verdade."
+        }
+      ]
+    },
+    "dlg.santa_loved_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Uma caneca natalina?! Como você sabia? Vai ser a minha caneca oficial de café, o ano inteiro!"
+        }
+      ]
+    },
+    "dlg.santa_liked_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Ah, que fofo! Obrigada, {player}. Vou levar pra casa agora mesmo."
+        }
+      ]
+    },
+    "dlg.santa_loved_joca": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "O Joca fareja o pacote, rasga o papel com o focinho e sai rodando com os biscoitos de osso."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Olha esse rabo! Você ganhou um amigo pra vida toda, {player}."
+        }
+      ]
+    },
+    "dlg.santa_liked_joca": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "O Joca cheira o presente, olha para a Gabi e se deita em cima do papel de embrulho."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Ele adorou... o papel. Mas valeu a intenção, viu?"
+        }
+      ]
+    },
+    "dlg.santa_loved_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Uma poinsétia! Ah, {g:querida|querido}... A janela lá de casa vai ficar a mais bonita da rua."
+        }
+      ]
+    },
+    "dlg.santa_liked_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que mimo! Obrigada, {g:querida|querido}. Vou guardar com carinho."
+        }
+      ]
+    },
+    "dlg.santa_loved_tiao": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Um cachecol de tricô! Agora o vento da obra que se cuide. Valeu demais, {player}!"
+        }
+      ]
+    },
+    "dlg.santa_liked_tiao": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Opa, presente! Obrigado, {player}. Vai ter lugar de honra lá em casa."
+        }
+      ]
+    },
+    "dlg.santa_loved_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Um globo de neve com gatinho! Vai direto para a minha coleção, bem na mesa do consultório."
+        }
+      ]
+    },
+    "dlg.santa_liked_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Que gentileza, {player}. Muito obrigada!"
+        }
+      ]
+    },
+    "dlg.santa_loved_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Uma vela de Natal! O escritório vai ficar com cheirinho de casa nova. Negócio fechado!"
+        }
+      ]
+    },
+    "dlg.santa_liked_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Que surpresa boa! Obrigada, {player}."
+        }
+      ]
+    },
+    "dlg.ny_call": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Quase meia-noite. Lá fora, a vizinhança vai se juntando na calçada para ver a virada do ano."
+        }
+      ]
+    },
+    "dlg.ny_countdown": {
+      "lines": [
+        {
+          "speaker": "Todos",
+          "text": "Dez, nove, oito, sete, seis, cinco, quatro..."
+        },
+        {
+          "speaker": "Todos",
+          "text": "Três... dois... um... FELIZ ANO NOVO!"
+        }
+      ]
+    },
+    "dlg.ny_happy": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Olha o céu... que lindo!"
+        }
+      ]
+    },
+    "dlg.ny_wish_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Feliz Ano Novo, {g:amiga|amigo}! Que venham muitos cafés por aqui."
+        }
+      ]
+    },
+    "dlg.ny_wish_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Feliz Ano Novo, {g:querida|querido}! Que esse café encha de gente e de gato."
+        }
+      ]
+    },
+    "dlg.ny_wish_tiao": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Ano novo, obra nova! Pode contar comigo, {player}."
+        }
+      ]
+    },
+    "dlg.ny_wish_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Feliz Ano Novo! E juízo com os gatinhos: vacina em dia, hein?"
+        }
+      ]
+    },
+    "dlg.ny_wish_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Feliz Ano Novo! O melhor negócio que eu fechei foi aquela padaria velha."
+        }
+      ]
+    },
+    "dlg.ny_end": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Os últimos fogos se apagam devagar. Pela frente, um ano inteiro de café, gatos e vizinhos."
+        }
+      ]
+    },
+    "dlg.ny_pets": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "A gente acha os fogos lindos, mas sabia que os animais sentem muito medo? Preparei um cantinho confortável pra eles lá dentro, bem protegido, pra que eles não fiquem assustados ❤️ Todo cuidado é pouco!"
+        }
+      ]
+    },
+    "dlg.ny_joca": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Nem me fala! O Joca já tá escondido atrás de mim, coitado. Ele morre de medo de fogos."
+        }
+      ]
+    },
+    "dlg.ny_thanks": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Feliz Ano Novo, gente! E {g:obrigada|obrigado} por me receberem tão bem na vila. Esse lugar já virou a minha casa."
+        }
+      ]
     }
   }
 }

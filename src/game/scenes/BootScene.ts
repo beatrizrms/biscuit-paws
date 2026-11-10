@@ -6,7 +6,7 @@ import { t } from '../i18n';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import { initServices } from '../services';
 import { startGame } from '../startGame';
-import { catTexture } from '../entities/Cat';
+import { catTexture, loadCatSheet } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
 import { sheetFrameSize } from '../tileArt';
@@ -41,10 +41,7 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(id, sheet.image, { frameWidth: size, frameHeight: size });
     }
     // Todas as folhas do Cosy Cats: os gatos gerados pelas chegadas podem ter qualquer cor (são 12 folhas pequenas).
-    const sprites = content.catSprites;
-    for (const variant of Object.keys(sprites.variants)) {
-      this.load.spritesheet(catTexture(variant), sprites.variants[variant]!, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
-    }
+    for (const variant of Object.keys(content.catSprites.variants)) loadCatSheet(this, variant);
     for (const npc of Object.values(content.npcs)) {
       this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });
     }

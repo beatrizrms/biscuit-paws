@@ -26,7 +26,7 @@ import type { Cell } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { catTexture } from '../entities/Cat';
+import { catTexScale, catTexture } from '../entities/Cat';
 import { frameOf } from '../../core/tiles';
 import { addTileImage } from '../tileArt';
 import { services } from '../services';
@@ -254,7 +254,7 @@ export class FairSetupScene extends MiniGameScene {
         // Na caixa (1x1) o gato fica pequeno, sentado na frente da portinha, para a caixa continuar aparecendo.
         const small = def.size[0] === 1;
         const cy = BOARD.y + x.at[1] * CELL + def.size[1] * CELL * (small ? 0.82 : 0.5);
-        add(this.add.sprite(cx + (small ? 8 : 0), cy, this.catTex(c), 0).setScale(small ? 0.55 : 0.9));
+        add(this.add.sprite(cx + (small ? 8 : 0), cy, this.catTex(c), 0).setScale((small ? 0.55 : 0.9) * catTexScale(this.catTex(c))));
       });
     }
 
@@ -266,7 +266,7 @@ export class FairSetupScene extends MiniGameScene {
       const g = add(this.add.graphics());
       g.fillStyle(housed ? 0xe4f2e8 : C.card, 1).fillRoundedRect(CATS.x, y, CATS.w, CATS.row - 4, 5);
       g.lineStyle(picked ? 2 : 1, picked ? C.pick : C.edge, 1).strokeRoundedRect(CATS.x, y, CATS.w, CATS.row - 4, 5);
-      add(this.add.sprite(CATS.x + 15, y + 16, this.catTex(c), 0).setScale(0.75));
+      add(this.add.sprite(CATS.x + 15, y + 16, this.catTex(c), 0).setScale(0.75 * catTexScale(this.catTex(c))));
       add(this.add.text(CATS.x + 30, y + 5, c.name, textStyle(8, '#5c3428', true)));
       add(this.add.text(CATS.x + 30, y + 17, housed ? t.catIn : t.catOut, textStyle(7, housed ? '#3f7a4a' : '#8a7a80')));
     });

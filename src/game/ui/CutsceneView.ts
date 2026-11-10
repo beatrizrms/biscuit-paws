@@ -183,6 +183,8 @@ export class CutsceneView {
     const size = sprites.frameSize;
     const style = [
       `background-image:url(${sprites.variants[cat.variant]})`,
+      // Folha em 64 px: encolhida para o tamanho do jogo (o detalhe volta com o scale).
+      `background-size:${sprites.columns * size}px auto`,
       `background-position-y:${-anim.row * size}px`,
       `--frames:${anim.frames}`,
       `--frame-size:${size}px`,

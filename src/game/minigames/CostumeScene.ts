@@ -8,7 +8,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { frameOf } from '../../core/tiles';
 import { content, uiText } from '../content';
-import { catTexture } from '../entities/Cat';
+import { catTexScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { loadCatVariants } from './assets';
@@ -217,7 +217,7 @@ export class CostumeScene extends MiniGameScene {
       const g = add(this.add.graphics());
       g.fillStyle(on ? C.on : C.card, 1).fillRoundedRect(CATS.x, y, CATS.w, CATS.row - 4, 5);
       g.lineStyle(on ? 2 : 1, on ? C.pick : C.edge, 1).strokeRoundedRect(CATS.x, y, CATS.w, CATS.row - 4, 5);
-      add(this.add.sprite(CATS.x + 15, y + 16, this.catTex(c.variant), 0).setScale(0.75));
+      add(this.add.sprite(CATS.x + 15, y + 16, this.catTex(c.variant), 0).setScale(0.75 * catTexScale(this.catTex(c.variant))));
       add(this.add.text(CATS.x + 30, y + 9, c.name, textStyle(8, '#5c3428', true)));
     });
 
@@ -235,7 +235,7 @@ export class CostumeScene extends MiniGameScene {
         add(this.add.image(x, y, pieceKey(piece)).setOrigin(0.5, slot === 'head' ? 1 : 0).setScale(ZOOM));
       };
       for (const s of COSTUME_SLOTS) if (data.slots[s].behind) wear(s);
-      add(this.add.sprite(CAT.x, CAT.y, this.catTex(cat.variant), 0).setOrigin(0.5, 28 / 32).setScale(ZOOM));
+      add(this.add.sprite(CAT.x, CAT.y, this.catTex(cat.variant), 0).setOrigin(0.5, 28 / 32).setScale(ZOOM * catTexScale(this.catTex(cat.variant))));
       for (const s of COSTUME_SLOTS) if (!data.slots[s].behind) wear(s);
     }
 

@@ -8,7 +8,7 @@ import { resolveMap } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { ART_SCALE, CHASE, ensurePlaceholders, HUNT_SHEETS, KITTEN_HUNT, loadCatVariants, loadSheets } from './assets';
@@ -145,7 +145,7 @@ export class KittenHuntScene extends MiniGameScene {
     const variants = Object.keys(content.catSprites.variants).filter((v) => this.textures.exists(catTexture(v)));
     const variant = variants[this.rng.int(0, variants.length - 1)] ?? this.launch.catVariant;
     CatSprite.createAnimations(this, variant);
-    const kitten = this.add.sprite(spot.x, spot.y - 6, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(KITTEN_SCALE).setDepth(spot.depth + 1);
+    const kitten = this.add.sprite(spot.x, spot.y - 6, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(KITTEN_SCALE * catScale(variant)).setDepth(spot.depth + 1);
     kitten.play(`${catTexture(variant)}-sit`);
     if (faded) kitten.setAlpha(0.6);
     this.tweens.add({ targets: kitten, y: spot.y - 14, duration: 220, ease: 'Back.Out' });

@@ -120,6 +120,11 @@ export interface ArrivalDef {
   cat: { id: string } | { generate: GenerateSpec };
   /** Como chega (data/cat_profiles.json: conditions). Sem ela: a do gato gerado, ou "healthy". */
   condition?: string;
+  /**
+   * Necessidades da condição que ficam para dentro do café (ex.: ["food"]: o gato que a Dona Neusa traz entra direto
+   * e come do pote, em vez de pedir ração na calçada).
+   */
+  needsInside?: CatNeed[];
   steps: ArrivalStep[];
   result?: ArrivalResult;
   whenFull: WhenFull;
@@ -288,6 +293,7 @@ export function validateArrivals(
     for (const s of t.seasons ?? []) if (!refs.seasons.has(s)) err(`${w}: estação inexistente "${s}"`);
     for (const x of t.weather ?? []) if (!refs.weather.has(x)) err(`${w}: clima inexistente "${x}"`);
     if (t.when !== undefined) checkCondition(`arrivals: ${w}`, t.when);
+    for (const n of a.needsInside ?? []) if (!['food', 'warmth', 'vet'].includes(n)) err(`${w}: needsInside desconhecida "${n}"`);
     if ('id' in a.cat) {
       if (!refs.cats.has(a.cat.id)) err(`${w}: gato inexistente "${a.cat.id}"`);
     } else {
