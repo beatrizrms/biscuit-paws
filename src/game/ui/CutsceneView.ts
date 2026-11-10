@@ -109,7 +109,7 @@ export class CutsceneView {
         this.type(this.stage.querySelector('.cs-card') as HTMLElement, fillNames(this.session, step.text));
         break;
       case 'cat':
-        this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption);
+        this.stage.innerHTML = this.catHtml(step.cat, step.animation, step.caption, step.fps);
         break;
       case 'phone':
         this.stage.innerHTML = this.phoneHtml(step);
@@ -173,7 +173,7 @@ export class CutsceneView {
   }
 
   /** Um gato animado com os quadros da folha do Cosy Cats (CSS, sem Phaser). */
-  private catHtml(catId: string, animation: string, caption?: string): string {
+  private catHtml(catId: string, animation: string, caption?: string, fps?: number): string {
     // "arrival": o gato da chegada em andamento (pode ser gerado).
     if (catId === ARRIVAL_CAT) catId = this.session.arrivals.active()?.catId ?? '';
     const cat = this.session.catDef(catId);
@@ -188,7 +188,7 @@ export class CutsceneView {
       `background-position-y:${-anim.row * size}px`,
       `--frames:${anim.frames}`,
       `--frame-size:${size}px`,
-      `animation-duration:${anim.frames / anim.fps}s`,
+      `animation-duration:${anim.frames / (fps ?? anim.fps)}s`,
       `animation-timing-function:steps(${anim.frames})`,
       `transform:scale(${CAT_SCALE})`,
     ].join(';');

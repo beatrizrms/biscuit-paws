@@ -20,6 +20,7 @@
           "type": "cat",
           "cat": "cat.tekinha",
           "animation": "play",
+          "fps": 4,
           "caption": "Tekinha"
         },
         {

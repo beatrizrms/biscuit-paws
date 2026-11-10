@@ -99,7 +99,8 @@
     "tigrado": "assets/characters/cats/cat_tigrado.png",
     "blue_point": "assets/characters/cats/cat_blue_point.png",
     "red_point": "assets/characters/cats/cat_red_point.png",
-    "creme": "assets/characters/cats/cat_creme.png"
+    "creme": "assets/characters/cats/cat_creme.png",
+    "lynx_point": "assets/characters/cats/cat_lynx_point.png"
   },
   "resolutions": {
     "ruivo": 2,
@@ -113,6 +114,7 @@
     "tigrado": 2,
     "blue_point": 2,
     "red_point": 2,
-    "creme": 2
+    "creme": 2,
+    "lynx_point": 2
   }
 }
