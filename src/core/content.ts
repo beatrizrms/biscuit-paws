@@ -508,7 +508,7 @@ export function validateContent(raw: RawContent): string[] {
     if (!ok) err(`jobs: ponto "${p.id}" abre o mini game com item inexistente "${item}"`);
   }
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
-  errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
+  errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)), icons: new Set(Object.keys(raw.icons.icons)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
   errors.push(...validateUpgrades(raw.items.upgrades ?? NO_UPGRADES, Object.fromEntries(raw.items.items.map((i) => [i.id, i])), raw.catalog));
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);

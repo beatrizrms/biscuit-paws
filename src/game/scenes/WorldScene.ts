@@ -1299,6 +1299,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       .pendingJobPoints()
       .filter((p) => !p.marker)
       .map((p) => {
+        if (p.icon) {
+          // Caixa para pegar (ícone da folha nova): no chão da célula, do tamanho das caixas do correio na porta.
+          const bottom = (p.at[1] + 1) * ts - 2;
+          const f = iconFrame(this, p.icon);
+          if (f) return this.add.image((p.at[0] + 0.5) * ts, bottom, f.key, f.frame).setScale(PARCEL_PILE_SCALE * f.scale * 2).setOrigin(0.5, 1).setDepth(ySortDepth(bottom));
+        }
         if (p.sprite) {
           // Fica no chão da célula, como as caixas do correio.
           const bottom = (p.at[1] + 1) * ts - 2;

@@ -17,8 +17,10 @@ export interface JobPoint {
   minigame?: { id: string; difficulty: 'easy' | 'normal' | 'hard'; itemId?: string };
   /** Tile desenhado no ponto enquanto ele estiver pendente (ex.: monte de neve). */
   marker?: string;
-  /** Quadro de data/emotes.json desenhado no ponto enquanto pendente, no lugar do "!" (ex.: a caixa para pegar). */
+  /** Quadro de data/emotes.json desenhado no ponto enquanto pendente, no lugar do "!". */
   sprite?: string;
+  /** Ícone de data/icons.json desenhado no chão do ponto enquanto pendente (ex.: a caixa para pegar, a mesma do correio). */
+  icon?: string;
   /** Item que ela recebe ao fazer o ponto (ex.: a caixa da entrega). */
   gives?: string;
   /** Item que ela entrega ao fazer o ponto (precisa ter). */
@@ -118,7 +120,7 @@ export function newsForDay(data: NewsData, day: number): NewsItem[] {
 export function validateJobs(
   jobs: JobsData,
   news: NewsData,
-  refs: { maps: ReadonlySet<string>; items: ReadonlySet<string>; tiles: ReadonlySet<string>; sprites: ReadonlySet<string> },
+  refs: { maps: ReadonlySet<string>; items: ReadonlySet<string>; tiles: ReadonlySet<string>; sprites: ReadonlySet<string>; icons?: ReadonlySet<string> },
 ): string[] {
   const errors: string[] = [];
   if (!(jobs.maxActive >= 1)) errors.push('jobs: maxActive precisa ser 1 ou mais');
@@ -133,6 +135,7 @@ export function validateJobs(
     if (p.action === 'minigame' && !p.minigame) errors.push(`${where}: action "minigame" precisa de "minigame": { id, difficulty }`);
     if (p.marker && !refs.tiles.has(p.marker)) errors.push(`${where}: tile inexistente "${p.marker}"`);
     if (p.sprite && !refs.sprites.has(p.sprite)) errors.push(`${where}: quadro inexistente em emotes.json "${p.sprite}"`);
+    if (p.icon && refs.icons && !refs.icons.has(p.icon)) errors.push(`${where}: ícone inexistente em icons.json "${p.icon}"`);
     for (const item of [p.gives, p.takes]) if (item && !refs.items.has(item)) errors.push(`${where}: item inexistente "${item}"`);
   }
   const jobIds = new Set<string>();
