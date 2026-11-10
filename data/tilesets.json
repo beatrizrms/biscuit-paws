@@ -872,6 +872,14 @@
       "solid": false
     },
     {
+      "id": "pixellab_praca",
+      "image": "assets/env/praca/tile_pixellab_praca.png",
+      "pieces": "pixellab_praca.json",
+      "prefix": "praca_",
+      "layer": "floor",
+      "solid": false
+    },
+    {
       "id": "pixellab_eletro",
       "image": "assets/objects/pixellab/tile_pixellab_eletro.png",
       "pieces": "pixellab_eletro.json",

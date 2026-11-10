@@ -6,6 +6,8 @@
 // `recolor` troca uma faixa de matiz por outra (cores alternativas por código, decisão 065);
 // `mirror` espelha; `over` desenha outra imagem por cima (ex.: registradora sobre o balcão);
 // `rows` remonta a peça com linhas escolhidas da origem; `wear` faz a versão velha (piso e parede antes da reforma).
+// Só algumas folhas: npm run pixellab -- <trecho do JSON de peças> (ex.: praca). Útil porque public/assets é
+// compartilhado entre os worktrees: gerar tudo regrava as folhas que outra conversa está mexendo.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
@@ -575,6 +577,15 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Praça do mini game Confiança do gato (praca/): tilesets de transição grama -> calçada de pedregulhos do PixelLab
+    // (Wang por cantos, 2 variações da borda). Nomes praca_<v>_<NW><NE><SW><SE>, com g = grama e p = pedregulho.
+    image: 'public/assets/env/praca/tile_pixellab_praca.png',
+    pieces: 'data/tilesets/pixellab_praca.json',
+    columns: 8,
+    auto: true,
+    layout: { ...wangPieces('v2'), ...wangPieces('v3') },
+  },
+  {
     // Eletrodomésticos de piso (gerados no PixelLab, cafe_equip/): a lava-louças. Nomes eletro_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_eletro.png',
     pieces: 'data/tilesets/pixellab_eletro.json',
@@ -1136,6 +1147,30 @@ function catEyes(png: PNG): PNG {
   return png;
 }
 
+/** Um pedaço da imagem (x, y, largura, altura). */
+function cropPng(src: PNG, x: number, y: number, w: number, h: number): PNG {
+  const out = new PNG({ width: w, height: h });
+  PNG.bitblt(src, out, x, y, w, h, 0, 0);
+  return out;
+}
+
+/**
+ * As 16 peças de um tileset de transição do PixelLab (praca/transicao_<v>.png + .json com os cantos de cada tile):
+ * <v>_<NW><NE><SW><SE>, com g (grama, o terreno de cima) e p (pedregulho, o de baixo).
+ */
+function wangPieces(v: string): Record<string, Piece> {
+  const meta = JSON.parse(readFileSync(`${SRC}/praca/transicao_${v}.json`, 'utf8')) as {
+    tileset_data: { tiles: { corners: Record<'NW' | 'NE' | 'SW' | 'SE', string>; bounding_box: { x: number; y: number } }[] };
+  };
+  return Object.fromEntries(
+    meta.tileset_data.tiles.map((t) => {
+      const code = (['NW', 'NE', 'SW', 'SE'] as const).map((k) => (t.corners[k] === 'upper' ? 'g' : 'p')).join('');
+      const piece: Piece = { file: '', w: 1, h: 1, build: () => cropPng(readPng(`${SRC}/praca/transicao_${v}.png`), t.bounding_box.x, t.bounding_box.y, TS, TS) };
+      return [`${v}_${code}`, piece];
+    }),
+  );
+}
+
 /** Um tile (64 px) da imagem, começando na linha y0. */
 function sliceRows(src: PNG, y0: number): PNG {
   return pickRows(src, range(y0, y0 + TS - 1));
@@ -1498,7 +1533,10 @@ const STRIPS: Strip[] = [
   },
 ];
 
+const ONLY = process.argv.slice(2);
+
 for (const sheet of SHEETS) {
+  if (ONLY.length && !ONLY.some((o) => sheet.pieces.includes(o))) continue;
   const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
   const out = new PNG({ width: sheet.columns * TS, height: rows * TS });
   const pieces: Record<string, { col: number; row: number; w_tiles: number; h_tiles: number; variants?: number; rise?: number }> = {};
@@ -1523,6 +1561,8 @@ for (const sheet of SHEETS) {
   writeFileSync(sheet.pieces, JSON.stringify({ tileSize: TS, columns: sheet.columns, rows, pieces }, null, 1) + '\n');
   console.log(`${sheet.image}: ${Object.keys(pieces).length} peças`);
 }
+// Com filtro, só as folhas pedidas (as faixas, ícones e mini games ficam como estão).
+if (ONLY.length) process.exit(0);
 
 for (const strip of STRIPS) {
   const out = new PNG({ width: strip.columns * TS, height: strip.rows.length * TS });

@@ -203,9 +203,9 @@
       "instructions": "Um gato assustado na rua. Segure para chegar perto, devagar. Se ele ficar alerta, pare e espere ele relaxar. Se ele bufar e você continuar andando, ele se assusta. Perto e com ele calmo, a confiança sobe.",
       "tutorial": {"icon":"petisco_biscoito","lines":["Segure → (ou E, Espaço, mouse) para chegar perto devagar; ← se afasta.","Ele ficou alerta (!)? Pare e espere relaxar. Bufou? Não ande!","Petisco (P) acelera a confiança. Sem nenhum susto = \"Perfeito!\"."]},
       "reputation": {"fail":-2,"ok":3,"great":6},
-      "map": "map.minigame_chase",
-      "view": [6,0,20,12],
-      "catAt": [21,6],
+      "map": "map.minigame_praca",
+      "view": [0,0,20,12],
+      "catAt": [15,6],
       "treatItem": "item.cat_treat_biscuit",
       "sounds": {"hiss":"error","scare":"error","trust":"purr","treat":"meow_1","done":"success"},
       "rewards": {

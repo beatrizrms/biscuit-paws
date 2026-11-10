@@ -60,6 +60,11 @@
         "prop_caixa_gato_olhos"
       ]
     },
+    "map.minigame_praca": {
+      "prefixes": [
+        "prop_"
+      ]
+    },
     "map.minigame_chase": {
       "prefixes": [
         "street_",

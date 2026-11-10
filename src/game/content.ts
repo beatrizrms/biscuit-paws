@@ -30,6 +30,7 @@ import deliveryJson from '../../data/delivery.json';
 import healthJson from '../../data/health.json';
 import minigamesJson from '../../data/minigames.json';
 import minigameChaseJson from '../../data/maps/minigame_chase.json';
+import minigamePracaJson from '../../data/maps/minigame_praca.json';
 import businessJson from '../../data/business.json';
 import characterJson from '../../data/character.json';
 import roomsJson from '../../data/rooms.json';
@@ -51,7 +52,7 @@ import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  maps: [cafeJson, streetJson, marketJson, vetClinicJson, minigameChaseJson],
+  maps: [cafeJson, streetJson, marketJson, vetClinicJson, minigameChaseJson, minigamePracaJson],
   world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
