@@ -1832,7 +1832,7 @@ export class GameSession {
 
   /**
    * Soma (ou tira) reputação, com o motivo (fica no log curto do save, para debug). Emite reputation.changed e,
-   * para cada limiar cruzado pela primeira vez, reputation.threshold_reached (os desbloqueios ainda não existem).
+   * para cada limiar cruzado pela primeira vez, reputation.threshold_reached; e confere os selos do café (a trilha de reputação).
    */
   addReputation(amount: number, reason: string): void {
     const { from, to, crossed } = addReputation(this.state.reputation, this.content.reputation, amount, reason, this.state.day);

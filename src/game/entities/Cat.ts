@@ -48,6 +48,8 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(14, 6).setOffset(9, 23);
     body.setCollideWorldBounds(true);
+    // Ela não empurra o gato (nem ele a ela): quem está andando para.
+    body.pushable = false;
     CatSprite.createAnimations(scene, variant);
     this.play(`${catTexture(variant)}-sit`);
   }

@@ -1,5 +1,5 @@
 // Reputação felina da cidade: um valor de 0 a max, com o motivo de cada mudança num log curto (debug) e limiares
-// que só disparam um evento (os desbloqueios ainda não existem). Puro: sem Phaser, DOM ou window; a sessão
+// que só disparam um evento (o que a reputação destrava fica nos eventos e nos selos do café, data/milestones.json). Puro: sem Phaser, DOM ou window; a sessão
 // guarda o estado no save e emite os eventos.
 import type { MiniGameResult } from './minigame';
 

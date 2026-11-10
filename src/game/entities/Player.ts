@@ -39,6 +39,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     body.setSize(width, height);
     body.setOffset((frame.width - width) / 2, frame.height - height);
     body.setCollideWorldBounds(true);
+    // Gatos e NPCs não a empurram (nem ela a eles): quem está andando para.
+    body.pushable = false;
 
     Player.createAnimations(scene);
     this.idle();
