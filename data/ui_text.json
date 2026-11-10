@@ -267,6 +267,8 @@
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "display_full": "A vitrine está cheia (6 espaços).",
     "out_of_season": "Essa receita está fora de época agora.",
+    "box_closed": "A caixa de enfeites só abre no inverno.",
+    "box_empty": "A caixa de enfeites está vazia.",
     "nothing_to_store": "Só doces vão para a vitrine.",
     "display_empty": "A vitrine está vazia.",
     "display_not_empty": "Tire os doces da vitrine antes de recolher.",
@@ -585,6 +587,8 @@
     "boxEmpty": "Vazia. Guarde aqui ração, areia, petiscos, brinquedos e cuidados dos gatos: clique no item da mochila ou arraste até a caixa.",
     "boxStored": "Guardado na caixa pet: {n} item(ns).",
     "place": "posicionar",
+    "openBox": "abrir ({n} enfeites)",
+    "boxOpensInWinter": "abre no inverno",
     "placeAtHome": "só dentro do café",
     "toBar": "pôr na barra ({n})",
     "offBar": "tirar da barra",
@@ -970,6 +974,11 @@
     "label": "Reputação",
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
+  },
+  "xmasBox": {
+    "packed": "O Natal acabou: os {n} enfeites foram para a caixa de enfeites, na mochila. Ela abre no próximo inverno.",
+    "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
+    "lastOne": "Saiu da caixa: {name}. Era o último!"
   },
   "seasonMenu": {
     "arrived": "Novidades no cardápio: {items}.",

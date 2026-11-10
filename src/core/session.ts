@@ -698,6 +698,8 @@ export class GameSession {
     this.bus.emit('cart.changed', { count: 0, total: 0 });
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
+    // Fim do inverno: os enfeites de Natal vão para a caixa (na mochila), que só abre no próximo inverno.
+    if (seasonOf(this.content.seasons, day) === 'winter' && seasonOf(this.content.seasons, day + 1) !== 'winter') this.packXmasBox();
     // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
     const menu = this.service.seasonalMenu(day);
     if (menu.arrived.length > 0 || menu.left.length > 0) this.bus.emit('menu.season', { day: day + 1, ...menu });
@@ -1599,6 +1601,67 @@ export class GameSession {
   /** Clima de hoje (data/seasons.json: weather). O debug (F9) pode escolher outro para testar. */
   weather(): string {
     return this.arrivals?.debug.weather ?? weatherOf(this.content.seasons, this.state.day);
+  }
+
+  // ---------- Caixa de enfeites de Natal ----------
+
+  /** Quantos enfeites estão na caixa. */
+  xmasBoxCount(): number {
+    return Object.values(this.state.xmasBox).reduce((n, q) => n + q, 0);
+  }
+
+  /**
+   * Fim do inverno: os enfeites de Natal (móveis com a tag xmas, posicionados ou na mochila) vão para a caixa, e a
+   * caixa fica na mochila. O que estiver em cima de um enfeite volta para a mochila também.
+   */
+  packXmasBox(): number {
+    const box = this.content.festive.box;
+    const isXmas = (id: string) => (this.content.items[id]?.kind ?? 'furniture') === 'furniture' && !!this.content.items[id]?.tags.includes(box.tag);
+    let count = 0;
+    const add = (id: string, n = 1) => {
+      this.state.xmasBox[id] = (this.state.xmasBox[id] ?? 0) + n;
+      count += n;
+    };
+    for (const p of [...this.state.placed].filter((x) => isXmas(x.item))) {
+      const i = this.state.placed.indexOf(p);
+      if (i < 0) continue;
+      // O que está em cima dele (só se ele for apoio) volta para a mochila.
+      for (const top of this.state.placed.filter((x) => x !== p && this.content.items[x.item]?.placeOn && x.at[0] === p.at[0] && x.at[1] === p.at[1] && !this.content.items[p.item]?.placeOn)) {
+        this.state.placed.splice(this.state.placed.indexOf(top), 1);
+        if (isXmas(top.item)) add(top.item);
+        else this.state.inventory[top.item] = (this.state.inventory[top.item] ?? 0) + 1;
+      }
+      this.state.placed.splice(this.state.placed.indexOf(p), 1);
+      add(p.item);
+    }
+    for (const [id, n] of Object.entries(this.state.inventory)) {
+      if (!isXmas(id) || n <= 0) continue;
+      add(id, n);
+      delete this.state.inventory[id];
+    }
+    if (count > 0) {
+      this.state.inventory[box.item] = 1;
+      this.bus.emit('xmas.packed', { count });
+    }
+    return count;
+  }
+
+  /** Abre a caixa (só no inverno): sai o próximo enfeite para a mochila, pronto para posicionar. A caixa vazia some. */
+  openXmasBox(): { ok: true; itemId: string } | { ok: false; reason: 'box_closed' | 'box_empty' } {
+    const box = this.content.festive.box;
+    if (seasonOf(this.content.seasons, this.state.day) !== box.opensIn) return { ok: false, reason: 'box_closed' };
+    const id = Object.keys(this.state.xmasBox)[0];
+    if (!id) {
+      delete this.state.inventory[box.item];
+      return { ok: false, reason: 'box_empty' };
+    }
+    const left = this.state.xmasBox[id]! - 1;
+    if (left > 0) this.state.xmasBox[id] = left;
+    else delete this.state.xmasBox[id];
+    this.state.inventory[id] = (this.state.inventory[id] ?? 0) + 1;
+    if (this.xmasBoxCount() === 0) delete this.state.inventory[box.item];
+    this.bus.emit('xmas.box_opened', { itemId: id, left: this.xmasBoxCount() });
+    return { ok: true, itemId: id };
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */

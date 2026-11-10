@@ -237,6 +237,9 @@ export class GameUi {
       if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
       this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
     });
+    // Caixa de Natal: guardou os enfeites; abriu e saiu um.
+    bus.on('xmas.packed', ({ count }) => this.toast(uiText.xmasBox.packed.replace('{n}', String(count)), 6000));
+    bus.on('xmas.box_opened', ({ itemId, left }) => this.toast((left > 0 ? uiText.xmasBox.opened : uiText.xmasBox.lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
     // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
     bus.on('menu.season', ({ arrived, left }) => {
       const names = (ids: string[]) => listNames(ids.map((id) => content.recipes[id]?.name ?? id));

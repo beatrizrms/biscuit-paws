@@ -139,6 +139,8 @@ export interface GameState {
   milestones: MilestonesState;
   /** Vitrines (v29): o que está guardado em cada uma (uid do móvel posicionado), na ordem dos espaços. */
   displays: Record<string, DisplaySlot[]>;
+  /** Caixa de enfeites de Natal (v33): o que foi guardado na virada do inverno (itemId -> quantidade). Abre no inverno. */
+  xmasBox: Record<string, number>;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -247,6 +249,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     stats: newStats(),
     milestones: newMilestones(),
     displays: {},
+    xmasBox: {},
   };
 }
 

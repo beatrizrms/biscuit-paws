@@ -45,6 +45,20 @@
         }
       ]
     },
+    "dlg.neusa_xmas_wreath": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Ô de casa! Natal sem guirlanda na porta não é Natal, {g:querida|querido}. Trouxe uma para o café."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "E guarde bem os enfeites quando o inverno acabar, que no ano que vem eles voltam. É assim que a gente faz tradição."
+        }
+      ]
+    },
     "dlg.neighbor_visit": {
       "lines": [
         {

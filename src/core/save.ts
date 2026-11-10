@@ -16,10 +16,10 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 32;
+export const SAVE_SCHEMA_VERSION = 33;
 
-export interface SaveV32 extends GameState {
-  schemaVersion: 32;
+export interface SaveV33 extends GameState {
+  schemaVersion: 33;
   savedAt: string;
 }
 
@@ -170,10 +170,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   30: (save) => ({ ...save, schemaVersion: 31, washers: {} }),
   /** v31 -> v32: desgaste dos equipamentos (quebra e conserto). Saves antigos: tudo novo, contador do zero. */
   31: (save) => ({ ...save, schemaVersion: 32, wear: {} }),
+  /** v32 -> v33: caixa de enfeites de Natal. Saves antigos: caixa vazia. */
+  32: (save) => ({ ...save, schemaVersion: 33, xmasBox: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV32 = { schemaVersion: 32, savedAt: now.toISOString(), ...state };
+  const save: SaveV33 = { schemaVersion: 33, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -227,7 +229,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV32>;
+  const v2 = save as unknown as Partial<SaveV33>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -399,6 +401,8 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     stats: normalizeStats(v2.stats, (id) => known.items.has(id)),
     milestones: normalizeMilestones(v2.milestones, known.milestones),
     // Vitrines: só as de móveis posicionados, com receitas que existem e fatias inteiras.
+    // Caixa de Natal: só itens que existem, em quantidades inteiras.
+    xmasBox: Object.fromEntries(Object.entries((v2.xmasBox ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => known.items.has(e[0]) && Number.isInteger(e[1]) && (e[1] as number) > 0)),
     displays: Object.fromEntries(
       Object.entries(v2.displays ?? {})
         .filter(([uid]) => (v2.placed ?? []).some((p) => p.uid === uid))

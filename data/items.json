@@ -1110,7 +1110,7 @@
       "id": "item.christmas_tree",
       "name": "Árvore de Natal",
       "description": "Enfeite de Natal: árvore de Natal para o café.",
-      "price": 60,
+      "price": 25,
       "tile": "prop_abeto_natal",
       "tags": [
         "furniture",
@@ -1126,7 +1126,7 @@
       "id": "item.xmas_wreath",
       "name": "Guirlanda de Natal",
       "description": "Enfeite de parede: guirlanda com laço e sininhos.",
-      "price": 18,
+      "price": 8,
       "tile": "decor_natal_guirlanda",
       "tags": [
         "furniture",
@@ -1142,7 +1142,7 @@
       "id": "item.xmas_lights",
       "name": "Luzinhas de Natal",
       "description": "Enfeite de parede: luzinhas coloridas.",
-      "price": 12,
+      "price": 6,
       "tile": "decor_natal_luzinhas",
       "tags": [
         "furniture",
@@ -1158,7 +1158,7 @@
       "id": "item.xmas_stocking",
       "name": "Meia de Natal",
       "description": "Enfeite de parede: no Natal, cada gato ganha um petisco na meia.",
-      "price": 10,
+      "price": 5,
       "tile": "decor_natal_meia",
       "tags": [
         "furniture",
@@ -1273,13 +1273,23 @@
       "name": "Globo de neve do café",
       "description": "O café dentro de um globo de neve: o presente do amigo secreto. Único.",
       "price": 0,
-      "kind": "gift",
       "tile": "decor_natal_globo_cafe",
       "tags": [
         "furniture",
         "xmas_reward"
       ],
       "placeOn": "bar"
+    },
+    {
+      "id": "item.xmas_box",
+      "name": "Caixa de enfeites de Natal",
+      "description": "Os enfeites de Natal guardados. Só abre no inverno: ao abrir, os enfeites saem um por um para você posicionar.",
+      "price": 0,
+      "kind": "key",
+      "icon": "caixa_bilhete",
+      "tags": [
+        "xmas_box"
+      ]
     },
     {
       "id": "item.display_case_empty",

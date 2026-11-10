@@ -34,6 +34,9 @@ export interface GameEvents {
   'display.stored': { uid: string; recipeId: string };
   /** Cardápio da estação (começo do dia): receitas que chegaram e as que saíram do quadro por sair de época. */
   'menu.season': { day: number; arrived: string[]; left: string[] };
+  /** Caixa de enfeites de Natal: guardou os enfeites (fim do inverno); abriu e saiu um para posicionar. */
+  'xmas.packed': { count: number };
+  'xmas.box_opened': { itemId: string; left: number };
   'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
