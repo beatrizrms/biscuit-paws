@@ -668,6 +668,7 @@ function normalizeClinic(c: unknown): ClinicState {
   const out = newClinic();
   out.consults = Number.isInteger(x.consults) && x.consults! >= 0 ? x.consults! : 0;
   out.friendSaid = x.friendSaid === true;
+  out.debt = typeof x.debt === 'number' && x.debt > 0 ? Math.round(x.debt) : 0;
   for (const [day, n] of Object.entries(x.surgeries ?? {})) if (/^\d+$/.test(day) && Number.isInteger(n) && n > 0) out.surgeries[day] = n;
   return out;
 }

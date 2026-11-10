@@ -218,6 +218,56 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(said).toBe(1);
   });
 
+  it('fiado: sem dinheiro e sem dívida, castra no fiado; a próxima castração paga a dívida junto (retroativa)', () => {
+    const { state, session, id } = setup({ neutered: false, money: content.health.prices.consult });
+    toClinic(session, state, id);
+    expect(session.clinicIntake(id).ok).toBe(true);
+    expect(state.money).toBe(0);
+    const exam = session.clinicExam(id)!;
+    expect(exam.neuterPay).toBe('credit');
+    expect(session.clinicBookNeuter(id).ok).toBe(true);
+    expect(state.clinic.debt).toBe(neuter.price);
+    // Outro gato: com dívida e sem dinheiro, não há outro fiado.
+    const id2 = 'cat.gen.2';
+    state.catDefs[id2] = { id: id2, variant: 'preto', personality: 'sweet', nameSuggestions: ['B'], tags: ['generated', 'condition:healthy'] };
+    session.shelterCat(id2, 'healthy', undefined, false, true, { neutered: false });
+    state.location = 'map.cafe_main';
+    toClinic(session, state, id2);
+    expect(session.clinicIntakeQuote(id2)).toEqual({ problem: 'no_money' });
+    // Com dinheiro: a consulta é à vista; a castração cobra a dívida junto.
+    state.money = 1000;
+    expect(session.clinicIntake(id2).ok).toBe(true);
+    const money = state.money;
+    expect(session.clinicBookNeuter(id2).ok).toBe(true);
+    expect(state.money).toBe(money - neuter.price * 2);
+    expect(state.clinic.debt).toBe(0);
+  });
+
+  it('consulta de doença de quem nunca fez os testes (o Botinhas): a Fernanda aproveita e faz o checkup', () => {
+    const state = newGameState(1000, 'map.cafe_main');
+    state.flags['clinic.open'] = true;
+    const session = new GameSession(content, state);
+    session.shelterCat('cat.first_stray');
+    session.makeSick('cat.first_stray');
+    let checkups = 0;
+    session.bus.on('clinic.checkup', () => checkups++);
+    toClinic(session, state, 'cat.first_stray');
+    expect(session.consult('cat.first_stray').ok).toBe(true);
+    expect(checkups).toBe(1);
+    expect(Object.values(state.cats['cat.first_stray']!.tests ?? {}).every((t) => t === 'negative')).toBe(true);
+    expect(session.clinicExam('cat.first_stray')?.status).toBe('neutered');
+  });
+
+  it('a latinha vem da mochila (não precisa estar na barra) e não vai sozinha para a barra', () => {
+    const { state, session, id } = setup({ neutered: false });
+    session.debugBookNeuter(id);
+    session.debugClinicMorning();
+    expect(state.hotbar.slots.includes(content.clinic.pen.food)).toBe(false);
+    expect(session.canFeedIsolated('box')).toBe(true);
+    expect(session.feedIsolated('box').ok).toBe(true);
+    expect(session.canFeedIsolated('box')).toBe(false);
+  });
+
   it('save antigo (v35): os gatos ganham estado reprodutivo (sempre o mesmo) e ficam com os outros', () => {
     const raw = fs.readFileSync('tests/fixtures/save_v35.json', 'utf8');
     const load = () => new GameSession(content, parseSave(raw, knownIds(content)).state);

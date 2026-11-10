@@ -33,6 +33,8 @@ export interface ClinicConfig {
   intake: { requiresFlag: string };
   /** Desconto de amiga: a partir da fromConsult-ésima consulta paga. */
   discount: { fromConsult: number; share: number };
+  /** Fiado: sem dinheiro e sem dívida, fica devendo; paga junto (retroativo) na próxima castração. */
+  credit: { allowed: boolean };
   /** Leitos de internação (gatos do abrigo de um dia para o outro; na CED, os de colônia). */
   ward: { beds: number };
   /**
@@ -70,10 +72,12 @@ export interface ClinicState {
   friendSaid: boolean;
   /** Cirurgias marcadas por dia (dia -> quantas): a agenda. */
   surgeries: Record<string, number>;
+  /** Fiado: quanto ela deve à clínica (paga junto na próxima castração; com dívida, não há outro fiado). */
+  debt: number;
 }
 
 export function newClinic(): ClinicState {
-  return { consults: 0, friendSaid: false, surgeries: {} };
+  return { consults: 0, friendSaid: false, surgeries: {}, debt: 0 };
 }
 
 export function procedureOf(cfg: ClinicConfig, id: string): ProcedureDef | undefined {
@@ -120,6 +124,17 @@ export function clinicBill(cfg: ClinicConfig, st: ClinicState, parts: { consult:
   const subtotal = parts.consult + parts.medicine + parts.procedure;
   const discount = friendDiscount(cfg, st) ? Math.round(subtotal * cfg.discount.share) : 0;
   return { subtotal, discount, total: subtotal - discount };
+}
+
+/**
+ * Como pagar uma conta da clínica: à vista (com a dívida anterior junto, se `withDebt`), no fiado (sem dinheiro e sem
+ * dívida) ou não dá (sem dinheiro e já devendo).
+ */
+export function payPlan(cfg: ClinicConfig, st: ClinicState, money: number, total: number, withDebt: boolean): { kind: 'cash'; due: number } | { kind: 'credit' } | { kind: 'no_money' } {
+  const due = total + (withDebt ? st.debt : 0);
+  if (money >= due) return { kind: 'cash', due };
+  if (cfg.credit.allowed && st.debt === 0) return { kind: 'credit' };
+  return { kind: 'no_money' };
 }
 
 /** Os testes de doenças transmissíveis da entrada. Por enquanto o resultado é sempre negativo. */

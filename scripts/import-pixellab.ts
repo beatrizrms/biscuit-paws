@@ -1630,6 +1630,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['chocolate_quente', 'cha_camomila_mel', 'torta_morango', 'fatia_torta_morango', 'cha_gelado_frutas_vermelhas', 'sorvete_morango', 'cha_gelado_limao', 'pao_de_mel', 'latte_abobora', 'abobora', 'panetone', 'fatia_panetone', 'rabanada'] as const).map((name) => ({ name, file: `${SRC}/08_estacoes/${name}.png` })),
     // Natal (pedido 09): os presentes que não são enfeite (o cachecol do Tião e os biscoitos do Joca).
     ...(['cachecol', 'biscoito_osso'] as const).map((name) => ({ name, file: `${SRC}/09_natal/${name}.png` })),
+    // Castração: a latinha Recovery (comida úmida do cercadinho), Pro Flash 64x64 com a escova como âncora.
+    { name: 'lata_recovery', file: `${SRC}/icones_extra/lata_recovery.png` },
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

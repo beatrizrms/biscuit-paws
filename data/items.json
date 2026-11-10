@@ -33,16 +33,15 @@
     {
       "id": "item.food_recovery",
       "name": "Recovery (latinha)",
-      "description": "Comida úmida de recuperação, em latinha. Com ela na mão, E no cercadinho alimenta todos os gatos que estão lá dentro.",
+      "description": "Comida úmida de recuperação, em latinha. Fica na mochila: E no cercadinho alimenta todos os gatos que estão lá dentro.",
       "price": 8,
       "kind": "consumable",
-      "icon": "racao_premium",
+      "icon": "lata_recovery",
       "tags": [
         "cat:food",
         "pet",
         "food"
-      ],
-      "use": "recovery_pen"
+      ]
     },
     {
       "id": "item.cat_treat_biscuit",

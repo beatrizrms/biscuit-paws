@@ -160,8 +160,8 @@ export interface EconomyData {
 
 /** Condição de história, escrita em JSON. */
 /** Onde um item da barra é usado. */
-export type ItemUse = 'food_bowl' | 'litter_box' | 'cat' | 'medicine' | 'wand' | 'brush' | 'recovery_pen';
-export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'litter_box', 'cat', 'medicine', 'wand', 'brush', 'recovery_pen'];
+export type ItemUse = 'food_bowl' | 'litter_box' | 'cat' | 'medicine' | 'wand' | 'brush';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'litter_box', 'cat', 'medicine', 'wand', 'brush'];
 
 export type Condition =
   | { all: Condition[] }

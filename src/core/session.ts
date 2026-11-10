@@ -271,7 +271,6 @@ export class GameSession {
       dropCarriedCatAway: () => this.service.releaseCarriedCat(),
       holdCat: (id) => this.service.pickUpCat(id).ok,
       prescriptionDays: (id) => prescriptionDays(content.health, this.state.day, id),
-      activeUse: (use) => this.activeUse(use),
       removeFromInventory: (id) => this.removeFromInventory(id),
     });
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
@@ -1721,9 +1720,9 @@ export class GameSession {
     };
   }
 
-  /** A latinha Recovery está ativa na barra? (aí o E no cercadinho alimenta quem está lá) */
-  holdingRecoveryFood(): boolean {
-    return !!this.activeUse('recovery_pen');
+  /** Tem latinha Recovery na mochila e alguém com fome no cercadinho (uid) ou na caixinha ('box')? */
+  canFeedIsolated(where: string): boolean {
+    return (this.state.inventory[this.content.clinic.pen.food] ?? 0) > 0 && this.clinic.hungryIn(where).length > 0;
   }
 
   /** A latinha Recovery no cercadinho (uid) ou na caixinha do canto ('box'). */
@@ -2172,6 +2171,9 @@ export class GameSession {
     this.state.inventory[med] = (this.state.inventory[med] ?? 0) + q.days;
     this.state.flags['vet.consulted'] = true;
     this.bus.emit('cat.diagnosed', { catId, disease: q.disease, days: q.days, total: q.total, onCredit: q.onCredit });
+    // Gato que nunca fez os testes (o Botinhas, doente quando a clínica abre): a Fernanda aproveita e faz FIV, FeLV e o
+    // checkup, sem cobrar a mais; o estado da castração fica confirmado.
+    this.clinic.checkup(catId);
     this.advanceStory();
     return { ok: true };
   }

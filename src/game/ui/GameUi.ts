@@ -365,6 +365,9 @@ export class GameUi {
       if (missedFeed) this.toast(fernanda(vetLine(session, 'neuter.missedFeed', {}, catId)), 5000);
     });
     bus.on('clinic.friend_discount', () => this.toast(fernanda(vetLine(session, 'discount.friend')), 7000));
+    bus.on('clinic.checkup', ({ catId }) => this.toast(fernanda(vetLine(session, 'intake.checkup', {}, catId)), 7000));
+    bus.on('clinic.credit', () => this.toast(fernanda(vetLine(session, 'credit.offer')), 5000));
+    bus.on('clinic.debt_paid', () => this.toast(fernanda(vetLine(session, 'credit.retroactive')), 6000));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));

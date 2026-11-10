@@ -28,6 +28,12 @@ export interface GameEvents {
   'clinic.complication': { catId: string; missedFeed: boolean };
   'clinic.complication_fixed': { catId: string };
   'clinic.friend_discount': Record<string, never>;
+  /** Fiado na clínica: quanto entrou agora e quanto ela deve. */
+  'clinic.credit': { amount: number; debt: number };
+  /** A dívida da clínica foi paga (junto da castração). */
+  'clinic.debt_paid': { amount: number };
+  /** A Fernanda aproveitou outra consulta para os testes e o checkup. */
+  'clinic.checkup': { catId: string };
   /** Contágio: pegou a doença de outro gato. */
   'cat.infected': { catId: string; fromCatId: string; disease: string };
   /** De manhã: gatos doentes demais, os clientes evitam o café. */

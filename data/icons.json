@@ -666,6 +666,11 @@
       "col": 3,
       "row": 16,
       "sheet": "pixellab"
+    },
+    "lata_recovery": {
+      "col": 4,
+      "row": 16,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

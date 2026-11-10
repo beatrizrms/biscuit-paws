@@ -11,6 +11,7 @@ import {
   friendDiscount,
   neuterBlock,
   procedureOf,
+  payPlan,
   runTests,
   type CatClinicStage,
   type ClinicConfig,
@@ -54,8 +55,6 @@ export interface ClinicHost {
   holdCat(catId: string): boolean;
   /** Receita da doença: dias (sorteados) e o preço do remédio por dia. */
   prescriptionDays(catId: string): number;
-  /** O item ativo na barra serve para isto? (a latinha no cercadinho) */
-  activeUse(use: 'recovery_pen'): string | null;
   removeFromInventory(itemId: string): void;
 }
 
@@ -68,6 +67,8 @@ export interface IntakeQuote {
   total: number;
   /** A Fernanda dá o desconto de amiga nesta consulta. */
   friend: boolean;
+  /** Sem dinheiro e sem dívida: fica no fiado (paga na próxima castração). */
+  onCredit: boolean;
 }
 
 /** O que a jogadora fica sabendo no fim da consulta (a ficha da clínica). */
@@ -84,6 +85,9 @@ export interface ExamResult {
   neuter: { block: NeuterBlock | 'no_beds' | 'no_slots'; readyDay?: number } | null;
   /** Preço da castração agora (com o desconto de amiga). */
   neuterPrice: number;
+  /** Fiado: a dívida de agora e como a castração seria paga (à vista com a dívida junto, fiado ou não dá). */
+  debt: number;
+  neuterPay: 'cash' | 'credit' | 'no_money';
 }
 
 export type ClinicProblem =
@@ -204,9 +208,16 @@ export class ClinicFlow {
     return { pen, box };
   }
 
-  /** A latinha no cercadinho (ou na caixinha): alimenta todos os isolados de lá. Gasta uma latinha. */
+  /** Quem está com fome no cercadinho (ou na caixinha do canto). */
+  hungryIn(where: string): string[] {
+    const a = this.penAssignments();
+    return (where === 'box' ? a.box : (a.pen[where] ?? [])).filter((id) => this.st.cats[id]!.fedOn !== this.st.day);
+  }
+
+  /** A latinha (da mochila) no cercadinho (ou na caixinha): alimenta todos os isolados de lá. Gasta uma latinha. */
   feedIsolated(where: string): { ok: true; fed: string[] } | { ok: false; reason: ClinicProblem } {
-    const item = this.h.activeUse('recovery_pen');
+    const food = this.h.clinic.pen.food;
+    const item = (this.st.inventory[food] ?? 0) > 0 ? food : null;
     if (!item) return { ok: false, reason: 'needs_recovery_food' };
     const a = this.penAssignments();
     const cats = (where === 'box' ? a.box : (a.pen[where] ?? [])).filter((id) => this.st.cats[id]!.fedOn !== this.st.day);
@@ -232,8 +243,9 @@ export class ClinicFlow {
     const days = cat.sickness && !cat.sickness.treatment ? this.h.prescriptionDays(catId) : 0;
     const medicine = days * this.h.health.prices.medicinePerDay;
     const bill = clinicBill(this.h.clinic, this.st.clinic, { consult: this.h.health.prices.consult, medicine, procedure: 0 });
-    const q = { catId, consult: this.h.health.prices.consult, medicine, discount: bill.discount, total: bill.total, friend: friendDiscount(this.h.clinic, this.st.clinic) };
-    return this.st.money < q.total ? { problem: 'no_money' } : q;
+    const plan = payPlan(this.h.clinic, this.st.clinic, this.st.money, bill.total, false);
+    if (plan.kind === 'no_money') return { problem: 'no_money' };
+    return { catId, consult: this.h.health.prices.consult, medicine, discount: bill.discount, total: bill.total, friend: friendDiscount(this.h.clinic, this.st.clinic), onCredit: plan.kind === 'credit' };
   }
 
   /**
@@ -243,7 +255,7 @@ export class ClinicFlow {
   intakeConsult(catId: string): { ok: true; exam: ExamResult } | { ok: false; reason: ClinicProblem } {
     const q = this.intakeQuote(catId);
     if ('problem' in q) return { ok: false, reason: q.problem };
-    this.payConsult(q.total, 'vet:intake');
+    this.payConsult(q.total, 'vet:intake', q.onCredit);
     const cat = this.st.cats[catId]!;
     cat.tests = runTests(this.h.clinic);
     cat.repro!.known = cat.repro!.status;
@@ -262,10 +274,25 @@ export class ClinicFlow {
     return { ok: true, exam };
   }
 
-  /** Paga uma consulta (conta para o desconto de amiga; a 1ª com desconto, a Fernanda comenta). */
-  payConsult(total: number, reason: string): void {
+  /** Checkup junto de outra consulta: testes, estado da castração confirmado (só quem nunca foi examinado). */
+  checkup(catId: string): boolean {
+    const cat = this.st.cats[catId];
+    if (!cat?.repro || cat.tests) return false;
+    cat.tests = runTests(this.h.clinic);
+    cat.repro.known = cat.repro.status;
+    if (cat.clinic?.stage === 'intake') cat.clinic = undefined;
+    this.h.bus.emit('cat.examined', { catId, status: cat.repro.status, earTipped: cat.repro.earTipped });
+    this.h.bus.emit('clinic.checkup', { catId });
+    return true;
+  }
+
+  /** Paga uma consulta (ou põe no fiado). Conta para o desconto de amiga; a 1ª com desconto, a Fernanda comenta. */
+  payConsult(total: number, reason: string, onCredit = false): void {
     const friend = friendDiscount(this.h.clinic, this.st.clinic);
-    this.h.addMoney(-total, reason);
+    if (onCredit) {
+      this.st.clinic.debt += total;
+      this.h.bus.emit('clinic.credit', { amount: total, debt: this.st.clinic.debt });
+    } else this.h.addMoney(-total, reason);
     this.st.clinic.consults += 1;
     if (friend && !this.st.clinic.friendSaid) {
       this.st.clinic.friendSaid = true;
@@ -293,6 +320,8 @@ export class ClinicFlow {
       disease: cat.sickness?.disease ?? null,
       neuter: block ?? (booking ? { block: booking } : null),
       neuterPrice: clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total,
+      debt: this.st.clinic.debt,
+      neuterPay: payPlan(cfg, this.st.clinic, this.st.money, clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total, true).kind,
     };
   }
 
@@ -306,8 +335,16 @@ export class ClinicFlow {
     if (!exam) return { ok: false, reason: 'not_examined' };
     // Já castrado: a Fernanda avisa e não opera (nem cobra).
     if (exam.neuter) return { ok: false, reason: exam.neuter.block };
-    if (this.st.money < exam.neuterPrice) return { ok: false, reason: 'no_money' };
-    this.payConsult(exam.neuterPrice, 'vet:neuter');
+    // Castração: paga junto a dívida anterior (retroativa); sem dinheiro e sem dívida, fica no fiado.
+    const plan = payPlan(this.h.clinic, this.st.clinic, this.st.money, exam.neuterPrice, true);
+    if (plan.kind === 'no_money') return { ok: false, reason: 'no_money' };
+    if (plan.kind === 'cash' && this.st.clinic.debt > 0) {
+      const old = this.st.clinic.debt;
+      this.st.clinic.debt = 0;
+      this.h.addMoney(-old, 'vet:debt');
+      this.h.bus.emit('clinic.debt_paid', { amount: old });
+    }
+    this.payConsult(exam.neuterPrice, 'vet:neuter', plan.kind === 'credit');
     const day = this.st.day;
     this.st.clinic.surgeries[String(day)] = (this.st.clinic.surgeries[String(day)] ?? 0) + 1;
     this.st.cats[catId]!.clinic = { stage: 'ward', until: day + 1, procedure: NEUTER, returnBy: 'vet' };

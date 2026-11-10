@@ -17,7 +17,8 @@
     "noBeds": "Hoje não tenho leito livre. Amanhã a gente vê isso.",
     "noSlots": "A agenda de cirurgias de hoje lotou. Me traz amanhã que eu encaixo.",
     "stayOvernight": "Pode deixar {cat} aqui esta noite. Amanhã você busca.",
-    "takeHome": "Pode levar. No café, {cat} já pode conhecer a turma."
+    "takeHome": "Pode levar. No café, {cat} já pode conhecer a turma.",
+    "checkup": "Já que {cat} veio, aproveitei e fiz os testes de FIV e FeLV e um checkup geral. Deu tudo negativo, e o resto está ótimo."
   },
   "neuter": {
     "why": "Castrar evita ninhadas sem lar e deixa a vida dos gatos mais tranquila: menos briga, menos fuga.",
@@ -31,6 +32,11 @@
     "complication": "O pontinho de {cat} inflamou um pouco. Traz aqui que eu dou uma olhada, não é nada grave.",
     "complicationFixed": "Pronto, limpei e está tudo bem. Fica de olho se {sex:ele|ela} está comendo, tá?",
     "missedFeed": "Gato em recuperação precisa comer certinho, viu? Mas já está tudo sob controle."
+  },
+  "credit": {
+    "offer": "Pode deixar, a gente acerta na próxima castração.",
+    "retroactive": "Lembra daquela castração que ficou para depois? Vamos acertar junto com esta.",
+    "noCredit": "Antes de fazer outra no fiado, precisamos acertar a anterior."
   },
   "discount": {
     "friend": "Você vem tanto aqui que já virou {g:amiga|amigo} da casa! A partir de agora tem um descontinho de amiga, combinado?"

@@ -879,7 +879,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!where) for (const [id, img] of this.isoBoxes) if (near([[Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)]])) where = 'box', void id;
     if (!where) return false;
     const st = this.session.state;
-    if (this.session.holdingRecoveryFood()) {
+    // A latinha vem da mochila: com alguém com fome lá, o E alimenta; senão (todos comeram), pega o gato.
+    if (this.session.canFeedIsolated(where)) {
       const r = this.session.feedIsolated(where);
       if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
       return true;

@@ -98,11 +98,6 @@ export class ConsultPanel {
       if (!r.ok) return this.onProblem(r.reason);
       this.close();
       this.onDone(vetLine(s, 'neuter.booked', {}, m.catId));
-    } else if (act === 'overnight' && m.kind === 'exam') {
-      const r = s.clinicLeaveOvernight(m.catId);
-      if (!r.ok) return this.onProblem(r.reason);
-      this.close();
-      this.onDone(vetLine(s, 'intake.stayOvernight', {}, m.catId));
     } else if (act === 'home' && m.kind === 'exam') {
       this.close();
       this.onDone(vetLine(s, 'intake.takeHome', {}, m.catId));
@@ -173,7 +168,8 @@ export class ConsultPanel {
           ${q.discount ? `<span>${c.discount}</span><b>-${q.discount} ${cur}</b>` : ''}
           <span class="total">${c.total}</span><b class="total">${q.total} ${cur}</b>
         </div>
-        <button class="pay" data-act="pay-intake">${fill(c.pay, { total: `${q.total} ${cur}` })}</button>`;
+        ${q.onCredit ? `<p class="credit">${c.creditNote}</p>` : ''}
+        <button class="pay" data-act="pay-intake">${q.onCredit ? c.payCredit : fill(c.pay, { total: `${q.total} ${cur}` })}</button>`;
       return;
     }
     // Ficha do gato examinado: o que ela sabe agora e o que fazer.
@@ -195,13 +191,28 @@ export class ConsultPanel {
         <span>${c.tests}</span><b>${esc(tests)}</b>
         <span>${c.status}</span><b>${esc(status)}${exam.earTipped ? ` · ${esc(uiText.cats.earTipped)}` : ''}</b>
       </div>
-      ${
-        exam.neuter
-          ? ''
-          : `<button class="pay" data-act="neuter">${esc(fill(c.neuter, { price: `${exam.neuterPrice} ${cur}` }))}</button><p class="desc">${esc(catSexText(s, c.neuterNote, m.catId))}</p>`
-      }
-      <button class="pay" data-act="overnight">${c.overnight}</button>
-      <button class="pay" data-act="home">${c.takeHome}</button>`;
+      <p class="choose">${c.choose}</p>
+      ${this.neuterOption(exam)}
+      ${this.option('home', c.takeHome, exam.neuter?.readyDay ? fill(catSexText(s, c.takeHomeNoteWait, m.catId), { day: exam.neuter.readyDay }) : c.takeHomeNote)}`;
+  }
+
+  /** Um cartão de opção: o botão e, embaixo, o que acontece. */
+  private option(act: string, title: string, note: string, extra = '', disabled = false): string {
+    return `<div class="option${disabled ? ' off' : ''}"><button class="pay" data-act="${act}"${disabled ? ' disabled' : ''}>${esc(title)}</button><p class="desc">${esc(note)}</p>${extra ? `<p class="desc note">${esc(extra)}</p>` : ''}</div>`;
+  }
+
+  /** A opção de castrar: à vista (com a conta anterior junto), no fiado ou sem dinheiro. Não opera: sem cartão. */
+  private neuterOption(exam: ExamResult): string {
+    if (exam.neuter) return '';
+    const c = uiText.clinic;
+    const cur = content.economy.currency;
+    const name = this.session.catName(exam.catId);
+    const note = fill(c.neuterNote, { name });
+    const price = `${exam.neuterPrice} ${cur}`;
+    const debt = `${exam.debt} ${cur}`;
+    if (exam.neuterPay === 'no_money') return this.option('neuter', fill(c.neuter, { price }), note, fill(c.neuterNoMoney, { debt }), true);
+    if (exam.neuterPay === 'credit') return this.option('neuter', c.neuterCredit, note, fill(c.neuterCreditNote, { price }));
+    return this.option('neuter', fill(c.neuter, { price: `${exam.neuterPrice + exam.debt} ${cur}` }), note, exam.debt > 0 ? fill(c.neuterDebt, { debt }) : '');
   }
 
   /** Ficha reaberta (gato trazido depois): a fala sobre a castração pelo estado de agora. */
