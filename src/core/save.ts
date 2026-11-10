@@ -16,10 +16,10 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 
-export const SAVE_SCHEMA_VERSION = 29;
+export const SAVE_SCHEMA_VERSION = 30;
 
-export interface SaveV29 extends GameState {
-  schemaVersion: 29;
+export interface SaveV30 extends GameState {
+  schemaVersion: 30;
   savedAt: string;
 }
 
@@ -164,10 +164,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   27: (save) => ({ ...save, schemaVersion: 28, milestones: null }),
   /** v28 -> v29: baús do café (a caixa pet). Saves antigos não têm nenhum: começam vazios. */
   28: (save) => ({ ...save, schemaVersion: 29, petBoxes: {} }),
+  /** v29 -> v30: vitrines da confeitaria. Saves antigos: nenhuma vitrine com doces. */
+  29: (save) => ({ ...save, schemaVersion: 30, displays: {} }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV29 = { schemaVersion: 29, savedAt: now.toISOString(), ...state };
+  const save: SaveV30 = { schemaVersion: 30, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -221,7 +223,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV29>;
+  const v2 = save as unknown as Partial<SaveV30>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -249,7 +251,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
 
   // Bebida de receita que sumiu ou item que sumiu: o objeto da mão/superfície é ignorado.
   const knownHand = (h: HandItem) =>
-    h.kind === 'item' || h.kind === 'heavy' ? known.items.has(h.item) : h.kind === 'drink' || h.kind === 'wip' ? known.recipes.has(h.recipe) : h.kind === 'cat' ? knownCat(h.catId) : true;
+    h.kind === 'item' || h.kind === 'heavy' ? known.items.has(h.item) : h.kind === 'drink' || h.kind === 'wip' || h.kind === 'cake' ? known.recipes.has(h.recipe) : h.kind === 'cat' ? knownCat(h.catId) : true;
   const inventory: Record<string, number> = {};
   for (const [id, qty] of Object.entries(v2.inventory ?? {})) {
     if (knownItem(id, 'inventário') && qty > 0) inventory[id] = qty;
@@ -374,6 +376,18 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     reputation: normalizeReputation(v2.reputation, known.reputationStart ?? 0),
     stats: normalizeStats(v2.stats, (id) => known.items.has(id)),
     milestones: normalizeMilestones(v2.milestones, known.milestones),
+    // Vitrines: só as de móveis posicionados, com receitas que existem e fatias inteiras.
+    displays: Object.fromEntries(
+      Object.entries(v2.displays ?? {})
+        .filter(([uid]) => (v2.placed ?? []).some((p) => p.uid === uid))
+        .map(([uid, slots]) => [
+          uid,
+          (Array.isArray(slots) ? slots : [])
+            .filter((d) => d && known.recipes.has(d.recipe) && Number.isInteger(d.portions) && d.portions >= 1)
+            .map((d) => ({ recipe: d.recipe, portions: d.portions, ...(d.quality === 'premium' ? { quality: 'premium' as const } : {}) })),
+        ])
+        .filter(([, slots]) => (slots as unknown[]).length > 0),
+    ),
     schedule: validSchedule(v2.schedule)
       ? {
           days: [...v2.schedule.days],

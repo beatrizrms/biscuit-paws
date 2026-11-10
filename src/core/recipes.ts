@@ -43,6 +43,13 @@ export interface RecipeDef {
    * premium (o suco de fruta fresca no espremedor; no liquidificador continua a polpa).
    */
   alternative?: { equipment: string; ingredients: Record<string, number> };
+  /** Confeitaria: só entra no cardápio com uma vitrine no café (os doces ficam guardados nela até sair a fatia). */
+  display?: boolean;
+  /**
+   * Fornada: o preparo rende o bolo inteiro (sem louça), que vai para a vitrine e vale `yields` fatias; o cliente
+   * pede a fatia (esta receita). `name` e `icon`: o bolo inteiro.
+   */
+  batch?: { yields: number; name: string; icon: string };
 }
 
 /** Receitas em que o item é a troca premium (ex.: café em grãos no café preto), na ordem dos dados. */
@@ -159,6 +166,11 @@ export function validateRecipes(
         if (!refs.items.has(item)) errors.push(`${where}: item inexistente "${item}" (alternative)`);
         if (!Number.isInteger(n) || n < 1) errors.push(`${where}: doses inválidas de "${item}" (alternative)`);
       }
+    }
+    if (r.batch) {
+      if (!r.display) errors.push(`${where}: fornada (batch) precisa de display (a vitrine guarda o bolo)`);
+      if (!Number.isInteger(r.batch.yields) || r.batch.yields < 2) errors.push(`${where}: batch.yields precisa ser 2 ou mais`);
+      if (!refs.icons.has(r.batch.icon)) errors.push(`${where}: ícone do bolo inteiro inexistente "${r.batch.icon}"`);
     }
     if (r.steps.length === 0) errors.push(`${where}: sem etapas`);
     for (const s of r.steps) {

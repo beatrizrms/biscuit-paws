@@ -198,13 +198,13 @@
     },
     {
       "id": "recipe.cake_slice",
-      "name": "Fatia de bolo",
-      "icon": "bolo_fatia",
+      "name": "Fatia de bolo de chocolate",
+      "icon": "fatia_chocolate",
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
         "item.butter": 1,
-        "item.chocolate": 1
+        "item.chocolate": 2
       },
       "steps": [
         {
@@ -217,9 +217,15 @@
         }
       ],
       "vessel": "plate",
-      "price": 22,
+      "price": 18,
       "unlock": {
         "milestone": "milestone.customers_80"
+      },
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Bolo de chocolate de gatinho",
+        "icon": "bolo_chocolate_gatinho"
       }
     },
     {
@@ -245,7 +251,491 @@
       "price": 16,
       "unlock": {
         "milestone": "milestone.cats_cared_7"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.strawberry_cake_slice",
+      "name": "Fatia de bolo de morango",
+      "icon": "fatia_morango",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.strawberry": 2
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 30
+        }
+      ],
+      "vessel": "plate",
+      "price": 18,
+      "unlock": {
+        "milestone": "milestone.customers_100"
+      },
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Bolo de morango",
+        "icon": "bolo_morango"
       }
+    },
+    {
+      "id": "recipe.bread",
+      "name": "Pão",
+      "icon": "pao",
+      "ingredients": {
+        "item.flour": 1,
+        "item.salt": 1,
+        "item.oil": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 20
+        }
+      ],
+      "vessel": "plate",
+      "price": 8,
+      "unlock": {
+        "milestone": "milestone.customers_110"
+      }
+    },
+    {
+      "id": "recipe.croissant",
+      "name": "Croissant",
+      "icon": "croissant",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 14,
+      "unlock": {
+        "milestone": "milestone.customers_120"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.pain_au_chocolat",
+      "name": "Pain au chocolat",
+      "icon": "pain_au_chocolat",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.chocolate": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 16,
+      "unlock": {
+        "milestone": "milestone.customers_120"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.fish_crackers",
+      "name": "Biscoitos de peixinho",
+      "icon": "biscoito_peixe_laranja",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.salt": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 10,
+      "unlock": {
+        "milestone": "milestone.customers_130"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.fish_cookies_glazed",
+      "name": "Biscoitos de peixinho com glacê",
+      "icon": "biscoito_peixe_glace",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 12,
+      "unlock": {
+        "milestone": "milestone.customers_130"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.fish_cookies_pink",
+      "name": "Biscoitos de peixinho de morango",
+      "icon": "biscoito_peixe_rosa",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.strawberry": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 13,
+      "unlock": {
+        "milestone": "milestone.customers_130"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.cookie",
+      "name": "Cookie",
+      "icon": "biscoito",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.chocolate": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 12,
+      "unlock": {
+        "milestone": "milestone.customers_140"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.almond_croissant",
+      "name": "Croissant de amêndoa",
+      "icon": "croissant_amendoa",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.almond": 1,
+        "item.honey": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 18,
+      "unlock": {
+        "milestone": "milestone.customers_140"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.matcha_cake_slice",
+      "name": "Fatia de bolo de matcha",
+      "icon": "fatia_matcha",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.tea_green_box": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 30
+        }
+      ],
+      "vessel": "plate",
+      "price": 20,
+      "unlock": {
+        "milestone": "milestone.customers_150"
+      },
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Bolo de matcha",
+        "icon": "bolo_matcha"
+      }
+    },
+    {
+      "id": "recipe.lemon_cake_slice",
+      "name": "Fatia de bolo de limão",
+      "icon": "fatia_limao",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.lemon": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 20
+        }
+      ],
+      "vessel": "plate",
+      "price": 26,
+      "unlock": {
+        "milestone": "milestone.customers_160"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.sausage_croissant",
+      "name": "Croissant de calabresa",
+      "icon": "croissant",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sausage": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 8
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 17,
+      "unlock": {
+        "milestone": "milestone.customers_180"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.beef_croissant",
+      "name": "Croissant de carne",
+      "icon": "croissant",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.beef": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 8
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 18,
+      "unlock": {
+        "milestone": "milestone.customers_180"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.chicken_croissant",
+      "name": "Croissant de frango",
+      "icon": "croissant",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.chicken": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 8
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 17,
+      "unlock": {
+        "milestone": "milestone.customers_180"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.cat_cupcake",
+      "name": "Cupcake de gatinho",
+      "icon": "cupcake_gatinho",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.sugar": 1,
+        "item.milk": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 15,
+      "unlock": {
+        "milestone": "milestone.customers_200"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.vanilla_cupcake",
+      "name": "Cupcake de baunilha",
+      "icon": "cupcake_baunilha",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.sugar": 1,
+        "item.milk": 1,
+        "item.strawberry": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 15,
+      "unlock": {
+        "milestone": "milestone.customers_200"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.macarons",
+      "name": "Macarons",
+      "icon": "macarons_pilha",
+      "ingredients": {
+        "item.almond": 1,
+        "item.eggs": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 18,
+      "unlock": {
+        "milestone": "milestone.customers_220"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.cat_macarons",
+      "name": "Macarons de gatinho",
+      "icon": "macarons_gatinho",
+      "ingredients": {
+        "item.almond": 1,
+        "item.eggs": 1,
+        "item.sugar": 1,
+        "item.chocolate": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 12
+        }
+      ],
+      "vessel": "plate",
+      "price": 22,
+      "unlock": {
+        "milestone": "milestone.customers_250"
+      },
+      "display": true
+    },
+    {
+      "id": "recipe.macaron_tower",
+      "name": "Pirâmide de macarons",
+      "icon": "macarons_piramide",
+      "ingredients": {
+        "item.almond": 2,
+        "item.eggs": 2,
+        "item.sugar": 2
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 32,
+      "unlock": {
+        "milestone": "milestone.customers_250"
+      },
+      "display": true
     }
   ]
 }

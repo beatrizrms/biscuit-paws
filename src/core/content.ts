@@ -63,6 +63,8 @@ export interface ItemDef {
   servings?: number;
   /** Vai em cima de outro móvel com esta tag (ex.: a cafeteira em cima do balcão, tag "bar"). */
   placeOn?: string;
+  /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
+  display?: { slots: number; fullTile?: string };
   /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
   room?: string;
   /** Baú (a caixa pet): espaços e tags aceitas; E no móvel abre o baú dele (src/core/storage.ts). */

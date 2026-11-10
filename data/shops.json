@@ -36,7 +36,13 @@
         "item.eggs",
         "item.milk",
         "item.butter",
-        "item.chocolate"
+        "item.chocolate",
+        "item.almond",
+        "item.salt",
+        "item.oil",
+        "item.sausage",
+        "item.beef",
+        "item.chicken"
       ]
     }
   }

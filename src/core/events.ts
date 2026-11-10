@@ -30,6 +30,9 @@ export interface GameEvents {
   'stats.streak_broken': { streak: StreakId };
   /** Selo do café conquistado (data/milestones.json; os presentes já estão na mochila). */
   'milestone.reached': { milestoneId: string };
+  /** Vitrine: guardou um doce (ou um bolo inteiro) e tirou um (ou uma fatia). */
+  'display.stored': { uid: string; recipeId: string };
+  'display.taken': { uid: string; recipeId: string };
   'arrival.queued': { arrivalId: string };
   'arrival.started': { arrivalId: string; catId: string; model: string };
   'arrival.step': { arrivalId: string; step: number };

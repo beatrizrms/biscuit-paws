@@ -77,7 +77,8 @@ describe('selos na sessão', () => {
     const track = session.milestoneTracks().find((t) => t.track.id === 'customers')!;
     expect(track.next).toMatchObject({ def: { id: 'milestone.customers_40' }, value: 40, blocked: true });
     expect(track.reached.map((m) => m.id)).toEqual(['milestone.customers_6', 'milestone.customers_15', 'milestone.customers_25', 'milestone.customers_35']);
-    expect(track.hidden).toBe(4);
+    // Depois do porão, todos os outros selos de clientes (contados pelos dados).
+    expect(track.hidden).toBe(content.milestones.milestones.filter((m) => m.track === 'customers' && m.at > 40).length);
   });
 
   it('a reputação que cai não tira o selo', () => {

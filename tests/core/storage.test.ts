@@ -147,7 +147,7 @@ describe('caixa pet: save', () => {
     state.inventory['item.cat_litter'] = 2;
     session.storeInStorage(uid, 'item.cat_litter');
     const raw = JSON.parse(serializeSave(state, new Date()));
-    expect(raw.schemaVersion).toBe(29);
+    expect(raw.schemaVersion).toBeGreaterThanOrEqual(29); // a caixa pet entrou na v29
     raw.petBoxes[uid]['item.gone'] = 3;
     raw.petBoxes['p999'] = { 'item.cat_litter': 1 };
     const back = parseSave(JSON.stringify(raw), known).state;

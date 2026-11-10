@@ -135,6 +135,7 @@ export type ActionResult =
         | 'needs_broom'
         | 'heavy_dirt'
         | 'no_upgrade'
+        | 'display_not_empty'
         | 'needs_food'
         | 'needs_treat'
         | 'needs_medicine'
@@ -2133,7 +2134,7 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -3050,6 +3051,8 @@ export class GameSession {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
     if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
+    // Vitrine com doces: precisa esvaziar antes de recolher.
+    if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
     const [removed] = this.state.placed.splice(index, 1);
     this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
     // Baú recolhido: o que estava dentro volta para a mochila.

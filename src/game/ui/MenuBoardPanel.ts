@@ -50,10 +50,16 @@ export class MenuBoardPanel {
     this.onChange();
   }
 
+  /** Nome do que falta (o equipamento, ou a vitrine dos doces). */
+  private equipmentName(key: string | undefined): string {
+    if (key === 'display') return uiText.menuBoard.display;
+    return content.service.equipment[key ?? '']?.name ?? '';
+  }
+
   private statusText(r: RecipeDef, status: RecipeStatus): string {
     const t = uiText.menuBoard;
     if (status === 'available') return t.available;
-    if (status === 'equipment') return t.soldOut.replace('{why}', t.missingEquipment.replace('{name}', content.service.equipment[this.session.service.missingEquipment(r.id) ?? '']?.name ?? ''));
+    if (status === 'equipment') return t.soldOut.replace('{why}', t.missingEquipment.replace('{name}', this.equipmentName(this.session.service.missingEquipment(r.id))));
     if (status === 'ingredients') return t.soldOut.replace('{why}', t.missingIngredients);
     if (status === 'vessel') return t.soldOut.replace('{why}', t.missingVessel.replace('{name}', content.service.vessels[r.vessel].name.toLowerCase()));
     return t.locked;
@@ -67,6 +73,7 @@ export class MenuBoardPanel {
       <span class="name">${iconHtml(r.icon)}<b>${esc(r.name)}</b> <span class="price">${r.price}</span></span>
       <span class="desc">${esc(ingredients)} · ${esc(content.service.vessels[r.vessel].name)}</span>
       ${r.steps.length > 1 ? `<span class="desc">${esc(uiText.menuBoard.steps.replace('{steps}', r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → ')))}</span>` : ''}
+      ${r.batch ? `<span class="desc">${esc(uiText.menuBoard.batch.replace('{name}', r.batch.name).replace('{n}', String(r.batch.yields)))}</span>` : ''}
       ${r.premium || r.alternative ? `<span class="desc">${uiText.service.premium} ${esc(uiText.menuBoard.premiumPrice.replace('{price}', String(this.session.service.priceOf(r.id, 'premium'))))}${r.alternative ? ` ${esc(uiText.menuBoard.premiumAt.replace('{equipment}', (content.service.equipment[r.alternative.equipment]?.name ?? '').toLowerCase()))}` : ''}</span>` : ''}
       <span class="status">${esc(this.statusText(r, status))}</span>
       <button data-recipe="${r.id}">${action}</button></div>`;

@@ -9,7 +9,7 @@ import type { Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
 import { VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
 import { capacityOf, type CapacityView } from './capacity';
-import { nowAbs, type GameState } from './state';
+import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './state';
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
@@ -67,6 +67,9 @@ export function newServiceState(): ServiceState {
 export const emptyLoad = (): Record<Vessel, number> => ({ cup: 0, glass: 0, plate: 0 });
 
 export type ServiceProblem =
+  | 'display_full'
+  | 'nothing_to_store'
+  | 'display_empty'
   | 'not_unlocked'
   | 'menu_full'
   | 'hands_full'
@@ -244,6 +247,68 @@ export class CafeService {
     return !!r && (r.steps[0]?.equipment === equipment || r.alternative?.equipment === equipment);
   }
 
+  // ---------- Vitrine (confeitaria) ----------
+
+  /** Vitrines posicionadas (móveis com display). */
+  displaysPlaced(): PlacedItem[] {
+    return this.st.placed.filter((p) => this.h.content.items[p.item]?.display);
+  }
+
+  /** O que está guardado nesta vitrine. */
+  displayStock(uid: string): readonly DisplaySlot[] {
+    return this.st.displays[uid] ?? [];
+  }
+
+  /** Quantas fatias (ou doces) desta receita estão nas vitrines. */
+  displayPortions(recipe: string): number {
+    return Object.values(this.st.displays).reduce((n, slots) => n + slots.filter((s) => s.recipe === recipe).reduce((a, s) => a + s.portions, 0), 0);
+  }
+
+  /** Este objeto da mão vai para a vitrine? (um doce pronto ou um bolo inteiro) */
+  storable(h: HandItem): boolean {
+    return h.kind === 'cake' || (h.kind === 'drink' && !!this.recipe(h.recipe)?.display);
+  }
+
+  /** Guarda na vitrine o doce (ou o bolo inteiro) da mão. O prato do doce volta limpo para o estoque. */
+  storeInDisplay(uid: string): ServiceResult {
+    const def = this.h.content.items[this.st.placed.find((p) => p.uid === uid)?.item ?? '']?.display;
+    if (!def) return { ok: false, reason: 'nothing_here' };
+    const i = this.st.hands.findIndex((h) => this.storable(h));
+    if (i < 0) return { ok: false, reason: 'nothing_to_store' };
+    const slots = (this.st.displays[uid] ??= []);
+    if (slots.length >= def.slots) return { ok: false, reason: 'display_full' };
+    const [h] = this.st.hands.splice(i, 1);
+    if (h!.kind === 'cake') slots.push({ recipe: h!.recipe, portions: h!.portions, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    else if (h!.kind === 'drink') {
+      this.st.dishes[h!.vessel] = (this.st.dishes[h!.vessel] ?? 0) + 1;
+      slots.push({ recipe: h!.recipe, portions: 1, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    }
+    this.h.bus.emit('display.stored', { uid, recipeId: h!.kind === 'cake' || h!.kind === 'drink' ? h!.recipe : '' });
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Tira da vitrine um doce (ou uma fatia do bolo do espaço `index`), num prato limpo. */
+  takeFromDisplay(uid: string, index: number): ServiceResult {
+    const slots = this.st.displays[uid] ?? [];
+    const slot = slots[index];
+    if (!slot) return { ok: false, reason: 'display_empty' };
+    const r = this.recipe(slot.recipe);
+    if (!r) return { ok: false, reason: 'nothing_here' };
+    const item: HandItem = { kind: 'drink', recipe: r.id, vessel: r.vessel, ...(slot.quality ? { quality: slot.quality } : {}) };
+    const problem = this.canHold(item);
+    if (problem) return { ok: false, reason: problem };
+    if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
+    this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
+    this.st.hands.push(item);
+    slot.portions -= 1;
+    if (slot.portions <= 0) slots.splice(index, 1);
+    if (slots.length === 0) delete this.st.displays[uid];
+    this.h.bus.emit('display.taken', { uid, recipeId: r.id });
+    this.handsChanged();
+    return { ok: true };
+  }
+
   // ---------- Equipamentos e louça ----------
 
   /** Móveis posicionados que fazem o papel deste equipamento. */
@@ -274,8 +339,9 @@ export class CafeService {
 
   /** Massa entre etapas e preparos em andamento já separam uma louça limpa para o fim. */
   private reserved(v: Vessel): number {
-    const wips = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'wip' && this.recipe(i.recipe)?.vessel === v);
-    return this.st.service.preps.filter((p) => this.recipe(p.recipe)?.vessel === v).length + wips.length;
+    const uses = (id: string) => this.recipe(id)?.vessel === v && !this.recipe(id)?.batch;
+    const wips = [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => i.kind === 'wip' && uses(i.recipe));
+    return this.st.service.preps.filter((p) => uses(p.recipe)).length + wips.length;
   }
 
   /** Louça limpa que ainda não está separada para um preparo. */
@@ -306,6 +372,9 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
+    if (r.display && this.displaysPlaced().length === 0) return 'equipment';
+    // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
+    if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
     // Dois jeitos (receita.alternative): basta um ter os equipamentos e, com eles, os ingredientes.
     const normal = r.steps.every((s) => this.stationsFor(s.equipment).length > 0);
     const alt = !!r.alternative && this.stationsFor(r.alternative.equipment).length > 0;
@@ -318,6 +387,7 @@ export class CafeService {
   /** Primeiro equipamento que falta para a receita (para o quadro dizer qual). */
   missingEquipment(id: string): string | undefined {
     const r = this.recipe(id);
+    if (r?.display && this.displaysPlaced().length === 0) return 'display';
     if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
     return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
   }
@@ -504,7 +574,9 @@ export class CafeService {
       if (this.surfaceAt(station.at)) continue; // equipamento ocupado: espera tirarem o que está nele
       sv.preps = sv.preps.filter((p) => p !== prep);
       const last = prep.step >= r.steps.length - 1;
-      if (last) {
+      if (last && r.batch) {
+        this.st.surfaces.push({ at: [...station.at], item: { kind: 'cake', recipe: r.id, portions: r.batch.yields, quality: prep.quality } });
+      } else if (last) {
         this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
         this.st.surfaces.push({ at: [...station.at], item: { kind: 'drink', recipe: r.id, vessel: r.vessel, quality: prep.quality } });
       } else {
@@ -671,7 +743,7 @@ export class CafeService {
     const r = this.recipe(pending?.recipe ?? extra!)!;
     const ing = this.ingredientsAt(r, equipment);
     if (!ing.ok) return { ok: false, reason: 'no_ingredients' };
-    if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
+    if (!r.batch && this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
     for (const [item, n] of ing.use) this.useDoses(item, n);
     sv.preps.push({ stationUid, recipe: r.id, step: 0, quality: ing.quality, readyAt: this.now() + r.steps[0]!.minutes });
     this.h.bus.emit('prep.started', { stationUid, recipeId: r.id });
@@ -681,7 +753,8 @@ export class CafeService {
   /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
   private covered(recipe: string): number {
     return (
-      this.st.service.preps.filter((p) => p.recipe === recipe).length +
+      this.st.service.preps.filter((p) => p.recipe === recipe).length * (this.recipe(recipe)?.batch?.yields ?? 1) +
+      this.displayPortions(recipe) +
       [...this.st.hands, ...this.st.surfaces.map((s) => s.item)].filter((i) => (i.kind === 'drink' || i.kind === 'wip') && i.recipe === recipe).length
     );
   }
@@ -719,7 +792,12 @@ export class CafeService {
     // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
     if (recipes.length === 0) return 'nothing_to_prepare';
     const unlocked = recipes.filter((r) => this.recipeStatus(r.id) !== 'locked');
-    if (unlocked.length === 0) return 'equipment_locked';
+    // Nenhuma receita que começa nele liberada: mas se ele já é etapa de uma liberada (o forno do pão de queijo), só
+    // não tem nada a fazer agora.
+    const midStep = Object.values(this.h.content.recipes).some(
+      (r) => r.steps.slice(1).some((s) => s.equipment === equipment) && this.recipeStatus(r.id) !== 'locked',
+    );
+    if (unlocked.length === 0) return midStep ? 'nothing_to_prepare' : 'equipment_locked';
     if (!unlocked.some((r) => this.st.menu.includes(r.id))) return 'equipment_off_menu';
     if (this.extraCount(equipment) >= this.cfg.extraPerEquipment) return 'extra_ready';
     return 'nothing_to_prepare';
@@ -796,7 +874,7 @@ export class CafeService {
   putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
     if (!item) return { ok: false, reason: 'hands_empty' };
-    if (exclusive(item) || !this.canPutDown(at, feet, allowFloor)) return { ok: false, reason: 'cannot_put_here' };
+    if ((exclusive(item) && item.kind !== 'cake') || !this.canPutDown(at, feet, allowFloor && item.kind !== 'cake')) return { ok: false, reason: 'cannot_put_here' };
     this.st.hands.pop();
     this.st.surfaces.push({ at: [...at], item });
     this.handsChanged();

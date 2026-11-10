@@ -1213,6 +1213,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       const surface = st.surfaces.find((x) => near(x.at));
       if (surface && free) return cell(surface.at, 'surface');
+      // Vitrine: guardar o doce da mão, ou tirar um (mãos livres, com algo dentro).
+      const display = this.displayInReach(feet);
+      if (display && (st.hands.some((h) => sv.storable(h)) || (free && sv.displayStock(display.uid).length > 0))) {
+        const at = st.placed.find((p) => p.uid === display.uid)!.at;
+        return cell(at, 'display');
+      }
     }
     const point = s.jobPointNear(feet);
     if (point) return cell(point.at, 'job');
@@ -1637,11 +1643,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return true;
       }
     }
+    // Vitrine ao alcance com um doce (ou o bolo inteiro) na mão: guarda.
+    const display = this.displayInReach(feet, target);
+    if (display && st.hands.some((h) => sv.storable(h))) return report(sv.storeInDisplay(display.uid));
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((s) => near(s.at));
     if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
       // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
       return report(sv.pickUp(surface.at));
+    }
+    // Vitrine com as mãos livres: escolhe o que tirar (do bolo inteiro, sai uma fatia).
+    if (display && st.hands.length < sv.handsCapacity()) {
+      const stock = sv.displayStock(display.uid);
+      if (stock.length === 0) return report({ ok: false, reason: 'display_empty' });
+      const recipes = this.session.content.recipes;
+      const names = stock.map((d) =>
+        recipes[d.recipe]?.batch
+          ? uiText.service.displaySlices.replace('{name}', recipes[d.recipe]?.name ?? '').replace('{n}', String(d.portions))
+          : (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''),
+      );
+      void this.ui.choose(uiText.service.displayAsk, [...names, uiText.service.extraCancel]).then((i) => {
+        if (i < stock.length) report(sv.takeFromDisplay(display.uid, i));
+      });
+      return true;
     }
     // Soltar: na célula clicada (até no chão) ou, com o E, só num balcão, mesa ou equipamento na frente: o E sem nada
     // para pegar ao alcance não larga a louça da bandeja no chão.
@@ -1650,6 +1674,20 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (sv.canPutDown(at, feet, !!target)) return report(sv.putDown(at, feet, !!target));
     }
     return false;
+  }
+
+  /** Vitrine ao alcance dos pés (`target`: só a clicada), ou undefined. */
+  private displayInReach(feet: readonly Cell[], target?: Cell): { uid: string } | undefined {
+    const c = this.session.content;
+    for (const p of this.session.service.displaysPlaced()) {
+      const def = c.catalog.tiles[c.items[p.item]?.tile ?? ''];
+      const cells: Cell[] = def ? cellsOf(p.at, def) : [p.at];
+      const hit = target
+        ? cells.some(([x, y]) => x === target[0] && y === target[1])
+        : cells.some(([x, y]) => feet.some((f) => Math.max(Math.abs(f[0] - x), Math.abs(f[1] - y)) <= 1));
+      if (hit) return p;
+    }
+    return undefined;
   }
 
   /** Equipamento na célula bem na frente dela (ao alcance), ou undefined. */
@@ -1725,7 +1763,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (f) return this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale * di.scale);
     }
     if (item.kind === 'cat') return undefined; // o gato no colo é desenhado à parte (animado)
-    const icon = item.kind === 'wip' ? c.recipes[item.recipe]?.icon : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon : undefined;
+    const icon =
+      item.kind === 'wip' ? c.recipes[item.recipe]?.icon
+      : item.kind === 'cake' ? c.recipes[item.recipe]?.batch?.icon
+      : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon
+      : undefined;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
     const img = this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale);
