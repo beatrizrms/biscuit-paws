@@ -334,7 +334,7 @@ describe('areia suja há dias: cocô no chão', () => {
     expect(poops()).toHaveLength(0);
     session.endDay('home'); // 2º dia: cocô
     expect(state.litterMissedDays).toBe(2);
-    expect(poops()).toHaveLength(lp.perCat * session.homeCats().length);
+    expect(poops()).toHaveLength(lp.perCat * session.shelteredCats().length); // o gato do teste mora no café
     expect(session.chores().some((c) => c.kind === 'poop')).toBe(true);
     // O cocô do dia 2 da história (tag poop) não conta como estes.
     expect(poops().every((d) => !d.tags.includes('poop'))).toBe(true);
