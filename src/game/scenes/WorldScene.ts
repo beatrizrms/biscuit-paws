@@ -70,7 +70,9 @@ const FADE_MS = 160;
 const WAIT_SPEED = 40;
 
 const NO_INPUT = { up: false, down: false, left: false, right: false };
-/** No sofá: a borda do assento fica tanto acima da base do sofá; o quadril dela, tanto acima dos pés (px lógicos). */
+/** No sofá, sentada: os pés ficam no chão, tanto abaixo da base do sofá (px lógicos). */
+const SOFA_FEET = 3;
+/** Sem a folha da pose sentada: a borda do assento acima da base e o quadril acima dos pés (corte provisório). */
 const SOFA_SEAT = 9;
 const HIP_HEIGHT = 28;
 /** Quanto tempo o ícone "se recompondo" fica depois de um café ou de brincar com o gato (ms). */
@@ -385,8 +387,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         };
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
-    if (this.session.resting()) this.player.move(NO_INPUT);
-    else {
+    if (!this.session.resting()) {
       // Cansada (pouca energia), anda mais devagar e não corre.
       this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
       // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
@@ -1450,8 +1451,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     body.reset(this.player.x, this.player.y);
     body.enable = false;
+    const x = (p.at[0] + def.w / 2) * ts;
+    // Sentada de frente, na frente do encosto, com os pés no chão.
+    if (this.player.sit('down')) {
+      this.player.setPosition(x, base + SOFA_FEET);
+      this.player.setDepth(ySortDepth(base) + 1);
+      return;
+    }
+    // Sem a folha (assets não importados): cortada na borda do assento.
     const seat = base - SOFA_SEAT;
-    this.player.setPosition((p.at[0] + def.w / 2) * ts, seat - 2 + HIP_HEIGHT);
+    this.player.setPosition(x, seat - 2 + HIP_HEIGHT);
     this.player.face('down');
     this.player.move(NO_INPUT);
     // Só o que fica acima da borda do assento aparece (crop em pixels do quadro, antes da escala).
@@ -1465,6 +1474,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     body.enable = true;
     this.player.setCrop();
+    this.player.standUp();
     const from = this.restFrom ?? { x: this.player.x, y: this.player.y };
     this.restFrom = null;
     body.reset(from.x, from.y);

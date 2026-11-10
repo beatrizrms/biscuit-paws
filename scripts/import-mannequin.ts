@@ -28,6 +28,21 @@ const H = m.frameHeight;
 const X0 = (CANVAS - W) / 2;
 const Y0 = FEET_Y - H;
 
+/** Espelha na horizontal (a figura fica no meio do quadro). */
+function mirrorPng(p: PNG): PNG {
+  const out = new PNG({ width: p.width, height: p.height });
+  for (let y = 0; y < p.height; y++)
+    for (let x = 0; x < p.width; x++) p.data.copy(out.data, (y * p.width + (p.width - 1 - x)) * 4, (y * p.width + x) * 4, (y * p.width + x) * 4 + 4);
+  return out;
+}
+
+/** Move o conteúdo `dx` px para a esquerda (negativo: para a direita). */
+function shiftPng(p: PNG, dx: number): PNG {
+  const out = new PNG({ width: p.width, height: p.height });
+  PNG.bitblt(p, out, Math.max(0, dx), 0, p.width - Math.abs(dx), p.height, Math.max(0, -dx), 0);
+  return out;
+}
+
 /** Apaga grupos de pixels opacos (vizinhança de 8) menores que MIN_BLOB. */
 function dropSpecks(p: PNG): number {
   const seen = new Uint8Array(p.width * p.height);
@@ -104,12 +119,26 @@ const L = m;
     'hair:quiff': 'quiff.png',
   };
   /** Animação -> nome no PixelLab (depois do prefixo) e quadros. A ação só tem frente e costas. */
-  const ANIM: Record<string, { name: string; frames?: number[]; only?: Partial<Record<(typeof ROWS)[number], (typeof ROWS)[number]>> }> = {
+  /** Linha com outra animação do PixelLab (rows): nome, direção de origem, quadros e espelhada (a direita = a esquerda). */
+  type RowSource = { name: string; dir: (typeof ROWS)[number]; frames?: number[]; mirror?: boolean; shiftX?: number };
+  const ANIM: Record<string, { name: string; frames?: number[]; only?: Partial<Record<(typeof ROWS)[number], (typeof ROWS)[number]>>; rows?: Partial<Record<(typeof ROWS)[number], RowSource>> }> = {
     walk: { name: 'walk2' },
     idle: { name: 'idle2', frames: [0, 1, 2, 1] },
     tray: { name: 'tray2' },
     carry: { name: 'carry2' },
     work: { name: 'work', only: { west: 'south', east: 'south' } },
+    // Sentada (sofá e cadeiras): parada, um quadro só (o 0 é a transição). De frente (sit_front, sul) e de lado
+    // (sit_side, oeste; a direita espelhada: de lado a IA virava 3/4). De costas ainda não tem: usa a de frente.
+    // De lado a figura sentada é mais larga e fica à direita do meio: shiftX recentraliza (o rabo de cavalo cabe).
+    sit: {
+      name: 'sit_front',
+      frames: [1, 1, 1, 1],
+      rows: {
+        west: { name: 'sit_side', dir: 'west', frames: [1, 1, 1, 1], shiftX: 10 },
+        east: { name: 'sit_side', dir: 'west', frames: [1, 1, 1, 1], mirror: true, shiftX: -10 },
+        north: { name: 'sit_front', dir: 'south', frames: [1, 1, 1, 1] },
+      },
+    },
   };
 
   const hsl = (p: PNG, i: number) => {
@@ -288,8 +317,12 @@ const L = m;
   /** Um quadro (176x176) da animação `anim` de uma peça (`prefix`/`dir`) na direção da linha. */
   const frameOf = (dir: string, prefix: string, anim: string, row: (typeof ROWS)[number], f: number) => {
     const a = ANIM[anim]!;
-    const d = a.only?.[row] ?? row;
-    const p = PNG.sync.read(readFileSync(`${dir}/Idle/animations/${prefix}_${a.name}/${d}/frame_${String(a.frames?.[f] ?? f).padStart(3, '0')}.png`));
+    const rs = a.rows?.[row];
+    const d = rs?.dir ?? a.only?.[row] ?? row;
+    const frames = rs?.frames ?? a.frames;
+    const read = PNG.sync.read(readFileSync(`${dir}/Idle/animations/${prefix}_${rs?.name ?? a.name}/${d}/frame_${String(frames?.[f] ?? f).padStart(3, '0')}.png`));
+    const flipped = rs?.mirror ? mirrorPng(read) : read;
+    const p = rs?.shiftX ? shiftPng(flipped, rs.shiftX) : flipped;
     // O PixelLab aumenta o quadro quando o movimento precisa de espaço (176, 192...), com a figura no meio:
     // corta (ou completa) pelo centro para 176, o tamanho do manequim, antes de comparar ou montar.
     if (p.width === CANVAS && p.height === CANVAS) return p;
