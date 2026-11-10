@@ -5,7 +5,7 @@ import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, f
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
-import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem } from './jobs';
+import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
 import { createRng } from './rng';
 import { CafeService } from './service';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
@@ -972,6 +972,11 @@ export class GameSession {
   /** Notícias do dia no "Vila Hoje". */
   news(): NewsItem[] {
     return newsForDay(this.content.news, this.state.day);
+  }
+
+  /** A dica de hoje da Cartilha do gato (Vila Hoje). */
+  catTip(): CatTip | null {
+    return tipForDay(this.content.news, this.state.day);
   }
 
   /** Pedidos que dá para aceitar agora. */

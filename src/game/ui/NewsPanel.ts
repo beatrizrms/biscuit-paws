@@ -232,10 +232,17 @@ export class NewsPanel {
       <span class="poster-buttons"><button data-poster="yes">${esc(t.yes)}</button><button data-poster="no">${esc(t.no)}</button></span></div></div>`;
   }
 
+  /** A Cartilha do gato: a dica de hoje, num quadrinho embaixo das notícias. */
+  private tipHtml(): string {
+    const tip = this.session.catTip();
+    if (!tip) return '';
+    return `<article class="cat-tip"><span class="tip-label">${esc(content.news.tipsTitle ?? '')}</span><h3>${esc(tip.title)}</h3><p>${esc(tip.text)}</p></article>`;
+  }
+
   private jobsHtml(withNews: boolean): string {
     const s = this.session;
     const news = withNews
-      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('')
+      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('') + this.tipHtml()
       : '';
     const active = s.activeJobs().map((j) => {
       const step = j.steps[s.jobStep(j.id)];

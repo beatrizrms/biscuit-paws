@@ -81,11 +81,28 @@ export interface NewsItem {
   fromDay?: number;
 }
 
+/** Uma dica da Cartilha do gato (uma por dia, no Vila Hoje). */
+export interface CatTip {
+  id: string;
+  title: string;
+  text: string;
+}
+
 export interface NewsData {
   schemaVersion: 1;
   /** Nome do app no celular. */
   app: string;
   items: NewsItem[];
+  /** Cartilha do gato: o título da seção e as dicas, em ordem. */
+  tipsTitle?: string;
+  tips?: CatTip[];
+}
+
+/** A dica da Cartilha do dia: em ordem, uma por dia (dia 1 = a primeira); depois da última, recomeça. */
+export function tipForDay(data: NewsData, day: number): CatTip | null {
+  const tips = data.tips ?? [];
+  if (tips.length === 0) return null;
+  return tips[(((Math.max(1, day) - 1) % tips.length) + tips.length) % tips.length]!;
 }
 
 /** Notícias de um dia: as marcadas para aquele dia; sem nenhuma, uma do sorteio (sempre a mesma para o dia). */
@@ -141,5 +158,13 @@ export function validateJobs(
     newsIds.add(n.id);
     if (!n.headline || !n.text) errors.push(`news: "${n.id}" sem manchete ou texto`);
   }
+  const tipIds = new Set<string>();
+  for (const t of news.tips ?? []) {
+    if (!t.id.startsWith('tip.')) errors.push(`news: dica "${t.id}" deve começar com "tip."`);
+    if (tipIds.has(t.id)) errors.push(`news: dica repetida "${t.id}"`);
+    tipIds.add(t.id);
+    if (!t.title || !t.text) errors.push(`news: dica "${t.id}" sem título ou texto`);
+  }
+  if ((news.tips?.length ?? 0) > 0 && !news.tipsTitle) errors.push('news: tips sem tipsTitle');
   return errors;
 }

@@ -613,6 +613,9 @@
 .news article { margin-bottom: 6px; padding-bottom: 5px; border-bottom: 1px dashed var(--cream3); }
 .news article h3 { margin: 0 0 2px; font-size: 9px; color: var(--pink3); text-transform: none; letter-spacing: 0; }
 .news article p { margin: 0; font-size: 8px; line-height: 1.35; }
+/* Cartilha do gato: a dica do dia, num quadrinho. */
+.news article.cat-tip { padding: 4px 6px; background: var(--cream2); border: 1px solid var(--cream3); border-radius: 4px; }
+.news .cat-tip .tip-label { display: block; font-size: 6.5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mint3); }
 .news .jobs-title { margin: 4px 0 3px; }
 .news .job { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: 8px; }
 .news .job strong { font-size: 9px; }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Jornal do celular. day: só naquele dia. fromDay: entra no sorteio a partir daquele dia (um por dia, sempre o mesmo para o dia).",
+  "_comment": "Jornal do celular. day: só naquele dia. fromDay: entra no sorteio a partir daquele dia (um por dia, sempre o mesmo para o dia). tips: a Cartilha do gato, uma dica por dia, em ordem (dia 1 = a primeira; no fim, recomeça). As dicas explicam as regras do jogo: se um número mudar em health.json, items.json ou rooms.json, mude o texto aqui também.",
   "app": "Vila Hoje",
   "items": [
     {
@@ -45,5 +45,23 @@
       "headline": "Dica da semana",
       "text": "Gatos adoram caixas de papelão. Ninguém sabe explicar, mas todo mundo já viu."
     }
+  ],
+  "tipsTitle": "Cartilha do gato",
+  "tips": [
+    { "id": "tip.feed", "title": "Comida todo dia", "text": "Encha a tigela de ração uma vez por dia: uma porção serve todos os gatos do café. Dia sem comer, a saúde deles cai." },
+    { "id": "tip.toys", "title": "Um brinquedo a cada 3 gatos", "text": "Novelos, arranhador e árvore de gato contam como brinquedo. Com menos de 1 brinquedo para cada 3 gatos, eles pedem para brincar todo dia e ficam tristes se ninguém brincar." },
+    { "id": "tip.play", "title": "Quando o gato quer brincar", "text": "Com brinquedo suficiente, o gato pede para brincar (o balão da varinha) a cada 4 dias. Cada brinquedo a mais e cada outro gato no café dá mais 1 dia, até 8." },
+    { "id": "tip.litter", "title": "Areia limpa", "text": "Troque a areia da caixa todo dia. Um dia sem areia limpa e a higiene de todos os gatos cai bem mais." },
+    { "id": "tip.brush", "title": "Pegadas de lama no balão", "text": "É gato sujo: ponha a escova na barra e aperte E perto dele. A escovação deixa o pelo limpo e o gato um pouco mais feliz." },
+    { "id": "tip.wand", "title": "Varinha de penas", "text": "Brincar com a varinha deixa o gato feliz e ainda recupera a sua energia. Coração no balão é gato triste: brinque com ele." },
+    { "id": "tip.premium", "title": "Ração premium", "text": "No dia em que comem a ração premium, os gatos ganham 1,5 vez mais saúde que com a ração simples." },
+    { "id": "tip.treat", "title": "Petisco", "text": "Com o petisco na barra, aperte E perto do gato: é um carinho a mais. No mini game da confiança, o petisco (P) também ajuda." },
+    { "id": "tip.sick", "title": "Gato doente", "text": "Gato doente vai para a consulta na clínica. A receita dá uma dose de remédio por dia: o balão do remédio lembra a dose de hoje." },
+    { "id": "tip.contagion", "title": "Doença passa para os outros", "text": "Doente sem tratamento por mais de 2 dias pode passar a doença para os outros gatos. Com 2 gatos doentes, nenhum cliente novo entra no café." },
+    { "id": "tip.arrival", "title": "Gato na porta", "text": "Gato com fome na porta precisa de ração antes de entrar; com frio, de um cobertor (mercado, Cuidados); ferido, da clínica." },
+    { "id": "tip.trust", "title": "Gato arisco", "text": "Chegue perto devagar. Se ele ficar alerta, pare e espere. Se ele bufar e você continuar andando, ele se assusta." },
+    { "id": "tip.auto", "title": "Pote e caixa automáticos", "text": "O pote de ração e a caixa de areia automáticos guardam até 10 dias e servem os gatos sozinhos. É só abastecer." },
+    { "id": "tip.rooms", "title": "Lugar para todos", "text": "Cada cômodo aberto e reformado aumenta quantos gatos cabem no café. O Market (aba Construção) mostra quantos cabem agora." },
+    { "id": "tip.playground", "title": "Playground no quintal", "text": "Com 10 gatos no café, dá para montar o playground no quintal. Cada módulo dá carinho a todos os gatos, todo dia." }
   ]
 }
