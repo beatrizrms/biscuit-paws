@@ -7,6 +7,7 @@
 - Músicas, sons ambientes, jingles e efeitos: sintetizados por código, sem amostras de terceiros (uso de IA declarado na página da Steam).
 - Ambientes, móveis, fachadas, objetos, cômodos, quintal e ícones em 64 px (café, mercado, clínica, rua nas 4 estações, quintal secreto, louça, peixes): arte gerada por IA no PixelLab (https://www.pixellab.ai) e ajustada por código pela equipe (uso declarado na página da Steam; detalhes em docs/ART_AND_LICENSE.md, "Arte nova do PixelLab").
 - Personagem principal (manequim, 6 roupas e 10 penteados, com caminhada e poses, 64 px): arte gerada por IA no PixelLab (https://www.pixellab.ai), recortada e combinada por código pela equipe (uso declarado na página da Steam).
+- Gatos na arte nova (o ruivo: sentado, andando, dormindo, brincando, comendo e estranhando, 64 px): arte gerada por IA no PixelLab (https://www.pixellab.ai), feita do zero e montada em folha por código pela equipe (uso declarado na página da Steam).
 
 - Rua e vila (4 estações) e sujeira do café abandonado: arte gerada por IA na paleta do Cat Cafe (uso declarado na página da Steam).
 - Cosy Cats 32x32, Leckie Pixel Studio (leckie1989): https://leckie1989.itch.io/cosy-cats-32x32-animated-cat-sprites

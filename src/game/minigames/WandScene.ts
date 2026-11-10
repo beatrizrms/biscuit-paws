@@ -5,7 +5,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { FULL_EXCITEMENT, newWand, stepWand, wandOutcome, type WandEvents, type WandParams, type WandState } from '../../core/wand';
 import { content, uiText } from '../content';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadSheets, WAND } from './assets';
 import { MiniGameScene } from './MiniGameScene';
@@ -59,7 +59,7 @@ export class WandScene extends MiniGameScene {
     const tip = { x: this.arena.centerX + 80, y: this.arena.centerY - 30 };
     this.s = newWand(start, tip);
     CatSprite.createAnimations(this, this.launch.catVariant);
-    this.cat = this.add.sprite(start.x, start.y, catTexture(this.launch.catVariant), 0).setOrigin(0.5, 28 / 32).setScale(CAT_SCALE);
+    this.cat = this.add.sprite(start.x, start.y, catTexture(this.launch.catVariant), 0).setOrigin(0.5, 28 / 32).setScale(CAT_SCALE * catScale(this.launch.catVariant));
     this.stick = this.add.graphics().setDepth(1e4);
     this.toy = this.add.image(tip.x, tip.y, WAND_KEYS.toy).setDepth(1e4 + 1);
     if (this.toy.width < WAND.toy.frameWidth) this.toy.setScale(1.5); // o desenhado por código é menor
@@ -110,7 +110,8 @@ export class WandScene extends MiniGameScene {
     }
     // Agachado: achata e balança o traseiro (sinal de que o bote vem aí).
     const crouch = s.mode === 'crouch';
-    this.cat.setScale(CAT_SCALE * (crouch ? 1.12 : 1), CAT_SCALE * (crouch ? 0.82 : 1));
+    const k = CAT_SCALE * catScale(this.launch.catVariant);
+    this.cat.setScale(k * (crouch ? 1.12 : 1), k * (crouch ? 0.82 : 1));
     this.cat.setPosition(s.cat.x + (crouch ? Math.sin(s.elapsed / 45) * 1.5 : 0), s.cat.y).setDepth(s.cat.y);
 
     // Varinha: da mão (fora da tela, embaixo à direita) até a ponta, com uma barriguinha (linha mole).
@@ -160,8 +161,8 @@ export class WandScene extends MiniGameScene {
     this.ended = true;
     if (outcome !== 'fail') {
       this.sfx(this.def.sounds?.done);
-      this.cat.setScale(CAT_SCALE).play(`${catTexture(this.launch.catVariant)}-play`);
-    } else this.cat.setScale(CAT_SCALE).play(`${catTexture(this.launch.catVariant)}-sleep`); // perdeu a graça e deitou
+      this.cat.setScale(CAT_SCALE * catScale(this.launch.catVariant)).play(`${catTexture(this.launch.catVariant)}-play`);
+    } else this.cat.setScale(CAT_SCALE * catScale(this.launch.catVariant)).play(`${catTexture(this.launch.catVariant)}-sleep`); // perdeu a graça e deitou
     this.time.delayedCall(700, () => this.finish(outcome, Math.round(this.s.excitement)));
   }
 

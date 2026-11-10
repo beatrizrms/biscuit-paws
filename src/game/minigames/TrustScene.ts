@@ -1,6 +1,6 @@
 // Confiança do gato: a rua da fuga em tela fixa, um gato assustado sentado e a personagem chegando de lado.
 // Sem cronômetro. Segurar (→, E, Espaço ou o mouse) aproxima devagar; ← se afasta; P dá um petisco.
-// O gato mostra o humor: calmo (sentado, balançando), alerta ("!") e bufando (treme, fica vermelho, "Fff!").
+// O gato mostra o humor: calmo (sentado, balançando), alerta ("!") e bufando ("Fuzzzz!": costas arqueadas na folha de 64 px; no Cosy, treme e fica vermelho).
 // A regra (tensão, humor, sustos, confiança) mora em src/core/trust.ts; aqui só se desenha.
 import Phaser from 'phaser';
 import { mapInSeason } from '../../core/calendar';
@@ -9,7 +9,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { crowded, FULL_TRUST, newTrust, stepTrust, trustOutcome, useTreat, type CatMood, type TrustParams, type TrustState } from '../../core/trust';
 import { content, uiText } from '../content';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { catAnim, CatSprite, catScale, catTexture } from '../entities/Cat';
 import { Player } from '../entities/Player';
 import { services } from '../services';
 import { addTileImage } from '../tileArt';
@@ -34,6 +34,8 @@ export class TrustScene extends MiniGameScene {
   private bar!: Phaser.GameObjects.Graphics;
   private alertIcon!: Phaser.GameObjects.Image;
   private hissBubble!: Phaser.GameObjects.Container;
+  /** Animação de estranhar da folha do gato (null: a folha não tem; treme avermelhado). */
+  private startle: string | null = null;
   private treatBtn: HTMLButtonElement | null = null;
   private lastMood: CatMood = 'calm';
   private lastTrust = 0;
@@ -78,21 +80,26 @@ export class TrustScene extends MiniGameScene {
     const feet = (cr + 1) * ts - 4;
     this.catX = cc * ts + ts / 2;
     CatSprite.createAnimations(this, this.launch.catVariant);
-    this.cat = this.add.sprite(this.catX, feet, catTexture(this.launch.catVariant), 0).setOrigin(0.5, 28 / 32).setDepth(feet);
+    this.cat = this.add.sprite(this.catX, feet, catTexture(this.launch.catVariant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(this.launch.catVariant)).setDepth(feet);
     this.cat.play(`${catTexture(this.launch.catVariant)}-sit`);
+    // Ela fica à esquerda: ele estranha virado para a esquerda (só nas folhas que têm a pose).
+    const startle = catAnim(this, this.launch.catVariant, 'startle_left');
+    this.startle = startle.endsWith('-sit') ? null : startle;
     this.player = new Player(this, this.catX - this.s.distance, feet + 2);
     (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
     this.player.face('right');
 
     this.bar = this.add.graphics().setDepth(1e5);
     this.alertIcon = this.add.image(this.catX, feet - 30, CHASE.alerts.key, 0).setScale(ART_SCALE).setDepth(1e5).setVisible(false);
-    // PLACEHOLDER(arte): balão "Fff!" desenhado por código; o gato bufando (orelhas para trás, rabo eriçado) ainda
-    // não tem folha: por enquanto ele treme e fica avermelhado (lista na memória: assets-pendentes).
+    // PLACEHOLDER(arte): balão "Fuzzzz!" desenhado por código. O bufando (costas arqueadas) só existe nas folhas de 64 px
+    // (startle_left); nas do Cosy Cats ele treme e fica avermelhado (lista na memória: assets-pendentes).
     const hissText = this.add
       .text(0, 0, uiText.minigames.trust.hiss, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', resolution: 4 })
       .setOrigin(0.5);
-    const bubbleBg = this.add.graphics().fillStyle(0xfff4e0, 1).fillRoundedRect(-14, -7, 28, 14, 5).lineStyle(1, 0x3b2a32, 1).strokeRoundedRect(-14, -7, 28, 14, 5);
-    this.hissBubble = this.add.container(this.catX + 14, feet - 34, [bubbleBg, hissText]).setDepth(1e5).setVisible(false);
+    const bw = Math.ceil(hissText.width) + 10; // o balão acompanha o texto
+    const bubbleBg = this.add.graphics().fillStyle(0xfff4e0, 1).fillRoundedRect(-bw / 2, -7, bw, 14, 5).lineStyle(1, 0x3b2a32, 1).strokeRoundedRect(-bw / 2, -7, bw, 14, 5);
+    // Na pose de estranhar o rabo eriçado sobe: o balão vai mais para cima e para o lado.
+    this.hissBubble = this.add.container(this.catX + (this.startle ? 20 : 14), feet - (this.startle ? 44 : 34), [bubbleBg, hissText]).setDepth(1e5).setVisible(false);
 
     this.treatBtn = this.hudButton(this.treatLabel(), () => this.giveTreat());
     const onP = () => this.giveTreat();
@@ -154,14 +161,16 @@ export class TrustScene extends MiniGameScene {
       if (mood === 'calm') this.cat.play(`${catTexture(this.launch.catVariant)}-sit`).clearTint();
       else this.cat.stop().setFrame(0);
       if (mood === 'hissing') {
-        this.cat.setTint(0xffb0b0);
+        // Folha com a pose de estranhar (costas arqueadas, virado para ela); sem ela, treme avermelhado.
+        if (this.startle) this.cat.play(this.startle);
+        else this.cat.setTint(0xffb0b0);
         this.sfx(this.def.sounds?.hiss);
       } else this.cat.clearTint();
       this.lastMood = mood;
     }
     this.alertIcon.setVisible(mood === 'alert');
     this.hissBubble.setVisible(mood === 'hissing');
-    this.cat.x = this.catX + (mood === 'hissing' ? (Math.random() < 0.5 ? -SHAKE_PX : SHAKE_PX) : 0);
+    this.cat.x = this.catX + (mood === 'hissing' && !this.startle ? (Math.random() < 0.5 ? -SHAKE_PX : SHAKE_PX) : 0);
     // Ronrona enquanto a confiança sobe; coraçõezinhos de vez em quando.
     services().audio.setLoop(this.def.sounds?.trust ?? '', gaining && !this.ended);
     if (gaining && s.elapsed - this.heartAt > HEART_EVERY_MS) {

@@ -5,7 +5,7 @@
 // arte depois sem mexer na lógica.
 import type Phaser from 'phaser';
 import { content } from '../content';
-import { catTexture } from '../entities/Cat';
+import { catTexture, loadCatSheet } from '../entities/Cat';
 
 export const ART_SCALE = 0.5;
 
@@ -96,11 +96,7 @@ export const HUNT_SHEETS: Record<string, SheetSpec> = { ...HIDE_SHEETS, basket: 
 
 /** Folhas do Cosy Cats que o Boot não carregou (ele só carrega os gatos do mundo): os do abrigo, os filhotes... */
 export function loadCatVariants(scene: Phaser.Scene, variants: Iterable<string>): void {
-  const sprites = content.catSprites;
-  for (const v of new Set(variants)) {
-    const file = sprites.variants[v];
-    if (file && !scene.textures.exists(catTexture(v))) scene.load.spritesheet(catTexture(v), file, { frameWidth: sprites.frameSize, frameHeight: sprites.frameSize });
-  }
+  for (const v of new Set(variants)) loadCatSheet(scene, v);
 }
 
 export function loadSheets(scene: Phaser.Scene, sheets: SheetSpec[]): void {

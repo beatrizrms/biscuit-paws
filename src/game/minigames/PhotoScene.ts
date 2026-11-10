@@ -7,7 +7,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { frameOf } from '../../core/tiles';
 import { content, uiText } from '../content';
-import { CatSprite, catTexture } from '../entities/Cat';
+import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { loadCatVariants } from './assets';
@@ -93,7 +93,7 @@ export class PhotoScene extends MiniGameScene {
 
     for (const c of chosen) {
       CatSprite.createAnimations(this, c.variant);
-      const sprite = this.add.sprite(0, 0, catTexture(c.variant), 0).setScale(CAT_SCALE).setOrigin(0.5, 0.65);
+      const sprite = this.add.sprite(0, 0, catTexture(c.variant), 0).setScale(CAT_SCALE * catScale(c.variant)).setOrigin(0.5, 0.65);
       const sparkles = [0, 1].map(() => this.add.image(0, 0, SPARKLE_KEY).setVisible(false).setDepth(2000));
       this.views.set(c.id, { sprite, sparkles, variant: c.variant, anim: '' });
     }

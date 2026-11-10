@@ -1262,7 +1262,7 @@ describe('meus gatos', () => {
     expect(session.catProfiles()).toEqual([]);
     startInCafe(session);
     const [p] = session.catProfiles();
-    expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'marmalade', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
+    expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'ruivo', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
     finishPrologue(session); // come, ganha um coração e o dia vira
     expect(session.catProfiles()[0]).toMatchObject({ hearts: 1, fedToday: false, daysInCafe: 2 });
     session.state.day = 7;

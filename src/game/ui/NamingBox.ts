@@ -78,7 +78,7 @@ export class NamingBox {
     const sit = sprites.animations.find((a) => a.name === 'sit')!;
     (this.el.querySelector('.naming-cat') as HTMLElement).innerHTML = `<div class="cs-cat" style="background-image:url(${
       sprites.variants[cat.variant]
-    });background-position-y:${-sit.row * sprites.frameSize}px;--frames:${sit.frames};--frame-size:${sprites.frameSize}px;animation-duration:${
+    });background-size:${sprites.columns * sprites.frameSize}px auto;background-position-y:${-sit.row * sprites.frameSize}px;--frames:${sit.frames};--frame-size:${sprites.frameSize}px;animation-duration:${
       sit.frames / sit.fps
     }s;animation-timing-function:steps(${sit.frames});transform:scale(3)"></div>`;
     this.el.classList.add('open');

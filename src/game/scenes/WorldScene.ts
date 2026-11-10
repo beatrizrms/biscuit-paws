@@ -7,7 +7,7 @@ import { nowAbs } from '../../core/state';
 import type { GameSession } from '../../core/session';
 import { frameOf } from '../../core/tiles';
 import { Player } from '../entities/Player';
-import { CatSprite, catTexture, type CatPlaces } from '../entities/Cat';
+import { CatSprite, catScale, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { findPath, pathCorners } from '../../core/path';
 import { CustomerSprite } from '../entities/Customer';
@@ -393,7 +393,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
       const bowl = this.session.state.placed.find((p) => p.uid === bowlUid);
       const cat = this.cats.find((c) => c.catId === catId);
-      if (bowl && cat) cat.goEat([bowl.at[0], bowl.at[1] + 1], this.time.now);
+      if (!bowl || !cat) return;
+      // Come de lado, com a cabeça no pote: a célula livre ao lado (a mais perto dele); sem nenhuma, senta na frente.
+      const [bc, br] = bowl.at;
+      // Livre = chão sem móvel (cadeira e pote não são sólidos, mas não são lugar de comer).
+      const free = (c: number) => this.map.solid[br]?.[c] === false && !this.session.placedAt([c, br]);
+      const sides = ([[bc - 1, 'right'], [bc + 1, 'left']] as const).filter(([c]) => free(c));
+      const [cc] = cat.cell();
+      const side = sides.sort((a, b) => Math.abs(a[0] - cc) - Math.abs(b[0] - cc))[0];
+      if (side) cat.goEat([side[0], br], this.time.now, side[1]);
+      else cat.goEat([bc, br + 1], this.time.now);
     });
     // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
     // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
@@ -1434,7 +1443,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (spot.map !== this.map.id || !variant || !this.textures.exists(catTexture(variant))) return;
       CatSprite.createAnimations(this, variant);
       const feet = (spot.at[1] + 1) * ts - 4;
-      const cat = this.add.sprite((spot.at[0] + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
+      const cat = this.add.sprite((spot.at[0] + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(variant)).setDepth(ySortDepth(feet));
       cat.play(`${catTexture(variant)}-sit`);
       this.arrivalActors.push(cat);
       return;
@@ -1446,7 +1455,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!variant || !this.textures.exists(catTexture(variant))) return null;
       CatSprite.createAnimations(this, variant);
       const feet = (r + 1) * ts - 4 - lift;
-      const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setDepth(ySortDepth(feet));
+      const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(variant)).setDepth(ySortDepth(feet));
       cat.play(`${catTexture(variant)}-sit`);
       this.arrivalActors.push(cat);
       return cat;
@@ -1967,7 +1976,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const variant = this.session.catDef(catId)?.variant ?? '';
         CatSprite.createAnimations(this, variant); // fora do café o gato pode não ter aparecido no mapa ainda
         // Na pose de dormir o corpo fica na parte de baixo do quadro: origem 1,05 põe o gato na altura das mãos.
-        this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).play(`${catTexture(variant)}-sleep`);
+        this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
       }
     }
     const dir = this.player.facingDirection();

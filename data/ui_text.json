@@ -745,7 +745,7 @@
     "trust": {
       "hud": "Confiança {trust}% · Sustos {scares}/{max}",
       "treat": "Petisco (P) ×{n}",
-      "hiss": "Fff!",
+      "hiss": "Fuzzzz!",
       "scared": "Assustou!",
       "result": "Confiança conquistada com {scares} susto(s).",
       "failed": "Ele se assustou demais e fugiu.",

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { nextCatGoal, type CatGoal, type CatSpot } from '../../core/cats';
+import { catResolution, nextCatGoal, type CatGoal, type CatSpot } from '../../core/cats';
 import type { Cell } from '../../core/map';
 import type { Rng } from '../../core/rng';
 import { ySortDepth } from '../../core/map';
@@ -8,6 +8,8 @@ import { content } from '../content';
 const SPEED = 40;
 const ARRIVE_PX = 2;
 const STUCK_MS = 1500;
+/** Comendo de lado: quanto ele chega mais perto do pote (px do jogo; 9 = o corpo de 14 px encosta na célula do pote sem entrar). */
+const EAT_NUDGE = 9;
 
 /** Os objetos dos gatos no mapa (caminha, arranhador, árvore) e quais estão ocupados (um gato por lugar). */
 export interface CatPlaces {
@@ -18,6 +20,28 @@ export interface CatPlaces {
 /** Textura do Cosy Cats para uma variante (carregada no BootScene). */
 export const catTexture = (variant: string) => `cat.${variant}`;
 
+/** Lado do quadro na folha da variante (32 no Cosy Cats; 64 na arte em 64 px). */
+export const catFrameSize = (variant: string) => content.catSprites.frameSize * catResolution(content.catSprites, variant);
+
+/** Escala que põe a folha da variante no tamanho do jogo (0,5 na arte em 64 px). Multiplica a escala da cena. */
+export const catScale = (variant: string) => 1 / catResolution(content.catSprites, variant);
+
+/** catScale pela chave da textura (`cat.<variante>`), para quem escolhe a textura com reserva. */
+export const catTexScale = (texture: string) => catScale(texture.replace(/^cat\./, ''));
+
+/** Chave da animação da variante; se a folha não tem essa (opcional), a de sentar. */
+export function catAnim(scene: Phaser.Scene, variant: string, name: string): string {
+  const key = `${catTexture(variant)}-${name}`;
+  return scene.anims.exists(key) ? key : `${catTexture(variant)}-sit`;
+}
+
+/** Carrega a folha de uma variante com o quadro do tamanho dela. */
+export function loadCatSheet(scene: Phaser.Scene, variant: string): void {
+  const file = content.catSprites.variants[variant];
+  const size = catFrameSize(variant);
+  if (file && !scene.textures.exists(catTexture(variant))) scene.load.spritesheet(catTexture(variant), file, { frameWidth: size, frameHeight: size });
+}
+
 /** Um gato no mapa. Decide o que fazer com nextCatGoal (núcleo) e só anima e se move aqui. */
 export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private goal: CatGoal | null = null;
@@ -25,6 +49,8 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private lastProgressAt = 0;
   private lastDistance = Infinity;
   private eatAfterWalk = false;
+  /** Lado do pote ao chegar para comer (come de lado, com a cabeça no pote); sem lado, senta. */
+  private eatFacing: 'left' | 'right' | null = null;
   /** Lugar de um objeto que ele está usando (ocupado em places.taken) e se subiu nele (sem colisão). */
   private using: CatSpot | null = null;
   private perched = false;
@@ -45,8 +71,11 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     // Pés na linha de pixel 28 do quadro (README do Cosy Cats).
     this.setOrigin(0.5, 28 / 32);
+    // Folha em 64 px: desenhada na metade; o corpo é medido em pixels da folha.
+    const res = catResolution(content.catSprites, variant);
+    this.setScale(1 / res);
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(14, 6).setOffset(9, 23);
+    body.setSize(14 * res, 6 * res).setOffset(9 * res, 23 * res);
     body.setCollideWorldBounds(true);
     // Ela não empurra o gato (nem ele a ela): quem está andando para.
     body.pushable = false;
@@ -56,10 +85,13 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
 
   static createAnimations(scene: Phaser.Scene, variant: string): void {
     const sprites = content.catSprites;
+    const total = scene.textures.exists(catTexture(variant)) ? scene.textures.get(catTexture(variant)).frameTotal - 1 : 0;
     for (const a of sprites.animations) {
       const key = `${catTexture(variant)}-${a.name}`;
       if (scene.anims.exists(key)) continue;
       const first = a.row * sprites.columns;
+      // Linha opcional que a folha não tem (Cosy Cats sem comer/estranhar): fica sem; catAnim cai no sit.
+      if (a.optional && first + a.frames > total) continue;
       scene.anims.create({
         key,
         frames: scene.anims.generateFrameNumbers(catTexture(variant), { start: first, end: first + a.frames - 1 }),
@@ -69,11 +101,12 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  /** Vai até a célula e senta lá por um tempo (ex.: comer na tigela). */
-  goEat(cell: Cell, now: number): void {
+  /** Vai até a célula e fica lá por um tempo: comendo virado para o pote (facing) ou sentado. */
+  goEat(cell: Cell, now: number, facing: 'left' | 'right' | null = null): void {
     this.leaveSpot();
     this.goal = { kind: 'walk', to: cell };
     this.eatAfterWalk = true;
+    this.eatFacing = facing;
     this.lastDistance = Infinity;
     this.lastProgressAt = now;
   }
@@ -107,7 +140,13 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
           this.eatAfterWalk = false;
           this.goal = { kind: 'sit', seconds: 6 };
           this.goalUntil = now + 6000;
-          this.play(`${catTexture(this.variant)}-sit`, true);
+          const eat = this.eatFacing && catAnim(this.scene, this.variant, `eat_${this.eatFacing}`);
+          if (eat && !eat.endsWith('-sit')) {
+            // A cabeça baixa vai até o pote: chega meio passo para o lado dele (o corpo não encosta no pote).
+            this.x += this.eatFacing === 'right' ? EAT_NUDGE : -EAT_NUDGE;
+            this.play(eat, true);
+          } else this.play(`${catTexture(this.variant)}-sit`, true);
+          this.eatFacing = null;
         } else this.pickGoal(now);
       } else {
         this.setVelocity((dx / dist) * SPEED, (dy / dist) * SPEED);
@@ -159,6 +198,9 @@ export class CatSprite extends Phaser.Physics.Arcade.Sprite {
   private pickGoal(now: number): void {
     this.leaveSpot();
     this.setVelocity(0, 0);
+    // Desistiu do caminho (empacou): não come nem senta onde parar.
+    this.eatAfterWalk = false;
+    this.eatFacing = null;
     this.goal = nextCatGoal(this.rng, this.cell(), this.solid(), this.places?.spots() ?? [], this.places?.taken ?? new Set());
     this.lastDistance = Infinity;
     this.lastProgressAt = now;

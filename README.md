@@ -27,6 +27,7 @@ npm run check       # tipos + validação de todo o conteúdo (mapas, itens, his
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
 npm run mannequin   # monta as peças da personagem (manequim, roupas e cabelos do PixelLab, 64 px) em public/assets/characters/player_mannequin
 npm run npcs        # monta as folhas dos NPCs na arte nova (Gabi, Corretora, Dona Neusa, Entregadora, Fernanda só com a caminhada, a atendente do mercado só de costas, o Joca e os 10 clientes com caminhada e sentado) em public/assets/characters/npcs/v64
+npm run gatos       # monta as folhas dos gatos na arte nova (64 px, layout do Cosy Cats + comer e estranhar) em public/assets/characters/cats; hoje só o ruivo (o Botinhas)
 npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)

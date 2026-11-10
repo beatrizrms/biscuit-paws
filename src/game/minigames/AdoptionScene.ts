@@ -8,7 +8,7 @@ import { adoptionOutcome, judge, setupMatch, type AdoptCat, type AdoptionParams,
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { catTexture } from '../entities/Cat';
+import { catTexScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadCatVariants } from './assets';
 import { DragDrop, type ZoneState } from './dragDrop';
@@ -157,7 +157,7 @@ export class AdoptionScene extends MiniGameScene {
     bg.fillStyle(0xffffff, 1).fillRoundedRect(-CARD_W / 2, -this.cardH / 2, CARD_W, this.cardH, 5).lineStyle(1, C.edge, 1).strokeRoundedRect(-CARD_W / 2, -this.cardH / 2, CARD_W, this.cardH, 5);
     // O gato sentado (Cosy Cats); variante sem folha carregada usa a do gato da missão.
     const tex = this.textures.exists(catTexture(cat.variant)) ? catTexture(cat.variant) : catTexture(this.launch.catVariant);
-    const sprite = this.add.sprite(-CARD_W / 2 + 18, 4, tex, 0);
+    const sprite = this.add.sprite(-CARD_W / 2 + 18, 4, tex, 0).setScale(catTexScale(tex));
     const name = this.add.text(-CARD_W / 2 + 36, -this.cardH / 2 + 4, cat.name, textStyle(8.5, '#5c3428', true));
     const traits = Object.entries(cat.traits).map(([g, v]) => content.adoption.traits[g]?.[v] ?? v);
     // Cartão baixo (famílias a mais): os traços em linha, quebrando onde precisar, para caber.
