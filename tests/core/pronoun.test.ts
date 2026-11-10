@@ -5,7 +5,7 @@ import { knownIds, parseSave } from '../../src/core/save';
 import { loadContent } from './content';
 
 /** Arquivos cujos textos passam por fillNames (src/game/ui/text.ts) antes de ir para a tela. */
-const FILLED = ['dialogue.json', 'cutscenes.json', 'news.json'];
+const FILLED = ['dialogue.json', 'cutscenes.json', 'news.json', 'vet_text.json'];
 
 /** Todas as strings de um JSON (com o caminho), para varrer os dados. */
 function strings(o: unknown, path = ''): [string, string][] {

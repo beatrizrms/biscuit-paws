@@ -4,6 +4,7 @@
 // quando é a próxima?). Quem executa (cria o gato, abriga, guarda no save) é o ArrivalSystem.
 // Puro: sem Phaser, DOM ou window.
 import type { GenerateSpec } from './catGen';
+import type { NeuteredSpec } from './repro';
 import { pickWeighted, type Rng } from './rng';
 import { parseClock } from './time';
 import { modelReady, stepsOf } from './arrivalModels';
@@ -120,6 +121,11 @@ export interface ArrivalDef {
   cat: { id: string } | { generate: GenerateSpec };
   /** Como chega (data/cat_profiles.json: conditions). Sem ela: a do gato gerado, ou "healthy". */
   condition?: string;
+  /**
+   * Estado reprodutivo (data/clinic.json: repro): neutered fixo (true/false) ou com chance ({ chance }); sem ele, a
+   * chance padrão pelo modelo e pela condição. earTipped: chega com a ponta da orelha cortada (sempre castrado).
+   */
+  repro?: { neutered?: NeuteredSpec; earTipped?: boolean };
   steps: ArrivalStep[];
   result?: ArrivalResult;
   whenFull: WhenFull;

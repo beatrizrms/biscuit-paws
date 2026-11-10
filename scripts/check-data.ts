@@ -37,6 +37,8 @@ const raw: RawContent = {
   milestones: read('data/milestones.json'),
   festive: read('data/festive.json'),
   catProfiles: read('data/cat_profiles.json'),
+  clinic: read('data/clinic.json'),
+  vetText: read('data/vet_text.json'),
   arrivals: read('data/arrivals.json'),
   festivals: read('data/festivals.json'),
   fairSetup: read('data/fair_setup.json'),

@@ -1,4 +1,5 @@
 // Gatos: definições (data/cats.json) e sprites (data/cat_sprites.json). Puro: sem Phaser, DOM ou window.
+import type { FixedRepro } from './repro';
 
 export interface CatDef {
   id: string;
@@ -15,6 +16,8 @@ export interface CatDef {
   arrivesSick?: boolean;
   /** Traços na feira de adoção (data/adoption.json: traits); sem eles, vem da personalidade (fair.personalityFrom). */
   adoptionTraits?: Record<string, string>;
+  /** Estado reprodutivo fixo (os gatos escritos à mão: tutorial previsível). Sem ele, sorteado na chegada (repro.ts). */
+  repro?: FixedRepro;
   tags: string[];
 }
 

@@ -17,6 +17,17 @@ export interface GameEvents {
   'cat.diagnosed': { catId: string; disease: string; days: number; total: number; onCredit: boolean };
   'cat.medicated': { catId: string; dosesGiven: number; days: number };
   'cat.cured': { catId: string };
+  // Clínica (clinicFlow.ts): consulta de entrada, castração e recuperação no cercadinho.
+  'cat.examined': { catId: string; status: 'intact' | 'neutered'; earTipped: boolean };
+  'cat.neutered': { catId: string; procedure: string };
+  /** Gancho da CED: gato com a ponta da orelha cortada (castrado na rua). Hoje só sai se uma chegada declarar a marca. */
+  'cat.ear_tipped': { catId: string };
+  'procedure.booked': { catId: string; procedure: string; returnDay: number };
+  'clinic.delivered': { catId: string; inPen: boolean; isolationDays: number; aftercareDays: number };
+  'clinic.released': { catId: string };
+  'clinic.complication': { catId: string; missedFeed: boolean };
+  'clinic.complication_fixed': { catId: string };
+  'clinic.friend_discount': Record<string, never>;
   /** Contágio: pegou a doença de outro gato. */
   'cat.infected': { catId: string; fromCatId: string; disease: string };
   /** De manhã: gatos doentes demais, os clientes evitam o café. */

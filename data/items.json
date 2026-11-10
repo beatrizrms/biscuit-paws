@@ -31,6 +31,20 @@
       "healthMultiplier": 1.5
     },
     {
+      "id": "item.food_recovery",
+      "name": "Recovery (latinha)",
+      "description": "Comida úmida de recuperação, em latinha. Com ela na mão, E no cercadinho alimenta todos os gatos que estão lá dentro.",
+      "price": 8,
+      "kind": "consumable",
+      "icon": "racao_premium",
+      "tags": [
+        "cat:food",
+        "pet",
+        "food"
+      ],
+      "use": "recovery_pen"
+    },
+    {
       "id": "item.cat_treat_biscuit",
       "name": "Petisco de biscoito",
       "description": "Petisco: selecione na barra e dê a um gato para ganhar mais carinho dele.",
@@ -1954,6 +1968,21 @@
           "pet"
         ]
       },
+      "requires": {
+        "flag": "has.cat"
+      }
+    },
+    {
+      "id": "item.recovery_pen",
+      "name": "Cercadinho de recuperação",
+      "price": 80,
+      "tile": "vet_cercadinho",
+      "description": "Cantinho isolado para até 4 gatos: quem acabou de chegar espera a consulta aqui, e quem voltou da castração se recupera sossegado.",
+      "tags": [
+        "furniture",
+        "cat:care",
+        "recovery_pen"
+      ],
       "requires": {
         "flag": "has.cat"
       }

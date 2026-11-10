@@ -7,6 +7,7 @@ import { stepsOf } from './arrivalModels';
 import { arrivalsToQueue, nextGap, triggerHolds, visibleTrail, type ArrivalDef, type ArrivalStep } from './arrivals';
 import type { JobPoint } from './jobs';
 import { generateCat } from './catGen';
+import type { ArrivalReproInput } from './clinicFlow';
 import { parseClock } from './time';
 import { seasonOf, weatherOf } from './calendar';
 import type { Content } from './content';
@@ -50,7 +51,7 @@ export interface ArrivalHost {
    * Abriga o gato no café com a condição de chegada (saúde, doença); treated: o vet já cuidou (sem doença); settling:
    * acabou de chegar e precisa da confiança para ficar de boa.
    */
-  shelterCat(catId: string, condition: string, provisionalUntil?: number, treated?: boolean, settling?: boolean): void;
+  shelterCat(catId: string, condition: string, provisionalUntil?: number, treated?: boolean, settling?: boolean, repro?: ArrivalReproInput): void;
   money(): number;
   addMoney(delta: number, reason: string): void;
   addReputation(amount: number, reason: string): void;
@@ -377,8 +378,10 @@ export class ArrivalSystem {
       const place = (catId: string, condition: string, settling: boolean): Placement => {
         const full = this.h.shelteredCount() >= this.capacity();
         const where: Placement = !full ? 'sheltered' : def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
+        // Estado reprodutivo pelo modelo da chegada e pelo que ela declara (filhote da ninhada: a chance da condição).
+        const repro: ArrivalReproInput = { model: def.model, condition, ...(catId === a.catId ? def.repro : {}) };
         if (where === 'shelter_pool') this.st.shelterPool.push(catId);
-        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined, a.treated, settling);
+        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined, a.treated, settling, repro);
         return where;
       };
       placement = place(a.catId, a.condition, !trusted);

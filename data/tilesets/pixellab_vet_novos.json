@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 4,
+ "rows": 6,
  "pieces": {
   "janela_azul": {
    "col": 0,
@@ -42,6 +42,18 @@
   "primeiros_socorros": {
    "col": 3,
    "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cercadinho": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "caixinha_gato": {
+   "col": 3,
+   "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
   }

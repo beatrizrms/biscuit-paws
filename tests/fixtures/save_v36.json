@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 36,
+  "savedAt": "2026-11-11T02:00:00.000Z",
+  "day": 12,
+  "time": 600,
+  "money": 700,
+  "flags": {
+    "painter.available": true,
+    "has.cat": true
+  },
+  "inventory": {
+    "item.cat_litter": 1,
+    "item.xmas_box": 1
+  },
+  "placed": [
+    {
+      "uid": "p1",
+      "item": "item.pet_box",
+      "at": [
+        3,
+        8
+      ]
+    },
+    {
+      "uid": "p20",
+      "item": "item.counter_single",
+      "at": [
+        4,
+        5
+      ]
+    },
+    {
+      "uid": "p21",
+      "item": "item.display_case",
+      "at": [
+        10,
+        5
+      ]
+    },
+    {
+      "uid": "p2",
+      "item": "item.dishwasher",
+      "at": [
+        5,
+        8
+      ]
+    }
+  ],
+  "nextUid": 22,
+  "story": {
+    "completed": [],
+    "completedOn": {}
+  },
+  "cats": {
+    "cat.first_stray": {
+      "sheltered": true,
+      "name": "Botinhas",
+      "map": "map.cafe_main",
+      "shelteredOn": 1,
+      "health": 80,
+      "sickness": null,
+      "happiness": 70,
+      "hygiene": 70,
+      "fedOn": 12,
+      "repro": {
+        "status": "neutered",
+        "sex": "male",
+        "birthDay": -167,
+        "weightFactor": 1,
+        "earTipped": false,
+        "known": "neutered",
+        "origin": "shelter"
+      }
+    },
+    "cat.gen.1": {
+      "sheltered": true,
+      "name": "Pipoca",
+      "map": "map.cafe_main",
+      "shelteredOn": 12,
+      "health": 65,
+      "sickness": null,
+      "happiness": 70,
+      "hygiene": 70,
+      "settling": true,
+      "repro": {
+        "status": "intact",
+        "sex": "female",
+        "birthDay": -140,
+        "weightFactor": 1.05,
+        "earTipped": false,
+        "known": "intact",
+        "origin": "shelter"
+      },
+      "tests": {
+        "test.fiv": "negative",
+        "test.felv": "negative"
+      },
+      "clinic": {
+        "stage": "ward",
+        "until": 13,
+        "procedure": "proc.neuter",
+        "returnBy": "vet"
+      }
+    }
+  },
+  "relationships": {},
+  "finishes": {
+    "surface.hall_floor": "finish.check_pink"
+  },
+  "location": "map.cafe_main",
+  "visited": [
+    "map.cafe_main"
+  ],
+  "cleaned": [],
+  "timers": {},
+  "today": {
+    "earned": 0,
+    "jobs": 0
+  },
+  "jobs": {
+    "active": [],
+    "progress": {},
+    "doneOn": {}
+  },
+  "deliveries": [],
+  "menu": [],
+  "pantryOpen": {},
+  "pantry": {
+    "item.coffee_ground": 2,
+    "item.paper_filter": 1
+  },
+  "dishes": {
+    "cup": 0,
+    "glass": 0,
+    "plate": 0
+  },
+  "hands": [
+    {
+      "kind": "cake",
+      "recipe": "recipe.cake_slice",
+      "portions": 6
+    }
+  ],
+  "surfaces": [],
+  "service": {
+    "customers": [],
+    "preps": [],
+    "nextCustomerAt": null,
+    "nextCustomerId": 1,
+    "served": 30
+  },
+  "tray": false,
+  "sink": {
+    "load": {
+      "cup": 0,
+      "glass": 0,
+      "plate": 0
+    },
+    "washing": null
+  },
+  "hotbar": {
+    "slots": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "active": 0
+  },
+  "business": "closed",
+  "player": {
+    "name": "",
+    "appearance": null,
+    "pronoun": "she"
+  },
+  "debt": 0,
+  "rooms": {},
+  "doors": {},
+  "schedule": null,
+  "reputation": {
+    "value": 0,
+    "reached": [],
+    "log": []
+  },
+  "festivals": {
+    "active": null,
+    "last": {},
+    "heldOn": null
+  },
+  "bestPhoto": null,
+  "shoppingList": [],
+  "construction": {
+    "repaired": [
+      "inside"
+    ],
+    "quote": null,
+    "job": {
+      "kind": "outside",
+      "finishId": "finish.facade_sky",
+      "material": 0,
+      "labor": 200,
+      "days": 2,
+      "startDay": 13,
+      "endDay": 14
+    },
+    "askPending": false,
+    "cells": {
+      "9,6": "finish.wood_planks"
+    }
+  },
+  "arrivals": {
+    "active": null,
+    "queue": [],
+    "last": {},
+    "nextOn": null,
+    "seq": 0,
+    "shelterPool": []
+  },
+  "catDefs": {
+    "cat.gen.1": {
+      "id": "cat.gen.1",
+      "variant": "toffee",
+      "personality": "needy",
+      "tags": []
+    }
+  },
+  "hintUses": {},
+  "stats": {
+    "today": {
+      "served": 2,
+      "gaveUp": 0,
+      "doses": {
+        "item.coffee_ground": 2
+      },
+      "sickAtStart": []
+    },
+    "days": [
+      {
+        "day": 9,
+        "open": true,
+        "served": 6,
+        "gaveUp": 1,
+        "earned": 90,
+        "doses": {
+          "item.coffee_ground": 5,
+          "item.paper_filter": 5
+        },
+        "cats": 2,
+        "untreated": 0
+      },
+      {
+        "day": 10,
+        "open": false,
+        "served": 0,
+        "gaveUp": 0,
+        "earned": 15,
+        "doses": {},
+        "cats": 2,
+        "untreated": 0
+      },
+      {
+        "day": 11,
+        "open": true,
+        "served": 8,
+        "gaveUp": 0,
+        "earned": 130,
+        "doses": {
+          "item.coffee_ground": 6,
+          "item.paper_filter": 6,
+          "item.removed_from_game": 2
+        },
+        "cats": 2,
+        "untreated": 0
+      }
+    ],
+    "totals": {
+      "openDays": 5,
+      "gaveUp": 3,
+      "doses": {
+        "item.coffee_ground": 30,
+        "item.paper_filter": 30
+      }
+    },
+    "streaks": {
+      "no_gave_up": {
+        "current": 1,
+        "best": 4
+      },
+      "cats_cared": {
+        "current": 11,
+        "best": 11
+      }
+    }
+  },
+  "milestones": {
+    "reached": {
+      "milestone.customers_6": 4,
+      "milestone.customers_15": 7,
+      "milestone.customers_25": 11,
+      "milestone.removed_from_game": 2,
+      "milestone.bad": "x"
+    }
+  },
+  "petBoxes": {
+    "p1": {
+      "item.cat_food_basic": 3,
+      "item.cat_litter": 2
+    }
+  },
+  "displays": {
+    "p21": [
+      {
+        "recipe": "recipe.cake_slice",
+        "portions": 4
+      },
+      {
+        "recipe": "recipe.removed_from_game",
+        "portions": 1
+      },
+      {
+        "recipe": "recipe.paw_cookie",
+        "portions": 1,
+        "quality": "premium"
+      }
+    ],
+    "p9": [
+      {
+        "recipe": "recipe.cake_slice",
+        "portions": 6
+      }
+    ]
+  },
+  "washers": {
+    "p2": {
+      "load": {
+        "cup": 2,
+        "glass": 0,
+        "plate": 1
+      },
+      "washing": null
+    }
+  },
+  "wear": {
+    "p2": {
+      "uses": 410,
+      "breaksAt": 410,
+      "broken": true
+    }
+  },
+  "xmasBox": {
+    "item.christmas_tree": 1,
+    "item.xmas_stocking": 3,
+    "item.removed_from_game": 2
+  },
+  "secretSanta": {
+    "year": 1,
+    "drawn": "npc.neusa",
+    "stage": "drawn"
+  },
+  "clinic": {
+    "consults": 2,
+    "friendSaid": false,
+    "surgeries": {
+      "12": 1
+    }
+  }
+}

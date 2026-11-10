@@ -195,6 +195,7 @@
       "id": "cat.first_stray",
       "variant": "ruivo",
       "personality": "brave",
+      "repro": { "status": "neutered", "sex": "male", "ageMonths": 24, "known": true },
       "nameSuggestions": [
         "Botinhas",
         "Pão de Mel",

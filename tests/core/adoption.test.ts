@@ -50,6 +50,8 @@ describe('match de adoção', () => {
     state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     state.cats['cat.visitante'] = { sheltered: true, name: 'Visitante', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
     const session = new GameSession(content, state);
+    // Só sai por adoção quem a Fernanda já confirmou que é castrado.
+    session.debugRepro('cat.visitante', 'neutered', 'neutered');
     const adopted: unknown[] = [];
     session.bus.on('cat.adopted', (e) => adopted.push(e));
     const adoptions = [
@@ -65,6 +67,12 @@ describe('match de adoção', () => {
       { catId: 'cat.visitante', verdict: 'good', leftCafe: true },
       { catId: 'adopt.mingau', verdict: 'ok', leftCafe: false },
     ]);
+    // Não castrado (ou sem exame): não sai por adoção.
+    state.cats['cat.inteiro'] = { sheltered: true, name: 'Inteiro', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
+    const s2 = new GameSession(content, state);
+    s2.debugRepro('cat.inteiro', 'intact', 'intact');
+    expect(s2.adoptOut('cat.inteiro')).toBe(false);
+    expect(s2.catProfiles().find((p) => p.id === 'cat.inteiro')!.adoption?.reason).toBe('needs_neuter');
     // Pular não adota ninguém.
     expect(makeResult(content.minigames, 'adoption', 'easy', 'ok', 0, true, { adoptions }).adoptions).toBeUndefined();
   });

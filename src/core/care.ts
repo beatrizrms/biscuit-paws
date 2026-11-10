@@ -81,11 +81,19 @@ export function careAtDayEnd(cat: CatState, cfg: CareConfig, day: number, room: 
 }
 
 /**
+ * O tratamento em andamento: a receita da doença (vem primeiro) ou o remédio do pós-cirurgia (clinic.ts: aftercare).
+ * Os dois têm a mesma forma: uma dose por dia, até `days` doses.
+ */
+export function activeTreatment(cat: CatState): { days: number; dosesGiven: number; lastDoseDay: number | null } | null {
+  return cat.sickness?.treatment ?? cat.aftercare ?? null;
+}
+
+/**
  * Precisa de remédio: doente, com receita, e a dose de hoje ainda não foi. Não é um campo à parte no save
  * (seria uma segunda verdade ao lado de sickness.treatment).
  */
 export function needsMedicine(cat: CatState, day: number): boolean {
-  const t = cat.sickness?.treatment;
+  const t = activeTreatment(cat);
   return !!t && t.lastDoseDay !== day;
 }
 

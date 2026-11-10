@@ -1327,6 +1327,14 @@ export class CafeService {
     return { ok: true };
   }
 
+  /** Tira o gato do colo fora do café: ficou na clínica (internado). */
+  releaseCarriedCat(): void {
+    const i = this.st.hands.findIndex((h) => h.kind === 'cat');
+    if (i < 0) return;
+    this.st.hands.splice(i, 1);
+    this.handsChanged();
+  }
+
   /** O gato que está no colo (para a cena não desenhar ele no chão). */
   carriedCat(): string | undefined {
     const h = this.st.hands.find((x) => x.kind === 'cat');

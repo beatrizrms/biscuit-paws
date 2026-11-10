@@ -7,6 +7,8 @@ import type { Quality, Vessel } from './recipes';
 import { emptyLoad, newServiceState, type ServiceState, type SinkState } from './service';
 import type { Cell } from './map';
 import type { CatSickness } from './health';
+import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
+import type { CatRepro, TestResult } from './repro';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
@@ -134,6 +136,8 @@ export interface GameState {
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
   catDefs: Record<string, CatDef>;
+  /** Clínica da Fernanda (v36; clinic.ts): consultas pagas (desconto de amiga) e a agenda de cirurgias. */
+  clinic: ClinicState;
   /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa (a dica "E" some depois de algumas). */
   hintUses: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
@@ -206,6 +210,14 @@ export interface CatState {
    * confiança em vez de pegar no colo ou fazer carinho. Ausente = já está de boa no café.
    */
   settling?: boolean;
+  /** Estado reprodutivo (v36; repro.ts): castrado ou não, sexo, idade, peso, marca na orelha e o que ela sabe. */
+  repro?: CatRepro;
+  /** Testes de doenças transmissíveis da consulta de entrada (v36): teste -> resultado. Sem = ainda não fez. */
+  tests?: Record<string, TestResult>;
+  /** Na clínica ou isolado (v36; clinic.ts): espera a consulta, internado ou no cercadinho. Ausente = com os outros. */
+  clinic?: CatClinicStage;
+  /** Remédio do pós-cirurgia (v36): uma dose por dia, como a receita da doença. */
+  aftercare?: Aftercare;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -255,6 +267,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     construction: newConstruction(),
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
+    clinic: newClinic(),
     hintUses: {},
     stats: newStats(),
     milestones: newMilestones(),

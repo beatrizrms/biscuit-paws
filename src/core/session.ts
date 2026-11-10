@@ -20,7 +20,7 @@ import { lowIngredients } from './shopping';
 import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
+import { activeTreatment, addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
 import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
 
 /** Automático com tantos dias ou menos: avisa que está acabando. */
@@ -32,6 +32,9 @@ import { isNewYearEve, newYearFlag } from './newYear';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
+import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
+import { clinicBill } from './clinic';
+import { ageMonths } from './repro';
 import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
@@ -93,6 +96,8 @@ export interface ConsultQuote {
   days: number;
   consult: number;
   medicine: number;
+  /** Desconto de amiga (a partir da 5ª consulta; clinic.json: discount). */
+  discount: number;
   total: number;
   /** Primeira consulta sem dinheiro bastante: fica fiado. */
   onCredit: boolean;
@@ -114,6 +119,14 @@ export interface CatProfile {
   maxHealth: number;
   /** Doente: a doença e, depois da consulta, a receita (doses dadas, se já tomou hoje). */
   sickness: { disease: string; treatment: { days: number; dosesGiven: number; dosedToday: boolean } | null } | null;
+  /** O que ela sabe do estado reprodutivo (castrado, não castrado, ainda não sabe), sexo e marca na orelha. */
+  repro: { known: 'unknown' | 'intact' | 'neutered'; sex: 'male' | 'female' | null; earTipped: boolean; ageMonths: number | null };
+  /** Onde está no caminho da clínica (ausente = com os outros); dia de volta e complicação. */
+  care: { stage: 'intake' | 'ward' | 'isolation'; until?: number; complication?: boolean } | null;
+  /** Remédio do pós-cirurgia. */
+  aftercare: { days: number; dosesGiven: number; dosedToday: boolean } | null;
+  /** Adoção: null = pode; senão o motivo (e o dia estimado, se aguarda idade). */
+  adoption: { reason: 'in_care' | 'needs_neuter' | 'waiting_age'; readyDay?: number } | null;
 }
 
 /** Uma obra de cômodo que o Tião faz (abrir, limpeza pesada, reforma). */
@@ -192,6 +205,8 @@ export class GameSession {
   readonly service: CafeService;
   /** Chegada de gatos (data/arrivals.json). */
   readonly arrivals: ArrivalSystem;
+  /** Clínica: consulta de entrada, castração e cercadinho (clinicFlow.ts). */
+  readonly clinic: ClinicFlow;
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
@@ -237,12 +252,30 @@ export class GameSession {
       capacity: () => this.catCapacity(),
       exclusiveActive: () => this.exclusiveActive(),
       reputation: () => this.reputation(),
-      shelterCat: (id, condition, until, treated, settling) => this.shelterCat(id, condition, until, treated, settling),
+      shelterCat: (id, condition, until, treated, settling, repro) => this.shelterCat(id, condition, until, treated, settling, repro),
       money: () => this.state.money,
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
       addPoints: (from, to, delta) => void addPoints(this.state, this.content.relationships, from, to, delta),
     });
+    this.clinic = new ClinicFlow({
+      state,
+      bus: this.bus,
+      clinic: content.clinic,
+      health: content.health,
+      catDef: (id) => this.catDef(id),
+      conditionAge: (condition) => (condition && content.catProfiles.conditions[condition]?.age) || 'adult',
+      addMoney: (delta, reason) => this.addMoney(delta, reason),
+      atClinic: () => this.state.location === content.health.clinic.map,
+      carriedCat: () => this.service.carriedCat(),
+      dropCarriedCatAway: () => this.service.releaseCarriedCat(),
+      holdCat: (id) => this.service.pickUpCat(id).ok,
+      prescriptionDays: (id) => prescriptionDays(content.health, this.state.day, id),
+      activeUse: (use) => this.activeUse(use),
+      removeFromInventory: (id) => this.removeFromInventory(id),
+    });
+    // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
+    this.clinic.ensureRepro();
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
     // para a barra, venha de onde vier. O que ela tirou da barra de propósito não volta sozinho.
     if (state.hotbar.slots.every((s) => s === null)) syncHotbar(state.hotbar, state.inventory, content.items); // save sem barra (v9)
@@ -544,7 +577,8 @@ export class GameSession {
 
   /** Gatos do café (os que comem na tigela e usam a caixa de areia). */
   private homeCats(): string[] {
-    return this.shelteredCats().filter((id) => this.state.cats[id]!.map === this.content.map.id);
+    // Isolados (cercadinho, caixinha) e internados não comem no pote nem usam a caixa de areia.
+    return this.shelteredCats().filter((id) => this.state.cats[id]!.map === this.content.map.id && this.clinic.withOthers(id));
   }
 
   /**
@@ -680,6 +714,8 @@ export class GameSession {
     for (const id of Object.keys(this.state.inventory)) if (this.content.items[id]?.tags.includes('job')) delete this.state.inventory[id];
     this.stationsAtDayEnd(day);
     this.healthAtDayEnd(day);
+    // Cercadinho: quem ficou sem comer pode ter uma complicação pequena.
+    this.clinic.dayEnded(day);
     // Natal: o dia acabou sem a ceia (ela não estava): fica como perdida.
     const santa = this.santaRecord();
     if (santa?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, day)) {
@@ -707,6 +743,8 @@ export class GameSession {
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
     this.randomIllness();
+    // Clínica: quem foi operado volta (a Fernanda traz ao cercadinho); quem terminou o cercadinho volta para a turma.
+    this.clinic.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
     this.state.stats.today.sickAtStart = this.sickCats();
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
@@ -1000,10 +1038,22 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop'; catId?: string; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
+    // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
+    for (const id of this.shelteredCats()) {
+      const st = this.state.cats[id]!.clinic;
+      if (st?.stage === 'intake') out.push({ kind: 'clinic', clinic: 'intake', catId: id, done: false });
+      else if (st?.stage === 'isolation' && st.complication) out.push({ kind: 'clinic', clinic: 'recheck', catId: id, done: false });
+    }
+    for (const id of this.clinic.readyForPickup()) out.push({ kind: 'clinic', clinic: 'pickup', catId: id, done: false });
+    const isolated = this.shelteredCats().filter((id) => this.clinic.isolated(id) && this.service.carriedCat() !== id);
+    if (isolated.length > 0) {
+      const fedPen = isolated.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
+      out.push({ kind: 'clinic', clinic: 'pen_food', done: fedPen === isolated.length, progress: [fedPen, isolated.length] });
+    }
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
     // Comida: com um gato só, "Comida para Botinhas"; com mais, uma tarefa só (a ração no pote serve todos).
@@ -1021,6 +1071,9 @@ export class GameSession {
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
     const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
     const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
+    for (const id of this.shelteredCats().filter((x) => this.clinic.isolated(x) && needsMedicine(this.state.cats[x]!, this.state.day))) {
+      out.push({ kind: 'care', catId: id, need: 'medicine', hasTool: owns('medicine'), done: false });
+    }
     for (const id of this.homeCats()) {
       for (const need of this.catCare(id)?.needs ?? []) {
         const use = toolFor[need];
@@ -1590,8 +1643,154 @@ export class GameSession {
             dosedToday: cat.sickness.treatment.lastDoseDay === this.state.day,
           },
         },
+        repro: this.reproView(id),
+        care: cat.clinic ? { stage: cat.clinic.stage, ...('until' in cat.clinic ? { until: cat.clinic.until } : {}), ...(cat.clinic.stage === 'isolation' && cat.clinic.complication ? { complication: true } : {}) } : null,
+        aftercare: cat.aftercare ? { days: cat.aftercare.days, dosesGiven: cat.aftercare.dosesGiven, dosedToday: cat.aftercare.lastDoseDay === this.state.day } : null,
+        adoption: this.clinic.adoptionBlock(id),
       };
     });
+  }
+
+  /** O que ela sabe do estado reprodutivo: sexo e idade só depois do exame (ou com a marca na orelha). */
+  private reproView(catId: string): CatProfile['repro'] {
+    const r = this.state.cats[catId]?.repro;
+    if (!r) return { known: 'unknown', sex: null, earTipped: false, ageMonths: null };
+    const seen = r.known !== 'unknown';
+    return { known: r.known, sex: seen ? r.sex : null, earTipped: r.earTipped, ageMonths: seen ? ageMonths(this.content.clinic.repro, r, this.state.day) : null };
+  }
+
+  // ---------- Clínica: consulta de entrada, castração e cercadinho (clinicFlow.ts) ----------
+
+  /** Por onde a sessão chama a clínica (para a interface e o debug). */
+  clinicIntakeQuote(catId: string) {
+    return this.clinic.intakeQuote(catId);
+  }
+
+  clinicIntake(catId: string) {
+    const r = this.clinic.intakeConsult(catId);
+    if (r.ok) this.advanceStory();
+    return r;
+  }
+
+  clinicExam(catId: string) {
+    return this.clinic.exam(catId);
+  }
+
+  clinicBookNeuter(catId: string) {
+    const r = this.clinic.bookNeuter(catId);
+    if (r.ok) this.advanceStory();
+    return r;
+  }
+
+  clinicLeaveOvernight(catId: string) {
+    return this.clinic.leaveOvernight(catId);
+  }
+
+  clinicPickUp(catId: string) {
+    return this.clinic.pickUp(catId);
+  }
+
+  clinicRecheck(catId: string) {
+    return this.clinic.recheck(catId);
+  }
+
+  /** O que a jogadora pode fazer no balcão da clínica agora, com quem está no colo (ou sem ninguém). */
+  clinicDesk(): { carried: string | null; intake: boolean; examined: boolean; recheck: boolean; pickups: string[] } {
+    const carried = this.service.carriedCat() ?? null;
+    const c = carried ? this.state.cats[carried] : undefined;
+    const st = c?.clinic;
+    return {
+      carried,
+      intake: st?.stage === 'intake',
+      examined: !!c?.tests && !st,
+      recheck: st?.stage === 'isolation' && !!st.complication,
+      pickups: carried ? [] : this.clinic.readyForPickup(),
+    };
+  }
+
+  /** A latinha Recovery no cercadinho (uid) ou na caixinha do canto ('box'). */
+  feedIsolated(where: string) {
+    const r = this.clinic.feedIsolated(where);
+    if (r.ok) this.advanceStory();
+    return r;
+  }
+
+  /** Quem está em cada cercadinho e quem espera na caixinha. */
+  penAssignments() {
+    return this.clinic.penAssignments();
+  }
+
+  /** O gato está isolado (cercadinho ou caixinha), internado ou com os outros? */
+  catPlace(catId: string): 'with_others' | 'isolated' | 'ward' {
+    if (this.clinic.inWard(catId)) return 'ward';
+    return this.clinic.isolated(catId) ? 'isolated' : 'with_others';
+  }
+
+  // ---------- Debug da clínica (painel F9) ----------
+
+  /** Debug: força o estado reprodutivo (e o que ela sabe). */
+  debugRepro(catId: string, status: 'intact' | 'neutered', known: 'unknown' | 'intact' | 'neutered'): void {
+    const r = this.state.cats[catId]?.repro;
+    if (!r) return;
+    r.status = status;
+    r.known = known;
+    if (status === 'intact') r.earTipped = false;
+  }
+
+  /** Debug: muda a idade (meses) do gato. */
+  debugAge(catId: string, months: number): void {
+    const r = this.state.cats[catId]?.repro;
+    if (r) r.birthDay = Math.round(this.state.day - months * this.content.clinic.repro.daysPerMonth);
+  }
+
+  /** Debug: muda a saúde do gato. */
+  debugHealth(catId: string, health: number): void {
+    const c = this.state.cats[catId];
+    if (c) c.health = clampHealth(this.content.health, health);
+  }
+
+  /** Debug: manda o gato para a consulta de entrada (isolado). */
+  debugIntake(catId: string): void {
+    const c = this.state.cats[catId];
+    if (!c) return;
+    c.clinic = { stage: 'intake' };
+    delete c.tests;
+  }
+
+  /** Debug: castra agora (sem ir à clínica): internado, volta amanhã de manhã com a Fernanda. */
+  debugBookNeuter(catId: string): void {
+    const c = this.state.cats[catId];
+    if (!c?.repro) return;
+    c.tests ??= {};
+    c.repro.status = 'intact';
+    c.clinic = { stage: 'ward', until: this.state.day, procedure: 'proc.neuter', returnBy: 'vet' };
+  }
+
+  /** Debug: roda a manhã da clínica agora (quem está internado com a volta vencida volta ao cercadinho). */
+  debugClinicMorning(): void {
+    this.clinic.morning();
+    this.advanceStory();
+  }
+
+  /** Debug: adianta os dias de cercadinho (termina hoje e volta na próxima manhã). */
+  debugAdvanceRecovery(catId: string): void {
+    const s = this.state.cats[catId]?.clinic;
+    if (s?.stage === 'isolation') s.until = this.state.day;
+  }
+
+  /** Debug: lota a agenda de cirurgias de hoje. */
+  debugFillClinic(): void {
+    const proc = this.content.clinic.procedures.find((p) => p.id === 'proc.neuter');
+    if (proc) this.state.clinic.surgeries[String(this.state.day)] = proc.surgeriesPerDay;
+  }
+
+  /** Debug: complicação agora (gato no cercadinho depois da castração). */
+  debugComplication(catId: string): void {
+    const s = this.state.cats[catId]?.clinic;
+    if (s?.stage === 'isolation') {
+      s.complication = true;
+      this.bus.emit('clinic.complication', { catId, missedFeed: false });
+    }
   }
 
   // ---------- Saúde (data/health.json) ----------
@@ -1618,7 +1817,9 @@ export class GameSession {
       const cat = this.state.cats[id]!;
       // A ração premium (healthMultiplier) rende mais saúde que a comum.
       const mult = (cat.fedWith && this.content.items[cat.fedWith]?.healthMultiplier) || 1;
-      let delta = cat.fedOn === day ? Math.round(cfg.daily.fed * mult) : cfg.daily.hungry;
+      // Internado: a clínica alimenta.
+      const fed = cat.fedOn === day || this.clinic.inWard(id);
+      let delta = fed ? Math.round(cfg.daily.fed * mult) : cfg.daily.hungry;
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
       if (!cat.sickness && cat.health < cfg.sickBelow && clinicTomorrow) this.makeSick(id);
@@ -1628,10 +1829,11 @@ export class GameSession {
     if (!clinicTomorrow) return;
     for (const sourceId of this.shelteredCats()) {
       const source = this.state.cats[sourceId]!;
-      if (!source.sickness || !isContagious(cfg, source.sickness, day)) continue;
+      // Isolado (cercadinho, caixinha ou internado) não passa doença, nem pega.
+      if (!source.sickness || !isContagious(cfg, source.sickness, day) || !this.clinic.withOthers(sourceId)) continue;
       for (const id of this.shelteredCats()) {
         const cat = this.state.cats[id]!;
-        if (id === sourceId || cat.sickness || cat.map !== source.map || !rollsContagion(cfg, day, id)) continue;
+        if (id === sourceId || cat.sickness || cat.map !== source.map || !this.clinic.withOthers(id) || !rollsContagion(cfg, day, id)) continue;
         this.makeSick(id, source.sickness.disease);
         this.bus.emit('cat.infected', { catId: id, fromCatId: sourceId, disease: source.sickness.disease });
       }
@@ -1716,7 +1918,10 @@ export class GameSession {
 
   /** Dificuldade da confiança do gato que chegou: a da personalidade (tímido = difícil). */
   settleDifficulty(catId: string): 'easy' | 'normal' | 'hard' {
-    return this.content.catProfiles.personalities[this.catDef(catId)?.personality ?? '']?.trust ?? 'normal';
+    const levels = ['easy', 'normal', 'hard'] as const;
+    const base = this.content.catProfiles.personalities[this.catDef(catId)?.personality ?? '']?.trust ?? 'normal';
+    // Castrado: mais calmo (clinic.json: effects.trustEasier níveis mais fácil).
+    return levels[Math.max(0, levels.indexOf(base) - this.clinic.effects(catId).trustEasier)]!;
   }
 
   /** Dá para uma cena começar agora: ela fora do café, ou no cômodo das cenas (o salão). Em outro cômodo, espera. */
@@ -1926,11 +2131,12 @@ export class GameSession {
     if (cat.sickness.treatment) return { problem: 'already_treated' };
     const days = prescriptionDays(cfg, this.state.day, catId);
     const medicine = days * cfg.prices.medicinePerDay;
-    const total = cfg.prices.consult + medicine;
+    const bill = clinicBill(this.content.clinic, this.state.clinic, { consult: cfg.prices.consult, medicine, procedure: 0 });
+    const total = bill.total;
     const canCredit = cfg.credit.firstConsultOnCredit && !this.state.flags['vet.credit_used'];
     const onCredit = this.state.money < total && canCredit;
     if (this.state.money < total && !onCredit) return { problem: 'no_money' };
-    return { catId, disease: cat.sickness.disease, days, consult: cfg.prices.consult, medicine, total, onCredit };
+    return { catId, disease: cat.sickness.disease, days, consult: cfg.prices.consult, medicine, discount: bill.discount, total, onCredit };
   }
 
   /** A consulta: paga (ou fica fiado, na primeira vez), recebe o remédio da receita e o tratamento começa. */
@@ -1940,7 +2146,8 @@ export class GameSession {
     if (q.onCredit) {
       this.state.debt += q.total;
       this.state.flags['vet.credit_used'] = true;
-    } else this.addMoney(-q.total, 'vet');
+      this.state.clinic.consults += 1;
+    } else this.clinic.payConsult(q.total, 'vet');
     const cat = this.state.cats[catId]!;
     cat.sickness!.treatment = { days: q.days, dosesGiven: 0, lastDoseDay: null };
     const med = this.content.health.medicine.item;
@@ -1955,8 +2162,9 @@ export class GameSession {
   medicineProblem(catId: string): 'not_found' | 'not_sick' | 'no_prescription' | 'already_dosed' | 'needs_medicine' | null {
     const cat = this.state.cats[catId];
     if (!cat?.sheltered) return 'not_found';
-    if (!cat.sickness) return 'not_sick';
-    const t = cat.sickness.treatment;
+    // Doente com receita ou no remédio do pós-cirurgia.
+    if (!cat.sickness && !cat.aftercare) return 'not_sick';
+    const t = activeTreatment(cat);
     if (!t) return 'no_prescription';
     if (t.lastDoseDay === this.state.day) return 'already_dosed';
     return this.activeUse('medicine') ? null : 'needs_medicine';
@@ -2106,13 +2314,14 @@ export class GameSession {
   private applyDose(catId: string, itemId: string): void {
     const cfg = this.content.health;
     const cat = this.state.cats[catId]!;
-    const t = cat.sickness!.treatment!;
+    const t = activeTreatment(cat)!;
     this.removeFromInventory(itemId);
     t.dosesGiven += 1;
     t.lastDoseDay = this.state.day;
     cat.health = clampHealth(cfg, cat.health + cfg.medicine.healPerDose);
     this.bus.emit('cat.medicated', { catId, dosesGiven: t.dosesGiven, days: t.days });
-    if (t.dosesGiven >= t.days) {
+    if (t.dosesGiven >= t.days && t === cat.aftercare) delete cat.aftercare;
+    else if (t.dosesGiven >= t.days) {
       cat.sickness = null;
       cat.health = Math.max(cat.health, cfg.sickBelow);
       this.state.flags['vet.cured'] = true;
@@ -2124,7 +2333,9 @@ export class GameSession {
   /** Remédio escondido: quanto dura a distração do gato pelo jeito dele (cat_profiles.json: pillWindow). */
   pillWindow(catId: string): number {
     const personality = this.catDef(catId)?.personality;
-    return (personality && this.content.catProfiles.personalities[personality]?.pillWindow) || 1;
+    const base = (personality && this.content.catProfiles.personalities[personality]?.pillWindow) || 1;
+    // Castrado: mais calmo, distrai por mais tempo (clinic.json: effects.pillWindow).
+    return base * this.clinic.effects(catId).pillWindow;
   }
 
   /**
@@ -2133,7 +2344,7 @@ export class GameSession {
    */
   private pillDose(catId: string): void {
     const cat = this.state.cats[catId];
-    const t = cat?.sickness?.treatment;
+    const t = cat ? activeTreatment(cat) : null;
     if (!cat?.sheltered || !t || t.lastDoseDay === this.state.day) return;
     const medicine = this.content.health.medicine.item;
     const item = this.activeUse('medicine') ?? ((this.state.inventory[medicine] ?? 0) > 0 ? medicine : null);
@@ -2219,7 +2430,7 @@ export class GameSession {
       return true;
     }
     const cat = this.state.cats[catId];
-    if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId)) return false;
+    if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId) || this.clinic.adoptionBlock(catId)) return false;
     cat.sheltered = false;
     return true;
   }
@@ -2718,7 +2929,8 @@ export class GameSession {
     if (game === 'photo') return { contestCats: this.contestExtras().contestCats };
     if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
     const protectedCats = this.content.adoption.protectedCats;
-    const cats = [...this.shelteredCats(), ...this.state.arrivals.shelterPool]
+    // Gatos do café: só depois de castrados (e fora do cercadinho/clínica); os do abrigo da vila não passam por aqui.
+    const cats = [...this.shelteredCats().filter((id) => !this.clinic.adoptionBlock(id)), ...this.state.arrivals.shelterPool]
       .filter((id) => !protectedCats.includes(id) && this.catDef(id))
       .map((id) => {
         const def = this.catDef(id)!;
@@ -3504,7 +3716,7 @@ export class GameSession {
    * Abriga um gato no café. Com a condição de chegada (data/cat_profiles.json), a saúde e a doença vêm dela; sem
    * ela (o gato da história), a saúde inicial e o arrivesSick dos dados. provisionalUntil: café cheio, com prazo.
    */
-  shelterCat(catId: string, condition?: string, provisionalUntil?: number, treated = false, settling = false): void {
+  shelterCat(catId: string, condition?: string, provisionalUntil?: number, treated = false, settling = false, repro: ArrivalReproInput = {}): void {
     const def = this.catDef(catId);
     const profile = condition ? this.content.catProfiles.conditions[condition] : undefined;
     this.state.cats[catId] = {
@@ -3520,6 +3732,8 @@ export class GameSession {
       ...(provisionalUntil !== undefined ? { provisionalUntil } : {}),
       ...(settling ? { settling: true } : {}),
     };
+    // Estado reprodutivo e, com a clínica aberta, a espera pela consulta de entrada (isolado).
+    this.clinic.onSheltered(catId, { condition, ...repro });
     this.bus.emit('cat.sheltered', { catId });
     // Chega doente pela condição (ferido) ou pelos dados, a não ser que o vet já tenha cuidado na chegada.
     if (!treated && (profile ? profile.sick : def?.arrivesSick)) this.makeSick(catId);

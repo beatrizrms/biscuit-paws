@@ -16,11 +16,13 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 import type { SantaRecord, SantaResult } from './secretSanta';
+import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
+import type { CatRepro } from './repro';
 
-export const SAVE_SCHEMA_VERSION = 35;
+export const SAVE_SCHEMA_VERSION = 36;
 
-export interface SaveV35 extends GameState {
-  schemaVersion: 35;
+export interface SaveV36 extends GameState {
+  schemaVersion: 36;
   savedAt: string;
 }
 
@@ -177,10 +179,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   33: (save) => ({ ...save, schemaVersion: 34, secretSanta: null }),
   /** v34 -> v35: gato que acabou de chegar (cats[].settling). Saves antigos: todos já estão de boa. */
   34: (save) => ({ ...save, schemaVersion: 35 }),
+  /**
+   * v35 -> v36: castração e consulta de entrada (clinic.ts). Saves antigos: clínica zerada; os gatos ganham o estado
+   * reprodutivo ao carregar (session: sorteio com semente pelo id), sem consulta pendente (já estão com os outros).
+   */
+  35: (save) => ({ ...save, schemaVersion: 36, clinic: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV35 = { schemaVersion: 35, savedAt: now.toISOString(), ...state };
+  const save: SaveV36 = { schemaVersion: 36, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -234,7 +241,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV35>;
+  const v2 = save as unknown as Partial<SaveV36>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -297,7 +304,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
           if (s && !sickness) warnings.push(`doença "${s.disease}" não existe mais; ${id} ficou saudável`);
           // Felicidade e higiene fora de 0..100 (ou quebradas): somem, e a leitura usa o valor inicial (care.ts: careOf).
           const care = (v: unknown) => (typeof v === 'number' && v >= 0 && v <= 100 ? Math.round(v) : undefined);
-          const { happiness: _h, hygiene: _g, settling: _s, ...rest } = c;
+          const { happiness: _h, hygiene: _g, settling: _s, repro: _r, tests: _t, clinic: _c, aftercare: _a, ...rest } = c;
           const happiness = care(c.happiness);
           const hygiene = care(c.hygiene);
           return [
@@ -310,6 +317,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
               ...(happiness !== undefined ? { happiness } : {}),
               ...(hygiene !== undefined ? { hygiene } : {}),
               ...(c.settling === true ? { settling: true } : {}),
+              ...catClinicFields(c),
             },
           ];
         }),
@@ -400,6 +408,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     shoppingList: [...new Set((Array.isArray(v2.shoppingList) ? v2.shoppingList : []).filter((id): id is string => typeof id === 'string' && known.items.has(id)))],
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
+    clinic: normalizeClinic(v2.clinic),
     hintUses: Object.fromEntries(
       Object.entries(v2.hintUses ?? {}).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0),
     ),
@@ -650,5 +659,51 @@ function normalizeConstruction(c: unknown, known: KnownIds): ConstructionState {
   out.job = job(x.job);
   out.askPending = x.askPending === true;
   for (const [key, finish] of Object.entries(x.cells ?? {})) if (/^\d+,\d+$/.test(key) && known.finishes.has(finish)) out.cells[key] = finish;
+  return out;
+}
+
+/** Estado da clínica (v36): consultas, desconto e a agenda (dia -> cirurgias); quebrado ou ausente = zerado. */
+function normalizeClinic(c: unknown): ClinicState {
+  const x = (c ?? {}) as Partial<ClinicState>;
+  const out = newClinic();
+  out.consults = Number.isInteger(x.consults) && x.consults! >= 0 ? x.consults! : 0;
+  out.friendSaid = x.friendSaid === true;
+  for (const [day, n] of Object.entries(x.surgeries ?? {})) if (/^\d+$/.test(day) && Number.isInteger(n) && n > 0) out.surgeries[day] = n;
+  return out;
+}
+
+/** Campos da castração no gato (v36), só os bem formados. Sem repro: a sessão sorteia ao carregar. */
+function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown; aftercare?: unknown }): { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare } {
+  const out: { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare } = {};
+  const r = c.repro as Partial<CatRepro> | undefined;
+  if (
+    r &&
+    (r.status === 'intact' || r.status === 'neutered') &&
+    (r.sex === 'male' || r.sex === 'female') &&
+    Number.isFinite(r.birthDay) &&
+    typeof r.weightFactor === 'number' &&
+    r.weightFactor > 0 &&
+    (r.known === 'unknown' || r.known === 'intact' || r.known === 'neutered')
+  ) {
+    // Marca na orelha é sempre castrado (e se sabe).
+    const earTipped = r.earTipped === true;
+    out.repro = {
+      status: earTipped ? 'neutered' : r.status,
+      sex: r.sex,
+      birthDay: r.birthDay!,
+      weightFactor: r.weightFactor,
+      earTipped,
+      known: earTipped ? 'neutered' : r.known,
+      origin: r.origin === 'colony' ? 'colony' : 'shelter',
+    };
+  }
+  const t = c.tests as Record<string, unknown> | undefined;
+  if (t && typeof t === 'object') out.tests = Object.fromEntries(Object.entries(t).filter((e): e is [string, 'negative' | 'positive'] => e[1] === 'negative' || e[1] === 'positive'));
+  const st = c.clinic as Partial<{ stage: string; until: number; procedure: string; returnBy: string; complication: boolean }> | undefined;
+  if (st?.stage === 'intake') out.clinic = { stage: 'intake' };
+  else if (st?.stage === 'ward' && Number.isInteger(st.until)) out.clinic = { stage: 'ward', until: st.until!, returnBy: st.returnBy === 'vet' ? 'vet' : 'player', ...(typeof st.procedure === 'string' ? { procedure: st.procedure } : {}) };
+  else if (st?.stage === 'isolation' && Number.isInteger(st.until) && typeof st.procedure === 'string') out.clinic = { stage: 'isolation', until: st.until!, procedure: st.procedure, ...(st.complication === true ? { complication: true } : {}) };
+  const a = c.aftercare as Partial<Aftercare> | undefined;
+  if (a && Number.isInteger(a.days) && Number.isInteger(a.dosesGiven)) out.aftercare = { days: a.days!, dosesGiven: a.dosesGiven!, lastDoseDay: Number.isInteger(a.lastDoseDay) ? a.lastDoseDay! : null };
   return out;
 }

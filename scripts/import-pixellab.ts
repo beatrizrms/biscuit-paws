@@ -301,6 +301,10 @@ const SHEETS: Sheet[] = [
       banco_lado_esq: { file: 'clinica/banco_lado_esq_1x2.png', w: 1, h: 2, dy: 8 },
       caixa_transporte: { file: 'clinica/obj_3.png', w: 1, h: 1, dy: 4 },
       primeiros_socorros: { file: 'clinica/obj_14.png', w: 1, h: 1, dy: 4 },
+      // Castração (2026-11-10, Pro Flash com a caixa pet como âncora): o cercadinho de recuperação (até 4 gatos) e a
+      // caixinha com a silhueta de um gato (o gato nas mãos dela entre o café e a clínica, ou esperando num canto).
+      cercadinho: { file: 'clinica/cercadinho_recuperacao.png', w: 3, h: 2 },
+      caixinha_gato: { file: 'clinica/caixinha_transporte.png', w: 1, h: 1, dy: 4 },
     },
   },
   {

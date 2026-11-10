@@ -118,6 +118,8 @@ describe('remédio escondido na sessão', () => {
   it('o jeito do gato muda a janela (cat_profiles.json: pillWindow)', () => {
     const { session } = sickCat();
     const personality = session.catDef('cat.first_stray')!.personality;
-    expect(session.pillWindow('cat.first_stray')).toBe(content.catProfiles.personalities[personality]!.pillWindow ?? 1);
+    // O Botinhas é castrado: mais calmo, distrai por mais tempo (clinic.json: effects.pillWindow).
+    const effect = content.clinic.procedures.find((p) => p.id === 'proc.neuter')!.effects.pillWindow ?? 1;
+    expect(session.pillWindow('cat.first_stray')).toBeCloseTo((content.catProfiles.personalities[personality]!.pillWindow ?? 1) * effect);
   });
 });

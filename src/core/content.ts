@@ -20,6 +20,7 @@ import { NO_UPGRADES, validateUpgrades, type UpgradesData } from './upgrades';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import { validateHealth, type HealthConfig } from './health';
+import { validateClinic, type ClinicConfig } from './clinic';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
@@ -159,8 +160,8 @@ export interface EconomyData {
 
 /** Condição de história, escrita em JSON. */
 /** Onde um item da barra é usado. */
-export type ItemUse = 'food_bowl' | 'litter_box' | 'cat' | 'medicine' | 'wand' | 'brush';
-export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'litter_box', 'cat', 'medicine', 'wand', 'brush'];
+export type ItemUse = 'food_bowl' | 'litter_box' | 'cat' | 'medicine' | 'wand' | 'brush' | 'recovery_pen';
+export const ITEM_USES: readonly ItemUse[] = ['food_bowl', 'litter_box', 'cat', 'medicine', 'wand', 'brush', 'recovery_pen'];
 
 export type Condition =
   | { all: Condition[] }
@@ -379,6 +380,9 @@ export interface Content {
   festive: FestiveData;
   /** Perfis de gato (personalidades, condições, sorteio de gatos gerados: data/cat_profiles.json). */
   catProfiles: CatProfilesData;
+  clinic: ClinicConfig;
+  /** Falas da Fernanda sobre a clínica (data/vet_text.json; pt-BR, para revisão com um veterinário). */
+  vetText: VetText;
   /** Chegadas de gatos (data/arrivals.json). */
   arrivals: ArrivalsData;
   /** Eventos de festival (data/festivals.json). */
@@ -434,6 +438,9 @@ export interface RawContent {
   milestones: MilestonesData;
   festive: FestiveData;
   catProfiles: CatProfilesData;
+  clinic: ClinicConfig;
+  /** Falas da Fernanda sobre a clínica (data/vet_text.json; pt-BR, para revisão com um veterinário). */
+  vetText: VetText;
   arrivals: ArrivalsData;
   festivals: FestivalsData;
   fairSetup: FairSetupData;
@@ -474,7 +481,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -576,6 +583,8 @@ export function validateContent(raw: RawContent): string[] {
     const ok = game?.items ? game.items.some((i) => i.id === item) : raw.items.items.some((i) => i.id === item);
     if (!ok) err(`jobs: ponto "${p.id}" abre o mini game com item inexistente "${item}"`);
   }
+  errors.push(...validateClinic(raw.clinic, { items: new Set(raw.items.items.map((i) => i.id)) }));
+  errors.push(...validateVetText(raw.vetText));
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)), icons: new Set(Object.keys(raw.icons.icons)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
@@ -988,5 +997,25 @@ export function validateContent(raw: RawContent): string[] {
   for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => playerText(`dialogue "${id}"`, l.text));
   for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => playerText(`cutscene "${id}"`, t));
 
+  return errors;
+}
+
+/** Falas da Fernanda (data/vet_text.json): seções -> chave -> texto. */
+export type VetText = { schemaVersion: 1 } & Record<string, Record<string, string> | number | string>;
+
+/** As falas que o jogo chama precisam existir. */
+export function validateVetText(t: VetText): string[] {
+  const need: Record<string, string[]> = {
+    intake: ['hello', 'tests', 'testsNegative', 'healthy', 'sick', 'neutered', 'earTipped', 'intact', 'tooYoung', 'tooThin', 'tooWeak', 'sickFirst', 'noBeds', 'noSlots', 'stayOvernight', 'takeHome'],
+    neuter: ['why', 'alreadyNeutered', 'booked', 'delivered', 'deliveredNoPen', 'diapers', 'released', 'aftercare', 'complication', 'complicationFixed', 'missedFeed'],
+    discount: ['friend'],
+    pickup: ['ready', 'notYet'],
+    adoption: ['waitingAge', 'needsNeuter'],
+  };
+  const errors: string[] = [];
+  for (const [section, keys] of Object.entries(need)) {
+    const s = t[section];
+    for (const k of keys) if (!s || typeof s !== 'object' || typeof s[k] !== 'string') errors.push(`vet_text: falta ${section}.${k}`);
+  }
   return errors;
 }

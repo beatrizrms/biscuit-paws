@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Falas da Fernanda sobre a consulta de entrada, castração e recuperação (pt-BR). Arquivo à parte para revisão com um veterinário. {cat} = nome do gato; {days} = dias; {day} = dia; {price} = moedas. Textos curtos, acolhedores, sem sermão. A protagonista pode ser ela ou ele: escrever neutro (ou {g:feminino|masculino}). Chaves usadas pelo jogo; o que está em ced.* ainda não é chamado (fase da CED).",
+  "intake": {
+    "hello": "Chegou gente nova? Deixa eu dar uma olhada em {cat}.",
+    "tests": "Fiz os testes de FIV e FeLV, que passam de gato para gato. Por isso todo recém-chegado faz antes de conhecer os outros.",
+    "testsNegative": "Deu negativo nos dois. Pode ficar {g:tranquila|tranquilo}.",
+    "healthy": "Fora isso, {cat} está bem.",
+    "sick": "{cat} está com {disease}. Nada grave: com o remédio certinho, passa.",
+    "neutered": "{cat} já é castrad{sex:o|a}. Alguém cuidou bem dessa fofura antes de você.",
+    "earTipped": "Viu a pontinha da orelha cortada? É o sinal de quem já foi castrado na rua. Não precisa operar de novo.",
+    "intact": "{cat} ainda não é castrad{sex:o|a}. Se quiser, já opero amanhã cedo: fica aqui esta noite e de manhã eu levo no café.",
+    "tooYoung": "{cat} ainda é muito pequenininh{sex:o|a} para operar. Daqui a uns dias ({day}) já dá.",
+    "tooThin": "Vamos esperar {cat} ganhar um pouco de peso antes da cirurgia.",
+    "tooWeak": "Primeiro {cat} precisa se recuperar. A cirurgia fica para quando estiver mais forte.",
+    "sickFirst": "Primeiro vamos tratar a doença. A castração fica para depois.",
+    "noBeds": "Hoje não tenho leito livre. Amanhã a gente vê isso.",
+    "noSlots": "A agenda de cirurgias de hoje lotou. Me traz amanhã que eu encaixo.",
+    "stayOvernight": "Pode deixar {cat} aqui esta noite. Amanhã você busca.",
+    "takeHome": "Pode levar. No café, {cat} já pode conhecer a turma."
+  },
+  "neuter": {
+    "why": "Castrar evita ninhadas sem lar e deixa a vida dos gatos mais tranquila: menos briga, menos fuga.",
+    "alreadyNeutered": "Esse aqui já é castrado, não precisa. Não vou operar à toa.",
+    "booked": "Combinado. Amanhã cedo eu levo {cat} no café.",
+    "delivered": "Trouxe {cat}! Deixei no cercadinho. São {days} dias quietinh{sex:o|a} lá e o remédio por {aftercare} dias.",
+    "deliveredNoPen": "Trouxe {cat}! Como não tem cercadinho, deixei na caixinha num canto sossegado. Um cercadinho ajudaria muito.",
+    "diapers": "Forrei o cercadinho com fraldas descartáveis, então nada de caixa de areia por enquanto. E deixei umas latinhas de Recovery: é só abrir e dar direto.",
+    "released": "{cat} já pode sair do cercadinho e voltar para a turma.",
+    "aftercare": "Uma dose por dia, escondida na comida. São {days} dias.",
+    "complication": "O pontinho de {cat} inflamou um pouco. Traz aqui que eu dou uma olhada, não é nada grave.",
+    "complicationFixed": "Pronto, limpei e está tudo bem. Fica de olho se {sex:ele|ela} está comendo, tá?",
+    "missedFeed": "Gato em recuperação precisa comer certinho, viu? Mas já está tudo sob controle."
+  },
+  "discount": {
+    "friend": "Você vem tanto aqui que já virou {g:amiga|amigo} da casa! A partir de agora tem um descontinho de amiga, combinado?"
+  },
+  "pickup": {
+    "ready": "{cat} está prontinh{sex:o|a} para voltar com você.",
+    "notYet": "{cat} ainda precisa ficar mais um pouquinho aqui."
+  },
+  "adoption": {
+    "waitingAge": "Aguardando idade para castrar (dia {day}).",
+    "needsNeuter": "Precisa ser castrado antes da adoção."
+  },
+  "ced": {
+    "discharge": "Os gatinhos da colônia já se recuperaram. Vou levar de volta para a região. Cabe algum no abrigo?",
+    "dischargeChosen": "Então {cat} vai com você. Os outros eu devolvo.",
+    "dischargeNone": "Infelizmente não posso ficar com mais, mas de toda forma vamos ficar de olho se eles estão se alimentando e vivendo bem naquela região."
+  }
+}
