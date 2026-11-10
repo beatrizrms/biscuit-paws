@@ -1676,12 +1676,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.carriedCatSprite?.destroy();
       this.carriedCatSprite = null;
       const catId = sv.carriedCat();
-      // Bandeja (selecionada na barra) ou louça na mão: a bandeja nas mãos com uma louça em cima, mesmo levando
-      // várias (o número não aparece).
-      const onTray = st.tray || st.hands.some((h) => h.kind === 'drink' || h.kind === 'dirty');
+      // Bandeja só quando está selecionada na barra: nas mãos, com uma louça em cima, mesmo levando várias (o número
+      // não aparece). Sem ela, a louça (uma por vez) vai direto nas mãos, na mesma pose de mãos à frente.
+      const onTray = st.tray;
+      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty') : undefined;
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela, de mãos vazias; o jogo desenha o objeto.
-      this.player.setCarryPose(onTray ? 'tray' : catId || boxes ? 'cat' : null);
-      if (onTray) {
+      this.player.setCarryPose(onTray || dish ? 'tray' : catId || boxes ? 'cat' : null);
+      if (dish) {
+        const item = this.handItemImage(dish);
+        item?.setScale(this.handScale(dish) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true);
+        this.handIcons = item ? [item] : [];
+      } else if (onTray) {
         const tray = iconFrame(this, serviceArt.trayIcons[0]!);
         const top = st.hands[0];
         const item = top ? this.handItemImage(top) : undefined;
@@ -2282,6 +2287,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
 /** Louça em cima da bandeja na mão: altura do pé dela a partir do meio da bandeja (pixels do jogo). */
 const TRAY_ITEM_LIFT = 2;
+/** Louça direto nas mãos (sem bandeja): a base fica tanto abaixo do meio das mãos (px lógicos). */
+const DISH_HAND_LIFT = 3;
 
 /** Variante do Cosy Cats do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {
