@@ -520,3 +520,71 @@ Decisão: `session.weather()` (o sorteio do dia; o clima escolhido no debug F9 v
 ## 127. Caixa pet: baú de 8 espaços e o "empilhar" (nov/2026)
 Pedido: uma caixa pet para guardar ração, areia e brinquedos, com 8 espaços; à venda na aba Pet do Market; mecânica de armazenamento como a despensa e a mochila (tudo chega na mochila e depois vai para o storage); e um atalho de pilha como o do Stardew Valley, que leva da mochila para o storage o que ele já tem (repor), um em cada storage.
 Decisão: `item.pet_box` (60 moedas, depois de ter gato; aba Pet, grupo **Organização**, tag `pet_storage`), com `storage: { slots: 8, accepts: ["pet"] }`: aceita os itens dos gatos que não são móveis (ração, sacos, areia, petiscos, varinha, escova, cobertor, remédio). Um espaço por tipo de item, quantidade livre. Regras puras em `src/core/storage.ts`; ações na sessão (`storeInStorage`, `takeFromStorage`, `stackIntoStorage`, `storageNear`); evento `storage.changed`. Save v29: `petBoxes` por uid do móvel; recolher a caixa devolve o conteúdo para a mochila. Cena: E na caixa, de mãos livres, abre a mochila com a caixa no lugar da despensa (guardar e pegar por clique ou arrastando; dica "E Caixa pet"). **Empilhar**: botão "empilhar (n)" na caixa e na despensa (`stackInPantry`: só os ingredientes que ela já tem), ao lado do "guardar da mochila", que continua. Arte: 1 imagem neutra gerada no PixelLab (Pro Flash 64x64, 5 gerações, o pote aprovado como âncora de estilo), `assets/_pixellab/automaticos/caixa_pet.png`, peça `pet_box` na folha `pixellab_pet` (depois das coisas de gato da decisão 124, sem mudar a posição delas).
+
+## 128. Para que serve o item: dica no hover, para todos os itens (nov/2026)
+Pedido: as dicas dos itens do mercado deviam aparecer no hover, não embaixo do nome; só 5 dos 134 itens tinham explicação.
+Decisão: todo item tem `description` em `data/items.json`, escrita a partir da mecânica (o que os gatos fazem no móvel, receitas e doses, energia do sofá...). No Market (celular) e nas prateleiras do mercado, o texto sai de baixo do nome e vira um balão (`src/game/ui/hoverTip.ts`, atributo `data-tip`) que aparece com o mouse parado 1,5 s em cima; a linha "★ premium em ..." da prateleira entra no mesmo balão. A mochila usa a mesma descrição.
+
+## 129. Ração premium dá 1,5x mais saúde (nov/2026)
+Pedido: a ração premium deve dar 1,5x de saúde para o gato.
+Decisão: campo `healthMultiplier` no item (1.5 na premium). O gato guarda a ração que comeu no dia (`CatState.fedWith`, opcional no save); no fim do dia, o ganho de `health.daily.fed` é multiplicado. Vale também para o pote automático abastecido com a premium.
+
+## 130. Itens de gato separados em Alimentação, Cuidados, Brinquedos e Descanso (nov/2026)
+Pedido: a prateleira de comida mostrava uma seção de gatos (a varinha e a escova tinham a tag `tool`, e a prateleira de mantimentos mostra utensílios); e as coisas de gato precisavam de categorias.
+Decisão: varinha e escova sem a tag `tool`. Tags novas `cat:food`, `cat:care`, `cat:toy`, `cat:rest`: a prateleira pet do mercado mostra Alimentação, Cuidados e Brinquedos; a aba Pet do Market, Alimentação, Cuidados, Brinquedos, Descanso e Playground (quintal). Os grupos do Market têm `except: ["pet"]`, para a ração e a escova continuarem só no mercado.
+
+## 131. Plaquinhas de horário nas fachadas (nov/2026)
+Pedido: mostrar o horário dos estabelecimentos usando as plaquinhas que já existem na arte, sem placa nova.
+Decisão: interação de mapa `{ "hours": "<id da porta>" }` em cima de cada plaquinha (mercado, clínica e café, em `street.json`). E ou clique mostra os dias, as horas e se está aberto agora ou quando abre; a do café usa o horário do app Horário (e o almoço, decisão 141). `session.placeHours`; o texto "hoje/amanhã/seg às" virou um helper só, usado também pela porta fechada.
+
+## 132. O gato pede para brincar; 1 brinquedo a cada 3 gatos (nov/2026)
+Pedido: quanto mais brinquedos e outros gatos, menos necessidade de brincar; o gato pede a cada 4 dias e, sem brinquedo, pede todo dia e fica triste; pelo menos 1 brinquedo a cada 3 gatos.
+Decisão: `health.json: care.play` (`everyDays` 4, `maxDays` 8, `catsPerToy` 3, `toyTag` `cat:toy`, `missedHappiness` 12) e `daily.happiness` 0 (a felicidade não cai mais sozinha). Com brinquedo suficiente (móveis posicionados com a tag), o gato pede a cada 4 dias, +1 por brinquedo além do mínimo e por outro gato, até 8; ignorar só deixa o balão (ícone da varinha). Sem brinquedo suficiente, pede todo dia e cada dia sem brincar tira 12 de felicidade. Brincar com a varinha (mini game que deu certo) zera a contagem (`CatState.playedOn`). O subconsciente mostra "quer brincar" e "Brinquedos para os gatos (1 a cada 3)".
+
+## 133. Cartilha do gato no Vila Hoje (nov/2026)
+Pedido: uma dica por dia sobre gatos no site de notícias, deixando as regras explícitas.
+Decisão: `data/news.json: tips` (15 dicas, `tipsTitle`), em ordem: dia 1 = a primeira e, depois da última, recomeça (`tipForDay`). Aparecem num quadrinho embaixo das notícias. Os números estão escritos no texto: quando uma regra mudar em `health.json`, `items.json` ou `rooms.json`, a dica muda junto (o teste confere a dos brinquedos).
+
+## 134. O subconsciente lembra o que o balão do gato pede (nov/2026)
+Pedido: o balão de pegadas de lama em cima do gato não dizia o que fazer.
+Decisão: `session.chores()` ganha o tipo `care`: cada balão de cuidado (sujo, triste, remédio, quer brincar) vira uma linha no "hoje" com o mesmo ícone do balão e o que fazer ("Escovar {gato}: o pelo está sujo"); sem a escova ou a varinha, diz onde comprar.
+
+## 135. Obra do Tião em várias áreas (nov/2026)
+Pedido: precisava marcar duas áreas separadas; apertar Enter fechava a seleção e ligava para o Tião.
+Decisão: Ctrl + arrastar (ou Ctrl + Espaço no teclado) guarda a área e começa outra; todas viram uma obra só, com um orçamento (célula em duas áreas conta uma vez). Enter sem área marcada não confirma ("Marque uma área antes de confirmar"), e o orçamento só aparece com área marcada.
+
+## 136. Cortinas do café: luz, vista de galhos e a noite (nov/2026)
+Pedido: a luz da janela só com a cortina aberta; ação para abrir; a dica "E" uma vez só e uma fala da primeira vez; antes da limpeza do quintal, a vista com galhos; à noite, vidro escuro e fala sem o sol; se o jardim já estiver aberto, nada de fala.
+Decisão: objeto de mapa com `curtainOpen` (tile aberto) e `curtainOvergrown { room, tile }` (galhos enquanto o cômodo tem o mato pesado, `session.roomOvergrown`); interação `{ curtain, dialogue, dialogueWhen, dialogueAlt }`. Só as janelas abertas jogam luz (`daynight.json: windowTiles`). Fala `dlg.curtain_view` uma vez no jogo, só com o quintal fechado (`dialogueWhen`); das 18:00 às 07:00, `dlg.curtain_view_night`. Dica "E" uma vez só (`world.json: hintTimesBy`). Save: `openCurtains` (opcional). Arte: a janela aberta que já existia (`02_cafe_2/janela_aberta_128.png`) e a com galhos (edit_image_pro_flash sobre ela, 6 gerações), pela folha `pixellab_provisorios` (`ph_window_open`, `ph_window_branches`). À noite, `DayNightLayer.setWindowGlass` pinta só os pixels de céu do vidro com a cor de fora.
+
+## 137. Entrega relâmpago: um cliente espera no lugar da porta (nov/2026)
+Pedido: a barra do café acima da cabeça e, no lugar da porta que flutuava, um NPC aleatório esperando.
+Decisão: o destino é um visitante do café sorteado (os mesmos dos pedestres), parado e virado para quem chega, com o balão de pedido mostrando o item. O pedido e a barrinha de qualidade ficam acima da cabeça, pela altura real do sprite.
+
+## 138. Sacos de ração e areia: na mochila e na barra; na mão só selecionados (nov/2026)
+Pedido: o saco de areia ia direto para as mãos, sem estar na barra; deve ir para a mochila e só ir para a mão (e deixar lenta) quando selecionado.
+Decisão: o saco comprado vai para a mochila e entra sozinho na barra (itens com `storesAs`). Selecionado, fica nas mãos e deixa lenta (`service.syncHeavy`, como a bandeja); trocando de item, volta a ser só da mochila. No café, com ele selecionado, E guarda: sai um saco e entram as porções. Sai o limite de um saco por compra. Save antigo com saco nas mãos: o saco volta para a mochila.
+
+## 139. O E vai no que está na frente dela (nov/2026)
+Pedido: tigela e caixa de areia lado a lado (o E ia sempre na tigela); embaixo da janela, o E ia na despensa ou no bule.
+Decisão: com a tigela e a caixa ao alcance, vale a que está na frente dela (ou a mais perto da célula da frente). Uma interação do mapa na direção em que ela olha, até o alcance dela (a janela, uma plaquinha), vence todo o atendimento em volta (despensa, pia, equipamento), menos um equipamento bem na frente dela (`WorldScene.interactionAhead`). A dica "E" segue a mesma regra; clique vale o que foi clicado.
+
+## 140. Música: pausa, F5, tela de título e volume desligado (nov/2026)
+Pedido: a música para no menu de pausa; depois de F5 o jogo volta pausado; a tela "Toque ou clique para começar" não toca nada; e a música desligada nas opções tocava um instante.
+Decisão: `AudioManager.setMusicPaused` (para na hora e volta de onde parou, com fade). F5 (`src/platform/navigation.ts`) volta ao jogo com o menu de pausa aberto. A tela de título chama `AudioManager.silence()`. O volume de cada som passa a ser guardado pelo gerenciador (`setVol`, que também escreve direto no ganho): antes, o fade lia o volume do navegador logo depois de criar o som (ainda 1) e cada faixa nova começava cheia; um fade novo cancela o anterior do mesmo som.
+
+## 141. Horário de almoço (nov/2026)
+Pedido: uma hora de almoço em que não chegam clientes; escolhida no app Horário; quem já está termina.
+Decisão: `Schedule.lunch` (começo; null = sem almoço; sem o campo, o do padrão, 12:00) e `schedule.lunchMinutes` (60) em `service.json`. No almoço não chega cliente novo (a fila e quem já pediu continuam; o café segue aberto). App Horário: linha "Almoço" com ligar/desligar e −/+ de 30 em 30 min; status "Almoço agora · volta às 13:00"; a plaquinha do café inclui o almoço. O save guarda junto do horário.
+
+## 142. Poeira do dia em lugares sorteados (nov/2026)
+Pedido: variar os locais de sujeira.
+Decisão: a poeira que volta de manhã cai numa célula livre sorteada do chão (semente do dia): sem móvel, parede, cômodo fechado nem outra sujeira, cabendo a peça inteira. O lugar fica no save (`dirtAt`, opcional), para não pular quando os móveis mudam.
+
+## 143. Dois dias sem trocar a areia: cocô no chão (nov/2026)
+Pedido: se a areia não for trocada por 2 dias, o gato começa a fazer cocô no chão.
+Decisão: `health.json: care.litterPoop` (`afterDays` 2, `perCat` 1, `maxOnFloor` 3). O jogo conta os dias seguidos sem areia limpa (`litterMissedDays`, opcional no save) e zera ao trocar. A partir do 2º dia, no fim do dia, cada gato do café deixa um cocô num lugar livre sorteado (3 sujeiras de reserva no mapa, tag `litter_poop`, escondidas até a flag `litter.poop`; outra tag que o cocô do dia 2 da história, para não mexer naquele passo). Sai com a vassoura; o subconsciente mostra "Cocô no chão: varrer e trocar a areia da caixa"; a Cartilha avisa.
+
+## 144. Falar com o Tião trabalhando mostra quantos dias faltam (nov/2026)
+Pedido: interagir com o Tião durante a obra mostra quantos dias faltam para terminar.
+Decisão: perto dele no expediente (ou clicando nele), E abre uma fala dele com o retrato: "Hoje eu termino!", "Termino amanhã." ou "Ainda faltam N dias para terminar.", com o nome da obra (`session.builderNear`, `GameUi.npcSay`). A dica "E Falar com o Tião" aparece em cima dele.
