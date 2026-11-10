@@ -28,6 +28,8 @@ export interface ConstructionData {
   facadeDays: number;
   /** Tile da fita que isola a área da obra (sólido). */
   tapeTile: string;
+  /** Parte da área da troca de acabamento isolada por dia (0 a 1; padrão 1): ele não faz tudo de uma vez. */
+  isolatedShare?: number;
   /** Cone que marca o lugar dele (sólido). */
   coneTile?: string;
 }
@@ -147,13 +149,17 @@ export function finishJobIfDone(s: ConstructionState, finishes: Record<string, s
   return job;
 }
 
-/** Células isoladas pela obra hoje (não dá para pisar nem pôr móvel). Parede: a fileira de piso logo abaixo dela. */
-export function isolatedCells(s: ConstructionState, map: MapData, day: number): Cell[] {
+/**
+ * Células isoladas pela obra hoje (não dá para pisar nem pôr móvel). Parede: a fileira de piso logo abaixo dela.
+ * Ele não faz tudo no mesmo dia: só uma faixa de `isolatedShare` da área (coluna a coluna, da esquerda para a direita)
+ * fica isolada, e ela anda a cada dia da obra até chegar ao fim da área no último dia.
+ */
+export function isolatedCells(s: ConstructionState, map: MapData, day: number, d: ConstructionData): Cell[] {
   if (!workingToday(s, day) || s.job?.kind !== 'finish') return [];
-  const cells = s.job.cells ?? [];
+  const job = s.job;
   const floor = map.layers.floor;
   const out = new Map<string, Cell>();
-  for (const [c, r] of cells) {
+  for (const [c, r] of job.cells ?? []) {
     const isFloor = (floor[r]?.[c] ?? '.') !== '.';
     if (isFloor) out.set(cellKey([c, r]), [c, r]);
     else {
@@ -163,7 +169,12 @@ export function isolatedCells(s: ConstructionState, map: MapData, day: number): 
       if (rr < floor.length) out.set(cellKey([c, rr]), [c, rr]);
     }
   }
-  return [...out.values()];
+  const area = [...out.values()].sort(([c1, r1], [c2, r2]) => c1 - c2 || r1 - r2);
+  const share = Math.min(1, Math.max(0, d.isolatedShare ?? 1));
+  const size = Math.min(area.length, Math.max(1, Math.ceil(area.length * share)));
+  const days = (job.endDay ?? day) - (job.startDay ?? day);
+  const start = days > 0 ? Math.round(((day - job.startDay!) / days) * (area.length - size)) : 0;
+  return area.slice(start, start + size);
 }
 
 /**
@@ -192,7 +203,7 @@ export function builderSpot(s: ConstructionState, map: MapData, day: number, d: 
   if (job.site) return job.site;
   if (job.kind === 'inside') return d.repairs.inside.site;
   if (job.kind === 'outside' || job.kind === 'facade') return d.repairs.outside.site;
-  const area = isolatedCells(s, map, day);
+  const area = isolatedCells(s, map, day, d);
   if (area.length === 0) return null;
   const col = Math.max(0, Math.min(...area.map(([c]) => c)) - 1);
   const floor = map.layers.floor;
@@ -208,6 +219,7 @@ export function validateConstruction(d: ConstructionData, refs: { npcs: Readonly
   for (const [k, r] of Object.entries(d.repairs)) {
     if (!(r.price >= 0) || !Number.isInteger(r.days) || r.days < 1) errors.push(`construction: reparo "${k}" com preço ou dias inválidos`);
   }
+  if (d.isolatedShare !== undefined && !(d.isolatedShare > 0 && d.isolatedShare <= 1)) errors.push('construction: isolatedShare precisa estar entre 0 (exclusivo) e 1');
   for (const [s, f] of Object.entries(d.repairs.inside.finishes)) {
     if (!refs.surfaces.has(s)) errors.push(`construction: reparo interno: superfície inexistente "${s}"`);
     if (!refs.finishes.has(f)) errors.push(`construction: reparo interno: acabamento inexistente "${f}"`);

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { isRenovated, jobDays, surfaceCells } from '../../src/core/construction';
+import { builderSpot, isolatedCells, isRenovated, jobDays, newConstruction, surfaceCells } from '../../src/core/construction';
 import { resolveMap, type Cell } from '../../src/core/map';
 import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
@@ -143,8 +143,10 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.answerQuote(true)).toEqual({ ok: true });
     s.endDay('home');
     const map = s.mapData();
+    // Ele não faz tudo no mesmo dia: só uma parte da área fica isolada (a primeira faixa, à esquerda).
     const tape = map.objects.filter((o) => o.tile === c.tapeTile);
-    expect(tape.length).toBe(16);
+    expect(tape.length).toBe(Math.ceil(16 * c.isolatedShare!));
+    expect(Math.min(...tape.map((o) => o.at[0]))).toBe(9);
     const solid = resolveMap(map, content.catalog).solid;
     expect(solid[6]![9]).toBe(true);
     // Encostado na parede do fundo, na coluna à esquerda da área (no expediente).
@@ -158,6 +160,28 @@ describe('obras: troca de acabamento por área', () => {
     expect(done.objects.some((o) => o.tile === c.tapeTile)).toBe(false);
     // As mesmas células com o mesmo acabamento: nada para trocar.
     expect(s.quoteFinish('surface.hall_floor', 'finish.wood_planks', a, b)).toEqual({ ok: false, reason: 'no_cells' });
+  });
+});
+
+describe('obras: a área isolada anda a cada dia', () => {
+  it('só isolatedShare da área por dia, numa faixa que vai da esquerda (1º dia) até a direita (último dia)', () => {
+    expect(c.isolatedShare).toBe(0.3);
+    const cells = surfaceCells(content.map, surface('surface.hall_floor'), [0, 0], [99, 99]);
+    expect(cells.length).toBeGreaterThan(16);
+    const s = newConstruction();
+    s.job = { kind: 'finish', surfaceId: 'surface.hall_floor', finishId: 'finish.wood_planks', cells, material: 0, labor: 0, days: 3, startDay: 2, endDay: 4 };
+    const size = Math.ceil(cells.length * c.isolatedShare!);
+    const cols = cells.map(([col]) => col);
+    const keys = (day: number) => isolatedCells(s, content.map, day, c).map(([col, row]) => `${col},${row}`);
+    for (const day of [2, 3, 4]) expect(keys(day).length).toBe(size);
+    expect(new Set([...keys(2), ...keys(3), ...keys(4)]).size).toBe(size * 3);
+    const day2 = isolatedCells(s, content.map, 2, c);
+    const day4 = isolatedCells(s, content.map, 4, c);
+    expect(Math.min(...day2.map(([col]) => col))).toBe(Math.min(...cols));
+    expect(Math.max(...day4.map(([col]) => col))).toBe(Math.max(...cols));
+    // Ele trabalha ao lado da faixa do dia.
+    expect(builderSpot(s, content.map, 4, c)!.at[0]).toBe(Math.min(...day4.map(([col]) => col)) - 1);
+    expect(isolatedCells(s, content.map, 5, c)).toEqual([]);
   });
 });
 

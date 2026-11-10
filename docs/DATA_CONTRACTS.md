@@ -280,7 +280,7 @@ Os **acabamentos** são o que o pintor vende. `kind` diz em que superfície serv
 
 Sem reforma, a superfície usa o tile da legenda (o velho). O `npm run check` confere letras, camadas dos tiles e IDs.
 
-**Obras** (`finishes.json: construction`, `src/core/construction.ts`): `npc` (o construtor), `hoursPerTile`, `hoursPerDay`, `laborPerTile`, `materialPerTile` (por kind: floor, wall, wainscot), `repairs.inside` (`price`, `days`, `finishes`: superfície -> acabamento original novo, `site`: onde ele trabalha), `repairs.outside` (`price`, `days`, `site` com `map`), `facadeDays`, `tapeTile` (a fita da área isolada). Uma obra por vez; o `price` do acabamento só vale para a cor da fachada (as outras pagam por tile).
+**Obras** (`finishes.json: construction`, `src/core/construction.ts`): `npc` (o construtor), `hoursPerTile`, `hoursPerDay`, `laborPerTile`, `materialPerTile` (por kind: floor, wall, wainscot), `repairs.inside` (`price`, `days`, `finishes`: superfície -> acabamento original novo, `site`: onde ele trabalha), `repairs.outside` (`price`, `days`, `site` com `map`), `facadeDays`, `tapeTile` (a fita da área isolada), `isolatedShare` (opcional, 0 a 1, padrão 1: a parte da área da troca de acabamento isolada por dia, numa faixa que anda da esquerda para a direita a cada dia da obra). Uma obra por vez; o `price` do acabamento só vale para a cor da fachada (as outras pagam por tile).
 
 ## Economia (`data/economy.json`)
 

@@ -2544,7 +2544,7 @@ export class GameSession {
     const { catalog, items } = this.content;
     for (const o of base.objects) { const def = catalog.tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
     for (const p of this.state.placed) { const def = catalog.tiles[items[p.item]?.tile ?? '']; if (def) for (const cell of cellsOf(p.at, def)) blocked.add(cellKey(cell)); }
-    const objects = isolatedCells(this.state.construction, base, this.state.day)
+    const objects = isolatedCells(this.state.construction, base, this.state.day, this.content.construction)
       .filter((cell) => !blocked.has(cellKey(cell)))
       .map(([c, r]) => ({ id: `obj.construction.${c}_${r}`, tile: this.content.construction.tapeTile, at: [c, r] as Cell }));
     // O cone (e a fita dos reparos) em volta dele, só onde ficar livre.
