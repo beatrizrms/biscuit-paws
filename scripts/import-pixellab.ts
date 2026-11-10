@@ -539,6 +539,17 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Upgrades dos gatos (gerados no PixelLab, automaticos/): pote de ração e caixa de areia automáticos. Nomes pet_*.
+    image: 'public/assets/objects/pixellab/tile_pixellab_pet.png',
+    pieces: 'data/tilesets/pixellab_pet.json',
+    columns: 2,
+    auto: true,
+    layout: {
+      auto_feeder: { file: 'automaticos/comedouro_automatico.png', w: 1, h: 1 },
+      auto_litter: { file: 'automaticos/caixa_areia_automatica.png', w: 1, h: 1 },
+    },
+  },
+  {
     // Decoração extra à venda no catálogo (sobras do lote dos provisórios): nomes novos decor_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_decor.png',
     pieces: 'data/tilesets/pixellab_decor.json',

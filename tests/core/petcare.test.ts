@@ -100,6 +100,18 @@ describe('automáticos', () => {
     expect(session.feedProblem('p90')).toBe('other_item');
   });
 
+  it('upgrade: o automático só vai em cima da peça comum, que vira ele no mesmo lugar (e não volta para a mochila)', () => {
+    const { session, state } = cafe();
+    state.inventory['item.auto_feeder'] = 1;
+    const bowl = state.placed.find((p) => p.uid === 'p90')!;
+    expect(session.checkPlacement('item.auto_feeder', [9, 9])).toBe('upgrade_target');
+    expect(session.checkPlacement('item.auto_feeder', [5, 8])).toBe('upgrade_target'); // a caixa de areia não serve
+    expect(session.place('item.auto_feeder', bowl.at)).toEqual({ ok: true });
+    expect(state.placed.find((p) => p.uid === 'p90')!.item).toBe('item.auto_feeder');
+    expect(state.inventory['item.auto_feeder'] ?? 0).toBe(0);
+    expect(state.inventory['item.food_bowl'] ?? 0).toBe(0);
+  });
+
   it('o estoque dos automáticos e a areia do dia vão no save', () => {
     const { session, state, hold } = cafe({ auto: true });
     state.inventory['item.cat_litter'] = 4;

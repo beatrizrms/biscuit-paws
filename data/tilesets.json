@@ -908,6 +908,14 @@
       "solid": false
     },
     {
+      "id": "pixellab_pet",
+      "image": "assets/objects/pixellab/tile_pixellab_pet.png",
+      "pieces": "pixellab_pet.json",
+      "prefix": "pet_",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "pixellab_decor",
       "image": "assets/objects/pixellab/tile_pixellab_decor.png",
       "pieces": "pixellab_decor.json",

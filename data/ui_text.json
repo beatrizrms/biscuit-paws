@@ -166,6 +166,7 @@
     "sink_full": "A pia está cheia. Lave antes de pôr mais.",
     "not_at_home": "Aqui não. Só dentro do café.",
     "needs_counter": "Isso vai em cima de um balcão.",
+    "upgrade_target": "É um upgrade: clique em cima da peça comum (a tigela de ração ou a caixa de areia) para trocar.",
     "no_free_counter": "Não tenho balcão livre para isso. Guardei na mochila.",
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "cart_empty": "O carrinho está vazio.",

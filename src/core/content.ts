@@ -72,6 +72,8 @@ export interface ItemDef {
   hue?: number;
   /** Automático (pote de ração, caixa de areia): guarda até tantos dias e serve sozinho, um por dia. */
   autoDays?: number;
+  /** Upgrade de outro móvel: em vez de posicionar em qualquer lugar, vai em cima desse (que some) e fica no lugar dele. */
+  upgrades?: string;
 }
 
 /** Lojas (data/shops.json): o que cada uma vende. */
@@ -484,6 +486,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
+  for (const i of raw.items.items) if (i.upgrades && !raw.items.items.some((x) => x.id === i.upgrades)) err(`items: "${i.id}" upgrades aponta para "${i.upgrades}", que não existe`);
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
   // Todo ponto de pedido precisa ser alcançável a pé a partir do spawn do mapa (ele ou um vizinho).
   for (const p of raw.jobs.points) {

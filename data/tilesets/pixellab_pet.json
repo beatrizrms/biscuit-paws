@@ -1,0 +1,19 @@
+{
+ "tileSize": 64,
+ "columns": 2,
+ "rows": 1,
+ "pieces": {
+  "auto_feeder": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "auto_litter": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

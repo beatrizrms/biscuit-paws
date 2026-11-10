@@ -2241,6 +2241,9 @@ export class GameSession {
   checkPlacement(itemId: string, at: Cell, reserved: readonly Cell[] = []): PlaceProblem | null {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
+    // Upgrade (ex.: o pote automático): só em cima da peça comum que ele substitui.
+    const upgrades = this.content.items[itemId]?.upgrades;
+    if (upgrades) return this.placedAt(at)?.item === upgrades ? null : 'upgrade_target';
     const placeOn = this.content.items[itemId]?.placeOn;
     if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
     const cells = cellsOf(at, def);
@@ -2269,6 +2272,17 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
 
     this.removeFromInventory(itemId);
+    // Upgrade: a peça comum vira a nova no mesmo lugar (a comum não volta para a mochila).
+    if (this.content.items[itemId]!.upgrades) {
+      const old = this.placedAt(at)!;
+      old.item = itemId;
+      delete old.refilledOn;
+      delete old.stock;
+      delete old.stockItem;
+      this.bus.emit('item.placed', { itemId, uid: old.uid, at: [old.at[0], old.at[1]] });
+      this.advanceStory();
+      return { ok: true };
+    }
     const uid = `p${this.state.nextUid++}`;
     this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]] });
     this.bus.emit('item.placed', { itemId, uid, at: [at[0], at[1]] });
