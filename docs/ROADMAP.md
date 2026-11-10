@@ -51,7 +51,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Atendimento, Fase 2: bandeja, itens pesados, gato no colo, forno, pia como estação, qualidade e preferências (o veterinário ficou em item próprio)
 - [x] Usar itens da barra com animação (ração na tigela, petisco no gato); evolução das receitas por clientes atendidos
 - [x] Saúde dos gatos, doenças fictícias e a clínica da Fernanda (dia 6): consulta, receita de 1 a 7 dias, remédio diário e fiado
-- [ ] Clínica nas outras estações (a fachada já existe nas 4; a rua só tem o inverno)
+- [x] Clínica nas outras estações (rua agnóstica: fachadas iguais o ano todo, estação por camadas; decisão 065)
 - [x] Correio: compras do catálogo chegam em 1h (furgão, entregadora, caixas na porta, abrir no salão)
 - [x] Pedidos da vila (bicos), jornal "Vila Hoje" no celular e mural do mercado
 - [x] Barra de itens (1 a 8) e mochila em grade; varrer exige a vassoura ativa
@@ -60,12 +60,13 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
 - [ ] Gatos de rua anunciados no jornal (Marco 2)
 - [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")
+- [x] Rua andável, objetos com lógica de cena e praça do Gato em fuga (decisão 103)
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)
 
 ## Marco 1: gatos no café
 - [x] Sprites dos gatos (Cosy Cats): andar, sentar, dormir
 - [x] `data/cats.json` e entidade Gato (IA simples: vagar, sentar, dormir)
-- [ ] Gatos procuram almofadas e caminhas para sentar e dormir (hoje sentam e dormem em qualquer lugar)
+- [x] Gatos usam os objetos deles: dormem na caminha e almofada, brincam no arranhador, sobem na árvore (decisão 098)
 - [x] Evento `cat.sheltered`
 - [x] App "Meus gatos" no celular (P): personalidade, corações, se comeu hoje e dias no café
 - [x] Continuação da história: encontrar o gato que mia lá fora (feito no prólogo: "O miado", `story.meow`)
@@ -87,13 +88,15 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 
 ## Marco 5: reforma e decoração
 - [x] Loja abandonada -> reformada (pintor; a reforma completa libera a inauguração)
+- [x] Obras com o Tião: reparos interno e da fachada (pré-requisito), troca de acabamento por área, ligação e orçamento adiantado (decisão 094)
+- [ ] Obras dos cômodos (porão, quintal) pelo sistema do Tião (hoje são pagas no catálogo)
 - [x] Compra e posicionamento de móveis (feito no Marco 0.5)
 
 ## Expansão do café
 - [x] Cômodos por dados (`data/rooms.json`): planta contínua, descoberta com momento, obra, limpeza e reforma; save v13
 - [x] Quartinho: dormir no café
 - [x] Quintal secreto: chave, porta com cadeado, variantes de visual, luz de fora
-- [ ] Playground no quintal com gatos de verdade usando os módulos (hoje: afeto diário; falta a IA dos gatos ir até eles)
+- [ ] Playground no quintal com gatos de verdade usando os módulos (túnel, casinha, tora, cama ao sol e árvore já entram nos lugares dos gatos, decisão 098; falta conferir se os gatos chegam ao quintal e a tigela de água)
 - [ ] Cozinha, sótão e porão (dados prontos para entrar)
 
 ## Marco 6: vizinhança
@@ -110,7 +113,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Logo do título com o nome Biscuit Paws
 - [x] Arte da inauguração (cena na primavera)
 - [ ] Arte da inauguração nas cores menta e céu da fachada (hoje usa a rosa)
-- [ ] Fachada da clínica veterinária na primavera, no verão e no outono (hoje fica a de inverno)
+- [x] Fachada da clínica veterinária nas 4 estações (a mesma arte o ano todo, rua agnóstica)
 - [x] Ícone do carrinho no HUD
 - [ ] Pose da personagem carregando saco pesado (o pacote não tem; o saco é desenhado na mão)
 - [x] Manequim do PixelLab (64 px) como personagem no jogo, para ver as poses (decisão 075)
