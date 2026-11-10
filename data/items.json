@@ -1202,7 +1202,8 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar"
+      "placeOn": "bar",
+      "orFloor": true
     },
     {
       "id": "item.snow_globe_cat",
@@ -1219,7 +1220,8 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar"
+      "placeOn": "bar",
+      "orFloor": true
     },
     {
       "id": "item.xmas_candle",
@@ -1236,7 +1238,8 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar"
+      "placeOn": "bar",
+      "orFloor": true
     },
     {
       "id": "item.knit_scarf",

@@ -633,6 +633,29 @@ describe('equipamentos em cima do balcão', () => {
   });
 });
 
+describe('enfeites pequenos (orFloor): no balcão ou no chão', () => {
+  it('sem balcão livre ainda dá para posicionar; no chão fica sem subir, no balcão sobe até o tampo', () => {
+    const { session, state } = openCafe({ counter: false });
+    session.receiveItem('item.xmas_mug');
+    session.receiveItem('item.xmas_candle');
+    // O único balcão tem a cafeteira: sem apoio livre, mas o chão serve.
+    expect(session.missingHost('item.xmas_mug')).toBeNull();
+    expect(session.missingHost('item.teapot')).toBe('no_free_counter');
+    expect(session.place('item.xmas_mug', [3, 7])).toEqual({ ok: true });
+    const mug = state.placed.find((p) => p.item === 'item.xmas_mug')!;
+    expect(session.mapData().objects.find((o) => o.id === 'placed.' + mug.uid)?.lift).toBeUndefined();
+    // Num balcão ocupado, não.
+    expect(session.place('item.xmas_candle', [7, 5])).toEqual({ ok: false, reason: 'occupied' });
+    // Num balcão livre, vai em cima.
+    session.state.money += 100;
+    session.buy('item.counter_single');
+    expect(session.place('item.counter_single', [4, 5])).toEqual({ ok: true });
+    expect(session.place('item.xmas_candle', [4, 5])).toEqual({ ok: true });
+    const candle = state.placed.find((p) => p.item === 'item.xmas_candle')!;
+    expect(session.mapData().objects.find((o) => o.id === 'placed.' + candle.uid)?.lift).toBe(content.world.counterLift);
+  });
+});
+
 describe('mudar móvel de lugar', () => {
   function counterWithMachine() {
     const state = newGameState(500, 'map.cafe_main', 9 * 60);

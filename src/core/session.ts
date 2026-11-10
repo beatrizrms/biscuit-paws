@@ -53,7 +53,7 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { hasFreeHost, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
@@ -3153,10 +3153,14 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Item que vai em cima de algo (ex.: bule no balcão) sem nenhum apoio livre no café: não dá para posicionar agora. */
+  /**
+   * Item que vai em cima de algo (ex.: bule no balcão) sem nenhum apoio livre no café: não dá para posicionar agora.
+   * Com orFloor, o chão serve.
+   */
   missingHost(itemId: string): PlaceProblem | null {
-    const placeOn = this.content.items[itemId]?.placeOn;
-    if (!placeOn || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    const item = this.content.items[itemId];
+    const placeOn = item?.placeOn;
+    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
     return 'no_free_counter';
   }
 
@@ -3244,7 +3248,10 @@ export class GameSession {
     const def = this.content.catalog.tiles[this.content.items[itemId]?.tile ?? ''];
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
-    if (placeOn) return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    // Em cima de um apoio; com orFloor, fora de um apoio vale como móvel de chão.
+    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at))) {
+      return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    }
     const cells = cellsOf(at, def);
     const roomsOf = cells.map((c) => this.roomAt(c));
     if (roomsOf.some((r) => !r)) return 'out_of_bounds'; // fora do mapa, ou na parede entre cômodos

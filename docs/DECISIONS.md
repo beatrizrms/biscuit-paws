@@ -678,3 +678,7 @@ Decisão: 3 ícones de 24 x 24 (PixelLab, `create_1_direction_object`, desenhado
 ## 166. Nota do café em estrelas (nov/2026)
 Pedido: a reputação em estrelas, começando zerada e fazendo a média das notas.
 Decisão: nota separada da reputação felina (que continua de 0 a 100 por trás, com mini games, adoções, chegadas, eventos e os selos). A nota é a média das últimas `review.averageOf` (50) avaliações dos clientes (`data/service.json`); o save guarda as últimas 200 em `stats.reviews` (saves antigos começam sem nota, sem versão nova). No HUD, a linha "Reputação" mostra 5 estrelas apagadas e as douradas recortadas na largura da média, com o número (0,0 sem avaliações); o texto de ajuda mostra a nota e a reputação felina.
+
+## 167. Enfeites pequenos de Natal no balcão ou no chão (nov/2026)
+Pedido: a caneca natalina não saía da mochila: só ia em cima de um balcão livre, e não havia nenhum. Pode ficar no chão, no balcão, na mão ou na mochila.
+Decisão: campo `orFloor` nos itens com `placeOn` (caneca natalina, globo de neve com gatinho e vela): numa célula com o apoio, vai em cima (sobe até o tampo, como antes); fora dele, vale como móvel de chão. Sem apoio livre, o "posicionar" da mochila continua liberado. A cafeteira, o bule e os outros itens de balcão seguem só no balcão.
