@@ -4,11 +4,11 @@
 import Phaser from 'phaser';
 import type { GameSession } from '../core/session';
 import { DEPTH, ySortDepth, type Cell } from '../core/map';
-import { frameOf } from '../core/tiles';
-import { addTileImage, tileScale } from './tileArt';
 
-/** Tamanho do robô em relação à arte (64 px = uma célula), na proporção da base. */
-const ROBOT_SCALE = 1.275;
+/** A imagem do robô (80 x 80, carregada no BootScene) e a escala da arte nova (64 px de arte = uma célula de 32). */
+export const ROBOT_KEY = 'robot_vacuum';
+export const ROBOT_IMAGE = 'assets/objects/pixellab/robo_aspirador.png';
+const ART_SCALE = 0.5;
 /** Velocidade da volta (px do jogo por segundo) e o brilho do pano (a cada quantos ms, e quanto tempo até sumir). */
 const SPEED = 40;
 const SHINE_EVERY_MS = 70;
@@ -37,13 +37,10 @@ export class RobotVacuumView {
     const dock = inCafe ? this.session.robotVacuum() : undefined;
     if (inCafe && !dock) this.noRobotOn = this.session.state.day;
     if (!dock) return;
-    const { catalog } = this.session.content;
-    const def = catalog.tiles['eletro_robo'];
-    if (!def) return;
+    if (!this.scene.textures.exists(ROBOT_KEY)) return;
     const dockX = (dock.at[0] + 0.5) * tileSize;
     const dockY = (dock.at[1] + 1) * tileSize + DOCK_DROP;
-    const scale = tileScale(def.sheet) * ROBOT_SCALE;
-    this.robot = addTileImage(this.scene, dockX, dockY, def.sheet, frameOf(catalog, def, 0, 0)).setOrigin(0.5, 1).setScale(scale);
+    this.robot = this.scene.add.image(dockX, dockY, ROBOT_KEY).setOrigin(0.5, 1).setScale(ART_SCALE);
     this.robot.setDepth(ySortDepth((dock.at[1] + 1) * tileSize) + 1);
     const day = this.session.state.day;
     if (this.shownOn === day || this.noRobotOn === day || !this.session.state.flags['prologue.done']) return;

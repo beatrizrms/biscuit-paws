@@ -14,12 +14,6 @@
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
-  },
-  "robo": {
-   "col": 2,
-   "row": 0,
-   "w_tiles": 1,
-   "h_tiles": 1
   }
  }
 }
