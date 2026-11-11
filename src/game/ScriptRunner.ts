@@ -94,7 +94,17 @@ export class ScriptRunner {
     else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
     else if ('setTime' in step) this.session.advanceClockTo(step.setTime);
     else if ('fireworks' in step) s.fireworks(step.fireworks);
-    else if ('secretSanta' in step) {
+    else if ('halloween' in step) {
+      // Noite das Abóboras: a comilança (avisos de quem comeu o quê), a hora do presente e a reação.
+      if (step.halloween === 'feast') this.session.halloweenFeast();
+      else if (step.halloween === 'give') this.session.openHalloweenGiving();
+      else {
+        const d = this.session.halloweenReaction();
+        if (!d) return;
+        this.session.say(d);
+        await s.untilIdle();
+      }
+    } else if ('secretSanta' in step) {
       // Amigo secreto: a fala vem da sessão (quem recebeu reage; quem a tirou entrega o presente dela).
       if (step.secretSanta === 'give') this.session.openSantaGiving();
       else if (step.secretSanta === 'reaction') {

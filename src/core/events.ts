@@ -69,7 +69,14 @@ export interface GameEvents {
   'xmas.santa_giving': { npc: string };
   'xmas.santa_missed': { npc: string; itemId: string | null };
   /** Um evento começou agora (o aviso; se ela não for, sem problema). */
-  'event.starting': { id: 'xmas_party' | 'new_year' };
+  'event.starting': { id: 'xmas_party' | 'new_year' | 'halloween_party' };
+  // Noite das Abóboras (halloween.ts).
+  'halloween.invited': { npc: string };
+  'halloween.day': { closeAt: string; partyAt: string; party: boolean };
+  'halloween.ate': { npc: string; recipe: string | null; favorite: boolean };
+  'halloween.giving': { npc: string };
+  'halloween.exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };
+  'halloween.missed': { npc: string };
   /** A véspera de Ano Novo acabou sem ela ver os fogos (só um aviso). */
   'newyear.missed': Record<string, never>;
   'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number };

@@ -37,6 +37,11 @@ type ScriptAction =
    * "reaction" = a fala de quem recebeu; "receive" = ela ganha o presente de quem a tirou (mostrado grande).
    */
   | { secretSanta: 'give' | 'reaction' | 'receive' }
+  /**
+   * Noite das Abóboras: "feast" = cada convidado come uma comida de Halloween dos balcões e mesas; "give" = o roteiro
+   * para e ela vai entregar o presente (E em quem tirou); "reaction" = a fala de quem recebeu.
+   */
+  | { halloween: 'feast' | 'give' | 'reaction' }
   /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
   | { setTime: string }
   /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
@@ -127,6 +132,8 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!(step.fireworks > 0)) errors.push(`${where(i)}: fireworks precisa de uma duração (ms)`);
       } else if ('setTime' in step) {
         if (!/^\d{1,2}:\d{2}$/.test(step.setTime)) errors.push(`${where(i)}: hora inválida "${step.setTime}"`);
+      } else if ('halloween' in step) {
+        if (!['feast', 'give', 'reaction'].includes(step.halloween)) errors.push(`${where(i)}: halloween inválido "${String(step.halloween)}"`);
       } else if ('secretSanta' in step) {
         if (!['give', 'reaction', 'receive'].includes(step.secretSanta)) errors.push(`${where(i)}: secretSanta inválido "${String(step.secretSanta)}"`);
       } else if ('openDoor' in step) {

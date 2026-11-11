@@ -706,6 +706,16 @@
       "col": 3,
       "row": 17,
       "sheet": "pixellab"
+    },
+    "maca": {
+      "col": 4,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "coco": {
+      "col": 5,
+      "row": 17,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

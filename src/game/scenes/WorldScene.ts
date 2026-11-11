@@ -1275,6 +1275,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.talkToBuilder(target)) return true;
     // Na ceia, a hora de entregar: E em quem ela tirou abre a escolha do presente.
     if (this.trySantaGive(target)) return true;
+    if (this.tryHalloweenGive(target)) return true;
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
@@ -1407,6 +1408,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const guest = this.santaGuestNear();
       if (guest && guest[0] === s.santaRecord()!.drawn) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'santa_give' as HintKind };
     }
+    // Na festa de Halloween, a hora de entregar: a dica em cima de quem ela tirou.
+    if (s.halloweenGivingNow()) {
+      const guest = this.santaGuestNear();
+      if (guest && guest[0] === s.halloweenRecord()!.drawn) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'santa_give' as HintKind };
+    }
     // A mesma ordem do E: a caixa da entrega; o gato bem na frente (a não ser que o pote/caixa de areia seja o óbvio).
     const parcelsFirst = s.parcelsNear(feet);
     if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
@@ -1534,6 +1540,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
     void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
+    return true;
+  }
+
+  /** Festa de Halloween, na hora do presente: E em quem ela tirou abre a escolha (ou "não trouxe"); em outro, lembra quem é. */
+  private tryHalloweenGive(target?: Cell): boolean {
+    const s = this.session;
+    if (!s.halloweenGivingNow()) return false;
+    const guest = this.santaGuestNear(target);
+    if (!guest) return false;
+    const t = uiText.halloween;
+    const drawn = s.halloweenRecord()!.drawn;
+    const name = s.content.festive.halloween.friends.find((f) => f.npc === drawn)?.name ?? '';
+    if (guest[0] !== drawn) {
+      this.ui.toast(t.otherGuest.replace('{name}', name), 3000);
+      return true;
+    }
+    const options = s.halloweenGiftOptions();
+    if (options.length === 0) {
+      s.halloweenExchange(null);
+      return true;
+    }
+    const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
+    void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.halloweenExchange(i < options.length ? options[i]! : null));
     return true;
   }
 

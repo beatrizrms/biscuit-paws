@@ -1,10 +1,158 @@
 {
   "schemaVersion": 1,
-  "_comment": "Datas festivas. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação, o presente dela e o fim da noite). A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
+  "_comment": "Datas festivas. halloween: a Noite das Abóboras (src/core/halloween.ts): na Semana do Halloween (inviteDay até a véspera de day), a Dona Neusa convida para a festa no café e ela tira um amigo para dar um presente de Halloween (giftTag; likes = o que a pessoa mais gosta); cada amigo conhecido conta o doce favorito (food, foodHint). No day, o café fecha em closeAt; em partyAt, com partyWhen valendo, o roteiro partyScript traz os convidados (condição halloweenGuest), cada um come uma das foods postas nos balcões e mesas (o favorito vale favoriteFood pontos; outro, otherFood) e ela entrega o presente (E em quem tirou); depois, partyEndScript. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação, o presente dela e o fim da noite). A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
   "boxes": [
     { "item": "item.xmas_box", "tag": "xmas", "opensIn": "winter" },
     { "item": "item.halloween_box", "tag": "halloween", "opensIn": "autumn" }
   ],
+  "halloween": {
+    "season": "autumn",
+    "inviteDay": 24,
+    "day": 30,
+    "closeAt": "18:00",
+    "partyAt": "19:00",
+    "partyLights": "16:30",
+    "proposer": "npc.neusa",
+    "proposalWhen": {
+      "all": [
+        {
+          "flag": "prologue.done"
+        },
+        {
+          "location": "map.cafe_main"
+        },
+        {
+          "clock": {
+            "gte": "09:00"
+          }
+        },
+        {
+          "not": {
+            "clock": {
+              "gte": "18:00"
+            }
+          }
+        },
+        {
+          "playerRoom": "room.hall"
+        }
+      ]
+    },
+    "proposalScript": "scr.hw_invite",
+    "partyScript": "scr.hw_party",
+    "partyEndScript": "scr.hw_party_end",
+    "partyWhen": {
+      "playerRoom": "room.hall"
+    },
+    "giftTag": "halloween_gift",
+    "foods": [
+      "recipe.pumpkin_cake_slice",
+      "recipe.ghost_cookies",
+      "recipe.web_cupcake",
+      "recipe.pumpkin_coconut_sweet",
+      "recipe.candy_apple"
+    ],
+    "points": {
+      "loved": 120,
+      "liked": 50,
+      "party": 20,
+      "favoriteFood": 40,
+      "otherFood": 15
+    },
+    "noGiftDialogue": "dlg.hw_no_gift",
+    "friends": [
+      {
+        "npc": "npc.gabi",
+        "name": "a Gabi",
+        "known": {
+          "flag": "seen.scr.gabi_visit"
+        },
+        "likes": "item.hw_cauldron",
+        "hint": "A Gabi vive de doce na bolsa... um caldeirão cheio de balas ia fazer a festa dela.",
+        "food": "recipe.pumpkin_cake_slice",
+        "foodHint": "a Gabi não resiste a um bolo de abóbora",
+        "dialogues": {
+          "loved": "dlg.hw_loved_gabi",
+          "liked": "dlg.hw_liked_gabi"
+        }
+      },
+      {
+        "npc": "npc.joca",
+        "name": "o Joca",
+        "known": {
+          "flag": "seen.scr.gabi_visit"
+        },
+        "likes": "item.hw_ghost",
+        "hint": "O Joca morre de medo de fantasma... mas jura que um fantasminha fofo não conta.",
+        "food": "recipe.ghost_cookies",
+        "foodHint": "o Joca come cookie de fantasminha pela cabeça, para o fantasma não olhar",
+        "dialogues": {
+          "loved": "dlg.hw_loved_joca",
+          "liked": "dlg.hw_liked_joca"
+        }
+      },
+      {
+        "npc": "npc.neusa",
+        "name": "a Dona Neusa",
+        "known": {
+          "flag": "met.old_neighbor"
+        },
+        "likes": "item.hw_lantern",
+        "hint": "A Dona Neusa adora uma luzinha na janela nas noites de outono.",
+        "food": "recipe.pumpkin_coconut_sweet",
+        "foodHint": "a Dona Neusa jura que doce de abóbora bom é o da avó dela",
+        "dialogues": {
+          "loved": "dlg.hw_loved_neusa",
+          "liked": "dlg.hw_liked_neusa"
+        }
+      },
+      {
+        "npc": "npc.builder",
+        "name": "o Tião",
+        "known": {
+          "flag": "builder.called"
+        },
+        "likes": "item.hw_witch_hat",
+        "hint": "O Tião diz que todo ano vai de bruxo e nunca tem chapéu.",
+        "food": "recipe.pumpkin_cake_slice",
+        "foodHint": "o Tião pede bolo de abóbora, de preferência a fatia maior",
+        "dialogues": {
+          "loved": "dlg.hw_loved_builder",
+          "liked": "dlg.hw_liked_builder"
+        }
+      },
+      {
+        "npc": "npc.fernanda",
+        "name": "a Fernanda",
+        "known": {
+          "visited": "map.vet_clinic"
+        },
+        "likes": "item.hw_ghost",
+        "hint": "A Fernanda coleciona bichinhos de pelúcia na mesa da clínica.",
+        "food": "recipe.web_cupcake",
+        "foodHint": "a Fernanda escolhe sempre o cupcake mais enfeitado",
+        "dialogues": {
+          "loved": "dlg.hw_loved_fernanda",
+          "liked": "dlg.hw_liked_fernanda"
+        }
+      },
+      {
+        "npc": "npc.realtor",
+        "name": "a corretora",
+        "known": {
+          "beat": "story.realtor_tour"
+        },
+        "likes": "item.hw_witch_hat",
+        "hint": "A corretora diz que o charme está nos acessórios.",
+        "food": "recipe.candy_apple",
+        "foodHint": "a corretora diz que maçã do amor é o doce mais fotogênico do mundo",
+        "dialogues": {
+          "loved": "dlg.hw_loved_realtor",
+          "liked": "dlg.hw_liked_realtor"
+        }
+      }
+    ]
+  },
   "secretSanta": {
     "season": "winter",
     "drawDay": 18,

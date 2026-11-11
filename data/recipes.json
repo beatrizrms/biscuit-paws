@@ -1187,12 +1187,12 @@
     },
     {
       "id": "recipe.pumpkin_coconut_sweet",
-      "name": "Doce de abóbora",
+      "name": "Doce de abóbora com coco",
       "icon": "doce_abobora_coco",
       "ingredients": {
         "item.pumpkin": 1,
         "item.sugar": 1,
-        "item.milk": 1
+        "item.coconut": 1
       },
       "steps": [
         {
@@ -1202,6 +1202,33 @@
       ],
       "vessel": "plate",
       "price": 10,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "window": {
+        "season": "autumn",
+        "from": 24,
+        "to": 30,
+        "name": "Semana do Halloween"
+      }
+    },
+    {
+      "id": "recipe.candy_apple",
+      "name": "Maçã do amor",
+      "icon": "maca_do_amor",
+      "ingredients": {
+        "item.apple": 1,
+        "item.sugar": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 10
+        }
+      ],
+      "vessel": "plate",
+      "price": 9,
       "unlock": {
         "milestone": "milestone.customers_50"
       },

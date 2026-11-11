@@ -13,6 +13,7 @@ import { nowAbs, type DisplaySlot, type GameState, type PlacedItem } from './sta
 import { parseClock } from './time';
 import { festivalClosesCafe } from './festival';
 import { isChristmas } from './secretSanta';
+import { isHalloween } from './halloween';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
 import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
@@ -564,6 +565,9 @@ export class CafeService {
     // Natal: fecha mais cedo (data/festive.json: secretSanta.closeAt).
     const xmas = this.h.content.festive.secretSanta;
     if (isChristmas(this.h.content.seasons, xmas, this.st.day) && this.st.time >= parseClock(xmas.closeAt)) return false;
+    // Noite das Abóboras: fecha mais cedo (data/festive.json: halloween.closeAt).
+    const hw = this.h.content.festive.halloween;
+    if (isHalloween(this.h.content.seasons, hw, this.st.day) && this.st.time >= parseClock(hw.closeAt)) return false;
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 

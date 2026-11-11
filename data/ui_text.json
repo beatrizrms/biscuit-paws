@@ -1105,6 +1105,24 @@
     "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
     "lastOne": "Saiu da caixa: {name}. Era o último!"
   },
+  "halloween": {
+    "title": "Noite das Abóboras",
+    "goal": "presente para {name}",
+    "ready": "presente na mochila",
+    "readyLoved": "o presente perfeito na mochila",
+    "party": "festa às {time} no café",
+    "day": "Feliz Halloween! Hoje o café fecha às {close}.",
+    "dayParty": "Feliz Halloween! Hoje o café fecha às {close} e a festa da Dona Neusa é às {time}.",
+    "starting": "A festa de Halloween está começando no café!",
+    "missed": "A festa de Halloween passou... A turma deixou um doce na porta para você.",
+    "give": "entregar o presente para {name} (E perto)",
+    "giveAsk": "Qual presente você dá para {name}?",
+    "giveNone": "Não trouxe presente",
+    "otherGuest": "Seu presente é para {name}!",
+    "ateFavorite": "{name} comeu {food}: o favorito!",
+    "ateOther": "{name} comeu {food}.",
+    "ateNothing": "{name} não achou doce nas mesas."
+  },
   "secretSanta": {
     "title": "Amigo secreto",
     "goal": "presente para {name}",

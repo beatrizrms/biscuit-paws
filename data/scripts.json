@@ -1376,6 +1376,377 @@
           "dialogue": "dlg.santa_party_after"
         }
       ]
+    },
+    "scr.hw_invite": {
+      "steps": [
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            12,
+            7
+          ]
+        },
+        {
+          "playerWalk": [
+            11,
+            7
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "left"
+        },
+        {
+          "dialogue": "dlg.hw_invite"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 800
+        },
+        {
+          "dialogue": "dlg.hw_drawn"
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.neusa"
+        }
+      ]
+    },
+    "scr.hw_party": {
+      "steps": [
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "up",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "dialogue": "dlg.hw_party_arrive"
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            12,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "down",
+          "when": {
+            "halloweenGuest": "npc.gabi"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.joca"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "halloweenGuest": "npc.joca"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            7
+          ],
+          "when": {
+            "halloweenGuest": "npc.joca"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "left",
+          "when": {
+            "halloweenGuest": "npc.joca"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            10,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "down",
+          "when": {
+            "halloweenGuest": "npc.neusa"
+          }
+        },
+        {
+          "npcSpawn": "npc.builder",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.builder"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "halloweenGuest": "npc.builder"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            9,
+            7
+          ],
+          "when": {
+            "halloweenGuest": "npc.builder"
+          }
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "right",
+          "when": {
+            "halloweenGuest": "npc.builder"
+          }
+        },
+        {
+          "npcSpawn": "npc.fernanda",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            11,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcFace": "npc.fernanda",
+          "facing": "down",
+          "when": {
+            "halloweenGuest": "npc.fernanda"
+          }
+        },
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "halloweenGuest": "npc.realtor"
+          }
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.realtor"
+          }
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            13,
+            6
+          ],
+          "when": {
+            "halloweenGuest": "npc.realtor"
+          }
+        },
+        {
+          "npcFace": "npc.realtor",
+          "facing": "down",
+          "when": {
+            "halloweenGuest": "npc.realtor"
+          }
+        },
+        {
+          "playerWalk": [
+            11,
+            8
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "dialogue": "dlg.hw_party_open"
+        },
+        {
+          "halloween": "feast"
+        },
+        {
+          "dialogue": "dlg.hw_feast_done"
+        },
+        {
+          "halloween": "give"
+        }
+      ]
+    },
+    "scr.hw_party_end": {
+      "steps": [
+        {
+          "halloween": "reaction"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.hw_party_end"
+        },
+        {
+          "setTime": "22:30"
+        },
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "down"
+        },
+        {
+          "dialogue": "dlg.hw_party_after"
+        }
+      ]
     }
   }
 }

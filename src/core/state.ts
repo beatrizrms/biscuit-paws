@@ -22,6 +22,7 @@ import type { ReputationState } from './reputation';
 import { newStats, type StatsState } from './stats';
 import { newMilestones, type MilestonesState } from './milestones';
 import type { SantaRecord } from './secretSanta';
+import type { HalloweenRecord } from './halloween';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -153,6 +154,8 @@ export interface GameState {
   xmasBox: Record<string, number>;
   /** Amigo secreto do ano (v34): quem ela tirou e como foi a ceia. null = nenhum ainda. */
   secretSanta: SantaRecord | null;
+  /** Noite das Abóboras do ano (v39; halloween.ts). */
+  halloween: HalloweenRecord | null;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -278,6 +281,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     displays: {},
     xmasBox: {},
     secretSanta: null,
+    halloween: null,
   };
 }
 

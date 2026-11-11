@@ -258,7 +258,18 @@ export class GameUi {
     bus.on('newyear.eve', () => this.toast(uiText.newYear.eve, 6000));
     bus.on('xmas.santa_missed', ({ itemId }) => this.toast(itemId ? uiText.secretSanta.missedGift.replace('{item}', content.items[itemId]?.name ?? '') : uiText.secretSanta.missed, 6000));
     // Evento começando agora (se ela não for, sem problema) e os fogos perdidos.
-    bus.on('event.starting', ({ id }) => this.toast(id === 'new_year' ? uiText.newYear.starting : uiText.secretSanta.starting, 6000));
+    bus.on('event.starting', ({ id }) => this.toast(id === 'new_year' ? uiText.newYear.starting : id === 'halloween_party' ? uiText.halloween.starting : uiText.secretSanta.starting, 6000));
+    // Noite das Abóboras: o aviso da manhã, quem comeu o quê na festa e a festa perdida.
+    bus.on('halloween.day', ({ closeAt, partyAt, party }) => this.toast((party ? uiText.halloween.dayParty : uiText.halloween.day).replace('{close}', closeAt).replace('{time}', partyAt), 6000));
+    bus.on('halloween.ate', ({ npc, recipe, favorite }) => {
+      const t = uiText.halloween;
+      const name = content.festive.halloween.friends.find((f) => f.npc === npc)?.name ?? '';
+      const who = name.replace(/^(a|o) /, '');
+      const cap = who.charAt(0).toUpperCase() + who.slice(1);
+      const food = recipe ? content.recipes[recipe]?.name ?? '' : '';
+      this.toast((recipe ? (favorite ? t.ateFavorite : t.ateOther) : t.ateNothing).replace('{name}', cap).replace('{food}', food.toLowerCase()), 3500);
+    });
+    bus.on('halloween.missed', () => this.toast(uiText.halloween.missed, 6000));
     bus.on('newyear.missed', () => this.toast(uiText.newYear.missed, 5000));
     // Cardápio da estação: o que chegou (e o que saiu do quadro por sair de época).
     bus.on('menu.season', ({ arrived, left }) => {
@@ -655,6 +666,8 @@ export class GameUi {
     if (fest) today.push(fest);
     const santa = this.santaLine();
     if (santa) today.push(santa);
+    const hw = this.halloweenLine();
+    if (hw) today.push(hw);
     if (doneToday > 0) today.push(`<li class="done-sum">${esc(g.doneToday.replace('{n}', String(doneToday)))}</li>`);
 
     const sv = this.session.service;
@@ -788,6 +801,19 @@ export class GameUi {
     const right = s.hasGift ? `<span class="count">${esc(s.lovedGift ? t.readyLoved : t.ready)}</span>` : '';
     // A dica do gosto fica no título (passar o mouse).
     return `<li class="job" title="${esc(s.friend.hint)}"><span>${text} ${right}</span></li>`;
+  }
+
+  /** Festa de Halloween: para quem é o presente (e se já está na mochila); no dia, a hora da festa. */
+  private halloweenLine(): string {
+    const h = this.session.halloween();
+    if (!h || h.record.stage !== 'invited') return '';
+    const t = uiText.halloween;
+    const parts = [t.goal.replace('{name}', h.friend.name)];
+    if (this.session.halloweenGivingNow()) parts.splice(0, 1, t.give.replace('{name}', h.friend.name));
+    else if (h.partyDay) parts.push(t.party.replace('{time}', content.festive.halloween.partyAt));
+    const text = `<b>${esc(t.title)}:</b> ${esc(parts.join('; '))}`;
+    const right = h.hasGift ? `<span class="count">${esc(h.lovedGift ? t.readyLoved : t.ready)}</span>` : '';
+    return `<li class="job" title="${esc(h.friend.hint)}"><span>${text} ${right}</span></li>`;
   }
 
   private festivalLine(): string {

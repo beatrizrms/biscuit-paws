@@ -29,6 +29,7 @@ import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
 import { calendarEntries, dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, weatherOf, yearLength, yearOf, type CalendarEntry } from './calendar';
 import { isNewYearEve, newYearFlag } from './newYear';
+import { halloweenOfYear, inInviteWindow, isHalloween, pickFood, type HalloweenFriend, type HalloweenRecord } from './halloween';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
@@ -745,6 +746,11 @@ export class GameSession {
       const gift = this.secretSantaReceive();
       this.bus.emit('xmas.santa_missed', { npc: santa.drawn, itemId: gift?.itemId ?? null });
     }
+    const hw = this.halloweenRecord();
+    if (hw?.stage === 'invited' && isHalloween(this.content.seasons, this.content.festive.halloween, day)) {
+      hw.stage = 'missed';
+      this.bus.emit('halloween.missed', { npc: hw.drawn });
+    }
     if (this.newYearPending()) this.bus.emit('newyear.missed', {});
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
@@ -784,6 +790,9 @@ export class GameSession {
     }
     // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
     if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
+    // Dia da Noite das Abóboras: o café fecha mais cedo.
+    const hwData = this.content.festive.halloween;
+    if (isHalloween(this.content.seasons, hwData, day + 1)) this.bus.emit('halloween.day', { closeAt: hwData.closeAt, partyAt: hwData.partyAt, party: this.halloweenPartyPending() });
     // Último dia do ano: o aviso dos fogos da meia-noite.
     if (this.newYearPending()) this.bus.emit('newyear.eve', { gatherAt: this.content.festive.newYear.gatherAt });
     // Cardápio da estação: o que saiu de época deixa o quadro; o que chegou é anunciado.
@@ -818,6 +827,7 @@ export class GameSession {
       this.checkBuilderShift();
       this.advanceStory();
       this.checkSecretSanta();
+      this.checkHalloween();
       this.checkNewYear();
       this.ced.tick();
     }
@@ -2048,6 +2058,8 @@ export class GameSession {
    * (data/festive.json: secretSanta.partyLights), ou null fora disso.
    */
   cafeLightsAs(): number | null {
+    const hw = this.content.festive.halloween;
+    if (isHalloween(this.content.seasons, hw, this.state.day) && this.state.time >= parseClock(hw.partyAt)) return parseClock(hw.partyLights);
     const ss = this.content.festive.secretSanta;
     if (!isChristmas(this.content.seasons, ss, this.state.day) || this.state.time < parseClock(ss.partyAt)) return null;
     return parseClock(ss.partyLights);
@@ -2075,7 +2087,7 @@ export class GameSession {
   private eventNoticed: Record<string, number> = {};
 
   /** Aviso de que o evento começou agora ("Fogos começando agora!"), uma vez por dia. */
-  private noticeEvent(id: 'xmas_party' | 'new_year'): void {
+  private noticeEvent(id: 'xmas_party' | 'new_year' | 'halloween_party'): void {
     if (this.eventNoticed[id] === this.state.day) return;
     this.eventNoticed[id] = this.state.day;
     this.bus.emit('event.starting', { id });
@@ -2150,6 +2162,146 @@ export class GameSession {
     this.bus.emit('xmas.santa_exchanged', { npc: friend.npc, result, itemId: item });
     this.bus.emit('script.requested', { scriptId: ss.partyEndScript });
     return { dialogue: this.santaReaction()! };
+  }
+
+  // ---------- Noite das Abóboras (Halloween; halloween.ts) ----------
+
+  /** A festa deste ano (ou null). */
+  halloweenRecord(): HalloweenRecord | null {
+    return halloweenOfYear(this.content.seasons, this.state.halloween, this.state.day);
+  }
+
+  /** Os amigos que ela já conhece (vêm para a festa). */
+  halloweenGuests(): string[] {
+    const ctx = { ...this.storyContext(), halloweenGuest: undefined };
+    return this.content.festive.halloween.friends.filter((f) => evaluate(f.known, this.state, ctx)).map((f) => f.npc);
+  }
+
+  private halloweenFriend(npc: string): HalloweenFriend | undefined {
+    return this.content.festive.halloween.friends.find((f) => f.npc === npc);
+  }
+
+  /** Para o balão: para quem é o presente (e se já está na mochila) e, no dia, a hora da festa. */
+  halloween(): { record: HalloweenRecord; friend: HalloweenFriend; hasGift: boolean; lovedGift: boolean; partyDay: boolean } | null {
+    const record = this.halloweenRecord();
+    const friend = record && this.halloweenFriend(record.drawn);
+    if (!record || !friend) return null;
+    const gifts = this.halloweenGiftOptions();
+    return { record, friend, hasGift: gifts.length > 0, lovedGift: gifts.includes(friend.likes), partyDay: isHalloween(this.content.seasons, this.content.festive.halloween, this.state.day) };
+  }
+
+  /** Hoje é a festa e ela ainda vai acontecer. */
+  halloweenPartyPending(): boolean {
+    return this.halloweenRecord()?.stage === 'invited' && isHalloween(this.content.seasons, this.content.festive.halloween, this.state.day);
+  }
+
+  /** Dia da festa em que o roteiro já foi pedido. */
+  private halloweenPartyRequestedOn = 0;
+
+  /**
+   * A cada minuto: na Semana do Halloween, a Dona Neusa chama para a festa (ela tira um amigo para o presente); no
+   * último dia do outono, na hora da festa, o roteiro da festa.
+   */
+  checkHalloween(): void {
+    const hw = this.content.festive.halloween;
+    const day = this.state.day;
+    if (!this.halloweenRecord() && inInviteWindow(this.content.seasons, hw, day)) {
+      const guests = this.halloweenGuests();
+      if (!guests.includes(hw.proposer) || !evaluate(hw.proposalWhen, this.state, this.storyContext())) return;
+      const drawn = drawFriend(guests, createRng(day * 7919 + 31));
+      if (!drawn) return;
+      this.state.halloween = { year: yearOf(this.content.seasons, day), drawn, stage: 'invited', ate: {} };
+      this.bus.emit('halloween.invited', { npc: drawn });
+      this.bus.emit('script.requested', { scriptId: hw.proposalScript });
+      return;
+    }
+    if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt)) this.noticeEvent('halloween_party');
+    if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt) && this.halloweenPartyRequestedOn !== day && evaluate(hw.partyWhen, this.state, this.storyContext())) {
+      this.halloweenPartyRequestedOn = day;
+      this.bus.emit('script.requested', { scriptId: hw.partyScript });
+    }
+  }
+
+  /**
+   * Cada convidado come uma comida de Halloween posta nos balcões e mesas do café: o favorito, se ainda houver;
+   * senão, o que sobrou (o prato vira louça suja; o bolo inteiro perde uma fatia). Sem comida, ninguém fica bravo.
+   */
+  halloweenFeast(): { npc: string; recipe: string | null; favorite: boolean }[] {
+    const hw = this.content.festive.halloween;
+    const record = this.halloweenRecord();
+    if (!record) return [];
+    record.ate ??= {};
+    const rel = this.content.relationships;
+    const out: { npc: string; recipe: string | null; favorite: boolean }[] = [];
+    for (const npc of this.halloweenGuests()) {
+      if (npc in record.ate) continue;
+      const friend = this.halloweenFriend(npc)!;
+      const available = this.state.surfaces.flatMap((s) =>
+        (s.item.kind === 'drink' || s.item.kind === 'cake') && hw.foods.includes(s.item.recipe) ? Array(s.item.kind === 'cake' ? s.item.portions : 1).fill(s.item.recipe) : [],
+      );
+      const pick = pickFood(available, friend.food);
+      if (pick.recipe) {
+        const i = this.state.surfaces.findIndex((s) => (s.item.kind === 'drink' || s.item.kind === 'cake') && s.item.recipe === pick.recipe);
+        const s = this.state.surfaces[i]!;
+        if (s.item.kind === 'cake' && s.item.portions > 1) s.item.portions -= 1;
+        else if (s.item.kind === 'drink') this.state.surfaces[i] = { at: s.at, item: { kind: 'dirty', vessel: s.item.vessel } };
+        else this.state.surfaces.splice(i, 1);
+        addPoints(this.state, rel, PLAYER, npc, pick.favorite ? hw.points.favoriteFood : hw.points.otherFood);
+      }
+      record.ate[npc] = pick.recipe;
+      out.push({ npc, ...pick });
+      this.bus.emit('halloween.ate', { npc, ...pick });
+    }
+    if (out.length > 0) this.bus.emit('hands.changed', { count: this.state.hands.length });
+    return out;
+  }
+
+  /** Na festa, a hora de entregar: ela vai até quem tirou e o E abre a escolha (não salva: é da cena). */
+  private halloweenGiving = false;
+
+  openHalloweenGiving(): void {
+    if (this.halloweenRecord()?.stage !== 'invited') return;
+    this.halloweenGiving = true;
+    this.bus.emit('halloween.giving', { npc: this.halloweenRecord()!.drawn });
+  }
+
+  halloweenGivingNow(): boolean {
+    return this.halloweenGiving && this.halloweenRecord()?.stage === 'invited';
+  }
+
+  /** Os presentes de Halloween que ela tem na mochila, na ordem dos itens. */
+  halloweenGiftOptions(): string[] {
+    const tag = this.content.festive.halloween.giftTag;
+    return Object.values(this.content.items).filter((i) => i.tags.includes(tag) && (this.state.inventory[i.id] ?? 0) > 0).map((i) => i.id);
+  }
+
+  /** Ela entrega o presente escolhido (null = não trouxe); todos os convidados ganham um pouco pela noite. */
+  halloweenExchange(itemId: string | null = null): { dialogue: string } | null {
+    const hw = this.content.festive.halloween;
+    const record = this.halloweenRecord();
+    const friend = record && this.halloweenFriend(record.drawn);
+    if (!record || !friend || record.stage !== 'invited') return null;
+    const item = itemId && (this.state.inventory[itemId] ?? 0) > 0 ? itemId : null;
+    const result = !item ? 'none' : item === friend.likes ? 'loved' : 'liked';
+    if (item) this.removeFromInventory(item);
+    const rel = this.content.relationships;
+    for (const g of this.halloweenGuests()) addPoints(this.state, rel, PLAYER, g, hw.points.party);
+    if (result !== 'none') addPoints(this.state, rel, PLAYER, friend.npc, hw.points[result]);
+    record.stage = 'done';
+    record.result = result;
+    if (item) record.gift = item;
+    this.halloweenGiving = false;
+    this.bus.emit('halloween.exchanged', { npc: friend.npc, result, itemId: item });
+    this.bus.emit('script.requested', { scriptId: hw.partyEndScript });
+    return { dialogue: this.halloweenReaction()! };
+  }
+
+  /** A fala de quem recebeu o presente (o primeiro passo do fim da festa). */
+  halloweenReaction(): string | null {
+    const record = this.halloweenRecord();
+    const friend = record && this.halloweenFriend(record.drawn);
+    if (!record?.result || !friend) return null;
+    return record.result === 'none' ? this.content.festive.halloween.noGiftDialogue : friend.dialogues[record.result];
   }
 
   /** A fala de quem recebeu, pelo resultado da troca (o primeiro passo do fim da ceia). */
@@ -2941,7 +3093,8 @@ export class GameSession {
    * (prólogo feito; Gabi, Joca e Dona Neusa conhecidos). "draw": inverno 18, 9:59 (o sorteio; a interface leva ao café); "party":
    * inverno 25, 18:59, com um amigo já tirado (a ceia); "newyear": inverno 30, 23:29 (os fogos).
    */
-  debugFestive(what: 'draw' | 'party' | 'newyear'): void {
+  debugFestive(what: 'draw' | 'party' | 'newyear' | 'hw_invite' | 'hw_party'): void {
+    if (what === 'hw_invite' || what === 'hw_party') return this.debugHalloween(what);
     const { secretSanta: ss, newYear: ny } = this.content.festive;
     const seasons = this.content.seasons;
     const [season, d, clock] = what === 'draw' ? [ss.season, ss.drawDay, '09:59'] : what === 'party' ? [ss.season, ss.day, '18:59'] : [ny.season, ny.day, '23:29'];
@@ -2962,6 +3115,26 @@ export class GameSession {
       const drawn = kept ?? drawFriend(this.santaGuests(), createRng(day));
       if (drawn) this.state.secretSanta = { year, drawn, stage: 'drawn' };
     } else delete this.state.flags[newYearFlag(seasons, day)];
+    this.bus.emit('day.started', { day });
+  }
+
+  /** Debug: o convite da Dona Neusa (outono 24, 9:59, no café) ou a festa (outono 30, 18:59, com o amigo já tirado). */
+  private debugHalloween(what: 'hw_invite' | 'hw_party'): void {
+    const hw = this.content.festive.halloween;
+    const seasons = this.content.seasons;
+    let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, hw.season) + (what === 'hw_invite' ? hw.inviteDay : hw.day) - 1;
+    if (day < this.state.day) day += yearLength(seasons);
+    this.debugCompleteStory('story.prologue_end');
+    Object.assign(this.state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
+    this.state.day = day;
+    this.state.time = parseClock(what === 'hw_invite' ? '09:59' : '18:59');
+    this.halloweenPartyRequestedOn = 0;
+    const year = yearOf(seasons, day);
+    if (what === 'hw_invite') this.state.halloween = null;
+    else if (this.state.halloween?.year !== year || this.state.halloween.stage !== 'invited') {
+      const drawn = drawFriend(this.halloweenGuests(), createRng(day));
+      if (drawn) this.state.halloween = { year, drawn, stage: 'invited', ate: {} };
+    }
     this.bus.emit('day.started', { day });
   }
 
@@ -3207,6 +3380,7 @@ export class GameSession {
         return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
+      halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
       playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };
   }

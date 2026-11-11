@@ -51,6 +51,8 @@ export class DebugPanel {
         <button data-festive="draw">Sorteio (inv. 18)</button>
         <button data-festive="party">Ceia (inv. 25)</button>
         <button data-festive="newyear">Fogos (inv. 30)</button>
+        <button data-festive="hw_invite">Convite Halloween (out. 24)</button>
+        <button data-festive="hw_party">Festa Halloween (out. 30)</button>
       </div>
       <div class="buttons arrivals">
         <strong>Chegadas</strong>
@@ -225,10 +227,10 @@ export class DebugPanel {
     // Natal e Ano Novo: pula para um minuto antes (o sorteio, a ceia, os fogos), já com as condições.
     panel.querySelectorAll<HTMLButtonElement>('[data-festive]').forEach((b) =>
       b.addEventListener('click', () => {
-        const what = b.dataset.festive as 'draw' | 'party' | 'newyear';
+        const what = b.dataset.festive as 'draw' | 'party' | 'newyear' | 'hw_invite' | 'hw_party';
         session.debugFestive(what);
         // O sorteio só acontece com ela no café.
-        actions.reloadWorld(what === 'draw' ? session.content.map.id : undefined);
+        actions.reloadWorld(what === 'draw' || what === 'hw_invite' ? session.content.map.id : undefined);
       }),
     );
     on('fest-day', () => {

@@ -30,6 +30,7 @@ import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
 import { validateSecretSanta, type SecretSantaData } from './secretSanta';
+import { validateHalloween, type HalloweenData } from './halloween';
 import { validateNewYear, type NewYearData } from './newYear';
 
 /** data/festive.json: a caixa de enfeites de Natal, o amigo secreto e os fogos de Ano Novo. */
@@ -44,6 +45,8 @@ export interface FestiveData {
   /** Caixas de enfeites (a primeira é a do Natal): os móveis com a tag vão para ela no fim da estação opensIn. */
   boxes: FestiveBox[];
   secretSanta: SecretSantaData;
+  /** Noite das Abóboras (halloween.ts). */
+  halloween: HalloweenData;
   newYear: NewYearData;
 }
 import { validateDelivery } from './delivery';
@@ -228,6 +231,8 @@ export type Condition =
   | { season: string }
   /** O amigo vem para o amigo secreto deste ano: ela já o conhece (data/festive.json: secretSanta.friends). */
   | { santaGuest: string }
+  /** O amigo vem para a festa de Halloween deste ano: ela já o conhece (data/festive.json: halloween.friends). */
+  | { halloweenGuest: string }
   /** Ela está no café, neste cômodo (data/rooms.json; ex.: as cenas de Natal só começam com ela no salão). */
   | { playerRoom: string };
 
@@ -574,6 +579,14 @@ export function validateContent(raw: RawContent): string[] {
         scripts: new Set(Object.keys(raw.scripts.scripts)),
         seasons: raw.seasons,
       }),
+      ...validateHalloween(raw.festive.halloween, {
+        items: new Map(raw.items.items.map((i) => [i.id, i])),
+        recipes: new Set(raw.recipes.recipes.map((r) => r.id)),
+        npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+        dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
+        scripts: new Set(Object.keys(raw.scripts.scripts)),
+        seasons: raw.seasons,
+      }),
       ...validateNewYear(raw.festive.newYear, { seasons: raw.seasons, scripts: new Set(Object.keys(raw.scripts.scripts)), passOut: raw.dayNight.passOut }),
     );
   }
@@ -790,6 +803,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!raw.rooms.rooms.some((r) => r.id === c.playerRoom)) err(`${where}: cômodo inexistente "${c.playerRoom}"`);
     } else if ('santaGuest' in c) {
       if (!raw.festive.secretSanta.friends.some((f) => f.npc === c.santaGuest)) err(`${where}: "${c.santaGuest}" não está no amigo secreto`);
+    } else if ('halloweenGuest' in c) {
+      if (!raw.festive.halloween.friends.some((f) => f.npc === c.halloweenGuest)) err(`${where}: "${c.halloweenGuest}" não está na festa de Halloween`);
     } else if ('season' in c) {
       if (!raw.seasons.order.includes(c.season)) err(`${where}: estação inexistente "${c.season}"`);
     } else if ('milestone' in c) {
@@ -898,6 +913,9 @@ export function validateContent(raw: RawContent): string[] {
   for (const [id, s] of Object.entries(raw.scripts.scripts)) s.steps.forEach((step, i) => step.when && checkCondition(`roteiro "${id}" passo ${i}`, step.when as Condition));
   for (const f of raw.festive.secretSanta.friends) checkCondition(`festive.secretSanta: ${f.npc}`, f.known);
   checkCondition('festive.secretSanta: proposalWhen', raw.festive.secretSanta.proposalWhen);
+  for (const f of raw.festive.halloween.friends) checkCondition(`festive.halloween: ${f.npc}`, f.known);
+  checkCondition('festive.halloween: proposalWhen', raw.festive.halloween.proposalWhen);
+  checkCondition('festive.halloween: partyWhen', raw.festive.halloween.partyWhen);
   checkCondition('festive.newYear: when', raw.festive.newYear.when);
   checkCondition('festive.newYear: startWhen', raw.festive.newYear.startWhen);
   checkCondition('festive.secretSanta: partyWhen', raw.festive.secretSanta.partyWhen);

@@ -1658,6 +1658,9 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     { name: 'caixa_halloween', file: `${SRC}/lote_halloween/icone_caixa_hw.png` },
     // Comidas da Semana do Halloween (Pro Flash 64x64, ícones do panetone como estilo).
     ...(['bolo_abobora','fatia_bolo_abobora','cookies_fantasma','cupcake_teia','maca_do_amor','doce_abobora_coco'] as const).map((name) => ({ name, file: `${SRC}/comidas_halloween/${name}.png` })),
+    // Ingredientes do verão e do outono: maçã e coco (Pro Flash 64x64, a abóbora como estilo).
+    { name: 'maca', file: `${SRC}/fantasia_halloween/maca.png` },
+    { name: 'coco', file: `${SRC}/fantasia_halloween/coco.png` },
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

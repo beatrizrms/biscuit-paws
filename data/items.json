@@ -1922,6 +1922,40 @@
       ]
     },
     {
+      "id": "item.apple",
+      "name": "Maçã",
+      "description": "Maçã da estação, para a maçã do amor: rende 4 receitas. No verão e no outono.",
+      "price": 5,
+      "kind": "consumable",
+      "icon": "maca",
+      "servings": 4,
+      "tags": [
+        "ingredient",
+        "fruit"
+      ],
+      "seasons": [
+        "summer",
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.coconut",
+      "name": "Coco",
+      "description": "Coco verde da estação, para o doce de abóbora: rende 4 receitas. No verão e no outono.",
+      "price": 6,
+      "kind": "consumable",
+      "icon": "coco",
+      "servings": 4,
+      "tags": [
+        "ingredient",
+        "fruit"
+      ],
+      "seasons": [
+        "summer",
+        "autumn"
+      ]
+    },
+    {
       "id": "item.pulp_orange",
       "name": "Polpa de laranja",
       "description": "Polpa para o suco de laranja no liquidificador. Uma por copo.",

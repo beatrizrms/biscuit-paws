@@ -16,15 +16,16 @@ import type { ReputationState } from './reputation';
 import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 import type { SantaRecord, SantaResult } from './secretSanta';
+import type { HalloweenRecord, HalloweenResult } from './halloween';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
 import { newCed, type CedState } from './ced';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 
-export const SAVE_SCHEMA_VERSION = 38;
+export const SAVE_SCHEMA_VERSION = 39;
 
-export interface SaveV38 extends GameState {
-  schemaVersion: 38;
+export interface SaveV39 extends GameState {
+  schemaVersion: 39;
   savedAt: string;
 }
 
@@ -194,13 +195,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
     const catDefs = Object.fromEntries(Object.entries(defs).map(([id, d]) => [id, d && typeof d.variant === 'string' && OLD_VARIANTS[d.variant] ? { ...d, variant: OLD_VARIANTS[d.variant] } : d]));
     return { ...save, schemaVersion: 38, catDefs };
   },
+  /** v38 -> v39: Noite das Abóboras (halloween.ts). Saves antigos: nenhuma festa ainda. */
+  38: (save) => ({ ...save, schemaVersion: 39, halloween: null }),
 };
 
 /** Cor antiga do Cosy Cats -> a pelagem nova mais parecida (migração v38). */
 const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV38 = { schemaVersion: 38, savedAt: now.toISOString(), ...state };
+  const save: SaveV39 = { schemaVersion: 39, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -254,7 +257,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV38>;
+  const v2 = save as unknown as Partial<SaveV39>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -432,6 +435,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     // Vitrines: só as de móveis posicionados, com receitas que existem e fatias inteiras.
     // Caixa de Natal: só itens que existem, em quantidades inteiras.
     secretSanta: normalizeSanta(v2.secretSanta, known.items),
+    halloween: normalizeHalloween(v2.halloween, known.items),
     xmasBox: Object.fromEntries(Object.entries((v2.xmasBox ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => known.items.has(e[0]) && Number.isInteger(e[1]) && (e[1] as number) > 0)),
     displays: Object.fromEntries(
       Object.entries(v2.displays ?? {})
@@ -614,6 +618,20 @@ function normalizeSanta(raw: unknown, items: ReadonlySet<string>): SantaRecord |
   if (typeof r.gift === 'string' && items.has(r.gift)) out.gift = r.gift;
   if (typeof r.giver === 'string') out.giver = r.giver;
   if (typeof r.received === 'string' && items.has(r.received)) out.received = r.received;
+  return out;
+}
+
+/** A festa de Halloween do save (v39); quebrada = nenhuma. */
+function normalizeHalloween(raw: unknown, items: ReadonlySet<string>): HalloweenRecord | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  if (!Number.isInteger(r.year) || typeof r.drawn !== 'string' || !['invited', 'done', 'missed'].includes(r.stage as string)) return null;
+  const out: HalloweenRecord = { year: r.year as number, drawn: r.drawn, stage: r.stage as HalloweenRecord['stage'] };
+  if (['loved', 'liked', 'none'].includes(r.result as string)) out.result = r.result as HalloweenResult;
+  if (typeof r.gift === 'string' && items.has(r.gift)) out.gift = r.gift;
+  if (r.ate && typeof r.ate === 'object') {
+    out.ate = Object.fromEntries(Object.entries(r.ate as Record<string, unknown>).filter((e): e is [string, string | null] => e[1] === null || typeof e[1] === 'string'));
+  }
   return out;
 }
 

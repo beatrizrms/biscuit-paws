@@ -1157,6 +1157,227 @@
           "text": "Feliz Ano Novo, gente! E {g:obrigada|obrigado} por me receberem tão bem na vila. Esse lugar já virou a minha casa."
         }
       ]
+    },
+    "dlg.hw_invite": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Bom dia, {player}! Sabe que dia 30 é Halloween, né? A vila toda fica enfeitada de abóbora."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Pensei numa festinha aqui no café, com a turma toda, às 19h. Você fecha mais cedo nesse dia, às 18h?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Fecho, sim! E os doces ficam por minha conta."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Ótimo! E pra ter graça, cada um leva um presentinho pra alguém. Tira um papelzinho do meu chapéu!"
+        }
+      ]
+    },
+    "dlg.hw_drawn": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Você tira um papelzinho do chapéu de bruxa da Dona Neusa: é {halloween:name}!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "{halloween:hint}"
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "E já perguntei pra todo mundo o doce favorito: {halloween:foods}."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Os enfeites e os presentes estão no Market, na aba Halloween. Os doces da Semana do Halloween vão pro seu cardápio. Põe tudo nas mesas e nos balcões, viu?"
+        }
+      ]
+    },
+    "dlg.hw_party_arrive": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Já são 19h. A porta do café se abre e a turma vai chegando, com folhas secas grudadas nos casacos."
+        }
+      ]
+    },
+    "dlg.hw_party_open": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que café mais lindo! Vamos aos doces, gente, antes que esfrie!"
+        }
+      ]
+    },
+    "dlg.hw_feast_done": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "A turma se espalha pelo salão, entre risadas e migalhas."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Agora, os presentinhos! Vai lá, {player}, entrega o seu!"
+        }
+      ]
+    },
+    "dlg.hw_no_gift": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Você chega de mãos vazias."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Doces ou travessuras? Sem doce, vai ter travessura!"
+        },
+        {
+          "speaker": "",
+          "text": "A turma ri, e alguém esconde a abóbora do balcão atrás do sofá. Tudo bem: a noite está ótima mesmo assim."
+        }
+      ]
+    },
+    "dlg.hw_party_end": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que noite boa! Obrigada por abrir o café pra gente, {player}."
+        },
+        {
+          "speaker": "",
+          "text": "A turma vai embora aos poucos, levando doces embrulhados em guardanapo."
+        }
+      ]
+    },
+    "dlg.hw_party_after": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Que festa! Amanhã é inverno... hora de guardar as abóboras."
+        }
+      ]
+    },
+    "dlg.hw_loved_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Um caldeirão de doces?! Você me conhece demais! Vou deixar na minha cozinha, cheio de bala o ano todo."
+        }
+      ]
+    },
+    "dlg.hw_liked_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Que fofo! Obrigada, vou guardar com carinho."
+        }
+      ]
+    },
+    "dlg.hw_loved_joca": {
+      "lines": [
+        {
+          "speaker": "Joca",
+          "npc": "npc.joca",
+          "text": "Um fantasminha de pelúcia! Esse eu não tenho medo. Vou dormir abraçado com ele, tá?"
+        }
+      ]
+    },
+    "dlg.hw_liked_joca": {
+      "lines": [
+        {
+          "speaker": "Joca",
+          "npc": "npc.joca",
+          "text": "Opa, obrigado! Gostei, de verdade."
+        }
+      ]
+    },
+    "dlg.hw_loved_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Uma lanterninha de abóbora com carinha de gato! Vai ficar na minha janela, iluminando a rua."
+        }
+      ]
+    },
+    "dlg.hw_liked_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Ah, que gentileza! Obrigada, {g:querida|querido}."
+        }
+      ]
+    },
+    "dlg.hw_loved_builder": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Um chapéu de bruxo! Agora sim, ano que vem eu venho a caráter. Obrigado!"
+        }
+      ]
+    },
+    "dlg.hw_liked_builder": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Valeu! Gostei do mimo."
+        }
+      ]
+    },
+    "dlg.hw_loved_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Um fantasminha! Vai pra mesa da clínica, junto dos outros. Os gatinhos vão amar."
+        }
+      ]
+    },
+    "dlg.hw_liked_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Que gracinha, obrigada!"
+        }
+      ]
+    },
+    "dlg.hw_loved_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Um chapéu de bruxa! Charmoso demais. Vou usar na próxima visita a imóvel, juro."
+        }
+      ]
+    },
+    "dlg.hw_liked_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Que simpático, obrigada!"
+        }
+      ]
     }
   }
 }

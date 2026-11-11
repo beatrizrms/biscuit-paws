@@ -1,5 +1,6 @@
 // Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação),
 // {santa:name} / {santa:hint} / {santa:giver} (o amigo secreto do ano: quem ela tirou, a dica, quem a tirou),
+// {halloween:name} / {halloween:hint} / {halloween:foods} (a festa de Halloween: quem ela tirou, a dica, os doces favoritos),
 // {arrival:condition} / {arrival:personality} / {arrival:npc} / {arrival:leader} (a chegada de gato em andamento: como chega,
 // o jeito, quem trouxe, o gato do café que guia).
 import type { GameSession } from '../../core/session';
@@ -17,12 +18,28 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => session.catName(id))
     .replace(/\{arrival:(\w+)\}/g, (_, what: string) => arrivalText(session, what))
     .replace(/\{santa:(\w+)\}/g, (_, what: string) => santaText(session, what))
+    .replace(/\{halloween:(\w+)\}/g, (_, what: string) => halloweenText(session, what))
     .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);
       return t === undefined ? '' : formatClock(t, 5);
     });
+}
+
+/** Festa de Halloween: quem ela tirou, a dica do presente e o doce favorito de cada convidado ("a Gabi não resiste..."). */
+function halloweenText(session: GameSession, what: string): string {
+  const h = session.halloween();
+  const hw = session.content.festive.halloween;
+  if (what === 'foods') {
+    const guests = session.halloweenGuests();
+    const hints = hw.friends.filter((f) => guests.includes(f.npc)).map((f) => f.foodHint);
+    return hints.length > 1 ? `${hints.slice(0, -1).join('; ')}; e ${hints[hints.length - 1]}` : hints.join('');
+  }
+  if (!h) return '';
+  if (what === 'name') return h.friend.name;
+  if (what === 'hint') return h.friend.hint;
+  return '';
 }
 
 /** Amigo secreto: quem ela tirou ("a Dona Neusa"), a dica do gosto e quem a tirou. */
