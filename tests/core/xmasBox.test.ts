@@ -134,3 +134,31 @@ describe('caixa de enfeites de Halloween', () => {
     expect(state.inventory[BOX]).toBe(1);
   });
 });
+
+describe('enfeite fora de época', () => {
+  it('pulando do Natal direto para o Halloween (debug), os enfeites de Natal vão para a caixa', () => {
+    const { session, state } = cafe(10);
+    state.placed.push({ uid: 'p1', item: 'item.christmas_tree', at: [3, 6] });
+    state.inventory['item.xmas_wreath'] = 1;
+    session.debugFestive('hw_party');
+    expect(state.placed.some((p) => p.item === 'item.christmas_tree')).toBe(false);
+    expect(state.xmasBox).toMatchObject({ 'item.christmas_tree': 1, 'item.xmas_wreath': 1 });
+    expect(state.inventory[BOX]).toBe(1);
+  });
+
+  it('save carregado fora do inverno com enfeite de Natal: vai para a caixa ao abrir o jogo', () => {
+    const state = newGameState(500, 'map.cafe_main', 9 * 60);
+    state.day = S.daysPerSeason + 3;
+    state.placed.push({ uid: 'p1', item: 'item.xmas_lights', at: [5, 1] });
+    new GameSession(content, state);
+    expect(state.placed).toEqual([]);
+    expect(state.xmasBox).toEqual({ 'item.xmas_lights': 1 });
+  });
+
+  it('na estação da caixa, nada sai do lugar', () => {
+    const { session, state } = cafe(10);
+    state.placed.push({ uid: 'p1', item: 'item.christmas_tree', at: [3, 6] });
+    session.packOutOfSeason();
+    expect(state.placed.map((p) => p.item)).toEqual(['item.christmas_tree']);
+  });
+});

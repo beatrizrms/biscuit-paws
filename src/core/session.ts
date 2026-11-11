@@ -297,6 +297,8 @@ export class GameSession {
     });
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
+    // Save de outra estação (ou de antes das caixas): enfeite fora de época vai para a caixa dele.
+    this.packOutOfSeason();
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
     // para a barra, venha de onde vier. O que ela tirou da barra de propósito não volta sozinho.
     if (state.hotbar.slots.every((s) => s === null)) syncHotbar(state.hotbar, state.inventory, content.items); // save sem barra (v9)
@@ -785,10 +787,8 @@ export class GameSession {
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     // Fim do inverno: os enfeites de Natal vão para a caixa (na mochila), que só abre no próximo inverno.
-    // Fim da estação de cada caixa (Natal no inverno, Halloween no outono): os enfeites vão para ela.
-    for (const box of this.content.festive.boxes) {
-      if (seasonOf(this.content.seasons, day) === box.opensIn && seasonOf(this.content.seasons, day + 1) !== box.opensIn) this.packXmasBox(box.item);
-    }
+    // Fora da estação de cada caixa (Natal no inverno, Halloween no outono): os enfeites vão para ela.
+    this.packOutOfSeason();
     // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
     if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
     // Dia da Noite das Abóboras: o café fecha mais cedo.
@@ -1977,6 +1977,15 @@ export class GameSession {
   private boxContents(boxItem?: string): [string, number][] {
     const tag = this.festiveBox(boxItem).tag;
     return Object.entries(this.state.xmasBox).filter(([id]) => this.content.items[id]?.tags.includes(tag));
+  }
+
+  /**
+   * Os enfeites de cada caixa fora da estação dela (posicionados ou na mochila) vão para a caixa: na virada da
+   * estação, ao carregar um save e depois dos pulos do debug. Na estação da caixa, nada muda.
+   */
+  packOutOfSeason(): void {
+    const season = seasonOf(this.content.seasons, this.state.day);
+    for (const box of this.content.festive.boxes) if (season !== box.opensIn) this.packXmasBox(box.item);
   }
 
   /** Quantos enfeites estão na caixa (sem item: a de Natal). */
@@ -3179,6 +3188,7 @@ export class GameSession {
       const drawn = kept ?? drawFriend(this.santaGuests(), createRng(day));
       if (drawn) this.state.secretSanta = { year, drawn, stage: 'drawn' };
     } else delete this.state.flags[newYearFlag(seasons, day)];
+    this.packOutOfSeason();
     this.bus.emit('day.started', { day });
   }
 
@@ -3199,6 +3209,7 @@ export class GameSession {
       const drawn = drawFriend(this.halloweenGuests(), createRng(day));
       if (drawn) this.state.halloween = { year, drawn, stage: 'invited', ate: {} };
     }
+    this.packOutOfSeason();
     this.bus.emit('day.started', { day });
   }
 

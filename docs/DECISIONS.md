@@ -788,3 +788,7 @@ Decisão: núcleo em `src/core/halloween.ts` (como o amigo secreto: convite na S
 ## 191. Água de coco e torta de maçã (verão e outono) (nov/2026)
 Pedido: com a maçã e o coco no verão e no outono, a água de coco e a torta de maçã.
 Decisão: 3 ícones no PixelLab (`create_image_pro_flash` 64x64, 15 gerações; o chá gelado e a torta de morango como estilo; `assets/_pixellab/comidas_halloween`). `recipe.coconut_water` (copo, gelada, no liquidificador) e `recipe.apple_pie_slice` (a torta inteira rende 6 fatias, vitrine), no verão e no outono, destrancadas no selo Cardápio da estação. As 10 roupas de Halloween dos gatos (50 gerações, `assets/_pixellab/fantasia_halloween`) já estão geradas e entram com o concurso de Halloween (etapa 2).
+
+## 192. Enfeite fora de época sempre vai para a caixa (nov/2026)
+Pedido: os enfeites de Natal não foram para a caixa (ela pulou pelo debug direto para o Halloween).
+Decisão: a caixa só enchia na virada da estação (o fim de dia normal); os pulos do debug e saves carregados em outra estação passavam por cima. Agora `packOutOfSeason` guarda na caixa todo enfeite fora da estação dele (Natal fora do inverno, Halloween fora do outono), posicionado ou na mochila: no amanhecer, ao carregar o jogo e depois dos pulos do debug. Na estação da caixa, nada sai do lugar.
