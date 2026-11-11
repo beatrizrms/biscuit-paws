@@ -56,6 +56,7 @@ import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
 import { daysText, workName } from '../ui/constructionText';
 import { vetLine } from '../ui/vetText';
+import { lightsFloor } from '../../core/lights';
 import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
@@ -649,7 +650,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const height = this.map.rows * ts;
     this.physics.world.setBounds(0, 0, width, height);
 
-    this.dayNight.setLights(this.session.mapData(mapId).lights ?? [], this.map.tileSize);
     const cam = this.cameras.main;
     cam.setBackgroundColor(this.map.background ?? '#2b1d1a');
     const [col, row] = spawn ?? this.map.spawn;
@@ -729,6 +729,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private buildMap(mapId = this.session.location()): void {
     this.endMovePick(); // os desenhos dos móveis vão ser refeitos (o pisca sairia do lugar)
     this.map =resolveMap(this.session.mapData(mapId), this.session.content.catalog);
+    // As luzes: as do mapa e uma em cada lâmpada (posicionou ou mudou um abajur: a luz vai junto).
+    this.dayNight.setLights(this.session.mapLights(mapId), this.map.tileSize);
     const ts = this.map.tileSize;
 
     this.mapImages?.destroy(true);
@@ -1484,7 +1486,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Noite de Natal: o café com as luzes acesas (a cor de dentro de uma hora clara); a rua segue a noite.
     const lit = indoor && this.map.id === content.map.id ? this.session.cafeLightsAs() : null;
     const color = tintAt(lit ?? t, content.dayNight, season, indoor);
-    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined);
+    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined, lightsFloor(content.dayNight.lightsOn, t));
     this.ui.setClock(formatClock(t));
   }
 

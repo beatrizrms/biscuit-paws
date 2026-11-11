@@ -29,6 +29,10 @@ export interface DayNightConfig {
   indoorStrength: number;
   keyframes: { time: string; color: string }[];
   seasons?: Record<string, { keyframes?: { time: string; color: string }[] }>;
+  /** Peças com lâmpada: à noite ganham uma luz em cima da lâmpada (lights.ts). */
+  lightTiles?: Record<string, { at: [number, number]; radius?: number; color?: string }[]>;
+  /** A partir desta hora as lâmpadas ficam acesas (pelo menos `alpha`), além de acender com o escuro. */
+  lightsOn?: { from: string; alpha: number; fadeMinutes: number };
 }
 
 export type RGB = [number, number, number];

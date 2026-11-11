@@ -11,6 +11,7 @@ import { cutsceneTexts, validateCutscenes, type CutsceneDef, type CutscenesData 
 import { validateScripts, type NpcDef, type NpcsData, type ScriptsData, type ScriptStep } from './script';
 import { reachableCells, solidGrid, validateMap, type Cell, type MapData, type SurfaceDef, type SurfaceKind } from './map';
 import { validateDayNight, type DayNightConfig } from './time';
+import { validateLights } from './lights';
 import { validateCharacter, type CharacterData } from './appearance';
 import { ROOM_STATES, validateRooms, type RoomsData, type RoomState } from './rooms';
 import { validateSeasons, type SeasonsData } from './calendar';
@@ -652,6 +653,7 @@ export function validateContent(raw: RawContent): string[] {
   for (const tile of raw.world.playerBlockTiles ?? []) if (!raw.catalog.tiles[tile]) err(`world: playerBlockTiles: tile "${tile}" não existe`);
   for (const tile of raw.world.catBlockTiles ?? []) if (!raw.catalog.tiles[tile]) err(`world: catBlockTiles: tile "${tile}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
+  errors.push(...validateLights(raw.dayNight.lightTiles, raw.dayNight.lightsOn, raw.catalog));
   const restore = raw.dayNight.energy.restore;
   for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
   for (const tile of Object.keys(restore.seat.tiles)) if (!raw.catalog.tiles[tile]) err(`daynight: energy.restore.seat: tile "${tile}" não existe`);

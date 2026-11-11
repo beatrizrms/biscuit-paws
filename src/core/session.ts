@@ -6,6 +6,8 @@ import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, f
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
+import { mapLights } from './lights';
+import type { MapLight } from './map';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
 import { createRng } from './rng';
 import { CafeService } from './service';
@@ -1893,6 +1895,11 @@ export class GameSession {
     const r = this.clinic.feedIsolated(where);
     if (r.ok) this.advanceStory();
     return r;
+  }
+
+  /** As luzes do mapa: as feitas à mão e uma em cada lâmpada (data/daynight.json lightTiles), móveis dela também. */
+  mapLights(mapId = this.state.location): MapLight[] {
+    return mapLights(this.mapData(mapId), this.content.catalog, this.content.dayNight.lightTiles);
   }
 
   /** Quem está em cada cercadinho e quem espera na caixinha. */

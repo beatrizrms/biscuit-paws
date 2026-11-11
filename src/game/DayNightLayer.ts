@@ -114,8 +114,8 @@ export class DayNightLayer {
    * Aplica a cor do momento; as luzes acendem conforme escurece. `outdoor`: a cor de fora, para as áreas ao ar livre
    * (a camada delas multiplica a diferença, então o resultado nelas é a cor de fora).
    */
-  update(color: RGB, outdoor?: RGB): void {
-    const key = `${color.join()}|${outdoor?.join() ?? ''}`;
+  update(color: RGB, outdoor?: RGB, lightsFloor = 0): void {
+    const key = `${color.join()}|${outdoor?.join() ?? ''}|${lightsFloor.toFixed(2)}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
     this.tint.setFillStyle(rgbToHex(color));
@@ -124,7 +124,9 @@ export class DayNightLayer {
       for (const r of this.outdoor) r.setFillStyle(rgbToHex(ratio));
       for (const g of this.glass) g.setTint(rgbToHex(ratio)).setVisible(true);
     }
-    const dark = darkness(color);
+    // As lâmpadas acendem com o escuro de fora (dentro do café também: a tinta de dentro é mais fraca) e, a partir
+    // da hora delas (lightsOn), ficam acesas pelo menos um tanto.
+    const dark = Math.max(darkness(outdoor ?? color), lightsFloor);
     for (const l of this.lights) l.setAlpha(dark);
   }
 }

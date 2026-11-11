@@ -126,5 +126,20 @@
       "play": { "games": ["wand"], "amount": 10 }
     }
   },
-  "wakeAfterPassOut": "10:00"
+  "wakeAfterPassOut": "10:00",
+  "_lights": "Lâmpadas: toda peça listada em lightTiles ganha à noite uma luz (ADD) em cima da lâmpada, iluminando em volta (src/core/lights.ts); at: onde fica a lâmpada na peça, em células a partir do canto de cima à esquerda (pode ser fração); radius em px; color. Vale para os móveis dela também (a luz vai junto quando muda de lugar). Peça que já tem luz feita à mão perto (map.lights, os postes da rua) não ganha outra. lightsOn: a partir de from, as lâmpadas ficam acesas pelo menos alpha (acendendo em fadeMinutes); fora isso, acendem com o escuro de fora.",
+  "lightsOn": { "from": "18:00", "alpha": 0.6, "fadeMinutes": 40 },
+  "lightTiles": {
+    "yard_lampada_chao": [{ "at": [0.5, 0.25], "radius": 44, "color": "#ffe2a0" }],
+    "yard_luzinhas_fio": [{ "at": [0.5, 0.3], "radius": 22, "color": "#ffe9b0" }, { "at": [1.5, 0.4], "radius": 22, "color": "#ffe9b0" }, { "at": [2.5, 0.3], "radius": 22, "color": "#ffe9b0" }],
+    "yard_luminaria_parede_sebe": [{ "at": [0.5, 0.45], "radius": 38, "color": "#ffe2a0" }],
+    "market_luminaria": [{ "at": [0.5, 0.45], "radius": 40, "color": "#ffe2a0" }],
+    "vet_luminaria_teto": [{ "at": [0.5, 0.5], "radius": 44, "color": "#fff4dc" }],
+    "quarto_luzinhas": [{ "at": [0.5, 0.5], "radius": 22, "color": "#ffe9b0" }],
+    "quarto_luminaria": [{ "at": [0.5, 0.35], "radius": 40, "color": "#ffe2a0" }],
+    "decor_lampiao": [{ "at": [0.5, 0.45], "radius": 34, "color": "#ffd59a" }],
+    "decor_natal_luzinhas": [{ "at": [0.5, 0.5], "radius": 24, "color": "#ffe9b0" }],
+    "decor_natal_vela": [{ "at": [0.5, 0.35], "radius": 20, "color": "#ffcf80" }],
+    "decor_hw_lanterna": [{ "at": [0.5, 0.55], "radius": 26, "color": "#ffb060" }]
+  }
 }
