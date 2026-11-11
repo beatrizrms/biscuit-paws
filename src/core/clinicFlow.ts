@@ -216,6 +216,14 @@ export class ClinicFlow {
     return { pen, box };
   }
 
+  /** Castrado em recuperação que está na caixinha (sem vaga) mas sem a marca (save de antes dela): marca. */
+  boxLeftovers(): void {
+    for (const id of this.penAssignments().box) {
+      const s = this.st.cats[id]!.clinic;
+      if (s?.stage === 'isolation') s.boxed = true;
+    }
+  }
+
   /** O gato está na caixinha de transporte (castrado sem vaga no cercadinho)? */
   boxed(catId: string): boolean {
     const s = this.st.cats[catId]?.clinic;

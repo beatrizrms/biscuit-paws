@@ -302,6 +302,8 @@ export class GameSession {
     });
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
+    // Save de antes da caixinha de transporte: castrado que já estava na caixinha (sem vaga) continua nela.
+    this.clinic.boxLeftovers();
     for (const d of state.deliveries) if (d.stage === 'inside' && !d.at) d.at = [...content.delivery.inside.at];
     // Save de outra estação (ou de antes das caixas): enfeite fora de época vai para a caixa dele.
     this.packOutOfSeason();

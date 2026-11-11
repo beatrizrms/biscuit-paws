@@ -281,6 +281,17 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(session.penAssignments()).toEqual({ pen: { 'p.pen': [id] }, box: [] });
   });
 
+  it('save de antes da caixinha: o castrado que estava nela continua nela ao carregar (não pula para o cercadinho novo)', () => {
+    const { state, session, id } = setup({ neutered: false });
+    session.debugBookNeuter(id);
+    session.debugClinicMorning();
+    delete (state.cats[id]!.clinic as { boxed?: boolean }).boxed;
+    const loaded = new GameSession(content, state);
+    expect(loaded.catBoxed(id)).toBe(true);
+    state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });
+    expect(loaded.penAssignments().box).toEqual([id]);
+  });
+
   it('com cercadinho, a Fernanda já devolve lá (sem caixinha)', () => {
     const { state, session, id } = setup({ neutered: false });
     state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });
