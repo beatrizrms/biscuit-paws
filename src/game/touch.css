@@ -42,3 +42,6 @@
 
 /* Botão com outro papel no momento (escolhendo o móvel: Próximo, OK; com o móvel na mão: Soltar). */
 .t-btn.t-context { background: #ffe3a3; }
+
+/* Na Home, na pausa e com janelas abertas (mercado, cardápio, celular, mochila): sem controles por cima. */
+#touch.touch-on.touch-hidden .touch-layer { display: none; }

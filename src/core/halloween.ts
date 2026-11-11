@@ -39,6 +39,10 @@ export interface HalloweenData {
   partyScript: string;
   /** O fim da festa, depois do presente (a reação e a noite que acaba). */
   partyEndScript: string;
+  /** O fim da festa, quando ela sai pela porta da rua e confirma (a despedida; os convidados vão embora). */
+  partyCloseScript: string;
+  /** Depois da troca, os convidados ficam: o E num deles mostra estas falas, uma por vez (npc -> falas). */
+  partyChat: Record<string, string[]>;
   partyWhen: Condition;
   /** Tag dos presentes (o que ela pode dar). */
   giftTag: string;
@@ -104,7 +108,7 @@ export function validateHalloween(data: HalloweenData, refs: HalloweenRefs): str
   if (!refs.seasons.order.includes(data.season)) err(`estação inexistente "${data.season}"`);
   if (!(data.inviteDay >= 1 && data.inviteDay < data.day && data.day <= refs.seasons.daysPerSeason)) err('inviteDay precisa vir antes de day, dentro da estação');
   if (!refs.npcs.has(data.proposer)) err(`NPC inexistente "${data.proposer}"`);
-  for (const s of [data.proposalScript, data.partyScript, data.partyEndScript]) if (!refs.scripts.has(s)) err(`roteiro inexistente "${s}"`);
+  for (const s of [data.proposalScript, data.partyScript, data.partyEndScript, data.partyCloseScript]) if (!refs.scripts.has(s)) err(`roteiro inexistente "${s}"`);
   if (!refs.dialogues.has(data.noGiftDialogue)) err(`fala inexistente "${data.noGiftDialogue}"`);
   const gifts = [...refs.items].filter(([, i]) => i.tags.includes(data.giftTag)).map(([id]) => id);
   if (gifts.length === 0) err(`nenhum item tem a tag "${data.giftTag}"`);

@@ -125,6 +125,29 @@ describe('amigo secreto: o Natal', () => {
     expect(named(events, 'script.requested')).toEqual([{ scriptId: SS.partyScript }]);
   });
 
+  it('a festa continua depois da troca: os convidados conversam; só acaba quando ela sai pela porta e confirma', () => {
+    const { session, state, events } = cafe(XMAS, 19 * 60);
+    state.secretSanta = { year: 1, drawn: 'npc.neusa', stage: 'drawn' };
+    expect(session.festivePartyOn()).toBe(false);
+    session.checkSecretSanta();
+    expect(session.festivePartyOn()).toBe(true);
+    expect(session.partyGiftPending()).toBe(true);
+    session.openSantaGiving();
+    session.secretSantaExchange(null);
+    expect(session.partyGiftPending()).toBe(false);
+    // A troca não encerra a festa: as falas de cada convidado, uma por vez, voltando ao começo.
+    expect(session.festivePartyOn()).toBe(true);
+    const lines = SS.partyChat['npc.gabi']!;
+    expect([session.partyChat('npc.gabi'), session.partyChat('npc.gabi'), session.partyChat('npc.gabi')]).toEqual([lines[0], lines[1], lines[0]]);
+    expect(session.partyChat('npc.nobody')).toBeNull();
+    expect(named(events, 'script.requested')).not.toContainEqual({ scriptId: SS.partyCloseScript });
+    // Pela porta, confirmando: a despedida.
+    session.endFestiveParty();
+    expect(session.festivePartyOn()).toBe(false);
+    expect(named(events, 'script.requested')).toContainEqual({ scriptId: SS.partyCloseScript });
+    expect(session.partyChat('npc.gabi')).toBeNull();
+  });
+
   it('debug "Ceia": mantém quem ela tirou no sorteio do ano (não sorteia outro)', () => {
     const { session, state } = cafe(SS.drawDay);
     state.secretSanta = { year: 1, drawn: 'npc.gabi', stage: 'drawn' };

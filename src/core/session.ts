@@ -784,6 +784,7 @@ export class GameSession {
     this.cart.clear();
     this.orderCart.clear();
     this.bus.emit('cart.changed', { count: 0, total: 0 });
+    this.party = null; // a festa acaba com o dia
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     // Fim do inverno: os enfeites de Natal vão para a caixa (na mochila), que só abre no próximo inverno.
@@ -2189,8 +2190,62 @@ export class GameSession {
     if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt)) this.noticeEvent('xmas_party');
     if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day && evaluate(ss.partyWhen, this.state, this.storyContext())) {
       this.santaPartyRequestedOn = day;
+      this.startFestiveParty('xmas');
       this.bus.emit('script.requested', { scriptId: ss.partyScript });
     }
+  }
+
+  // ---------- A festa em andamento (ceia de Natal, Noite das Abóboras) ----------
+
+  /**
+   * A festa que está acontecendo no café (não vai para o save: recarregar no meio, os convidados já foram). Os
+   * convidados ficam até ela sair pela porta da rua e confirmar (endFestiveParty), ou até o dia acabar.
+   */
+  private party: 'xmas' | 'halloween' | null = null;
+  /** Quantas falas cada convidado já disse nesta festa (a próxima é a seguinte, em ordem). */
+  private partyChatSaid: Record<string, number> = {};
+
+  private startFestiveParty(which: 'xmas' | 'halloween'): void {
+    this.party = which;
+    this.partyChatSaid = {};
+  }
+
+  private partyData() {
+    return this.party === 'xmas' ? this.content.festive.secretSanta : this.party === 'halloween' ? this.content.festive.halloween : null;
+  }
+
+  /** Tem festa no café agora (a porta da rua pergunta antes de encerrar)? */
+  festivePartyOn(): boolean {
+    return this.party !== null;
+  }
+
+  /** Ela ainda não entregou o presente desta festa (a pergunta da porta avisa). */
+  partyGiftPending(): boolean {
+    return this.party === 'xmas' ? this.santaRecord()?.stage === 'drawn' : this.party === 'halloween' ? this.halloweenRecord()?.stage === 'invited' : false;
+  }
+
+  /** O convidado tem o que conversar nesta festa? (a dica "Conversar") */
+  partyHasChat(npc: string): boolean {
+    return (this.partyData()?.partyChat[npc]?.length ?? 0) > 0;
+  }
+
+  /** A próxima fala do convidado na festa (null: não é convidado ou não tem fala). */
+  partyChat(npc: string): string | null {
+    const lines = this.partyData()?.partyChat[npc];
+    if (!lines?.length) return null;
+    const n = this.partyChatSaid[npc] ?? 0;
+    this.partyChatSaid[npc] = n + 1;
+    return lines[n % lines.length]!;
+  }
+
+  /** Ela saiu pela porta e confirmou: a despedida (partyCloseScript) e os convidados vão embora. */
+  endFestiveParty(): void {
+    const data = this.partyData();
+    if (!data) return;
+    this.party = null;
+    this.santaGiving = false;
+    this.halloweenGiving = false;
+    this.bus.emit('script.requested', { scriptId: data.partyCloseScript });
   }
 
   /** Na ceia, a hora de entregar: ela anda até quem tirou e o E abre a escolha do presente (não salva: é da cena). */
@@ -2291,6 +2346,7 @@ export class GameSession {
     if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt)) this.noticeEvent('halloween_party');
     if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt) && this.halloweenPartyRequestedOn !== day && evaluate(hw.partyWhen, this.state, this.storyContext())) {
       this.halloweenPartyRequestedOn = day;
+      this.startFestiveParty('halloween');
       this.bus.emit('script.requested', { scriptId: hw.partyScript });
     }
   }
