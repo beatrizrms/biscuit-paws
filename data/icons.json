@@ -676,6 +676,36 @@
       "col": 5,
       "row": 16,
       "sheet": "pixellab"
+    },
+    "bolo_abobora": {
+      "col": 6,
+      "row": 16,
+      "sheet": "pixellab"
+    },
+    "fatia_bolo_abobora": {
+      "col": 7,
+      "row": 16,
+      "sheet": "pixellab"
+    },
+    "cookies_fantasma": {
+      "col": 0,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "cupcake_teia": {
+      "col": 1,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "maca_do_amor": {
+      "col": 2,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "doce_abobora_coco": {
+      "col": 3,
+      "row": 17,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

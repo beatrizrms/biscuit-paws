@@ -1656,6 +1656,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     { name: 'lata_recovery', file: `${SRC}/icones_extra/lata_recovery.png` },
     // Caixa de enfeites de Halloween (volta no fim do outono; abre no outono seguinte).
     { name: 'caixa_halloween', file: `${SRC}/lote_halloween/icone_caixa_hw.png` },
+    // Comidas da Semana do Halloween (Pro Flash 64x64, ícones do panetone como estilo).
+    ...(['bolo_abobora','fatia_bolo_abobora','cookies_fantasma','cupcake_teia','maca_do_amor','doce_abobora_coco'] as const).map((name) => ({ name, file: `${SRC}/comidas_halloween/${name}.png` })),
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

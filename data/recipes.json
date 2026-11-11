@@ -1082,6 +1082,136 @@
         "to": 30,
         "name": "Ano Novo"
       }
+    },
+    {
+      "id": "recipe.pumpkin_cake_slice",
+      "name": "Fatia de bolo de abóbora",
+      "icon": "fatia_bolo_abobora",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.pumpkin": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 40
+        }
+      ],
+      "vessel": "plate",
+      "price": 18,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Bolo de abóbora",
+        "icon": "bolo_abobora"
+      },
+      "window": {
+        "season": "autumn",
+        "from": 24,
+        "to": 30,
+        "name": "Semana do Halloween"
+      }
+    },
+    {
+      "id": "recipe.ghost_cookies",
+      "name": "Cookies de fantasminha",
+      "icon": "cookies_fantasma",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.eggs": 1
+      },
+      "steps": [
+        {
+          "equipment": "oven",
+          "minutes": 20
+        }
+      ],
+      "vessel": "plate",
+      "price": 12,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "window": {
+        "season": "autumn",
+        "from": 24,
+        "to": 30,
+        "name": "Semana do Halloween"
+      }
+    },
+    {
+      "id": "recipe.web_cupcake",
+      "name": "Cupcake de teia",
+      "icon": "cupcake_teia",
+      "ingredients": {
+        "item.flour": 1,
+        "item.eggs": 1,
+        "item.sugar": 1,
+        "item.chocolate": 1,
+        "item.milk": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 25
+        }
+      ],
+      "vessel": "plate",
+      "price": 14,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "window": {
+        "season": "autumn",
+        "from": 24,
+        "to": 30,
+        "name": "Semana do Halloween"
+      }
+    },
+    {
+      "id": "recipe.pumpkin_coconut_sweet",
+      "name": "Doce de abóbora",
+      "icon": "doce_abobora_coco",
+      "ingredients": {
+        "item.pumpkin": 1,
+        "item.sugar": 1,
+        "item.milk": 1
+      },
+      "steps": [
+        {
+          "equipment": "stove",
+          "minutes": 15
+        }
+      ],
+      "vessel": "plate",
+      "price": 10,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "display": true,
+      "window": {
+        "season": "autumn",
+        "from": 24,
+        "to": 30,
+        "name": "Semana do Halloween"
+      }
     }
   ]
 }
