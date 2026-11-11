@@ -23,9 +23,13 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } fr
 import { touch } from './touch';
 import './touch.css';
 
-/** Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). */
+/**
+ * Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). Tela menor que o jogo (celular): encolhe
+ * até caber, mesmo sem ser inteira (um pouco menos nítido, mas nada fica cortado).
+ */
 function integerZoom(): number {
-  return Math.max(1, Math.floor(Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT)));
+  const fit = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
+  return fit >= 1 ? Math.floor(fit) : fit;
 }
 
 const game = new Phaser.Game({

@@ -3,6 +3,7 @@
 // botões disparam as mesmas ações das teclas (E, I, C, M, P, F, Esc). Aparece sozinho pelo último controle usado:
 // tocou na tela, aparece; usou teclado ou mouse, some. Só desenho e entrada: nenhuma regra do jogo mora aqui.
 import type { InputState } from '../core/movement';
+import { uiText } from './content';
 
 /** As ações dos botões: o nome da tecla equivalente (o mesmo do onKey do mundo). */
 export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC';
@@ -52,6 +53,11 @@ class TouchInput {
       <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);
+    // Celular em pé: o jogo é deitado (640 x 360); o aviso cobre a tela até ela girar (só CSS: some ao deitar).
+    const rotate = document.createElement('div');
+    rotate.className = 'rotate-hint';
+    rotate.innerHTML = `<span class="rotate-phone"></span><p>${uiText.touch.rotate}</p>`;
+    document.body.appendChild(rotate);
     this.wireFullscreen(layer.querySelector('.t-full') as HTMLButtonElement);
     this.wireStick(layer.querySelector('.t-stick') as HTMLElement, layer.querySelector('.t-knob') as HTMLElement);
     layer.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) => {
