@@ -722,3 +722,7 @@ Decisão: áudio do PixelLab (38 gerações): cigarras e vento (20 s, em loop), 
 ## 176. Controles de toque (primeira versão) (nov/2026)
 Pedido: jogar no celular.
 Decisão: camada de toque própria (`src/game/touch.ts`, `#touch` ao lado do `#ui`, na mesma escala): direcional virtual (8 direções; na borda, corre), botão de ação (E) e atalhos (Esc, P, C, M, I, F), que chamam as mesmas ações das teclas (`onKey` do mundo; ação e pausa dos mini games). Aparece pelo último controle usado (toque mostra; teclado ou mouse esconde) e já começa visível em tela de toque sem mouse (`pointer: coarse`); `?toque` força no PC. Nos mini games, só o direcional e o E (segurar o E conta como segurar a ação). A página não dá zoom nem rola com o dedo. Ainda não: interface maior para telas pequenas, andar tocando no chão, gamepad.
+
+## 177. O quintal não mostra o porão do lado (nov/2026)
+Pedido: ao desbloquear o quintal, aparecia um pedaço do porão à esquerda, mas o quintal se alcança pela porta na parede de cima do salão.
+Decisão: no mapa do café os cômodos ficam lado a lado (salão, porão, quintal) e a câmera mostrava todos os abertos juntos. O cômodo ganhou `separateView` (o quintal): dentro dele, a câmera mostra só ele e o que está em volta fica escuro (o quintal é mais estreito que a tela); no café, a câmera junta só os vizinhos de verdade (salão e porão, ligados pela escadinha).

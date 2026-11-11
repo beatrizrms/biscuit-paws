@@ -44,6 +44,11 @@ export interface RoomDef {
   area: { from: Cell; to: Cell };
   /** Ao ar livre: pega a luz do dia/noite com força total (o resto do café é interno). */
   outdoor?: boolean;
+  /**
+   * Lugar à parte (chega-se por uma porta, não é vizinho de verdade): dentro dele, a câmera mostra só ele; fora,
+   * ele fica fora da câmera do café (o quintal, que no mapa fica do lado do porão).
+   */
+  separateView?: boolean;
   /** Descoberta: o gatilho (só para a cena), a condição (automática) e o momento. */
   discover?: { trigger: DiscoveryTrigger; when?: Condition; dialogue?: string; highlight?: string };
   /** Abrir (discovered -> abandoned): obra paga no catálogo e/ou porta com chave. */

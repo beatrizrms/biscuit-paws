@@ -745,7 +745,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private applyCamera(): void {
     const ts = this.map.tileSize;
     const home = this.map.id === this.session.content.map.id;
-    const area = (home && this.roomView?.cameraArea()) || { x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts };
+    // Lugar à parte (o quintal): o que está em volta dele no mapa fica escuro (a sobra da tela não mostra o vizinho).
+    this.roomView?.isolate(home ? this.roomView.separateArea(this.feetCell()) : null, Phaser.Display.Color.HexStringToColor(this.map.background ?? '#2b1d1a').color);
+    const area = (home && this.roomView?.cameraArea(this.feetCell())) || { x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts };
     const cam = this.cameras.main;
     this.dayNight.setOutdoorAreas(home ? (this.roomView?.outdoorAreas() ?? []) : []);
     this.refreshWeather();

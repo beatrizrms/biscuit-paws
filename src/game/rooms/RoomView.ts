@@ -2,7 +2,8 @@
 // e ainda fechados, destaque pulsando na porta/chave do momento de descoberta, os limites da câmera
 // (só o que ela já conhece) e as áreas ao ar livre (luz de fora). As regras moram em src/core/rooms.ts.
 import Phaser from 'phaser';
-import { isOpen, visibleArea } from '../../core/rooms';
+import { isOpen, roomAt, visibleArea } from '../../core/rooms';
+import type { Cell } from '../../core/map';
 import type { GameSession } from '../../core/session';
 
 const FOG_DEPTH = 140_000;
@@ -20,6 +21,8 @@ export interface PixelRect {
 
 export class RoomView {
   private fog: Phaser.GameObjects.Rectangle[] = [];
+  /** O escuro em volta de um lugar à parte (o quintal), para a sobra da tela não mostrar o vizinho do mapa. */
+  private isolation: Phaser.GameObjects.Rectangle[] = [];
 
   constructor(
     private scene: Phaser.Scene,
@@ -47,9 +50,37 @@ export class RoomView {
   }
 
   /** Até onde a câmera vai (pixels): os cômodos que ela já conhece. */
-  cameraArea(): PixelRect | null {
-    const a = visibleArea(this.session.content.rooms, this.session.state);
+  cameraArea(at?: Cell): PixelRect | null {
+    const rooms = this.session.content.rooms;
+    // Num lugar à parte (o quintal): só ele. No café: os cômodos vizinhos abertos, sem os lugares à parte.
+    const here = at ? roomAt(rooms, at) : undefined;
+    if (here?.separateView) return this.rectOf(here.area.from, here.area.to);
+    const a = visibleArea({ ...rooms, rooms: rooms.rooms.filter((r) => !r.separateView) }, this.session.state);
     return a ? this.rectOf(a.from, a.to) : null;
+  }
+
+  /**
+   * Num lugar à parte (o quintal, mais estreito que a tela): escurece tudo em volta dele, com a cor do fundo do mapa,
+   * para a sobra da tela não mostrar a parede e o porão do lado no mapa. null: tira.
+   */
+  isolate(rect: PixelRect | null, color: number): void {
+    this.isolation.forEach((r) => r.destroy());
+    this.isolation = [];
+    if (!rect) return;
+    const far = 4000;
+    const parts: [number, number, number, number][] = [
+      [rect.x - far, rect.y - far, far, rect.h + 2 * far],
+      [rect.x + rect.w, rect.y - far, far, rect.h + 2 * far],
+      [rect.x, rect.y - far, rect.w, far],
+      [rect.x, rect.y + rect.h, rect.w, far],
+    ];
+    this.isolation = parts.map(([x, y, w, h]) => this.scene.add.rectangle(x, y, w, h, color, 1).setOrigin(0).setDepth(FOG_DEPTH));
+  }
+
+  /** O lugar à parte em que ela está (o quintal), ou null. */
+  separateArea(at: Cell): PixelRect | null {
+    const here = roomAt(this.session.content.rooms, at);
+    return here?.separateView ? this.rectOf(here.area.from, here.area.to) : null;
   }
 
   /** Áreas ao ar livre abertas (o quintal): recebem a luz de fora. */
