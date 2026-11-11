@@ -819,7 +819,7 @@ export class GameUi {
     const hasRecipe = ms.some((m) => m.reward.kind === 'recipe') || batch.recipes.length > 0;
     const el = document.createElement('div');
     el.className = 'item-reveal unlocks';
-    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : t.titleRecipes)}</h2>${groups.join('')}${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
+    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : t.titleRecipes)}</h2><div class="u-groups">${groups.join('')}</div>${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     return new Promise((resolve) => {
