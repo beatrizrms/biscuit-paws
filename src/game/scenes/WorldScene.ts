@@ -437,7 +437,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         void this.playVan();
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
-    for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked'] as const) this.session.bus.on(ev, () => this.refreshParcels());
+    for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked', 'delivery.dropped'] as const) this.session.bus.on(ev, () => this.refreshParcels());
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
@@ -1579,8 +1579,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (guest && s.partyHasChat(guest[0])) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'party_chat' as HintKind };
     }
     // A mesma ordem do E: a caixa da entrega; o gato bem na frente (a não ser que o pote/caixa de areia seja o óbvio).
+    if (s.atHome() && s.boxesAt('carried') > 0) return floor(this.facingCell(), 'parcel_drop');
     const parcelsFirst = s.parcelsNear(feet);
-    if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
+    if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.floorBoxNear(feet)!.at, 'parcels_inside');
     const catFront = this.catAhead();
     if (catFront && !this.handStationReady()) {
       const hint = this.catHint(catFront);
@@ -1624,7 +1625,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const point = s.jobPointNear(feet);
     if (point) return cell(point.at, 'job');
     const parcels = s.parcelsNear(feet);
-    if (parcels) return parcels === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
+    if (parcels) return parcels === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.floorBoxNear(feet)!.at, 'parcels_inside');
     const it = s.interactionAt(feet);
     if (it) return cell(it.at, `int_${Object.keys(it.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
     const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
@@ -1754,11 +1755,39 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!result.ok) this.ui.problem(result.reason);
       return true;
     }
+    // Carregando caixas no café: solta uma na frente dela (ou na célula clicada).
+    if (this.session.atHome() && this.session.boxesAt('carried') > 0) {
+      const dropped = this.session.dropParcel(target ?? this.facingCell());
+      if (dropped.ok) return true;
+      if (parcels !== 'inside') {
+        this.ui.problem(dropped.reason);
+        return true;
+      }
+    }
     if (parcels === 'inside') {
-      const result = this.session.unpackParcel();
+      const floorBox = this.session.floorBoxNear(this.playerCells(), target)!;
+      const t = uiText.delivery;
+      const items = this.session.content.items;
+      const names = floorBox.itemIds.map((id) => items[id]?.name ?? id).join(', ');
+      void this.ui.choose(t.boxAsk.replace('{name}', names), [t.boxOpen, t.boxCarry, t.boxLeave]).then((i) => {
+        if (i === 0) this.openFloorBox(floorBox.box);
+        else if (i === 1) {
+          const r = this.session.carryParcel(floorBox.box);
+          if (!r.ok) this.ui.problem(r.reason);
+        }
+      });
+      return true;
+    }
+    return false;
+  }
+
+  /** Abre a caixa do chão: tudo vai para a mochila e os móveis saem um depois do outro para posicionar. */
+  private openFloorBox(box: string): void {
+    {
+      const result = this.session.unpackParcel(box);
       if (!result.ok) {
         this.ui.problem(result.reason);
-        return true;
+        return;
       }
       // Tudo da caixa já está na mochila. Os móveis: ela escolhe posicionar agora (um depois do outro, como tirando da
       // caixa) ou guardar.
@@ -1773,9 +1802,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           this.startPlacing(furniture[0]!);
         });
       }
-      return true;
     }
-    return false;
   }
 
   /** O gato bem na frente dela (na célula para onde ela olha, ou nos pés), no café. */
@@ -2868,7 +2895,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.customersFresh = true;
   }
 
-  /** Pilhas de caixas: na porta do café (rua) e dentro do salão. Até 3, uma em cima da outra. */
+  /** Caixas: a pilha na porta do café (rua, até 3) e cada caixa solta no chão do café, onde ela deixou. */
   private refreshParcels(): void {
     this.ui.setParcelsOnTheWay(this.arriving);
     this.parcelImages.forEach((i) => i.destroy());
@@ -2883,7 +2910,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     };
     const loc = this.session.location();
     if (loc === cfg.door.map) stack(cfg.door.at, this.session.boxesAt('door') - this.arriving);
-    if (this.session.atHome()) stack(cfg.inside.at, this.session.boxesAt('inside'));
+    if (this.session.atHome()) for (const b of this.session.floorBoxes()) stack(b.at, 1);
   }
 
   /** Caixa de papelão (ícone de data/delivery.json), com a base embaixo, na escala pedida (a arte é 64 px). */

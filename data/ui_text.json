@@ -285,6 +285,7 @@
     "no_ingredients": "Faltam ingredientes (o mercado vende).",
     "no_vessel": "Não tem louça limpa. Lave na pia.",
     "cannot_put_here": "Não dá para soltar aqui.",
+    "parcel_only_inside": "Solte a caixa dentro do café.",
     "wrong_order": "Não foi isso que o cliente pediu.",
     "not_a_treat": "Pegue um petisco na mochila (I) primeiro.",
     "not_on_tray": "Na bandeja só vai louça.",
@@ -611,6 +612,10 @@
     "no": "Ainda não"
   },
   "delivery": {
+    "boxAsk": "Caixa com {name}.",
+    "boxOpen": "Abrir",
+    "boxCarry": "Carregar",
+    "boxLeave": "Deixar",
     "unpackAsk": "{name}: posicionar agora ou guardar na mochila?",
     "unpackPlace": "Posicionar agora",
     "unpackStore": "Guardar na mochila",
@@ -618,14 +623,14 @@
     "ordered": "Pedido feito! Chega às {time} na porta do café.",
     "orderedTomorrow": "Pedido feito! O correio entrega amanhã às {time}.",
     "arrivedAway": "Chegou uma entrega na porta do café!",
-    "pickedUp": "Você pegou as caixas. Leve para dentro do café.",
+    "pickedUp": "Você pegou as caixas. Leve para dentro e solte onde quiser (E).",
     "unpacked": "Abriu a caixa: {item}",
     "onTheWay": "a caminho",
     "shipping": "Entrega chega às {time}",
     "shippingTomorrow": "Entrega chega amanhã às {time}",
     "atDoor": "Caixas na porta do café: {n}",
-    "carried": "Levando {n} caixa(s) para dentro",
-    "inside": "Caixas para abrir no salão (E): {n}"
+    "carried": "Carregando {n} caixa(s): solte no café (E)",
+    "inside": "Caixas no café para abrir (E perto): {n}"
   },
   "menuBoard": {
     "title": "Quadro do cardápio",
@@ -1267,7 +1272,8 @@
     "display": "Vitrine",
     "job": "Interagir",
     "parcels_door": "Pegar as caixas",
-    "parcels_inside": "Abrir a caixa",
+    "parcels_inside": "Caixa: abrir ou carregar",
+    "parcel_drop": "Soltar a caixa aqui",
     "int_shop": "Pagar",
     "int_shelf": "Ver a prateleira",
     "int_board": "Ver o mural",

@@ -1003,6 +1003,12 @@ describe('passagem dos dias e rotina', () => {
   });
 });
 
+/** Solta as caixas que ela carrega, uma ao lado da outra a partir do canto de sempre. */
+function dropAll(session: GameSession): void {
+  const [c, r] = content.delivery.inside.at;
+  for (let dc = 0; session.boxesAt('carried') > 0 && dc < 12; dc++) session.dropParcel([c + dc, r]);
+}
+
 describe('correio: compras do catálogo chegam na porta', () => {
   const minutes = (m: number) => m / content.dayNight.minutesPerSecond;
   const inCafe = () => {
@@ -1084,6 +1090,32 @@ describe('correio: compras do catálogo chegam na porta', () => {
     expect(session.order('item.cactus')).toEqual({ ok: true });
   });
 
+  it('caixa: solta onde ela quiser (uma por célula, só no café), pega de volta fechada e abre a que escolher', () => {
+    const { session } = inCafe();
+    session.addMoney(500, 'test');
+    session.order('item.cactus');
+    session.order('item.plant_pot');
+    session.tickClock(minutes(61));
+    session.enter('map.street');
+    session.pickUpParcels();
+    expect(session.dropParcel([10, 9])).toEqual({ ok: false, reason: 'parcel_only_inside' });
+    session.enter('map.cafe_main');
+    const [c, r] = content.delivery.inside.at;
+    expect(session.dropParcel([c, r])).toEqual({ ok: true });
+    expect(session.dropParcel([c, r])).toEqual({ ok: false, reason: 'cannot_put_here' });
+    expect(session.dropParcel([c + 2, r])).toEqual({ ok: true });
+    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c, r], [c + 2, r]]);
+    // Pega a primeira de volta (fechada) e solta em outro lugar.
+    const first = session.floorBoxes()[0]!;
+    expect(session.carryParcel(first.box)).toEqual({ ok: true });
+    expect(session.boxesAt('carried')).toBe(1);
+    expect(session.dropParcel([c + 4, r])).toEqual({ ok: true });
+    // Abre a que ela escolher.
+    const second = session.floorBoxes().find((b) => b.at[0] === c + 2)!;
+    expect(session.unpackParcel(second.box)).toEqual({ ok: true, itemIds: second.itemIds });
+    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c + 4, r]]);
+  });
+
   it('pega na porta, leva para dentro e abre: cada caixa sai inteira (pedidos separados, caixas separadas)', () => {
     const { session } = inCafe();
     session.addMoney(500, 'test');
@@ -1096,6 +1128,9 @@ describe('correio: compras do catálogo chegam na porta', () => {
     expect(session.pickUpParcels()).toEqual({ ok: true });
     expect(session.boxesAt('carried')).toBe(2);
     session.enter('map.cafe_main');
+    // Entrar não solta: as caixas continuam nos braços até ela soltar.
+    expect(session.boxesAt('carried')).toBe(2);
+    dropAll(session);
     expect(session.boxesAt('inside')).toBe(2);
     const inside = content.delivery.inside.at;
     expect(session.parcelsNear([[inside[0], inside[1] + 1]])).toBe('inside');
@@ -1117,6 +1152,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     session.enter('map.street');
     session.pickUpParcels();
     session.enter('map.cafe_main');
+    dropAll(session);
     const r = session.unpackParcel();
     expect(r.ok && [...r.itemIds].sort()).toEqual(['item.cactus', 'item.cactus', 'item.plant_pot']);
     expect(session.state.inventory['item.cactus']).toBe(2);
@@ -1135,6 +1171,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     session.enter('map.street');
     session.pickUpParcels();
     session.enter('map.cafe_main');
+    dropAll(session);
     session.unpackParcel();
     expect(session.mapData('map.street').objects.some((o) => o.id === 'obj.chalkboard')).toBe(true);
   });
@@ -1157,6 +1194,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     session.enter('map.street');
     session.pickUpParcels();
     session.enter('map.cafe_main');
+    dropAll(session);
     expect(session.unpackParcel()).toMatchObject({ ok: true });
     expect(session.unpackParcel()).toMatchObject({ ok: true });
     expect(scripts()).not.toContain('scr.neusa_visit');

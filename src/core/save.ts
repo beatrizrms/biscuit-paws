@@ -1,3 +1,4 @@
+import type { Cell } from './map';
 // Save versionado com migrações. Puro: sem Phaser, DOM ou window.
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import { newConstruction, type ConstructionState } from './construction';
@@ -22,10 +23,10 @@ import { newCed, type CedState } from './ced';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 
-export const SAVE_SCHEMA_VERSION = 39;
+export const SAVE_SCHEMA_VERSION = 40;
 
-export interface SaveV39 extends GameState {
-  schemaVersion: 39;
+export interface SaveV40 extends GameState {
+  schemaVersion: 40;
   savedAt: string;
 }
 
@@ -197,13 +198,15 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   },
   /** v38 -> v39: Noite das Abóboras (halloween.ts). Saves antigos: nenhuma festa ainda. */
   38: (save) => ({ ...save, schemaVersion: 39, halloween: null }),
+  /** v39 -> v40: a caixa do correio fica onde ela soltou (deliveries[].at). Saves antigos: no canto de sempre (a sessão põe). */
+  39: (save) => ({ ...save, schemaVersion: 40 }),
 };
 
 /** Cor antiga do Cosy Cats -> a pelagem nova mais parecida (migração v38). */
 const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV39 = { schemaVersion: 39, savedAt: now.toISOString(), ...state };
+  const save: SaveV40 = { schemaVersion: 40, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -257,7 +260,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV39>;
+  const v2 = save as unknown as Partial<SaveV40>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -354,7 +357,13 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       progress: Object.fromEntries(Object.entries(v2.jobs?.progress ?? {}).filter(([id]) => known.jobs.has(id))),
       doneOn: Object.fromEntries(Object.entries(v2.jobs?.doneOn ?? {}).filter(([id]) => known.jobs.has(id))),
     },
-    deliveries: (v2.deliveries ?? []).filter((d) => knownItem(d.item, `entrega ${d.uid}`)).map((d) => ({ ...d })),
+    deliveries: (v2.deliveries ?? [])
+      .filter((d) => knownItem(d.item, `entrega ${d.uid}`))
+      .map((d) => {
+        const { at, ...rest } = d;
+        const cell = Array.isArray(at) && at.length === 2 && at.every(Number.isInteger) ? { at: [at[0], at[1]] as Cell } : {};
+        return { ...rest, ...(rest.stage === 'inside' ? cell : {}) };
+      }),
     menu: (v2.menu ?? []).filter((id) => {
       if (known.recipes.has(id)) return true;
       warnings.push(`cardápio: receita "${id}" não existe mais; saiu do quadro`);

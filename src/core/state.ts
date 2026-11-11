@@ -184,6 +184,8 @@ export interface Delivery {
   arrivesAt: number;
   /** A caixa em que veio (itens do mesmo pedido dividem caixas; sem: a caixa é só dele, como nos saves antigos). */
   box?: string;
+  /** No chão do café (stage inside): a célula onde ela soltou a caixa (v40; saves antigos: o canto de sempre). */
+  at?: Cell;
 }
 
 /** Momento absoluto do jogo, em minutos: cresce sempre (dia * 1440 + hora; a madrugada passa de 1440). */

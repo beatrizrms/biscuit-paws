@@ -197,6 +197,8 @@ export type ActionResult =
         | 'already_owned'
         | 'too_early'
         | 'customers_inside'
+        | 'cannot_put_here'
+        | 'parcel_only_inside'
         | 'cart_empty'
         | QuoteProblem
         | PlaceProblem;
@@ -298,6 +300,7 @@ export class GameSession {
     });
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
+    for (const d of state.deliveries) if (d.stage === 'inside' && !d.at) d.at = [...content.delivery.inside.at];
     // Save de outra estação (ou de antes das caixas): enfeite fora de época vai para a caixa dele.
     this.packOutOfSeason();
     // Ferramenta ou item com uso que acabou de chegar (a vassoura da corretora, a ração do mercado) vai sozinho
@@ -1280,14 +1283,65 @@ export class GameSession {
     }
   }
 
-  /** Perto da porta do café (na rua), com caixas esperando? */
+  /** Perto da porta do café (na rua), com caixas esperando? Ou de uma caixa no chão do café? */
   parcelsNear(feet: readonly Cell[], target?: Cell): 'door' | 'inside' | undefined {
     const cfg = this.content.delivery;
     const near = (at: Cell) =>
       (!target || (target[0] === at[0] && target[1] === at[1])) && feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     if (this.state.location === cfg.door.map && this.deliveriesAt('door') > 0 && near(cfg.door.at)) return 'door';
-    if (this.atHome() && this.deliveriesAt('inside') > 0 && near(cfg.inside.at)) return 'inside';
+    if (this.floorBoxNear(feet, target)) return 'inside';
     return undefined;
+  }
+
+  /** As caixas no chão do café: cada uma com a célula e o que tem dentro. */
+  floorBoxes(): { box: string; at: Cell; itemIds: string[] }[] {
+    const out = new Map<string, { box: string; at: Cell; itemIds: string[] }>();
+    for (const d of this.state.deliveries) {
+      if (d.stage !== 'inside') continue;
+      const box = this.boxOf(d);
+      const entry = out.get(box) ?? { box, at: d.at ?? this.content.delivery.inside.at, itemIds: [] };
+      entry.itemIds.push(d.item);
+      out.set(box, entry);
+    }
+    return [...out.values()];
+  }
+
+  /** A caixa no chão do café ao alcance (a até 1 célula dos pés), ou a clicada. */
+  floorBoxNear(feet: readonly Cell[], target?: Cell): { box: string; at: Cell; itemIds: string[] } | undefined {
+    if (!this.atHome()) return undefined;
+    return this.floorBoxes().find(({ at }) => (!target || (target[0] === at[0] && target[1] === at[1])) && feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1));
+  }
+
+  /**
+   * Solta uma das caixas que ela carrega numa célula livre do chão do café (salão, porão ou quintal). Fica fechada
+   * até ela abrir. Uma caixa por célula.
+   */
+  dropParcel(at: Cell): ActionResult {
+    const carried = this.state.deliveries.filter((d) => d.stage === 'carried');
+    if (carried.length === 0) return { ok: false, reason: 'nothing_here' };
+    if (!this.atHome()) return { ok: false, reason: 'parcel_only_inside' };
+    const solid = solidGrid(this.mapData(this.content.map.id), this.content.catalog);
+    const blocked = solid[at[1]]?.[at[0]] !== false || this.floorBoxes().some((b) => b.at[0] === at[0] && b.at[1] === at[1]) || this.placedAt(at);
+    if (blocked) return { ok: false, reason: 'cannot_put_here' };
+    const box = this.boxOf(carried[0]!);
+    for (const d of carried.filter((x) => this.boxOf(x) === box)) {
+      d.stage = 'inside';
+      d.at = [at[0], at[1]];
+    }
+    this.bus.emit('delivery.dropped', { box, at: [at[0], at[1]] });
+    return { ok: true };
+  }
+
+  /** Pega de volta uma caixa do chão (fechada) para levar a outro lugar. */
+  carryParcel(box: string): ActionResult {
+    const inBox = this.state.deliveries.filter((d) => d.stage === 'inside' && this.boxOf(d) === box);
+    if (inBox.length === 0) return { ok: false, reason: 'nothing_here' };
+    for (const d of inBox) {
+      d.stage = 'carried';
+      delete d.at;
+    }
+    this.bus.emit('delivery.picked_up', { count: 1 });
+    return { ok: true };
   }
 
   /** Pega todas as caixas da porta (ela leva nos braços até entrar no café). */
@@ -1304,8 +1358,8 @@ export class GameSession {
    * Abre uma caixa dentro do café: tudo o que veio nela vai para a mochila (a interface oferece posicionar os móveis,
    * um depois do outro). Devolve os itens, na ordem da caixa.
    */
-  unpackParcel(): { ok: true; itemIds: string[] } | { ok: false; reason: 'nothing_here' } {
-    const first = this.state.deliveries.find((d) => d.stage === 'inside');
+  unpackParcel(boxId?: string): { ok: true; itemIds: string[] } | { ok: false; reason: 'nothing_here' } {
+    const first = this.state.deliveries.find((d) => d.stage === 'inside' && (!boxId || this.boxOf(d) === boxId));
     if (!first || !this.atHome()) return { ok: false, reason: 'nothing_here' };
     const box = this.boxOf(first);
     const inBox = this.state.deliveries.filter((d) => d.stage === 'inside' && this.boxOf(d) === box);
@@ -3028,8 +3082,7 @@ export class GameSession {
     if (!this.content.maps[mapId]) throw new Error(`Mapa desconhecido: "${mapId}"`);
     this.state.location = mapId;
     if (!this.state.visited.includes(mapId)) this.state.visited.push(mapId);
-    // As caixas que ela carrega entram no café com ela.
-    if (mapId === this.content.map.id) for (const d of this.state.deliveries) if (d.stage === 'carried') d.stage = 'inside';
+    // As caixas que ela carrega continuam nos braços: ela solta onde quiser (dropParcel).
     this.bus.emit('map.entered', { mapId });
     this.advanceStory();
   }

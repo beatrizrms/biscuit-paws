@@ -60,6 +60,8 @@ export interface GameEvents {
   'menu.season': { day: number; arrived: string[]; left: string[] };
   /** Caixa de enfeites de Natal: guardou os enfeites (fim do inverno); abriu e saiu um para posicionar. */
   /** Fim da estação da caixa: os enfeites foram para ela (box = o item da caixa: Natal ou Halloween). */
+  /** Ela soltou uma caixa do correio no chão do café (fechada). */
+  'delivery.dropped': { box: string; at: [number, number] };
   'xmas.packed': { count: number; box: string };
   'xmas.box_opened': { itemId: string; left: number; box: string };
   /** Amigo secreto: ela tirou um amigo; entregou o presente na ceia; perdeu a ceia. Manhã de Natal (avisos e meias). */
