@@ -2323,6 +2323,7 @@
       "name": "Robô aspirador",
       "price": 600,
       "tile": "eletro_robo_base",
+      "iconImage": "assets/objects/pixellab/robo_aspirador.png",
       "description": "Aspira e passa pano no café toda noite: de manhã, a poeira do dia já está limpa. Posicione a base num canto; é para lá que ele volta. Não tira manchas, teias nem cocô.",
       "tags": [
         "furniture",

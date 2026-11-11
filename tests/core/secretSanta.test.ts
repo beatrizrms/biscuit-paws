@@ -246,3 +246,17 @@ describe('amigo secreto no save', () => {
     expect(parseSave(readFileSync('tests/fixtures/save_v33.json', 'utf8'), knownIds(content)).state.secretSanta).toBeNull();
   });
 });
+
+describe('debug: ir para a estação', () => {
+  it('pula para o dia 1 da estação escolhida, sempre para a frente', () => {
+    const { session, state } = cafe(5);
+    session.debugGoToSeason('summer');
+    expect(state.day).toBe(S.daysPerSeason * 2 + 1); // verão do primeiro ano
+    session.debugGoToSeason('winter');
+    expect(state.day).toBe(YEAR + 1); // o inverno do ano que vem
+    session.debugGoToSeason('winter');
+    expect(state.day).toBe(2 * YEAR + 1); // já é inverno: o do outro ano
+    session.debugGoToSeason('nope');
+    expect(state.day).toBe(2 * YEAR + 1);
+  });
+});

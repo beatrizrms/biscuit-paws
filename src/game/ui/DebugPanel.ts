@@ -60,6 +60,8 @@ export class DebugPanel {
         <select data-dbg="weather"><option value="">clima do dia</option>${[...new Set(Object.values(session.content.seasons.weather ?? {}).flatMap((w) => Object.keys(w)))].map((w) => `<option>${w}</option>`).join('')}</select>
         <button data-act="hour">+1 h</button>
         <button data-act="day">+1 dia</button>
+        <select data-dbg="season">${session.content.seasons.order.map((s) => `<option value="${s}">${session.content.seasons.names[s] ?? s}</option>`).join('')}</select>
+        <button data-act="season">ir para a estação</button>
         <button data-act="full">café cheio</button>
         <select data-dbg="personality">${Object.keys(session.content.catProfiles.personalities).map((p) => `<option>${p}</option>`).join('')}</select>
         <select data-dbg="condition">${Object.keys(session.content.catProfiles.conditions).map((c) => `<option>${c}</option>`).join('')}</select>
@@ -111,10 +113,12 @@ export class DebugPanel {
         <button data-act="ced-complete">completar meta</button>
         <span data-dbg="ced-status"></span>
       </div>
-      <div class="buttons minigames">${actions
-        .miniGames()
-        .map((id) => ['easy', 'normal', 'hard'].map((d) => `<button data-mg="${id}" data-dif="${d}">${id} ${d}</button>`).join(''))
-        .join('')}</div>
+      <div class="buttons minigames">
+        <strong>Mini games</strong>
+        <select data-dbg="mg">${actions.miniGames().map((id) => `<option>${id}</option>`).join('')}</select>
+        <select data-dbg="mg-dif"><option value="easy">fácil</option><option value="normal" selected>normal</option><option value="hard">difícil</option></select>
+        <button data-act="mg-play">jogar</button>
+      </div>
       <div class="status"></div>`;
     root.appendChild(panel);
     // Recolher: clicar no título deixa só a faixa de cima (lembra na próxima vez).
@@ -273,9 +277,8 @@ export class DebugPanel {
     });
     // Chegadas: põe na fila agora (ignora o gatilho e o sorteio; respeita a vez).
     panel.querySelectorAll<HTMLButtonElement>('[data-arrival]').forEach((b) => b.addEventListener('click', () => session.arrivals.queueNow(b.dataset.arrival!)));
-    panel.querySelectorAll<HTMLButtonElement>('[data-mg]').forEach((b) =>
-      b.addEventListener('click', () => actions.openMiniGame(b.dataset.mg!, b.dataset.dif as 'easy' | 'normal' | 'hard', careCat.value || undefined)),
-    );
+    on('mg-play', () => actions.openMiniGame(sel('mg').value, sel('mg-dif').value as 'easy' | 'normal' | 'hard', careCat.value || undefined));
+    on('season', () => session.debugGoToSeason(sel('season').value));
 
     session.bus.onAny(() => this.render());
     this.render();

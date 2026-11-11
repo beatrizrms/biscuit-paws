@@ -3222,6 +3222,19 @@ export class GameSession {
    * (prólogo feito; Gabi, Joca e Dona Neusa conhecidos). "draw": inverno 18, 9:59 (o sorteio; a interface leva ao café); "party":
    * inverno 25, 18:59, com um amigo já tirado (a ceia); "newyear": inverno 30, 23:29 (os fogos).
    */
+  /**
+   * Debug: pula para o dia 1 da estação (sempre para a frente: a do ano que vem, se já passou ou é a atual), pela
+   * virada de dia normal (a manhã, as caixas de enfeites, a rua da estação).
+   */
+  debugGoToSeason(season: string): void {
+    const seasons = this.content.seasons;
+    if (!seasons.order.includes(season)) return;
+    let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, season);
+    if (day <= this.state.day) day += yearLength(seasons);
+    this.state.day = day - 1;
+    this.endDay('home');
+  }
+
   debugFestive(what: 'draw' | 'party' | 'newyear' | 'hw_invite' | 'hw_party'): void {
     if (what === 'hw_invite' || what === 'hw_party') return this.debugHalloween(what);
     const { secretSanta: ss, newYear: ny } = this.content.festive;

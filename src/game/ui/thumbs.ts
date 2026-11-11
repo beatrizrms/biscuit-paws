@@ -20,7 +20,8 @@ export function tileThumbHtml(tileName: string | undefined, box: number, hue?: n
   )} auto;background-position:-${px(def.col * cell)} -${px((def.row - rise) * cell)}"></span>`;
 }
 
-/** Miniatura de um item: o móvel (tile) ou o ícone. */
+/** Miniatura de um item: a imagem própria (iconImage: o robô em vez da base dele), o móvel (tile) ou o ícone. */
 export function itemThumbHtml(item: ItemDef, box: number): string {
+  if (item.iconImage) return `<img class="thumb" src="${item.iconImage}" alt="" style="width:${box}px;height:${box}px;object-fit:contain;image-rendering:pixelated" />`;
   return item.tile ? tileThumbHtml(item.tile, box, item.hue) : itemIconHtml(item, Math.min(box, 32));
 }

@@ -73,7 +73,7 @@ export interface ItemDef {
   requires?: Condition;
   /** Ícone (data/icons.json), para itens que não são móveis. */
   icon?: string;
-  /** Imagem própria do ícone (ex.: a chave), quando não está na folha de ícones. */
+  /** Imagem própria do ícone (ex.: a chave), quando não está na folha de ícones. Num móvel, vale também para a miniatura (o robô aspirador mostra o robô, não a base). */
   iconImage?: string;
   /** Quadro de data/emotes.json desenhado acima da cabeça dela enquanto tiver o item (ex.: a caixa de uma entrega). */
   carrySprite?: string;
