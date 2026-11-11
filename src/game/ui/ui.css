@@ -1153,6 +1153,10 @@
 
 /* Balão de metas legível: seções, passo da vez em destaque, feitos resumidos, bolinhas e o alerta numa faixa. */
 .hud-goals { max-width: 168px; }
+/* Aberto e com muita coisa: não passa da tela (nem por baixo do debug); rola por dentro, também com o dedo. As bolinhas
+   do pensamento somem enquanto está aberto (a rolagem cortaria elas). */
+.hud-goals.open { max-height: 268px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: thin; scrollbar-color: #bca8e0 transparent; }
+.hud-goals.open::before, .hud-goals.open::after { display: none; }
 .hud-goals h4 { margin: 5px 0 2px; font-size: 6.5px; letter-spacing: 0.1em; text-transform: lowercase; color: #8d78bd; }
 .hud-goals .g-card { padding: 3px 5px 4px; background: #fffdf7; border: 1px solid #eadfcf; border-radius: 6px; }
 .hud-goals .g-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
