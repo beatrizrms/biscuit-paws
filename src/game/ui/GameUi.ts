@@ -47,6 +47,8 @@ export interface UiHandlers {
   onSelectArea(surfaceId: string, finishId: string): void;
   /** Assistência técnica: escolher no café o móvel para trocar. */
   onPickUpgrade(): void;
+  /** Meus gatos: destacar o gato na cena (balão com o nome por uns segundos). Devolve false se ele não está à vista. */
+  onLocateCat(catId: string): boolean;
 }
 
 export class GameUi {
@@ -152,6 +154,10 @@ export class GameUi {
       place: (id) => {
         this.news.close();
         this.handlers.onPlace(id);
+      },
+      locateCat: (catId) => {
+        this.news.close();
+        if (!this.handlers.onLocateCat(catId)) this.toast(uiText.cats.notHere.replace('{name}', this.session.catName(catId)), 3500);
       },
       done: (text) => {
         this.news.close();

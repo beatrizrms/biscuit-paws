@@ -70,8 +70,12 @@ export class NewsPanel {
     (this.phoneEl.querySelector('.p-close') as HTMLElement).addEventListener('click', () => this.close());
     (this.phoneEl.querySelector('.p-back') as HTMLElement).addEventListener('click', () => this.show('home'));
     this.phoneBody.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-app]');
-      if (b) this.show(b.dataset.app as PhoneApp);
+      // Só os ícones da tela de início (o próprio celular também tem data-app: o app aberto).
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-app]');
+      if (b) return this.show(b.dataset.app as PhoneApp);
+      // Meus gatos: tocar no gato mostra onde ele está na cena.
+      const card = (e.target as HTMLElement).closest<HTMLElement>('[data-cat]');
+      if (card && this.app === 'cats') marketHost.locateCat(card.dataset.cat!);
     });
     this.market = new MarketApp(session, marketHost);
     this.scheduleApp = new ScheduleApp(session, onProblem);
@@ -349,7 +353,7 @@ export class NewsPanel {
       const hearts = Array.from({ length: p.maxHearts }, (_, i) => `<span class="heart${i < p.hearts ? ' on' : ''}">♥</span>`).join('');
       const personality = t.personalities[p.personality as keyof typeof t.personalities] ?? p.personality;
       const days = p.daysInCafe === 1 ? t.firstDay : t.days.replace('{n}', String(p.daysInCafe));
-      return `<div class="cat-card">${sprite}<div class="cat-info">
+      return `<div class="cat-card" data-cat="${p.id}" title="${esc(t.locate)}">${sprite}<div class="cat-info">
           <strong>${esc(p.name)}</strong><span class="personality">${esc(personality)}</span>
           <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
           <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>

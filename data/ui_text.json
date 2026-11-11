@@ -524,6 +524,8 @@
     "debtDone": "Paguei {amount} e quitei o fiado da clínica!"
   },
   "cats": {
+    "locate": "Toque para ver onde está no café",
+    "notHere": "{name} não está à vista agora.",
     "app": "Meus gatos",
     "arrivedScared": "{cat} chegou no café meio assustado: ganhe a confiança dele (E nele).",
     "settled": "{cat} já se sente em casa!",

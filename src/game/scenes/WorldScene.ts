@@ -59,6 +59,8 @@ import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
+/** Quanto tempo o balão com o nome do gato fica (Meus gatos). */
+const CAT_LABEL_MS = 5000;
 /** Cercadinho (3x2): as 4 vagas dos gatos (x dos pés, px do mundo a partir do canto) e a linha dos pés. */
 const PEN_SLOTS_X = [26, 42, 58, 74];
 const PEN_FEET_Y = 43;
@@ -160,6 +162,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private placingFromBox: string | null = null;
   /** Os próximos móveis da caixa do correio a posicionar (um depois do outro). */
   private parcelQueue: string[] = [];
+  /** O balão com o nome do gato (Meus gatos > tocar no gato). */
+  private catLabel?: Phaser.GameObjects.Container;
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -264,7 +268,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   create(): void {
     setupCamera(this);
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick() }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -1937,6 +1941,33 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Coraçãozinho que sobe e some em cima do gato. */
+  /** Meus gatos: um balão com o nome em cima do gato por uns segundos, acompanhando ele. false = não está à vista. */
+  private locateCat(catId: string): boolean {
+    const cat = this.cats.find((c) => c.catId === catId && c.visible);
+    if (!cat) return false;
+    this.catLabel?.destroy();
+    // Balão creme com borda rosa e a pontinha para o gato, acima da luz do dia (a cor da manhã/noite não apaga).
+    const text = this.add.text(0, -9, this.session.catName(catId), { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#5c3428', resolution: 4 }).setOrigin(0.5, 1);
+    const w = Math.ceil(text.width) + 10;
+    const h = Math.ceil(text.height) + 4;
+    const g = this.add.graphics();
+    g.fillStyle(0xfff4e0, 1).fillRoundedRect(-w / 2, -7 - h, w, h, 5);
+    g.lineStyle(1.5, 0xd97890, 1).strokeRoundedRect(-w / 2, -7 - h, w, h, 5);
+    g.fillStyle(0xfff4e0, 1).fillTriangle(-4, -7.5, 4, -7.5, 0, -2);
+    g.lineStyle(1.5, 0xd97890, 1).lineBetween(-4, -7, 0, -2).lineBetween(4, -7, 0, -2);
+    const label = this.add.container(cat.x, cat.y - 30, [g, text]).setDepth(160_000);
+    this.catLabel = label;
+    const follow = () => label.active && label.setPosition(cat.x, cat.y - 30);
+    this.events.on('update', follow);
+    this.tweens.add({ targets: label, y: '-=3', yoyo: true, repeat: 9, duration: 250 });
+    this.time.delayedCall(CAT_LABEL_MS, () => {
+      this.events.off('update', follow);
+      if (this.catLabel === label) this.catLabel = undefined;
+      this.tweens.add({ targets: label, alpha: 0, duration: 300, onComplete: () => label.destroy() });
+    });
+    return true;
+  }
+
   private floatHeart(catId: string): void {
     const cat = this.cats.find((c) => c.catId === catId);
     if (!cat) return;

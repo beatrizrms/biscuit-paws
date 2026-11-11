@@ -1239,3 +1239,6 @@
 .cp-who small { font-size: 6.5px; color: var(--grey2); }
 .cp-in { color: var(--mint3); }
 .cp-out { color: var(--berry); }
+/* Meus gatos: tocar no gato mostra onde ele está no café (balão com o nome). */
+.phone-ui[data-app='cats'] .cat-card { cursor: pointer; }
+.phone-ui[data-app='cats'] .cat-card:hover { outline: 1.5px solid var(--pink2); }

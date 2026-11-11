@@ -26,6 +26,8 @@ export interface MarketHost {
   selectArea(surfaceId: string, finishId: string): void;
   /** Assistência: fecha o celular e ela escolhe o móvel no café. */
   pickUpgrade(): void;
+  /** Meus gatos: fecha o celular e mostra o gato na cena (balão com o nome). */
+  locateCat(catId: string): void;
   /** Assistência: confirma e troca o móvel pela peça escolhida. */
   upgrade(uid: string, to: string): void;
   /** "Pedido feito: chega às 15:00" (ou amanhã). */
