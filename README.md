@@ -82,7 +82,7 @@ No celular ou tablet (tela de toque sem mouse), aparecem sozinhos um direcional 
 ### Modo debug (só em `npm run dev`)
 **F9** liga e desliga (ou abra `?debug=1`). Aparece um painel com: +100 moedas, pular falas, ver as caixas de colisão,
 ver a grade (com a célula sob o mouse), jogo novo e os marcos já concluídos. As metas mostram as notas de desenvolvimento (`devNote`).
-Clicar no título do painel recolhe (fica só a faixa) e abre de novo; ele lembra. Linha **Natal e Ano Novo**: Sorteio (inverno 18, 9:59, no café), Ceia (inverno 25, 18:59, já com um amigo tirado) e Fogos (inverno 30, 23:29): pula para um minuto antes, já com o prólogo feito e a Gabi, o Joca e a Dona Neusa conhecidos.
+Clicar no título do painel recolhe (fica só a faixa) e abre de novo; ele lembra. Linha **Natal e Ano Novo**: Sorteio (inverno 18, 9:59, no café), Ceia (inverno 25, 18:59, já com um amigo tirado) e Fogos (inverno 30, 23:29): pula para um minuto antes; num save novo, conclui antes o prólogo de verdade (com a chave da padaria e a vassoura) e deixa a Gabi, o Joca e a Dona Neusa conhecidos.
 O debug tem **save próprio**: os truques não mexem no seu save normal. Nada do debug vai para o `npm run build`.
 
 ## Onde mexer

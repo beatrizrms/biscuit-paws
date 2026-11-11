@@ -100,6 +100,13 @@ describe('Ano Novo: fogos à meia-noite na rua', () => {
     expect(named(missed.events, 'newyear.missed')).toEqual([{}]);
   });
 
+  it('debug num save novo: os atalhos de Natal concluem o prólogo de verdade (com a chave da padaria)', () => {
+    const session = new GameSession(content, newGameState(500));
+    session.debugFestive('draw');
+    expect(session.state.story.completed).toContain('story.prologue_end');
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+  });
+
   it('a manhã do último dia do ano avisa dos fogos', () => {
     const { session, events } = cafe(EVE - 1, 20 * 60);
     session.endDay('home');

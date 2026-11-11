@@ -2905,6 +2905,9 @@ export class GameSession {
     const [season, d, clock] = what === 'draw' ? [ss.season, ss.drawDay, '09:59'] : what === 'party' ? [ss.season, ss.day, '18:59'] : [ny.season, ny.day, '23:29'];
     let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, season) + d - 1;
     if (day < this.state.day) day += yearLength(seasons);
+    // Save novo: o prólogo de verdade antes (a chave da padaria, a vassoura, o gato nomeado), como o "pular introdução";
+    // sem isso ela ficava trancada para fora do café.
+    this.debugCompleteStory('story.prologue_end');
     Object.assign(this.state.flags, { 'prologue.done': true, 'seen.scr.gabi_visit': true, 'met.old_neighbor': true });
     this.state.day = day;
     this.state.time = parseClock(clock);
