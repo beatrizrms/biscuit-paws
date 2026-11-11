@@ -2273,7 +2273,10 @@ export class GameSession {
   debugCompleteBeat(): string | null {
     this.debugNaming = true;
     try {
-      return this.completeBeatQuietly();
+      const id = this.completeBeatQuietly();
+      // O que o roteiro pulado daria (a chave da padaria, a vassoura): sem isso, ela fica trancada para fora.
+      this.debugGiveSkippedItems();
+      return id;
     } finally {
       this.debugNaming = false;
     }

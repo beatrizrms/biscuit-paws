@@ -1339,6 +1339,13 @@ describe('debug da história e dos cômodos', () => {
     expect(session.state.inventory['item.broom']).toBe(1);
   });
 
+  it('concluir marco (um por vez): o marco da visita da corretora já entrega a chave', () => {
+    const { session } = newSession(false);
+    for (let i = 0; i < 10 && !session.state.story.completed.includes('story.realtor_tour'); i++) session.debugCompleteBeat();
+    expect(session.state.story.completed).toContain('story.realtor_tour');
+    expect(session.state.flags['received.item.key_bakery']).toBe(true);
+  });
+
   it('concluir história: todos os marcos; abrir cômodos: todos reformados, com as passagens abertas', () => {
     const { session } = newSession(false);
     session.debugCompleteStory();
