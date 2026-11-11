@@ -201,6 +201,8 @@ export interface GameEvents {
   'delivery.arrived': { deliveryId: string; itemId: string };
   'delivery.picked_up': { count: number };
   'delivery.unpacked': { deliveryId: string; itemId: string };
+  /** Abriu uma caixa dentro do café: tudo o que veio nela (já na mochila). */
+  'delivery.box_opened': { itemIds: string[] };
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };
   'hotbar.changed': { active: number };

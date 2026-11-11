@@ -1,5 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
+import { itemSize, packBoxes } from './parcels';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
@@ -1129,7 +1130,7 @@ export class GameSession {
   // ---------- Correio ----------
 
   /** Compra no catálogo: desconta já e a caixa chega na porta do café depois (data/delivery.json). */
-  order(itemId: string): ActionResult {
+  order(itemId: string, box?: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
     if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
@@ -1137,10 +1138,12 @@ export class GameSession {
     if (item.kind === 'fixture' && ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId))) {
       return { ok: false, reason: 'already_owned' };
     }
-    if (this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
+    // Caixa nova conta no limite; item numa caixa do mesmo pedido, não.
+    const newBox = !box || !this.state.deliveries.some((d) => this.boxOf(d) === box);
+    if (newBox && this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `order:${itemId}`);
-    const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)) };
+    const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)), ...(box ? { box } : {}) };
     this.state.deliveries.push(delivery);
     this.bus.emit('delivery.ordered', { deliveryId: delivery.uid, itemId, arrivesAt: delivery.arrivesAt });
     this.advanceStory();
@@ -1154,9 +1157,13 @@ export class GameSession {
   orderMax(itemId: string): number {
     const item = this.content.items[itemId];
     if (!item) return 0;
-    const room = this.content.delivery.maxPending - this.pendingDeliveries() - (this.orderCart.count() - this.orderCart.qty(itemId));
+    const room = this.content.delivery.maxPending - this.pendingDeliveries();
     const own = item.kind === 'fixture' ? ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId) ? 0 : 1) : MAX_QTY_PER_ITEM;
-    return Math.max(0, Math.min(own, room));
+    // Quantos deste cabem com o resto do pedido, nas caixas que ainda cabem na porta (itens pequenos dividem caixa).
+    const others = this.orderCart.lines().flatMap(({ itemId: id, qty }) => (id === itemId ? [] : Array<string>(qty).fill(id)));
+    let n = 0;
+    while (n < own && this.boxesFor([...others, ...Array<string>(n + 1).fill(itemId)]).length <= room) n++;
+    return n;
   }
 
   /** Celular: põe uma unidade no pedido (o dinheiro só é conferido ao confirmar). */
@@ -1184,10 +1191,15 @@ export class GameSession {
   checkoutOrder(): { ok: true; ordered: number; arrivesAt: number } | { ok: false; reason: Extract<ActionResult, { ok: false }>['reason']; ordered: number } {
     if (this.orderCart.isEmpty()) return { ok: false, reason: 'cart_empty', ordered: 0 };
     if (this.state.money < this.orderTotal()) return { ok: false, reason: 'no_money', ordered: 0 };
+    // Empacota o pedido: itens pequenos dividem caixa; o limite da porta conta as caixas.
+    const units = this.orderCart.lines().flatMap(({ itemId, qty }) => Array<string>(qty).fill(itemId));
+    const boxes = this.boxesFor(units);
+    if (boxes.length > this.content.delivery.maxPending - this.pendingDeliveries()) return { ok: false, reason: 'door_full', ordered: 0 };
     let ordered = 0;
-    for (const { itemId, qty } of this.orderCart.lines()) {
-      for (let i = 0; i < qty; i++) {
-        const r = this.order(itemId);
+    for (const items of boxes) {
+      const box = `b${this.state.nextUid++}`;
+      for (const itemId of items) {
+        const r = this.order(itemId, box);
         if (!r.ok) return { ok: false, reason: r.reason, ordered };
         this.orderCart.remove(itemId);
         ordered++;
@@ -1207,9 +1219,29 @@ export class GameSession {
     return at;
   }
 
-  /** Caixas a caminho ou esperando na porta (o limite do catálogo). */
+  /** Caixas a caminho ou esperando na porta (o limite do catálogo): caixas, não itens. */
   pendingDeliveries(): number {
-    return this.state.deliveries.filter((d) => d.stage === 'shipping' || d.stage === 'door').length;
+    return new Set(this.state.deliveries.filter((d) => d.stage === 'shipping' || d.stage === 'door').map((d) => this.boxOf(d))).size;
+  }
+
+  /** A caixa de uma entrega (sem caixa: a dela, sozinha, como nos saves antigos). */
+  private boxOf(d: Delivery): string {
+    return d.box ?? d.uid;
+  }
+
+  /** Quantas caixas estão numa etapa (a pilha na porta, nos braços, dentro do café). */
+  boxesAt(stage: DeliveryStage): number {
+    return new Set(this.state.deliveries.filter((d) => d.stage === stage).map((d) => this.boxOf(d))).size;
+  }
+
+  /** Como estes itens iriam em caixas (data/delivery.json: box.capacity; o tamanho é a área da peça). */
+  boxesFor(itemIds: readonly string[]): string[][] {
+    const { tiles } = this.content.catalog;
+    const sizeOf = (id: string) => {
+      const item = this.content.items[id];
+      return (item?.kind ?? 'furniture') === 'furniture' ? itemSize(item?.tile ? tiles[item.tile] : undefined) : 1;
+    };
+    return packBoxes(itemIds, sizeOf, this.content.delivery.box.capacity);
   }
 
   /** Quantas entregas estão numa etapa (opcional: só de um item). */
@@ -1253,15 +1285,24 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Abre uma caixa dentro do café: o item vai para a bolsa (a interface já põe na mão para posicionar). */
-  unpackParcel(): { ok: true; itemId: string } | { ok: false; reason: 'nothing_here' } {
-    const i = this.state.deliveries.findIndex((d) => d.stage === 'inside');
-    if (i < 0 || !this.atHome()) return { ok: false, reason: 'nothing_here' };
-    const [d] = this.state.deliveries.splice(i, 1);
-    this.state.inventory[d!.item] = (this.state.inventory[d!.item] ?? 0) + 1;
-    this.bus.emit('delivery.unpacked', { deliveryId: d!.uid, itemId: d!.item });
+  /**
+   * Abre uma caixa dentro do café: tudo o que veio nela vai para a mochila (a interface oferece posicionar os móveis,
+   * um depois do outro). Devolve os itens, na ordem da caixa.
+   */
+  unpackParcel(): { ok: true; itemIds: string[] } | { ok: false; reason: 'nothing_here' } {
+    const first = this.state.deliveries.find((d) => d.stage === 'inside');
+    if (!first || !this.atHome()) return { ok: false, reason: 'nothing_here' };
+    const box = this.boxOf(first);
+    const inBox = this.state.deliveries.filter((d) => d.stage === 'inside' && this.boxOf(d) === box);
+    this.state.deliveries = this.state.deliveries.filter((d) => !inBox.includes(d));
+    for (const d of inBox) {
+      this.state.inventory[d.item] = (this.state.inventory[d.item] ?? 0) + 1;
+      this.bus.emit('delivery.unpacked', { deliveryId: d.uid, itemId: d.item });
+    }
+    const itemIds = inBox.map((d) => d.item);
+    this.bus.emit('delivery.box_opened', { itemIds });
     this.advanceStory();
-    return { ok: true, itemId: d!.item };
+    return { ok: true, itemIds };
   }
 
   // ---------- Pedidos da vila ----------

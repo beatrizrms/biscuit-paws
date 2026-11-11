@@ -376,7 +376,8 @@ export class GameUi {
     bus.on('clinic.credit', () => this.toast(fernanda(vetLine(session, 'credit.offer')), 5000));
     bus.on('clinic.debt_paid', () => this.toast(fernanda(vetLine(session, 'credit.retroactive')), 6000));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
-    bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
+    // A caixa aberta: o que veio nela (uma linha só, mesmo com vários itens).
+    bus.on('delivery.box_opened', ({ itemIds }) => this.toast(uiText.delivery.unpacked.replace('{item}', listNames(itemIds.map((id) => content.items[id]?.name ?? id))), 3500));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
     bus.onAny(() => this.refresh());
@@ -685,7 +686,7 @@ export class GameUi {
       const { time, tomorrow } = this.clockOf(next);
       cafe.push(this.row((tomorrow ? d.shippingTomorrow : d.shipping).replace('{time}', time), { icon: 'caixa_entrega_fechada', right: this.waitButton(next) }));
     }
-    const n = (stage: 'door' | 'carried' | 'inside') => this.session.deliveriesAt(stage);
+    const n = (stage: 'door' | 'carried' | 'inside') => this.session.boxesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
     if (atDoor > 0) cafe.push(this.row(d.atDoor.replace('{n}', String(atDoor)), { icon: 'caixa_entrega_fechada' }));
     if (n('carried')) cafe.push(this.row(d.carried.replace('{n}', String(n('carried'))), { icon: 'caixa_entrega_fechada' }));

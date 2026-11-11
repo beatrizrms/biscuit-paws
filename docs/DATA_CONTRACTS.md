@@ -504,7 +504,8 @@ Depois do prólogo, o balão mostra "hoje": comida para cada gato do café (uma 
 {
   "minutes": 60,                       // o pedido chega 1 hora (de jogo) depois
   "from": "09:00", "until": "18:00",   // horário do correio; fora dele, chega amanhã às 09:00
-  "maxPending": 3,                     // caixas a caminho + na porta; depois disso o catálogo pede para retirar
+  "maxPending": 3,                     // caixas (não itens) a caminho + na porta; depois disso o catálogo pede para retirar
+  "box": { "capacity": 4 },            // espaços de uma caixa: item que não é móvel ou móvel de 1 tile = 1, móvel maior = área em tiles
   "door": { "map": "map.street", "at": [15, 8] },   // pilha na porta do café (rua)
   "inside": { "at": [15, 4] },                     // pilha dentro do salão
   "carrier": "npc.mail_carrier",
@@ -512,7 +513,7 @@ Depois do prólogo, o balão mostra "hoje": comida para cada gato do café (uma 
 }
 ```
 
-Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o furgão e a entregadora aparecem se ela estiver na rua). Etapas: `shipping` -> `door` (E perto da pilha: pega todas) -> `carried` (caixas na cabeça) -> `inside` (ao entrar no café) -> abrir (E na pilha do salão): o item vai para a bolsa e, se for móvel, já para a mão. Compras no caixa do mercado continuam na hora.
+Compra no catálogo = encomenda: desconta na hora, a caixa chega na porta (o furgão e a entregadora aparecem se ela estiver na rua). Etapas: `shipping` -> `door` (E perto da pilha: pega todas) -> `carried` (caixas na cabeça) -> `inside` (ao entrar no café) -> abrir (E na pilha do salão): tudo o que veio na caixa vai para a bolsa; com móveis, ela escolhe posicionar agora (um depois do outro) ou guardar. Ao confirmar o pedido, os itens são empacotados (`src/core/parcels.ts`: o maior primeiro, cada um na primeira caixa onde cabe; maior que a caixa vai sozinho) e cada entrega guarda a sua caixa (`deliveries[].box`; sem ela, a caixa é só dela, como nos saves antigos). A pilha e o limite contam caixas (`session.boxesAt`, `pendingDeliveries`). Compras no caixa do mercado continuam na hora.
 
 ## Atendimento (Fase 1): receitas, cardápio, mãos e louça
 

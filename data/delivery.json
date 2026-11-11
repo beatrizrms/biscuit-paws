@@ -1,10 +1,13 @@
 {
   "schemaVersion": 1,
-  "_comment": "Correio: compras do catálogo chegam em `minutes` minutos de jogo, entre `from` e `until` (fora disso, no dia seguinte, em `from`). maxPending: caixas a caminho + na porta antes de o catálogo pedir para retirar. door: pilha na rua (porta do café); inside: pilha dentro do café. Arte: pacote correio (gerado por IA na paleta Cosy).",
+  "_comment": "Correio: compras do catálogo chegam em `minutes` minutos de jogo, entre `from` e `until` (fora disso, no dia seguinte, em `from`). maxPending: caixas a caminho + na porta antes de o catálogo pedir para retirar (caixas, não itens). box.capacity: espaços de uma caixa; os itens de um pedido dividem caixas (item que não é móvel ou móvel de 1 tile ocupa 1, móvel maior a área dele em tiles, e o que não cabe vai sozinho); abrir a caixa tira tudo. door: pilha na rua (porta do café); inside: pilha dentro do café. Arte: pacote correio (gerado por IA na paleta Cosy).",
   "minutes": 60,
   "from": "09:00",
   "until": "18:00",
   "maxPending": 3,
+  "box": {
+    "capacity": 4
+  },
   "door": {
     "map": "map.street",
     "at": [

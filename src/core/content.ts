@@ -467,6 +467,8 @@ export interface DeliveryConfig {
   until: string;
   /** Quantas compras podem estar a caminho ou na porta (depois disso, o catálogo pede para retirar). */
   maxPending: number;
+  /** Caixa: quantos espaços cabem (item de 1 tile ou que não é móvel ocupa 1; móvel maior, a área dele). */
+  box: { capacity: number };
   /** Onde as caixas ficam empilhadas na rua e dentro do café. */
   door: { map: string; at: Cell };
   inside: { at: Cell };
@@ -525,6 +527,7 @@ export function validateContent(raw: RawContent): string[] {
   {
     const dv = raw.delivery;
     if (!(dv.minutes > 0) || !(dv.maxPending >= 1)) err('delivery: minutes e maxPending precisam ser positivos');
+    if (!(Number.isInteger(dv.box?.capacity) && dv.box.capacity >= 1)) err('delivery: box.capacity precisa ser um inteiro positivo');
     errors.push(...validateDayNight({ ...raw.dayNight, dayStart: dv.from, passOut: dv.until }).filter((e) => e.includes('hora inválida')).map((e) => `delivery: ${e}`));
     if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);
