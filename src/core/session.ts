@@ -3134,7 +3134,7 @@ export class GameSession {
     const rooms = this.roomsMapParts();
     const base = {
       ...this.content.map,
-      objects: [...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId), ...this.festivalObjects()],
+      objects: ((others) => [...others, ...this.festivalObjects(others)])([...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId)]),
       interactions: [...(this.content.map.interactions ?? []), ...rooms.interactions],
     };
     const legend = { ...base.legend, ...rooms.legend };
@@ -3588,8 +3588,12 @@ export class GameSession {
     return Number(this.content.minigames.games.adoption?.difficulties[difficulty]?.pairs ?? 0);
   }
 
-  /** No dia do festival: a placa na porta e as decorações já feitas aparecem no mapa (até o fim do dia). */
-  private festivalObjects(): MapData['objects'] {
+  /**
+   * No dia do festival: a placa na porta e as decorações já feitas aparecem no mapa (até o fim do dia). Ponto ocupado
+   * por um móvel dela (`others`): a peça vai para a célula livre mais perto (sem nenhuma, não aparece), para o mapa
+   * nunca ficar com dois objetos na mesma célula.
+   */
+  private festivalObjects(others: MapData['objects'] = []): MapData['objects'] {
     const f = this.state.festivals;
     const held = f.heldOn?.day === this.state.day ? f.heldOn.id : null;
     const id = held ?? (isFestivalDay(f, this.state.day) ? f.active!.id : null);
@@ -3597,9 +3601,38 @@ export class GameSession {
     if (!def) return [];
     const pieces = [...(def.closePoint ? [def.closePoint] : []), ...(def.decorations ?? [])];
     const done = held ? null : f.active!.done;
-    return pieces
-      .filter((d) => !done || done.includes(d.point))
-      .map((d) => ({ id: `fest.${d.point}`, tile: d.tile, at: [...this.content.jobPoints[d.point]!.at] as Cell }));
+    const { tiles } = this.content.catalog;
+    const occupied = new Set<string>();
+    const mark = (o: MapData['objects'][number]) => {
+      const def = tiles[o.tile];
+      if (def) for (const [c, r] of cellsOf(o.at, def)) occupied.add(`${o.lift ? 'top' : def.layer}:${c},${r}`);
+    };
+    others.forEach(mark);
+    // Os móveis dela entram no mapa depois (withPlaced): as células deles também contam como ocupadas.
+    for (const p of this.state.placed) {
+      const tile = this.content.items[p.item]?.tile;
+      if (tile) mark({ id: p.uid, tile, at: p.at });
+    }
+    const floor = this.floorFree();
+    const out: MapData['objects'] = [];
+    for (const d of pieces.filter((p) => !done || done.includes(p.point))) {
+      const def = tiles[d.tile];
+      const at = this.content.jobPoints[d.point]!.at;
+      if (!def) continue;
+      const free = (cell: Cell) => cellsOf(cell, def).every(([c, r]) => !occupied.has(`${def.layer}:${c},${r}`));
+      let spot: Cell | null = free(at) ? [...at] as Cell : null;
+      for (let dist = 1; dist <= 3 && !spot; dist++)
+        for (let dr = -dist; dr <= dist && !spot; dr++)
+          for (let dc = -dist; dc <= dist && !spot; dc++) {
+            const cell: Cell = [at[0] + dc, at[1] + dr];
+            if (Math.max(Math.abs(dc), Math.abs(dr)) === dist && free(cell) && cellsOf(cell, def).every((x) => floor(x))) spot = cell;
+          }
+      if (!spot) continue;
+      const obj = { id: `fest.${d.point}`, tile: d.tile, at: spot };
+      mark(obj);
+      out.push(obj);
+    }
+    return out;
   }
 
   private jobMarkers(mapId: string): MapData['objects'] {

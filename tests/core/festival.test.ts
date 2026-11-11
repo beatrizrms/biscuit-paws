@@ -16,6 +16,7 @@ import {
 } from '../../src/core/festival';
 import { makeResult } from '../../src/core/minigame';
 import { createRng } from '../../src/core/rng';
+import { resolveMap } from '../../src/core/map';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -226,5 +227,25 @@ describe('festivais na sessão', () => {
     const r = parseSave(JSON.stringify(gone), known);
     expect(r.state.festivals.active).toBeNull();
     expect(r.warnings.some((w) => w.includes('fest.sumiu'))).toBe(true);
+  });
+});
+
+describe('decorações do festival no mapa', () => {
+  it('ponto de decoração ocupado por um móvel dela: a decoração vai para a célula livre do lado (o mapa não quebra)', () => {
+    const state = newGameState(500, 'map.cafe_main');
+    const session = new GameSession(content, state);
+    session.debugStartFestival('fest.adoption_fair');
+    const def = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    const decor = def.decorations![1]!;
+    const at = content.jobPoints[decor.point]!.at;
+    state.festivals.active = { id: def.id, stage: 'scheduled', day: state.day, done: [decor.point], results: [] };
+    // Um vaso dela bem em cima do ponto da decoração.
+    const pot = Object.values(content.items).find((i) => i.tags.includes('furniture') && content.catalog.tiles[i.tile ?? '']?.w === 1 && content.catalog.tiles[i.tile ?? '']?.h === 1 && content.catalog.tiles[i.tile ?? '']?.layer === 'object')!;
+    state.placed.push({ uid: 'p.x', item: pot.id, at: [...at] as [number, number] });
+    const map = session.mapData('map.cafe_main');
+    expect(() => resolveMap(map, content.catalog)).not.toThrow();
+    const placedDecor = map.objects.find((o) => o.id === `fest.${decor.point}`);
+    expect(placedDecor).toBeDefined();
+    expect(placedDecor!.at).not.toEqual(at);
   });
 });

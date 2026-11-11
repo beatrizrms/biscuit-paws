@@ -1287,3 +1287,6 @@
 .news .cat-info .repro.neutered { --dot: #4f8f6a; }
 .news .cat-info .repro.intact { --dot: #a0587a; }
 .news .cat-info .c-row.adoption { --dot: #9a7b4f; }
+
+/* Debug: erro de código na tela (main.ts), por cima de tudo; toque fecha. */
+.debug-error { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 1000; max-height: 60vh; overflow: auto; margin: 0; padding: 8px 10px; background: #fff0f0; color: #8a1c2c; border: 2px solid #c0394f; border-radius: 6px; font: 11px/1.35 monospace; white-space: pre-wrap; }

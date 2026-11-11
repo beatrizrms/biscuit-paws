@@ -84,3 +84,20 @@ if (import.meta.env.DEV) {
     void import('./debug').then((d) => d.setDebug(!d.isDebugOn()));
   });
 }
+
+// Debug: um erro de código (cena que quebrou ao carregar, por exemplo) aparece numa caixa na tela, para o celular
+// também mostrar o que aconteceu (lá não há console). Toque na caixa para fechar.
+if (import.meta.env.DEV) {
+  const show = (msg: string, stack?: string) => {
+    void import('./debug').then((d) => {
+      if (!d.isDebugOn()) return;
+      const box = document.createElement('pre');
+      box.className = 'debug-error';
+      box.textContent = `${msg}\n${(stack ?? '').split('\n').slice(0, 8).join('\n')}`;
+      box.addEventListener('click', () => box.remove());
+      document.body.appendChild(box);
+    });
+  };
+  window.addEventListener('error', (e) => show(e.message, (e.error as Error | undefined)?.stack));
+  window.addEventListener('unhandledrejection', (e) => show(String((e.reason as Error | undefined)?.message ?? e.reason), (e.reason as Error | undefined)?.stack));
+}

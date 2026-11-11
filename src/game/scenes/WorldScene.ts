@@ -1536,6 +1536,23 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // (equipamento, despensa, pia), menos um equipamento bem na frente dela. Clique: vale o que foi clicado.
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
     if (this.session.atHome() && !lookingAt && this.serviceInteract(target)) return true;
+    // E perto de uma sujeira, com a vassoura na mão: varre (o clique na sujeira faz o mesmo, no onPointerDown).
+    // Vem antes dos pontos de pedido: com a vassoura na mão, a sujeira do lado de um ponto (a decoração da feira) é varrida.
+    // Sem a vassoura, o E segue para o resto (gatos, tigela): num café sujo, a sujeira não pode tomar o E de tudo.
+    const broom = this.session.activeItem() === this.session.content.world.tools.sweep;
+    const dirt = !target && broom && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
+    if (dirt) {
+      if (this.sweeping) return true;
+      const problem = this.session.cleanProblem(dirt.id, this.playerCells());
+      if (problem) {
+        this.ui.problem(problem);
+        return true;
+      }
+      const ts = this.map.tileSize;
+      const def = this.session.content.catalog.tiles[dirt.tile]!;
+      void this.sweep(dirt.id, (dirt.at[0] + def.w / 2) * ts, (dirt.at[1] + def.h / 2) * ts);
+      return true;
+    }
     const point = this.session.jobPointNear(this.playerCells(), target);
     if (point) {
       const problem = this.session.jobPointProblem(point.id);
@@ -1573,22 +1590,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else if ('hours' in it.action) this.ui.showHours(it.action.hours);
       else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue, it.action.dialogueWhen, it.action.dialogueAlt);
       else this.ui.openNews('board');
-      return true;
-    }
-    // E perto de uma sujeira, com a vassoura na mão: varre (o clique na sujeira faz o mesmo, no onPointerDown).
-    // Sem a vassoura, o E segue para o resto (gatos, tigela): num café sujo, a sujeira não pode tomar o E de tudo.
-    const broom = this.session.activeItem() === this.session.content.world.tools.sweep;
-    const dirt = !target && broom && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
-    if (dirt) {
-      if (this.sweeping) return true;
-      const problem = this.session.cleanProblem(dirt.id, this.playerCells());
-      if (problem) {
-        this.ui.problem(problem);
-        return true;
-      }
-      const ts = this.map.tileSize;
-      const def = this.session.content.catalog.tiles[dirt.tile]!;
-      void this.sweep(dirt.id, (dirt.at[0] + def.w / 2) * ts, (dirt.at[1] + def.h / 2) * ts);
       return true;
     }
     // Tigela de ração por perto: a ração ativa vai para a mão, ela despeja e o gato vem comer.
@@ -1709,14 +1710,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return cell(at, 'display');
       }
     }
+    // Vassoura na mão: a sujeira vem antes dos pontos de pedido (como no E).
+    const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
+    if (dirt) return floor(dirt.at, 'dirt');
     const point = s.jobPointNear(feet);
     if (point) return cell(point.at, 'job');
     const parcels = s.parcelsNear(feet);
     if (parcels) return parcels === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.floorBoxNear(feet)!.at, 'parcels_inside');
     const it = s.interactionAt(feet);
     if (it) return cell(it.at, `int_${Object.keys(it.action)[0] as keyof MapInteraction['action'] & string}` as HintKind);
-    const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
-    if (dirt) return floor(dirt.at, 'dirt');
     const { bowl, box } = this.stationForHand(feet);
     if (bowl && !s.feedProblem(bowl)) return floor(st.placed.find((p) => p.uid === bowl)!.at, 'bowl');
     if (box && !s.litterProblem(box)) return floor(st.placed.find((p) => p.uid === box)!.at, 'litter');
