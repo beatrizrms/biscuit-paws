@@ -33,7 +33,8 @@ export interface CostumeTheme {
 export interface CostumeData {
   schemaVersion: 1;
   /** Onde cada lugar fica no gato sentado de frente (px do quadro de 32) e se vai atrás dele (costas). */
-  slots: Record<CostumeSlot, { name: string; anchor: [number, number]; behind?: boolean }>;
+  /** anchor: o ponto no quadro do gato (32 px); scale: tamanho da peça (1 = 1 px da peça por px do quadro). */
+  slots: Record<CostumeSlot, { name: string; anchor: [number, number]; scale?: number; behind?: boolean }>;
   /** Cores: o nome na tela e o tom do desenho. */
   colors: Record<string, { name: string; hex: string }>;
   /** Pares de cores que combinam (além de cores iguais). */

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "_comment": "Concurso de fantasia (mini game costume, src/core/costume.ts). slots: cabeça, pescoço e costas, com o ponto do gato sentado de frente (px do quadro de 32 do Cosy Cats) onde a peça fica (cabeça: a base da peça; pescoço e costas: o alto dela); behind = atrás do gato. colors: nome na tela e tom do desenho. colorPairs: cores que combinam (além de iguais). pieces: id costume.*, lugar, nome, forma (o desenho da cena), cor, estilo, temas; unlockReputation = só depois desse limiar de data/reputation.json. themes: o tema do dia é sorteado; tags = o que o júri procura (cor, estilo ou tema das peças). scoring: theme por etiqueta do tema em cada peça (até themeCap por peça), color por par de peças que combina, style se todas têm o mesmo estilo, variety se tem mais de uma cor (os pesos foram escolhidos para o máximo dar 100). rivals: os concorrentes (gato e dono). prizes: moedas a mais pela colocação. Tempo, quantos concorrentes e a faixa da nota deles ficam em minigames.json (costume.difficulties).",
+  "_comment": "Concurso de fantasia (mini game costume, src/core/costume.ts). slots: cabeça, pescoço e costas, com o ponto do gato sentado de frente (px do quadro de 32 do Cosy Cats) onde a peça fica (cabeça: a base da peça; pescoço e costas: o alto dela), medido no gato da arte nova (64 px desenhado em 32); scale = tamanho da peça (a cabeça do gato novo tem uns 10 px); behind = atrás do gato. colors: nome na tela e tom do desenho. colorPairs: cores que combinam (além de iguais). pieces: id costume.*, lugar, nome, forma (o desenho da cena), cor, estilo, temas; unlockReputation = só depois desse limiar de data/reputation.json. themes: o tema do dia é sorteado; tags = o que o júri procura (cor, estilo ou tema das peças). scoring: theme por etiqueta do tema em cada peça (até themeCap por peça), color por par de peças que combina, style se todas têm o mesmo estilo, variety se tem mais de uma cor (os pesos foram escolhidos para o máximo dar 100). rivals: os concorrentes (gato e dono). prizes: moedas a mais pela colocação. Tempo, quantos concorrentes e a faixa da nota deles ficam em minigames.json (costume.difficulties).",
   "slots": {
-    "head": { "name": "Cabeça", "anchor": [16, 8] },
-    "neck": { "name": "Pescoço", "anchor": [16, 15] },
-    "back": { "name": "Costas", "anchor": [16, 15], "behind": true }
+    "head": { "name": "Cabeça", "anchor": [15.5, 8], "scale": 0.75 },
+    "neck": { "name": "Pescoço", "anchor": [15.5, 13], "scale": 0.75 },
+    "back": { "name": "Costas", "anchor": [15.5, 14], "scale": 0.8, "behind": true }
   },
   "colors": {
     "pink": { "name": "rosa", "hex": "#e58fa4" },

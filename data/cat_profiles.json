@@ -20,7 +20,7 @@
   },
   "rescueVetCost": 20,
   "generated": {
-    "variants": ["ruivo", "frajola", "preto", "siames", "tricolor", "escaminha", "cinza", "branco", "tigrado", "blue_point", "red_point", "creme"],
+    "variants": ["ruivo", "frajola", "preto", "siames", "tricolor", "escaminha", "cinza", "branco", "tigrado", "blue_point", "red_point", "creme", "lynx_point"],
     "names": ["Amendoim", "Bolinho", "Canela", "Docinho", "Farofa", "Jujuba", "Mingau", "Nescau", "Pipoca", "Quindim", "Sushi", "Tapioca", "Pudim", "Cocada", "Biju"],
     "personalityWeights": { "shy": 3, "curious": 3, "grumpy": 2, "needy": 3, "sweet": 2, "brave": 2 },
     "conditionWeights": { "healthy": 4, "cold": 2, "hungry": 3, "scared": 2, "kitten": 2, "senior": 1, "injured": 1 },

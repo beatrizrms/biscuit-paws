@@ -232,7 +232,7 @@ export class CostumeScene extends MiniGameScene {
         const piece = data.pieces.find((p) => p.id === this.outfit[slot]);
         if (!piece) return;
         const { x, y } = at(slot);
-        add(this.add.image(x, y, pieceKey(piece)).setOrigin(0.5, slot === 'head' ? 1 : 0).setScale(ZOOM));
+        add(this.add.image(x, y, pieceKey(piece)).setOrigin(0.5, slot === 'head' ? 1 : 0).setScale(ZOOM * (data.slots[slot].scale ?? 1)));
       };
       for (const s of COSTUME_SLOTS) if (data.slots[s].behind) wear(s);
       add(this.add.sprite(CAT.x, CAT.y, this.catTex(cat.variant), 0).setOrigin(0.5, 28 / 32).setScale(ZOOM * catTexScale(this.catTex(cat.variant))));
