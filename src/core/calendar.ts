@@ -1,6 +1,7 @@
 // Calendário: estações de N dias (data/seasons.json), a partir do dia do jogo (o save já guarda o dia).
 // E a rua de cada estação: mesmos lugares, folhas da estação (sem neve fora do inverno).
 // Puro: sem Phaser, DOM ou window.
+import { parseClock } from './time';
 import type { MapData, MapObject } from './map';
 import { createRng, pickWeighted } from './rng';
 
@@ -55,6 +56,28 @@ export interface SeasonsData {
   base: string;
   names: Record<string, string>;
   maps: Record<string, SeasonalMap>;
+  /** Peças que trocam de arte com a estação e com a noite (o céu do quintal): tileVariantOf. */
+  tileVariants?: TileVariants;
+}
+
+/** tile -> a arte de cada estação de dia e de noite (falta: a de dia, e depois a original). A noite começa em nightFrom. */
+export interface TileVariants {
+  nightFrom: string;
+  tiles: Record<string, { day?: Record<string, string>; night?: Record<string, string> }>;
+}
+
+/** A arte da peça agora: a da estação (de noite, a da noite), ou a própria peça. */
+export function tileVariantOf(v: TileVariants | undefined, tile: string, season: string, night: boolean): string {
+  const t = v?.tiles[tile];
+  if (!t) return tile;
+  return (night ? t.night?.[season] : undefined) ?? t.day?.[season] ?? tile;
+}
+
+/** Já é noite para as peças com variante (a partir de nightFrom; antes do dia começar também). */
+export function variantNight(v: TileVariants | undefined, time: number): boolean {
+  if (!v) return false;
+  const from = parseClock(v.nightFrom);
+  return time >= from;
 }
 
 export const WEATHER_PARTICLES = ['streak', 'flake', 'leaf'] as const;
@@ -185,6 +208,20 @@ export function validateSeasons(data: SeasonsData, refs: { maps: ReadonlySet<str
     if (!data.order.includes(f.season)) errors.push(`seasons: weatherFixed com estação inexistente "${f.season}"`);
     if (!(f.from >= 1 && f.to >= f.from && f.to <= data.daysPerSeason)) errors.push(`seasons: weatherFixed ${f.season} ${f.from}-${f.to} fora da estação`);
     if (!Object.values(data.weather ?? {}).some((w) => f.weather in w)) errors.push(`seasons: weatherFixed com clima desconhecido "${f.weather}"`);
+  }
+  if (data.tileVariants) {
+    try {
+      parseClock(data.tileVariants.nightFrom);
+    } catch {
+      errors.push(`seasons: tileVariants.nightFrom com hora inválida "${data.tileVariants.nightFrom}"`);
+    }
+    for (const [tile, v] of Object.entries(data.tileVariants.tiles)) {
+      if (!refs.tiles.has(tile)) errors.push(`seasons: tileVariants com tile inexistente "${tile}"`);
+      for (const [season, to] of [...Object.entries(v.day ?? {}), ...Object.entries(v.night ?? {})]) {
+        if (!data.order.includes(season)) errors.push(`seasons: tileVariants "${tile}" com estação desconhecida "${season}"`);
+        if (!refs.tiles.has(to)) errors.push(`seasons: tileVariants "${tile}" troca por tile inexistente "${to}"`);
+      }
+    }
   }
   for (const [w, fx] of Object.entries(data.weatherFx ?? {})) {
     if (!(WEATHER_PARTICLES as readonly string[]).includes(fx.particle)) errors.push(`seasons: weatherFx "${w}" com partícula desconhecida "${fx.particle}"`);

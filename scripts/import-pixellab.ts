@@ -477,6 +477,14 @@ const SHEETS: Sheet[] = [
       banco_lado: { file: 'quintal/banco_lado_esq.png', w: 1, h: 2, dy: 6 },
       vaso_baixo_b: { file: 'quintal/obj_6.png', w: 1, h: 1, dy: 4 },
       vaso_baixo_c: { file: 'quintal/obj_5.png', w: 1, h: 1, dy: 4 },
+      // O céu do quintal de cada estação, de dia e de noite (o de verão de dia é o yard_fundo_ceu_telhados; seasons.json tileVariants).
+      fundo_ceu_telhados_spring: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_spring_day.png', 0, 0], ['quintal/fundo_skyline_spring_day.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_autumn: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_autumn_day.png', 0, 0], ['quintal/fundo_skyline_autumn_day.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_winter: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_winter_day.png', 0, 0], ['quintal/fundo_skyline_winter_day.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_summer_night: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_summer_night.png', 0, 0], ['quintal/fundo_skyline_summer_night.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_spring_night: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_spring_night.png', 0, 0], ['quintal/fundo_skyline_spring_night.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_autumn_night: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_autumn_night.png', 0, 0], ['quintal/fundo_skyline_autumn_night.png', 3 * TS, 0]]) },
+      fundo_ceu_telhados_winter_night: { file: '', w: 6, h: 2, build: () => compose(6 * TS, 2 * TS, [['quintal/fundo_skyline_winter_night.png', 0, 0], ['quintal/fundo_skyline_winter_night.png', 3 * TS, 0]]) },
     },
   },
   {

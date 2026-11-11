@@ -761,7 +761,37 @@
       "pieces": "pixellab_quintal_novos.json",
       "prefix": "yard_",
       "layer": "object",
-      "solid": true
+      "solid": true,
+      "overrides": {
+        "fundo_ceu_telhados_spring": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_autumn": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_winter": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_summer_night": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_spring_night": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_autumn_night": {
+          "layer": "wall",
+          "solid": false
+        },
+        "fundo_ceu_telhados_winter_night": {
+          "layer": "wall",
+          "solid": false
+        }
+      }
     },
     {
       "id": "pixellab_comodos",

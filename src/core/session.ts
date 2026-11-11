@@ -30,7 +30,7 @@ import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } fr
 const PET_LOW_DAYS = 2;
 import { stageAtLeast, type BusinessStage } from './business';
 import type { Appearance } from './appearance';
-import { calendarEntries, dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, weatherOf, yearLength, yearOf, type CalendarEntry } from './calendar';
+import { calendarEntries, dayInSeason, daysUntil, firstDayOf, mapInSeason, seasonOf, tileVariantOf, variantNight, weatherOf, yearLength, yearOf, type CalendarEntry } from './calendar';
 import { isNewYearEve, newYearFlag } from './newYear';
 import { halloweenOfYear, inInviteWindow, isHalloween, pickFood, type HalloweenFriend, type HalloweenRecord } from './halloween';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
@@ -1902,6 +1902,23 @@ export class GameSession {
     return mapLights(this.mapData(mapId), this.content.catalog, this.content.dayNight.lightTiles);
   }
 
+  /** É noite para as peças que trocam de arte (o céu do quintal): a partir de seasons.json tileVariants.nightFrom. */
+  variantNight(): boolean {
+    return variantNight(this.content.seasons.tileVariants, this.state.time);
+  }
+
+  /** As peças do mapa com a arte da estação e da hora (o céu do quintal de cada estação, de dia e de noite). */
+  private withVariants(objects: MapData['objects']): MapData['objects'] {
+    const v = this.content.seasons.tileVariants;
+    if (!v) return objects;
+    const season = this.season();
+    const night = this.variantNight();
+    return objects.map((o) => {
+      const tile = tileVariantOf(v, o.tile, season, night);
+      return tile === o.tile ? o : { ...o, tile };
+    });
+  }
+
   /** Quem está em cada cercadinho e quem espera na caixinha. */
   penAssignments() {
     return this.clinic.penAssignments();
@@ -3143,7 +3160,7 @@ export class GameSession {
     const rooms = this.roomsMapParts();
     const base = {
       ...this.content.map,
-      objects: ((others) => [...others, ...this.festivalObjects(others)])([...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId)]),
+      objects: ((others) => [...others, ...this.festivalObjects(others)])(this.withVariants([...this.visibleObjects(this.content.map), ...rooms.objects, ...this.jobMarkers(mapId)])),
       interactions: [...(this.content.map.interactions ?? []), ...rooms.interactions],
     };
     const legend = { ...base.legend, ...rooms.legend };

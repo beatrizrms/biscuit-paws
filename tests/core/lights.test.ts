@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { lightsFloor, mapLights } from '../../src/core/lights';
+import { tileVariantOf, variantNight } from '../../src/core/calendar';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
@@ -33,5 +34,18 @@ describe('luzes das lâmpadas', () => {
     state.placed.push({ uid: 'p.lamp', item: lamp!.id, at: [5, 8] });
     const spot = content.dayNight.lightTiles![lamp!.tile!]![0]!;
     expect(session.mapLights('map.cafe_main')).toContainEqual(expect.objectContaining({ at: [5 + spot.at[0], 8 + spot.at[1]] }));
+  });
+});
+
+describe('céu do quintal: estação e noite', () => {
+  it('cada estação tem o seu céu, de dia e de noite (a partir das 18h); o de verão de dia é a peça original', () => {
+    const v = content.seasons.tileVariants!;
+    const sky = 'yard_fundo_ceu_telhados';
+    expect(tileVariantOf(v, sky, 'summer', false)).toBe(sky);
+    expect(tileVariantOf(v, sky, 'winter', false)).toBe('yard_fundo_ceu_telhados_winter');
+    expect(tileVariantOf(v, sky, 'autumn', true)).toBe('yard_fundo_ceu_telhados_autumn_night');
+    expect(tileVariantOf(v, 'plant_pot', 'autumn', true)).toBe('plant_pot');
+    expect(variantNight(v, 17 * 60 + 59)).toBe(false);
+    expect(variantNight(v, 18 * 60)).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 12,
- "rows": 6,
+ "rows": 12,
  "pieces": {
   "pergola_forno": {
    "col": 0,
@@ -62,6 +62,48 @@
    "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "fundo_ceu_telhados_spring": {
+   "col": 5,
+   "row": 4,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_autumn": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_winter": {
+   "col": 6,
+   "row": 6,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_summer_night": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_spring_night": {
+   "col": 6,
+   "row": 8,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_autumn_night": {
+   "col": 0,
+   "row": 10,
+   "w_tiles": 6,
+   "h_tiles": 2
+  },
+  "fundo_ceu_telhados_winter_night": {
+   "col": 6,
+   "row": 10,
+   "w_tiles": 6,
+   "h_tiles": 2
   }
  }
 }

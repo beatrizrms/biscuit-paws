@@ -103,6 +103,16 @@
       "sun": 2
     }
   },
+  "_tileVariants": "Peças que trocam de arte com a estação e de noite (o céu do quintal): tiles: tile -> day/night, cada um estação -> tile. Falta a da noite: fica a de dia; falta a de dia: fica a peça original (o céu de verão). A noite começa em nightFrom (junto com as lâmpadas acesas, daynight.json lightsOn) e vai até o fim do dia.",
+  "tileVariants": {
+    "nightFrom": "18:00",
+    "tiles": {
+      "yard_fundo_ceu_telhados": {
+        "day": { "spring": "yard_fundo_ceu_telhados_spring", "autumn": "yard_fundo_ceu_telhados_autumn", "winter": "yard_fundo_ceu_telhados_winter" },
+        "night": { "spring": "yard_fundo_ceu_telhados_spring_night", "summer": "yard_fundo_ceu_telhados_summer_night", "autumn": "yard_fundo_ceu_telhados_autumn_night", "winter": "yard_fundo_ceu_telhados_winter_night" }
+      }
+    }
+  },
   "_weatherFixed": "Clima garantido em alguns dias, por cima do sorteio: neve na véspera e no dia de Natal.",
   "weatherFixed": [{ "season": "winter", "from": 24, "to": 25, "weather": "snow" }],
   "weatherFx": {

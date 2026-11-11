@@ -142,6 +142,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private playerSolidCollider?: Phaser.Physics.Arcade.Collider;
   /** Potes: os gatos não atravessam, menos quem está indo comer ou comendo (world.catBlockTiles). */
   private catSolids?: Phaser.Physics.Arcade.StaticGroup;
+  /** Com que hora (dia/noite) o mapa foi desenhado: virou (18h), o céu do quintal troca (redesenha o café). */
+  private shownVariantNight = false;
   /** Clientes no lugar (sentados ou em pé no balcão): a célula deles vira sólida só para ela (refeito quando mudam). */
   private customerSolids?: Phaser.Physics.Arcade.StaticGroup;
   private customerCollider?: Phaser.Physics.Arcade.Collider;
@@ -729,6 +731,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private buildMap(mapId = this.session.location()): void {
     this.endMovePick(); // os desenhos dos móveis vão ser refeitos (o pisca sairia do lugar)
     this.map =resolveMap(this.session.mapData(mapId), this.session.content.catalog);
+    this.shownVariantNight = this.session.variantNight();
     // As luzes: as do mapa e uma em cada lâmpada (posicionou ou mudou um abajur: a luz vai junto).
     this.dayNight.setLights(this.session.mapLights(mapId), this.map.tileSize);
     const ts = this.map.tileSize;
@@ -1488,6 +1491,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const color = tintAt(lit ?? t, content.dayNight, season, indoor);
     this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined, lightsFloor(content.dayNight.lightsOn, t));
     this.ui.setClock(formatClock(t));
+    // Anoiteceu (ou amanheceu): as peças com arte de noite (o céu do quintal) trocam.
+    if (this.session.atHome() && !this.changingMap && this.session.variantNight() !== this.shownVariantNight) this.buildMap();
   }
 
   /**
