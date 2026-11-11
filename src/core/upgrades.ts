@@ -65,7 +65,7 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
       if (item.placeOn && !item.orFloor) errors.push(`${w}: "${id}" fica em cima de outro móvel; não entra em upgrade`);
       const rule = `${item.placeOn ?? ''}/${item.orFloor ? 1 : 0}`;
       if (placeRule === null) placeRule = rule;
-      else if (rule !== placeRule) errors.push(`${w}: "${id}" tem outra regra de posição (placeOn/orFloor) que o resto do grupo`);
+      else if (rule !== placeRule) errors.push(`${w}: "${id}" vai em outro lugar que o resto do grupo (placeOn/orFloor)`);
     }
   }
   return errors;

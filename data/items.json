@@ -708,7 +708,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.plant_tall",
@@ -748,7 +750,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.paw_rug",
@@ -824,7 +828,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.decor_watering_can",
@@ -942,7 +948,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.peace_lily",
@@ -956,7 +964,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.vase_tulips",
@@ -970,7 +980,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.vase_lavender",
@@ -984,7 +996,9 @@
         "furniture",
         "decor",
         "plant"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.hanging_pothos",
@@ -1293,7 +1307,9 @@
       ],
       "seasons": [
         "winter"
-      ]
+      ],
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.xmas_mug",
