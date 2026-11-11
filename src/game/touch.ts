@@ -71,6 +71,7 @@ class TouchInput {
       <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);
+    root.classList.toggle('touch-hidden', this.hidden);
     // Celular em pé: o jogo é deitado (640 x 360); o aviso cobre a tela até ela girar (só CSS: some ao deitar).
     const rotate = document.createElement('div');
     rotate.className = 'rotate-hint';
@@ -101,6 +102,19 @@ class TouchInput {
     // Começa certo: tela de toque sem mouse (celular, tablet), ou ?toque na URL (para testar no PC).
     const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
     this.setMode(coarse || new URLSearchParams(location.search).has('toque') ? 'touch' : 'keys');
+  }
+
+  /**
+   * Some com os controles mesmo no celular: na tela inicial, na pausa e com uma janela aberta por cima do jogo
+   * (mercado, cardápio, celular, mochila): ali se toca na própria janela. Começa escondido (a Home vem primeiro).
+   */
+  private hidden = true;
+
+  setHidden(on: boolean): void {
+    if (on === this.hidden) return;
+    this.hidden = on;
+    this.root?.classList.toggle('touch-hidden', on);
+    if (on) this.release();
   }
 
   private setMode(mode: 'touch' | 'keys'): void {

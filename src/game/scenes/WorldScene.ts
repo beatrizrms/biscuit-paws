@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { touch, type TouchAction } from '../touch';
+import { fillNames } from '../ui/text';
 import { cellsOf, doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
@@ -506,6 +507,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Pausa: Continuar, Opções, Salvar, Voltar ao menu (salva antes). */
   private openPause(): void {
     this.ui.paused = true;
+    touch.setHidden(true);
     // A música de fundo para enquanto o menu de pausa está aberto.
     services().audio.setMusicPaused(true);
     // Congela tudo: a cena inteira para (gatos, clientes, animações, tweens, física e relógio); o menu é HTML e segue.
@@ -526,6 +528,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       onClose: () => {
         this.scene.resume();
         this.ui.paused = false;
+        touch.setHidden(false);
         services().audio.setMusicPaused(false);
       },
     });
@@ -560,6 +563,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           right: k.right.isDown || k.d.isDown || touch.dir.right,
         };
     this.updateTouchPlacing(busy);
+    touch.setHidden(this.ui.isPanelOpen() || this.ui.isCatalogOpen() || this.ui.paused);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
     if (!this.session.resting()) {
@@ -595,7 +599,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!moving && !this.changingMap) this.doorLocked = false;
     const door = doorAt(this.map, this.feetCell(), moving);
     if (door && !this.placing && !this.doorLocked && !this.scripts.isRunning()) {
-      if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
+      // Festa no café: a porta da rua pergunta antes (a cena da porta, se houver, fica para a próxima vez).
+      if (this.session.festivePartyOn() && this.session.content.world.goHomeDoors.includes(door.id)) this.askEndParty();
+      else if (this.session.doorIntercept(door)) this.doorLocked = true; // a porta mostrou uma cena
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.canGoHome()) this.askGoHome(door);
       else if (this.session.canUseDoor(door) && this.session.content.world.goHomeDoors.includes(door.id) && this.session.goHomeProblem() === 'customers_inside') {
         // Já é hora, mas ainda tem cliente: ela pode sair para a rua, só não encerra o dia.
@@ -681,6 +687,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     void this.ui.confirm(t.question, t.yes, t.no).then((yes) => {
       if (yes) this.session.goHome();
       else this.useDoor(door);
+    });
+  }
+
+  /** Festa no café e ela na porta da rua: sair encerra a festa (os convidados vão embora); senão, fica. */
+  private askEndParty(): void {
+    this.doorLocked = true;
+    const t = uiText.party;
+    void this.ui.confirm(this.session.partyGiftPending() ? t.questionNoGift : t.question, t.yes, t.no).then((yes) => {
+      if (yes) this.session.endFestiveParty();
     });
   }
 
@@ -1397,6 +1412,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.ui.closeCatalog();
     this.ui.closeShop();
     this.player.setVelocity(0, 0);
+    touch.setHidden(false);
     try {
       const result = await MiniGameRegistry.open(this, gameId, params, {
         season: this.session.season(),
@@ -1419,6 +1435,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Na ceia, a hora de entregar: E em quem ela tirou abre a escolha do presente.
     if (this.trySantaGive(target)) return true;
     if (this.tryHalloweenGive(target)) return true;
+    if (this.tryPartyChat(target)) return true;
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
@@ -1556,6 +1573,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const guest = this.santaGuestNear();
       if (guest && guest[0] === s.halloweenRecord()!.drawn) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'santa_give' as HintKind };
     }
+    // Na festa: conversar com o convidado do lado.
+    if (s.festivePartyOn()) {
+      const guest = this.santaGuestNear();
+      if (guest && s.partyHasChat(guest[0])) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'party_chat' as HintKind };
+    }
     // A mesma ordem do E: a caixa da entrega; o gato bem na frente (a não ser que o pote/caixa de areia seja o óbvio).
     const parcelsFirst = s.parcelsNear(feet);
     if (parcelsFirst) return parcelsFirst === 'door' ? cell(s.content.delivery.door.at, 'parcels_door') : cell(s.content.delivery.inside.at, 'parcels_inside');
@@ -1673,6 +1695,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const drawn = s.santaRecord()!.drawn;
     const name = s.content.festive.secretSanta.friends.find((f) => f.npc === drawn)?.name ?? '';
     if (guest[0] !== drawn) {
+      if (this.tryPartyChat(target)) return true;
       this.ui.toast(t.otherGuest.replace('{name}', name), 3000);
       return true;
     }
@@ -1686,6 +1709,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
+  /** Na festa, E num convidado: a próxima fala dele (data/festive.json: partyChat). */
+  private tryPartyChat(target?: Cell): boolean {
+    if (!this.session.festivePartyOn()) return false;
+    const guest = this.santaGuestNear(target);
+    const line = guest && this.session.partyChat(guest[0]);
+    if (!guest || !line) return false;
+    // Vira para ela antes de falar.
+    const [dx, dy] = [this.player.x - guest[1].x, this.player.y - guest[1].y];
+    guest[1].face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    void this.ui.npcSay(guest[0], fillNames(this.session, line));
+    return true;
+  }
+
   /** Festa de Halloween, na hora do presente: E em quem ela tirou abre a escolha (ou "não trouxe"); em outro, lembra quem é. */
   private tryHalloweenGive(target?: Cell): boolean {
     const s = this.session;
@@ -1696,6 +1732,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const drawn = s.halloweenRecord()!.drawn;
     const name = s.content.festive.halloween.friends.find((f) => f.npc === drawn)?.name ?? '';
     if (guest[0] !== drawn) {
+      if (this.tryPartyChat(target)) return true;
       this.ui.toast(t.otherGuest.replace('{name}', name), 3000);
       return true;
     }

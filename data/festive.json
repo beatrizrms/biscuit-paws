@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Datas festivas. halloween: a Noite das Abóboras (src/core/halloween.ts): na Semana do Halloween (inviteDay até a véspera de day), a Dona Neusa convida para a festa no café e ela tira um amigo para dar um presente de Halloween (giftTag; likes = o que a pessoa mais gosta); cada amigo conhecido conta o doce favorito (food, foodHint). No day, o café fecha em closeAt; em partyAt, com partyWhen valendo, o roteiro partyScript traz os convidados (condição halloweenGuest), cada um come uma das foods postas nos balcões e mesas (o favorito vale favoriteFood pontos; outro, otherFood) e ela entrega o presente (E em quem tirou); depois, partyEndScript. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação, o presente dela e o fim da noite). A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
+  "_comment": "Datas festivas. halloween: a Noite das Abóboras (src/core/halloween.ts): na Semana do Halloween (inviteDay até a véspera de day), a Dona Neusa convida para a festa no café e ela tira um amigo para dar um presente de Halloween (giftTag; likes = o que a pessoa mais gosta); cada amigo conhecido conta o doce favorito (food, foodHint). No day, o café fecha em closeAt; em partyAt, com partyWhen valendo, o roteiro partyScript traz os convidados (condição halloweenGuest), cada um come uma das foods postas nos balcões e mesas (o favorito vale favoriteFood pontos; outro, otherFood) e ela entrega o presente (E em quem tirou); depois, partyEndScript. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação e o presente dela) e a noite continua: os convidados ficam no café e o E num deles mostra uma fala de partyChat (uma por vez, em ordem); a festa só acaba quando ela sai pela porta da rua e confirma (partyCloseScript: a despedida). O mesmo vale para a festa de Halloween. A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
   "boxes": [
     { "item": "item.xmas_box", "tag": "xmas", "opensIn": "winter" },
     { "item": "item.halloween_box", "tag": "halloween", "opensIn": "autumn" }
@@ -41,6 +41,15 @@
     "proposalScript": "scr.hw_invite",
     "partyScript": "scr.hw_party",
     "partyEndScript": "scr.hw_party_end",
+    "partyCloseScript": "scr.hw_party_close",
+    "partyChat": {
+      "npc.gabi": ["Quem fez esses doces? Quero a receita!","Minha fantasia ficou boa? Fala a verdade!"],
+      "npc.joca": ["Nunca vi o café tão assustador... e tão aconchegante.","Guardei um doce pra mais tarde. Ou dois. Ou três."],
+      "npc.neusa": ["No meu tempo, a gente esculpia abóbora na calçada.","Os gatos pretos são os mais lindos da festa."],
+      "npc.builder": ["Essa teia aí é de enfeite, né? Porque eu limpei tudo!","Doce de abóbora é comigo mesmo."],
+      "npc.fernanda": ["Os gatos estão curiosos com as velas. Olho neles!","Que festa linda, {player}!"],
+      "npc.realtor": ["Que noite! O café está cheio de vida.","Prometo não falar de negócios hoje. Só um pouquinho."]
+    },
     "partyWhen": {
       "playerRoom": "room.hall"
     },
@@ -189,6 +198,15 @@
     "proposalScript": "scr.xmas_santa_draw",
     "partyScript": "scr.xmas_party",
     "partyEndScript": "scr.xmas_party_end",
+    "partyCloseScript": "scr.xmas_party_close",
+    "partyChat": {
+      "npc.gabi": ["Esse chocolate quente tá perigoso, já tô na terceira caneca!","Olha a árvore! Ficou linda demais, {player}."],
+      "npc.joca": ["Natal com gato, cachorro e vizinho na mesma mesa... quem diria!","Já comi tanto que vou rolar até em casa."],
+      "npc.neusa": ["Esse prédio já teve muita ceia, sabe? Que bom ver a luz acesa de novo.","Prova o panetone que eu trouxe. Receita da minha mãe."],
+      "npc.builder": ["Hoje não tem martelo, só rabanada!","Esse café tá ficando bonito, hein? Tem um dedinho meu aí."],
+      "npc.fernanda": ["Os gatinhos estão adorando a bagunça.","Tirei foto de tudo! Depois te mando."],
+      "npc.realtor": ["Quando te mostrei esse ponto, não imaginei uma ceia aqui. Que bom que você acreditou.","Feliz Natal! Esse lugar só valoriza, viu?"]
+    },
     "partyWhen": {
       "playerRoom": "room.hall"
     },

@@ -57,6 +57,8 @@ export class DebugPanel {
         'time',
         'Tempo e clima',
         `<button data-act="hour">+1 h</button><button data-act="day">+1 dia</button>
+         <select data-dbg="season">${c.seasons.order.map((s) => opt(s, c.seasons.names[s] ?? s)).join('')}</select>
+         <button data-act="season">ir para a estação</button>
          <select data-dbg="weather">${opt('', 'clima do dia')}${[...new Set(Object.values(c.seasons.weather ?? {}).flatMap((w) => Object.keys(w)))].map((w) => opt(w, w)).join('')}</select>
          <button data-act="full" title="As chegadas tratam o café como cheio">café cheio</button>`,
       )}
@@ -107,7 +109,7 @@ export class DebugPanel {
         'games',
         'Mini games',
         `<select data-dbg="game">${actions.miniGames().map((id) => opt(id, id)).join('')}</select>
-         <select data-dbg="difficulty">${opt('easy', 'fácil')}${opt('normal', 'normal')}${opt('hard', 'difícil')}</select>
+         <select data-dbg="difficulty">${opt('easy', 'fácil')}<option value="normal" selected>normal</option>${opt('hard', 'difícil')}</select>
          <button data-act="game" title="Com o gato escolhido em Gatos">jogar</button>`,
       )}
       ${section(
@@ -207,6 +209,7 @@ export class DebugPanel {
       session.arrivals.tick();
     });
     on('day', () => session.endDay('home'));
+    on('season', () => session.debugGoToSeason(val('season')));
     on('full', (b) => {
       session.arrivals.debug.cafeFull = !session.arrivals.debug.cafeFull;
       b.classList.toggle('on', session.arrivals.debug.cafeFull);

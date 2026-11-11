@@ -915,6 +915,19 @@
         }
       ]
     },
+    "dlg.santa_party_mingle": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Agora é aproveitar a noite! Fica à vontade, a ceia é sua também."
+        },
+        {
+          "speaker": "",
+          "text": "A festa continua: converse com os convidados. Quando quiser encerrar a noite, é só sair pela porta da rua."
+        }
+      ]
+    },
     "dlg.santa_party_end": {
       "lines": [
         {
@@ -924,7 +937,7 @@
         },
         {
           "speaker": "",
-          "text": "A ceia vai até tarde, entre risadas, chocolate quente e gatos pedindo um pedacinho de tudo."
+          "text": "A turma se despede aos poucos, entre abraços, chocolate quente e gatos pedindo um pedacinho de tudo."
         }
       ]
     },
@@ -1247,6 +1260,19 @@
         {
           "speaker": "",
           "text": "A turma ri, e alguém esconde a abóbora do balcão atrás do sofá. Tudo bem: a noite está ótima mesmo assim."
+        }
+      ]
+    },
+    "dlg.hw_party_mingle": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Agora é aproveitar! Ninguém vai embora tão cedo."
+        },
+        {
+          "speaker": "",
+          "text": "A festa continua: converse com os convidados. Quando quiser encerrar a noite, é só sair pela porta da rua."
         }
       ]
     },

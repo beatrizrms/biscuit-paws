@@ -1359,10 +1359,14 @@
           "secretSanta": "receive"
         },
         {
-          "dialogue": "dlg.santa_party_end"
-        },
+          "dialogue": "dlg.santa_party_mingle"
+        }
+      ]
+    },
+    "scr.xmas_party_close": {
+      "steps": [
         {
-          "setTime": "22:30"
+          "dialogue": "dlg.santa_party_end"
         },
         {
           "enter": "map.cafe_main",
@@ -1730,10 +1734,14 @@
           "ms": 900
         },
         {
-          "dialogue": "dlg.hw_party_end"
-        },
+          "dialogue": "dlg.hw_party_mingle"
+        }
+      ]
+    },
+    "scr.hw_party_close": {
+      "steps": [
         {
-          "setTime": "22:30"
+          "dialogue": "dlg.hw_party_end"
         },
         {
           "enter": "map.cafe_main",

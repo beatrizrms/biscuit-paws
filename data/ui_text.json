@@ -605,6 +605,12 @@
     "poop": "Cocô no chão: varrer e trocar a areia da caixa",
     "job": "Pedido"
   },
+  "party": {
+    "question": "Sair agora encerra a festa: os convidados vão para casa.",
+    "questionNoGift": "Você ainda não entregou o presente. Sair agora encerra a festa e os convidados vão para casa.",
+    "yes": "Encerrar a festa",
+    "no": "Ficar mais um pouco"
+  },
   "goHome": {
     "question": "Encerrar o dia e ir para casa?",
     "yes": "Ir para casa",
@@ -1285,6 +1291,7 @@
     "cat_pickup": "Pegar no colo",
     "cat_trust": "Ganhar confiança",
     "santa_give": "Dar o presente",
+    "party_chat": "Conversar",
     "cat_wand": "Brincar",
     "cat_brush": "Escovar"
   },
