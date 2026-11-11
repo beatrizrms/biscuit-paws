@@ -78,6 +78,15 @@
         ]
       },
       {
+        "id": "halloween",
+        "title": "Halloween",
+        "seasonal": true,
+        "groups": [
+          { "tag": "halloween", "except": ["halloween_gift"], "title": "Enfeites" },
+          { "tag": "halloween_gift", "title": "Presentes de Halloween" }
+        ]
+      },
+      {
         "id": "xmas",
         "title": "Natal",
         "seasonal": true,
@@ -290,7 +299,7 @@
     "has_something_on_top": "Tire primeiro o que está em cima do balcão.",
     "display_full": "A vitrine está cheia (6 espaços).",
     "out_of_season": "Essa receita está fora de época agora.",
-    "box_closed": "A caixa de enfeites só abre no inverno.",
+    "box_closed": "A caixa de enfeites só abre na estação dela.",
     "box_empty": "A caixa de enfeites está vazia.",
     "nothing_to_store": "Só doces vão para a vitrine.",
     "display_empty": "A vitrine está vazia.",
@@ -674,7 +683,7 @@
     "boxStored": "Guardado na caixa pet: {n} item(ns).",
     "place": "posicionar",
     "openBox": "abrir ({n} enfeites)",
-    "boxOpensInWinter": "abre no inverno",
+    "boxOpensIn": "abre no {season}",
     "placeAtHome": "só dentro do café",
     "toBar": "pôr na barra ({n})",
     "offBar": "tirar da barra",
@@ -1085,6 +1094,11 @@
     "noRating": "Nota do café: ainda sem avaliações",
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
+  },
+  "halloweenBox": {
+    "packed": "O outono acabou: os {n} enfeites de Halloween foram para a caixa, na mochila. Ela abre no próximo outono.",
+    "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
+    "lastOne": "Saiu da caixa: {name}. Era o último!"
   },
   "xmasBox": {
     "packed": "O Natal acabou: os {n} enfeites foram para a caixa de enfeites, na mochila. Ela abre no próximo inverno.",

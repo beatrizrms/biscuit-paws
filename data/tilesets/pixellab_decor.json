@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 11,
+ "rows": 15,
  "pieces": {
   "floreira": {
    "col": 0,
@@ -254,6 +254,90 @@
    "row": 10,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "poltrona_menta": {
+   "col": 5,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "poltrona_rosa": {
+   "col": 0,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "poltrona_lilas": {
+   "col": 1,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "poltrona_creme": {
+   "col": 2,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_abobora": {
+   "col": 3,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_abobrinhas": {
+   "col": 4,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_guirlanda": {
+   "col": 5,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_morcegos": {
+   "col": 0,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_teia": {
+   "col": 1,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_fantasma": {
+   "col": 2,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_caldeirao": {
+   "col": 3,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_lanterna": {
+   "col": 4,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_chapeu": {
+   "col": 5,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "hw_espantalho": {
+   "col": 0,
+   "row": 13,
+   "w_tiles": 1,
+   "h_tiles": 2
   }
  }
 }

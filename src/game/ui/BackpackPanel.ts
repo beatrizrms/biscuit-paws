@@ -200,7 +200,7 @@ export class BackpackPanel {
           this.close();
           return this.onPlace(id);
         case 'open-box': {
-          const r = this.session.openXmasBox();
+          const r = this.session.openXmasBox(id ?? undefined);
           if (!r.ok) {
             report(r);
             return;
@@ -349,12 +349,13 @@ export class BackpackPanel {
     // Na caixa pet: guardar (o que ela não aceita nem mostra o botão).
     if (this.boxUid && this.session.storageProblem(this.boxUid, item.id) !== 'not_accepted') buttons.push(`<button data-act="box-one">${t.boxOne}</button>`);
     if (item.tags.includes('treat')) buttons.push(`<button data-act="hold">${t.hold}</button>`);
-    // Caixa de enfeites de Natal: abre só no inverno (e no café), e os enfeites saem um por um para posicionar.
-    if (item.id === content.festive.box.item) {
-      const closed = this.session.seasonDay().season !== content.festive.box.opensIn;
+    // Caixa de enfeites (Natal ou Halloween): abre só na estação dela (e no café), e os enfeites saem um por um.
+    const festive = content.festive.boxes.find((b) => b.item === item.id);
+    if (festive) {
+      const closed = this.session.seasonDay().season !== festive.opensIn;
       const away = !this.session.atHome();
-      buttons.push(`<button data-act="open-box" ${closed || away ? 'disabled' : ''}>${t.openBox.replace('{n}', String(this.session.xmasBoxCount()))}</button>`);
-      if (closed) buttons.push(`<span class="why">${t.boxOpensInWinter}</span>`);
+      buttons.push(`<button data-act="open-box" ${closed || away ? 'disabled' : ''}>${t.openBox.replace('{n}', String(this.session.xmasBoxCount(item.id)))}</button>`);
+      if (closed) buttons.push(`<span class="why">${t.boxOpensIn.replace('{season}', (content.seasons.names[festive.opensIn] ?? festive.opensIn).toLowerCase())}</span>`);
       else if (away) buttons.push(`<span class="why">${t.placeAtHome}</span>`);
     }
     if (item.id === content.carry.tray.item) buttons.push(`<button data-act="tray">${st.tray ? t.stowTray : t.useTray}</button>`);

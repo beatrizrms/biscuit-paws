@@ -671,6 +671,11 @@
       "col": 4,
       "row": 16,
       "sheet": "pixellab"
+    },
+    "caixa_halloween": {
+      "col": 5,
+      "row": 16,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

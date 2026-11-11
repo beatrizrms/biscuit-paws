@@ -33,9 +33,16 @@ import { validateSecretSanta, type SecretSantaData } from './secretSanta';
 import { validateNewYear, type NewYearData } from './newYear';
 
 /** data/festive.json: a caixa de enfeites de Natal, o amigo secreto e os fogos de Ano Novo. */
+export interface FestiveBox {
+  item: string;
+  tag: string;
+  opensIn: string;
+}
+
 export interface FestiveData {
   schemaVersion: 1;
-  box: { item: string; tag: string; opensIn: string };
+  /** Caixas de enfeites (a primeira é a do Natal): os móveis com a tag vão para ela no fim da estação opensIn. */
+  boxes: FestiveBox[];
   secretSanta: SecretSantaData;
   newYear: NewYearData;
 }
@@ -549,12 +556,16 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateReputation(raw.reputation));
   {
-    const box = raw.festive.box;
-    const item = raw.items.items.find((i) => i.id === box.item);
-    if (!item) err(`festive: a caixa "${box.item}" não existe`);
-    else if ((item.kind ?? 'furniture') === 'furniture') err(`festive: a caixa "${box.item}" não pode ser móvel`);
-    if (!raw.seasons.order.includes(box.opensIn)) err(`festive: estação inexistente "${box.opensIn}"`);
-    if (!raw.items.items.some((i) => i.tags.includes(box.tag))) err(`festive: nenhum item tem a tag "${box.tag}"`);
+    for (const box of raw.festive.boxes) {
+      const item = raw.items.items.find((i) => i.id === box.item);
+      if (!item) err(`festive: a caixa "${box.item}" não existe`);
+      else if ((item.kind ?? 'furniture') === 'furniture') err(`festive: a caixa "${box.item}" não pode ser móvel`);
+      if (!raw.seasons.order.includes(box.opensIn)) err(`festive: estação inexistente "${box.opensIn}"`);
+      if (!raw.items.items.some((i) => i.tags.includes(box.tag))) err(`festive: nenhum item tem a tag "${box.tag}"`);
+    }
+    const tags = raw.festive.boxes.map((b) => b.tag);
+    if (new Set(tags).size !== tags.length) err('festive: duas caixas com a mesma tag');
+    if (raw.festive.boxes.length === 0) err('festive: precisa da caixa de Natal');
     errors.push(
       ...validateSecretSanta(raw.festive.secretSanta, {
         items: new Map(raw.items.items.map((i) => [i.id, i])),

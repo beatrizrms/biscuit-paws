@@ -116,7 +116,11 @@
           "sofa_ceu": { "facing": "down", "feet": 3 },
           "chair_front": { "facing": "down", "feet": 2 },
           "chair_left": { "facing": "left", "feet": 1 },
-          "chair_right": { "facing": "right", "feet": 1 }
+          "chair_right": { "facing": "right", "feet": 1 },
+          "decor_poltrona_menta": { "facing": "down", "feet": 2 },
+          "decor_poltrona_rosa": { "facing": "down", "feet": 2 },
+          "decor_poltrona_lilas": { "facing": "down", "feet": 2 },
+          "decor_poltrona_creme": { "facing": "down", "feet": 2 }
         }
       },
       "play": { "games": ["wand"], "amount": 10 }

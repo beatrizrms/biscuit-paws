@@ -1150,6 +1150,227 @@
       "placeOn": "bar"
     },
     {
+      "id": "item.armchair_mint",
+      "name": "Poltrona menta",
+      "description": "Poltrona estofada redonda. Sente para descansar e recuperar energia.",
+      "price": 70,
+      "tile": "decor_poltrona_menta",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.armchair_pink",
+      "name": "Poltrona bergère rosa",
+      "description": "Poltrona de encosto alto com moldura de madeira. Sente para descansar e recuperar energia.",
+      "price": 80,
+      "tile": "decor_poltrona_rosa",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.armchair_lilac",
+      "name": "Poltrona de veludo lilás",
+      "description": "Poltrona de veludo com botões no encosto. Sente para descansar e recuperar energia.",
+      "price": 80,
+      "tile": "decor_poltrona_lilas",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.armchair_cream",
+      "name": "Poltrona de madeira creme",
+      "description": "Poltrona baixa de madeira com almofadas creme. Sente para descansar e recuperar energia.",
+      "price": 60,
+      "tile": "decor_poltrona_creme",
+      "tags": [
+        "furniture",
+        "for:guests"
+      ]
+    },
+    {
+      "id": "item.hw_pumpkin",
+      "name": "Abóbora de Halloween",
+      "description": "Enfeite de Halloween: abóbora entalhada com carinha sorridente e orelhinhas de gato.",
+      "price": 8,
+      "tile": "decor_hw_abobora",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.hw_pumpkins",
+      "name": "Trio de abóboras",
+      "description": "Enfeite de Halloween: três abóboras pequenas com folhas secas.",
+      "price": 10,
+      "tile": "decor_hw_abobrinhas",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "plant"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.hw_wreath",
+      "name": "Guirlanda de outono",
+      "description": "Enfeite de parede: folhas secas, mini abóboras e um laço lilás.",
+      "price": 8,
+      "tile": "decor_hw_guirlanda",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "wall"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.hw_bats",
+      "name": "Bandeirinhas de morcego",
+      "description": "Enfeite de parede: bandeirinhas lilás e laranja com morceguinhos.",
+      "price": 6,
+      "tile": "decor_hw_morcegos",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "wall"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.hw_web",
+      "name": "Teia de lã",
+      "description": "Enfeite de parede: teia de lã com uma aranhinha sorridente.",
+      "price": 5,
+      "tile": "decor_hw_teia",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "wall"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.hw_ghost",
+      "name": "Fantasminha de pelúcia",
+      "description": "Fantasminha de pano, bochechudo e nada assustador.",
+      "price": 14,
+      "tile": "decor_hw_fantasma",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "halloween_gift"
+      ],
+      "seasons": [
+        "autumn"
+      ],
+      "placeOn": "bar",
+      "orFloor": true
+    },
+    {
+      "id": "item.hw_cauldron",
+      "name": "Caldeirão de doces",
+      "description": "Caldeirãozinho cheio de balas e pirulitos.",
+      "price": 16,
+      "tile": "decor_hw_caldeirao",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "halloween_gift"
+      ],
+      "seasons": [
+        "autumn"
+      ],
+      "placeOn": "bar",
+      "orFloor": true
+    },
+    {
+      "id": "item.hw_lantern",
+      "name": "Lanterna de abóbora",
+      "description": "Abobrinha com carinha de gato e uma vela acesa dentro.",
+      "price": 12,
+      "tile": "decor_hw_lanterna",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "halloween_gift"
+      ],
+      "seasons": [
+        "autumn"
+      ],
+      "placeOn": "bar",
+      "orFloor": true
+    },
+    {
+      "id": "item.hw_witch_hat",
+      "name": "Chapéu de bruxa",
+      "description": "Chapéu lilás com estrelinha dourada.",
+      "price": 12,
+      "tile": "decor_hw_chapeu",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween",
+        "halloween_gift"
+      ],
+      "seasons": [
+        "autumn"
+      ],
+      "placeOn": "bar",
+      "orFloor": true
+    },
+    {
+      "id": "item.hw_scarecrow",
+      "name": "Espantalho fofo",
+      "description": "Enfeite de Halloween: espantalho de chapéu de palha e girassol.",
+      "price": 20,
+      "tile": "decor_hw_espantalho",
+      "tags": [
+        "furniture",
+        "decor",
+        "halloween"
+      ],
+      "seasons": [
+        "autumn"
+      ]
+    },
+    {
+      "id": "item.halloween_box",
+      "name": "Caixa de enfeites de Halloween",
+      "description": "Os enfeites de Halloween guardados. Só abre no outono: ao abrir, os enfeites saem um por um para você posicionar.",
+      "price": 0,
+      "kind": "key",
+      "icon": "caixa_halloween",
+      "tags": [
+        "halloween_box"
+      ]
+    },
+    {
       "id": "item.catpay_sign",
       "name": "Plaquinha do CatPay",
       "price": 0,

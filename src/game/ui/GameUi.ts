@@ -246,8 +246,9 @@ export class GameUi {
       this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
-    bus.on('xmas.packed', ({ count }) => this.toast(uiText.xmasBox.packed.replace('{n}', String(count)), 6000));
-    bus.on('xmas.box_opened', ({ itemId, left }) => this.toast((left > 0 ? uiText.xmasBox.opened : uiText.xmasBox.lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
+    const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
+    bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));
+    bus.on('xmas.box_opened', ({ itemId, left, box }) => this.toast((left > 0 ? boxText(box).opened : boxText(box).lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
     // Natal: o aviso da manhã (o café fecha mais cedo; a ceia), as meias e a ceia perdida.
     bus.on('xmas.day', ({ closeAt, partyAt, party, stockingCats }) => {
       const t = uiText.secretSanta;

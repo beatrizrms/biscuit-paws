@@ -911,6 +911,13 @@
         "natal_globo_gato": { "solid": false },
         "natal_vela": { "solid": false },
         "natal_globo_cafe": { "solid": false },
+        "hw_guirlanda": { "solid": false, "layer": "wall" },
+        "hw_morcegos": { "solid": false, "layer": "wall" },
+        "hw_teia": { "solid": false, "layer": "wall" },
+        "hw_fantasma": { "solid": false },
+        "hw_caldeirao": { "solid": false },
+        "hw_lanterna": { "solid": false },
+        "hw_chapeu": { "solid": false },
         "vaso_suculenta": { "solid": false }
       }
     },

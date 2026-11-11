@@ -59,8 +59,9 @@ export interface GameEvents {
   /** Cardápio da estação (começo do dia): receitas que chegaram e as que saíram do quadro por sair de época. */
   'menu.season': { day: number; arrived: string[]; left: string[] };
   /** Caixa de enfeites de Natal: guardou os enfeites (fim do inverno); abriu e saiu um para posicionar. */
-  'xmas.packed': { count: number };
-  'xmas.box_opened': { itemId: string; left: number };
+  /** Fim da estação da caixa: os enfeites foram para ela (box = o item da caixa: Natal ou Halloween). */
+  'xmas.packed': { count: number; box: string };
+  'xmas.box_opened': { itemId: string; left: number; box: string };
   /** Amigo secreto: ela tirou um amigo; entregou o presente na ceia; perdeu a ceia. Manhã de Natal (avisos e meias). */
   'xmas.santa_drawn': { npc: string };
   'xmas.santa_exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };

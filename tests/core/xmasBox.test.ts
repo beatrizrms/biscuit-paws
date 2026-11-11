@@ -7,7 +7,7 @@ import { loadContent } from './content';
 
 const content = loadContent();
 const S = content.seasons;
-const BOX = content.festive.box.item;
+const BOX = content.festive.boxes[0]!.item;
 /** Último dia do inverno do primeiro ano. */
 const lastWinterDay = S.daysPerSeason;
 
@@ -100,5 +100,37 @@ describe('caixa de Natal no save', () => {
 
   it('save antigo (v32) começa com a caixa vazia', () => {
     expect(parseSave(readFileSync('tests/fixtures/save_v32.json', 'utf8'), knownIds(content)).state.xmasBox).toEqual({});
+  });
+});
+
+describe('caixa de enfeites de Halloween', () => {
+  const HW = content.festive.boxes.find((b) => b.tag === 'halloween')!.item;
+  const lastAutumnDay = S.daysPerSeason * (S.order.indexOf('autumn') + 1);
+
+  it('no fim do outono, os enfeites de Halloween vão para a caixa deles; os de Natal ficam fora', () => {
+    const { session, state } = cafe(lastAutumnDay);
+    state.placed.push({ uid: 'p1', item: 'item.hw_pumpkin', at: [3, 6] }, { uid: 'p2', item: 'item.hw_bats', at: [5, 1] });
+    state.inventory['item.hw_ghost'] = 1;
+    state.inventory['item.xmas_stocking'] = 1;
+    session.endDay('home');
+    expect(state.placed).toEqual([]);
+    expect(state.xmasBox).toEqual({ 'item.hw_pumpkin': 1, 'item.hw_bats': 1, 'item.hw_ghost': 1 });
+    expect(state.inventory[HW]).toBe(1);
+    expect(state.inventory[BOX]).toBeUndefined();
+    expect(state.inventory['item.xmas_stocking']).toBe(1);
+    expect(session.xmasBoxCount(HW)).toBe(3);
+    expect(session.xmasBoxCount()).toBe(0);
+  });
+
+  it('só abre no outono, e cada caixa tira só os seus enfeites', () => {
+    const { session, state } = cafe(lastAutumnDay - 3);
+    state.xmasBox = { 'item.xmas_lights': 1, 'item.hw_web': 1 };
+    state.inventory[HW] = 1;
+    state.inventory[BOX] = 1;
+    expect(session.openXmasBox()).toEqual({ ok: false, reason: 'box_closed' });
+    expect(session.openXmasBox(HW)).toEqual({ ok: true, itemId: 'item.hw_web' });
+    expect(state.inventory[HW]).toBeUndefined();
+    expect(state.xmasBox).toEqual({ 'item.xmas_lights': 1 });
+    expect(state.inventory[BOX]).toBe(1);
   });
 });

@@ -778,7 +778,10 @@ export class GameSession {
     this.bus.emit('day.ended', summary);
     this.bus.emit('day.started', { day: day + 1 });
     // Fim do inverno: os enfeites de Natal vão para a caixa (na mochila), que só abre no próximo inverno.
-    if (seasonOf(this.content.seasons, day) === 'winter' && seasonOf(this.content.seasons, day + 1) !== 'winter') this.packXmasBox();
+    // Fim da estação de cada caixa (Natal no inverno, Halloween no outono): os enfeites vão para ela.
+    for (const box of this.content.festive.boxes) {
+      if (seasonOf(this.content.seasons, day) === box.opensIn && seasonOf(this.content.seasons, day + 1) !== box.opensIn) this.packXmasBox(box.item);
+    }
     // Manhã de Natal: o café fecha mais cedo e os gatos acham petisco nas meias.
     if (isChristmas(this.content.seasons, this.content.festive.secretSanta, day + 1)) this.christmasMorning();
     // Último dia do ano: o aviso dos fogos da meia-noite.
@@ -1887,19 +1890,32 @@ export class GameSession {
     return this.arrivals?.debug.weather ?? weatherOf(this.content.seasons, this.state.day);
   }
 
-  // ---------- Caixa de enfeites de Natal ----------
+  // ---------- Caixas de enfeites (Natal e Halloween) ----------
+  // Os enfeites guardados de todas as caixas ficam em state.xmasBox; a tag do item diz de qual caixa ele é.
 
-  /** Quantos enfeites estão na caixa. */
-  xmasBoxCount(): number {
-    return Object.values(this.state.xmasBox).reduce((n, q) => n + q, 0);
+  /** A caixa (data/festive.json: boxes) pelo item; sem item, a de Natal. */
+  festiveBox(boxItem?: string) {
+    const boxes = this.content.festive.boxes;
+    return boxes.find((b) => b.item === boxItem) ?? boxes[0]!;
+  }
+
+  /** Os enfeites guardados nesta caixa (id -> quantos). */
+  private boxContents(boxItem?: string): [string, number][] {
+    const tag = this.festiveBox(boxItem).tag;
+    return Object.entries(this.state.xmasBox).filter(([id]) => this.content.items[id]?.tags.includes(tag));
+  }
+
+  /** Quantos enfeites estão na caixa (sem item: a de Natal). */
+  xmasBoxCount(boxItem?: string): number {
+    return this.boxContents(boxItem).reduce((n, [, q]) => n + q, 0);
   }
 
   /**
    * Fim do inverno: os enfeites de Natal (móveis com a tag xmas, posicionados ou na mochila) vão para a caixa, e a
    * caixa fica na mochila. O que estiver em cima de um enfeite volta para a mochila também.
    */
-  packXmasBox(): number {
-    const box = this.content.festive.box;
+  packXmasBox(boxItem?: string): number {
+    const box = this.festiveBox(boxItem);
     const isXmas = (id: string) => (this.content.items[id]?.kind ?? 'furniture') === 'furniture' && !!this.content.items[id]?.tags.includes(box.tag);
     let count = 0;
     const add = (id: string, n = 1) => {
@@ -1925,16 +1941,16 @@ export class GameSession {
     }
     if (count > 0) {
       this.state.inventory[box.item] = 1;
-      this.bus.emit('xmas.packed', { count });
+      this.bus.emit('xmas.packed', { count, box: box.item });
     }
     return count;
   }
 
-  /** Abre a caixa (só no inverno): sai o próximo enfeite para a mochila, pronto para posicionar. A caixa vazia some. */
-  openXmasBox(): { ok: true; itemId: string } | { ok: false; reason: 'box_closed' | 'box_empty' } {
-    const box = this.content.festive.box;
+  /** Abre a caixa (só na estação dela): sai o próximo enfeite para a mochila, pronto para posicionar. A caixa vazia some. */
+  openXmasBox(boxItem?: string): { ok: true; itemId: string } | { ok: false; reason: 'box_closed' | 'box_empty' } {
+    const box = this.festiveBox(boxItem);
     if (seasonOf(this.content.seasons, this.state.day) !== box.opensIn) return { ok: false, reason: 'box_closed' };
-    const id = Object.keys(this.state.xmasBox)[0];
+    const id = this.boxContents(box.item)[0]?.[0];
     if (!id) {
       delete this.state.inventory[box.item];
       return { ok: false, reason: 'box_empty' };
@@ -1943,8 +1959,8 @@ export class GameSession {
     if (left > 0) this.state.xmasBox[id] = left;
     else delete this.state.xmasBox[id];
     this.state.inventory[id] = (this.state.inventory[id] ?? 0) + 1;
-    if (this.xmasBoxCount() === 0) delete this.state.inventory[box.item];
-    this.bus.emit('xmas.box_opened', { itemId: id, left: this.xmasBoxCount() });
+    if (this.xmasBoxCount(box.item) === 0) delete this.state.inventory[box.item];
+    this.bus.emit('xmas.box_opened', { itemId: id, left: this.xmasBoxCount(box.item), box: box.item });
     return { ok: true, itemId: id };
   }
 
