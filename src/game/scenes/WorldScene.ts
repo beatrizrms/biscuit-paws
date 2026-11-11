@@ -1178,8 +1178,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private dropPlacing(): void {
     if (!this.placing) return;
     const { itemId, at, moveUid } = this.placing;
+    const def = this.ghostDef();
     const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
     if (!result.ok) return this.ui.problem(result.reason);
+    // Gato à toa em cima de onde o móvel foi parar (ex.: o cercadinho): sai para o lado, não fica "dentro" dele.
+    this.shooCatsFrom(at, def.w, def.h);
     // Da caixa de Natal: posicionou, sai o próximo enfeite (até a caixa esvaziar).
     const chain = !moveUid ? this.placingFromBox : null;
     this.cancelPlacing();
@@ -1188,6 +1191,28 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else if (!moveUid && this.parcelQueue.length > 0) {
       const next = this.parcelQueue.shift()!;
       if ((this.session.state.inventory[next] ?? 0) > 0) this.startPlacing(next);
+    }
+  }
+
+  /** Tira os gatos soltos (não os do cercadinho/caixinha) de cima de um móvel recém-posicionado: a célula livre mais perto. */
+  private shooCatsFrom([c0, r0]: Cell, w: number, h: number): void {
+    const inside = ([c, r]: Cell) => c >= c0 && c < c0 + w && r >= r0 && r < r0 + h;
+    const ts = this.map.tileSize;
+    for (const cat of this.cats) {
+      if (!cat.visible || this.clinicHeld.has(cat.catId) || !inside(cat.cell())) continue;
+      let to: Cell | null = null;
+      for (let d = 1; d <= 6 && !to; d++) {
+        for (let r = r0 - d; r < r0 + h + d && !to; r++) {
+          for (let c = c0 - d; c < c0 + w + d && !to; c++) {
+            if (inside([c, r]) || this.map.solid[r]?.[c] !== false || this.session.placedAt([c, r])) continue;
+            to = [c, r];
+          }
+        }
+      }
+      if (!to) continue;
+      cat.setPosition(to[0] * ts + ts / 2, (to[1] + 1) * ts - 6);
+      (cat.body as Phaser.Physics.Arcade.Body).reset(cat.x, cat.y);
+      cat.stay(800, this.time.now);
     }
   }
 
