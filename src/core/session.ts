@@ -1898,6 +1898,19 @@ export class GameSession {
     return this.clinic.penAssignments();
   }
 
+  /** Castrado sem vaga no cercadinho: na caixinha de transporte (no colo também), até ir para um cercadinho. */
+  catBoxed(catId: string): boolean {
+    return this.clinic.boxed(catId);
+  }
+
+  /** A caixinha no colo, perto do cercadinho: o gato sai dela e vai para o cercadinho. */
+  releaseIntoPen(penUid: string) {
+    const r = this.clinic.releaseIntoPen(penUid);
+    if (!r.ok) return r;
+    this.service.putDownCat();
+    return { ok: true as const };
+  }
+
   /** O gato está isolado (cercadinho ou caixinha), internado ou com os outros? */
   catPlace(catId: string): 'with_others' | 'isolated' | 'ward' {
     if (this.clinic.inWard(catId)) return 'ward';

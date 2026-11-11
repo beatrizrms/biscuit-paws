@@ -258,6 +258,41 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(session.clinicExam('cat.first_stray')?.status).toBe('neutered');
   });
 
+  it('sem cercadinho, volta na caixinha: no colo continua caixinha e só sai dela no cercadinho', () => {
+    const { state, session, id } = setup({ neutered: false });
+    session.debugBookNeuter(id);
+    session.debugClinicMorning();
+    expect(session.catBoxed(id)).toBe(true);
+    expect(session.penAssignments().box).toEqual([id]);
+    // Pega e põe no chão: continua na caixinha.
+    expect(session.service.pickUpCat(id).ok).toBe(true);
+    expect(session.service.putDownCat().ok).toBe(true);
+    expect(session.catBoxed(id)).toBe(true);
+    // Comprou o cercadinho: ele não pula sozinho para lá.
+    state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });
+    expect(session.penAssignments()).toEqual({ pen: { 'p.pen': [] }, box: [id] });
+    // Sem a caixinha no colo, não há o que soltar; com ela, solta no cercadinho.
+    expect(session.releaseIntoPen('p.pen')).toEqual({ ok: false, reason: 'not_pending' });
+    expect(session.service.pickUpCat(id).ok).toBe(true);
+    expect(session.releaseIntoPen('p.nope')).toEqual({ ok: false, reason: 'needs_pen' });
+    expect(session.releaseIntoPen('p.pen').ok).toBe(true);
+    expect(session.service.carriedCat()).toBeUndefined();
+    expect(session.catBoxed(id)).toBe(false);
+    expect(session.penAssignments()).toEqual({ pen: { 'p.pen': [id] }, box: [] });
+  });
+
+  it('com cercadinho, a Fernanda já devolve lá (sem caixinha)', () => {
+    const { state, session, id } = setup({ neutered: false });
+    state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });
+    const delivered: boolean[] = [];
+    session.bus.on('clinic.delivered', ({ inPen }) => delivered.push(inPen));
+    session.debugBookNeuter(id);
+    session.debugClinicMorning();
+    expect(delivered).toEqual([true]);
+    expect(session.catBoxed(id)).toBe(false);
+    expect(session.penAssignments().pen['p.pen']).toEqual([id]);
+  });
+
   it('a latinha vem da mochila (não precisa estar na barra) e não vai sozinha para a barra', () => {
     const { state, session, id } = setup({ neutered: false });
     session.debugBookNeuter(id);

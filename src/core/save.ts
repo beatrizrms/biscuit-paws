@@ -741,10 +741,10 @@ function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown
   }
   const t = c.tests as Record<string, unknown> | undefined;
   if (t && typeof t === 'object') out.tests = Object.fromEntries(Object.entries(t).filter((e): e is [string, 'negative' | 'positive'] => e[1] === 'negative' || e[1] === 'positive'));
-  const st = c.clinic as Partial<{ stage: string; until: number; procedure: string; returnBy: string; complication: boolean }> | undefined;
+  const st = c.clinic as Partial<{ stage: string; until: number; procedure: string; returnBy: string; complication: boolean; boxed: boolean }> | undefined;
   if (st?.stage === 'intake') out.clinic = { stage: 'intake' };
   else if (st?.stage === 'ward' && Number.isInteger(st.until)) out.clinic = { stage: 'ward', until: st.until!, returnBy: st.returnBy === 'vet' ? 'vet' : 'player', ...(typeof st.procedure === 'string' ? { procedure: st.procedure } : {}) };
-  else if (st?.stage === 'isolation' && Number.isInteger(st.until) && typeof st.procedure === 'string') out.clinic = { stage: 'isolation', until: st.until!, procedure: st.procedure, ...(st.complication === true ? { complication: true } : {}) };
+  else if (st?.stage === 'isolation' && Number.isInteger(st.until) && typeof st.procedure === 'string') out.clinic = { stage: 'isolation', until: st.until!, procedure: st.procedure, ...(st.complication === true ? { complication: true } : {}), ...(st.boxed === true ? { boxed: true } : {}) };
   const a = c.aftercare as Partial<Aftercare> | undefined;
   if (a && Number.isInteger(a.days) && Number.isInteger(a.dosesGiven)) out.aftercare = { days: a.days!, dosesGiven: a.dosesGiven!, lastDoseDay: Number.isInteger(a.lastDoseDay) ? a.lastDoseDay! : null };
   return out;

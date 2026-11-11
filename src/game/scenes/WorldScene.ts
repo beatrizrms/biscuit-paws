@@ -932,9 +932,43 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private boxImage(catId: string): Phaser.GameObjects.Image {
     const ts = this.map.tileSize;
     const box = clinicBoxTile()!;
-    const [c, r] = this.freeCellNear(this.map.spawn, createRng(cellHash(catId.length * 7, this.isoBoxes.size + 3)));
+    const [c, r] = this.boxSpots.get(catId) ?? this.freeCellNear(this.map.spawn, createRng(cellHash(catId.length * 7, this.isoBoxes.size + 3)));
     const bottom = (r + 1) * ts;
     return this.add.image((c + 0.5) * ts, bottom, box.sheet, box.frame).setOrigin(0.5, 1).setScale(tileScale(box.sheet)).setDepth(ySortDepth(bottom));
+  }
+
+  /** O cercadinho ao alcance dela (ou o da célula clicada). */
+  private penNear(target?: Cell): string | null {
+    const feet = this.playerCells();
+    const near = (cells: Cell[]) => cells.some((c) => (!target || (c[0] === target[0] && c[1] === target[1])) && feet.some((f) => Math.max(Math.abs(f[0] - c[0]), Math.abs(f[1] - c[1])) <= 1));
+    for (const p of this.placedPens()) {
+      const cells: Cell[] = [];
+      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 3; dx++) cells.push([p.at[0] + dx, p.at[1] + dy]);
+      if (near(cells)) return p.uid;
+    }
+    return null;
+  }
+
+  /**
+   * A caixinha de transporte no colo (castrado sem vaga): perto do cercadinho, o gato sai dela e vai para lá; longe,
+   * ela põe a caixinha no chão, na frente dela (ele continua dentro).
+   */
+  private putDownBoxedCat(catId: string, target?: Cell): boolean {
+    const pen = this.penNear(target);
+    if (pen) {
+      const r = this.session.releaseIntoPen(pen);
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      return true;
+    }
+    const ahead = target ?? this.facingCell();
+    const free = this.map.solid[ahead[1]]?.[ahead[0]] === false && !this.session.placedAt(ahead);
+    const r = this.session.service.putDownCat();
+    if (!r.ok) {
+      this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      return true;
+    }
+    this.boxSpots.set(catId, free ? ahead : this.feetCell());
+    return true;
   }
 
   /** E no cercadinho (ou na caixinha do canto): com a latinha, alimenta quem está lá; de mãos livres, pega um gato. */
@@ -944,13 +978,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const near = (cells: Cell[]) => cells.some((c) => (!target || (c[0] === target[0] && c[1] === target[1])) && feet.some((f) => Math.max(Math.abs(f[0] - c[0]), Math.abs(f[1] - c[1])) <= 1));
     const a = this.session.penAssignments();
-    let where: string | null = null;
-    for (const p of this.placedPens()) {
-      const cells: Cell[] = [];
-      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 3; dx++) cells.push([p.at[0] + dx, p.at[1] + dy]);
-      if (near(cells)) where = p.uid;
-    }
-    if (!where) for (const [id, img] of this.isoBoxes) if (near([[Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)]])) where = 'box', void id;
+    let where: string | null = this.penNear(target);
+    // A caixinha ao alcance: pega aquela (com várias no chão, a que está perto dela).
+    let boxCat: string | undefined;
+    if (!where) for (const [id, img] of this.isoBoxes) if (!boxCat && near([[Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)]])) (where = 'box'), (boxCat = id);
     if (!where) return false;
     const st = this.session.state;
     // A latinha vem da mochila: com alguém com fome lá, o E alimenta; senão (todos comeram), pega o gato.
@@ -964,7 +995,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // De mãos livres: pega quem precisa ir à clínica primeiro (consulta ou pontinho), senão o primeiro.
     const cats = where === 'box' ? a.box : (a.pen[where] ?? []);
     const urgent = cats.find((id) => { const c = st.cats[id]?.clinic; return c?.stage === 'intake' || (c?.stage === 'isolation' && c.complication); });
-    const pick = urgent ?? cats[0];
+    const pick = boxCat ?? urgent ?? cats[0];
     if (!pick) return false;
     const r = this.session.service.pickUpCat(pick);
     if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
@@ -2269,6 +2300,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (st.hands.some((h) => h.kind === 'heavy')) return report(sv.storeHeavy());
     // Gato no colo: põe no chão, na frente dela.
     const carried = sv.carriedCat();
+    if (carried && this.session.catBoxed(carried)) return this.putDownBoxedCat(carried, target);
     if (carried) {
       const r = sv.putDownCat();
       if (r.ok) this.dropCat(carried, this.facingCell());
@@ -2587,7 +2619,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const variant = this.session.catDef(catId)?.variant ?? '';
         CatSprite.createAnimations(this, variant); // fora do café o gato pode não ter aparecido no mapa ainda
         // Fora do café (indo ou voltando da clínica), ele vai na caixinha de transporte.
-        const box = !this.session.atHome() ? clinicBoxTile() : null;
+        // No café também, se ele está na caixinha (castrado sem vaga): só sai dela no cercadinho.
+        const box = !this.session.atHome() || this.session.catBoxed(catId) ? clinicBoxTile() : null;
         if (box) this.carriedCatSprite = this.add.sprite(0, 0, box.sheet, box.frame).setOrigin(0.5, 0.95).setScale(tileScale(box.sheet));
         // Na pose de dormir o corpo fica na parte de baixo do quadro: origem 1,05 põe o gato na altura das mãos.
         else this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
@@ -3148,6 +3181,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Gatos operados que a Fernanda trouxe e cuja entrega ela ainda não viu (as falas de cada um). */
   private vetDeliveries: { catId: string; lines: string[] }[] = [];
+  /** Onde ela deixou cada caixinha de transporte no chão (sem isto, a caixinha vai para um canto livre). */
+  private boxSpots = new Map<string, Cell>();
   private vetDelivering = false;
 
   /** A volta da castração: guarda a entrega; no café, a cena já começa (fora dele, espera ela entrar). */

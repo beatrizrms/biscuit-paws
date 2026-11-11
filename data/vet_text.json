@@ -25,7 +25,7 @@
     "alreadyNeutered": "Esse aqui já é castrado, não precisa. Não vou operar à toa.",
     "booked": "Combinado. Amanhã cedo eu levo {cat} no café.",
     "delivered": "Trouxe {cat}! Deixei no cercadinho. São {days} dias quietinh{sex:o|a} lá e o remédio por {aftercare} dias.",
-    "deliveredNoPen": "Trouxe {cat}! Como não tem cercadinho, deixei na caixinha num canto sossegado. Um cercadinho ajudaria muito.",
+    "deliveredNoPen": "Trouxe {cat}! Como não tem cercadinho, deixei na caixinha num canto sossegado. Ele fica nela até ir para um cercadinho: quando tiver um, é só levar a caixinha até lá.",
     "diapers": "Forrei o cercadinho com fraldas descartáveis, então nada de caixa de areia por enquanto. E deixei umas latinhas de Recovery: é só abrir e dar direto.",
     "released": "{cat} já pode sair do cercadinho e voltar para a turma.",
     "aftercare": "Uma dose por dia, escondida na comida. São {days} dias.",

@@ -56,8 +56,11 @@ export type CatClinicStage =
   | { stage: 'intake' }
   /** Internado na clínica até `until`; `procedure` se vai operar; quem traz de volta: a Fernanda ou a jogadora. */
   | { stage: 'ward'; until: number; procedure?: string; returnBy: 'vet' | 'player' }
-  /** No cercadinho depois da cirurgia, até `until`; complicação: precisa voltar à clínica. */
-  | { stage: 'isolation'; until: number; procedure: string; complication?: boolean };
+  /**
+   * No cercadinho depois da cirurgia, até `until`; complicação: precisa voltar à clínica. boxed: voltou sem vaga no
+   * cercadinho e está na caixinha de transporte; só sai dela quando ela leva a caixinha até um cercadinho.
+   */
+  | { stage: 'isolation'; until: number; procedure: string; complication?: boolean; boxed?: boolean };
 
 /** Remédio do pós-cirurgia (mesma forma da receita da doença). */
 export interface Aftercare {

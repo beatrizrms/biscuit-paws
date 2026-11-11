@@ -101,7 +101,9 @@ export type ClinicProblem =
   | 'not_here'
   | 'no_complication'
   | 'needs_recovery_food'
-  | 'nobody_here';
+  | 'nobody_here'
+  | 'needs_pen'
+  | 'pen_full';
 
 export class ClinicFlow {
   constructor(private h: ClinicHost) {}
@@ -201,11 +203,33 @@ export class ClinicFlow {
     let i = 0;
     for (const p of pens) pen[p.uid] = [];
     for (const id of cats) {
+      // Na caixinha de transporte (voltou da cirurgia sem vaga): fica nela até ela levar até um cercadinho.
+      const s = this.st.cats[id]!.clinic;
+      if (s?.stage === 'isolation' && s.boxed) {
+        box.push(id);
+        continue;
+      }
       while (i < pens.length && pen[pens[i]!.uid]!.length >= slots) i++;
       if (i < pens.length) pen[pens[i]!.uid]!.push(id);
       else box.push(id);
     }
     return { pen, box };
+  }
+
+  /** O gato está na caixinha de transporte (castrado sem vaga no cercadinho)? */
+  boxed(catId: string): boolean {
+    const s = this.st.cats[catId]?.clinic;
+    return s?.stage === 'isolation' && !!s.boxed;
+  }
+
+  /** Solta o gato da caixinha (a que está no colo) no cercadinho: só lá ele sai dela. Quem tira do colo é a sessão. */
+  releaseIntoPen(penUid: string): { ok: true } | { ok: false; reason: ClinicProblem } {
+    const id = this.h.carriedCat();
+    if (!id || !this.boxed(id)) return { ok: false, reason: 'not_pending' };
+    if (!this.pens().some((p) => p.uid === penUid)) return { ok: false, reason: 'needs_pen' };
+    if ((this.penAssignments().pen[penUid]?.length ?? 0) >= this.h.clinic.pen.slots) return { ok: false, reason: 'pen_full' };
+    delete (this.st.cats[id]!.clinic as { boxed?: boolean }).boxed;
+    return { ok: true };
   }
 
   /** Quem está com fome no cercadinho (ou na caixinha do canto). */
@@ -418,6 +442,8 @@ export class ClinicFlow {
         this.st.flags['vet.neutered_once'] = true;
         this.h.bus.emit('cat.neutered', { catId: id, procedure: s.procedure });
         const inPen = !this.penAssignments().box.includes(id);
+        // Sem vaga no cercadinho: fica na caixinha de transporte até ela levar a caixinha a um cercadinho.
+        if (!inPen) (cat.clinic as { boxed?: boolean }).boxed = true;
         // A primeira entrega: a Fernanda explica as fraldas do cercadinho e as latinhas.
         const first = !this.st.flags['vet.first_delivery'];
         this.st.flags['vet.first_delivery'] = true;
