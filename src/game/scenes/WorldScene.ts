@@ -151,6 +151,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private repairBars = new Map<string, Phaser.GameObjects.Image>();
   /** O enfeite no fantasma saiu da caixa de Natal: ao posicionar, sai o próximo. */
   private placingFromBox = false;
+  /** Os próximos móveis da caixa do correio a posicionar (um depois do outro). */
+  private parcelQueue: string[] = [];
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -308,8 +310,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('ESC', () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.pickingUpgrade) this.finishUpgradePick(null);
-      else if (this.placing) this.cancelPlacing();
-      else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
+      else if (this.placing) {
+        this.parcelQueue = []; // o resto da caixa fica na mochila
+        this.cancelPlacing();
+      } else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
         this.ui.closeCatalog();
         this.ui.closeShop();
       } else if (!this.ui.isBusy() && !this.changingMap && !this.scripts.isRunning()) this.openPause();
@@ -334,6 +338,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       // Posicionando: o item volta para a mochila (o que estava no mapa é recolhido) e a mochila abre (ex.: pôr na barra).
       if (this.placing) {
+        this.parcelQueue = [];
         if (this.placing.moveUid) this.storeMoving();
         else this.cancelPlacing();
       }
@@ -1082,6 +1087,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const chain = this.placingFromBox && !moveUid;
     this.cancelPlacing();
     if (chain && this.session.xmasBoxCount() > 0) this.session.openXmasBox();
+    // Caixa do correio com vários móveis: posicionou um, sai o próximo (Esc para; o resto fica na mochila).
+    else if (!moveUid && this.parcelQueue.length > 0) {
+      const next = this.parcelQueue.shift()!;
+      if ((this.session.state.inventory[next] ?? 0) > 0) this.startPlacing(next);
+    }
   }
 
   /** Setas com o fantasma na mão: uma célula por toque, sem sair do mapa. */
@@ -1541,13 +1551,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(result.reason);
         return true;
       }
-      // Móvel: ela escolhe se posiciona agora ou guarda na mochila (já está nela).
-      const item = this.session.content.items[result.itemId];
-      if ((item?.kind ?? 'furniture') === 'furniture') {
+      // Tudo da caixa já está na mochila. Os móveis: ela escolhe posicionar agora (um depois do outro, como tirando da
+      // caixa) ou guardar.
+      const items = this.session.content.items;
+      const furniture = result.itemIds.filter((id) => (items[id]?.kind ?? 'furniture') === 'furniture');
+      if (furniture.length > 0) {
         const t = uiText.delivery;
-        void this.ui.choose(t.unpackAsk.replace('{name}', item?.name ?? ''), [t.unpackPlace, t.unpackStore]).then((i) => {
-          if (i === 0) this.startPlacing(result.itemId);
-          else this.ui.toast(t.unpackStored.replace('{name}', item?.name ?? ''));
+        const names = furniture.map((id) => items[id]?.name ?? id).join(', ');
+        void this.ui.choose(t.unpackAsk.replace('{name}', names), [t.unpackPlace, t.unpackStore]).then((i) => {
+          if (i !== 0) return this.ui.toast(t.unpackStored.replace('{name}', names));
+          this.parcelQueue = furniture.slice(1);
+          this.startPlacing(furniture[0]!);
         });
       }
       return true;
@@ -2659,8 +2673,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
     };
     const loc = this.session.location();
-    if (loc === cfg.door.map) stack(cfg.door.at, this.session.deliveriesAt('door') - this.arriving);
-    if (this.session.atHome()) stack(cfg.inside.at, this.session.deliveriesAt('inside'));
+    if (loc === cfg.door.map) stack(cfg.door.at, this.session.boxesAt('door') - this.arriving);
+    if (this.session.atHome()) stack(cfg.inside.at, this.session.boxesAt('inside'));
   }
 
   /** Caixa de papelão (ícone de data/delivery.json), com a base embaixo, na escala pedida (a arte é 64 px). */
@@ -2674,7 +2688,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { inventory } = this.session.state;
     const items = this.session.content.items;
     const frames = [
-      ...Array<string>(this.session.deliveriesAt('carried')).fill('parcel'),
+      ...Array<string>(this.session.boxesAt('carried')).fill('parcel'),
       ...Object.entries(inventory).flatMap(([id, qty]) => (items[id]?.carrySprite ? Array<string>(qty).fill(items[id]!.carrySprite!) : [])),
     ].slice(0, 3);
     while (this.carriedImages.length > frames.length) this.carriedImages.pop()!.destroy();
