@@ -1,8 +1,6 @@
 # Créditos
 
 ## Arte
-- Cat Cafe 32x32 Tileset & Interiors, Leckie Pixel Studio (leckie1989): https://leckie1989.itch.io/cat-cafe-32x32-tileset-interiors
-- Tiles "velhos" (`cat-cafe-tileset-ext.png`): gerados por script a partir do pacote acima (modificação permitida pela licença).
 - Interface dos menus (botões, painéis, faixas, ícone do carrinho), arte da inauguração e rua nas quatro estações: arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam).
 - Músicas, sons ambientes, jingles e efeitos: sintetizados por código, sem amostras de terceiros (uso de IA declarado na página da Steam).
 - Música de Natal, cigarras e vento das noites da rua e o estouro dos fogos: áudio gerado por IA no PixelLab (https://www.pixellab.ai) (uso declarado na página da Steam). Originais em `assets/_pixellab/10_audio`.

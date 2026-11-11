@@ -3,7 +3,7 @@
 ## Pacotes usados
 | Pacote | Autor | Uso |
 | --- | --- | --- |
-| Cat Cafe 32x32 Tileset & Interiors v1.0 | Leckie Pixel Studio (leckie1989) | Interior do café (em uso) |
+| Cat Cafe 32x32 Tileset & Interiors v1.0 | Leckie Pixel Studio (leckie1989) | Saiu do jogo (decisão 181): os 14 tiles que sobravam não eram usados; o catálogo ainda lê nomes e tamanhos de data/tiles.csv, sem a arte |
 | Cosy Cats 32x32 + Seasons Add-on | leckie1989 | Saiu do jogo (decisão 179): os gatos são todos do PixelLab |
 | Cosy UI Kit | leckie1989 | Interface (marco futuro) |
 | Personagem provisória (gerada) | gerada para teste | Jogadora, folha 128 x 256 |

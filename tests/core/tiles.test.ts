@@ -8,8 +8,8 @@ const meta = JSON.parse(readFileSync('data/tiles.meta.json', 'utf8')) as TileMet
 describe('buildCatalog', () => {
   const catalog = buildCatalog(csv, meta);
 
-  it('lê todos os tiles do pacote com as nossas decisões', () => {
-    expect(Object.keys(catalog.tiles)).toHaveLength(60);
+  it('lê todos os tiles do CSV com as nossas decisões (os 14 sem uso saíram com o pacote antigo)', () => {
+    expect(Object.keys(catalog.tiles)).toHaveLength(46);
     expect(getTile(catalog, 'cat_tree')).toMatchObject({ col: 6, row: 6, w: 2, h: 3, solid: true, layer: 'object' });
     expect(getTile(catalog, 'floor_rug')).toMatchObject({ w: 3, h: 2, solid: false, layer: 'floor' });
   });

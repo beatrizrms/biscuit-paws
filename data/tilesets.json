@@ -166,9 +166,6 @@
         "chao_aisle": {
           "layer": "floor"
         },
-        "chao_sombra": {
-          "layer": "floor"
-        },
         "capacho": {
           "layer": "floor"
         },
@@ -184,14 +181,6 @@
           "layer": "wall",
           "solid": true
         },
-        "parede_lado_esq": {
-          "layer": "wall",
-          "solid": true
-        },
-        "parede_lado_dir": {
-          "layer": "wall",
-          "solid": true
-        },
         "janela": {
           "layer": "wall"
         },
@@ -204,41 +193,11 @@
         "placa_pet": {
           "layer": "wall"
         },
-        "placa_caixa": {
-          "layer": "wall"
-        },
         "placa_ofertas": {
           "layer": "wall"
         },
         "luminaria": {
           "layer": "wall"
-        },
-        "prateleira_mercearia_enlatados": {
-          "solid": true
-        },
-        "prateleira_mercearia_secos": {
-          "solid": true
-        },
-        "prateleira_mercearia_padaria": {
-          "solid": true
-        },
-        "prateleira_mercearia_bebidas": {
-          "solid": true
-        },
-        "prateleira_pet_racao": {
-          "solid": true
-        },
-        "prateleira_pet_brinquedos": {
-          "solid": true
-        },
-        "prateleira_pet_areia": {
-          "solid": true
-        },
-        "prateleira_pet_petiscos": {
-          "solid": true
-        },
-        "prateleira_vazia": {
-          "solid": true
         },
         "geladeira_bebidas": {
           "solid": true
@@ -246,46 +205,7 @@
         "geladeira_pet": {
           "solid": true
         },
-        "caixote_macas": {
-          "solid": true
-        },
-        "caixote_laranjas": {
-          "solid": true
-        },
-        "caixote_verdes": {
-          "solid": true
-        },
-        "caixote_bananas": {
-          "solid": true
-        },
-        "caixote_tomates": {
-          "solid": true
-        },
-        "balcao_esq": {
-          "solid": true
-        },
-        "balcao_meio": {
-          "solid": true
-        },
-        "balcao_dir": {
-          "solid": true
-        },
-        "aquario": {
-          "solid": true
-        },
-        "arvore_gato": {
-          "solid": true
-        },
-        "arranhador": {
-          "solid": true
-        },
         "lixeira": {
-          "solid": true
-        },
-        "planta": {
-          "solid": true
-        },
-        "sacos_racao": {
           "solid": true
         },
         "carrinho": {
@@ -295,9 +215,6 @@
           "solid": true
         },
         "caixa_registradora": {
-          "solid": true
-        },
-        "leitor_codigo": {
           "solid": true
         }
       }
