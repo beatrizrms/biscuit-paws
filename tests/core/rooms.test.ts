@@ -70,7 +70,7 @@ describe('cômodos: dados e regras', () => {
     expect(resolvedLook(yard, 'abandoned').legend.g).toBeUndefined(); // grama do mapa (seca)
     expect(resolvedLook(yard, 'restored').legend.g).toBe('yard_grama_a');
     expect(Object.keys(yard.variants!)).toEqual(['hedge']); // a variante de tijolo saiu na arte nova (decisão 065)
-    // Reformado, o quintal começa só com a grama, o caminho e as árvores: o resto ela compra (aba Cômodos).
+    // Reformado, o quintal começa só com a grama, o caminho e as árvores: o resto ela compra (aba Decor).
     expect(new Set(resolvedLook(yard, 'restored').objects.filter((o) => o.tile.startsWith('yard_') && o.tile !== 'yard_fundo_ceu_telhados').map((o) => o.tile))).toEqual(new Set(['yard_arvore']));
   });
 
@@ -401,9 +401,9 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     expect(session.checkPlacement('item.yard_pergola_oven', [31, 3])).toBeNull();
   });
 
-  it('toda peça de "área" tem uma seção na aba Cômodos do Market', () => {
+  it('toda peça de "área" tem uma seção na aba Decor do Market', () => {
     const ui = JSON.parse(readFileSync('data/ui_text.json', 'utf8')) as { market: { tabs: { id: string; groups: { tag: string }[] }[] } };
-    const tags = new Set(ui.market.tabs.find((t) => t.id === 'rooms')!.groups.map((g) => g.tag));
+    const tags = new Set(ui.market.tabs.find((t) => t.id === 'decor')!.groups.map((g) => g.tag));
     for (const i of Object.values(content.items)) for (const t of i.tags) if (t.startsWith('area:')) expect(tags.has(t), `${i.id} ${t}`).toBe(true);
   });
 });

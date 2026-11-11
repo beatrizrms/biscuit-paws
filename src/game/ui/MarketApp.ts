@@ -136,8 +136,10 @@ export class MarketApp {
   }
 
   private tabHtml(tab: Tab): string {
-    // Cada item fica numa aba e num grupo só: o primeiro que bate (tag, sem as de except), na ordem das abas.
-    const groups: { tag: string; title: string; except?: string[] }[] = uiText.market.tabs.flatMap((t) => t.groups);
+    // Cada item fica numa aba e num grupo só: o primeiro que bate (tag, sem as de except), na ordem das abas. As abas da
+    // estação (Halloween, Natal) vêm por último na lista, mas têm a vez primeiro: o enfeite (que também é "decor") fica nelas.
+    const seasonalFirst = [...uiText.market.tabs].sort((a, b) => Number('seasonal' in b && !!b.seasonal) - Number('seasonal' in a && !!a.seasonal));
+    const groups: { tag: string; title: string; except?: string[] }[] = seasonalFirst.flatMap((t) => t.groups);
     const groupOf = (tags: readonly string[]) => groups.find((g) => tags.includes(g.tag) && !g.except?.some((x) => tags.includes(x)));
     const items = Object.values(content.items).filter((i) => !i.deprecated && this.session.itemUnlocked(i.id));
     const blocks = tab.groups.map((g) => {

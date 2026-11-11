@@ -78,37 +78,13 @@
         ]
       },
       {
-        "id": "halloween",
-        "title": "Halloween",
-        "seasonal": true,
-        "groups": [
-          { "tag": "halloween", "except": ["halloween_gift"], "title": "Enfeites" },
-          { "tag": "halloween_gift", "title": "Presentes de Halloween" }
-        ]
-      },
-      {
-        "id": "xmas",
-        "title": "Natal",
-        "seasonal": true,
-        "groups": [
-          { "tag": "xmas", "except": ["xmas_gift"], "title": "Enfeites" },
-          { "tag": "xmas_gift", "title": "Presentes de Natal" }
-        ]
-      },
-      {
         "id": "decor",
         "title": "Decor",
         "groups": [
           {
             "tag": "decor",
             "title": "Decoração"
-          }
-        ]
-      },
-      {
-        "id": "rooms",
-        "title": "Cômodos",
-        "groups": [
+          },
           {
             "tag": "area:kitchen",
             "title": "Cozinha"
@@ -144,6 +120,24 @@
         ],
         "rooms": true,
         "renovation": true
+      },
+      {
+        "id": "halloween",
+        "title": "Halloween",
+        "seasonal": true,
+        "groups": [
+          { "tag": "halloween", "except": ["halloween_gift"], "title": "Enfeites" },
+          { "tag": "halloween_gift", "title": "Presentes de Halloween" }
+        ]
+      },
+      {
+        "id": "xmas",
+        "title": "Natal",
+        "seasonal": true,
+        "groups": [
+          { "tag": "xmas", "except": ["xmas_gift"], "title": "Enfeites" },
+          { "tag": "xmas_gift", "title": "Presentes de Natal" }
+        ]
       }
     ],
     "empty": "Nada por aqui ainda. Novidades chegam conforme o café cresce.",
