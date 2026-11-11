@@ -198,7 +198,8 @@ export interface Rect {
  * Profundidade (ordem de desenho). Pisos e paredes ficam no fundo; objetos e
  * personagens usam a coordenada Y da base em pixels (y-sort), sempre >= 32.
  */
-export const DEPTH = { floor: 0, floorOverlay: 0.25, floorObject: 0.5, floorDirt: 0.6, wall: 1, wallObject: 1.5, wallDirt: 1.6 } as const;
+// floorCrack: estrago do piso (rachadura, sujeira de reforma): embaixo do tapete; a sujeira de varrer fica por cima.
+export const DEPTH = { floor: 0, floorOverlay: 0.25, floorCrack: 0.4, floorObject: 0.5, floorDirt: 0.6, wall: 1, wallObject: 1.5, wallDirt: 1.6 } as const;
 
 /** Quanto acima do objeto fica o que é desenhado por cima dele (overlay). */
 const OVERLAY_LIFT = 0.01;
@@ -371,7 +372,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
   for (const d of map.dirt ?? []) {
     const def = catalog.tiles[d.tile]!;
     const [c0, r0] = d.at;
-    const depth = def.layer === 'floor' ? DEPTH.floorDirt : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
+    const depth = def.layer === 'floor' ? (d.tags?.includes('repair') ? DEPTH.floorCrack : DEPTH.floorDirt) : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
     for (const [col, row] of cellsOf(d.at, def)) {
       sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, ...(d.lift ? { dy: d.lift } : {}) });
     }

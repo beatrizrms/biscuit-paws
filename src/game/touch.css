@@ -39,3 +39,6 @@
   }
 }
 @keyframes rotate-phone { 0%, 25% { transform: rotate(0deg); } 55%, 100% { transform: rotate(-90deg); } }
+
+/* Botão com outro papel no momento (escolhendo o móvel: Próximo, OK; com o móvel na mão: Soltar). */
+.t-btn.t-context { background: #ffe3a3; }

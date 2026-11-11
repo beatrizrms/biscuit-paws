@@ -32,7 +32,25 @@ class TouchInput {
   /** O botão de ação está sendo segurado (jogos de segurar, como a pescaria). */
   holding = false;
   private listeners = new Map<TouchAction, Set<() => void>>();
+  private modeListeners = new Set<() => void>();
   private root: HTMLElement | null = null;
+
+  /** Avisa quando troca entre toque e teclado (a dica do rodapé muda de texto). */
+  onModeChange(cb: () => void): void {
+    this.modeListeners.add(cb);
+  }
+
+  /**
+   * Troca o texto de um botão conforme o momento (escolhendo o móvel, o Mover vira "Próximo" e o E vira "OK"); sem
+   * texto, volta ao normal.
+   */
+  setLabel(action: TouchAction, text?: string): void {
+    const b = this.root?.querySelector<HTMLButtonElement>(`[data-act="${action}"]`);
+    if (!b) return;
+    b.dataset.label ??= b.textContent ?? '';
+    b.textContent = text ?? b.dataset.label;
+    b.classList.toggle('t-context', !!text);
+  }
 
   /** Ouve um botão; devolve a função que para de ouvir (os mini games param no fim da partida). */
   on(action: TouchAction, cb: () => void): () => void {
@@ -90,6 +108,7 @@ class TouchInput {
     this.mode = mode;
     this.root?.classList.toggle('touch-on', mode === 'touch');
     if (mode === 'keys') this.release();
+    this.modeListeners.forEach((cb) => cb());
   }
 
   /**
@@ -146,7 +165,11 @@ class TouchInput {
       e.preventDefault();
       e.stopPropagation();
       id = e.pointerId;
-      stick.setPointerCapture(e.pointerId);
+      try {
+        stick.setPointerCapture(e.pointerId);
+      } catch {
+        // sem captura (evento sintético): segue ouvindo no próprio direcional
+      }
       stick.classList.add('down');
       move(e);
     });

@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import { itemThumbHtml } from './thumbs';
+import { touch } from '../touch';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
@@ -118,6 +119,7 @@ export class GameUi {
       this.goals.classList.toggle('open');
     });
     this.hint = $('.hint');
+    touch.onModeChange(() => this.renderHint());
     this.toastEl = $('.toast');
     this.dialogueLayer = $('.dialogue-layer');
     this.dialogueBox = $('.dialogue');
@@ -1174,8 +1176,10 @@ ${rep}`;
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    this.hint.textContent =
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
+    // No celular, a dica fala dos botões de toque (sem setas nem teclas).
+    const touchText = touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : undefined;
+    this.hint.textContent = touchText ?? (
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk);
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */

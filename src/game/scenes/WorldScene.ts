@@ -91,6 +91,8 @@ const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
+/** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
+const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
 const AUTOWALK_STUCK_MS = 700;
 /** A cada quantos minutos de jogo (mín, máx) um gato que já comeu volta ao pote para beliscar. */
@@ -552,6 +554,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           left: k.left.isDown || k.a.isDown || touch.dir.left,
           right: k.right.isDown || k.d.isDown || touch.dir.right,
         };
+    this.updateTouchPlacing(busy);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
     if (!this.session.resting()) {
@@ -1146,6 +1149,34 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return out;
   }
 
+  // ---------- Celular: botões e direcional enquanto posiciona ou escolhe ----------
+
+  /** O que os botões de toque mostram agora (só mexe no DOM quando muda). */
+  private touchLabels = "";
+  /** Quando o direcional andou com o fantasma pela última vez (uma célula por passo, sem disparar). */
+  private touchNudgeAt = 0;
+
+  /**
+   * No celular não há setas: o direcional leva o fantasma uma célula por passo. E os botões mudam de nome:
+   * escolhendo o móvel, Mover vira "Próximo" e E vira "OK"; com o móvel na mão, Mover vira "Soltar".
+   */
+  private updateTouchPlacing(busy: boolean): void {
+    const labels = this.movePick ? "pick" : this.placing ? "place" : "";
+    if (labels !== this.touchLabels) {
+      this.touchLabels = labels;
+      const t = uiText.touch;
+      touch.setLabel("F", labels === "pick" ? t.next : labels === "place" ? t.drop : undefined);
+      touch.setLabel("E", labels === "pick" ? t.ok : undefined);
+    }
+    const d = touch.dir;
+    const step: Cell | null = d.left ? [-1, 0] : d.right ? [1, 0] : d.up ? [0, -1] : d.down ? [0, 1] : null;
+    if (!step) return void (this.touchNudgeAt = 0);
+    if (busy || this.time.now - this.touchNudgeAt < TOUCH_NUDGE_MS) return;
+    this.touchNudgeAt = this.time.now;
+    if (this.placing) this.nudgeGhost(step);
+    else if (this.movePick) this.cycleMovePick(step[0] < 0 || step[1] < 0 ? -1 : 1);
+  }
+
   // ---------- Mudar de lugar: escolher o móvel (quando há mais de um perto) ----------
 
   /** Escolhendo qual móvel mudar de lugar: o destacado pisca; F passa para o próximo, E ou Enter escolhe. */
@@ -1163,9 +1194,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.highlightMovePick();
   }
 
-  private cycleMovePick(): void {
+  private cycleMovePick(by = 1): void {
     if (!this.movePick) return;
-    this.movePick.i = (this.movePick.i + 1) % this.movePick.uids.length;
+    const n = this.movePick.uids.length;
+    this.movePick.i = (this.movePick.i + by + n) % n;
     this.highlightMovePick();
   }
 
