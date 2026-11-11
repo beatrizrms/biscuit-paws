@@ -220,8 +220,9 @@ export class DebugPanel {
     // Eventos sem as condições (nem a data: no dia de hoje, ou a preparação começa); e pular até o dia marcado (de manhã).
     panel.querySelectorAll<HTMLButtonElement>('[data-festival]').forEach((b) =>
       b.addEventListener('click', () => {
-        session.debugStartFestival(b.dataset.festival!);
+        // Recarrega antes: a recarga pula as falas da fila, e a ideia do evento (a fala de quem propõe) sumia.
         actions.reloadWorld();
+        session.debugStartFestival(b.dataset.festival!);
       }),
     );
     // Natal e Ano Novo: pula para um minuto antes (o sorteio, a ceia, os fogos), já com as condições.
