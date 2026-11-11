@@ -191,6 +191,7 @@
 .dialogue-layer {
   position: absolute;
   inset: 0;
+  z-index: 8; /* a fala fica por cima de tudo do jogo (painéis, clínica, telas); só os menus (pausa) por cima dela */
   pointer-events: auto;
   cursor: pointer;
   display: none;

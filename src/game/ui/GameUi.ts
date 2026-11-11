@@ -199,7 +199,10 @@ export class GameUi {
     const ced = content.cedText.lines;
     bus.on('crowdfund.donated', ({ donorName, amount, source }) => {
       const line = source === 'boost' ? ced.stallBoost : source === 'player' ? ced.topUp : source === 'counter' ? ced.donationCounter : ced.donationRemote;
-      this.toast(fillNames(session, line!).replace('{donor}', donorName).replace('{amount}', String(amount)), source === 'boost' ? 4000 : 2500);
+      const text = fillNames(session, line!).replace('{donor}', donorName).replace('{amount}', String(amount));
+      // A ajudinha da Dona Neusa é fala dela: no balão de fala; as doações são avisos.
+      if (source === 'boost') void this.npcSay('npc.neusa', text);
+      else this.toast(text, 2500);
     });
     bus.on('crowdfund.completed', ({ raised, target }) => this.toast(ced.goal!.replace('{total}', String(raised)).replace('{target}', String(target)), 4000));
     bus.on('cat.affection_changed', ({ catId, to }) => {
@@ -372,24 +375,22 @@ export class GameUi {
     bus.on('cat.settled', ({ catId }) => this.toast(uiText.cats.settled.replace('{cat}', session.catName(catId)), 4000));
     bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
     // Clínica: as falas da Fernanda (data/vet_text.json) quando ela traz o gato, quando ele sai do cercadinho, a
-    // complicação e o desconto de amiga. Avisos (empilham), sem prender o jogo.
-    const fernanda = (text: string) => `${content.npcs['npc.fernanda']?.name ?? 'Fernanda'}: ${text}`;
+    // complicação e o desconto de amiga. Falas: no balão de fala (por cima de tudo), na fila.
+    const fernanda = (text: string) => void this.npcSay('npc.fernanda', text);
     bus.on('clinic.delivered', ({ catId, inPen, first, isolationDays, aftercareDays }) => {
-      this.toast(fernanda(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId)), 7000);
+      fernanda(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId));
       // A primeira vez: o cercadinho com fraldas e as latinhas.
-      if (first) {
-        this.toast(fernanda(vetLine(session, 'neuter.diapers', {}, catId)), 7000);
-      }
+      if (first) fernanda(vetLine(session, 'neuter.diapers', {}, catId));
     });
-    bus.on('clinic.released', ({ catId }) => this.toast(fernanda(vetLine(session, 'neuter.released', {}, catId)), 4500));
+    bus.on('clinic.released', ({ catId }) => fernanda(vetLine(session, 'neuter.released', {}, catId)));
     bus.on('clinic.complication', ({ catId, missedFeed }) => {
-      this.toast(fernanda(vetLine(session, 'neuter.complication', {}, catId)), 6000);
-      if (missedFeed) this.toast(fernanda(vetLine(session, 'neuter.missedFeed', {}, catId)), 5000);
+      fernanda(vetLine(session, 'neuter.complication', {}, catId));
+      if (missedFeed) fernanda(vetLine(session, 'neuter.missedFeed', {}, catId));
     });
-    bus.on('clinic.friend_discount', () => this.toast(fernanda(vetLine(session, 'discount.friend')), 7000));
-    bus.on('clinic.checkup', ({ catId }) => this.toast(fernanda(vetLine(session, 'intake.checkup', {}, catId)), 7000));
-    bus.on('clinic.credit', () => this.toast(fernanda(vetLine(session, 'credit.offer')), 5000));
-    bus.on('clinic.debt_paid', () => this.toast(fernanda(vetLine(session, 'credit.retroactive')), 6000));
+    bus.on('clinic.friend_discount', () => fernanda(vetLine(session, 'discount.friend')));
+    bus.on('clinic.checkup', ({ catId }) => fernanda(vetLine(session, 'intake.checkup', {}, catId)));
+    bus.on('clinic.credit', () => fernanda(vetLine(session, 'credit.offer')));
+    bus.on('clinic.debt_paid', () => fernanda(vetLine(session, 'credit.retroactive')));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
     // A caixa aberta: o que veio nela (uma linha só, mesmo com vários itens).
     bus.on('delivery.box_opened', ({ itemIds }) => this.toast(uiText.delivery.unpacked.replace('{item}', listNames(itemIds.map((id) => content.items[id]?.name ?? id))), 3500));

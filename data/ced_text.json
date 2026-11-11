@@ -4,7 +4,7 @@
   "lines": {
     "donationRemote": "CatPay: +{amount} de {donor}",
     "donationCounter": "{donor} doou {amount} pelo CatPay",
-    "stallBoost": "Dona Neusa: vi a vaquinha dos gatinhos! Mandei uma ajudinha, viu?",
+    "stallBoost": "Vi a vaquinha dos gatinhos! Mandei uma ajudinha, viu?",
     "goal": "A vaquinha bateu a meta! {total} de {target}",
     "topUp": "Você completou a vaquinha com {amount} do caixa."
   },
