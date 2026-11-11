@@ -187,6 +187,7 @@
   },
   "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · I: guardar na mochila · Esc: cancelar",
   "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
+  "hintMovePick": "O móvel que pisca é o que vai mudar de lugar · F: próximo · E, Enter ou clique: escolher · Esc: cancelar",
   "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: guardar na mochila · Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",

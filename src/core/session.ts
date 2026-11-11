@@ -58,7 +58,7 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
+import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
@@ -3763,6 +3763,11 @@ export class GameSession {
   /** Móvel da jogadora numa célula, se houver. */
   placedAt(cell: Cell) {
     return placedItemAt(this.content.catalog, this.state.placed, this.content.items, cell);
+  }
+
+  /** Todos os móveis numa célula, de cima para baixo (o globo, o balcão embaixo dele, o tapete). */
+  placedAllAt(cell: Cell) {
+    return placedItemsAt(this.content.catalog, this.state.placed, this.content.items, cell);
   }
 
   /** O móvel e o que está em cima dele (cafeteira no balcão...): vão juntos ao mover ou guardar. */

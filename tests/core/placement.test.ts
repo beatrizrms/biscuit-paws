@@ -61,6 +61,25 @@ describe('regras de posicionamento', () => {
     expect(put(s, 'item.paw_rug', [10, 8])).toEqual({ ok: false, reason: 'occupied' });
   });
 
+  it('vaso no chão por cima do tapete não fica preso ao tapete; o balcão leva o que está em cima dele', () => {
+    const s = richSession();
+    put(s, 'item.rug_b', [9, 7]);
+    put(s, 'item.plant_pot', [9, 7]); // no chão, na fileira de cima do tapete
+    const rug = s.state.placed.find((p) => p.item === 'item.rug_b')!;
+    const vase = s.state.placed.find((p) => p.item === 'item.plant_pot')!;
+    expect(s.movingGroup(rug.uid)).toEqual([rug]);
+    expect(s.hostUnder(vase)).toBeUndefined();
+    // Cada peça da célula, de cima para baixo: o vaso e o tapete (dá para escolher qualquer um).
+    expect(s.placedAllAt([9, 7]).map((p) => p.item)).toEqual(['item.plant_pot', 'item.rug_b']);
+    // Balcão com vaso em cima, por cima do tapete: mover o balcão de volta leva o vaso.
+    put(s, 'item.counter_mid', [11, 7]);
+    put(s, 'item.flower_vase', [11, 7]);
+    const counter = s.state.placed.find((p) => p.item === 'item.counter_mid')!;
+    expect(s.move(counter.uid, [5, 7])).toEqual({ ok: true });
+    expect(s.state.placed.find((p) => p.item === 'item.flower_vase')!.at).toEqual([5, 7]);
+    expect(s.placedAllAt([5, 7]).map((p) => p.item)).toEqual(['item.flower_vase', 'item.counter_mid']);
+  });
+
   it('nada sólido no ponto de partida nem em cima da personagem', () => {
     const s = richSession();
     const [sc, sr] = content.map.spawn.player;

@@ -33,7 +33,7 @@ const CALL_CUTSCENE = 'cs.builder_call';
 /** A ligação das vezes seguintes (ela e o Tião já se conhecem): sem a apresentação. */
 const CALL_AGAIN_CUTSCENE = 'cs.builder_call_again';
 
-type HintMode = 'walk' | 'placing' | 'moving' | 'upgradePick' | 'dialogue';
+type HintMode = 'walk' | 'placing' | 'moving' | 'movePick' | 'upgradePick' | 'dialogue';
 
 const TYPE_SPEED_MS = 22;
 
@@ -1175,7 +1175,7 @@ ${rep}`;
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
     this.hint.textContent =
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */

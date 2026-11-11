@@ -86,6 +86,8 @@ const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
 const UPGRADE_BLINK_MS = 420;
+/** Mudar de lugar com mais de um móvel perto: o escolhido fica dourado e uma seta pula em cima dele. */
+const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
@@ -291,15 +293,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('F', () => {
       if (this.ui.isBusy() || this.areaSelect || this.changingMap || this.scripts.isRunning()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
+      if (this.movePick) return this.cycleMovePick();
       if (this.placing) return this.dropPlacing();
       if (!this.session.atHome()) return this.ui.toastText('notHome');
-      const uid = this.furnitureNearPlayer();
-      if (!uid) return this.ui.problem('no_furniture_near');
-      this.startMoving(uid, true);
+      const uids = this.furnitureCandidates();
+      if (uids.length === 0) return this.ui.problem('no_furniture_near');
+      this.chooseToMove(uids);
     });
     this.onKey('ENTER', () => {
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) this.pickUpgradeNear();
+      else if (this.movePick) this.confirmMovePick();
       else if (this.placing) this.dropPlacing();
     });
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
@@ -310,6 +314,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('ESC', () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.pickingUpgrade) this.finishUpgradePick(null);
+      else if (this.movePick) this.endMovePick();
       else if (this.placing) {
         this.parcelQueue = []; // o resto da caixa fica na mochila
         this.cancelPlacing();
@@ -324,6 +329,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
+      if (this.movePick) return this.confirmMovePick();
       const kind = this.eTarget()?.kind;
       if (this.interact() && kind) this.session.noteHintUse(kind);
     });
@@ -537,7 +543,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateAmbience();
     const input = this.autoWalk
       ? this.autoWalkInput()
-      : busy || this.placing
+      : busy || this.placing || this.movePick
       ? NO_INPUT
       : {
           // Teclado ou o direcional de toque.
@@ -560,7 +566,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.layoutClinicCats();
     for (const cat of this.cats) if (cat.visible && !this.clinicHeld.has(cat.catId)) cat.tick(this.time.now);
     // Dica "E": recalcula 10 vezes por segundo (procurar o que está perto passa pelos pedidos todos).
-    if (busy || this.placing) this.hint.show(null);
+    if (busy || this.placing || this.movePick) this.hint.show(null);
     else if (this.time.now - this.hintCheckedAt >= 100) {
       this.hintCheckedAt = this.time.now;
       const at = this.eTarget();
@@ -685,7 +691,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** (Re)desenha o mapa e a colisão. Sem `mapId`, redesenha o mapa atual (ex.: um móvel mudou). */
   private buildMap(mapId = this.session.location()): void {
-    this.map = resolveMap(this.session.mapData(mapId), this.session.content.catalog);
+    this.endMovePick(); // os desenhos dos móveis vão ser refeitos (o pisca sairia do lugar)
+    this.map =resolveMap(this.session.mapData(mapId), this.session.content.catalog);
     const ts = this.map.tileSize;
 
     this.mapImages?.destroy(true);
@@ -1004,6 +1011,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Botão direito (ou F) num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
   private startMoving(uid: string, fromKeys = false): void {
+    this.endMovePick();
     this.cancelPlacing();
     const group = this.session.movingGroup(uid);
     const host = group[0];
@@ -1104,17 +1112,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /**
-   * O móvel da jogadora que o F pega: o da frente dela, senão um encostado nela. Olhando para cima, também os da
-   * parede (quadros, relógio). Balcão com cafeteira: pega o balcão (ela vai junto).
+   * O móvel da jogadora que a assistência pega: o da frente dela, senão um encostado nela. Balcão com cafeteira: pega
+   * o balcão (ela vai junto).
    */
   private furnitureNearPlayer(accept: (uid: string) => boolean = () => true): string | null {
-    const [c, r] = this.feetCell();
-    const dir = this.player.facingDirection();
-    const ahead: Cell[] =
-      dir === 'up' ? [[c, r - 1], [c, r - 2], [c, r - 3]] : dir === 'down' ? [[c, r + 1]] : dir === 'left' ? [[c - 1, r]] : [[c + 1, r]];
-    const around = ([[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([dc, dr]): Cell => [c + dc, r + dr]);
-    const { items } = this.session.content;
-    for (const cell of [...ahead, ...around]) {
+    for (const cell of this.cellsNearPlayer()) {
       const placed = this.session.placedAt(cell);
       if (!placed) continue;
       const host = this.session.hostUnder(placed);
@@ -1122,6 +1124,100 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (accept(uid)) return uid;
     }
     return null;
+  }
+
+  /** As células perto dela, a da frente primeiro. Olhando para cima, também as da parede (quadros, relógio). */
+  private cellsNearPlayer(): Cell[] {
+    const [c, r] = this.feetCell();
+    const dir = this.player.facingDirection();
+    const ahead: Cell[] =
+      dir === 'up' ? [[c, r - 1], [c, r - 2], [c, r - 3]] : dir === 'down' ? [[c, r + 1]] : dir === 'left' ? [[c - 1, r]] : [[c + 1, r]];
+    const around = ([[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([dc, dr]): Cell => [c + dc, r + dr]);
+    return [...ahead, ...around];
+  }
+
+  /**
+   * Os móveis que o F pode mudar de lugar, o da frente primeiro. Numa célula, cada peça conta: o globo em cima do
+   * balcão, o balcão (com o globo) e o tapete embaixo.
+   */
+  private furnitureCandidates(cells: readonly Cell[] = this.cellsNearPlayer()): string[] {
+    const out: string[] = [];
+    for (const cell of cells) for (const p of this.session.placedAllAt(cell)) if (!out.includes(p.uid)) out.push(p.uid);
+    return out;
+  }
+
+  // ---------- Mudar de lugar: escolher o móvel (quando há mais de um perto) ----------
+
+  /** Escolhendo qual móvel mudar de lugar: o destacado pisca; F passa para o próximo, E ou Enter escolhe. */
+  private movePick: { uids: string[]; i: number } | null = null;
+  /** A seta em cima do móvel escolhido. */
+  private pickArrow: Phaser.GameObjects.Graphics | null = null;
+
+  /** Um móvel só: muda de lugar direto. Mais de um: destaca o primeiro para ela escolher. */
+  private chooseToMove(uids: string[]): void {
+    if (uids.length === 1) return this.startMoving(uids[0]!, true);
+    this.cancelPlacing();
+    this.movePick = { uids, i: 0 };
+    this.player.setVelocity(0, 0);
+    this.ui.setHint('movePick');
+    this.highlightMovePick();
+  }
+
+  private cycleMovePick(): void {
+    if (!this.movePick) return;
+    this.movePick.i = (this.movePick.i + 1) % this.movePick.uids.length;
+    this.highlightMovePick();
+  }
+
+  private confirmMovePick(): void {
+    const uid = this.movePick?.uids[this.movePick.i];
+    this.endMovePick();
+    if (uid) this.startMoving(uid, true);
+  }
+
+  private endMovePick(): void {
+    if (!this.movePick) return;
+    this.movePick = null;
+    this.highlightMovePick();
+    this.ui.setHint('walk');
+  }
+
+  /** O escolhido (e o que vai junto com ele) pisca; o resto fica normal. */
+  private highlightMovePick(): void {
+    const uid = this.movePick?.uids[this.movePick.i];
+    const group = uid ? this.session.movingGroup(uid) : [];
+    const ids = new Set(group.map((p) => p.uid));
+    for (const p of this.session.state.placed) {
+      this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => {
+        this.tweens.killTweensOf(img);
+        img.setAlpha(1).clearTint();
+        if (!ids.has(p.uid)) return;
+        img.setTint(PICK_TINT);
+        this.tweens.add({ targets: img, alpha: 0.55, duration: UPGRADE_BLINK_MS, yoyo: true, repeat: -1 });
+      });
+    }
+    // A seta: em cima do topo do grupo (o que vai em cima, subido até o tampo), por cima da personagem.
+    if (this.pickArrow) this.tweens.killTweensOf(this.pickArrow);
+    this.pickArrow?.destroy();
+    this.pickArrow = null;
+    if (group.length === 0) return;
+    const ts = this.map.tileSize;
+    const { catalog, items, world } = this.session.content;
+    const lift = world.counterLift ?? 0;
+    let top = Infinity;
+    let cx = 0;
+    for (const [i, p] of group.entries()) {
+      const def = catalog.tiles[items[p.item]?.tile ?? ""];
+      const y = p.at[1] * ts - (i > 0 ? lift : 0);
+      if (i === 0) cx = (p.at[0] + (def?.w ?? 1) / 2) * ts;
+      top = Math.min(top, y);
+    }
+    const g = this.add.graphics().setDepth(GHOST_DEPTH + 2);
+    g.fillStyle(0x3b2a20, 1).fillTriangle(-9, -14, 9, -14, 0, 0);
+    g.fillStyle(PICK_TINT, 1).fillTriangle(-6, -12, 6, -12, 0, -3);
+    g.setPosition(cx, top - 2);
+    this.tweens.add({ targets: g, y: top - 8, duration: UPGRADE_BLINK_MS, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.pickArrow = g;
   }
 
   /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila. */
@@ -1134,6 +1230,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   private cancelPlacing(): void {
+    this.endMovePick();
     this.placing?.ghosts.forEach((g) => g.destroy());
     this.placing?.riders?.forEach((r) => r.ghosts.forEach((g) => g.destroy()));
     if (this.placing?.moveUid) for (const imgs of this.objectImages.values()) imgs.forEach((img) => img.setAlpha(1));
@@ -1176,6 +1273,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else this.ui.problem('no_upgrade');
       return;
     }
+    if (this.movePick) {
+      // Escolhendo: clicar numa peça da lista escolhe ela; fora (ou botão direito), cancela.
+      const uid = this.furnitureCandidates([this.cellAt(pointer)]).find((u) => this.movePick!.uids.includes(u));
+      this.endMovePick();
+      if (uid && !pointer.rightButtonDown()) this.startMoving(uid);
+      return;
+    }
     if (!pointer.rightButtonDown() && !this.placing && this.interact(this.cellAt(pointer))) return;
     if (!this.session.atHome()) return;
     if (this.placing) {
@@ -1194,13 +1298,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return;
     }
     {
-      // Botão direito: mudar o móvel de lugar (o que está em cima vai junto; Q guarda na mochila). Na célula de um
-      // balcão com cafeteira, pega o balcão (com ela); Shift + botão direito pega só a de cima.
-      const placed = this.session.placedAt(this.cellAt(pointer));
-      if (!placed) return;
-      const shift = (pointer.event as MouseEvent | undefined)?.shiftKey ?? false;
-      const host = shift ? undefined : this.session.hostUnder(placed);
-      this.startMoving((host ?? placed).uid);
+      // Botão direito: mudar o móvel de lugar (o que está em cima vai junto; Q guarda na mochila). Com mais de uma peça
+      // na célula (o globo em cima do balcão), destaca para ela escolher (F passa, E ou clique escolhe).
+      const uids = this.furnitureCandidates([this.cellAt(pointer)]);
+      if (uids.length === 1) this.startMoving(uids[0]!);
+      else if (uids.length > 1) this.chooseToMove(uids);
     }
   }
 

@@ -54,9 +54,14 @@ export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, I
 
 /** Tudo o que está em cima deste móvel (vai junto ao mover ou guardar). Um apoio não é rider de ninguém. */
 export function ridersOf(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem, footprint: Footprint = originOnly): PlacedItem[] {
-  if (items[host.item]?.placeOn) return [];
+  const hostDef = items[host.item];
+  if (!hostDef || hostDef.placeOn) return [];
   const cells = footprint(host);
-  return placed.filter((p) => p !== host && items[p.item]?.placeOn && cells.some((c) => sameCell(c, p.at)));
+  // Só quem pode ir em cima dele (a tag do apoio): um globo solto no chão por cima do tapete não vai junto com o tapete.
+  return placed.filter((p) => {
+    const tag = items[p.item]?.placeOn;
+    return p !== host && !!tag && hostDef.tags.includes(tag) && cells.some((c) => sameCell(c, p.at));
+  });
 }
 
 /** Onde um item que vai em cima pode ficar: num apoio com a tag, sem nada em cima naquela célula. */
@@ -120,15 +125,25 @@ export function placedItemAt(
   catalog: TileCatalog,
   placed: readonly PlacedItem[],
   items: Record<string, ItemDef>,
-  [col, row]: Cell,
+  cell: Cell,
 ): PlacedItem | undefined {
+  return placedItemsAt(catalog, placed, items, cell)[0];
+}
+
+/** Todos os móveis da jogadora numa célula, de cima para baixo (o que vai em cima, objeto, parede, piso). */
+export function placedItemsAt(
+  catalog: TileCatalog,
+  placed: readonly PlacedItem[],
+  items: Record<string, ItemDef>,
+  [col, row]: Cell,
+): PlacedItem[] {
   const order: TileLayer[] = ['object', 'wall', 'floor'];
   const hits = placed.flatMap((p) => {
     const def = catalog.tiles[items[p.item]?.tile ?? ''];
     if (!def || !cellsOf(p.at, def).some(([c, r]) => c === col && r === row)) return [];
     return [{ p, rank: order.indexOf(def.layer) - (items[p.item]?.placeOn ? 1 : 0) }];
   });
-  return hits.sort((a, b) => a.rank - b.rank)[0]?.p;
+  return hits.sort((a, b) => a.rank - b.rank).map((h) => h.p);
 }
 
 function occupiedCells(map: MapData, catalog: TileCatalog, layer: TileLayer): Set<string> {
