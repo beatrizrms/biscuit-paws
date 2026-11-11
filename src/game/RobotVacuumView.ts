@@ -14,6 +14,8 @@ const ART_SCALE = 0.5;
 const SPEED = 40;
 const SHINE_EVERY_MS = 70;
 const SHINE_FADE_MS = 2600;
+/** Quantos px atrás do robô o brilho do pano aparece. */
+const SHINE_BEHIND = 9;
 /** Estacionado: os pés do robô ficam tantos px abaixo da base da célula da base (encostado na frente dela). */
 const DOCK_DROP = 14;
 
@@ -48,9 +50,14 @@ export class RobotVacuumView {
     this.shownOn = day;
     const start = this.startCell(dock.at);
     if (!start) return;
-    // A volta pelas células livres (desvia dos móveis); sem caminho, vai direto.
-    const path = findPath(solid(), start, dock.at);
-    const stops = (path ? pathCorners(path).slice(0, -1) : []).map(([c, r]): [number, number] => [(c + 0.5) * tileSize, (r + 1) * tileSize - 6]);
+    // A volta pelas células livres (desvia dos móveis e não passa por cima da base); sem caminho, vai direto. Ele chega
+    // de frente: vai até a célula logo abaixo da frente da base e sobe reto até estacionar.
+    const grid = solid();
+    const free = ([c, r]: Cell) => grid[r]?.[c] === false;
+    const front: Cell = [dock.at[0], dock.at[1] + 1];
+    const approach: Cell = free([front[0], front[1] + 1]) ? [front[0], front[1] + 1] : front;
+    const path = findPath(grid, start, approach);
+    const stops = (path ? pathCorners(path) : []).map(([c, r]): [number, number] => [(c + 0.5) * tileSize, (r + 1) * tileSize - 6]);
     this.returnHome((start[0] + 0.5) * tileSize, (start[1] + 1) * tileSize - 6, [...stops, [dockX, dockY]], (dock.at[1] + 1) * tileSize);
   }
 
@@ -76,6 +83,9 @@ export class RobotVacuumView {
     if (!robot) return;
     const ms = Math.max(60, (Math.hypot(x1 - robot.x, y1 - robot.y) / SPEED) * 1000);
     let lastShine = 0;
+    // O pano molhado fica para trás: o brilho nasce atrás dele, no sentido contrário ao que ele anda.
+    const len = Math.hypot(x1 - robot.x, y1 - robot.y) || 1;
+    const [bx, by] = [-(x1 - robot.x) / len, -(y1 - robot.y) / len];
     this.tween = this.scene.tweens.add({
       targets: robot,
       x: x1,
@@ -87,7 +97,7 @@ export class RobotVacuumView {
         const now = this.scene.time.now;
         if (now - lastShine < SHINE_EVERY_MS) return;
         lastShine = now;
-        this.shine(robot.x, robot.y - 3);
+        this.shine(robot.x + bx * SHINE_BEHIND, robot.y - 3 + by * SHINE_BEHIND);
       },
       onComplete: () => {
         this.tween = null;
