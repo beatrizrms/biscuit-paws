@@ -1150,6 +1150,19 @@
       "placeOn": "bar"
     },
     {
+      "id": "item.catpay_sign",
+      "name": "Plaquinha do CatPay",
+      "price": 0,
+      "tile": "vet_placa_cruz_vet",
+      "description": "Plaquinha com o código da vaquinha no CatPay. No balcão, os clientes doam enquanto pagam; sem ela, quase ninguém lembra.",
+      "tags": [
+        "furniture",
+        "decor",
+        "ced"
+      ],
+      "placeOn": "bar"
+    },
+    {
       "id": "item.christmas_tree",
       "name": "Árvore de Natal",
       "description": "Enfeite de Natal: árvore de Natal para o café.",

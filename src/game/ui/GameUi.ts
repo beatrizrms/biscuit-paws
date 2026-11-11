@@ -189,6 +189,12 @@ export class GameUi {
       if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
       else this.cutscene.request(cutsceneId);
     });
+    const ced = content.cedText.lines;
+    bus.on('crowdfund.donated', ({ donorName, amount, source }) => {
+      const line = source === 'boost' ? ced.stallBoost : source === 'player' ? ced.topUp : source === 'counter' ? ced.donationCounter : ced.donationRemote;
+      this.toast(fillNames(session, line!).replace('{donor}', donorName).replace('{amount}', String(amount)), source === 'boost' ? 4000 : 2500);
+    });
+    bus.on('crowdfund.completed', ({ raised, target }) => this.toast(ced.goal!.replace('{total}', String(raised)).replace('{target}', String(target)), 4000));
     bus.on('cat.affection_changed', ({ catId, to }) => {
       if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });

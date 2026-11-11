@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "_comment": "CED (captura, esterilização e devolução) e a vaquinha (src/core/ced.ts e src/core/crowdfund.ts). Textos e cenas em data/ced_text.json. intro.when: quando a Fernanda chama para a CED (condição da história); aí o app CatPay aparece e a vaquinha começa. vaquinha: a meta sai de cats gatos x o kit (materiais da cirurgia e do pós por gato, com o preço baixo do fornecedor da Fernanda); deadlineDays: prazo opcional (null = sem prazo). counter: doação no balcão quando o cliente paga: chance com a plaquinha (signItem posicionada) e sem ela; valor sorteado entre amount; + perHeart por coração do cliente com ela. remote: doação pelo app, mesmo longe do café: cada morador de donors pode doar uma vez por dia (no balcão ou pelo app); chance = base x (ratingMin + nota do café/5 x (1 - ratingMin)) x (1 + hearts x heartWeight) x reach, no máximo maxChance; o valor como no balcão; a hora sorteada entre hours. antiStall: abaixo de minPerDay por dia (média dos últimos windowDays dias, depois de afterDays dias), npc doa boostShare do que falta (no mínimo minBoost). topUp: a protagonista completa com o caixa, até maxShare da meta por vaquinha.",
+  "intro": {
+    "when": {
+      "all": [
+        { "flag": "vet.neutered_once" },
+        { "clock": { "gte": "08:00" } },
+        { "not": { "clock": { "gte": "18:00" } } }
+      ]
+    }
+  },
+  "vaquinha": {
+    "cats": 4,
+    "kit": [
+      { "id": "mat.carrier", "name": "Caixa de transporte", "price": 12 },
+      { "id": "mat.recovery_food", "name": "Ração de recuperação", "price": 8 },
+      { "id": "mat.dressing", "name": "Curativos", "price": 6 },
+      { "id": "mat.collar", "name": "Colar de proteção", "price": 9 }
+    ],
+    "deadlineDays": null
+  },
+  "counter": {
+    "signItem": "item.catpay_sign",
+    "chanceWithSign": 0.35,
+    "chanceWithoutSign": 0.04,
+    "amount": [2, 6],
+    "perHeart": 1
+  },
+  "remote": {
+    "donors": ["npc.neusa", "npc.realtor", "npc.builder", "npc.mail_carrier", "npc.market_clerk", "npc.customer_01", "npc.customer_02", "npc.customer_03", "npc.customer_04", "npc.customer_05", "npc.customer_06", "npc.customer_07", "npc.customer_08", "npc.customer_09", "npc.customer_10"],
+    "base": 0.12,
+    "ratingMin": 0.4,
+    "heartWeight": 0.15,
+    "reach": 1,
+    "maxChance": 0.6,
+    "hours": ["09:00", "20:00"]
+  },
+  "antiStall": { "afterDays": 3, "windowDays": 3, "minPerDay": 10, "npc": "npc.neusa", "boostShare": 0.3, "minBoost": 15 },
+  "topUp": { "maxShare": 0.3 }
+}

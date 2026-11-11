@@ -34,6 +34,13 @@ export interface GameEvents {
   'clinic.debt_paid': { amount: number };
   /** A Fernanda aproveitou outra consulta para os testes e o checkup. */
   'clinic.checkup': { catId: string };
+  // CED (ced.ts) e a vaquinha pelo CatPay (crowdfund.ts).
+  'ced.started': { crowdfundId: string; target: number };
+  'crowdfund.donated': { donor: string; donorName: string; amount: number; source: 'counter' | 'remote' | 'boost' | 'player'; raised: number; target: number; customerId?: string };
+  'crowdfund.completed': { crowdfundId: string; raised: number; target: number };
+  'crowdfund.spent': { crowdfundId: string; cats: number; balance: number };
+  /** Gancho da campanha (etapa C): a vaquinha pagou os materiais e a Gabi já sabe. */
+  'ced.ready': { cats: number };
   /** Contágio: pegou a doença de outro gato. */
   'cat.infected': { catId: string; fromCatId: string; disease: string };
   /** De manhã: gatos doentes demais, os clientes evitam o café. */

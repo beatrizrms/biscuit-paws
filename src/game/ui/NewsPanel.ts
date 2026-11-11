@@ -2,13 +2,14 @@
 // O celular tem a moldura do pacote (data/phone.json) e uma tela de início com os apps:
 // "Vila Hoje" (notícias + pedidos da vila), "Meus gatos" (os gatos abrigados), "Market" (compras online, MarketApp),
 // "Horário" (dias e horas de funcionamento, ScheduleApp), "Calendário" (dias importantes, CalendarApp) e
-// "Café em números" (o raio X do café, StatsApp).
+// "Café em números" (o raio X do café, StatsApp) e, depois que a Fernanda chama para a CED, "CatPay" (a vaquinha, CatPayApp).
 // O mural é um painel simples, só com os pedidos. Quem decide se um pedido pode ser aceito é o núcleo.
 import type { CatProfile, GameSession } from '../../core/session';
 import { formatClock } from '../../core/time';
 import { content, phone, uiText } from '../content';
 import { catSexText } from './vetText';
 import { CalendarApp } from './CalendarApp';
+import { CatPayApp } from './CatPayApp';
 import { MarketApp, type MarketHost } from './MarketApp';
 import { fillNames } from './text';
 import { ScheduleApp } from './ScheduleApp';
@@ -17,7 +18,7 @@ import { iconHtml } from './ShopPanel';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar' | 'notes' | 'stats';
+export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar' | 'notes' | 'stats' | 'catpay';
 
 export class NewsPanel {
   /** Mural do mercado. */
@@ -33,6 +34,7 @@ export class NewsPanel {
   private scheduleApp: ScheduleApp;
   private calendarApp: CalendarApp;
   private statsApp: StatsApp;
+  private catPayApp: CatPayApp;
 
   constructor(
     root: HTMLElement,
@@ -75,6 +77,7 @@ export class NewsPanel {
     this.scheduleApp = new ScheduleApp(session, onProblem);
     this.calendarApp = new CalendarApp(session);
     this.statsApp = new StatsApp(session);
+    this.catPayApp = new CatPayApp(session);
 
     for (const ev of ['arrival.started', 'arrival.finished', 'arrival.step', 'job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
       session.bus.on(ev, () => this.render());
@@ -82,6 +85,11 @@ export class NewsPanel {
     for (const ev of ['customer.served', 'customer.left', 'reputation.changed', 'stats.day_closed', 'milestone.reached'] as const)
       session.bus.on(ev, () => {
         if (this.mode === 'phone' && this.app === 'stats') this.render();
+      });
+    // CatPay aberto: cada doação aparece na hora.
+    for (const ev of ['crowdfund.donated', 'crowdfund.completed', 'crowdfund.spent', 'ced.ready'] as const)
+      session.bus.on(ev, () => {
+        if (this.mode === 'phone' && this.app === 'catpay') this.render();
       });
     // Saldo na barra do celular (ele cobre as moedas do HUD): só o número muda, o app aberto fica como está.
     session.bus.on('money.changed', () => this.showMoney());
@@ -148,6 +156,7 @@ export class NewsPanel {
       calendar: uiText.calendarApp.app,
       notes: uiText.notesApp.app,
       stats: uiText.statsApp.app,
+      catpay: uiText.catPayApp.app,
     };
     this.phoneEl.dataset.app = this.app;
     (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
@@ -159,6 +168,7 @@ export class NewsPanel {
     if (this.app === 'calendar') return this.calendarApp.render(body);
     if (this.app === 'notes') return this.renderNotes(body);
     if (this.app === 'stats') return this.statsApp.render(body);
+    if (this.app === 'catpay') return this.catPayApp.render(body);
     if (this.app === 'cats') body.innerHTML = this.catsHtml();
     else if (this.app === 'news') {
       body.innerHTML = this.jobsHtml(true);
@@ -220,6 +230,8 @@ export class NewsPanel {
       { id: 'notes', name: uiText.notesApp.app, icon: '<span class="notes-face"><i></i><i></i><i></i></span>', badge: this.session.state.shoppingList.length > 0 },
       { id: 'stats', name: uiText.statsApp.app, icon: '<span class="stats-face"><i></i><i></i><i></i></span>' },
     ];
+    // PLACEHOLDER(arte): ícone do CatPay desenhado por CSS (pata + moeda) até a arte nova.
+    if (this.session.ced.appVisible()) apps.push({ id: 'catpay', name: uiText.catPayApp.app, icon: '<span class="catpay-face">₵</span>' });
     return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
       .map(
         (a) => `<button class="p-app" data-app="${a.id}"><span class="p-icon ${a.id}">${a.icon}${

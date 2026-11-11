@@ -955,6 +955,25 @@
     "hint": "Some da lista quando você compra.",
     "remove": "riscar"
   },
+  "catPayApp": {
+    "app": "CatPay",
+    "none": "Nenhuma vaquinha ativa.",
+    "purposes": { "ced": "Castração dos gatinhos da vila" },
+    "of": "de {target} arrecadados",
+    "balance": "Saldo",
+    "goalReached": "Meta batida! A Fernanda já vai falar com o fornecedor.",
+    "topUp": "Completar {n} do caixa",
+    "topUpHint": "Até {n} da meta pode sair do caixa do café.",
+    "topUpDone": "Você já completou o máximo pelo caixa.",
+    "noMoney": "Sem moedas no caixa agora.",
+    "donations": "Doações",
+    "noDonations": "Ainda sem doações. Ponha a plaquinha do CatPay no balcão!",
+    "statement": "Extrato",
+    "noSpends": "Nenhum gasto ainda: o dinheiro só compra os materiais da campanha.",
+    "you": "Você",
+    "day": "dia {n}",
+    "sources": { "counter": "no balcão", "remote": "pelo app", "boost": "ajuda", "player": "do caixa" }
+  },
   "phoneApp": {
     "home": "Início",
     "back": "voltar",

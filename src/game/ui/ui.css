@@ -1210,3 +1210,28 @@
   animation: hover-tip-in 0.12s ease-out;
 }
 @keyframes hover-tip-in { from { opacity: 0; } }
+
+/* App CatPay (vaquinha da CED): carteira de app de pagamento, verde-menta com a barra da meta */
+.p-icon .catpay-face { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--mint2); border: 2px solid var(--mint3); box-sizing: border-box; font-size: 12px; font-weight: bold; color: #fff; text-shadow: 0 1px 0 var(--mint3); }
+.phone-ui[data-app='catpay'] .phone-bar button, .phone-ui[data-app='catpay'] .phone-bar h2 { color: var(--mint3); }
+.phone-ui[data-app='catpay'] .phone-body { background: #f4fbf6; }
+.catpay-app { padding: 0 2px 4px; font-size: 8px; color: var(--ink); }
+.catpay-app h3 { margin: 8px 0 3px; font-size: 8px; color: var(--mint3); text-transform: uppercase; letter-spacing: 0.5px; }
+.catpay-app .cp-none { margin: 18px 0; text-align: center; color: var(--grey2); font-size: 9px; }
+.cp-card { padding: 6px; border-radius: 6px; background: #fff; border: 1.5px solid var(--mint2); }
+.cp-card p { margin: 0 0 3px; }
+.cp-purpose { font-weight: bold; font-size: 8.5px; }
+.cp-raised b { font-size: 13px; color: var(--mint3); }
+.cp-bar { height: 6px; margin: 2px 0 4px; border-radius: 3px; background: #e3efe7; overflow: hidden; }
+.cp-bar i { display: block; height: 100%; background: var(--mint3); border-radius: 3px; }
+.cp-balance { color: var(--ink2); }
+.cp-goal { color: var(--mint3); font-weight: bold; }
+.cp-topup { width: 100%; margin-top: 3px; padding: 3px; border-radius: 4px; border: 1.5px solid var(--mint3); background: var(--mint2); color: var(--ink); font: inherit; font-weight: bold; cursor: pointer; }
+.cp-topup:disabled { opacity: 0.45; cursor: default; }
+.cp-hint, .cp-empty { color: var(--grey2); font-size: 7px; }
+.cp-list { margin: 0; padding: 0; list-style: none; }
+.cp-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 0; border-bottom: 1px solid #e3efe7; }
+.cp-who { display: flex; flex-direction: column; }
+.cp-who small { font-size: 6.5px; color: var(--grey2); }
+.cp-in { color: var(--mint3); }
+.cp-out { color: var(--berry); }

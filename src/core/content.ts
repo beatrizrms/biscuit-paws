@@ -21,6 +21,7 @@ import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, ty
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import { validateHealth, type HealthConfig } from './health';
 import { validateClinic, type ClinicConfig } from './clinic';
+import { validateCed, validateCedText, type CedConfig, type CedText } from './ced';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
@@ -383,6 +384,10 @@ export interface Content {
   clinic: ClinicConfig;
   /** Falas da Fernanda sobre a clínica (data/vet_text.json; pt-BR, para revisão com um veterinário). */
   vetText: VetText;
+  /** CED e a vaquinha pelo CatPay (data/ced.json). */
+  ced: CedConfig;
+  /** Falas e cenas da CED (data/ced_text.json; as cenas entram em cutscenes). */
+  cedText: CedText;
   /** Chegadas de gatos (data/arrivals.json). */
   arrivals: ArrivalsData;
   /** Eventos de festival (data/festivals.json). */
@@ -441,6 +446,10 @@ export interface RawContent {
   clinic: ClinicConfig;
   /** Falas da Fernanda sobre a clínica (data/vet_text.json; pt-BR, para revisão com um veterinário). */
   vetText: VetText;
+  /** CED e a vaquinha pelo CatPay (data/ced.json). */
+  ced: CedConfig;
+  /** Falas e cenas da CED (data/ced_text.json; as cenas entram em cutscenes). */
+  cedText: CedText;
   arrivals: ArrivalsData;
   festivals: FestivalsData;
   fairSetup: FairSetupData;
@@ -479,9 +488,9 @@ export function buildContent(raw: RawContent): Content {
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
-    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: raw.cutscenes.cutscenes, relationships: raw.relationships,
+    cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -490,7 +499,11 @@ const DEV_MARKERS = /\b(TODO|FIXME|WIP)\b/; // só em maiúsculas: "todo dia" é
 
 /** Confere IDs, prefixos e referências cruzadas. Lista vazia = tudo certo. */
 export function validateContent(raw: RawContent): string[] {
+  const dupScenes = Object.keys(raw.cedText.cutscenes).filter((id) => id in raw.cutscenes.cutscenes);
+  // As cenas da CED moram em ced_text.json mas são cenas como as outras: valida tudo junto.
+  raw = { ...raw, cutscenes: { ...raw.cutscenes, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes } } };
   const errors = raw.maps.flatMap((m) => validateMap(m, raw.catalog));
+  for (const id of dupScenes) errors.push(`ced_text: cena "${id}" repetida em cutscenes.json`);
   const err = (msg: string) => errors.push(msg);
   const playerText = (where: string, text: string) => {
     if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
@@ -585,6 +598,8 @@ export function validateContent(raw: RawContent): string[] {
   }
   errors.push(...validateClinic(raw.clinic, { items: new Set(raw.items.items.map((i) => i.id)) }));
   errors.push(...validateVetText(raw.vetText));
+  errors.push(...validateCed(raw.ced, { items: new Set(raw.items.items.map((i) => i.id)), npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
+  errors.push(...validateCedText(raw.cedText));
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)), icons: new Set(Object.keys(raw.icons.icons)) }));
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);

@@ -9,6 +9,7 @@ import type { Cell } from './map';
 import type { CatSickness } from './health';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
 import type { CatRepro, TestResult } from './repro';
+import { newCed, type CedState } from './ced';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
 import type { Appearance } from './appearance';
@@ -138,6 +139,8 @@ export interface GameState {
   catDefs: Record<string, CatDef>;
   /** Clínica da Fernanda (v36; clinic.ts): consultas pagas (desconto de amiga) e a agenda de cirurgias. */
   clinic: ClinicState;
+  /** CED (v37; ced.ts): a vaquinha pelo CatPay, quem já doou hoje e a campanha. */
+  ced: CedState;
   /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa (a dica "E" some depois de algumas). */
   hintUses: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
@@ -268,6 +271,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     arrivals: { active: null, queue: [], last: {}, nextOn: null, seq: 0, shelterPool: [] },
     catDefs: {},
     clinic: newClinic(),
+    ced: newCed(),
     hintUses: {},
     stats: newStats(),
     milestones: newMilestones(),

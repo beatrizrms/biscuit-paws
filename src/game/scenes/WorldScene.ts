@@ -432,6 +432,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
       this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
     });
+    this.session.bus.on('crowdfund.donated', ({ customerId, amount }) => {
+      const view = customerId ? this.customerViews.get(customerId) : undefined;
+      if (!view) return;
+      const x = view.sprite.x;
+      const y = view.sprite.y - 84;
+      const label = this.add.text(x, y, `♥ +${amount}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#d97890', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0.5).setDepth(99_600);
+      this.tweens.add({ targets: label, y: y - 16, alpha: 0, delay: 900, duration: 1000, onComplete: () => label.destroy() });
+    });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     // Ração no pote: todos comeram (núcleo), mas vão até o pote um de cada vez (a fila do pote).

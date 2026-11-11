@@ -17,12 +17,14 @@ import { normalizeStats } from './stats';
 import type { MilestonesState } from './milestones';
 import type { SantaRecord, SantaResult } from './secretSanta';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
+import { newCed, type CedState } from './ced';
+import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 
-export const SAVE_SCHEMA_VERSION = 36;
+export const SAVE_SCHEMA_VERSION = 37;
 
-export interface SaveV36 extends GameState {
-  schemaVersion: 36;
+export interface SaveV37 extends GameState {
+  schemaVersion: 37;
   savedAt: string;
 }
 
@@ -184,10 +186,12 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
    * reprodutivo ao carregar (session: sorteio com semente pelo id), sem consulta pendente (já estão com os outros).
    */
   35: (save) => ({ ...save, schemaVersion: 36, clinic: null }),
+  /** v36 -> v37: CED e a vaquinha pelo CatPay (ced.ts). Saves antigos: CED desligada (a Fernanda chama quando a condição valer). */
+  36: (save) => ({ ...save, schemaVersion: 37, ced: null }),
 };
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV36 = { schemaVersion: 36, savedAt: now.toISOString(), ...state };
+  const save: SaveV37 = { schemaVersion: 37, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -241,7 +245,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV36>;
+  const v2 = save as unknown as Partial<SaveV37>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -409,6 +413,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     arrivals: normalizeArrivals(v2.arrivals, known.arrivals, knownCat),
     catDefs,
     clinic: normalizeClinic(v2.clinic),
+    ced: normalizeCed(v2.ced),
     hintUses: Object.fromEntries(
       Object.entries(v2.hintUses ?? {}).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0),
     ),
@@ -706,5 +711,42 @@ function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown
   else if (st?.stage === 'isolation' && Number.isInteger(st.until) && typeof st.procedure === 'string') out.clinic = { stage: 'isolation', until: st.until!, procedure: st.procedure, ...(st.complication === true ? { complication: true } : {}) };
   const a = c.aftercare as Partial<Aftercare> | undefined;
   if (a && Number.isInteger(a.days) && Number.isInteger(a.dosesGiven)) out.aftercare = { days: a.days!, dosesGiven: a.dosesGiven!, lastDoseDay: Number.isInteger(a.lastDoseDay) ? a.lastDoseDay! : null };
+  return out;
+}
+
+/** Vaquinha do save (v37): só a bem formada (números, listas); quebrada = nenhuma. */
+function normalizeCrowdfund(c: unknown): Crowdfund | null {
+  const x = c as Partial<Crowdfund> | null;
+  if (!x || typeof x.id !== 'string' || typeof x.target !== 'number' || !Array.isArray(x.items)) return null;
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  return {
+    id: x.id,
+    purpose: typeof x.purpose === 'string' ? x.purpose : '',
+    target: x.target,
+    raised: num(x.raised),
+    balance: num(x.balance),
+    items: x.items.filter((i) => i && typeof i.id === 'string' && typeof i.price === 'number').map((i) => ({ id: i.id, name: String(i.name ?? i.id), price: i.price })),
+    deadline: typeof x.deadline === 'number' ? x.deadline : null,
+    status: x.status === 'active' || x.status === 'done' || x.status === 'inactive' ? x.status : 'inactive',
+    startedOn: num(x.startedOn) || 1,
+    donations: (Array.isArray(x.donations) ? x.donations : []).filter((d) => d && typeof d.donor === 'string' && typeof d.amount === 'number'),
+    spends: (Array.isArray(x.spends) ? x.spends : []).filter((d) => d && typeof d.item === 'string' && typeof d.amount === 'number'),
+    toppedUp: num(x.toppedUp),
+  };
+}
+
+/** Estado da CED (v37); ausente ou quebrado = desligada. */
+function normalizeCed(c: unknown): CedState {
+  const x = (c ?? {}) as Partial<CedState>;
+  const out = newCed();
+  if (x.stage === 'collecting' || x.stage === 'funded' || x.stage === 'ready') out.stage = x.stage;
+  out.crowdfund = normalizeCrowdfund(x.crowdfund);
+  out.history = (Array.isArray(x.history) ? x.history : []).map(normalizeCrowdfund).filter((v): v is Crowdfund => !!v);
+  for (const [k, v] of Object.entries(x.donatedOn ?? {})) if (Number.isInteger(v)) out.donatedOn[k] = v;
+  out.scheduled = (Array.isArray(x.scheduled) ? x.scheduled : []).filter((d) => d && typeof d.donor === 'string' && Number.isFinite(d.at) && Number.isFinite(d.amount));
+  out.campaignCats = Number.isInteger(x.campaignCats) ? x.campaignCats! : 0;
+  out.pendingScene = typeof x.pendingScene === 'string' ? x.pendingScene : null;
+  // Arrecadando sem vaquinha (save quebrado): volta a desligada.
+  if (out.stage === 'collecting' && !out.crowdfund) out.stage = 'off';
   return out;
 }

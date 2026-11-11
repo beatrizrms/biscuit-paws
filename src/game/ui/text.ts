@@ -17,6 +17,7 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{cat:([\w.]+)\}/g, (_, id: string) => session.catName(id))
     .replace(/\{arrival:(\w+)\}/g, (_, what: string) => arrivalText(session, what))
     .replace(/\{santa:(\w+)\}/g, (_, what: string) => santaText(session, what))
+    .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);

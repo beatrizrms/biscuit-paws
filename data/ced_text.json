@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Textos da CED (pt-BR), à parte para revisão de um veterinário ou de uma ONG. Educação implícita: tudo vem das falas (Fernanda, Gabi, vizinhos), sem tela de dica. A protagonista pode ser ela ou ele: escrever neutro (ou {g:feminino|masculino}). {player} = nome; {ced:cats} = gatos da campanha; {amount}, {donor}, {total}, {target} nos avisos. cutscenes: as cenas da CED (mesmo formato de data/cutscenes.json).",
+  "lines": {
+    "donationRemote": "CatPay: +{amount} de {donor}",
+    "donationCounter": "{donor} doou {amount} pelo CatPay",
+    "stallBoost": "Dona Neusa: vi a vaquinha dos gatinhos! Mandei uma ajudinha, viu?",
+    "goal": "A vaquinha bateu a meta! {total} de {target}",
+    "topUp": "Você completou a vaquinha com {amount} do caixa."
+  },
+  "cutscenes": {
+    "cs.ced_intro": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "phone", "mode": "call", "app": "Fernanda", "title": "chamando...", "lines": [], "caller": "npc.fernanda" },
+        { "type": "text", "speaker": "", "text": "O celular toca. É a Fernanda, da clínica." },
+        { "type": "text", "speaker": "Fernanda", "text": "Oi, {player}! Tem um minutinho? Queria te chamar para uma coisa importante." },
+        { "type": "text", "speaker": "Fernanda", "text": "Sabe os gatos de rua aqui da vila? Cada colônia cresce rápido: uma gata pode ter várias ninhadas por ano." },
+        { "type": "text", "speaker": "Fernanda", "text": "Tem um jeito que funciona, a CED: captura, esterilização e devolução. A gente pega os gatos, castra e devolve para o mesmo lugar." },
+        { "type": "text", "speaker": "Fernanda", "text": "Eles voltam com a pontinha da orelha cortada. É o sinal de que já foram castrados, para ninguém pegar de novo." },
+        { "type": "text", "speaker": "Fernanda", "text": "A colônia para de crescer, as brigas diminuem e os gatos vivem melhor onde já estão." },
+        { "type": "text", "speaker": "Fernanda", "text": "Eu sei da importância disso, mas não consigo sozinha." },
+        { "type": "text", "speaker": "{player}", "text": "Como eu posso ajudar?" },
+        { "type": "text", "speaker": "Fernanda", "text": "A mão de obra é comigo: eu opero sem cobrar. O que falta são os materiais da cirurgia e do pós: caixa de transporte, ração de recuperação, curativos e colar." },
+        { "type": "text", "speaker": "Fernanda", "text": "Pensei numa vaquinha pelo CatPay. Você me ajuda a arrecadar? E, no dia, a capturar e trazer os gatos." },
+        { "type": "text", "speaker": "{player}", "text": "Conta comigo!" },
+        { "type": "text", "speaker": "Fernanda", "text": "Oba! A vaquinha já está no seu CatPay. Te mandei uma plaquinha com o código: deixa no balcão, que o pessoal doa enquanto paga." }
+      ]
+    },
+    "cs.ced_supplier": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "phone", "mode": "call", "app": "Fernanda", "title": "chamando...", "lines": [], "caller": "npc.fernanda" },
+        { "type": "text", "speaker": "Fernanda", "text": "{player}! Meu fornecedor está aguardando o pagamento para trazer os materiais. Você conseguiu o valor todo?" },
+        { "type": "text", "speaker": "{player}", "text": "Consegui! A vaquinha bateu a meta." },
+        { "type": "text", "speaker": "Fernanda", "text": "Oba!! Vamos conseguir pegar {ced:cats} gatinhos na campanha!!" },
+        { "type": "text", "speaker": "Fernanda", "text": "Já paguei pelo CatPay. Fica tudo no extrato, bem certinho, para quem doou ver onde o dinheiro foi parar." },
+        { "type": "text", "speaker": "Fernanda", "text": "Agora é organizar o dia da campanha. Avisa a Gabi? Ela vai adorar saber." }
+      ]
+    },
+    "cs.ced_call_gabi": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "phone", "mode": "call", "app": "Gabi", "title": "chamando...", "lines": [], "caller": "npc.gabi" },
+        { "type": "text", "speaker": "", "text": "Você liga para a Gabi." },
+        { "type": "text", "speaker": "{player}", "text": "Gabi! Lembra da vaquinha dos gatinhos de rua? Bateu a meta!" },
+        { "type": "text", "speaker": "Gabi", "text": "Não acredito! Parabéns! Então vai ter campanha mesmo?" },
+        { "type": "text", "speaker": "{player}", "text": "Vai! Eu e a Fernanda vamos capturar os gatos, ela castra e depois a gente devolve cada um no lugar dele." },
+        { "type": "text", "speaker": "{player}", "text": "No primeiro dia vou fechar o café: quero estar lá do começo ao fim." },
+        { "type": "text", "speaker": "Gabi", "text": "Faz bem. Depois me conta tudo, tá? E se precisar de mim numa próxima, é só chamar." }
+      ]
+    }
+  }
+}

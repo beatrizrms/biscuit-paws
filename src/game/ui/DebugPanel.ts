@@ -100,6 +100,15 @@ export class DebugPanel {
         <button data-act="complication">complicação</button>
         <span data-dbg="repro-real"></span>
       </div>
+      <div class="buttons ced">
+        <strong>CED</strong>
+        <button data-act="ced-start">começar vaquinha</button>
+        <button data-act="ced-counter">doação balcão</button>
+        <button data-act="ced-remote">doação app</button>
+        <button data-act="ced-boost">ajuda do vizinho</button>
+        <button data-act="ced-complete">completar meta</button>
+        <span data-dbg="ced-status"></span>
+      </div>
       <div class="buttons minigames">${actions
         .miniGames()
         .map((id) => ['easy', 'normal', 'hard'].map((d) => `<button data-mg="${id}" data-dif="${d}">${id} ${d}</button>`).join(''))
@@ -163,6 +172,16 @@ export class DebugPanel {
     on('recovery-end', neuter((id) => session.debugAdvanceRecovery(id)));
     on('clinic-full', neuter(() => session.debugFillClinic()));
     on('complication', neuter((id) => session.debugComplication(id)));
+    // CED: a vaquinha sem esperar a condição nem a sorte das doações.
+    const ced = (fn: () => void) => () => {
+      fn();
+      this.render();
+    };
+    on('ced-start', ced(() => session.ced.debugStart()));
+    on('ced-counter', ced(() => session.ced.debugDonate('counter')));
+    on('ced-remote', ced(() => session.ced.debugDonate('remote')));
+    on('ced-boost', ced(() => session.ced.debugStallBoost()));
+    on('ced-complete', ced(() => session.ced.debugComplete()));
     this.reproReal = () => {
       const r = careCat.value ? session.state.cats[careCat.value]?.repro : undefined;
       const stage = careCat.value ? session.state.cats[careCat.value]?.clinic?.stage : undefined;

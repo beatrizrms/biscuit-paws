@@ -33,6 +33,7 @@ import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift,
 import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
 import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
+import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
 import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
@@ -207,6 +208,8 @@ export class GameSession {
   readonly arrivals: ArrivalSystem;
   /** Clínica: consulta de entrada, castração e cercadinho (clinicFlow.ts). */
   readonly clinic: ClinicFlow;
+  /** CED: a vaquinha pelo CatPay e a campanha (ced.ts). */
+  readonly ced: CedFlow;
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
@@ -272,6 +275,23 @@ export class GameSession {
       holdCat: (id) => this.service.pickUpCat(id).ok,
       prescriptionDays: (id) => prescriptionDays(content.health, this.state.day, id),
       removeFromInventory: (id) => this.removeFromInventory(id),
+    });
+    this.ced = new CedFlow({
+      state,
+      bus: this.bus,
+      ced: content.ced,
+      holds: (c) => this.holds(c),
+      sceneFree: () => this.sceneSpotFree() && !this.exclusiveActive(),
+      rating: () => this.rating().average,
+      hearts: (npc) => hearts(this.state, this.content.relationships, PLAYER, npc),
+      addMoney: (delta, reason) => this.addMoney(delta, reason),
+      npcName: (npc) => this.content.npcs[npc]?.name ?? npc,
+    });
+    // Cliente pagou no balcão: com a plaquinha do CatPay, pode doar para a vaquinha.
+    this.bus.on('customer.served', ({ customerId }) => {
+      const c = this.state.service.customers.find((x) => x.id === customerId);
+      const looks = this.content.service.customerLooks;
+      if (c && looks.length > 0) this.ced.customerPaid(looks[c.look % looks.length]!, customerId);
     });
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
@@ -715,6 +735,8 @@ export class GameSession {
     this.healthAtDayEnd(day);
     // Cercadinho: quem ficou sem comer pode ter uma complicação pequena.
     this.clinic.dayEnded(day);
+    // Vaquinha parada há dias: um vizinho dá uma força.
+    this.ced.dayEnded(day);
     // Natal: o dia acabou sem a ceia (ela não estava): fica como perdida.
     const santa = this.santaRecord();
     if (santa?.stage === 'drawn' && isChristmas(this.content.seasons, this.content.festive.secretSanta, day)) {
@@ -744,6 +766,8 @@ export class GameSession {
     this.randomIllness();
     // Clínica: quem foi operado volta (a Fernanda traz ao cercadinho); quem terminou o cercadinho volta para a turma.
     this.clinic.morning();
+    // Vaquinha: quem vai doar pelo CatPay hoje.
+    this.ced.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
     this.state.stats.today.sickAtStart = this.sickCats();
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
@@ -792,6 +816,7 @@ export class GameSession {
       this.advanceStory();
       this.checkSecretSanta();
       this.checkNewYear();
+      this.ced.tick();
     }
   }
 
@@ -2686,6 +2711,7 @@ export class GameSession {
     this.state.flags[seenFlag(cutsceneId)] = true;
     this.bus.emit('cutscene.finished', { cutsceneId });
     this.arrivals.stepFinished({ cutscene: cutsceneId });
+    this.ced.sceneFinished(cutsceneId);
     this.advanceStory();
   }
 

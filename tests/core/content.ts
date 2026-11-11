@@ -47,6 +47,8 @@ export function rawContent(): RawContent {
     catProfiles: read('data/cat_profiles.json'),
     clinic: read('data/clinic.json'),
     vetText: read('data/vet_text.json'),
+    ced: read('data/ced.json'),
+    cedText: read('data/ced_text.json'),
     arrivals: read('data/arrivals.json'),
     festivals: read('data/festivals.json'),
     fairSetup: read('data/fair_setup.json'),
