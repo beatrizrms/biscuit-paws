@@ -23,6 +23,8 @@ export interface DebugActions {
 }
 
 const opt = (value: string, label: string) => `<option value="${value}">${label}</option>`;
+/** Nome do cômodo na lista do debug (o quintal secreto é o jardim). */
+const roomLabel = (name: string) => (name === 'Quintal secreto' ? 'quintal (jardim)' : name.toLowerCase());
 
 export class DebugPanel {
   private status: HTMLElement;
@@ -65,7 +67,10 @@ export class DebugPanel {
       ${section(
         'story',
         'História',
-        `<select data-dbg="story">${opt('intro', 'pular introdução')}${opt('beat', 'concluir o marco da vez')}${opt('all', 'concluir a história toda')}${opt('rooms', 'abrir e reformar os cômodos')}</select>
+        `<select data-dbg="story">${opt('intro', 'pular introdução')}${opt('beat', 'concluir o marco da vez')}${opt('all', 'concluir a história toda')}${c.rooms.rooms
+          .filter((r) => r.restore && r.id !== c.rooms.rooms[0]!.id)
+          .flatMap((r) => [opt(`open:${r.id}`, `abrir ${roomLabel(r.name)}`), opt(`restore:${r.id}`, `reformar ${roomLabel(r.name)}`)])
+          .join('')}</select>
          <button data-act="story">fazer</button>`,
       )}
       ${section(
@@ -231,9 +236,11 @@ export class DebugPanel {
         actions.reloadWorld();
         say(`história completa (${n} marcos)`);
       } else {
-        session.debugUnlockRooms();
-        actions.reloadWorld();
-        say('cômodos abertos e reformados');
+        // Abrir (aberto e ainda sujo) ou reformar um cômodo de cada vez; ela vai para o café ver.
+        const [how, roomId] = what.split(':') as ['open' | 'restore', string];
+        session.debugRoomAtLeast(roomId, how === 'open' ? 'abandoned' : 'restored');
+        actions.reloadWorld(c.map.id);
+        say(`${how === 'open' ? 'aberto' : 'reformado'}: ${c.rooms.rooms.find((r) => r.id === roomId)?.name ?? roomId}`);
       }
     });
 

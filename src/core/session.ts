@@ -3359,7 +3359,7 @@ export class GameSession {
   }
 
   /** Debug: o cômodo pelo menos neste estado (portas abertas; reformado = a sujeira dele limpa). */
-  private debugRoomAtLeast(roomId: string, atLeast: RoomState): void {
+  debugRoomAtLeast(roomId: string, atLeast: RoomState): void {
     const room = this.content.rooms.rooms.find((r) => r.id === roomId);
     if (!room || stateIndex(this.roomState(roomId)) >= stateIndex(atLeast)) return;
     this.state.rooms[roomId] = atLeast;
