@@ -17,10 +17,12 @@ import { MiniGameScene } from './MiniGameScene';
 export const COSTUME_SCENE = 'MiniGame.costume';
 
 /**
- * PLACEHOLDER(arte): as peças de fantasia são desenhadas por código no tamanho do quadro do gato (32 px), uma textura
- * por peça com a chave costume_<id da peça sem "costume.">. Para trocar, carregue imagens com essas chaves.
+ * As peças de fantasia vêm da arte do PixelLab (64 px, npm run pixellab -> public/assets/minigames/costume/<id>.png,
+ * recortadas no contorno), com a chave costume_<id da peça sem "costume.">. Sem o arquivo, a peça é desenhada por
+ * código no tamanho do quadro do gato (32 px) e ganha a escala do lugar (costume.json: slots.scale).
  */
 const pieceKey = (p: CostumePiece) => `costume_${p.id.replace('costume.', '')}`;
+const pieceFile = (p: CostumePiece) => `assets/minigames/costume/${p.id.replace('costume.', '')}.png`;
 
 /** Escala do gato no palco: o quadro de 32 vira 128 px. */
 const ZOOM = 4;
@@ -54,6 +56,8 @@ export class CostumeScene extends MiniGameScene {
   private view!: Phaser.GameObjects.Container;
   private ranking: ContestEntry[] = [];
   private ended = false;
+  /** Peças desenhadas por código (sem a arte): estas usam a escala do lugar. */
+  private codeArt = new Set<string>();
 
   constructor() {
     super('costume', COSTUME_SCENE);
@@ -61,6 +65,7 @@ export class CostumeScene extends MiniGameScene {
 
   preload(): void {
     loadCatVariants(this, this.catList().map((c) => c.variant));
+    for (const p of content.costume.pieces) if (!this.textures.exists(pieceKey(p))) this.load.image(pieceKey(p), pieceFile(p));
   }
 
   /** Os gatos do café (params.contestCats); aberto pelo debug, alguns do abrigo da vila. */
@@ -232,7 +237,7 @@ export class CostumeScene extends MiniGameScene {
         const piece = data.pieces.find((p) => p.id === this.outfit[slot]);
         if (!piece) return;
         const { x, y } = at(slot);
-        add(this.add.image(x, y, pieceKey(piece)).setOrigin(0.5, slot === 'head' ? 1 : 0).setScale(ZOOM * (data.slots[slot].scale ?? 1)));
+        add(this.add.image(x, y, pieceKey(piece)).setOrigin(0.5, slot === 'head' ? 1 : 0).setScale(this.codeArt.has(pieceKey(piece)) ? ZOOM * (data.slots[slot].scale ?? 1) : ZOOM / 2));
       };
       for (const s of COSTUME_SLOTS) if (data.slots[s].behind) wear(s);
       add(this.add.sprite(CAT.x, CAT.y, this.catTex(cat.variant), 0).setOrigin(0.5, 28 / 32).setScale(ZOOM * catTexScale(this.catTex(cat.variant))));
@@ -284,6 +289,7 @@ export class CostumeScene extends MiniGameScene {
     for (const p of content.costume.pieces) {
       const key = pieceKey(p);
       if (this.textures.exists(key)) continue;
+      this.codeArt.add(key);
       const fill = Phaser.Display.Color.HexStringToColor(content.costume.colors[p.color]?.hex ?? '#ffffff').color;
       const light = Phaser.Display.Color.IntegerToColor(fill).lighten(18).color;
       const g = this.make.graphics({}, false);

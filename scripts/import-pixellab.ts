@@ -8,7 +8,7 @@
 // `rows` remonta a peça com linhas escolhidas da origem; `wear` faz a versão velha (piso e parede antes da reforma).
 // Só algumas folhas: npm run pixellab -- <trecho do JSON de peças> (ex.: praca). Útil porque public/assets é
 // compartilhado entre os worktrees: gerar tudo regrava as folhas que outra conversa está mexendo.
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 
 const TS = 64;
@@ -1658,6 +1658,48 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     writeFileSync(`${dir}/${file}.png`, PNG.sync.write(readPng(`${SRC}/louca_peixes/lote_B/obj_${i}.png`)));
   }
   console.log(`${dir}: 3 esconderijos`);
+}
+
+// ---------- Concurso de fantasia: as peças (64 px, recortadas no contorno) ----------
+// src/game/minigames/CostumeScene.ts carrega public/assets/minigames/costume/<id>.png; sem o arquivo, desenha por código.
+// Geradas com edit_image_pro_flash sobre a peça por código no tamanho final (assets/_pixellab/fantasia/ancoras).
+{
+  const dir = 'public/assets/minigames/costume';
+  const SRCF = `${SRC}/fantasia`;
+  mkdirSync(dir, { recursive: true });
+  const trim = (png: PNG): PNG => {
+    let [x0, y0, x1, y1] = [png.width, png.height, -1, -1];
+    for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) if (png.data[(y * png.width + x) * 4 + 3]! > 0) {
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return x1 < 0 ? png : cropPng(png, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+  };
+  // Branco -> rosa: o claro (branco e creme) ganha o tom, guardando a sombra; o contorno marrom fica.
+  const blush = (png: PNG): void => {
+    for (let i = 0; i < png.data.length; i += 4) {
+      if (!png.data[i + 3]) continue;
+      const [, , l] = rgbToHsl(png.data[i]!, png.data[i + 1]!, png.data[i + 2]!);
+      if (l < 0.6) continue;
+      const [r, g, b] = hslToRgb(345, 0.7, 0.66 + (l - 0.6) * 0.5);
+      png.data[i] = r; png.data[i + 1] = g; png.data[i + 2] = b;
+    }
+  };
+  const pieces: [string, string, ((p: PNG) => void)?][] = [
+    ['bow_pink', 'bow_pink'], ['flower_crown', 'flower_crown'], ['crown_gold', 'crown_gold'], ['sailor_hat', 'sailor_hat'],
+    ['beret_red', 'beret_red'], ['star_band', 'star_band'], ['scarf_red', 'scarf_red'], ['bowtie_blue', 'bowtie_blue'],
+    ['bell_gold', 'bell_gold'], ['ruffle_white', 'ruffle_white'], ['ruffle_pink', 'ruffle_white', blush],
+    ['cape_purple', 'cape_purple'], ['cape_blue', 'cape_purple', (p) => recolor(p, { from: [230, 320], hue: 208, sat: 0.9 })],
+    ['wings_white', 'wings_white'], ['basket_red', 'basket_red'], ['garland_pink', 'garland_pink'],
+  ];
+  let n = 0;
+  for (const [id, file, tweak] of pieces) {
+    if (!existsSync(`${SRCF}/${file}.png`)) continue;
+    const png = trim(readPng(`${SRCF}/${file}.png`));
+    tweak?.(png);
+    writeFileSync(`${dir}/${id}.png`, PNG.sync.write(png));
+    n++;
+  }
+  console.log(`${dir}: ${n} peças de fantasia`);
 }
 
 // ---------- Peixes da Pescaria (folha 3 x 2 de 64 px, na ordem de "icon" em data/minigames.json) ----------
