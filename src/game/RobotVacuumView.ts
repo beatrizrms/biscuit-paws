@@ -16,6 +16,9 @@ const SHINE_EVERY_MS = 70;
 const SHINE_FADE_MS = 2600;
 /** Quantos px atrás do robô o brilho do pano aparece. */
 const SHINE_BEHIND = 9;
+/** De onde ele volta: entre tantas células (andando) da frente da base. */
+const START_MIN = 4;
+const START_MAX = 7;
 /** Estacionado: os pés do robô ficam tantos px abaixo da base da célula da base (encostado na frente dela). */
 const DOCK_DROP = 14;
 
@@ -48,25 +51,55 @@ export class RobotVacuumView {
     const day = this.session.state.day;
     if (this.shownOn === day || this.noRobotOn === day || !this.session.state.flags['prologue.done']) return;
     this.shownOn = day;
-    const start = this.startCell(dock.at);
-    if (!start) return;
-    // A volta pelas células livres (desvia dos móveis e não passa por cima da base); sem caminho, vai direto. Ele chega
-    // de frente: vai até a célula logo abaixo da frente da base e sobe reto até estacionar.
-    const grid = solid();
+    // A volta pelas células livres: desvia de todo móvel (até dos que os gatos atravessam, como potes e caixa de
+    // areia) e não passa por cima da base. Ele chega de frente: vai até a célula logo abaixo da frente da base e sobe
+    // reto até estacionar.
+    const grid = this.robotGrid(mapId, solid());
     const free = ([c, r]: Cell) => grid[r]?.[c] === false;
     const front: Cell = [dock.at[0], dock.at[1] + 1];
     const approach: Cell = free([front[0], front[1] + 1]) ? [front[0], front[1] + 1] : front;
+    // A frente da base só no fim (de baixo para cima): no caminho até a aproximação ela conta como ocupada.
+    if (approach !== front) grid[front[1]]![front[0]] = true;
+    const start = this.startCell(grid, approach);
+    if (!start) return;
     const path = findPath(grid, start, approach);
+    if (!path) return;
     const stops = (path ? pathCorners(path) : []).map(([c, r]): [number, number] => [(c + 0.5) * tileSize, (r + 1) * tileSize - 6]);
     this.returnHome((start[0] + 0.5) * tileSize, (start[1] + 1) * tileSize - 6, [...stops, [dockX, dockY]], (dock.at[1] + 1) * tileSize);
   }
 
-  /** Onde ele está quando ela chega: o lugar da poeira do dia mais longe da base (ele vinha limpando por lá). */
-  private startCell(dock: Cell): Cell | null {
-    const { state, content } = this.session;
-    const spots = (content.map.dirt ?? []).filter((d) => d.tags.includes('daily')).map((d): Cell => state.dirtAt?.[d.id] ?? d.at);
-    const far = spots.sort((a, b) => Math.hypot(b[0] - dock[0], b[1] - dock[1]) - Math.hypot(a[0] - dock[0], a[1] - dock[1]))[0];
-    return far && (far[0] !== dock[0] || far[1] !== dock[1]) ? far : null;
+  /** O chão por onde o robô anda: o mapa, sem nenhuma célula com móvel (a camada de objetos; tapete e piso, ele passa). */
+  private robotGrid(mapId: string, solid: readonly (readonly boolean[])[]): boolean[][] {
+    const grid = solid.map((row) => [...row]);
+    const { catalog } = this.session.content;
+    for (const o of this.session.mapData(mapId).objects) {
+      const def = catalog.tiles[o.tile];
+      if (!def || def.layer !== 'object') continue;
+      for (let dy = 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) if (grid[o.at[1] + dy]) grid[o.at[1] + dy]![o.at[0] + dx] = true;
+    }
+    return grid;
+  }
+
+  /**
+   * Onde ele está quando ela chega: perto da base (de START_MIN a START_MAX células andando), no pedaço mais vazio do
+   * salão (mais chão livre em volta), para a volta ser curta e longe dos móveis.
+   */
+  private startCell(grid: readonly (readonly boolean[])[], approach: Cell): Cell | null {
+    const free = (c: number, r: number) => grid[r]?.[c] === false;
+    let best: { at: Cell; score: number } | null = null;
+    for (let r = approach[1] - START_MAX; r <= approach[1] + START_MAX; r++) {
+      for (let c = approach[0] - START_MAX; c <= approach[0] + START_MAX; c++) {
+        if (!free(c, r)) continue;
+        const steps = findPath(grid, [c, r], approach)?.length;
+        if (steps === undefined || steps - 1 < START_MIN || steps - 1 > START_MAX) continue;
+        let open = 0;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (free(c + dx, r + dy)) open++;
+        // Mais vazio primeiro; empate: o mais perto da base.
+        const score = open * 10 - steps;
+        if (!best || score > best.score) best = { at: [c, r], score };
+      }
+    }
+    return best?.at ?? null;
   }
 
   /** Anda de esquina em esquina até a base (a última parada). */
