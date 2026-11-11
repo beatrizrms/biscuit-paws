@@ -716,6 +716,21 @@
       "col": 5,
       "row": 17,
       "sheet": "pixellab"
+    },
+    "agua_coco": {
+      "col": 6,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "torta_maca": {
+      "col": 7,
+      "row": 17,
+      "sheet": "pixellab"
+    },
+    "fatia_torta_maca": {
+      "col": 0,
+      "row": 18,
+      "sheet": "pixellab"
     }
   },
   "sheets": {

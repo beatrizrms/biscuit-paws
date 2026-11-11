@@ -1239,6 +1239,67 @@
         "to": 30,
         "name": "Semana do Halloween"
       }
+    },
+    {
+      "id": "recipe.coconut_water",
+      "name": "Água de coco",
+      "icon": "agua_coco",
+      "ingredients": {
+        "item.coconut": 1
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 3
+        }
+      ],
+      "vessel": "glass",
+      "price": 10,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "temp": "cold",
+      "seasons": [
+        "summer",
+        "autumn"
+      ]
+    },
+    {
+      "id": "recipe.apple_pie_slice",
+      "name": "Fatia de torta de maçã",
+      "icon": "fatia_torta_maca",
+      "ingredients": {
+        "item.flour": 1,
+        "item.butter": 1,
+        "item.sugar": 1,
+        "item.eggs": 1,
+        "item.apple": 2
+      },
+      "steps": [
+        {
+          "equipment": "blender",
+          "minutes": 5
+        },
+        {
+          "equipment": "oven",
+          "minutes": 30
+        }
+      ],
+      "vessel": "plate",
+      "price": 20,
+      "unlock": {
+        "milestone": "milestone.customers_50"
+      },
+      "seasons": [
+        "summer",
+        "autumn"
+      ],
+      "display": true,
+      "batch": {
+        "yields": 6,
+        "name": "Torta de maçã",
+        "icon": "torta_maca"
+      }
     }
   ]
 }

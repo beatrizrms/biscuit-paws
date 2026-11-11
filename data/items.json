@@ -1993,7 +1993,7 @@
     {
       "id": "item.apple",
       "name": "Maçã",
-      "description": "Maçã da estação, para a maçã do amor: rende 4 receitas. No verão e no outono.",
+      "description": "Maçã da estação, para a torta de maçã e a maçã do amor: rende 4 receitas. No verão e no outono.",
       "price": 5,
       "kind": "consumable",
       "icon": "maca",
@@ -2010,7 +2010,7 @@
     {
       "id": "item.coconut",
       "name": "Coco",
-      "description": "Coco verde da estação, para o doce de abóbora: rende 4 receitas. No verão e no outono.",
+      "description": "Coco verde da estação, para a água de coco e o doce de abóbora: rende 4 receitas. No verão e no outono.",
       "price": 6,
       "kind": "consumable",
       "icon": "coco",
