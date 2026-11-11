@@ -22,3 +22,6 @@
 .touch-layer .t-small { position: static; width: 34px; height: 22px; border-radius: 8px; font-size: 6.5px; }
 /* Nos mini games: só o direcional e o botão de ação. */
 #ui.minigame-on ~ #touch .t-shortcuts { display: none; }
+/* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
+.touch-layer .t-full { position: absolute; left: 14px; bottom: 96px; width: 28px; font-size: 11px; }
+.touch-layer .t-full[hidden] { display: none; }

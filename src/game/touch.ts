@@ -49,8 +49,10 @@ class TouchInput {
     layer.innerHTML = `
       <div class="t-stick"><div class="t-knob"></div></div>
       <button class="t-btn t-action" data-act="E">E</button>
+      <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);
+    this.wireFullscreen(layer.querySelector('.t-full') as HTMLButtonElement);
     this.wireStick(layer.querySelector('.t-stick') as HTMLElement, layer.querySelector('.t-knob') as HTMLElement);
     layer.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) => {
       const act = b.dataset.act as TouchAction;
@@ -82,6 +84,25 @@ class TouchInput {
     this.mode = mode;
     this.root?.classList.toggle('touch-on', mode === 'touch');
     if (mode === 'keys') this.release();
+  }
+
+  /**
+   * Tela cheia (Android e tablets; o iPhone não deixa: lá, "Adicionar à Tela de Início" abre como app, pelo manifest).
+   * Some quando não dá, quando já abriu como app e enquanto está em tela cheia. Deita a tela quando o celular deixa.
+   */
+  private wireFullscreen(btn: HTMLButtonElement): void {
+    const standalone = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+    const show = () => (btn.hidden = standalone || !document.fullscreenEnabled || document.fullscreenElement !== null);
+    show();
+    document.addEventListener('fullscreenchange', show);
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      void document.documentElement
+        .requestFullscreen({ navigationUI: 'hide' })
+        .then(() => (screen.orientation as { lock?: (o: string) => Promise<void> }).lock?.('landscape'))
+        .catch(() => undefined);
+    });
   }
 
   /** Solta tudo (trocou de controle, ou o dedo saiu). */

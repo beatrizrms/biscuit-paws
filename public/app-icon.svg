@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <!-- PLACEHOLDER(arte): ícone do app (tela de início do celular) desenhado à mão até a arte nova. -->
+  <rect width="64" height="64" rx="12" fill="#f6a5b4"/>
+  <path d="M14 22 L14 8 L26 18 Z M50 22 L50 8 L38 18 Z" fill="#e0a94e"/>
+  <ellipse cx="32" cy="36" rx="20" ry="17" fill="#e0a94e"/>
+  <rect x="22" y="31" width="5" height="6" fill="#3b2a32"/>
+  <rect x="37" y="31" width="5" height="6" fill="#3b2a32"/>
+  <rect x="30" y="40" width="4" height="3" fill="#d97890"/>
+  <rect x="26" y="45" width="12" height="2" fill="#7f4b33"/>
+</svg>
