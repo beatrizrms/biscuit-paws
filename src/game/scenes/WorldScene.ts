@@ -125,6 +125,8 @@ const ARRIVAL_GUIDE_SPEED = 55;
 export class WorldScene extends Phaser.Scene implements ScriptStage {
   session!: GameSession;
   private isNew = false;
+  /** A partida começou pela Home (e não direto pela URL, com ?jogar): o F5 não precisa voltar pausado. */
+  private fromHome = false;
   /** Slot manual desta partida (o autosave lembra dele). */
   private slot: ManualSlot = 'slot1';
   ui!: GameUi;
@@ -261,9 +263,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     super('World');
   }
 
-  init(data: { session: GameSession; isNew: boolean; slot: ManualSlot }): void {
+  init(data: { session: GameSession; isNew: boolean; slot: ManualSlot; fromHome?: boolean }): void {
     this.session = data.session;
     this.isNew = data.isNew;
+    this.fromHome = !!data.fromHome;
     this.slot = data.slot;
   }
 
@@ -503,8 +506,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.sounds = new SoundEvents(this.session, services().audio);
     this.session.start(this.isNew);
     // F5: o jogo salvo volta pausado (menu de pausa aberto e música parada), onde ela estiver; uma vez por carregamento.
-    // Jogo novo começa direto, sem a pausa.
-    if (!reloadPauseShown && !this.isNew && pageWasReloaded()) {
+    // Jogo novo começa direto, sem a pausa; pela Home também (ela já escolheu continuar).
+    if (!reloadPauseShown && !this.isNew && !this.fromHome && pageWasReloaded()) {
       reloadPauseShown = true;
       this.time.delayedCall(0, () => this.openPause());
     }

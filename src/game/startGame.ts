@@ -42,7 +42,8 @@ export async function startGame(scene: Phaser.Scene, req: StartRequest): Promise
   await buildPlayerTextures(scene, session.appearance());
   await saves.setCurrentSlot(slot);
   attachSaving(session, slot);
-  scene.scene.start('World', { session, isNew, slot });
+  // Veio da Home (ela clicou em Continuar/Jogar): o F5 já passou pelo menu, então o jogo não abre pausado.
+  scene.scene.start('World', { session, isNew, slot, fromHome: scene.scene.key === 'MainMenu' });
   return { ok: true };
 }
 
