@@ -30,6 +30,7 @@ import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, content, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
+import { seasonOf } from '../../core/calendar';
 import { FireworksLayer } from '../FireworksLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
@@ -743,7 +744,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const home = this.map.id === this.session.content.map.id;
     const areas = seasons.maps[this.map.id] ? [{ x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts }] : home ? (this.roomView?.outdoorAreas() ?? []) : [];
     this.shownWeather = this.session.weather();
-    this.weatherFx.set(seasons.weatherFx?.[this.shownWeather], areas, ts);
+    // As cores podem mudar com a estação (as folhas do vento: rosas e verdes na primavera, verdes no verão, laranjas no outono).
+    const fx = seasons.weatherFx?.[this.shownWeather];
+    const colors = fx?.seasonColors?.[seasonOf(seasons, this.session.state.day)];
+    this.weatherFx.set(fx && colors ? { ...fx, colors } : fx, areas, ts);
   }
 
   /**

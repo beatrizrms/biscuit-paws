@@ -546,6 +546,11 @@ const SHEETS: Sheet[] = [
       ph_window_branches: { file: '02_cafe_2/janela_aberta_galhos_128.png', w: 2, h: 2 },
       // Porta dos fundos (do salão para o quintal), 1x2: a porta de madeira guardada na reserva.
       ph_back_door: { file: 'reserva/porta_madeira_64x128.png', w: 1, h: 2 },
+      // Lote de 6 peças (decisão 182), geradas sobre a imagem antiga de 32 px ampliada (âncora de tamanho):
+      // a tralha coberta com lençol do porão (2x1), o cadeado da porta trancada e as pegadas na neve da rua.
+      dirt_lencol_sobre_movel: { file: 'lote_pecas6/lencol.png', w: 2, h: 1 },
+      ph_padlock: { file: 'lote_pecas6/cadeado.png', w: 1, h: 1 },
+      prop_pegadas: { file: 'lote_pecas6/pegadas.png', w: 1, h: 1 },
     },
   },
   {
@@ -1700,6 +1705,23 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     n++;
   }
   console.log(`${dir}: ${n} peças de fantasia`);
+}
+
+// ---------- Folha caindo (clima de vento) e bolinha de patê (remédio escondido), 64 px, recortadas no contorno ----------
+// WeatherLayer usa a folha (o jogo pinta com as cores de data/seasons.json: weatherFx.wind.colors); PillScene, o patê.
+{
+  const trimmed = (file: string): PNG => {
+    const png = readPng(`${SRC}/lote_pecas6/${file}`);
+    let [x0, y0, x1, y1] = [png.width, png.height, -1, -1];
+    for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) if (png.data[(y * png.width + x) * 4 + 3]! > 0) {
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return cropPng(png, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+  };
+  mkdirSync('public/assets/fx', { recursive: true });
+  if (existsSync(`${SRC}/lote_pecas6/folha.png`)) writeFileSync('public/assets/fx/weather_leaf.png', PNG.sync.write(trimmed('folha.png')));
+  if (existsSync(`${SRC}/lote_pecas6/pate.png`)) writeFileSync('public/assets/minigames/pill/paste.png', PNG.sync.write(trimmed('pate.png')));
+  console.log('public/assets/fx/weather_leaf.png e minigames/pill/paste.png');
 }
 
 // ---------- Peixes da Pescaria (folha 3 x 2 de 64 px, na ordem de "icon" em data/minigames.json) ----------

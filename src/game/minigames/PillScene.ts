@@ -15,7 +15,7 @@ import { MiniGameScene } from './MiniGameScene';
 export const PILL_SCENE = 'MiniGame.pill';
 
 /**
- * Tigela, comprimido e tubo: arte do PixelLab (assets.ts: PILL). A pasta (bolinhas) é desenhada por código; sem os
+ * Tigela, comprimido, tubo e a bolinha de patê: arte do PixelLab (assets.ts: PILL; o patê em pill/paste.png); sem os
  * arquivos, o resto também (o desenho só acontece se a chave não existir).
  */
 export const PILL_KEYS = { bowl: 'pill_bowl', pill: 'pill_capsule', paste: 'pill_paste', tube: 'pill_tube' } as const;
@@ -49,6 +49,8 @@ export class PillScene extends MiniGameScene {
 
   preload(): void {
     loadSheets(this, Object.values(PILL_ART));
+    // Bolinha de patê (PixelLab, 64 px como o resto: meia escala); sem ela, a desenhada por código.
+    if (!this.textures.exists(PILL_KEYS.paste)) this.load.image(PILL_KEYS.paste, 'assets/minigames/pill/paste.png');
   }
 
   protected buildGame(): void {

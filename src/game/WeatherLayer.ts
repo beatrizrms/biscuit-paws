@@ -1,6 +1,8 @@
 // Clima na tela: chuva, neve e folhas ao vento caindo por cima das áreas ao ar livre (a rua inteira; no café, só o
 // quintal). O clima do dia vem do núcleo (session.weather) e as partículas de data/seasons.json: weatherFx. Só desenha.
-// PLACEHOLDER(arte): o risco da chuva, o floco e as folhas são desenhados por código (texturas weather-*).
+// A folha é arte do PixelLab (public/assets/fx/weather_leaf.png, 64 px: meia escala; carregada no BootScene como
+// weather-leaf). PLACEHOLDER(arte): o risco da chuva e o floco são desenhados por código (texturas weather-*), e a folha
+// também, quando a arte não carregou.
 import Phaser from 'phaser';
 import type { WeatherFx, WeatherParticle } from '../core/calendar';
 import { hexToRgb, rgbToHex } from '../core/time';
@@ -29,11 +31,16 @@ export class WeatherLayer {
   private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
   private veils: Phaser.GameObjects.Rectangle[] = [];
   private key = '';
+  /** Partículas com arte de 64 px (desenhadas na metade): as que não foram geradas por código aqui. */
+  private art = new Set<string>();
 
   constructor(private scene: Phaser.Scene) {
     for (const [name, rows] of Object.entries(SHAPES)) {
       const key = `weather-${name}`;
-      if (scene.textures.exists(key)) continue;
+      if (scene.textures.exists(key)) {
+        if (scene.textures.get(key).getSourceImage().width > Math.max(...rows.map((r) => r.length))) this.art.add(name);
+        continue;
+      }
       const g = scene.make.graphics({ x: 0, y: 0 }, false);
       rows.forEach((row, y) =>
         [...row].forEach((ch, x) => {
@@ -67,6 +74,7 @@ export class WeatherLayer {
           alpha: { onEmit: () => 0, onUpdate: (_p: unknown, _k: string, t: number) => fx.alpha * Math.sin(Math.PI * t) },
           tint: fx.colors.map((c) => rgbToHex(hexToRgb(c))),
           ...(fx.spin ? { rotate: { start: 0, end: 540 } } : {}),
+          ...(this.art.has(fx.particle) ? { scale: 0.5 } : {}),
           frequency: FREQUENCY,
           quantity,
         })

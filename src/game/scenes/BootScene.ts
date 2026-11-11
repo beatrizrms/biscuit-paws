@@ -47,6 +47,8 @@ export class BootScene extends Phaser.Scene {
       this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });
     }
     this.load.image('broom', broom.image);
+    // Folha do clima de vento (arte de 64 px; sem ela, o WeatherLayer desenha uma).
+    this.load.image('weather-leaf', 'assets/fx/weather_leaf.png');
     this.load.image('broom_hold', broom.hold.image);
     this.load.image('emotes', emotes.image);
     this.load.image(ROBOT_KEY, ROBOT_IMAGE);

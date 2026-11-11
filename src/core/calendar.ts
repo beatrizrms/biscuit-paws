@@ -70,6 +70,8 @@ export interface WeatherFx {
   speedY: [number, number];
   alpha: number;
   colors: string[];
+  /** Cores por estação (as folhas: rosas e verdes na primavera, verdes no verão); sem a estação, colors. */
+  seasonColors?: Record<string, string[]>;
   spin?: boolean;
   /** Véu por cima da área (a chuva escurece um pouco). */
   darken?: { color: string; alpha: number };
@@ -188,6 +190,10 @@ export function validateSeasons(data: SeasonsData, refs: { maps: ReadonlySet<str
     if (!(WEATHER_PARTICLES as readonly string[]).includes(fx.particle)) errors.push(`seasons: weatherFx "${w}" com partícula desconhecida "${fx.particle}"`);
     if (!(fx.perTile > 0) || !(fx.lifespan[0] > 0) || fx.lifespan[1] < fx.lifespan[0]) errors.push(`seasons: weatherFx "${w}" com perTile ou lifespan inválido`);
     if (fx.colors.length === 0 || fx.colors.some((c) => !/^#[0-9a-f]{6}$/i.test(c))) errors.push(`seasons: weatherFx "${w}" precisa de cores #rrggbb`);
+    for (const [season, list] of Object.entries(fx.seasonColors ?? {})) {
+      if (!data.order.includes(season)) errors.push(`seasons: weatherFx "${w}" tem cores para estação desconhecida "${season}"`);
+      if (list.length === 0 || list.some((c) => !/^#[0-9a-f]{6}$/i.test(c))) errors.push(`seasons: weatherFx "${w}" precisa de cores #rrggbb em ${season}`);
+    }
   }
   const ids = new Set<string>();
   for (const e of data.events ?? []) {
