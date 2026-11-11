@@ -136,6 +136,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Potes e caminhas: colidem só com ela (world.playerBlockTiles). */
   private playerSolids?: Phaser.Physics.Arcade.StaticGroup;
   private playerSolidCollider?: Phaser.Physics.Arcade.Collider;
+  /** Potes: os gatos não atravessam, menos quem está indo comer ou comendo (world.catBlockTiles). */
+  private catSolids?: Phaser.Physics.Arcade.StaticGroup;
   /** Clientes no lugar (sentados ou em pé no balcão): a célula deles vira sólida só para ela (refeito quando mudam). */
   private customerSolids?: Phaser.Physics.Arcade.StaticGroup;
   private customerCollider?: Phaser.Physics.Arcade.Collider;
@@ -761,8 +763,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.playerSolids.add(this.add.zone(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h));
     }
     this.playerSolidCollider = this.physics.add.collider(this.player, this.playerSolids);
+    this.catSolids?.destroy(true);
+    this.catSolids = this.physics.add.staticGroup();
+    for (const b of playerBlockBoxes(this.session.mapData(mapId), this.session.content.catalog, world.catBlockTiles ?? [], world.objectBaseDepth)) {
+      this.catSolids.add(this.add.zone(b.x + b.w / 2, b.y + b.h / 2, b.w, b.h));
+    }
     this.catColliders.forEach((c) => c.destroy());
-    this.catColliders = this.cats.flatMap((cat) => [this.physics.add.collider(cat, this.solids!), this.playerCatCollider(cat)]);
+    this.catColliders = this.cats.flatMap((cat) => this.catCollidersOf(cat));
     this.roomView ??= new RoomView(this, this.session, ts);
     this.roomView.refresh(mapId === this.session.content.map.id);
     this.robotView ??= new RobotVacuumView(this, this.session);
@@ -965,9 +972,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const rng = createRng(cellHash(catId.length, this.cats.length + 1) ^ 0x9e37);
     const [c, r] = this.freeCellNear(near ?? this.map.spawn, rng);
     const ts = this.map.tileSize;
-    const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.map.solid, this.catPlaces);
+    const cat = new CatSprite(this, catId, def.variant, c * ts + ts / 2, (r + 1) * ts - 6, rng, ts, () => this.catWalkGrid(), this.catPlaces);
     this.cats.push(cat);
-    this.catColliders.push(this.physics.add.collider(cat, this.solids!), this.playerCatCollider(cat));
+    this.catColliders.push(...this.catCollidersOf(cat));
+  }
+
+  /** Onde o gato passeia à toa: o chão livre, sem os potes (ele só vai até o pote para comer). */
+  private catWalkGrid(): boolean[][] {
+    const tiles = this.session.content.world.catBlockTiles ?? [];
+    const grid = this.map.solid.map((row) => [...row]);
+    for (const o of this.session.mapData(this.map.id).objects) if (tiles.includes(o.tile) && grid[o.at[1]]) grid[o.at[1]]![o.at[0]] = true;
+    return grid;
+  }
+
+  /** Paredes e móveis; os potes, menos quando ele vai comer (a cabeça vai até o pote); e ela. */
+  private catCollidersOf(cat: CatSprite): Phaser.Physics.Arcade.Collider[] {
+    return [this.physics.add.collider(cat, this.solids!), this.physics.add.collider(cat, this.catSolids!, undefined, () => !cat.eating(this.time.now)), this.playerCatCollider(cat)];
   }
 
   /** Ela não atravessa o gato (nem ele a ela): fora do colo (escondido) e de roteiros. */

@@ -346,6 +346,8 @@ export interface WorldData {
   objectBaseDepth?: number;
   /** Tiles não sólidos que a personagem não atravessa (potes, caminhas); os gatos continuam usando. */
   playerBlockTiles?: string[];
+  /** Tiles não sólidos que os gatos também não atravessam, menos quando vão comer (os potes). */
+  catBlockTiles?: string[];
 }
 
 /** Todo o conteúdo que uma sessão de jogo precisa. */
@@ -646,6 +648,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   if (raw.world.sleepMap !== null && !mapIds.has(raw.world.sleepMap)) err(`world: sleepMap "${raw.world.sleepMap}" não existe`);
   for (const tile of raw.world.playerBlockTiles ?? []) if (!raw.catalog.tiles[tile]) err(`world: playerBlockTiles: tile "${tile}" não existe`);
+  for (const tile of raw.world.catBlockTiles ?? []) if (!raw.catalog.tiles[tile]) err(`world: catBlockTiles: tile "${tile}" não existe`);
   errors.push(...validateDayNight(raw.dayNight));
   const restore = raw.dayNight.energy.restore;
   for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);

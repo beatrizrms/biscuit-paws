@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
-  "_comment": "startMap: onde um jogo novo começa. homeMap: o café. season: estação atual. morning: onde ela aparece de manhã, vindo de casa. sleepMap: onde dorme (null = em casa, fora do mapa; ponto de extensão para o quartinho do café). goHomeDoors: portas do café onde ela pode encerrar o dia (a partir de daynight.goHomeFrom). dailyDirt: quantas poeiras voltam a cada manhã. tools: ação -> item que precisa estar ativo na barra (sweep = varrer sujeira e neve). objectBaseDepth: colisão da base dos móveis, quanto da célula de baixo bloqueia (0.5 = a metade de baixo, e ela passa por trás chegando mais perto; paredes e pisos sólidos bloqueiam a célula inteira). playerBlockTiles: peças que não são sólidas (os gatos andam e deitam nelas) mas que a personagem não atravessa (potes e caminhas), com a mesma altura de base dos móveis. hintTimes: tutorial, quantas vezes a dica \"E\" aparece em cada tipo de coisa antes de sumir de vez; hintTimesBy: o mesmo por tipo (int_curtain: a cortina, uma vez só).",
+  "_comment": "startMap: onde um jogo novo começa. homeMap: o café. season: estação atual. morning: onde ela aparece de manhã, vindo de casa. sleepMap: onde dorme (null = em casa, fora do mapa; ponto de extensão para o quartinho do café). goHomeDoors: portas do café onde ela pode encerrar o dia (a partir de daynight.goHomeFrom). dailyDirt: quantas poeiras voltam a cada manhã. tools: ação -> item que precisa estar ativo na barra (sweep = varrer sujeira e neve). objectBaseDepth: colisão da base dos móveis, quanto da célula de baixo bloqueia (0.5 = a metade de baixo, e ela passa por trás chegando mais perto; paredes e pisos sólidos bloqueiam a célula inteira). playerBlockTiles: peças que não são sólidas (os gatos andam e deitam nelas) mas que a personagem não atravessa (potes e caminhas), com a mesma altura de base dos móveis. catBlockTiles: peças que os gatos também não atravessam, menos quando vão comer (os potes; eles comem do lado). hintTimes: tutorial, quantas vezes a dica \"E\" aparece em cada tipo de coisa antes de sumir de vez; hintTimesBy: o mesmo por tipo (int_curtain: a cortina, uma vez só).",
   "hintTimes": 3,
   "hintTimesBy": { "int_curtain": 1 },
   "objectBaseDepth": 0.5,
   "playerBlockTiles": ["food_bowl", "water_bowl", "cat_bed", "cat_bed_rosa", "cat_bed_lilas", "room_cama_ao_sol", "pet_toquinha", "pet_arranhador_papelao"],
+  "catBlockTiles": ["food_bowl", "water_bowl"],
   "startMap": "map.street",
   "homeMap": "map.cafe_main",
   "season": "winter",
