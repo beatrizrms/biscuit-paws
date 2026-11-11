@@ -172,6 +172,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private weatherFx!: WeatherLayer;
   private fireworksFx!: FireworksLayer;
   private shownWeather = '';
+  /** Dia em que o clima foi desenhado (a cor das folhas depende da estação). */
+  private shownWeatherDay = 0;
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
   private robotView?: RobotVacuumView;
@@ -531,7 +533,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   update(): void {
     this.sounds?.update();
-    if (this.session.weather() !== this.shownWeather) this.refreshWeather();
+    // Clima ou estação novos (o vento continua, mas a estação virou: as folhas trocam de cor).
+    if (this.session.weather() !== this.shownWeather || this.session.state.day !== this.shownWeatherDay) this.refreshWeather();
     this.updateArrivalActors(this.game.loop.delta);
     this.syncNpcBlockers();
     const k = this.keys;
@@ -760,6 +763,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const home = this.map.id === this.session.content.map.id;
     const areas = seasons.maps[this.map.id] ? [{ x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts }] : home ? (this.roomView?.outdoorAreas() ?? []) : [];
     this.shownWeather = this.session.weather();
+    this.shownWeatherDay = this.session.state.day;
     // As cores podem mudar com a estação (as folhas do vento: rosas e verdes na primavera, verdes no verão, laranjas no outono).
     const fx = seasons.weatherFx?.[this.shownWeather];
     const colors = fx?.seasonColors?.[seasonOf(seasons, this.session.state.day)];
