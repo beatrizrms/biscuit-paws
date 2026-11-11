@@ -21,7 +21,6 @@ import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
 import { daysText, workName } from './constructionText';
-import { rewardText } from './StatsApp';
 import { weatherIconSvg } from './weatherIcons';
 
 /** A partir de quanto tempo o aviso é "longo" (sobrevive à troca de mapa). */
@@ -251,7 +250,7 @@ export class GameUi {
     // A receita que vem de um selo já sai no aviso do selo (o último aviso apagaria o outro).
     bus.on('recipe.unlocked', ({ recipeId }) => {
       if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
-      this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
+      this.queueUnlock({ recipe: recipeId });
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
     bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
@@ -287,12 +286,7 @@ export class GameUi {
       this.toast(parts.filter(Boolean).join(' '), 6000);
     });
     // Selo do café: o nome e o que ele deu (app Café em números, aba Selos).
-    bus.on('milestone.reached', ({ milestoneId }) => {
-      const m = content.milestones.milestones.find((x) => x.id === milestoneId);
-      if (!m) return;
-      const hint = m.reward.kind === 'recipe' ? uiText.statsApp.toastRecipeHint : '';
-      this.toast(uiText.statsApp.toast.replace('{name}', m.name).replace('{reward}', rewardText(m)) + hint, 5000);
-    });
+    bus.on('milestone.reached', ({ milestoneId }) => this.queueUnlock({ milestone: milestoneId }));
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
     bus.on('cat.sick', ({ catId, disease }) => {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
@@ -756,6 +750,95 @@ export class GameUi {
       // Pequena espera: o mesmo Espaço que fechou a fala anterior não fecha a chave na hora.
       window.setTimeout(() => window.addEventListener('keydown', onKey), 250);
       el.addEventListener('click', done);
+      this.reveal = { el, done };
+    });
+  }
+
+  // ---------- Selos e desbloqueios: a tela no centro ----------
+
+  /** Selos e receitas destrancados que ainda vão aparecer (juntam os do mesmo momento numa tela só). */
+  private unlockQueue: { milestones: string[]; recipes: string[] } = { milestones: [], recipes: [] };
+  private unlockTimer: number | null = null;
+
+  /** Guarda o selo (ou a receita destrancada) e mostra a tela quando nada mais estiver aberto. */
+  private queueUnlock(u: { milestone?: string; recipe?: string }): void {
+    if (u.milestone && !this.unlockQueue.milestones.includes(u.milestone)) this.unlockQueue.milestones.push(u.milestone);
+    if (u.recipe && !this.unlockQueue.recipes.includes(u.recipe)) this.unlockQueue.recipes.push(u.recipe);
+    if (this.unlockTimer !== null) return;
+    const tryShow = () => {
+      // Espera falas, cenas e janelas fecharem (a tela entra depois, sem atropelar nada).
+      if (this.isBusy()) {
+        this.unlockTimer = window.setTimeout(tryShow, 400);
+        return;
+      }
+      this.unlockTimer = null;
+      const batch = this.unlockQueue;
+      this.unlockQueue = { milestones: [], recipes: [] };
+      if (batch.milestones.length || batch.recipes.length) void this.showUnlocks(batch);
+    };
+    // Um pouco mais de um minuto do jogo: as receitas que o selo destranca chegam no minuto seguinte e entram juntas.
+    this.unlockTimer = window.setTimeout(tryShow, 1500);
+  }
+
+  /** Tela cheia: cada selo com o motivo (o marco) e um retângulo para cada coisa liberada. */
+  private showUnlocks(batch: { milestones: string[]; recipes: string[] }): Promise<void> {
+    // O selo que destranca a receita (unlock: { milestone }), se for esse o caso.
+    const unlockedBy = (r: string) => {
+      const u = content.recipes[r]?.unlock;
+      return u && 'milestone' in u ? u.milestone : undefined;
+    };
+    const t = uiText.unlocks;
+    const kinds = uiText.statsApp.rewardKinds;
+    const ms = batch.milestones.map((id) => content.milestones.milestones.find((m) => m.id === id)).filter((m): m is NonNullable<typeof m> => !!m);
+    const card = (icon: string, name: string, kind: string) => `<div class="u-card"><span class="u-icon">${icon}</span><strong>${esc(name)}</strong><span class="u-kind">${esc(kind)}</span></div>`;
+    const reward = (kind: string, id: string): string => {
+      if (kind === 'recipe') {
+        const r = content.recipes[id];
+        return card(iconHtml(r?.icon, 32), r?.name ?? id, kinds.recipe);
+      }
+      if (kind === 'room') return card('<span class="u-glyph">⌂</span>', content.rooms.rooms.find((r) => r.id === id)?.name ?? id, kinds.room);
+      if (kind === 'event') return card('<span class="u-glyph">★</span>', content.festivals.find((f) => f.id === id)?.name ?? id, kinds.event);
+      const item = content.items[id];
+      const img = item?.icon ? iconHtml(item.icon, 32) : item ? itemThumbHtml(item, 32) : '';
+      return card(img, item?.name ?? id, kind === 'gift' ? kinds.gift : kinds.item);
+    };
+    // O motivo: a trilha e o marco ("Clientes atendidos: 50"; sequência: "7 dias seguidos").
+    const reason = (m: (typeof ms)[number]) => {
+      const track = content.milestones.tracks.find((x) => x.id === m.track);
+      return track?.kind === 'streak' ? t.reasonStreak.replace('{track}', track.name).replace('{n}', String(m.at)) : t.reason.replace('{track}', track?.name ?? m.track).replace('{n}', String(m.at));
+    };
+    const groups = ms.map((m) => {
+      const ids = [...new Set(m.reward.ids)];
+      // Receitas destrancadas por este selo sem estar na lista dele (as da estação): no mesmo grupo.
+      const extra = batch.recipes.filter((r) => unlockedBy(r) === m.id);
+      return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${[...ids.map((id) => reward(m.reward.kind, id)), ...extra.map((r) => reward('recipe', r))].join('')}</div></section>`;
+    });
+    // Receitas destrancadas sem selo nesta tela (o selo veio antes): um grupo próprio.
+    const loose = batch.recipes.filter((r) => !ms.some((m) => unlockedBy(r) === m.id));
+    if (loose.length) groups.push(`<section class="u-group"><h3>${esc(t.newRecipes)}</h3><p class="u-reason">${esc(t.recipesReason)}</p><div class="u-cards">${loose.map((r) => reward('recipe', r)).join('')}</div></section>`);
+    const hasRecipe = ms.some((m) => m.reward.kind === 'recipe') || batch.recipes.length > 0;
+    const el = document.createElement('div');
+    el.className = 'item-reveal unlocks';
+    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : t.titleRecipes)}</h2>${groups.join('')}${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
+    this.root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('open'));
+    return new Promise((resolve) => {
+      const done = () => {
+        if (!this.reveal) return;
+        this.reveal = null;
+        window.removeEventListener('keydown', onKey);
+        el.remove();
+        this.refresh();
+        resolve();
+      };
+      const onKey = (e: KeyboardEvent) => {
+        if (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape') {
+          e.preventDefault();
+          done();
+        }
+      };
+      window.setTimeout(() => window.addEventListener('keydown', onKey), 250);
+      (el.querySelector('.u-ok') as HTMLElement).addEventListener('click', done);
       this.reveal = { el, done };
     });
   }

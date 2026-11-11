@@ -185,6 +185,17 @@
   "goalsHide": "Clique para recolher",
   "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · T: tomar café · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
+  "unlocks": {
+    "title": "Selo conquistado!",
+    "titleMany": "Selos conquistados!",
+    "titleRecipes": "Receitas novas!",
+    "reason": "{track}: {n}",
+    "reasonStreak": "{track}: {n} dias seguidos",
+    "newRecipes": "No caderno de receitas",
+    "recipesReason": "O café cresceu",
+    "recipeTip": "Receitas novas: ponha no quadro do cardápio (M). O que elas precisam já está à venda.",
+    "ok": "Oba!"
+  },
   "hotbar": {
     "label": "Barra de itens"
   },
