@@ -52,6 +52,7 @@ import {
   restoreProblem,
   roomAt,
   roomState,
+  stateIndex,
   type DoorState,
   type OpenProblem,
   type RestoreProblem,
@@ -3180,6 +3181,7 @@ export class GameSession {
     this.state.day = day;
     this.state.time = parseClock(clock);
     this.santaPartyRequestedOn = 0;
+    for (const f of ss.friends) this.debugSatisfy(f.known);
     if (what === 'draw') this.state.secretSanta = null;
     else if (what === 'party') {
       // Mantém quem ela já tirou neste ano (o sorteio de verdade); sem sorteio, tira um agora.
@@ -3190,6 +3192,114 @@ export class GameSession {
     } else delete this.state.flags[newYearFlag(seasons, day)];
     this.packOutOfSeason();
     this.bus.emit('day.started', { day });
+  }
+
+  /**
+   * Debug: deixa uma condição dos dados verdadeira, como se ela já tivesse chegado lá: gatos a mais (sorteados, já
+   * com nome e com os outros, sem consulta pendente), marcos da história (e há quantos dias), cômodos abertos ou
+   * reformados, flags, mapas visitados, dinheiro, selos. O que depende de onde ela está ou da hora (local, relógio,
+   * cômodo dela) fica como está: o atalho já leva para o lugar e a hora certos.
+   */
+  debugSatisfy(c: Condition): void {
+    if (this.holds(c)) return;
+    if ('all' in c) {
+      for (const x of c.all) this.debugSatisfy(x);
+      return;
+    }
+    if ('any' in c) {
+      if (c.any[0]) this.debugSatisfy(c.any[0]);
+      return;
+    }
+    if ('flag' in c) this.state.flags[c.flag] = true;
+    else if ('beat' in c) this.debugCompleteStory(c.beat);
+    else if ('daysSince' in c) {
+      this.debugCompleteStory(c.daysSince.beat);
+      const on = this.state.story.completedOn[c.daysSince.beat] ?? this.state.day;
+      this.state.story.completedOn[c.daysSince.beat] = Math.min(on, this.state.day - c.daysSince.gte);
+    } else if ('visited' in c) {
+      if (!this.state.visited.includes(c.visited)) this.state.visited.push(c.visited);
+    } else if ('room' in c) this.debugRoomAtLeast(c.room, c.atLeast);
+    else if ('cats' in c) {
+      // Gatos sorteados (personalidade e jeito dos dados), com nome e já com a turma (sem consulta de entrada).
+      const personalities = Object.keys(this.content.catProfiles.personalities);
+      const rng = createRng(this.state.day * 4099 + this.shelteredCats().length);
+      this.debugNaming = true;
+      try {
+        for (let i = 0; this.shelteredCats().length < c.cats.gte && i < 40; i++) {
+          const id = this.arrivals.debugGenerate(personalities[rng.int(0, personalities.length - 1)]!, 'healthy');
+          const cat = this.state.cats[id];
+          if (!cat) continue;
+          if (!cat.name || this.debugNameTaken(id, cat.name)) cat.name = this.debugUniqueName(id);
+          delete cat.clinic;
+          delete cat.provisionalUntil;
+          delete cat.settling;
+        }
+      } finally {
+        this.debugNaming = false;
+      }
+    } else if ('money' in c) this.state.money = Math.max(this.state.money, c.money.gte);
+    else if ('renovated' in c) {
+      for (const side of ['inside', 'outside'] as const) if (!this.state.construction.repaired.includes(side)) this.state.construction.repaired.push(side);
+    } else if ('received' in c || 'owned' in c) {
+      const id = 'received' in c ? c.received : c.owned;
+      if (this.content.items[id]?.inBag === false) this.state.flags[`received.${id}`] = true;
+      else this.state.inventory[id] = Math.max(this.state.inventory[id] ?? 0, 'owned' in c ? c.gte ?? 1 : 1);
+    } else if ('fromSeason' in c) {
+      // Para a frente até o primeiro dia da estação (no ano de hoje; já passou, no próximo).
+      const seasons = this.content.seasons;
+      let day = (yearOf(seasons, this.state.day) - 1) * yearLength(seasons) + firstDayOf(seasons, c.fromSeason);
+      if (day < this.state.day) day = this.state.day;
+      this.state.day = day;
+    } else if ('day' in c) this.state.day = Math.max(this.state.day, c.day.gte);
+    else if ('served' in c) this.state.service.served = Math.max(this.state.service.served, c.served.gte);
+    else if ('milestone' in c) this.state.milestones.reached[c.milestone] ??= this.state.day;
+    else if ('catNamed' in c) {
+      const cat = this.state.cats[c.catNamed];
+      if (cat && !cat.name) cat.name = this.suggestCatName(c.catNamed, 0);
+    }
+  }
+
+  private debugNameTaken(catId: string, name: string): boolean {
+    return Object.entries(this.state.cats).some(([id, c]) => id !== catId && c.sheltered && c.name === name);
+  }
+
+  /** Debug: um nome sugerido que nenhum outro gato do café usa (sem sobrar: o sugerido com número). */
+  private debugUniqueName(catId: string): string {
+    for (let i = 0; i < 20; i++) {
+      const name = this.suggestCatName(catId, i);
+      if (name && !this.debugNameTaken(catId, name)) return name;
+    }
+    const base = this.suggestCatName(catId, 0) || 'Gato';
+    for (let n = 2; ; n++) if (!this.debugNameTaken(catId, `${base} ${n}`)) return `${base} ${n}`;
+  }
+
+  /**
+   * Debug: chega num marco da história com tudo o que ele pede (os marcos de antes concluídos e as condições dos passos
+   * cumpridas), ela no salão de manhã: a história segue e o marco acontece (com a cena dele). Ex.: a inauguração.
+   */
+  debugReachBeat(beatId: string): void {
+    const beat = this.content.story.beats.find((b) => b.id === beatId);
+    if (!beat || this.state.story.completed.includes(beatId)) return;
+    for (const before of beat.after ?? []) this.debugCompleteStory(before);
+    for (const step of beat.goal?.steps ?? []) if (step.when) this.debugSatisfy(step.when);
+    this.state.location = this.content.map.id;
+    this.state.time = parseClock('09:00');
+    this.packOutOfSeason();
+    this.bus.emit('day.started', { day: this.state.day });
+    this.advanceStory();
+  }
+
+  /** Debug: o cômodo pelo menos neste estado (portas abertas; reformado = a sujeira dele limpa). */
+  private debugRoomAtLeast(roomId: string, atLeast: RoomState): void {
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId);
+    if (!room || stateIndex(this.roomState(roomId)) >= stateIndex(atLeast)) return;
+    this.state.rooms[roomId] = atLeast;
+    if (stateIndex(atLeast) >= stateIndex('abandoned')) for (const d of this.content.rooms.doors.filter((x) => x.to === roomId)) this.state.doors[d.id] = 'open';
+    if (atLeast === 'restored') {
+      const tag = room.restore?.dirtTag;
+      if (tag) for (const d of this.visibleDirt().filter((x) => x.tags.includes(tag))) this.state.cleaned.push(d.id);
+      this.bus.emit('room.restored', { roomId });
+    }
   }
 
   /** Debug: o convite da Dona Neusa (outono 24, 9:59, no café) ou a festa (outono 30, 18:59, com o amigo já tirado). */
@@ -3203,6 +3313,7 @@ export class GameSession {
     this.state.day = day;
     this.state.time = parseClock(what === 'hw_invite' ? '09:59' : '18:59');
     this.halloweenPartyRequestedOn = 0;
+    for (const f of hw.friends) this.debugSatisfy(f.known);
     const year = yearOf(seasons, day);
     if (what === 'hw_invite') this.state.halloween = null;
     else if (this.state.halloween?.year !== year || this.state.halloween.stage !== 'invited') {
@@ -3220,6 +3331,19 @@ export class GameSession {
   debugStartFestival(id: string): void {
     const def = this.content.festivals.find((f) => f.id === id);
     if (!def) return;
+    // Os pré-requisitos do evento (data/festivals.json: when e unlockReputation), como se ela já tivesse chegado lá.
+    if (this.state.story.completed.length === 0 || !this.state.flags['prologue.done']) this.debugCompleteStory('story.prologue_end');
+    if (def.when) this.debugSatisfy(def.when as Condition);
+    // Onde o evento acontece (os pontos das atividades e da placa): o cômodo deles aberto e reformado.
+    for (const pointId of [def.closePoint?.point, ...(def.activities ?? []).map((a) => a.point)]) {
+      const at = pointId ? this.content.jobPoints[pointId]?.at : undefined;
+      const room = at ? roomAt(this.content.rooms, at) : undefined;
+      if (room) this.debugRoomAtLeast(room.id, 'restored');
+    }
+    if (def.unlockReputation) {
+      const t = this.content.reputation.thresholds.find((x) => x.id === def.unlockReputation);
+      if (t && this.reputation() < t.at) this.addReputation(t.at - this.reputation(), 'debug');
+    }
     this.state.festivals.active = null;
     this.state.festivals.heldOn = null;
     delete this.state.festivals.last[id];

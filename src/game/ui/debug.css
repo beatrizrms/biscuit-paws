@@ -34,4 +34,14 @@
 .debug-panel .status { color: var(--ink2); }
 /* Linha das chegadas: seletores pequenos como os botões */
 .debug-panel select { padding: 0 2px; font: inherit; font-size: 7px; border: 1px solid var(--cream3); border-radius: 3px; background: var(--cream); color: var(--ink); }
-.debug-panel .buttons.arrivals strong, .debug-panel .buttons.story strong, .debug-panel .buttons.care strong { font-size: 7px; color: var(--berry); align-self: center; }
+/* Grupos que abrem e fecham (lembrados), cada um uma linha de listas e botões. */
+.debug-panel .dbg-go { padding-bottom: 3px; border-bottom: 1px solid var(--cream3); }
+.debug-panel .dbg-go select { flex: 1; min-width: 0; }
+.debug-panel .dbg-sec { border-bottom: 1px solid var(--cream3); }
+.debug-panel .dbg-sec summary { padding: 2px 0; font-weight: bold; color: var(--berry); cursor: pointer; user-select: none; }
+.debug-panel .dbg-sec .buttons { align-items: center; padding: 1px 0 3px 6px; }
+.debug-panel .dbg-sec label { display: inline-flex; align-items: center; gap: 2px; color: var(--ink2); }
+.debug-panel .dbg-break { flex-basis: 100%; height: 0; }
+.debug-panel input[type="number"] { width: 3.2em; padding: 0 2px; font: inherit; font-size: 7px; border: 1px solid var(--cream3); border-radius: 3px; background: var(--cream); }
+.debug-panel .dbg-note { flex-basis: 100%; color: var(--grey2); }
+.debug-panel .status { margin-top: 3px; line-height: 1.35; }
