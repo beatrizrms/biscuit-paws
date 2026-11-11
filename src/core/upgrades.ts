@@ -44,6 +44,7 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
     seenGroups.add(g.id);
     if (g.items.length < 2) errors.push(`${w}: precisa de pelo menos 2 itens`);
     let shape: string | null = null;
+    let placeRule: string | null = null;
     for (const id of g.items) {
       const item = items[id];
       if (!item) {
@@ -60,7 +61,11 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
       const s = `${def.w}x${def.h} ${def.layer}`;
       if (shape === null) shape = s;
       else if (s !== shape) errors.push(`${w}: "${id}" é ${s}, diferente do resto do grupo (${shape})`);
-      if (item.placeOn) errors.push(`${w}: "${id}" fica em cima de outro móvel; não entra em upgrade`);
+      // Equipamento de balcão (só em cima) não entra; enfeite pequeno (chão ou em cima, orFloor) entra, todos com a mesma regra.
+      if (item.placeOn && !item.orFloor) errors.push(`${w}: "${id}" fica em cima de outro móvel; não entra em upgrade`);
+      const rule = `${item.placeOn ?? ''}/${item.orFloor ? 1 : 0}`;
+      if (placeRule === null) placeRule = rule;
+      else if (rule !== placeRule) errors.push(`${w}: "${id}" vai em outro lugar que o resto do grupo (placeOn/orFloor)`);
     }
   }
   return errors;

@@ -1,5 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
+import { itemSize, packBoxes } from './parcels';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
@@ -58,7 +59,7 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
@@ -1142,7 +1143,7 @@ export class GameSession {
   // ---------- Correio ----------
 
   /** Compra no catálogo: desconta já e a caixa chega na porta do café depois (data/delivery.json). */
-  order(itemId: string): ActionResult {
+  order(itemId: string, box?: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
     if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
@@ -1150,10 +1151,12 @@ export class GameSession {
     if (item.kind === 'fixture' && ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId))) {
       return { ok: false, reason: 'already_owned' };
     }
-    if (this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
+    // Caixa nova conta no limite; item numa caixa do mesmo pedido, não.
+    const newBox = !box || !this.state.deliveries.some((d) => this.boxOf(d) === box);
+    if (newBox && this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `order:${itemId}`);
-    const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)) };
+    const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)), ...(box ? { box } : {}) };
     this.state.deliveries.push(delivery);
     this.bus.emit('delivery.ordered', { deliveryId: delivery.uid, itemId, arrivesAt: delivery.arrivesAt });
     this.advanceStory();
@@ -1167,9 +1170,13 @@ export class GameSession {
   orderMax(itemId: string): number {
     const item = this.content.items[itemId];
     if (!item) return 0;
-    const room = this.content.delivery.maxPending - this.pendingDeliveries() - (this.orderCart.count() - this.orderCart.qty(itemId));
+    const room = this.content.delivery.maxPending - this.pendingDeliveries();
     const own = item.kind === 'fixture' ? ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId) ? 0 : 1) : MAX_QTY_PER_ITEM;
-    return Math.max(0, Math.min(own, room));
+    // Quantos deste cabem com o resto do pedido, nas caixas que ainda cabem na porta (itens pequenos dividem caixa).
+    const others = this.orderCart.lines().flatMap(({ itemId: id, qty }) => (id === itemId ? [] : Array<string>(qty).fill(id)));
+    let n = 0;
+    while (n < own && this.boxesFor([...others, ...Array<string>(n + 1).fill(itemId)]).length <= room) n++;
+    return n;
   }
 
   /** Celular: põe uma unidade no pedido (o dinheiro só é conferido ao confirmar). */
@@ -1197,10 +1204,15 @@ export class GameSession {
   checkoutOrder(): { ok: true; ordered: number; arrivesAt: number } | { ok: false; reason: Extract<ActionResult, { ok: false }>['reason']; ordered: number } {
     if (this.orderCart.isEmpty()) return { ok: false, reason: 'cart_empty', ordered: 0 };
     if (this.state.money < this.orderTotal()) return { ok: false, reason: 'no_money', ordered: 0 };
+    // Empacota o pedido: itens pequenos dividem caixa; o limite da porta conta as caixas.
+    const units = this.orderCart.lines().flatMap(({ itemId, qty }) => Array<string>(qty).fill(itemId));
+    const boxes = this.boxesFor(units);
+    if (boxes.length > this.content.delivery.maxPending - this.pendingDeliveries()) return { ok: false, reason: 'door_full', ordered: 0 };
     let ordered = 0;
-    for (const { itemId, qty } of this.orderCart.lines()) {
-      for (let i = 0; i < qty; i++) {
-        const r = this.order(itemId);
+    for (const items of boxes) {
+      const box = `b${this.state.nextUid++}`;
+      for (const itemId of items) {
+        const r = this.order(itemId, box);
         if (!r.ok) return { ok: false, reason: r.reason, ordered };
         this.orderCart.remove(itemId);
         ordered++;
@@ -1220,9 +1232,29 @@ export class GameSession {
     return at;
   }
 
-  /** Caixas a caminho ou esperando na porta (o limite do catálogo). */
+  /** Caixas a caminho ou esperando na porta (o limite do catálogo): caixas, não itens. */
   pendingDeliveries(): number {
-    return this.state.deliveries.filter((d) => d.stage === 'shipping' || d.stage === 'door').length;
+    return new Set(this.state.deliveries.filter((d) => d.stage === 'shipping' || d.stage === 'door').map((d) => this.boxOf(d))).size;
+  }
+
+  /** A caixa de uma entrega (sem caixa: a dela, sozinha, como nos saves antigos). */
+  private boxOf(d: Delivery): string {
+    return d.box ?? d.uid;
+  }
+
+  /** Quantas caixas estão numa etapa (a pilha na porta, nos braços, dentro do café). */
+  boxesAt(stage: DeliveryStage): number {
+    return new Set(this.state.deliveries.filter((d) => d.stage === stage).map((d) => this.boxOf(d))).size;
+  }
+
+  /** Como estes itens iriam em caixas (data/delivery.json: box.capacity; o tamanho é a área da peça). */
+  boxesFor(itemIds: readonly string[]): string[][] {
+    const { tiles } = this.content.catalog;
+    const sizeOf = (id: string) => {
+      const item = this.content.items[id];
+      return (item?.kind ?? 'furniture') === 'furniture' ? itemSize(item?.tile ? tiles[item.tile] : undefined) : 1;
+    };
+    return packBoxes(itemIds, sizeOf, this.content.delivery.box.capacity);
   }
 
   /** Quantas entregas estão numa etapa (opcional: só de um item). */
@@ -1266,15 +1298,24 @@ export class GameSession {
     return { ok: true };
   }
 
-  /** Abre uma caixa dentro do café: o item vai para a bolsa (a interface já põe na mão para posicionar). */
-  unpackParcel(): { ok: true; itemId: string } | { ok: false; reason: 'nothing_here' } {
-    const i = this.state.deliveries.findIndex((d) => d.stage === 'inside');
-    if (i < 0 || !this.atHome()) return { ok: false, reason: 'nothing_here' };
-    const [d] = this.state.deliveries.splice(i, 1);
-    this.state.inventory[d!.item] = (this.state.inventory[d!.item] ?? 0) + 1;
-    this.bus.emit('delivery.unpacked', { deliveryId: d!.uid, itemId: d!.item });
+  /**
+   * Abre uma caixa dentro do café: tudo o que veio nela vai para a mochila (a interface oferece posicionar os móveis,
+   * um depois do outro). Devolve os itens, na ordem da caixa.
+   */
+  unpackParcel(): { ok: true; itemIds: string[] } | { ok: false; reason: 'nothing_here' } {
+    const first = this.state.deliveries.find((d) => d.stage === 'inside');
+    if (!first || !this.atHome()) return { ok: false, reason: 'nothing_here' };
+    const box = this.boxOf(first);
+    const inBox = this.state.deliveries.filter((d) => d.stage === 'inside' && this.boxOf(d) === box);
+    this.state.deliveries = this.state.deliveries.filter((d) => !inBox.includes(d));
+    for (const d of inBox) {
+      this.state.inventory[d.item] = (this.state.inventory[d.item] ?? 0) + 1;
+      this.bus.emit('delivery.unpacked', { deliveryId: d.uid, itemId: d.item });
+    }
+    const itemIds = inBox.map((d) => d.item);
+    this.bus.emit('delivery.box_opened', { itemIds });
     this.advanceStory();
-    return { ok: true, itemId: d!.item };
+    return { ok: true, itemIds };
   }
 
   // ---------- Pedidos da vila ----------
@@ -1457,9 +1498,32 @@ export class GameSession {
     const room = this.content.rooms.rooms.find((r) => r.id === roomId);
     if (!room || this.roomState(roomId) !== 'locked') return;
     this.state.rooms[roomId] = 'discovered';
-    for (const d of this.content.rooms.doors) if (d.to === roomId && this.doorState(d.id) === 'hidden') this.state.doors[d.id] = 'locked';
+    for (const d of this.content.rooms.doors) {
+      if (d.to !== roomId || this.doorState(d.id) !== 'hidden') continue;
+      this.state.doors[d.id] = 'locked';
+      this.clearDoorway(d.id);
+    }
     if (room.discover?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.discover.dialogue });
     this.bus.emit('room.discovered', { roomId, trigger: room.discover?.trigger ?? 'renovation', highlight: room.discover?.highlight ?? null });
+  }
+
+  /**
+   * A porta acabou de aparecer: o que a jogadora pôs na frente dela (quando ainda era parede lisa) vai para a mochila,
+   * com o que estiver em cima. Avisa quantos.
+   */
+  private clearDoorway(doorId: string): void {
+    const cells = this.doorCells(doorId);
+    const fp = this.footprint();
+    const hit = this.state.placed.filter((p) => !this.hostUnder(p) && fp(p).some(([c, r]) => cells.some(([dc, dr]) => dc === c && dr === r)));
+    let count = 0;
+    for (const p of hit) {
+      for (const q of [...this.movingGroup(p.uid)].reverse()) {
+        this.state.placed = this.state.placed.filter((x) => x !== q);
+        this.receive(q.item, 1);
+        count++;
+      }
+    }
+    if (count > 0) this.bus.emit('door.cleared', { doorId, count });
   }
 
   /** Por que não dá para abrir este cômodo agora (ou null). */
@@ -1936,7 +2000,7 @@ export class GameSession {
       const i = this.state.placed.indexOf(p);
       if (i < 0) continue;
       // O que está em cima dele (só se ele for apoio) volta para a mochila.
-      for (const top of this.state.placed.filter((x) => x !== p && this.content.items[x.item]?.placeOn && x.at[0] === p.at[0] && x.at[1] === p.at[1] && !this.content.items[p.item]?.placeOn)) {
+      for (const top of ridersOf(this.state.placed, this.content.items, p, this.footprint())) {
         this.state.placed.splice(this.state.placed.indexOf(top), 1);
         if (isXmas(top.item)) add(top.item);
         else this.state.inventory[top.item] = (this.state.inventory[top.item] ?? 0) + 1;
@@ -2940,7 +3004,7 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint());
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -3710,7 +3774,7 @@ export class GameSession {
   missingHost(itemId: string): PlaceProblem | null {
     const item = this.content.items[itemId];
     const placeOn = item?.placeOn;
-    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn, this.footprint())) return null;
     return 'no_free_counter';
   }
 
@@ -3799,8 +3863,8 @@ export class GameSession {
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
     // Em cima de um apoio; com orFloor, fora de um apoio vale como móvel de chão.
-    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at))) {
-      return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at, this.footprint()))) {
+      return placeOnProblem(this.state.placed, this.content.items, placeOn, at, this.footprint());
     }
     const cells = cellsOf(at, def);
     const roomsOf = cells.map((c) => this.roomAt(c));
@@ -3810,12 +3874,9 @@ export class GameSession {
     if (only && roomsOf.some((r) => r!.id !== only)) return 'wrong_room';
     // Porta no vão da parede divisória: a passagem e os dois lados. Porta na parede de cima (o jardim): ela (1x2)
     // e a célula da frente, por onde se passa.
-    const walls = this.content.map.layers.walls;
-    const doorCells = this.content.rooms.doors.flatMap((d): Cell[] => {
-      const [c, r] = d.at;
-      const inWall = (walls[r]?.[c] ?? '.') !== '.';
-      return inWall ? [d.at, [c, r - 1], [c, r + 1]] : [d.at, [c - 1, r], [c + 1, r]];
-    });
+    // Porta ainda escondida (parece parede lisa) não bloqueia: quando ela aparece, o que estiver na frente vai para a
+    // mochila (discoverRoom).
+    const doorCells = this.content.rooms.doors.filter((d) => this.doorState(d.id) !== 'hidden').flatMap((d) => this.doorCells(d.id));
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
   }
@@ -3869,19 +3930,41 @@ export class GameSession {
     return { ok: true };
   }
 
+  /** As células de um móvel posicionado (pelo tile), para os apoios de mais de uma célula. */
+  private footprint() {
+    return footprintOf(this.content.catalog, this.content.items);
+  }
+
+  /** O apoio embaixo deste móvel (a cafeteira no balcão, o vaso na cômoda); solto no chão ou sendo apoio, nenhum. */
+  hostUnder(p: PlacedItem): PlacedItem | undefined {
+    const placeOn = this.content.items[p.item]?.placeOn;
+    return placeOn ? hostAt(this.state.placed.filter((x) => x !== p), this.content.items, placeOn, p.at, this.footprint()) : undefined;
+  }
+
+  /** As células de uma porta: no vão da parede divisória, a passagem e os dois lados; na parede de cima, ela (1x2) e a da frente. */
+  private doorCells(doorId: string): Cell[] {
+    const d = this.content.rooms.doors.find((x) => x.id === doorId);
+    if (!d) return [];
+    const [c, r] = d.at;
+    const inWall = (this.content.map.layers.walls[r]?.[c] ?? '.') !== '.';
+    return inWall ? [d.at, [c, r - 1], [c, r + 1]] : [d.at, [c - 1, r], [c + 1, r]];
+  }
+
   /** Móvel da jogadora numa célula, se houver. */
   placedAt(cell: Cell) {
     return placedItemAt(this.content.catalog, this.state.placed, this.content.items, cell);
+  }
+
+  /** Todos os móveis numa célula, de cima para baixo (o globo, o balcão embaixo dele, o tapete). */
+  placedAllAt(cell: Cell) {
+    return placedItemsAt(this.content.catalog, this.state.placed, this.content.items, cell);
   }
 
   /** O móvel e o que está em cima dele (cafeteira no balcão...): vão juntos ao mover ou guardar. */
   movingGroup(uid: string): PlacedItem[] {
     const host = this.state.placed.find((p) => p.uid === uid);
     if (!host) return [];
-    const riders = this.content.items[host.item]?.placeOn
-      ? []
-      : this.state.placed.filter((p) => p !== host && this.content.items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
-    return [host, ...riders];
+    return [host, ...ridersOf(this.state.placed, this.content.items, host, this.footprint())];
   }
 
   /**
@@ -3935,7 +4018,7 @@ export class GameSession {
   pickUp(uid: string): ActionResult {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
-    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
+    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!, this.footprint())) return { ok: false, reason: 'has_something_on_top' };
     // Vitrine com doces: precisa esvaziar antes de recolher.
     if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
     if (this.service.washerBusy(uid)) return { ok: false, reason: 'washer_busy' };

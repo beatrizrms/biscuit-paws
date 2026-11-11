@@ -182,6 +182,8 @@ export interface Delivery {
   stage: DeliveryStage;
   /** Momento absoluto (nowAbs) em que chega na porta. */
   arrivesAt: number;
+  /** A caixa em que veio (itens do mesmo pedido dividem caixas; sem: a caixa é só dele, como nos saves antigos). */
+  box?: string;
 }
 
 /** Momento absoluto do jogo, em minutos: cresce sempre (dia * 1440 + hora; a madrugada passa de 1440). */

@@ -87,6 +87,8 @@ export interface ItemDef {
   placeOn?: string;
   /** Com placeOn: também pode ficar solta no chão, sem apoio (os enfeites pequenos de Natal). */
   orFloor?: boolean;
+  /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
+  topLift?: number;
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
@@ -479,6 +481,8 @@ export interface DeliveryConfig {
   until: string;
   /** Quantas compras podem estar a caminho ou na porta (depois disso, o catálogo pede para retirar). */
   maxPending: number;
+  /** Caixa: quantos espaços cabem (item de 1 tile ou que não é móvel ocupa 1; móvel maior, a área dele). */
+  box: { capacity: number };
   /** Onde as caixas ficam empilhadas na rua e dentro do café. */
   door: { map: string; at: Cell };
   inside: { at: Cell };
@@ -537,6 +541,7 @@ export function validateContent(raw: RawContent): string[] {
   {
     const dv = raw.delivery;
     if (!(dv.minutes > 0) || !(dv.maxPending >= 1)) err('delivery: minutes e maxPending precisam ser positivos');
+    if (!(Number.isInteger(dv.box?.capacity) && dv.box.capacity >= 1)) err('delivery: box.capacity precisa ser um inteiro positivo');
     errors.push(...validateDayNight({ ...raw.dayNight, dayStart: dv.from, passOut: dv.until }).filter((e) => e.includes('hora inválida')).map((e) => `delivery: ${e}`));
     if (!mapIds.has(dv.door.map)) err(`delivery: mapa inexistente "${dv.door.map}"`);
     if (!raw.npcs.npcs.some((n) => n.id === dv.carrier)) err(`delivery: NPC inexistente "${dv.carrier}"`);

@@ -546,7 +546,7 @@ const SHEETS: Sheet[] = [
       ph_window_branches: { file: '02_cafe_2/janela_aberta_galhos_128.png', w: 2, h: 2 },
       // Porta dos fundos (do salão para o quintal), 1x2: a porta de madeira guardada na reserva.
       ph_back_door: { file: 'reserva/porta_madeira_64x128.png', w: 1, h: 2 },
-      // Lote de 6 peças (decisão 182), geradas sobre a imagem antiga de 32 px ampliada (âncora de tamanho):
+      // Lote de 6 peças (decisão 187), geradas sobre a imagem antiga de 32 px ampliada (âncora de tamanho):
       // a tralha do porão (2x1: um lençol jogado no chão, gerado do zero), o cadeado da porta trancada e
       // as pegadas na neve da rua.
       dirt_lencol_sobre_movel: { file: 'lote_halloween/lencol_chao.png', w: 2, h: 1 },
@@ -696,7 +696,7 @@ const SHEETS: Sheet[] = [
       natal_globo_gato: { file: '09_natal/globo_neve_gato.png', w: 1, h: 1 },
       natal_vela: { file: '09_natal/vela_natal.png', w: 1, h: 1 },
       natal_globo_cafe: { file: '09_natal/globo_neve_cafe.png', w: 1, h: 1 },
-      // Poltronas do salão (4 modelos, Pro Flash 64x64 com a poltrona do quartinho como estilo; decisão 183).
+      // Poltronas do salão (4 modelos, Pro Flash 64x64 com a poltrona do quartinho como estilo; decisão 188).
       poltrona_menta: { file: 'lote_halloween/poltrona_menta.png', w: 1, h: 1 },
       poltrona_rosa: { file: 'lote_halloween/poltrona_rosa.png', w: 1, h: 1 },
       poltrona_lilas: { file: 'lote_halloween/poltrona_lilas.png', w: 1, h: 1 },

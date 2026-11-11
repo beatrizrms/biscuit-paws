@@ -87,9 +87,13 @@ const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
 const UPGRADE_BLINK_MS = 420;
+/** Mudar de lugar com mais de um móvel perto: o escolhido fica dourado e uma seta pula em cima dele. */
+const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
+/** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
+const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
 const AUTOWALK_STUCK_MS = 700;
 /** A cada quantos minutos de jogo (mín, máx) um gato que já comeu volta ao pote para beliscar. */
@@ -153,6 +157,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** O enfeite no fantasma saiu da caixa de Natal: ao posicionar, sai o próximo. */
   /** O enfeite sendo posicionado saiu desta caixa (Natal ou Halloween): posicionou, sai o próximo. */
   private placingFromBox: string | null = null;
+  /** Os próximos móveis da caixa do correio a posicionar (um depois do outro). */
+  private parcelQueue: string[] = [];
   private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
@@ -291,15 +297,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('F', () => {
       if (this.ui.isBusy() || this.areaSelect || this.changingMap || this.scripts.isRunning()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
+      if (this.movePick) return this.cycleMovePick();
       if (this.placing) return this.dropPlacing();
       if (!this.session.atHome()) return this.ui.toastText('notHome');
-      const uid = this.furnitureNearPlayer();
-      if (!uid) return this.ui.problem('no_furniture_near');
-      this.startMoving(uid, true);
+      const uids = this.furnitureCandidates();
+      if (uids.length === 0) return this.ui.problem('no_furniture_near');
+      this.chooseToMove(uids);
     });
     this.onKey('ENTER', () => {
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) this.pickUpgradeNear();
+      else if (this.movePick) this.confirmMovePick();
       else if (this.placing) this.dropPlacing();
     });
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
@@ -310,8 +318,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onKey('ESC', () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.pickingUpgrade) this.finishUpgradePick(null);
-      else if (this.placing) this.cancelPlacing();
-      else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
+      else if (this.movePick) this.endMovePick();
+      else if (this.placing) {
+        this.parcelQueue = []; // o resto da caixa fica na mochila
+        this.cancelPlacing();
+      } else if (this.ui.isCatalogOpen() || this.ui.isPanelOpen()) {
         this.ui.closeCatalog();
         this.ui.closeShop();
       } else if (!this.ui.isBusy() && !this.changingMap && !this.scripts.isRunning()) this.openPause();
@@ -322,6 +333,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
+      if (this.movePick) return this.confirmMovePick();
       const kind = this.eTarget()?.kind;
       if (this.interact() && kind) this.session.noteHintUse(kind);
     });
@@ -336,6 +348,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       // Posicionando: o item volta para a mochila (o que estava no mapa é recolhido) e a mochila abre (ex.: pôr na barra).
       if (this.placing) {
+        this.parcelQueue = [];
         if (this.placing.moveUid) this.storeMoving();
         else this.cancelPlacing();
       }
@@ -534,7 +547,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateAmbience();
     const input = this.autoWalk
       ? this.autoWalkInput()
-      : busy || this.placing
+      : busy || this.placing || this.movePick
       ? NO_INPUT
       : {
           // Teclado ou o direcional de toque.
@@ -543,6 +556,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           left: k.left.isDown || k.a.isDown || touch.dir.left,
           right: k.right.isDown || k.d.isDown || touch.dir.right,
         };
+    this.updateTouchPlacing(busy);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
     if (!this.session.resting()) {
@@ -557,7 +571,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.layoutClinicCats();
     for (const cat of this.cats) if (cat.visible && !this.clinicHeld.has(cat.catId)) cat.tick(this.time.now);
     // Dica "E": recalcula 10 vezes por segundo (procurar o que está perto passa pelos pedidos todos).
-    if (busy || this.placing) this.hint.show(null);
+    if (busy || this.placing || this.movePick) this.hint.show(null);
     else if (this.time.now - this.hintCheckedAt >= 100) {
       this.hintCheckedAt = this.time.now;
       const at = this.eTarget();
@@ -682,7 +696,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** (Re)desenha o mapa e a colisão. Sem `mapId`, redesenha o mapa atual (ex.: um móvel mudou). */
   private buildMap(mapId = this.session.location()): void {
-    this.map = resolveMap(this.session.mapData(mapId), this.session.content.catalog);
+    this.endMovePick(); // os desenhos dos móveis vão ser refeitos (o pisca sairia do lugar)
+    this.map =resolveMap(this.session.mapData(mapId), this.session.content.catalog);
     const ts = this.map.tileSize;
 
     this.mapImages?.destroy(true);
@@ -1004,6 +1019,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Botão direito (ou F) num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
   private startMoving(uid: string, fromKeys = false): void {
+    this.endMovePick();
     this.cancelPlacing();
     const group = this.session.movingGroup(uid);
     const host = group[0];
@@ -1065,9 +1081,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const placed = this.session.placedAt(cell);
     if (!placed) return null;
     const { items } = this.session.content;
-    const host = items[placed.item]?.placeOn
-      ? this.session.state.placed.find((p) => p !== placed && !items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1])
-      : undefined;
+    const host = this.session.hostUnder(placed);
     const uid = (host ?? placed).uid;
     return this.session.upgradeOptions(uid).length > 0 ? uid : null;
   }
@@ -1089,6 +1103,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const chain = !moveUid ? this.placingFromBox : null;
     this.cancelPlacing();
     if (chain && this.session.xmasBoxCount(chain) > 0) this.session.openXmasBox(chain);
+    // Caixa do correio com vários móveis: posicionou um, sai o próximo (Esc para; o resto fica na mochila).
+    else if (!moveUid && this.parcelQueue.length > 0) {
+      const next = this.parcelQueue.shift()!;
+      if ((this.session.state.inventory[next] ?? 0) > 0) this.startPlacing(next);
+    }
   }
 
   /** Setas com o fantasma na mão: uma célula por toque, sem sair do mapa. */
@@ -1101,26 +1120,141 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /**
-   * O móvel da jogadora que o F pega: o da frente dela, senão um encostado nela. Olhando para cima, também os da
-   * parede (quadros, relógio). Balcão com cafeteira: pega o balcão (ela vai junto).
+   * O móvel da jogadora que a assistência pega: o da frente dela, senão um encostado nela. Balcão com cafeteira: pega
+   * o balcão (ela vai junto).
    */
   private furnitureNearPlayer(accept: (uid: string) => boolean = () => true): string | null {
+    for (const cell of this.cellsNearPlayer()) {
+      const placed = this.session.placedAt(cell);
+      if (!placed) continue;
+      const host = this.session.hostUnder(placed);
+      const uid = (host ?? placed).uid;
+      if (accept(uid)) return uid;
+    }
+    return null;
+  }
+
+  /** As células perto dela, a da frente primeiro. Olhando para cima, também as da parede (quadros, relógio). */
+  private cellsNearPlayer(): Cell[] {
     const [c, r] = this.feetCell();
     const dir = this.player.facingDirection();
     const ahead: Cell[] =
       dir === 'up' ? [[c, r - 1], [c, r - 2], [c, r - 3]] : dir === 'down' ? [[c, r + 1]] : dir === 'left' ? [[c - 1, r]] : [[c + 1, r]];
     const around = ([[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([dc, dr]): Cell => [c + dc, r + dr]);
-    const { items } = this.session.content;
-    for (const cell of [...ahead, ...around]) {
-      const placed = this.session.placedAt(cell);
-      if (!placed) continue;
-      const host = items[placed.item]?.placeOn
-        ? this.session.state.placed.find((p) => p !== placed && !items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1])
-        : undefined;
-      const uid = (host ?? placed).uid;
-      if (accept(uid)) return uid;
+    return [...ahead, ...around];
+  }
+
+  /**
+   * Os móveis que o F pode mudar de lugar, o da frente primeiro. Numa célula, cada peça conta: o globo em cima do
+   * balcão, o balcão (com o globo) e o tapete embaixo.
+   */
+  private furnitureCandidates(cells: readonly Cell[] = this.cellsNearPlayer()): string[] {
+    const out: string[] = [];
+    for (const cell of cells) for (const p of this.session.placedAllAt(cell)) if (!out.includes(p.uid)) out.push(p.uid);
+    return out;
+  }
+
+  // ---------- Celular: botões e direcional enquanto posiciona ou escolhe ----------
+
+  /** O que os botões de toque mostram agora (só mexe no DOM quando muda). */
+  private touchLabels = "";
+  /** Quando o direcional andou com o fantasma pela última vez (uma célula por passo, sem disparar). */
+  private touchNudgeAt = 0;
+
+  /**
+   * No celular não há setas: o direcional leva o fantasma uma célula por passo. E os botões mudam de nome:
+   * escolhendo o móvel, Mover vira "Próximo" e E vira "OK"; com o móvel na mão, Mover vira "Soltar".
+   */
+  private updateTouchPlacing(busy: boolean): void {
+    const labels = this.movePick ? "pick" : this.placing ? "place" : "";
+    if (labels !== this.touchLabels) {
+      this.touchLabels = labels;
+      const t = uiText.touch;
+      touch.setLabel("F", labels === "pick" ? t.next : labels === "place" ? t.drop : undefined);
+      touch.setLabel("E", labels === "pick" ? t.ok : undefined);
     }
-    return null;
+    const d = touch.dir;
+    const step: Cell | null = d.left ? [-1, 0] : d.right ? [1, 0] : d.up ? [0, -1] : d.down ? [0, 1] : null;
+    if (!step) return void (this.touchNudgeAt = 0);
+    if (busy || this.time.now - this.touchNudgeAt < TOUCH_NUDGE_MS) return;
+    this.touchNudgeAt = this.time.now;
+    if (this.placing) this.nudgeGhost(step);
+    else if (this.movePick) this.cycleMovePick(step[0] < 0 || step[1] < 0 ? -1 : 1);
+  }
+
+  // ---------- Mudar de lugar: escolher o móvel (quando há mais de um perto) ----------
+
+  /** Escolhendo qual móvel mudar de lugar: o destacado pisca; F passa para o próximo, E ou Enter escolhe. */
+  private movePick: { uids: string[]; i: number } | null = null;
+  /** A seta em cima do móvel escolhido. */
+  private pickArrow: Phaser.GameObjects.Graphics | null = null;
+
+  /** Um móvel só: muda de lugar direto. Mais de um: destaca o primeiro para ela escolher. */
+  private chooseToMove(uids: string[]): void {
+    if (uids.length === 1) return this.startMoving(uids[0]!, true);
+    this.cancelPlacing();
+    this.movePick = { uids, i: 0 };
+    this.player.setVelocity(0, 0);
+    this.ui.setHint('movePick');
+    this.highlightMovePick();
+  }
+
+  private cycleMovePick(by = 1): void {
+    if (!this.movePick) return;
+    const n = this.movePick.uids.length;
+    this.movePick.i = (this.movePick.i + by + n) % n;
+    this.highlightMovePick();
+  }
+
+  private confirmMovePick(): void {
+    const uid = this.movePick?.uids[this.movePick.i];
+    this.endMovePick();
+    if (uid) this.startMoving(uid, true);
+  }
+
+  private endMovePick(): void {
+    if (!this.movePick) return;
+    this.movePick = null;
+    this.highlightMovePick();
+    this.ui.setHint('walk');
+  }
+
+  /** O escolhido (e o que vai junto com ele) pisca; o resto fica normal. */
+  private highlightMovePick(): void {
+    const uid = this.movePick?.uids[this.movePick.i];
+    const group = uid ? this.session.movingGroup(uid) : [];
+    const ids = new Set(group.map((p) => p.uid));
+    for (const p of this.session.state.placed) {
+      this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => {
+        this.tweens.killTweensOf(img);
+        img.setAlpha(1).clearTint();
+        if (!ids.has(p.uid)) return;
+        img.setTint(PICK_TINT);
+        this.tweens.add({ targets: img, alpha: 0.55, duration: UPGRADE_BLINK_MS, yoyo: true, repeat: -1 });
+      });
+    }
+    // A seta: em cima do topo do grupo (o que vai em cima, subido até o tampo), por cima da personagem.
+    if (this.pickArrow) this.tweens.killTweensOf(this.pickArrow);
+    this.pickArrow?.destroy();
+    this.pickArrow = null;
+    if (group.length === 0) return;
+    const ts = this.map.tileSize;
+    const { catalog, items, world } = this.session.content;
+    const lift = world.counterLift ?? 0;
+    let top = Infinity;
+    let cx = 0;
+    for (const [i, p] of group.entries()) {
+      const def = catalog.tiles[items[p.item]?.tile ?? ""];
+      const y = p.at[1] * ts - (i > 0 ? lift : 0);
+      if (i === 0) cx = (p.at[0] + (def?.w ?? 1) / 2) * ts;
+      top = Math.min(top, y);
+    }
+    const g = this.add.graphics().setDepth(GHOST_DEPTH + 2);
+    g.fillStyle(0x3b2a20, 1).fillTriangle(-9, -14, 9, -14, 0, 0);
+    g.fillStyle(PICK_TINT, 1).fillTriangle(-6, -12, 6, -12, 0, -3);
+    g.setPosition(cx, top - 2);
+    this.tweens.add({ targets: g, y: top - 8, duration: UPGRADE_BLINK_MS, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.pickArrow = g;
   }
 
   /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila. */
@@ -1133,6 +1267,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   private cancelPlacing(): void {
+    this.endMovePick();
     this.placing?.ghosts.forEach((g) => g.destroy());
     this.placing?.riders?.forEach((r) => r.ghosts.forEach((g) => g.destroy()));
     if (this.placing?.moveUid) for (const imgs of this.objectImages.values()) imgs.forEach((img) => img.setAlpha(1));
@@ -1175,6 +1310,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else this.ui.problem('no_upgrade');
       return;
     }
+    if (this.movePick) {
+      // Escolhendo: clicar numa peça da lista escolhe ela; fora (ou botão direito), cancela.
+      const uid = this.furnitureCandidates([this.cellAt(pointer)]).find((u) => this.movePick!.uids.includes(u));
+      this.endMovePick();
+      if (uid && !pointer.rightButtonDown()) this.startMoving(uid);
+      return;
+    }
     if (!pointer.rightButtonDown() && !this.placing && this.interact(this.cellAt(pointer))) return;
     if (!this.session.atHome()) return;
     if (this.placing) {
@@ -1193,14 +1335,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return;
     }
     {
-      // Botão direito: mudar o móvel de lugar (o que está em cima vai junto; Q guarda na mochila). Na célula de um
-      // balcão com cafeteira, pega o balcão (com ela); Shift + botão direito pega só a de cima.
-      const placed = this.session.placedAt(this.cellAt(pointer));
-      if (!placed) return;
-      const onTop = !!this.session.content.items[placed.item]?.placeOn;
-      const shift = (pointer.event as MouseEvent | undefined)?.shiftKey ?? false;
-      const host = onTop && !shift ? this.session.state.placed.find((p) => p !== placed && !this.session.content.items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1]) : undefined;
-      this.startMoving((host ?? placed).uid);
+      // Botão direito: mudar o móvel de lugar (o que está em cima vai junto; Q guarda na mochila). Com mais de uma peça
+      // na célula (o globo em cima do balcão), destaca para ela escolher (F passa, E ou clique escolhe).
+      const uids = this.furnitureCandidates([this.cellAt(pointer)]);
+      if (uids.length === 1) this.startMoving(uids[0]!);
+      else if (uids.length > 1) this.chooseToMove(uids);
     }
   }
 
@@ -1580,13 +1719,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.ui.problem(result.reason);
         return true;
       }
-      // Móvel: ela escolhe se posiciona agora ou guarda na mochila (já está nela).
-      const item = this.session.content.items[result.itemId];
-      if ((item?.kind ?? 'furniture') === 'furniture') {
+      // Tudo da caixa já está na mochila. Os móveis: ela escolhe posicionar agora (um depois do outro, como tirando da
+      // caixa) ou guardar.
+      const items = this.session.content.items;
+      const furniture = result.itemIds.filter((id) => (items[id]?.kind ?? 'furniture') === 'furniture');
+      if (furniture.length > 0) {
         const t = uiText.delivery;
-        void this.ui.choose(t.unpackAsk.replace('{name}', item?.name ?? ''), [t.unpackPlace, t.unpackStore]).then((i) => {
-          if (i === 0) this.startPlacing(result.itemId);
-          else this.ui.toast(t.unpackStored.replace('{name}', item?.name ?? ''));
+        const names = furniture.map((id) => items[id]?.name ?? id).join(', ');
+        void this.ui.choose(t.unpackAsk.replace('{name}', names), [t.unpackPlace, t.unpackStore]).then((i) => {
+          if (i !== 0) return this.ui.toast(t.unpackStored.replace('{name}', names));
+          this.parcelQueue = furniture.slice(1);
+          this.startPlacing(furniture[0]!);
         });
       }
       return true;
@@ -2698,8 +2841,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
     };
     const loc = this.session.location();
-    if (loc === cfg.door.map) stack(cfg.door.at, this.session.deliveriesAt('door') - this.arriving);
-    if (this.session.atHome()) stack(cfg.inside.at, this.session.deliveriesAt('inside'));
+    if (loc === cfg.door.map) stack(cfg.door.at, this.session.boxesAt('door') - this.arriving);
+    if (this.session.atHome()) stack(cfg.inside.at, this.session.boxesAt('inside'));
   }
 
   /** Caixa de papelão (ícone de data/delivery.json), com a base embaixo, na escala pedida (a arte é 64 px). */
@@ -2713,7 +2856,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { inventory } = this.session.state;
     const items = this.session.content.items;
     const frames = [
-      ...Array<string>(this.session.deliveriesAt('carried')).fill('parcel'),
+      ...Array<string>(this.session.boxesAt('carried')).fill('parcel'),
       ...Object.entries(inventory).flatMap(([id, qty]) => (items[id]?.carrySprite ? Array<string>(qty).fill(items[id]!.carrySprite!) : [])),
     ].slice(0, 3);
     while (this.carriedImages.length > frames.length) this.carriedImages.pop()!.destroy();

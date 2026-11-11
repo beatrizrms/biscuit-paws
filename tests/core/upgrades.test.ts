@@ -25,7 +25,7 @@ describe('assistência técnica: upgrade de móvel no lugar', () => {
     expect(validateUpgrades(upgrades, items, catalog)).toEqual([]);
     const broken = { fee: 5, groups: [{ id: 'upg.x', name: 'X', items: ['item.counter_left', 'item.sofa'] }] };
     expect(validateUpgrades(broken, items, catalog).join()).toMatch(/diferente do resto do grupo/);
-    expect(validateUpgrades({ fee: 5, groups: [{ id: 'upg.y', name: 'Y', items: ['item.counter_left', 'item.coffee_machine'] }] }, items, catalog).join()).toMatch(/em cima de outro móvel/);
+    expect(validateUpgrades({ fee: 5, groups: [{ id: 'upg.y', name: 'Y', items: ['item.counter_left', 'item.coffee_machine'] }] }, items, catalog).join()).toMatch(/vai em outro lugar/);
   });
 
   it('preço: a diferença (só se a nova for mais cara) + a taxa do serviço', () => {

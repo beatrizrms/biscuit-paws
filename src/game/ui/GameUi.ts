@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import { itemThumbHtml } from './thumbs';
+import { touch } from '../touch';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
@@ -33,7 +34,7 @@ const CALL_CUTSCENE = 'cs.builder_call';
 /** A ligação das vezes seguintes (ela e o Tião já se conhecem): sem a apresentação. */
 const CALL_AGAIN_CUTSCENE = 'cs.builder_call_again';
 
-type HintMode = 'walk' | 'placing' | 'moving' | 'upgradePick' | 'dialogue';
+type HintMode = 'walk' | 'placing' | 'moving' | 'movePick' | 'upgradePick' | 'dialogue';
 
 const TYPE_SPEED_MS = 22;
 
@@ -118,6 +119,7 @@ export class GameUi {
       this.goals.classList.toggle('open');
     });
     this.hint = $('.hint');
+    touch.onModeChange(() => this.renderHint());
     this.toastEl = $('.toast');
     this.dialogueLayer = $('.dialogue-layer');
     this.dialogueBox = $('.dialogue');
@@ -246,6 +248,7 @@ export class GameUi {
       this.toast(uiText.recipeUnlocked.replace('{name}', content.recipes[recipeId]?.name ?? ''), 4000);
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
+    bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
     const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
     bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));
     bus.on('xmas.box_opened', ({ itemId, left, box }) => this.toast((left > 0 ? boxText(box).opened : boxText(box).lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
@@ -388,7 +391,8 @@ export class GameUi {
     bus.on('clinic.credit', () => this.toast(fernanda(vetLine(session, 'credit.offer')), 5000));
     bus.on('clinic.debt_paid', () => this.toast(fernanda(vetLine(session, 'credit.retroactive')), 6000));
     bus.on('debt.paid', ({ amount, left }) => this.toast((left > 0 ? uiText.health.debtPaid : uiText.health.debtDone).replace('{amount}', String(amount)).replace('{left}', String(left)), 3000));
-    bus.on('delivery.unpacked', ({ itemId }) => this.toast(uiText.delivery.unpacked.replace('{item}', content.items[itemId]?.name ?? '')));
+    // A caixa aberta: o que veio nela (uma linha só, mesmo com vários itens).
+    bus.on('delivery.box_opened', ({ itemIds }) => this.toast(uiText.delivery.unpacked.replace('{item}', listNames(itemIds.map((id) => content.items[id]?.name ?? id))), 3500));
     bus.on('job.completed', ({ jobId, reward }) => this.toast(`${uiText.news.done}: ${content.jobs[jobId]?.title ?? ''} (+${reward})`));
     bus.on('money.changed', () => this.refresh(true));
     bus.onAny(() => this.refresh());
@@ -699,7 +703,7 @@ export class GameUi {
       const { time, tomorrow } = this.clockOf(next);
       cafe.push(this.row((tomorrow ? d.shippingTomorrow : d.shipping).replace('{time}', time), { icon: 'caixa_entrega_fechada', right: this.waitButton(next) }));
     }
-    const n = (stage: 'door' | 'carried' | 'inside') => this.session.deliveriesAt(stage);
+    const n = (stage: 'door' | 'carried' | 'inside') => this.session.boxesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
     if (atDoor > 0) cafe.push(this.row(d.atDoor.replace('{n}', String(atDoor)), { icon: 'caixa_entrega_fechada' }));
     if (n('carried')) cafe.push(this.row(d.carried.replace('{n}', String(n('carried'))), { icon: 'caixa_entrega_fechada' }));
@@ -1199,8 +1203,10 @@ ${rep}`;
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    this.hint.textContent =
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
+    // No celular, a dica fala dos botões de toque (sem setas nem teclas).
+    const touchText = touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : undefined;
+    this.hint.textContent = touchText ?? (
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk);
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */
