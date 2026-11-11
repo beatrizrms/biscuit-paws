@@ -71,7 +71,9 @@ export class AdoptionScene extends MiniGameScene {
   protected buildGame(): void {
     this.p = paramsOf<AdoptionParams>(content.minigames, 'adoption', this.launch.params.difficulty);
     // Na feira, os gatos do café entram primeiro (params.adoptCats); o resto vem do abrigo da vila.
-    const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? [], this.launch.params.extraFamilies ?? 0);
+    // Na feira (params.adoptCats), só os gatos do café entram: quem der match sai do café com a família.
+    const fair = (this.launch.params.adoptCats?.length ?? 0) > 0;
+    const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? [], this.launch.params.extraFamilies ?? 0, fair);
     const rows = Math.max(match.families.length, match.cats.length);
     this.row = Math.min(ROW, Math.floor((BOTTOM - TOP) / rows));
     this.cardH = this.row - 6;
@@ -89,7 +91,7 @@ export class AdoptionScene extends MiniGameScene {
       onItemState: (catId, state) => this.cards.get(catId)?.setScale(state === 'idle' ? 1 : 1.04),
     });
     // A coluna dos gatos também é uma área: soltar ali tira o gato da família.
-    this.drag.addZone({ id: 'column', rect: new Phaser.Geom.Rectangle(CAT_X - CARD_W / 2 - 10, TOP - this.cardH / 2 - 10, CARD_W + 20, this.row * this.p.pairs + 10) });
+    this.drag.addZone({ id: 'column', rect: new Phaser.Geom.Rectangle(CAT_X - CARD_W / 2 - 10, TOP - this.cardH / 2 - 10, CARD_W + 20, this.row * this.cats.length + 10) });
 
     match.families.forEach((f, i) => this.buildFamily(f, i));
     this.cats.forEach((c, i) => this.buildCat(c, i));

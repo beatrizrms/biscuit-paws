@@ -2083,8 +2083,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.refreshArrivalActors();
     this.jobIcons.forEach((i) => i.destroy());
     const ts = this.map.tileSize;
-    this.jobIcons = this.session
-      .pendingJobPoints()
+    const pending = this.session.pendingJobPoints();
+    // Ponto com marcador no mapa (os caixotes da feira, a mesa de adoção): uma seta pulando em cima mostra que é
+    // ali (só o passo da vez fica pendente, então a seta segue a ordem).
+    const arrows = pending
+      .filter((p) => p.marker)
+      .map((p) => {
+        const def = this.session.content.catalog.tiles[p.marker!];
+        const g = this.add.graphics().setDepth(99_000);
+        g.fillStyle(0x3b2a20, 1).fillTriangle(-9, -14, 9, -14, 0, 0);
+        g.fillStyle(PICK_TINT, 1).fillTriangle(-6, -12, 6, -12, 0, -3);
+        const top = p.at[1] * ts - 4;
+        g.setPosition((p.at[0] + (def?.w ?? 1) / 2) * ts, top);
+        this.tweens.add({ targets: g, y: top - 6, duration: UPGRADE_BLINK_MS, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        return g as unknown as Phaser.GameObjects.Image;
+      });
+    const icons = pending
       .filter((p) => !p.marker)
       .map((p) => {
         if (p.icon) {
@@ -2102,6 +2116,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.tweens.add({ targets: icon, y: icon.y - 3, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         return icon;
       });
+    this.jobIcons = [...arrows, ...icons];
   }
 
   /**

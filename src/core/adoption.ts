@@ -134,7 +134,11 @@ export function cafeAdoptCats(data: Pick<AdoptionData, 'fair' | 'traits'>, cats:
  * resposta toda boa, fica a melhor tentativa (os gatos do café não são trocados). `extraFamilies`: famílias a mais
  * que gatos (os visitantes da feira montada): mais escolha, mesmo número de adoções.
  */
-export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: readonly AdoptCat[] = [], extraFamilies = 0): { cats: AdoptCat[]; families: FamilyProfile[] } {
+/**
+ * Monta o match: os gatos `fixed` primeiro (até `pairs`) e, sem `onlyFixed`, o resto vem do abrigo da vila. Com
+ * `onlyFixed` (a feira: só os gatos do café), o match tem só eles, e as famílias acompanham o número de gatos.
+ */
+export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: readonly AdoptCat[] = [], extraFamilies = 0, onlyFixed = false): { cats: AdoptCat[]; families: FamilyProfile[] } {
   const draw = <T>(pool: readonly T[], n: number): T[] => {
     const bag = [...pool];
     const out: T[] = [];
@@ -143,7 +147,8 @@ export function setupMatch(rng: Rng, data: AdoptionData, pairs: number, fixed: r
   };
   const mine = fixed.slice(0, pairs);
   const pool = data.cats.filter((c) => !mine.some((m) => m.id === c.id));
-  const roll = () => ({ cats: [...mine, ...draw(pool, pairs - mine.length)], families: draw(data.families, pairs + extraFamilies) });
+  const size = onlyFixed && mine.length > 0 ? mine.length : pairs;
+  const roll = () => ({ cats: [...mine, ...(size > mine.length ? draw(pool, size - mine.length) : [])], families: draw(data.families, size + extraFamilies) });
   let last = roll();
   for (let tries = 0; tries < 500 && !hasPerfectMatch(data, last.cats, last.families); tries++) last = roll();
   return last;

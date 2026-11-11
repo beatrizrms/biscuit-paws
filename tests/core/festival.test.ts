@@ -107,6 +107,13 @@ describe('festivais (puro)', () => {
     expect(m.cats.slice(0, 2).map((c) => c.id)).toEqual(['cat.x', 'cat.y']);
     expect(m.cats).toHaveLength(4);
   });
+
+  it('na feira (só os do café), o match tem só os gatos do café e as famílias acompanham', () => {
+    const mine = cafeAdoptCats(content.adoption, [{ id: 'cat.x', name: 'Xodó', variant: 'lynx_point', personality: 'brave' }, { id: 'cat.y', name: 'Yuki', variant: 'cinza', personality: 'sweet' }]);
+    const m = setupMatch(createRng(3), content.adoption, 4, mine, 1, true);
+    expect(m.cats.map((c) => c.id)).toEqual(['cat.x', 'cat.y']);
+    expect(m.families).toHaveLength(3);
+  });
 });
 
 describe('festivais na sessão', () => {
@@ -163,8 +170,11 @@ describe('festivais na sessão', () => {
     expect(extras.extraFamilies).toBe(Math.min(2, content.fairSetup.maxFamilies - pairs));
     const money = state.money;
     const rep = state.reputation.value;
-    const adoptions = [{ catId: 'adopt.mingau', verdict: 'good' as const }];
+    // O gato do café que deu match vai com a família: sai dos abrigados.
+    const adoptions = [{ catId: 'cat.gen.b', verdict: 'good' as const }];
     session.finishMiniGame(makeResult(content.minigames, 'adoption', 'normal', 'fail', 1, false, { adoptions }), { difficulty: 'normal', jobPoint: table });
+    expect(state.cats['cat.gen.b']!.sheltered).toBe(false);
+    expect(session.shelteredCats()).not.toContain('cat.gen.b');
     const finished = events.find((e) => e.name === 'festival.finished')!.payload as { results: unknown[]; adopted: number; reputation: number };
     expect(finished).toMatchObject({ festivalId: fair.id, adopted: 1, reputation: fair.rewards!.reputation, results: [{ game: 'fair_setup', outcome: 'great', setup: { visitors: 7 } }, { game: 'adoption', outcome: 'fail' }] });
     expect(state.festivals).toMatchObject({ active: null, last: { [fair.id]: day }, heldOn: { id: fair.id, day } });

@@ -2883,6 +2883,8 @@ export class GameSession {
       const record = { game: result.gameId, outcome: result.outcome, coins: result.coinsEarned, skipped: result.skipped, ...(result.fairSetup ? { setup: result.fairSetup } : {}), ...(result.contest ? { contest: result.contest } : {}), ...(result.photo ? { photo: result.photo } : {}) };
       const step = recordActivity(this.state.festivals, fest, activity.point, record, this.state.day);
       if (step === 'finished') this.endFestival(fest);
+      // Vem a próxima atividade (a mesa de adoção depois da montagem): a cena redesenha o marcador e a seta.
+      else if (step === 'next') this.bus.emit('festival.progress', { festivalId: fest.id, step: 'activity', pointId: activity.point });
       this.advanceStory();
     } else if (params.jobPoint && result.outcome !== 'fail') this.doJobPoint(params.jobPoint);
     else this.advanceStory();
@@ -3585,7 +3587,9 @@ export class GameSession {
     if (game === 'fair_setup') return { adoptCats: all };
     const setup = this.state.festivals.active?.results.find((r) => r.setup)?.setup;
     if (!setup) return { adoptCats: all };
-    const chosen = setup.cats.map((id) => all.find((c) => c.id === id)).filter((c): c is AdoptCat => !!c);
+    const picked = setup.cats.map((id) => all.find((c) => c.id === id)).filter((c): c is AdoptCat => !!c);
+    // Ninguém escolhido na montagem: vão todos os gatos do café que podem ser adotados (o match é só com eles).
+    const chosen = picked.length > 0 ? picked : all;
     const extra = Math.max(0, Math.min(setup.extraFamilies, this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId)));
     return { adoptCats: chosen, extraFamilies: extra };
   }

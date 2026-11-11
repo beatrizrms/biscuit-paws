@@ -103,7 +103,7 @@ export interface GameEvents {
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };
   'festival.started': { festivalId: string };
-  'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready'; pointId: string };
+  'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready' | 'activity'; pointId: string };
   'festival.scheduled': { festivalId: string; day: number };
   'festival.missed': { festivalId: string; day: number };
   'festival.finished': { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean; setup?: { visitors: number }; contest?: { rank: number }; photo?: { score: number } }[]; coins: number; reputation: number; adopted: number };

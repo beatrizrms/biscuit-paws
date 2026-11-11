@@ -946,10 +946,10 @@
       "catIn": "na feira",
       "catOut": "clique e escolha o lugar",
       "rule": {
-        "housed": "Gatos numa caixa ou cercadinho",
+        "housed": "Gatos da lista (à esquerda) numa caixa ou cercadinho",
         "access": "Caminho livre do portão até tudo",
         "sign": "Cartaz perto do portão",
-        "treats": "Petiscos perto dos gatos",
+        "treats": "Mesa de petiscos do lado da caixa ou cercadinho com gato",
         "table": "Mesa da feira com caminho"
       },
       "score": "Pontos: {score}",
@@ -1317,7 +1317,8 @@
     "prep": "Feito!",
     "close": "Placa na porta: hoje o café fica fechado para o evento.",
     "decor": "Ficou bonito!",
-    "ready": "Tudo enfeitado! Agora, a feira no quintal.",
+    "ready": "Tudo enfeitado! Agora, a feira no quintal (siga a setinha).",
+    "activity": "Pronto! Agora, o próximo passo (siga a setinha).",
     "missed": "{name} passou sem acontecer... Dá para organizar de novo.",
     "summary": {
       "title": "{name}: fim!",
