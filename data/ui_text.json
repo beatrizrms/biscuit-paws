@@ -528,7 +528,7 @@
     "sick": "{name} não parece bem... {disease}? Melhor levar à clínica da Fernanda.",
     "sickNoClinic": "{name} não parece bem... Preciso cuidar melhor dele (comida todo dia).",
     "infected": "{name} pegou {disease} de {from}! Doente sem remédio passa para os outros.",
-    "customersAway": "Com {n} gatos doentes, ninguém quer entrar no café. Preciso levar à clínica.",
+    "customersAway": "Com {n} gatos doentes sem tratamento, ninguém quer entrar no café. Preciso levar à clínica.",
     "dose": "{name} tomou o remédio ({n}/{days}).",
     "cured": "{name} sarou! Voltou a ser ele mesmo.",
     "debtPaid": "Paguei {amount} do fiado da clínica (faltam {left}).",
@@ -603,7 +603,7 @@
     },
     "sweep": "Varrer a poeira do dia",
     "pantry": "Guardar as compras na despensa",
-    "sick": "Gatos doentes: clientes não entram",
+    "sick": "Gatos doentes sem tratamento: clientes não entram",
     "care": {
       "dirty": { "do": "Escovar {cat}: o pelo está sujo", "buy": "Escovar {cat}: comprar uma escova (mercado, Cuidados)" },
       "sad": { "do": "Brincar com {cat}: anda sem ânimo", "buy": "Brincar com {cat}: comprar uma varinha (mercado, Brinquedos)" },

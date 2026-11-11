@@ -785,7 +785,7 @@ export class GameSession {
     this.ced.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
     this.state.stats.today.sickAtStart = this.sickCats();
-    if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.sickCats().length });
+    if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.untreatedSickCats().length });
     this.service.endOfDay();
     this.cart.clear();
     this.orderCart.clear();
@@ -1099,7 +1099,7 @@ export class GameSession {
   chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
     const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
-    if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.sickCats().length, this.content.health.customers.stopAtSickCats] });
+    if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
       const st = this.state.cats[id]!.clinic;
@@ -2545,9 +2545,14 @@ export class GameSession {
     return this.shelteredCats().filter((id) => this.state.cats[id]!.sickness);
   }
 
-  /** Prejuízo: com gatos doentes demais (health.customers.stopAtSickCats), nenhum cliente novo entra. */
+  /** Doentes sem tratamento (sem a receita da clínica): só estes espantam os clientes. */
+  untreatedSickCats(): string[] {
+    return this.sickCats().filter((id) => !this.state.cats[id]!.sickness!.treatment);
+  }
+
+  /** Prejuízo: com gatos doentes sem tratamento demais (health.customers.stopAtSickCats), nenhum cliente novo entra. */
   customersAway(): boolean {
-    return this.sickCats().length >= this.content.health.customers.stopAtSickCats;
+    return this.untreatedSickCats().length >= this.content.health.customers.stopAtSickCats;
   }
 
   /** Manhã: um gato pode adoecer à toa (evento aleatório com semente), só depois que a clínica abre e num dia em que ela atende. */

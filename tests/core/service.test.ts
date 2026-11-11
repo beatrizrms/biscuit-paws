@@ -221,7 +221,7 @@ describe('ciclo do pedido', () => {
     expect(sv.arrivalsBlocked()).toBeNull();
   });
 
-  it('com 2 ou mais gatos doentes, nenhum cliente novo entra; sararam, voltam', () => {
+  it('com 2 ou mais gatos doentes sem tratamento, nenhum cliente novo entra; tratados ou sarados, voltam', () => {
     const { session, sv, state } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
     const sick = { disease: content.health.diseases[0]!.id, since: state.day, treatment: null };
@@ -232,6 +232,11 @@ describe('ciclo do pedido', () => {
     expect(session.chores().some((c) => c.kind === 'sick')).toBe(false); // antes do prólogo a rotina não aparece
     advance(session, 60);
     expect(state.service.customers).toHaveLength(0);
+    // Em tratamento (com a receita da clínica) não conta: o café volta a receber gente.
+    state.cats['cat.second']!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    expect(session.customersAway()).toBe(false);
+    state.cats['cat.second']!.sickness!.treatment = null;
+    expect(session.customersAway()).toBe(true);
     // Um só doente: o café volta a receber gente.
     state.cats['cat.second']!.sickness = null;
     expect(session.customersAway()).toBe(false);
