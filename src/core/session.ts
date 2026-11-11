@@ -129,6 +129,8 @@ export interface CatProfile {
   care: { stage: 'intake' | 'ward' | 'isolation'; until?: number; complication?: boolean } | null;
   /** Remédio do pós-cirurgia. */
   aftercare: { days: number; dosesGiven: number; dosedToday: boolean } | null;
+  /** Consulta de entrada: 'done' = já fez (testes), 'due' = ainda não fez, null = a clínica ainda não pede. */
+  intake: 'done' | 'due' | null;
   /** Adoção: null = pode; senão o motivo (e o dia estimado, se aguarda idade). */
   adoption: { reason: 'in_care' | 'needs_neuter' | 'waiting_age'; readyDay?: number } | null;
 }
@@ -1817,6 +1819,7 @@ export class GameSession {
         care: cat.clinic ? { stage: cat.clinic.stage, ...('until' in cat.clinic ? { until: cat.clinic.until } : {}), ...(cat.clinic.stage === 'isolation' && cat.clinic.complication ? { complication: true } : {}) } : null,
         aftercare: cat.aftercare ? { days: cat.aftercare.days, dosesGiven: cat.aftercare.dosesGiven, dosedToday: cat.aftercare.lastDoseDay === this.state.day } : null,
         adoption: this.clinic.adoptionBlock(id),
+        intake: cat.tests ? 'done' : this.clinic.intakeRequired() ? 'due' : null,
       };
     });
   }

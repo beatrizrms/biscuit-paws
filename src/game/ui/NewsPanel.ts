@@ -301,16 +301,24 @@ export class NewsPanel {
     );
   }
 
-  /** "Doente: Febre do Bigode · remédio 2/5 (hoje: ok)". */
-  private sickText(s: NonNullable<CatProfile['sickness']>): string {
+  /** Uma linha da ficha com um ícone na frente (a bolinha com um símbolo ou um ícone do jogo). */
+  private row(cls: string, icon: string, text: string): string {
+    return `<span class="c-row ${cls}"><i class="c-ic">${icon}</i><span>${esc(text)}</span></span>`;
+  }
+
+  /** "Doente: Febre do Bigode · remédio 2/5" e, embaixo, a dose de hoje (verde: tomou; laranja: falta). */
+  private sickHtml(s: NonNullable<CatProfile['sickness']>): string {
     const t = uiText.cats;
     const name = content.health.diseases.find((d) => d.id === s.disease)?.name ?? s.disease;
-    if (!s.treatment) return t.sickUntreated.replace('{disease}', name);
-    return t.sickTreated
-      .replace('{disease}', name)
-      .replace('{n}', String(s.treatment.dosesGiven))
-      .replace('{days}', String(s.treatment.days))
-      .replace('{today}', s.treatment.dosedToday ? t.dosedToday : t.doseDue);
+    if (!s.treatment) return this.row('sick-badge', '!', t.sickUntreated.replace('{disease}', name));
+    const text = t.sickTreated.replace('{disease}', name).replace('{n}', String(s.treatment.dosesGiven)).replace('{days}', String(s.treatment.days));
+    return this.row('sick-badge', iconHtml(content.health.care.bubbles.medicine.icon ?? '', 10), text) + this.doseHtml(s.treatment.dosedToday);
+  }
+
+  /** A dose do dia: "Já tomou o remédio hoje" (✓ verde) ou "Falta o remédio de hoje" (! laranja). */
+  private doseHtml(dosedToday: boolean): string {
+    const t = uiText.cats;
+    return dosedToday ? this.row('dose ok', '✓', t.dosedToday) : this.row('dose due', '!', t.doseDue);
   }
 
   /** Felicidade e higiene (core/care.ts), do mesmo jeito da barra de saúde; abaixo do "baixo", fica amarela. */
@@ -329,13 +337,17 @@ export class NewsPanel {
     const t = uiText.cats;
     const sexed = (text: string) => catSexText(this.session, text, p.id);
     const repro = sexed(t.repro[p.repro.known]) + (p.repro.sex ? ` · ${t.sex[p.repro.sex]}` : '') + (p.repro.earTipped ? ` · ${t.earTipped}` : '');
-    const lines = [`<span class="repro">${esc(repro)}</span>`];
+    // Consulta de entrada: feita ou não (quem está esperando por ela aparece no cuidado, logo abaixo).
+    const lines: string[] = [];
+    if (p.intake === 'done') lines.push(this.row('exam ok', '✚', t.intake.done));
+    else if (p.intake === 'due' && !p.care) lines.push(this.row('exam due', '✚', t.intake.due));
     if (p.care) {
       const text = p.care.complication ? t.care.complication : t.care[p.care.stage].replace('{day}', String(p.care.until ?? ''));
-      lines.push(`<span class="clinic-badge">${esc(text)}</span>`);
+      lines.push(this.row('clinic-badge', '✚', text));
     }
-    if (p.aftercare) lines.push(`<span class="clinic-badge">${esc(t.aftercare.replace('{given}', String(p.aftercare.dosesGiven)).replace('{days}', String(p.aftercare.days)))}</span>`);
-    if (p.adoption && p.adoption.reason !== 'in_care') lines.push(`<span class="adoption">${esc(sexed(t.adoption[p.adoption.reason]).replace('{day}', String(p.adoption.readyDay ?? '')))}</span>`);
+    lines.push(this.row(`repro ${p.repro.known}`, '✂', repro));
+    if (p.aftercare) lines.push(this.row('clinic-badge', iconHtml(content.health.care.bubbles.medicine.icon ?? '', 10), t.aftercare.replace('{given}', String(p.aftercare.dosesGiven)).replace('{days}', String(p.aftercare.days))) + this.doseHtml(p.aftercare.dosedToday));
+    if (p.adoption && p.adoption.reason !== 'in_care') lines.push(this.row('adoption', '⌂', sexed(t.adoption[p.adoption.reason]).replace('{day}', String(p.adoption.readyDay ?? ''))));
     return lines.join('');
   }
 
@@ -358,7 +370,7 @@ export class NewsPanel {
           <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
           <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
           ${this.careBars(p.id)}
-          ${p.sickness ? `<span class="sick-badge">${esc(this.sickText(p.sickness))}</span>` : ''}
+          ${p.sickness ? this.sickHtml(p.sickness) : ''}
           ${this.clinicLines(p)}
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;

@@ -798,6 +798,10 @@
 .news .cat-info .sick-badge { font-size: 6.5px; color: #c0596a; font-weight: bold; }
 .news .cat-info .repro { font-size: 6.5px; color: #6b5a4e; }
 .news .cat-info .clinic-badge { font-size: 6.5px; color: #4f7f9a; font-weight: bold; }
+.news .cat-info .dose, .news .cat-info .exam { font-size: 6.5px; font-weight: bold; }
+.news .cat-info .dose.ok, .news .cat-info .exam.ok { color: #4f8f6a; }
+.news .cat-info .dose.due { color: #c9772f; }
+.news .cat-info .exam.due { color: #9a7b4f; }
 .news .cat-info .adoption { font-size: 6.5px; color: #9a7b4f; }
 
 /* Consulta na clínica: ficha no centro */
@@ -1269,3 +1273,16 @@
 .u-group { width: auto; flex: 0 1 auto; padding: 4px 6px 6px; border-radius: 8px; background: #fff8ec; }
 .u-group h3 { margin-top: 0; }
 .u-ok { box-shadow: 0 1px 0 #b05a72, 0 0 0 5px var(--cream); }
+
+/* Meus gatos: as linhas da clínica com um ícone na frente (bolinha colorida com símbolo, ou o ícone do remédio). */
+.news .cat-info .c-row { --dot: #8a7b70; display: flex; align-items: center; gap: 3px; }
+.news .cat-info .c-ic { flex: none; display: grid; place-items: center; width: 10px; height: 10px; border-radius: 50%; font-style: normal; font-size: 6px; line-height: 1; color: #fff; background: var(--dot); }
+.news .cat-info .c-ic:has(> span) { background: none; border-radius: 0; }
+.news .cat-info .c-row.sick-badge { --dot: #c0596a; }
+.news .cat-info .c-row.clinic-badge { --dot: #4f7f9a; }
+.news .cat-info .c-row.ok { --dot: #4f8f6a; }
+.news .cat-info .c-row.dose.due { --dot: #c9772f; }
+.news .cat-info .c-row.exam.due { --dot: #b8925a; }
+.news .cat-info .repro.neutered { --dot: #4f8f6a; }
+.news .cat-info .repro.intact { --dot: #a0587a; }
+.news .cat-info .c-row.adoption { --dot: #9a7b4f; }

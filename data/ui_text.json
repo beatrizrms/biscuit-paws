@@ -549,9 +549,10 @@
     "health": "Saúde",
     "healthTitle": "Saúde {n} de {max}",
     "sickUntreated": "Doente: {disease}. Levar à clínica (no colo).",
-    "sickTreated": "Doente: {disease} · remédio {n}/{days} · {today}",
-    "dosedToday": "já tomou hoje",
-    "doseDue": "falta a dose de hoje",
+    "sickTreated": "Doente: {disease} · remédio {n}/{days}",
+    "dosedToday": "Já tomou o remédio hoje",
+    "doseDue": "Falta o remédio de hoje",
+    "intake": { "done": "Consulta de entrada feita", "due": "Ainda sem consulta de entrada" },
     "personalities": {
       "brave": "Valente",
       "sweet": "Doce",
