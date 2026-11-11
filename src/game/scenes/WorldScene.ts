@@ -1065,9 +1065,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const placed = this.session.placedAt(cell);
     if (!placed) return null;
     const { items } = this.session.content;
-    const host = items[placed.item]?.placeOn
-      ? this.session.state.placed.find((p) => p !== placed && !items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1])
-      : undefined;
+    const host = this.session.hostUnder(placed);
     const uid = (host ?? placed).uid;
     return this.session.upgradeOptions(uid).length > 0 ? uid : null;
   }
@@ -1119,9 +1117,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const cell of [...ahead, ...around]) {
       const placed = this.session.placedAt(cell);
       if (!placed) continue;
-      const host = items[placed.item]?.placeOn
-        ? this.session.state.placed.find((p) => p !== placed && !items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1])
-        : undefined;
+      const host = this.session.hostUnder(placed);
       const uid = (host ?? placed).uid;
       if (accept(uid)) return uid;
     }
@@ -1204,7 +1200,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!placed) return;
       const onTop = !!this.session.content.items[placed.item]?.placeOn;
       const shift = (pointer.event as MouseEvent | undefined)?.shiftKey ?? false;
-      const host = onTop && !shift ? this.session.state.placed.find((p) => p !== placed && !this.session.content.items[p.item]?.placeOn && p.at[0] === placed.at[0] && p.at[1] === placed.at[1]) : undefined;
+      const host = onTop && !shift ? this.session.hostUnder(placed) : undefined;
       this.startMoving((host ?? placed).uid);
     }
   }

@@ -10,38 +10,61 @@ export const PLACED_PREFIX = 'placed.';
 
 /** Mapa base + móveis da jogadora, como objetos comuns. */
 /** `stocked`: a vitrine tem algo dentro (desenha a arte cheia, display.fullTile). */
-export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean): MapData {
+export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean, tiles?: Record<string, TileDef>): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
     if (!item?.tile) return [];
     // Em cima de outro móvel (ex.: cafeteira no balcão): sobe até o tampo.
-    const onTop = !!item.placeOn && !!hostAt(placed, items, item.placeOn, p.at);
+    const onTop = !!item.placeOn && !!hostAt(placed, items, item.placeOn, p.at, tiles);
     const tile = item.display?.fullTile && stocked?.(p.uid) ? item.display.fullTile : item.tile;
     return [{ id: `${PLACED_PREFIX}${p.uid}`, tile, at: p.at, ...(onTop ? { lift } : {}) }];
   });
   return { ...map, objects: [...map.objects, ...extra] };
 }
 
-/** O móvel com esta tag posicionado na célula (o "apoio" de quem vai em cima). */
-export function hostAt(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, [c, r]: Cell): PlacedItem | undefined {
-  return placed.find((p) => p.at[0] === c && p.at[1] === r && !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag));
+/**
+ * As células do tampo de um apoio: a fileira de cima da peça (um balcão de 3 tem 3 lugares, um item em cada).
+ * Sem a tabela de tiles (ou sem peça), só a célula dele.
+ */
+export function hostTopCells(host: PlacedItem, items: Record<string, ItemDef>, tiles?: Record<string, TileDef>): Cell[] {
+  const def = tiles?.[items[host.item]?.tile ?? ''];
+  const w = Math.max(1, def?.w ?? 1);
+  return Array.from({ length: w }, (_, dx): Cell => [host.at[0] + dx, host.at[1]]);
+}
+
+const sameCell = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
+
+/** O móvel com esta tag cujo tampo tem a célula (o "apoio" de quem vai em cima). */
+export function hostAt(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, cell: Cell, tiles?: Record<string, TileDef>): PlacedItem | undefined {
+  return placed.find((p) => !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag) && hostTopCells(p, items, tiles).some((c) => sameCell(c, cell)));
+}
+
+/** Tudo o que está em cima deste móvel (em qualquer célula do tampo). */
+export function itemsOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem, tiles?: Record<string, TileDef>): PlacedItem[] {
+  if (items[host.item]?.placeOn) return [];
+  const top = hostTopCells(host, items, tiles);
+  return placed.filter((p) => p !== host && items[p.item]?.placeOn && top.some((c) => sameCell(c, p.at)));
 }
 
 /** Algo em cima deste móvel? (não dá para recolher o balcão com a cafeteira em cima) */
-export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem): PlacedItem | undefined {
-  return placed.find((p) => p !== host && items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
+export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem, tiles?: Record<string, TileDef>): PlacedItem | undefined {
+  return itemsOnTop(placed, items, host, tiles)[0];
 }
 
-/** Onde um item que vai em cima pode ficar: num apoio com a tag, sem nada em cima ainda. */
-export function placeOnProblem(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell): PlaceProblem | null {
-  const host = hostAt(placed, items, tag, at);
+/** Onde um item que vai em cima pode ficar: numa célula do tampo de um apoio com a tag, sem nada em cima nela. */
+export function placeOnProblem(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell, tiles?: Record<string, TileDef>): PlaceProblem | null {
+  const host = hostAt(placed, items, tag, at, tiles);
   if (!host) return 'needs_counter';
-  return itemOnTop(placed, items, host) ? 'occupied' : null;
+  return itemsOnTop(placed, items, host, tiles).some((p) => sameCell(p.at, at)) ? 'occupied' : null;
 }
 
-/** Existe algum apoio com a tag livre (sem nada em cima)? Se não, nem adianta pôr na mão. */
-export function hasFreeHost(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string): boolean {
-  return placed.some((p) => !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag) && !itemOnTop(placed, items, p));
+/** Existe algum apoio com a tag com uma célula do tampo livre? Se não, nem adianta pôr na mão. */
+export function hasFreeHost(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, tiles?: Record<string, TileDef>): boolean {
+  return placed.some((p) => {
+    if (items[p.item]?.placeOn || !items[p.item]?.tags.includes(tag)) return false;
+    const taken = itemsOnTop(placed, items, p, tiles);
+    return hostTopCells(p, items, tiles).some((c) => !taken.some((t) => sameCell(t.at, c)));
+  });
 }
 
 /**

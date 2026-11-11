@@ -44,6 +44,8 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
     seenGroups.add(g.id);
     if (g.items.length < 2) errors.push(`${w}: precisa de pelo menos 2 itens`);
     let shape: string | null = null;
+    // Onde vai (no chão, ou em cima de um apoio e/ou no chão): igual no grupo todo, para a troca no lugar dar certo.
+    let where: string | null = null;
     for (const id of g.items) {
       const item = items[id];
       if (!item) {
@@ -60,7 +62,9 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
       const s = `${def.w}x${def.h} ${def.layer}`;
       if (shape === null) shape = s;
       else if (s !== shape) errors.push(`${w}: "${id}" é ${s}, diferente do resto do grupo (${shape})`);
-      if (item.placeOn) errors.push(`${w}: "${id}" fica em cima de outro móvel; não entra em upgrade`);
+      const place = `${item.placeOn ?? ''}/${item.orFloor ? 'chão' : ''}`;
+      if (where === null) where = place;
+      else if (place !== where) errors.push(`${w}: "${id}" vai em outro lugar (em cima de móvel ou no chão) que o resto do grupo`);
     }
   }
   return errors;

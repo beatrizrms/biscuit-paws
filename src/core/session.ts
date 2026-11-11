@@ -58,7 +58,7 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem, itemsOnTop } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
@@ -1951,7 +1951,7 @@ export class GameSession {
       const i = this.state.placed.indexOf(p);
       if (i < 0) continue;
       // O que está em cima dele (só se ele for apoio) volta para a mochila.
-      for (const top of this.state.placed.filter((x) => x !== p && this.content.items[x.item]?.placeOn && x.at[0] === p.at[0] && x.at[1] === p.at[1] && !this.content.items[p.item]?.placeOn)) {
+      for (const top of itemsOnTop(this.state.placed, this.content.items, p, this.content.catalog.tiles)) {
         this.state.placed.splice(this.state.placed.indexOf(top), 1);
         if (isXmas(top.item)) add(top.item);
         else this.state.inventory[top.item] = (this.state.inventory[top.item] ?? 0) + 1;
@@ -2813,7 +2813,7 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.content.catalog.tiles);
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -3561,7 +3561,7 @@ export class GameSession {
   missingHost(itemId: string): PlaceProblem | null {
     const item = this.content.items[itemId];
     const placeOn = item?.placeOn;
-    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn, this.content.catalog.tiles)) return null;
     return 'no_free_counter';
   }
 
@@ -3650,8 +3650,8 @@ export class GameSession {
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
     // Em cima de um apoio; com orFloor, fora de um apoio vale como móvel de chão.
-    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at))) {
-      return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at, this.content.catalog.tiles))) {
+      return placeOnProblem(this.state.placed, this.content.items, placeOn, at, this.content.catalog.tiles);
     }
     const cells = cellsOf(at, def);
     const roomsOf = cells.map((c) => this.roomAt(c));
@@ -3725,13 +3725,18 @@ export class GameSession {
     return placedItemAt(this.content.catalog, this.state.placed, this.content.items, cell);
   }
 
+  /** O apoio embaixo de um item que vai em cima (o balcão da cafeteira), em qualquer célula do tampo. */
+  hostUnder(top: PlacedItem): PlacedItem | undefined {
+    const { items } = this.content;
+    if (!items[top.item]?.placeOn) return undefined;
+    return this.state.placed.find((p) => p !== top && itemsOnTop(this.state.placed, items, p, this.content.catalog.tiles).includes(top));
+  }
+
   /** O móvel e o que está em cima dele (cafeteira no balcão...): vão juntos ao mover ou guardar. */
   movingGroup(uid: string): PlacedItem[] {
     const host = this.state.placed.find((p) => p.uid === uid);
     if (!host) return [];
-    const riders = this.content.items[host.item]?.placeOn
-      ? []
-      : this.state.placed.filter((p) => p !== host && this.content.items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
+    const riders = itemsOnTop(this.state.placed, this.content.items, host, this.content.catalog.tiles);
     return [host, ...riders];
   }
 
@@ -3786,7 +3791,7 @@ export class GameSession {
   pickUp(uid: string): ActionResult {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
-    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
+    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!, this.content.catalog.tiles)) return { ok: false, reason: 'has_something_on_top' };
     // Vitrine com doces: precisa esvaziar antes de recolher.
     if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
     if (this.service.washerBusy(uid)) return { ok: false, reason: 'washer_busy' };

@@ -34,7 +34,9 @@ describe('regras de posicionamento', () => {
     put(s, 'item.table_round', [4, 7]);
     expect(put(s, 'item.counter_mid', [3, 4])).toEqual({ ok: true });
     expect(put(s, 'item.cushion_pink', [4, 7])).toEqual({ ok: false, reason: 'occupied' });
-    expect(put(s, 'item.plant_pot', [3, 4])).toEqual({ ok: false, reason: 'occupied' }); // balcão
+    // Vaso pequeno vai no balcão ou no chão (placeOn + orFloor): no balcão, fica em cima dele.
+    expect(put(s, 'item.plant_pot', [3, 4])).toEqual({ ok: true });
+    expect(put(s, 'item.flower_vase', [3, 4])).toEqual({ ok: false, reason: 'occupied' }); // o tampo já tem o vaso
   });
 
   it('a base precisa ficar no piso, mas peça alta pode encostar na parede', () => {
