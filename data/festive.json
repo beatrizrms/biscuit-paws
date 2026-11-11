@@ -110,6 +110,7 @@
         "hint": "A Dona Neusa adora uma luzinha na janela nas noites de outono.",
         "food": "recipe.pumpkin_coconut_sweet",
         "foodHint": "a Dona Neusa jura que doce de abóbora bom é o da avó dela",
+        "foodHintSelf": "eu juro que doce de abóbora bom é o da minha avó",
         "dialogues": {
           "loved": "dlg.hw_loved_neusa",
           "liked": "dlg.hw_liked_neusa"

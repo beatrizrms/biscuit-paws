@@ -762,7 +762,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.roomView ??= new RoomView(this, this.session, ts);
     this.roomView.refresh(mapId === this.session.content.map.id);
     this.robotView ??= new RobotVacuumView(this, this.session);
-    this.robotView.refresh(mapId, ts);
+    this.robotView.refresh(mapId, ts, () => this.map.solid);
   }
 
   /** Cômodos mudaram: mapa, escuro, câmera e luz de fora. */
@@ -3124,8 +3124,57 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.npcs.set(npcId, npc);
   }
 
+  /**
+   * NPC andando numa cena: pelas células livres, desviando dos móveis, da personagem e dos outros NPCs (dá a volta
+   * em quem estiver no caminho). Sem caminho livre (alguém tapando a porta), anda direto como antes.
+   */
   async npcWalk(npcId: string, to: Cell): Promise<void> {
-    await this.npcs.get(npcId)?.walkTo(to);
+    const npc = this.npcs.get(npcId);
+    if (!npc) return;
+    const ts = this.map.tileSize;
+    const from: Cell = [Math.floor(npc.x / ts), Math.floor(npc.y / ts)];
+    const others = [...this.npcs].filter(([id]) => id !== npcId).map(([, n]): Cell => [Math.floor(n.x / ts), Math.floor(n.y / ts)]);
+    const onPlayer = this.playerCells().some(([c, r]) => c === to[0] && r === to[1]);
+    let path = onPlayer ? null : findPath(this.solidWith([...this.playerCells(), ...others], to), from, to);
+    if (!path) {
+      // Ela é que tapa a passagem: dá um passo para o lado (uma célula livre fora do caminho dele) e ele passa.
+      const around = findPath(this.solidWith(others, to), from, to);
+      const aside = around && this.stepAsideCell(around);
+      if (aside) {
+        await this.playerWalk(aside);
+        path = around;
+      }
+    }
+    // Nem assim (obstáculo dos dois lados): anda direto, para a cena nunca travar.
+    if (!path) return npc.walkTo(to);
+    for (const corner of pathCorners(path)) {
+      if (!npc.active) return;
+      await npc.walkTo(corner);
+    }
+  }
+
+  /** Uma célula livre perto dela que não está no caminho do NPC (para ela sair da frente), ou null. */
+  private stepAsideCell(path: readonly Cell[]): Cell | null {
+    // Ela ocupa mais de uma célula (os pés): a célula escolhida e a vizinha de cima e do lado também ficam fora do caminho.
+    const onPath = (c: number, r: number) => path.some(([pc, pr]) => Math.abs(pc - c) <= 1 && pr <= r && pr >= r - 1);
+    const [pc, pr] = this.feetCell();
+    for (let d = 1; d <= 4; d++) {
+      for (const [dc, dr] of [[0, d], [0, -d], [d, 0], [-d, 0], [d, d], [-d, d], [d, -d], [-d, -d]] as const) {
+        const [c, r] = [pc + dc, pr + dr];
+        if (this.map.solid[r]?.[c] === false && !onPath(c, r) && ![...this.npcs.values()].some((n) => Math.floor(n.x / this.map.tileSize) === c && Math.floor(n.y / this.map.tileSize) === r)) return [c, r];
+      }
+    }
+    return null;
+  }
+
+  /** A grade de colisão do mapa com estas células ocupadas a mais (menos o destino). */
+  private solidWith(cells: readonly Cell[], except?: Cell): boolean[][] {
+    const solid = this.map.solid.map((row) => [...row]);
+    for (const [c, r] of cells) {
+      if (except && c === except[0] && r === except[1]) continue;
+      if (solid[r]?.[c] !== undefined) solid[r]![c] = true;
+    }
+    return solid;
   }
 
   async npcAct(npcId: string, anim: string, ms: number): Promise<void> {

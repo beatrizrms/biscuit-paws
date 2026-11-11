@@ -20,6 +20,8 @@ export interface HalloweenFriend {
   /** A comida favorita (receita de Halloween) e a dica dela, contada no convite. */
   food: string;
   foodHint: string;
+  /** A mesma dica na boca de quem convida (ela fala de si: "eu juro que..."). */
+  foodHintSelf?: string;
   /** Fala de quem recebeu o presente: o que gosta ou outro presente de Halloween. */
   dialogues: { loved: string; liked: string };
 }

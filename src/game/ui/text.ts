@@ -32,8 +32,11 @@ function halloweenText(session: GameSession, what: string): string {
   const h = session.halloween();
   const hw = session.content.festive.halloween;
   if (what === 'foods') {
+    // Quem convida conta a própria dica em primeira pessoa, por último ("...; e eu juro que...").
     const guests = session.halloweenGuests();
-    const hints = hw.friends.filter((f) => guests.includes(f.npc)).map((f) => f.foodHint);
+    const own = hw.friends.find((f) => f.npc === hw.proposer);
+    const hints = hw.friends.filter((f) => guests.includes(f.npc) && f !== own).map((f) => f.foodHint);
+    if (own && guests.includes(own.npc)) hints.push(own.foodHintSelf ?? own.foodHint);
     return hints.length > 1 ? `${hints.slice(0, -1).join('; ')}; e ${hints[hints.length - 1]}` : hints.join('');
   }
   if (!h) return '';

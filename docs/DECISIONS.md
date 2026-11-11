@@ -808,3 +808,7 @@ Decisão: `session.debugSatisfy(condição)` deixa uma condição dos dados verd
 ## 196. Market: cômodos dentro do Decor; abas da estação por último (nov/2026)
 Pedido: a aba Cômodos vira subcategoria do Decor (Decoração, Cozinha, Quarto, Quintal, Outros); as abas especiais de Natal e Halloween ficam sempre por último.
 Decisão: `ui_text.json: market.tabs` na ordem Pet, Móveis, Eletro, Decor, Assistência, Construção, Halloween, Natal; os grupos de área (`area:*`) entraram na aba Decor. Cada item aparece numa aba só (o primeiro grupo que bate); as abas da estação têm a vez primeiro nessa escolha (`MarketApp`), senão os enfeites, que também são "decor", iam para o Decor e a aba da estação sumia. A fala do Tião aponta para a aba Decor.
+
+## 197. Robô aspirador e NPCs das cenas desviam (nov/2026)
+Pedido: o robô aspirador não pode atravessar os móveis; nas cenas, os personagens dão a volta em quem estiver no caminho; e se travar entre um obstáculo e um personagem?
+Decisão: o robô volta para a base pelas células livres (`findPath` da grade de colisão, de esquina em esquina). Nas cenas, `npcWalk` anda pelas células livres desviando dos móveis, da personagem e dos outros NPCs. Se ela é o que tapa a passagem (ou está no destino), ela dá um passo para o lado (uma célula livre fora do caminho) e ele passa; só sem nenhuma saída o NPC anda direto, para a cena nunca travar. Na lista de doces do convite de Halloween, quem convida fala de si em primeira pessoa (`foodHintSelf`).

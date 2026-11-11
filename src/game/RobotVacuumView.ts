@@ -4,6 +4,7 @@
 import Phaser from 'phaser';
 import type { GameSession } from '../core/session';
 import { DEPTH, ySortDepth, type Cell } from '../core/map';
+import { findPath, pathCorners } from '../core/path';
 
 /** A imagem do robô (80 x 80, carregada no BootScene) e a escala da arte nova (64 px de arte = uma célula de 32). */
 export const ROBOT_KEY = 'robot_vacuum';
@@ -31,7 +32,7 @@ export class RobotVacuumView {
   ) {}
 
   /** Mapa refeito (entrou no café, móvel mudou): redesenha o robô; na primeira entrada do dia, a volta para a base. */
-  refresh(mapId: string, tileSize: number): void {
+  refresh(mapId: string, tileSize: number, solid: () => readonly (readonly boolean[])[] = () => []): void {
     this.clear();
     const inCafe = mapId === this.session.content.map.id;
     const dock = inCafe ? this.session.robotVacuum() : undefined;
@@ -47,7 +48,10 @@ export class RobotVacuumView {
     this.shownOn = day;
     const start = this.startCell(dock.at);
     if (!start) return;
-    this.returnHome((start[0] + 0.5) * tileSize, (start[1] + 1) * tileSize - 6, dockX, dockY, (dock.at[1] + 1) * tileSize);
+    // A volta pelas células livres (desvia dos móveis); sem caminho, vai direto.
+    const path = findPath(solid(), start, dock.at);
+    const stops = (path ? pathCorners(path).slice(0, -1) : []).map(([c, r]): [number, number] => [(c + 0.5) * tileSize, (r + 1) * tileSize - 6]);
+    this.returnHome((start[0] + 0.5) * tileSize, (start[1] + 1) * tileSize - 6, [...stops, [dockX, dockY]], (dock.at[1] + 1) * tileSize);
   }
 
   /** Onde ele está quando ela chega: o lugar da poeira do dia mais longe da base (ele vinha limpando por lá). */
@@ -58,17 +62,26 @@ export class RobotVacuumView {
     return far && (far[0] !== dock[0] || far[1] !== dock[1]) ? far : null;
   }
 
-  private returnHome(x0: number, y0: number, x1: number, y1: number, dockBase: number): void {
+  /** Anda de esquina em esquina até a base (a última parada). */
+  private returnHome(x0: number, y0: number, stops: [number, number][], dockBase: number): void {
     const robot = this.robot!;
     robot.setPosition(x0, y0).setDepth(ySortDepth(y0));
-    const ms = (Math.hypot(x1 - x0, y1 - y0) / SPEED) * 1000;
+    const [next, ...rest] = stops;
+    if (!next) return;
+    this.leg(next[0], next[1], rest, dockBase);
+  }
+
+  private leg(x1: number, y1: number, rest: [number, number][], dockBase: number): void {
+    const robot = this.robot;
+    if (!robot) return;
+    const ms = Math.max(60, (Math.hypot(x1 - robot.x, y1 - robot.y) / SPEED) * 1000);
     let lastShine = 0;
     this.tween = this.scene.tweens.add({
       targets: robot,
       x: x1,
       y: y1,
       duration: ms,
-      ease: 'Sine.easeInOut',
+      ease: rest.length ? 'Linear' : 'Sine.easeOut',
       onUpdate: () => {
         robot.setDepth(ySortDepth(robot.y));
         const now = this.scene.time.now;
@@ -77,8 +90,10 @@ export class RobotVacuumView {
         this.shine(robot.x, robot.y - 3);
       },
       onComplete: () => {
-        robot.setDepth(ySortDepth(dockBase) + 1);
         this.tween = null;
+        const [next, ...more] = rest;
+        if (next) return this.leg(next[0], next[1], more, dockBase);
+        robot.setDepth(ySortDepth(dockBase) + 1);
       },
     });
   }
