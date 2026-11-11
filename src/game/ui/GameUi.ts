@@ -377,15 +377,22 @@ export class GameUi {
     // Clínica: as falas da Fernanda (data/vet_text.json) quando ela traz o gato, quando ele sai do cercadinho, a
     // complicação e o desconto de amiga. Falas: no balão de fala (por cima de tudo), na fila.
     const fernanda = (text: string) => void this.npcSay('npc.fernanda', text);
-    bus.on('clinic.delivered', ({ catId, inPen, first, isolationDays, aftercareDays }) => {
-      fernanda(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId));
-      // A primeira vez: o cercadinho com fraldas e as latinhas.
-      if (first) fernanda(vetLine(session, 'neuter.diapers', {}, catId));
+    // O que acontece no café (a entrega do gato operado, a saída do cercadinho, a complicação): a fala espera
+    // ela entrar no café (de manhã ela chega pela rua).
+    const atCafe: string[] = [];
+    const inCafe = (text: string) => (session.atHome() ? fernanda(text) : atCafe.push(text));
+    bus.on('map.entered', () => {
+      if (session.atHome()) atCafe.splice(0).forEach(fernanda);
     });
-    bus.on('clinic.released', ({ catId }) => fernanda(vetLine(session, 'neuter.released', {}, catId)));
+    bus.on('clinic.delivered', ({ catId, inPen, first, isolationDays, aftercareDays }) => {
+      inCafe(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId));
+      // A primeira vez: o cercadinho com fraldas e as latinhas.
+      if (first) inCafe(vetLine(session, 'neuter.diapers', {}, catId));
+    });
+    bus.on('clinic.released', ({ catId }) => inCafe(vetLine(session, 'neuter.released', {}, catId)));
     bus.on('clinic.complication', ({ catId, missedFeed }) => {
-      fernanda(vetLine(session, 'neuter.complication', {}, catId));
-      if (missedFeed) fernanda(vetLine(session, 'neuter.missedFeed', {}, catId));
+      inCafe(vetLine(session, 'neuter.complication', {}, catId));
+      if (missedFeed) inCafe(vetLine(session, 'neuter.missedFeed', {}, catId));
     });
     bus.on('clinic.friend_discount', () => fernanda(vetLine(session, 'discount.friend')));
     bus.on('clinic.checkup', ({ catId }) => fernanda(vetLine(session, 'intake.checkup', {}, catId)));
