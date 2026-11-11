@@ -18,7 +18,7 @@
       "trigger": { "days": [8], "hours": ["08:00", "17:00"], "cats": { "gte": 1, "lte": 1 }, "when": { "flag": "met.old_neighbor" } },
       "place": { "kind": "cafe_door", "map": "map.street", "at": [15, 9] },
       "clue": "neighbor",
-      "cat": { "generate": { "personality": "needy", "condition": "hungry", "variant": "toffee" } },
+      "cat": { "generate": { "personality": "needy", "condition": "hungry", "variant": "escaminha" } },
       "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_second_cat" }, { "choice": "neighbor_offer" }],
       "result": { "startPoints": 60, "npc": { "id": "npc.neusa", "points": 80 } },
       "whenFull": "provisional"
@@ -36,7 +36,7 @@
         "fadeMinutes": 300
       },
       "clue": "footprints",
-      "cat": { "generate": { "personality": "shy", "condition": "cold", "variant": "misty" } },
+      "cat": { "generate": { "personality": "shy", "condition": "cold", "variant": "cinza" } },
       "steps": [{ "meet": true }, { "dialogue": "dlg.arrival_third_cat" }, { "choice": "take_in" }],
       "result": { "startPoints": 50 },
       "whenFull": "provisional"

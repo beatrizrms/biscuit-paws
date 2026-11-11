@@ -9,7 +9,7 @@ export type Verdict = 'good' | 'ok' | 'bad';
 export interface AdoptCat {
   id: string;
   name: string;
-  /** Variante do Cosy Cats (cor). */
+  /** Variante (pelagem). */
   variant: string;
   /** Um valor por traço (personality, age, coat...). */
   traits: Record<string, string>;

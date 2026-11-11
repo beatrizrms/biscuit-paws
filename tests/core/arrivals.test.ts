@@ -81,8 +81,8 @@ describe('chegadas (puro)', () => {
     expect(a).toEqual(generateCat(createRng(9), profiles, {}, 1));
     expect(a.def.id).toBe('cat.gen.1');
     expect(new Set(a.def.nameSuggestions).size).toBe(3);
-    const kitten = generateCat(createRng(9), profiles, { personality: 'shy', condition: 'kitten', variant: 'misty' }, 2);
-    expect(kitten.def).toMatchObject({ personality: 'shy', variant: 'misty', adoptionTraits: { age: 'kitten', coat: 'long' } });
+    const kitten = generateCat(createRng(9), profiles, { personality: 'shy', condition: 'kitten', variant: 'cinza' }, 2);
+    expect(kitten.def).toMatchObject({ personality: 'shy', variant: 'cinza', adoptionTraits: { age: 'kitten', coat: 'long' } });
     expect(kitten.condition).toBe('kitten');
   });
 });
@@ -204,7 +204,7 @@ describe('chegadas na sessão', () => {
     expect(back.arrivals.last).toEqual({ 'arr.test': state.day });
     expect(back.arrivals.shelterPool).toEqual(['cat.gen.1']);
     const v18 = parseSave(readFileSync('tests/fixtures/save_v18.json', 'utf8'), knownIds(content)).state;
-    expect(v18.catDefs['cat.gen.1']?.variant).toBe('misty');
+    expect(v18.catDefs['cat.gen.1']?.variant).toBe('cinza'); // v38: a cor antiga vira a nova;
     expect(v18.cats['cat.gen.1']?.provisionalUntil).toBe(12);
     const v17 = parseSave(readFileSync('tests/fixtures/save_v17.json', 'utf8'), knownIds(content)).state;
     expect(v17.catDefs).toEqual({});
@@ -461,7 +461,7 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     shelter(third.state, ['cat.first_stray', 'cat.gen.1']);
     third.session.arrivals.tick();
     expect(third.state.arrivals.active?.id).toBe('arr.third_cat');
-    expect(third.session.catDef(third.state.arrivals.active!.catId)).toMatchObject({ personality: 'shy', variant: 'misty' });
+    expect(third.session.catDef(third.state.arrivals.active!.catId)).toMatchObject({ personality: 'shy', variant: 'cinza' });
   });
 
   it('vizinho cético: aceitar dá corações à corretora e reputação', () => {

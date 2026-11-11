@@ -41,7 +41,7 @@ export class BootScene extends Phaser.Scene {
       const size = sheetFrameSize(id);
       this.load.spritesheet(id, sheet.image, { frameWidth: size, frameHeight: size });
     }
-    // Todas as folhas do Cosy Cats: os gatos gerados pelas chegadas podem ter qualquer cor (são 12 folhas pequenas).
+    // Todas as folhas dos gatos: os gerados pelas chegadas podem ter qualquer pelagem.
     for (const variant of Object.keys(content.catSprites.variants)) loadCatSheet(this, variant);
     for (const npc of Object.values(content.npcs)) {
       this.load.spritesheet(npcTexture(npc.id), npc.sheet, { frameWidth: npc.frameWidth, frameHeight: npc.frameHeight });

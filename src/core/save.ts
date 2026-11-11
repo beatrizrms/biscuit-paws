@@ -21,10 +21,10 @@ import { newCed, type CedState } from './ced';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 
-export const SAVE_SCHEMA_VERSION = 37;
+export const SAVE_SCHEMA_VERSION = 38;
 
-export interface SaveV37 extends GameState {
-  schemaVersion: 37;
+export interface SaveV38 extends GameState {
+  schemaVersion: 38;
   savedAt: string;
 }
 
@@ -188,10 +188,19 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   35: (save) => ({ ...save, schemaVersion: 36, clinic: null }),
   /** v36 -> v37: CED e a vaquinha pelo CatPay (ced.ts). Saves antigos: CED desligada (a Fernanda chama quando a condição valer). */
   36: (save) => ({ ...save, schemaVersion: 37, ced: null }),
+  /** v37 -> v38: a arte antiga dos gatos (Cosy Cats) saiu; gato gerado com cor antiga ganha a pelagem nova parecida. */
+  37: (save) => {
+    const defs = (save.catDefs ?? {}) as Record<string, { variant?: string }>;
+    const catDefs = Object.fromEntries(Object.entries(defs).map(([id, d]) => [id, d && typeof d.variant === 'string' && OLD_VARIANTS[d.variant] ? { ...d, variant: OLD_VARIANTS[d.variant] } : d]));
+    return { ...save, schemaVersion: 38, catDefs };
+  },
 };
 
+/** Cor antiga do Cosy Cats -> a pelagem nova mais parecida (migração v38). */
+const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
+
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV37 = { schemaVersion: 37, savedAt: now.toISOString(), ...state };
+  const save: SaveV38 = { schemaVersion: 38, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -245,7 +254,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV37>;
+  const v2 = save as unknown as Partial<SaveV38>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];

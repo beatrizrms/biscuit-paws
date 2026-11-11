@@ -94,7 +94,7 @@ export const HIDE_SHEETS: Record<string, SheetSpec> = { box: CHASE.hideBox, tras
 /** Tipos de esconderijo da caça ao filhote (data/minigames.json: games.kitten_hunt.hideoutKinds) -> textura. */
 export const HUNT_SHEETS: Record<string, SheetSpec> = { ...HIDE_SHEETS, basket: KITTEN_HUNT.basket, crate: KITTEN_HUNT.crate, pot: KITTEN_HUNT.pot };
 
-/** Folhas do Cosy Cats que o Boot não carregou (ele só carrega os gatos do mundo): os do abrigo, os filhotes... */
+/** Folhas de gato que o Boot não carregou (ele só carrega os gatos do mundo): os do abrigo, os filhotes... */
 export function loadCatVariants(scene: Phaser.Scene, variants: Iterable<string>): void {
   for (const v of new Set(variants)) loadCatSheet(scene, v);
 }

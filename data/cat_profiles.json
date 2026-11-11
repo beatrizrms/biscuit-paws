@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: pillWindow = quanto dura a distração no remédio escondido (desconfiado = menos); dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), e a idade (kitten/senior, para a adoção). Regra geral: o gato aceito entra no café na hora (fome e frio se resolvem lá dentro; o ferido entra doente). rescueVetCost: a consulta do gato ferido que ela leva correndo à clínica (em_perigo), paga na hora. generated: sorteio de gatos gerados (variantes do Cosy Cats, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
+  "_comment": "Perfis de gato para as chegadas (data/arrivals.json). personalities: pillWindow = quanto dura a distração no remédio escondido (desconfiado = menos); dificuldade da confiança (mini game trust: easy/normal/hard), corações para confiar (o jeito na adoção fica em data/adoption.json: fair.personalityFrom). conditions: como o gato chega: saúde inicial, se chega doente (sick), e a idade (kitten/senior, para a adoção). Regra geral: o gato aceito entra no café na hora (fome e frio se resolvem lá dentro; o ferido entra doente). rescueVetCost: a consulta do gato ferido que ela leva correndo à clínica (em_perigo), paga na hora. generated: sorteio de gatos gerados (variantes de data/cat_sprites.json, nomes sugeridos, pesos de personalidade e condição, pelo de cada variante). Nomes na tela: data/ui_text.json (cats.personalities, cats.conditions).",
   "personalities": {
     "brave": { "trust": "easy", "heartsToTrust": 1, "pillWindow": 1.1 },
     "sweet": { "trust": "easy", "heartsToTrust": 1, "pillWindow": 1.2 },
@@ -20,10 +20,10 @@
   },
   "rescueVetCost": 20,
   "generated": {
-    "variants": ["biscuit", "custard", "domino", "freckle", "hazel", "midnight", "misty", "snowdrop", "toffee"],
+    "variants": ["ruivo", "frajola", "preto", "siames", "tricolor", "escaminha", "cinza", "branco", "tigrado", "blue_point", "red_point", "creme"],
     "names": ["Amendoim", "Bolinho", "Canela", "Docinho", "Farofa", "Jujuba", "Mingau", "Nescau", "Pipoca", "Quindim", "Sushi", "Tapioca", "Pudim", "Cocada", "Biju"],
     "personalityWeights": { "shy": 3, "curious": 3, "grumpy": 2, "needy": 3, "sweet": 2, "brave": 2 },
     "conditionWeights": { "healthy": 4, "cold": 2, "hungry": 3, "scared": 2, "kitten": 2, "senior": 1, "injured": 1 },
-    "coat": { "misty": "long", "snowdrop": "long", "toffee": "long" }
+    "coat": { "cinza": "long", "branco": "long", "escaminha": "long" }
   }
 }

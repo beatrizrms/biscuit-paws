@@ -98,7 +98,7 @@ describe('festivais (puro)', () => {
   });
 
   it('gatos do café entram na partida (jeito pela personalidade) e o resto vem do abrigo', () => {
-    const mine = cafeAdoptCats(content.adoption, [{ id: 'cat.x', name: 'Xodó', variant: 'pebble', personality: 'brave' }, { id: 'cat.y', name: 'Yuki', variant: 'misty', personality: 'outra', adoptionTraits: { coat: 'long' } }]);
+    const mine = cafeAdoptCats(content.adoption, [{ id: 'cat.x', name: 'Xodó', variant: 'lynx_point', personality: 'brave' }, { id: 'cat.y', name: 'Yuki', variant: 'cinza', personality: 'outra', adoptionTraits: { coat: 'long' } }]);
     expect(mine[0]!.traits).toEqual({ ...traits.defaultTraits, personality: traits.personalityFrom.brave });
     expect(mine[1]!.traits).toEqual({ ...traits.defaultTraits, coat: 'long' });
     const m = setupMatch(createRng(3), content.adoption, 4, mine);
@@ -122,7 +122,7 @@ describe('festivais na sessão', () => {
   it('feira do começo ao fim: panfletos, o dia no calendário, café fechado, decoração e o match encerra com o resumo', () => {
     const { session, state, events } = cafe();
     for (const id of ['cat.gen.a', 'cat.gen.b']) {
-      state.catDefs[id] = { id, variant: 'pebble', personality: 'brave', tags: [] };
+      state.catDefs[id] = { id, variant: 'lynx_point', personality: 'brave', tags: [] };
       state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70 };
     }
     session.debugStartFestival(fair.id);

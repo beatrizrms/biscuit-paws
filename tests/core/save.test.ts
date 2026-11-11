@@ -238,4 +238,10 @@ describe('save v19: tutorial da dica "E"', () => {
     bad.hintUses = { dirt: 'muito', bowl: -1, cat_pickup: 2 };
     expect(parseSave(JSON.stringify(bad), known).state.hintUses).toEqual({ cat_pickup: 2 });
   });
+
+  it('v38: gato gerado com a cor antiga (Cosy Cats) ganha a pelagem nova parecida', () => {
+    const state = parseSave(readFileSync('tests/fixtures/save_v35.json', 'utf8'), known).state;
+    expect(state.catDefs['cat.gen.1']!.variant).toBe('escaminha');
+    expect(Object.keys(content.catSprites.variants)).not.toContain('toffee');
+  });
 });

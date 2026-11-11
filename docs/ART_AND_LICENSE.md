@@ -4,7 +4,7 @@
 | Pacote | Autor | Uso |
 | --- | --- | --- |
 | Cat Cafe 32x32 Tileset & Interiors v1.0 | Leckie Pixel Studio (leckie1989) | Interior do café (em uso) |
-| Cosy Cats 32x32 + Seasons Add-on | leckie1989 | Gatos animados (marco futuro) |
+| Cosy Cats 32x32 + Seasons Add-on | leckie1989 | Saiu do jogo (decisão 179): os gatos são todos do PixelLab |
 | Cosy UI Kit | leckie1989 | Interface (marco futuro) |
 | Personagem provisória (gerada) | gerada para teste | Jogadora, folha 128 x 256 |
 
@@ -192,7 +192,7 @@ Gerada por IA no PixelLab (https://www.pixellab.ai, assinatura Tier 1) em **64 p
 Feito por código em cima da arte gerada (sem gerar de novo): letreiros (fonte de pixel), cores alternativas (café rosa e céu, sofás, caminhas), versões velhas e secas, neve, pétalas e folhas, balcões fatiados, portas esticadas pelo painel liso, asfalto sem rachaduras repetidas.
 
 **Ainda fora da arte nova:**
-- Gatos: 13 pelagens na arte nova; os gatos fixos que ainda usam variantes do Cosy Cats (leckie1989) continuam com elas. Os novos são feitos do zero no PixelLab: **nunca** usar a arte do Cosy Cats como referência (licença).
+- Gatos: 13 pelagens na arte nova, usadas por todos os gatos do jogo (o Cosy Cats saiu, decisão 179). Os novos são feitos do zero no PixelLab: **nunca** usar a arte do Cosy Cats como referência (licença).
 - NPCs e clientes: sessão de personagens em andamento (`assets/_pixellab/personagens`). A personagem principal já está na arte nova (manequim em camadas, decisão 087).
 - Interface (menus, HUD, celular, balões de atendimento, louça 16 px na mão) e os pacotes dos mini games (Gato em fuga, Pescaria, Latte art, Entrega).
 - Lençol sobre móvel (sujeira do café abandonado) e os provisórios por código da lista de pendências (caixa de areia, cocô, pegadas, peças da feira de adoção).

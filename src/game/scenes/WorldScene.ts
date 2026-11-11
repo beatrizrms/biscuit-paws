@@ -3106,10 +3106,10 @@ const TRAY_ITEM_LIFT = 2;
 /** Louça direto nas mãos (sem bandeja): a base fica tanto abaixo do meio das mãos (px lógicos). */
 const DISH_HAND_LIFT = 3;
 
-/** Variante do Cosy Cats do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
+/** Variante do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {
   const id = catId ?? scene.session.shelteredCats()[0] ?? 'cat.first_stray';
-  return scene.session.catDef(id)?.variant ?? 'marmalade';
+  return scene.session.catDef(id)?.variant ?? 'ruivo';
 }
 
 /** Já abriu a pausa do F5 neste carregamento da página (voltar ao mundo depois não pausa de novo). */

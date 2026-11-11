@@ -17,7 +17,7 @@ export interface MiniGameLaunch {
   params: MiniGameParams;
   /** Estação do mundo agora (a arena segue a estação). */
   season: string;
-  /** Variante do Cosy Cats do gato envolvido (o que foge, o que pesca junto...). */
+  /** Variante do gato envolvido (o que foge, o que pesca junto...). */
   catVariant: string;
   /** Remédio escondido: quanto dura a distração do gato pelo jeito dele (1 = normal). */
   pillWindow?: number;

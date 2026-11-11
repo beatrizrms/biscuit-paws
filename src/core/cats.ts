@@ -5,7 +5,7 @@ export interface CatDef {
   id: string;
   /** Nome fixo (ex.: Tekinha). Sem nome fixo, a jogadora escolhe ao abrigar. */
   name?: string;
-  /** Variante do Cosy Cats (folha de sprites). */
+  /** Variante (pelagem: folha de sprites em data/cat_sprites.json). */
   variant: string;
   personality: string;
   /** Sugestões para a caixa de nome. */
@@ -39,7 +39,7 @@ export interface CatSpritesData {
   resolutions?: Record<string, number>;
 }
 
-/** Resolução da folha de uma variante (1 = Cosy Cats em 32 px; 2 = arte em 64 px). */
+/** Resolução da folha de uma variante (1 = folha em 32 px; 2 = arte em 64 px, a de todos os gatos hoje). */
 export function catResolution(sprites: CatSpritesData, variant: string): number {
   return sprites.resolutions?.[variant] ?? 1;
 }
