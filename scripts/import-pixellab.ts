@@ -547,8 +547,9 @@ const SHEETS: Sheet[] = [
       // Porta dos fundos (do salão para o quintal), 1x2: a porta de madeira guardada na reserva.
       ph_back_door: { file: 'reserva/porta_madeira_64x128.png', w: 1, h: 2 },
       // Lote de 6 peças (decisão 182), geradas sobre a imagem antiga de 32 px ampliada (âncora de tamanho):
-      // a tralha coberta com lençol do porão (2x1), o cadeado da porta trancada e as pegadas na neve da rua.
-      dirt_lencol_sobre_movel: { file: 'lote_pecas6/lencol.png', w: 2, h: 1 },
+      // a tralha coberta com lençol do porão (2x1: uma poltrona velha, gerada do zero), o cadeado da porta trancada e
+      // as pegadas na neve da rua.
+      dirt_lencol_sobre_movel: { file: 'lote_pecas6/lencol_poltrona.png', w: 2, h: 1 },
       ph_padlock: { file: 'lote_pecas6/cadeado.png', w: 1, h: 1 },
       prop_pegadas: { file: 'lote_pecas6/pegadas.png', w: 1, h: 1 },
     },
