@@ -609,7 +609,7 @@ O café é **um mapa só** (`data/maps/cafe_main.json`, 44 x 11): Salão (coluna
 - **Capacidade de gatos** = soma de `capacity.cats` dos cômodos abertos (aparece no catálogo). `capacity.customers` é só informação: o atendimento não tem teto fixo.
 - **Funcionalidades** (com o cômodo reformado): `sleep` = a cama oferece "dormir no café" depois de `goHomeFrom`; ela acorda em `sleep.wake` (também depois de desmaiar), e a porta da fachada não manda mais para casa. `playground` = módulos (itens com a tag de `playground.tag` e `"room": "room.backyard"`, liberados por `requires`: quintal reformado e `{ "cats": { "gte": 10 } }`) dão `pointsPerModulePerDay` de afeto a cada gato por dia.
 - `separateView` (opcional): lugar à parte, que se alcança por uma porta e não é vizinho de verdade (o quintal, que no mapa fica do lado do porão): dentro dele a câmera mostra só ele e o que está em volta fica escuro; fora dele, ele fica fora da câmera do café.
-- Itens com `room` só podem ser posicionados naquele cômodo. Condições novas: `{ "room": "room.x", "atLeast": "abandoned" }`, `{ "cats": { "gte": 10 } }`.
+- Itens com `room` só podem ser posicionados naquele cômodo. Condições novas: `{ "room": "room.x", "atLeast": "abandoned" }`, `{ "cats": { "gte": 10 } }`, `{ "catsReady": true }` (todos os gatos abrigados castrados, e ela sabe, e sem doença; a feira de adoção pede).
 - **Novo cômodo** (cozinha, sótão, porão...): área livre no mapa (parede divisória e passagem) + uma entrada em `rooms` e em `doors`. Arte: `npm run backyard` importa o quintal e desenha os provisórios.
 
 ## Calendário e estações (`data/seasons.json`)

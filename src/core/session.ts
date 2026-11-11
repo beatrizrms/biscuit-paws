@@ -3382,6 +3382,15 @@ export class GameSession {
       } finally {
         this.debugNaming = false;
       }
+    } else if ('catsReady' in c) {
+      // Todos castrados (e ela sabe), sem doença e fora da clínica.
+      for (const id of this.shelteredCats()) {
+        const cat = this.state.cats[id]!;
+        cat.sickness = null;
+        delete cat.clinic;
+        delete cat.aftercare;
+        if (cat.repro) cat.repro = { ...cat.repro, status: 'neutered', known: 'neutered' };
+      }
     } else if ('money' in c) this.state.money = Math.max(this.state.money, c.money.gte);
     else if ('renovated' in c) {
       for (const side of ['inside', 'outside'] as const) if (!this.state.construction.repaired.includes(side)) this.state.construction.repaired.push(side);

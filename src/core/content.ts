@@ -225,6 +225,8 @@ export type Condition =
   | { room: string; atLeast: RoomState }
   /** Gatos abrigados. */
   | { cats: { gte: number } }
+  /** Todos os gatos abrigados já castrados (ela sabe: passaram pela clínica) e sem doença (ex.: para ter a feira). */
+  | { catsReady: true }
   /** A partir da primeira vez que esta estação chega (data/seasons.json). Ex.: a inauguração, na primavera. */
   | { fromSeason: string }
   /** O selo do café já foi conquistado (data/milestones.json). Só selos de quantidade podem segurar a história. */

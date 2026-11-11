@@ -87,6 +87,10 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
   if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);
   if ('cats' in c) return Object.values(state.cats).filter((x) => x.sheltered).length >= c.cats.gte;
+  if ('catsReady' in c) {
+    const cats = Object.values(state.cats).filter((x) => x.sheltered);
+    return cats.length > 0 && cats.every((x) => !x.sickness && x.repro?.known === 'neutered');
+  }
   throw new Error(`Condição desconhecida: ${JSON.stringify(c)}`);
 }
 

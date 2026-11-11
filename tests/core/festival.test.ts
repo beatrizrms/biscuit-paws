@@ -17,6 +17,7 @@ import {
 import { makeResult } from '../../src/core/minigame';
 import { createRng } from '../../src/core/rng';
 import { resolveMap } from '../../src/core/map';
+import { evaluate } from '../../src/core/story';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -148,7 +149,8 @@ describe('festivais na sessão', () => {
     expect(session.pendingJobPoints('map.cafe_main').map((p) => p.id)).toEqual([setup]);
     expect(session.festivalStatus()).toMatchObject({ next: 'activity', game: 'fair_setup' });
     // Montar a feira: os gatos do café que podem ir (o da história nunca vai).
-    expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id)).toEqual(['cat.gen.a', 'cat.gen.b']);
+    // (o atalho do debug completou os 9 gatos, já castrados: a feira pede todos castrados e saudáveis)
+    expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id).slice(0, 2)).toEqual(['cat.gen.a', 'cat.gen.b']);
     const fairSetup = { cats: ['cat.gen.b'], visitors: 7, extraFamilies: 2 };
     session.finishMiniGame(makeResult(content.minigames, 'fair_setup', 'normal', 'great', 90, false, { fairSetup }), { difficulty: 'normal', jobPoint: setup });
     expect(state.festivals.active!.results[0]).toMatchObject({ game: 'fair_setup', setup: fairSetup });
@@ -179,7 +181,8 @@ describe('festivais na sessão', () => {
 
   it('a feira começa sozinha com 9 gatos abrigados e uma semana depois do quintal pronto (ideia dela)', () => {
     const { session, state, events } = cafe();
-    for (let i = 0; i < 9; i++) state.cats[`cat.t${i}`] = { sheltered: true, name: `T${i}`, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70 };
+    const repro = { status: 'neutered', known: 'neutered', sex: 'female', birthDay: -400, weightFactor: 1, earTipped: false, origin: 'shelter' } as const;
+    for (let i = 0; i < 9; i++) state.cats[`cat.t${i}`] = { sheltered: true, name: `T${i}`, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70, repro: { ...repro } };
     state.day = 40;
     state.story.completedOn['story.backyard'] = 35; // quintal pronto há 5 dias: ainda não
     session.enter('map.cafe_main');
@@ -247,5 +250,22 @@ describe('decorações do festival no mapa', () => {
     const placedDecor = map.objects.find((o) => o.id === `fest.${decor.point}`);
     expect(placedDecor).toBeDefined();
     expect(placedDecor!.at).not.toEqual(at);
+  });
+});
+
+describe('feira de adoção: só com todos os gatos castrados e saudáveis', () => {
+  it('um gato sem castrar (ou doente) segura a feira; todos prontos, ela pode começar', () => {
+    const state = newGameState(500, 'map.cafe_main');
+    const session = new GameSession(content, state);
+    const def = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    session.debugSatisfy(def.when as never);
+    const ready = () => evaluate(def.when as never, state, (session as unknown as { storyContext(): never }).storyContext());
+    expect(ready()).toBe(true);
+    const id = session.shelteredCats()[0]!;
+    state.cats[id]!.repro = { ...state.cats[id]!.repro!, status: 'intact', known: 'intact' };
+    expect(ready()).toBe(false);
+    state.cats[id]!.repro = { ...state.cats[id]!.repro!, status: 'neutered', known: 'neutered' };
+    state.cats[id]!.sickness = { disease: content.health.diseases[0]!.id, since: state.day, treatment: null };
+    expect(ready()).toBe(false);
   });
 });
