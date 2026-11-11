@@ -29,6 +29,8 @@ export interface ProcedureDef {
 
 export interface ClinicConfig {
   schemaVersion: 1;
+  /** A NPC veterinária: traz o gato operado ao café (a cena da entrega). */
+  vet: string;
   /** A consulta de entrada só é exigida depois desta flag (antes, o gato do prólogo entra direto). */
   intake: { requiresFlag: string };
   /** Desconto de amiga: a partir da fromConsult-ésima consulta paga. */
@@ -153,9 +155,10 @@ export function dischargeChoice(colonyCats: readonly string[], freeSlots: number
   return chosen;
 }
 
-export function validateClinic(cfg: ClinicConfig, refs: { items: ReadonlySet<string> }): string[] {
+export function validateClinic(cfg: ClinicConfig, refs: { items: ReadonlySet<string>; npcs?: ReadonlySet<string> }): string[] {
   const errors: string[] = [...validateRepro(cfg.repro)];
   const err = (m: string) => errors.push(`clinic: ${m}`);
+  if (refs.npcs && !refs.npcs.has(cfg.vet)) err(`vet: NPC inexistente "${cfg.vet}"`);
   for (const id of [cfg.pen.item, cfg.pen.food]) if (!refs.items.has(id)) err(`pen: item inexistente "${id}"`);
   if (!(Number.isInteger(cfg.pen.slots) && cfg.pen.slots >= 1)) err("pen.slots precisa ser um inteiro de 1 ou mais");
   if (!(cfg.discount.fromConsult >= 1)) err('discount.fromConsult precisa ser 1 ou mais');

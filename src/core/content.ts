@@ -627,7 +627,7 @@ export function validateContent(raw: RawContent): string[] {
     const ok = game?.items ? game.items.some((i) => i.id === item) : raw.items.items.some((i) => i.id === item);
     if (!ok) err(`jobs: ponto "${p.id}" abre o mini game com item inexistente "${item}"`);
   }
-  errors.push(...validateClinic(raw.clinic, { items: new Set(raw.items.items.map((i) => i.id)) }));
+  errors.push(...validateClinic(raw.clinic, { items: new Set(raw.items.items.map((i) => i.id)), npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateVetText(raw.vetText));
   errors.push(...validateCed(raw.ced, { items: new Set(raw.items.items.map((i) => i.id)), npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateCedText(raw.cedText));

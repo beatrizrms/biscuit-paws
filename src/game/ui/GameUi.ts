@@ -376,18 +376,13 @@ export class GameUi {
     bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
     // Clínica: as falas da Fernanda (data/vet_text.json) quando ela traz o gato, quando ele sai do cercadinho, a
     // complicação e o desconto de amiga. Falas: no balão de fala (por cima de tudo), na fila.
-    const fernanda = (text: string) => void this.npcSay('npc.fernanda', text);
-    // O que acontece no café (a entrega do gato operado, a saída do cercadinho, a complicação): a fala espera
-    // ela entrar no café (de manhã ela chega pela rua).
+    const fernanda = (text: string) => void this.npcSay(content.clinic.vet, text);
+    // O que acontece no café (a saída do cercadinho, a complicação): a fala espera ela entrar no café (de manhã ela
+    // chega pela rua). A entrega do gato operado é uma cena (WorldScene.vetDeliveryScene).
     const atCafe: string[] = [];
     const inCafe = (text: string) => (session.atHome() ? fernanda(text) : atCafe.push(text));
     bus.on('map.entered', () => {
       if (session.atHome()) atCafe.splice(0).forEach(fernanda);
-    });
-    bus.on('clinic.delivered', ({ catId, inPen, first, isolationDays, aftercareDays }) => {
-      inCafe(vetLine(session, inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: isolationDays, aftercare: aftercareDays }, catId));
-      // A primeira vez: o cercadinho com fraldas e as latinhas.
-      if (first) inCafe(vetLine(session, 'neuter.diapers', {}, catId));
     });
     bus.on('clinic.released', ({ catId }) => inCafe(vetLine(session, 'neuter.released', {}, catId)));
     bus.on('clinic.complication', ({ catId, missedFeed }) => {

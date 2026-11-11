@@ -55,6 +55,7 @@ import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
 import { daysText, workName } from '../ui/constructionText';
+import { vetLine } from '../ui/vetText';
 import { catSpots } from '../../core/cats';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
@@ -470,6 +471,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
     // Ração no pote: todos comeram (núcleo), mas vão até o pote um de cada vez (a fila do pote).
+    this.session.bus.on('clinic.delivered', (d) => this.queueVetDelivery(d));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
       this.bowlUid = bowlUid;
       if (!this.eatQueue.includes(catId)) this.eatQueue.push(catId);
@@ -668,6 +670,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // A obra terminou: no café, o Tião vem perguntar se ela quer mais algum serviço.
     if (mapId === this.session.content.map.id && this.session.state.construction.askPending) void this.builderAsk();
+    // A Fernanda trouxe um gato operado: a entrega acontece quando ela entra no café.
+    if (mapId === this.session.content.map.id && this.vetDeliveries.length) void this.vetDeliveryScene();
     this.refreshJobPoints();
     this.stopVan();
     this.refreshParcels();
@@ -3140,6 +3144,63 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       },
       t.selectHint,
     );
+  }
+
+  /** Gatos operados que a Fernanda trouxe e cuja entrega ela ainda não viu (as falas de cada um). */
+  private vetDeliveries: { catId: string; lines: string[] }[] = [];
+  private vetDelivering = false;
+
+  /** A volta da castração: guarda a entrega; no café, a cena já começa (fora dele, espera ela entrar). */
+  private queueVetDelivery(d: { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number }): void {
+    const lines = [vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays }, d.catId)];
+    // A primeira vez: o cercadinho com fraldas e as latinhas.
+    if (d.first) lines.push(vetLine(this.session, 'neuter.diapers', {}, d.catId));
+    this.vetDeliveries.push({ catId: d.catId, lines });
+    if (this.session.atHome() && !this.changingMap) void this.vetDeliveryScene();
+  }
+
+  /** A Fernanda aparece ao lado da caixinha (ou do cercadinho) do gato, conta como foi e vai embora pela porta. */
+  private async vetDeliveryScene(): Promise<void> {
+    if (this.vetDelivering) return;
+    this.vetDelivering = true;
+    // Espera a entrada no mapa (o gato já no lugar dele) e o que estiver na tela acabar.
+    await this.wait(600);
+    while (this.ui.isBusy() || this.scripts.isRunning() || this.changingMap) await this.wait(300);
+    const npcId = this.session.content.clinic.vet;
+    while (this.vetDeliveries.length && this.session.atHome()) {
+      const d = this.vetDeliveries.shift()!;
+      const spot = this.besideClinicCat(d.catId);
+      if (spot) {
+        this.spawnNpc(npcId, spot.at, spot.facing);
+        const npc = this.npcs.get(npcId)!;
+        npc.setAlpha(0);
+        this.tweens.add({ targets: npc, alpha: 1, duration: 250 });
+      }
+      for (const line of d.lines) await this.ui.npcSay(npcId, line);
+      const npc = this.npcs.get(npcId);
+      this.npcs.delete(npcId);
+      if (npc) await this.walkOutAndLeave(npc);
+    }
+    this.vetDelivering = false;
+  }
+
+  /** Uma célula livre ao lado de onde o gato isolado está (a caixinha do canto ou a vaga do cercadinho), virada para ele. */
+  private besideClinicCat(catId: string): { at: Cell; facing: Facing } | null {
+    const ts = this.map.tileSize;
+    const cat = this.cats.find((c) => c.catId === catId);
+    const box = this.isoBoxes.get(catId);
+    const ref = box ?? (cat?.visible ? cat : null);
+    if (!ref) return null;
+    const [cc, cr]: Cell = [Math.floor(ref.x / ts), Math.floor((ref.y - 1) / ts)];
+    const taken = this.playerCells();
+    const free = ([c, r]: Cell) => this.map.solid[r]?.[c] === false && !this.session.placedAt([c, r]) && !taken.some(([x, y]) => x === c && y === r);
+    // Do lado (de frente para a caixinha), embaixo (olhando para cima), e um pouco mais longe se o canto estiver cheio.
+    const tries: [number, number, Facing][] = [[1, 0, 'left'], [-1, 0, 'right'], [0, 1, 'up'], [1, 1, 'left'], [-1, 1, 'right'], [2, 0, 'left'], [-2, 0, 'right'], [0, 2, 'up']];
+    for (const [dx, dy, facing] of tries) {
+      const at: Cell = [cc + dx, cr + dy];
+      if (free(at)) return { at, facing };
+    }
+    return null;
   }
 
   /** O Tião terminou a obra: vem até ela, pergunta se quer mais algum serviço e vai embora (sim abre a aba Construção). */
