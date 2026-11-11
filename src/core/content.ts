@@ -77,6 +77,8 @@ export interface ItemDef {
   placeOn?: string;
   /** Com placeOn: também pode ficar solta no chão, sem apoio (os enfeites pequenos de Natal). */
   orFloor?: boolean;
+  /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
+  topLift?: number;
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */

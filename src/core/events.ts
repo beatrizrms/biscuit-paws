@@ -146,6 +146,8 @@ export interface GameEvents {
   'cart.checked_out': { lines: { itemId: string; qty: number }[]; total: number };
   'item.received': { itemId: string };
   'item.placed': { itemId: string; uid: string; at: Cell };
+  /** Uma porta escondida apareceu e o que estava na frente dela foi para a mochila. */
+  'door.cleared': { doorId: string; count: number };
   'item.picked_up': { itemId: string; uid: string };
   /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
   'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };

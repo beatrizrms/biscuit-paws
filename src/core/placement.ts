@@ -8,40 +8,67 @@ export type PlaceProblem = 'out_of_bounds' | 'occupied' | 'needs_floor' | 'needs
 
 export const PLACED_PREFIX = 'placed.';
 
+/**
+ * As células de um móvel posicionado (o tampo de um apoio de 2 células, como a cômoda, aceita uma peça em cada uma).
+ * Sem o catálogo, só a célula de origem (apoios de 1 célula).
+ */
+export type Footprint = (p: PlacedItem) => Cell[];
+const originOnly: Footprint = (p) => [p.at];
+
+/** Footprint pelo catálogo (todas as células do tile do item). */
+export function footprintOf(catalog: TileCatalog, items: Record<string, ItemDef>): Footprint {
+  return (p) => {
+    const def = catalog.tiles[items[p.item]?.tile ?? ''];
+    return def ? cellsOf(p.at, def) : [p.at];
+  };
+}
+
+const sameCell = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
+
 /** Mapa base + móveis da jogadora, como objetos comuns. */
-/** `stocked`: a vitrine tem algo dentro (desenha a arte cheia, display.fullTile). */
-export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean): MapData {
+/**
+ * `stocked`: a vitrine tem algo dentro (desenha a arte cheia, display.fullTile). `lift`: quanto o que vai em cima
+ * sobe até o tampo (o apoio pode ter o próprio, `topLift`).
+ */
+export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean, footprint: Footprint = originOnly): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
     if (!item?.tile) return [];
-    // Em cima de outro móvel (ex.: cafeteira no balcão): sobe até o tampo.
-    const onTop = !!item.placeOn && !!hostAt(placed, items, item.placeOn, p.at);
+    // Em cima de outro móvel (ex.: cafeteira no balcão, vaso na cômoda): sobe até o tampo. Solto no chão (orFloor), não.
+    const host = item.placeOn ? hostAt(placed, items, item.placeOn, p.at, footprint) : undefined;
     const tile = item.display?.fullTile && stocked?.(p.uid) ? item.display.fullTile : item.tile;
-    return [{ id: `${PLACED_PREFIX}${p.uid}`, tile, at: p.at, ...(onTop ? { lift } : {}) }];
+    return [{ id: `${PLACED_PREFIX}${p.uid}`, tile, at: p.at, ...(host ? { lift: items[host.item]?.topLift ?? lift } : {}) }];
   });
   return { ...map, objects: [...map.objects, ...extra] };
 }
 
-/** O móvel com esta tag posicionado na célula (o "apoio" de quem vai em cima). */
-export function hostAt(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, [c, r]: Cell): PlacedItem | undefined {
-  return placed.find((p) => p.at[0] === c && p.at[1] === r && !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag));
+/** O móvel com esta tag posicionado que cobre a célula (o "apoio" de quem vai em cima). */
+export function hostAt(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell, footprint: Footprint = originOnly): PlacedItem | undefined {
+  return placed.find((p) => !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag) && footprint(p).some((c) => sameCell(c, at)));
 }
 
-/** Algo em cima deste móvel? (não dá para recolher o balcão com a cafeteira em cima) */
-export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem): PlacedItem | undefined {
-  return placed.find((p) => p !== host && items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
+/** O que está em cima deste móvel (em qualquer célula dele)? Não dá para recolher o balcão com a cafeteira em cima. */
+export function itemOnTop(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem, footprint: Footprint = originOnly): PlacedItem | undefined {
+  return ridersOf(placed, items, host, footprint)[0];
 }
 
-/** Onde um item que vai em cima pode ficar: num apoio com a tag, sem nada em cima ainda. */
-export function placeOnProblem(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell): PlaceProblem | null {
-  const host = hostAt(placed, items, tag, at);
+/** Tudo o que está em cima deste móvel (vai junto ao mover ou guardar). Um apoio não é rider de ninguém. */
+export function ridersOf(placed: readonly PlacedItem[], items: Record<string, ItemDef>, host: PlacedItem, footprint: Footprint = originOnly): PlacedItem[] {
+  if (items[host.item]?.placeOn) return [];
+  const cells = footprint(host);
+  return placed.filter((p) => p !== host && items[p.item]?.placeOn && cells.some((c) => sameCell(c, p.at)));
+}
+
+/** Onde um item que vai em cima pode ficar: num apoio com a tag, sem nada em cima naquela célula. */
+export function placeOnProblem(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, at: Cell, footprint: Footprint = originOnly): PlaceProblem | null {
+  const host = hostAt(placed, items, tag, at, footprint);
   if (!host) return 'needs_counter';
-  return itemOnTop(placed, items, host) ? 'occupied' : null;
+  return placed.some((p) => p !== host && items[p.item]?.placeOn && sameCell(p.at, at)) ? 'occupied' : null;
 }
 
-/** Existe algum apoio com a tag livre (sem nada em cima)? Se não, nem adianta pôr na mão. */
-export function hasFreeHost(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string): boolean {
-  return placed.some((p) => !items[p.item]?.placeOn && items[p.item]?.tags.includes(tag) && !itemOnTop(placed, items, p));
+/** Existe algum apoio com a tag com uma célula livre (sem nada em cima)? Se não, nem adianta pôr na mão. */
+export function hasFreeHost(placed: readonly PlacedItem[], items: Record<string, ItemDef>, tag: string, footprint: Footprint = originOnly): boolean {
+  return placed.some((h) => !items[h.item]?.placeOn && items[h.item]?.tags.includes(tag) && footprint(h).some((c) => !placed.some((p) => p !== h && items[p.item]?.placeOn && sameCell(p.at, c))));
 }
 
 /**

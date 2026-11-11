@@ -518,7 +518,8 @@ export class CafeService {
         if (free(below)) out.push({ kind: 'standing', spot: below, dishAt: [c, r] });
       }
     }
-    const tables = withTag(this.cfg.tableTag).flatMap((p) => this.cellsOfPlaced(p.item, p.at));
+    // Mesa com algo em cima (um vaso): a bebida não tem onde ficar; aquela célula não serve de mesa.
+    const tables = withTag(this.cfg.tableTag).flatMap((p) => this.cellsOfPlaced(p.item, p.at)).filter(([c, r]) => !busyCounters.has(`${c},${r}`));
     for (const chair of withTag(this.cfg.chairTag)) {
       const [c, r] = chair.at;
       const table = tables.find(([tc, tr]) => Math.abs(tc - c) + Math.abs(tr - r) === 1);

@@ -57,7 +57,7 @@ import {
   type RoomDef,
   type RoomState,
 } from './rooms';
-import { hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, withPlaced, type PlaceProblem } from './placement';
+import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
@@ -1444,9 +1444,32 @@ export class GameSession {
     const room = this.content.rooms.rooms.find((r) => r.id === roomId);
     if (!room || this.roomState(roomId) !== 'locked') return;
     this.state.rooms[roomId] = 'discovered';
-    for (const d of this.content.rooms.doors) if (d.to === roomId && this.doorState(d.id) === 'hidden') this.state.doors[d.id] = 'locked';
+    for (const d of this.content.rooms.doors) {
+      if (d.to !== roomId || this.doorState(d.id) !== 'hidden') continue;
+      this.state.doors[d.id] = 'locked';
+      this.clearDoorway(d.id);
+    }
     if (room.discover?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.discover.dialogue });
     this.bus.emit('room.discovered', { roomId, trigger: room.discover?.trigger ?? 'renovation', highlight: room.discover?.highlight ?? null });
+  }
+
+  /**
+   * A porta acabou de aparecer: o que a jogadora pôs na frente dela (quando ainda era parede lisa) vai para a mochila,
+   * com o que estiver em cima. Avisa quantos.
+   */
+  private clearDoorway(doorId: string): void {
+    const cells = this.doorCells(doorId);
+    const fp = this.footprint();
+    const hit = this.state.placed.filter((p) => !this.hostUnder(p) && fp(p).some(([c, r]) => cells.some(([dc, dr]) => dc === c && dr === r)));
+    let count = 0;
+    for (const p of hit) {
+      for (const q of [...this.movingGroup(p.uid)].reverse()) {
+        this.state.placed = this.state.placed.filter((x) => x !== q);
+        this.receive(q.item, 1);
+        count++;
+      }
+    }
+    if (count > 0) this.bus.emit('door.cleared', { doorId, count });
   }
 
   /** Por que não dá para abrir este cômodo agora (ou null). */
@@ -1910,7 +1933,7 @@ export class GameSession {
       const i = this.state.placed.indexOf(p);
       if (i < 0) continue;
       // O que está em cima dele (só se ele for apoio) volta para a mochila.
-      for (const top of this.state.placed.filter((x) => x !== p && this.content.items[x.item]?.placeOn && x.at[0] === p.at[0] && x.at[1] === p.at[1] && !this.content.items[p.item]?.placeOn)) {
+      for (const top of ridersOf(this.state.placed, this.content.items, p, this.footprint())) {
         this.state.placed.splice(this.state.placed.indexOf(top), 1);
         if (isXmas(top.item)) add(top.item);
         else this.state.inventory[top.item] = (this.state.inventory[top.item] ?? 0) + 1;
@@ -2772,7 +2795,7 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint());
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -3520,7 +3543,7 @@ export class GameSession {
   missingHost(itemId: string): PlaceProblem | null {
     const item = this.content.items[itemId];
     const placeOn = item?.placeOn;
-    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn)) return null;
+    if (!placeOn || item.orFloor || hasFreeHost(this.state.placed, this.content.items, placeOn, this.footprint())) return null;
     return 'no_free_counter';
   }
 
@@ -3609,8 +3632,8 @@ export class GameSession {
     if (!def) return 'out_of_bounds';
     const placeOn = this.content.items[itemId]?.placeOn;
     // Em cima de um apoio; com orFloor, fora de um apoio vale como móvel de chão.
-    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at))) {
-      return placeOnProblem(this.state.placed, this.content.items, placeOn, at);
+    if (placeOn && !(this.content.items[itemId]?.orFloor && !hostAt(this.state.placed, this.content.items, placeOn, at, this.footprint()))) {
+      return placeOnProblem(this.state.placed, this.content.items, placeOn, at, this.footprint());
     }
     const cells = cellsOf(at, def);
     const roomsOf = cells.map((c) => this.roomAt(c));
@@ -3620,12 +3643,9 @@ export class GameSession {
     if (only && roomsOf.some((r) => r!.id !== only)) return 'wrong_room';
     // Porta no vão da parede divisória: a passagem e os dois lados. Porta na parede de cima (o jardim): ela (1x2)
     // e a célula da frente, por onde se passa.
-    const walls = this.content.map.layers.walls;
-    const doorCells = this.content.rooms.doors.flatMap((d): Cell[] => {
-      const [c, r] = d.at;
-      const inWall = (walls[r]?.[c] ?? '.') !== '.';
-      return inWall ? [d.at, [c, r - 1], [c, r + 1]] : [d.at, [c - 1, r], [c + 1, r]];
-    });
+    // Porta ainda escondida (parece parede lisa) não bloqueia: quando ela aparece, o que estiver na frente vai para a
+    // mochila (discoverRoom).
+    const doorCells = this.content.rooms.doors.filter((d) => this.doorState(d.id) !== 'hidden').flatMap((d) => this.doorCells(d.id));
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
   }
@@ -3679,6 +3699,26 @@ export class GameSession {
     return { ok: true };
   }
 
+  /** As células de um móvel posicionado (pelo tile), para os apoios de mais de uma célula. */
+  private footprint() {
+    return footprintOf(this.content.catalog, this.content.items);
+  }
+
+  /** O apoio embaixo deste móvel (a cafeteira no balcão, o vaso na cômoda); solto no chão ou sendo apoio, nenhum. */
+  hostUnder(p: PlacedItem): PlacedItem | undefined {
+    const placeOn = this.content.items[p.item]?.placeOn;
+    return placeOn ? hostAt(this.state.placed.filter((x) => x !== p), this.content.items, placeOn, p.at, this.footprint()) : undefined;
+  }
+
+  /** As células de uma porta: no vão da parede divisória, a passagem e os dois lados; na parede de cima, ela (1x2) e a da frente. */
+  private doorCells(doorId: string): Cell[] {
+    const d = this.content.rooms.doors.find((x) => x.id === doorId);
+    if (!d) return [];
+    const [c, r] = d.at;
+    const inWall = (this.content.map.layers.walls[r]?.[c] ?? '.') !== '.';
+    return inWall ? [d.at, [c, r - 1], [c, r + 1]] : [d.at, [c - 1, r], [c + 1, r]];
+  }
+
   /** Móvel da jogadora numa célula, se houver. */
   placedAt(cell: Cell) {
     return placedItemAt(this.content.catalog, this.state.placed, this.content.items, cell);
@@ -3688,10 +3728,7 @@ export class GameSession {
   movingGroup(uid: string): PlacedItem[] {
     const host = this.state.placed.find((p) => p.uid === uid);
     if (!host) return [];
-    const riders = this.content.items[host.item]?.placeOn
-      ? []
-      : this.state.placed.filter((p) => p !== host && this.content.items[p.item]?.placeOn && p.at[0] === host.at[0] && p.at[1] === host.at[1]);
-    return [host, ...riders];
+    return [host, ...ridersOf(this.state.placed, this.content.items, host, this.footprint())];
   }
 
   /**
@@ -3745,7 +3782,7 @@ export class GameSession {
   pickUp(uid: string): ActionResult {
     const index = this.state.placed.findIndex((p) => p.uid === uid);
     if (index < 0) return { ok: false, reason: 'not_found' };
-    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!)) return { ok: false, reason: 'has_something_on_top' };
+    if (itemOnTop(this.state.placed, this.content.items, this.state.placed[index]!, this.footprint())) return { ok: false, reason: 'has_something_on_top' };
     // Vitrine com doces: precisa esvaziar antes de recolher.
     if ((this.state.displays[uid]?.length ?? 0) > 0) return { ok: false, reason: 'display_not_empty' };
     if (this.service.washerBusy(uid)) return { ok: false, reason: 'washer_busy' };

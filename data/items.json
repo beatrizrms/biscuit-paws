@@ -415,7 +415,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -427,7 +428,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -439,7 +441,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -451,7 +454,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -463,7 +467,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -475,7 +480,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -487,7 +493,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -499,7 +506,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -511,7 +519,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -523,7 +532,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -535,7 +545,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -547,7 +558,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -559,7 +571,8 @@
       "tags": [
         "furniture",
         "counter",
-        "bar"
+        "bar",
+        "surface"
       ]
     },
     {
@@ -583,10 +596,12 @@
       "description": "Mesa para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_round",
+      "topLift": 12,
       "tags": [
         "furniture",
         "for:guests",
-        "table"
+        "table",
+        "surface"
       ]
     },
     {
@@ -687,6 +702,8 @@
       "description": "Decoração: um vasinho verde.",
       "price": 20,
       "tile": "plant_pot",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -711,6 +728,8 @@
       "description": "Decoração: cacto que quase não dá trabalho.",
       "price": 12,
       "tile": "cactus",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -723,6 +742,8 @@
       "description": "Decoração: flores frescas.",
       "price": 14,
       "tile": "flower_vase",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -783,6 +804,8 @@
       "description": "Decoração: floreira cheia de flores.",
       "price": 18,
       "tile": "decor_floreira",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -795,6 +818,8 @@
       "description": "Decoração: vaso de folhagem.",
       "price": 16,
       "tile": "decor_vaso_folhagem",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -807,6 +832,8 @@
       "description": "Decoração: regador.",
       "price": 8,
       "tile": "decor_regador",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor"
@@ -818,6 +845,8 @@
       "description": "Decoração: cesta de piquenique.",
       "price": 14,
       "tile": "decor_cesta_piquenique",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor"
@@ -829,6 +858,8 @@
       "description": "Decoração: lampião.",
       "price": 18,
       "tile": "decor_lampiao",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor"
@@ -840,6 +871,8 @@
       "description": "Decoração: pilha de livros.",
       "price": 10,
       "tile": "decor_livros",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor"
@@ -875,6 +908,8 @@
       "description": "Decoração: cacto redondo que dá flor.",
       "price": 14,
       "tile": "decor_cacto_bola",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -887,6 +922,8 @@
       "description": "Decoração: cacto de braços no vaso verde.",
       "price": 14,
       "tile": "decor_cacto_bracos",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -899,6 +936,8 @@
       "description": "Decoração: suculenta no vaso de barro.",
       "price": 12,
       "tile": "decor_vaso_suculenta",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -911,6 +950,8 @@
       "description": "Decoração: lírio-da-paz no vaso de barro.",
       "price": 22,
       "tile": "decor_vaso_lirio",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -923,6 +964,8 @@
       "description": "Decoração: tulipas cor-de-rosa.",
       "price": 16,
       "tile": "decor_vaso_tulipas",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -935,6 +978,8 @@
       "description": "Decoração: raminhos de lavanda numa garrafa.",
       "price": 16,
       "tile": "decor_vaso_lavanda",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -1111,7 +1156,8 @@
         "furniture",
         "decor"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.cake_stand_b",
@@ -1123,7 +1169,8 @@
         "furniture",
         "decor"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.cake_stand_c",
@@ -1135,7 +1182,8 @@
         "furniture",
         "decor"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.cookie_jar",
@@ -1147,7 +1195,8 @@
         "furniture",
         "decor"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.catpay_sign",
@@ -1160,7 +1209,8 @@
         "decor",
         "ced"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.christmas_tree",
@@ -1232,6 +1282,8 @@
       "description": "A flor do Natal, num vaso com laço dourado. Presente que a Dona Neusa adora.",
       "price": 16,
       "tile": "decor_natal_poinsetia",
+      "placeOn": "surface",
+      "orFloor": true,
       "tags": [
         "furniture",
         "decor",
@@ -1258,7 +1310,7 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar",
+      "placeOn": "surface",
       "orFloor": true
     },
     {
@@ -1276,7 +1328,7 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar",
+      "placeOn": "surface",
       "orFloor": true
     },
     {
@@ -1294,7 +1346,7 @@
       "seasons": [
         "winter"
       ],
-      "placeOn": "bar",
+      "placeOn": "surface",
       "orFloor": true
     },
     {
@@ -1337,7 +1389,8 @@
         "furniture",
         "xmas_reward"
       ],
-      "placeOn": "bar"
+      "placeOn": "surface",
+      "orFloor": true
     },
     {
       "id": "item.xmas_box",
@@ -2561,9 +2614,11 @@
       "description": "Decoração do quintal: mesa redonda de jardim.",
       "price": 45,
       "tile": "yard_mesa_redonda_branca",
+      "topLift": 12,
       "tags": [
         "furniture",
-        "area:yard"
+        "area:yard",
+        "surface"
       ],
       "room": "room.backyard",
       "requires": {
@@ -2761,9 +2816,11 @@
       "description": "Decoração do porão: cômoda.",
       "price": 80,
       "tile": "quarto_comoda",
+      "topLift": 14,
       "tags": [
         "furniture",
-        "area:bedroom"
+        "area:bedroom",
+        "surface"
       ],
       "room": "room.back_room",
       "requires": {
@@ -2777,9 +2834,11 @@
       "description": "Decoração do porão: escrivaninha.",
       "price": 70,
       "tile": "quarto_escrivaninha",
+      "topLift": 12,
       "tags": [
         "furniture",
-        "area:bedroom"
+        "area:bedroom",
+        "surface"
       ],
       "room": "room.back_room",
       "requires": {
@@ -2793,9 +2852,11 @@
       "description": "Decoração do porão: criado-mudo de madeira.",
       "price": 30,
       "tile": "quarto_criado_madeira",
+      "topLift": 10,
       "tags": [
         "furniture",
-        "area:bedroom"
+        "area:bedroom",
+        "surface"
       ],
       "room": "room.back_room",
       "requires": {
@@ -2809,9 +2870,11 @@
       "description": "Decoração do porão: criado-mudo creme.",
       "price": 30,
       "tile": "quarto_criado_creme",
+      "topLift": 10,
       "tags": [
         "furniture",
-        "area:bedroom"
+        "area:bedroom",
+        "surface"
       ],
       "room": "room.back_room",
       "requires": {
@@ -2825,9 +2888,11 @@
       "description": "Decoração do porão: baú.",
       "price": 40,
       "tile": "quarto_bau",
+      "topLift": 8,
       "tags": [
         "furniture",
-        "area:bedroom"
+        "area:bedroom",
+        "surface"
       ],
       "room": "room.back_room",
       "requires": {
@@ -2886,9 +2951,11 @@
       "description": "Decoração: mesinha lateral.",
       "price": 25,
       "tile": "quarto_mesinha_lateral",
+      "topLift": 10,
       "tags": [
         "furniture",
-        "area:other"
+        "area:other",
+        "surface"
       ],
       "requires": {
         "room": "room.back_room",

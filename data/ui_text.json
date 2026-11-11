@@ -1086,6 +1086,7 @@
     "title": "Reputação felina da cidade: {value} de {max}",
     "reached": "Reputação felina: agora você é \"{name}\"!"
   },
+  "doorCleared": "Apareceu uma porta: o que estava na frente dela foi para a mochila ({n}).",
   "xmasBox": {
     "packed": "O Natal acabou: os {n} enfeites foram para a caixa de enfeites, na mochila. Ela abre no próximo inverno.",
     "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
