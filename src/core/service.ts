@@ -416,10 +416,23 @@ export class CafeService {
     return all.filter((i) => i.kind === 'dirty').length + loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad()) + washers;
   }
 
-  /** O presente da Gabi (ou outro item com "dishes") entra no estoque de louça limpa. */
+  /**
+   * O presente da Gabi (ou outro item com "dishes") entra no estoque de louça limpa, uma vez. A louça comprada (preço
+   * maior que 0: os pacotes do Market) entra a cada pacote: sai da mochila e soma no estoque.
+   */
   stockDishes(itemId: string): void {
-    const dishes = this.h.content.items[itemId]?.dishes;
-    if (!dishes || this.st.flags[`dishes.stocked.${itemId}`]) return;
+    const item = this.h.content.items[itemId];
+    const dishes = item?.dishes;
+    if (!dishes) return;
+    if (item.price > 0) {
+      const n = this.st.inventory[itemId] ?? 0;
+      if (n <= 0) return;
+      for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + n * (dishes[v] ?? 0);
+      delete this.st.inventory[itemId];
+      this.h.bus.emit('dishes.added', { itemId, count: n });
+      return;
+    }
+    if (this.st.flags[`dishes.stocked.${itemId}`]) return;
     for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (dishes[v] ?? 0);
     this.st.flags[`dishes.stocked.${itemId}`] = true;
   }

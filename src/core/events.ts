@@ -17,6 +17,8 @@ export interface GameEvents {
   'cat.diagnosed': { catId: string; disease: string; days: number; total: number; onCredit: boolean };
   'cat.medicated': { catId: string; dosesGiven: number; days: number };
   'cat.cured': { catId: string };
+  /** Louça comprada entrou no estoque (pacotes do Market). */
+  'dishes.added': { itemId: string; count: number };
   /** Descuido: saúde, alegria ou higiene em zero por dias seguidos; ele perdeu corações. */
   'cat.neglected': { catId: string; hearts: number };
   // Clínica (clinicFlow.ts): consulta de entrada, castração e recuperação no cercadinho.

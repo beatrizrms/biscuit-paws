@@ -1388,6 +1388,8 @@ export class GameSession {
       this.state.inventory[d.item] = (this.state.inventory[d.item] ?? 0) + 1;
       this.bus.emit('delivery.unpacked', { deliveryId: d.uid, itemId: d.item });
     }
+    // Louça comprada: vai direto para o estoque de louça limpa.
+    for (const id of new Set(inBox.map((d) => d.item))) this.service.stockDishes(id);
     const itemIds = inBox.map((d) => d.item);
     this.bus.emit('delivery.box_opened', { itemIds });
     this.advanceStory();
@@ -4245,6 +4247,7 @@ export class GameSession {
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
     this.receive(itemId, 1);
+    this.service.stockDishes(itemId);
     this.bus.emit('item.bought', { itemId, price: item.price });
     this.advanceStory();
     return { ok: true };

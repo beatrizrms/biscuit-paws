@@ -2122,6 +2122,45 @@
       "servings": 10
     },
     {
+      "id": "item.dishes_cups",
+      "name": "Xícaras (6)",
+      "description": "Seis xícaras a mais para o café: dá para atender mais gente antes de lavar a louça.",
+      "price": 30,
+      "kind": "consumable",
+      "icon": "xicara_limpa",
+      "tags": [
+        "for:guests",
+        "dishes"
+      ],
+      "dishes": {"cup":6}
+    },
+    {
+      "id": "item.dishes_glasses",
+      "name": "Copos (6)",
+      "description": "Seis copos a mais para as bebidas geladas: dá para atender mais gente antes de lavar a louça.",
+      "price": 30,
+      "kind": "consumable",
+      "icon": "copo_limpo",
+      "tags": [
+        "for:guests",
+        "dishes"
+      ],
+      "dishes": {"glass":6}
+    },
+    {
+      "id": "item.dishes_plates",
+      "name": "Pratos (6)",
+      "description": "Seis pratos a mais para os doces e salgados: dá para atender mais gente antes de lavar a louça.",
+      "price": 36,
+      "kind": "consumable",
+      "icon": "prato_limpo",
+      "tags": [
+        "for:guests",
+        "dishes"
+      ],
+      "dishes": {"plate":6}
+    },
+    {
       "id": "item.dishes_set",
       "name": "Conjunto de louças",
       "description": "Xícaras, copos e pratos para servir os clientes.",

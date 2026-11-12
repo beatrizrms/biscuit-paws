@@ -614,6 +614,21 @@ describe('mercado', () => {
   });
 });
 
+describe('louça à venda', () => {
+  it('cada pacote comprado soma ao estoque de louça limpa (não fica na mochila); o presente da Gabi entra uma vez só', () => {
+    const { session } = newSession();
+    session.state.money = 500;
+    const before = session.state.dishes.cup;
+    expect(session.buy('item.dishes_cups')).toEqual({ ok: true });
+    expect(session.buy('item.dishes_cups')).toEqual({ ok: true });
+    expect(session.state.dishes.cup).toBe(before + 12);
+    expect(session.state.inventory['item.dishes_cups']).toBeUndefined();
+    session.receiveItem('item.dishes_set');
+    session.receiveItem('item.dishes_set');
+    expect(session.state.dishes.cup).toBe(before + 18);
+  });
+});
+
 describe('alimentar e fim do dia', () => {
   it('sem ração na bolsa ou sem gato, a tigela não serve', () => {
     const { session } = newSession();
