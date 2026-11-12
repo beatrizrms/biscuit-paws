@@ -317,7 +317,7 @@
       "mats": [
         {"id":"back","at":[12,16],"radius":3,"need":40},
         {"id":"shoulder","at":[18,17],"radius":3,"need":40},
-        {"id":"cheek","at":[26,14],"radius":2.5,"need":30},
+        {"id":"cheek","at":[22,12],"radius":2.5,"need":30},
         {"id":"hip","at":[8,19],"radius":3,"need":40},
         {"id":"chest","at":[21,21],"radius":3,"need":40},
         {"id":"belly","at":[15,22],"radius":3,"need":35},
@@ -337,7 +337,7 @@
         "mats": [
           {"id":"back","at":[14,18],"radius":2.5,"need":40},
           {"id":"shoulder","at":[19,18],"radius":2.5,"need":40},
-          {"id":"cheek","at":[25,13],"radius":2,"need":30},
+          {"id":"cheek","at":[21,12],"radius":2,"need":30},
           {"id":"hip","at":[9,20],"radius":2.5,"need":40},
           {"id":"chest","at":[22,20],"radius":2.5,"need":40},
           {"id":"belly","at":[15,22],"radius":2,"need":35},
