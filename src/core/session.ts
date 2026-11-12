@@ -3688,7 +3688,7 @@ export class GameSession {
     const id = held ?? (isFestivalDay(f, this.state.day) ? f.active!.id : null);
     const def = id ? this.content.festivals.find((d) => d.id === id) : undefined;
     if (!def) return [];
-    const pieces = [...(def.closePoint ? [def.closePoint] : []), ...(def.decorations ?? [])];
+    const pieces: { point: string; tile: string; at?: [number, number] }[] = [...(def.closePoint ? [def.closePoint] : []), ...(def.decorations ?? [])];
     const done = held ? null : f.active!.done;
     const { tiles } = this.content.catalog;
     const occupied = new Set<string>();
@@ -3706,15 +3706,18 @@ export class GameSession {
     const out: MapData['objects'] = [];
     for (const d of pieces.filter((p) => !done || done.includes(p.point))) {
       const def = tiles[d.tile];
-      const at = this.content.jobPoints[d.point]!.at;
+      // Onde a peça aparece: o "at" dela (as bandeirinhas na sebe, a parede do quintal) ou o ponto do E.
+      const at = d.at ?? this.content.jobPoints[d.point]!.at;
       if (!def) continue;
       const free = (cell: Cell) => cellsOf(cell, def).every(([c, r]) => !occupied.has(`${def.layer}:${c},${r}`));
       let spot: Cell | null = free(at) ? [...at] as Cell : null;
+      // Peça de parede (a bandeirinha na sebe): só anda de lado, na mesma parede; no chão, para qualquer lado livre.
+      const onWall = def.layer === 'wall';
       for (let dist = 1; dist <= 3 && !spot; dist++)
-        for (let dr = -dist; dr <= dist && !spot; dr++)
+        for (let dr = onWall ? 0 : -dist; dr <= (onWall ? 0 : dist) && !spot; dr++)
           for (let dc = -dist; dc <= dist && !spot; dc++) {
             const cell: Cell = [at[0] + dc, at[1] + dr];
-            if (Math.max(Math.abs(dc), Math.abs(dr)) === dist && free(cell) && cellsOf(cell, def).every((x) => floor(x))) spot = cell;
+            if (Math.max(Math.abs(dc), Math.abs(dr)) === dist && free(cell) && (onWall || cellsOf(cell, def).every((x) => floor(x)))) spot = cell;
           }
       if (!spot) continue;
       const obj = { id: `fest.${d.point}`, tile: d.tile, at: spot };

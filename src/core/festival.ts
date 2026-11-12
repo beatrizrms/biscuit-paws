@@ -24,7 +24,7 @@ export interface FestivalDef {
   /** No dia, antes de tudo: a placa na porta (fecha o atendimento). */
   closePoint?: { point: string; tile: string };
   /** No dia, depois da placa: decorações (cada ponto vira a peça dele no mapa). */
-  decorations?: { point: string; tile: string }[];
+  decorations?: { point: string; tile: string; at?: [number, number] }[];
   /** As atividades do dia, em ordem: mini game aberto pelo ponto (data/jobs.json, action "minigame"). */
   activities: { point: string; game: string }[];
   /** Somados no fim, além do que cada atividade já pagou. */
