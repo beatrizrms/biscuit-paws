@@ -132,7 +132,8 @@ describe('festivais na sessão', () => {
     const { session, state, events } = cafe();
     for (const id of ['cat.gen.a', 'cat.gen.b']) {
       state.catDefs[id] = { id, variant: 'lynx_point', personality: 'brave', tags: [] };
-      state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70 };
+      // Castrados (a feira só leva gato castrado).
+      state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70, repro: { status: 'neutered', known: 'neutered', sex: 'female', birthDay: -400, weightFactor: 1, earTipped: false, origin: 'shelter' } };
     }
     session.debugStartFestival(fair.id);
     expect(names(events)).toContain('festival.started');
@@ -158,6 +159,10 @@ describe('festivais na sessão', () => {
     // Montar a feira: os gatos do café que podem ir (o da história nunca vai).
     // (o atalho do debug completou os 9 gatos, já castrados: a feira pede todos castrados e saudáveis)
     expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id).slice(0, 2)).toEqual(['cat.gen.a', 'cat.gen.b']);
+    // Sem castração (ou sem saber que é castrado), não vai para a feira.
+    state.cats['cat.gen.a']!.repro = { ...state.cats['cat.gen.a']!.repro!, status: 'neutered', known: 'unknown' };
+    expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id)).not.toContain('cat.gen.a');
+    state.cats['cat.gen.a']!.repro = { ...state.cats['cat.gen.a']!.repro!, known: 'neutered' };
     const fairSetup = { cats: ['cat.gen.b'], visitors: 7, extraFamilies: 2 };
     session.finishMiniGame(makeResult(content.minigames, 'fair_setup', 'normal', 'great', 90, false, { fairSetup }), { difficulty: 'normal', jobPoint: setup });
     expect(state.festivals.active!.results[0]).toMatchObject({ game: 'fair_setup', setup: fairSetup });

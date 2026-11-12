@@ -3692,8 +3692,10 @@ export class GameSession {
     if (game === 'photo') return { contestCats: this.contestExtras().contestCats };
     if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
     const protectedCats = this.content.adoption.protectedCats;
-    // Gatos do café: só depois de castrados (e fora do cercadinho/clínica); os do abrigo da vila não passam por aqui.
-    const cats = [...this.shelteredCats().filter((id) => !this.clinic.adoptionBlock(id)), ...this.state.arrivals.shelterPool]
+    // Só gatos castrados: os do café com a castração confirmada (e fora do cercadinho/clínica; sem registro de castração,
+    // não vai) e os que foram para o abrigo da vila (o abrigo castra antes da feira).
+    const neutered = (id: string) => this.state.cats[id]?.repro?.known === 'neutered';
+    const cats = [...this.shelteredCats().filter((id) => neutered(id) && !this.clinic.adoptionBlock(id)), ...this.state.arrivals.shelterPool]
       .filter((id) => !protectedCats.includes(id) && this.catDef(id))
       .map((id) => {
         const def = this.catDef(id)!;

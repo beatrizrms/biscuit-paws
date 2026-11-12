@@ -844,3 +844,7 @@ Decisão: a sujeira até 3 células dela (a varrida alcança 2) deixa transparen
 ## 205. Sujeira primeiro, na direção em que ela olha (nov/2026)
 Pedido: não dava para limpar a teia do canto de cima porque o toque abria a despensa (o armário do lado); a sujeira vem primeiro, sempre na direção em que a personagem está.
 Decisão: com a vassoura na mão, a sujeira à frente dela (na direção do olhar, até o alcance da vassoura; olhando para cima, a parede de cima) é a primeira coisa do E (`dirtAhead`, antes do Tião, da festa, das caixas, dos gatos e do atendimento) e a dica do E aponta para ela. Tocar ou clicar exatamente numa sujeira que a vassoura limpa varre antes de tentar interagir com o que está perto. O quadro do HUD que fica transparente sobre a sujeira deixa o toque passar (`pointer-events: none`), para tocar na teia embaixo do balão.
+
+## 206. Feira: só gatos castrados na lista (nov/2026)
+Pedido: na montagem da feira, mostrar só os gatos castrados.
+Decisão: os gatos do café entram na feira (montagem e mesa de adoção) só com a castração confirmada (`repro.known: neutered`), além de fora do cercadinho/clínica como antes; sem registro de castração (gato gerado pelo debug, save antigo), não entram. Os gatos que foram para o abrigo da vila (café cheio) continuam entrando: o abrigo castra antes da feira.
