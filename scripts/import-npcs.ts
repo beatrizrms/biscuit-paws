@@ -34,6 +34,7 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   gabi: { id: 'npc.gabi', kit: 'full', portrait: true },
   corretora: { id: 'npc.realtor', kit: 'full', portrait: true },
   neusa: { id: 'npc.neusa', kit: 'full', portrait: true },
+  jacque: { id: 'npc.jacque', kit: 'full', portrait: true },
   entregadora: { id: 'npc.mail_carrier', kit: 'full', portrait: true },
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },

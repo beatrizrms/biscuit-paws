@@ -1,6 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { itemSize, packBoxes } from './parcels';
+import { chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
@@ -2313,6 +2314,46 @@ export class GameSession {
     const ss = this.content.festive.secretSanta;
     if (!isChristmas(this.content.seasons, ss, this.state.day) || this.state.time < parseClock(ss.partyAt)) return null;
     return parseClock(ss.partyLights);
+  }
+
+  // ---------- Passeios de vizinhos na rua (neighborWalks.ts) ----------
+
+  /** Dia em que cada vizinho já passeou (o passeio é uma vez por dia; não vai para o save). */
+  private walkedOn: Record<string, number> = {};
+  /** Dia da última conversa (a fala do dia e os corações são uma vez por dia). */
+  private neighborChatOn: Record<string, number> = {};
+
+  /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
+  neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] {
+    const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] = [];
+    for (const def of this.content.npcWalks) {
+      if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day) continue;
+      if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
+      if (def.when && !this.holds(def.when as Condition)) continue;
+      const w = walkOfDay(def, this.state.day);
+      if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats });
+    }
+    return out;
+  }
+
+  /** O passeio começou (ou terminou): não começa de novo hoje. */
+  markNeighborWalked(npc: string): void {
+    this.walkedOn[npc] = this.state.day;
+  }
+
+  /**
+   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay) e, na primeira
+   * conversa do dia, os corações. Conversando de novo no mesmo dia, a fala curta de "amanhã tem mais" (chatAgain).
+   */
+  neighborChat(npc: string): string | null {
+    const def = this.content.npcWalks.find((w) => w.npc === npc);
+    const line = def && chatOfDay(def, this.state.day);
+    if (!def || !line) return null;
+    if (this.neighborChatOn[npc] === this.state.day) return def.chatAgain ?? line;
+    this.neighborChatOn[npc] = this.state.day;
+    addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
+    this.bus.emit('npc.chatted', { npc, points: def.points });
+    return line;
   }
 
   /** Hoje é Natal e a ceia ainda vai acontecer. */

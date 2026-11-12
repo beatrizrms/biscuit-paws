@@ -88,6 +88,10 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('renovated' in c) return isRenovated(state.construction);
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
   if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);
+  if ('festivalToday' in c) {
+    const f = state.festivals;
+    return (f.active?.id === c.festivalToday && f.active.day === state.day) || (f.heldOn?.id === c.festivalToday && f.heldOn.day === state.day);
+  }
   if ('cats' in c) return Object.values(state.cats).filter((x) => x.sheltered).length >= c.cats.gte;
   if ('fairCats' in c) return (ctx.fairCats?.() ?? 0) >= c.fairCats.gte;
   if ('catsReady' in c) {

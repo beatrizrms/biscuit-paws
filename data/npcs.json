@@ -152,6 +152,27 @@
       "resolution": 2
     },
     {
+      "id": "npc.jacque",
+      "name": "Jacque",
+      "sheet": "assets/characters/npcs/v64/npc_jacque.png",
+      "portrait": "assets/characters/npcs/v64/npc_jacque_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
+      "fps": 6,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [21, 22, 23, 24],
+        "segurando": [29]
+      },
+      "resolution": 2
+    },
+    {
       "id": "npc.mail_carrier",
       "name": "Entregadora",
       "sheet": "assets/characters/npcs/v64/npc_mail_carrier.png",
@@ -460,6 +481,81 @@
         "passando_compras": [6, 7, 8, 9, 8, 7]
       },
       "resolution": 2
+    }
+  ],
+  "walks": [
+    {
+      "npc": "npc.jacque",
+      "map": "map.street",
+      "when": {
+        "flag": "met.jacque"
+      },
+      "chance": 0.5,
+      "hours": [
+        "16:30",
+        "18:30"
+      ],
+      "path": [
+        [
+          1,
+          9
+        ],
+        [
+          42,
+          9
+        ]
+      ],
+      "cats": [
+        {
+          "name": "Sabrina",
+          "variant": "preto"
+        },
+        {
+          "name": "Branquinho",
+          "variant": "branco"
+        },
+        {
+          "name": "Jojo",
+          "variant": "frajola"
+        },
+        {
+          "name": "Amora",
+          "variant": "tigrado"
+        },
+        {
+          "name": "Feijão",
+          "variant": "siames"
+        },
+        {
+          "name": "Cacau",
+          "variant": "preto"
+        }
+      ],
+      "catsPerWalk": [
+        1,
+        2
+      ],
+      "chat": [
+        "Hoje é dia de passeio! Eles adoram cheirar tudo pela calçada.",
+        "O Branquinho tem alergia, coitadinho. Tem dia que o olhinho dele amanhece vermelho e lá vou eu com o colírio.",
+        "A Jojo é a conversadeira lá de casa. Pergunta qualquer coisa pra ela e ela responde, juro!",
+        "O Feijão é um safado: outro dia fez xixi no pote de ração. Siamês tem personalidade, né?",
+        "Todo mundo lá de casa participa das minhas reuniões do trabalho. Ligo a câmera e aparece um rabo na frente!",
+        "Eles adoram acompanhar a mamãe. Se eu vou pra sala, vão os seis atrás, em fila.",
+        "A Sabrina e a Cacau são tão pretinhas que às vezes eu confundo as duas. Elas não ligam.",
+        "A Amora caça mosquito a noite toda. Pelo menos a casa fica livre deles!",
+        "O Branquinho dorme em cima da geladeira. Ninguém sabe como ele sobe.",
+        "São todos muito fofos. Sou suspeita pra falar, eu sei.",
+        "Gateira que se preza para pra conversar com todo gato da rua. Inclusive os seus!",
+        "O Branquinho no sol vira maionese de tão branco que brilha.",
+        "Gato preto no sofá escuro é esconde-esconde: só acho a Sabrina pelos olhos amarelos.",
+        "De noite a Cacau vira só dois olhinhos no escuro. Já levei cada susto!",
+        "A Jojo tem um bigodinho preto pintado no focinho. Parece que vive de terno e gravata.",
+        "A Amora tem um M desenhado na testa, todo tigrado tem. Eu digo que é de Mamãe.",
+        "O Feijão tem a carinha e as patas escurinhas, parece que mergulhou no café."
+      ],
+      "chatAgain": "Hoje eu já te contei a fofoca do dia! Amanhã tem mais história deles.",
+      "points": 10
     }
   ]
 }
