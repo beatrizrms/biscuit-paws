@@ -46,12 +46,12 @@ describe('passeios de vizinhos na rua', () => {
     expect(session.neighborWalksNow()).toEqual([]);
   });
 
-  it('conversar: uma frase por dia (todas antes de repetir); de novo no mesmo dia, a fala curta; corações uma vez por dia', () => {
+  it('conversar: uma frase por dia (todas antes de repetir); de novo no mesmo dia, a mesma; corações uma vez por dia', () => {
     const { session, state } = street(3, 17 * 60);
     const key = pairKey('player', 'npc.jacque');
     const today = session.neighborChat('npc.jacque');
     expect(jacque.chat).toContain(today);
-    expect(session.neighborChat('npc.jacque')).toBe(jacque.chatAgain);
+    expect(session.neighborChat('npc.jacque')).toBe(today); // de novo no mesmo dia: a mesma frase
     expect(state.relationships[key]).toBe(jacque.points);
     session.endDay('home');
     const tomorrow = session.neighborChat('npc.jacque');

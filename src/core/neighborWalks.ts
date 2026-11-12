@@ -25,8 +25,6 @@ export interface NeighborWalkDef {
   catsPerWalk: [number, number];
   /** Falas quando ela para para conversar: uma por dia (todas saem antes de alguma repetir). */
   chat: string[];
-  /** Conversando de novo no mesmo dia (a fala do dia já foi). */
-  chatAgain?: string;
   /** Corações (pontos) da primeira conversa do dia. */
   points: number;
 }
