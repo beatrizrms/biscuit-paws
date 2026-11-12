@@ -836,3 +836,27 @@ Decisão: setinha pulando em cima do passo da vez da feira (os pontos com marcad
 ## 203. Corações: tigela não dá mais um coração inteiro; cuidado conta; descuido tira (nov/2026)
 Pedido: encher a tigela dava 1 coração por dia (10 dias e qualquer gato chegava ao máximo), enquanto cuidar do gato não contava e nada tirava afeto.
 Decisão: `relationships.json`: `feedPoints` 30 (tigela que ela encheu ou pote automático, que agora dá o mesmo afeto; a latinha do cercadinho não conta), `careGamePoints` { ok: 10, great: 20 } nos mini games de cuidado (escova, varinha, remédio; falhar não dá), `neglect` { days: 2, hearts: 1 }: com a saúde, a alegria ou a higiene em zero por 2 dias seguidos (contagem em `CatState.neglectDays`, opcional no save), o gato perde 1 coração e aparece um aviso; fora do zero, a contagem zera.
+
+## 204. HUD enxuto no começo; a sujeira perto dela não fica escondida (nov/2026)
+Pedidos: no celular, o HUD e o balão cobrem a sujeira da parede de cima; e no começo do jogo os quadros do canto superior direito não são necessários.
+Decisão: a sujeira até 3 células dela (a varrida alcança 2) deixa transparentes o balão, o dinheiro, a reputação, a energia e o clima que estiverem por cima (a mesma regra de quando ela ou o mouse passam embaixo). Reputação e clima só aparecem com a condição de `world.hud` (`business: soft_open`: quando o café começa a atender); os quadros da coluna sobem sem deixar buraco (`layoutHudStack`). Data, hora, moedas e energia ficam desde o início (a faxina gasta energia; a reforma usa moedas).
+
+## 205. Sujeira primeiro, na direção em que ela olha (nov/2026)
+Pedido: não dava para limpar a teia do canto de cima porque o toque abria a despensa (o armário do lado); a sujeira vem primeiro, sempre na direção em que a personagem está.
+Decisão: com a vassoura na mão, a sujeira à frente dela (na direção do olhar, até o alcance da vassoura; olhando para cima, a parede de cima) é a primeira coisa do E (`dirtAhead`, antes do Tião, da festa, das caixas, dos gatos e do atendimento) e a dica do E aponta para ela. Tocar ou clicar exatamente numa sujeira que a vassoura limpa varre antes de tentar interagir com o que está perto. O quadro do HUD que fica transparente sobre a sujeira deixa o toque passar (`pointer-events: none`), para tocar na teia embaixo do balão.
+
+## 206. Feira: só gatos castrados na lista (nov/2026)
+Pedido: na montagem da feira, mostrar só os gatos castrados.
+Decisão: os gatos do café entram na feira (montagem e mesa de adoção) só com a castração confirmada (`repro.known: neutered`), além de fora do cercadinho/clínica como antes; sem registro de castração (gato gerado pelo debug, save antigo), não entram. Os gatos que foram para o abrigo da vila (café cheio) continuam entrando: o abrigo castra antes da feira.
+
+## 207. O abrigo é o café: sem "abrigo da vila" (nov/2026)
+Pedido: não existe abrigo fora do café; com o café cheio, só chega o próximo gato quando houver vaga; o mini game de adoção usa só os gatos do café.
+Decisão: com o café cheio, nenhuma chegada começa (a fila espera abrir vaga, pela adoção na feira); `whenFull` ficou sem efeito. A chegada aceita sempre põe o gato no café (os filhotes de uma ninhada entram juntos, mesmo passando da vaga). Sem provisório: o de saves antigos fica de vez na virada do dia, e quem estava no "abrigo da vila" (`arrivals.shelterPool`) volta para o café ao carregar (`absorbShelterPool`; a lista fica vazia). Na feira (montagem e mesa de adoção) só os gatos castrados do café; sem nenhum, a montagem e a mesa avisam (`no_fair_cats`) em vez de abrir com gatos de fora. A lista fixa de `adoption.json` fica só para o debug. Debug "gerar gato" põe no café, sem provisório.
+
+## 208. Feira só começa com gato que possa ir (nov/2026)
+Pedido: checar os gatos castrados já na hora de montar a feira, para não chegar no dia sem gatos.
+Decisão: condição `fairCats: { gte }` (gatos do café castrados com a castração confirmada, sem doença, fora do cercadinho/clínica e fora os da história; `session.fairCatIds`, a mesma lista da montagem e da mesa). As duas feiras pedem pelo menos 1 no gatilho (`when`): a Feira de adoção (que já pedia `catsReady`) e o Dia do Gato (que não checava nada e podia chegar sem gatos). Sem gato apto, o evento não começa (o Dia do Gato pode começar mais tarde na janela da ideia, se um gato ficar apto). No dia, se ninguém puder ir, a montagem e a mesa avisam (`no_fair_cats`). O atalho do debug cumpre a condição (castra os primeiros gatos do café e, num jogo novo, gera os que faltam).
+
+## 209. Tião ali: sem ligação; uma obra por vez (nov/2026)
+Pedido: quando o Tião termina e pergunta se ela quer outro serviço, o "sim" abria a ligação, sem sentido com ele ali; ir direto para a escolha; pelo celular, a ligação continua; não deixar pedir obra com outra em andamento.
+Decisão: o "sim" abre o Market na Construção marcando aquela aberta do celular (`GameUi.openConstruction(true)`, contada por `NewsPanel.opens`): a obra escolhida nela vai direto para o orçamento do Tião (`askQuote`), sem a cena da ligação, inclusive a troca de acabamento (que fecha o celular para escolher a área). Abrindo o celular de novo, é ligação. Idempotência: o núcleo já recusa (`busy`) qualquer pedido com obra marcada/em andamento ou orçamento aberto (`quoteBlocker`); o teste cobre o pedido repetido com o orçamento aberto (uma ligação só).

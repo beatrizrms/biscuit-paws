@@ -70,7 +70,7 @@ export class AdoptionScene extends MiniGameScene {
 
   protected buildGame(): void {
     this.p = paramsOf<AdoptionParams>(content.minigames, 'adoption', this.launch.params.difficulty);
-    // Na feira, os gatos do café entram primeiro (params.adoptCats); o resto vem do abrigo da vila.
+    // Na feira, só os gatos castrados do café (params.adoptCats); a lista fixa (adoption.json: cats) é só do debug.
     // Na feira (params.adoptCats), só os gatos do café entram: quem der match sai do café com a família.
     const fair = (this.launch.params.adoptCats?.length ?? 0) > 0;
     const match = setupMatch(this.rng, content.adoption, this.p.pairs, this.launch.params.adoptCats ?? [], this.launch.params.extraFamilies ?? 0, fair);

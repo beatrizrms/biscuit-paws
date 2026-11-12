@@ -45,3 +45,6 @@
 .debug-panel input[type="number"] { width: 3.2em; padding: 0 2px; font: inherit; font-size: 7px; border: 1px solid var(--cream3); border-radius: 3px; background: var(--cream); }
 .debug-panel .dbg-note { flex-basis: 100%; color: var(--grey2); }
 .debug-panel .status { margin-top: 3px; line-height: 1.35; }
+
+/* Com os controles de toque à vista: o painel vai para a direita do direcional (que fica no canto de baixo à esquerda). */
+body:has(#touch.touch-on:not(.touch-hidden)) .debug-panel { left: 92px; }

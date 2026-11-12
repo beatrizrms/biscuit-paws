@@ -129,22 +129,15 @@ describe('chegadas na sessão', () => {
     expect(session.shelteredCats()).toContain('cat.gen.1');
   });
 
-  it('café cheio: provisório (com prazo), abrigo da vila (entra na feira) ou espera vaga', () => {
-    const prov = cafe([arrival()]);
-    fillCafe(prov.state, prov.session.catCapacity());
-    prov.session.arrivals.tick();
-    expect(prov.session.arrivals.finish('accepted')).toBe('provisional');
-    expect(prov.state.cats['cat.gen.1']!.provisionalUntil).toBe(prov.state.day + content.arrivals.provisional.days);
+  it('café cheio: nenhum gato chega até abrir vaga (o abrigo é o café)', () => {
+    for (const whenFull of ['provisional', 'adoption', 'postpone'] as const) {
+      const full = cafe([arrival({ whenFull })]);
+      fillCafe(full.state, full.session.catCapacity());
+      full.session.arrivals.tick();
+      expect(full.state.arrivals.active).toBeNull();
+    }
 
-    const pool = cafe([arrival({ whenFull: 'adoption' })]);
-    fillCafe(pool.state, pool.session.catCapacity());
-    pool.session.arrivals.tick();
-    expect(pool.session.arrivals.finish('accepted')).toBe('shelter_pool');
-    expect(pool.state.arrivals.shelterPool).toEqual(['cat.gen.1']);
-    pool.session.debugStartFestival('fest.adoption_fair');
-    expect(pool.session.miniGameExtras('pt.fair_table').adoptCats?.map((c) => c.id)).toContain('cat.gen.1');
-
-    const later = cafe([arrival({ whenFull: 'postpone' })]);
+    const later = cafe([arrival()]);
     fillCafe(later.state, later.session.catCapacity());
     later.session.arrivals.tick();
     expect(later.state.arrivals.active).toBeNull();
@@ -154,22 +147,21 @@ describe('chegadas na sessão', () => {
     expect(later.state.arrivals.active?.id).toBe('arr.test');
   });
 
-  it('provisório: fica de vez quando abre vaga; prazo vencido sem vaga vai para o abrigo da vila', () => {
-    const a = cafe([arrival()]);
-    fillCafe(a.state, a.session.catCapacity());
-    a.session.arrivals.tick();
-    a.session.arrivals.finish('accepted');
-    delete a.state.cats['cat.full0'];
-    a.session.endDay('home');
-    expect(a.state.cats['cat.gen.1']!.provisionalUntil).toBeUndefined();
-
-    const b = cafe([arrival()]);
-    fillCafe(b.state, b.session.catCapacity());
-    b.session.arrivals.tick();
-    b.session.arrivals.finish('accepted');
-    for (let i = 0; i <= content.arrivals.provisional.days; i++) b.session.endDay('home');
-    expect(b.state.cats['cat.gen.1']!.sheltered).toBe(false);
-    expect(b.state.arrivals.shelterPool).toContain('cat.gen.1');
+  it('save de antes da regra: provisório fica de vez; quem estava no abrigo da vila volta para o café', () => {
+    const { session, state } = cafe([arrival()]);
+    session.arrivals.tick();
+    session.arrivals.finish('accepted');
+    state.cats['cat.gen.1']!.provisionalUntil = state.day; // save antigo: provisório com prazo
+    session.endDay('home');
+    expect(state.cats['cat.gen.1']!.provisionalUntil).toBeUndefined();
+    expect(state.cats['cat.gen.1']!.sheltered).toBe(true);
+    // Abrigo da vila (save antigo): o que saiu do café e o que nem entrou voltam ao carregar.
+    state.cats['cat.gen.1']!.sheltered = false;
+    state.catDefs['cat.gen.9'] = { ...state.catDefs['cat.gen.1']!, id: 'cat.gen.9' };
+    state.arrivals.shelterPool = ['cat.gen.1', 'cat.gen.9'];
+    const again = new GameSession(content, state);
+    expect(state.arrivals.shelterPool).toEqual([]);
+    expect(again.shelteredCats()).toEqual(expect.arrayContaining(['cat.gen.1', 'cat.gen.9']));
   });
 
   it('recusado: o gato gerado some; a sorteada marca a próxima pelo ritmo', () => {
@@ -373,9 +365,8 @@ describe('modelos de chegada com mini game (etapa d)', () => {
     session.answerArrival(true);
     const capacity = session.catCapacity();
     const inCafe = ['cat.gen.1', 'cat.gen.2', 'cat.gen.3', 'cat.gen.4'].filter((id) => state.cats[id]?.sheltered).length;
-    const pool = state.arrivals.shelterPool.length;
-    expect(inCafe + pool).toBe(4); // ninguém se perde: o que não coube foi para o abrigo da vila
-    expect(inCafe).toBeLessThanOrEqual(Math.max(capacity, 0) + 4);
+    expect(inCafe).toBe(4); // a ninhada entra junta (a chegada começou com vaga)
+    expect(capacity).toBeGreaterThan(0);
   });
 
   it('entrega: caixa na porta, cena, perguntar no mercado e na clínica, e decidir', () => {
@@ -483,7 +474,8 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     session.arrivals.debug.cafeFull = true;
     const id = session.arrivals.debugGenerate('grumpy', 'senior');
     expect(session.catDef(id)).toMatchObject({ personality: 'grumpy', adoptionTraits: { age: 'senior' } });
-    expect(state.cats[id]?.provisionalUntil).toBeDefined();
+    expect(state.cats[id]?.sheltered).toBe(true); // sem provisório: o debug põe no café
+    expect(state.cats[id]?.provisionalUntil).toBeUndefined();
   });
 });
 

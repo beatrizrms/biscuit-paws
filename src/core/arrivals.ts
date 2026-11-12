@@ -18,7 +18,7 @@ export type PlaceKind = (typeof PLACE_KINDS)[number];
 export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'routine', 'none'] as const;
 export type Clue = (typeof CLUES)[number];
 
-/** Café cheio: o gato fica provisório (com prazo), vai para o abrigo da vila (adoção) ou a chegada espera vaga. */
+/** Sem efeito desde que o abrigo é o café (com ele cheio, nenhuma chegada começa); fica pelos dados e saves antigos. */
 export type WhenFull = 'provisional' | 'adoption' | 'postpone';
 
 export interface ArrivalTrigger {
@@ -176,7 +176,7 @@ export interface ArrivalsState {
   nextOn: number | null;
   /** Sequência dos gatos gerados (cat.gen.<n>). */
   seq: number;
-  /** Gatos que foram para o abrigo da vila (café cheio): entram na feira de adoção. */
+  /** Saves antigos: gatos que tinham ido para o "abrigo da vila". Ao carregar, voltam para o café (fica vazio). */
   shelterPool: string[];
 }
 

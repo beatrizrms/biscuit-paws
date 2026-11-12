@@ -54,6 +54,9 @@ describe('obras: reparos', () => {
     expect(stains()).toBeGreaterThan(0);
     expect(s.quoteRepair('inside')).toEqual({ ok: true });
     expect(events).toContain('construction.call');
+    // Pedido repetido com o orçamento aberto (toque duplo, celular e Tião ao mesmo tempo): recusado, uma ligação só.
+    expect(s.quoteRepair('inside')).toEqual({ ok: false, reason: 'busy' });
+    expect(events.filter((e) => e === 'construction.call')).toHaveLength(1);
     const before = s.state.money;
     expect(s.answerQuote(true)).toEqual({ ok: true });
     expect(s.state.money).toBe(before - c.repairs.inside.price);

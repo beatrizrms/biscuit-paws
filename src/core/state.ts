@@ -134,7 +134,7 @@ export interface GameState {
   shoppingList: string[];
   /** Obras com o construtor (v25): reparos feitos, orçamento, obra em andamento e acabamento por célula. */
   construction: ConstructionState;
-  /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o abrigo da vila. */
+  /** Chegadas de gatos (v18): a em andamento, a fila, o histórico, a próxima e o antigo abrigo da vila (vazio). */
   arrivals: ArrivalsState;
   /** Gatos gerados pelas chegadas (v18): a definição fica no save (os de data/cats.json não). */
   catDefs: Record<string, CatDef>;
@@ -213,7 +213,7 @@ export interface CatState {
   /** Felicidade e higiene, 0 a 100 (v20; care.ts). Ausente = o valor inicial de health.json: care.start. */
   happiness?: number;
   hygiene?: number;
-  /** Abrigado provisório (v18; café cheio): até este dia, a vaga precisa abrir ou ele vai para o abrigo da vila. */
+  /** Abrigado provisório (v18; saves antigos): na virada do dia, fica de vez (o abrigo é o café). */
   provisionalUntil?: number;
   /**
    * Acabou de chegar e ainda está assustado (v35): até ela ganhar a confiança dele (mini game trust), o E nele abre a

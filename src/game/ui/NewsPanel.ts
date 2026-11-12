@@ -127,8 +127,12 @@ export class NewsPanel {
   }
 
   /** phone: o celular (na tela de início ou num app); board: o mural do mercado (só pedidos). */
+  /** Conta as aberturas (quem abriu por um motivo sabe se ainda é a mesma aberta). */
+  opens = 0;
+
   open(mode: 'phone' | 'board', app: PhoneApp = 'home'): void {
     this.close();
+    this.opens++;
     this.mode = mode;
     this.app = app;
     (mode === 'phone' ? this.phoneEl : this.board).classList.add('open');

@@ -24,6 +24,10 @@ import { services } from '../services';
 import { daysText, workName } from './constructionText';
 import { weatherIconSvg } from './weatherIcons';
 
+/** A coluna de quadros da direita (reputação, energia, clima): onde começa e a distância entre eles (px da interface). */
+const HUD_STACK_TOP = 26;
+const HUD_STACK_STEP = 14;
+
 /** A partir de quanto tempo o aviso é "longo" (sobrevive à troca de mapa). */
 const LONG_TOAST_MS = 4000;
 /** Avisos na tela ao mesmo tempo: o novo entra embaixo; passou disso, o mais antigo some. */
@@ -179,19 +183,16 @@ export class GameUi {
     });
 
     const bus = session.bus;
-    // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não).
-    bus.on('construction.call', ({ first }) => this.cutscene.request(first ? CALL_CUTSCENE : CALL_AGAIN_CUTSCENE));
+    // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não). Com ele ali (acabou a obra e perguntou se
+    // ela quer mais algum serviço), sem ligação: direto para o orçamento.
+    bus.on('construction.call', ({ first }) => {
+      const here = this.builderHereOpen === this.news.opens;
+      this.builderHereOpen = -1;
+      if (here) void this.askQuote();
+      else this.cutscene.request(first ? CALL_CUTSCENE : CALL_AGAIN_CUTSCENE);
+    });
     bus.on('cutscene.finished', ({ cutsceneId }) => {
-      const q = session.state.construction.quote;
-      if ((cutsceneId !== CALL_CUTSCENE && cutsceneId !== CALL_AGAIN_CUTSCENE) || !q) return;
-      const t = uiText.construction;
-      const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
-      void this.confirm(text, t.yes, t.no).then((yes) => {
-        const r = session.answerQuote(yes);
-        if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
-        if (yes) this.toast(t.accepted);
-        else if (q.material > 0) this.toast(t.declined);
-      });
+      if (cutsceneId === CALL_CUTSCENE || cutsceneId === CALL_AGAIN_CUTSCENE) void this.askQuote();
     });
     bus.on('cutscene.requested', ({ cutsceneId }) => {
       if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
@@ -455,11 +456,32 @@ export class GameUi {
     this.toast(t.done);
   }
 
-  /** O Market aberto na aba Construção (o Tião perguntou se ela quer mais algum serviço). */
-  openConstruction(): void {
+  /**
+   * O Market aberto na aba Construção. `builderHere`: o Tião está ali (acabou a obra e perguntou se ela quer mais algum
+   * serviço): a obra escolhida nesta aberta vai direto para o orçamento, sem ligar para ele.
+   */
+  openConstruction(builderHere = false): void {
     this.closeShop();
     this.news.open('phone', 'market');
+    this.builderHereOpen = builderHere ? this.news.opens : -1;
     this.news.marketTab(uiText.market.tabs.find((t) => 'renovation' in t && t.renovation)?.id ?? '');
+  }
+
+  /** A aberta do celular em que o Tião está ali (openConstruction); -1: nenhuma (fechou, ou abriu de novo pelo celular). */
+  private builderHereOpen = -1;
+
+  /** O orçamento da obra pedida (depois da ligação, ou direto com o Tião ali): sim paga e ele vem amanhã. */
+  private async askQuote(): Promise<void> {
+    const session = this.session;
+    const q = session.state.construction.quote;
+    if (!q) return;
+    const t = uiText.construction;
+    const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
+    const yes = await this.confirm(text, t.yes, t.no);
+    const r = session.answerQuote(yes);
+    if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
+    if (yes) this.toast(t.accepted);
+    else if (q.material > 0) this.toast(t.declined);
   }
 
   /** "hoje às 07:00", "amanhã às 07:00" ou "seg às 07:00". */
@@ -854,11 +876,12 @@ export class GameUi {
    * O balão de pensamento e o painel do dinheiro ficam quase transparentes quando algum
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
-  updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }): void {
-    for (const el of [this.goals, this.money]) {
+  updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
+    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy, .hud-weather')]) {
+      if (el.hidden) continue;
       const r = el.getBoundingClientRect();
-      // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente.
-      const near = el === this.goals ? points.slice(0, 2) : points;
+      // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
+      const near = [...(el === this.goals ? points.slice(0, 2) : points), ...spots];
       const under = near.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       el.classList.toggle('see-through', under);
     }
@@ -974,6 +997,23 @@ export class GameUi {
       window.setTimeout(() => window.addEventListener('keydown', onKey), 150);
       (el.querySelector('.yes') as HTMLElement).addEventListener('click', finish);
     });
+  }
+
+  /**
+   * A coluna da direita, embaixo do dinheiro: reputação, energia e clima. Os que ainda não importam (data/world.json:
+   * hud) ficam escondidos e os outros sobem, sem buraco.
+   */
+  private layoutHudStack(): void {
+    const when = content.world.hud ?? {};
+    let top = HUD_STACK_TOP;
+    for (const [cls, cond] of [['.hud-rep', when.reputation], ['.hud-energy', undefined], ['.hud-weather', when.weather]] as const) {
+      const el = this.root.querySelector<HTMLElement>(cls);
+      if (!el) continue;
+      el.hidden = !!cond && !this.session.holds(cond);
+      if (el.hidden) continue;
+      el.style.top = `${top}px`;
+      top += HUD_STACK_STEP;
+    }
   }
 
   /** Energia no HUD: barrinha e número (embaixo da reputação); cansada, a barra fica laranja. */
@@ -1236,6 +1276,7 @@ ${rep}`;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
     this.renderReputation();
     this.renderEnergy();
+    this.layoutHudStack();
     const sd = this.session.seasonDay();
     // Clima do dia (o ícone muda junto com o que cai lá fora).
     const weather = this.session.weather();
