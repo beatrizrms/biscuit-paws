@@ -564,7 +564,7 @@
     "doseDue": "Falta o remédio de hoje",
     "intake": { "done": "Consulta de entrada feita", "due": "Ainda sem consulta de entrada" },
     "recovering": "Alimente direitinho por mais alguns dias e logo fica bem: a doença foi recente.",
-    "lowHealth": "Alimente direitinho por mais alguns dias e logo fica bem.",
+    "lowHealth": "Não está doente, mas a imunidade está baixando: se continuar assim, vai adoecer. Alimente direitinho, todo dia, que logo fica bem.",
     "recoveringNeuter": "Alimente direitinho por mais alguns dias para ficar 100%. Aí já dá para castrar.",
     "personalities": {
       "brave": "Valente",

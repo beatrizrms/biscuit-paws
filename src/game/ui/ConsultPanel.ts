@@ -6,6 +6,7 @@ import type { ExamResult } from '../../core/clinicFlow';
 import { content, uiText } from '../content';
 import { iconHtml } from './ShopPanel';
 import { catSexText, vetLine } from './vetText';
+import { healthLow } from '../../core/health';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_m, k: string) => String(v[k] ?? ''));
@@ -57,7 +58,7 @@ export class ConsultPanel {
         const q = this.session.consultQuote(id);
         if ('problem' in q) return this.onProblem(q.problem);
         this.mode = { kind: 'sick', catId: id };
-      } else if (desk.examined) this.mode = { kind: 'exam', catId: id, lines: [vetLine(this.session, 'intake.hello', {}, id)] };
+      } else if (desk.examined) this.mode = { kind: 'exam', catId: id, lines: [vetLine(this.session, 'intake.hello', {}, id), ...(this.lowImmunity(id) ? [vetLine(this.session, 'intake.lowImmunity', {}, id)] : [])] };
       else {
         const q = this.session.consultQuote(id);
         if ('problem' in q) return this.onProblem(q.problem);
@@ -119,11 +120,17 @@ export class ConsultPanel {
     const s = this.session;
     const id = exam.catId;
     const disease = exam.disease ? (content.health.diseases.find((d) => d.id === exam.disease)?.name ?? exam.disease) : '';
-    const lines = [vetLine(s, 'intake.tests', {}, id), vetLine(s, 'intake.testsNegative', {}, id), vetLine(s, exam.disease ? 'intake.sick' : 'intake.healthy', { disease }, id)];
+    const lines = [vetLine(s, 'intake.tests', {}, id), vetLine(s, 'intake.testsNegative', {}, id), vetLine(s, exam.disease ? 'intake.sick' : this.lowImmunity(id) ? 'intake.lowImmunity' : 'intake.healthy', { disease }, id)];
     if (exam.earTipped) lines.push(vetLine(s, 'intake.earTipped', {}, id));
     else if (exam.status === 'neutered') lines.push(vetLine(s, 'intake.neutered', {}, id));
     else lines.push(this.neuterLine(exam));
     return lines;
+  }
+
+  /** Sem doença, com a saúde baixa e sem ter sarado há pouco: a Fernanda avisa que a imunidade está baixando. */
+  private lowImmunity(catId: string): boolean {
+    const cat = this.session.state.cats[catId];
+    return !!cat && !cat.sickness && cat.curedOn === undefined && healthLow(content.health, cat.health);
   }
 
   /** A fala sobre a castração de quem ainda é inteiro. */

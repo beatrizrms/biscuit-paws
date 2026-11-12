@@ -6,6 +6,7 @@
     "tests": "Fiz os testes de FIV e FeLV, que passam de gato para gato. Por isso todo recém-chegado faz antes de conhecer os outros.",
     "testsNegative": "Deu negativo nos dois. Pode ficar {g:tranquila|tranquilo}.",
     "healthy": "Fora isso, {cat} está bem.",
+    "lowImmunity": "{cat} não está doente, mas vejo que a imunidade está baixando. Se continuar assim, vai acabar adoecendo. Alimente direitinho, todo dia, que logo fica bem.",
     "sick": "{cat} está com {disease}. Nada grave: com o remédio certinho, passa.",
     "sickIsolate": "Essa passa de gato para gato, viu? Até sarar, deixa {cat} no cercadinho, longe da turma (sem vaga, na caixinha). Solto com os outros, passa, mesmo com o remédio. O remédio você dá lá mesmo.",
     "neutered": "{cat} já é castrad{sex:o|a}. Alguém cuidou bem dessa fofura antes de você.",
