@@ -1,6 +1,7 @@
-// Balão de cuidado em cima de cada gato do café: o que ele está precisando (remédio, banho, carinho).
-// Na arte do jogo: o balão de pedido dos clientes (meia escala) com um ícone da folha, ou um emote pronto
-// (data/health.json: care.bubbles). Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
+// Balão de cuidado em cima de cada gato do café: o que ele está precisando (remédio, banho, carinho) e o sinal da
+// clínica (operado, doente, doença que passa), lado a lado no mesmo balão. Na arte do jogo: o balão de pedido dos
+// clientes (meia escala), alargado para caber mais de um ícone, com os ícones da folha; necessidade com emote pronto
+// (data/health.json: care.bubbles) fica ao lado. Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
 import Phaser from 'phaser';
 import type { CareConfig, CareNeed } from '../core/care';
 import { content, serviceArt } from './content';
@@ -10,60 +11,126 @@ import { iconFrame } from './icons';
 const BUBBLE_SCALE = 0.5;
 /** Acima da cabeça do gato (px a partir dos pés). */
 const ABOVE_FEET = 22;
+/** Na arte do balão (40x44): a borda da esquerda e da direita (não estica), a última linha do corpo e o rabinho. */
+const BUBBLE_EDGE = 2;
+const BUBBLE_BODY_ROWS = 38;
+const TAIL = { x: 17, w: 6 };
+/** Um ícone a mais no balão: o slot (32) e o respiro entre os ícones. */
+const SLOT_STEP = 34;
 
 /** Textura da imagem própria de um item usado num balão (carregada no BootScene). */
 export const itemIconKey = (itemId: string) => `itemicon:${itemId}`;
 
+/** O sinal da clínica no balão: operado (tesoura), doente (termômetro), doença que passa já diagnosticada (micróbio). */
+export type CareStatus = 'op' | 'sick' | 'contagious';
+const STATUS_ICONS: Record<CareStatus, string> = { op: 'sinal_tesoura', sick: 'sinal_termometro', contagious: 'sinal_microbio' };
+
+export interface CareBubbleCat {
+  catId: string;
+  x: number;
+  y: number;
+  depth: number;
+  needs: CareNeed[];
+  status: CareStatus | null;
+}
+
 export class CareBubbles {
-  private readonly bubbles = new Map<string, { need: CareNeed; view: Phaser.GameObjects.Container }>();
+  private readonly bubbles = new Map<string, { key: string; view: Phaser.GameObjects.Container }>();
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly cfg: CareConfig,
   ) {}
 
-  /** O balão de uma necessidade: emote pronto, ou o balão de pedido com o ícone no lugar do pedido. */
-  private build(need: CareNeed): Phaser.GameObjects.Container {
+  /** O balão com `n` ícones: o de pedido alargado pelo meio (as bordas e o rabinho do centro não esticam). */
+  private bubbleTexture(n: number): string {
+    if (n <= 1) return 'bubble_normal';
+    const key = `bubble_normal_x${n}`;
+    if (this.scene.textures.exists(key)) return key;
+    const src = this.scene.textures.get('bubble_normal').getSourceImage() as HTMLImageElement;
+    const w = src.width + (n - 1) * SLOT_STEP;
+    const tex = this.scene.textures.createCanvas(key, w, src.height)!;
+    const ctx = tex.getContext();
+    ctx.imageSmoothingEnabled = false;
+    // Corpo: as bordas como estão e o miolo esticado com uma coluna do meio (sem o rabinho, que fica embaixo do corpo).
+    ctx.drawImage(src, 0, 0, BUBBLE_EDGE, BUBBLE_BODY_ROWS, 0, 0, BUBBLE_EDGE, BUBBLE_BODY_ROWS);
+    ctx.drawImage(src, BUBBLE_EDGE, 0, 1, BUBBLE_BODY_ROWS, BUBBLE_EDGE, 0, w - 2 * BUBBLE_EDGE, BUBBLE_BODY_ROWS);
+    ctx.drawImage(src, src.width - BUBBLE_EDGE, 0, BUBBLE_EDGE, BUBBLE_BODY_ROWS, w - BUBBLE_EDGE, 0, BUBBLE_EDGE, BUBBLE_BODY_ROWS);
+    // O rabinho no meio, embaixo.
+    ctx.drawImage(src, TAIL.x, BUBBLE_BODY_ROWS, TAIL.w, src.height - BUBBLE_BODY_ROWS, Math.round(w / 2 - TAIL.w / 2), BUBBLE_BODY_ROWS, TAIL.w, src.height - BUBBLE_BODY_ROWS);
+    tex.refresh();
+    return key;
+  }
+
+  /** Os ícones de uma necessidade (ou null se ela é um emote pronto, desenhado à parte). */
+  private needIcon(need: CareNeed): { key: string; frame?: string; scale: number } | null {
     const art = this.cfg.bubbles[need];
-    const view = this.scene.add.container(0, 0);
-    if (art?.emote && this.scene.textures.get('emotes').has(art.emote)) {
-      view.add(this.scene.add.image(0, 0, 'emotes', art.emote).setOrigin(0.5, 1));
-      return view;
-    }
-    const bg = this.scene.add.image(0, 0, 'bubble_normal').setOrigin(0.5, 1).setScale(BUBBLE_SCALE);
-    view.add(bg);
+    if (art?.emote && this.scene.textures.get('emotes').has(art.emote)) return null;
     const item = art?.item ? content.items[art.item] : undefined;
     const icon = art?.icon ?? item?.icon;
     const f = icon ? iconFrame(this.scene, icon) : undefined;
-    const own = !f && item?.iconImage && this.scene.textures.exists(itemIconKey(item.id)) ? itemIconKey(item.id) : undefined;
-    if (own) {
-      // Imagem própria do item (ex.: a varinha): no slot do ícone, do tamanho de um ícone da folha.
-      const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
-      const img = this.scene.add.image((sx + sw / 2 - bg.width / 2) * BUBBLE_SCALE, (sy + sh / 2 - bg.height) * BUBBLE_SCALE, own);
-      view.add(img.setScale((Math.min(sw, sh) * BUBBLE_SCALE) / Math.max(img.width, img.height)));
-    } else if (f) {
-      // O ícone no slot do balão (dados do atendimento), na mesma escala do balão.
-      const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
-      const x = (sx + sw / 2 - bg.width / 2) * BUBBLE_SCALE;
-      const y = (sy + sh / 2 - bg.height) * BUBBLE_SCALE;
-      view.add(this.scene.add.image(x, y, f.key, f.frame).setScale(f.scale * BUBBLE_SCALE));
+    if (f) return { key: f.key, frame: f.frame, scale: f.scale };
+    // Imagem própria do item (ex.: a varinha): do tamanho de um ícone da folha.
+    if (item?.iconImage && this.scene.textures.exists(itemIconKey(item.id))) {
+      const img = this.scene.textures.get(itemIconKey(item.id)).getSourceImage();
+      const [, , sw, sh] = serviceArt.bubble.iconSlot;
+      return { key: itemIconKey(item.id), scale: Math.min(sw, sh) / Math.max(img.width, img.height) };
     }
+    return null;
+  }
+
+  /** O balão do gato: os ícones das necessidades e do sinal lado a lado; as de emote, ao lado do balão. */
+  private build(c: CareBubbleCat): Phaser.GameObjects.Container {
+    const view = this.scene.add.container(0, 0);
+    const icons: { key: string; frame?: string; scale: number }[] = [];
+    const emotes: string[] = [];
+    for (const need of c.needs) {
+      const icon = this.needIcon(need);
+      if (icon) icons.push(icon);
+      else {
+        const e = this.cfg.bubbles[need]?.emote;
+        if (e) emotes.push(e);
+      }
+    }
+    if (c.status) {
+      const f = iconFrame(this.scene, STATUS_ICONS[c.status]);
+      if (f) icons.push({ key: f.key, frame: f.frame, scale: f.scale });
+    }
+    let left = 0;
+    if (icons.length > 0) {
+      const bg = this.scene.add.image(0, 0, this.bubbleTexture(icons.length)).setOrigin(0.5, 1).setScale(BUBBLE_SCALE);
+      view.add(bg);
+      const [sx, sy, sw, sh] = serviceArt.bubble.iconSlot;
+      icons.forEach((ic, i) => {
+        const x = (sx + i * SLOT_STEP + sw / 2 - bg.width / 2) * BUBBLE_SCALE;
+        const y = (sy + sh / 2 - bg.height) * BUBBLE_SCALE;
+        view.add(this.scene.add.image(x, y, ic.key, ic.frame).setScale(ic.scale * BUBBLE_SCALE));
+      });
+      left = (-bg.width / 2) * BUBBLE_SCALE;
+    }
+    // Emote pronto (o coração do carinho): sozinho no lugar do balão, ou encostado à esquerda dele.
+    emotes.forEach((e, i) => {
+      const img = this.scene.add.image(0, 0, 'emotes', e).setOrigin(icons.length ? 1 : 0.5, 1);
+      img.x = icons.length ? left - 1 - i * (img.width + 1) : i * (img.width + 1);
+      view.add(img);
+    });
     return view;
   }
 
-  /** `cats`: os gatos visíveis, onde estão e o que falta (o mais urgente). */
-  update(cats: { catId: string; x: number; y: number; depth: number; need: CareNeed | null }[]): void {
+  /** `cats`: os gatos (visíveis ou na caixinha), onde estão, o que falta e o sinal da clínica. */
+  update(cats: CareBubbleCat[]): void {
     const seen = new Set<string>();
     for (const c of cats) {
-      if (!c.need) continue;
+      if (c.needs.length === 0 && !c.status) continue;
       seen.add(c.catId);
+      const key = `${c.needs.join(',')}|${c.status ?? ''}`;
       let b = this.bubbles.get(c.catId);
-      if (b && b.need !== c.need) {
+      if (b && b.key !== key) {
         b.view.destroy();
         b = undefined;
       }
       if (!b) {
-        b = { need: c.need, view: this.build(c.need) };
+        b = { key, view: this.build(c) };
         this.bubbles.set(c.catId, b);
       }
       // Balança de leve (devagar: não pode competir com a dica "E").

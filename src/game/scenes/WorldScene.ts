@@ -49,7 +49,7 @@ import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
 import { PLACED_PREFIX } from '../../core/placement';
 import type { PlacedItem } from '../../core/state';
-import { CareBubbles } from '../careBubbles';
+import { CareBubbles, type CareStatus } from '../careBubbles';
 import type { CareNeed } from '../../core/care';
 import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
@@ -92,19 +92,8 @@ const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
 const UPGRADE_BLINK_MS = 420;
-/** Sinais em cima da cabeça dos gatos: os ícones do PixelLab (folha de ícones) e o tamanho deles (o ícone de 64 px ocupa ~27 px do jogo). */
-const BADGE_ICONS: Record<'op' | 'sick' | 'contagious', string> = { op: 'sinal_tesoura', sick: 'sinal_termometro', contagious: 'sinal_microbio' };
-const BADGE_SCALE = 0.85;
-/** Os mesmos sinais desenhados por código, se a folha de ícones não carregar: letra -> cor; ponto = vazio. */
-const BADGE_COLORS: Record<string, number> = { k: 0x3b2a20, o: 0x9aa3ad, l: 0xd9dee4, r: 0xd9475d, w: 0xffffff, g: 0x3f7a3a, G: 0x7cc06a };
-const BADGE_ART: Record<'op' | 'sick' | 'contagious', string[]> = {
-  // Tesoura aberta (lâminas cinza, cabos vermelhos): operado.
-  op: ['.k.....k.', 'kok...kok', '.kok.kok.', '..kokok..', '...klk...', '..kokok..', '.krrk.krrk', 'kr..rkr..r', 'kr..rkr..r', '.krrk.krrk'],
-  // Termômetro (vidro branco, mercúrio vermelho): doente.
-  sick: ['.kk.', 'kwwk', 'kwwk', 'krwk', 'krrk', 'krrk', 'krrk', 'krrk', 'krrrk', 'krrrk', '.kkk.'],
-  // Micróbio verde de olhinhos (com espinhos): doença que passa.
-  contagious: ['..g...g...', '...g.g..g.', '.gGGGGGGg.', 'gGGwGGwGGg', '.GGkGGkGG.', 'gGGGGGGGGg', '.GGGkkGGG.', '..gGGGGGg.', '.g..gg..g.'],
-};
+/** Gato na caixinha: o balão de cuidado fica em cima dela (px acima do topo da caixinha, contando o ABOVE_FEET do balão). */
+const ABOVE_BOX = 20;
 /** Mudar de lugar com mais de um móvel perto: o escolhido fica dourado e uma seta pula em cima dele. */
 const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
@@ -219,11 +208,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private hintCheckedAt = 0;
   /** Balão de cuidado em cima de cada gato (remédio, banho, carinho); o que falta é relido 2 vezes por segundo. */
   private careBubbles!: CareBubbles;
-  /** Sinais em cima da cabeça dos gatos: operado (curativo) e doente (alerta). */
-  private statusBadges = new Map<string, { kind: 'op' | 'sick' | 'contagious'; img: Phaser.GameObjects.Image }>();
   /** Luz e sombra de ambiente (sombras de contato, parede com piso, luz das janelas, vinheta). */
   private ambience!: AmbienceLayer;
-  private careNeeds = new Map<string, CareNeed | null>();
+  private careNeeds = new Map<string, CareNeed[]>();
   private careCheckedAt = -Infinity;
   private parcelImages: Phaser.GameObjects.Image[] = [];
   private surfaceIcons: Phaser.GameObjects.Image[] = [];
@@ -658,8 +645,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.cats = [];
     this.catPlaces.taken.clear();
     this.careBubbles?.clear();
-    this.statusBadges.forEach((b) => b.img.destroy());
-    this.statusBadges.clear();
     this.careCheckedAt = -Infinity;
     this.npcs.forEach((n) => n.destroy());
     this.npcs.clear();
@@ -1813,65 +1798,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private updateCareBubbles(): void {
     if (this.time.now - this.careCheckedAt >= 500) {
       this.careCheckedAt = this.time.now;
-      this.careNeeds = new Map(this.cats.map((c) => [c.catId, this.session.catCare(c.catId)?.needs[0] ?? null]));
+      this.careNeeds = new Map(this.cats.map((c) => [c.catId, this.session.catCare(c.catId)?.needs ?? []]));
     }
-    this.careBubbles.update(this.cats.filter((c) => c.visible).map((c) => ({ catId: c.catId, x: c.x, y: c.y, depth: c.depth, need: this.careNeeds.get(c.catId) ?? null })));
-    this.updateStatusBadges();
-  }
-
-  /**
-   * Sinal em cima da cabeça (ao lado, para não brigar com o balão de cuidado): tesoura no operado (recuperação da
-   * castração), micróbio no doente de doença que passa já diagnosticado (a Fungadinha, depois da consulta) e termômetro
-   * nos outros doentes; na caixinha, em cima dela. Arte do PixelLab (BADGE_ICONS), com a desenhada por código de reserva.
-   */
-  private updateStatusBadges(): void {
-    this.ensureBadgeTextures();
+    // O balão leva o que ele precisa e o sinal da clínica (operado, doente, doença que passa já diagnosticada); o gato na
+    // caixinha (invisível) tem o balão em cima da caixinha.
     const st = this.session.state;
-    const seen = new Set<string>();
-    for (const cat of this.cats) {
-      const s = st.cats[cat.catId];
-      const kind = s?.clinic?.stage === 'isolation' ? 'op' : s?.sickness?.treatment && this.session.catContagious(cat.catId) ? 'contagious' : s?.sickness ? 'sick' : null;
-      const box = this.isoBoxes.get(cat.catId);
-      const at = cat.visible ? { x: cat.x + 15, y: cat.y - 22, depth: cat.depth } : box?.active ? { x: box.x + 10, y: box.y - box.displayHeight, depth: box.depth } : null;
-      if (!kind || !at || !this.session.atHome()) continue;
-      seen.add(cat.catId);
-      let b = this.statusBadges.get(cat.catId);
-      if (b && b.kind !== kind) {
-        b.img.destroy();
-        b = undefined;
-      }
-      if (!b) {
-        // A arte do PixelLab (folha de ícones); sem ela, a desenhada por código.
-        const art = this.textures.exists(iconSheetKey('pixellab')) ? iconFrame(this, BADGE_ICONS[kind]) : undefined;
-        const img = art ? this.add.image(0, 0, art.key, art.frame).setScale(art.scale * BADGE_SCALE) : this.add.image(0, 0, `badge:${kind}`);
-        b = { kind, img: img.setOrigin(0.5, 1) };
-        this.statusBadges.set(cat.catId, b);
-      }
-      const bob = Math.sin(this.time.now / 450 + cat.catId.length) * 0.8;
-      b.img.setPosition(Math.round(at.x), Math.round(at.y + bob)).setDepth(at.depth + 2);
-    }
-    for (const [id, b] of this.statusBadges) {
-      if (seen.has(id)) continue;
-      b.img.destroy();
-      this.statusBadges.delete(id);
-    }
-  }
-
-  /** As texturas dos sinais (pixel art desenhada uma vez): tesoura (operado), termômetro (doente) e micróbio (passa). */
-  private ensureBadgeTextures(): void {
-    for (const [kind, rows] of Object.entries(BADGE_ART)) {
-      const key = `badge:${kind}`;
-      if (this.textures.exists(key)) continue;
-      const g = this.make.graphics({ x: 0, y: 0 }, false);
-      rows.forEach((line, y) =>
-        [...line].forEach((ch, x) => {
-          const color = BADGE_COLORS[ch];
-          if (color !== undefined) g.fillStyle(color, 1).fillRect(x, y, 1, 1);
-        }),
-      );
-      g.generateTexture(key, Math.max(...rows.map((l) => l.length)), rows.length);
-      g.destroy();
-    }
+    const status = (id: string): CareStatus | null => {
+      const s = st.cats[id];
+      return s?.clinic?.stage === 'isolation' ? 'op' : s?.sickness?.treatment && this.session.catContagious(id) ? 'contagious' : s?.sickness ? 'sick' : null;
+    };
+    const entries = this.cats.flatMap((c) => {
+      const box = this.isoBoxes.get(c.catId);
+      const at = c.visible ? { x: c.x, y: c.y, depth: c.depth } : box?.active ? { x: box.x, y: box.y - box.displayHeight + ABOVE_BOX, depth: box.depth } : null;
+      return at && this.session.atHome() ? [{ catId: c.catId, ...at, needs: this.careNeeds.get(c.catId) ?? [], status: status(c.catId) }] : [];
+    });
+    this.careBubbles.update(entries);
   }
 
   /** Varinha ou escova ativa na barra e um gato do café perto: abre o mini game de cuidado com ele. */
