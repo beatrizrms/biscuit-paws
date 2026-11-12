@@ -1,0 +1,49 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 5,
+ "pieces": {
+  "beco_muro_topo": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_muro_meio": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_muro_base": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_cacamba": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "beco_porta": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "beco_varal": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 3,
+   "h_tiles": 1
+  },
+  "praca_chafariz": {
+   "col": 3,
+   "row": 2,
+   "w_tiles": 3,
+   "h_tiles": 3
+  }
+ }
+}

@@ -576,6 +576,23 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Beco e pracinha (scripts/map-rua-extra.ts), gerados no PixelLab no estilo da rua: o muro de tijolos (topo, meio e
+    // rodapé recortados da tira 64x192), a caçamba, a porta dos fundos, o varal e o chafariz da praça.
+    image: 'public/assets/env/street/tile_pixellab_beco.png',
+    pieces: 'data/tilesets/pixellab_beco.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      beco_muro_topo: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), 0) },
+      beco_muro_meio: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), TS) },
+      beco_muro_base: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), 2 * TS) },
+      beco_cacamba: { file: 'beco/cacamba.png', w: 2, h: 2 },
+      beco_porta: { file: 'beco/porta.png', w: 1, h: 2 },
+      beco_varal: { file: 'beco/varal.png', w: 3, h: 1 },
+      praca_chafariz: { file: 'beco/chafariz.png', w: 3, h: 3 },
+    },
+  },
+  {
     // Upgrades dos gatos (gerados no PixelLab, automaticos/): pote de ração e caixa de areia automáticos e a caixa pet. Nomes pet_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_pet.png',
     pieces: 'data/tilesets/pixellab_pet.json',
@@ -1225,6 +1242,13 @@ function wangPieces(v: string): Record<string, Piece> {
 /** Um tile (64 px) da imagem, começando na linha y0. */
 function sliceRows(src: PNG, y0: number): PNG {
   return pickRows(src, range(y0, y0 + TS - 1));
+}
+
+/** Uma linha do muro do beco: a última coluna veio com o contorno cinza; repete a vizinha para os tijolos emendarem. */
+function wallTile(src: PNG, y0: number): PNG {
+  const png = sliceRows(src, y0);
+  for (let y = 0; y < png.height; y++) for (let c = 0; c < 4; c++) png.data[(y * png.width + png.width - 1) * 4 + c] = png.data[(y * png.width + png.width - 2) * 4 + c]!;
+  return png;
 }
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {

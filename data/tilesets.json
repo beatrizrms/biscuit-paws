@@ -960,6 +960,36 @@
       "solid": true
     },
     {
+      "id": "pixellab_beco",
+      "image": "assets/env/street/tile_pixellab_beco.png",
+      "pieces": "pixellab_beco.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "beco_muro_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "beco_muro_meio": {
+          "layer": "wall",
+          "solid": true
+        },
+        "beco_muro_base": {
+          "layer": "wall",
+          "solid": true
+        },
+        "beco_porta": {
+          "layer": "wall",
+          "solid": true
+        },
+        "beco_varal": {
+          "layer": "wall",
+          "solid": false
+        }
+      }
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",

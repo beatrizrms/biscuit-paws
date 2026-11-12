@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles praca_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho). A topiária do centro guarda o lugar do chafariz (PLACEHOLDER(arte)). Saída pela esquerda (portas com direction left) para a rua.",
+  "_comment": "A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles praca_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho). No centro, o chafariz. Saída pela esquerda (portas com direction left) para a rua.",
   "id": "map.praca",
   "tileSize": 32,
   "size": { "cols": 24, "rows": 13 },
@@ -86,7 +86,7 @@
     {"id":"obj.praca_flor_2","tile":"yard_vaso_baixo_flores","at":[15,5]},
     {"id":"obj.praca_flor_3","tile":"yard_vaso_baixo_flores","at":[8,10]},
     {"id":"obj.praca_flor_4","tile":"yard_vaso_baixo_flores","at":[15,10]},
-    {"id":"obj.praca_centro","tile":"yard_topiaria","at":[11,6]},
+    {"id":"obj.praca_chafariz","tile":"praca_chafariz","at":[11,6]},
     {"id":"obj.praca_floreira_1","tile":"decor_floreira","at":[1,6]},
     {"id":"obj.praca_floreira_2","tile":"decor_floreira","at":[3,6]}
   ],
