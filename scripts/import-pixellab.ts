@@ -1360,9 +1360,14 @@ function columns(src: PNG, cols: number[]): PNG {
 function counterPiece(model: string, part: 'left' | 'mid' | 'right' | 'single'): PNG {
   const m = COUNTERS[model]!, src = counterStrip(m), W = src.width;
   if (m.slats) return columns(src, { left: range(0, 63), mid: range(64, 127), right: range(128, 191), single: [...range(0, 31), ...range(W - 32, W - 1)] }[part]);
+  const emptyCol = (x: number) => { for (let y = 0; y < src.height; y++) if (src.data[(y * W + x) * 4 + 3]) return false; return true; };
   const fit = (cols: number[], center: number) => {
     while (cols.length < 64) cols.splice(cols.indexOf(center) + 1, 0, center);
-    while (cols.length > 64) cols.splice(cols.indexOf(center), 1);
+    // Sobrando: primeiro a margem transparente da ponta (fica 2 px), depois colunas lisas do painel, entre a emenda e o
+    // enfeite do meio. Nunca o contorno: o indexOf(center) dava -1 depois da primeira e o splice(-1) apagava a última
+    // coluna (a ponta direita saía sem contorno).
+    while (cols.length > 64 && emptyCol(cols[cols.length - 1]!) && emptyCol(cols[cols.length - 3]!)) cols.pop();
+    while (cols.length > 64) cols.splice(Math.floor(cols.length / 4), 1);
     return cols;
   };
   const left = fit(range(0, m.p1r), Math.round(m.p1r / 2));
