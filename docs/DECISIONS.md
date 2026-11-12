@@ -860,3 +860,7 @@ Decisão: condição `fairCats: { gte }` (gatos do café castrados com a castra�
 ## 209. Tião ali: sem ligação; uma obra por vez (nov/2026)
 Pedido: quando o Tião termina e pergunta se ela quer outro serviço, o "sim" abria a ligação, sem sentido com ele ali; ir direto para a escolha; pelo celular, a ligação continua; não deixar pedir obra com outra em andamento.
 Decisão: o "sim" abre o Market na Construção marcando aquela aberta do celular (`GameUi.openConstruction(true)`, contada por `NewsPanel.opens`): a obra escolhida nela vai direto para o orçamento do Tião (`askQuote`), sem a cena da ligação, inclusive a troca de acabamento (que fecha o celular para escolher a área). Abrindo o celular de novo, é ligação. Idempotência: o núcleo já recusa (`busy`) qualquer pedido com obra marcada/em andamento ou orçamento aberto (`quoteBlocker`); o teste cobre o pedido repetido com o orçamento aberto (uma ligação só).
+
+## 210. Forno a lenha separado da pérgola (nov/2026)
+Pedido: a pérgola com forno estava encavalada (as colunas por cima do forno); separar.
+Decisão: `item.yard_wood_oven` (Forno a lenha, 2x2, quintal reformado) usa a arte do forno de pedra que já existia (`yard_bancada_forno_pedra`). A `item.yard_pergola_oven` fica `deprecated` (some do Market; quem já posicionou continua com ela). A pérgola coberta nova foi cancelada (as gerações não ficaram com a vista do jogo).
