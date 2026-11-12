@@ -6,7 +6,7 @@ import { FULL_PATIENCE, groomingOutcome, groomingProgress, newGrooming, stepGroo
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { CatSprite, catFrameSize, catScale, catTexture } from '../entities/Cat';
+import { CatSprite, catAnim, catFrameSize, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { GROOMING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
@@ -26,6 +26,10 @@ const BAR_W = 160;
 const REACT_MS = 650;
 /** Pelo arrepiado (o gato ficou bravo): quanto dura e a cada quanto os tufos tremem (ms). */
 const FUZZ_MS = 520;
+/** A pose de bravo da folha do gato (curvado, pelo eriçado), virado para a direita como na escovação. */
+const STARTLE_ANIM = 'startle_right';
+/** Quanto tempo ele fica eriçado na pose da folha. */
+const STARTLE_MS = 700;
 const FUZZ_STEP_MS = 65;
 /** Os tufos só nas costas e no rabo: a parte de trás do contorno (o gato olha para a direita). */
 const FUZZ_BACK_SHARE = 0.62;
@@ -46,6 +50,8 @@ export class GroomingScene extends MiniGameScene {
   /** O contorno de cima do gato (por coluna do quadro: a linha do primeiro pixel e a cor do pelo ali). */
   private furTop: { x: number; y: number; color: number; fur: number }[] = [];
   private fuzzing = false;
+  /** O quadro parado de lado (o primeiro da caminhada para a direita): volta a ele depois da pose de bravo. */
+  private sideFrame = 0;
   /** Pixels da folha por pixel do jogo (2 na arte em 64 px): o tufo tem o mesmo tamanho na tela. */
   private furRes = 1;
 
@@ -83,7 +89,8 @@ export class GroomingScene extends MiniGameScene {
     CatSprite.createAnimations(this, variant);
     const sprites = content.catSprites;
     const row = sprites.animations.find((a) => a.name === SIDE_ANIM)?.row ?? 3;
-    this.cat = this.add.sprite(this.origin.x, this.origin.y, catTexture(variant), row * sprites.columns).setOrigin(0, 0).setScale(this.zoom * catScale(variant));
+    this.sideFrame = row * sprites.columns;
+    this.cat = this.add.sprite(this.origin.x, this.origin.y, catTexture(variant), this.sideFrame).setOrigin(0, 0).setScale(this.zoom * catScale(variant));
     this.furTop = this.topContour(catTexture(variant), row * sprites.columns, catFrameSize(variant));
     this.fuzzing = false;
     this.furRes = Math.max(1, Math.round(catFrameSize(variant) / 32));
@@ -229,11 +236,25 @@ export class GroomingScene extends MiniGameScene {
   }
 
   /**
-   * Pelo arrepiado (ele ficou bravo com a escova): tufos de 2 a 3 pixels sobem das costas e do rabo, na cor do pelo,
-   * tremendo um pouco, e baixam. Desenhado por código: a folha do gato não tem esse quadro.
+   * Pelo arrepiado (ele ficou bravo com a escova): a pose de bravo da folha do gato (curvado, pelo eriçado) por um
+   * instante e volta a ficar de lado. Pelagem sem essa pose: tufos de 2 a 3 pixels desenhados por código sobem das
+   * costas e do rabo, na cor do pelo, tremendo um pouco, e baixam.
    */
   private fuzz(): void {
-    if (this.fuzzing || this.furTop.length === 0) return;
+    if (this.fuzzing) return;
+    const startle = catAnim(this, this.launch.catVariant, STARTLE_ANIM);
+    if (!startle.endsWith('-sit')) {
+      this.fuzzing = true;
+      this.cat.play({ key: startle, repeat: -1 });
+      this.time.delayedCall(STARTLE_MS, () => {
+        this.fuzzing = false;
+        if (this.ended) return;
+        this.cat.stop();
+        this.cat.setFrame(this.sideFrame);
+      });
+      return;
+    }
+    if (this.furTop.length === 0) return;
     this.fuzzing = true;
     const g = this.add.graphics().setDepth(5);
     // Um pixel da folha na tela (a arte em 64 px é desenhada na metade).
