@@ -130,6 +130,10 @@
       "locked": "dlg.door_locked_bakery",
       "spawn": [14, 9],
       "facing": "up"
-    }
+    },
+    { "id": "door.street_alley_a", "at": [0, 9], "to": "map.alley", "direction": "left", "spawn": [20, 8], "facing": "left" },
+    { "id": "door.street_alley_b", "at": [0, 10], "to": "map.alley", "direction": "left", "spawn": [20, 9], "facing": "left" },
+    { "id": "door.street_praca_a", "at": [35, 9], "to": "map.praca", "direction": "right", "spawn": [1, 7], "facing": "right" },
+    { "id": "door.street_praca_b", "at": [35, 10], "to": "map.praca", "direction": "right", "spawn": [1, 8], "facing": "right" }
   ]
 }

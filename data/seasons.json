@@ -65,6 +65,17 @@
         "prop_"
       ]
     },
+    "map.praca": {
+      "prefixes": [
+        "prop_"
+      ]
+    },
+    "map.alley": {
+      "prefixes": [
+        "street_",
+        "prop_"
+      ]
+    },
     "map.minigame_chase": {
       "prefixes": [
         "street_",
