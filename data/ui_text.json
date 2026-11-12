@@ -541,6 +541,7 @@
     "sickFreed": "{cat} está solto: pode passar a {disease} para os outros.",
     "dose": "{name} tomou o remédio ({n}/{days}).",
     "cured": "{name} sarou! Voltou a ser ele mesmo.",
+    "neglected": "{name} anda esquecido e perdeu um coração. Cuide da saúde, da alegria e da higiene dele.",
     "debtPaid": "Paguei {amount} do fiado da clínica (faltam {left}).",
     "debtDone": "Paguei {amount} e quitei o fiado da clínica!"
   },

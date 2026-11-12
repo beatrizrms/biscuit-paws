@@ -279,6 +279,33 @@ describe('contágio e prejuízo', () => {
     expect(session.catProfiles().find((p) => p.id === CAT)!.curedRecently).toBe(false);
   });
 
+  it('descuido: saúde, alegria ou higiene em zero por 2 dias seguidos tira um coração (e avisa)', () => {
+    const { session, state, events, endDay } = twoCats();
+    state.relationships['player|' + CAT] = 300;
+    state.cats[CAT]!.hygiene = 0;
+    endDay();
+    expect(session.catHearts(CAT)).toBe(3);
+    state.cats[CAT]!.hygiene = 0;
+    endDay();
+    expect(session.catHearts(CAT)).toBe(2);
+    expect(events.some((e) => e.name === 'cat.neglected')).toBe(true);
+    // Saiu do zero: a contagem zera.
+    state.cats[CAT]!.hygiene = 80;
+    endDay();
+    expect(state.cats[CAT]!.neglectDays).toBeUndefined();
+  });
+
+  it('cuidar (escova, varinha, remédio) dá pontos de afeto pelo resultado; falhar não dá', () => {
+    const { session, state } = twoCats();
+    const pts = content.relationships.careGamePoints!;
+    const play = (game: string, outcome: 'fail' | 'ok' | 'great') =>
+      session.finishMiniGame({ gameId: game, outcome, score: 1, coinsEarned: 0, skipped: false, difficulty: 'normal' } as never, { difficulty: 'normal', catId: CAT });
+    play('grooming', 'great');
+    play('wand', 'ok');
+    play('wand', 'fail');
+    expect(state.relationships['player|' + CAT]).toBe(pts.great + pts.ok);
+  });
+
   it('o save guarda o isolamento (quarantine) e ele sai quando o gato sara', () => {
     const { session, state } = twoCats();
     session.makeSick(CAT, SNIFFLES);

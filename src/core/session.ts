@@ -110,6 +110,9 @@ export interface ConsultQuote {
 }
 
 /** Ficha de um gato abrigado (app "Meus gatos"). */
+/** Mini games de cuidado com o gato (dão afeto: relationships.json careGamePoints). */
+const CARE_GAMES: readonly string[] = ['grooming', 'wand', 'pill'];
+
 export interface CatProfile {
   id: string;
   name: string;
@@ -712,6 +715,8 @@ export class GameSession {
         cat.fedOn = day;
         if (r.fedWith) cat.fedWith = r.fedWith;
         else delete cat.fedWith;
+        // O pote automático é a tigela que não precisa encher: o mesmo afeto.
+        this.addCatAffection(id, this.content.relationships.feedPoints);
       }
     if (!r.litterOk) {
       for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -this.content.health.care.litterMissed, this.content.health.care);
@@ -2106,6 +2111,7 @@ export class GameSession {
       if (cat.curedOn !== undefined && !healthLow(cfg, cat.health)) delete cat.curedOn;
       if (!cat.sickness && cat.health < cfg.sickBelow && clinicTomorrow) this.makeSick(id);
       careAtDayEnd(cat, cfg.care, day, this.playRoom());
+      this.neglectAtDayEnd(id);
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
     if (!clinicTomorrow) return;
@@ -2942,6 +2948,9 @@ export class GameSession {
       for (const [stat, v] of Object.entries(gain) as [CareStat, number][]) addCare(careCat, stat, v, this.content.health.care);
       // Brincou de verdade (a varinha): o pedido de brincar volta a contar daqui.
       if (result.gameId === 'wand' && result.outcome !== 'fail') careCat.playedOn = this.state.day;
+      // Cuidar dá afeto (pouco): escova, varinha e remédio, pelo resultado.
+      const pts = this.content.relationships.careGamePoints;
+      if (pts && result.outcome !== 'fail' && CARE_GAMES.includes(result.gameId)) this.addCatAffection(params.catId!, pts[result.outcome]);
       if (Object.keys(gain).length > 0) this.bus.emit('cat.cared', { catId: params.catId!, gameId: result.gameId, ...careOf(careCat, this.content.health.care) });
     }
     // Foto perfeita: a melhor de sempre fica guardada (pose, nota, gatos, dia).
@@ -3093,6 +3102,28 @@ export class GameSession {
   /** Corações entre a protagonista e um gato. */
   catHearts(catId: string): number {
     return hearts(this.state, this.content.relationships, PLAYER, catId);
+  }
+
+  /**
+   * Descuido: com a saúde, a alegria ou a higiene em zero por relationships.neglect.days dias seguidos, ele perde
+   * neglect.hearts coração(ões) e a contagem recomeça. Fora do zero, a contagem zera.
+   */
+  private neglectAtDayEnd(catId: string): void {
+    const n = this.content.relationships.neglect;
+    const cat = this.state.cats[catId];
+    if (!n || !cat) return;
+    const care = careOf(cat, this.content.health.care);
+    const zero = cat.health <= 0 || care.happiness <= 0 || care.hygiene <= 0;
+    if (!zero) {
+      delete cat.neglectDays;
+      return;
+    }
+    cat.neglectDays = (cat.neglectDays ?? 0) + 1;
+    if (cat.neglectDays < n.days) return;
+    cat.neglectDays = 0;
+    if (this.catHearts(catId) <= 0 && (this.state.relationships[`${PLAYER}|${catId}`] ?? 0) <= 0) return;
+    this.addCatAffection(catId, -n.hearts * this.content.relationships.pointsPerHeart);
+    this.bus.emit('cat.neglected', { catId, hearts: n.hearts });
   }
 
   /** Soma afeto (pontos) entre a protagonista e um gato. */

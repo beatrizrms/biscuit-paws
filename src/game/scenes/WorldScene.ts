@@ -474,7 +474,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.tweens.add({ targets: label, y: y - 16, alpha: 0, delay: 900, duration: 1000, onComplete: () => label.destroy() });
     });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
-    this.session.bus.on('cat.affection_changed', ({ catId }) => this.floatHeart(catId));
+    this.session.bus.on('cat.affection_changed', ({ catId, from, to }) => to > from && this.floatHeart(catId));
     // Ração no pote: todos comeram (núcleo), mas vão até o pote um de cada vez (a fila do pote).
     this.session.bus.on('clinic.delivered', (d) => this.queueVetDelivery(d));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {

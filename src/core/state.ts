@@ -232,6 +232,8 @@ export interface CatState {
   quarantine?: boolean;
   /** O dia em que sarou da última doença; sai quando a saúde volta ao normal (a ficha fala da doença recente até lá). */
   curedOn?: number;
+  /** Dias seguidos com a saúde, a alegria ou a higiene em zero (descuido: no limite, perde um coração). */
+  neglectDays?: number;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {

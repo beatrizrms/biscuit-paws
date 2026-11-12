@@ -147,9 +147,9 @@ describe('começo da história', () => {
     expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
     expect(session.goals().map((g) => g.title)).toEqual(['Hora de comer']);
-    // Alimentar: um E no pote basta (a ração da mochila vai sozinha). Primeiro coração, cartão final e fim do dia.
+    // Alimentar: um E no pote basta (a ração da mochila vai sozinha). Pontinhos de afeto, cartão final e fim do dia.
     expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: true });
-    expect(session.catHearts('cat.first_stray')).toBe(1);
+    expect(session.state.relationships['player|cat.first_stray']).toBe(content.relationships.feedPoints);
     session.finishCutscene('cs.prologue_end');
     expect(session.state.day).toBe(2);
     expect(session.state.flags['prologue.done']).toBe(true);
@@ -641,7 +641,7 @@ describe('alimentar e fim do dia', () => {
     expect(session.bowlNear([[13, 8]])).toBeUndefined();
   });
 
-  it('comer gasta uma ração e dá um coração', () => {
+  it('comer gasta uma ração e dá pontinhos de afeto', () => {
     const { session, events } = newSession();
     startInCafe(session);
     session.buy('item.cat_food_basic');
@@ -651,7 +651,9 @@ describe('alimentar e fim do dia', () => {
     session.feedFromBowl(session.bowlNear([[14, 8]])!);
     expect(session.state.inventory['item.cat_food_basic']).toBe(1);
     expect(events.some((e) => e.name === 'cat.fed')).toBe(true);
-    expect(session.catHearts('cat.first_stray')).toBe(1);
+    // Encher a tigela dá alguns pontinhos (não um coração inteiro).
+    expect(session.state.relationships['player|cat.first_stray']).toBe(content.relationships.feedPoints);
+    expect(session.catHearts('cat.first_stray')).toBe(0);
   });
 
   it('o fim do dia passa para o dia seguinte e avisa', () => {
@@ -1354,8 +1356,8 @@ describe('meus gatos', () => {
     startInCafe(session);
     const [p] = session.catProfiles();
     expect(p).toMatchObject({ id: 'cat.first_stray', name: 'Botinhas', variant: 'ruivo', personality: 'brave', hearts: 0, maxHearts: 10, fedToday: false, daysInCafe: 1 });
-    finishPrologue(session); // come, ganha um coração e o dia vira
-    expect(session.catProfiles()[0]).toMatchObject({ hearts: 1, fedToday: false, daysInCafe: 2 });
+    finishPrologue(session); // come (pontinhos de afeto) e o dia vira
+    expect(session.catProfiles()[0]).toMatchObject({ hearts: 0, fedToday: false, daysInCafe: 2 });
     session.state.day = 7;
     expect(session.catProfiles()[0]!.daysInCafe).toBe(7);
   });

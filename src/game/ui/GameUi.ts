@@ -206,9 +206,10 @@ export class GameUi {
       else this.toast(text, 2500);
     });
     bus.on('crowdfund.completed', ({ raised, target }) => this.toast(ced.goal!.replace('{total}', String(raised)).replace('{target}', String(target)), 4000));
-    bus.on('cat.affection_changed', ({ catId, to }) => {
-      if (to > 0) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
+    bus.on('cat.affection_changed', ({ catId, from, to }) => {
+      if (to > from) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
+    bus.on('cat.neglected', ({ catId }) => this.toast(uiText.health.neglected.replace('{name}', this.session.catName(catId)), 5000));
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
     const s = uiText.service;
     const recipeName = (id: string) => content.recipes[id]?.name ?? '';

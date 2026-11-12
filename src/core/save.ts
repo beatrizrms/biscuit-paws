@@ -715,8 +715,8 @@ function normalizeClinic(c: unknown): ClinicState {
 }
 
 /** Campos da castração no gato (v36), só os bem formados. Sem repro: a sessão sorteia ao carregar. */
-function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown; aftercare?: unknown; quarantine?: unknown; curedOn?: unknown }): { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number } {
-  const out: { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number } = {};
+function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown; aftercare?: unknown; quarantine?: unknown; curedOn?: unknown; neglectDays?: unknown }): { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number } {
+  const out: { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number } = {};
   const r = c.repro as Partial<CatRepro> | undefined;
   if (
     r &&
@@ -749,6 +749,7 @@ function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown
   if (a && Number.isInteger(a.days) && Number.isInteger(a.dosesGiven)) out.aftercare = { days: a.days!, dosesGiven: a.dosesGiven!, lastDoseDay: Number.isInteger(a.lastDoseDay) ? a.lastDoseDay! : null };
   if (c.quarantine === true) out.quarantine = true;
   if (Number.isInteger(c.curedOn)) out.curedOn = c.curedOn as number;
+  if (Number.isInteger(c.neglectDays) && (c.neglectDays as number) > 0) out.neglectDays = c.neglectDays as number;
   return out;
 }
 
