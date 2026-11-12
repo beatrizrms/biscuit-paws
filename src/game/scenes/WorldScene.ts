@@ -1957,7 +1957,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** O vizinho entra numa ponta da rua, atravessa (desviando do que for sólido) com os gatos atrás e some na outra. */
-  private async startNeighborWalk(w: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }): Promise<void> {
+  private async startNeighborWalk(w: { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }): Promise<void> {
     this.session.markNeighborWalked(w.npc);
     this.walkBarked.delete(w.npc);
     const free = ([c, r]: Cell): Cell => {
@@ -1969,7 +1969,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.spawnNpc(w.npc, from, to[0] > from[0] ? 'right' : 'left');
     const npc = this.npcs.get(w.npc);
     if (!npc) return;
-    const followers = new WalkFollowers(this, npc, w.cats);
+    const companions = w.companions.map((id) => this.session.content.npcs[id]).filter((d): d is NonNullable<typeof d> => !!d);
+    const followers = new WalkFollowers(this, npc, w.cats, companions, this.map.tileSize);
     this.neighborWalks.set(w.npc, followers);
     const path = findPath(this.map.solid, from, to);
     for (const corner of path ? pathCorners(path) : [to]) {

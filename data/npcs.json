@@ -564,6 +564,97 @@
         "Olha o café, {cat}! Lá dentro também tem gatinho.",
         "Dá tchau, {cat}!"
       ]
+    },
+    {
+      "npc": "npc.neusa",
+      "map": "map.street",
+      "when": {
+        "flag": "met.old_neighbor"
+      },
+      "chance": 0.33,
+      "hours": [
+        "08:30",
+        "10:30"
+      ],
+      "path": [
+        [
+          42,
+          9
+        ],
+        [
+          1,
+          9
+        ]
+      ],
+      "cats": [],
+      "catsPerWalk": [
+        0,
+        0
+      ],
+      "chat": [
+        "Vou ao mercado antes que acabe o pão de queijo. Depois das dez, só sobra o murcho.",
+        "Meu Tião anda trabalhando demais. Diga pra ele comer direito, que de mim ele não escuta.",
+        "Na minha época, esta rua tinha quitanda, sapateiro e a padaria do seu Antônio. Que bom ver vida de novo.",
+        "Plantei manjericão na janela. Se precisar pro café, é só bater lá em casa.",
+        "Os gatos de rua viviam revirando o meu lixo. Desde que você abriu o café, a rua anda mais tranquila.",
+        "Caminhar de manhã faz bem pros joelhos. O médico mandou, e eu obedeço. Às vezes.",
+        "Hoje vou fazer bolo de fubá. Se sobrar, mando um pedaço pro café.",
+        "Os gatos do café estão cada dia mais gordinhos. Isso é sinal de carinho, viu?"
+      ],
+      "points": 10,
+      "barks": [
+        "Bom dia! Já tomou café da manhã?",
+        "Bom dia, {g:querida|querido}!",
+        "Vou ali no mercado, volto já.",
+        "Que sol bonito hoje, hein?"
+      ]
+    },
+    {
+      "npc": "npc.gabi",
+      "map": "map.praca",
+      "when": {
+        "flag": "seen.scr.gabi_visit"
+      },
+      "chance": 0.33,
+      "hours": [
+        "12:00",
+        "14:00"
+      ],
+      "path": [
+        [
+          1,
+          8
+        ],
+        [
+          28,
+          8
+        ]
+      ],
+      "companions": [
+        "npc.joca"
+      ],
+      "cats": [],
+      "catsPerWalk": [
+        0,
+        0
+      ],
+      "chat": [
+        "Hora do almoço é sagrada: uma volta na praça com o Joca e eu volto nova pro trabalho.",
+        "O Joca conhece todo mundo da praça. Eu sou só a que segura a guia.",
+        "Confesso: depois do seu café, até eu ando olhando gato com outros olhos. Não conta pro Joca!",
+        "Tô pensando em pintar a minha cozinha da cor do seu café. Ficou tão aconchegante!",
+        "O Joca tentou fazer amizade com um pombo hoje. O pombo não quis.",
+        "Sábado tem feirinha aqui na praça. Bem que podia ter uma barraquinha do café, hein?",
+        "Trabalho perto daqui, então a praça é meu quintal na hora do almoço.",
+        "Se precisar de ajuda com alguma coisa no café, me chama. Amiga é pra isso!"
+      ],
+      "points": 10,
+      "barks": [
+        "Oi, {player}! Olha o Joca todo animado!",
+        "Joca, devagar! Ele só quer dar oi.",
+        "Ei! Saindo do trabalho pra almoçar, e você?",
+        "Que coincidência te ver aqui!"
+      ]
     }
   ]
 }

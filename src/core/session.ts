@@ -2324,14 +2324,14 @@ export class GameSession {
   private neighborChatOn: Record<string, number> = {};
 
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
-  neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] {
-    const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] = [];
+  neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] {
+    const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] = [];
     for (const def of this.content.npcWalks) {
       if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day) continue;
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
       if (def.when && !this.holds(def.when as Condition)) continue;
       const w = walkOfDay(def, this.state.day);
-      if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats });
+      if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats, companions: def.companions ?? [] });
     }
     return out;
   }

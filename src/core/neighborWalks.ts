@@ -20,6 +20,8 @@ export interface NeighborWalkDef {
   hours: [string, string];
   /** As duas pontas do passeio (ela vai de uma à outra; o sentido muda pelo dia). */
   path: [Cell, Cell];
+  /** Quem vai junto em todo passeio, logo atrás (NPCs de data/npcs.json; ex.: o Joca com a Gabi). */
+  companions?: string[];
   /** Os gatos dela; em cada passeio vão de catsPerWalk[0] a catsPerWalk[1] deles. */
   cats: WalkCat[];
   catsPerWalk: [number, number];
@@ -88,6 +90,7 @@ export function validateWalks(walks: readonly NeighborWalkDef[] | undefined, ref
     for (const c of w.cats) if (!refs.variants.has(c.variant)) errors.push(`${at}: pelagem inexistente "${c.variant}" (${c.name})`);
     if (w.catsPerWalk[0] > w.catsPerWalk[1]) errors.push(`${at}: catsPerWalk [mín, máx]`);
     if (w.chat.length === 0) errors.push(`${at}: precisa de pelo menos uma fala`);
+    for (const c of w.companions ?? []) if (!refs.npcs.has(c)) errors.push(`${at}: acompanhante inexistente "${c}"`);
   }
   return errors;
 }
