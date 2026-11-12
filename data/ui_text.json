@@ -533,6 +533,7 @@
     "customersAway": "Com {n} gatos doentes sem tratamento, ninguém quer entrar no café. Preciso levar à clínica.",
     "sickDrop": "{cat} está com {disease}, que passa para os outros gatos (mesmo com o remédio). No cercadinho ou na caixinha, fica isolado.",
     "sickDropBox": "Deixar na caixinha",
+    "sickDropPen": "Colocar no cercadinho",
     "sickDropFree": "Soltar mesmo assim",
     "sickFreed": "{cat} está solto: pode passar a {disease} para os outros.",
     "dose": "{name} tomou o remédio ({n}/{days}).",

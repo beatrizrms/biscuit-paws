@@ -978,7 +978,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /**
    * Gato com doença que passa (a Fungadinha) no colo: perto do cercadinho com vaga, vai para lá (isolado); longe, o
-   * aviso com a escolha: deixar na caixinha (isolado, na frente dela) ou soltar com a turma (pode passar a doença).
+   * aviso com a escolha: colocar no cercadinho (se algum tem vaga) ou deixar na caixinha (isolado, na frente dela), ou
+   * soltar com a turma (pode passar a doença).
    */
   private putDownSickCat(catId: string, target?: Cell): boolean {
     const pen = this.penNear(target);
@@ -993,11 +994,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ahead = target ?? this.facingCell();
     const free = this.map.solid[ahead[1]]?.[ahead[0]] === false && !this.session.placedAt(ahead);
     const at = free ? ahead : this.feetCell();
-    void this.ui.choose(t.sickDrop.replace('{cat}', name).replace('{disease}', disease), [t.sickDropBox, t.sickDropFree]).then((i) => {
+    // Algum cercadinho com vaga: a opção é ele (o isolado vai sozinho para a vaga); sem vaga, a caixinha.
+    const slots = this.session.content.clinic.pen.slots;
+    const penRoom = Object.values(this.session.penAssignments().pen).some((cats) => cats.length < slots);
+    void this.ui.choose(t.sickDrop.replace('{cat}', name).replace('{disease}', disease), [penRoom ? t.sickDropPen : t.sickDropBox, t.sickDropFree]).then((i) => {
       if (i !== 0 && i !== 1) return;
       const r = this.session.putDownSick(i === 0);
       if (!r.ok) return this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
-      if (i === 0) this.boxSpots.set(catId, at);
+      if (i === 0 && !penRoom) this.boxSpots.set(catId, at);
       else {
         this.dropCat(catId, at);
         this.ui.toast(t.sickFreed.replace('{cat}', name).replace('{disease}', disease), 4000);
