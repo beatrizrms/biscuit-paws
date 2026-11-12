@@ -1924,6 +1924,25 @@ export class GameSession {
     return this.clinic.penAssignments();
   }
 
+  /** Doente de doença que passa de gato para gato (a Fungadinha): ela escolhe isolar (cercadinho/caixinha) ou soltar. */
+  catContagious(catId: string): boolean {
+    return this.clinic.contagiousSick(catId);
+  }
+
+  /**
+   * Põe no chão o gato do colo que tem doença que passa: isolado (`true`: no cercadinho; sem vaga, na caixinha) ou solto
+   * com a turma (`false`: pode passar para os outros, mesmo em tratamento).
+   */
+  putDownSick(isolate: boolean) {
+    const catId = this.service.carriedCat();
+    const r = this.service.putDownCat();
+    if (!r.ok || !catId) return r;
+    const cat = this.state.cats[catId]!;
+    if (isolate && this.clinic.contagiousSick(catId)) cat.quarantine = true;
+    else delete cat.quarantine;
+    return r;
+  }
+
   /** Castrado sem vaga no cercadinho: na caixinha de transporte (no colo também), até ir para um cercadinho. */
   catBoxed(catId: string): boolean {
     return this.clinic.boxed(catId);
@@ -2811,6 +2830,7 @@ export class GameSession {
     if (t.dosesGiven >= t.days && t === cat.aftercare) delete cat.aftercare;
     else if (t.dosesGiven >= t.days) {
       cat.sickness = null;
+      delete cat.quarantine; // sarou: volta para a turma
       cat.health = Math.max(cat.health, cfg.sickBelow);
       this.state.flags['vet.cured'] = true;
       this.bus.emit('cat.cured', { catId });
@@ -3413,6 +3433,7 @@ export class GameSession {
       for (const id of this.shelteredCats()) {
         const cat = this.state.cats[id]!;
         cat.sickness = null;
+        delete cat.quarantine;
         delete cat.clinic;
         delete cat.aftercare;
         if (cat.repro) cat.repro = { ...cat.repro, status: 'neutered', known: 'neutered' };

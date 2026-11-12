@@ -976,6 +976,36 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
+  /**
+   * Gato com doença que passa (a Fungadinha) no colo: perto do cercadinho com vaga, vai para lá (isolado); longe, o
+   * aviso com a escolha: deixar na caixinha (isolado, na frente dela) ou soltar com a turma (pode passar a doença).
+   */
+  private putDownSickCat(catId: string, target?: Cell): boolean {
+    const pen = this.penNear(target);
+    if (pen && (this.session.penAssignments().pen[pen]?.length ?? 0) < this.session.content.clinic.pen.slots) {
+      const r = this.session.putDownSick(true);
+      if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      return true;
+    }
+    const t = uiText.health;
+    const name = this.session.catName(catId);
+    const disease = this.session.content.health.diseases.find((d) => d.id === this.session.state.cats[catId]?.sickness?.disease)?.name ?? '';
+    const ahead = target ?? this.facingCell();
+    const free = this.map.solid[ahead[1]]?.[ahead[0]] === false && !this.session.placedAt(ahead);
+    const at = free ? ahead : this.feetCell();
+    void this.ui.choose(t.sickDrop.replace('{cat}', name).replace('{disease}', disease), [t.sickDropBox, t.sickDropFree]).then((i) => {
+      if (i !== 0 && i !== 1) return;
+      const r = this.session.putDownSick(i === 0);
+      if (!r.ok) return this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      if (i === 0) this.boxSpots.set(catId, at);
+      else {
+        this.dropCat(catId, at);
+        this.ui.toast(t.sickFreed.replace('{cat}', name).replace('{disease}', disease), 4000);
+      }
+    });
+    return true;
+  }
+
   /** E no cercadinho (ou na caixinha do canto): com a latinha, alimenta quem está lá; de mãos livres, pega um gato. */
   private penInteract(target?: Cell): boolean {
     if (!this.session.atHome()) return false;
@@ -2354,6 +2384,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Gato no colo: põe no chão, na frente dela.
     const carried = sv.carriedCat();
     if (carried && this.session.catBoxed(carried)) return this.putDownBoxedCat(carried, target);
+    if (carried && this.session.catContagious(carried)) return this.putDownSickCat(carried, target);
     if (carried) {
       const r = sv.putDownCat();
       if (r.ok) this.dropCat(carried, this.facingCell());

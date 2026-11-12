@@ -228,6 +228,8 @@ export interface CatState {
   clinic?: CatClinicStage;
   /** Remédio do pós-cirurgia (v36): uma dose por dia, como a receita da doença. */
   aftercare?: Aftercare;
+  /** Doente de doença que passa (a Fungadinha) que ela isolou (cercadinho ou caixinha): não passa para ninguém. Sarou, sai. */
+  quarantine?: boolean;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {

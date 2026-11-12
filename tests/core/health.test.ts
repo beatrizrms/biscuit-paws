@@ -4,6 +4,7 @@ import { isContagious, pickDisease, prescriptionDays, rollsIllness, validateHeal
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { weekdayOf } from '../../src/core/schedule';
+import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -228,26 +229,53 @@ describe('contágio e prejuízo', () => {
     return { session, state, events, endDay };
   }
 
-  it('só a doença que passa (a Fungadinha) transmite: depois de mais de 2 dias doente, e não em tratamento', () => {
+  it('só a doença que passa (a Fungadinha) transmite: depois de mais de 2 dias doente, mesmo em tratamento (isolar é que segura)', () => {
     const s = { disease: SNIFFLES, since: 6, treatment: null };
     expect([6, 7, 8].map((d) => isContagious(cfg, s, d))).toEqual([false, false, true]);
-    expect(isContagious(cfg, { ...s, treatment: { days: 3, dosesGiven: 0, lastDoseDay: null } }, 9)).toBe(false);
+    expect(isContagious(cfg, { ...s, treatment: { days: 3, dosesGiven: 0, lastDoseDay: null } }, 9)).toBe(true);
     // As outras não passam para ninguém.
     for (const d of cfg.diseases.filter((x) => x.id !== SNIFFLES)) expect(isContagious(cfg, { ...s, disease: d.id }, 9)).toBe(false);
   });
 
-  it('em tratamento da Fungadinha, fica isolado (cercadinho ou caixinha) até sarar; das outras doenças, fica com a turma', () => {
-    const { session, state } = twoCats();
+  it('Fungadinha: solta com a turma, passa (mesmo em tratamento); isolada (cercadinho/caixinha), não; sarou, volta', () => {
+    const { session, state, endDay } = twoCats();
     session.makeSick(CAT, SNIFFLES);
-    expect(session.catPlace(CAT)).toBe('with_others'); // sem tratamento ainda: solto (e passa)
-    state.cats[CAT]!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    state.cats[CAT]!.sickness!.treatment = { days: 9, dosesGiven: 0, lastDoseDay: null };
+    expect(session.catContagious(CAT)).toBe(true);
+    expect(session.catPlace(CAT)).toBe('with_others'); // ela escolhe: solto por enquanto
+    // Isolou: pega no colo e põe no cercadinho/caixinha.
+    expect(session.service.pickUpCat(CAT).ok).toBe(true);
+    expect(session.putDownSick(true).ok).toBe(true);
     expect(session.catPlace(CAT)).toBe('isolated');
     expect(session.penAssignments().box).toContain(CAT);
-    state.cats[CAT]!.sickness = null; // sarou
+    for (let d = 0; d < 4; d++) endDay();
+    expect(state.cats[TWO]!.sickness).toBeNull();
+    // Soltou mesmo assim (de volta ao café de manhã): passa para o outro.
+    state.location = 'map.cafe_main';
+    expect(session.service.pickUpCat(CAT).ok).toBe(true);
+    expect(session.putDownSick(false).ok).toBe(true);
     expect(session.catPlace(CAT)).toBe('with_others');
-    session.makeSick(TWO, cfg.diseases.find((d) => d.id !== SNIFFLES)!.id);
-    state.cats[TWO]!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
-    expect(session.catPlace(TWO)).toBe('with_others');
+    endDay();
+    expect(state.cats[TWO]!.sickness?.disease).toBe(SNIFFLES);
+    // Outra doença: não pede isolamento.
+    expect(session.catContagious(TWO)).toBe(true);
+    state.cats[TWO]!.sickness = { disease: cfg.diseases.find((d) => !d.contagious)!.id, since: state.day, treatment: null };
+    expect(session.catContagious(TWO)).toBe(false);
+  });
+
+  it('o save guarda o isolamento (quarantine) e ele sai quando o gato sara', () => {
+    const { session, state } = twoCats();
+    session.makeSick(CAT, SNIFFLES);
+    state.cats[CAT]!.sickness!.treatment = { days: 1, dosesGiven: 0, lastDoseDay: null };
+    session.service.pickUpCat(CAT);
+    session.putDownSick(true);
+    const loaded = parseSave(serializeSave(state, new Date(0)), knownIds(content));
+    expect(loaded.state.cats[CAT]!.quarantine).toBe(true);
+    state.inventory[cfg.medicine.item] = 1;
+    (session as unknown as { applyDose(id: string, item: string): void }).applyDose(CAT, cfg.medicine.item);
+    expect(state.cats[CAT]!.sickness).toBeNull();
+    expect(state.cats[CAT]!.quarantine).toBeUndefined();
+    expect(session.catPlace(CAT)).toBe('with_others');
   });
 
   it('o doente sem remédio passa a mesma doença para o outro gato no 3º dia', () => {

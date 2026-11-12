@@ -168,12 +168,18 @@ export class ClinicFlow {
   }
 
   /**
-   * Doente de doença que passa de gato para gato (a Fungadinha) e já em tratamento: fica isolado até sarar (no
-   * cercadinho; sem vaga, na caixinha). Sem estado no save: sarou, volta sozinho para a turma.
+   * Doente de doença que passa de gato para gato (a Fungadinha) que ela isolou (soltou no cercadinho ou deixou na
+   * caixinha): fica lá até sarar e não passa para ninguém. Solto com a turma, passa (mesmo em tratamento).
    */
   sickIsolated(catId: string): boolean {
     const cat = this.st.cats[catId];
-    return !!cat?.sickness?.treatment && !this.stage(catId) && diseaseContagious(this.h.health, cat.sickness.disease);
+    return !!cat?.quarantine && !!cat.sickness && !this.stage(catId);
+  }
+
+  /** Doente de doença que passa de gato para gato (pode ser isolado). */
+  contagiousSick(catId: string): boolean {
+    const cat = this.st.cats[catId];
+    return !!cat?.sickness && diseaseContagious(this.h.health, cat.sickness.disease);
   }
 
   /** Internado na clínica (não aparece no café). */

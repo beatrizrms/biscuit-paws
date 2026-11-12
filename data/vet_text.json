@@ -7,7 +7,7 @@
     "testsNegative": "Deu negativo nos dois. Pode ficar {g:tranquila|tranquilo}.",
     "healthy": "Fora isso, {cat} está bem.",
     "sick": "{cat} está com {disease}. Nada grave: com o remédio certinho, passa.",
-    "sickIsolate": "Essa passa de gato para gato, viu? Até sarar, {cat} fica no cercadinho, longe da turma (sem vaga, na caixinha). O remédio você dá lá mesmo.",
+    "sickIsolate": "Essa passa de gato para gato, viu? Até sarar, deixa {cat} no cercadinho, longe da turma (sem vaga, na caixinha). Solto com os outros, passa, mesmo com o remédio. O remédio você dá lá mesmo.",
     "neutered": "{cat} já é castrad{sex:o|a}. Alguém cuidou bem dessa fofura antes de você.",
     "earTipped": "Viu a pontinha da orelha cortada? É o sinal de quem já foi castrado na rua. Não precisa operar de novo.",
     "intact": "{cat} ainda não é castrad{sex:o|a}. Se quiser, já opero amanhã cedo: fica aqui esta noite e de manhã eu levo no café.",
