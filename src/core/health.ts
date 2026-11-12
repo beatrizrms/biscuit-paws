@@ -90,6 +90,10 @@ export function isContagious(cfg: HealthConfig, sickness: CatSickness, day: numb
   return day - sickness.since + 1 > cfg.contagion.afterDays;
 }
 
+/** A barra de saúde baixa (amarela): abaixo de sickBelow + esta margem. */
+export const HEALTH_LOW_MARGIN = 20;
+export const healthLow = (cfg: HealthConfig, health: number) => health < cfg.sickBelow + HEALTH_LOW_MARGIN;
+
 export const clampHealth = (cfg: HealthConfig, v: number) => Math.max(0, Math.min(cfg.max, Math.round(v)));
 
 export function validateHealth(cfg: HealthConfig, refs: { items: ReadonlySet<string>; maps: ReadonlySet<string>; npcs: ReadonlySet<string> }): string[] {

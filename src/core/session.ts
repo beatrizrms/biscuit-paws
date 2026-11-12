@@ -17,7 +17,7 @@ import { addPoints, hearts, PLAYER } from './relationships';
 import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
-import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness } from './health';
+import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness, healthLow } from './health';
 import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { lowIngredients } from './shopping';
 import type { RecipeDef } from './recipes';
@@ -133,6 +133,8 @@ export interface CatProfile {
   aftercare: { days: number; dosesGiven: number; dosedToday: boolean } | null;
   /** Consulta de entrada: 'done' = já fez (testes), 'due' = ainda não fez, null = a clínica ainda não pede. */
   intake: 'done' | 'due' | null;
+  /** Sarou e a saúde ainda está baixa: a ficha fala da doença recente (some quando a barra volta ao normal). */
+  curedRecently: boolean;
   /** Adoção: null = pode; senão o motivo (e o dia estimado, se aguarda idade). */
   adoption: { reason: 'in_care' | 'needs_neuter' | 'waiting_age'; readyDay?: number } | null;
 }
@@ -1860,6 +1862,7 @@ export class GameSession {
         aftercare: cat.aftercare ? { days: cat.aftercare.days, dosesGiven: cat.aftercare.dosesGiven, dosedToday: cat.aftercare.lastDoseDay === this.state.day } : null,
         adoption: this.clinic.adoptionBlock(id),
         intake: cat.tests ? 'done' : this.clinic.intakeRequired() ? 'due' : null,
+        curedRecently: cat.curedOn !== undefined,
       };
     });
   }
@@ -2099,6 +2102,8 @@ export class GameSession {
       let delta = fed ? Math.round(cfg.daily.fed * mult) : cfg.daily.hungry;
       if (cat.sickness && cat.sickness.treatment?.lastDoseDay !== day) delta += cfg.daily.sickUntreated;
       cat.health = clampHealth(cfg, cat.health + delta);
+      // A saúde voltou ao normal: a doença deixa de ser recente.
+      if (cat.curedOn !== undefined && !healthLow(cfg, cat.health)) delete cat.curedOn;
       if (!cat.sickness && cat.health < cfg.sickBelow && clinicTomorrow) this.makeSick(id);
       careAtDayEnd(cat, cfg.care, day, this.playRoom());
     }
@@ -2872,6 +2877,7 @@ export class GameSession {
     else if (t.dosesGiven >= t.days) {
       cat.sickness = null;
       delete cat.quarantine; // sarou: volta para a turma
+      cat.curedOn = this.state.day;
       cat.health = Math.max(cat.health, cfg.sickBelow);
       this.state.flags['vet.cured'] = true;
       this.bus.emit('cat.cured', { catId });

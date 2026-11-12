@@ -263,6 +263,22 @@ describe('contágio e prejuízo', () => {
     expect(session.catContagious(TWO)).toBe(false);
   });
 
+  it('sarou: a ficha fala da doença recente enquanto a saúde está baixa; a saúde voltou, a marca sai (e o save guarda)', () => {
+    const { session, state, endDay } = twoCats();
+    session.makeSick(CAT, SNIFFLES);
+    state.cats[CAT]!.sickness!.treatment = { days: 1, dosesGiven: 0, lastDoseDay: null };
+    state.inventory[cfg.medicine.item] = 1;
+    (session as unknown as { applyDose(id: string, item: string): void }).applyDose(CAT, cfg.medicine.item);
+    expect(state.cats[CAT]!.curedOn).toBe(state.day);
+    expect(session.catProfiles().find((p) => p.id === CAT)!.curedRecently).toBe(true);
+    expect(parseSave(serializeSave(state, new Date(0)), knownIds(content)).state.cats[CAT]!.curedOn).toBe(state.day);
+    // Comendo, a saúde sobe; acima da barra baixa, a doença deixa de ser recente.
+    state.cats[CAT]!.health = cfg.sickBelow + 40;
+    endDay();
+    expect(state.cats[CAT]!.curedOn).toBeUndefined();
+    expect(session.catProfiles().find((p) => p.id === CAT)!.curedRecently).toBe(false);
+  });
+
   it('o save guarda o isolamento (quarantine) e ele sai quando o gato sara', () => {
     const { session, state } = twoCats();
     session.makeSick(CAT, SNIFFLES);

@@ -230,6 +230,8 @@ export interface CatState {
   aftercare?: Aftercare;
   /** Doente de doença que passa (a Fungadinha) que ela isolou (cercadinho ou caixinha): não passa para ninguém. Sarou, sai. */
   quarantine?: boolean;
+  /** O dia em que sarou da última doença; sai quando a saúde volta ao normal (a ficha fala da doença recente até lá). */
+  curedOn?: number;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {

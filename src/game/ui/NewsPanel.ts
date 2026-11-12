@@ -15,6 +15,7 @@ import { fillNames } from './text';
 import { ScheduleApp } from './ScheduleApp';
 import { StatsApp } from './StatsApp';
 import { iconHtml } from './ShopPanel';
+import { healthLow } from '../../core/health';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -368,9 +369,9 @@ export class NewsPanel {
       return `<div class="cat-card" data-cat="${p.id}" title="${esc(t.locate)}">${sprite}<div class="cat-info">
           <strong>${esc(p.name)}</strong><span class="personality">${esc(personality)}</span>
           <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
-          <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
+          <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : healthLow(content.health, p.health) ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
           ${this.careBars(p.id)}
-          ${p.sickness ? this.sickHtml(p.sickness) : p.health < content.health.sickBelow + 20 ? this.row('dose due', '↑', p.repro.known === 'intact' ? t.recoveringNeuter : t.recovering) : ''}
+          ${p.sickness ? this.sickHtml(p.sickness) : healthLow(content.health, p.health) ? this.row('dose due', '↑', p.repro.known === 'intact' ? t.recoveringNeuter : p.curedRecently ? t.recovering : t.lowHealth) : ''}
           ${this.clinicLines(p)}
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;
