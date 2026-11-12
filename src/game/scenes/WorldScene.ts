@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { touch, type TouchAction } from '../touch';
 import { fillNames } from '../ui/text';
-import { cellsOf, doorAt, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
+import { cellsOf, doorAt, type DirtSpot, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
@@ -1478,6 +1478,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (uid && !pointer.rightButtonDown()) this.startMoving(uid);
       return;
     }
+    // Toque ou clique em cima de uma sujeira que a vassoura limpa: ela vem primeiro (a teia em cima do armário não abre
+    // a despensa).
+    const tapped = !pointer.rightButtonDown() && !this.placing && this.session.atHome() ? this.session.dirtAt(this.cellAt(pointer)) : undefined;
+    if (tapped && !tapped.clearedBy && !tapped.heavy) {
+      if (this.sweeping) return;
+      const problem = this.session.cleanProblem(tapped.id, this.playerCells());
+      if (problem) return this.ui.problem(problem);
+      void this.sweep(tapped.id, pointer.worldX, pointer.worldY);
+      return;
+    }
     if (!pointer.rightButtonDown() && !this.placing && this.interact(this.cellAt(pointer))) return;
     if (!this.session.atHome()) return;
     if (this.placing) {
@@ -1588,6 +1598,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Interage com o que estiver ao alcance (ou só com a célula clicada). Devolve se fez algo. */
   private interact(target?: Cell): boolean {
+    // Com a vassoura na mão, a sujeira para onde ela está olhando vem antes de tudo (armário, pia, gato do lado).
+    const facingDirt = !target ? this.dirtAhead() : undefined;
+    if (facingDirt) return this.sweepDirt(facingDirt);
     // O Tião trabalhando ali do lado: conversar diz quantos dias faltam para terminar a obra.
     if (this.talkToBuilder(target)) return true;
     // Na ceia, a hora de entregar: E em quem ela tirou abre a escolha do presente.
@@ -1612,18 +1625,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Sem a vassoura, o E segue para o resto (gatos, tigela): num café sujo, a sujeira não pode tomar o E de tudo.
     const broom = this.session.activeItem() === this.session.content.world.tools.sweep;
     const dirt = !target && broom && this.session.atHome() ? this.session.dirtNear(this.playerCells()) : undefined;
-    if (dirt) {
-      if (this.sweeping) return true;
-      const problem = this.session.cleanProblem(dirt.id, this.playerCells());
-      if (problem) {
-        this.ui.problem(problem);
-        return true;
-      }
-      const ts = this.map.tileSize;
-      const def = this.session.content.catalog.tiles[dirt.tile]!;
-      void this.sweep(dirt.id, (dirt.at[0] + def.w / 2) * ts, (dirt.at[1] + def.h / 2) * ts);
-      return true;
-    }
+    if (dirt) return this.sweepDirt(dirt);
     const point = this.session.jobPointNear(this.playerCells(), target);
     if (point) {
       const problem = this.session.jobPointProblem(point.id);
@@ -1700,6 +1702,40 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
+  /** Varre esta sujeira (ou diz por que não dá). */
+  private sweepDirt(dirt: DirtSpot): boolean {
+    if (this.sweeping) return true;
+    const problem = this.session.cleanProblem(dirt.id, this.playerCells());
+    if (problem) {
+      this.ui.problem(problem);
+      return true;
+    }
+    const ts = this.map.tileSize;
+    const def = this.session.content.catalog.tiles[dirt.tile]!;
+    void this.sweep(dirt.id, (dirt.at[0] + def.w / 2) * ts, (dirt.at[1] + def.h / 2) * ts);
+    return true;
+  }
+
+  /**
+   * Com a vassoura na mão, a sujeira para onde ela está olhando e ao alcance da vassoura (a mais perto), ou nada.
+   * Olhando para cima, vale a parede de cima (a teia no canto).
+   */
+  private dirtAhead(): DirtSpot | undefined {
+    const s = this.session;
+    if (!s.atHome() || s.activeItem() !== s.content.world.tools.sweep) return undefined;
+    const [fc, fr] = this.feetCell();
+    const dir = this.player.facingDirection();
+    const inFront = ([c, r]: Cell) =>
+      dir === 'up' ? r < fr && Math.abs(c - fc) <= 1 : dir === 'down' ? r > fr && Math.abs(c - fc) <= 1 : dir === 'left' ? c < fc && Math.abs(r - fr) <= 1 : c > fc && Math.abs(r - fr) <= 1;
+    const { catalog } = s.content;
+    const feet = this.playerCells();
+    const dist = (d: DirtSpot) => Math.min(...cellsOf(d.at, catalog.tiles[d.tile]!).map(([c, r]) => Math.abs(c - fc) + Math.abs(r - fr)));
+    return s
+      .visibleDirt()
+      .filter((d) => !d.clearedBy && !d.heavy && catalog.tiles[d.tile] && cellsOf(d.at, catalog.tiles[d.tile]!).some(inFront) && s.cleanProblem(d.id, feet) === null)
+      .sort((a, b) => dist(a) - dist(b))[0];
+  }
+
   /**
    * Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa (tutorial: ui_text.hints),
    * na mesma ordem do interact(); null: nada por perto. Só olha, não muda nada.
@@ -1714,6 +1750,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const cell = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: r * ts, kind });
     const floor = ([c, r]: Cell, kind: HintKind) => ({ x: (c + 0.5) * ts, y: (r + 0.4) * ts, kind }); // rente ao chão: a dica mais perto
     const nearCat = () => this.cats.find((c) => c.visible && near(c.cell()));
+    const facingDirt = this.dirtAhead();
+    if (facingDirt) return floor(facingDirt.at, 'dirt');
     // Nos gatos, um pouco mais alto: o balão de cuidado (careBubbles) fica logo acima da cabeça.
     const catTop = (c: CatSprite, kind: HintKind) => ({ x: c.x, y: c.y - c.displayHeight * 0.9 - 12, kind });
     // O Tião trabalhando do lado: a dica de falar com ele.

@@ -527,7 +527,7 @@
 
 /* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
 .hud-goals, .hud-money { transition: opacity 0.2s; }
-.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through, .hud-weather.see-through { opacity: 0.18; }
+.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through, .hud-weather.see-through { opacity: 0.18; pointer-events: none; }
 .hud-rep[hidden], .hud-energy[hidden], .hud-weather[hidden] { display: none; }
 
 /* Transições suaves entre o que aparece na cena (gato, celular...) */
