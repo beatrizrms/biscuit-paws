@@ -563,7 +563,8 @@
     "dosedToday": "Já tomou o remédio hoje",
     "doseDue": "Falta o remédio de hoje",
     "intake": { "done": "Consulta de entrada feita", "due": "Ainda sem consulta de entrada" },
-    "recovering": "Sem doença, mas a saúde está baixa: comendo todo dia, ela volta",
+    "recovering": "Alimente direitinho por mais alguns dias e logo fica bem: a doença foi recente.",
+    "recoveringNeuter": "Alimente direitinho por mais alguns dias para ficar 100%. Aí já dá para castrar.",
     "personalities": {
       "brave": "Valente",
       "sweet": "Doce",
