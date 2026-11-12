@@ -99,6 +99,9 @@ const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
 const GHOST_STEPS: Record<string, Cell> = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
 const GHOST_DEPTH = 100_000;
+/** A sujeira até tantas células dela deixa o HUD transparente em cima (a varrida alcança 2); recalcula a cada tanto (ms). */
+const DIRT_FADE_CELLS = 3;
+const DIRT_FADE_EVERY_MS = 150;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
 const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
@@ -1501,6 +1504,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
   }
 
+  /** Sujeira perto dela (pontos do mundo), recalculada de tempos em tempos para o HUD não cobrir. */
+  private dirtNear: { x: number; y: number }[] = [];
+  private dirtFadeAt = -Infinity;
+
   /** Pontos do mundo que não podem ficar escondidos pelo HUD: o mouse e a personagem (cabeça e pés). */
   private fadeHudOverWorld(): void {
     const rect = this.game.canvas.getBoundingClientRect();
@@ -1511,7 +1518,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const feet = toClient(this.player.x, this.player.y);
     const points = [toClient(this.player.x, this.player.y - 56), feet];
     if (p.event) points.push(toClient(p.worldX, p.worldY));
-    this.ui.updateHudFade(points, feet);
+    // A sujeira perto dela não fica escondida: o HUD e o balão ficam transparentes em cima dela.
+    if (this.time.now - this.dirtFadeAt >= DIRT_FADE_EVERY_MS) {
+      this.dirtFadeAt = this.time.now;
+      const ts = this.map.tileSize;
+      const [fc, fr] = this.feetCell();
+      const { catalog } = this.session.content;
+      this.dirtNear = this.session.atHome()
+        ? this.session.visibleDirt().filter((d) => catalog.tiles[d.tile]).flatMap((d) => cellsOf(d.at, catalog.tiles[d.tile]!)).filter(([c, r]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= DIRT_FADE_CELLS).map(([c, r]) => ({ x: (c + 0.5) * ts, y: (r + 0.5) * ts }))
+        : [];
+    }
+    this.ui.updateHudFade(points, feet, this.dirtNear.map((d) => toClient(d.x, d.y)));
   }
 
   /** Cor do momento sobre o mundo e relógio no HUD. */

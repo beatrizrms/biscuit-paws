@@ -24,6 +24,10 @@ import { services } from '../services';
 import { daysText, workName } from './constructionText';
 import { weatherIconSvg } from './weatherIcons';
 
+/** A coluna de quadros da direita (reputação, energia, clima): onde começa e a distância entre eles (px da interface). */
+const HUD_STACK_TOP = 26;
+const HUD_STACK_STEP = 14;
+
 /** A partir de quanto tempo o aviso é "longo" (sobrevive à troca de mapa). */
 const LONG_TOAST_MS = 4000;
 /** Avisos na tela ao mesmo tempo: o novo entra embaixo; passou disso, o mais antigo some. */
@@ -854,11 +858,12 @@ export class GameUi {
    * O balão de pensamento e o painel do dinheiro ficam quase transparentes quando algum
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
-  updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }): void {
-    for (const el of [this.goals, this.money]) {
+  updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
+    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy, .hud-weather')]) {
+      if (el.hidden) continue;
       const r = el.getBoundingClientRect();
-      // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente.
-      const near = el === this.goals ? points.slice(0, 2) : points;
+      // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
+      const near = [...(el === this.goals ? points.slice(0, 2) : points), ...spots];
       const under = near.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       el.classList.toggle('see-through', under);
     }
@@ -974,6 +979,23 @@ export class GameUi {
       window.setTimeout(() => window.addEventListener('keydown', onKey), 150);
       (el.querySelector('.yes') as HTMLElement).addEventListener('click', finish);
     });
+  }
+
+  /**
+   * A coluna da direita, embaixo do dinheiro: reputação, energia e clima. Os que ainda não importam (data/world.json:
+   * hud) ficam escondidos e os outros sobem, sem buraco.
+   */
+  private layoutHudStack(): void {
+    const when = content.world.hud ?? {};
+    let top = HUD_STACK_TOP;
+    for (const [cls, cond] of [['.hud-rep', when.reputation], ['.hud-energy', undefined], ['.hud-weather', when.weather]] as const) {
+      const el = this.root.querySelector<HTMLElement>(cls);
+      if (!el) continue;
+      el.hidden = !!cond && !this.session.holds(cond);
+      if (el.hidden) continue;
+      el.style.top = `${top}px`;
+      top += HUD_STACK_STEP;
+    }
   }
 
   /** Energia no HUD: barrinha e número (embaixo da reputação); cansada, a barra fica laranja. */
@@ -1236,6 +1258,7 @@ ${rep}`;
     (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
     this.renderReputation();
     this.renderEnergy();
+    this.layoutHudStack();
     const sd = this.session.seasonDay();
     // Clima do dia (o ícone muda junto com o que cai lá fora).
     const weather = this.session.weather();

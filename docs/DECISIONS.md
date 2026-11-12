@@ -836,3 +836,7 @@ Decisão: setinha pulando em cima do passo da vez da feira (os pontos com marcad
 ## 203. Corações: tigela não dá mais um coração inteiro; cuidado conta; descuido tira (nov/2026)
 Pedido: encher a tigela dava 1 coração por dia (10 dias e qualquer gato chegava ao máximo), enquanto cuidar do gato não contava e nada tirava afeto.
 Decisão: `relationships.json`: `feedPoints` 30 (tigela que ela encheu ou pote automático, que agora dá o mesmo afeto; a latinha do cercadinho não conta), `careGamePoints` { ok: 10, great: 20 } nos mini games de cuidado (escova, varinha, remédio; falhar não dá), `neglect` { days: 2, hearts: 1 }: com a saúde, a alegria ou a higiene em zero por 2 dias seguidos (contagem em `CatState.neglectDays`, opcional no save), o gato perde 1 coração e aparece um aviso; fora do zero, a contagem zera.
+
+## 204. HUD enxuto no começo; a sujeira perto dela não fica escondida (nov/2026)
+Pedidos: no celular, o HUD e o balão cobrem a sujeira da parede de cima; e no começo do jogo os quadros do canto superior direito não são necessários.
+Decisão: a sujeira até 3 células dela (a varrida alcança 2) deixa transparentes o balão, o dinheiro, a reputação, a energia e o clima que estiverem por cima (a mesma regra de quando ela ou o mouse passam embaixo). Reputação e clima só aparecem com a condição de `world.hud` (`business: soft_open`: quando o café começa a atender); os quadros da coluna sobem sem deixar buraco (`layoutHudStack`). Data, hora, moedas e energia ficam desde o início (a faxina gasta energia; a reforma usa moedas).

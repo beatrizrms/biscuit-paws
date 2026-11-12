@@ -329,6 +329,8 @@ export interface WorldData {
   morning: { map: string; spawn: Cell };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
+  /** Quadros do HUD que só aparecem quando a condição vale (no começo, a reputação e o clima ainda não importam). */
+  hud?: { reputation?: Condition; weather?: Condition };
   /** Cômodo do café onde as cenas começam (com ela em outro cômodo, esperam ela voltar). */
   sceneRoom: string;
   /** Quantas poeiras do café voltam a cada manhã (rotina de varrer). */
