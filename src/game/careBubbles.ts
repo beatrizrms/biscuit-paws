@@ -1,7 +1,7 @@
 // Balão de cuidado em cima de cada gato do café: o que ele está precisando (remédio, banho, carinho) e o sinal da
 // clínica (operado, doente, doença que passa), lado a lado no mesmo balão. Na arte do jogo: o balão de pedido dos
 // clientes (meia escala), alargado para caber mais de um ícone, com os ícones da folha; necessidade com emote pronto
-// (data/health.json: care.bubbles) fica ao lado. Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
+// (data/health.json: care.bubbles: o coração, que passa logo) fica por cima do balão. Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
 import Phaser from 'phaser';
 import type { CareConfig, CareNeed } from '../core/care';
 import { content, serviceArt } from './content';
@@ -15,6 +15,8 @@ const ABOVE_FEET = 22;
 const BUBBLE_EDGE = 2;
 const BUBBLE_BODY_ROWS = 38;
 const TAIL = { x: 17, w: 6 };
+/** Emote por cima do balão: quanto ele desce sobre a borda de cima (px). */
+const EMOTE_OVER = 8;
 /** Um ícone a mais no balão: o slot (32) e o respiro entre os ícones. */
 const SLOT_STEP = 34;
 
@@ -96,7 +98,7 @@ export class CareBubbles {
       const f = iconFrame(this.scene, STATUS_ICONS[c.status]);
       if (f) icons.push({ key: f.key, frame: f.frame, scale: f.scale });
     }
-    let left = 0;
+    let top = 0;
     if (icons.length > 0) {
       const bg = this.scene.add.image(0, 0, this.bubbleTexture(icons.length)).setOrigin(0.5, 1).setScale(BUBBLE_SCALE);
       view.add(bg);
@@ -106,12 +108,12 @@ export class CareBubbles {
         const y = (sy + sh / 2 - bg.height) * BUBBLE_SCALE;
         view.add(this.scene.add.image(x, y, ic.key, ic.frame).setScale(ic.scale * BUBBLE_SCALE));
       });
-      left = (-bg.width / 2) * BUBBLE_SCALE;
+      top = -bg.height * BUBBLE_SCALE;
     }
-    // Emote pronto (o coração do carinho): sozinho no lugar do balão, ou encostado à esquerda dele.
+    // Emote pronto (o coração do carinho, que passa logo): sozinho no lugar do balão, ou por cima do balão, encostado na
+    // borda de cima (sem empurrar os ícones).
     emotes.forEach((e, i) => {
-      const img = this.scene.add.image(0, 0, 'emotes', e).setOrigin(icons.length ? 1 : 0.5, 1);
-      img.x = icons.length ? left - 1 - i * (img.width + 1) : i * (img.width + 1);
+      const img = this.scene.add.image(i * 4, icons.length ? top + EMOTE_OVER : 0, 'emotes', e).setOrigin(0.5, 1);
       view.add(img);
     });
     return view;
