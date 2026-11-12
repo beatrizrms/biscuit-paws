@@ -661,6 +661,35 @@ const SHEETS: Sheet[] = [
     layout: parkFloor(),
   },
   {
+    // A neve do inverno por cima das coisas da pracinha (overlay dos objetos, some fora do inverno): o contorno de cima
+    // de cada peça (telhados do coreto e da banca, guarda-sol, canteiros, vasos, brinquedos), por código. E a sebe do
+    // fundo por estação (parque_sebe_topo: com neve no inverno, a de sempre nas outras).
+    image: 'public/assets/env/praca/tile_pixellab_praca_neve.png',
+    pieces: 'data/tilesets/pixellab_praca_neve.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      snow_praca_chafariz: { file: '', w: 3, h: 3, build: () => snowTop(snug('praca/chafariz.png', 3, 3), 51, 8) },
+      snow_praca_coreto: { file: '', w: 2, h: 3, build: () => snowTop(snug('praca/coreto.png', 2, 3), 52, 14) },
+      snow_praca_hotdog: { file: '', w: 2, h: 3, build: () => snowTop(snug('praca/hotdog.png', 2, 3), 53, 10) },
+      snow_praca_banca: { file: '', w: 2, h: 3, build: () => snowTop(snug('praca/banca.png', 2, 3), 54, 14) },
+      snow_praca_pipoca: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/pipoca.png', 2, 2), 55, 10) },
+      snow_praca_balanco: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/balanco.png', 3, 2), 56, 4) },
+      snow_praca_escorregador: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/escorregador.png', 2, 2), 57, 6) },
+      snow_praca_canteiro: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/canteiro.png', 3, 2), 58, 34) },
+      snow_praca_bebedouro: { file: '', w: 1, h: 2, build: () => snowTop(snug('praca/bebedouro.png', 1, 2), 59, 5) },
+      snow_praca_banco: { file: '', w: 2, h: 2, build: () => snowTop(benchArt(), 63, 6) },
+      snow_praca_poste: { file: '', w: 2, h: 4, build: () => snowTop(posteArt(), 64, 4) },
+      snow_praca_lixeira: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/rua/obj_5.png`), 65, 6) },
+      snow_yard_vaso_baixo_flores: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/quintal/obj_4.png`), 60, 12) },
+      snow_decor_floreira: { file: '', w: 1, h: 1, dy: 6, build: () => snowTop(readPng(`${SRC}/provisorios/obj_10.png`), 61, 10) },
+      parque_sebe_topo: { file: '', w: 1, h: 1, build: () => withSnow(seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), 62, 12) },
+      spring_parque_sebe_topo: {
+        file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), aliases: ['summer_parque_sebe_topo', 'autumn_parque_sebe_topo'],
+      },
+    },
+  },
+  {
     // Eletrodomésticos de piso (gerados no PixelLab, cafe_equip/): a lava-louças. Nomes eletro_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_eletro.png',
     pieces: 'data/tilesets/pixellab_eletro.json',
@@ -1393,6 +1422,38 @@ function snug(file: string, w: number, h: number): PNG {
   return out;
 }
 
+/**
+ * Neve grossa por cima de uma peça (telhados, copas, assentos, flores): em cada coluna, do contorno de cima para baixo,
+ * `depth` px (variando um pouco, semente fixa), só sobre o desenho (para no primeiro buraco); uma linha a mais por cima
+ * arredonda o monte, a parte de baixo leva a sombra azulada. Devolve só a neve, do tamanho da peça.
+ */
+function snowTop(src: PNG, seed: number, depth: number): PNG {
+  const out = blank(src.width, src.height);
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [204, 220, 238], line: [number, number, number] = [150, 170, 196];
+  const solid = (x: number, y: number) => y >= 0 && y < src.height && src.data[(y * src.width + x) * 4 + 3]! > 40;
+  let d = depth;
+  for (let x = 0; x < src.width; x++) {
+    let top = -1;
+    for (let y = 0; y < src.height; y++) if (solid(x, y)) { top = y; break; }
+    if (top < 0) continue;
+    const r = rnd();
+    d = Math.max(Math.max(2, depth - 2), Math.min(depth + 2, d + (r < 0.25 ? -1 : r > 0.75 ? 1 : 0)));
+    if (top > 0 && rnd() < 0.7) plot(out, x, top - 1, white);
+    let y = top;
+    for (; y < top + d && solid(x, y); y++) plot(out, x, y, y >= top + d - 2 ? shade : white);
+    if (solid(x, y)) plot(out, x, y, line);
+  }
+  return out;
+}
+
+/** A peça com a neve do inverno por cima (snowTop) já desenhada nela. */
+function withSnow(png: PNG, seed: number, depth = 7): PNG {
+  const snow = snowTop(png, seed, depth);
+  for (let i = 0; i < snow.data.length; i += 4) if (snow.data[i + 3]) png.data.set(snow.data.subarray(i, i + 4), i);
+  return png;
+}
+
 /** Até onde (px acima da base) fica o tufo de grama do pé da árvore, que não muda de cor com a copa. */
 const TREE_FOOT = 10;
 
@@ -1425,10 +1486,7 @@ function parkTree(name: string, w: number, h: number, suffix: string, spring: Re
   const file = `praca/arvore_${name}.png`;
   const season = (rc: Recolor | null) => () => (rc ? treeTint(snug(file, w, h), rc) : snug(file, w, h));
   const winter = (): PNG => {
-    const png = treeTint(snug(file, w, h), leafTone(135, 0.45, -0.08));
-    const snow = snowCap(png, 41 + w * 7 + h, Math.max(3, w * 2 + 1));
-    for (let i = 0; i < snow.data.length; i += 4) if (snow.data[i + 3]) png.data.set(snow.data.subarray(i, i + 4), i);
-    return png;
+    return withSnow(treeTint(snug(file, w, h), leafTone(135, 0.45, -0.08)), 41 + w * 7 + h, { 1: h > 1 ? 8 : 6, 2: 12, 3: 14 }[w] ?? 8);
   };
   const id = `prop_arvore_${name}${suffix}`;
   return {

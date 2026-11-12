@@ -8,7 +8,7 @@
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
 import { writeFileSync } from 'node:fs';
 
-type Obj = { id: string; tile: string; at: [number, number]; inWall?: true };
+type Obj = { id: string; tile: string; at: [number, number]; inWall?: true; overlay?: string };
 const j = (x: unknown) => JSON.stringify(x);
 
 /** Monta o JSON no formato do projeto (uma linha por linha do mapa, objetos e portas em uma linha cada). */
@@ -96,8 +96,16 @@ function legendMaker() {
     floor.push(f);
     walls.push(w);
   }
-  legend.T = 'yard_sebe_topo';
-  const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at });
+  // A sebe com neve no inverno (parque_ muda com a estação).
+  legend.T = 'parque_sebe_topo';
+  // Neve do inverno por cima das coisas (overlay, some fora do inverno); as árvores já têm a dela no inverno.
+  const SNOW: Record<string, string> = {
+    prop_banco: 'snow_praca_banco',
+    prop_poste: 'snow_praca_poste',
+    prop_lixeira: 'snow_praca_lixeira',
+    ...Object.fromEntries(['praca_chafariz', 'praca_coreto', 'praca_hotdog', 'praca_banca', 'praca_pipoca', 'praca_balanco', 'praca_escorregador', 'praca_canteiro', 'praca_bebedouro', 'yard_vaso_baixo_flores', 'decor_floreira'].map((t) => [t, `snow_${t}`])),
+  };
+  const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
   write('data/maps/praca.json', {
     comment:
       'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles parque_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho; no inverno, neve). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',

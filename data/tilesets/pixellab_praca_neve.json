@@ -1,0 +1,115 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 12,
+ "pieces": {
+  "snow_praca_chafariz": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "snow_praca_coreto": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "snow_praca_hotdog": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "snow_praca_banca": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "snow_praca_pipoca": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "snow_praca_balanco": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "snow_praca_escorregador": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "snow_praca_canteiro": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "snow_praca_bebedouro": {
+   "col": 5,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "snow_praca_banco": {
+   "col": 6,
+   "row": 6,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "snow_praca_poste": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 2,
+   "h_tiles": 4
+  },
+  "snow_praca_lixeira": {
+   "col": 2,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_yard_vaso_baixo_flores": {
+   "col": 3,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "snow_decor_floreira": {
+   "col": 4,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "parque_sebe_topo": {
+   "col": 5,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_parque_sebe_topo": {
+   "col": 6,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_parque_sebe_topo": {
+   "col": 6,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_parque_sebe_topo": {
+   "col": 6,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}
