@@ -292,6 +292,25 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(loaded.penAssignments().box).toEqual([id]);
   });
 
+  it('a latinha alimenta um gato por vez no cercadinho (uma latinha cada)', () => {
+    const { state, session, id } = setup({ neutered: false });
+    const two = 'cat.gen.2';
+    state.catDefs[two] = { ...state.catDefs[id]!, id: two };
+    session.shelterCat(two, 'healthy', undefined, false, true, { neutered: false });
+    state.cats[two]!.name = 'Dois';
+    state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });
+    for (const c of [id, two]) session.debugBookNeuter(c);
+    session.debugClinicMorning();
+    expect(session.penAssignments().pen['p.pen']).toEqual([id, two]);
+    state.inventory[content.clinic.pen.food] = 5;
+    const first = session.feedIsolated('p.pen');
+    expect(first).toMatchObject({ ok: true, fed: [id] });
+    expect(session.hungryIsolated('p.pen')).toEqual([two]);
+    expect(session.feedIsolated('p.pen')).toMatchObject({ ok: true, fed: [two] });
+    expect(state.inventory[content.clinic.pen.food]).toBe(3);
+    expect(session.feedIsolated('p.pen')).toEqual({ ok: false, reason: 'nobody_here' });
+  });
+
   it('com cercadinho, a Fernanda já devolve lá (sem caixinha)', () => {
     const { state, session, id } = setup({ neutered: false });
     state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });

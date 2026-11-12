@@ -92,6 +92,16 @@ const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
 const UPGRADE_BLINK_MS = 420;
+/** Sinais em cima da cabeça dos gatos (pixel art por código; PLACEHOLDER(arte)): letra -> cor; ponto = vazio. */
+const BADGE_COLORS: Record<string, number> = { k: 0x3b2a20, o: 0x9aa3ad, l: 0xd9dee4, r: 0xd9475d, w: 0xffffff, g: 0x3f7a3a, G: 0x7cc06a };
+const BADGE_ART: Record<'op' | 'sick' | 'contagious', string[]> = {
+  // Tesoura aberta (lâminas cinza, cabos vermelhos): operado.
+  op: ['.k.....k.', 'kok...kok', '.kok.kok.', '..kokok..', '...klk...', '..kokok..', '.krrk.krrk', 'kr..rkr..r', 'kr..rkr..r', '.krrk.krrk'],
+  // Termômetro (vidro branco, mercúrio vermelho): doente.
+  sick: ['.kk.', 'kwwk', 'kwwk', 'krwk', 'krrk', 'krrk', 'krrk', 'krrk', 'krrrk', 'krrrk', '.kkk.'],
+  // Micróbio verde de olhinhos (com espinhos): doença que passa.
+  contagious: ['..g...g...', '...g.g..g.', '.gGGGGGGg.', 'gGGwGGwGGg', '.GGkGGkGG.', 'gGGGGGGGGg', '.GGGkkGGG.', '..gGGGGGg.', '.g..gg..g.'],
+};
 /** Mudar de lugar com mais de um móvel perto: o escolhido fica dourado e uma seta pula em cima dele. */
 const PICK_TINT = 0xffd36e;
 /** Setas e WASD com o fantasma na mão: uma célula por toque. */
@@ -206,6 +216,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private hintCheckedAt = 0;
   /** Balão de cuidado em cima de cada gato (remédio, banho, carinho); o que falta é relido 2 vezes por segundo. */
   private careBubbles!: CareBubbles;
+  /** Sinais em cima da cabeça dos gatos: operado (curativo) e doente (alerta). */
+  private statusBadges = new Map<string, { kind: 'op' | 'sick' | 'contagious'; img: Phaser.GameObjects.Image }>();
   /** Luz e sombra de ambiente (sombras de contato, parede com piso, luz das janelas, vinheta). */
   private ambience!: AmbienceLayer;
   private careNeeds = new Map<string, CareNeed | null>();
@@ -643,6 +655,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.cats = [];
     this.catPlaces.taken.clear();
     this.careBubbles?.clear();
+    this.statusBadges.forEach((b) => b.img.destroy());
+    this.statusBadges.clear();
     this.careCheckedAt = -Infinity;
     this.npcs.forEach((n) => n.destroy());
     this.npcs.clear();
@@ -1025,8 +1039,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const st = this.session.state;
     // A latinha vem da mochila: com alguém com fome lá, o E alimenta; senão (todos comeram), pega o gato.
     if (this.session.canFeedIsolated(where)) {
-      const r = this.session.feedIsolated(where);
+      // Um por vez: o da caixinha que ela escolheu, ou o próximo com fome do cercadinho.
+      const r = this.session.feedIsolated(where, boxCat);
       if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
+      else {
+        const t = uiText.problems;
+        const left = this.session.hungryIsolated(where).length;
+        const name = this.session.catName(r.fed[0]!);
+        this.ui.toast((left > 0 ? t.recoveryMore : t.recoveryFed).replace('{cat}', name).replace('{n}', String(left)), 3000);
+      }
       return true;
     }
     if (this.session.activeItem() === this.session.content.clinic.pen.food) {
@@ -1792,6 +1813,59 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.careNeeds = new Map(this.cats.map((c) => [c.catId, this.session.catCare(c.catId)?.needs[0] ?? null]));
     }
     this.careBubbles.update(this.cats.filter((c) => c.visible).map((c) => ({ catId: c.catId, x: c.x, y: c.y, depth: c.depth, need: this.careNeeds.get(c.catId) ?? null })));
+    this.updateStatusBadges();
+  }
+
+  /**
+   * Sinal em cima da cabeça (ao lado, para não brigar com o balão de cuidado): curativo no operado (recuperação da
+   * castração), triângulo amarelo no doente de doença que passa já diagnosticado (a Fungadinha, depois da consulta) e
+   * alerta vermelho nos outros doentes; na caixinha, em cima dela. PLACEHOLDER(arte): desenhados por código.
+   */
+  private updateStatusBadges(): void {
+    this.ensureBadgeTextures();
+    const st = this.session.state;
+    const seen = new Set<string>();
+    for (const cat of this.cats) {
+      const s = st.cats[cat.catId];
+      const kind = s?.clinic?.stage === 'isolation' ? 'op' : s?.sickness?.treatment && this.session.catContagious(cat.catId) ? 'contagious' : s?.sickness ? 'sick' : null;
+      const box = this.isoBoxes.get(cat.catId);
+      const at = cat.visible ? { x: cat.x + 9, y: cat.y - 25, depth: cat.depth } : box?.active ? { x: box.x + 8, y: box.y - box.displayHeight - 2, depth: box.depth } : null;
+      if (!kind || !at || !this.session.atHome()) continue;
+      seen.add(cat.catId);
+      let b = this.statusBadges.get(cat.catId);
+      if (b && b.kind !== kind) {
+        b.img.destroy();
+        b = undefined;
+      }
+      if (!b) {
+        b = { kind, img: this.add.image(0, 0, `badge:${kind}`).setOrigin(0.5, 1) };
+        this.statusBadges.set(cat.catId, b);
+      }
+      const bob = Math.sin(this.time.now / 450 + cat.catId.length) * 0.8;
+      b.img.setPosition(Math.round(at.x), Math.round(at.y + bob)).setDepth(at.depth + 2);
+    }
+    for (const [id, b] of this.statusBadges) {
+      if (seen.has(id)) continue;
+      b.img.destroy();
+      this.statusBadges.delete(id);
+    }
+  }
+
+  /** As texturas dos sinais (pixel art desenhada uma vez): tesoura (operado), termômetro (doente) e micróbio (passa). */
+  private ensureBadgeTextures(): void {
+    for (const [kind, rows] of Object.entries(BADGE_ART)) {
+      const key = `badge:${kind}`;
+      if (this.textures.exists(key)) continue;
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      rows.forEach((line, y) =>
+        [...line].forEach((ch, x) => {
+          const color = BADGE_COLORS[ch];
+          if (color !== undefined) g.fillStyle(color, 1).fillRect(x, y, 1, 1);
+        }),
+      );
+      g.generateTexture(key, Math.max(...rows.map((l) => l.length)), rows.length);
+      g.destroy();
+    }
   }
 
   /** Varinha ou escova ativa na barra e um gato do café perto: abre o mini game de cuidado com ele. */

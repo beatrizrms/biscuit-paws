@@ -1927,8 +1927,13 @@ export class GameSession {
   }
 
   /** A latinha Recovery no cercadinho (uid) ou na caixinha do canto ('box'). */
-  feedIsolated(where: string) {
-    const r = this.clinic.feedIsolated(where);
+  /** Quem ainda está com fome no cercadinho (uid) ou na caixinha ('box'). */
+  hungryIsolated(where: string): string[] {
+    return this.clinic.hungryIn(where);
+  }
+
+  feedIsolated(where: string, catId?: string) {
+    const r = this.clinic.feedIsolated(where, catId);
     if (r.ok) this.advanceStory();
     return r;
   }

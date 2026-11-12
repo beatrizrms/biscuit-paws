@@ -262,14 +262,18 @@ export class ClinicFlow {
     return (where === 'box' ? a.box : (a.pen[where] ?? [])).filter((id) => this.st.cats[id]!.fedOn !== this.st.day);
   }
 
-  /** A latinha (da mochila) no cercadinho (ou na caixinha): alimenta todos os isolados de lá. Gasta uma latinha. */
-  feedIsolated(where: string): { ok: true; fed: string[] } | { ok: false; reason: ClinicProblem } {
+  /**
+   * A latinha (da mochila) no cercadinho (ou na caixinha): alimenta um gato por vez, o próximo com fome de lá (ou
+   * `catId`, se ele estiver lá com fome). Uma latinha por gato.
+   */
+  feedIsolated(where: string, catId?: string): { ok: true; fed: string[] } | { ok: false; reason: ClinicProblem } {
     const food = this.h.clinic.pen.food;
     const item = (this.st.inventory[food] ?? 0) > 0 ? food : null;
     if (!item) return { ok: false, reason: 'needs_recovery_food' };
-    const a = this.penAssignments();
-    const cats = (where === 'box' ? a.box : (a.pen[where] ?? [])).filter((id) => this.st.cats[id]!.fedOn !== this.st.day);
-    if (cats.length === 0) return { ok: false, reason: 'nobody_here' };
+    const hungry = this.hungryIn(where);
+    const one = catId && hungry.includes(catId) ? catId : hungry[0];
+    if (!one) return { ok: false, reason: 'nobody_here' };
+    const cats = [one];
     this.h.removeFromInventory(item);
     for (const id of cats) {
       this.st.cats[id]!.fedOn = this.st.day;

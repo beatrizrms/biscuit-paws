@@ -218,6 +218,8 @@
     "not_here": "Não dá para pegar agora.",
     "no_complication": "Está tudo bem com ele.",
     "nobody_here": "Ninguém com fome aqui: já comeu hoje (uma latinha por dia).",
+    "recoveryFed": "{cat} comeu a Recovery.",
+    "recoveryMore": "{cat} comeu a Recovery. Ainda com fome aqui: {n} (uma latinha cada).",
     "needs_pen": "Ele só sai da caixinha no cercadinho.",
     "pen_full": "O cercadinho está cheio.",
     "needs_recovery_food": "Precisa da latinha Recovery na mão.",
