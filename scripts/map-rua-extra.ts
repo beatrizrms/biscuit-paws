@@ -4,7 +4,7 @@
 // floreiras e o chafariz grande no centro; à esquerda o coreto e o parquinho (balanço e escorregador), à direita a banca
 // de jornal e as barraquinhas (hot dog, pipoca); árvores na terra de 4 jeitos (grande, média, fina, jovem) espalhadas. Beco (ponta esquerda da rua): muros dos fundos das casas,
 // chão de paralelepípedos (neve no inverno), lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
-// Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, as portas dos fundos, o varal e o chafariz.
+// Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, o varal e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
 import { writeFileSync } from 'node:fs';
 
@@ -222,11 +222,10 @@ function legendMaker() {
   // Neve do inverno por cima das coisas (overlay, some fora do inverno); o topo do muro tem a dela no inverno.
   const SNOW: Record<string, string> = {
     beco_cacamba: 'snow_beco_cacamba',
-    beco_porta: 'snow_beco_porta',
+    beco_caixote: 'snow_beco_caixote',
+    beco_caixote_b: 'snow_beco_caixote_b',
     prop_lixeira: 'snow_praca_lixeira',
     prop_poste: 'snow_praca_poste',
-    prop_caixote_macas: 'snow_prop_caixote_macas',
-    prop_caixote_laranjas: 'snow_prop_caixote_laranjas',
     prop_caixa_gato_manta: 'snow_prop_caixa_gato_manta',
     prop_caixa_gato_vazia: 'snow_prop_caixa_gato_vazia',
     prop_caixa_gato_olhos: 'snow_prop_caixa_gato_olhos',
@@ -234,7 +233,7 @@ function legendMaker() {
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.beco_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
   write('data/maps/alley.json', {
     comment:
-      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com portas dos fundos e varal, chão de paralelepípedos (neve no inverno), caçamba, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos (CED). Muro de tijolos, portas dos fundos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
+      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com o varal, chão de paralelepípedos (neve no inverno), caçamba, lixeiras, caixotes fechados e as caixinhas de papelão da colônia de gatos (CED). Muro de tijolos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
     id: 'map.alley',
     cols: COLS,
     rows: ROWS,
@@ -243,16 +242,13 @@ function legendMaker() {
     floor,
     walls,
     objects: [
-      // Portas dos fundos das casas, o varal pendurado no muro e um escorrido.
-      { ...obj('porta_1', 'beco_porta', [10, 4]), inWall: true },
-      { ...obj('porta_2', 'beco_porta', [19, 4]), inWall: true },
+      // O varal preso no muro.
       obj('varal', 'beco_varal', [5, 3]),
-      obj('escorrido', 'dirt_escorrido_parede', [14, 3]),
       // A caçamba, a lixeira e os caixotes encostados no muro.
       obj('cacamba', 'beco_cacamba', [1, 5]),
       obj('lixeira_1', 'prop_lixeira', [3, 6]),
-      obj('caixote_1', 'prop_caixote_macas', [8, 6]),
-      obj('caixote_2', 'prop_caixote_laranjas', [9, 6]),
+      obj('caixote_1', 'beco_caixote', [8, 6]),
+      obj('caixote_2', 'beco_caixote_b', [9, 6]),
       obj('lixeira_3', 'prop_lixeira', [18, 6]),
       // A colônia: caixinhas de papelão (abrigo) num canto mais quieto.
       obj('abrigo_1', 'prop_caixa_gato_manta', [12, 6]),

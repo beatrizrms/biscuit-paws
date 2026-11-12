@@ -593,6 +593,9 @@ const SHEETS: Sheet[] = [
       beco_cacamba: { file: 'beco/cacamba.png', w: 2, h: 2 },
       beco_porta: { file: 'beco/porta.png', w: 1, h: 2 },
       beco_varal: { file: '', w: 3, h: 1, build: () => wallClothesline() },
+      // Caixotes fechados (o de maçãs com a abertura tampada por tábuas, como os da entrada do beco); o _b espelhado.
+      beco_caixote: { file: '', w: 1, h: 1, build: () => closedCrate() },
+      beco_caixote_b: { file: '', w: 1, h: 1, build: () => mirrorPng(closedCrate()) },
       // A praça cheia (PixelLab, assets/_pixellab/praca): o desenho recortado no tamanho em tiles, centrado e no chão.
       praca_chafariz: { file: '', w: 3, h: 3, build: () => snug('praca/chafariz.png', 3, 3) },
       praca_coreto: { file: '', w: 2, h: 3, build: () => snug('praca/coreto.png', 2, 3) },
@@ -695,7 +698,8 @@ const SHEETS: Sheet[] = [
       snow_praca_lixeira: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/rua/obj_5.png`), 65, 6) },
       // O beco (map.alley): a caçamba e as portas dos fundos.
       snow_beco_cacamba: { file: '', w: 2, h: 2, build: () => snowTop(readPng(`${SRC}/beco/cacamba.png`), 67, 10) },
-      snow_beco_porta: { file: '', w: 1, h: 2, build: () => snowTop(readPng(`${SRC}/beco/porta.png`), 68, 4) },
+      snow_beco_caixote: { file: '', w: 1, h: 1, build: () => snowTop(closedCrate(), 68, 7) },
+      snow_beco_caixote_b: { file: '', w: 1, h: 1, build: () => snowTop(mirrorPng(closedCrate()), 69, 7) },
       snow_yard_vaso_baixo_flores: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/quintal/obj_4.png`), 60, 12) },
       snow_decor_floreira: { file: '', w: 1, h: 1, dy: 6, build: () => snowTop(readPng(`${SRC}/provisorios/obj_10.png`), 61, 10) },
       parque_sebe_topo: { file: '', w: 1, h: 1, build: () => withSnow(seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), 62, 12) },
@@ -1517,6 +1521,57 @@ function wallClothesline(): PNG {
     plot(png, tip, 8, iron);
   }
   return png;
+}
+
+/**
+ * Caixote fechado: o caixote de maçãs (mercado_A/obj_5, em 3/4) com a face de cima (o losango da abertura, com a borda)
+ * coberta por uma tampa de tábuas na madeira do próprio caixote, contornada; as frutas somem.
+ */
+function closedCrate(): PNG {
+  const png = readPng(`${SRC}/mercado_A/obj_5.png`);
+  // Os cantos da face de cima: atrás, direita, frente e esquerda.
+  const poly: [number, number][] = [[31, 10], [57, 22], [30, 37], [6, 28]];
+  const inside = (x: number, y: number) => {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i]!, [xj, yj] = poly[j]!;
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  };
+  const edgeDist = (x: number, y: number) =>
+    Math.min(...poly.map((a, i) => {
+      const b = poly[(i + 1) % poly.length]!;
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy)));
+      return Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy);
+    }));
+  const outline: [number, number, number] = [62, 24, 2], base: [number, number, number] = [226, 171, 106];
+  const light: [number, number, number] = [238, 186, 129], seam: [number, number, number] = [168, 112, 62];
+  for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) {
+    if (!inside(x + 0.5, y + 0.5)) continue;
+    // Tábuas no sentido da aresta de trás-esquerda: v é constante ao longo delas.
+    const v = Math.floor(y + 0.59 * x);
+    plot(png, x, y, edgeDist(x + 0.5, y + 0.5) < 1.1 ? outline : v % 7 === 0 ? seam : v % 7 === 1 ? light : base);
+  }
+  // Algum pedacinho de fruta que sobrou na beirada vira madeira (os vermelhos claros, a tábua; os escuros, o vão).
+  for (let i = 0; i < png.data.length; i += 4) {
+    const r = png.data[i]!, g = png.data[i + 1]!;
+    if (!png.data[i + 3] || r < g + 80) continue;
+    const c = r > 150 ? base : seam;
+    png.data[i] = c[0]; png.data[i + 1] = c[1]; png.data[i + 2] = c[2];
+  }
+  return png;
+}
+
+/** A imagem espelhada na horizontal. */
+function mirrorPng(src: PNG): PNG {
+  const out = blank(src.width, src.height);
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+    const s = (y * src.width + x) * 4, d = (y * src.width + src.width - 1 - x) * 4;
+    src.data.copy(out.data, d, s, s + 4);
+  }
+  return out;
 }
 
 /** A peça com a neve do inverno por cima (snowTop) já desenhada nela. */

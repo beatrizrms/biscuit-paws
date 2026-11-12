@@ -57,32 +57,44 @@
    "w_tiles": 3,
    "h_tiles": 1
   },
-  "praca_chafariz": {
+  "beco_caixote": {
    "col": 3,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_caixote_b": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "praca_chafariz": {
+   "col": 5,
    "row": 2,
    "w_tiles": 3,
    "h_tiles": 3
   },
   "praca_coreto": {
-   "col": 6,
-   "row": 2,
-   "w_tiles": 2,
-   "h_tiles": 3
-  },
-  "praca_hotdog": {
    "col": 0,
    "row": 5,
    "w_tiles": 2,
    "h_tiles": 3
   },
-  "praca_banca": {
+  "praca_hotdog": {
    "col": 2,
    "row": 5,
    "w_tiles": 2,
    "h_tiles": 3
   },
-  "praca_pipoca": {
+  "praca_banca": {
    "col": 4,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "praca_pipoca": {
+   "col": 6,
    "row": 5,
    "w_tiles": 2,
    "h_tiles": 2

@@ -81,44 +81,50 @@
    "w_tiles": 2,
    "h_tiles": 2
   },
-  "snow_beco_porta": {
+  "snow_beco_caixote": {
    "col": 5,
    "row": 8,
    "w_tiles": 1,
-   "h_tiles": 2
+   "h_tiles": 1
   },
-  "snow_yard_vaso_baixo_flores": {
+  "snow_beco_caixote_b": {
    "col": 6,
    "row": 8,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "snow_decor_floreira": {
+  "snow_yard_vaso_baixo_flores": {
    "col": 7,
    "row": 8,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "parque_sebe_topo": {
+  "snow_decor_floreira": {
    "col": 0,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "spring_parque_sebe_topo": {
+  "parque_sebe_topo": {
    "col": 1,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_parque_sebe_topo": {
+   "col": 2,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "summer_parque_sebe_topo": {
-   "col": 1,
+   "col": 2,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "autumn_parque_sebe_topo": {
-   "col": 1,
+   "col": 2,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
