@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 6,
+ "rows": 7,
  "pieces": {
   "parque_v2_ggpg": {
    "col": 0,
@@ -768,6 +768,54 @@
   "autumn_parque_v3_pggg": {
    "col": 7,
    "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_chao_a": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_chao_b": {
+   "col": 1,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_beco_chao_a": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_beco_chao_a": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_beco_chao_a": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_beco_chao_b": {
+   "col": 3,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_beco_chao_b": {
+   "col": 3,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_beco_chao_b": {
+   "col": 3,
+   "row": 6,
    "w_tiles": 1,
    "h_tiles": 1
   }

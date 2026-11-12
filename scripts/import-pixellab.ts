@@ -583,12 +583,16 @@ const SHEETS: Sheet[] = [
     columns: 8,
     auto: true,
     layout: {
-      beco_muro_topo: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), 0) },
+      // O topo do muro por estação (beco_ muda com a estação no beco): com neve no inverno (o nome sem prefixo).
+      beco_muro_topo: { file: '', w: 1, h: 1, build: () => withSnow(wallTile(readPng(`${SRC}/beco/muro.png`), 0), 66, 9) },
+      spring_beco_muro_topo: {
+        file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), 0), aliases: ['summer_beco_muro_topo', 'autumn_beco_muro_topo'],
+      },
       beco_muro_meio: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), TS) },
       beco_muro_base: { file: '', w: 1, h: 1, build: () => wallTile(readPng(`${SRC}/beco/muro.png`), 2 * TS) },
       beco_cacamba: { file: 'beco/cacamba.png', w: 2, h: 2 },
       beco_porta: { file: 'beco/porta.png', w: 1, h: 2 },
-      beco_varal: { file: 'beco/varal.png', w: 3, h: 1 },
+      beco_varal: { file: '', w: 3, h: 1, build: () => wallClothesline() },
       // A praça cheia (PixelLab, assets/_pixellab/praca): o desenho recortado no tamanho em tiles, centrado e no chão.
       praca_chafariz: { file: '', w: 3, h: 3, build: () => snug('praca/chafariz.png', 3, 3) },
       praca_coreto: { file: '', w: 2, h: 3, build: () => snug('praca/coreto.png', 2, 3) },
@@ -658,7 +662,15 @@ const SHEETS: Sheet[] = [
     pieces: 'data/tilesets/pixellab_parque.json',
     columns: 8,
     auto: true,
-    layout: parkFloor(),
+    layout: {
+      ...parkFloor(),
+      // O chão do beco por estação (beco_ muda com a estação no beco): coberto de neve no inverno (o tile de neve da
+      // praça, a 2ª espelhada); nas outras estações, paralelepípedos como os da entrada do beco na rua (por código).
+      beco_chao_a: { file: '', w: 1, h: 1, build: () => snowFloor() },
+      beco_chao_b: { file: '', w: 1, h: 1, build: () => snowFloor(), mirror: true },
+      spring_beco_chao_a: { file: '', w: 1, h: 1, build: () => cobbles(71), aliases: ['summer_beco_chao_a', 'autumn_beco_chao_a'] },
+      spring_beco_chao_b: { file: '', w: 1, h: 1, build: () => cobbles(72), aliases: ['summer_beco_chao_b', 'autumn_beco_chao_b'] },
+    },
   },
   {
     // A neve do inverno por cima das coisas da pracinha (overlay dos objetos, some fora do inverno): o contorno de cima
@@ -681,6 +693,9 @@ const SHEETS: Sheet[] = [
       snow_praca_banco: { file: '', w: 2, h: 2, build: () => snowTop(benchArt(), 63, 6) },
       snow_praca_poste: { file: '', w: 2, h: 4, build: () => snowTop(posteArt(), 64, 4) },
       snow_praca_lixeira: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/rua/obj_5.png`), 65, 6) },
+      // O beco (map.alley): a caçamba e as portas dos fundos.
+      snow_beco_cacamba: { file: '', w: 2, h: 2, build: () => snowTop(readPng(`${SRC}/beco/cacamba.png`), 67, 10) },
+      snow_beco_porta: { file: '', w: 1, h: 2, build: () => snowTop(readPng(`${SRC}/beco/porta.png`), 68, 4) },
       snow_yard_vaso_baixo_flores: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/quintal/obj_4.png`), 60, 12) },
       snow_decor_floreira: { file: '', w: 1, h: 1, dy: 6, build: () => snowTop(readPng(`${SRC}/provisorios/obj_10.png`), 61, 10) },
       parque_sebe_topo: { file: '', w: 1, h: 1, build: () => withSnow(seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), 62, 12) },
@@ -1325,14 +1340,52 @@ function parkFloor(): Record<string, Piece> {
   const crop = (name: string, x: number, y: number) => () => cropPng(readPng(`${SRC}/praca/transicao_${name}.png`), x, y, TS, TS);
   const out: Record<string, Piece> = {};
   // Inverno: tudo coberto de neve, como o quintal (todos os cantos viram o tile só de neve).
-  const snow = wangTiles('neve').find((t) => t.code === 'gggg')!;
-  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: crop('neve', snow.x, snow.y), aliases: [`parque_v3_${t.code}`] };
+  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: snowFloor, aliases: [`parque_v3_${t.code}`] };
   for (const v of ['v2', 'v3']) {
     for (const t of wangTiles(v)) {
       out[`spring_parque_${v}_${t.code}`] = { file: '', w: 1, h: 1, build: crop(v, t.x, t.y), aliases: [`summer_parque_${v}_${t.code}`, `autumn_parque_${v}_${t.code}`] };
     }
   }
   return out;
+}
+
+/**
+ * Paralelepípedos (64 px, emendam nos 4 lados): fileiras de 16 px de pedras retangulares em amarração (a fileira de baixo
+ * desencontrada), nos marrons acinzentados do chão da entrada do beco; cada pedra com tom sorteado, cantos arredondados,
+ * brilho em cima e à esquerda, sombra embaixo e à direita, e umas pintinhas. Rejunte escuro.
+ */
+function cobbles(seed: number): PNG {
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const png = blank(TS, TS);
+  const mortar: [number, number, number] = [78, 58, 56];
+  const tones: [number, number, number][] = [[138, 114, 104], [126, 104, 96], [148, 124, 112], [132, 112, 108]];
+  const shift = ([r, g, b]: [number, number, number], d: number): [number, number, number] => [r + d, g + d, b + d];
+  const H = 16;
+  const rows: number[][] = [[32, 32], [24, 40], [40, 24], [28, 36], [36, 28]];
+  for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) plot(png, x, y, mortar);
+  for (let r = 0; r < TS / H; r++) {
+    const widths = rows[Math.floor(rnd() * rows.length)]!;
+    let x0 = r % 2 ? 16 : 0;
+    for (const w of widths) {
+      const tone = tones[Math.floor(rnd() * tones.length)]!;
+      for (let dy = 0; dy < H - 2; dy++) {
+        for (let dx = 0; dx < w - 2; dx++) {
+          const corner = (dy === 0 || dy === H - 3) && (dx === 0 || dx === w - 3);
+          if (corner) continue;
+          const edge = dy === 0 || dx === 0 ? 16 : dy >= H - 4 || dx >= w - 4 ? -16 : rnd() < 0.05 ? -12 : rnd() < 0.04 ? 8 : 0;
+          plot(png, (x0 + dx + 1) % TS, r * H + dy + 1, shift(tone, edge));
+        }
+      }
+      x0 += w;
+    }
+  }
+  return png;
+}
+
+/** O tile só de neve (o chão da praça no inverno). */
+function snowFloor(): PNG {
+  const t = wangTiles('neve').find((w) => w.code === 'gggg')!;
+  return cropPng(readPng(`${SRC}/praca/transicao_neve.png`), t.x, t.y, TS, TS);
 }
 
 /** Um tile (64 px) da imagem, começando na linha y0. */
@@ -1445,6 +1498,25 @@ function snowTop(src: PNG, seed: number, depth: number): PNG {
     if (solid(x, y)) plot(out, x, y, line);
   }
   return out;
+}
+
+/**
+ * O varal do beco preso no muro: a geração veio com postes fincados na grama (no muro, pareciam flutuar); saem os
+ * postes e a corda fica amarrada em dois ganchos de ferro chumbados na parede.
+ */
+function wallClothesline(): PNG {
+  const png = readPng(`${SRC}/beco/varal.png`);
+  const L = 19, R = 171;
+  // Some também o resto dos tufos de grama do pé dos postes (embaixo das roupas, que acabam antes da linha 48).
+  for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) if (x < L || x > R || y >= 48) png.data[(y * png.width + x) * 4 + 3] = 0;
+  const iron: [number, number, number] = [58, 50, 50], light: [number, number, number] = [112, 102, 98];
+  // Plaquinha na parede (2 px, com brilho) e o braço do gancho até a corda (linha 9), com a pontinha virada para cima.
+  for (const [plate, arm, tip] of [[14, [16, 17, 18], 18], [176, [172, 173, 174, 175], 172]] as const) {
+    for (let y = 6; y <= 12; y++) { plot(png, plate, y, iron); plot(png, plate + 1, y, y > 6 && y < 12 ? light : iron); }
+    for (const x of arm) plot(png, x, 9, iron);
+    plot(png, tip, 8, iron);
+  }
+  return png;
 }
 
 /** A peça com a neve do inverno por cima (snowTop) já desenhada nela. */

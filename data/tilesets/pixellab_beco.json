@@ -9,26 +9,44 @@
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "beco_muro_meio": {
+  "spring_beco_muro_topo": {
    "col": 1,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "beco_muro_base": {
+  "summer_beco_muro_topo": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_beco_muro_topo": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_muro_meio": {
    "col": 2,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "beco_cacamba": {
+  "beco_muro_base": {
    "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "beco_cacamba": {
+   "col": 4,
    "row": 0,
    "w_tiles": 2,
    "h_tiles": 2
   },
   "beco_porta": {
-   "col": 5,
+   "col": 6,
    "row": 0,
    "w_tiles": 1,
    "h_tiles": 2

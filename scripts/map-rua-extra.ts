@@ -3,7 +3,7 @@
 // no meio (tiles de transição parque_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho; neve no inverno), com árvores, bancos, postes e
 // floreiras e o chafariz grande no centro; à esquerda o coreto e o parquinho (balanço e escorregador), à direita a banca
 // de jornal e as barraquinhas (hot dog, pipoca); árvores na terra de 4 jeitos (grande, média, fina, jovem) espalhadas. Beco (ponta esquerda da rua): muros dos fundos das casas,
-// chão de asfalto com terra, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
+// chão de paralelepípedos (neve no inverno), lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
 // Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, as portas dos fundos, o varal e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
 import { writeFileSync } from 'node:fs';
@@ -208,9 +208,8 @@ function legendMaker() {
     for (let c = 0; c < COLS; c++) {
       // Em cima do muro: o céu escuro entre os prédios (o fundo do mapa).
       if (r < 2) f += '.';
-      else if (r < 6) f += ch('street_asfalto_a');
-      else if (r === 6) f += ch(rnd() < 0.7 ? 'street_terra_a' : 'street_terra_b');
-      else f += ch(rnd() < 0.55 ? 'street_asfalto_a' : 'street_asfalto_b');
+      // O chão do beco, todo de paralelepípedos (coberto de neve no inverno: beco_chao_ muda com a estação).
+      else f += ch(rnd() < 0.55 ? 'beco_chao_a' : 'beco_chao_b');
       // Muro de tijolos dos fundos das casas: topo, meio (2 linhas) e rodapé.
       w += r === 2 ? 'T' : r === 3 || r === 4 ? 'M' : r === 5 ? 'R' : '.';
     }
@@ -220,10 +219,22 @@ function legendMaker() {
   legend.T = 'beco_muro_topo';
   legend.M = 'beco_muro_meio';
   legend.R = 'beco_muro_base';
-  const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.beco_${id}`, tile, at });
+  // Neve do inverno por cima das coisas (overlay, some fora do inverno); o topo do muro tem a dela no inverno.
+  const SNOW: Record<string, string> = {
+    beco_cacamba: 'snow_beco_cacamba',
+    beco_porta: 'snow_beco_porta',
+    prop_lixeira: 'snow_praca_lixeira',
+    prop_poste: 'snow_praca_poste',
+    prop_caixote_macas: 'snow_prop_caixote_macas',
+    prop_caixote_laranjas: 'snow_prop_caixote_laranjas',
+    prop_caixa_gato_manta: 'snow_prop_caixa_gato_manta',
+    prop_caixa_gato_vazia: 'snow_prop_caixa_gato_vazia',
+    prop_caixa_gato_olhos: 'snow_prop_caixa_gato_olhos',
+  };
+  const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.beco_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
   write('data/maps/alley.json', {
     comment:
-      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com portas dos fundos e varal, chão de asfalto com terra, caçamba, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos (CED). Muro de tijolos, portas dos fundos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
+      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com portas dos fundos e varal, chão de paralelepípedos (neve no inverno), caçamba, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos (CED). Muro de tijolos, portas dos fundos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
     id: 'map.alley',
     cols: COLS,
     rows: ROWS,

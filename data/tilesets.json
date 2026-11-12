@@ -1005,6 +1005,18 @@
           "layer": "wall",
           "solid": true
         },
+        "spring_beco_muro_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "summer_beco_muro_topo": {
+          "layer": "wall",
+          "solid": true
+        },
+        "autumn_beco_muro_topo": {
+          "layer": "wall",
+          "solid": true
+        },
         "beco_varal": {
           "layer": "wall",
           "solid": false

@@ -74,8 +74,10 @@
     "map.alley": {
       "prefixes": [
         "street_",
-        "prop_"
-      ]
+        "prop_",
+        "beco_"
+      ],
+      "snowPrefix": "snow_"
     },
     "map.minigame_chase": {
       "prefixes": [
