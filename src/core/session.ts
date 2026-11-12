@@ -1457,7 +1457,38 @@ export class GameSession {
       const p = this.content.jobPoints[id];
       if (p && p.map === mapId) out.push(p);
     }
-    return out;
+    // Ponto com marcador (o palco, os caixotes) em cima de um móvel dela: o ponto (e o marcador) vai para o lado.
+    return out.map((p) => {
+      const at = this.markerSpot(p);
+      return at === p.at ? p : { ...p, at };
+    });
+  }
+
+  /**
+   * Onde fica o ponto com marcador no café: no lugar dele; se um móvel dela ocupa alguma célula do marcador, a célula
+   * livre mais perto (até 8 de distância), para o mapa nunca ter dois objetos na mesma célula. Sem lugar livre, fica
+   * no lugar (o marcador não é desenhado: jobMarkers).
+   */
+  private markerSpot(p: JobPoint): Cell {
+    if (!p.marker || p.map !== this.content.map.id || this.state.placed.length === 0) return p.at;
+    const { tiles } = this.content.catalog;
+    const def = tiles[p.marker];
+    if (!def) return p.at;
+    const taken = new Set<string>();
+    for (const x of this.state.placed) {
+      const pd = tiles[this.content.items[x.item]?.tile ?? ''];
+      if (pd) for (const [c, r] of cellsOf(x.at, pd)) taken.add(`${pd.layer}:${c},${r}`);
+    }
+    const free = (cell: Cell) => cellsOf(cell, def).every(([c, r]) => !taken.has(`${def.layer}:${c},${r}`));
+    if (free(p.at)) return p.at;
+    const floor = this.floorFree();
+    for (let dist = 1; dist <= 8; dist++)
+      for (let dr = -dist; dr <= dist; dr++)
+        for (let dc = -dist; dc <= dist; dc++) {
+          const cell: Cell = [p.at[0] + dc, p.at[1] + dr];
+          if (Math.max(Math.abs(dc), Math.abs(dr)) === dist && free(cell) && cellsOf(cell, def).every((x) => floor(x))) return cell;
+        }
+    return p.at;
   }
 
   /** Ponto de pedido ao alcance dos pés (`target`: só a célula clicada). */
@@ -3694,8 +3725,15 @@ export class GameSession {
   }
 
   private jobMarkers(mapId: string): MapData['objects'] {
+    // Um móvel dela em cima (sem lugar livre por perto): o ponto continua valendo, só sem desenhar o marcador.
+    const { tiles } = this.content.catalog;
+    const taken = new Set<string>();
+    for (const x of mapId === this.content.map.id ? this.state.placed : []) {
+      const pd = tiles[this.content.items[x.item]?.tile ?? ''];
+      if (pd) for (const [c, r] of cellsOf(x.at, pd)) taken.add(`${pd.layer}:${c},${r}`);
+    }
     return this.pendingJobPoints(mapId)
-      .filter((p) => p.marker)
+      .filter((p) => p.marker && tiles[p.marker] && !cellsOf(p.at, tiles[p.marker]!).some(([c, r]) => taken.has(`${tiles[p.marker!]!.layer}:${c},${r}`)))
       .map((p) => ({ id: `marker.${p.id}`, tile: p.marker!, at: p.at }));
   }
 

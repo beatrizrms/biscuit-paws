@@ -279,3 +279,23 @@ describe('feira de adoção: só com todos os gatos castrados e saudáveis', () 
     expect(ready()).toBe(false);
   });
 });
+
+describe('ponto com marcador em cima de um móvel dela', () => {
+  it('Dia do Gato com uma poltrona no lugar do palco: o palco (e o ponto do E) vai para o lado, e o mapa não quebra', () => {
+    const state = newGameState(500, 'map.cafe_main');
+    const session = new GameSession(content, state);
+    const def = content.festivals.find((f) => f.id === 'fest.cat_day')!;
+    const stage = def.activities.find((a) => content.jobPoints[a.point]?.marker)!.point;
+    const at = content.jobPoints[stage]!.at;
+    session.debugStartFestival(def.id);
+    state.festivals.active = { id: def.id, stage: 'scheduled', day: state.day, done: [def.closePoint!.point, ...(def.decorations ?? []).map((d) => d.point)], results: [] };
+    const chair = Object.values(content.items).find((i) => i.tags.includes('furniture') && content.catalog.tiles[i.tile ?? '']?.w === 1 && content.catalog.tiles[i.tile ?? '']?.h === 1 && content.catalog.tiles[i.tile ?? '']?.layer === 'object')!;
+    state.placed.push({ uid: 'p.x', item: chair.id, at: [...at] as [number, number] });
+    const pending = session.pendingJobPoints('map.cafe_main');
+    const moved = pending.find((p) => p.id === stage);
+    expect(moved).toBeDefined();
+    expect(moved!.at).not.toEqual(at);
+    expect(() => resolveMap(session.mapData('map.cafe_main'), content.catalog)).not.toThrow();
+    expect(session.mapData('map.cafe_main').objects.find((o) => o.id === `marker.${stage}`)!.at).toEqual(moved!.at);
+  });
+});
