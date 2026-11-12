@@ -827,6 +827,14 @@
       "solid": false
     },
     {
+      "id": "pixellab_parque",
+      "image": "assets/env/praca/tile_pixellab_parque.png",
+      "pieces": "pixellab_parque.json",
+      "prefix": "",
+      "layer": "floor",
+      "solid": false
+    },
+    {
       "id": "pixellab_eletro",
       "image": "assets/objects/pixellab/tile_pixellab_eletro.png",
       "pieces": "pixellab_eletro.json",

@@ -1,6 +1,6 @@
 // npx tsx scripts/map-rua-extra.ts: gera data/maps/praca.json e data/maps/alley.json, os lugares novos da rua.
 // Praça (entrada na rua depois do beco): céu e cidade ao fundo, sebe, um caminho de pedregulhos atravessando e a praça calçada
-// no meio (tiles de transição praca_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho), com árvores, bancos, postes e
+// no meio (tiles de transição parque_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho; neve no inverno), com árvores, bancos, postes e
 // floreiras e o chafariz grande no centro; à esquerda o coreto e o parquinho (balanço e escorregador), à direita a banca
 // de jornal e as barraquinhas (hot dog, pipoca); árvores na terra de 4 jeitos (grande, média, fina, jovem) espalhadas. Beco (ponta esquerda da rua): muros dos fundos das casas,
 // chão de asfalto com terra, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
@@ -84,12 +84,12 @@ function legendMaker() {
     let f = '', w = '';
     for (let c = 0; c < COLS; c++) {
       // Linhas 0 e 1: o céu (objeto); linha 2: a sebe (parede) com grama embaixo.
-      if (r < 3) f += ch('praca_v2_gggg');
+      if (r < 3) f += ch('parque_v2_gggg');
       else {
         const code = (x: number, y: number) => (paved(x, y) ? 'p' : 'g');
         const k = code(c, r) + code(c + 1, r) + code(c, r + 1) + code(c + 1, r + 1);
         const v = k === 'gggg' || k === 'pppp' ? 'v2' : rnd() < 0.5 ? 'v2' : 'v3';
-        f += ch(`praca_${v}_${k}`);
+        f += ch(`parque_${v}_${k}`);
       }
       w += r === 2 ? 'T' : '.';
     }
@@ -100,7 +100,7 @@ function legendMaker() {
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at });
   write('data/maps/praca.json', {
     comment:
-      'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles praca_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',
+      'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles parque_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho; no inverno, neve). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',
     id: 'map.praca',
     cols: COLS,
     rows: ROWS,

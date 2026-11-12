@@ -67,7 +67,8 @@
     },
     "map.praca": {
       "prefixes": [
-        "prop_"
+        "prop_",
+        "parque_"
       ]
     },
     "map.alley": {

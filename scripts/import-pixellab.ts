@@ -652,6 +652,15 @@ const SHEETS: Sheet[] = [
     layout: { ...wangPieces('v2'), ...wangPieces('v3') },
   },
   {
+    // O chão da pracinha da rua por estação (parque_<v>_<cantos>, scripts/map-rua-extra.ts): neve no inverno (tileset
+    // de transição praca/transicao_neve do PixelLab) e a grama de sempre nas outras estações.
+    image: 'public/assets/env/praca/tile_pixellab_parque.png',
+    pieces: 'data/tilesets/pixellab_parque.json',
+    columns: 8,
+    auto: true,
+    layout: parkFloor(),
+  },
+  {
     // Eletrodomésticos de piso (gerados no PixelLab, cafe_equip/): a lava-louças. Nomes eletro_*.
     image: 'public/assets/objects/pixellab/tile_pixellab_eletro.png',
     pieces: 'data/tilesets/pixellab_eletro.json',
@@ -1265,6 +1274,34 @@ function wangPieces(v: string): Record<string, Piece> {
       return [`${v}_${code}`, piece];
     }),
   );
+}
+
+/** Os tiles de um tileset de transição (praca/transicao_<nome>.json): o código dos cantos (g/p) e onde fica na imagem. */
+function wangTiles(name: string): { code: string; x: number; y: number }[] {
+  const meta = JSON.parse(readFileSync(`${SRC}/praca/transicao_${name}.json`, 'utf8')) as {
+    tileset_data: { tiles: { corners: Record<'NW' | 'NE' | 'SW' | 'SE', string>; bounding_box: { x: number; y: number } }[] };
+  };
+  return meta.tileset_data.tiles.map((t) => ({
+    code: (['NW', 'NE', 'SW', 'SE'] as const).map((k) => (t.corners[k] === 'upper' ? 'g' : 'p')).join(''),
+    x: t.bounding_box.x,
+    y: t.bounding_box.y,
+  }));
+}
+
+/**
+ * O chão da praça que muda com a estação (parque_<v>_<cantos>): o nome sem prefixo é o inverno (o tileset de neve,
+ * transicao_neve, o mesmo nas duas variações da borda); primavera, verão e outono são a grama de sempre (transicao_<v>).
+ */
+function parkFloor(): Record<string, Piece> {
+  const crop = (name: string, x: number, y: number) => () => cropPng(readPng(`${SRC}/praca/transicao_${name}.png`), x, y, TS, TS);
+  const out: Record<string, Piece> = {};
+  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: crop('neve', t.x, t.y), aliases: [`parque_v3_${t.code}`] };
+  for (const v of ['v2', 'v3']) {
+    for (const t of wangTiles(v)) {
+      out[`spring_parque_${v}_${t.code}`] = { file: '', w: 1, h: 1, build: crop(v, t.x, t.y), aliases: [`summer_parque_${v}_${t.code}`, `autumn_parque_${v}_${t.code}`] };
+    }
+  }
+  return out;
 }
 
 /** Um tile (64 px) da imagem, começando na linha y0. */
