@@ -563,6 +563,7 @@
     "dosedToday": "Já tomou o remédio hoje",
     "doseDue": "Falta o remédio de hoje",
     "intake": { "done": "Consulta de entrada feita", "due": "Ainda sem consulta de entrada" },
+    "recovering": "Sem doença, mas a saúde está baixa: comendo todo dia, ela volta",
     "personalities": {
       "brave": "Valente",
       "sweet": "Doce",

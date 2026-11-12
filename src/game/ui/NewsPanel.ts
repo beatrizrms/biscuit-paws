@@ -370,7 +370,7 @@ export class NewsPanel {
           <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
           <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : p.health < content.health.sickBelow + 20 ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
           ${this.careBars(p.id)}
-          ${p.sickness ? this.sickHtml(p.sickness) : ''}
+          ${p.sickness ? this.sickHtml(p.sickness) : p.health < content.health.sickBelow + 20 ? this.row('dose due', '↑', t.recovering) : ''}
           ${this.clinicLines(p)}
           <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
         </div></div>`;
