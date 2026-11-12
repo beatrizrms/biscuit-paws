@@ -228,6 +228,8 @@ export type Condition =
   | { cats: { gte: number } }
   /** Todos os gatos abrigados já castrados (ela sabe: passaram pela clínica) e sem doença (ex.: para ter a feira). */
   | { catsReady: true }
+  /** Gatos que podem ir à feira de adoção (castrados, sem doença, fora da clínica, fora os da história). */
+  | { fairCats: { gte: number } }
   /** A partir da primeira vez que esta estação chega (data/seasons.json). Ex.: a inauguração, na primavera. */
   | { fromSeason: string }
   /** O selo do café já foi conquistado (data/milestones.json). Só selos de quantidade podem segurar a história. */

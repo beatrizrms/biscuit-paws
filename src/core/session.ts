@@ -3515,6 +3515,20 @@ export class GameSession {
         delete cat.aftercare;
         if (cat.repro) cat.repro = { ...cat.repro, status: 'neutered', known: 'neutered' };
       }
+    } else if ('fairCats' in c) {
+      // Gatos que podem ir à feira: os primeiros do café (fora os da história) castrados, sem doença e fora da clínica.
+      const protectedCats = this.content.adoption.protectedCats;
+      // Sem gatos que não sejam da história (jogo novo): gera os que faltam, como o atalho da condição cats.
+      const free = () => this.shelteredCats().filter((x) => !protectedCats.includes(x)).length;
+      if (free() < c.fairCats.gte) this.debugSatisfy({ cats: { gte: this.shelteredCats().length + c.fairCats.gte - free() } });
+      for (const id of this.shelteredCats().filter((x) => !protectedCats.includes(x)).slice(0, c.fairCats.gte)) {
+        const cat = this.state.cats[id]!;
+        cat.sickness = null;
+        delete cat.quarantine;
+        delete cat.clinic;
+        delete cat.aftercare;
+        if (cat.repro) cat.repro = { ...cat.repro, status: 'neutered', known: 'neutered' };
+      }
     } else if ('money' in c) this.state.money = Math.max(this.state.money, c.money.gte);
     else if ('renovated' in c) {
       for (const side of ['inside', 'outside'] as const) if (!this.state.construction.repaired.includes(side)) this.state.construction.repaired.push(side);
@@ -3674,6 +3688,18 @@ export class GameSession {
   }
 
   /** Parâmetros extras de um mini game aberto por um ponto (a mesa da feira leva os gatos do café). */
+  /**
+   * Os gatos que podem ir à feira de adoção: os do café (o abrigo é o café) castrados com a castração confirmada (sem
+   * registro, não vai), sem doença, fora do cercadinho/clínica e fora os da história (adoption.json: protectedCats).
+   */
+  fairCatIds(): string[] {
+    const protectedCats = this.content.adoption.protectedCats;
+    return this.shelteredCats().filter((id) => {
+      const cat = this.state.cats[id]!;
+      return cat.repro?.known === 'neutered' && !cat.sickness && !this.clinic.adoptionBlock(id) && !protectedCats.includes(id);
+    });
+  }
+
   miniGameExtras(pointId: string): Pick<MiniGameParams, 'adoptCats' | 'catId' | 'extraFamilies' | 'contestCats' | 'costumePieces'> {
     // Mini game de uma chegada: o gato da chegada (a fuga, a confiança... com a cor dele).
     if (this.arrivals.ownsMinigame(pointId)) return { catId: this.state.arrivals.active!.catId };
@@ -3690,12 +3716,8 @@ export class GameSession {
     if (game === 'costume') return this.contestExtras();
     if (game === 'photo') return { contestCats: this.contestExtras().contestCats };
     if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
-    const protectedCats = this.content.adoption.protectedCats;
-    // O abrigo é o café: só os gatos do café castrados (castração confirmada; sem registro, não vai) e fora do
-    // cercadinho/clínica.
-    const neutered = (id: string) => this.state.cats[id]?.repro?.known === 'neutered';
-    const cats = this.shelteredCats()
-      .filter((id) => neutered(id) && !this.clinic.adoptionBlock(id) && !protectedCats.includes(id) && this.catDef(id))
+    const cats = this.fairCatIds()
+      .filter((id) => this.catDef(id))
       .map((id) => {
         const def = this.catDef(id)!;
         return { id, name: this.catName(id), variant: def.variant, personality: def.personality, ...(def.adoptionTraits ? { adoptionTraits: def.adoptionTraits } : {}) };
@@ -3905,6 +3927,7 @@ export class GameSession {
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
       halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
+      fairCats: () => this.fairCatIds().length,
       playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };
   }
