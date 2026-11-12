@@ -92,7 +92,10 @@ const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
 const UPGRADE_BLINK_MS = 420;
-/** Sinais em cima da cabeça dos gatos (pixel art por código; PLACEHOLDER(arte)): letra -> cor; ponto = vazio. */
+/** Sinais em cima da cabeça dos gatos: os ícones do PixelLab (folha de ícones) e o tamanho deles (o ícone de 64 px ocupa ~27 px do jogo). */
+const BADGE_ICONS: Record<'op' | 'sick' | 'contagious', string> = { op: 'sinal_tesoura', sick: 'sinal_termometro', contagious: 'sinal_microbio' };
+const BADGE_SCALE = 0.85;
+/** Os mesmos sinais desenhados por código, se a folha de ícones não carregar: letra -> cor; ponto = vazio. */
 const BADGE_COLORS: Record<string, number> = { k: 0x3b2a20, o: 0x9aa3ad, l: 0xd9dee4, r: 0xd9475d, w: 0xffffff, g: 0x3f7a3a, G: 0x7cc06a };
 const BADGE_ART: Record<'op' | 'sick' | 'contagious', string[]> = {
   // Tesoura aberta (lâminas cinza, cabos vermelhos): operado.
@@ -1817,9 +1820,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /**
-   * Sinal em cima da cabeça (ao lado, para não brigar com o balão de cuidado): curativo no operado (recuperação da
-   * castração), triângulo amarelo no doente de doença que passa já diagnosticado (a Fungadinha, depois da consulta) e
-   * alerta vermelho nos outros doentes; na caixinha, em cima dela. PLACEHOLDER(arte): desenhados por código.
+   * Sinal em cima da cabeça (ao lado, para não brigar com o balão de cuidado): tesoura no operado (recuperação da
+   * castração), micróbio no doente de doença que passa já diagnosticado (a Fungadinha, depois da consulta) e termômetro
+   * nos outros doentes; na caixinha, em cima dela. Arte do PixelLab (BADGE_ICONS), com a desenhada por código de reserva.
    */
   private updateStatusBadges(): void {
     this.ensureBadgeTextures();
@@ -1829,7 +1832,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const s = st.cats[cat.catId];
       const kind = s?.clinic?.stage === 'isolation' ? 'op' : s?.sickness?.treatment && this.session.catContagious(cat.catId) ? 'contagious' : s?.sickness ? 'sick' : null;
       const box = this.isoBoxes.get(cat.catId);
-      const at = cat.visible ? { x: cat.x + 9, y: cat.y - 25, depth: cat.depth } : box?.active ? { x: box.x + 8, y: box.y - box.displayHeight - 2, depth: box.depth } : null;
+      const at = cat.visible ? { x: cat.x + 15, y: cat.y - 22, depth: cat.depth } : box?.active ? { x: box.x + 10, y: box.y - box.displayHeight, depth: box.depth } : null;
       if (!kind || !at || !this.session.atHome()) continue;
       seen.add(cat.catId);
       let b = this.statusBadges.get(cat.catId);
@@ -1838,7 +1841,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         b = undefined;
       }
       if (!b) {
-        b = { kind, img: this.add.image(0, 0, `badge:${kind}`).setOrigin(0.5, 1) };
+        // A arte do PixelLab (folha de ícones); sem ela, a desenhada por código.
+        const art = this.textures.exists(iconSheetKey('pixellab')) ? iconFrame(this, BADGE_ICONS[kind]) : undefined;
+        const img = art ? this.add.image(0, 0, art.key, art.frame).setScale(art.scale * BADGE_SCALE) : this.add.image(0, 0, `badge:${kind}`);
+        b = { kind, img: img.setOrigin(0.5, 1) };
         this.statusBadges.set(cat.catId, b);
       }
       const bob = Math.sin(this.time.now / 450 + cat.catId.length) * 0.8;

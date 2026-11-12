@@ -731,6 +731,21 @@
       "col": 0,
       "row": 18,
       "sheet": "pixellab"
+    },
+    "sinal_tesoura": {
+      "col": 1,
+      "row": 18,
+      "sheet": "pixellab"
+    },
+    "sinal_termometro": {
+      "col": 2,
+      "row": 18,
+      "sheet": "pixellab"
+    },
+    "sinal_microbio": {
+      "col": 3,
+      "row": 18,
+      "sheet": "pixellab"
     }
   },
   "sheets": {
