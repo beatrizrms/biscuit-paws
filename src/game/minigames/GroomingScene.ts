@@ -214,6 +214,40 @@ export class GroomingScene extends MiniGameScene {
     this.time.delayedCall(800, () => this.finish(outcome, Math.round(this.s.patience)));
   }
 
+  /**
+   * Quanto o nó desloca (px na tela, negativo = para cima) da pose de lado para a pose de bravo, na coluna dele: o
+   * corpo naquela coluna (do topo do pelo até onde ele acaba) nas duas poses, e o nó fica na mesma proporção dentro dele.
+   */
+  private startleLift(atX: number, atY: number): number {
+    const variant = this.launch.catVariant;
+    const sprites = content.catSprites;
+    const row = sprites.animations.find((a) => a.name === STARTLE_ANIM)?.row;
+    if (row === undefined) return 0;
+    const key = catTexture(variant);
+    const size = catFrameSize(variant);
+    const z = this.cat.scaleX;
+    const col = Math.round((atX * this.zoom) / z);
+    const y = (atY * this.zoom) / z;
+    const opaque = (yy: number, frame: number) => (this.textures.getPixel(col, yy, key, frame)?.alpha ?? 0) > 0;
+    // Os trechos de pelo da coluna ([topo, fim]) e o mais perto da altura `near` (o corpo, não o rabo por cima dele).
+    const span = (frame: number, near: number): [number, number] | null => {
+      const runs: [number, number][] = [];
+      let top = -1;
+      for (let yy = 0; yy <= size; yy++) {
+        const o = yy < size && opaque(yy, frame);
+        if (o && top < 0) top = yy;
+        else if (!o && top >= 0) (runs.push([top, yy - 1]), (top = -1));
+      }
+      const dist = ([t, e]: [number, number]) => (near < t ? t - near : near > e ? near - e : 0);
+      return runs.sort((p, q) => dist(p) - dist(q))[0] ?? null;
+    };
+    const side = span(this.sideFrame, y);
+    const arched = side && span(row * sprites.columns, (side[0] + side[1]) / 2);
+    if (!side || !arched) return 0;
+    const t = Math.max(0, Math.min(1, (y - side[0]) / Math.max(1, side[1] - side[0])));
+    return (arched[0] + t * (arched[1] - arched[0]) - y) * z;
+  }
+
   /** Primeiro pixel de cima de cada coluna do quadro do gato (onde nascem os tufos do pelo arrepiado). */
   private topContour(key: string, frame: number, size: number): { x: number; y: number; color: number; fur: number }[] {
     const out: { x: number; y: number; color: number; fur: number }[] = [];
@@ -246,8 +280,15 @@ export class GroomingScene extends MiniGameScene {
     if (!startle.endsWith('-sit')) {
       this.fuzzing = true;
       this.cat.play({ key: startle, repeat: -1 });
+      // Os nós sobem junto com o corpo (curvado, ele fica mais alto) e voltam quando ele relaxa.
+      const lifted = this.mats.flatMap((m) => {
+        const img = this.matImgs.get(m.id);
+        return img && img.visible ? [{ img, base: this.toScreen(m.at[1], true), lift: this.startleLift(m.at[0], m.at[1]) }] : [];
+      });
+      for (const n of lifted) this.tweens.add({ targets: n.img, y: n.base + n.lift, duration: 90, ease: 'Quad.Out' });
       this.time.delayedCall(STARTLE_MS, () => {
         this.fuzzing = false;
+        for (const n of lifted) this.tweens.add({ targets: n.img, y: n.base, duration: 140, ease: 'Quad.In' });
         if (this.ended) return;
         this.cat.stop();
         this.cat.setFrame(this.sideFrame);
