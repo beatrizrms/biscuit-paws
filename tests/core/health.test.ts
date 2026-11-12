@@ -211,6 +211,7 @@ describe('o dia 6', () => {
 
 describe('contágio e prejuízo', () => {
   const TWO = 'cat.second';
+  const SNIFFLES = cfg.diseases.find((d) => d.contagious)!.id;
   /** Dois gatos no café; contágio certeiro (chance 1) para o teste não depender do sorteio. */
   function twoCats(chance = 1) {
     const c = { ...content, health: { ...cfg, contagion: { ...cfg.contagion, chancePerDay: chance } }, cats: { ...content.cats, [TWO]: { ...content.cats[CAT]!, id: TWO } } };
@@ -227,15 +228,31 @@ describe('contágio e prejuízo', () => {
     return { session, state, events, endDay };
   }
 
-  it('só transmite depois de mais de 2 dias doente, e não em tratamento', () => {
-    const s = { disease: cfg.diseases[0]!.id, since: 6, treatment: null };
+  it('só a doença que passa (a Fungadinha) transmite: depois de mais de 2 dias doente, e não em tratamento', () => {
+    const s = { disease: SNIFFLES, since: 6, treatment: null };
     expect([6, 7, 8].map((d) => isContagious(cfg, s, d))).toEqual([false, false, true]);
     expect(isContagious(cfg, { ...s, treatment: { days: 3, dosesGiven: 0, lastDoseDay: null } }, 9)).toBe(false);
+    // As outras não passam para ninguém.
+    for (const d of cfg.diseases.filter((x) => x.id !== SNIFFLES)) expect(isContagious(cfg, { ...s, disease: d.id }, 9)).toBe(false);
+  });
+
+  it('em tratamento da Fungadinha, fica isolado (cercadinho ou caixinha) até sarar; das outras doenças, fica com a turma', () => {
+    const { session, state } = twoCats();
+    session.makeSick(CAT, SNIFFLES);
+    expect(session.catPlace(CAT)).toBe('with_others'); // sem tratamento ainda: solto (e passa)
+    state.cats[CAT]!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    expect(session.catPlace(CAT)).toBe('isolated');
+    expect(session.penAssignments().box).toContain(CAT);
+    state.cats[CAT]!.sickness = null; // sarou
+    expect(session.catPlace(CAT)).toBe('with_others');
+    session.makeSick(TWO, cfg.diseases.find((d) => d.id !== SNIFFLES)!.id);
+    state.cats[TWO]!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    expect(session.catPlace(TWO)).toBe('with_others');
   });
 
   it('o doente sem remédio passa a mesma doença para o outro gato no 3º dia', () => {
     const { session, state, events, endDay } = twoCats();
-    session.makeSick(CAT);
+    session.makeSick(CAT, SNIFFLES);
     const disease = state.cats[CAT]!.sickness!.disease;
     endDay(); // 1º dia doente
     endDay(); // 2º

@@ -9,6 +9,8 @@ export interface DiseaseDef {
   name: string;
   /** O que a Fernanda explica na consulta. */
   description: string;
+  /** Passa de gato para gato (tipo gripe): só estas contagiam e, em tratamento, o gato fica isolado da turma. */
+  contagious?: boolean;
 }
 
 export interface HealthConfig {
@@ -77,7 +79,13 @@ export function rollsContagion(cfg: HealthConfig, day: number, catId: string): b
 }
 
 /** Este doente já transmite? Doente há mais de afterDays dias (o dia em que adoeceu conta como o 1º). */
+/** A doença passa de gato para gato (data/health.json: diseases[].contagious)? */
+export function diseaseContagious(cfg: HealthConfig, disease: string): boolean {
+  return !!cfg.diseases.find((d) => d.id === disease)?.contagious;
+}
+
 export function isContagious(cfg: HealthConfig, sickness: CatSickness, day: number): boolean {
+  if (!diseaseContagious(cfg, sickness.disease)) return false;
   if (cfg.contagion.onlyUntreated && sickness.treatment) return false;
   return day - sickness.since + 1 > cfg.contagion.afterDays;
 }

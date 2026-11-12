@@ -17,6 +17,7 @@ import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
 import { vetLine } from './vetText';
+import { diseaseContagious } from '../../core/health';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
 import { services } from '../services';
@@ -390,6 +391,8 @@ export class GameUi {
       if (missedFeed) inCafe(vetLine(session, 'neuter.missedFeed', {}, catId));
     });
     bus.on('clinic.friend_discount', () => fernanda(vetLine(session, 'discount.friend')));
+    // Doença que passa de gato para gato: em tratamento, fica isolado até sarar.
+    bus.on('cat.diagnosed', ({ catId, disease }) => diseaseContagious(content.health, disease) && fernanda(vetLine(session, 'intake.sickIsolate', {}, catId)));
     bus.on('clinic.checkup', ({ catId }) => fernanda(vetLine(session, 'intake.checkup', {}, catId)));
     bus.on('clinic.credit', () => fernanda(vetLine(session, 'credit.offer')));
     bus.on('clinic.debt_paid', () => fernanda(vetLine(session, 'credit.retroactive')));

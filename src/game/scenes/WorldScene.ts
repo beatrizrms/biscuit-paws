@@ -1967,7 +1967,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if ((!this.session.holdingTreat() && !medicine) || !this.session.atHome() || this.usingItem) return false;
     const feet = this.playerCells();
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
-    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    const ts = this.map.tileSize;
+    const boxCell = (img: Phaser.GameObjects.Image): Cell => [Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)];
+    // Gato na caixinha (sem vaga no cercadinho): o remédio vai pela caixinha.
+    const inBox = [...this.isoBoxes].find(([, img]) => near(boxCell(img)) && (!target || (boxCell(img)[0] === target[0] && boxCell(img)[1] === target[1])))?.[0];
+    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1]))) ?? (inBox ? this.cats.find((c) => c.catId === inBox) : undefined);
     if (!cat) return false;
     const item = this.session.activeItem()!;
     if (medicine) {

@@ -18,6 +18,7 @@ import {
   type NeuterBlock,
   type ProcedureDef,
 } from './clinic';
+import { diseaseContagious } from './health';
 import { ageMonths, fixedRepro, rngForCat, rollRepro, weightKg, type AgeBand, type CatRepro, type FixedRepro, type NeuteredSpec } from './repro';
 import type { EventBus } from './events';
 import type { GameState, PlacedItem } from './state';
@@ -160,10 +161,19 @@ export class ClinicFlow {
     return this.st.cats[catId]?.clinic;
   }
 
-  /** Isolado no café (esperando a consulta ou se recuperando): no cercadinho ou na caixinha. */
+  /** Isolado no café (esperando a consulta, se recuperando ou tratando doença que passa): no cercadinho ou na caixinha. */
   isolated(catId: string): boolean {
     const s = this.stage(catId)?.stage;
-    return s === 'intake' || s === 'isolation';
+    return s === 'intake' || s === 'isolation' || this.sickIsolated(catId);
+  }
+
+  /**
+   * Doente de doença que passa de gato para gato (a Fungadinha) e já em tratamento: fica isolado até sarar (no
+   * cercadinho; sem vaga, na caixinha). Sem estado no save: sarou, volta sozinho para a turma.
+   */
+  sickIsolated(catId: string): boolean {
+    const cat = this.st.cats[catId];
+    return !!cat?.sickness?.treatment && !this.stage(catId) && diseaseContagious(this.h.health, cat.sickness.disease);
   }
 
   /** Internado na clínica (não aparece no café). */
@@ -173,7 +183,7 @@ export class ClinicFlow {
 
   /** Com os outros gatos (anda pelo café, come no pote, brinca). */
   withOthers(catId: string): boolean {
-    return !this.stage(catId);
+    return !this.stage(catId) && !this.sickIsolated(catId);
   }
 
   wardCount(): number {
