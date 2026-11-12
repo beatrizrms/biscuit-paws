@@ -5,7 +5,8 @@ import { knownIds, parseSave } from '../../src/core/save';
 import { loadContent } from './content';
 
 /** Arquivos cujos textos passam por fillNames (src/game/ui/text.ts) antes de ir para a tela. */
-const FILLED = ['dialogue.json', 'cutscenes.json', 'news.json', 'vet_text.json', 'ced_text.json'];
+// npcs.json: as falas e os balões dos passeios (walks) passam por fillNames no WorldScene.
+const FILLED = ['dialogue.json', 'cutscenes.json', 'news.json', 'vet_text.json', 'ced_text.json', 'npcs.json'];
 
 /** Todas as strings de um JSON (com o caminho), para varrer os dados. */
 function strings(o: unknown, path = ''): [string, string][] {

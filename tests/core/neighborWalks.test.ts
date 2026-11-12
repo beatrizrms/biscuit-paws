@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chatOfDay, walkOfDay } from '../../src/core/neighborWalks';
+import { barkOfDay, chatOfDay, walkOfDay } from '../../src/core/neighborWalks';
 import { pairKey } from '../../src/core/relationships';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -94,5 +94,42 @@ describe('a Jacque chega na primeira feira de adoção', () => {
     session.enter('map.cafe_main');
     expect(scripts).toContain('scr.jacque_meet');
     expect(state.flags['met.jacque']).toBe(true);
+  });
+});
+
+describe('balãozinho do passeio', () => {
+  it('fala curta do dia, com o nome de um dos gatos que estão com ela; sem gato, só as falas sem {cat}', () => {
+    expect(jacque.barks?.length).toBeGreaterThan(3);
+    for (let day = 1; day <= 30; day++) {
+      const cats = walkOfDay(jacque, day).cats.map((c) => c.name);
+      const bark = barkOfDay(jacque, day, cats)!;
+      expect(bark).toBe(barkOfDay(jacque, day, cats)); // o mesmo o dia inteiro
+      expect(bark).not.toContain('{cat}');
+      if (jacque.barks!.some((b) => b.includes('{cat}') && bark === b.replace('{cat}', cats[0]!))) expect(cats).toContain(cats[0]);
+      expect(jacque.barks!.some((b) => (b.includes('{cat}') ? cats.some((c) => b.replace(/\{cat\}/g, c) === bark) : b === bark))).toBe(true);
+    }
+    expect(barkOfDay(jacque, 5, [])).not.toContain('{cat}');
+    expect(barkOfDay({ npc: 'npc.x', barks: [] }, 1, ['A'])).toBeNull();
+  });
+});
+
+describe('outros vizinhos passeando', () => {
+  it('Dona Neusa de manhã na rua; Gabi no almoço na praça, com o Joca junto; horários diferentes da Jacque', () => {
+    const neusa = content.npcWalks.find((w) => w.npc === 'npc.neusa')!;
+    const gabi = content.npcWalks.find((w) => w.npc === 'npc.gabi')!;
+    expect(neusa.map).toBe('map.street');
+    expect(gabi.map).toBe('map.praca');
+    expect(gabi.companions).toEqual(['npc.joca']);
+    const t = (c: string) => Number(c.slice(0, 2)) * 60 + Number(c.slice(3));
+    // Na rua, a manhã da Dona Neusa não encosta na tarde da Jacque.
+    expect(t(neusa.hours[1])).toBeLessThanOrEqual(t(jacque.hours[0]));
+    // Sem gatos: o passeio vai sozinho (a Gabi com o Joca).
+    for (let d = 1; d < 20; d++) expect(walkOfDay(gabi, d).cats).toEqual([]);
+    const day = Array.from({ length: 60 }, (_, i) => i + 1).find((d) => walkOfDay(gabi, d).walks)!;
+    const state = newGameState(500, 'map.praca', 12 * 60 + 30);
+    state.day = day;
+    state.flags['seen.scr.gabi_visit'] = true;
+    const s = new GameSession(content, state);
+    expect(s.neighborWalksNow()).toEqual([expect.objectContaining({ npc: 'npc.gabi', companions: ['npc.joca'], cats: [] })]);
   });
 });

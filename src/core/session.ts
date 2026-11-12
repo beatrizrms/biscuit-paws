@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { itemSize, packBoxes } from './parcels';
-import { chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
+import { barkOfDay, chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
@@ -2324,16 +2324,23 @@ export class GameSession {
   private neighborChatOn: Record<string, number> = {};
 
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
-  neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] {
-    const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] = [];
+  neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] {
+    const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] = [];
     for (const def of this.content.npcWalks) {
       if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day) continue;
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
       if (def.when && !this.holds(def.when as Condition)) continue;
       const w = walkOfDay(def, this.state.day);
-      if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats });
+      if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats, companions: def.companions ?? [] });
     }
     return out;
+  }
+
+  /** O balãozinho do passeio de hoje (quando ela passa perto; não gasta a frase do dia). */
+  neighborBark(npc: string): string | null {
+    const def = this.content.npcWalks.find((w) => w.npc === npc);
+    if (!def) return null;
+    return barkOfDay(def, this.state.day, walkOfDay(def, this.state.day).cats.map((c) => c.name));
   }
 
   /** O passeio começou (ou terminou): não começa de novo hoje. */

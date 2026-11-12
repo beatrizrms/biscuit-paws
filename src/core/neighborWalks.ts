@@ -20,6 +20,8 @@ export interface NeighborWalkDef {
   hours: [string, string];
   /** As duas pontas do passeio (ela vai de uma à outra; o sentido muda pelo dia). */
   path: [Cell, Cell];
+  /** Quem vai junto em todo passeio, logo atrás (NPCs de data/npcs.json; ex.: o Joca com a Gabi). */
+  companions?: string[];
   /** Os gatos dela; em cada passeio vão de catsPerWalk[0] a catsPerWalk[1] deles. */
   cats: WalkCat[];
   catsPerWalk: [number, number];
@@ -27,6 +29,11 @@ export interface NeighborWalkDef {
   chat: string[];
   /** Corações (pontos) da primeira conversa do dia. */
   points: number;
+  /**
+   * Balãozinho quando ela passa perto (sem E, uma vez por passeio): falas curtas, com {cat} = o nome de um dos gatos
+   * que estão com ela. Não gasta a frase do dia (chat).
+   */
+  barks?: string[];
 }
 
 /** Sorteio estável (0 a 1) por texto. */
@@ -59,6 +66,17 @@ export function chatOfDay(def: Pick<NeighborWalkDef, 'npc' | 'chat'>, day: numbe
   return def.chat[order[day % n]!]!;
 }
 
+/** O balão do passeio do dia (sorteado pelo dia), com {cat} trocado pelo nome de um dos gatos que estão com ela. */
+export function barkOfDay(def: Pick<NeighborWalkDef, 'npc' | 'barks'>, day: number, catNames: readonly string[]): string | null {
+  const list = def.barks ?? [];
+  if (list.length === 0) return null;
+  const usable = catNames.length > 0 ? list : list.filter((b) => !b.includes('{cat}'));
+  if (usable.length === 0) return null;
+  const text = usable[Math.floor(roll(`${def.npc}:${day}:bark`) * usable.length)]!;
+  const cat = catNames[Math.floor(roll(`${def.npc}:${day}:barkcat`) * catNames.length)] ?? '';
+  return text.replace(/{cat}/g, cat);
+}
+
 /** Validação (npm run check). */
 export function validateWalks(walks: readonly NeighborWalkDef[] | undefined, refs: { npcs: ReadonlySet<string>; maps: ReadonlySet<string>; variants: ReadonlySet<string> }): string[] {
   const errors: string[] = [];
@@ -72,6 +90,7 @@ export function validateWalks(walks: readonly NeighborWalkDef[] | undefined, ref
     for (const c of w.cats) if (!refs.variants.has(c.variant)) errors.push(`${at}: pelagem inexistente "${c.variant}" (${c.name})`);
     if (w.catsPerWalk[0] > w.catsPerWalk[1]) errors.push(`${at}: catsPerWalk [mín, máx]`);
     if (w.chat.length === 0) errors.push(`${at}: precisa de pelo menos uma fala`);
+    for (const c of w.companions ?? []) if (!refs.npcs.has(c)) errors.push(`${at}: acompanhante inexistente "${c}"`);
   }
   return errors;
 }
