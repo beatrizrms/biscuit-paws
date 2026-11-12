@@ -18,7 +18,7 @@
     {
       "id": "item.cat_food_premium",
       "name": "Ração premium",
-      "description": "Ração de qualidade: no dia em que comem a premium, os gatos ganham 1,5x mais saúde que com a simples. Também serve para um gato com fome que chega na porta.",
+      "description": "Ração de qualidade: no dia em que comem a premium, os gatos ganham 25% mais saúde que com a simples. Também serve para um gato com fome que chega na porta.",
       "price": 35,
       "kind": "consumable",
       "icon": "racao_premium",
@@ -28,12 +28,12 @@
         "food"
       ],
       "use": "food_bowl",
-      "healthMultiplier": 1.5
+      "healthMultiplier": 1.25
     },
     {
       "id": "item.food_recovery",
       "name": "Recovery (latinha)",
-      "description": "Comida úmida de recuperação, em latinha. Fica na mochila: E no cercadinho alimenta todos os gatos que estão lá dentro.",
+      "description": "Comida úmida de recuperação, em latinha. Fica na mochila: E no cercadinho (ou na caixinha) alimenta um gato por vez, uma latinha cada.",
       "price": 8,
       "kind": "consumable",
       "icon": "lata_recovery",

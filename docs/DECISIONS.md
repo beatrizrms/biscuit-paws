@@ -527,7 +527,7 @@ Decisão: todo item tem `description` em `data/items.json`, escrita a partir da 
 
 ## 129. Ração premium dá 1,5x mais saúde (nov/2026)
 Pedido: a ração premium deve dar 1,5x de saúde para o gato.
-Decisão: campo `healthMultiplier` no item (1.5 na premium). O gato guarda a ração que comeu no dia (`CatState.fedWith`, opcional no save); no fim do dia, o ganho de `health.daily.fed` é multiplicado. Vale também para o pote automático abastecido com a premium.
+Decisão: campo `healthMultiplier` no item (1.5 na premium; ajustado depois para 1.25, 25% a mais, em 2026-11-12). O gato guarda a ração que comeu no dia (`CatState.fedWith`, opcional no save); no fim do dia, o ganho de `health.daily.fed` é multiplicado. Vale também para o pote automático abastecido com a premium.
 
 ## 130. Itens de gato separados em Alimentação, Cuidados, Brinquedos e Descanso (nov/2026)
 Pedido: a prateleira de comida mostrava uma seção de gatos (a varinha e a escova tinham a tag `tool`, e a prateleira de mantimentos mostra utensílios); e as coisas de gato precisavam de categorias.
