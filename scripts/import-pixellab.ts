@@ -652,7 +652,7 @@ const SHEETS: Sheet[] = [
     layout: { ...wangPieces('v2'), ...wangPieces('v3') },
   },
   {
-    // O chão da pracinha da rua por estação (parque_<v>_<cantos>, scripts/map-rua-extra.ts): neve no inverno (tileset
+    // O chão da pracinha da rua por estação (parque_<v>_<cantos>, scripts/map-rua-extra.ts): neve cobrindo tudo no inverno (tileset
     // de transição praca/transicao_neve do PixelLab) e a grama de sempre nas outras estações.
     image: 'public/assets/env/praca/tile_pixellab_parque.png',
     pieces: 'data/tilesets/pixellab_parque.json',
@@ -1289,13 +1289,15 @@ function wangTiles(name: string): { code: string; x: number; y: number }[] {
 }
 
 /**
- * O chão da praça que muda com a estação (parque_<v>_<cantos>): o nome sem prefixo é o inverno (o tileset de neve,
- * transicao_neve, o mesmo nas duas variações da borda); primavera, verão e outono são a grama de sempre (transicao_<v>).
+ * O chão da praça que muda com a estação (parque_<v>_<cantos>): o nome sem prefixo é o inverno (só neve, o tile cheio
+ * do tileset transicao_neve, em todas as peças); primavera, verão e outono são a grama de sempre (transicao_<v>).
  */
 function parkFloor(): Record<string, Piece> {
   const crop = (name: string, x: number, y: number) => () => cropPng(readPng(`${SRC}/praca/transicao_${name}.png`), x, y, TS, TS);
   const out: Record<string, Piece> = {};
-  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: crop('neve', t.x, t.y), aliases: [`parque_v3_${t.code}`] };
+  // Inverno: tudo coberto de neve, como o quintal (todos os cantos viram o tile só de neve).
+  const snow = wangTiles('neve').find((t) => t.code === 'gggg')!;
+  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: crop('neve', snow.x, snow.y), aliases: [`parque_v3_${t.code}`] };
   for (const v of ['v2', 'v3']) {
     for (const t of wangTiles(v)) {
       out[`spring_parque_${v}_${t.code}`] = { file: '', w: 1, h: 1, build: crop(v, t.x, t.y), aliases: [`summer_parque_${v}_${t.code}`, `autumn_parque_${v}_${t.code}`] };
