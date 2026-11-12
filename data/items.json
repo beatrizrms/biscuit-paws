@@ -2859,6 +2859,23 @@
       "requires": {
         "room": "room.backyard",
         "atLeast": "restored"
+      },
+      "deprecated": true
+    },
+    {
+      "id": "item.yard_wood_oven",
+      "name": "Forno a lenha",
+      "description": "Decoração do quintal: forno a lenha de pedra, com bancada de madeira e lenha guardada embaixo.",
+      "price": 110,
+      "tile": "yard_bancada_forno_pedra",
+      "tags": [
+        "furniture",
+        "area:yard"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
       }
     },
     {
