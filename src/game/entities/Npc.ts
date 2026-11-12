@@ -72,8 +72,17 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     if (Math.abs(ty - this.y) > 0.5) await this.leg(this.x, ty, ty > this.y ? 'down' : 'up');
   }
 
+  /** Direção do trecho que ele está andando (para retomar a caminhada depois de uma parada). */
+  private legDir: Facing | null = null;
+
+  /** Volta a andar na direção do trecho (depois de parar para conversar). */
+  resumeWalk(): void {
+    if (this.legDir) this.play(`${npcTexture(this.def.id)}-walk_${this.legDir}`, true);
+  }
+
   private leg(x: number, y: number, dir: Facing): Promise<void> {
     const dist = Math.hypot(x - this.x, y - this.y);
+    this.legDir = dir;
     this.play(`${npcTexture(this.def.id)}-walk_${dir}`, true);
     return new Promise((resolve) => {
       this.scene.tweens.add({
@@ -83,6 +92,7 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
         duration: (dist / SPEED) * 1000,
         onUpdate: () => this.updateDepth(),
         onComplete: () => {
+          this.legDir = null;
           this.face(dir);
           resolve();
         },

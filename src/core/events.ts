@@ -218,6 +218,8 @@ export interface GameEvents {
   'delivery.picked_up': { count: number };
   'delivery.unpacked': { deliveryId: string; itemId: string };
   /** Abriu uma caixa dentro do café: tudo o que veio nela (já na mochila). */
+  /** Conversou com um vizinho que passeava na rua (a primeira do dia dá corações). */
+  'npc.chatted': { npc: string; points: number };
   'delivery.box_opened': { itemIds: string[] };
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };

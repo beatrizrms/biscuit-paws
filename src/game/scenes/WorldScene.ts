@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { touch, type TouchAction } from '../touch';
 import { fillNames } from '../ui/text';
+import { WalkFollowers } from '../WalkFollowers';
+import type { WalkCat } from '../../core/neighborWalks';
 import { cellsOf, doorAt, type DirtSpot, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
@@ -164,6 +166,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Marcando a área de uma obra (troca de acabamento). */
   private areaSelect: AreaSelect | null = null;
   private builderAsking = false;
+  /** Vizinhos passeando neste mapa agora (data/npcs.json: walks) e os gatos que vão atrás. */
+  private readonly neighborWalks = new Map<string, WalkFollowers>();
+  private neighborWalksCheckedAt = -Infinity;
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
   private repairNpcs = new Map<string, NpcSprite>();
   /** "!" em cima de cada equipamento quebrado. */
@@ -582,6 +587,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
           right: k.right.isDown || k.d.isDown || touch.dir.right,
         };
     this.updateTouchPlacing(busy);
+    this.updateNeighborWalks();
     touch.setHidden(this.ui.isPanelOpen() || this.ui.isCatalogOpen() || this.ui.paused);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
@@ -651,6 +657,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.careCheckedAt = -Infinity;
     this.npcs.forEach((n) => n.destroy());
     this.npcs.clear();
+    this.neighborWalks.forEach((f) => f.destroy());
+    this.neighborWalks.clear();
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -1607,6 +1615,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (this.trySantaGive(target)) return true;
     if (this.tryHalloweenGive(target)) return true;
     if (this.tryPartyChat(target)) return true;
+    if (this.tryNeighborChat(target)) return true;
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
@@ -1770,6 +1779,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const guest = this.santaGuestNear();
       if (guest && guest[0] === s.halloweenRecord()!.drawn) return { x: guest[1].x, y: guest[1].y - guest[1].displayHeight - 4, kind: 'santa_give' as HintKind };
     }
+    // Vizinho passeando do lado: conversar.
+    const walker = this.walkerNear();
+    if (walker) return { x: walker[1].x, y: walker[1].y - walker[1].displayHeight - 4, kind: 'party_chat' as HintKind };
     // Na festa: conversar com o convidado do lado.
     if (s.festivePartyOn()) {
       const guest = this.santaGuestNear();
@@ -1917,6 +1929,66 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
     void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
+    return true;
+  }
+
+  // ---------- Vizinhos passeando na rua ----------
+
+  /** Os gatos seguem quem passeia; a cada meio segundo, começa o passeio de quem está na hora (um por dia). */
+  private updateNeighborWalks(): void {
+    for (const f of this.neighborWalks.values()) f.update();
+    if (this.time.now - this.neighborWalksCheckedAt < 500 || this.changingMap || this.scripts.isRunning()) return;
+    this.neighborWalksCheckedAt = this.time.now;
+    for (const w of this.session.neighborWalksNow(this.map.id)) if (!this.neighborWalks.has(w.npc) && !this.npcs.has(w.npc)) void this.startNeighborWalk(w);
+  }
+
+  /** O vizinho entra numa ponta da rua, atravessa (desviando do que for sólido) com os gatos atrás e some na outra. */
+  private async startNeighborWalk(w: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }): Promise<void> {
+    this.session.markNeighborWalked(w.npc);
+    const free = ([c, r]: Cell): Cell => {
+      for (let d = 0; d < 6; d++) for (const [dc, dr] of [[0, 0], [0, -d], [0, d], [d, 0], [-d, 0]] as const) if (this.map.solid[r + dr]?.[c + dc] === false) return [c + dc, r + dr];
+      return [c, r];
+    };
+    const from = free(w.from);
+    const to = free(w.to);
+    this.spawnNpc(w.npc, from, to[0] > from[0] ? 'right' : 'left');
+    const npc = this.npcs.get(w.npc);
+    if (!npc) return;
+    const followers = new WalkFollowers(this, npc, w.cats);
+    this.neighborWalks.set(w.npc, followers);
+    const path = findPath(this.map.solid, from, to);
+    for (const corner of path ? pathCorners(path) : [to]) {
+      if (!npc.active) break;
+      await npc.walkTo(corner);
+    }
+    if (this.neighborWalks.get(w.npc) !== followers) return; // trocou de mapa no meio
+    this.neighborWalks.delete(w.npc);
+    this.npcs.delete(w.npc);
+    followers.leave();
+    if (npc.active) await npc.leave();
+  }
+
+  /** O vizinho passeando do lado dela (o NPC e a id). */
+  private walkerNear(target?: Cell): [string, NpcSprite] | undefined {
+    const guest = this.santaGuestNear(target);
+    return guest && this.neighborWalks.has(guest[0]) ? guest : undefined;
+  }
+
+  /** E em quem passeia: a próxima fala (a primeira do dia dá corações). */
+  private tryNeighborChat(target?: Cell): boolean {
+    const guest = this.walkerNear(target);
+    const line = guest && this.session.neighborChat(guest[0]);
+    if (!guest || !line) return false;
+    // Para de andar, vira para ela enquanto conversam e segue o passeio depois da fala.
+    const npc = guest[1];
+    const tweens = this.tweens.getTweensOf(npc);
+    tweens.forEach((t) => t.pause());
+    const [dx, dy] = [this.player.x - npc.x, this.player.y - npc.y];
+    npc.face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(() => {
+      tweens.forEach((t) => t.isPaused() && t.resume());
+      if (npc.active) npc.resumeWalk();
+    });
     return true;
   }
 

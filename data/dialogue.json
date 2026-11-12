@@ -1404,6 +1404,42 @@
           "text": "Que simpático, obrigada!"
         }
       ]
+    },
+    "dlg.jacque_knock": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Alguém bate na porta do café, animada."
+        }
+      ]
+    },
+    "dlg.jacque_meet": {
+      "lines": [
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Oi! Vi o cartaz da feira e não resisti. Eu sou a Jacque, acabei de me mudar aqui pra rua."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Sou gateira assumida: lá em casa são seis! A Sabrina e o Cacau, que são pretinhos, o Branquinho, o Jojo, que é frajola, a Amora, tigradinha, e o Feijão, meu siamês."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Seis! Então você entende bem do assunto."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Entendo de pelo no sofá, isso sim! Que lindo o que você faz aqui. Vou passar sempre pela rua, às vezes com algum deles."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Boa feira! Que todo mundo ache um lar hoje."
+        }
+      ]
     }
   }
 }

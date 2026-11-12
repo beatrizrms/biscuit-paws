@@ -152,6 +152,27 @@
       "resolution": 2
     },
     {
+      "id": "npc.jacque",
+      "name": "Jacque",
+      "sheet": "assets/characters/npcs/v64/npc_jacque.png",
+      "portrait": "assets/characters/npcs/v64/npc_jacque_portrait.png",
+      "frameWidth": 112,
+      "frameHeight": 128,
+      "columns": 5,
+      "fps": 6,
+      "walk": {
+        "down": 0,
+        "left": 1,
+        "right": 2,
+        "up": 3
+      },
+      "extras": {
+        "acenar": [21, 22, 23, 24],
+        "segurando": [29]
+      },
+      "resolution": 2
+    },
+    {
       "id": "npc.mail_carrier",
       "name": "Entregadora",
       "sheet": "assets/characters/npcs/v64/npc_mail_carrier.png",
@@ -460,6 +481,70 @@
         "passando_compras": [6, 7, 8, 9, 8, 7]
       },
       "resolution": 2
+    }
+  ],
+  "walks": [
+    {
+      "npc": "npc.jacque",
+      "map": "map.street",
+      "when": {
+        "flag": "met.jacque"
+      },
+      "chance": 0.5,
+      "hours": [
+        "16:30",
+        "18:30"
+      ],
+      "path": [
+        [
+          1,
+          9
+        ],
+        [
+          42,
+          9
+        ]
+      ],
+      "cats": [
+        {
+          "name": "Sabrina",
+          "variant": "preto"
+        },
+        {
+          "name": "Branquinho",
+          "variant": "branco"
+        },
+        {
+          "name": "Jojo",
+          "variant": "frajola"
+        },
+        {
+          "name": "Amora",
+          "variant": "tigrado"
+        },
+        {
+          "name": "Feijão",
+          "variant": "siames"
+        },
+        {
+          "name": "Cacau",
+          "variant": "preto"
+        }
+      ],
+      "catsPerWalk": [
+        1,
+        2
+      ],
+      "chat": [
+        "Hoje é dia de passeio! Eles adoram cheirar tudo pela calçada.",
+        "A Sabrina e o Cacau são tão pretinhos que às vezes eu confundo os dois. Eles não ligam.",
+        "O Feijão mia pra conversar, é o mais tagarela lá de casa.",
+        "O Branquinho dorme em cima da geladeira. Ninguém sabe como ele sobe.",
+        "O Jojo rouba meias. Já tenho uma gaveta só pras meias que ele traz de volta.",
+        "A Amora caça mosquito a noite toda. Pelo menos a casa fica livre deles!",
+        "Gateira que se preza para pra conversar com todo gato da rua. Inclusive os seus!"
+      ],
+      "points": 10
     }
   ]
 }

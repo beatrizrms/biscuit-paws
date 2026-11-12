@@ -1755,6 +1755,66 @@
           "dialogue": "dlg.hw_party_after"
         }
       ]
+    },
+    "scr.jacque_meet": {
+      "steps": [
+        {
+          "dialogue": "dlg.jacque_knock"
+        },
+        {
+          "npcSpawn": "npc.jacque",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            12,
+            6
+          ]
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "npcAnim": "npc.jacque",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.jacque_meet"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.jacque"
+        }
+      ]
     }
   }
 }

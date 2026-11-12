@@ -2,6 +2,7 @@
 // Só dados e validação: quem executa é o jogo (ScriptRunner), que avisa a sessão no fim.
 // Puro: sem Phaser, DOM ou window.
 import type { Condition } from './content';
+import type { NeighborWalkDef } from './neighborWalks';
 import type { Cell, Facing } from './map';
 
 /** Qualquer passo pode ter `when` (condição da história): sem ela valer na hora, o passo é pulado. */
@@ -79,6 +80,8 @@ export interface NpcDef {
 export interface NpcsData {
   schemaVersion: 1;
   npcs: NpcDef[];
+  /** Passeios de vizinhos na rua (src/core/neighborWalks.ts). */
+  walks?: NeighborWalkDef[];
 }
 
 export interface ScriptRefs {

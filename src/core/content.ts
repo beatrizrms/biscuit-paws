@@ -1,6 +1,7 @@
 // Tipos do conteúdo em data/*.json e validação das referências entre eles.
 // Puro: sem Phaser, DOM ou window.
 import { validateReview } from './review';
+import { validateWalks, type NeighborWalkDef } from './neighborWalks';
 import { validateStorage, type StorageDef } from './storage';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
@@ -226,6 +227,8 @@ export type Condition =
   | { room: string; atLeast: RoomState }
   /** Gatos abrigados. */
   | { cats: { gte: number } }
+  /** Hoje é o dia deste evento (data/festivals.json), em andamento ou já encerrado hoje. */
+  | { festivalToday: string }
   /** Todos os gatos abrigados já castrados (ela sabe: passaram pela clínica) e sem doença (ex.: para ter a feira). */
   | { catsReady: true }
   /** Gatos que podem ir à feira de adoção (castrados, sem doença, fora da clínica, fora os da história). */
@@ -382,6 +385,8 @@ export interface Content {
   shops: ShopsData['shops'];
   icons: IconsData;
   npcs: Record<string, NpcDef>;
+  /** Passeios de vizinhos na rua (data/npcs.json: walks). */
+  npcWalks: NeighborWalkDef[];
   scripts: Record<string, { steps: ScriptStep[] }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
@@ -515,7 +520,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -700,6 +705,7 @@ export function validateContent(raw: RawContent): string[] {
   const npcIds = new Set(raw.npcs.npcs.map((n) => n.id));
   const scriptIds = new Set(Object.keys(raw.scripts.scripts));
   for (const n of raw.npcs.npcs) if (!n.id.startsWith('npc.')) err(`npc: id "${n.id}" deve começar com "npc."`);
+  errors.push(...validateWalks(raw.npcs.walks, { npcs: npcIds, maps: new Set(raw.maps.map((m) => m.id)), variants: new Set(Object.keys(raw.catSprites.variants)) }));
   errors.push(
     ...validateScripts(raw.scripts, {
       npcs: npcIds,

@@ -839,6 +839,44 @@
           "giveItem": "item.xmas_wreath"
         }
       ]
+    },
+    {
+      "id": "story.jacque_meet",
+      "act": 2,
+      "after": [
+        "story.inauguration"
+      ],
+      "when": {
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "10:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "17:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.jacque_meet"
+        },
+        {
+          "setFlag": "met.jacque"
+        }
+      ],
+      "exclusive": true
     }
   ]
 }
