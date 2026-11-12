@@ -2342,14 +2342,14 @@ export class GameSession {
   }
 
   /**
-   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay) e, na primeira
-   * conversa do dia, os corações. Conversando de novo no mesmo dia, a fala curta de "amanhã tem mais" (chatAgain).
+   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay; de novo no mesmo
+   * dia, a mesma) e, na primeira conversa do dia, os corações.
    */
   neighborChat(npc: string): string | null {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     const line = def && chatOfDay(def, this.state.day);
     if (!def || !line) return null;
-    if (this.neighborChatOn[npc] === this.state.day) return def.chatAgain ?? line;
+    if (this.neighborChatOn[npc] === this.state.day) return line;
     this.neighborChatOn[npc] = this.state.day;
     addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
     this.bus.emit('npc.chatted', { npc, points: def.points });
