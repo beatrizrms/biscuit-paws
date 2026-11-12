@@ -166,8 +166,25 @@ export class CafeService {
   }
 
   /** Perto do armário da cozinha (despensa)? */
+  /** A célula da ação de um móvel fixo (armário, pia): o móvel dela onde estiver, ou a célula dos dados. */
+  private fixtureCell(role: 'pantry' | 'sink'): Cell {
+    const f = this.cfg.fixtures?.find((x) => x.role === role);
+    const p = f && this.st.placed.find((x) => x.item === f.item);
+    return p ? [p.at[0] + f.use[0], p.at[1] + f.use[1]] : role === 'pantry' ? this.cfg.pantry : this.cfg.sink;
+  }
+
+  /** A célula da frente do armário da despensa (onde ele estiver). */
+  pantryCell(): Cell {
+    return this.fixtureCell('pantry');
+  }
+
+  /** A célula da pia (onde ela estiver). */
+  sinkCell(): Cell {
+    return this.fixtureCell('sink');
+  }
+
   pantryNear(feet: readonly Cell[]): boolean {
-    return near(feet, this.cfg.pantry);
+    return near(feet, this.pantryCell());
   }
 
   /** Guarda na despensa os ingredientes da mochila (no café): todos, ou só os pacotes de `itemId`. */
@@ -1071,7 +1088,7 @@ export class CafeService {
   // ---------- Pia ----------
 
   sinkNear(feet: readonly Cell[]): boolean {
-    return near(feet, this.cfg.sink);
+    return near(feet, this.sinkCell());
   }
 
   /** O que a pia faria com um E agora: receber a louça suja das mãos ou começar a lavar. */

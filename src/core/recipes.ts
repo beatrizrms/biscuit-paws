@@ -119,6 +119,8 @@ export interface ServiceConfig {
   sink: Cell;
   /** Armário da cozinha (despensa): a célula da frente, onde ela guarda os ingredientes e vê o que tem. */
   pantry: Cell;
+  /** O armário e a pia como móveis dela (mudam de lugar): onde ficam num jogo novo e a célula da ação a partir do canto. */
+  fixtures?: { item: string; at: Cell; use: Cell; role: 'pantry' | 'sink' }[];
   /** Quanta louça cabe na pia e quantos minutos leva cada peça. */
   sinkCapacity: number;
   washMinutesPerDish: number;

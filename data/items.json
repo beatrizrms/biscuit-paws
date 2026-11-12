@@ -221,6 +221,28 @@
       }
     },
     {
+      "id": "item.pantry_cabinet",
+      "name": "Armário da despensa",
+      "description": "O armário da cozinha onde ficam os ingredientes. Dá para mudar de lugar.",
+      "price": 0,
+      "tile": "ph_pantry_cabinet",
+      "tags": [
+        "furniture",
+        "fixture"
+      ]
+    },
+    {
+      "id": "item.kitchen_sink",
+      "name": "Balcão com pia",
+      "description": "A pia onde a louça é lavada. Dá para mudar de lugar.",
+      "price": 0,
+      "tile": "eq_pia",
+      "tags": [
+        "furniture",
+        "fixture"
+      ]
+    },
+    {
       "id": "item.food_bowl",
       "name": "Tigela de ração",
       "description": "Encha com ração todo dia para alimentar os gatos.",

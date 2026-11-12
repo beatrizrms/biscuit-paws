@@ -202,6 +202,7 @@ export type ActionResult =
         | 'too_early'
         | 'customers_inside'
         | 'cannot_put_here'
+        | 'fixture_stays'
         | 'parcel_only_inside'
         | 'cart_empty'
         | QuoteProblem
@@ -306,6 +307,10 @@ export class GameSession {
     this.clinic.ensureRepro();
     // Save de antes da caixinha de transporte: castrado que já estava na caixinha (sem vaga) continua nela.
     this.clinic.boxLeftovers();
+    // O armário da despensa e a pia viraram móveis dela (mudam de lugar): jogo novo e save antigo ganham no lugar de sempre.
+    for (const f of content.service.fixtures ?? []) {
+      if (!state.placed.some((p) => p.item === f.item)) state.placed.push({ uid: `fx.${f.role}`, item: f.item, at: [...f.at] as Cell });
+    }
     for (const d of state.deliveries) if (d.stage === 'inside' && !d.at) d.at = [...content.delivery.inside.at];
     // Save de outra estação (ou de antes das caixas): enfeite fora de época vai para a caixa dele.
     this.packOutOfSeason();
@@ -4416,6 +4421,8 @@ export class GameSession {
   storePlaced(uid: string): ActionResult {
     const group = this.movingGroup(uid);
     if (group.length === 0) return { ok: false, reason: 'not_found' };
+    // O armário da despensa e a pia: mudam de lugar, mas não saem do café.
+    if (group.some((p) => this.content.items[p.item]?.tags.includes('fixture'))) return { ok: false, reason: 'fixture_stays' };
     const def = this.content.catalog.tiles[this.content.items[group[0]!.item]?.tile ?? ''];
     const cells = def ? cellsOf(group[0]!.at, def) : [group[0]!.at];
     if (this.state.surfaces.some((s) => cells.some(([c, r]) => c === s.at[0] && r === s.at[1]))) return { ok: false, reason: 'has_something_on_top' };

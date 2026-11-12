@@ -1029,6 +1029,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
       return true;
     }
+    if (this.session.activeItem() === this.session.content.clinic.pen.food) {
+      this.ui.problem('nobody_here');
+      return true;
+    }
     // Remédio (ou outra ferramenta) ativo: o E segue para o gato (o remédio escondido do pós-cirurgia).
     if (st.hands.length > 0 || st.tray || this.session.holdingMedicine() || this.session.careGameInHand()) return false;
     // De mãos livres: pega quem precisa ir à clínica primeiro (consulta ou pontinho), senão o primeiro.
@@ -1723,12 +1727,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const sv = s.service;
       const customer = sv.customerToServe(feet);
       if (customer) return cell(customer.spot, 'customer');
-      if (sv.sinkNear(feet) && sv.sinkAction()) return cell(s.content.service.sink, 'sink');
+      if (sv.sinkNear(feet) && sv.sinkAction()) return cell(sv.sinkCell(), 'sink');
       const washer = sv.washerNear(feet);
       if (washer && sv.isBroken(washer) && !sv.isRepairing(washer) && st.hands.length === 0) return cell(st.placed.find((p) => p.uid === washer)!.at, 'repair');
       if (washer && sv.washerAction(washer)) return cell(st.placed.find((p) => p.uid === washer)!.at, 'washer');
       // Armário da cozinha (despensa), de mãos livres: a dica em cima dele.
-      const pantry = s.content.service.pantry;
+      const pantry = sv.pantryCell();
       if (st.hands.length === 0 && sv.pantryNear(feet) && !this.stationAhead(feet) && !this.interactionAhead(feet)) return cell(pantry, 'pantry'); // no meio do armário: no alto, o balão de metas cobre
       const petBox = st.hands.length === 0 && !this.stationAhead(feet) && !this.interactionAhead(feet) ? s.storageNear(feet) : undefined;
       if (petBox) return cell(st.placed.find((p) => p.uid === petBox)!.at, 'pet_box');
@@ -2354,7 +2358,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const customer = sv.customerToServe(feet);
     if (customer && !target) return report(sv.serve(customer.id));
     // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
-    const sink = this.session.content.service.sink;
+    const sink = sv.sinkCell();
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
       const act = sv.sinkAction();
       if (act === 'deposit') return report(sv.depositDirty());
@@ -2369,7 +2373,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (act === 'wash') return report(this.withPose(sv.startWasher(washer), 'operate'));
     }
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
-    const pantry = this.session.content.service.pantry;
+    const pantry = sv.pantryCell();
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
     // Equipamento bem na frente dela (o bule ao lado do armário) ganha da despensa.
     // A janela (ou outra interação) na direção em que ela olha ganha da despensa ao lado.
@@ -2871,7 +2875,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const sheet = (tilesetsJson.sheets as { id: string; animation?: { columns: number; work: number[]; dirty?: number; clean?: number } }[]).find((s) => s.id === 'sink');
     if (!sheet?.animation) return;
     const ts = this.map.tileSize;
-    const [c, r] = this.session.content.service.sink;
+    const [c, r] = sv.sinkCell();
     if (!this.sinkSprite || !this.sinkSprite.active) {
       this.sinkSprite = this.add.sprite(c * ts, r * ts, 'anim:sink', 0).setOrigin(0).setScale(tileScale('sink')).setDepth(ySortDepth((r + 1) * ts) + 1).setVisible(false);
       const [a, b] = sheet.animation.work as [number, number];
@@ -3275,7 +3279,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** A volta da castração: guarda a entrega; no café, a cena já começa (fora dele, espera ela entrar). */
   private queueVetDelivery(d: { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number }): void {
-    const lines = [vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays }, d.catId)];
+    const cans = this.session.content.clinic.procedures.find((p) => p.id === 'proc.neuter')?.recoveryCans ?? 0;
+    const lines = [vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays, cans }, d.catId)];
     // A primeira vez: o cercadinho com fraldas e as latinhas.
     if (d.first) lines.push(vetLine(this.session, 'neuter.diapers', {}, d.catId));
     this.vetDeliveries.push({ catId: d.catId, lines });

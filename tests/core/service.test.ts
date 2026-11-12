@@ -710,7 +710,7 @@ describe('mudar móvel de lugar', () => {
     expect(session.storePlaced(counter.uid)).toEqual({ ok: false, reason: 'has_something_on_top' });
     state.surfaces.length = 0;
     expect(session.storePlaced(counter.uid)).toEqual({ ok: true });
-    expect(state.placed).toHaveLength(0);
+    expect(state.placed.filter((p) => !p.uid.startsWith('fx.'))).toHaveLength(0);
     expect(state.inventory['item.counter_single']).toBe(1);
     expect(state.inventory['item.coffee_machine']).toBe(1);
   });

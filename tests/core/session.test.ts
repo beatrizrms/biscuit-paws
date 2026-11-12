@@ -321,11 +321,11 @@ describe('dinheiro e inventário', () => {
   it('recolher devolve ao inventário e o uid não é reaproveitado', () => {
     const { session } = newSession();
     buyAndPlace(session, 'item.cactus', [10, 8]);
-    expect(session.state.placed[0]!.uid).toBe('p1');
+    expect(session.state.placed.filter((p) => !p.uid.startsWith('fx.'))[0]!.uid).toBe('p1');
     expect(session.pickUp('p1')).toEqual({ ok: true });
     expect(session.state.inventory).toEqual({ 'item.broom': 1, 'item.cactus': 1 });
     expect(session.place('item.cactus', [10, 8])).toEqual({ ok: true });
-    expect(session.state.placed[0]!.uid).toBe('p2');
+    expect(session.state.placed.filter((p) => !p.uid.startsWith('fx.'))[0]!.uid).toBe('p2');
   });
 
   it('acha o móvel da jogadora pela célula, inclusive nas células de cima de peças altas', () => {
@@ -410,7 +410,7 @@ describe('devolução', () => {
     const { session } = newSession();
     buyAndPlace(session, 'item.cactus', [10, 8]);
     expect(session.refund('item.cactus')).toEqual({ ok: false, reason: 'not_in_inventory' });
-    session.pickUp(session.state.placed[0]!.uid);
+    session.pickUp(session.state.placed.filter((p) => !p.uid.startsWith('fx.'))[0]!.uid);
     expect(session.refund('item.cactus')).toEqual({ ok: true });
     expect(session.state.money).toBe(150);
   });

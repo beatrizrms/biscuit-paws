@@ -32,7 +32,7 @@ describe('caixa de enfeites de Natal', () => {
     state.inventory['item.xmas_stocking'] = 2;
     state.inventory['item.knit_scarf'] = 1; // presente, não é enfeite
     session.endDay('home');
-    expect(state.placed.map((p) => p.item)).toEqual(['item.cactus']);
+    expect(state.placed.filter((p) => !p.uid.startsWith('fx.')).map((p) => p.item)).toEqual(['item.cactus']);
     expect(state.xmasBox).toEqual({ 'item.christmas_tree': 1, 'item.xmas_wreath': 1, 'item.xmas_stocking': 2 });
     expect(state.inventory[BOX]).toBe(1);
     expect(state.inventory['item.xmas_stocking']).toBeUndefined();
@@ -113,7 +113,7 @@ describe('caixa de enfeites de Halloween', () => {
     state.inventory['item.hw_ghost'] = 1;
     state.inventory['item.xmas_stocking'] = 1;
     session.endDay('home');
-    expect(state.placed).toEqual([]);
+    expect(state.placed.filter((p) => !p.uid.startsWith('fx.'))).toEqual([]);
     expect(state.xmasBox).toEqual({ 'item.hw_pumpkin': 1, 'item.hw_bats': 1, 'item.hw_ghost': 1 });
     expect(state.inventory[HW]).toBe(1);
     expect(state.inventory[BOX]).toBeUndefined();
@@ -151,7 +151,7 @@ describe('enfeite fora de época', () => {
     state.day = S.daysPerSeason + 3;
     state.placed.push({ uid: 'p1', item: 'item.xmas_lights', at: [5, 1] });
     new GameSession(content, state);
-    expect(state.placed).toEqual([]);
+    expect(state.placed.filter((p) => !p.uid.startsWith('fx.'))).toEqual([]);
     expect(state.xmasBox).toEqual({ 'item.xmas_lights': 1 });
   });
 
@@ -159,6 +159,6 @@ describe('enfeite fora de época', () => {
     const { session, state } = cafe(10);
     state.placed.push({ uid: 'p1', item: 'item.christmas_tree', at: [3, 6] });
     session.packOutOfSeason();
-    expect(state.placed.map((p) => p.item)).toEqual(['item.christmas_tree']);
+    expect(state.placed.filter((p) => !p.uid.startsWith('fx.')).map((p) => p.item)).toEqual(['item.christmas_tree']);
   });
 });

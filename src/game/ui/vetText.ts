@@ -11,7 +11,7 @@ export function vetLine(session: GameSession, path: string, vars: Record<string,
   const group = content.vetText[section];
   const raw = group && typeof group === 'object' ? (group[key] ?? '') : '';
   const sex = catId ? session.state.cats[catId]?.repro?.sex : undefined;
-  const withVars = raw.replace(/\{(cat|day|days|aftercare|disease|price)\}/g, (_m, k: string) => (k === 'cat' && catId && vars.cat === undefined ? session.catName(catId) : String(vars[k] ?? '')));
+  const withVars = raw.replace(/\{(cat|day|days|aftercare|disease|price|cans)\}/g, (_m, k: string) => (k === 'cat' && catId && vars.cat === undefined ? session.catName(catId) : String(vars[k] ?? '')));
   return fillNames(session, sex ? sexText(withVars, sex) : withVars.replace(/\{sex:([^|{}]*)\|[^{}]*\}/g, '$1'));
 }
 

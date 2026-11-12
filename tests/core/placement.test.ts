@@ -116,7 +116,7 @@ describe('peças pequenas em superfícies e portas escondidas', () => {
     expect(s.pickUp(dresser.uid)).toEqual({ ok: false, reason: 'has_something_on_top' });
     expect(s.movingGroup(dresser.uid)).toHaveLength(3);
     expect(s.move(dresser.uid, [19, 8])).toEqual({ ok: true });
-    expect(s.state.placed.filter((p) => p.item !== 'item.bedroom_dresser').map((p) => p.at)).toEqual([[19, 8], [20, 8]]);
+    expect(s.state.placed.filter((p) => p.item !== 'item.bedroom_dresser').filter((p) => !p.uid.startsWith('fx.')).map((p) => p.at)).toEqual([[19, 8], [20, 8]]);
     // No mapa, sobem até o tampo da cômoda.
     const lift = content.items['item.bedroom_dresser']!.topLift;
     expect(s.mapData().objects.filter((o) => o.lift === lift).length).toBe(2);

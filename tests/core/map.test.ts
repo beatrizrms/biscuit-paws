@@ -4,8 +4,11 @@ import { reachableCells, resolveMap, solidRects, validateMap, type MapData } fro
 import { frameOf, getTile } from '../../src/core/tiles';
 import { variantAt } from '../../src/core/map';
 import { loadContent } from './content';
+import { GameSession } from '../../src/core/session';
+import { newGameState } from '../../src/core/state';
 
-const { catalog } = loadContent();
+const content = loadContent();
+const { catalog } = content;
 const cafe = JSON.parse(readFileSync('data/maps/cafe_main.json', 'utf8')) as MapData;
 
 /** Mapa mínimo 4x4: parede em cima, madeira embaixo. */
@@ -29,13 +32,14 @@ describe('cafe_main.json', () => {
   });
 
   it('o salão é a loja velha e vazia: só paredes sólidas, a pia velha e o armário da cozinha no canto, nenhum móvel nem balcão', () => {
-    const { solid } = resolveMap(cafe, catalog);
+    // A pia e o armário são móveis dela (mudam de lugar), que todo café já tem.
+    const { solid } = resolveMap(new GameSession(content, newGameState(0, 'map.cafe_main')).mapData('map.cafe_main'), catalog);
     const hall = solid.map((line) => line.slice(0, 16));
     for (let r = 0; r <= 2; r++) expect(hall[r]!.every(Boolean)).toBe(true);
     expect(hall[3]![0]).toBe(true); // a pia
     expect(hall[3]![1]).toBe(true); // o armário da cozinha (despensa)
     for (let r = 3; r < 11; r++) expect(hall[r]!.some((s, c) => s && !(r === 3 && c <= 1))).toBe(false);
-    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'doormat', 'eq_pia', 'ph_pantry_cabinet'])); // a entrada é embaixo, só o capacho
+    expect(new Set(cafe.objects.map((o) => o.tile))).toEqual(new Set(['window', 'doormat'])); // a entrada é embaixo, só o capacho
     for (const letter of ['P', 'R', 'X', 'M']) expect(cafe.legend[letter]!.endsWith('_old')).toBe(true);
   });
 

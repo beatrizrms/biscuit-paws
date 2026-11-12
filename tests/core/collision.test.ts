@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { playerBlockBoxes, solidBoxes, solidGrid } from '../../src/core/map';
 import { loadContent } from './content';
+import { GameSession } from '../../src/core/session';
+import { newGameState } from '../../src/core/state';
 
 const content = loadContent();
-const cafe = content.map;
+// O café com os móveis de sempre (a pia e o armário da despensa são móveis dela).
+const cafe = new GameSession(content, newGameState(0, 'map.cafe_main')).mapData('map.cafe_main');
 const ts = cafe.tileSize;
 
 describe('colisão em pixels', () => {
