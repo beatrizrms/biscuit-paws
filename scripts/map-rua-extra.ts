@@ -244,11 +244,11 @@ function legendMaker() {
     objects: [
       // O varal preso no muro.
       obj('varal', 'beco_varal', [5, 3]),
-      // A caçamba, a lixeira e os caixotes encostados no muro.
+      // A caçamba e as lixeiras encostadas no muro, cada uma com um caixote do lado (uma em cada ponta do beco).
       obj('cacamba', 'beco_cacamba', [1, 5]),
       obj('lixeira_1', 'prop_lixeira', [3, 6]),
-      obj('caixote_1', 'beco_caixote', [8, 6]),
-      obj('caixote_2', 'beco_caixote_b', [9, 6]),
+      obj('caixote_1', 'beco_caixote', [4, 6]),
+      obj('caixote_2', 'beco_caixote_b', [19, 6]),
       obj('lixeira_3', 'prop_lixeira', [18, 6]),
       // A colônia: caixinhas de papelão (abrigo) num canto mais quieto.
       obj('abrigo_1', 'prop_caixa_gato_manta', [12, 6]),
