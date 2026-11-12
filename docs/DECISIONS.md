@@ -848,3 +848,7 @@ Decisão: com a vassoura na mão, a sujeira à frente dela (na direção do olha
 ## 206. Feira: só gatos castrados na lista (nov/2026)
 Pedido: na montagem da feira, mostrar só os gatos castrados.
 Decisão: os gatos do café entram na feira (montagem e mesa de adoção) só com a castração confirmada (`repro.known: neutered`), além de fora do cercadinho/clínica como antes; sem registro de castração (gato gerado pelo debug, save antigo), não entram. Os gatos que foram para o abrigo da vila (café cheio) continuam entrando: o abrigo castra antes da feira.
+
+## 207. O abrigo é o café: sem "abrigo da vila" (nov/2026)
+Pedido: não existe abrigo fora do café; com o café cheio, só chega o próximo gato quando houver vaga; o mini game de adoção usa só os gatos do café.
+Decisão: com o café cheio, nenhuma chegada começa (a fila espera abrir vaga, pela adoção na feira); `whenFull` ficou sem efeito. A chegada aceita sempre põe o gato no café (os filhotes de uma ninhada entram juntos, mesmo passando da vaga). Sem provisório: o de saves antigos fica de vez na virada do dia, e quem estava no "abrigo da vila" (`arrivals.shelterPool`) volta para o café ao carregar (`absorbShelterPool`; a lista fica vazia). Na feira (montagem e mesa de adoção) só os gatos castrados do café; sem nenhum, a montagem e a mesa avisam (`no_fair_cats`) em vez de abrir com gatos de fora. A lista fixa de `adoption.json` fica só para o debug. Debug "gerar gato" põe no café, sem provisório.

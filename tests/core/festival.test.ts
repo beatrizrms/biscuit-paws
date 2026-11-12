@@ -163,6 +163,13 @@ describe('festivais na sessão', () => {
     state.cats['cat.gen.a']!.repro = { ...state.cats['cat.gen.a']!.repro!, status: 'neutered', known: 'unknown' };
     expect(session.miniGameExtras(setup).adoptCats?.map((c) => c.id)).not.toContain('cat.gen.a');
     state.cats['cat.gen.a']!.repro = { ...state.cats['cat.gen.a']!.repro!, known: 'neutered' };
+    // Nenhum castrado: a montagem avisa em vez de abrir (não vem gato de fora: o abrigo é o café).
+    const all = Object.keys(state.cats).filter((id) => state.cats[id]!.repro);
+    const keep = Object.fromEntries(all.map((id) => [id, state.cats[id]!.repro!]));
+    for (const id of all) state.cats[id]!.repro = { ...keep[id]!, known: 'unknown' };
+    expect(session.jobPointProblem(setup)).toBe('no_fair_cats');
+    for (const id of all) state.cats[id]!.repro = keep[id]!;
+    expect(session.jobPointProblem(setup)).toBeNull();
     const fairSetup = { cats: ['cat.gen.b'], visitors: 7, extraFamilies: 2 };
     session.finishMiniGame(makeResult(content.minigames, 'fair_setup', 'normal', 'great', 90, false, { fairSetup }), { difficulty: 'normal', jobPoint: setup });
     expect(state.festivals.active!.results[0]).toMatchObject({ game: 'fair_setup', setup: fairSetup });

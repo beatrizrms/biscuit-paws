@@ -308,6 +308,8 @@ export class GameSession {
       const looks = this.content.service.customerLooks;
       if (c && looks.length > 0) this.ced.customerPaid(looks[c.look % looks.length]!, customerId);
     });
+    // Save de antes da regra "o abrigo é o café": quem estava no abrigo da vila volta para o café.
+    this.arrivals.absorbShelterPool();
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
     // Save de antes da caixinha de transporte: castrado que já estava na caixinha (sem vaga) continua nela.
@@ -1510,8 +1512,12 @@ export class GameSession {
   }
 
   /** Por que ela não pode fazer este ponto agora (ou null): a interface confere antes de tocar a varrida. */
-  jobPointProblem(pointId: string): 'needs_broom' | null {
-    return this.content.jobPoints[pointId]?.action === 'sweep' ? this.toolProblem('sweep') : null;
+  jobPointProblem(pointId: string): 'needs_broom' | 'no_fair_cats' | null {
+    if (this.content.jobPoints[pointId]?.action === 'sweep') return this.toolProblem('sweep');
+    // Feira sem nenhum gato castrado no café: não tem quem levar (o abrigo é o café; não vem gato de fora).
+    const game = this.activeFestival()?.activities.find((a) => a.point === pointId)?.game;
+    if ((game === 'fair_setup' || game === 'adoption') && (this.miniGameExtras(pointId).adoptCats?.length ?? 0) === 0) return 'no_fair_cats';
+    return null;
   }
 
   jobPointNear(feet: readonly Cell[], target?: Cell): JobPoint | undefined {
@@ -2984,17 +2990,10 @@ export class GameSession {
   }
 
   /**
-   * Ponto de integração da adoção: um gato do café que foi adotado (match "boa") sai do café. Os gatos do abrigo
-   * da vila (adopt.*) não estão no café, e os da história (adoption.json: protectedCats) nunca saem.
-   * Devolve se o gato saiu.
+   * Ponto de integração da adoção: um gato do café que foi adotado (match "boa") sai do café. Os da história
+   * (adoption.json: protectedCats) nunca saem. Devolve se o gato saiu.
    */
   adoptOut(catId: string): boolean {
-    // Do abrigo da vila (café estava cheio): ganhou família e sai da lista.
-    const pool = this.state.arrivals.shelterPool;
-    if (pool.includes(catId)) {
-      this.state.arrivals.shelterPool = pool.filter((id) => id !== catId);
-      return true;
-    }
     const cat = this.state.cats[catId];
     if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId) || this.clinic.adoptionBlock(catId)) return false;
     cat.sheltered = false;
@@ -3692,11 +3691,11 @@ export class GameSession {
     if (game === 'photo') return { contestCats: this.contestExtras().contestCats };
     if (!fest || (game !== 'adoption' && game !== 'fair_setup')) return {};
     const protectedCats = this.content.adoption.protectedCats;
-    // Só gatos castrados: os do café com a castração confirmada (e fora do cercadinho/clínica; sem registro de castração,
-    // não vai) e os que foram para o abrigo da vila (o abrigo castra antes da feira).
+    // O abrigo é o café: só os gatos do café castrados (castração confirmada; sem registro, não vai) e fora do
+    // cercadinho/clínica.
     const neutered = (id: string) => this.state.cats[id]?.repro?.known === 'neutered';
-    const cats = [...this.shelteredCats().filter((id) => neutered(id) && !this.clinic.adoptionBlock(id)), ...this.state.arrivals.shelterPool]
-      .filter((id) => !protectedCats.includes(id) && this.catDef(id))
+    const cats = this.shelteredCats()
+      .filter((id) => neutered(id) && !this.clinic.adoptionBlock(id) && !protectedCats.includes(id) && this.catDef(id))
       .map((id) => {
         const def = this.catDef(id)!;
         return { id, name: this.catName(id), variant: def.variant, personality: def.personality, ...(def.adoptionTraits ? { adoptionTraits: def.adoptionTraits } : {}) };

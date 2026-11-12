@@ -1,6 +1,6 @@
 // O sistema de chegadas na sessão (como o CafeService): põe chegadas na fila, começa a da vez quando não há outro
 // evento exclusivo, cria o gato (fixo ou gerado), e no fim abriga o gato conforme a vaga: no café, provisório
-// (café cheio, com prazo) ou no abrigo da vila (entra na feira de adoção). As etapas de cada modelo (seguir a pista,
+// (saves antigos; o abrigo é o café: com ele cheio, nenhuma chegada começa). As etapas de cada modelo (seguir a pista,
 // mini game, escolha) vêm a partir da etapa (b); aqui ficam o ciclo e as regras de vaga e ritmo.
 // Puro: sem Phaser, DOM ou window.
 import { stepsOf } from './arrivalModels';
@@ -140,16 +140,19 @@ export class ArrivalSystem {
     return this.debug.cafeFull ? 0 : this.h.capacity();
   }
 
-  /** Começa a primeira da fila, se nada exclusivo está acontecendo (e, se ela adia com o café cheio, se há vaga). */
+  /**
+   * Começa a primeira da fila, se nada exclusivo está acontecendo. O abrigo é o próprio café: com ele cheio, nenhum gato
+   * novo chega (a fila espera abrir vaga, por adoção na feira).
+   */
   private tryStart(): void {
     if (this.st.active) return;
+    if (this.h.shelteredCount() >= this.capacity()) return;
     // Urgente (em_perigo) não espera os marcos exclusivos da história.
     const exclusive = this.h.exclusiveActive();
-    const full = this.h.shelteredCount() >= this.capacity();
     // gato_leva precisa de um gato do café para guiar.
     const i = this.st.queue.findIndex((id) => {
       const def = this.def(id);
-      return def && (!exclusive || def.priority) && !(def.whenFull === 'postpone' && full) && !(def.model === 'gato_leva' && this.h.guideCats().length === 0);
+      return def && (!exclusive || def.priority) && !(def.model === 'gato_leva' && this.h.guideCats().length === 0);
     });
     if (i < 0) return;
     const [id] = this.st.queue.splice(i, 1);
@@ -360,8 +363,8 @@ export class ArrivalSystem {
   }
 
   /**
-   * Fim da chegada. Aceito: o gato entra no café (se houver vaga), fica provisório ou vai para o abrigo da vila,
-   * conforme whenFull; o resultado (afeto, vizinho, moedas) vale. Recusado ou não deu: o gato gerado some.
+   * Fim da chegada. Aceito: o gato entra no café (a chegada só começa com vaga; os filhotes de uma ninhada entram
+   * juntos, mesmo passando da vaga); o resultado (afeto, vizinho, moedas) vale. Recusado ou não deu: o gato gerado some.
    */
   finish(outcome: 'accepted' | 'declined' | 'failed'): Placement {
     const a = this.st.active;
@@ -371,18 +374,14 @@ export class ArrivalSystem {
     this.st.active = null;
     let placement: Placement = null;
     if (outcome === 'accepted') {
-      // Cada gato (o principal e os filhotes da ninhada) pela vaga: no café, provisório ou abrigo da vila.
       // Regra geral: o gato entra no café na hora, ainda assustado, e precisa da confiança (mini game trust) para
       // ficar de boa. Quem já ganhou a confiança na chegada (o do poste, o de dentro do café) entra tranquilo.
       const trusted = stepsOf(def).some((st) => 'minigame' in st && st.minigame.id === 'trust');
       const place = (catId: string, condition: string, settling: boolean): Placement => {
-        const full = this.h.shelteredCount() >= this.capacity();
-        const where: Placement = !full ? 'sheltered' : def.whenFull === 'adoption' ? 'shelter_pool' : 'provisional';
         // Estado reprodutivo pelo modelo da chegada e pelo que ela declara (filhote da ninhada: a chance da condição).
         const repro: ArrivalReproInput = { model: def.model, condition, ...(catId === a.catId ? def.repro : {}) };
-        if (where === 'shelter_pool') this.st.shelterPool.push(catId);
-        else this.h.shelterCat(catId, condition, where === 'provisional' ? s.day + this.data.provisional.days : undefined, a.treated, settling, repro);
-        return where;
+        this.h.shelterCat(catId, condition, undefined, a.treated, settling, repro);
+        return 'sheltered';
       };
       placement = place(a.catId, a.condition, !trusted);
       // Os filhotes da ninhada seguem a mãe (sem confiança à parte).
@@ -403,24 +402,32 @@ export class ArrivalSystem {
   }
 
   /**
-   * Virada do dia: provisório vira de casa quando abre vaga; o prazo vencido sem vaga leva o gato para o abrigo da
-   * vila (entra na próxima feira de adoção).
+   * Virada do dia: gato provisório (de saves de antes da regra) fica de vez. O abrigo é o café: ninguém sai dele por
+   * falta de vaga.
    */
-  dayEnded(newDay: number): void {
-    const s = this.h.state;
-    const provisional = Object.entries(s.cats).filter(([, c]) => c.sheltered && c.provisionalUntil !== undefined);
-    for (const [id, cat] of provisional) {
-      const permanent = Object.values(s.cats).filter((c) => c.sheltered && c.provisionalUntil === undefined).length;
-      if (permanent < this.capacity()) {
-        delete cat.provisionalUntil;
-        this.h.bus.emit('arrival.provisional_settled', { catId: id });
-      } else if (newDay > cat.provisionalUntil!) {
-        cat.sheltered = false;
-        delete cat.provisionalUntil;
-        this.st.shelterPool.push(id);
-        this.h.bus.emit('arrival.provisional_expired', { catId: id });
-      }
+  dayEnded(_newDay: number): void {
+    for (const [id, cat] of Object.entries(this.h.state.cats)) {
+      if (!cat.sheltered || cat.provisionalUntil === undefined) continue;
+      delete cat.provisionalUntil;
+      this.h.bus.emit('arrival.provisional_settled', { catId: id });
     }
+  }
+
+  /**
+   * Saves de antes da regra: os gatos que tinham ido para o "abrigo da vila" (café cheio, provisório vencido) voltam
+   * para o café, que é o abrigo.
+   */
+  absorbShelterPool(): void {
+    const s = this.h.state;
+    for (const id of this.st.shelterPool) {
+      if (!s.catDefs[id] && !this.h.content.cats[id]) continue;
+      const cat = s.cats[id];
+      if (cat) {
+        cat.sheltered = true;
+        delete cat.provisionalUntil;
+      } else this.h.shelterCat(id, 'healthy');
+    }
+    this.st.shelterPool = [];
   }
 
   /** Debug e testes: põe uma chegada na fila agora (ignora o gatilho, respeita a vez). */
@@ -437,9 +444,7 @@ export class ArrivalSystem {
     this.st.seq++;
     const gen = generateCat(this.rng(), this.h.content.catProfiles, { personality, condition }, this.st.seq);
     this.h.state.catDefs[gen.def.id] = gen.def;
-    const full = this.h.shelteredCount() >= this.capacity();
-    if (full) this.h.shelterCat(gen.def.id, condition, this.h.state.day + this.data.provisional.days);
-    else this.h.shelterCat(gen.def.id, condition);
+    this.h.shelterCat(gen.def.id, condition);
     return gen.def.id;
   }
 

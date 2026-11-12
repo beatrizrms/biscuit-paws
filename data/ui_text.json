@@ -258,6 +258,7 @@
     "no_cells": "Nada para trocar nessa área.",
     "too_far": "Preciso chegar mais perto.",
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
+    "no_fair_cats": "Nenhum gato castrado no café para a feira. Castre os gatos na clínica da Fernanda.",
     "needs_food": "Preciso da ração na mão. Escolha ela na barra (teclas 1 a 8).",
     "needs_treat": "Preciso do petisco na mão. Escolha ele na barra (teclas 1 a 8).",
     "needs_medicine": "Preciso do remédio na mão. Escolha ele na barra (teclas 1 a 8).",
@@ -1268,11 +1269,11 @@
     "finished": {
       "sheltered": "Um gato novo no café!",
       "provisional": "O café está cheio... o gato fica provisório por {days} dias, até abrir vaga.",
-      "shelter_pool": "O café está cheio: o gato vai para o abrigo da vila e entra na próxima feira de adoção.",
+      "shelter_pool": "O café está cheio: o próximo gato só chega quando abrir vaga.",
       "declined": "O gato seguiu o caminho dele."
     },
     "settled": "Abriu vaga: o gato provisório ficou de vez!",
-    "expired": "Sem vaga no café... o gato provisório foi para o abrigo da vila.",
+    "expired": "O gato provisório ficou de vez no café.",
     "ask": {
       "question": "Os vizinhos olham para o gato lá em cima. Quem você ouve?",
       "option": "{npc}: \"{tip}\""
