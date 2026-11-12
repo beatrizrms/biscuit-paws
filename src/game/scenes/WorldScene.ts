@@ -104,6 +104,9 @@ const GHOST_DEPTH = 100_000;
 /** A sujeira até tantas células dela deixa o HUD transparente em cima (a varrida alcança 2); recalcula a cada tanto (ms). */
 const DIRT_FADE_CELLS = 3;
 const DIRT_FADE_EVERY_MS = 150;
+/** Vizinho passeando: o balãozinho sai quando ele passa a até tantas células dela e fica tanto tempo (ms). */
+const NEIGHBOR_BARK_CELLS = 3;
+const NEIGHBOR_BARK_MS = 3200;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
 const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
@@ -169,6 +172,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Vizinhos passeando neste mapa agora (data/npcs.json: walks) e os gatos que vão atrás. */
   private readonly neighborWalks = new Map<string, WalkFollowers>();
   private neighborWalksCheckedAt = -Infinity;
+  /** Quem já soltou o balãozinho neste passeio (uma vez por passeio, quando passa perto dela). */
+  private readonly walkBarked = new Set<string>();
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
   private repairNpcs = new Map<string, NpcSprite>();
   /** "!" em cima de cada equipamento quebrado. */
@@ -1937,6 +1942,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Os gatos seguem quem passeia; a cada meio segundo, começa o passeio de quem está na hora (um por dia). */
   private updateNeighborWalks(): void {
     for (const f of this.neighborWalks.values()) f.update();
+    // Passou perto dela: um balãozinho com aceno (uma vez por passeio; não com fala ou cena na tela).
+    if (!this.ui.isBusy() && !this.scripts.isRunning() && !this.changingMap) {
+      for (const id of this.neighborWalks.keys()) {
+        const npc = this.npcs.get(id);
+        if (!npc || this.walkBarked.has(id) || Math.hypot(npc.x - this.player.x, npc.y - this.player.y) > NEIGHBOR_BARK_CELLS * this.map.tileSize) continue;
+        this.walkBarked.add(id);
+        void this.neighborBark(id, npc);
+      }
+    }
     if (this.time.now - this.neighborWalksCheckedAt < 500 || this.changingMap || this.scripts.isRunning()) return;
     this.neighborWalksCheckedAt = this.time.now;
     for (const w of this.session.neighborWalksNow(this.map.id)) if (!this.neighborWalks.has(w.npc) && !this.npcs.has(w.npc)) void this.startNeighborWalk(w);
@@ -1945,6 +1959,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** O vizinho entra numa ponta da rua, atravessa (desviando do que for sólido) com os gatos atrás e some na outra. */
   private async startNeighborWalk(w: { npc: string; from: Cell; to: Cell; cats: WalkCat[] }): Promise<void> {
     this.session.markNeighborWalked(w.npc);
+    this.walkBarked.delete(w.npc);
     const free = ([c, r]: Cell): Cell => {
       for (let d = 0; d < 6; d++) for (const [dc, dr] of [[0, 0], [0, -d], [0, d], [d, 0], [-d, 0]] as const) if (this.map.solid[r + dr]?.[c + dc] === false) return [c + dc, r + dr];
       return [c, r];
@@ -1966,6 +1981,42 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.npcs.delete(w.npc);
     followers.leave();
     if (npc.active) await npc.leave();
+  }
+
+  /** O balãozinho do passeio: ela para, vira para a personagem, acena com a fala em cima da cabeça e segue andando. */
+  private async neighborBark(id: string, npc: NpcSprite): Promise<void> {
+    const text = this.session.neighborBark(id);
+    if (!text) return;
+    const tweens = this.tweens.getTweensOf(npc);
+    tweens.forEach((t) => t.pause());
+    const dx = this.player.x - npc.x;
+    npc.face(dx < 0 ? 'left' : 'right');
+    this.speechBubble(npc, fillNames(this.session, text), NEIGHBOR_BARK_MS);
+    await npc.act('acenar', 1100);
+    if (!npc.active) return;
+    tweens.forEach((t) => t.isPaused() && t.resume());
+    npc.resumeWalk();
+  }
+
+  /** Balão de fala creme com borda rosa em cima de alguém (acompanha quem fala) por `ms`. */
+  private speechBubble(target: Phaser.GameObjects.Sprite, text: string, ms: number): void {
+    const label = this.add.text(0, -9, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', color: '#5c3428', resolution: 4, align: 'center', wordWrap: { width: 150 } }).setOrigin(0.5, 1);
+    const w = Math.ceil(label.width) + 12;
+    const h = Math.ceil(label.height) + 6;
+    const g = this.add.graphics();
+    g.fillStyle(0xfff4e0, 1).fillRoundedRect(-w / 2, -6 - h, w, h, 5);
+    g.lineStyle(1.5, 0xd97890, 1).strokeRoundedRect(-w / 2, -6 - h, w, h, 5);
+    g.fillStyle(0xfff4e0, 1).fillTriangle(-4, -6.5, 4, -6.5, 0, -1);
+    g.lineStyle(1.5, 0xd97890, 1).lineBetween(-4, -6, 0, -1).lineBetween(4, -6, 0, -1);
+    const top = () => target.y - target.displayHeight + 6;
+    const bubble = this.add.container(target.x, top(), [g, label]).setDepth(160_000).setAlpha(0);
+    const follow = () => bubble.active && target.active && bubble.setPosition(target.x, top());
+    this.events.on('update', follow);
+    this.tweens.add({ targets: bubble, alpha: 1, duration: 150 });
+    this.time.delayedCall(ms, () => {
+      this.events.off('update', follow);
+      this.tweens.add({ targets: bubble, alpha: 0, duration: 300, onComplete: () => bubble.destroy() });
+    });
   }
 
   /** O vizinho passeando do lado dela (o NPC e a id). */

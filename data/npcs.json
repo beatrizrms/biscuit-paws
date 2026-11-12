@@ -554,7 +554,16 @@
         "A Amora tem um M desenhado na testa, todo tigrado tem. Eu digo que é de Mamãe.",
         "O Feijão tem a carinha e as patas escurinhas, parece que mergulhou no café."
       ],
-      "points": 10
+      "points": 10,
+      "barks": [
+        "Oi! Tudo bem por aí?",
+        "Boa tarde! Dia bom pra passear, né?",
+        "Vem, {cat}, não fica pra trás!",
+        "{cat}, devagar! Espera a mamãe.",
+        "{cat}, não é pra cheirar o poste!",
+        "Olha o café, {cat}! Lá dentro também tem gatinho.",
+        "Dá tchau, {cat}!"
+      ]
     }
   ]
 }

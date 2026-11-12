@@ -27,6 +27,11 @@ export interface NeighborWalkDef {
   chat: string[];
   /** Corações (pontos) da primeira conversa do dia. */
   points: number;
+  /**
+   * Balãozinho quando ela passa perto (sem E, uma vez por passeio): falas curtas, com {cat} = o nome de um dos gatos
+   * que estão com ela. Não gasta a frase do dia (chat).
+   */
+  barks?: string[];
 }
 
 /** Sorteio estável (0 a 1) por texto. */
@@ -57,6 +62,17 @@ export function chatOfDay(def: Pick<NeighborWalkDef, 'npc' | 'chat'>, day: numbe
   const lap = Math.floor(day / n);
   const order = def.chat.map((_, i) => i).sort((a, b) => roll(`${def.npc}:${lap}:${a}`) - roll(`${def.npc}:${lap}:${b}`));
   return def.chat[order[day % n]!]!;
+}
+
+/** O balão do passeio do dia (sorteado pelo dia), com {cat} trocado pelo nome de um dos gatos que estão com ela. */
+export function barkOfDay(def: Pick<NeighborWalkDef, 'npc' | 'barks'>, day: number, catNames: readonly string[]): string | null {
+  const list = def.barks ?? [];
+  if (list.length === 0) return null;
+  const usable = catNames.length > 0 ? list : list.filter((b) => !b.includes('{cat}'));
+  if (usable.length === 0) return null;
+  const text = usable[Math.floor(roll(`${def.npc}:${day}:bark`) * usable.length)]!;
+  const cat = catNames[Math.floor(roll(`${def.npc}:${day}:barkcat`) * catNames.length)] ?? '';
+  return text.replace(/{cat}/g, cat);
 }
 
 /** Validação (npm run check). */
