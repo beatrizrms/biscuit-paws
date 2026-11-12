@@ -92,7 +92,7 @@
   ],
   "spawn": { "player": [1,8] },
   "doors": [
-    {"id":"door.praca_street_a","at":[0,7],"to":"map.street","direction":"left","spawn":[34,9],"facing":"left"},
-    {"id":"door.praca_street_b","at":[0,8],"to":"map.street","direction":"left","spawn":[34,10],"facing":"left"}
+    {"id":"door.praca_street_a","at":[0,7],"to":"map.street","direction":"left","spawn":[41,9],"facing":"down"},
+    {"id":"door.praca_street_b","at":[0,8],"to":"map.street","direction":"left","spawn":[42,9],"facing":"down"}
   ]
 }

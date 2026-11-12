@@ -3,7 +3,7 @@
   "id": "map.street",
   "tileSize": 32,
   "size": {
-    "cols": 36,
+    "cols": 44,
     "rows": 11
   },
   "background": "#a9d4ea",
@@ -33,43 +33,43 @@
   },
   "layers": {
     "floor": [
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "ABAABABAABABAABABAABABAABABAABBABAAB",
-      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-      "DDEDEDDEDEDDEDEDDEDEDDEDEDDEDEEDDEDE"
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "ABAABABAABABAABABAABABAABABAABBABAABABAABABA",
+      "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "DDEDEDDEDEDDEDEDDEDEDDEDEDDEDEEDDEDEDDEDEDDE"
     ],
     "walls": [
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "...................................."
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................"
     ],
     "overlay": [
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "....................................",
-      "abaababaababaababaababaababaabbabaab",
-      "cccccccccccccccccccccccccccccccccccc",
-      "ddededdededdededdededdededdedeeddede"
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "............................................",
+      "abaababaababaababaababaababaabbabaababaababa",
+      "cccccccccccccccccccccccccccccccccccccccccccc",
+      "ddededdededdededdededdededdedeeddededdededde"
     ]
   },
   "objects": [
@@ -99,7 +99,9 @@
     { "id": "obj.season_deco_d", "tile": "prop_enfeite_d", "at": [34, 8], "overlay": "snow_prop_enfeite_d" },
     { "id": "obj.snow_pile_2", "tile": "snow_monte_neve", "at": [12, 9] },
     { "id": "obj.snow_pile_3", "tile": "snow_monte_neve", "at": [35, 9] },
-    { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0], "overlay": "snow_facade_veterinaria" }
+    { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0], "overlay": "snow_facade_veterinaria" },
+    { "id": "obj.facade_alley", "tile": "facade_beco", "at": [36, 0] },
+    { "id": "obj.facade_praca", "tile": "facade_praca", "at": [40, 0] }
   ],
   "spawn": {
     "player": [15, 9]
@@ -131,9 +133,11 @@
       "spawn": [14, 9],
       "facing": "up"
     },
-    { "id": "door.street_alley_a", "at": [0, 9], "to": "map.alley", "direction": "left", "spawn": [20, 8], "facing": "left" },
-    { "id": "door.street_alley_b", "at": [0, 10], "to": "map.alley", "direction": "left", "spawn": [20, 9], "facing": "left" },
-    { "id": "door.street_praca_a", "at": [35, 9], "to": "map.praca", "direction": "right", "spawn": [1, 7], "facing": "right" },
-    { "id": "door.street_praca_b", "at": [35, 10], "to": "map.praca", "direction": "right", "spawn": [1, 8], "facing": "right" }
+    { "id": "door.street_alley_a", "at": [37, 8], "to": "map.alley", "direction": "up", "spawn": [20, 8], "facing": "left" },
+    { "id": "door.street_alley_b", "at": [38, 8], "to": "map.alley", "direction": "up", "spawn": [20, 9], "facing": "left" },
+    { "id": "door.street_praca_a", "at": [41, 8], "to": "map.praca", "direction": "up", "spawn": [1, 7], "facing": "right" },
+    { "id": "door.street_praca_b", "at": [42, 8], "to": "map.praca", "direction": "up", "spawn": [1, 8], "facing": "right" },
+    { "id": "door.street_praca_c", "at": [43, 9], "to": "map.praca", "direction": "right", "spawn": [1, 7], "facing": "right" },
+    { "id": "door.street_praca_d", "at": [43, 10], "to": "map.praca", "direction": "right", "spawn": [1, 8], "facing": "right" }
   ]
 }

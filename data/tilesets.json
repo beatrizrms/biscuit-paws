@@ -986,6 +986,14 @@
         "beco_varal": {
           "layer": "wall",
           "solid": false
+        },
+        "facade_beco": {
+          "layer": "wall",
+          "solid": true
+        },
+        "facade_praca": {
+          "layer": "wall",
+          "solid": true
         }
       }
     },

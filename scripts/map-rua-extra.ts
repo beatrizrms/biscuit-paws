@@ -1,5 +1,5 @@
 // npx tsx scripts/map-rua-extra.ts: gera data/maps/praca.json e data/maps/alley.json, os lugares novos da rua.
-// Praça (ponta direita da rua): céu e cidade ao fundo, sebe, um caminho de pedregulhos atravessando e a praça calçada
+// Praça (entrada na rua depois do beco): céu e cidade ao fundo, sebe, um caminho de pedregulhos atravessando e a praça calçada
 // no meio (tiles de transição praca_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho), com árvores, bancos, postes e
 // floreiras e o chafariz no centro. Beco (ponta esquerda da rua): muros dos fundos das casas,
 // chão de asfalto com terra, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
@@ -142,8 +142,8 @@ function legendMaker() {
     ],
     // Saída para a rua: as duas linhas do caminho, andando para a esquerda.
     doors: [
-      { id: 'door.praca_street_a', at: [0, 7], to: 'map.street', direction: 'left', spawn: [34, 9], facing: 'left' },
-      { id: 'door.praca_street_b', at: [0, 8], to: 'map.street', direction: 'left', spawn: [34, 10], facing: 'left' },
+      { id: 'door.praca_street_a', at: [0, 7], to: 'map.street', direction: 'left', spawn: [41, 9], facing: 'down' },
+      { id: 'door.praca_street_b', at: [0, 8], to: 'map.street', direction: 'left', spawn: [42, 9], facing: 'down' },
     ],
     spawn: [1, 8],
   });
@@ -207,8 +207,8 @@ function legendMaker() {
     lights: [{ at: [17, 3.45], radius: 40, color: '#ffd59a' }],
     // Saída para a rua: andando para a direita, nas linhas de baixo do beco.
     doors: [
-      { id: 'door.alley_street_a', at: [21, 8], to: 'map.street', direction: 'right', spawn: [1, 9], facing: 'right' },
-      { id: 'door.alley_street_b', at: [21, 9], to: 'map.street', direction: 'right', spawn: [1, 10], facing: 'right' },
+      { id: 'door.alley_street_a', at: [21, 8], to: 'map.street', direction: 'right', spawn: [37, 9], facing: 'down' },
+      { id: 'door.alley_street_b', at: [21, 9], to: 'map.street', direction: 'right', spawn: [38, 9], facing: 'down' },
     ],
     spawn: [20, 9],
   });

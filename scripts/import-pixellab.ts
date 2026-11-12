@@ -590,6 +590,9 @@ const SHEETS: Sheet[] = [
       beco_porta: { file: 'beco/porta.png', w: 1, h: 2 },
       beco_varal: { file: 'beco/varal.png', w: 3, h: 1 },
       praca_chafariz: { file: 'beco/chafariz.png', w: 3, h: 3 },
+      // As entradas na rua (depois da clínica): a do beco e a da praça, recortadas da mesma imagem (512x512).
+      facade_beco: { file: '', w: 4, h: 8, build: () => streetEntrance(0) },
+      facade_praca: { file: '', w: 4, h: 8, build: () => streetEntrance(TS * 4) },
     },
   },
   {
@@ -1243,6 +1246,41 @@ function wangPieces(v: string): Record<string, Piece> {
 function sliceRows(src: PNG, y0: number): PNG {
   return pickRows(src, range(y0, y0 + TS - 1));
 }
+
+/**
+ * Uma entrada da rua (o beco ou a praça), recortada da imagem com as duas: tira a calçada que veio embaixo (a rua tem a
+ * dela) e desce o resto, para o chão do beco e o caminho da praça encostarem na calçada; o topo repete as primeiras linhas.
+ */
+function streetEntrance(x0: number): PNG {
+  const src = readPng(`${SRC}/fachadas/entradas_rua.png`);
+  const CUT = 460;
+  const pad = 8 * TS - CUT;
+  const out = blank(4 * TS, 8 * TS);
+  for (let y = 0; y < out.height; y++) {
+    const sy = y < pad ? y : y - pad;
+    for (let x = 0; x < out.width; x++) for (let c = 0; c < 4; c++) out.data[(y * out.width + x) * 4 + c] = src.data[(sy * src.width + x0 + x) * 4 + c]!;
+  }
+  // O beco: os muros acabam na altura dos telhados das vizinhas (y ENTRANCE_TOP), com uma pedra de acabamento em cima.
+  if (x0 === 0) {
+    const at = (x: number, y: number) => (y * out.width + x) * 4;
+    const isWall = (x: number) => {
+      const i = at(x, ENTRANCE_TOP + 6);
+      return out.data[i]! > out.data[i + 2]! + 12; // tijolo (avermelhado), não o céu do vão
+    };
+    for (let x = 0; x < out.width; x++) {
+      for (let y = 0; y < ENTRANCE_TOP; y++) out.data[at(x, y) + 3] = 0;
+      if (!isWall(x)) continue;
+      const paint = (y: number, rgb: [number, number, number]) => out.data.set([...rgb, 255], at(x, y));
+      paint(ENTRANCE_TOP, [78, 58, 46]);
+      for (let y = ENTRANCE_TOP + 1; y < ENTRANCE_TOP + 4; y++) paint(y, [184, 171, 154]);
+      paint(ENTRANCE_TOP + 4, [138, 127, 115]);
+    }
+  }
+  return out;
+}
+
+/** Onde os muros do beco acabam na entrada da rua (px do topo da fachada): a linha dos telhados das vizinhas. */
+const ENTRANCE_TOP = 70;
 
 /** Uma linha do muro do beco: a última coluna veio com o contorno cinza; repete a vizinha para os tijolos emendarem. */
 function wallTile(src: PNG, y0: number): PNG {

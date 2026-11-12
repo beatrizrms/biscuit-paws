@@ -63,7 +63,7 @@
   ],
   "spawn": { "player": [20,9] },
   "doors": [
-    {"id":"door.alley_street_a","at":[21,8],"to":"map.street","direction":"right","spawn":[1,9],"facing":"right"},
-    {"id":"door.alley_street_b","at":[21,9],"to":"map.street","direction":"right","spawn":[1,10],"facing":"right"}
+    {"id":"door.alley_street_a","at":[21,8],"to":"map.street","direction":"right","spawn":[37,9],"facing":"down"},
+    {"id":"door.alley_street_b","at":[21,9],"to":"map.street","direction":"right","spawn":[38,9],"facing":"down"}
   ]
 }

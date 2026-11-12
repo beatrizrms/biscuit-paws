@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 5,
+ "rows": 13,
  "pieces": {
   "beco_muro_topo": {
    "col": 0,
@@ -44,6 +44,18 @@
    "row": 2,
    "w_tiles": 3,
    "h_tiles": 3
+  },
+  "facade_beco": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "facade_praca": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
   }
  }
 }
