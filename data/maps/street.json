@@ -100,8 +100,8 @@
     { "id": "obj.snow_pile_2", "tile": "snow_monte_neve", "at": [12, 9] },
     { "id": "obj.snow_pile_3", "tile": "snow_monte_neve", "at": [35, 9] },
     { "id": "obj.facade_vet", "tile": "facade_veterinaria", "at": [30, 0], "overlay": "snow_facade_veterinaria" },
-    { "id": "obj.facade_alley", "tile": "facade_beco", "at": [36, 0] },
-    { "id": "obj.facade_praca", "tile": "facade_praca", "at": [40, 0] }
+    { "id": "obj.facade_alley", "tile": "facade_beco", "at": [36, 0], "overlay": "snow_facade_beco" },
+    { "id": "obj.facade_praca", "tile": "facade_praca", "at": [40, 0], "overlay": "snow_facade_praca" }
   ],
   "spawn": {
     "player": [15, 9]

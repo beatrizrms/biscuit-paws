@@ -591,8 +591,14 @@ const SHEETS: Sheet[] = [
       beco_varal: { file: 'beco/varal.png', w: 3, h: 1 },
       praca_chafariz: { file: 'beco/chafariz.png', w: 3, h: 3 },
       // As entradas na rua (depois da clínica): a do beco e a da praça, recortadas da mesma imagem (512x512).
-      facade_beco: { file: '', w: 4, h: 8, build: () => streetEntrance(0) },
-      facade_praca: { file: '', w: 4, h: 8, build: () => streetEntrance(TS * 4) },
+      facade_beco: { file: '', w: 4, h: 8, build: () => alleyEntrance(), aliases: seasonal('beco') },
+      facade_praca: { file: '', w: 4, h: 8, build: () => plazaEntrance(), aliases: ['summer_facade_praca'] },
+      // Primavera e outono: as copas das árvores da praça (cerejeiras rosa; laranja no outono). A sebe fica verde.
+      spring_facade_praca: { file: '', w: 4, h: 8, build: () => tintCanopy(plazaEntrance(), { from: [60, 170], hue: 338, sat: 0.55, light: 0.12 }) },
+      autumn_facade_praca: { file: '', w: 4, h: 8, build: () => tintCanopy(plazaEntrance(), { from: [60, 170], hue: 26, sat: 0.95, light: 0.02 }) },
+      // Inverno: a neve por cima, pelo contorno de cima (muros, copas e o portal), como nas outras fachadas.
+      snow_facade_beco: { file: '', w: 4, h: 8, build: () => snowCap(alleyEntrance(), 8) },
+      snow_facade_praca: { file: '', w: 4, h: 8, build: () => winterDeco(snowCap(plazaEntrance(), 9), [['wreath', 128, 360]]) },
     },
   },
   {
@@ -797,6 +803,8 @@ function cafeFacade(colors?: Recolor[]): PNG {
 const FONT: Record<string, string[]> = {
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
   C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  'Ç': ['.####', '#....', '#....', '#....', '#....', '#....', '.####', '..#..'],
+  P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
   D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
   E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
   F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
@@ -1281,6 +1289,35 @@ function streetEntrance(x0: number): PNG {
 
 /** Onde os muros do beco acabam na entrada da rua (px do topo da fachada): a linha dos telhados das vizinhas. */
 const ENTRANCE_TOP = 70;
+
+/** O céu liso da imagem das entradas vira transparente (a rua tem o dela; a neve do inverno pega no que fica). */
+function clearSky(png: PNG): PNG {
+  const sky = [188, 220, 238];
+  for (let i = 0; i < png.data.length; i += 4) {
+    if (Math.abs(png.data[i]! - sky[0]!) + Math.abs(png.data[i + 1]! - sky[1]!) + Math.abs(png.data[i + 2]! - sky[2]!) <= 18) png.data[i + 3] = 0;
+  }
+  return png;
+}
+
+/** A entrada do beco na rua. */
+function alleyEntrance(): PNG {
+  return clearSky(streetEntrance(0));
+}
+
+/** A entrada da praça na rua, com "PRAÇA" na placa do portal (letras por código). */
+function plazaEntrance(): PNG {
+  return signText(clearSky(streetEntrance(TS * 4)), 'PRAÇA', [84, 308, 170, 336], [250, 234, 204], [70, 40, 26]);
+}
+
+/** As copas das árvores da praça noutra cor (até a altura da sebe, que fica como está). */
+const CANOPY_BOTTOM = 396;
+function tintCanopy(png: PNG, rc: Recolor): PNG {
+  const top = blank(png.width, CANOPY_BOTTOM);
+  top.data.set(png.data.subarray(0, CANOPY_BOTTOM * png.width * 4));
+  recolor(top, rc);
+  png.data.set(top.data, 0);
+  return png;
+}
 
 /** Uma linha do muro do beco: a última coluna veio com o contorno cinza; repete a vizinha para os tijolos emendarem. */
 function wallTile(src: PNG, y0: number): PNG {

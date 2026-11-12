@@ -994,6 +994,38 @@
         "facade_praca": {
           "layer": "wall",
           "solid": true
+        },
+        "spring_facade_beco": {
+          "layer": "wall",
+          "solid": true
+        },
+        "summer_facade_beco": {
+          "layer": "wall",
+          "solid": true
+        },
+        "autumn_facade_beco": {
+          "layer": "wall",
+          "solid": true
+        },
+        "spring_facade_praca": {
+          "layer": "wall",
+          "solid": true
+        },
+        "summer_facade_praca": {
+          "layer": "wall",
+          "solid": true
+        },
+        "autumn_facade_praca": {
+          "layer": "wall",
+          "solid": true
+        },
+        "snow_facade_beco": {
+          "layer": "wall",
+          "solid": false
+        },
+        "snow_facade_praca": {
+          "layer": "wall",
+          "solid": false
         }
       }
     },

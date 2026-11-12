@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 13,
+ "rows": 29,
  "pieces": {
   "beco_muro_topo": {
    "col": 0,
@@ -51,9 +51,57 @@
    "w_tiles": 4,
    "h_tiles": 8
   },
+  "spring_facade_beco": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "summer_facade_beco": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "autumn_facade_beco": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
   "facade_praca": {
    "col": 4,
    "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "summer_facade_praca": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "spring_facade_praca": {
+   "col": 0,
+   "row": 13,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "autumn_facade_praca": {
+   "col": 4,
+   "row": 13,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "snow_facade_beco": {
+   "col": 0,
+   "row": 21,
+   "w_tiles": 4,
+   "h_tiles": 8
+  },
+  "snow_facade_praca": {
+   "col": 4,
+   "row": 21,
    "w_tiles": 4,
    "h_tiles": 8
   }
