@@ -1,7 +1,7 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
 import { itemSize, packBoxes } from './parcels';
-import { walkOfDay, type WalkCat } from './neighborWalks';
+import { chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
@@ -2320,11 +2320,8 @@ export class GameSession {
 
   /** Dia em que cada vizinho já passeou (o passeio é uma vez por dia; não vai para o save). */
   private walkedOn: Record<string, number> = {};
-  /** Dia da última conversa que deu corações e quantas falas cada vizinho já disse. */
+  /** Dia da última conversa (a fala do dia e os corações são uma vez por dia). */
   private neighborChatOn: Record<string, number> = {};
-  private neighborChatSaid: Record<string, number> = {};
-  /** A última fala de cada vizinho (a próxima é outra). */
-  private neighborChatLast: Record<string, number> = {};
 
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
   neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] {
@@ -2345,24 +2342,18 @@ export class GameSession {
   }
 
   /**
-   * E no vizinho que está passeando: uma fala sorteada (semente pelo dia e pela conversa; nunca a mesma da vez
-   * anterior); a primeira conversa do dia dá corações.
+   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay) e, na primeira
+   * conversa do dia, os corações. Conversando de novo no mesmo dia, a fala curta de "amanhã tem mais" (chatAgain).
    */
   neighborChat(npc: string): string | null {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
-    if (!def || def.chat.length === 0) return null;
-    const count = this.neighborChatSaid[npc] ?? 0;
-    this.neighborChatSaid[npc] = count + 1;
-    const rng = createRng(this.state.day * 7841 + count * 977 + npc.length);
-    let n = rng.int(0, def.chat.length - 1);
-    if (def.chat.length > 1 && n === this.neighborChatLast[npc]) n = (n + 1 + rng.int(0, def.chat.length - 2)) % def.chat.length;
-    this.neighborChatLast[npc] = n;
-    if (this.neighborChatOn[npc] !== this.state.day) {
-      this.neighborChatOn[npc] = this.state.day;
-      addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
-      this.bus.emit('npc.chatted', { npc, points: def.points });
-    }
-    return def.chat[n]!;
+    const line = def && chatOfDay(def, this.state.day);
+    if (!def || !line) return null;
+    if (this.neighborChatOn[npc] === this.state.day) return def.chatAgain ?? line;
+    this.neighborChatOn[npc] = this.state.day;
+    addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
+    this.bus.emit('npc.chatted', { npc, points: def.points });
+    return line;
   }
 
   /** Hoje é Natal e a ceia ainda vai acontecer. */

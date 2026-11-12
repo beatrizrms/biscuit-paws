@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { walkOfDay } from '../../src/core/neighborWalks';
+import { chatOfDay, walkOfDay } from '../../src/core/neighborWalks';
 import { pairKey } from '../../src/core/relationships';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
@@ -46,17 +46,21 @@ describe('passeios de vizinhos na rua', () => {
     expect(session.neighborWalksNow()).toEqual([]);
   });
 
-  it('conversar: frase sorteada, nunca a mesma da vez anterior; corações só na primeira conversa do dia', () => {
+  it('conversar: uma frase por dia (todas antes de repetir); de novo no mesmo dia, a fala curta; corações uma vez por dia', () => {
     const { session, state } = street(3, 17 * 60);
     const key = pairKey('player', 'npc.jacque');
-    const said = Array.from({ length: 20 }, () => session.neighborChat('npc.jacque')!);
-    for (const line of said) expect(jacque.chat).toContain(line);
-    for (let i = 1; i < said.length; i++) expect(said[i]).not.toBe(said[i - 1]);
-    expect(new Set(said).size).toBeGreaterThanOrEqual(6); // varia (não fica em duas ou três)
+    const today = session.neighborChat('npc.jacque');
+    expect(jacque.chat).toContain(today);
+    expect(session.neighborChat('npc.jacque')).toBe(jacque.chatAgain);
     expect(state.relationships[key]).toBe(jacque.points);
     session.endDay('home');
-    session.neighborChat('npc.jacque');
+    const tomorrow = session.neighborChat('npc.jacque');
+    expect(tomorrow).not.toBe(today);
     expect(state.relationships[key]).toBe(jacque.points * 2);
+    // Uma volta inteira: cada frase sai uma vez.
+    const n = jacque.chat.length;
+    const lap = Array.from({ length: n }, (_, i) => chatOfDay(jacque, 2 * n + i));
+    expect(new Set(lap).size).toBe(n);
     expect(session.neighborChat('npc.ninguem')).toBeNull();
   });
 

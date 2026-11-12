@@ -23,8 +23,10 @@ export interface NeighborWalkDef {
   /** Os gatos dela; em cada passeio vão de catsPerWalk[0] a catsPerWalk[1] deles. */
   cats: WalkCat[];
   catsPerWalk: [number, number];
-  /** Falas quando ela para para conversar. */
+  /** Falas quando ela para para conversar: uma por dia (todas saem antes de alguma repetir). */
   chat: string[];
+  /** Conversando de novo no mesmo dia (a fala do dia já foi). */
+  chatAgain?: string;
   /** Corações (pontos) da primeira conversa do dia. */
   points: number;
 }
@@ -45,6 +47,18 @@ export function walkOfDay(def: NeighborWalkDef, day: number): { walks: boolean; 
   const n = Math.min(def.cats.length, min + Math.floor(roll(`${def.npc}:${day}:n`) * (max - min + 1)));
   const cats = [...def.cats].sort((x, y) => roll(`${def.npc}:${day}:${x.name}`) - roll(`${def.npc}:${day}:${y.name}`)).slice(0, n);
   return { walks, from: reverse ? b : a, to: reverse ? a : b, cats };
+}
+
+/**
+ * A fala do dia: a ordem é embaralhada por volta (semente pela volta), então todas saem uma vez antes de alguma
+ * repetir; no mesmo dia é sempre a mesma.
+ */
+export function chatOfDay(def: Pick<NeighborWalkDef, 'npc' | 'chat'>, day: number): string | null {
+  const n = def.chat.length;
+  if (n === 0) return null;
+  const lap = Math.floor(day / n);
+  const order = def.chat.map((_, i) => i).sort((a, b) => roll(`${def.npc}:${lap}:${a}`) - roll(`${def.npc}:${lap}:${b}`));
+  return def.chat[order[day % n]!]!;
 }
 
 /** Validação (npm run check). */
