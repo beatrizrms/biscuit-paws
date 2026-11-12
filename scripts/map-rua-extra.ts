@@ -1,7 +1,8 @@
 // npx tsx scripts/map-rua-extra.ts: gera data/maps/praca.json e data/maps/alley.json, os lugares novos da rua.
 // Praça (entrada na rua depois do beco): céu e cidade ao fundo, sebe, um caminho de pedregulhos atravessando e a praça calçada
 // no meio (tiles de transição praca_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho), com árvores, bancos, postes e
-// floreiras e o chafariz no centro. Beco (ponta esquerda da rua): muros dos fundos das casas,
+// floreiras e o chafariz grande no centro; à esquerda o coreto e o parquinho (balanço e escorregador), à direita a banca
+// de jornal e as barraquinhas (hot dog, pipoca); árvores na terra de 4 jeitos (grande, média, fina, jovem) espalhadas. Beco (ponta esquerda da rua): muros dos fundos das casas,
 // chão de asfalto com terra, lixeiras, caixotes e as caixinhas de papelão da colônia de gatos.
 // Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, as portas dos fundos, o varal e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
@@ -64,15 +65,16 @@ function legendMaker() {
 
 // ---------- Praça ----------
 {
-  const COLS = 24, ROWS = 13;
+  const COLS = 30, ROWS = 16;
   let seed = 23;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
   // Vértices: true = pedregulho. O caminho atravessa (linhas 7-8, da rua até a outra ponta) e a praça calçada no meio,
   // de cantos arredondados.
   const paved = (vx: number, vy: number) => {
     if (vy >= 7 && vy <= 9) return true;
-    const inPlaza = vx >= 8 && vx <= 16 && vy >= 4 && vy <= 11;
-    const corner = (vx === 8 || vx === 16) && (vy === 4 || vy === 11);
+    // 11 tiles de largura (colunas 10 a 20): o chafariz (3) fica no meio, na coluna 15.
+    const inPlaza = vx >= 10 && vx <= 21 && vy >= 3 && vy <= 14;
+    const corner = (vx === 10 || vx === 21) && (vy === 3 || vy === 14);
     return inPlaza && !corner;
   };
   const { legend, ch } = legendMaker();
@@ -98,7 +100,7 @@ function legendMaker() {
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at });
   write('data/maps/praca.json', {
     comment:
-      'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles praca_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho). No centro, o chafariz. Saída pela esquerda (portas com direction left) para a rua.',
+      'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles praca_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',
     id: 'map.praca',
     cols: COLS,
     rows: ROWS,
@@ -111,34 +113,70 @@ function legendMaker() {
       obj('ceu_b', 'yard_fundo_ceu_telhados', [6, 0]),
       obj('ceu_c', 'yard_fundo_ceu_telhados', [12, 0]),
       obj('ceu_d', 'yard_fundo_ceu_telhados', [18, 0]),
-      // Árvores na grama dos cantos (as de cima na frente da sebe).
-      obj('arvore_1', 'prop_arvore', [1, 1]),
-      obj('arvore_2', 'prop_arvore', [4, 2]),
-      obj('arvore_3', 'prop_arvore', [19, 2]),
-      obj('arvore_4', 'prop_arvore', [21, 1]),
-      obj('arvore_5', 'prop_arvore', [2, 9]),
-      obj('arvore_6', 'prop_arvore', [20, 9]),
-      // Postes nos cantos da praça calçada.
-      obj('poste_1', 'prop_poste', [6, 3]),
-      obj('poste_2', 'prop_poste', [16, 3]),
-      // Bancos em volta do centro (em cima e embaixo), com floreiras ao lado.
-      obj('banco_1', 'prop_banco', [9, 4]),
-      obj('banco_2', 'prop_banco', [13, 4]),
-      obj('banco_3', 'prop_banco', [9, 10]),
-      obj('banco_4', 'prop_banco', [13, 10]),
-      obj('flor_1', 'yard_vaso_baixo_flores', [8, 5]),
-      obj('flor_2', 'yard_vaso_baixo_flores', [15, 5]),
-      obj('flor_3', 'yard_vaso_baixo_flores', [8, 10]),
-      obj('flor_4', 'yard_vaso_baixo_flores', [15, 10]),
-      // O chafariz no centro da praça.
-      obj('chafariz', 'praca_chafariz', [11, 6]),
-      // Floreiras na grama, perto da entrada.
-      obj('floreira_1', 'decor_floreira', [1, 6]),
-      obj('floreira_2', 'decor_floreira', [3, 6]),
+      obj('ceu_e', 'yard_fundo_ceu_telhados', [24, 0]),
+      // A praça calçada: o chafariz no centro (coluna 15), bancos em volta com vasos de flores, canteiros no mesmo eixo e
+      // postes nos cantos.
+      obj('chafariz', 'praca_chafariz', [14, 7]),
+      obj('banco_1', 'prop_banco', [11, 4]),
+      obj('banco_2', 'prop_banco', [18, 4]),
+      obj('banco_3', 'prop_banco', [11, 11]),
+      obj('banco_4', 'prop_banco', [18, 11]),
+      obj('flor_1', 'yard_vaso_baixo_flores', [10, 5]),
+      obj('flor_2', 'yard_vaso_baixo_flores', [20, 5]),
+      obj('flor_3', 'yard_vaso_baixo_flores', [10, 12]),
+      obj('flor_4', 'yard_vaso_baixo_flores', [20, 12]),
+      obj('canteiro_1', 'praca_canteiro', [14, 3]),
+      obj('canteiro_2', 'praca_canteiro', [14, 12]),
+      obj('poste_1', 'prop_poste', [8, 3]),
+      obj('poste_2', 'prop_poste', [21, 3]),
+      obj('poste_3', 'prop_poste', [8, 10]),
+      obj('poste_4', 'prop_poste', [21, 10]),
+      // Lado da entrada (esquerda): o coreto entre as árvores, o bebedouro, floreiras e a lixeira no caminho.
+      obj('coreto', 'praca_coreto', [3, 3]),
+      obj('arvore_1', 'prop_arvore_grande', [0, 2]),
+      obj('arvore_2', 'prop_arvore_fina', [6, 3]),
+      obj('arvore_3', 'prop_arvore_jovem_b', [5, 5]),
+      obj('bebedouro', 'praca_bebedouro', [1, 5]),
+      obj('floreira_1', 'decor_floreira', [3, 6]),
+      obj('floreira_2', 'decor_floreira', [2, 9]),
+      obj('lixeira_1', 'prop_lixeira', [7, 6]),
+      // O parquinho embaixo, com árvores em volta e atrás.
+      obj('balanco', 'praca_balanco', [1, 10]),
+      obj('escorregador', 'praca_escorregador', [5, 10]),
+      obj('arvore_4', 'prop_arvore_media_c', [0, 13]),
+      obj('arvore_5', 'prop_arvore_grande_b', [3, 13]),
+      obj('arvore_6', 'prop_arvore_jovem', [6, 14]),
+      obj('arvore_7', 'prop_arvore_fina', [7, 12]),
+      obj('arvore_14', 'prop_arvore_fina', [0, 9]),
+      obj('arvore_15', 'prop_arvore_jovem_c', [4, 11]),
+      obj('arvore_16', 'prop_arvore_jovem_b', [7, 9]),
+      obj('arvore_17', 'prop_arvore_jovem_c', [2, 15]),
+      // Embaixo da praça calçada: uma fileira de árvores na grama.
+      obj('arvore_18', 'prop_arvore_fina', [10, 13]),
+      obj('arvore_19', 'prop_arvore_jovem_b', [12, 15]),
+      obj('arvore_20', 'prop_arvore_media', [17, 13]),
+      obj('arvore_21', 'prop_arvore_jovem_c', [19, 15]),
+      obj('arvore_22', 'prop_arvore_fina', [20, 13]),
+      // Lado de lá (direita): a banca de jornal, o carrinho de hot dog e o de pipoca perto do caminho, um banco e árvores.
+      obj('banca', 'praca_banca', [23, 3]),
+      obj('hotdog', 'praca_hotdog', [26, 4]),
+      obj('arvore_8', 'prop_arvore_fina', [28, 2]),
+      obj('arvore_23', 'prop_arvore_jovem_c', [29, 4]),
+      obj('lixeira_2', 'prop_lixeira', [23, 6]),
+      obj('pipoca', 'praca_pipoca', [23, 9]),
+      obj('banco_5', 'prop_banco', [25, 10]),
+      obj('arvore_9', 'prop_arvore_grande_c', [27, 9]),
+      obj('arvore_10', 'prop_arvore_media_b', [23, 12]),
+      obj('arvore_11', 'prop_arvore_grande', [25, 13]),
+      obj('arvore_12', 'prop_arvore_jovem', [28, 14]),
+      obj('arvore_13', 'prop_arvore_fina', [29, 12]),
+      obj('arvore_24', 'prop_arvore_jovem_b', [22, 15]),
     ],
     lights: [
-      { at: [7, 3.45], radius: 46, color: '#ffe2a0' },
-      { at: [17, 3.45], radius: 46, color: '#ffe2a0' },
+      { at: [9, 3.45], radius: 46, color: '#ffe2a0' },
+      { at: [22, 3.45], radius: 46, color: '#ffe2a0' },
+      { at: [9, 10.45], radius: 46, color: '#ffe2a0' },
+      { at: [22, 10.45], radius: 46, color: '#ffe2a0' },
     ],
     // Saída para a rua: as duas linhas do caminho, andando para a esquerda.
     doors: [

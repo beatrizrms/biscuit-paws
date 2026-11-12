@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 8,
- "rows": 29,
+ "rows": 65,
  "pieces": {
   "beco_muro_topo": {
    "col": 0,
@@ -45,63 +45,351 @@
    "w_tiles": 3,
    "h_tiles": 3
   },
-  "facade_beco": {
+  "praca_coreto": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "praca_hotdog": {
    "col": 0,
    "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "praca_banca": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "praca_pipoca": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "praca_balanco": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "praca_escorregador": {
+   "col": 3,
+   "row": 8,
+   "w_tiles": 2,
+   "h_tiles": 2
+  },
+  "praca_canteiro": {
+   "col": 5,
+   "row": 8,
+   "w_tiles": 3,
+   "h_tiles": 2
+  },
+  "praca_bebedouro": {
+   "col": 0,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "prop_arvore_grande": {
+   "col": 1,
+   "row": 10,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_grande": {
+   "col": 4,
+   "row": 10,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_grande": {
+   "col": 0,
+   "row": 13,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_grande": {
+   "col": 3,
+   "row": 13,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "prop_arvore_grande_b": {
+   "col": 0,
+   "row": 16,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_grande_b": {
+   "col": 3,
+   "row": 16,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_grande_b": {
+   "col": 0,
+   "row": 19,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_grande_b": {
+   "col": 3,
+   "row": 19,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "prop_arvore_grande_c": {
+   "col": 0,
+   "row": 22,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_grande_c": {
+   "col": 3,
+   "row": 22,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_grande_c": {
+   "col": 0,
+   "row": 25,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_grande_c": {
+   "col": 3,
+   "row": 25,
+   "w_tiles": 3,
+   "h_tiles": 3
+  },
+  "prop_arvore_media": {
+   "col": 6,
+   "row": 25,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_media": {
+   "col": 0,
+   "row": 28,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_media": {
+   "col": 2,
+   "row": 28,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_media": {
+   "col": 4,
+   "row": 28,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "prop_arvore_media_b": {
+   "col": 6,
+   "row": 28,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_media_b": {
+   "col": 0,
+   "row": 31,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_media_b": {
+   "col": 2,
+   "row": 31,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_media_b": {
+   "col": 4,
+   "row": 31,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "prop_arvore_media_c": {
+   "col": 6,
+   "row": 31,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_media_c": {
+   "col": 0,
+   "row": 34,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_media_c": {
+   "col": 2,
+   "row": 34,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_media_c": {
+   "col": 4,
+   "row": 34,
+   "w_tiles": 2,
+   "h_tiles": 3
+  },
+  "prop_arvore_jovem": {
+   "col": 6,
+   "row": 34,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_arvore_jovem": {
+   "col": 7,
+   "row": 34,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_arvore_jovem": {
+   "col": 0,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_arvore_jovem": {
+   "col": 1,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_arvore_jovem_b": {
+   "col": 2,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_arvore_jovem_b": {
+   "col": 3,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_arvore_jovem_b": {
+   "col": 4,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_arvore_jovem_b": {
+   "col": 5,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_arvore_jovem_c": {
+   "col": 6,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "summer_prop_arvore_jovem_c": {
+   "col": 7,
+   "row": 37,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_prop_arvore_jovem_c": {
+   "col": 0,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "autumn_prop_arvore_jovem_c": {
+   "col": 1,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prop_arvore_fina": {
+   "col": 2,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "summer_prop_arvore_fina": {
+   "col": 3,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "spring_prop_arvore_fina": {
+   "col": 4,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "autumn_prop_arvore_fina": {
+   "col": 5,
+   "row": 38,
+   "w_tiles": 1,
+   "h_tiles": 3
+  },
+  "facade_beco": {
+   "col": 0,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "spring_facade_beco": {
    "col": 0,
-   "row": 5,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "summer_facade_beco": {
    "col": 0,
-   "row": 5,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "autumn_facade_beco": {
    "col": 0,
-   "row": 5,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "facade_praca": {
    "col": 4,
-   "row": 5,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "summer_facade_praca": {
    "col": 4,
-   "row": 5,
+   "row": 41,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "spring_facade_praca": {
    "col": 0,
-   "row": 13,
+   "row": 49,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "autumn_facade_praca": {
    "col": 4,
-   "row": 13,
+   "row": 49,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "snow_facade_beco": {
    "col": 0,
-   "row": 21,
+   "row": 57,
    "w_tiles": 4,
    "h_tiles": 8
   },
   "snow_facade_praca": {
    "col": 4,
-   "row": 21,
+   "row": 57,
    "w_tiles": 4,
    "h_tiles": 8
   }

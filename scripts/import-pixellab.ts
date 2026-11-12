@@ -589,7 +589,24 @@ const SHEETS: Sheet[] = [
       beco_cacamba: { file: 'beco/cacamba.png', w: 2, h: 2 },
       beco_porta: { file: 'beco/porta.png', w: 1, h: 2 },
       beco_varal: { file: 'beco/varal.png', w: 3, h: 1 },
-      praca_chafariz: { file: 'beco/chafariz.png', w: 3, h: 3 },
+      // A praça cheia (PixelLab, assets/_pixellab/praca): o desenho recortado no tamanho em tiles, centrado e no chão.
+      praca_chafariz: { file: '', w: 3, h: 3, build: () => snug('praca/chafariz.png', 3, 3) },
+      praca_coreto: { file: '', w: 2, h: 3, build: () => snug('praca/coreto.png', 2, 3) },
+      praca_hotdog: { file: '', w: 2, h: 3, build: () => snug('praca/hotdog.png', 2, 3) },
+      praca_banca: { file: '', w: 2, h: 3, build: () => snug('praca/banca.png', 2, 3) },
+      praca_pipoca: { file: '', w: 2, h: 2, build: () => snug('praca/pipoca.png', 2, 2) },
+      praca_balanco: { file: '', w: 3, h: 2, build: () => snug('praca/balanco.png', 3, 2) },
+      praca_escorregador: { file: '', w: 2, h: 2, build: () => snug('praca/escorregador.png', 2, 2) },
+      // 3 de largura (o desenho no meio) para ficar no eixo do chafariz.
+      praca_canteiro: { file: '', w: 3, h: 2, build: () => snug('praca/canteiro.png', 3, 2) },
+      praca_bebedouro: { file: '', w: 1, h: 2, build: () => snug('praca/bebedouro.png', 1, 2) },
+      // Árvores na terra, de 4 jeitos. A arte é a do verão; as outras estações trocam a cor da copa por código
+      // (prop_ muda com a estação na praça: o nome sem prefixo é o inverno, com neve por cima). Cada jeito tem 3 cores
+      // de primavera e outono (rosa/laranja, amarela/vermelha, verde/amarela); a fina é sempre verde (cipreste).
+      ...parkTrees('grande', 3, 3),
+      ...parkTrees('media', 2, 3),
+      ...parkTrees('jovem', 1, 1),
+      ...parkTree('fina', 1, 3, '', null, null),
       // As entradas na rua (depois da clínica): a do beco e a da praça, recortadas da mesma imagem (512x512).
       facade_beco: { file: '', w: 4, h: 8, build: () => alleyEntrance(), aliases: seasonal('beco') },
       facade_praca: { file: '', w: 4, h: 8, build: () => plazaEntrance(), aliases: ['summer_facade_praca'] },
@@ -1317,6 +1334,70 @@ function tintCanopy(png: PNG, rc: Recolor): PNG {
   recolor(top, rc);
   png.data.set(top.data, 0);
   return png;
+}
+
+/**
+ * O desenho (sem a margem transparente da geração) numa peça de w x h tiles: centrado na largura e encostado no
+ * chão, a 2 px da base. Erro se não couber.
+ */
+function snug(file: string, w: number, h: number): PNG {
+  const src = readPng(`${SRC}/${file}`);
+  let x0 = src.width, y0 = src.height, x1 = -1, y1 = -1;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+    if (src.data[(y * src.width + x) * 4 + 3]! <= 20) continue;
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  const out = blank(w * TS, h * TS);
+  if (bw > out.width || bh + 2 > out.height) throw new Error(`${file}: ${bw}x${bh} não cabe em ${w}x${h} tiles`);
+  PNG.bitblt(src, out, x0, y0, bw, bh, Math.floor((out.width - bw) / 2), out.height - 2 - bh);
+  return out;
+}
+
+/** Até onde (px acima da base) fica o tufo de grama do pé da árvore, que não muda de cor com a copa. */
+const TREE_FOOT = 10;
+
+/** Árvore da praça com a copa noutra cor (o tronco é marrom, fora da faixa dos verdes; o pé fica como está). */
+function treeTint(png: PNG, rc: Recolor): PNG {
+  const rows = png.height - TREE_FOOT;
+  const top = blank(png.width, rows);
+  top.data.set(png.data.subarray(0, rows * png.width * 4));
+  recolor(top, rc);
+  png.data.set(top.data, 0);
+  return png;
+}
+
+/** A faixa dos verdes da copa (o tronco marrom fica fora). Função: a lista de folhas é montada antes desta linha. */
+function leafTone(hue: number, sat: number, light: number): Recolor {
+  return { from: [55, 170], hue, sat, light };
+}
+
+/** As 3 cores de uma árvore da praça: _a rosa na primavera e laranja no outono, _b amarela e vermelha, _c verde e dourada. */
+function parkTrees(name: string, w: number, h: number): Record<string, Piece> {
+  const pink = leafTone(338, 0.55, 0.12), orange = leafTone(26, 0.95, 0.02), yellow = leafTone(52, 1.25, 0.16), red = leafTone(10, 0.85, -0.02), gold = leafTone(40, 1, 0.04);
+  return { ...parkTree(name, w, h, '', pink, orange), ...parkTree(name, w, h, '_b', yellow, red), ...parkTree(name, w, h, '_c', null, gold) };
+}
+
+/**
+ * As peças de uma árvore da praça: summer_ é a arte; spring_ e autumn_ trocam a cor da copa (null: fica verde); o
+ * nome sem prefixo (o inverno) tem a copa de um verde mais escuro e apagado, com neve por cima.
+ */
+function parkTree(name: string, w: number, h: number, suffix: string, spring: Recolor | null, autumn: Recolor | null): Record<string, Piece> {
+  const file = `praca/arvore_${name}.png`;
+  const season = (rc: Recolor | null) => () => (rc ? treeTint(snug(file, w, h), rc) : snug(file, w, h));
+  const winter = (): PNG => {
+    const png = treeTint(snug(file, w, h), leafTone(135, 0.45, -0.08));
+    const snow = snowCap(png, 41 + w * 7 + h, Math.max(3, w * 2 + 1));
+    for (let i = 0; i < snow.data.length; i += 4) if (snow.data[i + 3]) png.data.set(snow.data.subarray(i, i + 4), i);
+    return png;
+  };
+  const id = `prop_arvore_${name}${suffix}`;
+  return {
+    [id]: { file: '', w, h, build: winter },
+    [`summer_${id}`]: { file: '', w, h, build: season(null) },
+    [`spring_${id}`]: { file: '', w, h, build: season(spring) },
+    [`autumn_${id}`]: { file: '', w, h, build: season(autumn) },
+  };
 }
 
 /** Uma linha do muro do beco: a última coluna veio com o contorno cinza; repete a vizinha para os tijolos emendarem. */
