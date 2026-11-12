@@ -46,13 +46,13 @@ describe('passeios de vizinhos na rua', () => {
     expect(session.neighborWalksNow()).toEqual([]);
   });
 
-  it('conversar: uma fala por vez, em ordem; corações só na primeira conversa do dia', () => {
+  it('conversar: frase sorteada, nunca a mesma da vez anterior; corações só na primeira conversa do dia', () => {
     const { session, state } = street(3, 17 * 60);
     const key = pairKey('player', 'npc.jacque');
-    const first = session.neighborChat('npc.jacque');
-    const second = session.neighborChat('npc.jacque');
-    expect(jacque.chat).toContain(first);
-    expect(second).not.toBe(first);
+    const said = Array.from({ length: 20 }, () => session.neighborChat('npc.jacque')!);
+    for (const line of said) expect(jacque.chat).toContain(line);
+    for (let i = 1; i < said.length; i++) expect(said[i]).not.toBe(said[i - 1]);
+    expect(new Set(said).size).toBeGreaterThanOrEqual(6); // varia (não fica em duas ou três)
     expect(state.relationships[key]).toBe(jacque.points);
     session.endDay('home');
     session.neighborChat('npc.jacque');

@@ -2323,6 +2323,8 @@ export class GameSession {
   /** Dia da última conversa que deu corações e quantas falas cada vizinho já disse. */
   private neighborChatOn: Record<string, number> = {};
   private neighborChatSaid: Record<string, number> = {};
+  /** A última fala de cada vizinho (a próxima é outra). */
+  private neighborChatLast: Record<string, number> = {};
 
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
   neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[] }[] {
@@ -2342,18 +2344,25 @@ export class GameSession {
     this.walkedOn[npc] = this.state.day;
   }
 
-  /** E no vizinho que está passeando: a próxima fala; a primeira conversa do dia dá corações. */
+  /**
+   * E no vizinho que está passeando: uma fala sorteada (semente pelo dia e pela conversa; nunca a mesma da vez
+   * anterior); a primeira conversa do dia dá corações.
+   */
   neighborChat(npc: string): string | null {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     if (!def || def.chat.length === 0) return null;
-    const n = this.neighborChatSaid[npc] ?? Math.floor(this.state.day % def.chat.length);
-    this.neighborChatSaid[npc] = n + 1;
+    const count = this.neighborChatSaid[npc] ?? 0;
+    this.neighborChatSaid[npc] = count + 1;
+    const rng = createRng(this.state.day * 7841 + count * 977 + npc.length);
+    let n = rng.int(0, def.chat.length - 1);
+    if (def.chat.length > 1 && n === this.neighborChatLast[npc]) n = (n + 1 + rng.int(0, def.chat.length - 2)) % def.chat.length;
+    this.neighborChatLast[npc] = n;
     if (this.neighborChatOn[npc] !== this.state.day) {
       this.neighborChatOn[npc] = this.state.day;
       addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
       this.bus.emit('npc.chatted', { npc, points: def.points });
     }
-    return def.chat[n % def.chat.length]!;
+    return def.chat[n]!;
   }
 
   /** Hoje é Natal e a ceia ainda vai acontecer. */
