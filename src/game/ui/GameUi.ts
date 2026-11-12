@@ -183,19 +183,16 @@ export class GameUi {
     });
 
     const bus = session.bus;
-    // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não).
-    bus.on('construction.call', ({ first }) => this.cutscene.request(first ? CALL_CUTSCENE : CALL_AGAIN_CUTSCENE));
+    // Obras com o Tião: pediu a obra -> a ligação -> o orçamento (sim/não). Com ele ali (acabou a obra e perguntou se
+    // ela quer mais algum serviço), sem ligação: direto para o orçamento.
+    bus.on('construction.call', ({ first }) => {
+      const here = this.builderHereOpen === this.news.opens;
+      this.builderHereOpen = -1;
+      if (here) void this.askQuote();
+      else this.cutscene.request(first ? CALL_CUTSCENE : CALL_AGAIN_CUTSCENE);
+    });
     bus.on('cutscene.finished', ({ cutsceneId }) => {
-      const q = session.state.construction.quote;
-      if ((cutsceneId !== CALL_CUTSCENE && cutsceneId !== CALL_AGAIN_CUTSCENE) || !q) return;
-      const t = uiText.construction;
-      const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
-      void this.confirm(text, t.yes, t.no).then((yes) => {
-        const r = session.answerQuote(yes);
-        if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
-        if (yes) this.toast(t.accepted);
-        else if (q.material > 0) this.toast(t.declined);
-      });
+      if (cutsceneId === CALL_CUTSCENE || cutsceneId === CALL_AGAIN_CUTSCENE) void this.askQuote();
     });
     bus.on('cutscene.requested', ({ cutsceneId }) => {
       if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
@@ -459,11 +456,32 @@ export class GameUi {
     this.toast(t.done);
   }
 
-  /** O Market aberto na aba Construção (o Tião perguntou se ela quer mais algum serviço). */
-  openConstruction(): void {
+  /**
+   * O Market aberto na aba Construção. `builderHere`: o Tião está ali (acabou a obra e perguntou se ela quer mais algum
+   * serviço): a obra escolhida nesta aberta vai direto para o orçamento, sem ligar para ele.
+   */
+  openConstruction(builderHere = false): void {
     this.closeShop();
     this.news.open('phone', 'market');
+    this.builderHereOpen = builderHere ? this.news.opens : -1;
     this.news.marketTab(uiText.market.tabs.find((t) => 'renovation' in t && t.renovation)?.id ?? '');
+  }
+
+  /** A aberta do celular em que o Tião está ali (openConstruction); -1: nenhuma (fechou, ou abriu de novo pelo celular). */
+  private builderHereOpen = -1;
+
+  /** O orçamento da obra pedida (depois da ligação, ou direto com o Tião ali): sim paga e ele vem amanhã. */
+  private async askQuote(): Promise<void> {
+    const session = this.session;
+    const q = session.state.construction.quote;
+    if (!q) return;
+    const t = uiText.construction;
+    const text = (q.kind === 'finish' ? t.callFinish : t.callRepair).replace('{work}', workName(q)).replace('{labor}', String(q.labor)).replace('{days}', daysText(q.days));
+    const yes = await this.confirm(text, t.yes, t.no);
+    const r = session.answerQuote(yes);
+    if (!r.ok) return this.problem(r.reason as keyof typeof uiText.problems);
+    if (yes) this.toast(t.accepted);
+    else if (q.material > 0) this.toast(t.declined);
   }
 
   /** "hoje às 07:00", "amanhã às 07:00" ou "seg às 07:00". */

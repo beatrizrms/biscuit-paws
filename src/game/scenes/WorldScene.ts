@@ -3437,7 +3437,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.npcs.delete(npcId);
     if (npc) void this.walkOutAndLeave(npc);
     this.builderAsking = false;
-    if (more) this.ui.openConstruction();
+    if (more) this.ui.openConstruction(true);
   }
 
   /**
