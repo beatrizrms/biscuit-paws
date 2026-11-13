@@ -4,6 +4,7 @@ import { ARRIVAL_CAT, type CutsceneDef, type CutsceneStep } from '../../core/cut
 import type { GameSession } from '../../core/session';
 import { content, phone, uiText } from '../content';
 import { fillNames } from './text';
+import { byInput } from '../touch';
 
 const TYPE_SPEED_MS = 26;
 const CAT_SCALE = 5;
@@ -32,7 +33,7 @@ export class CutsceneView {
       <div class="cs-snow"></div>
       <div class="cs-stage"></div>
       <div class="cs-text"><span class="speaker"></span><span class="text"></span></div>
-      <div class="cs-hint">${uiText.hintDialogue}</div>`;
+      <div class="cs-hint">${byInput(uiText.hintDialogue, uiText.touchText.continue)}</div>`;
     root.appendChild(this.el);
     this.stage = this.el.querySelector('.cs-stage') as HTMLElement;
     this.textBox = this.el.querySelector('.cs-text') as HTMLElement;

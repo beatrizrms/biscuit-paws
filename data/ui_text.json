@@ -206,8 +206,10 @@
   "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · I: guardar na mochila · Esc: cancelar",
   "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
   "hintMovePick": "O móvel que pisca é o que vai mudar de lugar · F: próximo · E, Enter ou clique: escolher · Esc: cancelar",
+  "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
   "touchHints": {
-    "walk": "Direcional: andar (até a borda: correr) · E: interagir · Mover: mudar um móvel de lugar",
+    "walk": "",
+    "dialogue": "",
     "placing": "Toque no lugar (ou use o direcional) · Soltar: posiciona · Mochila: guarda · ❚❚: cancela",
     "moving": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: guarda · ❚❚: cancela",
     "movingTree": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: remover a árvore · ❚❚: cancela",

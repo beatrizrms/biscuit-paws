@@ -8,10 +8,10 @@
   text-shadow: 0 2px 0 #5a4048, 2px 0 0 #5a4048, -2px 0 0 #5a4048, 0 -2px 0 #5a4048, 2px 3px 0 #3b2a32;
 }
 .menu-tap {
-  margin-top: 120px; padding: 5px 14px; border: none; border-radius: 10px; background: #2b1d2acc; color: #fff4e0; font: inherit; font-size: 11px; cursor: pointer;
+  margin-top: 120px; padding: 5px 14px; border: none; border-radius: 10px; background: #2b1d2aee; color: #fff4e0; font: inherit; font-size: 11px; cursor: pointer;
   text-shadow: 0 1px 0 #3b2a32; animation: menu-blink 1.4s ease-in-out infinite;
 }
-@keyframes menu-blink { 50% { opacity: 0.35; } }
+@keyframes menu-blink { 50% { opacity: 0.7; } }
 .menu-buttons { display: flex; flex-direction: column; gap: 5px; width: 200px; }
 .menu-btn {
   position: relative; padding: 4px 10px; border: 2px solid #5a4048; border-radius: 3px;

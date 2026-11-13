@@ -1,7 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import { itemThumbHtml } from './thumbs';
-import { touch } from '../touch';
+import { byInput, keyless, touch } from '../touch';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
@@ -127,7 +127,7 @@ export class GameUi {
       this.goals.classList.toggle('open');
     });
     this.hint = $('.hint');
-    touch.onModeChange(() => this.renderHint());
+    touch.onModeChange(() => this.refresh());
     this.toastEl = $('.toast');
     this.dialogueLayer = $('.dialogue-layer');
     this.dialogueBox = $('.dialogue');
@@ -549,7 +549,7 @@ export class GameUi {
         <h2>${esc(name)}</h2>
         <p class="hb-status ${tone}">${esc(status)}</p>
         <table>${rows}</table>${lunch}
-        <p class="hb-close">${esc(t.close)}</p>
+        <p class="hb-close">${esc(byInput(t.close, uiText.touchText.close))}</p>
       </div></div>`;
     this.root.appendChild(el);
     const close = () => {
@@ -598,6 +598,7 @@ export class GameUi {
    * mais antigo sai na hora. O mesmo texto de novo não duplica: só renova o tempo dele.
    */
   toast(text: string, ms = 1600): void {
+    text = keyless(text);
     const same = this.toasts.find((t) => t.text === text);
     if (same) {
       window.clearTimeout(same.timer);
@@ -784,7 +785,7 @@ export class GameUi {
     el.className = 'item-reveal';
     // Imagem própria, ícone ou, sem ícone (móvel como o globo de neve do café), a miniatura da peça do mapa.
     const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : item?.icon ? iconHtml(item.icon, 64) : item ? itemThumbHtml(item, 64) : '';
-    el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${uiText.itemReveal.continue}</div>`;
+    el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${byInput(uiText.itemReveal.continue, uiText.touchText.continue)}</div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     return new Promise((resolve) => {
@@ -1335,8 +1336,8 @@ ${rep}`;
     this.goals.classList.toggle('empty', !goal && !extra);
     this.goals.innerHTML = (goal
       ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
-      : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${uiText.goalsPeek}</p>` : '') + extra;
-    this.goals.title = this.goals.classList.contains('open') ? uiText.goalsHide : uiText.goalsShow;
+      : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
+    this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.news?.isOpen()) this.news.render();

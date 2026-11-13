@@ -19,12 +19,20 @@
 .touch-layer .t-btn.down { background: #f4c06a; }
 .touch-layer .t-action { right: 18px; bottom: 26px; width: 46px; height: 46px; font-size: 16px; }
 .touch-layer .t-shortcuts { position: absolute; right: 8px; top: 96px; display: flex; flex-direction: column; gap: 5px; }
-.touch-layer .t-small { position: static; width: 34px; height: 22px; border-radius: 8px; font-size: 6.5px; }
+.touch-layer .t-small { position: static; width: 40px; height: 25px; border-radius: 8px; font-size: 7.5px; }
 /* Nos mini games: só o direcional e o botão de ação. */
 #ui.minigame-on ~ #touch .t-shortcuts { display: none; }
 /* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
 .touch-layer .t-full { position: absolute; left: 14px; bottom: 96px; width: 28px; font-size: 11px; }
 .touch-layer .t-full[hidden] { display: none; }
+/* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side: a largura útil delas, em px do jogo): o
+   direcional e os botões saem de cima do jogo. Esquerda: a barra de itens (ui.css) e o direcional; direita: os atalhos,
+   a tela cheia e o E. Faixa estreita: o direcional entra só um pouco no jogo. */
+#stage.sides .touch-layer .t-stick { left: calc(max(4px, (var(--side) - 68px) / 2) - var(--side)); }
+#stage.sides .touch-layer .t-action { right: calc(max(4px, (var(--side) - 46px) / 2) - var(--side)); }
+#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side) - 40px) / 2) - var(--side)); }
+#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 200px; right: calc(max(2px, (var(--side) - 40px) / 2) - var(--side)); width: 40px; height: 25px; }
+
 /* Celular em pé (tela de toque, mais alta que larga): aviso para girar, por cima de tudo. */
 .rotate-hint { display: none; }
 @media (orientation: portrait) and (pointer: coarse) {

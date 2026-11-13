@@ -7,6 +7,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { coverage, FULL_SUSPICION, newPill, offer, pillOutcome, spread, startOffering, stepPill, warning, type PillParams, type PillState } from '../../core/pill';
 import { content, uiText } from '../content';
+import { keyless } from '../touch';
 import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadSheets, PILL as PILL_ART } from './assets';
@@ -122,7 +123,7 @@ export class PillScene extends MiniGameScene {
     if (this.s.phase === 'cover') {
       startOffering(this.s, this.p, this.rng);
       this.sfx(this.def.sounds?.ready);
-      if (this.btn) this.btn.textContent = t.offer;
+      if (this.btn) this.btn.textContent = keyless(t.offer);
       this.tweens.add({ targets: this.bowl, x: PILL.x + 90, y: PILL.y + 60, scale: 0.75, duration: 300 });
       return;
     }
