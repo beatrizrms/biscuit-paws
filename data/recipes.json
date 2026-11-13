@@ -208,10 +208,10 @@
       "name": "Fatia de bolo de chocolate",
       "icon": "fatia_chocolate",
       "ingredients": {
-        "item.flour": 1,
-        "item.eggs": 1,
-        "item.butter": 1,
-        "item.chocolate": 2
+        "item.flour": 3,
+        "item.eggs": 3,
+        "item.butter": 3,
+        "item.chocolate": 6
       },
       "steps": [
         {
@@ -266,11 +266,11 @@
       "name": "Fatia de bolo de morango",
       "icon": "fatia_morango",
       "ingredients": {
-        "item.flour": 1,
-        "item.eggs": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.strawberry": 2
+        "item.flour": 3,
+        "item.eggs": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.strawberry": 6
       },
       "steps": [
         {
@@ -497,11 +497,11 @@
       "name": "Fatia de bolo de matcha",
       "icon": "fatia_matcha",
       "ingredients": {
-        "item.flour": 1,
-        "item.eggs": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.tea_green_box": 1
+        "item.flour": 3,
+        "item.eggs": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.tea_green_box": 3
       },
       "steps": [
         {
@@ -852,11 +852,11 @@
       "name": "Fatia de torta de morango",
       "icon": "fatia_torta_morango",
       "ingredients": {
-        "item.flour": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.eggs": 1,
-        "item.strawberry": 2
+        "item.flour": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.eggs": 3,
+        "item.strawberry": 6
       },
       "steps": [
         {
@@ -899,7 +899,7 @@
         }
       ],
       "vessel": "glass",
-      "price": 11,
+      "price": 16,
       "unlock": {
         "milestone": "milestone.customers_50"
       },
@@ -956,7 +956,7 @@
         }
       ],
       "vessel": "glass",
-      "price": 11,
+      "price": 15,
       "unlock": {
         "milestone": "milestone.customers_50"
       },
@@ -1026,11 +1026,11 @@
       "name": "Fatia de panetone",
       "icon": "fatia_panetone",
       "ingredients": {
-        "item.flour": 1,
-        "item.eggs": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.honey": 1
+        "item.flour": 3,
+        "item.eggs": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.honey": 3
       },
       "steps": [
         {
@@ -1095,11 +1095,11 @@
       "name": "Fatia de bolo de abóbora",
       "icon": "fatia_bolo_abobora",
       "ingredients": {
-        "item.flour": 1,
-        "item.eggs": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.pumpkin": 1
+        "item.flour": 3,
+        "item.eggs": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.pumpkin": 3
       },
       "steps": [
         {
@@ -1276,11 +1276,11 @@
       "name": "Fatia de torta de maçã",
       "icon": "fatia_torta_maca",
       "ingredients": {
-        "item.flour": 1,
-        "item.butter": 1,
-        "item.sugar": 1,
-        "item.eggs": 1,
-        "item.apple": 2
+        "item.flour": 3,
+        "item.butter": 3,
+        "item.sugar": 3,
+        "item.eggs": 3,
+        "item.apple": 6
       },
       "steps": [
         {

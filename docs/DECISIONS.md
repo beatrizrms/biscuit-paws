@@ -961,3 +961,7 @@ Decisão: na tela, "selo" vira "conquista" (aba Conquistas do app Café em núme
 ## 234. Quadro do cardápio compacto, com custo e lucro (nov/2026)
 Pedido: com muitas receitas destrancadas, o quadro virava uma lista enorme de cartões (2 e meio por tela); mostrar preço de custo, venda e lucro.
 Decisão: abas pela louça (Quentes = xícara, Geladas = copo, Comidas = prato), uma linha por receita (bolinha de situação: verde disponível, laranja falta ingrediente ou louça, cinza falta equipamento; ícone, nome, "nova" nos 7 dias depois de aprender, "no quadro", preço); tocar abre os detalhes (ingredientes, etapas, Custo · Venda · Lucro por porção, situação) e o botão de pôr ou tirar. O custo (`service.costOf`) é o preço de cada pacote dividido pelas doses que rende; a fornada divide pelas fatias; premium usa as trocas. Fora de época fica recolhido, com a conta por estação e as semanas especiais juntas em "Eventos".
+
+## 235. Preços: chás gelados e bolos em fornada (nov/2026)
+Pedido: a conta de custo e lucro (decisão anterior) mostrou chás gelados quase sem lucro e bolos em fatia com custo quase zero.
+Decisão: chá gelado de frutas vermelhas 11 → 16 e de limão 11 → 15 (lucro 5,5 cada). Os bolos e tortas em fornada usam 3 doses de cada ingrediente (um bolo inteiro gasta mais farinha, ovos, manteiga...): o custo por fatia sobe para 2,5 a 5,8 e o lucro fica entre 12 e 17,5, no nível dos outros doces. Os preços das fatias não mudam.
