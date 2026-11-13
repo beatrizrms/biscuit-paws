@@ -57,7 +57,7 @@ describe('festivais (puro)', () => {
     expect(pendingFestivalPoints(s, fair, day)).toEqual([table]);
     expect(recordActivity(s, fair, table, result('adoption', 'fail'), day)).toBe('finished'); // qualquer resultado conta
     expect(finishFestival(s)).toEqual({ id: fair.id, results: [result('fair_setup', 'great'), result('adoption', 'fail')] });
-    expect(s).toEqual({ active: null, last: { [fair.id]: day }, heldOn: { id: fair.id, day } });
+    expect(s).toEqual({ active: null, last: { [fair.id]: day }, heldOn: { id: fair.id, day }, held: { [fair.id]: 1 } });
     expect(festivalClosesCafe(s, content.festivals, day)).toBe(true); // até o fim do dia
     expect(festivalClosesCafe(s, content.festivals, day + 1)).toBe(false);
   });

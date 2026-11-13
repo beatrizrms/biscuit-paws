@@ -82,6 +82,10 @@
         "title": "Decor",
         "groups": [
           {
+            "tag": "stationery",
+            "title": "Papelaria"
+          },
+          {
             "tag": "decor",
             "title": "Decoração"
           },
@@ -1339,6 +1343,10 @@
     "closeSoon": "{name} é hoje! A placa precisa ir para a porta do café até as {by}.",
     "missedEvening": "Deu {until} e {name} não terminou: ficou para outra vez.",
     "endSoon": "{name}: falta pouco! Tudo precisa terminar até as {until}.",
+    "prepUntil": " A feira é em {date}.",
+    "itemBusy": "Os panfletos ficam guardados na mochila: primeiro termine {other}.",
+    "flyersArrived": "Os panfletos chegaram! Hora de distribuir pela rua: {name} é em {date}.",
+    "noPrep": "Você não distribuiu os panfletos, por isso ninguém veio à {name}. Dá para planejar uma nova daqui {n} dias.",
     "summary": {
       "title": "{name}: fim!",
       "activity": "{game}: {outcome}",

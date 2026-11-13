@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "_comment": "Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift, ids } e effects (opcional, como os da história). recipe/room/item/event: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
+  "_comment": "Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui; fairsHeld = feiras de adoção que aconteceram até o fim). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift, ids } e effects (opcional, como os da história). recipe/room/item/event: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
   "tracks": [
     { "id": "customers", "name": "Clientes atendidos", "kind": "count", "stat": "served" },
     { "id": "cats", "name": "Gatos que passaram pelo café", "kind": "count", "stat": "catsEver" },
     { "id": "reputation", "name": "Reputação", "kind": "count", "stat": "reputation" },
     { "id": "no_gave_up", "name": "Ninguém sai de mãos vazias", "kind": "streak", "stat": "streak.no_gave_up" },
-    { "id": "cats_cared", "name": "Bigodes bem cuidados", "kind": "streak", "stat": "streak.cats_cared" }
+    { "id": "cats_cared", "name": "Bigodes bem cuidados", "kind": "streak", "stat": "streak.cats_cared" },
+    { "id": "fairs", "name": "Feiras de adoção", "kind": "count", "stat": "fairsHeld" }
   ],
   "milestones": [
     { "id": "milestone.customers_6", "track": "customers", "name": "Primeira freguesia", "at": 6, "reward": { "kind": "recipe", "ids": ["recipe.black_tea"] } },
@@ -43,6 +44,7 @@
 
     { "id": "milestone.cats_cared_3", "track": "cats_cared", "name": "Bigodes em dia", "at": 3, "reward": { "kind": "gift", "ids": ["item.cat_treat_biscuit", "item.cat_treat_biscuit", "item.cat_treat_biscuit"] } },
     { "id": "milestone.cats_cared_7", "track": "cats_cared", "name": "Saúde de ferro", "at": 7, "reward": { "kind": "recipe", "ids": ["recipe.paw_cookie"] } },
-    { "id": "milestone.cats_cared_14", "track": "cats_cared", "name": "Ninho quentinho", "at": 14, "reward": { "kind": "gift", "ids": ["item.cat_bed_lilas"] } }
+    { "id": "milestone.cats_cared_14", "track": "cats_cared", "name": "Ninho quentinho", "at": 14, "reward": { "kind": "gift", "ids": ["item.cat_bed_lilas"] } },
+    { "id": "milestone.fairs_1", "track": "fairs", "name": "Feira de adoção", "at": 1, "reward": { "kind": "item", "ids": ["item.fair_flyers"] } }
   ]
 }

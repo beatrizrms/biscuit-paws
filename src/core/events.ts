@@ -106,11 +106,16 @@ export interface GameEvents {
   'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };
-  'festival.started': { festivalId: string };
+  /** fromItem: começou pelos panfletos do Market (sem a fala da ideia). */
+  'festival.started': { festivalId: string; fromItem?: boolean };
   'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready' | 'activity'; pointId: string };
   'festival.scheduled': { festivalId: string; day: number };
   /** O evento não aconteceu: o dia passou sem acabar, ou (late) o prazo da placa passou sem ela na porta. */
   'festival.missed': { festivalId: string; day: number; late?: boolean; evening?: boolean };
+  /** Chegou o dia marcado sem a preparação feita (os panfletos): ninguém veio; dá para planejar outro em retryIn dias. */
+  /** O item do evento (os panfletos) está na mochila, mas ele não pode começar: outro evento em andamento ou as condições. */
+  'festival.itemWaiting': { festivalId: string; busyWith?: string };
+  'festival.noPrep': { festivalId: string; retryIn: number };
   /** No dia do evento, perto da hora-limite do dia (until) e ele ainda não acabou. */
   'festival.endSoon': { festivalId: string; until: string };
   /** No dia do evento, perto do prazo da placa (closePoint.by) e ela ainda não foi para a porta. */

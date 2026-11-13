@@ -21,8 +21,19 @@ export interface FestivalDef {
   date?: { season: string; day: number; noticeDays?: number };
   /** Dias mínimos entre duas edições (30 = mensal). */
   cooldownDays: number;
-  /** Preparação antes do dia (ex.: os panfletos): pontos em qualquer ordem; o dia fica marcado `daysAfter` depois. */
-  prep?: { points: string[]; daysAfter: number };
+  /**
+   * Depois da primeira edição, o evento não volta sozinho: começa quando este item chega (os panfletos do Market),
+   * quando ela quiser (sem o intervalo entre edições). As condições (when) continuam valendo.
+   */
+  repeatItem?: string;
+  /** Linha do aviso quando o item chegou mas as condições (when) não valem (o que falta). */
+  repeatWaiting?: string;
+  /**
+   * Preparação antes do dia (ex.: os panfletos): pontos em qualquer ordem. O dia fica marcado já na ideia, `daysAfter`
+   * dias depois; chegou o dia sem a preparação feita, ninguém vem: o evento é cancelado e dá para planejar outro
+   * daqui `retryDays` dias.
+   */
+  prep?: { points: string[]; daysAfter: number; retryDays?: number };
   /**
    * No dia, antes de tudo: a placa na porta (fecha o atendimento). `by`: até que hora ("12:00"); passou sem a placa,
    * o evento é perdido. `remind`: quantos minutos antes do prazo vem o lembrete.
@@ -77,6 +88,8 @@ export interface FestivalsState {
   last: Record<string, number>;
   /** O evento que aconteceu hoje (a placa e a decoração ficam até o fim do dia). */
   heldOn: { id: string; day: number } | null;
+  /** Quantas vezes cada evento aconteceu (até o fim). */
+  held?: Record<string, number>;
 }
 
 export function newFestivals(): FestivalsState {
@@ -98,31 +111,33 @@ export interface FestivalContext {
   daysUntil?: (season: string, day: number) => number;
 }
 
-/** Folga, além de prep.daysAfter, para a preparação (os panfletos) de um evento sem data. */
-const PREP_SLACK_DAYS = 7;
+
 
 /** Disponível agora para começar? (nenhum evento em andamento, liberado, condição, data e intervalo). */
-export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: FestivalContext): boolean {
+export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: FestivalContext, fromItem = false): boolean {
   if (s.active) return false;
+  // Com repeatItem, só a primeira vem sozinha; as outras, pelo item (e sem o intervalo).
+  if (def.repeatItem && (s.held?.[def.id] ?? 0) > 0 && !fromItem) return false;
   if (def.unlockReputation && !ctx.reached.includes(def.unlockReputation)) return false;
   const last = s.last[def.id];
-  if (last !== undefined && ctx.day - last < def.cooldownDays) return false;
+  if (!fromItem && last !== undefined && ctx.day - last < def.cooldownDays) return false;
   if (def.date) {
     const notice = def.date.noticeDays ?? 0;
     if (ctx.season !== def.date.season || ctx.dayOfSeason > def.date.day || ctx.dayOfSeason < def.date.day - notice) return false;
   }
   if (def.when !== undefined && !ctx.evaluate(def.when)) return false;
-  // Sem data (a feira de adoção): não começa se um evento com data, já liberado, cai antes de ela acontecer (só cabe
-  // um por vez: o de data se perderia naquele ano).
+  // Sem data (a feira de adoção): não começa se um evento com data, já liberado, cai até o dia dela (só cabe um por
+  // vez: o de data se perderia naquele ano). O dia dela fica marcado na ideia, prep.daysAfter depois.
   if (!def.date && ctx.others && ctx.daysUntil) {
-    const window = (def.prep?.daysAfter ?? 0) + PREP_SLACK_DAYS;
+    const window = def.prep?.daysAfter ?? 0;
     for (const d of ctx.others) {
       if (!d.date || d.id === def.id) continue;
       if (d.unlockReputation && !ctx.reached.includes(d.unlockReputation)) continue;
       const last = s.last[d.id];
       if (last !== undefined && ctx.day - last < d.cooldownDays) continue;
       if (d.when !== undefined && !ctx.evaluate(d.when)) continue;
-      if (ctx.daysUntil(d.date.season, d.date.day) <= window) return false;
+      // O de data começa noticeDays antes (a ideia dela): a feira tem de acabar antes disso.
+      if (ctx.daysUntil(d.date.season, d.date.day) - (d.date.noticeDays ?? 0) <= window) return false;
     }
   }
   return true;
@@ -130,7 +145,7 @@ export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: Festi
 
 /** Começa: com preparação, a etapa dela; sem, já marcado (o dia da data fixa, ou hoje). */
 export function startFestival(s: FestivalsState, def: FestivalDef, ctx: Pick<FestivalContext, 'day' | 'dayOfSeason'>): void {
-  if (def.prep) s.active = { id: def.id, stage: 'prep', day: null, done: [], results: [] };
+  if (def.prep) s.active = { id: def.id, stage: 'prep', day: ctx.day + def.prep.daysAfter, done: [], results: [] };
   else {
     const day = def.date ? ctx.day + (def.date.day - ctx.dayOfSeason) : ctx.day;
     s.active = { id: def.id, stage: 'scheduled', day, done: [], results: [] };
@@ -175,8 +190,9 @@ export function doFestivalPoint(s: FestivalsState, def: FestivalDef, pointId: st
   a.done.push(pointId);
   if (a.stage === 'prep') {
     if ((def.prep?.points ?? []).some((id) => !a.done.includes(id))) return 'prep';
+    // O dia já estava marcado desde a ideia (save antigo sem ele: daysAfter depois de hoje).
     a.stage = 'scheduled';
-    a.day = day + (def.prep?.daysAfter ?? 1);
+    a.day = a.day ?? day + (def.prep?.daysAfter ?? 1);
     a.done = [];
     return 'scheduled';
   }
@@ -203,6 +219,7 @@ export function finishFestival(s: FestivalsState): { id: string; results: Activi
   const day = a.day ?? 0;
   s.last[a.id] = day;
   s.heldOn = { id: a.id, day };
+  s.held = { ...(s.held ?? {}), [a.id]: (s.held?.[a.id] ?? 0) + 1 };
   s.active = null;
   return { id: a.id, results: a.results };
 }
@@ -236,6 +253,21 @@ export function festivalEndDeadline(s: FestivalsState, def: FestivalDef, day: nu
     return 'missed';
   }
   return def.untilRemind && time >= until - def.untilRemind ? 'soon' : null;
+}
+
+/**
+ * Virada do dia: chegou o dia marcado com a preparação por fazer (os panfletos): ninguém vem. O evento é cancelado e
+ * pode voltar daqui prep.retryDays dias (o intervalo entre edições conta como se ele tivesse acontecido antes).
+ * Devolve o id e os dias até poder de novo, ou null.
+ */
+export function festivalPrepExpired(s: FestivalsState, defs: readonly FestivalDef[], newDay: number): { id: string; retryIn: number } | null {
+  const a = s.active;
+  if (!a || a.stage !== 'prep' || a.day === null || newDay < a.day) return null;
+  const def = defs.find((d) => d.id === a.id);
+  const retryIn = def?.prep?.retryDays ?? def?.cooldownDays ?? 0;
+  s.active = null;
+  if (def) s.last[def.id] = newDay + retryIn - def.cooldownDays;
+  return { id: a.id, retryIn };
 }
 
 /** Virada do dia: o evento marcado para um dia que já passou sem acabar volta ao começo. Devolve o id, se perdeu. */

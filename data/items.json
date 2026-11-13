@@ -2161,6 +2161,20 @@
       "dishes": {"plate":6}
     },
     {
+      "id": "item.fair_flyers",
+      "name": "Panfletos da feira",
+      "description": "Um maço de panfletos da feira de adoção. Quando chegam, é só distribuir pela rua: a feira fica marcada para dali a alguns dias.",
+      "price": 20,
+      "kind": "consumable",
+      "tile": "fair_poster",
+      "tags": [
+        "stationery"
+      ],
+      "requires": {
+        "milestone": "milestone.fairs_1"
+      }
+    },
+    {
       "id": "item.dishes_set",
       "name": "Conjunto de louças",
       "description": "Xícaras, copos e pratos para servir os clientes.",

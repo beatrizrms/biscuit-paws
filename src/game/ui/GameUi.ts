@@ -357,6 +357,16 @@ export class GameUi {
     bus.on('festival.missed', ({ festivalId, late, evening }) =>
       this.toast((evening ? ft.missedEvening.replace('{until}', untilOf(festivalId)) : late ? ft.missedLate.replace('{by}', placeBy(festivalId)) : ft.missed).replace('{name}', festName(festivalId)), 5500),
     );
+    bus.on('festival.started', ({ festivalId, fromItem }) => {
+      const day = this.session.state.festivals.active?.day;
+      if (fromItem && day != null) this.toast(ft.flyersArrived.replace('{name}', festName(festivalId)).replace('{date}', this.festivalDate(day)), 7000);
+    });
+    bus.on('festival.itemWaiting', ({ festivalId, busyWith }) => {
+      const def = content.festivals.find((f) => f.id === festivalId);
+      const text = busyWith ? ft.itemBusy.replace('{other}', festName(busyWith)) : (def?.repeatWaiting ?? '');
+      if (text) this.toast(text, 7000);
+    });
+    bus.on('festival.noPrep', ({ festivalId, retryIn }) => this.toast(ft.noPrep.replace('{name}', festName(festivalId)).replace('{n}', String(retryIn)), 8000));
     bus.on('festival.endSoon', ({ festivalId, until }) => this.toast(ft.endSoon.replace('{name}', festName(festivalId)).replace('{until}', hour(until)), 6000));
     bus.on('festival.closeSoon', ({ festivalId, by }) => this.toast(ft.closeSoon.replace('{name}', festName(festivalId)).replace('{by}', hour(by)), 6000));
     bus.on('festival.finished', (e) => void this.festivalSummary(e));
@@ -957,7 +967,10 @@ export class GameUi {
     const t = f.def.texts;
     const count = f.total > 1 && f.left > 0 ? ` <span class="count">${f.total - f.left}/${f.total}</span>` : '';
     let text = '';
-    if (f.stage === 'prep') text = t.prep ?? '';
+    if (f.stage === 'prep') {
+      text = t.prep ?? '';
+      if (f.day !== null) text += uiText.festival.prepUntil.replace('{date}', this.festivalDate(f.day));
+    }
     else if (f.stage === 'waiting') {
       const n = (f.day ?? 0) - this.session.state.day;
       const when = n === 1 ? uiText.calendarApp.tomorrow : uiText.calendarApp.inDays.replace('{n}', String(n));

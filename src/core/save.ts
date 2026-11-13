@@ -561,7 +561,7 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
     active = {
       id: a.id,
       stage: a.stage,
-      day: a.stage === 'scheduled' ? num(a.day) : null,
+      day: num(a.day),
       done: strings(a.done),
       results: results.map(({ setup, contest, ...r }) => ({
         ...r,
@@ -576,7 +576,8 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
   const last = Object.fromEntries(Object.entries(x.last ?? {}).filter((e): e is [string, number] => ok(e[0]) && num(e[1]) !== null));
   const h = x.heldOn;
   const heldOn = h && ok(h.id) && num(h.day) !== null ? { id: h.id, day: h.day } : null;
-  return { active, last, heldOn };
+  const held = Object.fromEntries(Object.entries(x.held ?? {}).filter((e): e is [string, number] => ok(e[0]) && num(e[1]) !== null && e[1] > 0));
+  return { active, last, heldOn, ...(Object.keys(held).length ? { held } : {}) };
 }
 
 /** A melhor foto salva (quebrada = nenhuma); gatos que sumiram saem da lista. */

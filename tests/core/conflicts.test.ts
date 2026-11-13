@@ -190,6 +190,43 @@ describe('dia de evento no quintal', () => {
   });
 });
 
+describe('feira com o dia marcado na ideia', () => {
+  it('o dia fica no calendário desde a ideia; sem os panfletos, ninguém vem e dá para planejar outra daqui retryDays dias', () => {
+    const { session, state, events } = midGame();
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    session.debugStartFestival(fair.id);
+    const start = state.day;
+    expect(state.festivals.active).toMatchObject({ stage: 'prep', day: start + fair.prep!.daysAfter });
+    expect(session.calendar(start, start + 10).some((c) => c.id === 'cal.' + fair.id)).toBe(true);
+    // Só um panfleto e o dia chega.
+    session.doJobPoint(fair.prep!.points[0]!);
+    for (let d = 0; d < fair.prep!.daysAfter; d++) session.endDay('home');
+    expect(state.festivals.active).toBeNull();
+    expect(events.find((e) => e.name === 'festival.noPrep')?.payload).toEqual({ festivalId: fair.id, retryIn: fair.prep!.retryDays });
+    // Dá para começar de novo depois de retryDays (não no intervalo inteiro de 30 dias).
+    const ctxDay = state.day + fair.prep!.retryDays!;
+    expect(ctxDay - state.festivals.last[fair.id]!).toBeGreaterThanOrEqual(fair.cooldownDays);
+  });
+
+  it('com os panfletos feitos, a feira acontece no dia marcado na ideia (não depois)', () => {
+    const { session, state } = midGame();
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    session.debugStartFestival(fair.id);
+    const day = state.festivals.active!.day!;
+    session.endDay('home');
+    for (const id of fair.prep!.points) expect(session.doJobPoint(id)).toEqual({ ok: true });
+    expect(state.festivals.active).toMatchObject({ stage: 'scheduled', day });
+  });
+
+  it('em dia de evento no quintal, gato novo não chega (espera o dia seguinte)', () => {
+    const { session, state } = midGame();
+    session.debugStartFestival('fest.cat_day');
+    const arrivals = (session as unknown as { arrivals: { queueNow(id: string): boolean } }).arrivals;
+    arrivals.queueNow('arr.third_cat');
+    expect(state.arrivals.active).toBeNull();
+  });
+});
+
 describe('o mapa sempre abre', () => {
   it('café, rua, praça e beco, em cada estação', () => {
     const { session, state } = midGame();

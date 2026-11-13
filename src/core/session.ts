@@ -42,7 +42,7 @@ import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
-import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, festivalEndDeadline, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
+import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, festivalEndDeadline, festivalPrepExpired, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
 import {
@@ -271,7 +271,8 @@ export class GameSession {
       now: () => nowAbs(this.state),
       weather: () => this.weather(),
       capacity: () => this.catCapacity(),
-      exclusiveActive: () => this.exclusiveActive(),
+      // Em dia de evento no quintal, as chegadas normais esperam o dia seguinte (as urgentes, não).
+      exclusiveActive: () => this.exclusiveActive() || this.festivalInYardToday(),
       reputation: () => this.reputation(),
       shelterCat: (id, condition, until, treated, settling, repro) => this.shelterCat(id, condition, until, treated, settling, repro),
       money: () => this.state.money,
@@ -795,6 +796,8 @@ export class GameSession {
     if (this.newYearPending()) this.bus.emit('newyear.missed', {});
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
+    const noPrep = festivalPrepExpired(this.state.festivals, this.content.festivals, day + 1);
+    if (noPrep) this.bus.emit('festival.noPrep', { festivalId: noPrep.id, retryIn: noPrep.retryIn });
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.constructionDayEnded(day + 1);
@@ -3237,6 +3240,7 @@ export class GameSession {
       reputation: this.reputation(),
       'streak.no_gave_up': st.no_gave_up.best,
       'streak.cats_cared': st.cats_cared.best,
+      fairsHeld: this.state.festivals.held?.['fest.adoption_fair'] ?? 0,
     };
   }
 
@@ -3730,7 +3734,18 @@ export class GameSession {
 
   /** Começa o primeiro festival disponível: a protagonista tem a ideia (fala) e a meta aparece. */
   private maybeStartFestivals(): void {
-    if (this.state.festivals.active || this.festivalMissedOn === this.state.day) return;
+    // Os panfletos na mochila e a feira não pode começar: avisa uma vez por dia por quê (outro evento, ou as condições).
+    const waiting = this.content.festivals.find((f) => f.repeatItem && (this.state.inventory[f.repeatItem] ?? 0) > 0);
+    const warnWaiting = (busyWith?: string) => {
+      if (!waiting || this.flyersWarnedOn === this.state.day) return;
+      this.flyersWarnedOn = this.state.day;
+      this.bus.emit('festival.itemWaiting', { festivalId: waiting.id, ...(busyWith ? { busyWith } : {}) });
+    };
+    const busy = this.state.festivals.active;
+    if (busy || this.festivalMissedOn === this.state.day) {
+      if (busy && busy.id !== waiting?.id) warnWaiting(busy.id);
+      return;
+    }
     const { season, day: dayOfSeason } = this.seasonDay();
     const seasons = this.content.seasons;
     // Dias até a data (estação, dia) que vem (hoje = 0), dando a volta no ano.
@@ -3742,14 +3757,23 @@ export class GameSession {
     };
     const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));
-    if (def) this.beginFestival(def);
+    if (def) return this.beginFestival(def);
+    // Os panfletos chegaram (repeatItem na mochila): começa a próxima edição, sem a fala da ideia.
+    const byItem = this.content.festivals.find((f) => f.repeatItem && (this.state.inventory[f.repeatItem] ?? 0) > 0 && festivalCanStart(this.state.festivals, f, ctx, true));
+    if (byItem) {
+      this.removeFromInventory(byItem.repeatItem!);
+      this.beginFestival(byItem, true);
+      return;
+    }
+    warnWaiting();
   }
+  private flyersWarnedOn = 0;
 
-  private beginFestival(def: FestivalDef): void {
+  private beginFestival(def: FestivalDef, fromItem = false): void {
     startFestival(this.state.festivals, def, { day: this.state.day, dayOfSeason: this.seasonDay().day });
     this.festivalAdopted = 0;
-    this.bus.emit('festival.started', { festivalId: def.id });
-    if (def.idea) this.bus.emit('dialogue.requested', { dialogueId: def.idea });
+    this.bus.emit('festival.started', { festivalId: def.id, ...(fromItem ? { fromItem: true } : {}) });
+    if (def.idea && !fromItem) this.bus.emit('dialogue.requested', { dialogueId: def.idea });
     const a = this.state.festivals.active!;
     if (a.stage === 'scheduled') this.bus.emit('festival.scheduled', { festivalId: def.id, day: a.day! });
   }
@@ -4306,7 +4330,8 @@ export class GameSession {
     // O festival marcado, com o nome dele.
     const a = this.state.festivals.active;
     const def = this.activeFestival();
-    if (def && a?.stage === 'scheduled' && a.day !== null && a.day >= from && a.day <= to) out.push({ id: `cal.${def.id}`, day: a.day, title: def.name, kind: 'event' });
+    // Marcado desde a ideia (também durante os panfletos).
+    if (def && a && a.day !== null && a.day >= from && a.day <= to) out.push({ id: `cal.${def.id}`, day: a.day, title: def.name, kind: 'event' });
     return out.sort((a, b) => a.day - b.day);
   }
 
