@@ -1,5 +1,5 @@
 // Ícone do clima do dia no HUD (ao lado da data): pixel art em SVG, 12 x 12.
-// PLACEHOLDER(arte): desenhados por código; trocar por ícones da folha (data/icons.json) quando a arte existir.
+// Sol, chuva, neve e vento têm arte do PixelLab (24 x 24); o SVG por código fica para clima sem arte.
 
 /** Cada letra é uma cor da paleta; "." é transparente. */
 const PALETTE: Record<string, string> = {
@@ -65,8 +65,12 @@ const ICONS: Record<string, string[]> = {
   ],
 };
 
-/** O SVG do ícone (ou vazio, se o clima não tiver ícone). */
+/** Climas com arte do PixelLab (public/assets/ui/hud/ui_weather_<clima>.png, 24 x 24). */
+const ART = new Set(['sun', 'rain', 'snow', 'wind']);
+
+/** O ícone do clima: a arte, se tiver; senão o SVG por código (ou vazio, se o clima não tiver ícone). */
 export function weatherIconSvg(weather: string, px = 14): string {
+  if (ART.has(weather)) return `<img class="weather-icon" src="assets/ui/hud/ui_weather_${weather}.png" width="${px}" height="${px}" alt="" />`;
   const rows = ICONS[weather];
   if (!rows) return '';
   const rects = rows

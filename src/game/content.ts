@@ -1,4 +1,5 @@
 // Junta os arquivos de data/ num Content para a sessão de jogo.
+import type Phaser from 'phaser';
 import type { CatsData } from '../core/cats';
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
@@ -124,7 +125,13 @@ export const serviceArt = serviceArtJson as unknown as {
 };
 
 /** Balões de emoção (16x16) sobre personagens, gatos e NPCs. */
-export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]> };
+export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]>; hd?: Record<string, string> };
+
+/** Imagem de um emote: a versão em alta (emotes.json: hd, meia escala), se carregada; senão o quadro da folha. */
+export function emoteImage(scene: Phaser.Scene, x: number, y: number, name: string): Phaser.GameObjects.Image {
+  const hd = `emote_hd:${name}`;
+  return scene.textures.exists(hd) ? scene.add.image(x, y, hd).setScale(0.5) : scene.add.image(x, y, 'emotes', name);
+}
 
 export const uiText = uiTextJson;
 

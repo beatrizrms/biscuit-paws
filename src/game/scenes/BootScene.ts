@@ -51,6 +51,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('weather-leaf', 'assets/fx/weather_leaf.png');
     this.load.image('broom_hold', broom.hold.image);
     this.load.image('emotes', emotes.image);
+    for (const [name, path] of Object.entries(emotes.hd ?? {})) this.load.image(`emote_hd:${name}`, path);
     this.load.image(ROBOT_KEY, ROBOT_IMAGE);
     this.load.image('van_left', content.delivery.van.left);
     // O ônibus do ponto (sem a arte, o furgão faz o papel).

@@ -15,8 +15,9 @@ import { MiniGameScene } from './MiniGameScene';
 
 export const PHOTO_SCENE = 'MiniGame.photo';
 
-/** PLACEHOLDER(arte): o brilho da pose fofa é desenhado por código (chave photo_sparkle). */
+/** O brilho da pose fofa (arte do PixelLab, 24 x 24, desenhada em meia escala); sem ela, desenhado por código. */
 const SPARKLE_KEY = 'photo_sparkle';
+const SPARKLE_IMAGE = 'assets/ui/hud/ui_sparkle.png';
 
 /** Gatos em dobro (o visor é "de perto"): o quadro de 32 vira 64 px. */
 const CAT_SCALE = 2;
@@ -62,6 +63,7 @@ export class PhotoScene extends MiniGameScene {
 
   preload(): void {
     loadCatVariants(this, this.catList().map((c) => c.variant));
+    if (!this.textures.exists(SPARKLE_KEY)) this.load.image(SPARKLE_KEY, SPARKLE_IMAGE);
   }
 
   /** Os gatos do café (params.contestCats); aberto pelo debug, alguns do abrigo da vila. */
@@ -94,7 +96,8 @@ export class PhotoScene extends MiniGameScene {
     for (const c of chosen) {
       CatSprite.createAnimations(this, c.variant);
       const sprite = this.add.sprite(0, 0, catTexture(c.variant), 0).setScale(CAT_SCALE * catScale(c.variant)).setOrigin(0.5, 0.65);
-      const sparkles = [0, 1].map(() => this.add.image(0, 0, SPARKLE_KEY).setVisible(false).setDepth(2000));
+      const art = this.textures.get(SPARKLE_KEY).getSourceImage().width > 12 ? 0.5 : 1;
+      const sparkles = [0, 1].map(() => this.add.image(0, 0, SPARKLE_KEY).setScale(art).setVisible(false).setDepth(2000));
       this.views.set(c.id, { sprite, sparkles, variant: c.variant, anim: '' });
     }
     this.finder = this.add.graphics().setDepth(3000);
