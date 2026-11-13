@@ -1906,23 +1906,23 @@
     "scr.picnic_party": {
       "steps": [
         {
-          "enter": "map.cafe_main",
-          "spawn": [
-            11,
-            8
-          ],
-          "facing": "up",
-          "ifAway": true
-        },
-        {
           "wait": 400
         },
         {
-          "npcSpawn": "npc.gabi",
-          "map": "map.cafe_main",
-          "at": [
+          "playerWalk": [
             14,
-            10
+            8
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.praca",
+          "at": [
+            15,
+            14
           ],
           "facing": "up",
           "when": {
@@ -1932,8 +1932,18 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            6
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            13,
+            8
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -1943,7 +1953,7 @@
           "npcWalk": "npc.gabi",
           "to": [
             12,
-            6
+            7
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -1957,71 +1967,42 @@
           }
         },
         {
-          "npcSpawn": "npc.joca",
-          "map": "map.cafe_main",
+          "npcSpawn": "npc.neusa",
+          "map": "map.praca",
           "at": [
-            14,
-            10
+            15,
+            14
           ],
           "facing": "up",
           "when": {
-            "flag": "seen.scr.gabi_visit"
+            "flag": "met.old_neighbor"
           }
         },
         {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcWalk": "npc.joca",
+          "npcWalk": "npc.neusa",
           "to": [
             13,
+            14
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
             7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcFace": "npc.joca",
-          "facing": "left",
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcSpawn": "npc.neusa",
-          "map": "map.cafe_main",
-          "at": [
-            14,
-            10
-          ],
-          "facing": "up",
-          "when": {
-            "flag": "met.old_neighbor"
-          }
-        },
-        {
-          "npcWalk": "npc.neusa",
-          "to": [
-            14,
-            6
-          ],
-          "when": {
-            "flag": "met.old_neighbor"
-          }
-        },
-        {
-          "npcWalk": "npc.neusa",
-          "to": [
-            10,
-            6
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2035,13 +2016,53 @@
           }
         },
         {
-          "playerWalk": [
-            11,
-            8
-          ]
+          "npcSpawn": "npc.joca",
+          "map": "map.praca",
+          "at": [
+            15,
+            14
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
         },
         {
-          "playerFace": "up"
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            16,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "down",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
         },
         {
           "dialogue": "dlg.picnic_party"
@@ -2057,8 +2078,8 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            7
+            13,
+            8
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2067,8 +2088,18 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            10
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            15,
+            14
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2081,36 +2112,10 @@
           }
         },
         {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            10
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcLeave": "npc.joca",
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
           "npcWalk": "npc.neusa",
           "to": [
-            14,
-            7
+            13,
+            8
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2119,8 +2124,18 @@
         {
           "npcWalk": "npc.neusa",
           "to": [
-            14,
-            10
+            13,
+            14
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            15,
+            14
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2130,6 +2145,42 @@
           "npcLeave": "npc.neusa",
           "when": {
             "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            15,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.joca",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
           }
         }
       ]
@@ -2202,23 +2253,23 @@
     "scr.icecream_party": {
       "steps": [
         {
-          "enter": "map.cafe_main",
-          "spawn": [
-            11,
-            8
-          ],
-          "facing": "up",
-          "ifAway": true
-        },
-        {
           "wait": 400
         },
         {
-          "npcSpawn": "npc.gabi",
-          "map": "map.cafe_main",
-          "at": [
+          "playerWalk": [
             14,
-            10
+            8
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.praca",
+          "at": [
+            15,
+            14
           ],
           "facing": "up",
           "when": {
@@ -2228,8 +2279,18 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            6
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            13,
+            8
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2239,7 +2300,7 @@
           "npcWalk": "npc.gabi",
           "to": [
             12,
-            6
+            7
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2253,71 +2314,42 @@
           }
         },
         {
-          "npcSpawn": "npc.joca",
-          "map": "map.cafe_main",
+          "npcSpawn": "npc.neusa",
+          "map": "map.praca",
           "at": [
-            14,
-            10
+            15,
+            14
           ],
           "facing": "up",
           "when": {
-            "flag": "seen.scr.gabi_visit"
+            "flag": "met.old_neighbor"
           }
         },
         {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcWalk": "npc.joca",
+          "npcWalk": "npc.neusa",
           "to": [
             13,
+            14
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
             7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcFace": "npc.joca",
-          "facing": "left",
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcSpawn": "npc.neusa",
-          "map": "map.cafe_main",
-          "at": [
-            14,
-            10
-          ],
-          "facing": "up",
-          "when": {
-            "flag": "met.old_neighbor"
-          }
-        },
-        {
-          "npcWalk": "npc.neusa",
-          "to": [
-            14,
-            6
-          ],
-          "when": {
-            "flag": "met.old_neighbor"
-          }
-        },
-        {
-          "npcWalk": "npc.neusa",
-          "to": [
-            10,
-            6
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2331,13 +2363,53 @@
           }
         },
         {
-          "playerWalk": [
-            11,
-            8
-          ]
+          "npcSpawn": "npc.joca",
+          "map": "map.praca",
+          "at": [
+            15,
+            14
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
         },
         {
-          "playerFace": "up"
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            16,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "down",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
         },
         {
           "dialogue": "dlg.icecream_party"
@@ -2353,8 +2425,8 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            7
+            13,
+            8
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2363,8 +2435,18 @@
         {
           "npcWalk": "npc.gabi",
           "to": [
-            14,
-            10
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            15,
+            14
           ],
           "when": {
             "flag": "seen.scr.gabi_visit"
@@ -2377,36 +2459,10 @@
           }
         },
         {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            7
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcWalk": "npc.joca",
-          "to": [
-            14,
-            10
-          ],
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
-          "npcLeave": "npc.joca",
-          "when": {
-            "flag": "seen.scr.gabi_visit"
-          }
-        },
-        {
           "npcWalk": "npc.neusa",
           "to": [
-            14,
-            7
+            13,
+            8
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2415,8 +2471,18 @@
         {
           "npcWalk": "npc.neusa",
           "to": [
-            14,
-            10
+            13,
+            14
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            15,
+            14
           ],
           "when": {
             "flag": "met.old_neighbor"
@@ -2426,6 +2492,42 @@
           "npcLeave": "npc.neusa",
           "when": {
             "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            8
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            15,
+            14
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.joca",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
           }
         }
       ]

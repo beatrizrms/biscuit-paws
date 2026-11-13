@@ -1479,7 +1479,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Pensei num piquenique das flores aqui no café, no dia 15, às 17h. Você fecha mais cedo, às 16h?"
+          "text": "Pensei num piquenique das flores na praça, no dia 15, às 17h. Você fecha o café mais cedo, às 16h?"
         },
         {
           "speaker": "{player}",
@@ -1488,7 +1488,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "E se o café estiver cheio de flores, melhor ainda: uns três vasos ou plantas já deixam tudo com cara de primavera."
+          "text": "E se o café estiver cheio de flores, melhor ainda: uns três vasos ou plantas já deixam tudo com cara de primavera. A gente se vê na praça!"
         }
       ]
     },
@@ -1497,7 +1497,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Olha só esse café! Parece um jardim."
+          "text": "Olha só essa praça florida! E o café, então, parece um jardim."
         },
         {
           "speaker": "Dona Neusa",
@@ -1538,7 +1538,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Que tal uma noite do sorvete aqui no café, no dia 20, às 19h? Você fecha às 18h, e a gente acende umas luzinhas."
+          "text": "Que tal uma noite do sorvete na praça, no dia 20, às 19h? Você fecha o café às 18h e a gente se encontra lá, perto da fonte."
         },
         {
           "speaker": "{player}",
@@ -1547,7 +1547,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Nesse dia o pessoal vai querer tudo gelado, viu? Pode se preparar."
+          "text": "Nesse dia o pessoal vai querer tudo gelado no café, viu? Pode se preparar."
         }
       ]
     },
@@ -1556,7 +1556,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Que noite bonita! Com essas luzinhas, o café parece uma sorveteria de cinema."
+          "text": "Que noite bonita! Com a fonte e o céu estrelado, a praça parece de cinema."
         },
         {
           "speaker": "Joca",
@@ -1566,7 +1566,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Os gatos estão adorando o ventinho da noite."
+          "text": "Até os gatos da rua vieram ver o movimento."
         },
         {
           "speaker": "{player}",

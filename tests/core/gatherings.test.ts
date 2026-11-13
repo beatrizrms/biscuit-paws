@@ -40,7 +40,7 @@ describe('encontros da estação', () => {
     expect(session.gatheringsView().map((v) => v.def.id)).toEqual([picnic.id]);
   });
 
-  it('no dia: o café fecha mais cedo; na hora, o encontro; enfeitado, vale mais reputação, corações e o presente', () => {
+  it('no dia: o café fecha mais cedo; na hora, o encontro na praça; enfeitado, vale mais reputação, corações e o presente', () => {
     const { session, state, scripts, events } = cafe('spring', picnic.day, '15:00');
     state.gatherings[picnic.id] = { year: 1, stage: 'invited' };
     state.flags['service.ready'] = true;
@@ -55,6 +55,9 @@ describe('encontros da estação', () => {
     expect(session.service.isOpen()).toBe(false);
     const rep = session.reputation();
     state.time = 17 * 60;
+    session.checkGatherings();
+    expect(scripts).not.toContain(picnic.partyScript); // ainda no café: o encontro é na praça
+    state.location = 'map.praca';
     session.checkGatherings();
     expect(scripts).toContain(picnic.partyScript);
     session.finishScript(picnic.partyScript);
@@ -81,6 +84,7 @@ describe('encontros da estação', () => {
     expect(session.service.demandWeight(cold)).toBe(before * 2);
     expect(session.service.unlockedRecipes().some((r) => r.id === 'recipe.strawberry_ice_cream')).toBe(state.milestones.reached['milestone.customers_50'] !== undefined);
     state.time = 19 * 60;
+    state.location = 'map.praca';
     session.checkGatherings();
     session.finishScript(icecream.partyScript);
     expect(state.flags['gathering.icecream_night']).toBe(true);
