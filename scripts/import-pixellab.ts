@@ -691,7 +691,7 @@ const SHEETS: Sheet[] = [
       snow_praca_pipoca: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/pipoca.png', 2, 2), 55, 10) },
       snow_praca_balanco: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/balanco.png', 3, 2), 56, 4) },
       snow_praca_escorregador: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/escorregador.png', 2, 2), 57, 6) },
-      snow_praca_canteiro: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/canteiro.png', 3, 2), 58, 34) },
+      snow_praca_canteiro: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/canteiro.png', 3, 2), 58, 6) },
       snow_praca_bebedouro: { file: '', w: 1, h: 2, build: () => snowTop(snug('praca/bebedouro.png', 1, 2), 59, 5) },
       snow_praca_banco: { file: '', w: 2, h: 2, build: () => snowTop(benchArt(), 63, 6) },
       snow_praca_poste: { file: '', w: 2, h: 4, build: () => snowTop(posteArt(), 64, 4) },
@@ -1343,10 +1343,10 @@ function wangTiles(name: string): { code: string; x: number; y: number }[] {
 function parkFloor(): Record<string, Piece> {
   const crop = (name: string, x: number, y: number) => () => cropPng(readPng(`${SRC}/praca/transicao_${name}.png`), x, y, TS, TS);
   const out: Record<string, Piece> = {};
-  // Inverno: tudo coberto de neve, como o quintal (todos os cantos viram o tile só de neve).
-  for (const t of wangTiles('neve')) out[`parque_v2_${t.code}`] = { file: '', w: 1, h: 1, build: snowFloor, aliases: [`parque_v3_${t.code}`] };
   for (const v of ['v2', 'v3']) {
     for (const t of wangTiles(v)) {
+      // Inverno: as pedras da praça e do caminho ficam limpas (varridas); a grama em volta fica coberta de neve.
+      out[`parque_${v}_${t.code}`] = { file: '', w: 1, h: 1, build: () => snowyGrass(crop(v, t.x, t.y)()) };
       out[`spring_parque_${v}_${t.code}`] = { file: '', w: 1, h: 1, build: crop(v, t.x, t.y), aliases: [`summer_parque_${v}_${t.code}`, `autumn_parque_${v}_${t.code}`] };
     }
   }
@@ -1387,6 +1387,17 @@ function cobbles(seed: number): PNG {
 }
 
 /** O tile só de neve (o chão da praça no inverno). */
+/** A grama do tile vira neve (o tile de neve no mesmo ponto); as pedras ficam como estão. */
+function snowyGrass(tile: PNG): PNG {
+  const snow = snowFloor();
+  for (let i = 0; i < tile.data.length; i += 4) {
+    const r = tile.data[i]!, g = tile.data[i + 1]!, b = tile.data[i + 2]!;
+    // Grama: verde (o verde passa do vermelho e do azul). As pedras são bege e marrom (o vermelho manda).
+    if (tile.data[i + 3]! > 0 && g > r + 8 && g >= b) tile.data.set(snow.data.subarray(i, i + 4), i);
+  }
+  return tile;
+}
+
 function snowFloor(): PNG {
   const t = wangTiles('neve').find((w) => w.code === 'gggg')!;
   return cropPng(readPng(`${SRC}/praca/transicao_neve.png`), t.x, t.y, TS, TS);
@@ -1480,26 +1491,46 @@ function snug(file: string, w: number, h: number): PNG {
 }
 
 /**
- * Neve grossa por cima de uma peça (telhados, copas, assentos, flores): em cada coluna, do contorno de cima para baixo,
- * `depth` px (variando um pouco, semente fixa), só sobre o desenho (para no primeiro buraco); uma linha a mais por cima
- * arredonda o monte, a parte de baixo leva a sombra azulada. Devolve só a neve, do tamanho da peça.
+ * Neve grossa por cima de uma peça (telhados, copas, assentos, tampos): só onde ela assenta de verdade. Em cada coluna,
+ * o topo é o primeiro pixel com desenho firme embaixo (3 dos 4 de baixo também desenhados: pétala, ponta de folha e
+ * fiapo solto não seguram neve). A neve fica só nos trechos quase planos (vizinhas a até 2 px de altura), de pelo menos
+ * 4 colunas seguidas (perna inclinada, lateral de poste e borda íngreme ficam sem). Em cada coluna, `depth` px (variando
+ * um pouco, semente fixa), só sobre o desenho; a parte de baixo leva a sombra azulada e, no miolo dos trechos largos,
+ * uma linha a mais por cima arredonda o monte. Devolve só a neve, do tamanho da peça.
  */
 function snowTop(src: PNG, seed: number, depth: number): PNG {
   const out = blank(src.width, src.height);
   const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
   const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [204, 220, 238], line: [number, number, number] = [150, 170, 196];
-  const solid = (x: number, y: number) => y >= 0 && y < src.height && src.data[(y * src.width + x) * 4 + 3]! > 40;
-  let d = depth;
+  const solid = (x: number, y: number) => x >= 0 && x < src.width && y >= 0 && y < src.height && src.data[(y * src.width + x) * 4 + 3]! > 40;
+  const firm = (x: number, y: number) => solid(x, y) && [1, 2, 3, 4].filter((k) => solid(x, y + k)).length >= 3;
+  const tops: number[] = [];
   for (let x = 0; x < src.width; x++) {
     let top = -1;
-    for (let y = 0; y < src.height; y++) if (solid(x, y)) { top = y; break; }
-    if (top < 0) continue;
-    const r = rnd();
-    d = Math.max(Math.max(2, depth - 2), Math.min(depth + 2, d + (r < 0.25 ? -1 : r > 0.75 ? 1 : 0)));
-    if (top > 0 && rnd() < 0.7) plot(out, x, top - 1, white);
-    let y = top;
-    for (; y < top + d && solid(x, y); y++) plot(out, x, y, y >= top + d - 2 ? shade : white);
-    if (solid(x, y)) plot(out, x, y, line);
+    for (let y = 0; y < src.height; y++) if (firm(x, y)) { top = y; break; }
+    tops.push(top);
+  }
+  // Trechos quase planos: colunas seguidas com o topo a até 2 px da vizinha, de pelo menos 4 colunas.
+  const runs: [number, number][] = [];
+  for (let x = 0; x < src.width; x++) {
+    if (tops[x]! < 0) continue;
+    let e = x;
+    while (e + 1 < src.width && tops[e + 1]! >= 0 && Math.abs(tops[e + 1]! - tops[e]!) <= 2) e++;
+    if (e - x + 1 >= 4) runs.push([x, e]);
+    x = e;
+  }
+  let d = depth;
+  for (const [x0, x1] of runs) {
+    for (let x = x0; x <= x1; x++) {
+      const top = tops[x]!;
+      const r = rnd();
+      d = Math.max(Math.max(2, depth - 2), Math.min(depth + 2, d + (r < 0.25 ? -1 : r > 0.75 ? 1 : 0)));
+      // O monte arredondado: uma linha a mais por cima, só no miolo dos trechos largos.
+      if (top > 0 && x1 - x0 >= 6 && x > x0 + 1 && x < x1 - 1) plot(out, x, top - 1, white);
+      let y = top;
+      for (; y < top + d && solid(x, y); y++) plot(out, x, y, y >= top + d - 2 ? shade : white);
+      if (solid(x, y)) plot(out, x, y, line);
+    }
   }
   return out;
 }
