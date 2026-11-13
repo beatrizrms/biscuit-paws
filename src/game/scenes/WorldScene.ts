@@ -1657,12 +1657,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // A ordem do E: a caixa da entrega; o gato bem na frente dela (com a ração ou a areia na mão, o pote/caixa vem
     // antes); depois o resto (atendimento, pontos, interações).
     if (this.parcelInteract(target)) return true;
-    if (this.penInteract(target)) return true;
+    // O gato solto bem na frente dela vem antes do cercadinho do lado (a mesma ordem da dica do E): sem isso, o E
+    // pegava o gato do cercadinho com a dica "Ganhar confiança" no gato da frente. O do cercadinho não conta aqui.
     const ahead = !target ? this.catAhead() : undefined;
     if (ahead && !this.handStationReady()) {
       const at = ahead.cell();
       if (this.trySettleCat(at) || this.tryCareGame(at) || this.tryTreatCat(at) || this.tryPickUpCat(at)) return true;
     }
+    if (this.penInteract(target)) return true;
     // Olhando para uma interação do mapa (a janela, uma plaquinha) até o alcance dela: ela vence o atendimento em volta
     // (equipamento, despensa, pia), menos um equipamento bem na frente dela. Clique: vale o que foi clicado.
     const lookingAt = !target && this.session.atHome() && this.interactionAhead(this.playerCells()) && !this.stationAhead(this.playerCells());
