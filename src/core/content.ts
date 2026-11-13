@@ -27,6 +27,7 @@ import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData 
 import { validateHealth, type HealthConfig } from './health';
 import { validateClinic, type ClinicConfig } from './clinic';
 import { validateCed, validateCedText, type CedConfig, type CedText } from './ced';
+import { giftKindOf, togoItemId, validateFriendship, type FriendshipData } from './friendship';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
@@ -457,6 +458,8 @@ export interface Content {
   costume: CostumeData;
   /** Foto perfeita (data/photo.json). */
   photo: PhotoData;
+  /** Amizade com os vizinhos e a SocialVilla (data/friendship.json). */
+  friendship: FriendshipData;
   /** A fachada do café (superfície do pintor na rua), se configurada. */
   facade: FinishesData['facade'] | null;
   jobs: Record<string, JobDef>;
@@ -515,6 +518,7 @@ export interface RawContent {
   fairSetup: FairSetupData;
   costume: CostumeData;
   photo: PhotoData;
+  friendship: FriendshipData;
 }
 
 /** Correio (data/delivery.json). */
@@ -547,12 +551,18 @@ export function buildContent(raw: RawContent): Content {
   if (!home) throw new Error(`world.json: homeMap "${raw.world.homeMap}" não existe`);
   const items: Record<string, ItemDef> = {};
   for (const item of raw.items.items) items[item.id] = item;
+  // Bebida ou doce "para viagem": cada receita vira um item da mochila (para dar de presente fora do café), com o nome
+  // e o ícone dela. Gerado aqui: o ID sai do ID da receita (estável) e o save guarda só ele e a quantidade.
+  for (const r of raw.recipes.recipes) {
+    const id = togoItemId(r.id);
+    if (!items[id]) items[id] = { id, name: r.name, price: 0, kind: 'consumable', tags: ['togo'], ...(r.icon ? { icon: r.icon } : {}) };
+  }
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, friendship: raw.friendship, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -992,6 +1002,22 @@ export function validateContent(raw: RawContent): string[] {
   checkCondition('festive.halloween: proposalWhen', raw.festive.halloween.proposalWhen);
   checkCondition('festive.halloween: partyWhen', raw.festive.halloween.partyWhen);
   checkCondition('festive.newYear: when', raw.festive.newYear.when);
+  {
+    const itemsById: Record<string, { tags: string[] }> = Object.fromEntries(raw.items.items.map((i) => [i.id, i]));
+    errors.push(
+      ...validateFriendship(raw.friendship, {
+        npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+        items: new Set(raw.items.items.map((i) => i.id)),
+        recipes: new Set(raw.recipes.recipes.map((r) => r.id)),
+        kindOf: (k) => giftKindOf(k, itemsById),
+        checkCondition,
+      }),
+    );
+    for (const f of raw.friendship.friends) {
+      for (const r of ['loved', 'liked', 'neutral', 'disliked'] as const) f.thanks[r].forEach((l) => playerText(`friendship "${f.npc}"`, l.text));
+      f.posts.forEach((p) => playerText(`friendship "${p.id}"`, p.text));
+    }
+  }
   checkCondition('festive.newYear: startWhen', raw.festive.newYear.startWhen);
   checkCondition('festive.secretSanta: partyWhen', raw.festive.secretSanta.partyWhen);
   errors.push(...validateSeasons(raw.seasons, { maps: mapIds, tiles: new Set(Object.keys(raw.catalog.tiles)) }));
