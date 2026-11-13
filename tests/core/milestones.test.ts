@@ -154,3 +154,21 @@ describe('selos no save', () => {
     expect(state.inventory['item.cat_treat_biscuit']).toBeUndefined();
   });
 });
+
+describe('meta longa (o próximo selo no balão)', () => {
+  it('sem meta da história, aponta o selo mais perto, com o progresso; sem selos pela frente, nada', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    state.story.completed.push(...content.story.beats.map((b) => b.id));
+    state.service.served = 9;
+    const session = new GameSession(content, state);
+    const next = session.nextAchievement()!;
+    expect(next).not.toBeNull();
+    expect(next.value).toBeLessThan(next.at);
+    // É o de maior fração entre as trilhas abertas.
+    const ratios = session.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.def.at).map((t) => t.next!.value / t.next!.def.at);
+    expect(next.value / next.at).toBe(Math.max(...ratios));
+    // Todos conquistados: nada.
+    for (const m of content.milestones.milestones) state.milestones.reached[m.id] = 1;
+    expect(session.nextAchievement()).toBeNull();
+  });
+});

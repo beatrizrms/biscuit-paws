@@ -3310,6 +3310,17 @@ export class GameSession {
     };
   }
 
+  /**
+   * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
+   * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
+   */
+  nextAchievement(): { trackName: string; name: string; value: number; at: number; reward: string } | null {
+    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.def.at);
+    const best = open.sort((a, b) => b.next!.value / b.next!.def.at - a.next!.value / a.next!.def.at || a.next!.def.at - a.next!.value - (b.next!.def.at - b.next!.value))[0];
+    if (!best?.next) return null;
+    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.def.at, reward: best.next.def.reward.kind };
+  }
+
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
   milestoneTracks(): TrackView[] {
     return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));

@@ -1333,15 +1333,28 @@ ${rep}`;
       this.goals.classList.add("new");
     }
     const extra = this.extrasHtml();
-    this.goals.classList.toggle('empty', !goal && !extra);
+    // Sem meta da história: a meta longa (o próximo selo mais perto), para o jogo sempre ter um rumo.
+    const seal = goal ? '' : this.sealHtml();
+    this.goals.classList.toggle('empty', !goal && !extra && !seal);
     this.goals.innerHTML = (goal
       ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
+      : seal ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
       : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.news?.isOpen()) this.news.render();
     this.renderHint();
+  }
+
+  /** O próximo selo como meta do balão: o nome, a trilha com o progresso (bolinhas) e o tipo de recompensa. */
+  private sealHtml(): string {
+    const n = this.session.nextAchievement();
+    if (!n) return '';
+    const g = uiText.goals;
+    const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
+    const detail = g.nextSealDetail.replace('{track}', n.trackName).replace('{value}', String(n.value)).replace('{at}', String(n.at)).replace('{reward}', reward);
+    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span></div><p class="g-detail">${esc(detail)}</p>` + (n.at <= 12 ? `<div class="g-progress">${this.pips(n.value, n.at)}</div>` : '');
   }
 
   /**

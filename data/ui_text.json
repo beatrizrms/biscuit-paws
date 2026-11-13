@@ -183,7 +183,9 @@
     "service": "Atendimento",
     "stepsDone": "✓ {n} de {total}",
     "doneToday": "✓ {n} feita(s) hoje",
-    "doneToday1": "hoje: feito · volta amanhã"
+    "doneToday1": "hoje: feito · volta amanhã",
+    "nextSeal": "Próximo selo: {name}",
+    "nextSealDetail": "{track}: {value} de {at}. Recompensa: {reward} (no celular, Café em números, aba Selos)."
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
