@@ -227,6 +227,28 @@ describe('feira com o dia marcado na ideia', () => {
   });
 });
 
+describe('save gravado no meio de uma cena', () => {
+  it('a cena do último marco que não terminou toca de novo ao carregar (a chave da padaria não se perde)', () => {
+    const order = content.story.beats.map((b) => b.id);
+    const upTo = order.slice(0, order.indexOf('story.realtor_tour') + 1);
+    const load = (seen: boolean) => {
+      const state = newGameState(150, 'map.street', 8 * 60);
+      state.story.completed.push(...upTo);
+      for (const id of upTo) for (const e of content.story.beats.find((b) => b.id === id)!.effects) {
+        if ('cutscene' in e) state.flags['seen.' + e.cutscene] = true;
+        if ('script' in e && (seen || id !== 'story.realtor_tour')) state.flags['seen.' + e.script] = true;
+      }
+      const session = new GameSession(content, state);
+      const scripts: string[] = [];
+      session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
+      session.start(false);
+      return scripts;
+    };
+    expect(load(false)).toContain('scr.realtor_tour');
+    expect(load(true)).not.toContain('scr.realtor_tour');
+  });
+});
+
 describe('o mapa sempre abre', () => {
   it('café, rua, praça e beco, em cada estação', () => {
     const { session, state } = midGame();

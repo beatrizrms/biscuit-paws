@@ -385,7 +385,22 @@ export class GameSession {
     this.checkMilestones();
     this.announceRecipes(true);
     this.bus.emit('game.started', { isNew });
+    this.replayInterruptedScene();
     this.advanceStory();
+  }
+
+  /**
+   * Save gravado no meio de uma cena da história: o marco fica feito assim que a cena começa, mas o que ela dá (a
+   * chave da padaria, na visita da corretora) só vem ao longo dela. Carregado, a cena do último marco que nunca
+   * terminou (sem seen.<id>) toca de novo. Só a do último: a interrompida é sempre a mais recente.
+   */
+  private replayInterruptedScene(): void {
+    const lastId = this.state.story.completed[this.state.story.completed.length - 1];
+    const beat = lastId ? this.content.story.beats.find((b) => b.id === lastId) : undefined;
+    for (const e of beat?.effects ?? []) {
+      if ('script' in e && !this.state.flags[seenFlag(e.script)]) this.bus.emit('script.requested', { scriptId: e.script });
+      else if ('cutscene' in e && !this.state.flags[seenFlag(e.cutscene)]) this.bus.emit('cutscene.requested', { cutsceneId: e.cutscene });
+    }
   }
 
   // ---------- Barra de itens ----------

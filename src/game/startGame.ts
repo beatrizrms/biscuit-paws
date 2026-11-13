@@ -38,6 +38,8 @@ export async function startGame(scene: Phaser.Scene, req: StartRequest): Promise
     r.warnings.forEach((w) => console.warn(`[save] ${w}`));
     session = new GameSession(content, r.state);
     slot = req.from === AUTO_SLOT ? await saves.autoOrigin() : req.from;
+    // Save do comecinho (nenhum marco da história: a foto do dia 1 ao reiniciar o dia): começa como jogo novo.
+    isNew = r.state.story.completed.length === 0;
   }
   // A personagem: junta as camadas da aparência (caminhada e poses) antes de abrir o mundo.
   await buildPlayerTextures(scene, session.appearance());
