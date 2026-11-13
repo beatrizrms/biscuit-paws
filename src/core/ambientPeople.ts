@@ -87,7 +87,8 @@ export function ambientLayout(def: AmbientDef, mapId: string, day: number, time:
   const pool = shuffled(def.npcs.filter((id) => !exclude.includes(id)), next);
   // Os lugares fixos primeiro (bancos e barracas); quem sobra conversa e passeia.
   const wanted = Math.floor(rng.int(m.spotsUsed?.[0] ?? 0, m.spotsUsed?.[1] ?? 0) * scale);
-  const spotCells = shuffled(m.spots ?? [], next).slice(0, Math.min(wanted, pool.length));
+  const blocked = new Set(avoid.map(([c, r]) => `${c},${r}`));
+  const spotCells = shuffled(m.spots ?? [], next).filter((s) => !blocked.has(`${s.at[0]},${s.at[1]}`)).slice(0, Math.min(wanted, pool.length));
   const spots = spotCells.map((s, i) => ({ npc: pool[i]!, at: s.at, facing: s.facing, pose: s.pose }));
   const rest = pool.slice(spots.length);
   const chatting = Math.min(rest.length, Math.floor(rng.int(m.chatting?.[0] ?? 0, m.chatting?.[1] ?? 0) * scale));

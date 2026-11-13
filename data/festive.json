@@ -407,7 +407,7 @@
           "count": 3
         }
       },
-      "decor": [{ "tile": "praca_picnic_toalha", "at": [10, 8] }],
+      "decor": [{ "tile": "praca_picnic_toalha", "at": [9, 7] }, { "tile": "praca_picnic_toalha", "at": [19, 7] }],
       "guests": [
         {
           "npc": "npc.gabi",
@@ -487,7 +487,7 @@
           "multiplier": 2
         }
       },
-      "decor": [{ "tile": "praca_carrinho_sorvete", "at": [20, 7] }, { "tile": "praca_varal_luzes", "at": [11, 6] }, { "tile": "praca_varal_luzes", "at": [18, 6] }],
+      "decor": [{ "tile": "praca_carrinho_sorvete", "at": [10, 8] }, { "tile": "praca_carrinho_sorvete", "at": [19, 8] }, { "tile": "praca_carrinho_sorvete", "at": [15, 10] }, { "tile": "praca_varal_luzes", "at": [11, 6] }, { "tile": "praca_varal_luzes", "at": [18, 6] }],
       "guests": [
         {
           "npc": "npc.gabi",

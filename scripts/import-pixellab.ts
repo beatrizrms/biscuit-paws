@@ -654,8 +654,8 @@ const SHEETS: Sheet[] = [
       snow_facade_praca: { file: '', w: 4, h: 8, build: () => winterDeco(snowCap(plazaEntrance(), 9), [['wreath', 128, 360]]) },
       // Enfeites dos encontros da estação na praça (assets/_pixellab/encontros): a toalha com a cesta do piquenique,
       // o carrinho e o varal de luzinhas da noite do sorvete. Só aparecem no encontro (festive.json: gatherings.decor).
-      praca_picnic_toalha: { file: '', w: 2, h: 1, build: () => snug('encontros/picnic_toalha_cesta_128x64.png', 2, 1) },
-      praca_carrinho_sorvete: { file: '', w: 1, h: 2, build: () => snug('encontros/carrinho_sorvete_64x128.png', 1, 2) },
+      praca_picnic_toalha: { file: '', w: 3, h: 2, build: () => snug('encontros/picnic_toalha_cesta_192x128.png', 3, 2) },
+      praca_carrinho_sorvete: { file: '', w: 2, h: 2, build: () => snug('encontros/carrinho_sorvete_128x128.png', 2, 2) },
       praca_varal_luzes: { file: '', w: 2, h: 1, build: () => snug('encontros/varal_luzinhas_128x64.png', 2, 1) },
     },
   },

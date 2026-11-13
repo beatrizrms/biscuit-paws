@@ -99,21 +99,43 @@ describe('encontros da estação', () => {
 });
 
 describe('a praça no encontro', () => {
-  it('de uma hora antes até acabar, a praça fica sem figurantes nem passeios (só os amigos)', () => {
-    const { session, state } = cafe('spring', picnic.day, '15:00');
-    state.gatherings[picnic.id] = { year: 1, stage: 'invited' };
+  it('de uma hora antes até acabar: os figurantes ficam (evento da vila), fora dos enfeites e do caminho dos amigos', () => {
+    const { session, state } = cafe('summer', icecream.day, '17:00');
+    state.gatherings[icecream.id] = { year: 1, stage: 'invited' };
     expect(session.gatheringHere('map.praca')).toBe(false);
-    state.time = 16 * 60 + 10;
+    state.time = 18 * 60 + 10;
     expect(session.gatheringHere('map.praca')).toBe(true);
-    expect(session.ambientPeople('map.praca')).toBeNull();
-    expect(session.ambientPassersNow('map.praca')).toEqual([]);
     expect(session.neighborWalksNow('map.praca')).toEqual([]);
+    // Em vários dias (sorteios diferentes), ninguém em cima de um carrinho, onde os amigos param ou no caminho deles.
+    const tiles = content.catalog.tiles;
+    const decor = new Set(icecream.decor!.flatMap((d) => {
+      const t = tiles[d.tile]!;
+      const out: string[] = [];
+      for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) out.push(`${d.at[0] + c},${d.at[1] + r}`);
+      return out;
+    }));
+    const party = ['12,7', '14,7', '16,7', '14,8', '13,8', '13,11', '13,14', '15,14'];
+    const guests = icecream.guests.map((g) => g.npc);
+    let people = 0;
+    for (let year = 0; year < 6; year++) {
+      state.day = icecream.day + firstDayOf(S, 'summer') - 1 + year * S.daysPerSeason * S.order.length;
+      state.gatherings[icecream.id] = { year: year + 1, stage: 'invited' };
+      const layout = session.ambientPeople('map.praca');
+      const cells = [...(layout?.spots ?? []).map((s) => s), ...(layout?.groups.flat() ?? []), ...(layout?.walkers ?? []).flatMap((w) => w.path.map((at) => ({ npc: w.npc, at })))] as { npc: string; at: [number, number] }[];
+      people += cells.length;
+      for (const p of cells) {
+        expect(decor.has(`${p.at[0]},${p.at[1]}`)).toBe(false);
+        expect(party).not.toContain(`${p.at[0]},${p.at[1]}`);
+        expect(guests).not.toContain(p.npc);
+      }
+    }
+    expect(people).toBeGreaterThan(0);
     expect(session.gatheringHere('map.street')).toBe(false);
     // Acabou: a praça volta ao normal.
-    state.time = 17 * 60;
+    state.time = 19 * 60;
     state.location = 'map.praca';
     session.checkGatherings();
-    session.finishScript(picnic.partyScript);
+    session.finishScript(icecream.partyScript);
     expect(session.gatheringHere('map.praca')).toBe(false);
   });
 

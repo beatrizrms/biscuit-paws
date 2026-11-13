@@ -426,17 +426,17 @@
   "praca_picnic_toalha": {
    "col": 0,
    "row": 65,
-   "w_tiles": 2,
-   "h_tiles": 1
+   "w_tiles": 3,
+   "h_tiles": 2
   },
   "praca_carrinho_sorvete": {
-   "col": 2,
+   "col": 3,
    "row": 65,
-   "w_tiles": 1,
+   "w_tiles": 2,
    "h_tiles": 2
   },
   "praca_varal_luzes": {
-   "col": 3,
+   "col": 5,
    "row": 65,
    "w_tiles": 2,
    "h_tiles": 1

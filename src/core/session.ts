@@ -1143,8 +1143,8 @@ export class GameSession {
   }
 
   /**
-   * O encontro da estação acontece neste mapa agora (de uma hora antes até acabar): a praça fica só com os amigos
-   * (sem figurantes nem passeios).
+   * O encontro da estação acontece neste mapa agora (de uma hora antes até acabar): os enfeites aparecem, os figurantes
+   * ficam (é um evento da vila), longe dos enfeites e do caminho dos amigos, e os amigos não passeiam por lá.
    */
   gatheringHere(mapId: string): boolean {
     return !!this.gatheringAt(mapId);
@@ -1156,6 +1156,29 @@ export class GameSession {
     const g = running ?? this.gatheringToday();
     if (!g || (g.partyWhen as { location?: string }).location !== mapId) return null;
     return running || this.state.time >= parseClock(g.partyAt) - 60 ? g : null;
+  }
+
+  /**
+   * Células do encontro onde figurante não fica: os enfeites e, com uma de folga em volta, onde ela e os amigos param e
+   * por onde eles passam no roteiro da festa.
+   */
+  private gatheringCells(g: GatheringDef): Cell[] {
+    const { tiles } = this.content.catalog;
+    const out: Cell[] = (g.decor ?? []).flatMap((d) => (tiles[d.tile] ? cellsOf(d.at, tiles[d.tile]!) : [d.at]));
+    const marks: Cell[] = [];
+    for (const s of this.content.scripts[g.partyScript]?.steps ?? []) {
+      const step = s as { to?: Cell; at?: Cell; playerWalk?: Cell };
+      for (const c of [step.to, step.at, step.playerWalk]) if (Array.isArray(c)) marks.push(c);
+    }
+    // Os pontos do roteiro e as retas entre eles (os amigos andam em L), com uma célula de folga.
+    const path: Cell[] = [];
+    for (let i = 0; i < marks.length; i++) {
+      const a = marks[i]!, b = marks[i + 1];
+      path.push(a);
+      if (b && (a[0] === b[0] || a[1] === b[1])) for (let c = Math.min(a[0], b[0]); c <= Math.max(a[0], b[0]); c++) for (let r = Math.min(a[1], b[1]); r <= Math.max(a[1], b[1]); r++) path.push([c, r]);
+    }
+    for (const [c, r] of path) for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) out.push([c + dc, r + dr]);
+    return out;
   }
 
   /** Quem vem: os convidados que ela já conhece. */
@@ -2692,7 +2715,7 @@ export class GameSession {
     // Quem está na plateia do evento no quintal agora não passeia (não fica em dois lugares).
     const crowd = this.festivalCrowd(this.content.map.id);
     const inCrowd = new Set(crowd ? [...crowd.groups.flat().map((m) => m.npc), ...crowd.walkers.map((w) => w.npc)] : []);
-    // No encontro da estação (a praça só com os amigos), ninguém passeia por lá.
+    // No encontro da estação, os amigos estão nele: nenhum passeio de vizinho por lá.
     if (this.gatheringHere(mapId)) return out;
     for (const def of this.content.npcWalks) {
       if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day || inCrowd.has(def.npc)) continue;
@@ -4116,16 +4139,19 @@ export class GameSession {
    */
   ambientPeople(mapId = this.state.location): AmbientLayout | null {
     const def = this.content.ambient;
-    if (!def || this.gatheringHere(mapId)) return null;
+    if (!def) return null;
     const m = def.maps.find((x) => x.map === mapId);
     if (!m) return null;
-    const key = `${mapId}:${this.state.day}:${Math.floor((this.state.time - parseClock(m.hours[0])) / m.blockMinutes)}:${this.weather()}`;
+    const gathering = this.gatheringAt(mapId);
+    const key = `${mapId}:${this.state.day}:${Math.floor((this.state.time - parseClock(m.hours[0])) / m.blockMinutes)}:${this.weather()}:${gathering?.id ?? ''}`;
     const cached = this.ambientCache.get(key);
     if (cached !== undefined) return cached;
     const map = this.mapData(mapId);
     const solid = solidGrid(map, this.content.catalog);
-    const avoid: Cell[] = [...(map.doors ?? []).map((d) => d.at), map.spawn.player];
-    const layout = ambientLayout(def, mapId, this.state.day, this.state.time, this.weather(), (c, r) => solid[r]?.[c] === false, avoid);
+    const avoid: Cell[] = [...(map.doors ?? []).map((d) => d.at), map.spawn.player, ...(gathering ? this.gatheringCells(gathering) : [])];
+    // No encontro, os amigos estão nele (não aparecem também como figurantes).
+    const exclude = gathering ? gathering.guests.map((g) => g.npc) : [];
+    const layout = ambientLayout(def, mapId, this.state.day, this.state.time, this.weather(), (c, r) => solid[r]?.[c] === false, avoid, exclude);
     if (this.ambientCache.size > 16) this.ambientCache.clear();
     this.ambientCache.set(key, layout);
     return layout;
@@ -4134,7 +4160,7 @@ export class GameSession {
   /** Quem está atravessando a rua agora (a agenda do dia; vazio fora do horário ou num mapa sem passantes). */
   ambientPassersNow(mapId = this.state.location): AmbientPass[] {
     const def = this.content.ambient;
-    if (!def || this.gatheringHere(mapId)) return [];
+    if (!def) return [];
     const key = `${mapId}:${this.state.day}:${this.weather()}`;
     let passes = this.passCache.get(key);
     if (!passes) {
