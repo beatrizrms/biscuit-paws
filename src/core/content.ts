@@ -2,6 +2,7 @@
 // Puro: sem Phaser, DOM ou window.
 import { validateReview } from './review';
 import { validateWalks, type NeighborWalkDef } from './neighborWalks';
+import { validateAmbient, type AmbientDef } from './ambientPeople';
 import { validateStorage, type StorageDef } from './storage';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
@@ -328,6 +329,13 @@ export interface DialogueData {
 }
 
 /** data/world.json: onde o jogo começa e qual mapa é o café (onde se decora e reforma). */
+/** Um destino do ônibus. Hoje só casa (goHome); outros lugares entram aqui depois. */
+export interface BusDestination {
+  id: string;
+  label: string;
+  goHome?: boolean;
+}
+
 export interface WorldData {
   schemaVersion: 1;
   /** Tutorial: quantas vezes a dica "E" aparece em cada tipo de coisa antes de sumir de vez. */
@@ -340,6 +348,8 @@ export interface WorldData {
   season: string;
   /** Onde ela aparece de manhã, vindo de casa. */
   morning: { map: string; spawn: Cell };
+  /** Ponto de ônibus (interação bus): os destinos, na ordem; goHome encerra o dia a qualquer hora. */
+  bus?: { destinations: BusDestination[] };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
   /** Quadros do HUD que só aparecem quando a condição vale (no começo, a reputação e o clima ainda não importam). */
@@ -430,6 +440,8 @@ export interface Content {
   festivals: FestivalDef[];
   /** A plateia dos eventos no quintal (data/festivals.json: crowd), ou null. */
   festivalCrowd: CrowdDef | null;
+  /** Figurantes na praça e na rua (data/npcs.json: ambient). */
+  ambient: AmbientDef | null;
   /** Montar a feira (data/fair_setup.json). */
   fairSetup: FairSetupData;
   /** Concurso de fantasia (data/costume.json). */
@@ -530,7 +542,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -561,6 +573,8 @@ export function validateContent(raw: RawContent): string[] {
   if (!raw.items.items.some((i) => i.id === raw.world.tools?.sweep && i.kind === 'tool')) err(`world: tools.sweep "${raw.world.tools?.sweep}" não é uma ferramenta (kind "tool") de items.json`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
   if (!raw.rooms.rooms.some((r) => r.id === raw.world.sceneRoom)) err(`world: sceneRoom "${raw.world.sceneRoom}" não é cômodo`);
+  for (const d of raw.world.bus?.destinations ?? []) if (!d.goHome) err(`world: destino do ônibus "${d.id}" sem para onde ir (goHome)`);
+  if (raw.maps.some((m) => (m.interactions ?? []).some((it) => 'bus' in it.action)) && !raw.world.bus?.destinations.length) err('world: tem ponto de ônibus no mapa e nenhum destino em bus.destinations');
   for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);
   {
     const dv = raw.delivery;
@@ -921,6 +935,7 @@ export function validateContent(raw: RawContent): string[] {
     }),
   );
   errors.push(...validateCrowd(raw.festivals.crowd, new Set(raw.npcs.npcs.map((n) => n.id))));
+  errors.push(...validateAmbient(raw.npcs.ambient, new Set(raw.npcs.npcs.map((n) => n.id)), new Set(raw.maps.map((m) => m.id))));
   errors.push(...validateFairSetup(raw.fairSetup, raw.minigames.games.fair_setup?.difficulties as Record<string, FairSetupParams> | undefined, raw.catalog.tiles));
   errors.push(
     ...validateCostume(

@@ -645,6 +645,10 @@
     "yes": "Ir para casa",
     "no": "Ainda não"
   },
+  "bus": {
+    "question": "Ponto de ônibus. Para onde?",
+    "stay": "Ficar"
+  },
   "delivery": {
     "boxAsk": "Caixa com {name}.",
     "boxOpen": "Abrir",
@@ -1316,6 +1320,7 @@
     "int_door": "Abrir a porta",
     "int_sleep": "Dormir",
     "int_hours": "Ver o horário",
+    "int_bus": "Ponto de ônibus",
     "builder": "Falar com o Tião",
     "int_curtain": "Abrir a cortina",
     "dirt": "Varrer",

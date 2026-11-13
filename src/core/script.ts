@@ -3,6 +3,7 @@
 // Puro: sem Phaser, DOM ou window.
 import type { Condition } from './content';
 import type { NeighborWalkDef } from './neighborWalks';
+import type { AmbientDef } from './ambientPeople';
 import type { Cell, Facing } from './map';
 
 /** Qualquer passo pode ter `when` (condição da história): sem ela valer na hora, o passo é pulado. */
@@ -88,6 +89,8 @@ export interface NpcsData {
   npcs: NpcDef[];
   /** Passeios de vizinhos na rua (src/core/neighborWalks.ts). */
   walks?: NeighborWalkDef[];
+  /** Movimento na praça e na rua (src/core/ambientPeople.ts). */
+  ambient?: AmbientDef;
 }
 
 export interface ScriptRefs {

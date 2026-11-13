@@ -1087,6 +1087,14 @@
       }
     },
     {
+      "id": "placeholders_extra",
+      "image": "assets/objects/placeholders/tile_placeholders_extra.png",
+      "pieces": "placeholders_extra.json",
+      "prefix": "ph_",
+      "layer": "object",
+      "solid": true
+    },
+    {
       "id": "placeholders",
       "image": "assets/objects/placeholders/tile_placeholders.png",
       "pieces": "placeholders.json",
