@@ -430,6 +430,31 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     expect(state.reputation.value).toBe(content.reputation.start + 2 + content.minigames.games.trust!.reputation!.ok!);
   });
 
+  it('chegada ignorada: o gato segue o caminho dele depois de alguns dias, e a do 2º gato volta a tentar', () => {
+    const { session, state, events } = cafe(8);
+    shelter(state, ['cat.first_stray']);
+    session.arrivals.tick();
+    expect(state.arrivals.active?.id).toBe('arr.second_cat');
+    const { days, retryDays } = content.arrivals.expire!;
+    // Ela não vai ver a Dona Neusa: ainda espera antes do prazo.
+    state.day = 8 + days - 1;
+    session.arrivals.tick();
+    expect(state.arrivals.active?.id).toBe('arr.second_cat');
+    // No prazo, acaba (sem gato novo) e marca a nova tentativa.
+    state.day = 8 + days;
+    session.arrivals.tick();
+    expect(state.arrivals.active).toBeNull();
+    expect(events.some((e) => e.name === 'arrival.finished' && (e.payload as { outcome: string }).outcome === 'expired')).toBe(true);
+    expect(session.shelteredCats()).toEqual(['cat.first_stray']);
+    // Antes da nova tentativa, não volta; depois, a Dona Neusa traz o gato de novo.
+    state.day = 8 + days + retryDays - 1;
+    session.arrivals.tick();
+    expect(state.arrivals.active).toBeNull();
+    state.day = 8 + days + retryDays;
+    session.arrivals.tick();
+    expect(state.arrivals.active?.id).toBe('arr.second_cat');
+  });
+
   it('2º gato: a Dona Neusa no dia 8, só com 1 gato; 3º: pegadas no dia 12, só com 2', () => {
     const early = cafe(7);
     shelter(early.state, ['cat.first_stray']);

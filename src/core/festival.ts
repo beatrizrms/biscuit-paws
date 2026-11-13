@@ -109,6 +109,8 @@ export interface FestivalContext {
   /** Os outros eventos e quantos dias faltam para uma data (estação, dia): o evento sem data não toma o lugar de um com data. */
   others?: readonly FestivalDef[];
   daysUntil?: (season: string, day: number) => number;
+  /** Datas fixas do calendário que não são festivais (sorteio e ceia do Natal, Ano Novo, convite e festa do Halloween). */
+  fixedDates?: readonly { season: string; day: number }[];
 }
 
 
@@ -139,6 +141,8 @@ export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: Festi
       // O de data começa noticeDays antes (a ideia dela): a feira tem de acabar antes disso.
       if (ctx.daysUntil(d.date.season, d.date.day) - (d.date.noticeDays ?? 0) <= window) return false;
     }
+    // Nem cai numa data fixa (Natal, Ano Novo, Halloween...): a ideia espera a data passar.
+    for (const d of ctx.fixedDates ?? []) if (ctx.daysUntil(d.season, d.day) <= window) return false;
   }
   return true;
 }

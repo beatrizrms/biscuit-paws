@@ -70,7 +70,12 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
     const start = day - fair.prep!.daysAfter;
     const daysUntil = (ss: string, d: number) => { const y = seasons.order.length * seasons.daysPerSeason; const at = seasons.order.indexOf(ss) * seasons.daysPerSeason + d; const now = seasons.order.indexOf(season) * seasons.daysPerSeason + start; return (((at - now) % y) + y) % y; };
     const st = { active: null, last: {}, held: {} } as never;
-    const ctx = { day: 100, season, dayOfSeason: start, reached: ['rep.noticed'], evaluate: () => true, others: content.festivals, daysUntil };
+    const fx = content.festive;
+    const fixedDates = [
+      { season: fx.secretSanta.season, day: fx.secretSanta.drawDay }, { season: fx.secretSanta.season, day: fx.secretSanta.day },
+      { season: fx.newYear.season, day: fx.newYear.day }, { season: fx.halloween.season, day: fx.halloween.inviteDay }, { season: fx.halloween.season, day: fx.halloween.day },
+    ];
+    const ctx = { day: 100, season, dayOfSeason: start, reached: ['rep.noticed'], evaluate: () => true, others: content.festivals, daysUntil, fixedDates };
     if (festivalCanStart(st, fair, ctx)) {
       startFestival(st, fair, ctx);
       hits.push(`${label} (${season} ${day})`);
@@ -98,7 +103,8 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
     }
   })();
   const active = state.arrivals.active;
-  report('chegada parada para sempre trava as próximas', !!active && s.shelteredCats().length === 1, `dia ${state.day}: chegada ${active?.id ?? '-'} desde o dia ${active?.startedOn ?? '-'} (etapa ${active?.step ?? '-'}); gatos: ${s.shelteredCats().length}; metas no balão: ${s.goals().length}`);
+  const stale = !!active && state.day - active.startedOn > (content.arrivals.expire?.days ?? Infinity);
+  report('chegada parada para sempre trava as próximas', !!active && (stale || !content.arrivals.expire), `dia ${state.day}: chegada ${active?.id ?? '-'} desde o dia ${active?.startedOn ?? '-'} (etapa ${active?.step ?? '-'}); gatos: ${s.shelteredCats().length}; metas no balão: ${s.goals().length}`);
 }
 
 // 5. Fechar a entrada do café por dentro (três móveis em volta da célula de chegada).

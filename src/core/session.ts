@@ -3866,7 +3866,15 @@ export class GameSession {
       const now = seasons.order.indexOf(season) * seasons.daysPerSeason + dayOfSeason;
       return (((at - now) % year) + year) % year;
     };
-    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil };
+    const fx = this.content.festive;
+    const fixedDates = [
+      { season: fx.secretSanta.season, day: fx.secretSanta.drawDay },
+      { season: fx.secretSanta.season, day: fx.secretSanta.day },
+      { season: fx.newYear.season, day: fx.newYear.day },
+      { season: fx.halloween.season, day: fx.halloween.inviteDay },
+      { season: fx.halloween.season, day: fx.halloween.day },
+    ];
+    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil, fixedDates };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));
     if (def) return this.beginFestival(def);
     // Os panfletos chegaram (repeatItem na mochila): começa a próxima edição, sem a fala da ideia.

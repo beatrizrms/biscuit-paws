@@ -125,6 +125,7 @@ export class ArrivalSystem {
 
   /** A cada mudança (a sessão chama junto da história): enfileira o que valer e começa a da vez. */
   tick(): void {
+    this.expireIgnored();
     const auto = this.autoOn();
     if (auto && this.st.nextOn === null) this.st.nextOn = this.h.state.day + nextGap(this.data, this.h.state.day, this.rng());
     for (const id of arrivalsToQueue(this.data, this.st, this.context(), this.rng(), auto)) {
@@ -135,6 +136,23 @@ export class ArrivalSystem {
     // Save de antes da regra (o gato esperando ração/cobertor/vet na porta): entra agora.
     if (this.st.active && !this.currentStep()) this.enterCafe();
     this.tryStart();
+  }
+
+  /**
+   * Chegada que ficou dias sem resposta (ainda na primeira etapa): o gato segue o caminho dele, a vez passa para a
+   * próxima, e a escrita à mão (sem repetir) volta a tentar dias depois. Sem isso, ignorar a Dona Neusa com o 2º gato
+   * travava todas as chegadas do jogo.
+   */
+  private expireIgnored(): void {
+    const a = this.st.active;
+    const cfg = this.data.expire;
+    if (!a || !cfg || a.step > 0 || this.h.state.day - a.startedOn < cfg.days) return;
+    const def = this.def(a.id);
+    if (def && !def.repeatable) {
+      delete this.st.last[def.id];
+      this.st.retryOn = { ...(this.st.retryOn ?? {}), [def.id]: this.h.state.day + cfg.retryDays };
+    }
+    this.finish('expired');
   }
 
   /** Vagas do café (o debug pode forçar "cheio"). */
@@ -368,7 +386,7 @@ export class ArrivalSystem {
    * Fim da chegada. Aceito: o gato entra no café (a chegada só começa com vaga; os filhotes de uma ninhada entram
    * juntos, mesmo passando da vaga); o resultado (afeto, vizinho, moedas) vale. Recusado ou não deu: o gato gerado some.
    */
-  finish(outcome: 'accepted' | 'declined' | 'failed'): Placement {
+  finish(outcome: 'accepted' | 'declined' | 'failed' | 'expired'): Placement {
     const a = this.st.active;
     const def = a ? this.def(a.id) : undefined;
     if (!a || !def) return null;

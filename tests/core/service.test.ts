@@ -288,6 +288,28 @@ describe('ciclo do pedido', () => {
     expect(session.rating().average).toBe(content.service.review.gaveUp);
   });
 
+  it('um almoço por dia: mudar o almoço depois que ele começou só vale amanhã (não congela a paciência de novo)', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const all = Array(7).fill(true);
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '09:00' })).toEqual({ ok: true });
+    advance(session, 6);
+    expect(sv.lunchNow()).toBe(true);
+    advance(session, 60); // 10:06: o almoço das 9h acabou
+    expect(sv.lunchNow()).toBe(false);
+    // Empurra o almoço para a meia hora atual: hoje não vale mais.
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '10:00' })).toEqual({ ok: true });
+    expect(sv.lunchNow()).toBe(false);
+    // Desligar e ligar de novo também não abre outro almoço hoje.
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '10:00' })).toEqual({ ok: true });
+    expect(sv.lunchNow()).toBe(false);
+    // Amanhã, o almoço novo vale.
+    session.endDay('home');
+    state.time = 10 * 60 + 5;
+    expect(sv.lunchNow()).toBe(sv.opensOn(state.day));
+  });
+
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');

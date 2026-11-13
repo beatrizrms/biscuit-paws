@@ -345,7 +345,7 @@ export class GameUi {
       this.toast(catSexText(session, fed >= times ? at.fedLast : at.fed, catId), 4000);
     });
     bus.on('arrival.finished', ({ outcome, placement }) => {
-      const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
+      const text = outcome === 'expired' ? at.finished.expired : outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
       if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
     });
     bus.on('arrival.provisional_settled', () => this.toast(at.settled, 4000));

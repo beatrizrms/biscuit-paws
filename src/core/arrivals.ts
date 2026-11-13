@@ -139,6 +139,11 @@ export interface ArrivalsData {
   autoStartWhen?: unknown;
   queueMax: number;
   provisional: { days: number };
+  /**
+   * Chegada que ela não atendeu: com tantos dias ainda na primeira etapa, o gato segue o caminho dele e a vez passa
+   * para a próxima. As escritas à mão (o 2º e o 3º gato) voltam a acontecer `retryDays` depois.
+   */
+  expire?: { days: number; retryDays: number };
   arrivals: ArrivalDef[];
 }
 
@@ -178,6 +183,8 @@ export interface ArrivalsState {
   seq: number;
   /** Saves antigos: gatos que tinham ido para o "abrigo da vila". Ao carregar, voltam para o café (fica vazio). */
   shelterPool: string[];
+  /** Chegada escrita à mão que passou sem resposta: tenta de novo a partir deste dia. */
+  retryOn?: Record<string, number>;
 }
 
 export function newArrivals(): ArrivalsState {
@@ -220,6 +227,7 @@ export function triggerHolds(t: ArrivalTrigger, ctx: TriggerContext): boolean {
 /** Ainda pode acontecer hoje? (nunca aconteceu; ou repete e já passou o intervalo) */
 export function canHappen(def: ArrivalDef, s: ArrivalsState, day: number): boolean {
   if (s.active?.id === def.id || s.queue.includes(def.id)) return false;
+  if ((s.retryOn?.[def.id] ?? 0) > day) return false;
   const last = s.last[def.id];
   if (last === undefined) return true;
   return !!def.repeatable && day - last >= (def.minGapDays ?? 1);

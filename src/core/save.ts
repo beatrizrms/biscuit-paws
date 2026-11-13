@@ -388,6 +388,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       nextCustomerAt: v2.service?.nextCustomerAt ?? null,
       nextCustomerId: v2.service?.nextCustomerId ?? 1,
       served: v2.service?.served ?? 0,
+      ...(v2.service?.lunch && Number.isInteger(v2.service.lunch.day) && Number.isFinite(v2.service.lunch.from) ? { lunch: { day: v2.service.lunch.day, from: v2.service.lunch.from } } : {}),
     },
     tray: v2.tray === true,
     // Desgaste: só de móveis que continuam no café; números estranhos são descartados.
@@ -542,6 +543,7 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
     nextOn: typeof x?.nextOn === 'number' ? x.nextOn : null,
     seq: typeof x?.seq === 'number' && x.seq >= 0 ? x.seq : 0,
     shelterPool: Array.isArray(x?.shelterPool) ? x.shelterPool.filter((id): id is string => typeof id === 'string' && knownCat(id)) : [],
+    ...(x?.retryOn ? { retryOn: Object.fromEntries(Object.entries(x.retryOn).filter(([id, d]) => ok(id) && typeof d === 'number')) } : {}),
   };
 }
 

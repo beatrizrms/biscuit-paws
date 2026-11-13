@@ -107,7 +107,7 @@ export interface GameEvents {
   'cat.cared': { catId: string; gameId: string; happiness: number; hygiene: number };
   'arrival.fed': { arrivalId: string; fed: number; times: number };
   'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
-  'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
+  'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed' | 'expired'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };
   /** fromItem: começou pelos panfletos do Market (sem a fala da ideia). */

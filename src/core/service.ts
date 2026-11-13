@@ -15,7 +15,7 @@ import { festivalClosesCafe } from './festival';
 import { isChristmas } from './secretSanta';
 import { isHalloween } from './halloween';
 import { seasonOf } from './calendar';
-import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch } from './schedule';
+import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch, lunchStart } from './schedule';
 import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
@@ -61,6 +61,8 @@ export interface ServiceState {
   nextCustomerId: number;
   /** Clientes atendidos (o total do jogo). */
   served: number;
+  /** O almoço de hoje, travado quando começou (um por dia: mudar o almoço no app só vale amanhã). */
+  lunch?: { day: number; from: number };
 }
 
 export function newServiceState(): ServiceState {
@@ -604,7 +606,15 @@ export class CafeService {
 
   /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina, com a paciência parada. */
   lunchNow(): boolean {
-    return this.isOpen() && inLunch(this.schedule(), this.cfg.schedule, this.st.time);
+    // Almoço desligado no app: acaba na hora (encurtar não é vantagem).
+    if (!this.isOpen() || lunchStart(this.schedule(), this.cfg.schedule) === null) return false;
+    const sv = this.st.service;
+    const t = ((this.st.time % 1440) + 1440) % 1440;
+    // Um almoço por dia: o de hoje já começou (e vale até o fim), mesmo que o horário tenha mudado depois.
+    if (sv.lunch?.day === this.st.day) return t >= sv.lunch.from && t < sv.lunch.from + this.cfg.schedule.lunchMinutes;
+    if (!inLunch(this.schedule(), this.cfg.schedule, this.st.time)) return false;
+    sv.lunch = { day: this.st.day, from: parseClock(lunchStart(this.schedule(), this.cfg.schedule)!) };
+    return true;
   }
 
   // ---------- Horário de funcionamento ----------
