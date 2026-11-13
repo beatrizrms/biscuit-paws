@@ -19,18 +19,37 @@ import { PhotoScene, PHOTO_SCENE } from './minigames/PhotoScene';
 import { MiniGameRegistry } from './minigames/MiniGameRegistry';
 import './ui/menu/menu.css';
 import './ui/skin.css';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './screen';
-import { touch } from './touch';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE, screenInfo } from './screen';
+import { isTouchDevice, touch } from './touch';
 import './touch.css';
 
+/** Celular e tablet (tela de toque sem mouse, ou ?toque na URL). */
+const TOUCH_DEVICE = isTouchDevice();
+
 /**
- * Maior escala inteira que cabe na janela (pixel art nítida, sem borrar). Tela menor que o jogo (celular): encolhe
- * até caber, mesmo sem ser inteira (um pouco menos nítido, mas nada fica cortado).
+ * Escala do jogo na janela. No computador, a maior inteira que cabe (pixel art nítida, sem borrar); tela menor que o
+ * jogo encolhe até caber. No celular e no tablet, ocupa a tela toda mesmo sem ser inteira: a tela deles tem muitos
+ * pixels e a arte em 64 px quase não perde nitidez (com escala inteira sobrava até metade da tela preta).
  */
 function integerZoom(): number {
   const fit = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
-  return fit >= 1 ? Math.floor(fit) : fit;
+  return fit >= 1 && !TOUCH_DEVICE ? Math.floor(fit) : fit;
 }
+
+/** O recorte da tela de cada lado (o entalhe do iPhone, a câmera do Android em tela cheia), em px da tela. */
+function safeInsets(): [number, number] {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  const insets: [number, number] = [parseFloat(cs.paddingLeft) || 0, parseFloat(cs.paddingRight) || 0];
+  probe.remove();
+  return insets;
+}
+
+
+/** Faixa dos lados a partir de que os controles e a barra de itens saem de cima do jogo (px do jogo, de 640). */
+const SIDE_MIN = 36;
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -69,12 +88,25 @@ function layout(): void {
   stage.style.height = `${GAME_HEIGHT * zoom}px`;
   document.getElementById('ui')!.style.transform = `scale(${zoom})`;
   document.getElementById('touch')!.style.transform = `scale(${zoom})`;
+  // Celular deitado: o jogo é 16:9 e a tela é mais comprida; as faixas que sobram dos lados recebem o direcional, os
+  // botões e a barra de itens (touch.css e ui.css: #stage.sides). --side-l e --side-r: a parte de cada faixa fora do
+  // recorte da tela (só o lado da câmera perde), em px do jogo; faixa apertada, o controle entra um pouco no jogo.
+  const bar = (window.innerWidth - GAME_WIDTH * zoom) / 2;
+  const insets = safeInsets();
+  stage.style.setProperty('--side-l', `${Math.max(0, Math.floor((bar - insets[0]) / zoom))}px`);
+  stage.style.setProperty('--side-r', `${Math.max(0, Math.floor((bar - insets[1]) / zoom))}px`);
+  const sides = TOUCH_DEVICE && bar / zoom >= SIDE_MIN;
+  stage.classList.toggle('sides', sides);
+  Object.assign(screenInfo, { w: window.innerWidth, h: window.innerHeight, zoom, bar, insets, touch: TOUCH_DEVICE, sides });
 }
 
 layout();
 // Controles de toque (celular e tablet): aparecem sozinhos quando ela toca na tela.
 touch.attach(document.getElementById('touch')!);
 window.addEventListener('resize', layout);
+// Girar o celular: algumas telas só dão o tamanho novo um pouco depois do evento.
+window.addEventListener('orientationchange', () => window.setTimeout(layout, 300));
+window.visualViewport?.addEventListener('resize', layout);
 
 // F9 liga/desliga o modo debug (só em npm run dev; some do build de produção).
 if (import.meta.env.DEV) {

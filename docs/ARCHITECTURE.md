@@ -137,7 +137,7 @@ Nomes novos entram nesta tabela antes de serem usados.
 `src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `remove(key)`, `list()`), **assíncrona** (o Electron vai ler arquivos de forma assíncrona). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.
 
 ## Renderização
-- Resolução interna 640 x 360, escala inteira.
+- Resolução interna 640 x 360, escala inteira (no celular e no tablet, a escala ocupa a tela: decisão 216).
 - **Y-sort:** `depth` de cada sprite = coordenada Y da base do objeto. Para objetos de várias células, todas as células usam a base do objeto inteiro.
 - Pisos ficam em `depth` 0, paredes em 1, objetos e personagens por y-sort.
 - A caixa de colisão da personagem é a área dos pés (aprox. 16 x 10 px na base do quadro de 32 x 64).

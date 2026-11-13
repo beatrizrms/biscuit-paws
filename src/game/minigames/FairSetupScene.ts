@@ -26,6 +26,7 @@ import type { Cell } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
+import { touch } from '../touch';
 import { catTexScale, catTexture } from '../entities/Cat';
 import { frameOf } from '../../core/tiles';
 import { addTileImage } from '../tileArt';
@@ -172,6 +173,13 @@ export class FairSetupScene extends MiniGameScene {
       if (problem) return this.float(t.problem[problem]);
       this.pickedCat = null;
       this.sfx(this.def.sounds?.drop);
+      return this.redraw();
+    }
+    // No celular não tem botão direito: tocar de novo na peça que ela pegou do gramado tira a peça.
+    if (this.moving && touch.mode === 'touch' && fairItemAt(data, this.board, cell)?.uid === this.moving) {
+      removeFairItem(this.board, this.moving);
+      this.sfx(this.def.sounds?.drop);
+      this.clearPick();
       return this.redraw();
     }
     if (this.picked) {

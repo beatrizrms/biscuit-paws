@@ -3,6 +3,7 @@
 // "Ir para" leva a qualquer evento já com os pré-requisitos (session.debugSatisfy).
 import type { GameSession } from '../../core/session';
 import { weatherOf } from '../../core/calendar';
+import { screenInfo } from '../screen';
 
 /** O painel recolhido (só o título) fica lembrado entre as sessões. */
 const FOLD_KEY = 'biscuit-paws:debug-panel-collapsed';
@@ -347,6 +348,8 @@ export class DebugPanel {
       `célula ${this.cell} · reputação ${rep.value} · clima ${weather}${forced.cafeFull ? ' · CAFÉ CHEIO' : ''} · ${s.shelteredCats().length} gatos`,
       `chegada ${ar.active ? `${ar.active.id.replace('arr.', '')} (${ar.active.catId})` : '-'} · fila ${ar.queue.length} · próxima ${ar.nextOn ?? '-'}`,
       `último marco: ${s.state.story.completed[s.state.story.completed.length - 1]?.replace('story.', '') ?? 'nenhum'}`,
+      // A tela (para conferir no celular por que os controles foram, ou não, para os lados).
+      `tela ${screenInfo.w}x${screenInfo.h} · zoom ${screenInfo.zoom.toFixed(2)} · faixa ${Math.round(screenInfo.bar)} · recorte ${screenInfo.insets.map(Math.round).join('/')} · toque ${screenInfo.touch ? 'sim' : 'não'} · lados ${screenInfo.sides ? 'sim' : 'não'}`,
       ...(this.note ? [`→ ${this.note}`] : []),
     ];
     this.status.innerHTML = lines.map((l) => `<div>${l.replace(/[&<>]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[ch]!)}</div>`).join('');

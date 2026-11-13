@@ -23,6 +23,16 @@ const SHORTCUTS: [TouchAction, string][] = [
   ['F', 'Mover'],
 ];
 
+/**
+ * Celular ou tablet: o controle principal da tela é o dedo (alguns Androids também dizem ter um ponteiro fino, por
+ * isso só o principal conta; notebook com tela de toque tem o trackpad como principal), ou ?toque na URL (para testar
+ * no PC).
+ */
+export function isTouchDevice(): boolean {
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  return coarse || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('toque'));
+}
+
 class TouchInput {
   /** O último controle usado: com "touch", os botões aparecem. */
   mode: 'touch' | 'keys' = 'keys';
@@ -100,8 +110,7 @@ class TouchInput {
     window.addEventListener('pointerdown', (e) => this.setMode(e.pointerType === 'touch' ? 'touch' : 'keys'), true);
     window.addEventListener('keydown', () => this.setMode('keys'), true);
     // Começa certo: tela de toque sem mouse (celular, tablet), ou ?toque na URL (para testar no PC).
-    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
-    this.setMode(coarse || new URLSearchParams(location.search).has('toque') ? 'touch' : 'keys');
+    this.setMode(isTouchDevice() ? 'touch' : 'keys');
   }
 
   /**
@@ -121,6 +130,8 @@ class TouchInput {
     if (mode === this.mode && this.root?.classList.contains('touch-on') === (mode === 'touch')) return;
     this.mode = mode;
     this.root?.classList.toggle('touch-on', mode === 'touch');
+    // A interface inteira sabe que é toque (ui.css: html.touch-mode): textos sem teclas, alvos maiores.
+    document.documentElement.classList.toggle('touch-mode', mode === 'touch');
     if (mode === 'keys') this.release();
     this.modeListeners.forEach((cb) => cb());
   }
@@ -191,6 +202,16 @@ class TouchInput {
     stick.addEventListener('pointerup', end);
     stick.addEventListener('pointercancel', end);
   }
+}
+
+/** O texto para o controle em uso: o do toque no celular, o do teclado e mouse no resto. */
+export function byInput<T>(keys: T, touchText: T): T {
+  return touch.mode === 'touch' ? touchText : keys;
+}
+
+/** No toque, tira as teclas entre parênteses dos textos ("Começar (E)" vira "Começar"); no teclado, igual. */
+export function keyless(text: string): string {
+  return touch.mode === 'touch' ? text.replace(/\s*\((?:E|P|Esc|Enter|ENTER|Espaço|I|M|C|F)\)/g, '') : text;
 }
 
 /** Os controles de toque do jogo (um só). */
