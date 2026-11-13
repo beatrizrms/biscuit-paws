@@ -10,7 +10,7 @@ import type { StreakId } from './stats';
 export type MilestoneStat = 'served' | 'catsEver' | 'reputation' | 'fairsHeld' | `streak.${StreakId}`;
 export type MilestoneKind = 'count' | 'streak';
 /** O que o selo dá. A tela mostra só o tipo ("Nova receita ?") até ele ser conquistado. */
-export type RewardKind = 'recipe' | 'room' | 'item' | 'event' | 'gift';
+export type RewardKind = 'recipe' | 'room' | 'item' | 'event' | 'gift' | 'costume';
 
 export interface MilestoneTrack {
   id: string;

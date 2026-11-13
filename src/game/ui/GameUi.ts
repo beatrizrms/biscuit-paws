@@ -53,6 +53,8 @@ export interface UiHandlers {
   onPickUpgrade(): void;
   /** Meus gatos: destacar o gato na cena (balão com o nome por uns segundos). Devolve false se ele não está à vista. */
   onLocateCat(catId: string): boolean;
+  /** Uma fala apareceu (npc: quem fala, se é um NPC): a cena vira quem está conversando para a protagonista. */
+  onSpeak?(npc: string | undefined): void;
 }
 
 export class GameUi {
@@ -849,6 +851,7 @@ export class GameUi {
       }
       if (kind === 'room') return card('<span class="u-glyph">⌂</span>', content.rooms.rooms.find((r) => r.id === id)?.name ?? id, kinds.room);
       if (kind === 'event') return card('<span class="u-glyph">★</span>', content.festivals.find((f) => f.id === id)?.name ?? id, kinds.event);
+      if (kind === 'costume') return card('<span class="u-glyph">✿</span>', content.costume.pieces.find((p) => p.id === id)?.name ?? id, kinds.costume);
       const item = content.items[id];
       const img = item?.icon ? iconHtml(item.icon, 32) : item ? itemThumbHtml(item, 32) : '';
       return card(img, item?.name ?? id, kind === 'gift' ? kinds.gift : kinds.item);
@@ -1409,6 +1412,7 @@ ${rep}`;
     }
     const line = this.dialogueQueue.shift();
     if (!line) return this.closeDialogue();
+    this.handlers.onSpeak?.(line.npc);
     (this.dialogueBox.querySelector('.speaker') as HTMLElement).textContent = line.speaker;
     const portrait = this.dialogueBox.querySelector('.portrait') as HTMLImageElement;
     const npcPortrait = line.npc ? content.npcs[line.npc]?.portrait : undefined;

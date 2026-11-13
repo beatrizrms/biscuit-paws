@@ -625,6 +625,7 @@ export function validateContent(raw: RawContent): string[] {
       item: new Set(raw.items.items.map((i) => i.id)),
       event: new Set(raw.festivals.festivals.map((f) => f.id)),
       gift: new Set(raw.items.items.map((i) => i.id)),
+      costume: new Set(raw.costume.pieces.map((p) => p.id)),
     };
     // Nada da história, dos cômodos ou dos eventos pode esperar um selo de sequência.
     const storyRefs = milestoneRefs([raw.story, raw.rooms, raw.festivals, raw.business]);

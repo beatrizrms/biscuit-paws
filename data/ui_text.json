@@ -1112,7 +1112,7 @@
     "tabs": { "numbers": "Números", "seals": "Selos" },
     "seasonJoin": " e ",
     "sealsHint": "Cada selo dá uma recompensa. As sequências dão mimos.",
-    "rewardKinds": { "recipe": "Nova receita", "room": "Novo cômodo", "item": "Novo no Market", "event": "Novo evento", "gift": "Presente" },
+    "rewardKinds": { "recipe": "Nova receita", "room": "Novo cômodo", "item": "Novo no Market", "event": "Novo evento", "gift": "Presente", "costume": "Nova peça de fantasia" },
     "allDone": "Todos os selos desta trilha. Por enquanto!",
     "more": "+{n} selos depois deste",
     "moreOne": "+1 selo depois deste",

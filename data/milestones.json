@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui; fairsHeld = feiras de adoção que aconteceram até o fim). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift, ids } e effects (opcional, como os da história). recipe/room/item/event: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
+  "_comment": "Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui; fairsHeld = feiras de adoção que aconteceram até o fim). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift | costume, ids } e effects (opcional, como os da história). recipe/room/item/event/costume: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
   "tracks": [
     { "id": "customers", "name": "Clientes atendidos", "kind": "count", "stat": "served" },
     { "id": "cats", "name": "Gatos que passaram pelo café", "kind": "count", "stat": "catsEver" },
@@ -36,7 +36,7 @@
     { "id": "milestone.cats_6", "track": "cats", "name": "Família felina", "at": 6, "reward": { "kind": "item", "ids": ["item.cat_condo"] } },
 
     { "id": "milestone.reputation_20", "track": "reputation", "name": "Notada na vila", "at": 20, "reward": { "kind": "event", "ids": ["fest.cat_day"] } },
-    { "id": "milestone.reputation_40", "track": "reputation", "name": "De confiança", "at": 40, "reward": { "kind": "event", "ids": ["fest.cuteness_contest"] } },
+    { "id": "milestone.reputation_40", "track": "reputation", "name": "De confiança", "at": 40, "reward": { "kind": "costume", "ids": ["costume.star_band"] } },
 
     { "id": "milestone.no_gave_up_3", "track": "no_gave_up", "name": "Freguesia satisfeita", "at": 3, "reward": { "kind": "gift", "ids": ["item.flower_vase"] } },
     { "id": "milestone.no_gave_up_7", "track": "no_gave_up", "name": "Atendimento de primeira", "at": 7, "reward": { "kind": "gift", "ids": ["item.wall_clock"] } },

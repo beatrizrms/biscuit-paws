@@ -30,6 +30,7 @@ function rewardNames(m: MilestoneDef): string {
     m.reward.kind === 'recipe' ? recipeWithSeason(id)
     : m.reward.kind === 'room' ? content.rooms.rooms.find((r) => r.id === id)?.name
     : m.reward.kind === 'event' ? content.festivals.find((f) => f.id === id)?.name
+    : m.reward.kind === 'costume' ? content.costume.pieces.find((p) => p.id === id)?.name
     : content.items[id]?.name;
   const counts = new Map<string, number>();
   for (const id of m.reward.ids) counts.set(id, (counts.get(id) ?? 0) + 1);

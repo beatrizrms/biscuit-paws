@@ -65,15 +65,15 @@ describe('concurso nos eventos', () => {
     return { session, state };
   }
 
-  it('Concurso de fofura: com "De confiança" e o quintal pronto, na primavera; o desfile guarda a colocação', () => {
+  it('Dia do Gato: o concurso de fofura (guarda a colocação) e depois a foto; com "De confiança", a tiara de estrela', () => {
     const { session, state } = cafe();
-    const def = content.festivals.find((f) => f.id === 'fest.cuteness_contest')!;
+    const def = content.festivals.find((f) => f.id === 'fest.cat_day')!;
     const per = content.seasons.daysPerSeason;
-    const spring = content.seasons.order.indexOf('spring');
-    state.day = spring * per + def.date!.day - def.date!.noticeDays!;
+    const summer = content.seasons.order.indexOf('summer');
+    state.day = summer * per + def.date!.day - def.date!.noticeDays!;
     const need = content.reputation.thresholds.find((t) => t.id === 'rep.trusted')!.at;
     session.addReputation(need, 'teste');
-    expect(state.festivals.active).toMatchObject({ id: def.id, stage: 'scheduled', day: spring * per + def.date!.day });
+    expect(state.festivals.active).toMatchObject({ id: def.id, stage: 'scheduled', day: summer * per + def.date!.day });
     // No dia: placa, decoração e o desfile.
     state.day = state.festivals.active!.day!;
     session.doJobPoint(def.closePoint!.point);

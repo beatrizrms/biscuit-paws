@@ -91,40 +91,8 @@
         "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café até o meio-dia.",
         "decor": "Enfeitar o quintal para a festa.",
         "activities": {
-          "costume": "O desfile de fantasia do Dia do Gato (nos balões do quintal).",
+          "costume": "O concurso de fofura do Dia do Gato (nos balões do quintal).",
           "photo": "A foto do Dia do Gato: na frente do forno do quintal."
-        }
-      }
-    },
-    {
-      "id": "fest.cuteness_contest",
-      "name": "Concurso de fofura",
-      "idea": "dlg.fest_idea_contest",
-      "unlockReputation": "rep.trusted",
-      "when": { "room": "room.backyard", "atLeast": "restored" },
-      "date": { "season": "spring", "day": 20, "noticeDays": 3 },
-      "cooldownDays": 120,
-      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
-      "until": "20:00",
-      "untilRemind": 60,
-      "decorations": [
-        { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
-        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] },
-        { "point": "pt.fair_light_1", "tile": "yard_lampada_chao" },
-        { "point": "pt.fair_light_2", "tile": "yard_lampada_chao" },
-        { "point": "pt.fair_light_3", "tile": "yard_luzinhas_fio", "at": [34, 2] }
-      ],
-      "activities": [
-        { "point": "pt.costume_stage", "game": "costume" },
-        { "point": "pt.photo_spot", "game": "photo" }
-      ],
-      "rewards": { "coins": 20, "reputation": 3 },
-      "texts": {
-        "close": "Hoje é o Concurso de fofura! Pôr a placa na porta do café até o meio-dia.",
-        "decor": "Enfeitar o quintal para o concurso.",
-        "activities": {
-          "costume": "O desfile de fantasia, nos balões do quintal.",
-          "photo": "A foto perfeita do concurso: na frente do forno do quintal."
         }
       }
     }

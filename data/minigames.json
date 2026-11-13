@@ -254,7 +254,7 @@
       }
     },
     "costume": {
-      "name": "Concurso de fantasia",
+      "name": "Concurso de fofura",
       "instructions": "Escolha um gato do café e uma peça para cada lugar (cabeça, pescoço, costas). O júri olha o tema do dia, se as cores e o estilo combinam e se não é tudo da mesma cor. Desfile antes do tempo acabar. As peças, os temas e as regras estão em data/costume.json.",
       "tutorial": {"icon":"caixa_presente_laco","lines":["Escolha o gato e uma peça para cada lugar: cabeça, pescoço e costas.","O tema do dia está no alto: peças com a cor, o estilo ou o tema dele valem mais.","Cores que combinam e o mesmo estilo também contam. Desfile antes do tempo acabar!"]},
       "reputation": {"ok":1,"great":3},

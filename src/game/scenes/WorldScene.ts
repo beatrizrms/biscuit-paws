@@ -311,7 +311,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   create(): void {
     setupCamera(this);
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id) }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: () => this.faceTalkers() }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -2035,6 +2035,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
     void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
     return true;
+  }
+
+  /**
+   * A cada fala: quem está perto dela na cena (até 4 células), parado (sem animação nem caminhada) e fora da plateia
+   * da festa, se vira para ela (as cenas deixavam alguém de costas no fim da caminhada).
+   */
+  private faceTalkers(): void {
+    const ts = this.map.tileSize;
+    for (const [id, npc] of this.npcs) {
+      if (!npc.active || npc.anims.isPlaying || this.crowd.get(id) === npc || this.neighborWalks.has(id)) continue;
+      if (this.tweens.getTweensOf(npc).some((t) => t.isPlaying())) continue;
+      const dx = this.player.x - npc.x;
+      const dy = this.player.y - npc.y;
+      if (Math.hypot(dx, dy) > 4 * ts) continue;
+      npc.face(Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    }
   }
 
   // ---------- Neve do inverno por cima das coisas ----------
