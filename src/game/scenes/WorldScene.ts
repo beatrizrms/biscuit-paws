@@ -1156,7 +1156,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * que ninguém precisa (com a latinha ativa) ou pegar um gato (mãos livres: quem precisa ir à clínica primeiro). null:
    * nada (longe, ou com algo na mão: o E segue para o gato, o remédio escondido do pós-cirurgia).
    */
-  private penChoice(target?: Cell): { where: string; boxCat?: string; act: 'feed' | 'nobody' | 'pick'; pick?: string; hint: EPlan['hint'] } | null {
+  private penChoice(target?: Cell): { where: string; boxCat?: string; act: 'feed' | 'nobody' | 'pick' | 'medicine'; pick?: string; hint: EPlan['hint'] } | null {
     if (!this.session.atHome()) return null;
     const feet = this.playerCells();
     const ts = this.map.tileSize;
@@ -1183,11 +1183,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = (catId ? boxTop(catId) : null) ?? (boxCat ? boxTop(boxCat) : null) ?? penTop();
       return at ? { ...at, kind } : null;
     };
+    // Remédio ativo: o remédio escondido, num gato daqui (o que ainda pode tomar a dose de hoje primeiro). Sem nenhum
+    // que possa tomar agora, sem dica: o E só explica (já tomou hoje, sem receita).
+    if (this.session.holdingMedicine()) {
+      const here = boxCat ? [boxCat] : where === 'box' ? a.box : (a.pen[where] ?? []);
+      const pick = here.find((id) => !this.session.medicineProblem(id)) ?? here[0];
+      if (!pick) return null;
+      return { where, boxCat, act: 'medicine', pick, hint: this.session.medicineProblem(pick) ? null : spot('cat_medicine', pick) };
+    }
     // A latinha vem da mochila: com alguém com fome lá, o E alimenta; senão (todos comeram), pega o gato.
     if (this.session.canFeedIsolated(where)) return { where, boxCat, act: 'feed', hint: spot('pen_feed') };
     if (this.session.activeItem() === this.session.content.clinic.pen.food) return { where, boxCat, act: 'nobody', hint: null };
-    // Remédio (ou outra ferramenta) ativo: o E segue para o gato (o remédio escondido do pós-cirurgia).
-    if (st.hands.length > 0 || st.tray || this.session.holdingMedicine() || this.session.careGameInHand()) return null;
+    // Outra ferramenta ativa: o E segue para o gato.
+    if (st.hands.length > 0 || st.tray || this.session.careGameInHand()) return null;
     // De mãos livres: pega quem precisa ir à clínica primeiro (consulta ou pontinho), senão o primeiro.
     const cats = where === 'box' ? a.box : (a.pen[where] ?? []);
     const urgent = cats.find((id) => { const c = st.cats[id]?.clinic; return c?.stage === 'intake' || (c?.stage === 'isolation' && c.complication); });
@@ -1196,7 +1204,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return { where, boxCat, act: 'pick', pick, hint: spot('cat_pickup', pick) };
   }
 
-  private penDo(choice: { where: string; boxCat?: string; act: 'feed' | 'nobody' | 'pick'; pick?: string }): boolean {
+  private penDo(choice: { where: string; boxCat?: string; act: 'feed' | 'nobody' | 'pick' | 'medicine'; pick?: string }): boolean {
     if (choice.act === 'feed') {
       // Um por vez: o da caixinha que ela escolheu, ou o próximo com fome do cercadinho.
       const r = this.session.feedIsolated(choice.where, choice.boxCat);
@@ -1211,6 +1219,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     if (choice.act === 'nobody') {
       this.ui.problem('nobody_here');
+      return true;
+    }
+    if (choice.act === 'medicine' && choice.pick) {
+      const problem = this.session.medicineProblem(choice.pick);
+      if (problem) this.ui.problem(problem);
+      else void this.openMiniGame('pill', { difficulty: this.session.careDifficulty(choice.pick), catId: choice.pick });
       return true;
     }
     const r = this.session.service.pickUpCat(choice.pick!);
@@ -1878,7 +1892,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // O cercadinho (ou a caixinha): a latinha (ferramenta na mão), ou pegar o gato.
     const pen = this.penChoice();
-    if (pen) add(this.penCells(pen), E_TIER.pen, pen.hint, () => this.penDo(pen), { tool: pen.act === 'feed', weak: pen.act === 'nobody' });
+    if (pen) add(this.penCells(pen), E_TIER.pen, pen.hint, () => this.penDo(pen), { tool: pen.act === 'feed' || (pen.act === 'medicine' && !!pen.hint), weak: pen.act === 'nobody' || (pen.act === 'medicine' && !pen.hint) });
     // Interação do mapa (a janela, uma plaquinha): a célula dela e a peça inteira (a janela, na cortina).
     const it = s.interactionAt(feet);
     if (it) add(this.interactionCells(it), E_TIER.interaction, this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
