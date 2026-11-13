@@ -13,7 +13,7 @@ const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
 
 function game() {
   const state = newGameState(500, 'map.cafe_main', 10 * 60);
-  state.day = 40;
+  state.day = 50; // primavera 20: longe do piquenique (15) e, 35 dias depois, da noite do sorvete (verão 20)
   state.business = 'soft_open';
   state.story.completed.push(...content.story.beats.map((b) => b.id));
   for (const r of content.rooms.rooms) state.rooms[r.id] = 'restored';

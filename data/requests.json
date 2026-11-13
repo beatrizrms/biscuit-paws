@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Pedidos dos amigos (src/core/requests.ts). Fora da história (sem meta no balão), a cada everyDays dias (sorteado) um amigo conhecido passa no café com um pedido; até maxActive abertos, um por amigo. Não expiram. kind: serve (servir a receita count vezes aos clientes), place (ter count peças do item posicionadas no café), care (count cuidados com os gatos; game: só aquele mini game), bring (ter count do item na mochila: ele é entregue sozinho). text: a linha do balão (curta: o nome de quem pediu vem antes); intro: a fala de quando pede; thanks: a de quando fica pronto. when: quando pode aparecer (o amigo conhecido); serve também precisa da receita liberada. reward: pontos de coração com quem pediu, moedas e um presente (item). repeatable: volta depois de feito. Textos sem gênero para a protagonista.",
+  "everyDays": [4, 7],
+  "maxActive": 2,
+  "requests": [
+    {
+      "id": "req.gabi_latte",
+      "npc": "npc.gabi",
+      "kind": "serve",
+      "recipe": "recipe.cafe_latte",
+      "count": 3,
+      "text": "Servir 3 cafés com leite (para ver se faz sucesso).",
+      "intro": "Gabi: Passei só para dar um oi! Me conta depois se o café com leite faz sucesso? Eu aposto que sim.",
+      "thanks": "Gabi: Três cafés com leite? Eu sabia! Toma, pra comemorar.",
+      "when": { "flag": "seen.scr.gabi_visit" },
+      "reward": { "points": 15, "money": 30 },
+      "repeatable": true
+    },
+    {
+      "id": "req.neusa_tulips",
+      "npc": "npc.neusa",
+      "kind": "place",
+      "item": "item.vase_tulips",
+      "count": 1,
+      "text": "Pôr um vaso de tulipas no café.",
+      "intro": "Dona Neusa: Sabe o que alegraria esse café? Umas tulipas. Na minha época, toda casa tinha.",
+      "thanks": "Dona Neusa: Olha que lindas as tulipas! Pronto, agora sim tem cara de casa.",
+      "when": { "flag": "met.old_neighbor" },
+      "reward": { "points": 20, "money": 20 }
+    },
+    {
+      "id": "req.joca_brush",
+      "npc": "npc.joca",
+      "kind": "care",
+      "game": "grooming",
+      "count": 2,
+      "text": "Escovar os gatos 2 vezes.",
+      "intro": "Joca: Os gatos daqui são os mais bonitos da rua. Bem escovados, então, ninguém segura!",
+      "thanks": "Joca: Olha esse pelo brilhando! Vou contar para todo mundo.",
+      "when": { "flag": "seen.scr.gabi_visit" },
+      "reward": { "points": 15, "money": 25 },
+      "repeatable": true
+    },
+    {
+      "id": "req.neusa_honey",
+      "npc": "npc.neusa",
+      "kind": "bring",
+      "item": "item.honey",
+      "count": 1,
+      "text": "Trazer um pote de mel do mercado.",
+      "intro": "Dona Neusa: Meu mel acabou e o joelho não ajuda a ir até o mercado... Você me traz um pote quando puder?",
+      "thanks": "Dona Neusa: Mel! Que gentileza. Esse vai para o meu chá da tarde.",
+      "when": { "flag": "met.old_neighbor" },
+      "reward": { "points": 20, "money": 25 },
+      "repeatable": true
+    },
+    {
+      "id": "req.gabi_cookies",
+      "npc": "npc.gabi",
+      "kind": "serve",
+      "recipe": "recipe.paw_cookie",
+      "count": 3,
+      "text": "Servir 3 biscoitos de patinha.",
+      "intro": "Gabi: Esses biscoitos de patinha são a sua cara. Serve uns para ver a reação dos clientes?",
+      "thanks": "Gabi: Todo mundo sorrindo com os biscoitos! Você leva jeito.",
+      "when": { "flag": "seen.scr.gabi_visit" },
+      "reward": { "points": 15, "money": 30 }
+    },
+    {
+      "id": "req.fernanda_play",
+      "npc": "npc.fernanda",
+      "kind": "care",
+      "game": "wand",
+      "count": 2,
+      "text": "Brincar 2 vezes com os gatos na varinha.",
+      "intro": "Fernanda: Gato parado engorda e fica entediado. Que tal umas brincadeiras com a varinha esta semana?",
+      "thanks": "Fernanda: Gatos ativos, gatos felizes. Ótimo trabalho!",
+      "when": { "visited": "map.vet_clinic" },
+      "reward": { "points": 15, "money": 25 },
+      "repeatable": true
+    },
+    {
+      "id": "req.joca_chocolate",
+      "npc": "npc.joca",
+      "kind": "serve",
+      "recipe": "recipe.hot_chocolate",
+      "count": 2,
+      "text": "Servir 2 chocolates quentes.",
+      "intro": "Joca: Estou contando para todo mundo que o seu chocolate quente é o melhor da cidade. Não me deixa mentir!",
+      "thanks": "Joca: Viu? Eu falei! O melhor da cidade.",
+      "when": { "flag": "seen.scr.gabi_visit" },
+      "reward": { "points": 15, "money": 30 }
+    },
+    {
+      "id": "req.builder_coffee",
+      "npc": "npc.builder",
+      "kind": "serve",
+      "recipe": "recipe.black_coffee",
+      "count": 5,
+      "text": "Servir 5 cafés pretos (a turma da obra vem).",
+      "intro": "Tião: A turma da obra só fala do seu café. Essa semana a gente passa aí, pode preparar!",
+      "thanks": "Tião: Café de primeira! A turma agradece, e vai voltar.",
+      "when": { "flag": "builder.called" },
+      "reward": { "points": 10, "money": 40 },
+      "repeatable": true
+    },
+    {
+      "id": "req.joca_picture",
+      "npc": "npc.joca",
+      "kind": "place",
+      "item": "item.picture_cat",
+      "count": 1,
+      "text": "Pendurar um quadro de gato no café.",
+      "intro": "Joca: Um café de gatos sem um quadro de gato na parede? Tem algo errado aí!",
+      "thanks": "Joca: Agora sim! Ficou a cara do lugar.",
+      "when": { "flag": "seen.scr.gabi_visit" },
+      "reward": { "points": 15, "money": 20 }
+    },
+    {
+      "id": "req.fernanda_treats",
+      "npc": "npc.fernanda",
+      "kind": "bring",
+      "item": "item.cat_treat_biscuit",
+      "count": 2,
+      "text": "Trazer 2 pacotes de petisco do mercado.",
+      "intro": "Fernanda: Os petiscos da clínica acabaram. Se você passar no mercado, traz dois pacotes para mim?",
+      "thanks": "Fernanda: Os gatinhos da clínica vão adorar. Muito obrigada!",
+      "when": { "visited": "map.vet_clinic" },
+      "reward": { "points": 20, "money": 30, "item": "item.cat_treat_biscuit" }
+    }
+  ]
+}

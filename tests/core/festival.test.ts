@@ -136,6 +136,32 @@ describe('festivais (puro)', () => {
   });
 });
 
+describe('feira de adoção e as datas fixas', () => {
+  it('a feira (5 dias de preparo) não fica marcada para o Natal, o Ano Novo, o Halloween nem o sorteio; depois da data, começa', () => {
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    const seasons = content.seasons;
+    const fx = content.festive;
+    const fixedDates = [
+      { season: fx.secretSanta.season, day: fx.secretSanta.drawDay },
+      { season: fx.secretSanta.season, day: fx.secretSanta.day },
+      { season: fx.newYear.season, day: fx.newYear.day },
+      { season: fx.halloween.season, day: fx.halloween.inviteDay },
+      { season: fx.halloween.season, day: fx.halloween.day },
+    ];
+    const canStart = (season: string, dayOfSeason: number) => {
+      const year = seasons.order.length * seasons.daysPerSeason;
+      const now = seasons.order.indexOf(season) * seasons.daysPerSeason + dayOfSeason;
+      const daysUntil = (s: string, d: number) => (((seasons.order.indexOf(s) * seasons.daysPerSeason + d - now) % year) + year) % year;
+      const ctx: FestivalContext = { day: 100, season, dayOfSeason, reached: ['rep.noticed'], evaluate: () => true, others: content.festivals, daysUntil, fixedDates };
+      return festivalCanStart(newFestivals(), fair, ctx);
+    };
+    const prep = fair.prep!.daysAfter;
+    for (const d of fixedDates) expect(canStart(d.season, d.day - prep), `${d.season} ${d.day}`).toBe(false);
+    // Primavera 10: nenhuma data perto, começa.
+    expect(canStart('spring', 10)).toBe(true);
+  });
+});
+
 describe('festivais na sessão', () => {
   function cafe() {
     const state = newGameState(500, 'map.street', 10 * 60);
@@ -242,12 +268,12 @@ describe('festivais na sessão', () => {
     const { session, state, events } = cafe();
     const repro = { status: 'neutered', known: 'neutered', sex: 'female', birthDay: -400, weightFactor: 1, earTipped: false, origin: 'shelter' } as const;
     for (let i = 0; i < 9; i++) state.cats[`cat.t${i}`] = { sheltered: true, name: `T${i}`, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70, repro: { ...repro } };
-    state.day = 40;
-    state.story.completedOn['story.backyard'] = 35; // quintal pronto há 5 dias: ainda não
+    state.day = 50; // primavera 20: longe do piquenique (15)
+    state.story.completedOn['story.backyard'] = 45; // quintal pronto há 5 dias: ainda não
     state.rooms['room.backyard'] = 'restored';
     session.enter('map.cafe_main');
     expect(state.festivals.active).toBeNull();
-    state.day = 42;
+    state.day = 52;
     session.enter('map.street');
     expect(names(events)).toContain('festival.started');
     expect(state.festivals.active).toMatchObject({ id: fair.id, stage: 'prep' });

@@ -15,6 +15,8 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
+import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
+import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
 import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
@@ -73,7 +75,7 @@ import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsA
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
-import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
+import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
@@ -260,6 +262,7 @@ export class GameSession {
       playerSeat: () => this.restingCell(),
       weather: () => this.weather(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
+      gatheringToday: () => this.gatheringToday(),
     });
     this.arrivals = new ArrivalSystem({
       state,
@@ -349,6 +352,9 @@ export class GameSession {
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
+    // Pedidos dos amigos: receita servida e cuidado com os gatos contam.
+    this.bus.on('customer.served', ({ recipeId }) => this.countRequests((r) => r.kind === 'serve' && r.recipe === recipeId));
+    this.bus.on('cat.cared', ({ gameId }) => this.countRequests((r) => r.kind === 'care' && (!r.game || r.game === gameId)));
     this.bus.on('cat.cared', ({ gameId }) => {
       const play = this.content.dayNight.energy.restore.play;
       if (play.games.includes(gameId)) this.recover('play', play.amount);
@@ -842,6 +848,13 @@ export class GameSession {
       hw.stage = 'missed';
       this.bus.emit('halloween.missed', { npc: hw.drawn });
     }
+    for (const g of this.content.festive.gatherings ?? []) {
+      const r = this.gatheringRecord(g.id);
+      if (r?.stage === 'invited' && isGatheringDay(this.content.seasons, g, day)) {
+        r.stage = 'missed';
+        this.bus.emit('gathering.missed', { gatheringId: g.id });
+      }
+    }
     if (this.newYearPending()) this.bus.emit('newyear.missed', {});
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
@@ -863,6 +876,7 @@ export class GameSession {
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
+    this.newFriendRequest();
     this.randomIllness();
     // Clínica: quem foi operado volta (a Fernanda traz ao cercadinho); quem terminou o cercadinho volta para a turma.
     this.clinic.morning();
@@ -921,6 +935,7 @@ export class GameSession {
       this.advanceStory();
       this.checkSecretSanta();
       this.checkHalloween();
+      this.checkGatherings();
       this.checkNewYear();
       this.checkFestivalDeadline();
       this.ced.tick();
@@ -1108,6 +1123,122 @@ export class GameSession {
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
   goHome(): void {
     if (this.canGoHome()) this.endDay('home');
+  }
+
+  // ---------- Encontros da estação (gatherings.ts; data/festive.json: gatherings) ----------
+
+  gatheringRecord(id: string): GatheringRecord | null {
+    return gatheringOfYear(this.content.seasons, this.state.gatherings, id, this.state.day);
+  }
+
+  /** O encontro de hoje, com o convite feito e ainda não acontecido. */
+  gatheringToday(): GatheringDef | undefined {
+    return (this.content.festive.gatherings ?? []).find((g) => this.gatheringRecord(g.id)?.stage === 'invited' && isGatheringDay(this.content.seasons, g, this.state.day));
+  }
+
+  /** Quem vem: os convidados que ela já conhece. */
+  gatheringGuests(g: GatheringDef): string[] {
+    return g.guests.filter((x) => evaluate(x.known, this.state, this.storyContext())).map((x) => x.npc);
+  }
+
+  /** O preparo de enfeitar o café: quantos móveis com a tag estão posicionados e quantos precisa. */
+  gatheringPrep(g: GatheringDef): [number, number] | null {
+    const p = g.prep?.placedTag;
+    if (!p) return null;
+    return [Math.min(p.count, this.state.placed.filter((x) => this.content.items[x.item]?.tags.includes(p.tag)).length), p.count];
+  }
+
+  /** Para o balão: os encontros convidados deste ano (o de hoje e os que estão para vir). */
+  gatheringsView(): { def: GatheringDef; today: boolean; prep: [number, number] | null }[] {
+    return (this.content.festive.gatherings ?? [])
+      .filter((g) => this.gatheringRecord(g.id)?.stage === 'invited')
+      .map((g) => ({ def: g, today: isGatheringDay(this.content.seasons, g, this.state.day), prep: this.gatheringPrep(g) }));
+  }
+
+  private gatheringPartyOn: Record<string, number> = {};
+  private gatheringRunning: string | null = null;
+
+  /** A cada minuto: na semana antes, o amigo chama (ela no café); no dia, na hora, o encontro começa (ela no café). */
+  checkGatherings(): void {
+    const day = this.state.day;
+    for (const g of this.content.festive.gatherings ?? []) {
+      const r = this.gatheringRecord(g.id);
+      if (!r && inProposeWindow(this.content.seasons, g, day)) {
+        if (!this.state.flags['prologue.done'] || !this.gatheringGuests(g).includes(g.proposer)) continue;
+        if (!evaluate(g.proposalWhen, this.state, this.storyContext())) continue;
+        this.state.gatherings[g.id] = { year: yearOf(this.content.seasons, day), stage: 'invited' };
+        this.bus.emit('gathering.invited', { gatheringId: g.id });
+        this.bus.emit('script.requested', { scriptId: g.proposalScript });
+        return;
+      }
+      if (r?.stage === 'invited' && isGatheringDay(this.content.seasons, g, day) && this.state.time >= parseClock(g.partyAt) && this.gatheringPartyOn[g.id] !== day && !this.gatheringRunning) {
+        if (!evaluate(g.partyWhen, this.state, this.storyContext())) continue;
+        this.gatheringPartyOn[g.id] = day;
+        this.gatheringRunning = g.id;
+        this.bus.emit('script.requested', { scriptId: g.partyScript });
+        return;
+      }
+    }
+  }
+
+  /** O roteiro do encontro acabou: as recompensas (o preparo feito vale reputação a mais). */
+  private finishGathering(g: GatheringDef): void {
+    const r = this.gatheringRecord(g.id);
+    this.gatheringRunning = null;
+    if (!r || r.stage !== 'invited') return;
+    r.stage = 'done';
+    const prep = this.gatheringPrep(g);
+    const prepDone = prep ? prep[0] >= prep[1] : false;
+    const rep = g.reward.reputation + (prepDone ? g.reward.prepReputation ?? 0 : 0);
+    if (rep) this.addReputation(rep, `gathering:${g.id}`);
+    for (const npc of this.gatheringGuests(g)) addPoints(this.state, this.content.relationships, PLAYER, npc, g.reward.points);
+    if (g.reward.item) this.receive(g.reward.item, 1);
+    if (g.reward.flag) this.state.flags[g.reward.flag] = true;
+    this.bus.emit('gathering.done', { gatheringId: g.id, prep: prepDone });
+    this.advanceStory();
+  }
+
+  // ---------- Pedidos dos amigos (data/requests.json) ----------
+
+  /** Os pedidos abertos, para o balão: a definição, quanto já foi feito e o total. */
+  friendRequests(): { def: FriendRequestDef; done: number; total: number }[] {
+    return this.state.requests.active.flatMap((a) => {
+      const def = this.content.requests.requests.find((r) => r.id === a.id);
+      if (!def) return [];
+      const have = def.kind === 'place' ? placedCount(this.state, def.item!) : def.kind === 'bring' ? this.state.inventory[def.item!] ?? 0 : a.progress;
+      return [{ def, done: Math.min(def.count, have), total: def.count }];
+    });
+  }
+
+  /** De manhã: um amigo pode passar com um pedido (fora da história, no intervalo dos dados). */
+  private newFriendRequest(): void {
+    if (!this.state.flags['prologue.done']) return;
+    const ok = (r: FriendRequestDef) =>
+      (r.when === undefined || evaluate(r.when, this.state, this.storyContext())) && (r.kind !== 'serve' || this.service.unlockedRecipes().some((x) => x.id === r.recipe));
+    const pick = maybeNewRequest(this.content.requests, this.state.requests, this.state.day, createRng(this.state.day * 7919 + 11), this.goals().length > 0, ok);
+    if (pick) this.bus.emit('request.new', { requestId: pick.id, npc: pick.npc });
+  }
+
+  private countRequests(match: (r: FriendRequestDef) => boolean): void {
+    for (const def of countRequest(this.content.requests, this.state.requests, match)) this.finishRequest(def);
+  }
+
+  /** Móvel no café e item na mochila: confere a cada passo da história (comprou, posicionou, recebeu). */
+  private checkRequests(): void {
+    for (const r of this.friendRequests()) {
+      if (r.def.kind !== 'place' && r.def.kind !== 'bring') continue;
+      if (r.done < r.total) continue;
+      if (r.def.kind === 'bring') for (let i = 0; i < r.total; i++) this.removeFromInventory(r.def.item!);
+      this.finishRequest(r.def);
+    }
+  }
+
+  private finishRequest(def: FriendRequestDef): void {
+    completeRequest(this.state.requests, def.id);
+    addPoints(this.state, this.content.relationships, PLAYER, def.npc, def.reward.points);
+    if (def.reward.money) this.addMoney(def.reward.money, `request:${def.id}`);
+    if (def.reward.item) this.receive(def.reward.item, 1);
+    this.bus.emit('request.done', { requestId: def.id, npc: def.npc });
   }
 
   /** O robô aspirador posicionado no café (a base dele), se tiver. */
@@ -2516,6 +2647,8 @@ export class GameSession {
    * (data/festive.json: secretSanta.partyLights), ou null fora disso.
    */
   cafeLightsAs(): number | null {
+    const g = this.gatheringToday();
+    if (g?.partyLights && this.state.time >= parseClock(g.partyAt)) return parseClock(g.partyLights);
     const hw = this.content.festive.halloween;
     if (isHalloween(this.content.seasons, hw, this.state.day) && this.state.time >= parseClock(hw.partyAt)) return parseClock(hw.partyLights);
     const ss = this.content.festive.secretSanta;
@@ -3318,6 +3451,17 @@ export class GameSession {
     };
   }
 
+  /**
+   * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
+   * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
+   */
+  nextAchievement(): { trackName: string; name: string; value: number; at: number; reward: string } | null {
+    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.def.at);
+    const best = open.sort((a, b) => b.next!.value / b.next!.def.at - a.next!.value / a.next!.def.at || a.next!.def.at - a.next!.value - (b.next!.def.at - b.next!.value))[0];
+    if (!best?.next) return null;
+    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.def.at, reward: best.next.def.reward.kind };
+  }
+
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
   milestoneTracks(): TrackView[] {
     return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
@@ -3510,6 +3654,8 @@ export class GameSession {
   finishScript(scriptId: string): void {
     this.state.flags[seenFlag(scriptId)] = true;
     this.bus.emit('script.finished', { scriptId });
+    const gathering = (this.content.festive.gatherings ?? []).find((g) => g.partyScript === scriptId);
+    if (gathering) this.finishGathering(gathering);
     this.arrivals.stepFinished({ script: scriptId });
     this.advanceStory();
   }
@@ -3883,7 +4029,16 @@ export class GameSession {
       const now = seasons.order.indexOf(season) * seasons.daysPerSeason + dayOfSeason;
       return (((at - now) % year) + year) % year;
     };
-    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil };
+    const fx = this.content.festive;
+    const fixedDates = [
+      { season: fx.secretSanta.season, day: fx.secretSanta.drawDay },
+      { season: fx.secretSanta.season, day: fx.secretSanta.day },
+      { season: fx.newYear.season, day: fx.newYear.day },
+      { season: fx.halloween.season, day: fx.halloween.inviteDay },
+      { season: fx.halloween.season, day: fx.halloween.day },
+      ...(fx.gatherings ?? []).map((g) => ({ season: g.season, day: g.day })),
+    ];
+    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil, fixedDates };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));
     if (def) return this.beginFestival(def);
     // Os panfletos chegaram (repeatItem na mochila): começa a próxima edição, sem a fala da ideia.
@@ -5048,6 +5203,7 @@ export class GameSession {
    */
   private advanceStory(): void {
     this.checkMilestones();
+    this.checkRequests();
     this.maybeStartFestivals();
     this.arrivals?.tick(); // (o construtor chama a história antes de criar o sistema)
     for (let guard = 0; guard < 1000; guard++) {

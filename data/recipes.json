@@ -926,7 +926,14 @@
       "vessel": "plate",
       "price": 13,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "any": [
+          {
+            "milestone": "milestone.customers_50"
+          },
+          {
+            "flag": "gathering.icecream_night"
+          }
+        ]
       },
       "temp": "cold",
       "seasons": [

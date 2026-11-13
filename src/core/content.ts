@@ -31,6 +31,8 @@ import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
 import { validateArrivals, type ArrivalsData } from './arrivals';
+import { validateRequests, type RequestsData } from './requests';
+import { validateGatherings, type GatheringDef } from './gatherings';
 import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
@@ -53,6 +55,8 @@ export interface FestiveData {
   /** Noite das Abóboras (halloween.ts). */
   halloween: HalloweenData;
   newYear: NewYearData;
+  /** Encontros da estação (gatherings.ts): o piquenique da primavera, a noite do sorvete. */
+  gatherings?: GatheringDef[];
 }
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
@@ -428,6 +432,8 @@ export interface Content {
   milestones: MilestonesData;
   /** Datas festivas: a caixa de enfeites de Natal (data/festive.json). */
   festive: FestiveData;
+  /** Pedidos dos amigos (data/requests.json). */
+  requests: RequestsData;
   /** Perfis de gato (personalidades, condições, sorteio de gatos gerados: data/cat_profiles.json). */
   catProfiles: CatProfilesData;
   clinic: ClinicConfig;
@@ -495,6 +501,7 @@ export interface RawContent {
   reputation: ReputationConfig;
   milestones: MilestonesData;
   festive: FestiveData;
+  requests: RequestsData;
   catProfiles: CatProfilesData;
   clinic: ClinicConfig;
   /** Falas da Fernanda sobre a clínica (data/vet_text.json; pt-BR, para revisão com um veterinário). */
@@ -545,7 +552,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -633,6 +640,12 @@ export function validateContent(raw: RawContent): string[] {
         dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
         scripts: new Set(Object.keys(raw.scripts.scripts)),
         seasons: raw.seasons,
+      }),
+      ...validateGatherings(raw.festive.gatherings ?? [], {
+        seasons: raw.seasons,
+        npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+        scripts: new Set(Object.keys(raw.scripts.scripts)),
+        items: new Set(raw.items.items.map((i) => i.id)),
       }),
       ...validateNewYear(raw.festive.newYear, { seasons: raw.seasons, scripts: new Set(Object.keys(raw.scripts.scripts)), passOut: raw.dayNight.passOut }),
     );
@@ -904,6 +917,14 @@ export function validateContent(raw: RawContent): string[] {
       items: new Set(raw.items.items.map((i) => i.id)),
       points: new Set(raw.jobs.points.map((p) => p.id)),
       maps: mapIds,
+    }),
+  );
+  errors.push(
+    ...validateRequests(raw.requests, {
+      npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+      recipes: new Set(raw.recipes.recipes.map((r) => r.id)),
+      items: new Set(raw.items.items.map((i) => i.id)),
+      games: new Set(Object.keys(raw.minigames.games ?? {})),
     }),
   );
   errors.push(

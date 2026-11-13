@@ -183,7 +183,9 @@
     "service": "Atendimento",
     "stepsDone": "✓ {n} de {total}",
     "doneToday": "✓ {n} feita(s) hoje",
-    "doneToday1": "hoje: feito · volta amanhã"
+    "doneToday1": "hoje: feito · volta amanhã",
+    "nextSeal": "Próximo selo: {name}",
+    "nextSealDetail": "{track}: {value} de {at}. Recompensa: {reward} (no celular, Café em números, aba Selos)."
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
@@ -1285,7 +1287,8 @@
       "sheltered": "Um gato novo no café!",
       "provisional": "O café está cheio... o gato fica provisório por {days} dias, até abrir vaga.",
       "shelter_pool": "O café está cheio: o próximo gato só chega quando abrir vaga.",
-      "declined": "O gato seguiu o caminho dele."
+      "declined": "O gato seguiu o caminho dele.",
+      "expired": "Ninguém foi ver o gatinho, e ele seguiu o caminho dele. Talvez ele volte outro dia."
     },
     "settled": "Abriu vaga: o gato provisório ficou de vez!",
     "expired": "O gato provisório ficou de vez no café.",

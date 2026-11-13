@@ -107,7 +107,7 @@ export interface GameEvents {
   'cat.cared': { catId: string; gameId: string; happiness: number; hygiene: number };
   'arrival.fed': { arrivalId: string; fed: number; times: number };
   'arrival.ask': { arrivalId: string; options: { npc: string; tip: string }[] };
-  'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
+  'arrival.finished': { arrivalId: string; catId: string; outcome: 'accepted' | 'declined' | 'failed' | 'expired'; placement: 'sheltered' | 'provisional' | 'shelter_pool' | null };
   'arrival.provisional_settled': { catId: string };
   'arrival.provisional_expired': { catId: string };
   /** fromItem: começou pelos panfletos do Market (sem a fala da ideia). */
@@ -176,6 +176,13 @@ export interface GameEvents {
   'item.placed': { itemId: string; uid: string; at: Cell };
   /** Uma porta escondida apareceu e o que estava na frente dela foi para a mochila. */
   'door.cleared': { doorId: string; count: number };
+  /** Um amigo passou no café com um pedido; o pedido ficou pronto. */
+  'request.new': { requestId: string; npc: string };
+  'request.done': { requestId: string; npc: string };
+  /** Encontro da estação: o amigo chamou; aconteceu (com ou sem o preparo); passou sem ela. */
+  'gathering.invited': { gatheringId: string };
+  'gathering.done': { gatheringId: string; prep: boolean };
+  'gathering.missed': { gatheringId: string };
   'item.picked_up': { itemId: string; uid: string };
   /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
   'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };

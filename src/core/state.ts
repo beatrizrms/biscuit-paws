@@ -18,11 +18,13 @@ import type { Schedule } from './schedule';
 import type { ArrivalsState } from './arrivals';
 import type { CatDef } from './cats';
 import { newFestivals, type FestivalsState } from './festival';
+import { newRequests, type RequestsState } from './requests';
 import type { ReputationState } from './reputation';
 import { newStats, type StatsState } from './stats';
 import { newMilestones, type MilestonesState } from './milestones';
 import type { SantaRecord } from './secretSanta';
 import type { HalloweenRecord } from './halloween';
+import type { GatheringsState } from './gatherings';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -130,6 +132,8 @@ export interface GameState {
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */
   festivals: FestivalsState;
+  /** Pedidos dos amigos (requests.ts). Saves antigos: nenhum. */
+  requests: RequestsState;
   /** A melhor foto (v23; foto perfeita): a pose, a nota, os gatos e o dia. Sem galeria por enquanto. */
   bestPhoto: { pose: string; score: number; catIds: string[]; day: number } | null;
   /** Lista de compras (v24; app Notas): IDs de itens anotados, na ordem; some ao comprar. */
@@ -158,6 +162,8 @@ export interface GameState {
   secretSanta: SantaRecord | null;
   /** Noite das Abóboras do ano (v39; halloween.ts). */
   halloween: HalloweenRecord | null;
+  /** Encontros da estação deste ano (gatherings.ts). Saves antigos: nenhum. */
+  gatherings: GatheringsState;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -280,6 +286,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
     reputation: { value: 0, reached: [], log: [] },
     festivals: newFestivals(),
+    requests: newRequests(),
     bestPhoto: null,
     shoppingList: [],
     construction: newConstruction(),
@@ -294,6 +301,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     xmasBox: {},
     secretSanta: null,
     halloween: null,
+    gatherings: {},
   };
 }
 

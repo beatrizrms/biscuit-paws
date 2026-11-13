@@ -262,6 +262,25 @@ export class GameUi {
       this.queueUnlock({ recipe: recipeId });
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
+    // Encontros da estação: feito (com o presente) ou perdido.
+    const gatheringDef = (id: string) => content.festive.gatherings?.find((x) => x.id === id);
+    bus.on('gathering.done', ({ gatheringId }) => {
+      const def = gatheringDef(gatheringId);
+      if (def) this.toast(def.texts.done, 6000);
+    });
+    bus.on('gathering.missed', ({ gatheringId }) => {
+      const def = gatheringDef(gatheringId);
+      if (def) this.toast(def.texts.missed, 6000);
+    });
+    // Pedidos dos amigos: a fala de quem passou no café e o agradecimento.
+    bus.on('request.new', ({ requestId }) => {
+      const def = content.requests.requests.find((r) => r.id === requestId);
+      if (def) this.toast(def.intro, 7000);
+    });
+    bus.on('request.done', ({ requestId }) => {
+      const def = content.requests.requests.find((r) => r.id === requestId);
+      if (def) this.toast(def.thanks, 5000);
+    });
     bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
     const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
     bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));
@@ -345,7 +364,7 @@ export class GameUi {
       this.toast(catSexText(session, fed >= times ? at.fedLast : at.fed, catId), 4000);
     });
     bus.on('arrival.finished', ({ outcome, placement }) => {
-      const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
+      const text = outcome === 'expired' ? at.finished.expired : outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
       if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
     });
     bus.on('arrival.provisional_settled', () => this.toast(at.settled, 4000));
@@ -718,6 +737,17 @@ export class GameUi {
       const step = job.steps[this.session.jobStep(job.id)];
       const [done, total] = this.session.jobStepProgress(job.id);
       today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_bilhete', html: true, right: total > 1 ? this.pips(done, total) : '' }));
+    }
+    // Encontros da estação (piquenique, noite do sorvete): quando é e o preparo.
+    for (const v of this.session.gatheringsView()) {
+      const t = v.def.texts;
+      today.push(this.row(`<b>${esc(v.today ? t.goalToday : t.goal)}</b>`, { html: true }));
+      if (v.prep && t.prep) today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { right: this.pips(v.prep[0], v.prep[1]) }));
+    }
+    // Pedidos dos amigos (não expiram): quem pediu, o que fazer e quanto falta.
+    for (const r of this.session.friendRequests()) {
+      const who = content.npcs[r.def.npc]?.name ?? '';
+      today.push(this.row(`<b>${esc(who)}:</b> ${esc(r.def.text)}`, { icon: 'caixa_bilhete', html: true, right: r.total > 1 ? this.pips(r.done, r.total) : '' }));
     }
     // Chegada de gato e festival em andamento: o que fazer agora.
     const arrival = this.arrivalLine();
@@ -1333,15 +1363,28 @@ ${rep}`;
       this.goals.classList.add("new");
     }
     const extra = this.extrasHtml();
-    this.goals.classList.toggle('empty', !goal && !extra);
+    // Sem meta da história: a meta longa (o próximo selo mais perto), para o jogo sempre ter um rumo.
+    const seal = goal ? '' : this.sealHtml();
+    this.goals.classList.toggle('empty', !goal && !extra && !seal);
     this.goals.innerHTML = (goal
       ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
+      : seal ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
       : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.news?.isOpen()) this.news.render();
     this.renderHint();
+  }
+
+  /** O próximo selo como meta do balão: o nome, a trilha com o progresso (bolinhas) e o tipo de recompensa. */
+  private sealHtml(): string {
+    const n = this.session.nextAchievement();
+    if (!n) return '';
+    const g = uiText.goals;
+    const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
+    const detail = g.nextSealDetail.replace('{track}', n.trackName).replace('{value}', String(n.value)).replace('{at}', String(n.at)).replace('{reward}', reward);
+    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span></div><p class="g-detail">${esc(detail)}</p>` + (n.at <= 12 ? `<div class="g-progress">${this.pips(n.value, n.at)}</div>` : '');
   }
 
   /**
