@@ -691,7 +691,7 @@ const SHEETS: Sheet[] = [
       snow_praca_pipoca: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/pipoca.png', 2, 2), 55, 10) },
       snow_praca_balanco: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/balanco.png', 3, 2), 56, 4) },
       snow_praca_escorregador: { file: '', w: 2, h: 2, build: () => snowTop(snug('praca/escorregador.png', 2, 2), 57, 6) },
-      snow_praca_canteiro: { file: '', w: 3, h: 2, build: () => snowTop(snug('praca/canteiro.png', 3, 2), 58, 6) },
+      snow_praca_canteiro: { file: '', w: 3, h: 2, build: () => snowPlanter(snug('praca/canteiro.png', 3, 2)) },
       snow_praca_bebedouro: { file: '', w: 1, h: 2, build: () => snowTop(snug('praca/bebedouro.png', 1, 2), 59, 5) },
       snow_praca_banco: { file: '', w: 2, h: 2, build: () => snowTop(benchArt(), 63, 6) },
       snow_praca_poste: { file: '', w: 2, h: 4, build: () => snowTop(posteArt(), 64, 4) },
@@ -1552,6 +1552,48 @@ function wallClothesline(): PNG {
     plot(png, tip, 8, iron);
   }
   return png;
+}
+
+/**
+ * Neve no canteiro redondo da praça: cobre o miolo (a terra e as flores), deixando só o anel de pedra. O miolo é a
+ * elipse de dentro do anel (medida no desenho: centro a 47 px da esquerda e 39 px acima da base do desenho, raios 38 x
+ * 17); as flores que passam dela para cima também ficam embaixo da neve, num monte arredondado (o topo de cada coluna
+ * suavizado com as vizinhas). Branco em cima, a sombra azulada embaixo (onde encosta na pedra da frente) e a linha no
+ * contorno de cima. Devolve só a neve, do tamanho da peça.
+ */
+function snowPlanter(src: PNG): PNG {
+  const out = blank(src.width, src.height);
+  const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [204, 220, 238], line: [number, number, number] = [150, 170, 196];
+  const solid = (x: number, y: number) => x >= 0 && x < src.width && y >= 0 && y < src.height && src.data[(y * src.width + x) * 4 + 3]! > 40;
+  let x0 = Infinity, y1 = -1;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) if (solid(x, y)) { x0 = Math.min(x0, x); y1 = Math.max(y1, y); }
+  const cx = x0 + 47, cy = y1 - 39, rx = 38, ry = 17;
+  const inside = (x: number, y: number) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
+  // Topo do monte em cada coluna: o mais alto entre a elipse e as flores que saem dela (só colunas do miolo).
+  const tops: number[] = [];
+  for (let x = 0; x < src.width; x++) {
+    if (Math.abs(x - cx) > rx) { tops.push(-1); continue; }
+    const ellTop = Math.ceil(cy - ry * Math.sqrt(Math.max(0, 1 - ((x - cx) / rx) ** 2)));
+    let top = ellTop;
+    for (let y = 0; y < ellTop; y++) if (solid(x, y)) { top = y; break; }
+    tops.push(top);
+  }
+  const smooth = tops.map((t, x) => {
+    if (t < 0) return -1;
+    const near = [-2, -1, 0, 1, 2].map((k) => tops[x + k]).filter((v): v is number => v !== undefined && v >= 0);
+    return Math.round(near.reduce((a, b) => a + b, 0) / near.length);
+  });
+  for (let x = 0; x < src.width; x++) {
+    const top = smooth[x]!;
+    if (top < 0) continue;
+    // Até a borda de baixo da elipse (onde a pedra da frente começa).
+    const bottom = Math.floor(cy + ry * Math.sqrt(Math.max(0, 1 - ((x - cx) / rx) ** 2)));
+    for (let y = top; y <= bottom; y++) {
+      if (y > cy && !inside(x, y)) continue;
+      plot(out, x, y, y === top ? line : y >= bottom - 2 ? shade : white);
+    }
+  }
+  return out;
 }
 
 /** A peça com a neve do inverno por cima (snowTop) já desenhada nela. */
