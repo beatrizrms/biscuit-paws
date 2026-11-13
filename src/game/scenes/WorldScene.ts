@@ -10,7 +10,8 @@ import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
 import { stationKind } from '../../core/petcare';
 import type { GameSession } from '../../core/session';
-import { frameOf } from '../../core/tiles';
+import { frameOf, sheetResolution } from '../../core/tiles';
+import { snowCapDepth, snowCapPixels } from '../../core/snowCap';
 import { Player } from '../entities/Player';
 import { CatSprite, catScale, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
@@ -783,6 +784,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.mapImages.add(img);
       if (s.obj) this.objectImages.set(s.obj, [...(this.objectImages.get(s.obj) ?? []), img]);
     }
+    this.drawSnowCaps(ts);
     this.buildPenFronts();
     // Luz e sombra de ambiente: refeitas junto com o mapa (inclui os móveis colocados).
     const { content } = this.session;
@@ -1968,6 +1970,50 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
     void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
     return true;
+  }
+
+  // ---------- Neve do inverno por cima das coisas ----------
+
+  /**
+   * Inverno ao ar livre (map.snowCaps, a regra geral do núcleo): a neve por cima de cada peça, feita do próprio
+   * desenho dela (os quadros da folha montados numa imagem; snowCapPixels segue o contorno de cima). A textura fica
+   * guardada pelo desenho (a mesma peça em outro lugar usa a mesma).
+   */
+  private drawSnowCaps(ts: number): void {
+    for (const cap of this.map.snowCaps) {
+      const parts = this.map.sprites.filter((s) => s.obj === cap.obj || s.dirt === cap.obj);
+      const sheet = parts[0]?.sheet;
+      if (!sheet || parts.some((p) => p.sheet !== sheet)) continue;
+      const res = sheetResolution(content.catalog, sheet);
+      const cell = ts * res;
+      const top = Math.min(...parts.map((p) => p.row));
+      const cols = Math.max(...parts.map((p) => p.col)) - cap.col + 1;
+      const rows = Math.max(...parts.map((p) => p.row)) - top + 1;
+      const key = `snowcap:${sheet}:${parts.map((p) => `${p.col - cap.col},${p.row - top},${p.frame}`).join(';')}`;
+      if (!this.textures.exists(key)) {
+        const canvas = document.createElement('canvas');
+        canvas.width = cols * cell;
+        canvas.height = rows * cell;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) continue;
+        ctx.imageSmoothingEnabled = false;
+        for (const p of parts) {
+          const f = this.textures.getFrame(sheet, p.frame);
+          if (!f) continue;
+          ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight, (p.col - cap.col) * cell, (p.row - top) * cell, f.cutWidth, f.cutHeight);
+        }
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        const snow = snowCapPixels(pixels, canvas.width, canvas.height, snowCapDepth(canvas.height, res), parts[0]!.frame + 1);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const image = ctx.createImageData(canvas.width, canvas.height);
+        image.data.set(snow);
+        ctx.putImageData(image, 0, 0);
+        this.textures.addCanvas(key, canvas);
+      }
+      const img = this.add.image(cap.col * ts, top * ts - cap.dy, key).setOrigin(0).setScale(1 / res).setDepth(cap.depth);
+      this.mapImages?.add(img);
+      this.objectImages.set(cap.obj, [...(this.objectImages.get(cap.obj) ?? []), img]);
+    }
   }
 
   // ---------- Plateia dos eventos no quintal ----------

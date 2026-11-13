@@ -1771,15 +1771,45 @@ export class GameSession {
 
   /**
    * As peças que já estão no cômodo quando ele abre (placeItems: as árvores do quintal), uma vez só (marca
-   * `placed.<cômodo>`; se ela remover, não voltam).
+   * `placed.<cômodo>`; se ela remover, não voltam). Save em que ela já mobiliou o cômodo: a peça não vai em cima de
+   * nada (móvel dela ou peça fixa do cômodo, na mesma camada); com o lugar tomado, vai para o lugar livre mais perto
+   * dentro do cômodo, e sem lugar fica de fora.
    */
   private placeRoomItems(room: RoomDef): void {
     const flag = `placed.${room.id}`;
     if (this.state.flags[flag] || !room.placeItems?.length) return;
     this.state.flags[flag] = true;
+    const { tiles } = this.content.catalog;
+    const taken = new Set<string>();
+    const mark = (tile: string | undefined, at: Cell) => {
+      const def = tiles[tile ?? ''];
+      if (def) for (const [c, r] of cellsOf(at, def)) taken.add(`${def.layer}:${c},${r}`);
+    };
+    for (const p of this.state.placed) mark(this.content.items[p.item]?.tile, p.at);
+    for (const o of [...this.content.map.objects, ...Object.values(room.variants ?? {}).flatMap((v) => v.objects ?? [])]) mark(o.tile, o.at);
+    const { from, to } = room.area;
+    // A base (última linha) não vai na parede (a sebe do quintal).
+    const walls = this.content.map.layers.walls;
+    const baseFree = (def: NonNullable<(typeof tiles)[string]>, [c0, r0]: Cell) => def.layer !== 'object' || Array.from({ length: def.w }, (_, i) => walls[r0 + def.h - 1]?.[c0 + i] ?? '.').every((ch) => ch === '.');
+    const fits = (def: NonNullable<(typeof tiles)[string]>, [c0, r0]: Cell) =>
+      c0 >= from[0] && r0 >= from[1] && c0 + def.w - 1 <= to[0] && r0 + def.h - 1 <= to[1] && baseFree(def, [c0, r0]) && cellsOf([c0, r0], def).every(([c, r]) => !taken.has(`${def.layer}:${c},${r}`));
     for (const p of room.placeItems) {
-      if (!this.content.items[p.item]) continue;
-      this.state.placed.push({ uid: `p${this.state.nextUid++}`, item: p.item, at: [p.at[0], p.at[1]] });
+      const def = tiles[this.content.items[p.item]?.tile ?? ''];
+      if (!def) continue;
+      // O lugar dos dados; tomado, o mais perto em volta (anéis de 1 a 4 células).
+      let at: Cell | undefined = fits(def, p.at) ? [p.at[0], p.at[1]] : undefined;
+      for (let d = 1; !at && d <= 4; d++) {
+        for (let dr = -d; !at && dr <= d; dr++) {
+          for (let dc = -d; !at && dc <= d; dc++) {
+            if (Math.max(Math.abs(dc), Math.abs(dr)) !== d) continue;
+            const cell: Cell = [p.at[0] + dc, p.at[1] + dr];
+            if (fits(def, cell)) at = cell;
+          }
+        }
+      }
+      if (!at) continue;
+      mark(def.name, at);
+      this.state.placed.push({ uid: `p${this.state.nextUid++}`, item: p.item, at });
     }
   }
 
@@ -3434,7 +3464,7 @@ export class GameSession {
       const kept = inSeason.objects.filter((o) => !onHim(o));
       const blocked = new Set([inSeason.spawn.player, ...(inSeason.doors ?? []).map((d) => d.at)].map((c) => cellKey(c)));
       for (const o of kept) { const def = tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
-      return { ...inSeason, npcs, objects: [...kept, ...this.jobMarkers(mapId), ...this.siteMarkerObjects({ ...inSeason, objects: kept }, blocked)] };
+      return this.withSnowCaps({ ...inSeason, npcs, objects: [...kept, ...this.jobMarkers(mapId), ...this.siteMarkerObjects({ ...inSeason, objects: kept }, blocked)] });
     }
     const rooms = this.roomsMapParts();
     const base = {
@@ -3452,11 +3482,35 @@ export class GameSession {
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
     const patches = this.winterPatches(base, { ...legend, ...works.legend }, [...base.objects, ...works.objects]);
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...patches, ...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint(), (t) => {
+    return this.withSnowCaps(withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...patches, ...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint(), (t) => {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;
+    }));
+  }
+
+  /**
+   * Inverno: neve por cima das coisas ao ar livre (regra geral; data/seasons.json: snowCaps). Nos mapas de fora (os
+   * de seasons.maps) e nos cômodos outdoor do café (o quintal), todo objeto sem neve própria (overlay) ganha a dele,
+   * desenhada pelo jogo seguindo o contorno; fora os de parede, de chão, embutidos e os tiles de snowCaps.skip.
+   */
+  private withSnowCaps(map: MapData): MapData {
+    const cfg = this.content.seasons.snowCaps;
+    if (!cfg || this.season() !== this.content.seasons.base) return map;
+    const outdoorMap = map.id in this.content.seasons.maps;
+    const { tiles } = this.content.catalog;
+    const objects = map.objects.map((o) => {
+      const def = tiles[o.tile];
+      if (!def || o.overlay || o.inWall || def.layer !== 'object' || o.id.startsWith('marker.') || cfg.skip.some((p) => o.tile.startsWith(p))) return o;
+      if (!outdoorMap && !roomAt(this.content.rooms, o.at)?.outdoor) return o;
+      return { ...o, snowCap: true };
     });
+    // A sujeira ao ar livre também (o mato, os galhos, a tora e as folhas do quintal); a de parede, não.
+    const dirt = map.dirt?.map((d) => (tiles[d.tile] && tiles[d.tile]!.layer !== 'wall' && !cfg.skip.some((p) => d.tile.startsWith(p)) && (outdoorMap || roomAt(this.content.rooms, d.at)?.outdoor) ? { ...d, snowCap: true } : d));
+    // Grade (a sebe do quintal): a peça com neve no lugar.
+    const swap = cfg.tiles ?? {};
+    const legend = Object.fromEntries(Object.entries(map.legend).map(([k, t]) => [k, swap[t] && tiles[swap[t]!] ? swap[t]! : t]));
+    return { ...map, legend, objects, ...(dirt ? { dirt } : {}) };
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */

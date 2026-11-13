@@ -23,6 +23,8 @@ export interface MapObject {
   at: Cell;
   /** Tile desenhado por cima, do mesmo tamanho (ex.: neve sobre o banco). */
   overlay?: string;
+  /** Inverno ao ar livre: o jogo desenha a neve por cima, pelo contorno do desenho (src/core/snowCap.ts). */
+  snowCap?: boolean;
   /** Só aparece quando a condição vale (ex.: a lousa depois de comprada). */
   when?: DoorCondition;
   /** Desenhado tantos pixels acima (em cima de outro móvel). */
@@ -57,6 +59,8 @@ export interface DirtSpot {
   lift?: number;
   /** Só aparece a partir desta condição (ex.: o cocô do dia 2). Fica fora do "tudo limpo" dos saves antigos. */
   when?: unknown;
+  /** Inverno ao ar livre: neve por cima (como MapObject.snowCap; o mato e o entulho do quintal). */
+  snowCap?: boolean;
 }
 
 /** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */
@@ -162,6 +166,8 @@ export interface SurfaceDef {
 export interface MapSprite {
   /** Id do objeto do mapa de onde veio (só objetos; piso e parede não têm). */
   obj?: string;
+  /** Id da sujeira de onde veio (a neve do inverno junta os pedaços dela). */
+  dirt?: string;
   /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
   dy?: number;
   tile: string;
@@ -185,6 +191,8 @@ export interface ResolvedMap {
   doors: MapDoor[];
   interactions: MapInteraction[];
   background?: string;
+  /** Objetos e sujeiras com neve por cima (snowCap): o id, a origem da peça, a profundidade (logo acima dela) e quanto sobe. */
+  snowCaps: { obj: string; col: number; row: number; depth: number; dy: number }[];
 }
 
 export interface Rect {
@@ -331,6 +339,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
 
   const ts = map.tileSize;
   const sprites: MapSprite[] = [];
+  const snowCaps: ResolvedMap['snowCaps'] = [];
 
   const gridDepth = { floor: DEPTH.floor, overlay: DEPTH.floorOverlay, walls: DEPTH.wall } as const;
   (['floor', 'overlay', 'walls'] as const).forEach((layerName) => {
@@ -352,6 +361,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const depth =
       def.layer === 'floor' ? DEPTH.floorObject : def.layer === 'wall' || obj.inWall ? DEPTH.wallObject : ySortDepth((r0 + def.h) * ts);
     const over = obj.overlay ? catalog.tiles[obj.overlay] : undefined;
+    if (obj.snowCap) snowCaps.push({ obj: obj.id, col: c0, row: r0, depth: depth + OVERLAY_LIFT * 2, dy: obj.lift ?? 0 });
     // Arte que sobe acima da peça (rise): mesma profundidade, sem ocupar a célula de cima.
     for (let k = 1; k <= (def.rise ?? 0); k++) {
       for (let dx = 0; dx < def.w; dx++) {
@@ -374,8 +384,9 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const [c0, r0] = d.at;
     const depth = def.layer === 'floor' ? (d.tags?.includes('repair') ? DEPTH.floorCrack : DEPTH.floorDirt) : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
     for (const [col, row] of cellsOf(d.at, def)) {
-      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, ...(d.lift ? { dy: d.lift } : {}) });
+      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, dirt: d.id, ...(d.lift ? { dy: d.lift } : {}) });
     }
+    if (d.snowCap && def.layer !== 'wall') snowCaps.push({ obj: d.id, col: c0, row: r0, depth: depth + OVERLAY_LIFT * 2, dy: d.lift ?? 0 });
   }
 
   return {
@@ -389,6 +400,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     doors: map.doors ?? [],
     interactions: map.interactions ?? [],
     background: map.background,
+    snowCaps,
   };
 }
 

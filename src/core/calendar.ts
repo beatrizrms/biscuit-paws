@@ -36,6 +36,11 @@ export interface CalendarEntry {
 }
 
 export interface SeasonsData {
+  /**
+   * Neve por cima das coisas ao ar livre no inverno (regra geral: os mapas de maps e os cômodos outdoor do café):
+   * objetos sem neve própria (overlay), fora os tiles que começam com algum prefixo de skip (já têm neve no desenho).
+   */
+  snowCaps?: { skip: string[]; /** Peças de grade trocadas no inverno pela versão com neve (a sebe do quintal). */ tiles?: Record<string, string> };
   schemaVersion: number;
   _comment?: string;
   daysPerSeason: number;
