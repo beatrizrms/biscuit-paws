@@ -2378,6 +2378,16 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   console.log(`${dir}: furgão para a direita e para a esquerda`);
 }
 
+// ---------- Ônibus do ponto da rua (4x3: 256 x 192, de lado; desenhado em meia escala: data/world.json bus.vehicle) ----------
+// Amarelo com faixa creme, sem letreiro. Descido 32 px (as rodas na base); a versão para a esquerda é espelhada.
+{
+  const bus = () => pickRows(readPng(`${SRC}/onibus/onibus_256x192.png`), [...Array.from({ length: 32 }, () => 0), ...range(0, 159)]);
+  const dir = 'public/assets/objects/vehicles';
+  writeFileSync(`${dir}/obj_bus_right.png`, PNG.sync.write(bus()));
+  writeFileSync(`${dir}/obj_bus_left.png`, PNG.sync.write(columns(bus(), range(0, 255).reverse())));
+  console.log(`${dir}: ônibus para a direita e para a esquerda`);
+}
+
 // ---------- Remédio escondido: tigela com comida (192 x 128), comprimido (48 x 24) e tubo de pasta (48 x 48) ----------
 // Desenhados em meia escala na cena (src/game/minigames/assets.ts: PILL); fontes em assets/_pixellab/minigames/pill.
 {

@@ -20,9 +20,10 @@
   "_sceneRoom": "Cômodo do café onde as cenas (roteiros) começam: com ela em outro cômodo (porão, quintal), a cena espera ela voltar para cá; ela anda livre até lá. Fora do café, a cena começa na hora.",
   "sceneRoom": "room.hall",
   "hud": { "reputation": { "business": "soft_open" }, "weather": { "business": "soft_open" } },
-  "_bus": "Ponto de ônibus da rua (interação bus no mapa): os destinos da escolha, na ordem (o último botão é sempre Ficar). goHome: encerra o dia e vai para casa, a qualquer hora (o atalho antes de daynight.goHomeFrom; com cliente no café, ela espera o último sair). Lugares novos entram aqui (ponto de extensão).",
+  "_bus": "Ponto de ônibus da rua (interação bus no mapa): os destinos da escolha, na ordem (o último botão é sempre Ficar). vehicle: a arte do ônibus que chega (de lado; scale como o furgão do correio). goHome: encerra o dia e vai para casa, a qualquer hora (o atalho antes de daynight.goHomeFrom; com cliente no café, ela espera o último sair). Lugares novos entram aqui (ponto de extensão).",
   "bus": {
-    "destinations": [{ "id": "bus.home", "label": "Ir para casa", "goHome": true }]
+    "destinations": [{ "id": "bus.home", "label": "Ir para casa", "goHome": true }],
+    "vehicle": { "left": "assets/objects/vehicles/obj_bus_left.png", "right": "assets/objects/vehicles/obj_bus_right.png", "scale": 0.65 }
   },
   "goHomeDoors": [
     "door.street"

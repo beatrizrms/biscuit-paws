@@ -349,7 +349,7 @@ export interface WorldData {
   /** Onde ela aparece de manhã, vindo de casa. */
   morning: { map: string; spawn: Cell };
   /** Ponto de ônibus (interação bus): os destinos, na ordem; goHome encerra o dia a qualquer hora. */
-  bus?: { destinations: BusDestination[] };
+  bus?: { destinations: BusDestination[]; vehicle?: { left: string; right: string; scale?: number } };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
   /** Quadros do HUD que só aparecem quando a condição vale (no começo, a reputação e o clima ainda não importam). */

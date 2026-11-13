@@ -207,6 +207,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Quem está atravessando a rua (session.ambientPassersNow) e as travessias já começadas neste mapa. */
   private readonly passers = new Map<string, NpcSprite>();
   private readonly passesStarted = new Set<string>();
+  /** O ônibus está levando ela (sem andar nem agir até o dia encerrar). */
+  private ridingBus = false;
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
   private repairNpcs = new Map<string, NpcSprite>();
   /** "!" em cima de cada equipamento quebrado. */
@@ -610,7 +612,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateArrivalActors(this.game.loop.delta);
     this.syncNpcBlockers();
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
+    const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     this.updateEatQueue();
     // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).
@@ -710,6 +712,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.neighborWalks.clear();
     this.crowd.clear();
     this.crowdGroups = [];
+    this.player.setAlpha(1); // voltando do ônibus (ela sumiu dentro dele)
     this.ambient.clear();
     this.passers.clear();
     this.passesStarted.clear();
@@ -753,14 +756,40 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** No ponto de ônibus: para onde ir (casa, por enquanto) ou ficar. */
   private askBus(): void {
+    if (this.ridingBus) return;
     const t = uiText.bus;
     const dests = this.session.content.world.bus?.destinations ?? [];
     void this.ui.choose(t.question, [...dests.map((d) => d.label), t.stay]).then((i) => {
       const dest = dests[i];
       if (!dest) return;
-      const r = this.session.takeBus(dest.id);
-      if (!r.ok) this.ui.problem(r.reason);
+      const problem = this.session.busProblem(dest.id);
+      if (problem) return this.ui.problem(problem);
+      if (this.ridingBus) return;
+      void this.rideBus().then(() => this.session.takeBus(dest.id));
     });
+  }
+
+  /**
+   * O ônibus chega pela rua e para na frente dela (ela fica atrás dele, na calçada), ela some, e ele vai embora pela
+   * outra ponta. Arte: data/world.json bus.vehicle (sem ela, o furgão do correio faz o papel).
+   */
+  private async rideBus(): Promise<void> {
+    this.ridingBus = true;
+    this.player.stop?.();
+    const ts = this.map.tileSize;
+    // Encosta no meio-fio, logo na frente dos pés dela (assim ele a cobre inteira).
+    const curbY = Math.min(this.map.rows * ts - 4, this.player.y + 10);
+    const art = this.textures.exists('bus_left') ? 'bus_left' : 'van_left';
+    const scale = art === 'bus_left' ? (this.session.content.world.bus?.vehicle?.scale ?? 0.5) : (this.session.content.delivery.van.scale ?? 1);
+    const bus = this.add.image(this.map.cols * ts + 160, curbY, art).setOrigin(0.5, 1).setScale(scale).setDepth(Math.max(ySortDepth(curbY), this.player.depth + 1));
+    this.vanObjects.push(bus);
+    await this.tweenTo(bus, this.player.x, 2200);
+    await this.wait(500);
+    this.tweens.add({ targets: this.player, alpha: 0, duration: 300 });
+    await this.wait(700);
+    await this.tweenTo(bus, -160, 2200);
+    bus.destroy();
+    this.ridingBus = false;
   }
 
   /** Na cama do quartinho: dormir no café (depois do horário de ir para casa). */
