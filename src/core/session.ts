@@ -3959,7 +3959,7 @@ export class GameSession {
    * Debug: chega num marco da história com tudo o que ele pede (os marcos de antes concluídos e as condições dos passos
    * cumpridas), ela no salão de manhã: a história segue e o marco acontece (com a cena dele). Ex.: a inauguração.
    */
-  debugReachBeat(beatId: string): void {
+  debugReachBeat(beatId: string, newDay = true): void {
     const beat = this.content.story.beats.find((b) => b.id === beatId);
     if (!beat || this.state.story.completed.includes(beatId)) return;
     for (const before of beat.after ?? []) this.debugCompleteStory(before);
@@ -3968,9 +3968,14 @@ export class GameSession {
     for (const step of beat.goal?.steps ?? []) if (step.when) this.debugSatisfy(step.when);
     if (beat.when) this.debugSatisfy(beat.when);
     this.state.location = this.content.map.id;
-    this.state.time = parseClock('09:00');
-    this.packOutOfSeason();
-    this.bus.emit('day.started', { day: this.state.day });
+    if (newDay) {
+      this.state.time = parseClock('09:00');
+      this.packOutOfSeason();
+      this.bus.emit('day.started', { day: this.state.day });
+    } else if (this.state.time < parseClock('09:00') || this.state.time >= parseClock('17:00')) {
+      // Marco por marco: o mesmo dia, sem a tela de dia novo; só traz para o horário das cenas.
+      this.state.time = parseClock('09:00');
+    }
     this.advanceStory();
   }
 
@@ -3983,7 +3988,7 @@ export class GameSession {
     const done = this.state.story.completed;
     const next = this.content.story.beats.find((b) => !done.includes(b.id) && (b.after ?? []).every((d) => done.includes(d)));
     if (!next) return null;
-    this.debugReachBeat(next.id);
+    this.debugReachBeat(next.id, false);
     if (this.state.story.completed.includes(next.id)) return { id: next.id, done: true };
     // Pede algo que o debug não cumpre (móvel posicionado, ela num lugar): conclui sem a cena, para não travar.
     this.debugCompleteBeat();
