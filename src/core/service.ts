@@ -501,6 +501,23 @@ export class CafeService {
   }
 
   /** Preço de um pedido na qualidade em que sai. */
+  /**
+   * Quanto custam os ingredientes de uma porção (para o quadro do cardápio mostrar o lucro): cada dose vale o preço do
+   * pacote dividido pelas doses que ele rende; premium usa as trocas (o café em grãos no lugar do pó). A fornada (o bolo
+   * inteiro) divide pelas fatias. Uma casa decimal.
+   */
+  costOf(recipeId: string, quality: Quality = 'simple'): number {
+    const r = this.recipe(recipeId);
+    if (!r) return 0;
+    let total = 0;
+    for (const [id, n] of Object.entries(r.ingredients)) {
+      const item = this.h.content.items[quality === 'premium' ? (r.premium?.[id] ?? id) : id];
+      if (item) total += (item.price / (item.servings ?? 1)) * n;
+    }
+    if (r.batch) total /= r.batch.yields;
+    return Math.round(total * 10) / 10;
+  }
+
   priceOf(recipeId: string, quality: Quality = 'simple'): number {
     const base = this.recipe(recipeId)?.price ?? 0;
     return quality === 'premium' ? Math.round(base * this.cfg.premiumPriceMultiplier) : base;

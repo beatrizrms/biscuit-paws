@@ -957,3 +957,7 @@ Decisão: com o balão aberto e ela embaixo, ele recolhe (só o título) e fica 
 ## 233. Selos viram Conquistas; cada receita nova é uma conquista (nov/2026)
 Pedido: tirar o nome "selos" e tratar tudo como "conquistas"; cada receita nova aparecer nas conquistas.
 Decisão: na tela, "selo" vira "conquista" (aba Conquistas do app Café em números, o aviso "Nova conquista!", a meta do balão "Próxima conquista"); os IDs `milestone.*` e o código continuam. A aba Conquistas ganha a seção Receitas no topo: cada receita aprendida, a mais nova primeiro, com o dia em que entrou, e quantas faltam descobrir. Save v42: `recipesOn` (o dia de cada receita; nos saves antigos, as já conhecidas aparecem sem o dia, no fim).
+
+## 234. Quadro do cardápio compacto, com custo e lucro (nov/2026)
+Pedido: com muitas receitas destrancadas, o quadro virava uma lista enorme de cartões (2 e meio por tela); mostrar preço de custo, venda e lucro.
+Decisão: abas pela louça (Quentes = xícara, Geladas = copo, Comidas = prato), uma linha por receita (bolinha de situação: verde disponível, laranja falta ingrediente ou louça, cinza falta equipamento; ícone, nome, "nova" nos 7 dias depois de aprender, "no quadro", preço); tocar abre os detalhes (ingredientes, etapas, Custo · Venda · Lucro por porção, situação) e o botão de pôr ou tirar. O custo (`service.costOf`) é o preço de cada pacote dividido pelas doses que rende; a fornada divide pelas fatias; premium usa as trocas. Fora de época fica recolhido, com a conta por estação e as semanas especiais juntas em "Eventos".
