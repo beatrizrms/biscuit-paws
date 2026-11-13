@@ -3290,7 +3290,7 @@ export class GameSession {
     this.state.inventory[med] = (this.state.inventory[med] ?? 0) + q.days;
     this.state.flags['vet.consulted'] = true;
     this.bus.emit('cat.diagnosed', { catId, disease: q.disease, days: q.days, total: q.total, onCredit: q.onCredit });
-    // Gato que nunca fez os testes (o Botinhas, doente quando a clínica abre): a Fernanda aproveita e faz FIV, FeLV e o
+    // Gato que nunca fez os testes (o primeiro gato, doente quando a clínica abre): a Fernanda aproveita e faz FIV, FeLV e o
     // checkup, sem cobrar a mais; o estado da castração fica confirmado.
     this.clinic.checkup(catId);
     this.advanceStory();
@@ -3707,7 +3707,7 @@ export class GameSession {
       delete cat.zeroDays;
       return;
     }
-    // Muitos dias seguidos sem o que precisa: ele foge do café (o Botinhas, o gato da história, não: neverRunAway).
+    // Muitos dias seguidos sem o que precisa: ele foge do café (o primeiro gato, o do prólogo, não: neverRunAway; o nome é o que o jogador deu).
     cat.zeroDays = (cat.zeroDays ?? 0) + 1;
     if (n.runAwayDays && cat.zeroDays >= n.runAwayDays && cat.sheltered && !(n.neverRunAway ?? []).includes(catId)) {
       cat.sheltered = false;

@@ -51,7 +51,7 @@ function breathe(p: PNG): PNG {
   return o;
 }
 
-/** O ruivo (o Botinhas): quadros escolhidos de cada animação do PixelLab. */
+/** O ruivo (o primeiro gato, cat.first_stray): quadros escolhidos de cada animação do PixelLab. */
 function ruivo(): PNG[][] {
   const pe = 'ruivo_em_pe/Idle/animations';
   const sentado = frames('ruivo_sentado/Idle/animations/sentado/south', [0, 2, 4, 6]);

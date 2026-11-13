@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Corações: pontos por coração e máximo; feedPoints = pontos ao comer (da tigela que ela encheu ou do pote automático; a latinha do cercadinho não conta); treatPoints = pontos por petisco dado na mão; careGamePoints = pontos por mini game de cuidado com o gato (escova, varinha, remédio), pelo resultado; neglect: com a saúde, a alegria ou a higiene em zero por days dias seguidos, o gato perde hearts coração(ões) (e a contagem recomeça); com runAwayDays dias seguidos assim, ele não tinha o que precisava e foge do café (os de neverRunAway, não: o Botinhas, o gato da história), e a reputação cai runAwayReputation. Serve para gatos, vizinhos e clientes.",
+  "_comment": "Corações: pontos por coração e máximo; feedPoints = pontos ao comer (da tigela que ela encheu ou do pote automático; a latinha do cercadinho não conta); treatPoints = pontos por petisco dado na mão; careGamePoints = pontos por mini game de cuidado com o gato (escova, varinha, remédio), pelo resultado; neglect: com a saúde, a alegria ou a higiene em zero por days dias seguidos, o gato perde hearts coração(ões) (e a contagem recomeça); com runAwayDays dias seguidos assim, ele não tinha o que precisava e foge do café (os de neverRunAway, não: o primeiro gato, o do prólogo, com o nome que o jogador der), e a reputação cai runAwayReputation. Serve para gatos, vizinhos e clientes.",
   "pointsPerHeart": 100,
   "maxHearts": 10,
   "feedPoints": 30,
