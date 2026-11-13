@@ -574,10 +574,20 @@ export class CafeService {
     return this.spots().filter((s) => !taken.some((t) => same(t, s.spot)));
   }
 
-  /** Um lugar livre que tenha pedido possível (em pé ou na mesa). */
+  /**
+   * Um lugar livre que tenha pedido possível (em pé ou na mesa). Antes, o primeiro da lista, e o balcão vinha primeiro:
+   * ninguém sentava enquanto sobrasse lugar no balcão. Agora, com os dois livres, o cliente prefere a mesa (seatChance),
+   * e o lugar é sorteado entre os livres daquele tipo (espalha pelo salão).
+   */
   private usableSpot(): { kind: ServiceKind; spot: Cell; dishAt: Cell } | undefined {
     const recipes = this.orderable();
-    return this.freeSpots().find((s) => recipes.some((r) => this.servesAt(r, s.kind)));
+    const usable = this.freeSpots().filter((s) => recipes.some((r) => this.servesAt(r, s.kind)));
+    if (usable.length <= 1) return usable[0];
+    const tables = usable.filter((s) => s.kind === 'table');
+    const standing = usable.filter((s) => s.kind !== 'table');
+    const rng = this.h.rng();
+    const pool = tables.length === 0 ? standing : standing.length === 0 ? tables : rng.chance(this.cfg.seatChance ?? 0.7) ? tables : standing;
+    return pool[rng.int(0, pool.length - 1)];
   }
 
   /**
