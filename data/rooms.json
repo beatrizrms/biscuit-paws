@@ -132,6 +132,7 @@
     {
       "id": "room.backyard",
       "firstLook": "scr.yard_first_look",
+      "winterPatches": { "tiles": ["yard_neve_poca_a", "yard_neve_poca_b", "yard_neve_poca_c", "yard_neve_poca_d"], "wideTile": "yard_neve_poca_larga", "share": 0.4 },
       "placeItems": [
         { "item": "item.yard_big_tree", "at": [38, 0] },
         { "item": "item.yard_tree_medium", "at": [27, 1] },

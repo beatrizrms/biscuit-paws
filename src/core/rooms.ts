@@ -57,6 +57,8 @@ export interface RoomDef {
   clear?: { cost?: number; label?: string; builder?: RoomBuilderWork };
   /** Restaurar (abandoned -> restored): limpar a sujeira com esta tag e pagar a obra; ou sozinho quando `when` valer. */
   restore?: { cost?: number; dirtTag?: string; when?: Condition; label?: string; dialogue?: string; builder?: RoomBuilderWork };
+  /** Inverno: poças de neve nos pedaços livres de grama (tiles de 1 ou 2 de largura; share = parte das células livres). */
+  winterPatches?: { tiles: string[]; wideTile?: string; share: number };
   /** Peças que já estão no cômodo quando ele abre (as árvores do quintal, espalhadas; dá para remover). */
   placeItems?: { item: string; at: Cell }[];
   /** Roteiro da primeira vez que ela entra no cômodo aberto e ainda com sujeira pesada (o susto no quintal). */

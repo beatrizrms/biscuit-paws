@@ -3308,6 +3308,48 @@ export class GameSession {
     return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}) };
   }
 
+  /**
+   * Inverno: poças de neve nos pedaços livres dos cômodos com winterPatches (aberto ou reformado): célula de chão sem
+   * parede, sem pedra do caminho, sem sujeira, sem peça (do mapa ou dela). Sorteio fixo por célula (não muda de um dia
+   * para o outro); duas livres lado a lado às vezes viram uma poça larga.
+   */
+  private winterPatches(base: MapData, legend: Record<string, string>, objects: readonly { tile: string; at: Cell }[]): { id: string; tile: string; at: Cell }[] {
+    if (this.season() !== 'winter') return [];
+    const { tiles } = this.content.catalog;
+    const taken = new Set<string>();
+    const mark = (at: Cell, tile: string) => {
+      const t = tiles[tile];
+      for (let y = 0; y < (t?.h ?? 1); y++) for (let x = 0; x < (t?.w ?? 1); x++) taken.add(`${at[0] + x},${at[1] + y}`);
+    };
+    for (const o of objects) mark(o.at, o.tile);
+    for (const p of this.state.placed) { const t = this.content.items[p.item]?.tile; if (t) mark(p.at, t); }
+    for (const d of this.visibleDirt()) mark(d.at, d.tile);
+    const hash = (c: number, r: number) => (((c * 73856093) ^ (r * 19349663)) >>> 0) % 1000 / 1000;
+    const out: { id: string; tile: string; at: Cell }[] = [];
+    for (const room of this.content.rooms.rooms) {
+      const wp = room.winterPatches;
+      const s = this.roomState(room.id);
+      if (!wp || (s !== 'abandoned' && s !== 'restored')) continue;
+      const free = (c: number, r: number) => {
+        if (taken.has(`${c},${r}`) || (base.layers.walls[r]?.[c] ?? '.') !== '.') return false;
+        const name = legend[base.layers.floor[r]?.[c] ?? ''] ?? '';
+        return !!name && !name.includes('pedra') && inArea(room, [c, r]);
+      };
+      const { from, to } = room.area;
+      for (let r = from[1]; r <= to[1]; r++) for (let c = from[0]; c <= to[0]; c++) {
+        if (!free(c, r) || hash(c, r) >= wp.share) continue;
+        if (wp.wideTile && free(c + 1, r) && hash(c + 1, r) < wp.share && hash(c, r) < wp.share / 3) {
+          out.push({ id: `snow.${room.id}.${c}.${r}`, tile: wp.wideTile, at: [c, r] });
+          taken.add(`${c + 1},${r}`);
+          c++;
+          continue;
+        }
+        out.push({ id: `snow.${room.id}.${c}.${r}`, tile: wp.tiles[Math.floor(hash(r, c) * wp.tiles.length)]!, at: [c, r] });
+      }
+    }
+    return out;
+  }
+
   /** Tentou abrir uma porta trancada: a fala de trancada (requisito) ou o aviso de fechado (horário). */
   doorLocked(door: MapDoor): void {
     // Trancada pela história (ex.: a clínica ainda é obra): a fala dela vale mais que o horário.
@@ -3408,7 +3450,8 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint(), (t) => {
+    const patches = this.winterPatches(base, { ...legend, ...works.legend }, [...base.objects, ...works.objects]);
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...patches, ...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint(), (t) => {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;

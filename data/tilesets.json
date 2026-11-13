@@ -765,6 +765,11 @@
       "overrides": {
         "dirt_galhos": { "layer": "floor" },
         "dirt_tora": { "layer": "floor" },
+        "yard_neve_poca_a": { "layer": "floor" },
+        "yard_neve_poca_b": { "layer": "floor" },
+        "yard_neve_poca_c": { "layer": "floor" },
+        "yard_neve_poca_d": { "layer": "floor" },
+        "yard_neve_poca_larga": { "layer": "floor" },
         "market_banca_plantas": { "solid": true }
       }
     },

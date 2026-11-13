@@ -474,6 +474,12 @@ const SHEETS: Sheet[] = [
       yard_grama_alta: { file: 'quintal/jardim/grama_alta.png', w: 1, h: 1 },
       // Grama baixa: a alta aparada (só os 24 px de baixo; a linha de corte leva o contorno escuro da própria grama).
       yard_grama_baixa: { file: '', w: 1, h: 1, build: () => mowedGrass(readPng(`${SRC}/quintal/jardim/grama_alta.png`), 24) },
+      // Poças de neve do inverno (por código, com a textura da neve do chão): manchas irregulares que não chegam à borda.
+      yard_neve_poca_a: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 11) },
+      yard_neve_poca_b: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 29) },
+      yard_neve_poca_c: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 47) },
+      yard_neve_poca_d: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 83) },
+      yard_neve_poca_larga: { file: '', w: 2, h: 1, build: () => snowPuddle(2 * TS, 61) },
       market_banca_plantas: { file: 'quintal/jardim/banca_plantas.png', w: 3, h: 1, dy: 2 },
     },
   },
@@ -1609,6 +1615,34 @@ function snowPlanter(src: PNG): PNG {
       if (y > cy && !inside(x, y)) continue;
       plot(out, x, y, y === top ? line : y >= bottom - 2 ? shade : white);
     }
+  }
+  return out;
+}
+
+/**
+ * Poça de neve: uma mancha irregular (raio que varia com o ângulo, semente fixa) cheia da textura da neve do chão, com a
+ * borda de baixo e da direita em azul sombreado e uma linha fina de contorno, para assentar na grama.
+ */
+function snowPuddle(width: number, seed: number): PNG {
+  const out = blank(width, TS);
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const snow = snowFloor();
+  const cx = width / 2, cy = TS / 2 + 4, rx = width / 2 - 6, ry = TS / 2 - 12;
+  // Raio por ângulo: soma de ondas com fases sorteadas (borda orgânica).
+  const waves = [2, 3, 5, 7].map((k) => ({ k, a: 0.06 + rnd() * 0.1, p: rnd() * Math.PI * 2 }));
+  const radius = (t: number) => 1 + waves.reduce((s, w) => s + w.a * Math.sin(w.k * t + w.p), 0);
+  const inside = (x: number, y: number) => {
+    const dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry;
+    return Math.hypot(dx, dy) <= radius(Math.atan2(dy, dx)) * 0.92;
+  };
+  const shade: [number, number, number] = [204, 220, 238], line: [number, number, number] = [158, 178, 204];
+  for (let y = 0; y < TS; y++) for (let x = 0; x < width; x++) {
+    if (!inside(x, y)) continue;
+    const edge = !inside(x, y - 1) || !inside(x, y + 1) || !inside(x - 1, y) || !inside(x + 1, y);
+    const lower = !inside(x, y + 2) || !inside(x + 2, y);
+    if (edge) plot(out, x, y, line);
+    else if (lower) plot(out, x, y, shade);
+    else snow.data.copy(out.data, (y * width + x) * 4, (y * TS + (x % TS)) * 4, (y * TS + (x % TS)) * 4 + 4);
   }
   return out;
 }

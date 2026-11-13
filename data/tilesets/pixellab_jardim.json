@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 2,
+ "rows": 3,
  "pieces": {
   "dirt_galhos": {
    "col": 0,
@@ -33,9 +33,39 @@
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "market_banca_plantas": {
+  "yard_neve_poca_a": {
    "col": 0,
    "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_neve_poca_b": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_neve_poca_c": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_neve_poca_d": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_neve_poca_larga": {
+   "col": 4,
+   "row": 1,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "market_banca_plantas": {
+   "col": 0,
+   "row": 2,
    "w_tiles": 3,
    "h_tiles": 1
   }
