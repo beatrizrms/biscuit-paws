@@ -418,6 +418,33 @@
         }
       ]
     },
+    "dlg.clinic_first_visit_with_cat": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Oi! Pode entrar. Sou a Fernanda, a veterinária. Hoje é a inauguração, e você é a primeira visita!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Que sorte! Eu cuido de uns gatinhos na antiga padaria, aqui na rua."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Este é {cat:cat.first_stray}. Amanheceu quietinho, com o nariz quente, então já trouxe comigo."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Fez muito bem! Põe {cat:cat.first_stray} aqui na mesa que eu examino agora mesmo."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "E não se preocupe com o dinheiro: a primeira consulta pode ficar para depois."
+        }
+      ]
+    },
     "dlg.clinic_first_visit": {
       "lines": [
         {

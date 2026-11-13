@@ -345,7 +345,18 @@
           "playerFace": "left"
         },
         {
-          "dialogue": "dlg.clinic_first_visit"
+          "dialogue": "dlg.clinic_first_visit",
+          "when": {
+            "not": {
+              "carryingCat": true
+            }
+          }
+        },
+        {
+          "dialogue": "dlg.clinic_first_visit_with_cat",
+          "when": {
+            "carryingCat": true
+          }
         }
       ]
     },

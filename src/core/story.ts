@@ -65,6 +65,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('santaGuest' in c) return !!ctx.santaGuest?.(c.santaGuest);
   if ('halloweenGuest' in c) return !!ctx.halloweenGuest?.(c.halloweenGuest);
   if ('playerRoom' in c) return ctx.playerRoom?.() === c.playerRoom;
+  if ('carryingCat' in c) return state.hands.some((h) => h.kind === 'cat');
   if ('season' in c) return seasonOf(ctx.seasons, state.day) === c.season;
   if ('milestone' in c) return state.milestones.reached[c.milestone] !== undefined || !!ctx.milestoneMet?.(c.milestone);
   if ('daysSince' in c) {

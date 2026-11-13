@@ -263,7 +263,9 @@ export type Condition =
   /** O amigo vem para a festa de Halloween deste ano: ela já o conhece (data/festive.json: halloween.friends). */
   | { halloweenGuest: string }
   /** Ela está no café, neste cômodo (data/rooms.json; ex.: as cenas de Natal só começam com ela no salão). */
-  | { playerRoom: string };
+  | { playerRoom: string }
+  /** Ela está com um gato no colo agora. */
+  | { carryingCat: true };
 
 export type Effect =
   | { dialogue: string }
@@ -876,6 +878,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('carryingCat' in c) {
+      if (c.carryingCat !== true) err(`${where}: carryingCat precisa ser true`);
     } else if ('playerRoom' in c) {
       if (!raw.rooms.rooms.some((r) => r.id === c.playerRoom)) err(`${where}: cômodo inexistente "${c.playerRoom}"`);
     } else if ('santaGuest' in c) {
