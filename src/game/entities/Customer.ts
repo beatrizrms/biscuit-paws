@@ -40,6 +40,8 @@ export class CustomerSprite {
   arrived = false;
   /** Sentado virado para esta direção (null: em pé). */
   seated: Facing | null = null;
+  /** Em pé, já encostou na bancada ou mesa alta deste lugar ("col,row"). */
+  private leanedAt: string | null = null;
 
   constructor(
     private scene: Phaser.Scene,
@@ -70,6 +72,7 @@ export class CustomerSprite {
   walkTo(cell: Cell, verticalFirst = false): Promise<void> {
     this.target = cell;
     this.arrived = false;
+    this.leanedAt = null;
     this.walking = this.walking.then(async () => {
       if (!this.sprite.active) return;
       this.seated = null;
@@ -98,6 +101,14 @@ export class CustomerSprite {
     if (this.seated === dir || !this.sprite.sit(dir)) return;
     this.seated = dir;
     this.sprite.setDepth(chairBase + (dir === 'up' ? -1 : 1));
+  }
+
+  /** Em pé no lugar: chega mais perto da bancada ou da mesa alta (dx, dy em px), uma vez por lugar. */
+  lean(dx: number, dy: number): void {
+    const key = `${this.target[0]},${this.target[1]}`;
+    if (this.leanedAt === key || !this.sprite.active || (dx === 0 && dy === 0)) return;
+    this.leanedAt = key;
+    this.sprite.scene.tweens.add({ targets: this.sprite, x: this.sprite.x + dx, y: this.sprite.y + dy, duration: 220 });
   }
 
   /** Balão do pedido (ícone da receita); null: aguardando (na fila); undefined: sem balão. */

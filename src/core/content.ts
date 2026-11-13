@@ -99,6 +99,11 @@ export interface ItemDef {
   orFloor?: boolean;
   /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
   topLift?: number;
+  /**
+   * Para tomar em pé (bancada de parede, mesa alta): de que lados das células o cliente fica, virado para ela. Só a
+   * linha de baixo (a peça alta sobe no desenho), ou todas (`allRows`: a bancada da parede do lado, deitada no chão).
+   */
+  stand?: { sides: ('up' | 'down' | 'left' | 'right')[]; allRows?: boolean; lean?: number };
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
@@ -258,7 +263,9 @@ export type Condition =
   /** O amigo vem para a festa de Halloween deste ano: ela já o conhece (data/festive.json: halloween.friends). */
   | { halloweenGuest: string }
   /** Ela está no café, neste cômodo (data/rooms.json; ex.: as cenas de Natal só começam com ela no salão). */
-  | { playerRoom: string };
+  | { playerRoom: string }
+  /** Ela está com um gato no colo agora. */
+  | { carryingCat: true };
 
 export type Effect =
   | { dialogue: string }
@@ -871,6 +878,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!mapIds.has(c.visited)) err(`${where}: mapa inexistente "${c.visited}"`);
     } else if ('beat' in c) {
       if (!beatIds.has(c.beat)) err(`${where}: marco inexistente "${c.beat}"`);
+    } else if ('carryingCat' in c) {
+      if (c.carryingCat !== true) err(`${where}: carryingCat precisa ser true`);
     } else if ('playerRoom' in c) {
       if (!raw.rooms.rooms.some((r) => r.id === c.playerRoom)) err(`${where}: cômodo inexistente "${c.playerRoom}"`);
     } else if ('santaGuest' in c) {

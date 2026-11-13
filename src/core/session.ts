@@ -2754,13 +2754,29 @@ export class GameSession {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     const line = def && chatOfDay(def, this.state.day);
     if (!def || !line) return null;
+    if (this.friendDef(npc)) this.noteFriendChat(npc);
+    else if (this.friendState(npc).chatDay !== this.state.day) {
+      this.friendState(npc).chatDay = this.state.day;
+      addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
+      this.bus.emit('npc.chatted', { npc, points: def.points });
+    }
+    return line;
+  }
+
+  /**
+   * Conversou com um amigo (no passeio, na festa, com o Tião na obra): a primeira conversa do dia vale os pontos da
+   * amizade (friendship.json: points.chat), uma vez por dia por pessoa. Devolve os pontos dados (0: já conversou hoje).
+   */
+  noteFriendChat(npc: string): number {
+    // Conversando, ela conhece a pessoa (o passeio e a festa já têm a condição deles): não pede o known aqui.
+    if (!this.friendDef(npc)) return 0;
     const friend = this.friendState(npc);
-    if (friend.chatDay === this.state.day) return line;
+    if (friend.chatDay === this.state.day) return 0;
     friend.chatDay = this.state.day;
-    const points = this.friendDef(npc) ? this.content.friendship.points.chat : def.points;
+    const points = this.content.friendship.points.chat;
     addPoints(this.state, this.content.relationships, PLAYER, npc, points);
     this.bus.emit('npc.chatted', { npc, points });
-    return line;
+    return points;
   }
 
   // ---------- Amizade e SocialVilla (friendship.ts) ----------
@@ -2855,6 +2871,8 @@ export class GameSession {
     const itemId = togoItemId(h.recipe);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
     this.bus.emit('togo.stored', { itemId });
+    // Já fica selecionado na barra: o E num amigo oferece o presente.
+    this.selectHotbarItem(itemId);
     return { ok: true, itemId };
   }
 
@@ -5271,7 +5289,14 @@ export class GameSession {
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     const map = this.mapData();
     const problem = placementProblem(map, this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
-    if (problem || !def.solid) return problem;
+    if (problem) return problem;
+    // Peça de parede para tomar em pé (a bancada): só na última linha da parede, com chão logo embaixo (onde o cliente fica).
+    if (this.content.items[itemId]?.stand && def.layer === 'wall') {
+      const bottom = at[1] + def.h;
+      const floorBelow = (c: number) => (map.layers.floor[bottom]?.[c] ?? '.') !== '.' && (map.layers.walls[bottom]?.[c] ?? '.') === '.';
+      for (let c = at[0]; c < at[0] + def.w; c++) if (!floorBelow(c)) return 'wall_base';
+    }
+    if (!def.solid) return null;
     // Não pode isolar a entrada: de onde ela chega (rua, quintal) ainda precisa haver caminho até dentro do café.
     return this.cutsOffEntrance(map, def.name, at) ? 'blocks_door' : null;
   }

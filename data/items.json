@@ -613,6 +613,121 @@
       }
     },
     {
+      "id": "item.bar_ledge_front",
+      "name": "Bancada de parede",
+      "description": "Bancada presa na parede para tomar em pé: os clientes do cafezinho rápido ficam embaixo dela, e o balcão fica livre para você trabalhar. Vai na parede, como os quadros.",
+      "price": 70,
+      "tile": "bar_ledge_front",
+      "stand": { "sides": ["down"], "lean": 6 },
+      "topLift": 14,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "stand",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.bar_ledge_left",
+      "name": "Bancada de parede (lateral esquerda)",
+      "description": "Bancada para tomar em pé, presa na parede da esquerda: os clientes ficam de lado, ao longo dela.",
+      "price": 60,
+      "tile": "bar_ledge_left",
+      "stand": { "sides": ["right"], "allRows": true, "lean": 21 },
+      "tags": [
+        "furniture",
+        "for:guests",
+        "stand",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.bar_ledge_right",
+      "name": "Bancada de parede (lateral direita)",
+      "description": "Bancada para tomar em pé, presa na parede da direita: os clientes ficam de lado, ao longo dela.",
+      "price": 60,
+      "tile": "bar_ledge_right",
+      "stand": { "sides": ["left"], "allRows": true, "lean": 21 },
+      "tags": [
+        "furniture",
+        "for:guests",
+        "stand",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.table_tall_round",
+      "name": "Mesa alta redonda",
+      "description": "Mesa de bistrô para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
+      "price": 55,
+      "tile": "table_tall_round",
+      "stand": { "sides": ["left", "right", "down"], "lean": 5 },
+      "topLift": 30,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "stand",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.table_tall_square",
+      "name": "Mesa alta quadrada",
+      "description": "Mesa de bistrô quadrada para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
+      "price": 55,
+      "tile": "table_tall_square",
+      "stand": { "sides": ["left", "right", "down"], "lean": 5 },
+      "topLift": 30,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "stand",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.table_wide_oval",
+      "name": "Mesa oval larga",
+      "description": "Mesa comprida para os clientes: cabem mais cadeiras em volta (cada cadeira encostada vira um lugar).",
+      "price": 110,
+      "tile": "table_wide_oval",
+      "topLift": 12,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "table",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.table_square",
+      "name": "Mesa quadrada",
+      "description": "Mesa quadrada para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
+      "price": 60,
+      "tile": "table_square",
+      "topLift": 12,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "table",
+        "surface"
+      ]
+    },
+    {
+      "id": "item.table_square_big",
+      "name": "Mesa quadrada grande",
+      "description": "Mesa grande para grupos: cadeiras dos lados e na frente viram lugares.",
+      "price": 140,
+      "tile": "table_square_big",
+      "topLift": 12,
+      "tags": [
+        "furniture",
+        "for:guests",
+        "table",
+        "surface"
+      ]
+    },
+    {
       "id": "item.table_round",
       "name": "Mesa redonda",
       "description": "Mesa para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",

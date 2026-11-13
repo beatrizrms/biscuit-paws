@@ -550,11 +550,34 @@ export class CafeService {
     const withTag = (tag: string) => this.st.placed.filter((p) => items[p.item]?.tags.includes(tag));
     const out: { kind: ServiceKind; spot: Cell; dishAt: Cell }[] = [];
     const busyCounters = new Set(this.st.placed.filter((p) => items[p.item]?.placeOn).map((p) => `${p.at[0]},${p.at[1]}`));
-    for (const p of withTag(this.cfg.standingTag)) {
-      for (const [c, r] of this.cellsOfPlaced(p.item, p.at)) {
-        if (busyCounters.has(`${c},${r}`)) continue;
-        const below: Cell = [c, r + 1];
-        if (free(below)) out.push({ kind: 'standing', spot: below, dishAt: [c, r] });
+    // Em pé: em volta das bancadas de parede e das mesas altas (item.stand), virado para elas. Sem nenhuma, na frente do
+    // balcão (o café do começo), como antes.
+    const stands = this.st.placed.filter((p) => items[p.item]?.stand);
+    const taken = new Set<string>();
+    const STEP = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
+    for (const p of stands) {
+      const stand = items[p.item]!.stand!;
+      const cells = this.cellsOfPlaced(p.item, p.at);
+      const own = new Set(cells.map(([c, r]) => `${c},${r}`));
+      const base = Math.max(...cells.map(([, r]) => r));
+      for (const [c, r] of cells) {
+        if (!stand.allRows && r !== base) continue;
+        for (const side of stand.sides) {
+          const spot: Cell = [c + STEP[side][0], r + STEP[side][1]];
+          const k = `${spot[0]},${spot[1]}`;
+          if (own.has(k) || taken.has(k) || !free(spot)) continue;
+          taken.add(k);
+          out.push({ kind: 'standing', spot, dishAt: [c, r] });
+        }
+      }
+    }
+    if (stands.length === 0) {
+      for (const p of withTag(this.cfg.standingTag)) {
+        for (const [c, r] of this.cellsOfPlaced(p.item, p.at)) {
+          if (busyCounters.has(`${c},${r}`)) continue;
+          const below: Cell = [c, r + 1];
+          if (free(below)) out.push({ kind: 'standing', spot: below, dishAt: [c, r] });
+        }
       }
     }
     // Mesa com algo em cima (um vaso): a bebida não tem onde ficar; aquela célula não serve de mesa.

@@ -70,6 +70,13 @@ describe('amizade: presentes', () => {
     expect(session.giveGift('npc.gabi').ok).toBe(true);
   });
 
+  it('com várias do mesmo item (3 laranjas), dá só uma', () => {
+    const { state, session } = cafe();
+    holdItem(state, 'item.orange', 3);
+    expect(session.giveGift('npc.gabi').ok).toBe(true);
+    expect(state.inventory['item.orange']).toBe(2);
+  });
+
   it('só para quem ela conhece; ferramentas e coisas de uso não são presente', () => {
     const { state, session } = cafe();
     holdItem(state, 'item.strawberry');
@@ -198,6 +205,16 @@ describe('amizade: conversa e save', () => {
     again.neighborChat('npc.neusa');
     expect(points(loaded, PLAYER, 'npc.neusa')).toBe(F.points.chat);
     expect(loaded.friends['npc.neusa']!.chatDay).toBe(state.day);
+  });
+
+  it('conversar com o Tião na obra (ou na festa) também vale a conversa do dia, uma vez por dia', () => {
+    const { state, session } = cafe();
+    expect(session.noteFriendChat('npc.builder')).toBe(F.points.chat);
+    expect(session.noteFriendChat('npc.builder')).toBe(0);
+    expect(points(state, PLAYER, 'npc.builder')).toBe(F.points.chat);
+    state.day += 1;
+    expect(session.noteFriendChat('npc.builder')).toBe(F.points.chat);
+    expect(session.noteFriendChat('npc.market_clerk')).toBe(0);
   });
 
   it('o save guarda gostos, presente da semana, feed e os itens para viagem', () => {

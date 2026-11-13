@@ -1313,3 +1313,34 @@ html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top {
 /* Letras no celular: tudo 10% maior e nada abaixo de 7,5 px do jogo (os font-size da interface passam por --fs e
    --fs-min; no computador ficam 1 e 0, sem mudança). */
 html.touch-mode { --fs: 1.1; --fs-min: 7.5px; }
+
+/* ---------- SocialVilla (SocialApp.ts) ---------- */
+.p-icon.social { background: #b9a6ec; }
+.p-icon .social-face { display: grid; place-items: center; width: 24px; height: 20px; border-radius: 8px 8px 8px 2px; background: var(--cream); color: #e5487a; font-size: 13px; line-height: 1; box-shadow: 0 1px 0 #3b2a3244; }
+.social-app .sv-feed, .social-app .sv-friends { display: flex; flex-direction: column; gap: 6px; }
+.social-app .sv-post, .social-app .sv-friend { display: flex; gap: 6px; padding: 6px; border-radius: 8px; background: #fffaf2; box-shadow: 0 1px 0 #3b2a3222; }
+.social-app .sv-post.new { box-shadow: 0 0 0 1px #b9a6ec, 0 1px 0 #3b2a3222; }
+.social-app .sv-avatar { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--cream2); object-fit: cover; image-rendering: pixelated; }
+/* Sem retrato (o Joca): o primeiro quadro da folha (64 x 64, 6 colunas), ampliado no focinho. */
+.social-app .sv-sheet { background-size: 250px auto; background-position: -8px -14px; background-repeat: no-repeat; }
+.social-app .sv-body { flex: 1; min-width: 0; }
+.social-app .sv-head { display: flex; align-items: baseline; gap: 5px; margin: 0 0 2px; }
+.social-app .sv-head b { font-size: 8.5px; }
+.social-app .sv-head span { color: var(--ink2); font-size: 6.5px; }
+.social-app .sv-head em { margin-left: auto; padding: 0 4px; border-radius: 6px; background: #b9a6ec; color: #fff; font-size: 6px; font-style: normal; }
+.social-app .sv-text { margin: 0; font-size: 7.5px; line-height: 1.35; }
+.social-app .sv-clue { margin: 3px 0 0; color: #8d6fc9; font-size: 6.5px; }
+.social-app .sv-empty, .social-app .sv-hint { margin: 4px 2px 6px; color: var(--ink2); font-size: 7px; font-style: italic; }
+.social-app .hearts { font-size: 7px; }
+.social-app .hearts .heart { color: #d9cfd2; }
+.social-app .hearts .heart.on { color: #e5487a; }
+.social-app .sv-status { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
+.social-app .sv-status span { padding: 0 4px; border-radius: 6px; background: var(--cream2); font-size: 6px; }
+.social-app .sv-taste { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin: 2px 0 0; font-size: 6.5px; }
+.social-app .sv-taste b { min-width: 34px; }
+.social-app .sv-taste.loved b { color: #e5487a; }
+.social-app .sv-taste.liked b { color: #3f7a4a; }
+.social-app .sv-taste.disliked b { color: #8a5a3c; }
+.social-app .sv-taste.neutral b { color: var(--ink2); }
+.social-app .sv-chip { display: inline-flex; align-items: center; gap: 2px; padding: 0 4px; border-radius: 6px; background: var(--cream2); }
+.social-app .sv-chip.unknown { color: var(--ink2); letter-spacing: 1px; }

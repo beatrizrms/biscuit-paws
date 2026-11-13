@@ -21,12 +21,13 @@ export function fitsHotbar(item: ItemDef | undefined): boolean {
 }
 
 /** Entra sozinho na barra: ferramentas (vassoura), itens com uso (ração, petisco) e sacos (storesAs: selecionado, vai na mão). */
-const autoSlotted = (item: ItemDef | undefined) => item?.kind === 'tool' || !!item?.use || !!item?.storesAs;
+// A bebida ou o doce "para viagem" também: guardado para dar de presente, vai direto para a mão (a barra).
+const autoSlotted = (item: ItemDef | undefined) => item?.kind === 'tool' || !!item?.use || !!item?.storesAs || !!item?.tags.includes('togo');
 
 const owned = (inventory: Record<string, number>, id: string | null) => !!id && (inventory[id] ?? 0) > 0;
 
 /**
- * Ferramenta ou item com uso novo vai sozinho para o primeiro espaço livre (vazio ou com item que acabou).
+ * Ferramenta, item com uso ou "para viagem" novo vai sozinho para o primeiro espaço livre (vazio ou com item que acabou).
  * Devolve se mudou algo.
  */
 export function syncHotbar(

@@ -226,6 +226,9 @@ export class BackpackPanel {
         }
         case 'stow':
           return void report(sv.stow());
+        case 'togo':
+          // A bebida ou o doce pronto vai para a mochila, "para viagem" (para dar de presente fora do café).
+          return void report(this.session.storeToGo());
       }
       return;
     }
@@ -423,7 +426,7 @@ export class BackpackPanel {
     if (this.selected && !stillThere) this.selected = null;
     // Faixa de cima: o que está nas mãos e a louça limpa.
     const hands = st.hands.length
-      ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '')
+      ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '') + (st.hands.some((h) => h.kind === 'drink') ? ` <button data-act="togo">${t.togo}</button>` : '')
       : t.handsEmpty;
     // A barra (mesmos espaços da barra de baixo da tela).
     const bar = st.hotbar.slots.map((id, i) => this.slotHtml(id, `data-bar="${i}"`, i === st.hotbar.active, i + 1)).join('');
