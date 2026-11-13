@@ -45,7 +45,7 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 
 ### Média
 
-**M1. Fechar mais cedo esvaziava a fila sem nota ruim.** CORRIGIDO (decisão 222). Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
+**M1. Fechar mais cedo esvaziava a fila sem nota ruim.** CORRIGIDO (decisão 224). Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
 *Correção:* mudar o horário no app só vale a partir de amanhã; hoje segue o horário de quando o dia começou (decisão 224, que substitui a correção anterior).
 
 **M2. Gato largado não tinha consequência.** CORRIGIDO (decisão 224). Sem comida e sem remédio por 60 dias: saúde 0, doente o tempo todo, continua no café. O descuido só tira corações, e quando chegam a 0 não acontece mais nada. Os clientes só somem com vários gatos doentes.
@@ -56,7 +56,7 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 
 ### Baixa
 
-**B1. Dava para fechar a entrada do café por dentro.** CORRIGIDO (decisão 222). Correção do relatório: os três móveis em volta da chegada não prendiam (a linha da porta também é chão, ela dá a volta por baixo); prender de verdade pedia fechar essa linha também.
+**B1. Dava para fechar a entrada do café por dentro.** CORRIGIDO (decisão 223). Correção do relatório: os três móveis em volta da chegada não prendiam (a linha da porta também é chão, ela dá a volta por baixo); prender de verdade pedia fechar essa linha também.
 *Correção:* um móvel sólido que deixaria alguma chegada ao café (da rua, do quintal) sem caminho até dentro é recusado ("fica na frente da passagem"), conferido com `findPath`.
 
 **B2. Cliente atravessa móveis.** Os clientes andam em L até o lugar (sem `findPath`): com o caminho fechado, eles passam por cima dos móveis.

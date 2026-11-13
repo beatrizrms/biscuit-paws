@@ -24,11 +24,12 @@ import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from
 import { newCed, type CedState } from './ced';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
+import type { FriendState, GiftReaction, SocialState } from './friendship';
 
-export const SAVE_SCHEMA_VERSION = 40;
+export const SAVE_SCHEMA_VERSION = 41;
 
-export interface SaveV40 extends GameState {
-  schemaVersion: 40;
+export interface SaveV41 extends GameState {
+  schemaVersion: 41;
   savedAt: string;
 }
 
@@ -202,13 +203,38 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   38: (save) => ({ ...save, schemaVersion: 39, halloween: null }),
   /** v39 -> v40: a caixa do correio fica onde ela soltou (deliveries[].at). Saves antigos: no canto de sempre (a sessão põe). */
   39: (save) => ({ ...save, schemaVersion: 40 }),
+  /** v40 -> v41: amizade com os vizinhos e a SocialVilla (friendship.ts). Saves antigos: nada descoberto, feed vazio. */
+  40: (save) => ({ ...save, schemaVersion: 41, friends: {}, social: { feed: [], seen: [] } }),
 };
+
+const REACTIONS = new Set(['loved', 'liked', 'neutral', 'disliked']);
+const isInt = (n: unknown): n is number => Number.isInteger(n);
+
+/** Amizade (v41): só gostos com reação conhecida e números inteiros. */
+function normalizeFriends(raw: unknown): Record<string, FriendState> {
+  const out: Record<string, FriendState> = {};
+  for (const [npc, f] of Object.entries((raw ?? {}) as Record<string, Partial<FriendState> | null>)) {
+    if (!f || typeof f !== 'object') continue;
+    const tastes = Object.fromEntries(Object.entries(f.tastes ?? {}).filter((e): e is [string, GiftReaction] => REACTIONS.has(String(e[1]))));
+    out[npc] = { tastes, ...(isInt(f.giftWeek) ? { giftWeek: f.giftWeek } : {}), ...(isInt(f.giftsInWeek) ? { giftsInWeek: f.giftsInWeek } : {}), ...(isInt(f.chatDay) ? { chatDay: f.chatDay } : {}) };
+  }
+  return out;
+}
+
+/** SocialVilla (v41): posts publicados (id e dia) e vistos (ids). Post que sumiu dos dados: a sessão ignora. */
+function normalizeSocial(raw: unknown): SocialState {
+  const s = (raw ?? {}) as Partial<SocialState>;
+  return {
+    feed: (Array.isArray(s.feed) ? s.feed : []).filter((f) => f && typeof f.post === 'string' && isInt(f.day)).map((f) => ({ post: f.post, day: f.day })),
+    seen: (Array.isArray(s.seen) ? s.seen : []).filter((p): p is string => typeof p === 'string'),
+  };
+}
 
 /** Cor antiga do Cosy Cats -> a pelagem nova mais parecida (migração v38). */
 const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV40 = { schemaVersion: 40, savedAt: now.toISOString(), ...state };
+  const save: SaveV41 = { schemaVersion: 41, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -262,7 +288,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV40>;
+  const v2 = save as unknown as Partial<SaveV41>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -450,6 +476,8 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     // Caixa de Natal: só itens que existem, em quantidades inteiras.
     secretSanta: normalizeSanta(v2.secretSanta, known.items),
     halloween: normalizeHalloween(v2.halloween, known.items),
+    friends: normalizeFriends(v2.friends),
+    social: normalizeSocial(v2.social),
     gatherings: Object.fromEntries(
       Object.entries((v2.gatherings ?? {}) as Record<string, { year?: unknown; stage?: unknown }>).filter(
         ([, r]) => r && Number.isInteger(r.year) && ['invited', 'done', 'missed'].includes(String(r.stage)),

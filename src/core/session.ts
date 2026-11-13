@@ -15,6 +15,7 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
+import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
 import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
 import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
 import { EventBus, type DayEndReason } from './events';
@@ -873,6 +874,7 @@ export class GameSession {
     this.state.today = { earned: 0, jobs: 0 };
     this.playgroundDay();
     this.growPlants();
+    this.socialDay();
     const sleepRoom = this.sleepRoom();
     const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
     this.state.location = morning.map;
@@ -2663,8 +2665,6 @@ export class GameSession {
 
   /** Dia em que cada vizinho já passeou (o passeio é uma vez por dia; não vai para o save). */
   private walkedOn: Record<string, number> = {};
-  /** Dia da última conversa (a fala do dia e os corações são uma vez por dia). */
-  private neighborChatOn: Record<string, number> = {};
 
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
   neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] {
@@ -2694,25 +2694,173 @@ export class GameSession {
     this.walkedOn[npc] = this.state.day;
   }
 
-  /**
-   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay; de novo no mesmo
-   * dia, a mesma) e, na primeira conversa do dia, os corações.
-   */
   /** Quem passeia tem fala hoje (só olha: a dica do E). */
   neighborHasChat(npc: string): boolean {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     return !!def && !!chatOfDay(def, this.state.day);
   }
 
+  /**
+   * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay; de novo no mesmo
+   * dia, a mesma) e, na primeira conversa do dia, os corações (os da amizade, para quem está em friendship.json; o
+   * dia fica no save, então recarregar não dá os pontos de novo).
+   */
   neighborChat(npc: string): string | null {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     const line = def && chatOfDay(def, this.state.day);
     if (!def || !line) return null;
-    if (this.neighborChatOn[npc] === this.state.day) return line;
-    this.neighborChatOn[npc] = this.state.day;
-    addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
-    this.bus.emit('npc.chatted', { npc, points: def.points });
+    const friend = this.friendState(npc);
+    if (friend.chatDay === this.state.day) return line;
+    friend.chatDay = this.state.day;
+    const points = this.friendDef(npc) ? this.content.friendship.points.chat : def.points;
+    addPoints(this.state, this.content.relationships, PLAYER, npc, points);
+    this.bus.emit('npc.chatted', { npc, points });
     return line;
+  }
+
+  // ---------- Amizade e SocialVilla (friendship.ts) ----------
+
+  private friendDef(npc: string): FriendDef | undefined {
+    return this.content.friendship.friends.find((f) => f.npc === npc);
+  }
+
+  private friendState(npc: string): FriendState {
+    return (this.state.friends[npc] ??= { tastes: {} });
+  }
+
+  /** Ela já conhece a pessoa (os posts e os presentes valem só depois). */
+  friendKnown(npc: string): boolean {
+    const def = this.friendDef(npc);
+    return !!def && evaluate(def.known, this.state, this.storyContext());
+  }
+
+  /** Pode ser dado de presente: não é ferramenta, chave, item que não fica na mochila nem coisa de uso (ração, vassoura). */
+  giftable(itemId: string): boolean {
+    const item = this.content.items[itemId];
+    return !!item && !['key', 'tool', 'fixture'].includes(item.kind ?? 'furniture') && item.inBag !== false && !item.use;
+  }
+
+  /**
+   * O presente que ela tem à mão agora: a bebida ou o doce feito no café que está na mão (vale primeiro: é o que ela
+   * segura) ou o item ativo da barra. null: nada para dar.
+   */
+  giftAtHand(): { key: string; name: string; from: 'hand'; handIndex: number } | { key: string; name: string; from: 'bag'; itemId: string } | null {
+    const i = this.state.hands.findIndex((h) => h.kind === 'drink');
+    const h = this.state.hands[i];
+    if (h?.kind === 'drink') return { key: h.recipe, name: this.content.recipes[h.recipe]?.name ?? h.recipe, from: 'hand', handIndex: i };
+    const item = this.activeItem();
+    if (item && this.giftable(item)) return { key: giftKey(item), name: this.content.items[item]?.name ?? item, from: 'bag', itemId: item };
+    return null;
+  }
+
+  /** Por que não dá para dar presente a esta pessoa agora (ou null). "gift_week": já ganhou o desta semana. */
+  giftProblem(npc: string): 'not_friend' | 'nothing_to_give' | 'gift_week' | null {
+    if (!this.friendDef(npc) || !this.friendKnown(npc)) return 'not_friend';
+    if (!this.giftAtHand()) return 'nothing_to_give';
+    const week = weekOf(this.state.day, this.content.seasons.startWeekday);
+    if (giftWeekFull(this.state.friends[npc], week, this.content.friendship.giftsPerWeek)) return 'gift_week';
+    return null;
+  }
+
+  /**
+   * Dá o presente que ela tem à mão (giftAtHand): gasta (a louça da mão volta limpa), soma os pontos da reação, marca
+   * o gosto como descoberto e devolve a fala de agradecimento. Já ganhou o desta semana: a fala do limite, sem pontos.
+   */
+  giveGift(npc: string): { ok: true; reaction: GiftReaction; line: string; points: number; hearts: [number, number]; discovered: boolean } | { ok: false; reason: 'not_friend' | 'nothing_to_give' | 'gift_week'; line?: string } {
+    const problem = this.giftProblem(npc);
+    if (problem === 'gift_week') return { ok: false, reason: problem, line: this.content.friendship.weekLimit };
+    if (problem) return { ok: false, reason: problem };
+    const def = this.friendDef(npc)!;
+    const gift = this.giftAtHand()!;
+    if (gift.from === 'hand') {
+      const [h] = this.state.hands.splice(gift.handIndex, 1);
+      if (h?.kind === 'drink') this.state.dishes[h.vessel] = (this.state.dishes[h.vessel] ?? 0) + 1;
+    } else this.removeFromInventory(gift.itemId);
+    const reaction = reactionOf(def, gift.key);
+    const points = this.content.friendship.points[reaction];
+    const heartsNow = addPoints(this.state, this.content.relationships, PLAYER, npc, points);
+    noteGift(this.friendState(npc), weekOf(this.state.day, this.content.seasons.startWeekday));
+    const discovered = this.discoverTaste(npc, gift.key, 'gift');
+    const kind = giftKindOf(gift.key, this.content.items);
+    const line = (thanksLine(def, gift.key, kind, reaction, this.state.day + gift.key.length) ?? '').replace('{item}', gift.name);
+    this.bus.emit('friend.gifted', { npc, gift: gift.key, reaction, points, hearts: heartsNow });
+    this.advanceStory();
+    return { ok: true, reaction, line, points, hearts: heartsNow, discovered };
+  }
+
+  /** Marca um gosto como descoberto (a reação vem dos dados). Devolve se é novo. */
+  discoverTaste(npc: string, key: string, via: 'gift' | 'post' | 'event'): boolean {
+    const def = this.friendDef(npc);
+    if (!def) return false;
+    const friend = this.friendState(npc);
+    if (friend.tastes[key]) return false;
+    const reaction = reactionOf(def, key);
+    friend.tastes[key] = reaction;
+    this.bus.emit('friend.discovered', { npc, gift: key, reaction, via });
+    return true;
+  }
+
+  /** Guarda a bebida ou o doce da mão na mochila, "para viagem" (a louça volta limpa). Vai para a barra. */
+  storeToGo(): { ok: true; itemId: string } | { ok: false; reason: 'nothing_to_store' } {
+    const i = this.state.hands.findIndex((h) => h.kind === 'drink');
+    const h = this.state.hands[i];
+    if (h?.kind !== 'drink' || !this.content.items[togoItemId(h.recipe)]) return { ok: false, reason: 'nothing_to_store' };
+    this.state.hands.splice(i, 1);
+    this.state.dishes[h.vessel] = (this.state.dishes[h.vessel] ?? 0) + 1;
+    const itemId = togoItemId(h.recipe);
+    this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
+    this.bus.emit('togo.stored', { itemId });
+    return { ok: true, itemId };
+  }
+
+  /** A virada do dia na SocialVilla: os não vistos voltam com a data de hoje; vistos todos, entram posts novos. */
+  socialDay(): void {
+    if (!publishDay(this.state.social, this.content.friendship, this.state.day, (npc) => this.friendKnown(npc))) return;
+    this.bus.emit('social.posted', { posts: this.state.social.feed.filter((f) => f.day === this.state.day).map((f) => f.post) });
+  }
+
+  /** O feed da SocialVilla (o mais novo primeiro): quem postou, o texto, o dia e se ela já viu. */
+  socialFeed(): { id: string; npc: string; handle: string; text: string; day: number; seen: boolean }[] {
+    return this.state.social.feed.flatMap((f) => {
+      const found = findPost(this.content.friendship, f.post);
+      if (!found) return [];
+      const npc = found.def.npc;
+      return [{ id: f.post, npc, handle: found.def.handle ?? this.content.npcs[npc]?.name ?? npc, text: found.post.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
+    });
+  }
+
+  /** Abriu a SocialVilla: os posts do feed ficam vistos e os gostos que eles dão a pista, descobertos. */
+  viewSocial(): void {
+    const fresh = this.state.social.feed.map((f) => f.post).filter((p) => !this.state.social.seen.includes(p));
+    if (fresh.length === 0) return;
+    for (const postId of fresh) {
+      this.state.social.seen.push(postId);
+      const found = findPost(this.content.friendship, postId);
+      if (found) for (const [key] of postReveals(found.def, found.post)) this.discoverTaste(found.def.npc, key, 'post');
+    }
+    this.bus.emit('social.viewed', { posts: fresh });
+  }
+
+  /** Os amigos (de quem ela conhece) para a SocialVilla: nome, corações e os gostos descobertos. */
+  friendsList(): { npc: string; name: string; handle: string; hearts: number; maxHearts: number; tastes: { gift: string; name: string; reaction: GiftReaction }[]; giftedThisWeek: boolean; chattedToday: boolean }[] {
+    const week = weekOf(this.state.day, this.content.seasons.startWeekday);
+    const nameOf = (k: string) => (k.startsWith('recipe.') ? this.content.recipes[k]?.name : this.content.items[k]?.name) ?? k;
+    return this.content.friendship.friends
+      .filter((f) => this.friendKnown(f.npc))
+      .map((f) => {
+        const s = this.state.friends[f.npc];
+        const name = this.content.npcs[f.npc]?.name ?? f.npc;
+        return {
+          npc: f.npc,
+          name,
+          handle: f.handle ?? name,
+          hearts: hearts(this.state, this.content.relationships, PLAYER, f.npc),
+          maxHearts: this.content.relationships.maxHearts,
+          tastes: Object.entries(s?.tastes ?? {}).map(([gift, reaction]) => ({ gift, name: nameOf(gift), reaction })),
+          giftedThisWeek: giftWeekFull(s, week, this.content.friendship.giftsPerWeek),
+          chattedToday: s?.chatDay === this.state.day,
+        };
+      });
   }
 
   /** Hoje é Natal e a ceia ainda vai acontecer. */
@@ -2760,6 +2908,9 @@ export class GameSession {
       const drawn = drawFriend(guests, createRng(day * 7919 + 25));
       if (!drawn) return;
       this.state.secretSanta = { year: yearOf(this.content.seasons, day), drawn, stage: 'drawn' };
+      // A dica do sorteio (a Gabi conta do que a pessoa gosta) vale como gosto descoberto na SocialVilla.
+      const like = ss.friends.find((f) => f.npc === drawn)?.likes;
+      if (like) this.discoverTaste(drawn, like, 'event');
       this.bus.emit('xmas.santa_drawn', { npc: drawn });
       this.bus.emit('script.requested', { scriptId: ss.proposalScript });
       return;
@@ -2916,6 +3067,10 @@ export class GameSession {
       const drawn = drawFriend(guests, createRng(day * 7919 + 31));
       if (!drawn) return;
       this.state.halloween = { year: yearOf(this.content.seasons, day), drawn, stage: 'invited', ate: {} };
+      // As dicas do convite (a Dona Neusa conta o presente de quem ela tirou e o doce favorito de cada convidado).
+      const own = hw.friends.find((f) => f.npc === drawn);
+      if (own?.likes) this.discoverTaste(drawn, own.likes, 'event');
+      for (const f of hw.friends) if (guests.includes(f.npc) && f.food) this.discoverTaste(f.npc, f.food, 'event');
       this.bus.emit('halloween.invited', { npc: drawn });
       this.bus.emit('script.requested', { scriptId: hw.proposalScript });
       return;
