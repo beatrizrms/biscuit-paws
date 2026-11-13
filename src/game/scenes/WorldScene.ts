@@ -1819,6 +1819,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Antes de tudo: o Tião na obra, os convidados e vizinhos, as caixas da entrega na porta ou nas mãos.
     if (s.builderNear(feet)) {
       const at = s.builderAt(s.location())!.at;
+      const tiao = s.content.construction.npc;
+      // Com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
+      if (s.giftProblem(tiao) === null) return plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'friend_gift' }, () => this.tryFriendGift(tiao, () => this.talkToBuilder()));
       return plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
     }
     const guest = this.santaGuestNear();
@@ -1830,8 +1833,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
         return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
       }
+      // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
+      const walking = this.neighborWalks.has(npc) && s.neighborHasChat(npc);
+      if (s.giftProblem(npc) === null) return plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite));
       if (chat) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat());
-      if (this.neighborWalks.has(npc) && s.neighborHasChat(npc)) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
+      if (walking) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
     }
     const parcels = s.parcelsNear(feet);
     if (parcels === 'door') return plan(this.hintCell(s.content.delivery.door.at, 'parcels_door'), () => this.parcelInteract());
@@ -2503,7 +2509,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     npc.face(dx < 0 ? 'left' : 'right');
     this.speechBubble(npc, fillNames(this.session, text), NEIGHBOR_BARK_MS);
     await npc.act('acenar', 1100);
-    if (!npc.active) return;
+    // Parada para uma conversa ou um presente no meio do aceno: quem segue o passeio é a conversa, depois.
+    if (!npc.active || npc.getData('held')) return;
     tweens.forEach((t) => t.isPaused() && t.resume());
     npc.resumeWalk();
   }
@@ -2538,15 +2545,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** E em quem passeia: a próxima fala (a primeira do dia dá corações). */
   private tryNeighborChat(target?: Cell): boolean {
     const guest = this.walkerNear(target);
+    const before = guest ? this.session.state.relationships[`player|${guest[0]}`] ?? 0 : 0;
     const line = guest && this.session.neighborChat(guest[0]);
     if (!guest || !line) return false;
+    // A primeira conversa do dia vale corações: o "+♥" em cima dele.
+    const gained = (this.session.state.relationships[`player|${guest[0]}`] ?? 0) - before;
+    if (gained > 0) this.floatHearts(guest[1].x, guest[1].y - guest[1].displayHeight, gained);
     // Para de andar, vira para ela enquanto conversam e segue o passeio depois da fala.
     const npc = guest[1];
     const tweens = this.tweens.getTweensOf(npc);
     tweens.forEach((t) => t.pause());
+    npc.setData('held', true);
     const [dx, dy] = [this.player.x - npc.x, this.player.y - npc.y];
     npc.face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
     void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(() => {
+      npc.setData('held', false);
       tweens.forEach((t) => t.isPaused() && t.resume());
       if (npc.active) npc.resumeWalk();
     });
@@ -2554,11 +2567,82 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Na festa, E num convidado: a próxima fala dele (data/festive.json: partyChat). */
+  /**
+   * E num amigo com um presente à mão (a bebida ou o doce da mão, ou o item ativo da barra): pergunta se é para dar ou
+   * só conversar (`talk`). Dando: a fala de agradecimento, o "+♥" em cima dele e o aviso de coração novo.
+   */
+  private tryFriendGift(npc: string, talk: () => boolean, sprite?: NpcSprite): boolean {
+    const s = this.session;
+    const gift = s.giftAtHand();
+    if (!gift) return talk();
+    const t = uiText.friends;
+    const name = s.content.npcs[npc]?.name ?? '';
+    // Quem passeia para enquanto ela oferece (e segue o passeio depois da fala).
+    const walk = sprite ? this.tweens.getTweensOf(sprite) : [];
+    walk.forEach((tw) => tw.pause());
+    sprite?.setData('held', true);
+    if (sprite) {
+      const [dx, dy] = [this.player.x - sprite.x, this.player.y - sprite.y];
+      sprite.face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    }
+    const resume = () => {
+      sprite?.setData('held', false);
+      walk.forEach((tw) => tw.isPaused() && tw.resume());
+      if (sprite?.active) sprite.resumeWalk();
+    };
+    void this.ui.confirm(t.giveAsk.replace('{item}', gift.name).replace('{name}', name), t.give, t.talk).then((yes) => {
+      if (!yes) {
+        resume();
+        return void talk();
+      }
+      const r = s.giveGift(npc);
+      if (!r.ok) {
+        if (r.line) void this.ui.npcSay(npc, r.line).then(resume);
+        else (this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]), resume());
+        return;
+      }
+      const at = sprite ? { x: sprite.x, y: sprite.y - sprite.displayHeight } : { x: this.player.x, y: this.player.y - this.player.displayHeight };
+      this.floatHearts(at.x, at.y, r.points);
+      void this.ui.npcSay(npc, fillNames(s, r.line)).then(() => (resume(), this.friendNotes(npc, name, r.hearts, r.discovered ? { gift: s.state.friends[npc]?.tastes ?? {}, reaction: r.reaction } : null)));
+    });
+    return true;
+  }
+
+  /** Depois da fala do presente: o aviso de coração novo e do gosto descoberto. */
+  private friendNotes(npc: string, name: string, [before, after]: [number, number], found: { gift: Record<string, string>; reaction: string } | null): void {
+    const t = uiText.friends;
+    if (after > before) this.ui.toast(t.heartUp.replace('{name}', name).replace('{n}', String(after)).replace('{hearts}', after === 1 ? t.heart : t.hearts), 3200);
+    if (!found) return;
+    const key = Object.keys(found.gift).at(-1);
+    if (!key) return;
+    const s = this.session;
+    const item = (key.startsWith('recipe.') ? s.content.recipes[key]?.name : s.content.items[key]?.name) ?? '';
+    const reaction = t.reactions[found.reaction as keyof typeof t.reactions] ?? '';
+    this.ui.toast(t.discovered.replace('{name}', name).replace('{reaction}', reaction).replace('{item}', item.toLowerCase()), 3200);
+  }
+
+  /** "+♥" (ou "−♥") subindo de onde estava a pessoa: a amizade mudou. */
+  private floatHearts(x: number, y: number, points: number): void {
+    if (points === 0) return;
+    const label = points > 0 ? `+${'♥'.repeat(points >= 80 ? 3 : points >= 40 ? 2 : 1)}` : '−♥';
+    // Acima do balãozinho de aceno (que fica logo em cima da cabeça).
+    y -= 22;
+    const txt = this.add
+      .text(x, y, label, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '30px', fontStyle: 'bold', color: points > 0 ? '#e5487a' : '#7a6a72', stroke: '#fff4e0', strokeThickness: 6 })
+      .setOrigin(0.5, 1)
+      .setScale(0.5)
+      .setDepth(9000);
+    this.tweens.add({ targets: txt, y: y - 22, alpha: { from: 1, to: 0 }, duration: 2000, ease: 'Quad.easeIn', onComplete: () => txt.destroy() });
+  }
+
   private tryPartyChat(target?: Cell): boolean {
     if (!this.session.festivePartyOn()) return false;
     const guest = this.santaGuestNear(target);
     const line = guest && this.session.partyChat(guest[0]);
     if (!guest || !line) return false;
+    // A conversa do dia vale corações com o amigo (uma vez por dia).
+    const points = this.session.noteFriendChat(guest[0]);
+    if (points) this.floatHearts(guest[1].x, guest[1].y - guest[1].displayHeight, points);
     // Vira para ela antes de falar.
     const [dx, dy] = [this.player.x - guest[1].x, this.player.y - guest[1].y];
     guest[1].face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
@@ -3014,7 +3098,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const t = uiText.construction;
     const work = workName(b.job);
     const text = b.daysLeft === 0 ? t.talkToday : b.daysLeft === 1 ? t.talkTomorrow : t.talkDays.replace('{n}', daysText(b.daysLeft));
-    this.ui.npcSay(this.session.content.construction.npc, text.replace('{work}', work));
+    const npc = this.session.content.construction.npc;
+    // A conversa do dia vale corações com o Tião (uma vez por dia).
+    const points = this.session.noteFriendChat(npc);
+    if (points) {
+      const at = this.session.builderAt(this.session.location())!.at;
+      this.floatHearts((at[0] + 0.5) * this.map.tileSize, (at[1] - 1.2) * this.map.tileSize, points);
+    }
+    this.ui.npcSay(npc, text.replace('{work}', work));
     return true;
   }
 

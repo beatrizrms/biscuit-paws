@@ -208,6 +208,16 @@
   "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · I: guardar na mochila · Esc: cancelar",
   "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
   "hintMovePick": "O móvel que pisca é o que vai mudar de lugar · F: próximo · E, Enter ou clique: escolher · Esc: cancelar",
+  "friends": {
+    "giveAsk": "Dar {item} para {name}?",
+    "give": "Dar",
+    "talk": "Só conversar",
+    "heartUp": "{name} e você: {n} {hearts}!",
+    "heart": "coração",
+    "hearts": "corações",
+    "discovered": "Descobriu: {name} {reaction} {item}.",
+    "reactions": { "loved": "ama", "liked": "gosta de", "neutral": "acha ok", "disliked": "não gosta de" }
+  },
   "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
   "touchHints": {
     "walk": "",
@@ -721,6 +731,7 @@
     "doses": "{n} doses",
     "hold": "segurar",
     "stow": "guardar",
+    "togo": "guardar na mochila",
     "dirty": "{name} suja",
     "bar": "Barra (1 a 8)",
     "bag": "Mochila",
@@ -1343,6 +1354,7 @@
     "cat_trust": "Ganhar confiança",
     "santa_give": "Dar o presente",
     "party_chat": "Conversar",
+    "friend_gift": "Dar presente",
     "cat_wand": "Brincar",
     "cat_brush": "Escovar"
   },
