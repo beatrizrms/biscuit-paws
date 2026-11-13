@@ -765,7 +765,7 @@
             "devNote": "Superfícies em data/business.json (requiredSurfaces). O pintor está no Market (C), aba Construção."
           },
           {
-            "text": "Encomendar a placa do café (Market, aba Construção) e abrir a caixa.",
+            "text": "Com a reforma pronta, encomendar a lousa do café (Market, aba Construção, em Fachada) e abrir a caixa.",
             "when": {
               "received": "item.cafe_sign"
             }

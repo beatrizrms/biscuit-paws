@@ -4,13 +4,15 @@
 .touch-layer { position: absolute; inset: 0; pointer-events: none; display: none; }
 #touch.touch-on .touch-layer { display: block; }
 .touch-layer .t-stick {
-  position: absolute; left: 14px; bottom: 18px; width: 68px; height: 68px; border-radius: 50%;
-  background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none;
+  position: absolute; left: 14px; bottom: 18px; width: 102px; height: 102px; border-radius: 50%;
+  background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none; box-sizing: border-box;
 }
 .touch-layer .t-stick.down { background: #3b2a3255; }
 .touch-layer .t-knob {
-  position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%;
+  position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%;
   background: #fff4e0cc; border: 2px solid var(--ink, #3b2a32); pointer-events: none;
+  /* A borda entra no tamanho: com ela por fora, a bolinha ficava 2 px para a direita e para baixo do centro. */
+  box-sizing: border-box;
 }
 .touch-layer .t-btn {
   position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; border: 2px solid var(--ink, #3b2a32);
@@ -23,13 +25,13 @@
 /* Nos mini games: só o direcional e o botão de ação. */
 #ui.minigame-on ~ #touch .t-shortcuts { display: none; }
 /* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
-.touch-layer .t-full { position: absolute; left: 14px; bottom: 96px; width: 28px; font-size: 11px; }
+.touch-layer .t-full { position: absolute; left: 14px; bottom: 130px; width: 28px; font-size: 11px; }
 .touch-layer .t-full[hidden] { display: none; }
 /* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side-l / --side-r: a largura útil de cada uma, em px do jogo): o
    direcional e os botões saem de cima do jogo. Esquerda: a barra de itens (ui.css) e o direcional; direita: os atalhos,
    a tela cheia e o E. Faixa estreita: o direcional entra só um pouco no jogo. */
-#stage.sides .touch-layer .t-stick { width: 56px; height: 56px; left: calc(max(2px, (var(--side-l) - 56px) / 2) - var(--side-l)); }
-#stage.sides .touch-layer .t-knob { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
+#stage.sides .touch-layer .t-stick { width: 84px; height: 84px; bottom: 12px; left: calc(max(2px, (var(--side-l) - 84px) / 2) - var(--side-l)); }
+#stage.sides .touch-layer .t-knob { width: 36px; height: 36px; margin: -18px 0 0 -18px; }
 #stage.sides .touch-layer .t-action { width: 42px; height: 42px; right: calc(max(0px, (var(--side-r) - 42px) / 2) - var(--side-r)); }
 #stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); }
 #stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 200px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); width: 40px; height: 25px; }

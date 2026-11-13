@@ -9,7 +9,7 @@ import { uiText } from './content';
 export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC';
 
 /** Raio do direcional (px da interface, 640 x 360) e a partir de que parte dele conta direção e corrida. */
-const STICK_R = 34;
+const STICK_R = 51;
 const DEAD = 0.3;
 const RUN_AT = 0.92;
 
