@@ -1,5 +1,6 @@
 import type { Cell } from './map';
 import type { RequestsState } from './requests';
+import type { GatheringsState } from './gatherings';
 // Save versionado com migrações. Puro: sem Phaser, DOM ou window.
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import { newConstruction, type ConstructionState } from './construction';
@@ -448,6 +449,11 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     // Caixa de Natal: só itens que existem, em quantidades inteiras.
     secretSanta: normalizeSanta(v2.secretSanta, known.items),
     halloween: normalizeHalloween(v2.halloween, known.items),
+    gatherings: Object.fromEntries(
+      Object.entries((v2.gatherings ?? {}) as Record<string, { year?: unknown; stage?: unknown }>).filter(
+        ([, r]) => r && Number.isInteger(r.year) && ['invited', 'done', 'missed'].includes(String(r.stage)),
+      ),
+    ) as GatheringsState,
     xmasBox: Object.fromEntries(Object.entries((v2.xmasBox ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => known.items.has(e[0]) && Number.isInteger(e[1]) && (e[1] as number) > 0)),
     displays: Object.fromEntries(
       Object.entries(v2.displays ?? {})

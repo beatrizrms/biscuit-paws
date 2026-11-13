@@ -86,7 +86,7 @@ describe('eventos com e sem data', () => {
   });
 
   it('longe da data, a feira de adoção começa normalmente', () => {
-    expect(bothReady(20).state.festivals.active?.id).toBe('fest.adoption_fair');
+    expect(bothReady(25).state.festivals.active?.id).toBe('fest.adoption_fair'); // verão 25: depois da noite do sorvete (20)
   });
 });
 

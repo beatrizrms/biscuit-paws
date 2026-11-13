@@ -179,6 +179,10 @@ export interface GameEvents {
   /** Um amigo passou no café com um pedido; o pedido ficou pronto. */
   'request.new': { requestId: string; npc: string };
   'request.done': { requestId: string; npc: string };
+  /** Encontro da estação: o amigo chamou; aconteceu (com ou sem o preparo); passou sem ela. */
+  'gathering.invited': { gatheringId: string };
+  'gathering.done': { gatheringId: string; prep: boolean };
+  'gathering.missed': { gatheringId: string };
   'item.picked_up': { itemId: string; uid: string };
   /** Móvel mudou de lugar (sem passar pela mochila); carried: quantos iam em cima dele. */
   'item.moved': { itemId: string; uid: string; at: [number, number]; carried: number };

@@ -16,6 +16,7 @@ import { moveBetween, stackInto, storeProblem, type StorageContents, type Storag
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
+import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
 import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
@@ -260,6 +261,7 @@ export class GameSession {
       playerSeat: () => this.restingCell(),
       weather: () => this.weather(),
       addReputation: (amount, reason) => this.addReputation(amount, reason),
+      gatheringToday: () => this.gatheringToday(),
     });
     this.arrivals = new ArrivalSystem({
       state,
@@ -845,6 +847,13 @@ export class GameSession {
       hw.stage = 'missed';
       this.bus.emit('halloween.missed', { npc: hw.drawn });
     }
+    for (const g of this.content.festive.gatherings ?? []) {
+      const r = this.gatheringRecord(g.id);
+      if (r?.stage === 'invited' && isGatheringDay(this.content.seasons, g, day)) {
+        r.stage = 'missed';
+        this.bus.emit('gathering.missed', { gatheringId: g.id });
+      }
+    }
     if (this.newYearPending()) this.bus.emit('newyear.missed', {});
     const missed = festivalDayEnded(this.state.festivals, day + 1);
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
@@ -925,6 +934,7 @@ export class GameSession {
       this.advanceStory();
       this.checkSecretSanta();
       this.checkHalloween();
+      this.checkGatherings();
       this.checkNewYear();
       this.checkFestivalDeadline();
       this.ced.tick();
@@ -1105,6 +1115,79 @@ export class GameSession {
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
   goHome(): void {
     if (this.canGoHome()) this.endDay('home');
+  }
+
+  // ---------- Encontros da estação (gatherings.ts; data/festive.json: gatherings) ----------
+
+  gatheringRecord(id: string): GatheringRecord | null {
+    return gatheringOfYear(this.content.seasons, this.state.gatherings, id, this.state.day);
+  }
+
+  /** O encontro de hoje, com o convite feito e ainda não acontecido. */
+  gatheringToday(): GatheringDef | undefined {
+    return (this.content.festive.gatherings ?? []).find((g) => this.gatheringRecord(g.id)?.stage === 'invited' && isGatheringDay(this.content.seasons, g, this.state.day));
+  }
+
+  /** Quem vem: os convidados que ela já conhece. */
+  gatheringGuests(g: GatheringDef): string[] {
+    return g.guests.filter((x) => evaluate(x.known, this.state, this.storyContext())).map((x) => x.npc);
+  }
+
+  /** O preparo de enfeitar o café: quantos móveis com a tag estão posicionados e quantos precisa. */
+  gatheringPrep(g: GatheringDef): [number, number] | null {
+    const p = g.prep?.placedTag;
+    if (!p) return null;
+    return [Math.min(p.count, this.state.placed.filter((x) => this.content.items[x.item]?.tags.includes(p.tag)).length), p.count];
+  }
+
+  /** Para o balão: os encontros convidados deste ano (o de hoje e os que estão para vir). */
+  gatheringsView(): { def: GatheringDef; today: boolean; prep: [number, number] | null }[] {
+    return (this.content.festive.gatherings ?? [])
+      .filter((g) => this.gatheringRecord(g.id)?.stage === 'invited')
+      .map((g) => ({ def: g, today: isGatheringDay(this.content.seasons, g, this.state.day), prep: this.gatheringPrep(g) }));
+  }
+
+  private gatheringPartyOn: Record<string, number> = {};
+  private gatheringRunning: string | null = null;
+
+  /** A cada minuto: na semana antes, o amigo chama (ela no café); no dia, na hora, o encontro começa (ela no café). */
+  checkGatherings(): void {
+    const day = this.state.day;
+    for (const g of this.content.festive.gatherings ?? []) {
+      const r = this.gatheringRecord(g.id);
+      if (!r && inProposeWindow(this.content.seasons, g, day)) {
+        if (!this.state.flags['prologue.done'] || !this.gatheringGuests(g).includes(g.proposer)) continue;
+        if (!evaluate(g.proposalWhen, this.state, this.storyContext())) continue;
+        this.state.gatherings[g.id] = { year: yearOf(this.content.seasons, day), stage: 'invited' };
+        this.bus.emit('gathering.invited', { gatheringId: g.id });
+        this.bus.emit('script.requested', { scriptId: g.proposalScript });
+        return;
+      }
+      if (r?.stage === 'invited' && isGatheringDay(this.content.seasons, g, day) && this.state.time >= parseClock(g.partyAt) && this.gatheringPartyOn[g.id] !== day && !this.gatheringRunning) {
+        if (!evaluate(g.partyWhen, this.state, this.storyContext())) continue;
+        this.gatheringPartyOn[g.id] = day;
+        this.gatheringRunning = g.id;
+        this.bus.emit('script.requested', { scriptId: g.partyScript });
+        return;
+      }
+    }
+  }
+
+  /** O roteiro do encontro acabou: as recompensas (o preparo feito vale reputação a mais). */
+  private finishGathering(g: GatheringDef): void {
+    const r = this.gatheringRecord(g.id);
+    this.gatheringRunning = null;
+    if (!r || r.stage !== 'invited') return;
+    r.stage = 'done';
+    const prep = this.gatheringPrep(g);
+    const prepDone = prep ? prep[0] >= prep[1] : false;
+    const rep = g.reward.reputation + (prepDone ? g.reward.prepReputation ?? 0 : 0);
+    if (rep) this.addReputation(rep, `gathering:${g.id}`);
+    for (const npc of this.gatheringGuests(g)) addPoints(this.state, this.content.relationships, PLAYER, npc, g.reward.points);
+    if (g.reward.item) this.receive(g.reward.item, 1);
+    if (g.reward.flag) this.state.flags[g.reward.flag] = true;
+    this.bus.emit('gathering.done', { gatheringId: g.id, prep: prepDone });
+    this.advanceStory();
   }
 
   // ---------- Pedidos dos amigos (data/requests.json) ----------
@@ -2556,6 +2639,8 @@ export class GameSession {
    * (data/festive.json: secretSanta.partyLights), ou null fora disso.
    */
   cafeLightsAs(): number | null {
+    const g = this.gatheringToday();
+    if (g?.partyLights && this.state.time >= parseClock(g.partyAt)) return parseClock(g.partyLights);
     const hw = this.content.festive.halloween;
     if (isHalloween(this.content.seasons, hw, this.state.day) && this.state.time >= parseClock(hw.partyAt)) return parseClock(hw.partyLights);
     const ss = this.content.festive.secretSanta;
@@ -3561,6 +3646,8 @@ export class GameSession {
   finishScript(scriptId: string): void {
     this.state.flags[seenFlag(scriptId)] = true;
     this.bus.emit('script.finished', { scriptId });
+    const gathering = (this.content.festive.gatherings ?? []).find((g) => g.partyScript === scriptId);
+    if (gathering) this.finishGathering(gathering);
     this.arrivals.stepFinished({ script: scriptId });
     this.advanceStory();
   }
@@ -3932,6 +4019,7 @@ export class GameSession {
       { season: fx.newYear.season, day: fx.newYear.day },
       { season: fx.halloween.season, day: fx.halloween.inviteDay },
       { season: fx.halloween.season, day: fx.halloween.day },
+      ...(fx.gatherings ?? []).map((g) => ({ season: g.season, day: g.day })),
     ];
     const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil, fixedDates };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));

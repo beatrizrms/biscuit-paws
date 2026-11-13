@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Datas festivas. halloween: a Noite das Abóboras (src/core/halloween.ts): na Semana do Halloween (inviteDay até a véspera de day), a Dona Neusa convida para a festa no café e ela tira um amigo para dar um presente de Halloween (giftTag; likes = o que a pessoa mais gosta); cada amigo conhecido conta o doce favorito (food, foodHint). No day, o café fecha em closeAt; em partyAt, com partyWhen valendo, o roteiro partyScript traz os convidados (condição halloweenGuest), cada um come uma das foods postas nos balcões e mesas (o favorito vale favoriteFood pontos; outro, otherFood) e ela entrega o presente (E em quem tirou); depois, partyEndScript. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação e o presente dela) e a noite continua: os convidados ficam no café e o E num deles mostra uma fala de partyChat (uma por vez, em ordem); a festa só acaba quando ela sai pela porta da rua e confirma (partyCloseScript: a despedida). O mesmo vale para a festa de Halloween. A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
+  "_comment": "gatherings: encontros da estação (src/core/gatherings.ts): na semana antes (proposeDay até a véspera), o amigo (proposer) chama, ela no café; no dia (day), o café fecha em closeAt e o encontro (partyScript) começa em partyAt com ela no salão; prep: enfeitar (placedTag: tantos móveis com a tag posicionados, vale prepReputation a mais) ou procura (demand: as receitas da temperatura multiplicam no dia); reward: reputação, corações com cada convidado conhecido, presente (item) ou uma flag (a noite do sorvete libera o sorvete de morango). Datas festivas. halloween: a Noite das Abóboras (src/core/halloween.ts): na Semana do Halloween (inviteDay até a véspera de day), a Dona Neusa convida para a festa no café e ela tira um amigo para dar um presente de Halloween (giftTag; likes = o que a pessoa mais gosta); cada amigo conhecido conta o doce favorito (food, foodHint). No day, o café fecha em closeAt; em partyAt, com partyWhen valendo, o roteiro partyScript traz os convidados (condição halloweenGuest), cada um come uma das foods postas nos balcões e mesas (o favorito vale favoriteFood pontos; outro, otherFood) e ela entrega o presente (E em quem tirou); depois, partyEndScript. boxes: as caixas de enfeites (Natal no inverno, Halloween no outono). No fim da estação opensIn, os móveis com a tag (posicionados ou na mochila) vão para a caixa, que fica na mochila (item) e só abre na estação opensIn; ao abrir, sai um enfeite por vez para posicionar. secretSanta: o amigo secreto de Natal. Entre drawDay e a véspera de day (na estação season), com o proposer conhecido e proposalWhen valendo, ela tira um dos amigos que já conhece (friends[].known) e o roteiro proposalScript mostra o sorteio e a dica (hint). No day, o café fecha em closeAt; em partyAt sai o aviso de que a ceia começou e, com partyWhen valendo (ela no salão), o roteiro partyScript traz os convidados (condição santaGuest nos passos) e para: ela vai até quem tirou e o E abre a escolha do presente da mochila; depois, partyEndScript (a reação e o presente dela) e a noite continua: os convidados ficam no café e o E num deles mostra uma fala de partyChat (uma por vez, em ordem); a festa só acaba quando ela sai pela porta da rua e confirma (partyCloseScript: a despedida). O mesmo vale para a festa de Halloween. A troca: o presente da mochila com a tag giftTag (o likes da pessoa vale loved, outro vale liked, nenhum vale none; points em corações), e ela ganha playerGifts.first no primeiro ano e um dos later depois. stockings: com a meia posicionada, na manhã de Natal cada gato do café ganha alegria e pontos. newYear: os fogos de Ano Novo. No day da season (a véspera), com when valendo, em gatherAt sai o aviso dos fogos e, com startWhen valendo (ela na rua ou no salão), o roteiro script leva ela para a rua com os amigos que ela conhece (os de secretSanta.friends; cada um ganha points de coração) e, à meia-noite, os fogos (desenhados por código com fireworks: everyMs, particles, speed e lifespan [mín, máx], colors). Nesse dia a hora-limite vai até curfew. Nada trava: se ela não for, perdeu sem castigo (a ceia deixa o presente dela na porta). partyLights: na noite da ceia, o café fica com as luzes acesas (a cor de dentro é a desta hora).",
   "boxes": [
     { "item": "item.xmas_box", "tag": "xmas", "opensIn": "winter" },
     { "item": "item.halloween_box", "tag": "halloween", "opensIn": "autumn" }
@@ -360,5 +360,164 @@
         "#ffb38a"
       ]
     }
-  }
+  },
+  "gatherings": [
+    {
+      "id": "gath.spring_picnic",
+      "name": "Piquenique das flores",
+      "season": "spring",
+      "proposeDay": 10,
+      "day": 15,
+      "closeAt": "16:00",
+      "partyAt": "17:00",
+      "proposer": "npc.gabi",
+      "proposalWhen": {
+        "all": [
+          {
+            "flag": "prologue.done"
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "18:00"
+              }
+            }
+          },
+          {
+            "playerRoom": "room.hall"
+          }
+        ]
+      },
+      "proposalScript": "scr.picnic_invite",
+      "partyWhen": {
+        "playerRoom": "room.hall"
+      },
+      "partyScript": "scr.picnic_party",
+      "prep": {
+        "placedTag": {
+          "tag": "plant",
+          "count": 3
+        }
+      },
+      "guests": [
+        {
+          "npc": "npc.gabi",
+          "known": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npc": "npc.joca",
+          "known": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npc": "npc.neusa",
+          "known": {
+            "flag": "met.old_neighbor"
+          }
+        }
+      ],
+      "reward": {
+        "reputation": 3,
+        "prepReputation": 2,
+        "points": 10,
+        "item": "item.vase_lavender"
+      },
+      "texts": {
+        "goal": "Piquenique das flores: dia 15, às 17h, no café (fecha às 16h).",
+        "goalToday": "Piquenique das flores: hoje, às 17h, no café.",
+        "prep": "Enfeitar o café com plantas ({n}/{count}).",
+        "done": "Que piquenique! A turma adorou, e a Gabi deixou uma garrafa de lavanda de presente.",
+        "missed": "O piquenique das flores passou... a turma sentiu sua falta."
+      }
+    },
+    {
+      "id": "gath.icecream_night",
+      "name": "Noite do sorvete",
+      "season": "summer",
+      "proposeDay": 14,
+      "day": 20,
+      "closeAt": "18:00",
+      "partyAt": "19:00",
+      "partyLights": "16:30",
+      "proposer": "npc.neusa",
+      "proposalWhen": {
+        "all": [
+          {
+            "flag": "prologue.done"
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "18:00"
+              }
+            }
+          },
+          {
+            "playerRoom": "room.hall"
+          }
+        ]
+      },
+      "proposalScript": "scr.icecream_invite",
+      "partyWhen": {
+        "playerRoom": "room.hall"
+      },
+      "partyScript": "scr.icecream_party",
+      "prep": {
+        "demand": {
+          "temp": "cold",
+          "multiplier": 2
+        }
+      },
+      "guests": [
+        {
+          "npc": "npc.gabi",
+          "known": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npc": "npc.joca",
+          "known": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npc": "npc.neusa",
+          "known": {
+            "flag": "met.old_neighbor"
+          }
+        }
+      ],
+      "reward": {
+        "reputation": 3,
+        "points": 10,
+        "flag": "gathering.icecream_night"
+      },
+      "texts": {
+        "goal": "Noite do sorvete: dia 20, às 19h, no café (fecha às 18h).",
+        "goalToday": "Noite do sorvete: hoje, às 19h. O pessoal vai querer tudo gelado!",
+        "done": "Que noite! O sorvete de morango agora está no cardápio.",
+        "missed": "A noite do sorvete passou... a turma sentiu sua falta."
+      }
+    }
+  ]
 }

@@ -1837,6 +1837,598 @@
           "noMoney": "dlg.yard_no_money"
         }
       ]
+    },
+    "scr.picnic_invite": {
+      "steps": [
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            12,
+            7
+          ]
+        },
+        {
+          "playerWalk": [
+            11,
+            7
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "left"
+        },
+        {
+          "dialogue": "dlg.picnic_invite"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 800
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.gabi"
+        }
+      ]
+    },
+    "scr.picnic_party": {
+      "steps": [
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "up",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            12,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "down",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "left",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            10,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "down",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "playerWalk": [
+            11,
+            8
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "dialogue": "dlg.picnic_party"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.picnic_end"
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.gabi",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.joca",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcLeave": "npc.neusa",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        }
+      ]
+    },
+    "scr.icecream_invite": {
+      "steps": [
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            12,
+            7
+          ]
+        },
+        {
+          "playerWalk": [
+            11,
+            7
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "left"
+        },
+        {
+          "dialogue": "dlg.icecream_invite"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 800
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ]
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.neusa"
+        }
+      ]
+    },
+    "scr.icecream_party": {
+      "steps": [
+        {
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "up",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            12,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "down",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "left",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            10,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "down",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "playerWalk": [
+            11,
+            8
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "dialogue": "dlg.icecream_party"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.icecream_end"
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.gabi",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.joca",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            10
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcLeave": "npc.neusa",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        }
+      ]
     }
   }
 }

@@ -262,6 +262,16 @@ export class GameUi {
       this.queueUnlock({ recipe: recipeId });
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
+    // Encontros da estação: feito (com o presente) ou perdido.
+    const gatheringDef = (id: string) => content.festive.gatherings?.find((x) => x.id === id);
+    bus.on('gathering.done', ({ gatheringId }) => {
+      const def = gatheringDef(gatheringId);
+      if (def) this.toast(def.texts.done, 6000);
+    });
+    bus.on('gathering.missed', ({ gatheringId }) => {
+      const def = gatheringDef(gatheringId);
+      if (def) this.toast(def.texts.missed, 6000);
+    });
     // Pedidos dos amigos: a fala de quem passou no café e o agradecimento.
     bus.on('request.new', ({ requestId }) => {
       const def = content.requests.requests.find((r) => r.id === requestId);
@@ -727,6 +737,12 @@ export class GameUi {
       const step = job.steps[this.session.jobStep(job.id)];
       const [done, total] = this.session.jobStepProgress(job.id);
       today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_bilhete', html: true, right: total > 1 ? this.pips(done, total) : '' }));
+    }
+    // Encontros da estação (piquenique, noite do sorvete): quando é e o preparo.
+    for (const v of this.session.gatheringsView()) {
+      const t = v.def.texts;
+      today.push(this.row(`<b>${esc(v.today ? t.goalToday : t.goal)}</b>`, { html: true }));
+      if (v.prep && t.prep) today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { right: this.pips(v.prep[0], v.prep[1]) }));
     }
     // Pedidos dos amigos (não expiram): quem pediu, o que fazer e quanto falta.
     for (const r of this.session.friendRequests()) {

@@ -17,6 +17,7 @@ import { isHalloween } from './halloween';
 import { seasonOf } from './calendar';
 import { isOpenAt, nextOpening, scheduleProblem, weekdayOf, type Schedule, type ScheduleProblem, inLunch, lunchStart } from './schedule';
 import { recordDoses, recordGaveUp, recordReview, recordServed } from './stats';
+import type { GatheringDef } from './gatherings';
 
 /** Cliente no café. `spot`: onde fica; `dishAt`: onde deixa a louça suja. */
 export interface Customer {
@@ -125,6 +126,8 @@ export interface ServiceHost {
   playerSeat(): Cell | null;
   /** Clima de hoje (pesa no que os clientes pedem). */
   weather(): string;
+  /** O encontro da estação de hoje, com o convite feito (fecha mais cedo; a procura de um dia de calor). */
+  gatheringToday(): GatheringDef | undefined;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -287,7 +290,10 @@ export class CafeService {
     if (!r.temp) return 1;
     const d = this.cfg.demand;
     const season = seasonOf(this.h.content.seasons, this.st.day);
-    return (d?.seasons?.[season]?.[r.temp] ?? 1) * (d?.weather?.[this.h.weather()]?.[r.temp] ?? 1);
+    // Dia de encontro com procura (a noite do sorvete: gelados em dobro).
+    const g = this.h.gatheringToday()?.prep?.demand;
+    const extra = g && g.temp === r.temp ? g.multiplier : 1;
+    return (d?.seasons?.[season]?.[r.temp] ?? 1) * (d?.weather?.[this.h.weather()]?.[r.temp] ?? 1) * extra;
   }
 
   /**
@@ -601,6 +607,9 @@ export class CafeService {
     // Noite das Abóboras: fecha mais cedo (data/festive.json: halloween.closeAt).
     const hw = this.h.content.festive.halloween;
     if (isHalloween(this.h.content.seasons, hw, this.st.day) && this.st.time >= parseClock(hw.closeAt)) return false;
+    // Encontro da estação (piquenique, noite do sorvete): fecha mais cedo (data/festive.json: gatherings).
+    const g = this.h.gatheringToday();
+    if (g && this.st.time >= parseClock(g.closeAt)) return false;
     return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
   }
 

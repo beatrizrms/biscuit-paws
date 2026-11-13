@@ -1468,6 +1468,124 @@
           "text": "(A limpeza pesada do Tião custa mais do que eu tenho agora. Quando juntar, peço pelo Market, na aba Construção.)"
         }
       ]
+    },
+    "dlg.picnic_invite": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Bom dia, {player}! Já viu como a rua está florida? A primavera chegou de vez."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Pensei num piquenique das flores aqui no café, no dia 15, às 17h. Você fecha mais cedo, às 16h?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Fecho, sim! Vai ser lindo."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "E se o café estiver cheio de flores, melhor ainda: uns três vasos ou plantas já deixam tudo com cara de primavera."
+        }
+      ]
+    },
+    "dlg.picnic_party": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Olha só esse café! Parece um jardim."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Na minha época, o piquenique da primavera era a festa mais esperada da rua. Que saudade."
+        },
+        {
+          "speaker": "Joca",
+          "npc": "npc.joca",
+          "text": "Eu trouxe sanduíche! E um petisco para os gatos, claro."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Que bom ter vocês aqui. Os gatos também acharam ótimo."
+        }
+      ]
+    },
+    "dlg.picnic_end": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Que tarde gostosa. Ano que vem tem de novo, combinado?"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Combinadíssimo!"
+        }
+      ]
+    },
+    "dlg.icecream_invite": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que calor, {player}! Nesses dias, a vila inteira só pensa em sorvete."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que tal uma noite do sorvete aqui no café, no dia 20, às 19h? Você fecha às 18h, e a gente acende umas luzinhas."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Adorei! Vou caprichar nos gelados."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Nesse dia o pessoal vai querer tudo gelado, viu? Pode se preparar."
+        }
+      ]
+    },
+    "dlg.icecream_party": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que noite bonita! Com essas luzinhas, o café parece uma sorveteria de cinema."
+        },
+        {
+          "speaker": "Joca",
+          "npc": "npc.joca",
+          "text": "Eu vou de morango, de novo. E de novo."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Os gatos estão adorando o ventinho da noite."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Nada como uma noite de verão com os amigos."
+        }
+      ]
+    },
+    "dlg.icecream_end": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Obrigada pela noite, {player}. E esse sorvete de morango? Tinha que estar no cardápio!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Vou colocar, prometo."
+        }
+      ]
     }
   }
 }

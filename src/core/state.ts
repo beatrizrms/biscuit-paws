@@ -24,6 +24,7 @@ import { newStats, type StatsState } from './stats';
 import { newMilestones, type MilestonesState } from './milestones';
 import type { SantaRecord } from './secretSanta';
 import type { HalloweenRecord } from './halloween';
+import type { GatheringsState } from './gatherings';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -161,6 +162,8 @@ export interface GameState {
   secretSanta: SantaRecord | null;
   /** Noite das Abóboras do ano (v39; halloween.ts). */
   halloween: HalloweenRecord | null;
+  /** Encontros da estação deste ano (gatherings.ts). Saves antigos: nenhum. */
+  gatherings: GatheringsState;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -298,6 +301,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     xmasBox: {},
     secretSanta: null,
     halloween: null,
+    gatherings: {},
   };
 }
 

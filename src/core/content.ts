@@ -31,6 +31,7 @@ import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
 import { validateArrivals, type ArrivalsData } from './arrivals';
 import { validateRequests, type RequestsData } from './requests';
+import { validateGatherings, type GatheringDef } from './gatherings';
 import { validateCatProfiles, type CatProfilesData } from './catGen';
 import { validateReputation, type ReputationConfig } from './reputation';
 import { milestoneRefs, validateMilestones, type MilestonesData } from './milestones';
@@ -53,6 +54,8 @@ export interface FestiveData {
   /** Noite das Abóboras (halloween.ts). */
   halloween: HalloweenData;
   newYear: NewYearData;
+  /** Encontros da estação (gatherings.ts): o piquenique da primavera, a noite do sorvete. */
+  gatherings?: GatheringDef[];
 }
 import { validateDelivery } from './delivery';
 import { validateHideouts } from './kittenHunt';
@@ -633,6 +636,12 @@ export function validateContent(raw: RawContent): string[] {
         dialogues: new Set(Object.keys(raw.dialogue.dialogues)),
         scripts: new Set(Object.keys(raw.scripts.scripts)),
         seasons: raw.seasons,
+      }),
+      ...validateGatherings(raw.festive.gatherings ?? [], {
+        seasons: raw.seasons,
+        npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
+        scripts: new Set(Object.keys(raw.scripts.scripts)),
+        items: new Set(raw.items.items.map((i) => i.id)),
       }),
       ...validateNewYear(raw.festive.newYear, { seasons: raw.seasons, scripts: new Set(Object.keys(raw.scripts.scripts)), passOut: raw.dayNight.passOut }),
     );

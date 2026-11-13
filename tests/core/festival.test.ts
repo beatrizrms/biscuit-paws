@@ -268,12 +268,12 @@ describe('festivais na sessão', () => {
     const { session, state, events } = cafe();
     const repro = { status: 'neutered', known: 'neutered', sex: 'female', birthDay: -400, weightFactor: 1, earTipped: false, origin: 'shelter' } as const;
     for (let i = 0; i < 9; i++) state.cats[`cat.t${i}`] = { sheltered: true, name: `T${i}`, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70, repro: { ...repro } };
-    state.day = 40;
-    state.story.completedOn['story.backyard'] = 35; // quintal pronto há 5 dias: ainda não
+    state.day = 50; // primavera 20: longe do piquenique (15)
+    state.story.completedOn['story.backyard'] = 45; // quintal pronto há 5 dias: ainda não
     state.rooms['room.backyard'] = 'restored';
     session.enter('map.cafe_main');
     expect(state.festivals.active).toBeNull();
-    state.day = 42;
+    state.day = 52;
     session.enter('map.street');
     expect(names(events)).toContain('festival.started');
     expect(state.festivals.active).toMatchObject({ id: fair.id, stage: 'prep' });
