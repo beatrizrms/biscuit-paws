@@ -1012,6 +1012,14 @@
       "layer": "object",
       "solid": true,
       "overrides": {
+        "praca_picnic_toalha": {
+          "layer": "floor",
+          "solid": false
+        },
+        "praca_varal_luzes": {
+          "layer": "object",
+          "solid": false
+        },
         "beco_muro_topo": {
           "layer": "wall",
           "solid": true

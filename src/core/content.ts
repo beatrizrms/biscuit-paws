@@ -656,6 +656,7 @@ export function validateContent(raw: RawContent): string[] {
         npcs: new Set(raw.npcs.npcs.map((n) => n.id)),
         scripts: new Set(Object.keys(raw.scripts.scripts)),
         items: new Set(raw.items.items.map((i) => i.id)),
+        tiles: new Set(Object.keys(raw.catalog.tiles)),
       }),
       ...validateNewYear(raw.festive.newYear, { seasons: raw.seasons, scripts: new Set(Object.keys(raw.scripts.scripts)), passOut: raw.dayNight.passOut }),
     );

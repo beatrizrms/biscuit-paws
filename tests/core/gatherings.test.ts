@@ -116,4 +116,15 @@ describe('a praça no encontro', () => {
     session.finishScript(picnic.partyScript);
     expect(session.gatheringHere('map.praca')).toBe(false);
   });
+
+  it('os enfeites do encontro aparecem na praça só durante ele', () => {
+    const { session, state } = cafe('summer', icecream.day, '17:00');
+    state.gatherings[icecream.id] = { year: 1, stage: 'invited' };
+    const decor = () => session.mapData('map.praca').objects.filter((o) => o.id.startsWith('gathering_decor_')).map((o) => o.tile);
+    expect(decor()).toEqual([]);
+    state.time = 18 * 60 + 10;
+    expect(decor()).toEqual(icecream.decor!.map((d) => d.tile));
+    expect(icecream.decor!.length).toBeGreaterThan(0);
+    expect(picnic.decor!.length).toBeGreaterThan(0);
+  });
 });

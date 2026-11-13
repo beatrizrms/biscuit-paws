@@ -29,6 +29,8 @@ export interface GatheringDef {
    * demand = no dia, a procura pelas receitas desta temperatura multiplica.
    */
   prep?: { placedTag?: { tag: string; count: number }; demand?: { temp: string; multiplier: number } };
+  /** Enfeites no mapa do encontro (tile e célula de cima à esquerda), de uma hora antes até acabar. */
+  decor?: { tile: string; at: [number, number] }[];
   /** Quem vem (os amigos que ela já conhece). */
   guests: { npc: string; known: Condition }[];
   reward: { reputation: number; prepReputation?: number; points: number; item?: string; flag?: string };
@@ -62,7 +64,7 @@ export function gatheringOfYear(seasons: SeasonsData, s: GatheringsState, id: st
 
 export function validateGatherings(
   list: readonly GatheringDef[],
-  refs: { seasons: SeasonsData; npcs: ReadonlySet<string>; scripts: ReadonlySet<string>; items: ReadonlySet<string> },
+  refs: { seasons: SeasonsData; npcs: ReadonlySet<string>; scripts: ReadonlySet<string>; items: ReadonlySet<string>; tiles?: ReadonlySet<string> },
 ): string[] {
   const errors: string[] = [];
   const ids = new Set<string>();
@@ -76,6 +78,7 @@ export function validateGatherings(
     if (!refs.npcs.has(g.proposer)) errors.push(`${w}: proposer inexistente "${g.proposer}"`);
     for (const s of [g.proposalScript, g.partyScript]) if (!refs.scripts.has(s)) errors.push(`${w}: roteiro inexistente "${s}"`);
     for (const x of g.guests) if (!refs.npcs.has(x.npc)) errors.push(`${w}: convidado inexistente "${x.npc}"`);
+    for (const d of g.decor ?? []) if (refs.tiles && !refs.tiles.has(d.tile)) errors.push(`${w}: enfeite com tile inexistente "${d.tile}"`);
     if (g.reward.item && !refs.items.has(g.reward.item)) errors.push(`${w}: presente inexistente "${g.reward.item}"`);
   }
   return errors;

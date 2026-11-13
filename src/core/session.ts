@@ -1147,10 +1147,15 @@ export class GameSession {
    * (sem figurantes nem passeios).
    */
   gatheringHere(mapId: string): boolean {
+    return !!this.gatheringAt(mapId);
+  }
+
+  /** O encontro que acontece neste mapa agora (de uma hora antes até acabar), ou nenhum. */
+  private gatheringAt(mapId: string): GatheringDef | null {
     const running = this.gatheringRunning ? (this.content.festive.gatherings ?? []).find((g) => g.id === this.gatheringRunning) : undefined;
     const g = running ?? this.gatheringToday();
-    if (!g || (g.partyWhen as { location?: string }).location !== mapId) return false;
-    return !!running || this.state.time >= parseClock(g.partyAt) - 60;
+    if (!g || (g.partyWhen as { location?: string }).location !== mapId) return null;
+    return running || this.state.time >= parseClock(g.partyAt) - 60 ? g : null;
   }
 
   /** Quem vem: os convidados que ela já conhece. */
@@ -3899,7 +3904,9 @@ export class GameSession {
       // Com ele trabalhando, a peça solta da calçada no lugar dele (a árvore de Natal, a lousa) sai de lá; a fachada fica.
       const { tiles } = this.content.catalog;
       const onHim = (o: MapData['objects'][number]) => !!builder && tiles[o.tile]?.layer === 'object' && cellsOf(o.at, tiles[o.tile]!).some(([c, r]) => c === builder.at[0] && r === builder.at[1]);
-      const kept = inSeason.objects.filter((o) => !onHim(o));
+      // No encontro da estação, os enfeites dele (a toalha do piquenique, o carrinho de sorvete).
+      const decor = (this.gatheringAt(mapId)?.decor ?? []).map((d, i) => ({ id: `gathering_decor_${i}`, tile: d.tile, at: [...d.at] as Cell }));
+      const kept = [...inSeason.objects.filter((o) => !onHim(o)), ...decor];
       const blocked = new Set([inSeason.spawn.player, ...(inSeason.doors ?? []).map((d) => d.at)].map((c) => cellKey(c)));
       for (const o of kept) { const def = tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
       return this.withSnowCaps({ ...inSeason, npcs, objects: [...kept, ...this.jobMarkers(mapId), ...this.siteMarkerObjects({ ...inSeason, objects: kept }, blocked)] });
