@@ -105,8 +105,8 @@ class TouchInput {
   }
 
   /**
-   * Some com os controles mesmo no celular: na tela inicial, na pausa e com uma janela aberta por cima do jogo
-   * (mercado, cardápio, celular, mochila): ali se toca na própria janela. Começa escondido (a Home vem primeiro).
+   * Some com os controles mesmo no celular: na tela inicial e com qualquer coisa por cima do jogo (ui.isBusy: fala,
+   * pergunta, cena, placa, janela, pausa): ali se toca na própria janela. Começa escondido (a Home vem primeiro).
    */
   private hidden = true;
 
