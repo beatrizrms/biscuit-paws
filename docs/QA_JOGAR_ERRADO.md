@@ -45,8 +45,8 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 
 ### Média
 
-**M1. Fechar mais cedo esvazia a fila sem nota ruim.** Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
-*Sugestão:* a mesma regra do A2 (mudança de horário vale a partir do dia seguinte), ou quem sai da fila porque o café fechou antes da hora dá a nota de desistência.
+**M1. Fechar mais cedo esvaziava a fila sem nota ruim.** CORRIGIDO (decisão 222). Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
+*Correção:* o café continua fechando na hora (como antes), mas, se fechar antes do horário que valia de manhã (o horário mudou hoje), quem estava na fila desiste com a nota de desistência. Fechar no horário normal segue sem bronca.
 
 **M2. Gato largado não tem consequência.** Sem comida e sem remédio por 60 dias: saúde 0, doente o tempo todo, continua no café. O descuido só tira corações, e quando chegam a 0 não acontece mais nada. Os clientes só somem com vários gatos doentes.
 *Sugestão (decisão de design):* com saúde 0 por X dias, a clínica ou a Dona Neusa leva o gato (com uma fala); ou a reputação cai a cada dia com gato doente sem tratamento.
@@ -56,8 +56,8 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 
 ### Baixa
 
-**B1. Dá para fechar a entrada do café por dentro.** Três móveis em volta da célula onde ela chega da rua ([13,9], [15,9], [14,8]) e ela fica presa na porta. Tem saída (os móveis estão encostados nela e dá para mover), mas os gatos também perdem o caminho para a porta.
-*Sugestão:* a célula de chegada de cada porta e uma vizinha livre entram nas células reservadas de `checkPlacement`; ou conferir com `findPath` que a porta continua ligada ao resto do cômodo.
+**B1. Dava para fechar a entrada do café por dentro.** CORRIGIDO (decisão 222). Correção do relatório: os três móveis em volta da chegada não prendiam (a linha da porta também é chão, ela dá a volta por baixo); prender de verdade pedia fechar essa linha também.
+*Correção:* um móvel sólido que deixaria alguma chegada ao café (da rua, do quintal) sem caminho até dentro é recusado ("fica na frente da passagem"), conferido com `findPath`.
 
 **B2. Cliente atravessa móveis.** Os clientes andam em L até o lugar (sem `findPath`): com o caminho fechado, eles passam por cima dos móveis.
 

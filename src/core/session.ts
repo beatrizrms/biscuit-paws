@@ -6,7 +6,7 @@ import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedu
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
-import { parseClock } from './time';
+import { formatClock, parseClock } from './time';
 import { mapLights } from './lights';
 import type { MapLight } from './map';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
@@ -28,6 +28,7 @@ import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import { activeTreatment, addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
 import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
+import { findPath } from './path';
 
 /** Automático com tantos dias ou menos: avisa que está acabando. */
 const PET_LOW_DAYS = 2;
@@ -3576,8 +3577,11 @@ export class GameSession {
     if (door.to !== this.content.map.id) return null;
     const s = this.service.schedule();
     const rules = this.content.service.schedule;
-    const start = lunchStart(s, rules);
-    const lunch = start ? { from: start, to: lunchEnd(start, rules), now: this.service.lunchNow() } : undefined;
+    // No almoço, a hora do almoço de hoje (travado quando começou), mesmo que o app já tenha outro para amanhã.
+    const now = this.service.lunchNow();
+    const locked = this.state.service.lunch?.day === this.state.day ? formatClock(this.state.service.lunch.from) : null;
+    const start = now && locked ? locked : lunchStart(s, rules);
+    const lunch = start ? { from: start, to: lunchEnd(start, rules), now } : undefined;
     return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}) };
   }
 
@@ -5034,7 +5038,29 @@ export class GameSession {
     // mochila (discoverRoom).
     const doorCells = this.content.rooms.doors.filter((d) => this.doorState(d.id) !== 'hidden').flatMap((d) => this.doorCells(d.id));
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
-    return placementProblem(this.mapData(), this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
+    const map = this.mapData();
+    const problem = placementProblem(map, this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
+    if (problem || !def.solid) return problem;
+    // Não pode isolar a entrada: de onde ela chega (rua, quintal) ainda precisa haver caminho até dentro do café.
+    return this.cutsOffEntrance(map, def.name, at) ? 'blocks_door' : null;
+  }
+
+  /** Lugares onde ela chega ao café (a porta da rua, a do quintal), nos cômodos abertos. */
+  private cafeArrivals(): Cell[] {
+    const id = this.content.map.id;
+    const all = Object.values(this.content.maps).flatMap((m) => (m.doors ?? []).filter((d) => d.to === id && d.spawn).map((d) => d.spawn as Cell));
+    return all.filter((c) => {
+      const room = this.roomAt(c);
+      return !room || isOpen(this.roomState(room.id));
+    });
+  }
+
+  /** O móvel (sólido) em `at` deixa alguma chegada sem caminho até o ponto de partida do café (que antes tinha)? */
+  private cutsOffEntrance(map: MapData, tile: string, at: Cell): boolean {
+    const target = this.content.map.spawn.player;
+    const before = solidGrid(map, this.content.catalog);
+    const after = solidGrid({ ...map, objects: [...map.objects, { id: 'placed.__probe', tile, at }] }, this.content.catalog);
+    return this.cafeArrivals().some((a) => findPath(before, a, target) !== null && findPath(after, a, target) === null);
   }
 
   /** Tira um item do inventário e posiciona no café. */

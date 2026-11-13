@@ -64,6 +64,8 @@ export interface ServiceState {
   served: number;
   /** O almoço de hoje, travado quando começou (um por dia: mudar o almoço no app só vale amanhã). */
   lunch?: { day: number; from: number };
+  /** O fechamento de hoje antes da primeira mudança de horário do dia (fechar antes dele não livra a fila da nota). */
+  dayClose?: { day: number; close: number };
 }
 
 export function newServiceState(): ServiceState {
@@ -649,6 +651,9 @@ export class CafeService {
   setSchedule(s: Schedule): ServiceResult {
     const problem = scheduleProblem(s, this.cfg.schedule);
     if (problem) return { ok: false, reason: problem };
+    // Primeira mudança do dia: guarda até quando o café ia ficar aberto hoje (0 se hoje nem abria).
+    const sv = this.st.service;
+    if (sv.dayClose?.day !== this.st.day) sv.dayClose = { day: this.st.day, close: this.opensOn(this.st.day) ? parseClock(this.schedule().close) : 0 };
     this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}) };
     this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
     return { ok: true };
@@ -745,7 +750,12 @@ export class CafeService {
       }
     }
     // Fechou: quem estava na fila vai embora (sem bronca: o café fechou). Quem já está no lugar termina.
-    if (!this.isOpen()) for (const c of sv.customers.filter((x) => x.stage === 'queue')) this.leave(c, true);
+    // Fechou antes da hora que valia de manhã (o horário mudou hoje): quem estava na fila desiste (a nota da desistência);
+    // fechar no horário normal não dá bronca.
+    if (!this.isOpen()) {
+      const early = sv.dayClose?.day === this.st.day && this.st.time < sv.dayClose.close;
+      for (const c of sv.customers.filter((x) => x.stage === 'queue')) this.leave(c, !early, early);
+    }
     // Fila: quem esperava ganha um lugar livre (se ainda cabe gente: lugares e louça).
     for (const c of sv.customers.filter((x) => x.stage === 'queue')) {
       const spot = this.isFull() ? undefined : this.usableSpot();

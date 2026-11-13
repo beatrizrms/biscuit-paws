@@ -391,6 +391,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       nextCustomerId: v2.service?.nextCustomerId ?? 1,
       served: v2.service?.served ?? 0,
       ...(v2.service?.lunch && Number.isInteger(v2.service.lunch.day) && Number.isFinite(v2.service.lunch.from) ? { lunch: { day: v2.service.lunch.day, from: v2.service.lunch.from } } : {}),
+      ...(v2.service?.dayClose && Number.isInteger(v2.service.dayClose.day) && Number.isFinite(v2.service.dayClose.close) ? { dayClose: { day: v2.service.dayClose.day, close: v2.service.dayClose.close } } : {}),
     },
     tray: v2.tray === true,
     // Desgaste: só de móveis que continuam no café; números estranhos são descartados.

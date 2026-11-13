@@ -300,6 +300,13 @@ describe('ciclo do pedido', () => {
     // Empurra o almoço para a meia hora atual: hoje não vale mais.
     expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '10:00' })).toEqual({ ok: true });
     expect(sv.lunchNow()).toBe(false);
+    // No almoço, a plaquinha mostra a hora do almoço de hoje, mesmo que o app já tenha outra para amanhã.
+    state.time = 9 * 60 + 30;
+    expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '13:00' })).toEqual({ ok: true });
+    state.location = 'map.street'; // a plaquinha fica na porta do café, na rua
+    expect(session.placeHours('door.cafe')?.lunch).toEqual({ from: '09:00', to: '10:00', now: true });
+    state.location = 'map.cafe_main';
+    state.time = 10 * 60 + 6;
     // Desligar e ligar de novo também não abre outro almoço hoje.
     expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: null })).toEqual({ ok: true });
     expect(sv.setSchedule({ days: all, open: '09:00', close: '18:00', lunch: '10:00' })).toEqual({ ok: true });
@@ -308,6 +315,36 @@ describe('ciclo do pedido', () => {
     session.endDay('home');
     state.time = 10 * 60 + 5;
     expect(sv.lunchNow()).toBe(sv.opensOn(state.day));
+  });
+
+  it('fechar antes da hora de manhã (mudando o horário hoje): a fila desiste com nota; no horário normal, não', () => {
+    const queueOf = () => {
+      const g = openCafe();
+      const chair = g.state.placed.find((p) => content.items[p.item]?.tags.includes('chair'))!;
+      g.session.pickUp(chair.uid); // só o lugar em pé: forma fila
+      g.sv.toggleMenu('recipe.black_coffee');
+      g.sv.setSchedule({ days: Array(7).fill(true), open: '09:00', close: '18:00', lunch: null });
+      g.state.service.dayClose = undefined; // como se o horário fosse o de sempre, sem mudança hoje
+      advance(g.session, 6);
+      g.state.service.nextCustomerAt = 0;
+      advance(g.session, 2);
+      return g;
+    };
+    const early = queueOf();
+    early.state.time = 15 * 60;
+    for (const c of early.state.service.customers) c.until = 1e9;
+    expect(early.state.service.customers.some((c) => c.stage === 'queue')).toBe(true);
+    expect(early.sv.setSchedule({ days: Array(7).fill(true), open: '09:00', close: '15:00', lunch: null })).toEqual({ ok: true });
+    advance(early.session, 1);
+    expect(early.state.service.customers.some((c) => c.stage === 'queue')).toBe(false);
+    expect(early.state.stats.totals.gaveUp).toBeGreaterThan(0);
+    // No horário normal (18h, sem mudança hoje): a fila vai embora sem bronca.
+    const normal = queueOf();
+    normal.state.time = 18 * 60 - 1;
+    for (const c of normal.state.service.customers) c.until = 1e9; // o salto no relógio não gasta a paciência
+    advance(normal.session, 2);
+    expect(normal.state.service.customers.some((c) => c.stage === 'queue')).toBe(false);
+    expect(normal.state.stats.totals.gaveUp).toBe(0);
   });
 
   it('cliente sem atendimento perde a paciência e vai embora sem pagar', () => {
