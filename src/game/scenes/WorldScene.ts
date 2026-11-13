@@ -1835,8 +1835,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = s.builderAt(s.location())!.at;
       const tiao = s.content.construction.npc;
       // Com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
-      if (s.giftProblem(tiao) === null) return plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'friend_gift' }, () => this.tryFriendGift(tiao, () => this.talkToBuilder()));
-      return plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
+      const talk = s.giftProblem(tiao) === null
+        ? plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'friend_gift' }, () => this.tryFriendGift(tiao, () => this.talkToBuilder()))
+        : plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
+      // As caixas da entrega na porta, com ele trabalhando do lado: vence o que está na frente dela (a regra do E).
+      if (s.parcelsNear(feet) !== 'door') return talk;
+      const door = s.content.delivery.door.at;
+      const boxes = plan(this.hintCell(door, 'parcels_door'), () => this.parcelInteract());
+      return pickETarget([{ cells: [at], tier: 1, value: talk }, { cells: [door], tier: 0, value: boxes }], feet, this.feetCell(), this.player.facingDirection());
     }
     const guest = this.santaGuestNear();
     if (guest) {
