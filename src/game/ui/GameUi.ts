@@ -552,14 +552,17 @@ export class GameUi {
       : h.lunch?.now
         ? [t.lunchNow.replace('{back}', h.lunch.to), 'lunch']
         : h.openNow
-          ? [t.open.replace('{close}', h.close), 'open']
+          ? [t.open.replace('{close}', h.today?.close ?? h.close), 'open']
           : [h.next ? t.closed.replace('{when}', this.whenText(h.next)) : t.closedNoTime, 'closed'];
     const today = this.session.service.weekday();
     const hours = t.hours.replace('{open}', h.open).replace('{close}', h.close);
     const rows = t.weekdays
       .map((day, i) => {
         const label = i === today ? `${day} · ${t.today}` : day;
-        return `<tr class="${i === today ? 'today' : ''}${h.days[i] ? '' : ' off'}"><td>${esc(label)}</td><td>${esc(h.days[i] ? hours : t.closedDay)}</td></tr>`;
+        // Hoje, com o horário mudado no app: o de hoje (o novo vale a partir de amanhã).
+        const opens = i === today && h.today ? h.today.opens : h.days[i];
+        const text = i === today && h.today ? t.hours.replace('{open}', h.today.open).replace('{close}', h.today.close) : hours;
+        return `<tr class="${i === today ? 'today' : ''}${opens ? '' : ' off'}"><td>${esc(label)}</td><td>${esc(opens ? text : t.closedDay)}</td></tr>`;
       })
       .join('');
     const lunch = h.lunch ? `<p class="hb-lunch">${esc(t.lunch)}: ${esc(t.hours.replace('{open}', h.lunch.from).replace('{close}', h.lunch.to))}</p>` : '';
@@ -667,9 +670,9 @@ export class GameUi {
   }
 
   /** Bolinhas de progresso (até 8; mais que isso, o número). */
+  /** Quanto já foi feito, sempre como "x/y" (pedido da Bi: no lugar das bolinhas). */
   private pips(done: number, total: number): string {
-    if (total > 8 || total === 0) return `<span class="count">${done}/${total}</span>`;
-    return `<span class="pips">${Array.from({ length: total }, (_, k) => `<i class="${k < done ? 'on' : ''}"></i>`).join('')}</span>`;
+    return `<span class="count">${done}/${total}</span>`;
   }
 
   /** Uma linha do balão: ícone (opcional), texto e o que vai à direita (contador, bolinhas, botão). */
@@ -728,8 +731,8 @@ export class GameUi {
         today.push(this.row(catSexText(this.session, c.settle, ch.catId!).replace('{cat}', this.session.catName(ch.catId!)), { icon: 'petisco_biscoito' }));
         continue;
       }
-      // Comida: com um gato, o nome dele; com mais, "Ração para os gatos" (com quantos já comeram).
-      const feedText = ch.catId ? c.feed.replace('{cat}', this.session.catName(ch.catId)) : c.feedAll;
+      // Comida: "Ração para os gatos", com quantos já comeram (x/y), mesmo com um gato só.
+      const feedText = c.feedAll;
       const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? c.pantry : c.sweep;
       const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));

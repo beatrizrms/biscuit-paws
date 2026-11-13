@@ -97,3 +97,23 @@ describe('encontros da estação', () => {
     expect(parseSave(serializeSave(state, new Date(0)), knownIds(content)).state.gatherings).toEqual(state.gatherings);
   });
 });
+
+describe('a praça no encontro', () => {
+  it('de uma hora antes até acabar, a praça fica sem figurantes nem passeios (só os amigos)', () => {
+    const { session, state } = cafe('spring', picnic.day, '15:00');
+    state.gatherings[picnic.id] = { year: 1, stage: 'invited' };
+    expect(session.gatheringHere('map.praca')).toBe(false);
+    state.time = 16 * 60 + 10;
+    expect(session.gatheringHere('map.praca')).toBe(true);
+    expect(session.ambientPeople('map.praca')).toBeNull();
+    expect(session.ambientPassersNow('map.praca')).toEqual([]);
+    expect(session.neighborWalksNow('map.praca')).toEqual([]);
+    expect(session.gatheringHere('map.street')).toBe(false);
+    // Acabou: a praça volta ao normal.
+    state.time = 17 * 60;
+    state.location = 'map.praca';
+    session.checkGatherings();
+    session.finishScript(picnic.partyScript);
+    expect(session.gatheringHere('map.praca')).toBe(false);
+  });
+});

@@ -3669,7 +3669,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const def = this.session.content.npcs[cfg.customerLooks[c.look % cfg.customerLooks.length]!];
         if (!def) continue;
         // Recém-chegado entra pela porta; ao abrir o café (trocar de mapa), já aparece no lugar.
-        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts);
+        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts, (from, to) => {
+          const path = findPath(this.map.solid, from, to);
+          return path ? pathCorners(path) : null;
+        });
         this.customerViews.set(c.id, view);
         if (!this.customersFresh) void view.walkTo(c.spot, true);
         else view.arrived = true;

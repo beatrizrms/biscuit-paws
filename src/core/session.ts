@@ -106,6 +106,8 @@ export interface PlaceHours {
   close: string;
   openNow: boolean;
   next: { day: number; open: string } | null;
+  /** Café com horário mudado hoje: o de hoje (a semana mostra o novo, que vale a partir de amanhã). */
+  today?: { opens: boolean; open: string; close: string };
 }
 
 export interface ConsultQuote {
@@ -1140,6 +1142,17 @@ export class GameSession {
     return (this.content.festive.gatherings ?? []).find((g) => this.gatheringRecord(g.id)?.stage === 'invited' && isGatheringDay(this.content.seasons, g, this.state.day));
   }
 
+  /**
+   * O encontro da estação acontece neste mapa agora (de uma hora antes até acabar): a praça fica só com os amigos
+   * (sem figurantes nem passeios).
+   */
+  gatheringHere(mapId: string): boolean {
+    const running = this.gatheringRunning ? (this.content.festive.gatherings ?? []).find((g) => g.id === this.gatheringRunning) : undefined;
+    const g = running ?? this.gatheringToday();
+    if (!g || (g.partyWhen as { location?: string }).location !== mapId) return false;
+    return !!running || this.state.time >= parseClock(g.partyAt) - 60;
+  }
+
   /** Quem vem: os convidados que ela já conhece. */
   gatheringGuests(g: GatheringDef): string[] {
     return g.guests.filter((x) => evaluate(x.known, this.state, this.storyContext())).map((x) => x.npc);
@@ -1355,11 +1368,10 @@ export class GameSession {
     }
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
-    // Comida: com um gato só, "Comida para Botinhas"; com mais, uma tarefa só (a ração no pote serve todos).
+    // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só.
     const home = this.homeCats();
     const fed = home.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
-    if (home.length === 1) out.push({ kind: 'feed', catId: home[0]!, done: fed === 1 });
-    else if (home.length > 1) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
+    if (home.length > 0) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
     // Cocô no chão (areia suja há dias): varrer e trocar a areia.
     const lpTag = this.content.health.care.litterPoop?.tag;
     if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
@@ -2611,9 +2623,12 @@ export class GameSession {
   checkNewYear(): void {
     const ny = this.content.festive.newYear;
     if (!this.newYearPending() || this.state.time < parseClock(ny.gatherAt)) return;
-    // Começou: o aviso (uma vez); a cena espera ela chegar (startWhen). Se não for, sem problema.
-    this.noticeEvent('new_year');
-    if (!evaluate(ny.startWhen, this.state, this.storyContext())) return;
+    // Começou: se ela ainda não está lá, o aviso (uma vez) e a cena espera ela chegar (startWhen); se já está, a cena
+    // começa sem o aviso (não empilha aviso, início e roteiro no mesmo instante). Se não for, sem problema.
+    if (!evaluate(ny.startWhen, this.state, this.storyContext())) {
+      this.noticeEvent('new_year');
+      return;
+    }
     this.state.flags[newYearFlag(this.content.seasons, this.state.day)] = true;
     const friends = this.santaGuests();
     for (const npc of friends) addPoints(this.state, this.content.relationships, PLAYER, npc, ny.points);
@@ -2672,6 +2687,8 @@ export class GameSession {
     // Quem está na plateia do evento no quintal agora não passeia (não fica em dois lugares).
     const crowd = this.festivalCrowd(this.content.map.id);
     const inCrowd = new Set(crowd ? [...crowd.groups.flat().map((m) => m.npc), ...crowd.walkers.map((w) => w.npc)] : []);
+    // No encontro da estação (a praça só com os amigos), ninguém passeia por lá.
+    if (this.gatheringHere(mapId)) return out;
     for (const def of this.content.npcWalks) {
       if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day || inCrowd.has(def.npc)) continue;
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
@@ -2915,7 +2932,8 @@ export class GameSession {
       this.bus.emit('script.requested', { scriptId: ss.proposalScript });
       return;
     }
-    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt)) this.noticeEvent('xmas_party');
+    // O aviso só quando ela ainda não está lá (já no café, a ceia começa sem o aviso).
+    if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && !evaluate(ss.partyWhen, this.state, this.storyContext())) this.noticeEvent('xmas_party');
     if (this.santaPartyPending() && this.state.time >= parseClock(ss.partyAt) && this.santaPartyRequestedOn !== day && evaluate(ss.partyWhen, this.state, this.storyContext())) {
       this.santaPartyRequestedOn = day;
       this.startFestiveParty('xmas');
@@ -3075,7 +3093,8 @@ export class GameSession {
       this.bus.emit('script.requested', { scriptId: hw.proposalScript });
       return;
     }
-    if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt)) this.noticeEvent('halloween_party');
+    // O aviso só quando ela ainda não está lá (já no café, a festa começa sem o aviso).
+    if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt) && !evaluate(hw.partyWhen, this.state, this.storyContext())) this.noticeEvent('halloween_party');
     if (this.halloweenPartyPending() && this.state.time >= parseClock(hw.partyAt) && this.halloweenPartyRequestedOn !== day && evaluate(hw.partyWhen, this.state, this.storyContext())) {
       this.halloweenPartyRequestedOn = day;
       this.startFestiveParty('halloween');
@@ -3688,9 +3707,9 @@ export class GameSession {
       delete cat.zeroDays;
       return;
     }
-    // Muitos dias seguidos sem o que precisa: ele foge do café (os gatos protegidos da história, não).
+    // Muitos dias seguidos sem o que precisa: ele foge do café (o Botinhas, o gato da história, não: neverRunAway).
     cat.zeroDays = (cat.zeroDays ?? 0) + 1;
-    if (n.runAwayDays && cat.zeroDays >= n.runAwayDays && cat.sheltered && !this.content.adoption.protectedCats.includes(catId)) {
+    if (n.runAwayDays && cat.zeroDays >= n.runAwayDays && cat.sheltered && !(n.neverRunAway ?? []).includes(catId)) {
       cat.sheltered = false;
       cat.ranAway = true;
       delete cat.zeroDays;
@@ -3751,7 +3770,9 @@ export class GameSession {
     const now = this.service.lunchNow();
     const start = lunchStart(now ? this.service.todaySchedule() : s, rules);
     const lunch = start ? { from: start, to: lunchEnd(start, rules), now } : undefined;
-    return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}) };
+    const t = this.service.todaySchedule();
+    const today = this.service.scheduleChangesTomorrow() ? { today: { opens: t.days[this.service.weekday()] === true, open: t.open, close: t.close } } : {};
+    return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}), ...today };
   }
 
   /**
@@ -4088,7 +4109,7 @@ export class GameSession {
    */
   ambientPeople(mapId = this.state.location): AmbientLayout | null {
     const def = this.content.ambient;
-    if (!def) return null;
+    if (!def || this.gatheringHere(mapId)) return null;
     const m = def.maps.find((x) => x.map === mapId);
     if (!m) return null;
     const key = `${mapId}:${this.state.day}:${Math.floor((this.state.time - parseClock(m.hours[0])) / m.blockMinutes)}:${this.weather()}`;
@@ -4106,7 +4127,7 @@ export class GameSession {
   /** Quem está atravessando a rua agora (a agenda do dia; vazio fora do horário ou num mapa sem passantes). */
   ambientPassersNow(mapId = this.state.location): AmbientPass[] {
     const def = this.content.ambient;
-    if (!def) return [];
+    if (!def || this.gatheringHere(mapId)) return [];
     const key = `${mapId}:${this.state.day}:${this.weather()}`;
     let passes = this.passCache.get(key);
     if (!passes) {

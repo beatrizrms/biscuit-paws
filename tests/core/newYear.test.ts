@@ -95,6 +95,12 @@ describe('Ano Novo: fogos à meia-noite na rua', () => {
     state.location = 'map.street';
     session.checkNewYear();
     expect(named(events, 'script.requested')).toEqual([{ scriptId: NY.script }]);
+    // Já na rua na hora: a cena começa sem o aviso (não empilha os dois).
+    const there = cafe(EVE, parseClock(NY.gatherAt));
+    there.state.location = 'map.street';
+    there.session.checkNewYear();
+    expect(named(there.events, 'event.starting')).toEqual([]);
+    expect(named(there.events, 'script.requested')).toEqual([{ scriptId: NY.script }]);
     const missed = cafe(EVE, 21 * 60);
     missed.session.endDay('home');
     expect(named(missed.events, 'newyear.missed')).toEqual([{}]);

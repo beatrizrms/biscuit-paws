@@ -38,7 +38,8 @@ export class CalendarApp {
     const cells: string[] = Array.from({ length: lead }, () => '<span class="c-cell blank"></span>');
     for (let d = first; d <= last; d++) {
       const here = marks.filter((m) => m.day === d);
-      const closed = sv.enabled() && d >= today && !schedule.days[sv.weekday(d)];
+      // Hoje vale o horário de quando o dia começou (o app só muda os dias seguintes).
+      const closed = sv.enabled() && d >= today && !(d === today ? sv.todaySchedule() : schedule).days[sv.weekday(d)];
       const cls = ['c-cell', d === today ? 'today' : '', d < today ? 'past' : '', here.length ? `mark ${here[0]!.kind}` : '', closed ? 'closed' : ''].filter(Boolean).join(' ');
       const title = [...here.map((m) => m.title), closed ? t.closed : ''].filter(Boolean).join(' · ');
       cells.push(`<span class="${cls}"${title ? ` title="${esc(title)}"` : ''}>${dayInSeason(seasons, d)}</span>`);
