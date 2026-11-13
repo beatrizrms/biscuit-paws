@@ -2445,8 +2445,11 @@ export class GameSession {
   /** Os passeios que devem acontecer agora no mapa (condição, sorteio do dia, horário e ainda não feito hoje). */
   neighborWalksNow(mapId = this.state.location): { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] {
     const out: { npc: string; from: Cell; to: Cell; cats: WalkCat[]; companions: string[] }[] = [];
+    // Quem está na plateia do evento no quintal agora não passeia (não fica em dois lugares).
+    const crowd = this.festivalCrowd(this.content.map.id);
+    const inCrowd = new Set(crowd ? [...crowd.groups.flat().map((m) => m.npc), ...crowd.walkers.map((w) => w.npc)] : []);
     for (const def of this.content.npcWalks) {
-      if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day) continue;
+      if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day || inCrowd.has(def.npc)) continue;
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
       if (def.when && !this.holds(def.when as Condition)) continue;
       const w = walkOfDay(def, this.state.day);
@@ -3660,7 +3663,9 @@ export class GameSession {
     const solid = solidGrid(map, this.content.catalog);
     const fest = this.content.festivals.flatMap((f) => [f.closePoint?.point, ...(f.decorations ?? []).map((d) => d.point), ...f.activities.map((a) => a.point)]);
     const avoid: Cell[] = [...fest.flatMap((id) => (id && this.content.jobPoints[id] ? [this.content.jobPoints[id]!.at] : [])), ...(map.doors ?? []).map((d) => d.at), map.spawn.player];
-    const friends = (def.friends ?? []).filter((f) => !f.when || this.holds(f.when as Condition)).map((f) => f.npc);
+    // Em dia de festa (ceia de Natal, Halloween, Ano Novo) os amigos estão nela, não na plateia.
+    const partyDay = this.santaPartyPending() || this.halloweenPartyPending() || this.newYearPending();
+    const friends = partyDay ? [] : (def.friends ?? []).filter((f) => !f.when || this.holds(f.when as Condition)).map((f) => f.npc);
     const layout = crowdLayout(def, area, (c, r) => solid[r]?.[c] === false, avoid, createRng(this.state.day * 7919 + 17), friends);
     this.crowdOfDay = { day: this.state.day, layout };
     return layout;
@@ -3699,7 +3704,15 @@ export class GameSession {
   private maybeStartFestivals(): void {
     if (this.state.festivals.active || this.festivalMissedOn === this.state.day) return;
     const { season, day: dayOfSeason } = this.seasonDay();
-    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()) };
+    const seasons = this.content.seasons;
+    // Dias até a data (estação, dia) que vem (hoje = 0), dando a volta no ano.
+    const daysUntil = (s: string, d: number) => {
+      const year = seasons.order.length * seasons.daysPerSeason;
+      const at = seasons.order.indexOf(s) * seasons.daysPerSeason + d;
+      const now = seasons.order.indexOf(season) * seasons.daysPerSeason + dayOfSeason;
+      return (((at - now) % year) + year) % year;
+    };
+    const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()), others: this.content.festivals, daysUntil };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));
     if (def) this.beginFestival(def);
   }

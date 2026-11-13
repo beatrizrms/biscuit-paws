@@ -181,7 +181,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Quem já soltou o balãozinho neste passeio (uma vez por passeio, quando passa perto dela). */
   private readonly walkBarked = new Set<string>();
   /** A plateia do evento no quintal (session.festivalCrowd): quem está aqui, e a vez da conversa. */
-  private readonly crowd = new Set<string>();
+  /** Os bonecos da plateia (o próprio sprite: um roteiro que chama o mesmo NPC troca o boneco, e o dele não é da plateia). */
+  private readonly crowd = new Map<string, NpcSprite>();
   private crowdGroups: string[][] = [];
   private crowdCheckedAt = -Infinity;
   private crowdTalkAt = 0;
@@ -2036,7 +2037,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.crowdTalkAt = this.time.now + CROWD_TALK_EVERY_MS;
     const lines = this.session.content.festivalCrowd?.lines ?? [];
     const group = this.crowdGroups[this.crowdTurn % this.crowdGroups.length]!;
-    const speaker = this.npcs.get(group[Math.floor(this.crowdTurn / this.crowdGroups.length) % group.length]!);
+    const id = group[Math.floor(this.crowdTurn / this.crowdGroups.length) % group.length]!;
+    const speaker = this.npcs.get(id) === this.crowd.get(id) ? this.crowd.get(id) : undefined;
     const line = lines[this.crowdTurn % Math.max(1, lines.length)];
     this.crowdTurn++;
     if (speaker?.active && line) this.speechBubble(speaker, line, CROWD_TALK_MS);
@@ -2048,22 +2050,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       for (const m of group) {
         if (this.npcs.has(m.npc)) continue;
         this.spawnNpc(m.npc, m.at, m.facing);
-        this.crowd.add(m.npc);
+        this.crowd.set(m.npc, this.npcs.get(m.npc)!);
       }
     }
     for (const w of layout.walkers) {
       if (this.npcs.has(w.npc)) continue;
       this.spawnNpc(w.npc, w.path[0]!, 'down');
-      this.crowd.add(w.npc);
+      this.crowd.set(w.npc, this.npcs.get(w.npc)!);
       void this.crowdWander(w.npc, w.path);
     }
   }
 
   /** Quem passeia vai de um ponto a outro, para um pouco em cada um e recomeça, enquanto a plateia estiver aqui. */
   private async crowdWander(id: string, path: Cell[]): Promise<void> {
-    for (let i = 1; this.crowd.has(id); i++) {
-      const npc = this.npcs.get(id);
-      if (!npc?.active) return;
+    const npc = this.crowd.get(id);
+    // Para quando o boneco não é mais o da plateia (um roteiro chamou o mesmo NPC) ou a plateia foi embora.
+    for (let i = 1; npc?.active && this.crowd.get(id) === npc && this.npcs.get(id) === npc; i++) {
       await this.npcWalk(id, path[i % path.length]!);
       if (!npc.active) return;
       npc.face('down');
@@ -2072,8 +2074,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   private clearCrowd(): void {
-    for (const id of this.crowd) {
-      this.npcs.get(id)?.destroy();
+    for (const [id, npc] of this.crowd) {
+      // Só o boneco da plateia: se um roteiro trocou pelo dele, fica.
+      if (this.npcs.get(id) !== npc) continue;
+      npc.destroy();
       this.npcs.delete(id);
     }
     this.crowd.clear();
@@ -2116,15 +2120,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const followers = new WalkFollowers(this, npc, w.cats, companions, this.map.tileSize);
     this.neighborWalks.set(w.npc, followers);
     const path = findPath(this.map.solid, from, to);
+    // Para se uma cena chamou o mesmo NPC (o boneco dela entra no lugar): o passeio não mexe no boneco da cena.
+    const mine = () => npc.active && this.npcs.get(w.npc) === npc;
     for (const corner of path ? pathCorners(path) : [to]) {
-      if (!npc.active) break;
+      if (!mine()) break;
       await npc.walkTo(corner);
     }
     if (this.neighborWalks.get(w.npc) !== followers) return; // trocou de mapa no meio
     this.neighborWalks.delete(w.npc);
-    this.npcs.delete(w.npc);
     followers.leave();
-    if (npc.active) await npc.leave();
+    if (!mine()) return;
+    this.npcs.delete(w.npc);
+    await npc.leave();
   }
 
   /** O balãozinho do passeio: ela para, vira para a personagem, acena com a fala em cima da cabeça e segue andando. */

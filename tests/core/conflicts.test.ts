@@ -1,0 +1,148 @@
+// Revisão de conflitos (docs/REVISAO_CONFLITOS.md): sistemas que disparam no mesmo dia ou na mesma hora. Cada teste
+// força um par de situações juntas e confere que nada trava, o mapa abre e a ordem faz sentido.
+import { describe, expect, it } from 'vitest';
+import { resolveMap } from '../../src/core/map';
+import { GameSession } from '../../src/core/session';
+import { newGameState, type GameState } from '../../src/core/state';
+import { activeBeats } from '../../src/core/story';
+import { loadContent } from './content';
+
+const content = loadContent();
+
+/** Um café já inaugurado, com os cômodos prontos; `skip`: passos da história que ainda não aconteceram. */
+function midGame(skip: string[] = [], day = 40): { session: GameSession; state: GameState; events: { name: string; payload: unknown }[] } {
+  const state = newGameState(500, 'map.cafe_main', 10 * 60);
+  state.day = day;
+  state.business = 'soft_open';
+  state.story.completed.push(...content.story.beats.map((b) => b.id).filter((id) => !skip.includes(id)));
+  for (const r of content.rooms.rooms) state.rooms[r.id] = 'restored';
+  const session = new GameSession(content, state);
+  const events: { name: string; payload: unknown }[] = [];
+  session.bus.onAny((name, payload) => events.push({ name, payload }));
+  return { session, state, events };
+}
+
+describe('passos exclusivos da história', () => {
+  it('um passo exclusivo que ainda espera a condição (dia da feira, 30 dias, a chave) não segura o resto do jogo', () => {
+    // Os passos exclusivos que esperam muito tempo: o resto (chegadas, cenas da Fernanda, a CED) não pode ficar parado.
+    for (const id of ['story.jacque_meet', 'story.secret_garden']) {
+      const { session, state } = midGame([id]);
+      state.story.completedOn['story.back_room_opened'] = state.day; // a chave do jardim ainda longe
+      const active = activeBeats(content.story, state, (session as unknown as { storyContext(): never }).storyContext());
+      expect(active.map((b) => b.id), id).not.toContain(id);
+      expect(session.exclusiveActive(), id).toBe(false);
+    }
+  });
+
+  it('entre a inauguração e a primeira feira (a Jacque ainda por conhecer), gato novo chega', () => {
+    const { session, state } = midGame(['story.jacque_meet']);
+    expect((session as unknown as { arrivals: { queueNow(id: string): boolean } }).arrivals.queueNow('arr.third_cat')).toBe(true);
+    expect(state.arrivals.active?.id).toBe('arr.third_cat');
+  });
+});
+
+describe('eventos com e sem data', () => {
+  type Debug = { debugSatisfy(c: unknown): void; addReputation(n: number, why: string): void; enter(map: string): void };
+  /** A feira de adoção e o Dia do Gato liberados, no verão, no dia dayOfSummer. */
+  function bothReady(dayOfSummer: number) {
+    const g = midGame([], 0);
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    const per = content.seasons.daysPerSeason;
+    g.state.day = content.seasons.order.indexOf('summer') * per + 1;
+    (g.session as unknown as Debug).debugSatisfy(fair.when);
+    const need = content.reputation.thresholds.find((t) => t.id === 'rep.noticed')!.at;
+    g.session.addReputation(need, 'teste');
+    g.state.festivals.active = null;
+    g.state.day = content.seasons.order.indexOf('summer') * per + dayOfSummer;
+    g.session.enter('map.cafe_main');
+    return g;
+  }
+
+  it('a feira de adoção não começa os panfletos quando o Dia do Gato vem antes de ela acontecer (o Dia do Gato não se perde)', () => {
+    expect(bothReady(2).state.festivals.active).toBeNull();
+    expect(bothReady(5).state.festivals.active?.id).toBe('fest.cat_day');
+  });
+
+  it('longe da data, a feira de adoção começa normalmente', () => {
+    expect(bothReady(20).state.festivals.active?.id).toBe('fest.adoption_fair');
+  });
+});
+
+describe('plateia × festas', () => {
+  it('em dia de festa (ceia de Natal) os amigos ficam fora da plateia (estão na festa)', () => {
+    const { session, state } = midGame();
+    const catDay = content.festivals.find((f) => f.id === 'fest.cat_day')!;
+    for (const flag of ['seen.scr.gabi_visit', 'met.old_neighbor', 'met.jacque']) state.flags[flag] = true;
+    session.debugStartFestival(catDay.id);
+    state.day = state.festivals.active!.day!;
+    state.time = 11 * 60;
+    for (const id of [catDay.closePoint!.point, ...catDay.decorations!.map((d) => d.point)]) expect(session.doJobPoint(id)).toEqual({ ok: true });
+    const people = (l: ReturnType<GameSession['festivalCrowd']>) => [...l!.groups.flat().map((m) => m.npc), ...l!.walkers.map((w) => w.npc)];
+    expect(people(session.festivalCrowd())).toEqual(expect.arrayContaining(['npc.gabi', 'npc.neusa', 'npc.jacque']));
+    // O mesmo dia, sendo dia de ceia: sem os amigos.
+    (session as unknown as { crowdOfDay: null }).crowdOfDay = null;
+    (session as unknown as { santaPartyPending: () => boolean }).santaPartyPending = () => true;
+    const party = people(session.festivalCrowd());
+    for (const id of ['npc.gabi', 'npc.neusa', 'npc.jacque']) expect(party).not.toContain(id);
+  });
+});
+
+describe('passeios × plateia', () => {
+  it('quem está na plateia do evento não sai passeando (não fica em dois lugares)', () => {
+    const { session, state } = midGame();
+    state.flags['met.jacque'] = true;
+    const jacque = content.npcWalks.find((w) => w.npc === 'npc.jacque')!;
+    state.time = 17 * 60;
+    const stub = session as unknown as { festivalCrowd: () => unknown };
+    // Um dia em que ela passeia (sem plateia)...
+    stub.festivalCrowd = () => null;
+    let day = 1;
+    for (; day < 60; day++) {
+      state.day = day;
+      if (session.neighborWalksNow(jacque.map).some((w) => w.npc === 'npc.jacque')) break;
+    }
+    expect(day).toBeLessThan(60);
+    // ...e o mesmo dia com ela na plateia do quintal: não passeia.
+    stub.festivalCrowd = () => ({ groups: [[{ npc: 'npc.jacque', at: [30, 5], facing: 'right' }, { npc: 'npc.customer_01', at: [31, 5], facing: 'left' }]], walkers: [] });
+    expect(session.neighborWalksNow(jacque.map).map((w) => w.npc)).not.toContain('npc.jacque');
+  });
+});
+
+describe('o mapa sempre abre', () => {
+  it('café, rua, praça e beco, em cada estação', () => {
+    const { session, state } = midGame();
+    for (let s = 0; s < content.seasons.order.length; s++) {
+      state.day = s * content.seasons.daysPerSeason + 5;
+      for (const id of ['map.cafe_main', 'map.street', 'map.praca', 'map.alley']) expect(() => resolveMap(session.mapData(id), content.catalog), `${id} estação ${s}`).not.toThrow();
+    }
+  });
+
+  it('quintal cheio de móveis dela: em cada estação, em dia de evento montado, com plateia e neve, o mapa abre', () => {
+    const { session, state } = midGame();
+    const yardItems = Object.values(content.items).filter((i) => (i.tile ?? '').startsWith('yard_') && (i.kind ?? 'furniture') === 'furniture');
+    expect(yardItems.length).toBeGreaterThan(5);
+    // Põe o que couber, varrendo o quintal (só lugares válidos, como ela faria).
+    let k = 0;
+    for (let r = 2; r <= 10; r++) {
+      for (let c = 26; c <= 43; c++) {
+        const item = yardItems[(r * 7 + c) % yardItems.length]!;
+        state.inventory[item.id] = (state.inventory[item.id] ?? 0) + 1;
+        if (session.place(item.id, [c, r]).ok) k++;
+      }
+    }
+    expect(k).toBeGreaterThan(10);
+    const catDay = content.festivals.find((x) => x.id === 'fest.cat_day')!;
+    for (let season = 0; season < content.seasons.order.length; season++) {
+      state.festivals.active = null;
+      state.festivals.heldOn = null;
+      session.debugStartFestival(catDay.id);
+      const day = season * content.seasons.daysPerSeason + 9;
+      state.festivals.active!.day = day;
+      state.day = day;
+      state.time = 11 * 60;
+      for (const id of [catDay.closePoint!.point, ...catDay.decorations!.map((d) => d.point)]) session.doJobPoint(id);
+      expect(() => resolveMap(session.mapData(), content.catalog), content.seasons.order[season]).not.toThrow();
+      expect(session.festivalCrowd()).not.toBeNull();
+    }
+  });
+});

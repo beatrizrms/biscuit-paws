@@ -89,7 +89,13 @@ export interface FestivalContext {
   reached: readonly string[];
   /** A condição `when` (a sessão avalia com o estado). */
   evaluate: (cond: unknown) => boolean;
+  /** Os outros eventos e quantos dias faltam para uma data (estação, dia): o evento sem data não toma o lugar de um com data. */
+  others?: readonly FestivalDef[];
+  daysUntil?: (season: string, day: number) => number;
 }
+
+/** Folga, além de prep.daysAfter, para a preparação (os panfletos) de um evento sem data. */
+const PREP_SLACK_DAYS = 7;
 
 /** Disponível agora para começar? (nenhum evento em andamento, liberado, condição, data e intervalo). */
 export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: FestivalContext): boolean {
@@ -101,7 +107,21 @@ export function festivalCanStart(s: FestivalsState, def: FestivalDef, ctx: Festi
     const notice = def.date.noticeDays ?? 0;
     if (ctx.season !== def.date.season || ctx.dayOfSeason > def.date.day || ctx.dayOfSeason < def.date.day - notice) return false;
   }
-  return def.when === undefined || ctx.evaluate(def.when);
+  if (def.when !== undefined && !ctx.evaluate(def.when)) return false;
+  // Sem data (a feira de adoção): não começa se um evento com data, já liberado, cai antes de ela acontecer (só cabe
+  // um por vez: o de data se perderia naquele ano).
+  if (!def.date && ctx.others && ctx.daysUntil) {
+    const window = (def.prep?.daysAfter ?? 0) + PREP_SLACK_DAYS;
+    for (const d of ctx.others) {
+      if (!d.date || d.id === def.id) continue;
+      if (d.unlockReputation && !ctx.reached.includes(d.unlockReputation)) continue;
+      const last = s.last[d.id];
+      if (last !== undefined && ctx.day - last < d.cooldownDays) continue;
+      if (d.when !== undefined && !ctx.evaluate(d.when)) continue;
+      if (ctx.daysUntil(d.date.season, d.date.day) <= window) return false;
+    }
+  }
+  return true;
 }
 
 /** Começa: com preparação, a etapa dela; sem, já marcado (o dia da data fixa, ou hoje). */

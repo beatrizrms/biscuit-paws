@@ -775,6 +775,20 @@
       "after": [
         "story.back_room_opened"
       ],
+      "_start": "Só fica ativo (e exclusivo) quando está para acontecer: antes, segurava as chegadas e as cenas por 30 dias.",
+      "start": {
+        "all": [
+          {
+            "daysSince": {
+              "beat": "story.back_room_opened",
+              "gte": 30
+            }
+          },
+          {
+            "received": "item.key_backyard"
+          }
+        ]
+      },
       "when": {
         "all": [
           {
@@ -846,6 +860,10 @@
       "after": [
         "story.inauguration"
       ],
+      "_start": "Só fica ativo (e exclusivo) no dia da feira: antes, segurava as chegadas desde a inauguração.",
+      "start": {
+        "festivalToday": "fest.adoption_fair"
+      },
       "when": {
         "all": [
           {
