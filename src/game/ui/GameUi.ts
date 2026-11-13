@@ -60,6 +60,8 @@ export interface UiHandlers {
 export class GameUi {
   private money: HTMLElement;
   private goals: HTMLElement;
+  /** O balão estava aberto e recolheu porque ela passou embaixo: a área dele aberto (volta a abrir quando ela sai dali). */
+  private goalsTucked: DOMRect | null = null;
   private hint: HTMLElement;
   private toastEl: HTMLElement;
   private dialogueLayer: HTMLElement;
@@ -939,16 +941,40 @@ export class GameUi {
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
+    this.tuckGoals(points.slice(0, 2));
     for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy, .hud-weather')]) {
       if (el.hidden) continue;
       const r = el.getBoundingClientRect();
       // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
       const near = [...(el === this.goals ? points.slice(0, 2) : points), ...spots];
       const under = near.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
-      el.classList.toggle('see-through', under);
+      // Recolhido por ela estar embaixo: transparente até ela sair de onde ele estava aberto.
+      el.classList.toggle('see-through', under || (el === this.goals && !!this.goalsTucked));
     }
     const root = this.root.getBoundingClientRect();
     this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
+  }
+
+  /**
+   * Ela embaixo do balão aberto: ele recolhe (fica só o título, transparente) e volta a abrir quando ela sai da área
+   * que ele ocupava aberto (com a área guardada, ele não fica abrindo e fechando na borda).
+   */
+  private tuckGoals(player: readonly { x: number; y: number }[]): void {
+    const inside = (r: DOMRect) => player.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
+    if (this.goalsTucked) {
+      // Ela abriu de novo (clique) ou saiu de baixo: volta ao normal.
+      if (this.goals.classList.contains('open')) this.goalsTucked = null;
+      else if (!inside(this.goalsTucked)) {
+        this.goalsTucked = null;
+        this.goals.classList.add('open');
+      }
+      return;
+    }
+    if (this.goals.hidden || !this.goals.classList.contains('open')) return;
+    const r = this.goals.getBoundingClientRect();
+    if (!inside(r)) return;
+    this.goalsTucked = r;
+    this.goals.classList.remove('open');
   }
 
   /** Linha da chegada de gato no balão (ou vazio). */

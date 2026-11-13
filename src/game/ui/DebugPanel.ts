@@ -9,6 +9,8 @@ import { screenInfo } from '../screen';
 const FOLD_KEY = 'biscuit-paws:debug-panel-collapsed';
 /** Os grupos abertos (lembrados). */
 const OPEN_KEY = 'biscuit-paws:debug-panel-open';
+/** Notas de dev (em vermelho) no balão do subconsciente: '0' esconde (lembrado no aparelho). */
+const NOTES_KEY = 'biscuit-paws:debug-dev-notes';
 
 export interface DebugActions {
   skipDialogue(): void;
@@ -127,6 +129,7 @@ export class DebugPanel {
         'tools',
         'Ferramentas',
         `<button data-act="skip">pular falas</button><button data-act="collision">colisão</button><button data-act="grid">grade</button>
+         <button data-act="devnotes" title="As notas de dev (em vermelho) no balão do subconsciente">notas no balão</button>
          <button data-act="new">jogo novo</button><button data-act="off">desligar o debug</button>`,
       )}
       <div class="status"></div>`;
@@ -322,6 +325,14 @@ export class DebugPanel {
     on('skip', () => actions.skipDialogue());
     on('collision', (b) => b.classList.toggle('on', actions.toggleCollision()));
     on('grid', (b) => b.classList.toggle('on', actions.toggleGrid()));
+    // Notas de dev no balão: liga e desliga (começa ligado; lembrado no aparelho).
+    const notes = (show: boolean) => {
+      document.documentElement.classList.toggle('dev-notes-off', !show);
+      panel.querySelector('[data-act="devnotes"]')?.classList.toggle('on', show);
+      store(NOTES_KEY, show ? '1' : '0');
+    };
+    notes(read(NOTES_KEY) !== '0');
+    on('devnotes', () => notes(document.documentElement.classList.contains('dev-notes-off')));
     on('new', () => actions.newGame());
     on('off', () => actions.turnOff());
 
