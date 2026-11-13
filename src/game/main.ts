@@ -36,8 +36,13 @@ function integerZoom(): number {
   return fit >= 1 && !TOUCH_DEVICE ? Math.floor(fit) : fit;
 }
 
-/** O recorte da tela de cada lado (o entalhe do iPhone, a câmera do Android em tela cheia), em px da tela. */
+/**
+ * O recorte da tela de cada lado (o entalhe do iPhone, a câmera do Android em tela cheia), em px da tela. Para testar
+ * no PC: ?recorte=47 (o do iPhone deitado).
+ */
 function safeInsets(): [number, number] {
+  const forced = Number(new URLSearchParams(location.search).get('recorte'));
+  if (forced > 0) return [forced, forced];
   const probe = document.createElement('div');
   probe.style.cssText = 'position:fixed;visibility:hidden;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)';
   document.body.appendChild(probe);
@@ -47,9 +52,22 @@ function safeInsets(): [number, number] {
   return insets;
 }
 
+/** Largura que os controles precisam em cada faixa dos lados (px do jogo): a barra de itens em pé e os atalhos. */
+const SIDE_NEED = 42;
+/** Para abrir as faixas, o jogo encolhe até esta fração da tela (mais que isso, como no tablet: controles por cima). */
+const SIDE_SHRINK = 0.85;
 
-/** Faixa dos lados a partir de que os controles e a barra de itens saem de cima do jogo (px do jogo, de 640). */
-const SIDE_MIN = 36;
+/**
+ * Escala e faixas no celular deitado: o jogo é 16:9 e a tela é mais comprida; as faixas que sobram dos lados recebem
+ * o direcional, os botões e a barra de itens. Fora do recorte da tela (o entalhe do iPhone tira uns 47 px de cada
+ * lado), cada faixa precisa de SIDE_NEED: o jogo encolhe um pouco para caber (no iPhone 14, uns 4%).
+ */
+function arrange(insets: [number, number]): { zoom: number; sides: boolean } {
+  const zoom = integerZoom();
+  if (!TOUCH_DEVICE) return { zoom, sides: false };
+  const roomy = (window.innerWidth - 2 * Math.max(insets[0], insets[1])) / (GAME_WIDTH + 2 * SIDE_NEED);
+  return roomy >= zoom ? { zoom, sides: true } : roomy >= zoom * SIDE_SHRINK ? { zoom: roomy, sides: true } : { zoom, sides: false };
+}
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -79,23 +97,21 @@ MiniGameRegistry.register('fair_setup', FAIR_SETUP_SCENE);
 MiniGameRegistry.register('costume', COSTUME_SCENE);
 MiniGameRegistry.register('photo', PHOTO_SCENE);
 
-/** Canvas e interface HTML crescem juntos, sempre na mesma escala inteira. */
+/** Canvas e interface HTML crescem juntos, sempre na mesma escala. */
 function layout(): void {
-  const zoom = integerZoom();
+  const insets = safeInsets();
+  const { zoom, sides } = arrange(insets);
   game.scale.setZoom(zoom / RENDER_SCALE);
   const stage = document.getElementById('stage')!;
   stage.style.width = `${GAME_WIDTH * zoom}px`;
   stage.style.height = `${GAME_HEIGHT * zoom}px`;
   document.getElementById('ui')!.style.transform = `scale(${zoom})`;
   document.getElementById('touch')!.style.transform = `scale(${zoom})`;
-  // Celular deitado: o jogo é 16:9 e a tela é mais comprida; as faixas que sobram dos lados recebem o direcional, os
-  // botões e a barra de itens (touch.css e ui.css: #stage.sides). --side-l e --side-r: a parte de cada faixa fora do
-  // recorte da tela (só o lado da câmera perde), em px do jogo; faixa apertada, o controle entra um pouco no jogo.
+  // Faixas dos lados (touch.css e ui.css: #stage.sides). --side-l e --side-r: a parte de cada faixa fora do recorte da
+  // tela, em px do jogo.
   const bar = (window.innerWidth - GAME_WIDTH * zoom) / 2;
-  const insets = safeInsets();
   stage.style.setProperty('--side-l', `${Math.max(0, Math.floor((bar - insets[0]) / zoom))}px`);
   stage.style.setProperty('--side-r', `${Math.max(0, Math.floor((bar - insets[1]) / zoom))}px`);
-  const sides = TOUCH_DEVICE && bar / zoom >= SIDE_MIN;
   stage.classList.toggle('sides', sides);
   Object.assign(screenInfo, { w: window.innerWidth, h: window.innerHeight, zoom, bar, insets, touch: TOUCH_DEVICE, sides });
 }
