@@ -10,7 +10,7 @@ const content = loadContent();
 const def = content.world.traffic!;
 
 describe('carros na rua', () => {
-  it('passam de vez em quando, dentro do horário, nos dois sentidos, com os carros, o ônibus e o furgão', () => {
+  it('passam de vez em quando, dentro do horário, todos para a esquerda, com os carros, o ônibus e o furgão', () => {
     const seen = new Set<string>();
     const dirs = new Set<string>();
     for (let day = 1; day <= 20; day++) {
@@ -25,7 +25,10 @@ describe('carros na rua', () => {
       expect(trafficOfDay(def, day)).toEqual(passes); // o mesmo dia, a mesma agenda
     }
     expect([...seen].sort()).toEqual(def.vehicles.map((v) => v.id).sort());
-    expect([...dirs].sort()).toEqual(['left', 'right']);
+    expect([...dirs]).toEqual(['left']);
+    // Sem directions, os dois sentidos.
+    const both = new Set(trafficOfDay({ ...def, directions: undefined }, 7).map((p) => p.dir));
+    expect([...both].sort()).toEqual(['left', 'right']);
   });
 
   it('na sessão: só na rua, e cada passagem sai uma vez (minuto a minuto)', () => {

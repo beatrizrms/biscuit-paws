@@ -21,6 +21,8 @@ export interface TrafficDef {
   /** A cada everyMinutes, a chance de passar um veículo. */
   everyMinutes: number;
   chance: number;
+  /** Para onde os veículos vão (padrão: os dois sentidos). ["left"]: todos da direita para a esquerda. */
+  directions?: ('left' | 'right')[];
   vehicles: VehicleDef[];
 }
 
@@ -36,12 +38,13 @@ export interface TrafficPass {
 export function trafficOfDay(def: TrafficDef, day: number): TrafficPass[] {
   const rng = createRng(day * 3571 + 101);
   const total = def.vehicles.reduce((s, v) => s + (v.weight ?? 1), 0);
+  const dirs = def.directions?.length ? def.directions : (['left', 'right'] as const);
   const out: TrafficPass[] = [];
   for (let t = parseClock(def.hours[0]); t < parseClock(def.hours[1]); t += def.everyMinutes) {
     if (!rng.chance(def.chance)) continue;
     let roll = rng.next() * total;
     const vehicle = def.vehicles.find((v) => (roll -= v.weight ?? 1) < 0) ?? def.vehicles[def.vehicles.length - 1]!;
-    out.push({ vehicle: vehicle.id, at: t + rng.int(0, def.everyMinutes - 1), dir: rng.chance(0.5) ? 'left' : 'right' });
+    out.push({ vehicle: vehicle.id, at: t + rng.int(0, def.everyMinutes - 1), dir: dirs[rng.int(0, dirs.length - 1)]! });
   }
   return out;
 }
@@ -57,6 +60,7 @@ export function validateTraffic(def: TrafficDef | undefined, maps: ReadonlySet<s
   if (!maps.has(def.map)) errors.push(`world: traffic com mapa inexistente "${def.map}"`);
   if (!def.hours.every((h) => /^\d{1,2}:\d{2}$/.test(h))) errors.push('world: traffic.hours com hora inválida');
   if (!(def.everyMinutes > 0) || !(def.chance >= 0 && def.chance <= 1)) errors.push('world: traffic.everyMinutes > 0 e chance entre 0 e 1');
+  if (def.directions?.some((d) => d !== 'left' && d !== 'right')) errors.push('world: traffic.directions só aceita "left" e "right"');
   if (def.vehicles.length === 0) errors.push('world: traffic sem veículos');
   const ids = new Set<string>();
   for (const v of def.vehicles) {
