@@ -3589,6 +3589,32 @@
         "room": "room.backyard",
         "atLeast": "restored"
       }
+    },
+    {
+      "id": "item.yard_tree_medium",
+      "name": "Árvore média",
+      "price": 0,
+      "tile": "prop_arvore_media",
+      "seasonalTile": true,
+      "description": "Uma árvore do quintal (muda de cor com a estação).",
+      "tags": [
+        "furniture",
+        "tree"
+      ],
+      "room": "room.backyard"
+    },
+    {
+      "id": "item.yard_tree_medium_b",
+      "name": "Árvore média",
+      "price": 0,
+      "tile": "prop_arvore_media_b",
+      "seasonalTile": true,
+      "description": "Uma árvore do quintal (muda de cor com a estação).",
+      "tags": [
+        "furniture",
+        "tree"
+      ],
+      "room": "room.backyard"
     }
   ],
   "upgrades": {

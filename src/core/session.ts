@@ -316,8 +316,9 @@ export class GameSession {
       const tag = room.restore?.dirtTag;
       const heavy = (content.map.dirt ?? []).filter((d) => d.heavy && tag && d.tags.includes(tag));
       if (heavy.some((d) => state.cleaned.includes(d.id))) for (const d of heavy) if (!state.cleaned.includes(d.id)) state.cleaned.push(d.id);
-      // Reformado antes das peças da reforma (as árvores antigas): ganha agora, uma vez.
-      if (this.roomState(room.id) === 'restored') this.placeRestoreItems(room);
+      // Aberto (ou reformado) antes das peças do cômodo (as árvores do quintal): ganha agora, uma vez.
+      const rs = this.roomState(room.id);
+      if (rs === 'abandoned' || rs === 'restored') this.placeRoomItems(room);
     }
     // Planta sem dia (save antigo): conta de hoje.
     for (const p of state.placed) if (content.items[p.item]?.grows && p.plantedOn === undefined) p.plantedOn = state.day;
@@ -1681,6 +1682,7 @@ export class GameSession {
       if (d.requires?.item && d.consumesItem) this.removeFromInventory(d.requires.item);
     }
     this.state.rooms[roomId] = 'abandoned';
+    this.placeRoomItems(room);
     if (room.unlock?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.unlock.dialogue });
     this.bus.emit('room.opened', { roomId });
     this.advanceStory();
@@ -1761,20 +1763,20 @@ export class GameSession {
 
   private markRestored(room: RoomDef): void {
     this.state.rooms[room.id] = 'restored';
-    this.placeRestoreItems(room);
+    this.placeRoomItems(room);
     if (room.restore?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.restore.dialogue });
     this.bus.emit('room.restored', { roomId: room.id });
   }
 
   /**
-   * As peças que vêm com a reforma (restore.placeItems: as árvores antigas do quintal), uma vez só (marca
+   * As peças que já estão no cômodo quando ele abre (placeItems: as árvores do quintal), uma vez só (marca
    * `placed.<cômodo>`; se ela remover, não voltam).
    */
-  private placeRestoreItems(room: RoomDef): void {
+  private placeRoomItems(room: RoomDef): void {
     const flag = `placed.${room.id}`;
-    if (this.state.flags[flag] || !room.restore?.placeItems?.length) return;
+    if (this.state.flags[flag] || !room.placeItems?.length) return;
     this.state.flags[flag] = true;
-    for (const p of room.restore.placeItems) {
+    for (const p of room.placeItems) {
       if (!this.content.items[p.item]) continue;
       this.state.placed.push({ uid: `p${this.state.nextUid++}`, item: p.item, at: [p.at[0], p.at[1]] });
     }

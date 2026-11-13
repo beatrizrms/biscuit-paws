@@ -56,8 +56,9 @@ export interface RoomDef {
   /** Limpeza pesada do Tião (opcional, antes da reforma): tira a sujeira `heavy` do cômodo (a da tag de restore.dirtTag). */
   clear?: { cost?: number; label?: string; builder?: RoomBuilderWork };
   /** Restaurar (abandoned -> restored): limpar a sujeira com esta tag e pagar a obra; ou sozinho quando `when` valer. */
-  /** placeItems: peças que aparecem posicionadas quando a reforma termina (as árvores antigas do quintal: dá para remover). */
-  restore?: { cost?: number; dirtTag?: string; when?: Condition; label?: string; dialogue?: string; builder?: RoomBuilderWork; placeItems?: { item: string; at: Cell }[] };
+  restore?: { cost?: number; dirtTag?: string; when?: Condition; label?: string; dialogue?: string; builder?: RoomBuilderWork };
+  /** Peças que já estão no cômodo quando ele abre (as árvores do quintal, espalhadas; dá para remover). */
+  placeItems?: { item: string; at: Cell }[];
   /** Roteiro da primeira vez que ela entra no cômodo aberto e ainda com sujeira pesada (o susto no quintal). */
   firstLook?: string;
   /** Quantos gatos moram aqui; clientes: só informação (o atendimento não tem teto fixo). */
