@@ -34,6 +34,8 @@
     "S": "parque_v3_ppgp",
     "U": "parque_v3_pggg",
     "V": "parque_v3_gpgg",
+    "W": "parque_v3_pppg",
+    "X": "parque_v2_pggg",
     "T": "parque_sebe_topo"
   },
   "layers": {
@@ -52,8 +54,8 @@
       "AAAAAAAAAIDDDDDDDDDDDHAAAAAAAA",
       "AAAAAAAAAIDDDDDDDDDDDJAAAAAAAA",
       "AAAAAAAAARSDDDDDDDDDQUAAAAAAAA",
-      "AAAAAAAAAAVOONNOOONNUAAAAAAAAA",
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAVOOSDDDWOOXAAAAAAAAA",
+      "AAAAAAAAAAAAAIDDDHAAAAAAAAAAAA"
     ],
     "walls": [
       "..............................",
@@ -90,7 +92,6 @@
     {"id":"obj.praca_flor_3","tile":"yard_vaso_baixo_flores","at":[10,12],"overlay":"snow_yard_vaso_baixo_flores"},
     {"id":"obj.praca_flor_4","tile":"yard_vaso_baixo_flores","at":[20,12],"overlay":"snow_yard_vaso_baixo_flores"},
     {"id":"obj.praca_canteiro_1","tile":"praca_canteiro","at":[14,3],"overlay":"snow_praca_canteiro"},
-    {"id":"obj.praca_canteiro_2","tile":"praca_canteiro","at":[14,12],"overlay":"snow_praca_canteiro"},
     {"id":"obj.praca_poste_1","tile":"prop_poste","at":[8,3],"overlay":"snow_praca_poste"},
     {"id":"obj.praca_poste_2","tile":"prop_poste","at":[21,3],"overlay":"snow_praca_poste"},
     {"id":"obj.praca_poste_3","tile":"prop_poste","at":[8,10],"overlay":"snow_praca_poste"},
@@ -114,7 +115,7 @@
     {"id":"obj.praca_arvore_16","tile":"prop_arvore_jovem_b","at":[7,9]},
     {"id":"obj.praca_arvore_17","tile":"prop_arvore_jovem_c","at":[2,15]},
     {"id":"obj.praca_arvore_18","tile":"prop_arvore_fina","at":[10,13]},
-    {"id":"obj.praca_arvore_19","tile":"prop_arvore_jovem_b","at":[12,15]},
+    {"id":"obj.praca_arvore_19","tile":"prop_arvore_jovem_b","at":[11,15]},
     {"id":"obj.praca_arvore_20","tile":"prop_arvore_media","at":[17,13]},
     {"id":"obj.praca_arvore_21","tile":"prop_arvore_jovem_c","at":[19,15]},
     {"id":"obj.praca_arvore_22","tile":"prop_arvore_fina","at":[20,13]},
@@ -132,9 +133,10 @@
     {"id":"obj.praca_arvore_13","tile":"prop_arvore_fina","at":[29,12]},
     {"id":"obj.praca_arvore_24","tile":"prop_arvore_jovem_b","at":[22,15]}
   ],
-  "spawn": { "player": [1,8] },
+  "spawn": { "player": [15,14] },
   "doors": [
-    {"id":"door.praca_street_a","at":[0,7],"to":"map.street","direction":"left","spawn":[41,9],"facing":"down"},
-    {"id":"door.praca_street_b","at":[0,8],"to":"map.street","direction":"left","spawn":[42,9],"facing":"down"}
+    {"id":"door.praca_street_a","at":[14,15],"to":"map.street","direction":"down","spawn":[41,9],"facing":"down"},
+    {"id":"door.praca_street_b","at":[15,15],"to":"map.street","direction":"down","spawn":[42,9],"facing":"down"},
+    {"id":"door.praca_street_c","at":[16,15],"to":"map.street","direction":"down","spawn":[42,9],"facing":"down"}
   ]
 }

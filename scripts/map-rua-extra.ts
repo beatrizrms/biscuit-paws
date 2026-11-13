@@ -72,6 +72,8 @@ function legendMaker() {
   // de cantos arredondados.
   const paved = (vx: number, vy: number) => {
     if (vy >= 7 && vy <= 9) return true;
+    // A entrada: o caminho de 3 tiles (colunas 14 a 16) que desce da praça calçada até a borda de baixo.
+    if (vx >= 14 && vx <= 17 && vy >= 13) return true;
     // 11 tiles de largura (colunas 10 a 20): o chafariz (3) fica no meio, na coluna 15.
     const inPlaza = vx >= 10 && vx <= 21 && vy >= 3 && vy <= 14;
     const corner = (vx === 10 || vx === 21) && (vy === 3 || vy === 14);
@@ -122,8 +124,8 @@ function legendMaker() {
       obj('ceu_c', 'yard_fundo_ceu_telhados', [12, 0]),
       obj('ceu_d', 'yard_fundo_ceu_telhados', [18, 0]),
       obj('ceu_e', 'yard_fundo_ceu_telhados', [24, 0]),
-      // A praça calçada: o chafariz no centro (coluna 15), bancos em volta com vasos de flores, canteiros no mesmo eixo e
-      // postes nos cantos.
+      // A praça calçada: o chafariz no centro (coluna 15), bancos em volta com vasos de flores, o canteiro atrás do chafariz
+      // (na frente fica livre: a entrada vem de baixo) e postes nos cantos.
       obj('chafariz', 'praca_chafariz', [14, 7]),
       obj('banco_1', 'prop_banco', [11, 4]),
       obj('banco_2', 'prop_banco', [18, 4]),
@@ -134,7 +136,6 @@ function legendMaker() {
       obj('flor_3', 'yard_vaso_baixo_flores', [10, 12]),
       obj('flor_4', 'yard_vaso_baixo_flores', [20, 12]),
       obj('canteiro_1', 'praca_canteiro', [14, 3]),
-      obj('canteiro_2', 'praca_canteiro', [14, 12]),
       obj('poste_1', 'prop_poste', [8, 3]),
       obj('poste_2', 'prop_poste', [21, 3]),
       obj('poste_3', 'prop_poste', [8, 10]),
@@ -161,7 +162,7 @@ function legendMaker() {
       obj('arvore_17', 'prop_arvore_jovem_c', [2, 15]),
       // Embaixo da praça calçada: uma fileira de árvores na grama.
       obj('arvore_18', 'prop_arvore_fina', [10, 13]),
-      obj('arvore_19', 'prop_arvore_jovem_b', [12, 15]),
+      obj('arvore_19', 'prop_arvore_jovem_b', [11, 15]),
       obj('arvore_20', 'prop_arvore_media', [17, 13]),
       obj('arvore_21', 'prop_arvore_jovem_c', [19, 15]),
       obj('arvore_22', 'prop_arvore_fina', [20, 13]),
@@ -186,12 +187,13 @@ function legendMaker() {
       { at: [9, 10.45], radius: 46, color: '#ffe2a0' },
       { at: [22, 10.45], radius: 46, color: '#ffe2a0' },
     ],
-    // Saída para a rua: as duas linhas do caminho, andando para a esquerda.
+    // Entrada e saída por baixo: o caminho da borda de baixo (colunas 14 a 16), andando para baixo, volta para a rua.
     doors: [
-      { id: 'door.praca_street_a', at: [0, 7], to: 'map.street', direction: 'left', spawn: [41, 9], facing: 'down' },
-      { id: 'door.praca_street_b', at: [0, 8], to: 'map.street', direction: 'left', spawn: [42, 9], facing: 'down' },
+      { id: 'door.praca_street_a', at: [14, 15], to: 'map.street', direction: 'down', spawn: [41, 9], facing: 'down' },
+      { id: 'door.praca_street_b', at: [15, 15], to: 'map.street', direction: 'down', spawn: [42, 9], facing: 'down' },
+      { id: 'door.praca_street_c', at: [16, 15], to: 'map.street', direction: 'down', spawn: [42, 9], facing: 'down' },
     ],
-    spawn: [1, 8],
+    spawn: [15, 14],
   });
 }
 
