@@ -35,7 +35,7 @@
       "name": "Dia do Gato",
       "idea": "dlg.fest_idea_cat_day",
       "unlockReputation": "rep.noticed",
-      "when": { "all": [{ "room": "room.backyard", "atLeast": "restored" }, { "fairCats": { "gte": 1 } }] },
+      "when": { "room": "room.backyard", "atLeast": "restored" },
       "date": { "season": "summer", "day": 8, "noticeDays": 3 },
       "cooldownDays": 60,
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
@@ -44,8 +44,6 @@
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" }
       ],
       "activities": [
-        { "point": "pt.fair_setup", "game": "fair_setup" },
-        { "point": "pt.fair_table", "game": "adoption" },
         { "point": "pt.costume_stage", "game": "costume" },
         { "point": "pt.photo_spot", "game": "photo" }
       ],
@@ -54,8 +52,6 @@
         "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café até o meio-dia.",
         "decor": "Enfeitar o quintal para a festa.",
         "activities": {
-          "fair_setup": "Montar a feira do Dia do Gato (os caixotes no quintal).",
-          "adoption": "A feira do Dia do Gato, na mesa do quintal.",
           "costume": "O desfile de fantasia do Dia do Gato (nos balões do quintal).",
           "photo": "A foto do Dia do Gato: na frente do forno do quintal."
         }

@@ -262,10 +262,7 @@ describe('festivais na sessão', () => {
     session.enter('map.street');
     expect(state.festivals.active).toBeNull(); // sem a reputação ainda
     const need = content.reputation.thresholds.find((t) => t.id === 'rep.noticed')!.at;
-    session.addReputation(need, 'teste');
-    expect(state.festivals.active).toBeNull(); // nenhum gato castrado para a feira: não começa
-    state.cats['cat.fair'] = { sheltered: true, name: 'Feira', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 70, hygiene: 70, repro: { status: 'neutered', known: 'neutered', sex: 'female', birthDay: -400, weightFactor: 1, earTipped: false, origin: 'shelter' } };
-    session.enter('map.cafe_main'); // a próxima conferida (a história anda)
+    session.addReputation(need, 'teste'); // sem feira de adoção no Dia do Gato: não precisa de gato para adotar
     expect(state.festivals.active).toMatchObject({ id: catDay.id, stage: 'scheduled', day: summer * per + day });
   });
 

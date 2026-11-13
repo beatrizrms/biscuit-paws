@@ -97,8 +97,8 @@ describe('concurso nos eventos', () => {
     expect(state.festivals.heldOn).toEqual({ id: def.id, day: state.day });
   });
 
-  it('o Dia do Gato: montagem, mesa, desfile e a foto', () => {
+  it('o Dia do Gato: só o desfile e a foto (a feira de adoção é um evento à parte)', () => {
     const catDay = content.festivals.find((f) => f.id === 'fest.cat_day')!;
-    expect(catDay.activities.map((a) => a.game)).toEqual(['fair_setup', 'adoption', 'costume', 'photo']);
+    expect(catDay.activities.map((a) => a.game)).toEqual(['costume', 'photo']);
   });
 });
