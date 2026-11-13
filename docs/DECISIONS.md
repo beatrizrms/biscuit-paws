@@ -953,3 +953,7 @@ Decisão: app SocialVilla no celular (`src/game/ui/SocialApp.ts`), quando ela co
 ## 232. O balão recolhe com ela embaixo; notas de dev com botão no debug (nov/2026)
 Pedido: quando ela vai para baixo do balão do subconsciente, ele recolhe e fica transparente (atrapalhava); um botão no debug para ligar e desligar as informações em vermelho do balão.
 Decisão: com o balão aberto e ela embaixo, ele recolhe (só o título) e fica transparente; a área dele aberto fica guardada, e ele volta a abrir quando ela sai dali (sem ficar abrindo e fechando na borda). Se ela abrir com um clique, vale o clique. No debug, Ferramentas > **notas no balão** esconde e mostra as `devNote` (em vermelho), lembrado no aparelho (`biscuit-paws:debug-dev-notes`).
+
+## 233. Selos viram Conquistas; cada receita nova é uma conquista (nov/2026)
+Pedido: tirar o nome "selos" e tratar tudo como "conquistas"; cada receita nova aparecer nas conquistas.
+Decisão: na tela, "selo" vira "conquista" (aba Conquistas do app Café em números, o aviso "Nova conquista!", a meta do balão "Próxima conquista"); os IDs `milestone.*` e o código continuam. A aba Conquistas ganha a seção Receitas no topo: cada receita aprendida, a mais nova primeiro, com o dia em que entrou, e quantas faltam descobrir. Save v42: `recipesOn` (o dia de cada receita; nos saves antigos, as já conhecidas aparecem sem o dia, no fim).
