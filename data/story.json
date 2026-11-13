@@ -852,19 +852,13 @@
             "festivalToday": "fest.adoption_fair"
           },
           {
+            "festivalMounted": true
+          },
+          {
             "location": "map.cafe_main"
           },
           {
-            "clock": {
-              "gte": "10:00"
-            }
-          },
-          {
-            "not": {
-              "clock": {
-                "gte": "17:00"
-              }
-            }
+            "playerRoom": "room.backyard"
           }
         ]
       },

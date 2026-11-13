@@ -1757,6 +1757,7 @@
       ]
     },
     "scr.jacque_meet": {
+      "here": true,
       "steps": [
         {
           "dialogue": "dlg.jacque_knock"
@@ -1765,24 +1766,30 @@
           "npcSpawn": "npc.jacque",
           "map": "map.cafe_main",
           "at": [
-            14,
-            10
+            42,
+            9
           ],
-          "facing": "up"
+          "facing": "left"
+        },
+        {
+          "playerWalk": [
+            37,
+            9
+          ]
+        },
+        {
+          "playerFace": "right"
         },
         {
           "npcWalk": "npc.jacque",
           "to": [
-            14,
-            6
+            38,
+            9
           ]
         },
         {
-          "npcWalk": "npc.jacque",
-          "to": [
-            12,
-            6
-          ]
+          "npcFace": "npc.jacque",
+          "facing": "left"
         },
         {
           "emote": "player",
@@ -1800,15 +1807,8 @@
         {
           "npcWalk": "npc.jacque",
           "to": [
-            14,
-            6
-          ]
-        },
-        {
-          "npcWalk": "npc.jacque",
-          "to": [
-            14,
-            10
+            42,
+            9
           ]
         },
         {

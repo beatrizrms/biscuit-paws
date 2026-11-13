@@ -5,6 +5,7 @@ import { validateWalks, type NeighborWalkDef } from './neighborWalks';
 import { validateStorage, type StorageDef } from './storage';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
+import { validateCrowd, type CrowdDef } from './festivalCrowd';
 import { validateFairSetup, type FairSetupData, type FairSetupParams } from './fairSetup';
 import { validateCostume, type CostumeData, type CostumeParams } from './costume';
 import { validatePhoto, type PhotoData, type PhotoParams } from './photo';
@@ -233,6 +234,8 @@ export type Condition =
   | { cats: { gte: number } }
   /** Hoje é o dia deste evento (data/festivals.json), em andamento ou já encerrado hoje. */
   | { festivalToday: string }
+  /** O evento de hoje já está montado no quintal (placa, decoração e a feira nos caixotes) ou já aconteceu. */
+  | { festivalMounted: true }
   /** Todos os gatos abrigados já castrados (ela sabe: passaram pela clínica) e sem doença (ex.: para ter a feira). */
   | { catsReady: true }
   /** Gatos que podem ir à feira de adoção (castrados, sem doença, fora da clínica, fora os da história). */
@@ -424,6 +427,8 @@ export interface Content {
   arrivals: ArrivalsData;
   /** Eventos de festival (data/festivals.json). */
   festivals: FestivalDef[];
+  /** A plateia dos eventos no quintal (data/festivals.json: crowd), ou null. */
+  festivalCrowd: CrowdDef | null;
   /** Montar a feira (data/fair_setup.json). */
   fairSetup: FairSetupData;
   /** Concurso de fantasia (data/costume.json). */
@@ -524,7 +529,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */
@@ -913,6 +918,7 @@ export function validateContent(raw: RawContent): string[] {
       seasons: new Set(raw.seasons.order),
     }),
   );
+  errors.push(...validateCrowd(raw.festivals.crowd, new Set(raw.npcs.npcs.map((n) => n.id))));
   errors.push(...validateFairSetup(raw.fairSetup, raw.minigames.games.fair_setup?.difficulties as Record<string, FairSetupParams> | undefined, raw.catalog.tiles));
   errors.push(
     ...validateCostume(

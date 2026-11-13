@@ -81,7 +81,7 @@ describe('passeios de vizinhos na rua', () => {
 });
 
 describe('a Jacque chega na primeira feira de adoção', () => {
-  it('no dia da feira, com ela no café: o roteiro de apresentação e a marca de que já se conhecem', () => {
+  it('no dia da feira, no quintal, depois de tudo montado: o roteiro de apresentação e a marca de que já se conhecem', () => {
     const state = newGameState(500, 'map.cafe_main', 11 * 60);
     state.day = 40;
     state.story.completed.push(...content.story.beats.map((b) => b.id).filter((id) => id !== 'story.jacque_meet'));
@@ -90,7 +90,17 @@ describe('a Jacque chega na primeira feira de adoção', () => {
     session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
     session.enter('map.cafe_main');
     expect(scripts).not.toContain('scr.jacque_meet'); // sem feira hoje
-    state.festivals.active = { id: 'fest.adoption_fair', stage: 'scheduled', day: 40, done: [], results: [] };
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    state.festivals.active = { id: fair.id, stage: 'scheduled', day: 40, done: [], results: [] };
+    session.setPlayerCell([34, 8]); // no quintal
+    session.enter('map.cafe_main');
+    expect(scripts).not.toContain('scr.jacque_meet'); // a feira ainda não está montada
+    const setup = fair.activities.filter((a) => a.game === 'fair_setup').map((a) => a.point);
+    state.festivals.active.done.push(fair.closePoint!.point, ...fair.decorations!.map((d) => d.point), ...setup);
+    session.setPlayerCell([10, 8]); // no salão: ainda não
+    session.enter('map.cafe_main');
+    expect(scripts).not.toContain('scr.jacque_meet');
+    session.setPlayerCell([34, 8]);
     session.enter('map.cafe_main');
     expect(scripts).toContain('scr.jacque_meet');
     expect(state.flags['met.jacque']).toBe(true);

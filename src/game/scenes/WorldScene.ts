@@ -107,6 +107,11 @@ const DIRT_FADE_EVERY_MS = 150;
 /** Vizinho passeando: o balãozinho sai quando ele passa a até tantas células dela e fica tanto tempo (ms). */
 const NEIGHBOR_BARK_CELLS = 3;
 const NEIGHBOR_BARK_MS = 3200;
+/** Plateia dos eventos: a cada quanto tempo alguém de um grupinho fala, e quanto o balão fica. */
+const CROWD_TALK_EVERY_MS = 2400;
+const CROWD_TALK_MS = 2200;
+/** Quem passeia na plateia para um pouco em cada ponto. */
+const CROWD_PAUSE_MS = 1400;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
 const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
@@ -174,6 +179,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private neighborWalksCheckedAt = -Infinity;
   /** Quem já soltou o balãozinho neste passeio (uma vez por passeio, quando passa perto dela). */
   private readonly walkBarked = new Set<string>();
+  /** A plateia do evento no quintal (session.festivalCrowd): quem está aqui, e a vez da conversa. */
+  private readonly crowd = new Set<string>();
+  private crowdGroups: string[][] = [];
+  private crowdCheckedAt = -Infinity;
+  private crowdTalkAt = 0;
+  private crowdTurn = 0;
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
   private repairNpcs = new Map<string, NpcSprite>();
   /** "!" em cima de cada equipamento quebrado. */
@@ -595,6 +606,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         };
     this.updateTouchPlacing(busy);
     this.updateNeighborWalks();
+    this.updateCrowd();
     touch.setHidden(this.ui.isPanelOpen() || this.ui.isCatalogOpen() || this.ui.paused);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
@@ -666,6 +678,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.npcs.clear();
     this.neighborWalks.forEach((f) => f.destroy());
     this.neighborWalks.clear();
+    this.crowd.clear();
+    this.crowdGroups = [];
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -1954,6 +1968,68 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const labels = [...options.map((id) => s.content.items[id]?.name ?? id), t.giveNone];
     void this.ui.choose(t.giveAsk.replace('{name}', name), labels).then((i) => s.secretSantaExchange(i < options.length ? options[i]! : null));
     return true;
+  }
+
+  // ---------- Plateia dos eventos no quintal ----------
+
+  /**
+   * No dia do evento (session.festivalCrowd): a plateia aparece no quintal (grupinhos parados, virados uns para os
+   * outros, e alguns passeando) e some quando vai embora. De tempos em tempos alguém de um grupinho fala (um balão).
+   */
+  private updateCrowd(): void {
+    if (this.changingMap || this.scripts.isRunning()) return;
+    if (this.time.now - this.crowdCheckedAt >= 500) {
+      this.crowdCheckedAt = this.time.now;
+      const layout = this.session.festivalCrowd(this.map.id);
+      if (layout && this.crowd.size === 0) this.spawnCrowd(layout);
+      else if (!layout && this.crowd.size > 0) this.clearCrowd();
+    }
+    if (this.crowdGroups.length === 0 || this.ui.isBusy() || this.time.now < this.crowdTalkAt) return;
+    this.crowdTalkAt = this.time.now + CROWD_TALK_EVERY_MS;
+    const lines = this.session.content.festivalCrowd?.lines ?? [];
+    const group = this.crowdGroups[this.crowdTurn % this.crowdGroups.length]!;
+    const speaker = this.npcs.get(group[Math.floor(this.crowdTurn / this.crowdGroups.length) % group.length]!);
+    const line = lines[this.crowdTurn % Math.max(1, lines.length)];
+    this.crowdTurn++;
+    if (speaker?.active && line) this.speechBubble(speaker, line, CROWD_TALK_MS);
+  }
+
+  private spawnCrowd(layout: NonNullable<ReturnType<GameSession['festivalCrowd']>>): void {
+    this.crowdGroups = layout.groups.map((g) => g.map((m) => m.npc));
+    for (const group of layout.groups) {
+      for (const m of group) {
+        if (this.npcs.has(m.npc)) continue;
+        this.spawnNpc(m.npc, m.at, m.facing);
+        this.crowd.add(m.npc);
+      }
+    }
+    for (const w of layout.walkers) {
+      if (this.npcs.has(w.npc)) continue;
+      this.spawnNpc(w.npc, w.path[0]!, 'down');
+      this.crowd.add(w.npc);
+      void this.crowdWander(w.npc, w.path);
+    }
+  }
+
+  /** Quem passeia vai de um ponto a outro, para um pouco em cada um e recomeça, enquanto a plateia estiver aqui. */
+  private async crowdWander(id: string, path: Cell[]): Promise<void> {
+    for (let i = 1; this.crowd.has(id); i++) {
+      const npc = this.npcs.get(id);
+      if (!npc?.active) return;
+      await this.npcWalk(id, path[i % path.length]!);
+      if (!npc.active) return;
+      npc.face('down');
+      await new Promise<void>((done) => this.time.delayedCall(CROWD_PAUSE_MS, done));
+    }
+  }
+
+  private clearCrowd(): void {
+    for (const id of this.crowd) {
+      this.npcs.get(id)?.destroy();
+      this.npcs.delete(id);
+    }
+    this.crowd.clear();
+    this.crowdGroups = [];
   }
 
   // ---------- Vizinhos passeando na rua ----------

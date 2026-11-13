@@ -5,6 +5,7 @@
 // reputação. Se o dia passa sem acabar, volta ao começo. Um intervalo mínimo separa duas edições do mesmo evento.
 // Puro: sem Phaser, DOM ou window. Os pontos são pontos de pedido (data/jobs.json); a sessão junta.
 import type { ContestOutcome, FairSetupOutcome, Outcome, PhotoOutcome } from './minigame';
+import type { CrowdDef } from './festivalCrowd';
 import { parseClock } from './time';
 
 export interface FestivalDef {
@@ -40,6 +41,8 @@ export interface FestivalDef {
 export interface FestivalsData {
   schemaVersion: 1;
   festivals: FestivalDef[];
+  /** A plateia no quintal nos dias de evento (src/core/festivalCrowd.ts). */
+  crowd?: CrowdDef;
 }
 
 export interface ActivityResult {

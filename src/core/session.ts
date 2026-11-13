@@ -41,7 +41,8 @@ import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
 import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
-import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
+import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
+import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
 import {
@@ -3540,6 +3541,43 @@ export class GameSession {
     return id ? this.content.festivals.find((f) => f.id === id) : undefined;
   }
 
+  /** A plateia do dia (o sorteio é o mesmo o dia inteiro; não vai para o save). */
+  private crowdOfDay: { day: number; layout: CrowdLayout } | null = null;
+
+  /**
+   * A plateia no quintal agora (data/festivals.json: crowd): no dia do evento, depois de tudo montado (a placa na
+   * porta, a decoração e, se o evento tiver, a feira montada nos caixotes), ou com o evento já acontecido hoje; no mapa
+   * do café, até crowd.until. Grupinhos parados conversando e alguns passeando; ninguém em cima dos pontos do evento
+   * nem da porta. null fora disso.
+   */
+  festivalCrowd(mapId = this.state.location): CrowdLayout | null {
+    const def = this.content.festivalCrowd;
+    if (!def || mapId !== this.content.map.id || !crowdStays(def, this.state.time)) return null;
+    if (!this.festivalMounted()) return null;
+    if (this.crowdOfDay?.day === this.state.day) return this.crowdOfDay.layout;
+    const area = this.content.rooms.rooms.find((r) => r.id === 'room.backyard')?.area;
+    if (!area) return null;
+    const map = this.mapData(mapId);
+    const solid = solidGrid(map, this.content.catalog);
+    const fest = this.content.festivals.flatMap((f) => [f.closePoint?.point, ...(f.decorations ?? []).map((d) => d.point), ...f.activities.map((a) => a.point)]);
+    const avoid: Cell[] = [...fest.flatMap((id) => (id && this.content.jobPoints[id] ? [this.content.jobPoints[id]!.at] : [])), ...(map.doors ?? []).map((d) => d.at), map.spawn.player];
+    const friends = (def.friends ?? []).filter((f) => !f.when || this.holds(f.when as Condition)).map((f) => f.npc);
+    const layout = crowdLayout(def, area, (c, r) => solid[r]?.[c] === false, avoid, createRng(this.state.day * 7919 + 17), friends);
+    this.crowdOfDay = { day: this.state.day, layout };
+    return layout;
+  }
+
+  /** Hoje o evento já está montado: placa, decoração e a feira nos caixotes (fair_setup) feitas; ou ele já aconteceu hoje. */
+  private festivalMounted(): boolean {
+    const f = this.state.festivals;
+    if (f.heldOn?.day === this.state.day) return true;
+    const a = f.active;
+    const def = this.activeFestival();
+    if (!a || !def || !isFestivalDay(f, this.state.day)) return false;
+    const needed = [def.closePoint?.point, ...(def.decorations ?? []).map((d) => d.point), ...def.activities.filter((x) => x.game === 'fair_setup').map((x) => x.point)];
+    return needed.every((id) => !id || a.done.includes(id));
+  }
+
   /** O dia em que o lembrete da placa já veio, e o dia em que o evento foi perdido pelo prazo (não recomeça no mesmo dia). */
   private festivalRemindedOn = 0;
   private festivalMissedOn = 0;
@@ -4087,6 +4125,7 @@ export class GameSession {
       santaGuest: (npc) => this.santaGuests().includes(npc),
       halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
       fairCats: () => this.fairCatIds().length,
+      festivalMounted: () => this.festivalMounted(),
       playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };
   }
