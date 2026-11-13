@@ -16,6 +16,7 @@ import { Player } from '../entities/Player';
 import { CatSprite, catScale, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
 import { findPath, pathCorners } from '../../core/path';
+import { pickETarget, type ECandidate } from '../../core/eTarget';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
@@ -93,6 +94,12 @@ type HintKind = keyof typeof uiText.hints;
  * saem do mesmo plano (planE), então o balão nunca diz uma coisa com o E fazendo outra.
  */
 type EPlan = { hint: { x: number; y: number; kind: HintKind } | null; run: () => boolean };
+
+/**
+ * Desempate do E entre coisas igualmente na frente dela (src/core/eTarget.ts): menor vence. A frente dela e a
+ * ferramenta na mão vêm antes disto; o que é estado (entregar ao cliente, soltar o saco, levantar) vem antes de tudo.
+ */
+const E_TIER = { parcels: 1, catSettling: 2, service: 3, pen: 3, cat: 4, interaction: 4, dirt: 5, job: 5, bowl: 5, bowlEmpty: 8, seat: 9, putDown: 9 } as const;
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'run', Phaser.Input.Keyboard.Key>;
 
@@ -1806,19 +1813,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    */
   private planE(): EPlan | null {
     const s = this.session;
-    const st = s.state;
     const ts = this.map.tileSize;
     const feet = this.playerCells();
     const plan = (hint: EPlan['hint'], run: () => boolean): EPlan => ({ hint, run });
-    // Com a vassoura na mão, a sujeira para onde ela está olhando vem antes de tudo (armário, pia, gato do lado).
-    const facingDirt = this.dirtAhead();
-    if (facingDirt) return plan(this.hintFloor(facingDirt.at, 'dirt'), () => this.sweepDirt(facingDirt));
-    // O Tião trabalhando ali do lado: conversar diz quantos dias faltam para terminar a obra.
+    // Antes de tudo: o Tião na obra, os convidados e vizinhos, as caixas da entrega na porta ou nas mãos.
     if (s.builderNear(feet)) {
       const at = s.builderAt(s.location())!.at;
       return plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
     }
-    // Convidados e vizinhos: na ceia ou no Halloween, a hora do presente; na festa, conversar; quem passeia, a fala do dia.
     const guest = this.santaGuestNear();
     if (guest) {
       const [npc, sprite] = guest;
@@ -1831,64 +1833,112 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (chat) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat());
       if (this.neighborWalks.has(npc) && s.neighborHasChat(npc)) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
     }
-    // A caixa da entrega: na porta, pega todas; carregando, solta na frente; no chão do café, abrir ou carregar.
     const parcels = s.parcelsNear(feet);
     if (parcels === 'door') return plan(this.hintCell(s.content.delivery.door.at, 'parcels_door'), () => this.parcelInteract());
     if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
-    if (parcels === 'inside') return plan(this.hintCell(s.floorBoxNear(feet)!.at, 'parcels_inside'), () => this.parcelInteract());
-    // O gato solto bem na frente dela (com a ração ou a areia na mão e o pote pronto, o pote vem antes). Vem antes do
-    // cercadinho do lado: o gato do cercadinho não conta aqui.
-    const front = this.catAhead();
-    const frontKind = front && !this.handStationReady() ? this.catHint(front) : null;
-    if (front && frontKind) return plan(this.hintCat(front, frontKind), () => this.catAct(front));
-    // O cercadinho (ou a caixinha) ao alcance: a latinha, ou pegar o gato.
-    const pen = this.penChoice();
-    if (pen) return plan(pen.hint, () => this.penDo(pen));
-    // Olhando para uma interação do mapa (a janela, uma plaquinha) até o alcance dela: ela vence o atendimento em volta
-    // (equipamento, despensa, pia) e os pontos de pedido do lado, menos um equipamento bem na frente dela.
-    const lookingAt = s.atHome() && !this.stationAhead(feet) ? this.interactionAhead(feet) : undefined;
-    if (lookingAt) return plan(this.hintCell(lookingAt.at, this.intKind(lookingAt)), () => this.useInteraction(lookingAt));
-    // O atendimento do café (cliente, pia, equipamentos, despensa, vitrine, soltar o que está na mão).
-    if (s.atHome()) {
-      const service = this.servicePlan();
-      if (service) return service;
-    }
-    // Com a vassoura na mão, a sujeira do lado vem antes dos pontos de pedido (a decoração da feira). Sem a vassoura, o E
-    // segue para o resto: num café sujo, a sujeira não pode tomar o E de tudo.
-    const dirt = s.atHome() && s.activeItem() === s.content.world.tools.sweep ? s.dirtNear(feet) : undefined;
-    if (dirt) return plan(this.hintFloor(dirt.at, 'dirt'), () => this.sweepDirt(dirt));
-    const point = s.jobPointNear(feet);
-    if (point) return plan(this.hintCell(point.at, 'job'), () => this.useJobPoint(point));
-    const it = s.interactionAt(feet);
-    if (it) return plan(this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
-    // A tigela ou a caixa de areia com a ração/areia ativa na barra: o pote (ou o porquê de não dar: cheia, já comeram).
-    const { bowl, box } = this.stationForHand(feet);
-    const supply = bowl ? s.supplyFor('food_bowl') : box ? s.supplyFor('litter_box') : undefined;
-    const station = bowl ?? box;
-    const stationHint = () => {
-      const at = st.placed.find((p) => p.uid === station)!.at;
-      if (bowl) return s.feedProblem(bowl) ? null : this.hintFloor(at, 'bowl');
-      return s.litterProblem(box!) ? null : this.hintFloor(at, 'litter');
-    };
-    if (station && supply) return plan(stationHint(), () => this.useBowlOrBox(bowl, box));
-    // Um gato do café do lado (o que está chegando primeiro: ganhar confiança), sem a ração na mão: o gato vence o pote.
-    const cat = s.atHome() ? this.catNear() : undefined;
-    const catKind = cat ? this.catHint(cat) : null;
-    if (cat && catKind) return plan(this.hintCat(cat, catKind), () => this.catAct(cat));
-    // O pote sem a ração na mão: diz o que falta.
-    if (station) return plan(null, () => this.useBowlOrBox(bowl, box));
-    // Sofá ou cadeira: senta (sentada, o E levanta).
-    if (s.resting() || s.seatNear(feet)) return plan(null, () => this.tryRest());
-    return null;
+    // O resto (sujeira, equipamento, gato, pote, janela, ponto de pedido...): uma regra só, em src/core/eTarget.ts. O que
+    // está bem na frente dela vence; no empate, o que combina com a ferramenta na mão; depois o tipo; depois o mais perto.
+    return pickETarget(this.eCandidates(), feet, this.feetCell(), this.player.facingDirection());
   }
 
-  /** O gato do café ao lado dela (fora do cercadinho): o que está chegando (ganhar confiança) primeiro. */
-  private catNear(): CatSprite | undefined {
+  /**
+   * Tudo o que o E poderia fazer agora ao alcance dela, com as células de cada coisa e o tipo (E_TIER). Coisa nova no
+   * E entra aqui (e em interact, para o clique).
+   */
+  private eCandidates(): ECandidate<EPlan>[] {
+    const s = this.session;
     const feet = this.playerCells();
-    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
-    const cats = this.cats.filter((c) => c.visible && !this.clinicHeld.has(c.catId) && near(c.cell()));
-    return cats.find((c) => this.session.catSettling(c.catId)) ?? cats[0];
+    const out: ECandidate<EPlan>[] = [];
+    const add = (cells: readonly Cell[], tier: number, hint: EPlan['hint'], run: () => boolean, extra: { tool?: boolean; sticky?: boolean; weak?: boolean } = {}) => {
+      out.push({ cells, tier, ...extra, value: { hint, run } });
+    };
+    // As caixas da entrega no chão do café: abrir ou carregar.
+    if (s.parcelsNear(feet) === 'inside') {
+      const box = s.floorBoxNear(feet)!;
+      add([box.at], E_TIER.parcels, this.hintCell(box.at, 'parcels_inside'), () => this.parcelInteract());
+    }
+    // O atendimento do café (cliente, pia, lava-louças, despensa, caixa pet, equipamentos, vitrine, balcão).
+    if (s.atHome()) out.push(...this.serviceCandidates());
+    // Com a ração ou a areia na mão e o pote pronto, o pote é o óbvio: os gatos em volta dele não tomam o E.
+    const handReady = this.handStationReady();
+    // Os gatos do café ao lado dela (fora do cercadinho): o que está chegando (confiança) antes dos outros.
+    if (s.atHome() && !handReady) {
+      const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+      for (const cat of this.cats) {
+        if (!cat.visible || this.clinicHeld.has(cat.catId) || !near(cat.cell())) continue;
+        const kind = this.catHint(cat);
+        if (kind) add([cat.cell()], s.catSettling(cat.catId) ? E_TIER.catSettling : E_TIER.cat, this.hintCat(cat, kind), () => this.catAct(cat));
+      }
+    }
+    // O cercadinho (ou a caixinha): a latinha (ferramenta na mão), ou pegar o gato.
+    const pen = this.penChoice();
+    if (pen) add(this.penCells(pen), E_TIER.pen, pen.hint, () => this.penDo(pen), { tool: pen.act === 'feed', weak: pen.act === 'nobody' });
+    // Interação do mapa (a janela, uma plaquinha): a célula dela e a peça inteira (a janela, na cortina).
+    const it = s.interactionAt(feet);
+    if (it) add(this.interactionCells(it), E_TIER.interaction, this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
+    // A sujeira, com a vassoura na mão: toda a que dá para varrer daqui. Sem a vassoura, ela não toma o E de nada.
+    if (s.atHome() && s.activeItem() === s.content.world.tools.sweep) {
+      const { catalog } = s.content;
+      for (const d of s.visibleDirt()) {
+        const def = catalog.tiles[d.tile];
+        if (!def || d.clearedBy || d.heavy || s.cleanProblem(d.id, feet) !== null) continue;
+        add(cellsOf(d.at, def), E_TIER.dirt, this.hintFloor(d.at, 'dirt'), () => this.sweepDirt(d), { tool: true });
+      }
+    }
+    // Ponto de pedido (a decoração da feira, um mini game).
+    const point = s.jobPointNear(feet);
+    if (point) add([point.at], E_TIER.job, this.hintCell(point.at, 'job'), () => this.useJobPoint(point));
+    // A tigela ou a caixa de areia: com a ração/areia ativa na barra, encher (ou o porquê de não dar); sem, diz o que falta.
+    const { bowl, box: litter } = this.stationForHand(feet);
+    const station = bowl ?? litter;
+    if (station) {
+      const supply = bowl ? s.supplyFor('food_bowl') : s.supplyFor('litter_box');
+      const at = s.state.placed.find((x) => x.uid === station)!.at;
+      const hint = !supply ? null : bowl ? (s.feedProblem(bowl) ? null : this.hintFloor(at, 'bowl')) : s.litterProblem(litter!) ? null : this.hintFloor(at, 'litter');
+      // Sem a ração/areia na mão (ou já cheio): só diz o que falta, e perde de qualquer ação de verdade em volta.
+      add(this.placedCells(station), supply ? E_TIER.bowl : E_TIER.bowlEmpty, hint, () => this.useBowlOrBox(bowl, litter), { tool: !!supply && !!hint, weak: !hint });
+    }
+    // Sofá ou cadeira: senta. Sentada, o E levanta (antes de tudo).
+    if (s.resting()) add([], 0, null, () => this.tryRest(), { sticky: true });
+    else {
+      const seat = s.seatNear(feet);
+      if (seat) add(this.placedCells(seat), E_TIER.seat, null, () => this.tryRest());
+    }
+    return out;
   }
+
+  /** As células de uma peça posicionada (pelo uid). */
+  private placedCells(uid: string): Cell[] {
+    const s = this.session;
+    const p = s.state.placed.find((x) => x.uid === uid);
+    if (!p) return [];
+    const def = s.content.catalog.tiles[s.content.items[p.item]?.tile ?? ''];
+    return def ? cellsOf(p.at, def) : [p.at];
+  }
+
+  /** As células de uma interação do mapa: o ponto dela e, na cortina, a janela inteira. */
+  private interactionCells(it: MapInteraction): Cell[] {
+    const { tiles } = this.session.content.catalog;
+    const obj = 'curtain' in it.action ? this.map.sprites.find((x) => x.obj === (it.action as { curtain: string }).curtain) : undefined;
+    const objDef = obj ? tiles[obj.tile] : undefined;
+    const placedObj = obj && objDef ? this.session.mapData().objects.find((o) => o.id === obj.obj) : undefined;
+    return [it.at, ...(placedObj && objDef ? cellsOf(placedObj.at, objDef) : [])];
+  }
+
+  /** As células do cercadinho (3x2) ou da caixinha escolhida. */
+  private penCells(pen: { where: string; boxCat?: string }): Cell[] {
+    const ts = this.map.tileSize;
+    if (pen.where === 'box') {
+      const img = pen.boxCat ? this.isoBoxes.get(pen.boxCat) : undefined;
+      return img ? [[Math.floor(img.x / ts), Math.floor((img.y - 1) / ts)]] : [];
+    }
+    const p = this.placedPens().find((x) => x.uid === pen.where);
+    if (!p) return [];
+    const cells: Cell[] = [];
+    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 3; dx++) cells.push([p.at[0] + dx, p.at[1] + dy]);
+    return cells;
+  }
+
 
   /** O E neste gato: confiança (o que chegou), cuidado na mão, remédio ou petisco, colo (a mesma ordem do catHint). */
   private catAct(cat: CatSprite): boolean {
@@ -2007,25 +2057,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
-  /**
-   * Com a vassoura na mão, a sujeira para onde ela está olhando e ao alcance da vassoura (a mais perto), ou nada.
-   * Olhando para cima, vale a parede de cima (a teia no canto).
-   */
-  private dirtAhead(): DirtSpot | undefined {
-    const s = this.session;
-    if (!s.atHome() || s.activeItem() !== s.content.world.tools.sweep) return undefined;
-    const [fc, fr] = this.feetCell();
-    const dir = this.player.facingDirection();
-    const inFront = ([c, r]: Cell) =>
-      dir === 'up' ? r < fr && Math.abs(c - fc) <= 1 : dir === 'down' ? r > fr && Math.abs(c - fc) <= 1 : dir === 'left' ? c < fc && Math.abs(r - fr) <= 1 : c > fc && Math.abs(r - fr) <= 1;
-    const { catalog } = s.content;
-    const feet = this.playerCells();
-    const dist = (d: DirtSpot) => Math.min(...cellsOf(d.at, catalog.tiles[d.tile]!).map(([c, r]) => Math.abs(c - fc) + Math.abs(r - fr)));
-    return s
-      .visibleDirt()
-      .filter((d) => !d.clearedBy && !d.heavy && catalog.tiles[d.tile] && cellsOf(d.at, catalog.tiles[d.tile]!).some(inFront) && s.cleanProblem(d.id, feet) === null)
-      .sort((a, b) => dist(a) - dist(b))[0];
-  }
 
   /** Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa: a dica do planE. null: sem dica. */
   private eTarget(): { x: number; y: number; kind: HintKind } | null {
@@ -2614,18 +2645,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
   }
 
-  /** O gato bem na frente dela (na célula para onde ela olha, ou nos pés), no café. */
-  private catAhead(): CatSprite | undefined {
-    if (!this.session.atHome()) return undefined;
-    const [fc, fr] = this.facingCell();
-    const feet = this.playerCells();
-    return this.cats.find((c) => {
-      // No cercadinho (isolado) não conta: lá o E vai no cercadinho.
-      if (!c.visible || this.clinicHeld.has(c.catId)) return false;
-      const [cc, cr] = c.cell();
-      return (cc === fc && cr === fr) || feet.some((f) => f[0] === cc && f[1] === cr);
-    });
-  }
 
   /** Com a ração ou a areia na mão e o pote/caixa de areia ao alcance (e dá para usar): o óbvio é o pote. */
   private handStationReady(): boolean {
@@ -2984,24 +3003,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return dist(box) < dist(bowl) ? { box } : { bowl };
   }
 
-  /**
-   * Interação do mapa (janela, plaquinha...) na direção em que ela olha, até o alcance dela: as células à frente
-   * batem com o ponto da interação ou com a peça que ela usa (a janela inteira, para a cortina).
-   */
-  private interactionAhead(feet: readonly Cell[]): MapInteraction | undefined {
-    const it = this.session.interactionAt(feet);
-    if (!it) return undefined;
-    const { tiles } = this.session.content.catalog;
-    const obj = 'curtain' in it.action ? this.map.sprites.find((x) => x.obj === (it.action as { curtain: string }).curtain) : undefined;
-    const objDef = obj ? tiles[obj.tile] : undefined;
-    const placedObj = obj && objDef ? this.session.mapData().objects.find((o) => o.id === obj.obj) : undefined;
-    const cells: Cell[] = [it.at, ...(placedObj && objDef ? cellsOf(placedObj.at, objDef) : [])];
-    const [c, r] = this.feetCell();
-    const d = this.player.facingDirection();
-    const [dx, dy] = d === 'up' ? [0, -1] : d === 'down' ? [0, 1] : d === 'left' ? [-1, 0] : [1, 0];
-    for (let k = 1; k <= (it.reach ?? 1); k++) if (cells.some(([x, y]) => x === c + dx * k && y === r + dy * k)) return it;
-    return undefined;
-  }
 
   /** Perto do Tião trabalhando (ou clicou nele): ele diz quantos dias faltam (hoje, amanhã ou N dias). */
   private talkToBuilder(target?: Cell): boolean {
@@ -3026,8 +3027,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return this.servicePlan(target)?.run() ?? false;
   }
 
-  /** O plano do atendimento (a dica e a ação, na ordem do E), ou null: nada do atendimento ao alcance. */
+  /** O clique no atendimento: o primeiro do que vale na célula clicada (a ordem da lista). */
   private servicePlan(target?: Cell): EPlan | null {
+    return this.serviceCandidates(target)[0]?.value ?? null;
+  }
+
+  /**
+   * O atendimento do café ao alcance (`target`: só o clicado), com as células e o tipo de cada coisa: entregar ao
+   * cliente, pia, lava-louças, despensa, caixa pet, o que está nas mãos, equipamento, vitrine, pegar e soltar. No E,
+   * quem decide é pickETarget (o que está na frente dela); no clique, vale a ordem desta lista.
+   */
+  private serviceCandidates(target?: Cell): ECandidate<EPlan>[] {
+    const out: ECandidate<EPlan>[] = [];
     const sv = this.session.service;
     const st = this.session.state;
     const feet = this.playerCells();
@@ -3035,84 +3046,98 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!r.ok) this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
       return true;
     };
-    const plan = (hint: EPlan['hint'], run: () => boolean): EPlan => ({ hint, run });
+    // Sem dica (o conserto já a caminho, a vitrine vazia): só explica, e perde de qualquer ação de verdade (soltar no balcão não).
+    const add = (cells: readonly Cell[], tier: number, hint: EPlan['hint'], run: () => boolean, sticky = false) => {
+      out.push({ cells, tier, sticky, weak: !hint && !sticky && tier !== E_TIER.putDown, value: { hint, run } });
+    };
     const placedAt = (uid: string) => st.placed.find((p) => p.uid === uid)!.at;
     const customer = sv.customerToServe(feet);
-    if (customer && !target) return plan(this.hintCell(customer.spot, 'customer'), () => report(sv.serve(customer.id)));
+    // Com o pedido na mão e o cliente ao alcance, entregar vence tudo em volta.
+    if (customer && !target) add([customer.spot], E_TIER.service, this.hintCell(customer.spot, 'customer'), () => report(sv.serve(customer.id)), true);
     // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
     const sink = sv.sinkCell();
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
       const act = sv.sinkAction();
-      if (act === 'deposit') return plan(this.hintCell(sink, 'sink'), () => report(sv.depositDirty()));
-      if (act === 'wash') return plan(this.hintCell(sink, 'sink'), () => report(this.withPose(sv.startWash(), 'wash')));
+      if (act === 'deposit') add([sink], E_TIER.service, this.hintCell(sink, 'sink'), () => report(sv.depositDirty()));
+      else if (act === 'wash') add([sink], E_TIER.service, this.hintCell(sink, 'sink'), () => report(this.withPose(sv.startWash(), 'wash')));
     }
     // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
     const washer = sv.washerNear(feet, target);
-    if (washer && sv.isBroken(washer) && st.hands.length === 0) return plan(sv.isRepairing(washer) ? null : this.hintCell(placedAt(washer), 'repair'), () => this.askRepair(washer));
-    if (washer) {
+    if (washer && sv.isBroken(washer) && st.hands.length === 0) add(this.placedCells(washer), E_TIER.service, sv.isRepairing(washer) ? null : this.hintCell(placedAt(washer), 'repair'), () => this.askRepair(washer));
+    else if (washer) {
       const act = sv.washerAction(washer);
-      if (act === 'deposit') return plan(this.hintCell(placedAt(washer), 'washer'), () => report(sv.depositInWasher(washer)));
-      if (act === 'wash') return plan(this.hintCell(placedAt(washer), 'washer'), () => report(this.withPose(sv.startWasher(washer), 'operate')));
+      if (act === 'deposit') add(this.placedCells(washer), E_TIER.service, this.hintCell(placedAt(washer), 'washer'), () => report(sv.depositInWasher(washer)));
+      else if (act === 'wash') add(this.placedCells(washer), E_TIER.service, this.hintCell(placedAt(washer), 'washer'), () => report(this.withPose(sv.startWasher(washer), 'operate')));
     }
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
     const pantry = sv.pantryCell();
     const onPantry = !target || (target[0] === pantry[0] && (target[1] === pantry[1] || target[1] === pantry[1] - 1));
-    // Equipamento bem na frente dela (o bule ao lado do armário) ganha da despensa.
-    // A janela (ou outra interação) na direção em que ela olha ganha da despensa ao lado.
-    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry && (target || (!this.stationAhead(feet) && !this.interactionAhead(feet)))) {
-      return plan(this.hintCell(pantry, 'pantry'), () => {
+    // O equipamento ou a janela bem na frente dela ganham da despensa do lado: quem decide é pickETarget, pela frente.
+    if (st.hands.length === 0 && sv.pantryNear(feet) && onPantry) {
+      add([pantry, [pantry[0], pantry[1] - 1]], E_TIER.service, this.hintCell(pantry, 'pantry'), () => {
         this.ui.openPantry();
         return true;
       });
     }
     // Caixa pet, de mãos livres: abre a mochila com o baú dela (equipamento bem na frente ganha, como na despensa).
     const petBox = st.hands.length === 0 ? this.session.storageNear(feet, target) : undefined;
-    if (petBox && (target || (!this.stationAhead(feet) && !this.interactionAhead(feet)))) {
-      return plan(this.hintCell(placedAt(petBox), 'pet_box'), () => {
+    if (petBox) {
+      add(this.placedCells(petBox), E_TIER.service, this.hintCell(placedAt(petBox), 'pet_box'), () => {
         this.ui.openPetBox(petBox);
         return true;
       });
     }
     // Saco pesado: no café, vai para o estoque.
-    if (st.hands.some((h) => h.kind === 'heavy')) return plan(null, () => report(sv.storeHeavy()));
+    if (st.hands.some((h) => h.kind === 'heavy')) {
+      add([], 0, null, () => report(sv.storeHeavy()), true);
+      return out;
+    }
     // Gato no colo: põe no chão, na frente dela.
     const carried = sv.carriedCat();
-    if (carried && this.session.catBoxed(carried)) return plan(null, () => this.putDownBoxedCat(carried, target));
-    if (carried && this.session.catContagious(carried)) return plan(null, () => this.putDownSickCat(carried, target));
+    // Gato no colo (ou na caixinha): o E é pôr no chão, antes de tudo.
+    if (carried && this.session.catBoxed(carried)) return [...out, { cells: [], tier: 0, sticky: true, value: { hint: null, run: () => this.putDownBoxedCat(carried, target) } }];
+    if (carried && this.session.catContagious(carried)) return [...out, { cells: [], tier: 0, sticky: true, value: { hint: null, run: () => this.putDownSickCat(carried, target) } }];
     if (carried) {
-      return plan(null, () => {
+      add([], 0, null, () => {
         const r = sv.putDownCat();
         if (r.ok) this.dropCat(carried, this.facingCell());
         return report(r);
-      });
+      }, true);
+      return out;
     }
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
     if (st.hands.some((h) => h.kind === 'item') && !target) {
       const cat = this.cats.find((c) => c.visible && near(c.cell()));
-      if (cat) return plan(this.hintCat(cat, 'cat_treat'), () => report(sv.giveToCat(cat.catId)));
+      if (cat) add([cat.cell()], E_TIER.service, this.hintCat(cat, 'cat_treat'), () => report(sv.giveToCat(cat.catId)));
     }
     // Equipamento ao alcance: pegar o que está pronto ou começar o preparo.
     const station = this.stationInReach(feet, target);
-    if (station && sv.isBroken(station.uid)) return plan(sv.isRepairing(station.uid) ? null : this.hintCell(station.at, 'repair'), () => this.askRepair(station.uid));
-    if (station) {
+    // Todos os equipamentos ao alcance são candidatos (o da frente dela vence em pickETarget); no clique, o clicado.
+    for (const station of this.stationsInReach(feet, target)) {
+      if (sv.isBroken(station.uid)) {
+        add(station.cells, E_TIER.service, sv.isRepairing(station.uid) ? null : this.hintCell(station.at, 'repair'), () => this.askRepair(station.uid));
+        continue;
+      }
       const equipment = sv.equipmentOf(station.uid);
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
-      if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) return plan(this.hintCell(station.at, 'station'), () => report(sv.pickUp(station.at)));
-      if (st.hands.length === 0 || bringsWip) return plan(this.hintCell(station.at, 'station'), () => this.prepareAt(station.uid, equipment));
+      // Algo pronto em cima (para pegar) ou trabalho para ele: um pouco antes dos outros equipamentos do lado.
+      const busy = sv.stationHasWork(station.uid) ? -1 : 0;
+      if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) add(station.cells, E_TIER.service + busy, this.hintCell(station.at, 'station'), () => report(sv.pickUp(station.at)));
+      else if (st.hands.length === 0 || bringsWip) add(station.cells, E_TIER.service + busy, this.hintCell(station.at, 'station'), () => this.prepareAt(station.uid, equipment));
     }
     // Vitrine ao alcance com um doce (ou o bolo inteiro) na mão: guarda.
     const display = this.displayInReach(feet, target);
-    if (display && st.hands.some((h) => sv.storable(h))) return plan(this.hintCell(placedAt(display.uid), 'display'), () => report(sv.storeInDisplay(display.uid)));
+    if (display && st.hands.some((h) => sv.storable(h))) add(this.placedCells(display.uid), E_TIER.service, this.hintCell(placedAt(display.uid), 'display'), () => report(sv.storeInDisplay(display.uid)));
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((x) => near(x.at));
     if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
       // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
-      return plan(this.hintCell(surface.at, 'surface'), () => report(sv.pickUp(surface.at)));
+      add([surface.at], E_TIER.service, this.hintCell(surface.at, 'surface'), () => report(sv.pickUp(surface.at)));
     }
     // Vitrine com as mãos livres: escolhe o que tirar (do bolo inteiro, sai uma fatia).
-    if (display && st.hands.length < sv.handsCapacity()) {
+    else if (display && st.hands.length < sv.handsCapacity()) {
       const hint = sv.displayStock(display.uid).length > 0 ? this.hintCell(placedAt(display.uid), 'display') : null;
-      return plan(hint, () => {
+      add(this.placedCells(display.uid), E_TIER.service, hint, () => {
         const stock = sv.displayStock(display.uid);
         if (stock.length === 0) return report({ ok: false, reason: 'display_empty' });
         const recipes = this.session.content.recipes;
@@ -3131,9 +3156,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // para pegar ao alcance não larga a louça da bandeja no chão.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
-      if (sv.canPutDown(at, feet, !!target)) return plan(null, () => report(sv.putDown(at, feet, !!target)));
+      if (sv.canPutDown(at, feet, !!target)) add([at], E_TIER.putDown, null, () => report(sv.putDown(at, feet, !!target)));
     }
-    return null;
+    return out;
   }
 
   /** Preparar no equipamento: o pedido de quem espera; sem pedido, ela pode adiantar uma receita do cardápio. */
@@ -3171,22 +3196,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return undefined;
   }
 
-  /** Equipamento na célula bem na frente dela (ao alcance), ou undefined. */
-  private stationAhead(feet: readonly Cell[]): { uid: string; at: Cell; cells: Cell[] } | undefined {
-    const [fc, fr] = this.facingCell();
-    const s = this.stationInReach(feet);
-    return s?.cells.some(([c, r]) => c === fc && r === fr) ? s : undefined;
-  }
 
   /**
    * Equipamento ao alcance dos pés (`target`: só o clicado). Com vários (cafeteira e bule lado a lado): o que está
    * bem na frente dela; senão, o que tem trabalho (pronto para pegar, massa para ele, cliente esperando); senão, o
    * mais perto da célula da frente.
    */
+  /** Todos os equipamentos ao alcance dos pés (`target`: só o clicado). */
+  private stationsInReach(feet: readonly Cell[], target?: Cell): { uid: string; at: Cell; cells: Cell[] }[] {
+    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
+    return this.session.service.allStations().filter((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
+  }
+
   private stationInReach(feet: readonly Cell[], target?: Cell): { uid: string; at: Cell; cells: Cell[] } | undefined {
     const sv = this.session.service;
-    const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
-    const all = sv.allStations().filter((s) => s.cells.some((c) => near(c) && (!target || (c[0] === target[0] && c[1] === target[1]))));
+    const all = this.stationsInReach(feet, target);
     if (all.length <= 1) return all[0];
     // Bem na frente dela: esse (faz o pedido ou diz por que não dá), mesmo que o do lado tenha algo pronto.
     const [fc, fr] = this.facingCell();
