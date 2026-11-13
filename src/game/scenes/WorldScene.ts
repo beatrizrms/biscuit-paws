@@ -2078,7 +2078,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (s.catSettling(cat.catId)) return 'cat_trust';
     const care = s.careGameInHand();
     if (care) return care === 'wand' ? 'cat_wand' : 'cat_brush';
-    if (s.holdingMedicine()) return 'cat_medicine';
+    if (s.holdingMedicine()) return s.medicineProblem(cat.catId) === 'already_dosed' ? 'cat_medicine_done' : 'cat_medicine';
     if (s.holdingTreat()) return 'cat_treat';
     if (s.state.hands.length === 0 && !s.state.tray) return 'cat_pickup';
     return null;

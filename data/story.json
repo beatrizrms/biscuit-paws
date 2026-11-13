@@ -278,6 +278,9 @@
                 },
                 {
                   "flag": "vet.consulted"
+                },
+                {
+                  "flag": "vet.intake_done"
                 }
               ]
             },
@@ -286,9 +289,16 @@
           {
             "text": "Buscar {cat:cat.first_stray} no café e levar no colo até a clínica da Fernanda.",
             "when": {
-              "flag": "vet.consulted"
+              "any": [
+                {
+                  "flag": "vet.consulted"
+                },
+                {
+                  "flag": "vet.intake_done"
+                }
+              ]
             },
-            "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta."
+            "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta. A consulta de entrada (vet.intake_done) também conta: com o gato doente, ela já começa o tratamento."
           },
           {
             "text": "Dar o remédio para {cat:cat.first_stray}",
