@@ -8,19 +8,30 @@ const praca = content.maps['map.minigame_praca']!;
 /** Cantos (NW, NE, SW, SE) de um tile de transição: g = grama, p = pedregulho; null se não for da praça. */
 const corners = (tile: string | undefined) => (tile?.startsWith('praca_v') ? tile.slice(-4) : null);
 
-describe('praça do Confiança do gato', () => {
-  it('só o Confiança do gato vai para a praça; os outros mini games continuam na rua', () => {
-    const games = content.minigames.games as Record<string, { map?: string; view?: number[]; catAt?: number[] }>;
-    expect(games.trust!.map).toBe('map.minigame_praca');
+describe('Confiança do gato na praça da vila', () => {
+  it('o mini game usa a praça da vila (o mesmo mapa, na estação do jogo); o caminho até o gato é livre', () => {
+    const games = content.minigames.games as unknown as Record<string, { map?: string; view?: number[]; catAt?: number[]; difficulties?: Record<string, { startDistance: number }> }>;
+    const trust = games.trust!;
+    expect(trust.map).toBe('map.praca');
     for (const id of ['chase', 'kitten_hunt', 'delivery']) expect(games[id]!.map).toBe('map.minigame_chase');
-    // O recorte da câmera e o gato cabem no mapa, e o gato fica no pedregulho.
-    const [vc, vr, vw, vh] = games.trust!.view!;
-    expect(vc! + vw!).toBeLessThanOrEqual(praca.size.cols);
-    expect(vr! + vh!).toBeLessThanOrEqual(praca.size.rows);
-    const [cc, cr] = games.trust!.catAt!;
-    expect(corners(praca.legend[praca.layers.floor[cr!]![cc!]!])).toBe('pppp');
+    const vila = content.maps['map.praca']!;
+    const [vc, vr, vw, vh] = trust.view!;
+    expect(vc! + vw!).toBeLessThanOrEqual(vila.size.cols);
+    expect(vr! + vh!).toBeLessThanOrEqual(vila.size.rows);
+    // O gato e o trecho que ela anda até ele (a distância inicial, para a esquerda) ficam em células livres, dentro da câmera.
+    const solid = resolveMap(vila, content.catalog).solid;
+    const [cc, cr] = trust.catAt!;
+    const ts = vila.tileSize;
+    const start = Math.max(...Object.values(trust.difficulties!).map((d) => d.startDistance));
+    const from = Math.floor(((cc! + 0.5) * ts - start) / ts);
+    expect(from).toBeGreaterThanOrEqual(vc!);
+    for (let c = from; c <= cc!; c++) expect(solid[cr!]![c], `${c},${cr}`).toBe(false);
   });
 
+});
+
+// O mapa antigo do mini game fica guardado (o mini game passou a usar a praça da vila).
+describe('a praça antiga do Confiança do gato (map.minigame_praca, guardada)', () => {
   it('o mapa é válido e todo tile existe no catálogo', () => {
     expect(() => resolveMap(praca, content.catalog)).not.toThrow();
     for (const tile of Object.values(praca.legend)) expect(content.catalog.tiles[tile], tile).toBeDefined();
