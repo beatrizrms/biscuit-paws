@@ -53,6 +53,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image('emotes', emotes.image);
     this.load.image(ROBOT_KEY, ROBOT_IMAGE);
     this.load.image('van_left', content.delivery.van.left);
+    // O ônibus do ponto (sem a arte, o furgão faz o papel).
+    const busArt = content.world.bus?.vehicle;
+    if (busArt) this.load.image('bus_left', busArt.left);
     // Ícones como texturas do Phaser (bebidas nas mãos e nos balões) e equipamentos animados.
     this.load.image(iconSheetKey(), content.icons.image);
     for (const [id, sheet] of Object.entries(content.icons.sheets ?? {})) this.load.image(iconSheetKey(id), sheet.image);

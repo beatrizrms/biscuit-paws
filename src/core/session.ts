@@ -1104,12 +1104,19 @@ export class GameSession {
    * goHomeFrom); com cliente no café, ela espera o último sair, como na porta.
    */
   takeBus(destinationId: string): ActionResult {
-    const dest = this.content.world.bus?.destinations.find((d) => d.id === destinationId);
-    if (!dest) return { ok: false, reason: 'not_found' };
-    if (this.state.service.customers.length > 0) return { ok: false, reason: 'customers_inside' };
+    const problem = this.busProblem(destinationId);
+    if (problem) return { ok: false, reason: problem };
+    const dest = this.content.world.bus!.destinations.find((d) => d.id === destinationId)!;
     this.bus.emit('bus.taken', { destination: dest.id });
     if (dest.goHome) this.endDay('home');
     return { ok: true };
+  }
+
+  /** Por que não dá para pegar o ônibus para este destino (o jogo pergunta antes de chamar o ônibus). */
+  busProblem(destinationId: string): 'not_found' | 'customers_inside' | null {
+    if (!this.content.world.bus?.destinations.some((d) => d.id === destinationId)) return 'not_found';
+    if (this.state.service.customers.length > 0) return 'customers_inside';
+    return null;
   }
 
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
