@@ -549,8 +549,21 @@ export class GameSession {
       const flag = `recipe.known.${r.id}`;
       if (this.state.flags[flag]) continue;
       this.state.flags[flag] = true;
+      this.state.recipesOn[r.id] = this.state.day;
       if (!silent && r.unlock) this.bus.emit('recipe.unlocked', { recipeId: r.id });
     }
+  }
+
+  /**
+   * As receitas que ela já aprendeu, para as conquistas: a mais nova primeiro (as de saves antigos, sem o dia, no fim), e
+   * quantas receitas o jogo tem.
+   */
+  learnedRecipes(): { recipes: { id: string; name: string; icon?: string; day: number | null }[]; total: number } {
+    const all = Object.values(this.content.recipes);
+    const known = all.filter((r) => this.state.flags[`recipe.known.${r.id}`]);
+    const day = (id: string) => this.state.recipesOn[id] ?? null;
+    known.sort((a, b) => (day(b.id) ?? -1) - (day(a.id) ?? -1));
+    return { recipes: known.map((r) => ({ id: r.id, name: r.name, ...(r.icon ? { icon: r.icon } : {}), day: day(r.id) })), total: all.length };
   }
 
   /** Esta porta, agora, mostra uma cena ou roda um roteiro em vez de deixar passar? Devolve o id da cena ou do roteiro. */

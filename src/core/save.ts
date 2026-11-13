@@ -26,10 +26,10 @@ import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 import type { FriendState, GiftReaction, SocialState } from './friendship';
 
-export const SAVE_SCHEMA_VERSION = 41;
+export const SAVE_SCHEMA_VERSION = 42;
 
-export interface SaveV41 extends GameState {
-  schemaVersion: 41;
+export interface SaveV42 extends GameState {
+  schemaVersion: 42;
   savedAt: string;
 }
 
@@ -205,6 +205,8 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   39: (save) => ({ ...save, schemaVersion: 40 }),
   /** v40 -> v41: amizade com os vizinhos e a SocialVilla (friendship.ts). Saves antigos: nada descoberto, feed vazio. */
   40: (save) => ({ ...save, schemaVersion: 41, friends: {}, social: { feed: [], seen: [] } }),
+  /** v41 -> v42: o dia em que cada receita entrou (as receitas nas conquistas). Saves antigos: as conhecidas sem o dia. */
+  41: (save) => ({ ...save, schemaVersion: 42, recipesOn: {} }),
 };
 
 const REACTIONS = new Set(['loved', 'liked', 'neutral', 'disliked']);
@@ -234,7 +236,7 @@ function normalizeSocial(raw: unknown): SocialState {
 const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV41 = { schemaVersion: 41, savedAt: now.toISOString(), ...state };
+  const save: SaveV42 = { schemaVersion: 42, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -288,7 +290,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV41>;
+  const v2 = save as unknown as Partial<SaveV42>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -478,6 +480,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     halloween: normalizeHalloween(v2.halloween, known.items),
     friends: normalizeFriends(v2.friends),
     social: normalizeSocial(v2.social),
+    recipesOn: Object.fromEntries(Object.entries((v2.recipesOn ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => known.recipes.has(e[0]) && isInt(e[1]))),
     gatherings: Object.fromEntries(
       Object.entries((v2.gatherings ?? {}) as Record<string, { year?: unknown; stage?: unknown }>).filter(
         ([, r]) => r && Number.isInteger(r.year) && ['invited', 'done', 'missed'].includes(String(r.stage)),

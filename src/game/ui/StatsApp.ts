@@ -81,7 +81,19 @@ export class StatsApp {
       const more = v.hidden > 0 ? `<li class="s-more">${esc((v.hidden === 1 ? t.moreOne : t.more).replace('{n}', String(v.hidden)))}</li>` : '';
       return `<section class="s-track ${v.track.kind}"><h3>${esc(v.track.name)}</h3><ul>${done}${next}${more}</ul></section>`;
     });
-    return `<div class="stats-app seals"><p class="s-note">${esc(t.sealsHint)}</p>${tracks.join('')}</div>`;
+    return `<div class="stats-app seals"><p class="s-note">${esc(t.sealsHint)}</p>${this.recipesHtml()}${tracks.join('')}</div>`;
+  }
+
+  /** As receitas aprendidas (cada receita nova é uma conquista), a mais nova primeiro, e quantas faltam. */
+  private recipesHtml(): string {
+    const t = uiText.statsApp;
+    const { recipes, total } = this.session.learnedRecipes();
+    const items = recipes
+      .map((r) => `<li class="s-done"><b>✓ ${iconHtml(r.icon)}${esc(r.name)}</b>${r.day !== null ? `<span>${esc(t.recipeDay.replace('{day}', String(r.day)))}</span>` : ''}</li>`)
+      .join('');
+    const left = total - recipes.length;
+    const more = left > 0 ? `<li class="s-more">${esc((left === 1 ? t.recipesLeftOne : t.recipesLeft).replace('{n}', String(left)))}</li>` : '';
+    return `<section class="s-track recipes"><h3>${esc(t.recipesTrack)} <small>${esc(t.recipesCount.replace('{n}', String(recipes.length)).replace('{total}', String(total)))}</small></h3><ul>${items}${more}</ul></section>`;
   }
 
   private numbersHtml(): string {

@@ -953,3 +953,15 @@ Decisão: app SocialVilla no celular (`src/game/ui/SocialApp.ts`), quando ela co
 ## 232. O balão recolhe com ela embaixo; notas de dev com botão no debug (nov/2026)
 Pedido: quando ela vai para baixo do balão do subconsciente, ele recolhe e fica transparente (atrapalhava); um botão no debug para ligar e desligar as informações em vermelho do balão.
 Decisão: com o balão aberto e ela embaixo, ele recolhe (só o título) e fica transparente; a área dele aberto fica guardada, e ele volta a abrir quando ela sai dali (sem ficar abrindo e fechando na borda). Se ela abrir com um clique, vale o clique. No debug, Ferramentas > **notas no balão** esconde e mostra as `devNote` (em vermelho), lembrado no aparelho (`biscuit-paws:debug-dev-notes`).
+
+## 233. Selos viram Conquistas; cada receita nova é uma conquista (nov/2026)
+Pedido: tirar o nome "selos" e tratar tudo como "conquistas"; cada receita nova aparecer nas conquistas.
+Decisão: na tela, "selo" vira "conquista" (aba Conquistas do app Café em números, o aviso "Nova conquista!", a meta do balão "Próxima conquista"); os IDs `milestone.*` e o código continuam. A aba Conquistas ganha a seção Receitas no topo: cada receita aprendida, a mais nova primeiro, com o dia em que entrou, e quantas faltam descobrir. Save v42: `recipesOn` (o dia de cada receita; nos saves antigos, as já conhecidas aparecem sem o dia, no fim).
+
+## 234. Quadro do cardápio compacto, com custo e lucro (nov/2026)
+Pedido: com muitas receitas destrancadas, o quadro virava uma lista enorme de cartões (2 e meio por tela); mostrar preço de custo, venda e lucro.
+Decisão: abas pela louça (Quentes = xícara, Geladas = copo, Comidas = prato), uma linha por receita (bolinha de situação: verde disponível, laranja falta ingrediente ou louça, cinza falta equipamento; ícone, nome, "nova" nos 7 dias depois de aprender, "no quadro", preço); tocar abre os detalhes (ingredientes, etapas, Custo · Venda · Lucro por porção, situação) e o botão de pôr ou tirar. O custo (`service.costOf`) é o preço de cada pacote dividido pelas doses que rende; a fornada divide pelas fatias; premium usa as trocas. Fora de época fica recolhido, com a conta por estação e as semanas especiais juntas em "Eventos".
+
+## 235. Preços: chás gelados e bolos em fornada (nov/2026)
+Pedido: a conta de custo e lucro (decisão anterior) mostrou chás gelados quase sem lucro e bolos em fatia com custo quase zero.
+Decisão: chá gelado de frutas vermelhas 11 → 16 e de limão 11 → 15 (lucro 5,5 cada). Os bolos e tortas em fornada usam 3 doses de cada ingrediente (um bolo inteiro gasta mais farinha, ovos, manteiga...): o custo por fatia sobe para 2,5 a 5,8 e o lucro fica entre 12 e 17,5, no nível dos outros doces. Os preços das fatias não mudam. A fatia de bolo de limão (sem fornada) cai de 26 para 20 (lucro 14,3), no nível das outras fatias.

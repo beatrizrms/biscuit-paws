@@ -171,6 +171,8 @@ export interface GameState {
   friends: Record<string, FriendState>;
   /** O feed da SocialVilla (v41): posts publicados e os já vistos. */
   social: SocialState;
+  /** O dia em que cada receita entrou (v42): as receitas aparecem nas conquistas. Saves antigos: sem o dia. */
+  recipesOn: Record<string, number>;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -316,6 +318,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     gatherings: {},
     friends: {},
     social: newSocial(),
+    recipesOn: {},
   };
 }
 
