@@ -2471,6 +2471,12 @@ export class GameSession {
    * E no vizinho que está passeando: a fala do dia (uma por dia, todas antes de repetir; chatOfDay; de novo no mesmo
    * dia, a mesma) e, na primeira conversa do dia, os corações.
    */
+  /** Quem passeia tem fala hoje (só olha: a dica do E). */
+  neighborHasChat(npc: string): boolean {
+    const def = this.content.npcWalks.find((w) => w.npc === npc);
+    return !!def && !!chatOfDay(def, this.state.day);
+  }
+
   neighborChat(npc: string): string | null {
     const def = this.content.npcWalks.find((w) => w.npc === npc);
     const line = def && chatOfDay(def, this.state.day);
