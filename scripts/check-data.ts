@@ -42,6 +42,7 @@ const raw: RawContent = {
   vetText: read('data/vet_text.json'),
   ced: read('data/ced.json'),
   cedText: read('data/ced_text.json'),
+    friendship: read('data/friendship.json'),
   arrivals: read('data/arrivals.json'),
   festivals: read('data/festivals.json'),
   fairSetup: read('data/fair_setup.json'),

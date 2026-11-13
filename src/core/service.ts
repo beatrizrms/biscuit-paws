@@ -62,8 +62,8 @@ export interface ServiceState {
   nextCustomerId: number;
   /** Clientes atendidos (o total do jogo). */
   served: number;
-  /** O almoço de hoje, travado quando começou (um por dia: mudar o almoço no app só vale amanhã). */
-  lunch?: { day: number; from: number };
+  /** O horário de hoje, guardado na primeira mudança do dia: o app Horário só muda os dias seguintes. */
+  today?: { day: number; schedule: Schedule };
 }
 
 export function newServiceState(): ServiceState {
@@ -610,34 +610,37 @@ export class CafeService {
     // Encontro da estação (piquenique, noite do sorvete): fecha mais cedo (data/festive.json: gatherings).
     const g = this.h.gatheringToday();
     if (g && this.st.time >= parseClock(g.closeAt)) return false;
-    return this.enabled() && isOpenAt(this.schedule(), this.weekday(), this.st.time);
+    return this.enabled() && isOpenAt(this.todaySchedule(), this.weekday(), this.st.time);
   }
 
   /** Hora do almoço agora (com o café aberto): não chega cliente novo; quem está na fila e quem já pediu termina, com a paciência parada. */
   lunchNow(): boolean {
-    // Almoço desligado no app: acaba na hora (encurtar não é vantagem).
-    if (!this.isOpen() || lunchStart(this.schedule(), this.cfg.schedule) === null) return false;
-    const sv = this.st.service;
-    const t = ((this.st.time % 1440) + 1440) % 1440;
-    // Um almoço por dia: o de hoje já começou (e vale até o fim), mesmo que o horário tenha mudado depois.
-    if (sv.lunch?.day === this.st.day) return t >= sv.lunch.from && t < sv.lunch.from + this.cfg.schedule.lunchMinutes;
-    if (!inLunch(this.schedule(), this.cfg.schedule, this.st.time)) return false;
-    sv.lunch = { day: this.st.day, from: parseClock(lunchStart(this.schedule(), this.cfg.schedule)!) };
-    return true;
+    return this.isOpen() && inLunch(this.todaySchedule(), this.cfg.schedule, this.st.time);
   }
 
   // ---------- Horário de funcionamento ----------
 
-  /** O horário que vale: o escolhido (se ainda vale pelas regras) ou o padrão dos dados. */
+  /** O horário escolhido no app (o dos próximos dias): o da jogadora, se ainda vale pelas regras, ou o padrão dos dados. */
   schedule(): Schedule {
     const s = this.st.schedule;
     return s && !scheduleProblem(s, this.cfg.schedule) ? s : this.cfg.schedule.default;
   }
 
+  /** O horário de hoje: o de quando o dia começou (mudar no app hoje só vale amanhã). */
+  todaySchedule(): Schedule {
+    const t = this.st.service.today;
+    return t && t.day === this.st.day ? t.schedule : this.schedule();
+  }
+
+  /** O horário mudou hoje (o app mostra que vale a partir de amanhã)? */
+  scheduleChangesTomorrow(): boolean {
+    return this.st.service.today?.day === this.st.day && JSON.stringify(this.st.service.today.schedule) !== JSON.stringify(this.schedule());
+  }
+
   /** O atendimento abre neste dia do jogo (liberado, dia aberto no horário e sem evento fechando o café)? */
   opensOn(day: number): boolean {
     if (festivalClosesCafe(this.st.festivals, this.h.content.festivals, day)) return false;
-    return this.enabled() && this.schedule().days[this.weekday(day)] === true;
+    return this.enabled() && (day === this.st.day ? this.todaySchedule() : this.schedule()).days[this.weekday(day)] === true;
   }
 
   /** Dia da semana de hoje (0 = segunda). */
@@ -645,10 +648,13 @@ export class CafeService {
     return weekdayOf(day, this.h.content.seasons.startWeekday);
   }
 
-  /** Muda o horário (app "Horário"). Fechar mais cedo vale já: quem está na fila vai embora no próximo minuto. */
+  /** Muda o horário (app "Horário"): vale a partir de amanhã; hoje segue o horário de quando o dia começou. */
   setSchedule(s: Schedule): ServiceResult {
     const problem = scheduleProblem(s, this.cfg.schedule);
     if (problem) return { ok: false, reason: problem };
+    // Primeira mudança do dia: guarda o horário de hoje como estava.
+    const sv = this.st.service;
+    if (sv.today?.day !== this.st.day) sv.today = { day: this.st.day, schedule: structuredClone(this.schedule()) };
     this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}) };
     this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
     return { ok: true };
@@ -656,7 +662,11 @@ export class CafeService {
 
   /** Próxima abertura (dia do jogo e hora), quando está fechado agora. */
   nextOpening(): { day: number; open: string } | null {
-    return nextOpening(this.schedule(), this.st.day, this.st.time, this.h.content.seasons.startWeekday);
+    const w = this.h.content.seasons.startWeekday;
+    // Hoje ainda vai abrir (pelo horário de hoje)? Senão, a próxima pelo horário escolhido, a partir de amanhã.
+    const today = nextOpening(this.todaySchedule(), this.st.day, this.st.time, w);
+    if (today?.day === this.st.day) return today;
+    return nextOpening(this.schedule(), this.st.day + 1, 0, w);
   }
 
   // ---------- Relógio ----------

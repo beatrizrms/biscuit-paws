@@ -177,6 +177,8 @@ export interface GameEvents {
   /** Uma porta escondida apareceu e o que estava na frente dela foi para a mochila. */
   'door.cleared': { doorId: string; count: number };
   /** Um amigo passou no café com um pedido; o pedido ficou pronto. */
+  /** O gato não tinha o que precisava e fugiu do café (descuido). */
+  'cat.ran_away': { catId: string; reputation: number };
   'request.new': { requestId: string; npc: string };
   'request.done': { requestId: string; npc: string };
   /** Encontro da estação: o amigo chamou; aconteceu (com ou sem o preparo); passou sem ela. */
@@ -241,6 +243,16 @@ export interface GameEvents {
   /** Abriu uma caixa dentro do café: tudo o que veio nela (já na mochila). */
   /** Conversou com um vizinho que passeava na rua (a primeira do dia dá corações). */
   'npc.chatted': { npc: string; points: number };
+  /** Deu um presente a um vizinho (friendship.ts): a reação, os pontos e os corações antes e depois. */
+  'friend.gifted': { npc: string; gift: string; reaction: string; points: number; hearts: [number, number] };
+  /** Descobriu um gosto (pelo presente, por um post da SocialVilla ou pela dica de um evento). */
+  'friend.discovered': { npc: string; gift: string; reaction: string; via: 'gift' | 'post' | 'event' };
+  /** Posts novos (ou os não vistos, de novo com a data de hoje) na SocialVilla. */
+  'social.posted': { posts: string[] };
+  /** Abriu a SocialVilla: os posts do feed foram vistos. */
+  'social.viewed': { posts: string[] };
+  /** Guardou a bebida ou o doce da mão na mochila, "para viagem". */
+  'togo.stored': { itemId: string };
   /** Removeu uma árvore do quintal (some de vez). */
   'item.removed': { itemId: string; uid: string };
   /** Uma planta do quintal cresceu (a muda virou árvore jovem...). */

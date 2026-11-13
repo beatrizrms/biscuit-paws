@@ -146,3 +146,12 @@ describe('peças pequenas em superfícies e portas escondidas', () => {
     expect(s.place('item.wall_shelf', [5, 1])).toEqual({ ok: false, reason: 'blocks_door' });
   });
 });
+
+describe('a entrada do café não fica isolada', () => {
+  it('móvel que tiraria o caminho da porta da rua até dentro do café é recusado; os outros, aceitos', () => {
+    const s = richSession();
+    // A linha da porta (10) é chão: fechada à esquerda e dos lados, a última peça na frente da entrada isolaria a porta.
+    for (const at of [[12, 10], [13, 9], [15, 9]] as [number, number][]) expect(put(s, 'item.counter_single', at), `${at}`).toEqual({ ok: true });
+    expect(put(s, 'item.counter_single', [14, 8])).toEqual({ ok: false, reason: 'blocks_door' });
+  });
+});

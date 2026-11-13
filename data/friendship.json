@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Amizade com os vizinhos (src/core/friendship.ts). points: corações por reação ao presente (loved = ama, liked = gosta, neutral = o resto, disliked = não gosta) e pela conversa do dia (chat, uma por dia). giftsPerWeek: presentes por pessoa por semana do calendário; weekLimit: a fala de quem já ganhou. Presente: qualquer item da mochila (menos ferramentas e chaves) ou bebida/doce do café (da mão ou para viagem). Chaves dos gostos: recipe.<id> (feito no café) ou item.<id>. known: desde quando ela conhece a pessoa (os posts só depois). thanks: falas por reação; for = só para estes tipos de presente (dish: feito no café; ingredient: do mercado; plant: vasos, flores, mudas; object: o resto); sem for, serve para qualquer um ({item} vira o nome). special: fala própria para certos presentes. posts: a SocialVilla; reveals = os gostos que o post dá a pista (descobertos quando ela abre o app e vê o post). handle: o nome no app, quando não é o do NPC.",
+  "points": { "loved": 80, "liked": 40, "neutral": 5, "disliked": -15, "chat": 10 },
+  "giftsPerWeek": 1,
+  "weekLimit": "Você já me deu um presente essa semana! Guarda pra próxima.",
+  "postsPerDay": 2,
+  "feedSize": 30,
+  "friends": [
+    {
+      "npc": "npc.gabi",
+      "known": { "flag": "seen.scr.gabi_visit" },
+      "loves": ["recipe.cafe_latte", "recipe.macarons", "item.xmas_mug", "item.hw_cauldron", "recipe.pumpkin_cake_slice"],
+      "likes": ["item.strawberry", "recipe.cookie", "item.vase_tulips"],
+      "dislikes": ["item.tea_chamomile_box", "recipe.chamomile_honey"],
+      "thanks": {
+        "loved": [
+          { "text": "Não acredito! {item}?! Você me conhece melhor que meu chefe." },
+          { "text": "Ai, que presente! Hoje alguém acertou em cheio comigo." }
+        ],
+        "liked": [
+          { "text": "Que fofo! Vou aproveitar no intervalo.", "for": ["dish"] },
+          { "text": "Morango! Vou comer metade no caminho de casa, já aviso.", "for": ["ingredient"] },
+          { "text": "Vai ficar lindo na minha mesa do trabalho.", "for": ["plant", "object"] }
+        ],
+        "neutral": [
+          { "text": "Opa, {item}! Obrigada pela lembrança." },
+          { "text": "Que gentileza! Valeu mesmo." }
+        ],
+        "disliked": [
+          { "text": "Ah... camomila. Me dá um sono... mas obrigada pela intenção!" }
+        ]
+      },
+      "posts": [
+        { "id": "post.gabi.latte", "text": "Terceira reunião do dia e eu aqui sobrevivendo de café com leite. Mais leite que café, por favor, eu tenho limites.", "reveals": ["recipe.cafe_latte"] },
+        { "id": "post.gabi.joca_cookie", "text": "O Joca roubou meu cookie da mesa. De novo. Ele nem gosta, só quer ver meu sofrimento.", "reveals": ["recipe.cookie"] },
+        { "id": "post.gabi.macarons", "text": "Alguém me explica por que o macaron é tão pequeno e tão caro e eu compro mesmo assim?", "reveals": ["recipe.macarons"] },
+        { "id": "post.gabi.chamomile", "text": "Me ofereceram chá de camomila no meio do expediente. Querem que eu durma na mesa??", "reveals": ["item.tea_chamomile_box", "recipe.chamomile_honey"] },
+        { "id": "post.gabi.strawberry", "text": "Achei morango bonito no mercado e comi metade no caminho de casa. Sem arrependimentos.", "reveals": ["item.strawberry"] },
+        { "id": "post.gabi.tulips", "text": "Comprei tulipas pra mesa do trabalho. Ninguém entendeu, mas meu humor agradeceu.", "reveals": ["item.vase_tulips"] }
+      ]
+    },
+    {
+      "npc": "npc.joca",
+      "handle": "Joca (quem digita é a Gabi)",
+      "known": { "flag": "seen.scr.gabi_visit" },
+      "loves": ["item.chicken", "recipe.chicken_croissant", "item.bone_biscuits", "item.hw_ghost", "recipe.ghost_cookies"],
+      "likes": ["item.apple", "recipe.bread"],
+      "dislikes": ["item.lemon", "item.chocolate", "recipe.cake_slice", "recipe.hot_chocolate", "recipe.pain_au_chocolat"],
+      "thanks": {
+        "loved": [
+          { "text": "*O Joca dá três voltas em si mesmo.* Ele disse que você é a melhor pessoa do mundo." },
+          { "text": "*O Joca pega {item} e leva pra caminha dele.* Pronto, agora é dele.", "for": ["object"] }
+        ],
+        "liked": [
+          { "text": "*O rabo do Joca não para.* Ele aprovou, viu?" }
+        ],
+        "neutral": [
+          { "text": "*O Joca cheira, pensa e lambe sua mão.* Ele agradece do jeito dele." }
+        ],
+        "disliked": [
+          { "text": "*O Joca espirra e se esconde atrás da Gabi.* Ele... não curtiu." }
+        ]
+      },
+      "special": [
+        { "gifts": ["item.chocolate", "recipe.cake_slice", "recipe.hot_chocolate", "recipe.pain_au_chocolat"], "text": "*A Gabi segura o Joca:* chocolate não pode, faz mal pra ele! Mas obrigada por pensar no meu bebê." }
+      ],
+      "posts": [
+        { "id": "post.joca.chicken", "text": "AU. (Tradução: hoje teve frango no almoço da mamãe e eu ganhei um pedaço. Melhor dia da vida.)", "reveals": ["item.chicken"] },
+        { "id": "post.joca.lemon", "text": "Cheirei um limão na feira. Nunca mais confio em nada amarelo.", "reveals": ["item.lemon"] },
+        { "id": "post.joca.bread", "text": "Pão. Pão caiu no chão. Pão agora é meu. Regras da casa.", "reveals": ["recipe.bread"] },
+        { "id": "post.joca.chocolate", "text": "Lembrete da Gabi: chocolate faz mal pra cachorro! Nada de bolo, nada de chocolate quente. Pode fazer essa cara, Joca.", "reveals": ["item.chocolate", "recipe.cake_slice", "recipe.hot_chocolate", "recipe.pain_au_chocolat"] },
+        { "id": "post.joca.apple", "text": "Maçã picadinha no lanche. Crocante. Aprovada pelo comitê de focinhos.", "reveals": ["item.apple"] },
+        { "id": "post.joca.croissant", "text": "A Gabi comeu um croissant de frango na minha frente. Sem dividir. Estou anotando tudo.", "reveals": ["recipe.chicken_croissant"] }
+      ]
+    },
+    {
+      "npc": "npc.neusa",
+      "known": { "flag": "met.old_neighbor" },
+      "loves": ["recipe.cheese_bread", "recipe.chamomile_honey", "item.poinsettia", "item.hw_lantern", "recipe.pumpkin_coconut_sweet"],
+      "likes": ["item.honey", "item.flower_vase", "item.peace_lily", "item.succulent_pot", "item.yard_sapling"],
+      "dislikes": ["recipe.black_coffee", "item.coffee_beans_bag", "item.coffee_beans_loose", "item.coffee_ground"],
+      "thanks": {
+        "loved": [
+          { "text": "Ai, meu bem... você lembrou de mim. Que coisa boa." },
+          { "text": "Igualzinho ao que minha mãe fazia. Deus te abençoe.", "for": ["dish"] },
+          { "text": "Vai ficar na minha janela, bem onde bate o sol.", "for": ["plant", "object"] }
+        ],
+        "liked": [
+          { "text": "Obrigada, meu bem. Coisa boa a gente não recusa.", "for": ["dish", "ingredient"] },
+          { "text": "Mais uma pra minha janela! Sempre cabe mais uma.", "for": ["plant"] }
+        ],
+        "neutral": [
+          { "text": "Que gentileza a sua! Obrigada." },
+          { "text": "Ah, {item}! Vou achar um uso pra isso, pode deixar." }
+        ],
+        "disliked": [
+          { "text": "Ai, café... o doutor me proibiu, meu bem. Mas aceito o carinho." }
+        ]
+      },
+      "posts": [
+        { "id": "post.neusa.cheese_bread", "text": "Pão de queijo quentinho de manhã e o dia já começa abençoado.", "reveals": ["recipe.cheese_bread"] },
+        { "id": "post.neusa.coffee", "text": "O médico mandou cortar o café preto. Diz que meu coração dispara. Disparava antes, doutor, era de alegria.", "reveals": ["recipe.black_coffee", "item.coffee_beans_bag", "item.coffee_beans_loose", "item.coffee_ground"] },
+        { "id": "post.neusa.tiao", "text": "Meu Tião passou aqui, comeu e foi embora sem tirar o capacete. Esse menino!" },
+        { "id": "post.neusa.chamomile", "text": "Minha camomila com uma colherzinha de mel antes de dormir. Receita da minha mãe, que era da mãe dela.", "reveals": ["recipe.chamomile_honey"] },
+        { "id": "post.neusa.window", "text": "Minha janela está ficando sem espaço de tanta planta. Mas sempre cabe mais uma, né?", "reveals": ["item.flower_vase", "item.peace_lily"] },
+        { "id": "post.neusa.honey", "text": "Mel do bom é o da feira, aquele que cristaliza no pote. O de bisnaga é só açúcar fantasiado.", "reveals": ["item.honey"] },
+        { "id": "post.neusa.succulent", "text": "Ganhei uma suculenta da vizinha e já tô conversando com ela toda manhã. Planta gosta de conversa.", "reveals": ["item.succulent_pot", "item.yard_sapling"] }
+      ]
+    },
+    {
+      "npc": "npc.builder",
+      "known": { "flag": "builder.called" },
+      "loves": ["recipe.black_coffee", "recipe.sausage_croissant", "item.knit_scarf", "item.hw_witch_hat", "recipe.pumpkin_cake_slice"],
+      "likes": ["recipe.bread", "item.sausage"],
+      "dislikes": ["recipe.green_tea", "item.tea_green_box", "recipe.macarons"],
+      "thanks": {
+        "loved": [
+          { "text": "Opa! {item}? Agora sim, isso é presente de verdade!" },
+          { "text": "Rapaz, você acertou na mosca. Vou comer agora, antes que o pessoal da obra veja.", "for": ["dish"] },
+          { "text": "Amanhã já vou usar na obra. Todo mundo vai querer um.", "for": ["object"] }
+        ],
+        "liked": [
+          { "text": "Boa! Isso aqui segura até o almoço.", "for": ["dish"] },
+          { "text": "Calabresa! Hoje à noite tem acebolada lá em casa.", "for": ["ingredient"] }
+        ],
+        "neutral": [
+          { "text": "Hm, {item}. Valeu pela lembrança!" },
+          { "text": "Obrigado aí. Vou levar pra casa." }
+        ],
+        "disliked": [
+          { "text": "Ih... isso é coisa de minha mãe gostar. Mas obrigado, viu." }
+        ]
+      },
+      "posts": [
+        { "id": "post.tiao.coffee", "text": "Café preto, forte, sem açúcar. Se for pra ser doce, eu como um bolo.", "reveals": ["recipe.black_coffee"] },
+        { "id": "post.tiao.green_tea", "text": "Me deram chá verde dizendo que é saudável. Água de capim, isso sim.", "reveals": ["recipe.green_tea", "item.tea_green_box"] },
+        { "id": "post.tiao.croissant", "text": "Obra boa é obra com croissant de calabresa às dez da manhã. Quem discorda não trabalhou de pedreiro.", "reveals": ["recipe.sausage_croissant"] },
+        { "id": "post.tiao.macaron", "text": "Ganhei um macaron. Comi numa mordida e ainda tô com fome. Isso é doce de boneca.", "reveals": ["recipe.macarons"] },
+        { "id": "post.tiao.bread", "text": "Pão com manteiga e café. O resto é luxo.", "reveals": ["recipe.bread"] },
+        { "id": "post.tiao.sausage", "text": "Marmita de hoje: arroz, feijão e calabresa acebolada. Quem quiser salada que traga.", "reveals": ["item.sausage"] },
+        { "id": "post.tiao.pumpkin", "text": "Outono chegou e minha mãe já tá fazendo bolo de abóbora. Melhor época do ano.", "reveals": ["recipe.pumpkin_cake_slice"] }
+      ]
+    },
+    {
+      "npc": "npc.fernanda",
+      "known": { "visited": "map.vet_clinic" },
+      "loves": ["recipe.lemon_cake_slice", "recipe.green_tea", "item.snow_globe_cat", "item.hw_ghost", "recipe.web_cupcake"],
+      "likes": ["recipe.cat_cupcake", "recipe.paw_cookie", "item.lemon"],
+      "dislikes": ["recipe.beef_croissant", "recipe.sausage_croissant", "recipe.chicken_croissant", "item.beef", "item.sausage", "item.chicken"],
+      "thanks": {
+        "loved": [
+          { "text": "Você não tem ideia de como eu precisava disso hoje. Obrigada." },
+          { "text": "Pronto, o plantão ficou mais leve.", "for": ["dish"] },
+          { "text": "Vai direto pra minha prateleira de gatinhos na clínica!", "for": ["object"] }
+        ],
+        "liked": [
+          { "text": "Que fofura! Vou guardar pro intervalo.", "for": ["dish"] },
+          { "text": "Limão! Minha água do plantão agradece.", "for": ["ingredient"] }
+        ],
+        "neutral": [
+          { "text": "Que gentil! Obrigada pela lembrança." },
+          { "text": "Ah, {item}! Valeu mesmo." }
+        ],
+        "disliked": [
+          { "text": "Ah... eu não como carne, sabe? Mas foi muito gentil. Vou passar pra alguém da equipe." }
+        ]
+      },
+      "posts": [
+        { "id": "post.fernanda.green_tea", "text": "Plantão longo. Um chá verde e eu volto a ser gente.", "reveals": ["recipe.green_tea"] },
+        { "id": "post.fernanda.lemon_cake", "text": "Bolo de limão é o único doce que eu aceito depois de uma cirurgia. Azedinho, leve, perfeito.", "reveals": ["recipe.lemon_cake_slice"] },
+        { "id": "post.fernanda.neuter", "text": "Lembrete da semana: castrar é cuidar. Agenda aberta pra quem precisa." },
+        { "id": "post.fernanda.meat", "text": "Doze anos sem comer carne e ainda me oferecem croissant de calabresa como se fosse novidade. Obrigada, mas não!", "reveals": ["recipe.beef_croissant", "recipe.sausage_croissant", "recipe.chicken_croissant", "item.beef", "item.sausage", "item.chicken"] },
+        { "id": "post.fernanda.cupcake", "text": "Recebi um cupcake em forma de gatinho e fiquei com pena de comer. Comi. Mas fiquei com pena.", "reveals": ["recipe.cat_cupcake"] },
+        { "id": "post.fernanda.lemon", "text": "Água com limão antes do plantão. Não é dieta, é sobrevivência.", "reveals": ["item.lemon"] },
+        { "id": "post.fernanda.paw", "text": "Biscoito com patinha de gato? Eu nem gosto tanto de doce, mas olha essa carinha.", "reveals": ["recipe.paw_cookie"] }
+      ]
+    },
+    {
+      "npc": "npc.jacque",
+      "known": { "beat": "story.jacque_meet" },
+      "loves": ["recipe.matcha_cake_slice", "recipe.cat_macarons"],
+      "likes": ["recipe.black_coffee", "recipe.paw_cookie", "item.cactus", "item.cactus_ball"],
+      "dislikes": ["recipe.fish_cookies_pink", "recipe.strawberry_ice_cream"],
+      "thanks": {
+        "loved": [
+          { "text": "Pera... {item}?! Você tá me stalkeando? Porque acertou demais." },
+          { "text": "Ok, oficialmente você é minha pessoa favorita desta rua. Não conta pros gatos." }
+        ],
+        "liked": [
+          { "text": "Vai junto com o café da próxima reunião.", "for": ["dish"] },
+          { "text": "Vai direto pra minha mesa de trabalho. Combina comigo.", "for": ["plant"] }
+        ],
+        "neutral": [
+          { "text": "Opa, valeu! {item}, que inesperado." },
+          { "text": "Obrigada! A Jojo vai querer cheirar." }
+        ],
+        "disliked": [
+          { "text": "Hm... isso é muito rosa pra mim. Mas o gesto conta, tá?" }
+        ]
+      },
+      "posts": [
+        { "id": "post.jacque.matcha", "text": "Matcha é personalidade. Bolo de matcha então, é estilo de vida.", "reveals": ["recipe.matcha_cake_slice"] },
+        { "id": "post.jacque.coffee", "text": "Reunião às 8h, a Jojo miando no microfone e eu no terceiro café preto. Normal.", "reveals": ["recipe.black_coffee"] },
+        { "id": "post.jacque.mayo", "text": "O Branquinho tomou sol e virou maionese de novo. Foto em anexo (não tem foto, ele fugiu)." },
+        { "id": "post.jacque.macarons", "text": "Macaron com carinha de gato?? Alguém tá me estudando.", "reveals": ["recipe.cat_macarons"] },
+        { "id": "post.jacque.pink", "text": "Tudo rosa demais me dá aflição. Meu guarda-roupa concorda.", "reveals": ["recipe.fish_cookies_pink", "recipe.strawberry_ice_cream"] },
+        { "id": "post.jacque.cactus", "text": "Comprei um cacto pra mesa do trabalho. Combina comigo: não precisa de muita atenção e espeta quem chega perto.", "reveals": ["item.cactus", "item.cactus_ball"] },
+        { "id": "post.jacque.paw", "text": "Biscoito com patinha. Sim, eu comprei. Não, não é pros gatos.", "reveals": ["recipe.paw_cookie"] }
+      ]
+    }
+  ]
+}

@@ -54,11 +54,13 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
   advance(s, 2);
   const queued = state.service.customers.filter((c) => c.stage === 'queue').length;
   const rep = s.reputation();
+  const gaveUp = state.stats.totals.gaveUp;
   s.service.setSchedule({ days: all, open: '09:00', close: clock(Math.floor(state.time / 30) * 30), lunch: null });
   advance(s, 2);
   const after = state.service.customers.filter((c) => c.stage === 'queue').length;
   s.service.setSchedule({ days: all, open: '09:00', close: '22:00', lunch: null });
-  report('fechar e reabrir esvazia a fila sem nota ruim', queued > 0 && after === 0 && s.reputation() >= rep, `fila ${queued} -> ${after}; reputação ${rep} -> ${s.reputation()}; reaberto: ${s.service.isOpen()}`);
+  const penalized = state.stats.totals.gaveUp > gaveUp;
+  report('fechar e reabrir esvazia a fila sem nota ruim', queued > 0 && after === 0 && !penalized, `fila ${queued} -> ${after}; contaram como desistência: ${penalized}; reputação ${rep} -> ${s.reputation()}; reaberto: ${s.service.isOpen()}`);
 }
 
 // 3. Feira de adoção (sem data) marcada em cima das datas fixas.
@@ -111,10 +113,12 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
 {
   const s = new GameSession(content, newGameState(5000, 'map.cafe_main', 10 * 60));
   const put = (it: string, at: [number, number]) => { s.receiveItem(it); return s.place(it, at).ok; };
-  const ok = put('item.counter_single', [13, 9]) && put('item.counter_single', [15, 9]) && put('item.counter_single', [14, 8]);
+  // A linha da porta (10) também é chão: para prender, é preciso fechar ela dos dois lados e as três vizinhas.
+  const cells: [number, number][] = [[12, 10], [16, 10], [13, 9], [15, 9], [14, 8]];
+  const placed = cells.map((at) => put('item.counter_single', at));
   const m = resolveMap(s.mapData('map.cafe_main'), content.catalog);
-  const sealed = [[13, 9], [15, 9], [14, 8]].every(([c, r]) => m.solid[r!]?.[c!]);
-  report('dá para fechar a entrada do café por dentro', ok && sealed, 'balcões em [13,9], [15,9] e [14,8]: quem entra fica presa na célula da porta');
+  const sealed = cells.every(([c, r]) => m.solid[r]?.[c]);
+  report('dá para fechar a entrada do café por dentro', placed.every(Boolean) && sealed, `balcões em ${cells.map((c) => `[${c}]`).join(' ')}: ${placed.map((ok) => (ok ? 'aceito' : 'recusado')).join(', ')}`);
 }
 
 // 6. Presente vira dinheiro: devolver dá 100% do preço, inclusive do que veio de graça.
@@ -132,9 +136,12 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
   state.story.completed.push(...beats);
   state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null } as GameState['cats'][string];
   const s = new GameSession(content, state);
+  // Um gato comum (o da história é protegido: não foge).
+  s.arrivals.debugGenerate(Object.keys(content.catProfiles.personalities)[0]!, 'healthy');
+  const id = s.shelteredCats().find((c) => c !== 'cat.first_stray')!;
   for (let d = 0; d < 60; d++) s.endDay('home');
-  const cat = state.cats['cat.first_stray']!;
-  report('gato largado não tem consequência', cat.sheltered && s.shelteredCats().includes('cat.first_stray'), `60 dias sem comida nem remédio: saúde ${cat.health}, doença ${cat.sickness ? 'sim' : 'não'}, continua no café`);
+  const cat = state.cats[id]!;
+  report('gato largado não tem consequência', !!cat.sheltered, `60 dias sem comida nem remédio: ${cat.ranAway ? 'fugiu do café' : 'continua no café'} (saúde ${cat.health}); reputação ${s.reputation()}`);
 }
 
 for (const r of results) console.log(`${r.open ? 'ABERTA ' : 'fechada'}  ${r.id}: ${r.detail}`);

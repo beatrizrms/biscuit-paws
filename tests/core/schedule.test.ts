@@ -68,6 +68,11 @@ describe('horário no atendimento', () => {
     const closedToday = { ...weekdays, days: weekdays.days.map((_, i) => i !== sv.weekday()) };
     expect(sv.setSchedule(closedToday)).toEqual({ ok: true });
     expect(state.schedule).toEqual(closedToday);
+    // Mudar o horário só vale a partir de amanhã: hoje segue aberto.
+    expect(sv.isOpen()).toBe(true);
+    expect(sv.scheduleChangesTomorrow()).toBe(true);
+    // No mesmo dia da semana, sem mudança naquele dia: fechado.
+    state.day += 7;
     expect(sv.isOpen()).toBe(false);
     expect(sv.setSchedule({ ...weekdays, days: Array(7).fill(false) })).toEqual({ ok: false, reason: 'no_days' });
   });
@@ -111,6 +116,7 @@ describe('horário de almoço', () => {
   it('no almoço não chega cliente novo; a fila e quem já pediu continuam; o café segue aberto', () => {
     const { sv, state } = cafe();
     expect(sv.setSchedule({ ...weekdays, days: Array(7).fill(true), lunch: '12:00' })).toEqual({ ok: true });
+    state.service.today = undefined; // como se o horário já fosse este hoje
     state.service.customers.push({ id: 'c1', look: 0, stage: 'queue', kind: 'standing', spot: [13, 5], dishAt: [13, 5], recipe: null, until: 99999, favorite: null, wantsPremium: false });
     state.time = 12 * 60 + 10;
     state.service.nextCustomerAt = 0;
@@ -123,8 +129,10 @@ describe('horário de almoço', () => {
     expect(sv.lunchNow()).toBe(true);
     expect(state.service.customers.length).toBeLessThanOrEqual(before); // ninguém novo; c1 continua ou foi sentar
     expect(state.service.customers.some((c) => c.id === 'c1')).toBe(true);
-    // Sem almoço: no mesmo horário, chega gente de novo.
+    // Sem almoço: no mesmo horário, chega gente de novo (a partir de amanhã).
     expect(sv.setSchedule({ ...weekdays, days: Array(7).fill(true), lunch: null })).toEqual({ ok: true });
+    expect(sv.lunchNow()).toBe(true);
+    state.day += 1;
     expect(sv.lunchNow()).toBe(false);
   });
 

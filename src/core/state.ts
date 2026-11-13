@@ -25,6 +25,7 @@ import { newMilestones, type MilestonesState } from './milestones';
 import type { SantaRecord } from './secretSanta';
 import type { HalloweenRecord } from './halloween';
 import type { GatheringsState } from './gatherings';
+import { newSocial, type FriendState, type SocialState } from './friendship';
 
 export interface PlacedItem {
   /** Identificador desta peça posicionada ("p1", "p2"...). Nunca reaproveitado. */
@@ -48,6 +49,8 @@ export interface GameState {
   flags: Record<string, boolean>;
   /** Itens comprados e ainda não posicionados: itemId -> quantidade. */
   inventory: Record<string, number>;
+  /** Quantos de cada item ela comprou e ainda pode devolver (presente não entra). Sem o campo (save antigo): devolve como antes. */
+  bought?: Record<string, number>;
   placed: PlacedItem[];
   nextUid: number;
   /** Marcos concluídos e o dia em que cada um terminou (v6). */
@@ -164,6 +167,10 @@ export interface GameState {
   halloween: HalloweenRecord | null;
   /** Encontros da estação deste ano (gatherings.ts). Saves antigos: nenhum. */
   gatherings: GatheringsState;
+  /** Amizade com os vizinhos (v41; friendship.ts): gostos descobertos, presente da semana, conversa do dia. */
+  friends: Record<string, FriendState>;
+  /** O feed da SocialVilla (v41): posts publicados e os já vistos. */
+  social: SocialState;
 }
 
 /** Um espaço da vitrine: um doce (portions 1) ou um bolo inteiro (as fatias que restam). */
@@ -242,6 +249,10 @@ export interface CatState {
   curedOn?: number;
   /** Dias seguidos com a saúde, a alegria ou a higiene em zero (descuido: no limite, perde um coração). */
   neglectDays?: number;
+  /** Dias seguidos com saúde, alegria ou higiene em zero (com relationships.neglect.runAwayDays, ele foge). */
+  zeroDays?: number;
+  /** Fugiu do café por descuido (não volta). */
+  ranAway?: boolean;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -251,6 +262,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     money: startingMoney,
     flags: {},
     inventory: {},
+    bought: {},
     placed: [],
     nextUid: 1,
     story: { completed: [], completedOn: {} },
@@ -302,6 +314,8 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     secretSanta: null,
     halloween: null,
     gatherings: {},
+    friends: {},
+    social: newSocial(),
   };
 }
 

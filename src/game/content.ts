@@ -47,6 +47,7 @@ import clinicJson from '../../data/clinic.json';
 import vetTextJson from '../../data/vet_text.json';
 import cedJson from '../../data/ced.json';
 import cedTextJson from '../../data/ced_text.json';
+import friendshipJson from '../../data/friendship.json';
 import arrivalsJson from '../../data/arrivals.json';
 import festivalsJson from '../../data/festivals.json';
 import fairSetupJson from '../../data/fair_setup.json';
@@ -99,6 +100,7 @@ export const content: Content = buildContent({
   vetText: vetTextJson,
   ced: cedJson,
   cedText: cedTextJson,
+  friendship: friendshipJson,
   arrivals: arrivalsJson,
   festivals: festivalsJson,
   fairSetup: fairSetupJson,

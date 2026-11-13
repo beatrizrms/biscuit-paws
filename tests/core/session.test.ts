@@ -414,6 +414,26 @@ describe('devolução', () => {
     expect(session.refund('item.cactus')).toEqual({ ok: true });
     expect(session.state.money).toBe(150);
   });
+
+  it('presente não se devolve: só o que foi comprado (e só quantos foram comprados)', () => {
+    const { session } = newSession();
+    session.receiveItem('item.paw_rug'); // presente de selo
+    expect(session.refundable('item.paw_rug')).toBe(false);
+    expect(session.refund('item.paw_rug')).toEqual({ ok: false, reason: 'not_refundable' });
+    // Um comprado e um ganho do mesmo item: devolve um só.
+    session.buy('item.cactus');
+    session.receiveItem('item.cactus');
+    expect(session.refund('item.cactus')).toEqual({ ok: true });
+    expect(session.state.inventory['item.cactus']).toBe(1);
+    expect(session.refund('item.cactus')).toEqual({ ok: false, reason: 'not_refundable' });
+  });
+
+  it('save de antes do registro de compras: devolve como antes', () => {
+    const { session } = newSession();
+    delete session.state.bought;
+    session.receiveItem('item.paw_rug');
+    expect(session.refund('item.paw_rug')).toEqual({ ok: true });
+  });
 });
 
 describe('faxina', () => {

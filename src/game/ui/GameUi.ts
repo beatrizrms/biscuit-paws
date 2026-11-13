@@ -281,6 +281,7 @@ export class GameUi {
       const def = content.requests.requests.find((r) => r.id === requestId);
       if (def) this.toast(def.thanks, 5000);
     });
+    bus.on('cat.ran_away', ({ catId, reputation }) => this.toast(uiText.catRanAway.replace('{cat}', this.session.catName(catId)).replace('{rep}', String(reputation)), 8000));
     bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
     const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
     bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));

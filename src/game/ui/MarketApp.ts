@@ -171,7 +171,7 @@ export class MarketApp {
     ].join('');
     const inOrder = this.session.orderCart.qty(id);
     const refund =
-      owned > 0 && !fixture ? `<button class="m-refund" data-refund="${id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(id)}</button>` : '';
+      owned > 0 && !fixture && this.session.refundable(id) ? `<button class="m-refund" data-refund="${id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(id)}</button>` : '';
     // No pedido: quantos e o "−" (tocar no cartão de novo põe mais um).
     const order =
       inOrder > 0 ? `<div class="m-qty"><button class="m-less" data-less="${id}">−</button><span>${esc(uiText.market.orderCount.replace('{n}', String(inOrder)))}</span></div>` : '';

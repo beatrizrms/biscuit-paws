@@ -34,7 +34,7 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 **A1. A chegada do 2º gato esperava para sempre e travava todas as outras.** CORRIGIDO. Ela começa no dia 8 (a Dona Neusa traz o gato) e ficava na etapa 0 até a jogadora ir lá, sem prazo (o balão mostra a linha da chegada, mas nada a fazia andar). Enquanto isso, nenhuma outra chegada começava (uma por vez); o 3º gato só vem com 2 gatos, e as sorteadas só com 3: quem ignorava a Dona Neusa ficava com 1 gato para sempre.
 *Correção:* `arrivals.json: expire` (4 dias na primeira etapa sem resposta: o gato segue o caminho dele, com aviso, e a vez passa); as escritas à mão sem repetir voltam a tentar 3 dias depois (`retryOn`).
 
-**A2. Almoço empurrado congelava a paciência para sempre** CORRIGIDO. (veio da decisão 166, almoço com paciência parada). O app Horário aceita mudar o almoço a qualquer hora, quantas vezes ela quiser. Movendo para a meia hora atual, o cliente esperou 4 horas com a paciência em 90 min, e a nota não cai.
+**A2. Almoço empurrado congelava a paciência para sempre** CORRIGIDO (hoje: o horário, almoço incluído, só muda no dia seguinte; decisão 224). (veio da decisão 166, almoço com paciência parada). O app Horário aceita mudar o almoço a qualquer hora, quantas vezes ela quiser. Movendo para a meia hora atual, o cliente esperou 4 horas com a paciência em 90 min, e a nota não cai.
 *Correção:* um almoço por dia. Quando o almoço de hoje começa, ele fica travado (`service.lunch`); mudar o horário depois só vale amanhã. Desligar no app encerra o de hoje (encurtar não dá vantagem), mas não abre outro.
 
 **A3. Feira de adoção no mesmo dia de uma data fixa.** CORRIGIDO. A feira (sem data, 5 dias de preparo) só evita outras festas do calendário (`festivals.json`). Não evita o sorteio do amigo secreto (inverno 18), o Natal (inverno 25, o café fecha às 12h e tem a ceia às 19h), o Ano Novo (inverno 30, fogos) nem o Halloween (outono 30). Confirmado com a regra do próprio jogo: as 4 datas aceitam a feira.
@@ -45,19 +45,19 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 
 ### Média
 
-**M1. Fechar mais cedo esvazia a fila sem nota ruim.** Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
-*Sugestão:* a mesma regra do A2 (mudança de horário vale a partir do dia seguinte), ou quem sai da fila porque o café fechou antes da hora dá a nota de desistência.
+**M1. Fechar mais cedo esvaziava a fila sem nota ruim.** CORRIGIDO (decisão 224). Com a fila cheia, ela muda o fechamento para a hora atual: a fila vai embora "sem bronca" (o café fechou) e ela reabre na hora. Escapa das avaliações ruins de quem ia desistir.
+*Correção:* mudar o horário no app só vale a partir de amanhã; hoje segue o horário de quando o dia começou (decisão 224, que substitui a correção anterior).
 
-**M2. Gato largado não tem consequência.** Sem comida e sem remédio por 60 dias: saúde 0, doente o tempo todo, continua no café. O descuido só tira corações, e quando chegam a 0 não acontece mais nada. Os clientes só somem com vários gatos doentes.
-*Sugestão (decisão de design):* com saúde 0 por X dias, a clínica ou a Dona Neusa leva o gato (com uma fala); ou a reputação cai a cada dia com gato doente sem tratamento.
+**M2. Gato largado não tinha consequência.** CORRIGIDO (decisão 224). Sem comida e sem remédio por 60 dias: saúde 0, doente o tempo todo, continua no café. O descuido só tira corações, e quando chegam a 0 não acontece mais nada. Os clientes só somem com vários gatos doentes.
+*Correção:* com saúde, alegria ou higiene em zero por 4 dias seguidos, o gato foge do café (aviso: "não tinha tudo de que precisava aqui e fugiu") e a reputação cai 5. Os gatos protegidos da história não fogem.
 
-**M3. Presentes viram dinheiro.** A devolução paga 100% do preço (`refundRate: 1`) de qualquer item que não seja chave, ferramenta, peça fixa ou presente (`kind`). Os presentes de selo (tapete de patinhas 60, caminha lilás 25, vaso, relógio), os presentes do amigo secreto e os enfeites que voltam da caixa todo inverno são móveis comuns: dá para devolver e ficar com as moedas.
-*Sugestão:* item recebido de graça fica marcado como presente (não devolve), ou a devolução paga só o que foi pago (registrar o preço de compra no inventário).
+**M3. Presentes viravam dinheiro.** CORRIGIDO (decisão 224). A devolução paga 100% do preço (`refundRate: 1`) de qualquer item que não seja chave, ferramenta, peça fixa ou presente (`kind`). Os presentes de selo (tapete de patinhas 60, caminha lilás 25, vaso, relógio), os presentes do amigo secreto e os enfeites que voltam da caixa todo inverno são móveis comuns: dá para devolver e ficar com as moedas.
+*Correção:* o jogo anota o que foi comprado (`bought`); só isso se devolve, e só quantos foram comprados. Saves de antes do registro devolvem como antes.
 
 ### Baixa
 
-**B1. Dá para fechar a entrada do café por dentro.** Três móveis em volta da célula onde ela chega da rua ([13,9], [15,9], [14,8]) e ela fica presa na porta. Tem saída (os móveis estão encostados nela e dá para mover), mas os gatos também perdem o caminho para a porta.
-*Sugestão:* a célula de chegada de cada porta e uma vizinha livre entram nas células reservadas de `checkPlacement`; ou conferir com `findPath` que a porta continua ligada ao resto do cômodo.
+**B1. Dava para fechar a entrada do café por dentro.** CORRIGIDO (decisão 223). Correção do relatório: os três móveis em volta da chegada não prendiam (a linha da porta também é chão, ela dá a volta por baixo); prender de verdade pedia fechar essa linha também.
+*Correção:* um móvel sólido que deixaria alguma chegada ao café (da rua, do quintal) sem caminho até dentro é recusado ("fica na frente da passagem"), conferido com `findPath`.
 
 **B2. Cliente atravessa móveis.** Os clientes andam em L até o lugar (sem `findPath`): com o caminho fechado, eles passam por cima dos móveis.
 
