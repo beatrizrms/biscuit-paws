@@ -111,20 +111,26 @@
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "spring_parque_sebe_topo": {
+  "yard_sebe_lateral_neve": {
    "col": 2,
+   "row": 12,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "spring_parque_sebe_topo": {
+   "col": 3,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "summer_parque_sebe_topo": {
-   "col": 2,
+   "col": 3,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1
   },
   "autumn_parque_sebe_topo": {
-   "col": 2,
+   "col": 3,
    "row": 12,
    "w_tiles": 1,
    "h_tiles": 1

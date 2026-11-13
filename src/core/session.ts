@@ -42,7 +42,7 @@ import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
-import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
+import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, festivalEndDeadline, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
 import {
@@ -269,6 +269,7 @@ export class GameSession {
       catPersonality: (id) => this.catDef(id)?.personality ?? '',
       guideCats: () => this.shelteredCats().filter((id) => this.state.cats[id]?.provisionalUntil === undefined),
       now: () => nowAbs(this.state),
+      weather: () => this.weather(),
       capacity: () => this.catCapacity(),
       exclusiveActive: () => this.exclusiveActive(),
       reputation: () => this.reputation(),
@@ -2258,7 +2259,17 @@ export class GameSession {
 
   /** Clima de hoje (data/seasons.json: weather). O debug (F9) pode escolher outro para testar. */
   weather(): string {
-    return this.arrivals?.debug.weather ?? weatherOf(this.content.seasons, this.state.day);
+    const forced = this.arrivals?.debug.weather;
+    if (forced) return forced;
+    const w = weatherOf(this.content.seasons, this.state.day);
+    // Dia de evento no quintal: não chove (a feira, a plateia e as atividades são lá fora).
+    return w === 'rain' && this.festivalInYardToday() ? 'sun' : w;
+  }
+
+  /** Hoje tem evento no quintal (marcado para hoje, ou já aconteceu hoje)? */
+  private festivalInYardToday(): boolean {
+    const f = this.state.festivals;
+    return isFestivalDay(f, this.state.day) || f.heldOn?.day === this.state.day;
   }
 
   // ---------- Caixas de enfeites (Natal e Halloween) ----------
@@ -3704,7 +3715,18 @@ export class GameSession {
       this.festivalRemindedOn = this.state.day;
       this.bus.emit('festival.closeSoon', { festivalId: def.id, by: def.closePoint!.by! });
     }
+    if (r === 'missed' || !this.state.festivals.active) return;
+    // A hora-limite do dia (20h): o lembrete uma hora antes; passou sem acabar, o evento é perdido.
+    const end = festivalEndDeadline(this.state.festivals, def, this.state.day, this.state.time);
+    if (end === 'missed') {
+      this.festivalMissedOn = this.state.day;
+      this.bus.emit('festival.missed', { festivalId: def.id, day: this.state.day, evening: true });
+    } else if (end === 'soon' && this.festivalEndRemindedOn !== this.state.day) {
+      this.festivalEndRemindedOn = this.state.day;
+      this.bus.emit('festival.endSoon', { festivalId: def.id, until: def.until! });
+    }
   }
+  private festivalEndRemindedOn = 0;
 
   /** Começa o primeiro festival disponível: a protagonista tem a ideia (fala) e a meta aparece. */
   private maybeStartFestivals(): void {

@@ -865,6 +865,7 @@
       "solid": false,
       "overrides": {
         "parque_sebe_topo": { "layer": "wall", "solid": true },
+        "yard_sebe_lateral_neve": { "layer": "wall", "solid": true },
         "spring_parque_sebe_topo": { "layer": "wall", "solid": true },
         "summer_parque_sebe_topo": { "layer": "wall", "solid": true },
         "autumn_parque_sebe_topo": { "layer": "wall", "solid": true }

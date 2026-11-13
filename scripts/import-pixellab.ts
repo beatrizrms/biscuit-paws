@@ -732,6 +732,8 @@ const SHEETS: Sheet[] = [
       snow_yard_vaso_baixo_flores: { file: '', w: 1, h: 1, dy: 4, build: () => snowTop(readPng(`${SRC}/quintal/obj_4.png`), 60, 12) },
       snow_decor_floreira: { file: '', w: 1, h: 1, dy: 6, build: () => snowTop(readPng(`${SRC}/provisorios/obj_10.png`), 61, 10) },
       parque_sebe_topo: { file: '', w: 1, h: 1, build: () => withSnow(seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), 62, 12) },
+      // A sebe lateral do quintal no inverno: uma faixa de neve ao longo da face de cima (o lado esquerdo, claro).
+      yard_sebe_lateral_neve: { file: '', w: 1, h: 1, build: () => withSideSnow(seamlessRows(readPng(`${SRC}/quintal/sebe_lateral_1x3.png`), 20, 118), 77, 11) },
       spring_parque_sebe_topo: {
         file: '', w: 1, h: 1, build: () => seamlessCols(readPng(`${SRC}/quintal/sebe_fundo_3x1.png`)), aliases: ['summer_parque_sebe_topo', 'autumn_parque_sebe_topo'],
       },
@@ -1716,6 +1718,38 @@ function mowedGrass(src: PNG, keep: number): PNG {
     else src.data.copy(out.data, i, i, i + 4);
   }
   return out;
+}
+
+/**
+ * Neve ao longo de uma peça vertical vista de cima (a sebe lateral): em cada linha, do primeiro pixel do desenho à
+ * esquerda, `width` px de neve (variando um pouco, e a linha de cima e a de baixo da peça iguais, para emendar), a
+ * borda da direita sombreada e contornada.
+ */
+function withSideSnow(png: PNG, seed: number, width: number): PNG {
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const white: [number, number, number] = [250, 252, 255], shade: [number, number, number] = [206, 221, 238], line: [number, number, number] = [150, 170, 196];
+  const solid = (x: number, y: number) => x >= 0 && x < png.width && png.data[(y * png.width + x) * 4 + 3]! > 40;
+  // Larguras por linha (passeio aleatório que volta ao começo, para a peça emendar em cima e embaixo).
+  // Montinhos: a largura sobe e desce em ondas curtas (2 a 6 px de altura), não uma faixa reta.
+  const ws: number[] = [];
+  let w = width;
+  for (let y = 0; y < png.height; y++) {
+    const r = rnd();
+    w = Math.max(width - 6, Math.min(width + 5, w + (r < 0.35 ? -2 : r > 0.65 ? 2 : 0)));
+    ws.push(w);
+  }
+  const fix = 6;
+  for (let i = 0; i < fix; i++) ws[png.height - 1 - i] = Math.round(ws[png.height - 1 - i]! + ((ws[0]! - ws[png.height - 1 - i]!) * (fix - i)) / fix);
+  // A borda da esquerda da sebe é a mesma em todas as linhas (sem risquinhos na emenda dos tiles).
+  let x0 = png.width;
+  for (let y = 0; y < png.height; y++) for (let x = 0; x < png.width; x++) if (solid(x, y)) { x0 = Math.min(x0, x); break; }
+  for (let y = 0; y < png.height; y++) {
+    const d = ws[y]!;
+    let x = x0 + 1;
+    for (; x < x0 + 1 + d; x++) plot(png, x, y, x >= x0 + d - 1 ? shade : rnd() < 0.06 ? shade : white);
+    plot(png, x, y, line);
+  }
+  return png;
 }
 
 /** A peça com a neve do inverno por cima (snowTop) já desenhada nela. */

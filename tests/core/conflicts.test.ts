@@ -154,6 +154,42 @@ describe('horários das visitas', () => {
   });
 });
 
+describe('dia de evento no quintal', () => {
+  it('não chove (o clima do jogo e o das chegadas de gato)', async () => {
+    const { weatherOf } = await import('../../src/core/calendar');
+    const { session, state } = midGame();
+    let day = 1;
+    while (weatherOf(content.seasons, day) !== 'rain') day++;
+    state.day = day;
+    expect(session.weather()).toBe('rain');
+    session.debugStartFestival('fest.cat_day');
+    state.festivals.active!.day = day;
+    expect(session.weather()).not.toBe('rain');
+  });
+
+  it('até as 20h: lembrete às 19h; deu 20h sem acabar, o evento é perdido', () => {
+    const { session, state, events } = midGame();
+    const catDay = content.festivals.find((f) => f.id === 'fest.cat_day')!;
+    expect(catDay.until).toBe('20:00');
+    session.debugStartFestival(catDay.id);
+    state.day = state.festivals.active!.day!;
+    state.time = 10 * 60;
+    expect(session.doJobPoint(catDay.closePoint!.point)).toEqual({ ok: true });
+    state.time = 19 * 60 - 1;
+    session.tickClock(2 / content.dayNight.minutesPerSecond);
+    expect(events.some((e) => e.name === 'festival.endSoon')).toBe(true);
+    state.time = 20 * 60 - 1;
+    session.tickClock(2 / content.dayNight.minutesPerSecond);
+    expect(events.find((e) => e.name === 'festival.missed')?.payload).toMatchObject({ festivalId: catDay.id, evening: true });
+    expect(state.festivals.active).toBeNull();
+  });
+
+  it('a decoração tem as luzes (acendem à noite)', () => {
+    const lights = Object.keys(content.dayNight.lightTiles);
+    for (const f of content.festivals) expect((f.decorations ?? []).filter((d) => lights.includes(d.tile)).length, f.id).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('o mapa sempre abre', () => {
   it('café, rua, praça e beco, em cada estação', () => {
     const { session, state } = midGame();

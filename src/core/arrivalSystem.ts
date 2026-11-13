@@ -37,6 +37,8 @@ export interface ArrivalHost {
   guideCats(): string[];
   /** Minuto absoluto agora (dia * 1440 + hora). */
   now(): number;
+  /** O clima de hoje como o jogo mostra (sem chuva em dia de evento no quintal); sem isso, o sorteio do dia. */
+  weather?(): string;
   /** Gatos que ocupam vaga no café (abrigados, inclusive os provisórios) e a capacidade dos cômodos abertos. */
   shelteredCount(): number;
   capacity(): number;
@@ -114,7 +116,7 @@ export class ArrivalSystem {
       day: s.day,
       time: s.time,
       season: seasonOf(seasons, s.day),
-      weather: this.debug.weather ?? weatherOf(seasons, s.day),
+      weather: this.debug.weather ?? this.h.weather?.() ?? weatherOf(seasons, s.day),
       cats: this.h.shelteredCount(),
       reputation: this.h.reputation(),
       evaluate: (c: unknown) => this.h.evaluate(c),

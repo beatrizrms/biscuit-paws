@@ -28,6 +28,10 @@ export interface FestivalDef {
    * o evento é perdido. `remind`: quantos minutos antes do prazo vem o lembrete.
    */
   closePoint?: { point: string; tile: string; by?: string; remind?: number };
+  /** Até que hora tudo do dia (decoração e atividades) pode acontecer ("20:00"); passou sem acabar, o evento é perdido. */
+  until?: string;
+  /** Minutos antes de `until` em que vem o lembrete. */
+  untilRemind?: number;
   /** No dia, depois da placa: decorações (cada ponto vira a peça dele no mapa). */
   decorations?: { point: string; tile: string; at?: [number, number] }[];
   /** As atividades do dia, em ordem: mini game aberto pelo ponto (data/jobs.json, action "minigame"). */
@@ -219,6 +223,21 @@ export function festivalCloseDeadline(s: FestivalsState, def: FestivalDef, day: 
   return cp.remind && time >= by - cp.remind ? 'soon' : null;
 }
 
+/**
+ * No dia do evento, ainda sem acabar: passou da hora-limite do dia (def.until), o evento é perdido (volta ao começo) e
+ * devolve 'missed'; dentro dos untilRemind minutos antes dela, 'soon'. Senão, null.
+ */
+export function festivalEndDeadline(s: FestivalsState, def: FestivalDef, day: number, time: number): 'missed' | 'soon' | null {
+  const a = s.active;
+  if (!def.until || !a || a.id !== def.id || !isFestivalDay(s, day)) return null;
+  const until = parseClock(def.until);
+  if (time >= until) {
+    s.active = null;
+    return 'missed';
+  }
+  return def.untilRemind && time >= until - def.untilRemind ? 'soon' : null;
+}
+
 /** Virada do dia: o evento marcado para um dia que já passou sem acabar volta ao começo. Devolve o id, se perdeu. */
 export function festivalDayEnded(s: FestivalsState, newDay: number): string | null {
   const a = s.active;
@@ -249,6 +268,7 @@ export function validateFestivals(
     for (const t of [...(f.closePoint ? [f.closePoint.tile] : []), ...(f.decorations ?? []).map((d) => d.tile)]) if (!refs.tiles.has(t)) errors.push(`${w}: tile inexistente "${t}"`);
     if (f.closePoint?.by !== undefined && !/^\d{1,2}:\d{2}$/.test(f.closePoint.by)) errors.push(`${w}: closePoint.by com hora inválida "${f.closePoint.by}"`);
     if (f.closePoint?.remind !== undefined && !(f.closePoint.remind > 0)) errors.push(`${w}: closePoint.remind precisa ser mais que 0`);
+    if (f.until !== undefined && !/^\d{1,2}:\d{2}$/.test(f.until)) errors.push(`${w}: until com hora inválida "${f.until}"`);
     for (const a of f.activities) if (!refs.games.has(a.game)) errors.push(`${w}: mini game inexistente "${a.game}"`);
   }
   return errors;

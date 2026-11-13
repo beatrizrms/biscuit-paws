@@ -344,6 +344,33 @@
       "action": "press"
     },
     {
+      "id": "pt.fair_light_1",
+      "map": "map.cafe_main",
+      "at": [
+        27,
+        9
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.fair_light_2",
+      "map": "map.cafe_main",
+      "at": [
+        42,
+        5
+      ],
+      "action": "press"
+    },
+    {
+      "id": "pt.fair_light_3",
+      "map": "map.cafe_main",
+      "at": [
+        36,
+        4
+      ],
+      "action": "press"
+    },
+    {
       "id": "pt.fair_decor_3",
       "map": "map.cafe_main",
       "at": [

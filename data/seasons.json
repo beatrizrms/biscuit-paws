@@ -12,7 +12,7 @@
   "_snowCaps": "Regra geral do inverno: neve por cima de todo objeto ao ar livre (mapas de maps e cômodos outdoor do café) que não tem a neve dele (overlay). skip: tiles (prefixo) que já têm neve no desenho ou não levam (céu, brilho, neve, árvores da praça). tiles: peças de grade trocadas pela versão com neve (a sebe do quintal).",
   "snowCaps": {
     "skip": ["snow_", "prop_arvore_", "yard_fundo_ceu", "yard_brilho", "yard_luzinhas", "ph_fair_bunting", "ph_fair_balloons"],
-    "tiles": { "yard_sebe_topo": "parque_sebe_topo" }
+    "tiles": { "yard_sebe_topo": "parque_sebe_topo", "yard_sebe_lateral": "yard_sebe_lateral_neve" }
   },
   "names": {
     "winter": "Inverno",

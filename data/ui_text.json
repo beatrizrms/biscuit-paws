@@ -1337,6 +1337,8 @@
     "missed": "{name} passou sem acontecer... Dá para organizar de novo.",
     "missedLate": "Passou das {by} e a placa não foi para a porta: {name} ficou para outra vez.",
     "closeSoon": "{name} é hoje! A placa precisa ir para a porta do café até as {by}.",
+    "missedEvening": "Deu {until} e {name} não terminou: ficou para outra vez.",
+    "endSoon": "{name}: falta pouco! Tudo precisa terminar até as {until}.",
     "summary": {
       "title": "{name}: fim!",
       "activity": "{game}: {outcome}",

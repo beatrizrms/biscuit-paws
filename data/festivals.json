@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Eventos de festival no café (src/core/festival.ts), ideia da protagonista, no quintal. Disponível quando: unlockReputation (limiar de data/reputation.json alcançado), when (condição das metas), date (estação + dia; a ideia vem noticeDays antes) e o intervalo cooldownDays desde a última edição. Um evento por vez. Começa com a fala idea; prep (pontos em qualquer ordem, ex.: panfletos) marca o dia daysAfter depois; sem prep, já fica marcado (a data, ou hoje). No dia: closePoint (a placa na porta fecha o atendimento; by: até que hora dá para pôr, passou sem ela o evento é perdido; remind: minutos antes do prazo em que vem o lembrete), decorations (cada ponto põe a peça no mapa) e activities (mini games, em ordem; qualquer resultado conta). Acabou: resumo com os resultados, mais rewards. Perdeu o dia: volta ao começo. texts: as linhas do balão de metas deste evento (prep, close, decor e uma por mini game das atividades). decorations[].at: onde a peça aparece, se não for no ponto do E (as bandeirinhas ficam na sebe do fundo, a parede do quintal; o ponto do E fica no chão, embaixo).",
+  "_comment": "Eventos de festival no café (src/core/festival.ts), ideia da protagonista, no quintal. Disponível quando: unlockReputation (limiar de data/reputation.json alcançado), when (condição das metas), date (estação + dia; a ideia vem noticeDays antes) e o intervalo cooldownDays desde a última edição. Um evento por vez. Começa com a fala idea; prep (pontos em qualquer ordem, ex.: panfletos) marca o dia daysAfter depois; sem prep, já fica marcado (a data, ou hoje). No dia: closePoint (a placa na porta fecha o atendimento; by: até que hora dá para pôr, passou sem ela o evento é perdido; remind: minutos antes do prazo em que vem o lembrete), until (até que hora tudo do dia pode acontecer; passou sem acabar, perde; untilRemind: o lembrete antes), decorations (com as luzes: luminárias de chão e o fio de luzinhas, que acendem à noite) (cada ponto põe a peça no mapa) e activities (mini games, em ordem; qualquer resultado conta). Acabou: resumo com os resultados, mais rewards. Perdeu o dia: volta ao começo. texts: as linhas do balão de metas deste evento (prep, close, decor e uma por mini game das atividades). decorations[].at: onde a peça aparece, se não for no ponto do E (as bandeirinhas ficam na sebe do fundo, a parede do quintal; o ponto do E fica no chão, embaixo).",
   "_crowd": "A plateia nos dias de evento (src/core/festivalCrowd.ts): com tudo montado (placa, decoração e a feira nos caixotes), de people[0] a people[1] pessoas vêm ao quintal (sorteio do dia): os friends já conhecidos (when) sempre, nos grupinhos, e o resto da lista npcs; walkers delas passeiam e o resto fica em grupinhos de 2 ou 3, conversando (os balõezinhos passam pelas lines, uma de cada vez). keepFree: células sem ninguém (a chegada da Jacque na primeira feira). Vão embora em until.",
   "crowd": {
     "npcs": ["npc.customer_01", "npc.customer_02", "npc.customer_03", "npc.customer_04", "npc.customer_05", "npc.customer_06", "npc.customer_07", "npc.customer_08", "npc.customer_09", "npc.customer_10"],
@@ -37,10 +37,15 @@
       "cooldownDays": 30,
       "prep": { "points": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"], "daysAfter": 3 },
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
+      "until": "20:00",
+      "untilRemind": 60,
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
-        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] }
+        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] },
+        { "point": "pt.fair_light_1", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_2", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_3", "tile": "yard_luzinhas_fio", "at": [34, 2] }
       ],
       "activities": [
         { "point": "pt.fair_setup", "game": "fair_setup" },
@@ -66,9 +71,14 @@
       "date": { "season": "summer", "day": 8, "noticeDays": 3 },
       "cooldownDays": 60,
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
+      "until": "20:00",
+      "untilRemind": 60,
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
-        { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" }
+        { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
+        { "point": "pt.fair_light_1", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_2", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_3", "tile": "yard_luzinhas_fio", "at": [34, 2] }
       ],
       "activities": [
         { "point": "pt.costume_stage", "game": "costume" },
@@ -93,9 +103,14 @@
       "date": { "season": "spring", "day": 20, "noticeDays": 3 },
       "cooldownDays": 120,
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
+      "until": "20:00",
+      "untilRemind": 60,
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
-        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] }
+        { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] },
+        { "point": "pt.fair_light_1", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_2", "tile": "yard_lampada_chao" },
+        { "point": "pt.fair_light_3", "tile": "yard_luzinhas_fio", "at": [34, 2] }
       ],
       "activities": [
         { "point": "pt.costume_stage", "game": "costume" },
