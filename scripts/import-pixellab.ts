@@ -2379,9 +2379,10 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
 }
 
 // ---------- Ônibus do ponto da rua (4x3: 256 x 192, de lado; desenhado em meia escala: data/world.json bus.vehicle) ----------
-// Amarelo com faixa creme, sem letreiro. Descido 32 px (as rodas na base); a versão para a esquerda é espelhada.
+// Amarelo com faixa creme, sem letreiro (v2: o desenho ocupa 146 das 192 linhas; com scale 0.65 fica com 3 tiles de altura).
+// Descido 27 px (as rodas na base); a versão para a esquerda é espelhada.
 {
-  const bus = () => pickRows(readPng(`${SRC}/onibus/onibus_256x192.png`), [...Array.from({ length: 32 }, () => 0), ...range(0, 159)]);
+  const bus = () => pickRows(readPng(`${SRC}/onibus/onibus_256x192_v2.png`), [...Array.from({ length: 27 }, () => 0), ...range(0, 164)]);
   const dir = 'public/assets/objects/vehicles';
   writeFileSync(`${dir}/obj_bus_right.png`, PNG.sync.write(bus()));
   writeFileSync(`${dir}/obj_bus_left.png`, PNG.sync.write(columns(bus(), range(0, 255).reverse())));
