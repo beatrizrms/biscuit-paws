@@ -72,7 +72,7 @@ describe('cômodos: dados e regras', () => {
     expect(Object.keys(yard.variants!)).toEqual(['hedge']); // a variante de tijolo saiu na arte nova (decisão 065)
     // Reformado, o quintal começa só com a grama e o caminho; as árvores antigas vêm posicionadas (dá para remover).
     expect(resolvedLook(yard, 'restored').objects.filter((o) => o.tile.startsWith('yard_') && o.tile !== 'yard_fundo_ceu_telhados')).toEqual([]);
-    expect(yard.restore?.placeItems?.map((p) => p.item)).toEqual(['item.yard_big_tree', 'item.yard_big_tree']);
+    expect(yard.placeItems?.filter((p) => content.items[p.item]?.tags.includes('tree')).length).toBeGreaterThan(4);
   });
 
   it('todas as variantes do quintal, em todos os estados, dão um mapa válido', () => {
@@ -372,18 +372,20 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     expect(state.flags['seen.firstlook.room.backyard']).toBe(true);
   });
 
-  it('reformado: as árvores antigas vêm posicionadas, dá para remover (some de vez); a muda cresce até virar árvore', () => {
+  it('aberto (sujo): árvores espalhadas, dá para remover (some de vez); a muda cresce até virar árvore', () => {
     const { session, state } = yardOpen();
+    const trees = () => state.placed.filter((p) => p.item === 'item.yard_big_tree');
+    expect(trees()).toHaveLength(1); // já no quintal sujo, com as outras espalhadas
+    expect(state.placed.filter((p) => content.items[p.item]?.tags.includes('tree')).length).toBeGreaterThan(4);
     cleanTag(session, 'backyard', true);
     expect(session.restoreRoom('room.backyard')).toEqual({ ok: true });
-    const trees = () => state.placed.filter((p) => p.item === 'item.yard_big_tree');
-    expect(trees().map((p) => p.at)).toEqual([[40, 3], [27, 3]]);
+    expect(trees()).toHaveLength(1); // a reforma não traz outras
     expect(session.removeTree(trees()[0]!.uid)).toEqual({ ok: true });
-    expect(trees()).toHaveLength(1);
+    expect(trees()).toHaveLength(0);
     expect(state.inventory['item.yard_big_tree']).toBeUndefined(); // não vai para a mochila
     // Recarregar não traz a árvore de volta.
     const back = new GameSession(content, parseSave(serializeSave(state, new Date(0)), knownIds(content)).state);
-    expect(back.state.placed.filter((p) => p.item === 'item.yard_big_tree')).toHaveLength(1);
+    expect(back.state.placed.filter((p) => p.item === 'item.yard_big_tree')).toHaveLength(0);
     // A muda: plantada, cresce em dias.
     state.inventory['item.yard_sapling'] = 1;
     expect(session.place('item.yard_sapling', [33, 6])).toEqual({ ok: true });
@@ -442,7 +444,7 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     state.inventory['item.yard_hedge_lamp'] = 1;
     expect(session.checkPlacement('item.yard_hedge_lamp', [30, 2])).toBeNull();
     state.inventory['item.yard_pergola_oven'] = 1;
-    expect(session.checkPlacement('item.yard_pergola_oven', [31, 3])).toBeNull();
+    expect(session.checkPlacement('item.yard_pergola_oven', [26, 4])).toBeNull();
   });
 
   it('toda peça de "área" tem uma seção na aba Decor do Market', () => {

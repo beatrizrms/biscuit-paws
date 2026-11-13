@@ -3573,9 +3573,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private vetDelivering = false;
 
   /** A volta da castração: guarda a entrega; no café, a cena já começa (fora dele, espera ela entrar). */
-  private queueVetDelivery(d: { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number }): void {
-    const cans = this.session.content.clinic.procedures.find((p) => p.id === 'proc.neuter')?.recoveryCans ?? 0;
-    const lines = [vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays, cans }, d.catId)];
+  private queueVetDelivery(d: { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number; cans?: number; inflamed?: boolean }): void {
+    const cans = d.cans ?? this.session.content.clinic.procedures.find((p) => p.id === 'proc.neuter')?.recoveryCans ?? 0;
+    // O pontinho inflamado: ela conta primeiro (por isso os dias, as doses e as latinhas a mais).
+    const lines = d.inflamed ? [vetLine(this.session, 'neuter.inflamed', {}, d.catId)] : [];
+    lines.push(vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays, cans }, d.catId));
     // A primeira vez: o cercadinho com fraldas e as latinhas.
     if (d.first) lines.push(vetLine(this.session, 'neuter.diapers', {}, d.catId));
     this.vetDeliveries.push({ catId: d.catId, lines });

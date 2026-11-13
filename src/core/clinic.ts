@@ -21,7 +21,8 @@ export interface ProcedureDef {
   /** Latinhas de comida de recuperação (pen.food) que vêm junto na volta (tudo incluso). */
   recoveryCans: number;
   /** Complicação pequena: chance na volta e chance por dia sem comer no cercadinho. */
-  complication: { chance: number; missedFeedChance: number };
+  /** extra: o que soma em dias de cercadinho, doses e latinhas quando o pontinho está inflamado na entrega. */
+  complication: { chance: number; missedFeedChance: number; extra?: number };
   costSource: CostSource;
   /** O que muda no gato depois (trustEasier: níveis mais fácil na confiança; pillWindow: multiplica a distração). */
   effects: { trustEasier?: number; pillWindow?: number };

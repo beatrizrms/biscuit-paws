@@ -132,6 +132,18 @@
     {
       "id": "room.backyard",
       "firstLook": "scr.yard_first_look",
+      "winterPatches": { "tiles": ["yard_neve_poca_a", "yard_neve_poca_b", "yard_neve_poca_c", "yard_neve_poca_d"], "wideTile": "yard_neve_poca_larga", "share": 0.4 },
+      "placeItems": [
+        { "item": "item.yard_big_tree", "at": [38, 0] },
+        { "item": "item.yard_tree_medium", "at": [27, 1] },
+        { "item": "item.yard_tree_medium_b", "at": [28, 8] },
+        { "item": "item.yard_tree_medium", "at": [37, 8] },
+        { "item": "item.yard_tree_thin", "at": [32, 2] },
+        { "item": "item.yard_tree_thin", "at": [40, 5] },
+        { "item": "item.yard_tree_young", "at": [30, 5] },
+        { "item": "item.yard_tree_young", "at": [36, 4] },
+        { "item": "item.yard_tree_young", "at": [42, 9] }
+      ],
       "name": "Quintal secreto",
       "separateView": true,
       "initial": "locked",
@@ -163,8 +175,7 @@
         "dirtTag": "backyard",
         "label": "Terminar a reforma do quintal",
         "builder": { "days": 2, "site": { "at": [42, 5], "facing": "right" } },
-        "dialogue": "dlg.room_backyard_restored",
-        "placeItems": [{ "item": "item.yard_big_tree", "at": [40, 3] }, { "item": "item.yard_big_tree", "at": [27, 3] }]
+        "dialogue": "dlg.room_backyard_restored"
       },
       "capacity": {
         "cats": 6,
