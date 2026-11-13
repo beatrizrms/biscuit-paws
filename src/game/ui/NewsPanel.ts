@@ -14,12 +14,13 @@ import { MarketApp, type MarketHost } from './MarketApp';
 import { fillNames } from './text';
 import { ScheduleApp } from './ScheduleApp';
 import { StatsApp } from './StatsApp';
+import { SocialApp } from './SocialApp';
 import { iconHtml } from './ShopPanel';
 import { healthLow } from '../../core/health';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar' | 'notes' | 'stats' | 'catpay';
+export type PhoneApp = 'home' | 'news' | 'cats' | 'market' | 'schedule' | 'calendar' | 'notes' | 'stats' | 'catpay' | 'social';
 
 export class NewsPanel {
   /** Mural do mercado. */
@@ -35,6 +36,7 @@ export class NewsPanel {
   private scheduleApp: ScheduleApp;
   private calendarApp: CalendarApp;
   private statsApp: StatsApp;
+  private socialApp: SocialApp;
   private catPayApp: CatPayApp;
 
   constructor(
@@ -82,6 +84,7 @@ export class NewsPanel {
     this.scheduleApp = new ScheduleApp(session, onProblem);
     this.calendarApp = new CalendarApp(session);
     this.statsApp = new StatsApp(session);
+    this.socialApp = new SocialApp(session);
     this.catPayApp = new CatPayApp(session);
 
     for (const ev of ['arrival.started', 'arrival.finished', 'arrival.step', 'job.accepted', 'job.progress', 'job.completed', 'day.started', 'cat.fed', 'cat.affection_changed', 'cat.named', 'cat.sheltered', 'cat.sick', 'cat.diagnosed', 'cat.medicated', 'cat.cured'] as const)
@@ -166,6 +169,7 @@ export class NewsPanel {
       notes: uiText.notesApp.app,
       stats: uiText.statsApp.app,
       catpay: uiText.catPayApp.app,
+      social: uiText.socialApp.app,
     };
     this.phoneEl.dataset.app = this.app;
     (this.phoneEl.querySelector('h2') as HTMLElement).textContent = titles[this.app];
@@ -178,6 +182,7 @@ export class NewsPanel {
     if (this.app === 'notes') return this.renderNotes(body);
     if (this.app === 'stats') return this.statsApp.render(body);
     if (this.app === 'catpay') return this.catPayApp.render(body);
+    if (this.app === 'social') return this.socialApp.render(body);
     if (this.app === 'cats') body.innerHTML = this.catsHtml();
     else if (this.app === 'news') {
       body.innerHTML = this.jobsHtml(true);
@@ -239,6 +244,8 @@ export class NewsPanel {
       { id: 'notes', name: uiText.notesApp.app, icon: '<span class="notes-face"><i></i><i></i><i></i></span>', badge: this.session.state.shoppingList.length > 0 },
       { id: 'stats', name: uiText.statsApp.app, icon: '<span class="stats-face"><i></i><i></i><i></i></span>' },
     ];
+    // PLACEHOLDER(arte): ícone da SocialVilla desenhado por CSS (balão com coração) até a arte nova.
+    if (this.socialApp.visible()) apps.push({ id: 'social', name: uiText.socialApp.app, icon: '<span class="social-face">♥</span>', badge: this.socialApp.hasNew() });
     // PLACEHOLDER(arte): ícone do CatPay desenhado por CSS (pata + moeda) até a arte nova.
     if (this.session.ced.appVisible()) apps.push({ id: 'catpay', name: uiText.catPayApp.app, icon: '<span class="catpay-face">₵</span>' });
     return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps

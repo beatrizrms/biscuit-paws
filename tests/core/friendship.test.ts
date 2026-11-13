@@ -70,6 +70,13 @@ describe('amizade: presentes', () => {
     expect(session.giveGift('npc.gabi').ok).toBe(true);
   });
 
+  it('com várias do mesmo item (3 laranjas), dá só uma', () => {
+    const { state, session } = cafe();
+    holdItem(state, 'item.orange', 3);
+    expect(session.giveGift('npc.gabi').ok).toBe(true);
+    expect(state.inventory['item.orange']).toBe(2);
+  });
+
   it('só para quem ela conhece; ferramentas e coisas de uso não são presente', () => {
     const { state, session } = cafe();
     holdItem(state, 'item.strawberry');

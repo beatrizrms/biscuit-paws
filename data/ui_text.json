@@ -1107,6 +1107,24 @@
     "prev": "estação anterior",
     "next": "próxima estação"
   },
+  "socialApp": {
+    "app": "SocialVilla",
+    "tabs": { "feed": "Feed", "friends": "Amigos" },
+    "today": "hoje",
+    "yesterday": "ontem",
+    "daysAgo": "há {n} dias",
+    "new": "novo",
+    "clue": "♥ pista anotada em Amigos",
+    "emptyFeed": "Nada por aqui ainda. Volte amanhã: a vila posta todo dia.",
+    "emptyFriends": "Você ainda não conhece ninguém da vila.",
+    "friendsHint": "Os gostos aparecem aqui quando você dá um presente ou lê uma pista no feed. Um presente por pessoa por semana.",
+    "reactions": { "loved": "Ama", "liked": "Gosta", "disliked": "Não gosta", "neutral": "Ok" },
+    "chatted": "conversou hoje ✓",
+    "notChatted": "ainda não conversou hoje",
+    "gifted": "presente da semana ✓",
+    "canGift": "pode ganhar presente",
+    "heartsTitle": "{n} de {max} corações"
+  },
   "statsApp": {
     "app": "Café em números",
     "customers": "Clientes",
