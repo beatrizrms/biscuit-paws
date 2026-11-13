@@ -84,6 +84,17 @@ export class SaveManager {
     await this.storage.save(this.key(AUTO_ORIGIN), origin);
   }
 
+  /** A foto do começo do dia do slot (para "Reiniciar o dia" na pausa). Sem backup: é trocada todo dia. */
+  async writeDayStart(slot: ManualSlot, state: GameState, now = new Date()): Promise<void> {
+    await this.storage.save(this.key(`daystart-${slot}`), serializeSave(state, now));
+  }
+
+  async readDayStart(slot: ManualSlot): Promise<ReadResult> {
+    const json = await this.storage.load(this.key(`daystart-${slot}`));
+    if (!json) return { ok: false, error: 'vazio' };
+    return readSave(json, this.known);
+  }
+
   /** De qual slot manual veio o autosave (padrão: slot 1). */
   async autoOrigin(): Promise<ManualSlot> {
     const v = await this.storage.load(this.key(AUTO_ORIGIN));

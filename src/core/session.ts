@@ -2269,6 +2269,11 @@ export class GameSession {
     return w === 'rain' && this.festivalInYardToday() ? 'sun' : w;
   }
 
+  /** Quanto a noite do quintal fica mais clara agora (dia de evento montado, no café): 0 a 1. */
+  outdoorNightLift(): number {
+    return this.state.location === this.content.map.id && this.festivalMounted() ? (this.content.dayNight.festivalNightLift ?? 0) : 0;
+  }
+
   /** Hoje tem evento no quintal (marcado para hoje, ou já aconteceu hoje)? */
   private festivalInYardToday(): boolean {
     const f = this.state.festivals;
@@ -3683,7 +3688,14 @@ export class GameSession {
     const map = this.mapData(mapId);
     const solid = solidGrid(map, this.content.catalog);
     const fest = this.content.festivals.flatMap((f) => [f.closePoint?.point, ...(f.decorations ?? []).map((d) => d.point), ...f.activities.map((a) => a.point)]);
-    const avoid: Cell[] = [...fest.flatMap((id) => (id && this.content.jobPoints[id] ? [this.content.jobPoints[id]!.at] : [])), ...(map.doors ?? []).map((d) => d.at), map.spawn.player];
+    // Ninguém parado embaixo ou colado numa luz (a cabeça na frente do brilho): a célula dela e as de baixo, com uma de cada lado.
+    const nearLights: Cell[] = this.mapLights(mapId).flatMap((l) => {
+      const c0 = Math.floor(l.at[0]), r0 = Math.floor(l.at[1]);
+      const cells: Cell[] = [];
+      for (let dc = -1; dc <= 1; dc++) for (let dr = 0; dr <= 2; dr++) cells.push([c0 + dc, r0 + dr]);
+      return cells;
+    });
+    const avoid: Cell[] = [...fest.flatMap((id) => (id && this.content.jobPoints[id] ? [this.content.jobPoints[id]!.at] : [])), ...(map.doors ?? []).map((d) => d.at), map.spawn.player, ...nearLights];
     // Em dia de festa (ceia de Natal, Halloween, Ano Novo) os amigos estão nela, não na plateia.
     const partyDay = this.santaPartyPending() || this.halloweenPartyPending() || this.newYearPending();
     const friends = partyDay ? [] : (def.friends ?? []).filter((f) => !f.when || this.holds(f.when as Condition)).map((f) => f.npc);

@@ -129,9 +129,11 @@
   "wakeAfterPassOut": "10:00",
   "_lights": "Lâmpadas: toda peça listada em lightTiles ganha à noite uma luz (ADD) em cima da lâmpada, iluminando em volta (src/core/lights.ts); at: onde fica a lâmpada na peça, em células a partir do canto de cima à esquerda (pode ser fração); radius em px; color. Vale para os móveis dela também (a luz vai junto quando muda de lugar). Peça que já tem luz feita à mão perto (map.lights, os postes da rua) não ganha outra. lightsOn: a partir de from, as lâmpadas ficam acesas pelo menos alpha (acendendo em fadeMinutes); fora isso, acendem com o escuro de fora.",
   "lightsOn": { "from": "18:00", "alpha": 0.6, "fadeMinutes": 40 },
+  "_festivalNightLift": "Dia de evento montado no quintal: a noite lá fora fica esta fração mais clara (as luzes da festa).",
+  "festivalNightLift": 0.35,
   "lightTiles": {
-    "yard_lampada_chao": [{ "at": [0.5, 0.25], "radius": 44, "color": "#ffe2a0" }],
-    "yard_luzinhas_fio": [{ "at": [0.5, 0.3], "radius": 22, "color": "#ffe9b0" }, { "at": [1.5, 0.4], "radius": 22, "color": "#ffe9b0" }, { "at": [2.5, 0.3], "radius": 22, "color": "#ffe9b0" }],
+    "yard_lampada_chao": [{ "at": [0.5, 0.25], "radius": 64, "color": "#ffe2a0" }],
+    "yard_luzinhas_fio": [{ "at": [0.5, 0.3], "radius": 34, "color": "#ffe9b0" }, { "at": [1.5, 0.4], "radius": 34, "color": "#ffe9b0" }, { "at": [2.5, 0.3], "radius": 34, "color": "#ffe9b0" }],
     "yard_luminaria_parede_sebe": [{ "at": [0.5, 0.45], "radius": 38, "color": "#ffe2a0" }],
     "market_luminaria": [{ "at": [0.5, 0.45], "radius": 40, "color": "#ffe2a0" }],
     "vet_luminaria_teto": [{ "at": [0.5, 0.5], "radius": 44, "color": "#fff4dc" }],

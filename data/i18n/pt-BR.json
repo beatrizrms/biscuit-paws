@@ -49,7 +49,8 @@
     "delete": "Apagar o {slot}? Isso não tem volta (o backup também é apagado).",
     "restore": "Trocar o {slot} pelo backup? O save atual vira o novo backup.",
     "importOver": "O {slot} já tem um save. Trocar pelo arquivo importado? O atual vira backup.",
-    "toMenu": "Voltar ao menu? O jogo é salvo antes."
+    "toMenu": "Voltar ao menu? O jogo é salvo antes.",
+    "restartDay": "Reiniciar o dia? Tudo o que aconteceu hoje se perde e você volta para a manhã."
   },
   "options": {
     "title": "Opções",
@@ -78,6 +79,8 @@
     "options": "Opções",
     "save": "Salvar",
     "toMenu": "Voltar ao menu",
+    "restartDay": "Reiniciar o dia",
+    "noDayStart": "Não achei o começo do dia para voltar.",
     "saved": "Jogo salvo no {slot}."
   },
   "creator": {

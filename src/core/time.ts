@@ -9,6 +9,8 @@ export interface DayNightConfig {
   schemaVersion: 1;
   /** Minutos do jogo por segundo real. */
   minutesPerSecond: number;
+  /** Dia de evento montado no quintal: a noite lá fora fica esta fração mais clara (as luzes da festa). */
+  festivalNightLift?: number;
   /** Hora em que o dia começa ("07:00"). */
   dayStart: string;
   /** Hora em que ela vai para casa de qualquer jeito ("26:00" = 2h da manhã). */

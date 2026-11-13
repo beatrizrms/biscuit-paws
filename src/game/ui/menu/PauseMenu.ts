@@ -1,10 +1,12 @@
-// Pausa dentro do jogo (Esc): Continuar, Opções, Salvar, Voltar ao menu.
+// Pausa dentro do jogo (Esc): Continuar, Opções, Salvar, Reiniciar o dia, Voltar ao menu.
 import { t } from '../../i18n';
 import { confirmBox, popLayer, pushLayer, type MenuLayer } from './MenuKit';
 import { openOptions } from './OptionsPanel';
 
 export interface PauseHandlers {
   save(): Promise<string>;
+  /** Volta ao começo do dia (depois de confirmar). */
+  restartDay(): Promise<void>;
   toMenu(): Promise<void>;
   onClose(): void;
 }
@@ -16,6 +18,7 @@ export function openPause(root: HTMLElement, handlers: PauseHandlers): () => voi
     <button class="menu-btn big" data-act="resume">${t('pause.resume')}</button>
     <button class="menu-btn big" data-act="options">${t('pause.options')}</button>
     <button class="menu-btn big" data-act="save">${t('pause.save')}</button>
+    <button class="menu-btn big" data-act="restartDay">${t('pause.restartDay')}</button>
     <button class="menu-btn big" data-act="menu">${t('pause.toMenu')}</button>
     <p class="menu-note saved"></p></div>`;
   root.appendChild(el);
@@ -30,6 +33,11 @@ export function openPause(root: HTMLElement, handlers: PauseHandlers): () => voi
   on('save', () =>
     void handlers.save().then((slot) => {
       (el.querySelector('.saved') as HTMLElement).textContent = t('pause.saved', { slot });
+    }),
+  );
+  on('restartDay', () =>
+    void confirmBox(root, t('confirm.restartDay')).then((yes) => {
+      if (yes) void handlers.restartDay();
     }),
   );
   on('menu', () =>

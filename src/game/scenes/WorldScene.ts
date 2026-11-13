@@ -38,7 +38,7 @@ import { seasonOf } from '../../core/calendar';
 import { FireworksLayer } from '../FireworksLayer';
 import type { ManualSlot } from '../../core/saveSlots';
 import { services } from '../services';
-import { saveNow } from '../startGame';
+import { restartDay, saveNow } from '../startGame';
 import { openPause } from '../ui/menu/PauseMenu';
 import { pageWasReloaded } from '../../platform/navigation';
 import { t } from '../i18n';
@@ -566,6 +566,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       save: async () => {
         await saveNow(this.session, this.slot);
         return t(`slot.${this.slot}`);
+      },
+      restartDay: async () => {
+        services().audio.fadeOutAll();
+        this.scene.resume();
+        const ok = await restartDay(this, this.slot);
+        if (!ok) this.ui.toast(t('pause.noDayStart'), 4000);
       },
       toMenu: async () => {
         await saveNow(this.session, this.slot);
@@ -1651,7 +1657,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Noite de Natal: o café com as luzes acesas (a cor de dentro de uma hora clara); a rua segue a noite.
     const lit = indoor && this.map.id === content.map.id ? this.session.cafeLightsAs() : null;
     const color = tintAt(lit ?? t, content.dayNight, season, indoor);
-    this.dayNight.update(color, indoor ? tintAt(t, content.dayNight, season, false) : undefined, lightsFloor(content.dayNight.lightsOn, t));
+    // Dia de evento montado no quintal: a noite lá fora mais clara (as luzes da festa).
+    const out = indoor ? tintAt(t, content.dayNight, season, false) : undefined;
+    const lift = this.session.outdoorNightLift();
+    const outdoor = out && lift > 0 ? (out.map((v) => Math.round(v + (255 - v) * lift)) as typeof out) : out;
+    this.dayNight.update(color, outdoor, lightsFloor(content.dayNight.lightsOn, t));
     this.ui.setClock(formatClock(t));
     // Anoiteceu (ou amanheceu): as peças com arte de noite (o céu do quintal) trocam.
     if (this.session.atHome() && !this.changingMap && this.session.variantNight() !== this.shownVariantNight) this.buildMap();

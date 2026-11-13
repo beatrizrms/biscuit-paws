@@ -1,5 +1,6 @@
 // Começa uma partida (nova ou carregada) num slot e liga os saves: autosave contínuo (com intervalo mínimo)
-// e o slot manual no fim de cada dia e quando a jogadora escolhe "Salvar" na pausa.
+// e o slot manual no fim de cada dia e quando a jogadora escolhe "Salvar" na pausa. Guarda também a foto do começo
+// do dia (para "Reiniciar o dia" na pausa).
 import type Phaser from 'phaser';
 import { GameSession } from '../core/session';
 import { AUTO_SLOT, type ManualSlot, type SlotId } from '../core/saveSlots';
@@ -42,6 +43,9 @@ export async function startGame(scene: Phaser.Scene, req: StartRequest): Promise
   await buildPlayerTextures(scene, session.appearance());
   await saves.setCurrentSlot(slot);
   attachSaving(session, slot);
+  // A foto do começo do dia: a que já existe, se for de hoje; senão, a de agora (o save carregado no meio do dia).
+  const dayStart = await saves.readDayStart(slot);
+  if (!dayStart.ok || dayStart.state.day !== session.state.day) await saves.writeDayStart(slot, session.state);
   // Veio da Home (ela clicou em Continuar/Jogar): o F5 já passou pelo menu, então o jogo não abre pausado.
   scene.scene.start('World', { session, isNew, slot, fromHome: scene.scene.key === 'MainMenu' });
   return { ok: true };
@@ -67,11 +71,31 @@ function attachSaving(session: GameSession, slot: ManualSlot): void {
       timer = window.setTimeout(flush, AUTOSAVE_MS);
     }
   });
-  session.bus.on('day.ended', () => void saves.write(slot, session.state));
+  session.bus.on('day.ended', () => {
+    void saves.write(slot, session.state);
+    void saves.writeDayStart(slot, session.state);
+  });
   // Fechou ou recarregou a página: grava o que ainda estava esperando o intervalo (o localStorage grava na hora).
   window.addEventListener('pagehide', () => {
     if (dirty) void saves.autosave(session.state, slot);
   });
+}
+
+/**
+ * Reiniciar o dia (pausa): volta à foto do começo do dia do slot. O slot manual e o autosave passam a ser ela (o que
+ * aconteceu hoje se perde) e o mundo recomeça dali. false = não há foto.
+ */
+export async function restartDay(scene: Phaser.Scene, slot: ManualSlot): Promise<boolean> {
+  const { saves } = services();
+  const r = await saves.readDayStart(slot);
+  if (!r.ok) return false;
+  await saves.write(slot, r.state);
+  await saves.autosave(r.state, slot);
+  const session = new GameSession(content, r.state);
+  await buildPlayerTextures(scene, session.appearance());
+  attachSaving(session, slot);
+  scene.scene.start('World', { session, isNew: false, slot, fromHome: true });
+  return true;
 }
 
 /** Salva agora no slot manual (pausa: "Salvar"; antes de voltar ao menu). */

@@ -1,5 +1,6 @@
-// Ciclo dia/noite na tela: uma cor em MULTIPLY cobre o mundo e as luzes do mapa brilham com ADD
-// por cima, mais fortes quanto mais escuro. As cores e as horas vêm do núcleo (time.ts + daynight.json).
+// Ciclo dia/noite na tela: uma cor em MULTIPLY cobre o mundo e as luzes do mapa brilham com ADD, mais fortes quanto
+// mais escuro. Cada luz fica na profundidade dela (a base da célula onde está, como os móveis): quem está na frente
+// cobre o brilho (o halo fica em volta, não atravessa a cabeça de ninguém); a cor da noite escurece tudo depois. As cores e as horas vêm do núcleo (time.ts + daynight.json).
 import Phaser from 'phaser';
 import type { MapLight } from '../core/map';
 import { darkness, hexToRgb, rgbToHex, type RGB } from '../core/time';
@@ -7,16 +8,23 @@ import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y } from './scr
 import { tileScale } from './tileArt';
 
 const TINT_DEPTH = 150_000;
-const LIGHT_DEPTH = 150_001;
 const OUTDOOR_DEPTH = 150_000.5;
 const LIGHT_TEXTURE = 'daynight-light';
 const LIGHT_PX = 128;
 const DEFAULT_RADIUS = 48;
 const DEFAULT_COLOR = '#ffe2a0';
+/** A luz vem antes da cor da noite (que escurece o brilho também): mais forte, para o halo continuar aparecendo. */
+const LIGHT_BOOST = 1.8;
+/** O núcleo da luz por cima da noite: a fração do raio e a força. */
+const CORE_SCALE = 0.4;
+const CORE_ALPHA = 0.85;
+const CORE_DEPTH = 150_001;
 
 export class DayNightLayer {
   private tint: Phaser.GameObjects.Rectangle;
   private lights: Phaser.GameObjects.Image[] = [];
+  /** O núcleo quente de cada luz, por cima da cor da noite (pequeno: só em volta da lâmpada). */
+  private cores: Phaser.GameObjects.Image[] = [];
   /** Áreas ao ar livre dentro de um mapa interno (ex.: o quintal do café): luz de fora por cima da de dentro. */
   private outdoor: Phaser.GameObjects.Rectangle[] = [];
   /** O céu das janelas de um mapa interno: só os pixels de céu do vidro, com a cor de fora (à noite, escuro). */
@@ -90,11 +98,21 @@ export class DayNightLayer {
   /** Troca as luzes ao mudar de mapa. */
   setLights(lights: readonly MapLight[], tileSize: number): void {
     this.lights.forEach((l) => l.destroy());
+    this.cores.forEach((l) => l.destroy());
+    this.cores = lights.map((l) =>
+      this.scene.add
+        .image(l.at[0] * tileSize, l.at[1] * tileSize, LIGHT_TEXTURE)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setDepth(CORE_DEPTH)
+        .setScale(((l.radius ?? DEFAULT_RADIUS) * 2 * CORE_SCALE) / LIGHT_PX)
+        .setTint(rgbToHex(hexToRgb(l.color ?? DEFAULT_COLOR)))
+        .setAlpha(0),
+    );
     this.lights = lights.map((l) =>
       this.scene.add
         .image(l.at[0] * tileSize, l.at[1] * tileSize, LIGHT_TEXTURE)
         .setBlendMode(Phaser.BlendModes.ADD)
-        .setDepth(LIGHT_DEPTH)
+        .setDepth((Math.floor(l.at[1]) + 1) * tileSize + 0.5)
         .setScale(((l.radius ?? DEFAULT_RADIUS) * 2) / LIGHT_PX)
         .setTint(rgbToHex(hexToRgb(l.color ?? DEFAULT_COLOR)))
         .setAlpha(0),
@@ -127,6 +145,7 @@ export class DayNightLayer {
     // As lâmpadas acendem com o escuro de fora (dentro do café também: a tinta de dentro é mais fraca) e, a partir
     // da hora delas (lightsOn), ficam acesas pelo menos um tanto.
     const dark = Math.max(darkness(outdoor ?? color), lightsFloor);
-    for (const l of this.lights) l.setAlpha(dark);
+    for (const l of this.lights) l.setAlpha(Math.min(1, dark * LIGHT_BOOST));
+    for (const c of this.cores) c.setAlpha(dark * CORE_ALPHA);
   }
 }

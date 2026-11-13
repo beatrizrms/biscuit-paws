@@ -2171,7 +2171,12 @@
         "stationery"
       ],
       "requires": {
-        "milestone": "milestone.fairs_1"
+        "all": [
+          { "milestone": "milestone.fairs_1" },
+          { "room": "room.backyard", "atLeast": "restored" },
+          { "cats": { "gte": 9 } },
+          { "catsReady": true }
+        ]
       }
     },
     {

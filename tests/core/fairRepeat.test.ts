@@ -49,6 +49,20 @@ describe('feira de adoção pelos panfletos', () => {
     expect(events.some((e) => e.name === 'festival.started' && (e.payload as { fromItem?: boolean }).fromItem)).toBe(true);
   });
 
+  it('com o selo, os panfletos só aparecem no Market com as condições da feira (9 gatos castrados, sem doença, quintal pronto)', () => {
+    const { session, state } = game();
+    session.debugStartFestival(fair.id);
+    finishFestival(state.festivals);
+    session.enter('map.cafe_main');
+    expect(session.itemUnlocked('item.fair_flyers')).toBe(true);
+    const cat = Object.values(state.cats).find((c) => c.sheltered)!;
+    cat.sickness = { id: 'disease.cold', since: state.day } as unknown as typeof cat.sickness;
+    expect(session.itemUnlocked('item.fair_flyers')).toBe(false);
+    cat.sickness = null;
+    state.rooms['room.backyard'] = 'abandoned';
+    expect(session.itemUnlocked('item.fair_flyers')).toBe(false);
+  });
+
   it('pelos panfletos, não precisa esperar o intervalo entre edições', () => {
     const { session, state } = game();
     session.debugStartFestival(fair.id);
