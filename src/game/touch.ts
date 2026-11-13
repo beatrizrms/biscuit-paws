@@ -167,17 +167,19 @@ class TouchInput {
     let id: number | null = null;
     const move = (e: PointerEvent) => {
       const r = stick.getBoundingClientRect();
-      // A interface é escalada (transform): a conta é em px da tela e vira fração do raio.
-      const scale = r.width / (STICK_R * 2);
+      // O raio é o do desenho (nas faixas dos lados, o direcional é menor); a interface é escalada (transform): a conta
+      // é em px da tela e vira fração do raio.
+      const radius = stick.offsetWidth / 2 || STICK_R;
+      const scale = r.width / (radius * 2);
       const dx = (e.clientX - (r.left + r.width / 2)) / scale;
       const dy = (e.clientY - (r.top + r.height / 2)) / scale;
-      const dist = Math.min(1, Math.hypot(dx, dy) / STICK_R);
+      const dist = Math.min(1, Math.hypot(dx, dy) / radius);
       const a = Math.atan2(dy, dx);
       const kx = Math.cos(a) * dist;
       const ky = Math.sin(a) * dist;
       this.dir = { left: kx < -DEAD, right: kx > DEAD, up: ky < -DEAD, down: ky > DEAD };
       this.run = dist >= RUN_AT;
-      knob.style.transform = `translate(${kx * STICK_R}px, ${ky * STICK_R}px)`;
+      knob.style.transform = `translate(${kx * radius}px, ${ky * radius}px)`;
     };
     const end = (e: PointerEvent) => {
       if (e.pointerId !== id) return;
