@@ -1,4 +1,5 @@
 import type { Cell } from './map';
+import type { RequestsState } from './requests';
 // Save versionado com migrações. Puro: sem Phaser, DOM ou window.
 // Regras em docs/DATA_CONTRACTS.md: só IDs e números; IDs que sumiram são ignorados com aviso.
 import { newConstruction, type ConstructionState } from './construction';
@@ -429,6 +430,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     },
     ...normalizeRoomsState(known.rooms, { rooms: v2.rooms, doors: v2.doors }),
     festivals: normalizeFestivals(v2.festivals, known.festivals, warnings),
+    requests: normalizeRequests(v2.requests),
     bestPhoto: normalizeBestPhoto(v2.bestPhoto, knownCat),
     construction: normalizeConstruction(v2.construction, known),
     shoppingList: [...new Set((Array.isArray(v2.shoppingList) ? v2.shoppingList : []).filter((id): id is string => typeof id === 'string' && known.items.has(id)))],
@@ -548,6 +550,17 @@ function normalizeArrivals(a: unknown, knownArrivals: ReadonlySet<string> | unde
 }
 
 /** Festivais salvos; o evento em andamento que sumiu dos dados é esquecido. */
+/** Pedidos dos amigos: só os que ainda existem nos dados (o id some, o pedido some). Saves antigos: nenhum. */
+function normalizeRequests(r: unknown): RequestsState {
+  const x = r as Partial<RequestsState> | null | undefined;
+  const num = (n: unknown) => typeof n === 'number' && Number.isFinite(n);
+  return {
+    active: (Array.isArray(x?.active) ? x.active : []).filter((a) => a && typeof a.id === 'string' && num(a.since) && num(a.progress)).map((a) => ({ id: a.id, since: a.since, progress: a.progress })),
+    done: Object.fromEntries(Object.entries(x?.done ?? {}).filter(([, n]) => num(n))),
+    nextOn: num(x?.nextOn) ? (x!.nextOn as number) : null,
+  };
+}
+
 function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, warnings: string[]): FestivalsState {
   const x = f as Partial<FestivalsState> | null | undefined;
   if (!x || typeof x !== 'object') return newFestivals();

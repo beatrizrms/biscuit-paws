@@ -262,6 +262,15 @@ export class GameUi {
       this.queueUnlock({ recipe: recipeId });
     });
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
+    // Pedidos dos amigos: a fala de quem passou no café e o agradecimento.
+    bus.on('request.new', ({ requestId }) => {
+      const def = content.requests.requests.find((r) => r.id === requestId);
+      if (def) this.toast(def.intro, 7000);
+    });
+    bus.on('request.done', ({ requestId }) => {
+      const def = content.requests.requests.find((r) => r.id === requestId);
+      if (def) this.toast(def.thanks, 5000);
+    });
     bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
     const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
     bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));
@@ -718,6 +727,11 @@ export class GameUi {
       const step = job.steps[this.session.jobStep(job.id)];
       const [done, total] = this.session.jobStepProgress(job.id);
       today.push(this.row(`<b>${esc(c.job)}:</b> ${esc(step?.text ?? job.title)}`, { icon: 'caixa_bilhete', html: true, right: total > 1 ? this.pips(done, total) : '' }));
+    }
+    // Pedidos dos amigos (não expiram): quem pediu, o que fazer e quanto falta.
+    for (const r of this.session.friendRequests()) {
+      const who = content.npcs[r.def.npc]?.name ?? '';
+      today.push(this.row(`<b>${esc(who)}:</b> ${esc(r.def.text)}`, { icon: 'caixa_bilhete', html: true, right: r.total > 1 ? this.pips(r.done, r.total) : '' }));
     }
     // Chegada de gato e festival em andamento: o que fazer agora.
     const arrival = this.arrivalLine();

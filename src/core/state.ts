@@ -18,6 +18,7 @@ import type { Schedule } from './schedule';
 import type { ArrivalsState } from './arrivals';
 import type { CatDef } from './cats';
 import { newFestivals, type FestivalsState } from './festival';
+import { newRequests, type RequestsState } from './requests';
 import type { ReputationState } from './reputation';
 import { newStats, type StatsState } from './stats';
 import { newMilestones, type MilestonesState } from './milestones';
@@ -130,6 +131,8 @@ export interface GameState {
   reputation: ReputationState;
   /** Festivais (v22; a feira de adoção era o campo fair, v17): o evento em andamento, a última edição de cada um e o de hoje. */
   festivals: FestivalsState;
+  /** Pedidos dos amigos (requests.ts). Saves antigos: nenhum. */
+  requests: RequestsState;
   /** A melhor foto (v23; foto perfeita): a pose, a nota, os gatos e o dia. Sem galeria por enquanto. */
   bestPhoto: { pose: string; score: number; catIds: string[]; day: number } | null;
   /** Lista de compras (v24; app Notas): IDs de itens anotados, na ordem; some ao comprar. */
@@ -280,6 +283,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     // O valor inicial de verdade vem de data/reputation.json: a sessão aplica no jogo novo (start).
     reputation: { value: 0, reached: [], log: [] },
     festivals: newFestivals(),
+    requests: newRequests(),
     bestPhoto: null,
     shoppingList: [],
     construction: newConstruction(),

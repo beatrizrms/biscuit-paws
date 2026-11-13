@@ -15,6 +15,7 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
+import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
 import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
@@ -72,7 +73,7 @@ import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsA
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
-import { nowAbs, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
+import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
@@ -348,6 +349,9 @@ export class GameSession {
     this.bus.onAny((name) => {
       if (name !== 'hotbar.changed') this.syncHotbar();
     });
+    // Pedidos dos amigos: receita servida e cuidado com os gatos contam.
+    this.bus.on('customer.served', ({ recipeId }) => this.countRequests((r) => r.kind === 'serve' && r.recipe === recipeId));
+    this.bus.on('cat.cared', ({ gameId }) => this.countRequests((r) => r.kind === 'care' && (!r.game || r.game === gameId)));
     this.bus.on('cat.cared', ({ gameId }) => {
       const play = this.content.dayNight.energy.restore.play;
       if (play.games.includes(gameId)) this.recover('play', play.amount);
@@ -862,6 +866,7 @@ export class GameSession {
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
+    this.newFriendRequest();
     this.randomIllness();
     // Clínica: quem foi operado volta (a Fernanda traz ao cercadinho); quem terminou o cercadinho volta para a turma.
     this.clinic.morning();
@@ -1100,6 +1105,49 @@ export class GameSession {
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
   goHome(): void {
     if (this.canGoHome()) this.endDay('home');
+  }
+
+  // ---------- Pedidos dos amigos (data/requests.json) ----------
+
+  /** Os pedidos abertos, para o balão: a definição, quanto já foi feito e o total. */
+  friendRequests(): { def: FriendRequestDef; done: number; total: number }[] {
+    return this.state.requests.active.flatMap((a) => {
+      const def = this.content.requests.requests.find((r) => r.id === a.id);
+      if (!def) return [];
+      const have = def.kind === 'place' ? placedCount(this.state, def.item!) : def.kind === 'bring' ? this.state.inventory[def.item!] ?? 0 : a.progress;
+      return [{ def, done: Math.min(def.count, have), total: def.count }];
+    });
+  }
+
+  /** De manhã: um amigo pode passar com um pedido (fora da história, no intervalo dos dados). */
+  private newFriendRequest(): void {
+    if (!this.state.flags['prologue.done']) return;
+    const ok = (r: FriendRequestDef) =>
+      (r.when === undefined || evaluate(r.when, this.state, this.storyContext())) && (r.kind !== 'serve' || this.service.unlockedRecipes().some((x) => x.id === r.recipe));
+    const pick = maybeNewRequest(this.content.requests, this.state.requests, this.state.day, createRng(this.state.day * 7919 + 11), this.goals().length > 0, ok);
+    if (pick) this.bus.emit('request.new', { requestId: pick.id, npc: pick.npc });
+  }
+
+  private countRequests(match: (r: FriendRequestDef) => boolean): void {
+    for (const def of countRequest(this.content.requests, this.state.requests, match)) this.finishRequest(def);
+  }
+
+  /** Móvel no café e item na mochila: confere a cada passo da história (comprou, posicionou, recebeu). */
+  private checkRequests(): void {
+    for (const r of this.friendRequests()) {
+      if (r.def.kind !== 'place' && r.def.kind !== 'bring') continue;
+      if (r.done < r.total) continue;
+      if (r.def.kind === 'bring') for (let i = 0; i < r.total; i++) this.removeFromInventory(r.def.item!);
+      this.finishRequest(r.def);
+    }
+  }
+
+  private finishRequest(def: FriendRequestDef): void {
+    completeRequest(this.state.requests, def.id);
+    addPoints(this.state, this.content.relationships, PLAYER, def.npc, def.reward.points);
+    if (def.reward.money) this.addMoney(def.reward.money, `request:${def.id}`);
+    if (def.reward.item) this.receive(def.reward.item, 1);
+    this.bus.emit('request.done', { requestId: def.id, npc: def.npc });
   }
 
   /** O robô aspirador posicionado no café (a base dele), se tiver. */
@@ -5050,6 +5098,7 @@ export class GameSession {
    */
   private advanceStory(): void {
     this.checkMilestones();
+    this.checkRequests();
     this.maybeStartFestivals();
     this.arrivals?.tick(); // (o construtor chama a história antes de criar o sistema)
     for (let guard = 0; guard < 1000; guard++) {
