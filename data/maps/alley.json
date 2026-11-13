@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com o varal, chão de paralelepípedos (neve no inverno), caçamba, poste, lixeira e caixotes fechados. Muro de tijolos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.",
+  "_comment": "O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com o varal, chão de paralelepípedos (neve no inverno), caçamba, poste, lixeira, caixote e sacos de lixo. Muro de tijolos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.",
   "id": "map.alley",
   "tileSize": 32,
   "size": { "cols": 22, "rows": 11 },
@@ -49,8 +49,10 @@
     {"id":"obj.beco_cacamba","tile":"beco_cacamba","at":[1,5],"overlay":"snow_beco_cacamba"},
     {"id":"obj.beco_poste","tile":"prop_poste","at":[3,3],"overlay":"snow_praca_poste"},
     {"id":"obj.beco_lixeira_1","tile":"prop_lixeira","at":[5,6],"overlay":"snow_praca_lixeira"},
-    {"id":"obj.beco_caixote_1","tile":"beco_caixote","at":[6,6],"overlay":"snow_beco_caixote"},
-    {"id":"obj.beco_caixote_2","tile":"beco_caixote_b","at":[19,6],"overlay":"snow_beco_caixote_b"}
+    {"id":"obj.beco_caixote","tile":"beco_caixote_frente","at":[6,6],"overlay":"snow_beco_caixote_frente"},
+    {"id":"obj.beco_sacos_1","tile":"beco_sacos_lixo","at":[7,6],"overlay":"snow_beco_sacos_lixo"},
+    {"id":"obj.beco_sacos_2","tile":"beco_sacos_lixo","at":[13,6],"overlay":"snow_beco_sacos_lixo"},
+    {"id":"obj.beco_sacos_3","tile":"beco_sacos_lixo","at":[18,6],"overlay":"snow_beco_sacos_lixo"}
   ],
   "spawn": { "player": [20,9] },
   "doors": [

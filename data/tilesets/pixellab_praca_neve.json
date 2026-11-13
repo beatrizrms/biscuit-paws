@@ -81,13 +81,13 @@
    "w_tiles": 2,
    "h_tiles": 2
   },
-  "snow_beco_caixote": {
+  "snow_beco_caixote_frente": {
    "col": 5,
    "row": 8,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "snow_beco_caixote_b": {
+  "snow_beco_sacos_lixo": {
    "col": 6,
    "row": 8,
    "w_tiles": 1,

@@ -57,13 +57,13 @@
    "w_tiles": 3,
    "h_tiles": 1
   },
-  "beco_caixote": {
+  "beco_caixote_frente": {
    "col": 3,
    "row": 2,
    "w_tiles": 1,
    "h_tiles": 1
   },
-  "beco_caixote_b": {
+  "beco_sacos_lixo": {
    "col": 4,
    "row": 2,
    "w_tiles": 1,
