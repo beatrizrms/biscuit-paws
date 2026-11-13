@@ -41,6 +41,28 @@ describe('passos exclusivos da história', () => {
   });
 });
 
+describe('o jardim vem antes dos eventos', () => {
+  it('o desbloqueio do jardim não depende de evento; nenhum evento começa antes do jardim desbloqueado e reformado', () => {
+    // O desbloqueio (a cena do jardim secreto) só pede o tempo depois do quarto dos fundos e a chave.
+    const garden = content.story.beats.find((b) => b.id === 'story.secret_garden')!;
+    expect(JSON.stringify([garden.start, garden.when, garden.after])).not.toMatch(/fest/);
+    // Cada evento pede o quintal reformado.
+    for (const f of content.festivals) expect(JSON.stringify(f.when), f.id).toContain('"room":"room.backyard","atLeast":"restored"');
+    // Tudo pronto para a feira, menos o quintal: ela não começa; com o quintal reformado, começa.
+    const g = midGame([], 0);
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    g.state.day = 70;
+    (g.session as unknown as { debugSatisfy(c: unknown): void }).debugSatisfy(fair.when);
+    g.state.festivals.active = null;
+    g.state.rooms['room.backyard'] = 'abandoned';
+    g.session.enter('map.cafe_main');
+    expect(g.state.festivals.active).toBeNull();
+    g.state.rooms['room.backyard'] = 'restored';
+    g.session.enter('map.cafe_main');
+    expect((g.state.festivals.active as { id: string } | null)?.id).toBe('fest.adoption_fair');
+  });
+});
+
 describe('eventos com e sem data', () => {
   type Debug = { debugSatisfy(c: unknown): void; addReputation(n: number, why: string): void; enter(map: string): void };
   /** A feira de adoção e o Dia do Gato liberados, no verão, no dia dayOfSummer. */

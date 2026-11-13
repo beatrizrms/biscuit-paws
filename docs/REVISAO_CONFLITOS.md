@@ -25,7 +25,9 @@ hora. Testes dos pares em `tests/core/conflicts.test.ts`.
 
 | Par | Resultado |
 |---|---|
-| Passo exclusivo esperando × resto do jogo | **Corrigido.** `story.jacque_meet` ficava ativo da inauguração até a 1ª feira e `story.secret_garden` por 30 dias: nesse tempo nenhum gato chegava (e a feira precisa de 9), nem cenas da CED. Agora têm `start` e só ficam ativos quando estão para acontecer. |
+| Chegada da Jacque × chegadas de gato | **Corrigido.** O passo da história da chegada da Jacque ficava ativo (e exclusivo) da inauguração até o dia da 1ª feira, e enquanto isso nenhum gato novo chegava (e a feira precisa de 9). Agora ele só fica ativo no dia da feira. |
+| Cena do jardim secreto × chegadas de gato | **Corrigido.** A cena que desbloqueia o jardim (a corretora, a Dona Neusa e o Tião) acontece 30 dias depois de abrir o quarto dos fundos, com a chave. O passo dela ficava ativo (e exclusivo) durante esses 30 dias de espera, segurando as chegadas de gato. Agora ele só fica ativo no dia em que a cena pode acontecer. Isso não tem nada a ver com os eventos. |
+| Ordem: jardim antes dos eventos | **Garantido.** O desbloqueio do jardim não depende de evento nenhum; os três eventos pedem o quintal reformado (a feira de adoção agora pede direto, além dos 7 dias). Teste: tudo pronto para a feira, menos o quintal, e ela não começa. |
 | Feira de adoção × Dia do Gato (um evento por vez) | **Corrigido.** Panfletos começados perto do verão 8 faziam o Dia do Gato daquele ano não acontecer. Agora a feira não começa se um evento com data, já liberado, cai antes dela (prep + 7 dias). |
 | Plateia × festas e cenas com os amigos | **Corrigido.** Em dia de festa, os amigos ficam fora da plateia. A plateia só mexe nos bonecos dela: se um roteiro chama a mesma pessoa, a plateia não apaga nem move o boneco da cena. |
 | Plateia × passeios | **Corrigido.** Quem está na plateia não sai passeando na rua ou na praça (não fica em dois lugares). |

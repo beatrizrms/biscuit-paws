@@ -33,7 +33,7 @@
       "id": "fest.adoption_fair",
       "name": "Feira de adoção",
       "idea": "dlg.fest_idea_fair",
-      "when": { "all": [{ "cats": { "gte": 9 } }, { "daysSince": { "beat": "story.backyard", "gte": 7 } }, { "catsReady": true }, { "fairCats": { "gte": 1 } }] },
+      "when": { "all": [{ "room": "room.backyard", "atLeast": "restored" }, { "cats": { "gte": 9 } }, { "daysSince": { "beat": "story.backyard", "gte": 7 } }, { "catsReady": true }, { "fairCats": { "gte": 1 } }] },
       "cooldownDays": 30,
       "prep": { "points": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"], "daysAfter": 3 },
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
