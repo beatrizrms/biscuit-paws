@@ -121,6 +121,10 @@ const CROWD_TALK_MS = 2200;
 const CROWD_PAUSE_MS = 1400;
 /** Velocidade dos carros passando na rua (px do mundo por segundo). */
 const TRAFFIC_SPEED = 170;
+/** No máximo quantos veículos na rua ao mesmo tempo, quantos esperam na fila e o espaço entre um e outro (px do mundo). */
+const TRAFFIC_MAX = 2;
+const TRAFFIC_QUEUE = 2;
+const TRAFFIC_GAP = 200;
 /** Na praça, alguém de um grupinho fala a cada tanto (mais devagar que na plateia da festa). */
 const AMBIENT_TALK_EVERY_MS = 4200;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
@@ -211,6 +215,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private readonly passesStarted = new Set<string>();
   /** Carros passando na rua: os que estão na tela e o último minuto já olhado (null = acabou de entrar no mapa). */
   private trafficImages: Phaser.GameObjects.Image[] = [];
+  /** Veículos da agenda esperando espaço para entrar na rua (no máximo TRAFFIC_QUEUE; os de sobra não passam). */
+  private trafficQueue: { vehicle: string; dir: 'left' | 'right' }[] = [];
   private trafficMinute: number | null = null;
   /** O ônibus está levando ela (sem andar nem agir até o dia encerrar). */
   private ridingBus = false;
@@ -721,6 +727,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.player.setAlpha(1); // voltando do ônibus (ela sumiu dentro dele)
     this.trafficImages.forEach((img) => img.destroy());
     this.trafficImages = [];
+    this.trafficQueue = [];
     this.trafficMinute = null;
     this.ambient.clear();
     this.passers.clear();
@@ -2348,17 +2355,35 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /**
    * A cada minuto de jogo: os veículos da agenda do dia que entram agora atravessam a rua inteira (data/world.json:
-   * traffic). Um de cada vez; nada passa enquanto o furgão do correio entrega ou o ônibus do ponto a leva.
+   * traffic). No máximo TRAFFIC_MAX na rua ao mesmo tempo, e o próximo só entra quando o da frente já andou
+   * TRAFFIC_GAP (todos na mesma velocidade: a distância se mantém); quem chega sem espaço espera na fila. Nada passa
+   * enquanto o furgão do correio entrega ou o ônibus do ponto a leva.
    */
   private updateTraffic(): void {
     const now = Math.floor(this.session.state.time);
     const from = this.trafficMinute;
     this.trafficMinute = now;
-    if (from === null || now <= from || this.changingMap) return;
-    for (const pass of this.session.trafficBetween(this.map.id, from, now)) {
-      if (this.vanBusy || this.ridingBus || this.trafficImages.length > 0) continue;
-      this.driveBy(pass.vehicle, pass.dir);
+    if (this.changingMap) return;
+    if (from !== null && now > from) {
+      for (const pass of this.session.trafficBetween(this.map.id, from, now)) if (this.trafficQueue.length < TRAFFIC_QUEUE) this.trafficQueue.push({ vehicle: pass.vehicle, dir: pass.dir });
     }
+    const next = this.trafficQueue[0];
+    if (next && this.trafficRoomFor(next.dir)) {
+      this.trafficQueue.shift();
+      this.driveBy(next.vehicle, next.dir);
+    }
+  }
+
+  /** Cabe mais um entrando por este lado: menos de TRAFFIC_MAX na rua e o último a entrar já se afastou da ponta. */
+  private trafficRoomFor(dir: 'left' | 'right'): boolean {
+    if (this.vanBusy || this.ridingBus || this.trafficImages.length >= TRAFFIC_MAX) return false;
+    const width = this.map.cols * this.map.tileSize;
+    // A traseira de cada um que vai para o mesmo lado precisa estar a TRAFFIC_GAP da ponta por onde o novo entra.
+    return this.trafficImages.every((img) => {
+      if (img.getData('dir') !== dir) return true;
+      const back = dir === 'left' ? img.x + img.displayWidth / 2 : img.x - img.displayWidth / 2;
+      return dir === 'left' ? back < width - TRAFFIC_GAP : back > TRAFFIC_GAP;
+    });
   }
 
   private driveBy(vehicleId: string, dir: 'left' | 'right'): void {
@@ -2371,6 +2396,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const half = img.displayWidth / 2 + 8;
     const width = this.map.cols * ts;
     img.x = dir === 'left' ? width + half : -half;
+    img.setData('dir', dir);
     this.trafficImages.push(img);
     this.tweens.add({
       targets: img,

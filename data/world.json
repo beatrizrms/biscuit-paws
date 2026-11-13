@@ -25,7 +25,7 @@
     "destinations": [{ "id": "bus.home", "label": "Ir para casa", "goHome": true }],
     "vehicle": { "left": "assets/objects/vehicles/obj_bus_left.png", "right": "assets/objects/vehicles/obj_bus_right.png", "scale": 0.65 }
   },
-  "_traffic": "Carros passando na rua (src/core/traffic.ts): entre hours, a cada everyMinutes, com chance, um veículo (sorteado pelo weight) atravessa a rua inteira, sem parar, no sentido de directions (hoje só left: todos da direita para a esquerda, virados para a esquerda). Arte de lado (left/right) e scale como o furgão (0.5 = meia escala da arte de 64 px). Não passa enquanto o furgão do correio entrega nem com o ônibus do ponto.",
+  "_traffic": "Carros passando na rua (src/core/traffic.ts): entre hours, a cada everyMinutes, com chance, um veículo (sorteado pelo weight) atravessa a rua inteira, sem parar, no sentido de directions (hoje só left: todos da direita para a esquerda, virados para a esquerda). Arte de lado (left/right) e scale como o furgão (0.5 = meia escala da arte de 64 px). No máximo 2 na rua, com distância entre eles (WorldScene: TRAFFIC_MAX, TRAFFIC_GAP). Não passa enquanto o furgão do correio entrega nem com o ônibus do ponto.",
   "traffic": {
     "map": "map.street",
     "hours": ["06:00", "23:00"],
