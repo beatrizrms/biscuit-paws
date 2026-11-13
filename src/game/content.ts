@@ -1,4 +1,5 @@
 // Junta os arquivos de data/ num Content para a sessão de jogo.
+import type Phaser from 'phaser';
 import type { CatsData } from '../core/cats';
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
@@ -30,7 +31,6 @@ import deliveryJson from '../../data/delivery.json';
 import healthJson from '../../data/health.json';
 import minigamesJson from '../../data/minigames.json';
 import minigameChaseJson from '../../data/maps/minigame_chase.json';
-import minigamePracaJson from '../../data/maps/minigame_praca.json';
 import pracaJson from '../../data/maps/praca.json';
 import alleyJson from '../../data/maps/alley.json';
 import businessJson from '../../data/business.json';
@@ -61,7 +61,7 @@ import { buildContent, type Content, type RawContent } from '../core/content';
 
 export const content: Content = buildContent({
   catalog: tilesJson,
-  maps: [cafeJson, streetJson, marketJson, vetClinicJson, minigameChaseJson, minigamePracaJson, pracaJson, alleyJson],
+  maps: [cafeJson, streetJson, marketJson, vetClinicJson, minigameChaseJson, pracaJson, alleyJson],
   world: worldJson,
   items: itemsJson,
   finishes: finishesJson,
@@ -125,7 +125,13 @@ export const serviceArt = serviceArtJson as unknown as {
 };
 
 /** Balões de emoção (16x16) sobre personagens, gatos e NPCs. */
-export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]> };
+export const emotes = emotesJson as unknown as { image: string; frames: Record<string, [number, number, number, number]>; hd?: Record<string, string> };
+
+/** Imagem de um emote: a versão em alta (emotes.json: hd, meia escala), se carregada; senão o quadro da folha. */
+export function emoteImage(scene: Phaser.Scene, x: number, y: number, name: string): Phaser.GameObjects.Image {
+  const hd = `emote_hd:${name}`;
+  return scene.textures.exists(hd) ? scene.add.image(x, y, hd).setScale(0.5) : scene.add.image(x, y, 'emotes', name);
+}
 
 export const uiText = uiTextJson;
 

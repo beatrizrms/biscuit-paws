@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Quadros do pacote itens_bebidas (gerado por IA na paleta Cosy): balões 16x16 no canto de cada bloco e a caixa do correio (parcel, 32x32). Quadro: [x, y, w, h].",
+  "_comment": "Quadros do pacote itens_bebidas (gerado por IA na paleta Cosy): balões 16x16 no canto de cada bloco e a caixa do correio (parcel, 32x32). Quadro: [x, y, w, h]. hd: o mesmo emote em arte maior (24 x 24, desenhada em meia escala), usado no lugar do quadro quando existe.",
   "image": "assets/icons/sheets/icon_sheet_drinks.png",
   "frames": {
     "exclamation": [
@@ -27,5 +27,8 @@
       32,
       32
     ]
+  },
+  "hd": {
+    "heart": "assets/ui/hud/ui_emote_heart.png"
   }
 }

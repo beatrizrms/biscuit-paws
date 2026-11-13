@@ -4,7 +4,7 @@
 // (data/health.json: care.bubbles: o coração, que passa logo) fica por cima do balão. Só desenha; quem decide o que falta é a sessão (catCare -> core/care.ts).
 import Phaser from 'phaser';
 import type { CareConfig, CareNeed } from '../core/care';
-import { content, serviceArt } from './content';
+import { content, emoteImage, serviceArt } from './content';
 import { iconFrame } from './icons';
 
 /** O balão de pedido (40x44) em cima de um gato fica na metade: do tamanho dos emotes. */
@@ -113,7 +113,7 @@ export class CareBubbles {
     // Emote pronto (o coração do carinho, que passa logo): sozinho no lugar do balão, ou por cima do balão, encostado na
     // borda de cima (sem empurrar os ícones).
     emotes.forEach((e, i) => {
-      const img = this.scene.add.image(i * 4, icons.length ? top + EMOTE_OVER : 0, 'emotes', e).setOrigin(0.5, 1);
+      const img = emoteImage(this.scene, i * 4, icons.length ? top + EMOTE_OVER : 0, e).setOrigin(0.5, 1);
       view.add(img);
     });
     return view;

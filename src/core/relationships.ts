@@ -15,7 +15,7 @@ export interface RelationshipsConfig {
   /** Mini game de cuidado com o gato (escova, varinha, remédio): pontos pelo resultado (falhou: nada). */
   careGamePoints?: { ok: number; great: number };
   /** Descuido: saúde, alegria ou higiene em zero por `days` dias seguidos tira `hearts` coração(ões). */
-  neglect?: { days: number; hearts: number; runAwayDays?: number; runAwayReputation?: number };
+  neglect?: { days: number; hearts: number; runAwayDays?: number; runAwayReputation?: number; neverRunAway?: string[] };
 }
 
 /** Chave do par, sempre na mesma ordem em que foi pedida (quem sente -> por quem). */

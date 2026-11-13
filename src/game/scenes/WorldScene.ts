@@ -32,7 +32,7 @@ import { isDebugOn } from '../debug';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, catObjectUses, content, itemUse, serviceArt, uiText } from '../content';
+import { broom, catObjectUses, content, emoteImage, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
 import { seasonOf } from '../../core/calendar';
@@ -3669,7 +3669,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const def = this.session.content.npcs[cfg.customerLooks[c.look % cfg.customerLooks.length]!];
         if (!def) continue;
         // Recém-chegado entra pela porta; ao abrir o café (trocar de mapa), já aparece no lugar.
-        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts);
+        view = new CustomerSprite(this, def, this.customersFresh ? c.spot : door, ts, (from, to) => {
+          const path = findPath(this.map.solid, from, to);
+          return path ? pathCorners(path) : null;
+        });
         this.customerViews.set(c.id, view);
         if (!this.customersFresh) void view.walkTo(c.spot, true);
         else view.arrived = true;
@@ -4278,7 +4281,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
               return cat ? { x: cat.x, y: cat.y, top: 26 } : undefined;
             })();
     if (!target) return Promise.resolve();
-    const icon = this.add.image(target.x + 6, target.y - target.top, 'emotes', balloon).setOrigin(0.5, 1).setDepth(100_000);
+    const icon = emoteImage(this, target.x + 6, target.y - target.top, balloon).setOrigin(0.5, 1).setDepth(100_000);
     this.tweens.add({ targets: icon, y: icon.y - 4, duration: 300, ease: 'Quad.easeOut' });
     return new Promise((resolve) =>
       this.time.delayedCall(ms, () => {

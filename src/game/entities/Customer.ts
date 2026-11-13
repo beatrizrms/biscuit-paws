@@ -46,6 +46,8 @@ export class CustomerSprite {
     def: NpcDef,
     at: Cell,
     private tileSize: number,
+    /** Caminho pelas células livres (contorna móveis); sem ele (ou sem caminho), anda em L como antes. */
+    private route?: (from: Cell, to: Cell) => Cell[] | null,
   ) {
     this.sprite = new NpcSprite(scene, def, at[0] * tileSize + tileSize / 2, (at[1] + 1) * tileSize - 4, tileSize);
     this.target = at;
@@ -71,11 +73,18 @@ export class CustomerSprite {
     this.walking = this.walking.then(async () => {
       if (!this.sprite.active) return;
       this.seated = null;
-      if (verticalFirst) {
-        const col = Math.floor(this.sprite.x / this.tileSize);
-        await this.sprite.walkTo([col, cell[1]]);
+      const from: Cell = [Math.floor(this.sprite.x / this.tileSize), Math.floor((this.sprite.y - 1) / this.tileSize)];
+      const corners = this.route?.(from, cell);
+      if (corners) {
+        // Contorna os móveis: anda de quina em quina do caminho.
+        for (const corner of corners) if (this.sprite.active) await this.sprite.walkTo(corner);
+      } else {
+        if (verticalFirst) {
+          const col = Math.floor(this.sprite.x / this.tileSize);
+          await this.sprite.walkTo([col, cell[1]]);
+        }
+        if (this.sprite.active) await this.sprite.walkTo(cell);
       }
-      if (this.sprite.active) await this.sprite.walkTo(cell);
       if (this.target === cell) this.arrived = true;
     });
     return this.walking;

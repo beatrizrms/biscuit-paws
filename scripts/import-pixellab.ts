@@ -2499,3 +2499,13 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   writeFileSync(`${dir}/robo_aspirador.png`, PNG.sync.write(readPng(`${SRC}/robo_aspirador/robo80.png`)));
   console.log(`${dir}/robo_aspirador.png: robô aspirador`);
 }
+
+// ---------- Ícones do clima (HUD), brilho da foto e o balão de coração (24 x 24; review_icones/, sem uso até aqui) ----------
+{
+  const dir = 'public/assets/ui/hud';
+  mkdirSync(dir, { recursive: true });
+  for (const f of ['weather_sun', 'weather_rain', 'weather_snow', 'weather_wind', 'sparkle', 'emote_heart']) {
+    writeFileSync(`${dir}/ui_${f}.png`, PNG.sync.write(readPng(`${SRC}/review_icones/${f}.png`)));
+  }
+  console.log(`${dir}: clima, brilho e coração`);
+}

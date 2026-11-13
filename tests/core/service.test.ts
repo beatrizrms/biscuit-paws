@@ -317,6 +317,8 @@ describe('ciclo do pedido', () => {
     expect(sv.lunchNow()).toBe(true);
     state.location = 'map.street'; // a plaquinha fica na porta do café, na rua
     expect(session.placeHours('door.cafe')?.lunch).toEqual({ from: '09:00', to: '10:00', now: true });
+    // A semana da plaquinha mostra o horário novo; hoje, o de hoje (aberto até as 18h).
+    expect(session.placeHours('door.cafe')).toMatchObject({ close: '15:00', today: { opens: true, open: '09:00', close: '18:00' } });
     state.location = 'map.cafe_main';
     state.time = 10 * 60 + 6;
     expect(sv.lunchNow()).toBe(false); // o almoço de hoje acabou às 10h; o das 13h é de amanhã
