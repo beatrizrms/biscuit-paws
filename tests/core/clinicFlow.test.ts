@@ -173,25 +173,28 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect((state.cats[id]!.clinic as { complication?: boolean }).complication).toBeUndefined();
   });
 
-  it('o ponto inflamado aparece na manhã seguinte à volta, nunca no dia em que a Fernanda entrega', () => {
+  it('pontinho inflamado: a Fernanda vê na entrega e soma 1 em tudo (cercadinho, doses, latinhas); sem voltar à clínica', () => {
     const proc = content.clinic.procedures.find((p) => p.id === 'proc.neuter')!;
     const chance = proc.complication.chance;
     proc.complication.chance = 1; // sempre inflama (só neste teste)
     try {
       const { state, session, id } = setup({ neutered: false });
       session.debugBookNeuter(id);
-      let when: number | null = null;
-      session.bus.on('clinic.complication', () => (when = state.day));
-      session.debugClinicMorning(); // a entrega
-      const delivered = state.day;
-      expect(when).toBeNull();
-      state.hotbar.slots[0] = content.clinic.pen.food;
-      state.hotbar.active = 0;
-      state.inventory[content.clinic.pen.food] = 5;
-      session.feedIsolated('box');
-      nextDay(session, state);
-      expect(when).toBe(delivered + 1);
-      expect(session.chores().some((c) => c.kind === 'clinic' && c.clinic === 'recheck')).toBe(true);
+      const med = content.health.medicine.item;
+      const food = content.clinic.pen.food;
+      const before = { med: state.inventory[med] ?? 0, food: state.inventory[food] ?? 0 };
+      let delivered: { inflamed?: boolean; isolationDays: number; aftercareDays: number; cans?: number } | null = null;
+      let complications = 0;
+      session.bus.on('clinic.delivered', (d) => (delivered = d));
+      session.bus.on('clinic.complication', () => complications++);
+      session.debugClinicMorning();
+      expect(delivered).toMatchObject({ inflamed: true, isolationDays: proc.isolationDays + 1, aftercareDays: proc.aftercareDays + 1, cans: proc.recoveryCans + 1 });
+      expect(state.cats[id]!.clinic).toMatchObject({ stage: 'isolation', until: state.day + proc.isolationDays + 1 });
+      expect(state.cats[id]!.aftercare?.days).toBe(proc.aftercareDays + 1);
+      expect((state.inventory[med] ?? 0) - before.med).toBe(proc.aftercareDays + 1);
+      expect((state.inventory[food] ?? 0) - before.food).toBe(proc.recoveryCans + 1);
+      expect(complications).toBe(0);
+      expect(session.chores().some((c) => c.kind === 'clinic' && c.clinic === 'recheck')).toBe(false);
     } finally {
       proc.complication.chance = chance;
     }

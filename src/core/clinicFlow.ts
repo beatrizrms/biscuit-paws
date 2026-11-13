@@ -459,14 +459,20 @@ export class ClinicFlow {
       if (s.stage === 'ward' && s.returnBy === 'vet' && s.until <= day && s.procedure) {
         cat.repro!.status = 'neutered';
         cat.repro!.known = 'neutered';
-        cat.clinic = { stage: 'isolation', until: day + proc.isolationDays, procedure: s.procedure };
-        if (proc.aftercareDays > 0) {
-          cat.aftercare = { days: proc.aftercareDays, dosesGiven: 0, lastDoseDay: null };
+        // O pontinho inflamado: a Fernanda vê na entrega e soma `extra` em tudo (dias de cercadinho, doses do remédio,
+        // latinhas de Recovery). Sem voltar à clínica.
+        const extra = rngForCat(id, day * 31 + 7).next() < proc.complication.chance ? (proc.complication.extra ?? 1) : 0;
+        const isolationDays = proc.isolationDays + extra;
+        const aftercareDays = proc.aftercareDays > 0 ? proc.aftercareDays + extra : 0;
+        const cans = proc.recoveryCans + extra;
+        cat.clinic = { stage: 'isolation', until: day + isolationDays, procedure: s.procedure };
+        if (aftercareDays > 0) {
+          cat.aftercare = { days: aftercareDays, dosesGiven: 0, lastDoseDay: null };
           const med = this.h.health.medicine.item;
-          this.st.inventory[med] = (this.st.inventory[med] ?? 0) + proc.aftercareDays;
+          this.st.inventory[med] = (this.st.inventory[med] ?? 0) + aftercareDays;
         }
         const food = this.h.clinic.pen.food;
-        this.st.inventory[food] = (this.st.inventory[food] ?? 0) + proc.recoveryCans;
+        this.st.inventory[food] = (this.st.inventory[food] ?? 0) + cans;
         this.st.flags['vet.neutered_once'] = true;
         this.h.bus.emit('cat.neutered', { catId: id, procedure: s.procedure });
         const inPen = !this.penAssignments().box.includes(id);
@@ -475,15 +481,7 @@ export class ClinicFlow {
         // A primeira entrega: a Fernanda explica as fraldas do cercadinho e as latinhas.
         const first = !this.st.flags['vet.first_delivery'];
         this.st.flags['vet.first_delivery'] = true;
-        this.h.bus.emit('clinic.delivered', { catId: id, inPen, first, isolationDays: proc.isolationDays, aftercareDays: proc.aftercareDays });
-      } else if (s.stage === 'isolation' && !s.complication && day === s.until - proc.isolationDays + 1) {
-        // A manhã seguinte à volta: o pontinho pode ter inflamado (a Fernanda avisa e ela leva à clínica). Não no dia
-        // da entrega: a Fernanda acabou de deixar o gato, não faria sentido pedir para levar de volta.
-        if (rngForCat(id, (day - 1) * 31 + 7).next() < proc.complication.chance) this.complicate(id);
-        else if (s.until <= day) {
-          cat.clinic = undefined;
-          this.h.bus.emit('clinic.released', { catId: id });
-        }
+        this.h.bus.emit('clinic.delivered', { catId: id, inPen, first, isolationDays, aftercareDays, cans, inflamed: extra > 0 });
       } else if (s.stage === 'isolation' && s.until <= day && !s.complication) {
         cat.clinic = undefined;
         this.h.bus.emit('clinic.released', { catId: id });

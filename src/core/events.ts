@@ -27,7 +27,7 @@ export interface GameEvents {
   /** Gancho da CED: gato com a ponta da orelha cortada (castrado na rua). Hoje só sai se uma chegada declarar a marca. */
   'cat.ear_tipped': { catId: string };
   'procedure.booked': { catId: string; procedure: string; returnDay: number };
-  'clinic.delivered': { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number };
+  'clinic.delivered': { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number; cans?: number; inflamed?: boolean };
   'clinic.released': { catId: string };
   'clinic.complication': { catId: string; missedFeed: boolean };
   'clinic.complication_fixed': { catId: string };

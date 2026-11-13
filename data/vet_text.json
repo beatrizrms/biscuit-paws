@@ -31,6 +31,7 @@
     "diapers": "Forra o cercadinho com fraldas descartáveis, assim ele não precisa de caixa de areia por enquanto. A Recovery é comida especial de recuperação: é só abrir e dar direto, sem a ração de sempre.",
     "released": "{cat} já pode sair do cercadinho e voltar para a turma.",
     "aftercare": "Uma dose por dia, escondida na comida. São {days} dias.",
+    "inflamed": "Olha, o pontinho de {cat} inflamou um pouquinho. Nada grave! Por isso vai um dia a mais de tudo: de cercadinho, de remédio e de latinha.",
     "complication": "O pontinho de {cat} inflamou um pouco. Traz aqui que eu dou uma olhada, não é nada grave.",
     "complicationFixed": "Pronto, limpei e está tudo bem. Fica de olho se {sex:ele|ela} está comendo, tá?",
     "missedFeed": "Gato em recuperação precisa comer certinho, viu? Mas já está tudo sob controle."
