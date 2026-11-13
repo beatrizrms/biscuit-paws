@@ -124,6 +124,8 @@
     "table"
   ],
   "standingTag": "bar",
+  "_seatChance": "Com mesa livre e lugar livre no balcão, a chance de o cliente preferir sentar (a mesa e o lugar no balcão são sorteados entre os livres).",
+  "seatChance": 0.7,
   "tableTag": "table",
   "chairTag": "chair",
   "vessels": {

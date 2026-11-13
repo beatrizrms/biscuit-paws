@@ -129,6 +129,8 @@ export interface ServiceConfig {
   /** Tags dos móveis que são superfícies (balcão, mesa) e onde o cliente fica em pé. */
   surfaceTags: string[];
   standingTag: string;
+  /** Com mesa livre e lugar no balcão: chance de o cliente preferir sentar (0 a 1; sem isso, 0.7). */
+  seatChance?: number;
   tableTag: string;
   chairTag: string;
   /** Louça: nome e ícones (limpa e suja). */

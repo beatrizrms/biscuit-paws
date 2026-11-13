@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import type { EventName } from '../../src/core/events';
 import { GameSession } from '../../src/core/session';
 import { newGameState, nowAbs } from '../../src/core/state';
@@ -14,8 +14,9 @@ const advance = (session: GameSession, m: number) => {
 const untilChairs = content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.chairs') + 1).map((b) => b.id);
 
 /** Café pronto para o primeiro cliente: depois das cadeiras, com balcão, cafeteira, mesa, cadeira, louça da Gabi e café. */
-function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number } = {}) {
+function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number; day?: number; noChair?: boolean } = {}) {
   const state = newGameState(500, 'map.cafe_main', 9 * 60);
+  if (opts.day) state.day = opts.day;
   state.flags['has.cat'] = true;
   // Clientes já atendidos: as receitas da evolução destrancam por aqui (o café novo só tem o café preto).
   state.service.served = opts.served ?? 0;
@@ -33,6 +34,8 @@ function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number }
   put('item.coffee_machine', [7, 5]);
   put('item.table_round', [10, 8]);
   put('item.chair_front', [11, 8]);
+  // Só o lugar em pé (os testes do balcão): sem a cadeira, o cliente não tem mesa para preferir.
+  if (opts.noChair) session.pickUp(state.placed.find((p) => content.items[p.item]?.tags.includes('chair'))!.uid);
   session.receiveItem('item.dishes_set');
   if (opts.coffee !== false) {
     session.buy('item.coffee_ground');
@@ -127,6 +130,10 @@ describe('receitas e cardápio', () => {
 
 describe('ciclo do pedido', () => {
   it('cliente pede -> prepara -> pega -> entrega -> paga -> deixa a louça suja -> lava', () => {
+    // Este acompanha o cliente do balcão (com a mesa ao lado, para a conta dos lugares): ninguém prefere sentar aqui.
+    const seatChance = content.service.seatChance;
+    content.service.seatChance = 0;
+    onTestFinished(() => void (content.service.seatChance = seatChance));
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
     advance(session, 6);
@@ -333,6 +340,21 @@ describe('ciclo do pedido', () => {
     advance(session, content.service.patienceMinutes + 1);
     expect(events.some((e) => e.name === 'customer.left' && (e.payload as { happy: boolean }).happy === false)).toBe(true);
     expect(state.money).toBe(money);
+  });
+
+  it('com mesa e balcão livres, o cliente prefere sentar (seatChance), mas às vezes fica no balcão', () => {
+    const kinds: string[] = [];
+    for (let day = 10; day < 40; day++) {
+      const { session, sv, state } = openCafe({ day });
+      sv.toggleMenu('recipe.black_coffee');
+      advance(session, 6);
+      const c = state.service.customers[0];
+      if (c) kinds.push(c.kind);
+    }
+    expect(kinds.length).toBeGreaterThan(20);
+    const seated = kinds.filter((k) => k === 'table').length;
+    expect(seated).toBeGreaterThan(kinds.length / 2);
+    expect(seated).toBeLessThan(kinds.length);
   });
 
   it('lotado, o cliente espera na fila e senta quando liberar', () => {
@@ -759,7 +781,7 @@ describe('avaliação dos clientes (estrelas)', () => {
 
   /** Atende o primeiro cliente (café preto) depois de `waitMin` minutos sentado esperando. */
   function serveAfter(waitMin: number, clean: boolean) {
-    const { session, sv, state, events } = openCafe();
+    const { session, sv, state, events } = openCafe({ noChair: true });
     sv.toggleMenu('recipe.black_coffee');
     if (clean) for (const d of session.visibleDirt()) state.cleaned.push(d.id);
     advance(session, 6);
