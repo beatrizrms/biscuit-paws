@@ -9,7 +9,7 @@
 - Gatos na arte nova (13 pelagens: sentado, andando, dormindo, brincando, comendo e estranhando, 64 px): arte gerada por IA no PixelLab (https://www.pixellab.ai), feita do zero e montada em folha por código pela equipe (uso declarado na página da Steam).
 
 - Rua e vila (4 estações) e sujeira do café abandonado: arte gerada por IA na paleta do Cat Cafe (uso declarado na página da Steam).
-- NPCs (corretora, Gabi, Joca, Dona Neusa, entregadora), furgão do correio, ônibus do ponto da rua, equipamentos de cozinha, pia, cafeteira, louça, clientes, interface do atendimento, celular, catálogo de compras, mercado, matéria-prima, bebidas e vassoura: arte gerada por IA na paleta Cosy (uso declarado na página da Steam).
+- NPCs (corretora, Gabi, Joca, Dona Neusa, entregadora), furgão do correio, ônibus do ponto da rua, carros da rua (hatch vermelho, sedã azul e fusca), equipamentos de cozinha, pia, cafeteira, louça, clientes, interface do atendimento, celular, catálogo de compras, mercado, matéria-prima, bebidas e vassoura: arte gerada por IA na paleta Cosy (uso declarado na página da Steam).
 - Clínica veterinária (fachada nas 4 estações, interior e a médica Fernanda): arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam).
 - Mini games (esconderijos, poeira, seta e balões da fuga; água, boia, cais, barra e peixes da pescaria; xícara, jarra e guias da latte art): arte gerada por IA (uso declarado na página da Steam).
 

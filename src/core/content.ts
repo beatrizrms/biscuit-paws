@@ -3,6 +3,7 @@
 import { validateReview } from './review';
 import { validateWalks, type NeighborWalkDef } from './neighborWalks';
 import { validateAmbient, type AmbientDef } from './ambientPeople';
+import { validateTraffic, type TrafficDef } from './traffic';
 import { validateStorage, type StorageDef } from './storage';
 import { validateCats, type CatDef, type CatsData, type CatSpritesData } from './cats';
 import { validateFestivals, type FestivalDef, type FestivalsData } from './festival';
@@ -353,6 +354,8 @@ export interface WorldData {
   /** Onde ela aparece de manhã, vindo de casa. */
   morning: { map: string; spawn: Cell };
   /** Ponto de ônibus (interação bus): os destinos, na ordem; goHome encerra o dia a qualquer hora. */
+  /** Carros passando na rua (src/core/traffic.ts). */
+  traffic?: TrafficDef;
   bus?: { destinations: BusDestination[]; vehicle?: { left: string; right: string; scale?: number } };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
@@ -580,6 +583,7 @@ export function validateContent(raw: RawContent): string[] {
   if (!raw.items.items.some((i) => i.id === raw.world.tools?.sweep && i.kind === 'tool')) err(`world: tools.sweep "${raw.world.tools?.sweep}" não é uma ferramenta (kind "tool") de items.json`);
   if (!mapIds.has(raw.world.morning.map)) err(`world: morning.map "${raw.world.morning.map}" não existe`);
   if (!raw.rooms.rooms.some((r) => r.id === raw.world.sceneRoom)) err(`world: sceneRoom "${raw.world.sceneRoom}" não é cômodo`);
+  for (const e of validateTraffic(raw.world.traffic, new Set(raw.maps.map((m) => m.id)))) err(e);
   for (const d of raw.world.bus?.destinations ?? []) if (!d.goHome) err(`world: destino do ônibus "${d.id}" sem para onde ir (goHome)`);
   if (raw.maps.some((m) => (m.interactions ?? []).some((it) => 'bus' in it.action)) && !raw.world.bus?.destinations.length) err('world: tem ponto de ônibus no mapa e nenhum destino em bus.destinations');
   for (const d of raw.world.goHomeDoors) if (!(raw.maps.find((m) => m.id === raw.world.homeMap)?.doors ?? []).some((x) => x.id === d)) err(`world: goHomeDoors "${d}" não é porta do café`);

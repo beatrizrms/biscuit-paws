@@ -45,6 +45,7 @@ import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
 import { ambientLayout, ambientPasses, passesNow, type AmbientLayout, type AmbientPass } from './ambientPeople';
+import { trafficOfDay, trafficStarting, type TrafficPass } from './traffic';
 
 /** Minutos de jogo que um passante leva para atravessar a rua (o jogo some com ele ao chegar na outra ponta). */
 export const AMBIENT_CROSS_MINUTES = 30;
@@ -3927,6 +3928,15 @@ export class GameSession {
     return passesNow(passes, this.state.time, AMBIENT_CROSS_MINUTES);
   }
 
+  /** Veículos que entram na rua entre os minutos `from` e `to` de hoje (data/world.json: traffic). */
+  trafficBetween(mapId: string, from: number, to: number): TrafficPass[] {
+    const def = this.content.world.traffic;
+    if (!def || def.map !== mapId) return [];
+    if (this.trafficCache?.day !== this.state.day) this.trafficCache = { day: this.state.day, passes: trafficOfDay(def, this.state.day) };
+    return trafficStarting(this.trafficCache.passes, from, to);
+  }
+
+  private trafficCache: { day: number; passes: TrafficPass[] } | null = null;
   private ambientCache = new Map<string, AmbientLayout | null>();
   private passCache = new Map<string, AmbientPass[]>();
 
