@@ -119,6 +119,8 @@ const CROWD_TALK_EVERY_MS = 2400;
 const CROWD_TALK_MS = 2200;
 /** Quem passeia na plateia para um pouco em cada ponto. */
 const CROWD_PAUSE_MS = 1400;
+/** Velocidade dos carros passando na rua (px do mundo por segundo). */
+const TRAFFIC_SPEED = 170;
 /** Na praça, alguém de um grupinho fala a cada tanto (mais devagar que na plateia da festa). */
 const AMBIENT_TALK_EVERY_MS = 4200;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
@@ -207,6 +209,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Quem está atravessando a rua (session.ambientPassersNow) e as travessias já começadas neste mapa. */
   private readonly passers = new Map<string, NpcSprite>();
   private readonly passesStarted = new Set<string>();
+  /** Carros passando na rua: os que estão na tela e o último minuto já olhado (null = acabou de entrar no mapa). */
+  private trafficImages: Phaser.GameObjects.Image[] = [];
+  private trafficMinute: number | null = null;
   /** O ônibus está levando ela (sem andar nem agir até o dia encerrar). */
   private ridingBus = false;
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
@@ -637,6 +642,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateNeighborWalks();
     this.updateCrowd();
     this.updateAmbient();
+    this.updateTraffic();
     // Controles de toque só quando ela pode andar e agir: com qualquer coisa por cima do jogo (fala, pergunta, cena,
     // placa, janela, pausa), somem (a camada deles fica acima da interface e cobriria os botões da janela).
     touch.setHidden(this.ui.isBusy());
@@ -713,6 +719,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.crowd.clear();
     this.crowdGroups = [];
     this.player.setAlpha(1); // voltando do ônibus (ela sumiu dentro dele)
+    this.trafficImages.forEach((img) => img.destroy());
+    this.trafficImages = [];
+    this.trafficMinute = null;
     this.ambient.clear();
     this.passers.clear();
     this.passesStarted.clear();
@@ -2333,6 +2342,45 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!mine()) return;
     this.npcs.delete(id);
     await npc.leave();
+  }
+
+  // ---------- Carros passando na rua ----------
+
+  /**
+   * A cada minuto de jogo: os veículos da agenda do dia que entram agora atravessam a rua inteira (data/world.json:
+   * traffic). Um de cada vez; nada passa enquanto o furgão do correio entrega ou o ônibus do ponto a leva.
+   */
+  private updateTraffic(): void {
+    const now = Math.floor(this.session.state.time);
+    const from = this.trafficMinute;
+    this.trafficMinute = now;
+    if (from === null || now <= from || this.changingMap) return;
+    for (const pass of this.session.trafficBetween(this.map.id, from, now)) {
+      if (this.vanBusy || this.ridingBus || this.trafficImages.length > 0) continue;
+      this.driveBy(pass.vehicle, pass.dir);
+    }
+  }
+
+  private driveBy(vehicleId: string, dir: 'left' | 'right'): void {
+    const def = this.session.content.world.traffic?.vehicles.find((v) => v.id === vehicleId);
+    const key = `${vehicleId}:${dir}`;
+    if (!def || !this.textures.exists(key)) return;
+    const ts = this.map.tileSize;
+    const roadY = this.map.rows * ts - 4;
+    const img = this.add.image(0, roadY, key).setOrigin(0.5, 1).setScale(def.scale).setDepth(ySortDepth(roadY));
+    const half = img.displayWidth / 2 + 8;
+    const width = this.map.cols * ts;
+    img.x = dir === 'left' ? width + half : -half;
+    this.trafficImages.push(img);
+    this.tweens.add({
+      targets: img,
+      x: dir === 'left' ? -half : width + half,
+      duration: ((width + half * 2) / TRAFFIC_SPEED) * 1000,
+      onComplete: () => {
+        this.trafficImages = this.trafficImages.filter((i) => i !== img);
+        img.destroy();
+      },
+    });
   }
 
   // ---------- Vizinhos passeando na rua ----------

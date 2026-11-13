@@ -2389,6 +2389,18 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   console.log(`${dir}: ônibus para a direita e para a esquerda`);
 }
 
+// ---------- Carros da rua (3x2: 192 x 128, de lado, para a direita; meia escala: data/world.json traffic) ----------
+// Vermelho (hatch), azul (sedã) e o fusca verde-menta. Descidos até as rodas na base; a versão para a esquerda é espelhada.
+{
+  const dir = 'public/assets/objects/vehicles';
+  for (const [name, bottom] of [['vermelho', 126], ['azul', 121], ['fusca', 123]] as const) {
+    const car = () => pickRows(readPng(`${SRC}/carros/carro_${name}.png`), [...Array.from({ length: 127 - bottom }, () => 0), ...range(0, bottom)]);
+    writeFileSync(`${dir}/obj_car_${name}_right.png`, PNG.sync.write(car()));
+    writeFileSync(`${dir}/obj_car_${name}_left.png`, PNG.sync.write(columns(car(), range(0, 191).reverse())));
+  }
+  console.log(`${dir}: 3 carros, para a direita e para a esquerda`);
+}
+
 // ---------- Remédio escondido: tigela com comida (192 x 128), comprimido (48 x 24) e tubo de pasta (48 x 48) ----------
 // Desenhados em meia escala na cena (src/game/minigames/assets.ts: PILL); fontes em assets/_pixellab/minigames/pill.
 {

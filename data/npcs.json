@@ -695,7 +695,7 @@
           { "at": [16, 9], "facing": "up", "pose": "stand" }
         ],
         "spotsUsed": [0, 2],
-        "passers": { "ends": [[0, 9], [0, 10], [43, 9], [43, 10], [24, 8]], "everyMinutes": 12, "chance": 0.7 }
+        "passers": { "ends": [[0, 9], [43, 9], [24, 8]], "everyMinutes": 12, "chance": 0.7 }
       }
     ]
   }
