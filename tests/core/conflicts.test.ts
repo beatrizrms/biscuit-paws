@@ -185,7 +185,7 @@ describe('dia de evento no quintal', () => {
   });
 
   it('a decoração tem as luzes (acendem à noite)', () => {
-    const lights = Object.keys(content.dayNight.lightTiles);
+    const lights = Object.keys(content.dayNight.lightTiles ?? {});
     for (const f of content.festivals) expect((f.decorations ?? []).filter((d) => lights.includes(d.tile)).length, f.id).toBeGreaterThanOrEqual(2);
   });
 });
