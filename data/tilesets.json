@@ -756,6 +756,19 @@
       "replaces": true
     },
     {
+      "id": "pixellab_jardim",
+      "image": "assets/env/backyard/tile_pixellab_jardim.png",
+      "pieces": "pixellab_jardim.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": false,
+      "overrides": {
+        "dirt_galhos": { "layer": "floor" },
+        "dirt_tora": { "layer": "floor" },
+        "market_banca_plantas": { "solid": true }
+      }
+    },
+    {
       "id": "pixellab_quintal_novos",
       "image": "assets/env/backyard/tile_pixellab_quintal_novos.png",
       "pieces": "pixellab_quintal_novos.json",

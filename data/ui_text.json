@@ -206,8 +206,11 @@
     "walk": "Direcional: andar (até a borda: correr) · E: interagir · Mover: mudar um móvel de lugar",
     "placing": "Toque no lugar (ou use o direcional) · Soltar: posiciona · Mochila: guarda · ❚❚: cancela",
     "moving": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: guarda · ❚❚: cancela",
+    "movingTree": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: remover a árvore · ❚❚: cancela",
     "movePick": "O móvel dourado é o que vai mudar de lugar · Próximo: o outro · OK (ou toque nele): escolhe · ❚❚: cancela"
   },
+  "hintMovingTree": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: remover a árvore · Esc: cancelar",
+  "trees": { "removeAsk": "Remover esta árvore? Ela some de vez e libera o espaço.", "yes": "Remover", "no": "Deixar", "removed": "Árvore removida." },
   "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: guardar na mochila · Esc: cancelar",
   "hintDialogue": "Espaço, Enter ou clique: continuar",
   "narrator": "",

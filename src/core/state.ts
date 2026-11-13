@@ -34,6 +34,8 @@ export interface PlacedItem {
   /** Automático (pote de ração, caixa de areia): quantos dias guardados e de qual item (a ração escolhida). */
   stock?: number;
   stockItem?: string;
+  /** Planta (item com grows): o dia em que foi plantada ou cresceu pela última vez. */
+  plantedOn?: number;
 }
 
 export interface GameState {

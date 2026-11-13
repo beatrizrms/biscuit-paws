@@ -1440,6 +1440,34 @@
           "text": "Boa feira! Que todo mundo ache um lar hoje."
         }
       ]
+    },
+    "dlg.yard_panic": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Meu Deus do céu! Galho, tora, folha seca e mato pra todo lado..."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Isso aqui não dá pra limpar com vassoura, não. É serviço pro Tião!"
+        }
+      ]
+    },
+    "dlg.yard_wait_builder": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "(O Tião está no meio de uma obra... Vou ter que esperar ele terminar para depois limpar o jardim.)"
+        }
+      ]
+    },
+    "dlg.yard_no_money": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "(A limpeza pesada do Tião custa mais do que eu tenho agora. Quando juntar, peço pelo Market, na aba Construção.)"
+        }
+      ]
     }
   }
 }

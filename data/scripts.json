@@ -1815,6 +1815,28 @@
           "npcLeave": "npc.jacque"
         }
       ]
+    },
+    "scr.yard_first_look": {
+      "here": true,
+      "steps": [
+        {
+          "playerFace": "up"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 900
+        },
+        {
+          "dialogue": "dlg.yard_panic"
+        },
+        {
+          "roomQuote": "room.backyard",
+          "kind": "room_clear",
+          "busy": "dlg.yard_wait_builder",
+          "noMoney": "dlg.yard_no_money"
+        }
+      ]
     }
   }
 }

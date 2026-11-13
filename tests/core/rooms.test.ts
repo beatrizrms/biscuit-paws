@@ -70,8 +70,9 @@ describe('cômodos: dados e regras', () => {
     expect(resolvedLook(yard, 'abandoned').legend.g).toBeUndefined(); // grama do mapa (seca)
     expect(resolvedLook(yard, 'restored').legend.g).toBe('yard_grama_a');
     expect(Object.keys(yard.variants!)).toEqual(['hedge']); // a variante de tijolo saiu na arte nova (decisão 065)
-    // Reformado, o quintal começa só com a grama, o caminho e as árvores: o resto ela compra (aba Decor).
-    expect(new Set(resolvedLook(yard, 'restored').objects.filter((o) => o.tile.startsWith('yard_') && o.tile !== 'yard_fundo_ceu_telhados').map((o) => o.tile))).toEqual(new Set(['yard_arvore']));
+    // Reformado, o quintal começa só com a grama e o caminho; as árvores antigas vêm posicionadas (dá para remover).
+    expect(resolvedLook(yard, 'restored').objects.filter((o) => o.tile.startsWith('yard_') && o.tile !== 'yard_fundo_ceu_telhados')).toEqual([]);
+    expect(yard.restore?.placeItems?.map((p) => p.item)).toEqual(['item.yard_big_tree', 'item.yard_big_tree']);
   });
 
   it('todas as variantes do quintal, em todos os estados, dão um mapa válido', () => {
@@ -356,14 +357,57 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     while (session.state.day <= end) session.endDay('home');
   };
 
+  it('primeira olhada no quintal sujo: o susto e a ligação para o Tião (uma vez); com ele em obra, só o aviso', () => {
+    const { session, state } = yardOpen();
+    const scripts: string[] = [];
+    session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
+    session.setPlayerCell([10, 6]); // no salão: nada
+    expect(scripts).toEqual([]);
+    session.setPlayerCell([34, 8]); // no quintal
+    session.setPlayerCell([35, 8]);
+    expect(scripts).toEqual(['scr.yard_first_look']);
+    // O passo do roteiro: a obra de limpeza; com o Tião em outra obra, "busy" (a fala de esperar; nada fica pendente).
+    expect(session.quoteRoom('room.backyard', 'room_clear')).toEqual({ ok: true });
+    expect(session.quoteRoom('room.backyard', 'room_clear')).toEqual({ ok: false, reason: 'busy' });
+    expect(state.flags['seen.firstlook.room.backyard']).toBe(true);
+  });
+
+  it('reformado: as árvores antigas vêm posicionadas, dá para remover (some de vez); a muda cresce até virar árvore', () => {
+    const { session, state } = yardOpen();
+    cleanTag(session, 'backyard', true);
+    expect(session.restoreRoom('room.backyard')).toEqual({ ok: true });
+    const trees = () => state.placed.filter((p) => p.item === 'item.yard_big_tree');
+    expect(trees().map((p) => p.at)).toEqual([[40, 3], [27, 3]]);
+    expect(session.removeTree(trees()[0]!.uid)).toEqual({ ok: true });
+    expect(trees()).toHaveLength(1);
+    expect(state.inventory['item.yard_big_tree']).toBeUndefined(); // não vai para a mochila
+    // Recarregar não traz a árvore de volta.
+    const back = new GameSession(content, parseSave(serializeSave(state, new Date(0)), knownIds(content)).state);
+    expect(back.state.placed.filter((p) => p.item === 'item.yard_big_tree')).toHaveLength(1);
+    // A muda: plantada, cresce em dias.
+    state.inventory['item.yard_sapling'] = 1;
+    expect(session.place('item.yard_sapling', [33, 6])).toEqual({ ok: true });
+    const sapling = state.placed.find((p) => p.item === 'item.yard_sapling')!;
+    expect(sapling.plantedOn).toBe(state.day);
+    for (let i = 0; i < 3; i++) session.endDay('home');
+    expect(sapling.item).toBe('item.yard_tree_young');
+    for (let i = 0; i < 4; i++) session.endDay('home');
+    expect(sapling.item).toBe('item.yard_tree_thin');
+    expect(sapling.at).toEqual([33, 4]); // a árvore fina (1x3) sobe pela base
+    expect(session.removeTree(sapling.uid)).toEqual({ ok: true });
+    // Grama: sem colisão.
+    expect(content.catalog.tiles[content.items['item.yard_tall_grass']!.tile!]!.solid).toBe(false);
+    expect(content.catalog.tiles[content.items['item.yard_short_grass']!.tile!]!.solid).toBe(false);
+  });
+
   it('o mato alto não sai com a vassoura; as folhas sim', () => {
     const { session } = yardOpen();
     const heavy = session.visibleDirt().filter((d) => d.heavy);
-    expect(heavy.length).toBe(5);
+    expect(heavy.length).toBeGreaterThan(5); // mato, galhos, toras e grama alta
     expect(session.cleanProblem(heavy[0]!.id, [heavy[0]!.at])).toBe('heavy_dirt');
     expect(session.dirtNear([heavy[0]!.at], 0)).toBeUndefined();
     cleanTag(session, 'backyard'); // as folhas
-    expect(session.roomDirtLeft('room.backyard')).toBe(5);
+    expect(session.roomDirtLeft('room.backyard')).toBe(heavy.length);
   });
 
   it('a reforma espera a limpeza pesada: o Tião tira o mato num dia e depois reforma', () => {

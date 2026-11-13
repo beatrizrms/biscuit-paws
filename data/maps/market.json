@@ -77,6 +77,7 @@
     ]
   },
   "objects": [
+    { "id": "obj.market_banca_plantas", "tile": "market_banca_plantas", "at": [14, 5] },
     {
       "id": "obj.market_janela",
       "tile": "market_janela",
@@ -380,6 +381,7 @@
     }
   ],
   "interactions": [
+    { "id": "int.market_shelf_garden", "at": [15, 6], "action": { "shelf": "shop.market", "tags": ["garden"] } },
     {
       "id": "int.market_cashier",
       "at": [

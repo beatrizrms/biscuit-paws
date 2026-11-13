@@ -6,7 +6,7 @@
 // chão de paralelepípedos (neve no inverno), caçamba, poste, caixote e sacos de lixo.
 // Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, o varal, o caixote, os sacos de lixo e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 type Obj = { id: string; tile: string; at: [number, number]; inWall?: true; overlay?: string };
 const j = (x: unknown) => JSON.stringify(x);
@@ -72,6 +72,8 @@ function legendMaker() {
   // de cantos arredondados.
   const paved = (vx: number, vy: number) => {
     if (vy >= 7 && vy <= 9) return true;
+    // A entrada: o caminho de 3 tiles (colunas 14 a 16) que desce da praça calçada até a borda de baixo.
+    if (vx >= 14 && vx <= 17 && vy >= 13) return true;
     // 11 tiles de largura (colunas 10 a 20): o chafariz (3) fica no meio, na coluna 15.
     const inPlaza = vx >= 10 && vx <= 21 && vy >= 3 && vy <= 14;
     const corner = (vx === 10 || vx === 21) && (vy === 3 || vy === 14);
@@ -106,6 +108,48 @@ function legendMaker() {
     ...Object.fromEntries(['praca_chafariz', 'praca_coreto', 'praca_hotdog', 'praca_banca', 'praca_pipoca', 'praca_balanco', 'praca_escorregador', 'praca_canteiro', 'praca_bebedouro', 'yard_vaso_baixo_flores', 'decor_floreira'].map((t) => [t, `snow_${t}`])),
   };
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
+  /**
+   * Mais árvores na grama, espalhadas sem fileira: posições sorteadas (semente fixa), tipos variados (mais jovens e
+   * finas, algumas médias e grandes), com a área inteira da árvore na grama (longe do calçamento e dos caminhos), uma
+   * encostar em outra peça, fora do céu e da sebe (linha 3 em diante).
+   */
+  function scatterTrees(objects: Obj[]): Obj[] {
+    const tiles = (JSON.parse(readFileSync('data/tiles.json', 'utf8')) as { tiles: Record<string, { w: number; h: number }> }).tiles;
+    const taken = new Set<string>();
+    const mark = (o: Obj, pad: number) => {
+      const t = tiles[o.tile];
+      if (!t || o.tile.startsWith('yard_fundo')) return;
+      for (let y = o.at[1] - pad; y < o.at[1] + t.h + pad; y++) for (let x = o.at[0] - pad; x < o.at[0] + t.w + pad; x++) taken.add(`${x},${y}`);
+    };
+    objects.forEach((o) => mark(o, 0));
+    const kinds = ['prop_arvore_jovem', 'prop_arvore_jovem_b', 'prop_arvore_jovem_c', 'prop_arvore_fina', 'prop_arvore_jovem', 'prop_arvore_fina', 'prop_arvore_media', 'prop_arvore_media_b', 'prop_arvore_media_c', 'prop_arvore_grande_b', 'prop_arvore_jovem_c', 'prop_arvore_grande_c'];
+    const grassArea = (c: number, r: number, w: number, h: number) => {
+      for (let y = r; y <= r + h; y++) for (let x = c; x <= c + w; x++) if (paved(x, y)) return false;
+      return true;
+    };
+    const out = [...objects];
+    let n = 0;
+    // As maiores primeiro (onde ainda cabem), depois as jovens preenchem os cantinhos.
+    const place = (pool: string[], max: number) => {
+      let placed = 0;
+      for (let tries = 0; tries < 3000 && placed < max; tries++) {
+        const tile = pool[Math.floor(rnd() * pool.length)]!;
+        const t = tiles[tile]!;
+        const c = Math.floor(rnd() * (COLS - t.w + 1));
+        const r = 3 + Math.floor(rnd() * (ROWS - 3 - t.h + 1));
+        let free = grassArea(c, r, t.w, t.h);
+        for (let y = r; free && y < r + t.h; y++) for (let x = c; x < c + t.w; x++) if (taken.has(`${x},${y}`)) free = false;
+        if (!free) continue;
+        const o = obj(`arvore_extra_${++n}`, tile, [c, r]);
+        out.push(o);
+        mark(o, 0);
+        placed++;
+      }
+    };
+    place(kinds.filter((k) => !k.includes('jovem')), 8);
+    place(kinds.filter((k) => k.includes('jovem')), 7);
+    return out;
+  }
   write('data/maps/praca.json', {
     comment:
       'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles parque_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho; no inverno, neve). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',
@@ -116,14 +160,14 @@ function legendMaker() {
     legend,
     floor,
     walls,
-    objects: [
+    objects: scatterTrees([
       obj('ceu_a', 'yard_fundo_ceu_telhados', [0, 0]),
       obj('ceu_b', 'yard_fundo_ceu_telhados', [6, 0]),
       obj('ceu_c', 'yard_fundo_ceu_telhados', [12, 0]),
       obj('ceu_d', 'yard_fundo_ceu_telhados', [18, 0]),
       obj('ceu_e', 'yard_fundo_ceu_telhados', [24, 0]),
-      // A praça calçada: o chafariz no centro (coluna 15), bancos em volta com vasos de flores, canteiros no mesmo eixo e
-      // postes nos cantos.
+      // A praça calçada: o chafariz no centro (coluna 15), bancos em volta com vasos de flores, o canteiro atrás do chafariz
+      // (na frente fica livre: a entrada vem de baixo) e postes nos cantos.
       obj('chafariz', 'praca_chafariz', [14, 7]),
       obj('banco_1', 'prop_banco', [11, 4]),
       obj('banco_2', 'prop_banco', [18, 4]),
@@ -134,7 +178,6 @@ function legendMaker() {
       obj('flor_3', 'yard_vaso_baixo_flores', [10, 12]),
       obj('flor_4', 'yard_vaso_baixo_flores', [20, 12]),
       obj('canteiro_1', 'praca_canteiro', [14, 3]),
-      obj('canteiro_2', 'praca_canteiro', [14, 12]),
       obj('poste_1', 'prop_poste', [8, 3]),
       obj('poste_2', 'prop_poste', [21, 3]),
       obj('poste_3', 'prop_poste', [8, 10]),
@@ -161,7 +204,7 @@ function legendMaker() {
       obj('arvore_17', 'prop_arvore_jovem_c', [2, 15]),
       // Embaixo da praça calçada: uma fileira de árvores na grama.
       obj('arvore_18', 'prop_arvore_fina', [10, 13]),
-      obj('arvore_19', 'prop_arvore_jovem_b', [12, 15]),
+      obj('arvore_19', 'prop_arvore_jovem_b', [11, 15]),
       obj('arvore_20', 'prop_arvore_media', [17, 13]),
       obj('arvore_21', 'prop_arvore_jovem_c', [19, 15]),
       obj('arvore_22', 'prop_arvore_fina', [20, 13]),
@@ -179,19 +222,20 @@ function legendMaker() {
       obj('arvore_12', 'prop_arvore_jovem', [28, 14]),
       obj('arvore_13', 'prop_arvore_fina', [29, 12]),
       obj('arvore_24', 'prop_arvore_jovem_b', [22, 15]),
-    ],
+    ]),
     lights: [
       { at: [9, 3.45], radius: 46, color: '#ffe2a0' },
       { at: [22, 3.45], radius: 46, color: '#ffe2a0' },
       { at: [9, 10.45], radius: 46, color: '#ffe2a0' },
       { at: [22, 10.45], radius: 46, color: '#ffe2a0' },
     ],
-    // Saída para a rua: as duas linhas do caminho, andando para a esquerda.
+    // Entrada e saída por baixo: o caminho da borda de baixo (colunas 14 a 16), andando para baixo, volta para a rua.
     doors: [
-      { id: 'door.praca_street_a', at: [0, 7], to: 'map.street', direction: 'left', spawn: [41, 9], facing: 'down' },
-      { id: 'door.praca_street_b', at: [0, 8], to: 'map.street', direction: 'left', spawn: [42, 9], facing: 'down' },
+      { id: 'door.praca_street_a', at: [14, 15], to: 'map.street', direction: 'down', spawn: [41, 9], facing: 'down' },
+      { id: 'door.praca_street_b', at: [15, 15], to: 'map.street', direction: 'down', spawn: [42, 9], facing: 'down' },
+      { id: 'door.praca_street_c', at: [16, 15], to: 'map.street', direction: 'down', spawn: [42, 9], facing: 'down' },
     ],
-    spawn: [1, 8],
+    spawn: [15, 14],
   });
 }
 

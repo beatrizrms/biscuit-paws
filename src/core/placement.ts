@@ -30,13 +30,14 @@ const sameCell = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
  * `stocked`: a vitrine tem algo dentro (desenha a arte cheia, display.fullTile). `lift`: quanto o que vai em cima
  * sobe até o tampo (o apoio pode ter o próprio, `topLift`).
  */
-export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean, footprint: Footprint = originOnly): MapData {
+export function withPlaced(map: MapData, placed: readonly PlacedItem[], items: Record<string, ItemDef>, lift = 0, stocked?: (uid: string) => boolean, footprint: Footprint = originOnly, seasonTile?: (tile: string) => string): MapData {
   const extra = placed.flatMap((p) => {
     const item = items[p.item];
     if (!item?.tile) return [];
     // Em cima de outro móvel (ex.: cafeteira no balcão, vaso na cômoda): sobe até o tampo. Solto no chão (orFloor), não.
     const host = item.placeOn ? hostAt(placed, items, item.placeOn, p.at, footprint) : undefined;
-    const tile = item.display?.fullTile && stocked?.(p.uid) ? item.display.fullTile : item.tile;
+    const base = item.display?.fullTile && stocked?.(p.uid) ? item.display.fullTile : item.tile;
+    const tile = item.seasonalTile && seasonTile ? seasonTile(base) : base;
     return [{ id: `${PLACED_PREFIX}${p.uid}`, tile, at: p.at, ...(host ? { lift: items[host.item]?.topLift ?? lift } : {}) }];
   });
   return { ...map, objects: [...map.objects, ...extra] };
