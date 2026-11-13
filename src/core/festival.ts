@@ -5,6 +5,7 @@
 // reputação. Se o dia passa sem acabar, volta ao começo. Um intervalo mínimo separa duas edições do mesmo evento.
 // Puro: sem Phaser, DOM ou window. Os pontos são pontos de pedido (data/jobs.json); a sessão junta.
 import type { ContestOutcome, FairSetupOutcome, Outcome, PhotoOutcome } from './minigame';
+import { parseClock } from './time';
 
 export interface FestivalDef {
   id: string;
@@ -21,8 +22,11 @@ export interface FestivalDef {
   cooldownDays: number;
   /** Preparação antes do dia (ex.: os panfletos): pontos em qualquer ordem; o dia fica marcado `daysAfter` depois. */
   prep?: { points: string[]; daysAfter: number };
-  /** No dia, antes de tudo: a placa na porta (fecha o atendimento). */
-  closePoint?: { point: string; tile: string };
+  /**
+   * No dia, antes de tudo: a placa na porta (fecha o atendimento). `by`: até que hora ("12:00"); passou sem a placa,
+   * o evento é perdido. `remind`: quantos minutos antes do prazo vem o lembrete.
+   */
+  closePoint?: { point: string; tile: string; by?: string; remind?: number };
   /** No dia, depois da placa: decorações (cada ponto vira a peça dele no mapa). */
   decorations?: { point: string; tile: string; at?: [number, number] }[];
   /** As atividades do dia, em ordem: mini game aberto pelo ponto (data/jobs.json, action "minigame"). */
@@ -176,6 +180,22 @@ export function finishFestival(s: FestivalsState): { id: string; results: Activi
   return { id: a.id, results: a.results };
 }
 
+/**
+ * No dia do evento, com a placa ainda fora da porta: passou do prazo (closePoint.by), o evento é perdido (volta ao
+ * começo, como um dia perdido) e devolve 'missed'; dentro dos closePoint.remind minutos antes dele, 'soon'. Senão, null.
+ */
+export function festivalCloseDeadline(s: FestivalsState, def: FestivalDef, day: number, time: number): 'missed' | 'soon' | null {
+  const cp = def.closePoint;
+  const a = s.active;
+  if (!cp?.by || !a || a.id !== def.id || !isFestivalDay(s, day) || a.done.includes(cp.point)) return null;
+  const by = parseClock(cp.by);
+  if (time >= by) {
+    s.active = null;
+    return 'missed';
+  }
+  return cp.remind && time >= by - cp.remind ? 'soon' : null;
+}
+
 /** Virada do dia: o evento marcado para um dia que já passou sem acabar volta ao começo. Devolve o id, se perdeu. */
 export function festivalDayEnded(s: FestivalsState, newDay: number): string | null {
   const a = s.active;
@@ -204,6 +224,8 @@ export function validateFestivals(
     const points = [...(f.prep?.points ?? []), ...(f.closePoint ? [f.closePoint.point] : []), ...(f.decorations ?? []).map((d) => d.point), ...f.activities.map((a) => a.point)];
     for (const p of points) if (!refs.points.has(p)) errors.push(`${w}: ponto inexistente "${p}"`);
     for (const t of [...(f.closePoint ? [f.closePoint.tile] : []), ...(f.decorations ?? []).map((d) => d.tile)]) if (!refs.tiles.has(t)) errors.push(`${w}: tile inexistente "${t}"`);
+    if (f.closePoint?.by !== undefined && !/^\d{1,2}:\d{2}$/.test(f.closePoint.by)) errors.push(`${w}: closePoint.by com hora inválida "${f.closePoint.by}"`);
+    if (f.closePoint?.remind !== undefined && !(f.closePoint.remind > 0)) errors.push(`${w}: closePoint.remind precisa ser mais que 0`);
     for (const a of f.activities) if (!refs.games.has(a.game)) errors.push(`${w}: mini game inexistente "${a.game}"`);
   }
   return errors;

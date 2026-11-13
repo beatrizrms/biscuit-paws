@@ -1331,6 +1331,8 @@
     "ready": "Tudo enfeitado! Agora, a feira no quintal (siga a setinha).",
     "activity": "Pronto! Agora, o próximo passo (siga a setinha).",
     "missed": "{name} passou sem acontecer... Dá para organizar de novo.",
+    "missedLate": "Passou das {by} e a placa não foi para a porta: {name} ficou para outra vez.",
+    "closeSoon": "{name} é hoje! A placa precisa ir para a porta do café até as {by}.",
     "summary": {
       "title": "{name}: fim!",
       "activity": "{game}: {outcome}",

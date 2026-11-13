@@ -347,7 +347,13 @@ export class GameUi {
     const festName = (id: string) => content.festivals.find((f) => f.id === id)?.name ?? '';
     bus.on('festival.progress', ({ step }) => this.toast(ft[step], step === 'prep' || step === 'decor' ? 2500 : 3500));
     bus.on('festival.scheduled', ({ festivalId, day }) => this.toast(ft.scheduled.replace('{name}', festName(festivalId)).replace('{date}', this.festivalDate(day)), 4500));
-    bus.on('festival.missed', ({ festivalId }) => this.toast(ft.missed.replace('{name}', festName(festivalId)), 4500));
+    // Prazo da placa (data/festivals.json: closePoint.by): "12:00" vira "12h".
+    const hour = (by: string) => by.replace(/:00$/, 'h').replace(/^0(\d)/, '$1');
+    const placeBy = (festivalId: string) => hour(this.session.content.festivals.find((f) => f.id === festivalId)?.closePoint?.by ?? '');
+    bus.on('festival.missed', ({ festivalId, late }) =>
+      this.toast((late ? ft.missedLate.replace('{by}', placeBy(festivalId)) : ft.missed).replace('{name}', festName(festivalId)), 5500),
+    );
+    bus.on('festival.closeSoon', ({ festivalId, by }) => this.toast(ft.closeSoon.replace('{name}', festName(festivalId)).replace('{by}', hour(by)), 6000));
     bus.on('festival.finished', (e) => void this.festivalSummary(e));
     bus.on('photo.best', () => this.toast(uiText.minigames.photo.record, 3500));
     bus.on('customer.left', ({ stars }) => stars !== undefined && this.renderReputation());

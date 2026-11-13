@@ -41,7 +41,7 @@ import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
 import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
-import { doFestivalPoint, festivalCanStart, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
+import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalDayEnded, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
 import {
@@ -856,6 +856,7 @@ export class GameSession {
       this.checkSecretSanta();
       this.checkHalloween();
       this.checkNewYear();
+      this.checkFestivalDeadline();
       this.ced.tick();
     }
   }
@@ -3449,9 +3450,27 @@ export class GameSession {
     return id ? this.content.festivals.find((f) => f.id === id) : undefined;
   }
 
+  /** O dia em que o lembrete da placa já veio, e o dia em que o evento foi perdido pelo prazo (não recomeça no mesmo dia). */
+  private festivalRemindedOn = 0;
+  private festivalMissedOn = 0;
+
+  /** No dia do evento: lembra da placa perto do prazo (uma vez) e, passado o prazo sem ela na porta, o evento é perdido. */
+  private checkFestivalDeadline(): void {
+    const def = this.activeFestival();
+    if (!def) return;
+    const r = festivalCloseDeadline(this.state.festivals, def, this.state.day, this.state.time);
+    if (r === 'missed') {
+      this.festivalMissedOn = this.state.day;
+      this.bus.emit('festival.missed', { festivalId: def.id, day: this.state.day, late: true });
+    } else if (r === 'soon' && this.festivalRemindedOn !== this.state.day) {
+      this.festivalRemindedOn = this.state.day;
+      this.bus.emit('festival.closeSoon', { festivalId: def.id, by: def.closePoint!.by! });
+    }
+  }
+
   /** Começa o primeiro festival disponível: a protagonista tem a ideia (fala) e a meta aparece. */
   private maybeStartFestivals(): void {
-    if (this.state.festivals.active) return;
+    if (this.state.festivals.active || this.festivalMissedOn === this.state.day) return;
     const { season, day: dayOfSeason } = this.seasonDay();
     const ctx = { day: this.state.day, season, dayOfSeason, reached: this.state.reputation.reached, evaluate: (c: unknown) => evaluate(c as Condition, this.state, this.storyContext()) };
     const def = this.content.festivals.find((f) => festivalCanStart(this.state.festivals, f, ctx));

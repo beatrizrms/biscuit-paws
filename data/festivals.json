@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Eventos de festival no café (src/core/festival.ts), ideia da protagonista, no quintal. Disponível quando: unlockReputation (limiar de data/reputation.json alcançado), when (condição das metas), date (estação + dia; a ideia vem noticeDays antes) e o intervalo cooldownDays desde a última edição. Um evento por vez. Começa com a fala idea; prep (pontos em qualquer ordem, ex.: panfletos) marca o dia daysAfter depois; sem prep, já fica marcado (a data, ou hoje). No dia: closePoint (a placa na porta fecha o atendimento), decorations (cada ponto põe a peça no mapa) e activities (mini games, em ordem; qualquer resultado conta). Acabou: resumo com os resultados, mais rewards. Perdeu o dia: volta ao começo. texts: as linhas do balão de metas deste evento (prep, close, decor e uma por mini game das atividades). decorations[].at: onde a peça aparece, se não for no ponto do E (as bandeirinhas ficam na sebe do fundo, a parede do quintal; o ponto do E fica no chão, embaixo).",
+  "_comment": "Eventos de festival no café (src/core/festival.ts), ideia da protagonista, no quintal. Disponível quando: unlockReputation (limiar de data/reputation.json alcançado), when (condição das metas), date (estação + dia; a ideia vem noticeDays antes) e o intervalo cooldownDays desde a última edição. Um evento por vez. Começa com a fala idea; prep (pontos em qualquer ordem, ex.: panfletos) marca o dia daysAfter depois; sem prep, já fica marcado (a data, ou hoje). No dia: closePoint (a placa na porta fecha o atendimento; by: até que hora dá para pôr, passou sem ela o evento é perdido; remind: minutos antes do prazo em que vem o lembrete), decorations (cada ponto põe a peça no mapa) e activities (mini games, em ordem; qualquer resultado conta). Acabou: resumo com os resultados, mais rewards. Perdeu o dia: volta ao começo. texts: as linhas do balão de metas deste evento (prep, close, decor e uma por mini game das atividades). decorations[].at: onde a peça aparece, se não for no ponto do E (as bandeirinhas ficam na sebe do fundo, a parede do quintal; o ponto do E fica no chão, embaixo).",
   "festivals": [
     {
       "id": "fest.adoption_fair",
@@ -9,7 +9,7 @@
       "when": { "all": [{ "cats": { "gte": 9 } }, { "daysSince": { "beat": "story.backyard", "gte": 7 } }, { "catsReady": true }, { "fairCats": { "gte": 1 } }] },
       "cooldownDays": 30,
       "prep": { "points": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"], "daysAfter": 3 },
-      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" },
@@ -22,7 +22,7 @@
       "rewards": { "reputation": 2 },
       "texts": {
         "prep": "Distribuir panfletos da feira pela rua.",
-        "close": "Hoje é a feira! Pôr a placa de fechado na porta do café.",
+        "close": "Hoje é a feira! Pôr a placa de fechado na porta do café até o meio-dia.",
         "decor": "Decorar o quintal para a feira.",
         "activities": {
           "fair_setup": "Montar a feira no quintal (os caixotes perto da porta).",
@@ -38,7 +38,7 @@
       "when": { "all": [{ "room": "room.backyard", "atLeast": "restored" }, { "fairCats": { "gte": 1 } }] },
       "date": { "season": "summer", "day": 8, "noticeDays": 3 },
       "cooldownDays": 60,
-      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
         { "point": "pt.fair_decor_2", "tile": "ph_fair_balloons" }
@@ -51,7 +51,7 @@
       ],
       "rewards": { "coins": 30, "reputation": 4 },
       "texts": {
-        "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café.",
+        "close": "Hoje é o Dia do Gato! Pôr a placa na porta do café até o meio-dia.",
         "decor": "Enfeitar o quintal para a festa.",
         "activities": {
           "fair_setup": "Montar a feira do Dia do Gato (os caixotes no quintal).",
@@ -69,7 +69,7 @@
       "when": { "room": "room.backyard", "atLeast": "restored" },
       "date": { "season": "spring", "day": 20, "noticeDays": 3 },
       "cooldownDays": 120,
-      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign" },
+      "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
       "decorations": [
         { "point": "pt.fair_decor_1", "tile": "ph_fair_bunting", "at": [30, 2] },
         { "point": "pt.fair_decor_3", "tile": "ph_fair_bunting", "at": [39, 2] }
@@ -80,7 +80,7 @@
       ],
       "rewards": { "coins": 20, "reputation": 3 },
       "texts": {
-        "close": "Hoje é o Concurso de fofura! Pôr a placa na porta do café.",
+        "close": "Hoje é o Concurso de fofura! Pôr a placa na porta do café até o meio-dia.",
         "decor": "Enfeitar o quintal para o concurso.",
         "activities": {
           "costume": "O desfile de fantasia, nos balões do quintal.",

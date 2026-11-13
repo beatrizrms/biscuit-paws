@@ -109,7 +109,10 @@ export interface GameEvents {
   'festival.started': { festivalId: string };
   'festival.progress': { festivalId: string; step: 'prep' | 'close' | 'decor' | 'ready' | 'activity'; pointId: string };
   'festival.scheduled': { festivalId: string; day: number };
-  'festival.missed': { festivalId: string; day: number };
+  /** O evento não aconteceu: o dia passou sem acabar, ou (late) o prazo da placa passou sem ela na porta. */
+  'festival.missed': { festivalId: string; day: number; late?: boolean };
+  /** No dia do evento, perto do prazo da placa (closePoint.by) e ela ainda não foi para a porta. */
+  'festival.closeSoon': { festivalId: string; by: string };
   'festival.finished': { festivalId: string; results: { game: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean; setup?: { visitors: number }; contest?: { rank: number }; photo?: { score: number } }[]; coins: number; reputation: number; adopted: number };
   'photo.best': { pose: string; score: number; catIds: string[] };
   'cat.adopted': { catId: string; verdict: 'good' | 'ok' | 'bad'; leftCafe: boolean };

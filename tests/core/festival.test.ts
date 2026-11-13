@@ -4,6 +4,7 @@ import { cafeAdoptCats, setupMatch } from '../../src/core/adoption';
 import {
   doFestivalPoint,
   festivalCanStart,
+  festivalCloseDeadline,
   festivalClosesCafe,
   festivalDayEnded,
   finishFestival,
@@ -86,6 +87,25 @@ describe('festivais (puro)', () => {
     expect(festivalCanStart(s, fair, ctx({ day: 6 + fair.cooldownDays }))).toBe(true);
   });
 
+  it('a placa tem prazo (closePoint.by): lembrete remind minutos antes; passou sem ela, o evento é perdido', () => {
+    const s = newFestivals();
+    startFestival(s, catDay, { day: 10, dayOfSeason: 8 }); // sem preparação: marcado para hoje
+    const by = 12 * 60;
+    expect(catDay.closePoint).toMatchObject({ by: '12:00', remind: 60 });
+    expect(festivalCloseDeadline(s, catDay, 10, by - 61)).toBeNull();
+    expect(festivalCloseDeadline(s, catDay, 10, by - 60)).toBe('soon');
+    expect(festivalCloseDeadline(s, catDay, 9, by)).toBeNull(); // não é o dia
+    expect(s.active).not.toBeNull();
+    expect(festivalCloseDeadline(s, catDay, 10, by)).toBe('missed');
+    expect(s.active).toBeNull(); // volta ao começo
+    // Com a placa na porta a tempo, o prazo não importa mais.
+    const t = newFestivals();
+    startFestival(t, catDay, { day: 10, dayOfSeason: 8 });
+    expect(doFestivalPoint(t, catDay, catDay.closePoint!.point, 10)).toBe('close');
+    expect(festivalCloseDeadline(t, catDay, 10, by + 300)).toBeNull();
+    expect(t.active).not.toBeNull();
+  });
+
   it('data fixa e reputação: a ideia vem noticeDays antes, marcada para o dia da data', () => {
     const s = newFestivals();
     const at = (dayOfSeason: number, reached = ['rep.noticed']) => ctx({ season: 'summer', dayOfSeason, reached });
@@ -127,6 +147,23 @@ describe('festivais na sessão', () => {
     return { session, state, events };
   }
   const names = (events: { name: string }[]) => events.map((e) => e.name);
+
+  it('no dia, o relógio passa do prazo sem a placa: lembrete uma vez, depois o evento é perdido e não recomeça no mesmo dia', () => {
+    const { session, state, events } = cafe();
+    session.debugStartFestival(catDay.id);
+    const day = state.festivals.active!.day!;
+    state.day = day;
+    state.time = 10 * 60 + 30;
+    session.tickClock(31 / session.content.dayNight.minutesPerSecond); // 11:01
+    expect(events.filter((e) => e.name === 'festival.closeSoon')).toEqual([{ name: 'festival.closeSoon', payload: { festivalId: catDay.id, by: '12:00' } }]);
+    session.tickClock(30 / session.content.dayNight.minutesPerSecond); // 11:31: o lembrete não repete
+    expect(events.filter((e) => e.name === 'festival.closeSoon')).toHaveLength(1);
+    session.tickClock(30 / session.content.dayNight.minutesPerSecond); // 12:01
+    expect(events.find((e) => e.name === 'festival.missed')?.payload).toEqual({ festivalId: catDay.id, day, late: true });
+    expect(state.festivals.active).toBeNull();
+    expect(session.doJobPoint(catDay.closePoint!.point)).not.toEqual({ ok: true }); // tarde demais para a placa
+    expect(session.service.isOpen()).toBe(true);
+  });
 
   it('feira do começo ao fim: panfletos, o dia no calendário, café fechado, decoração e o match encerra com o resumo', () => {
     const { session, state, events } = cafe();
