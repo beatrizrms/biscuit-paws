@@ -770,6 +770,10 @@
         "yard_neve_poca_c": { "layer": "floor" },
         "yard_neve_poca_d": { "layer": "floor" },
         "yard_neve_poca_larga": { "layer": "floor" },
+        "yard_neve_monte_a": { "layer": "floor" },
+        "yard_neve_monte_b": { "layer": "floor" },
+        "yard_neve_monte_c": { "layer": "floor" },
+        "yard_neve_monte_d": { "layer": "floor" },
         "market_banca_plantas": { "solid": true }
       }
     },

@@ -474,12 +474,18 @@ const SHEETS: Sheet[] = [
       yard_grama_alta: { file: 'quintal/jardim/grama_alta.png', w: 1, h: 1 },
       // Grama baixa: a alta aparada (só os 24 px de baixo; a linha de corte leva o contorno escuro da própria grama).
       yard_grama_baixa: { file: '', w: 1, h: 1, build: () => mowedGrass(readPng(`${SRC}/quintal/jardim/grama_alta.png`), 24) },
-      // Poças de neve do inverno (por código, com a textura da neve do chão): manchas irregulares que não chegam à borda.
+      // Neve do inverno no quintal (por código), de vários jeitos: poças chatas (a textura da neve do chão, borda
+      // irregular) de tamanhos diferentes e montinhos redondos com volume (topo claro, sombra azulada embaixo e no chão),
+      // sozinhos, em dupla ou trio, grandes e pequenos. Montinho: [centro x, centro y, raio x, raio y] em px do tile.
       yard_neve_poca_a: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 11) },
-      yard_neve_poca_b: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 29) },
-      yard_neve_poca_c: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 47) },
-      yard_neve_poca_d: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 83) },
-      yard_neve_poca_larga: { file: '', w: 2, h: 1, build: () => snowPuddle(2 * TS, 61) },
+      yard_neve_poca_b: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 29, 0.6, -8, 6) },
+      yard_neve_poca_c: { file: '', w: 1, h: 1, build: () => snowMounds(TS, 47, [[32, 38, 15, 11]]) },
+      yard_neve_poca_d: { file: '', w: 1, h: 1, build: () => snowMounds(TS, 83, [[24, 40, 11, 8], [43, 33, 7, 5]]) },
+      yard_neve_monte_a: { file: '', w: 1, h: 1, build: () => snowMounds(TS, 13, [[32, 36, 21, 15]]) },
+      yard_neve_monte_b: { file: '', w: 1, h: 1, build: () => snowMounds(TS, 17, [[18, 42, 7, 5], [34, 35, 9, 7], [47, 46, 6, 4]]) },
+      yard_neve_monte_c: { file: '', w: 1, h: 1, build: () => snowMounds(TS, 19, [[36, 44, 6, 4]]) },
+      yard_neve_monte_d: { file: '', w: 1, h: 1, build: () => snowPuddle(TS, 23, 0.75, 6, -2) },
+      yard_neve_poca_larga: { file: '', w: 2, h: 1, build: () => snowMounds(2 * TS, 61, [[44, 38, 24, 12], [84, 43, 13, 8]]) },
       market_banca_plantas: { file: 'quintal/jardim/banca_plantas.png', w: 3, h: 1, dy: 2 },
     },
   },
@@ -1623,11 +1629,11 @@ function snowPlanter(src: PNG): PNG {
  * Poça de neve: uma mancha irregular (raio que varia com o ângulo, semente fixa) cheia da textura da neve do chão, com a
  * borda de baixo e da direita em azul sombreado e uma linha fina de contorno, para assentar na grama.
  */
-function snowPuddle(width: number, seed: number): PNG {
+function snowPuddle(width: number, seed: number, scale = 1, ox = 0, oy = 0): PNG {
   const out = blank(width, TS);
   const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
   const snow = snowFloor();
-  const cx = width / 2, cy = TS / 2 + 4, rx = width / 2 - 6, ry = TS / 2 - 12;
+  const cx = width / 2 + ox, cy = TS / 2 + 4 + oy, rx = (width / 2 - 6) * scale, ry = (TS / 2 - 12) * scale;
   // Raio por ângulo: soma de ondas com fases sorteadas (borda orgânica).
   const waves = [2, 3, 5, 7].map((k) => ({ k, a: 0.06 + rnd() * 0.1, p: rnd() * Math.PI * 2 }));
   const radius = (t: number) => 1 + waves.reduce((s, w) => s + w.a * Math.sin(w.k * t + w.p), 0);
@@ -1643,6 +1649,48 @@ function snowPuddle(width: number, seed: number): PNG {
     if (edge) plot(out, x, y, line);
     else if (lower) plot(out, x, y, shade);
     else snow.data.copy(out.data, (y * width + x) * 4, (y * TS + (x % TS)) * 4, (y * TS + (x % TS)) * 4 + 4);
+  }
+  return out;
+}
+
+/**
+ * Montinhos de neve (um ou mais, de tamanhos diferentes) com volume: cada um é uma cúpula redonda (a borda quase lisa); a luz vem de cima e da esquerda (topo branco, meio neve, base azulada), contorno escuro embaixo e à direita,
+ * claro em cima, alguns brilhos e a sombra no chão, embaixo e à direita.
+ */
+function snowMounds(width: number, seed: number, mounds: [number, number, number, number][]): PNG {
+  const out = blank(width, TS);
+  const rnd = () => (seed = (seed * 16807 + 11) % 2147483647) / 2147483647;
+  const shapes = mounds.map(([cx, cy, rx, ry]) => ({ cx, cy, rx, ry, waves: [2, 3].map((k) => ({ k, a: 0.015 + rnd() * 0.025, p: rnd() * Math.PI * 2 })) }));
+  // Altura do monte no pixel (0 fora; 1 no topo) e a posição dentro dele, do monte mais alto ali.
+  const at = (x: number, y: number) => {
+    let best: { h: number; nx: number; ny: number } | null = null;
+    for (const m of shapes) {
+      // A metade de baixo achatada: a base do monte fica reta no chão (cúpula, não ovo).
+      const nx = (x + 0.5 - m.cx) / m.rx, raw = (y + 0.5 - m.cy) / m.ry, ny = raw > 0 ? raw * 2.2 : raw;
+      const edge = 1 + m.waves.reduce((s, w) => s + w.a * Math.sin(w.k * Math.atan2(ny, nx) + w.p), 0);
+      const d = Math.hypot(nx, ny) / edge;
+      if (d > 1) continue;
+      const h = 1 - d * d;
+      if (!best || h > best.h) best = { h, nx, ny };
+    }
+    return best;
+  };
+  const white: [number, number, number] = [255, 255, 255], snow: [number, number, number] = [238, 244, 252];
+  const shade: [number, number, number] = [206, 221, 238], dark: [number, number, number] = [176, 196, 222];
+  const lineLow: [number, number, number] = [150, 170, 198], lineTop: [number, number, number] = [214, 226, 242];
+  // A sombra no chão: onde o monte estaria se descesse 2 px e fosse 2 para a direita, e ele não está.
+  for (let y = 0; y < TS; y++) for (let x = 0; x < width; x++) if (!at(x, y) && at(x - 2, y - 2)) plot(out, x, y, [80, 104, 136], 60);
+  for (let y = 0; y < TS; y++) for (let x = 0; x < width; x++) {
+    const p = at(x, y);
+    if (!p) continue;
+    const outside = (dx: number, dy: number) => !at(x + dx, y + dy);
+    if (outside(0, 1) || outside(1, 0)) plot(out, x, y, lineLow);
+    else if (outside(0, -1) || outside(-1, 0)) plot(out, x, y, lineTop);
+    else {
+      const light = -p.ny * 0.8 - p.nx * 0.4 + p.h * 0.3;
+      plot(out, x, y, light > 0.45 ? white : light > -0.25 ? snow : light > -0.7 ? shade : dark);
+      if (light > 0.4 && rnd() < 0.05) plot(out, x, y, white);
+    }
   }
   return out;
 }
