@@ -3,7 +3,7 @@
 // no meio (tiles de transição parque_<v>_<cantos NW NE SW SE>, g = grama, p = pedregulho; neve no inverno), com árvores, bancos, postes e
 // floreiras e o chafariz grande no centro; à esquerda o coreto e o parquinho (balanço e escorregador), à direita a banca
 // de jornal e as barraquinhas (hot dog, pipoca); árvores na terra de 4 jeitos (grande, média, fina, jovem) espalhadas. Beco (ponta esquerda da rua): muros dos fundos das casas,
-// chão de paralelepípedos (neve no inverno), caçamba, poste, lixeira, caixote e sacos de lixo.
+// chão de paralelepípedos (neve no inverno), caçamba, poste, caixote e sacos de lixo.
 // Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, o varal, o caixote, os sacos de lixo e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
 import { writeFileSync } from 'node:fs';
@@ -224,13 +224,12 @@ function legendMaker() {
     beco_cacamba: 'snow_beco_cacamba',
     beco_caixote_frente: 'snow_beco_caixote_frente',
     beco_sacos_lixo: 'snow_beco_sacos_lixo',
-    prop_lixeira: 'snow_praca_lixeira',
     prop_poste: 'snow_praca_poste',
   };
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.beco_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
   write('data/maps/alley.json', {
     comment:
-      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com o varal, chão de paralelepípedos (neve no inverno), caçamba, poste, lixeira, caixote e sacos de lixo. Muro de tijolos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
+      'O beco atrás das casas (ponta esquerda da rua; gerado por scripts/map-rua-extra.ts): muro de tijolos com o varal, chão de paralelepípedos (neve no inverno), caçamba, poste, caixote e sacos de lixo. Muro de tijolos, varal e caçamba (PixelLab). Saída pela direita (portas com direction right) para a rua.',
     id: 'map.alley',
     cols: COLS,
     rows: ROWS,
@@ -241,15 +240,14 @@ function legendMaker() {
     objects: [
       // O varal preso no muro.
       obj('varal', 'beco_varal', [5, 3]),
-      // Na ponta esquerda: a caçamba, o poste velho logo depois, a lixeira e o caixote; dois montes de sacos de lixo perto
-      // da lixeira e outro do outro lado do beco (embaixo, no sul).
+      // Na ponta esquerda: a caçamba (a lixeira grande) com dois montes de sacos de lixo do lado, o poste velho logo depois
+      // e o caixote; outro monte de sacos do outro lado do beco (embaixo, no sul), de frente para a caçamba.
+      obj('sacos_1', 'beco_sacos_lixo', [0, 6]),
       obj('cacamba', 'beco_cacamba', [1, 5]),
+      obj('sacos_2', 'beco_sacos_lixo', [2, 7]),
       obj('poste', 'prop_poste', [3, 3]),
-      obj('lixeira_1', 'prop_lixeira', [5, 6]),
-      obj('caixote', 'beco_caixote_frente', [6, 6]),
-      obj('sacos_1', 'beco_sacos_lixo', [7, 6]),
-      obj('sacos_2', 'beco_sacos_lixo', [8, 6]),
-      obj('sacos_3', 'beco_sacos_lixo', [5, 10]),
+      obj('caixote', 'beco_caixote_frente', [5, 6]),
+      obj('sacos_3', 'beco_sacos_lixo', [2, 10]),
     ],
     lights: [{ at: [4, 3.45], radius: 40, color: '#ffd59a' }],
     // Saída para a rua: andando para a direita, nas linhas de baixo do beco.
