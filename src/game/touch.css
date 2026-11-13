@@ -5,12 +5,14 @@
 #touch.touch-on .touch-layer { display: block; }
 .touch-layer .t-stick {
   position: absolute; left: 14px; bottom: 18px; width: 102px; height: 102px; border-radius: 50%;
-  background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none;
+  background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none; box-sizing: border-box;
 }
 .touch-layer .t-stick.down { background: #3b2a3255; }
 .touch-layer .t-knob {
   position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%;
   background: #fff4e0cc; border: 2px solid var(--ink, #3b2a32); pointer-events: none;
+  /* A borda entra no tamanho: com ela por fora, a bolinha ficava 2 px para a direita e para baixo do centro. */
+  box-sizing: border-box;
 }
 .touch-layer .t-btn {
   position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; border: 2px solid var(--ink, #3b2a32);
