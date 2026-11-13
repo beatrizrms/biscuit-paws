@@ -202,7 +202,6 @@ Itens podem ter `iconImage` (ex.: a chave), `kind: "tool"` (não se compra nem s
 ```jsonc
 {
   "schemaVersion": 1,
-  "hintTimes": 3,                                       // tutorial: quantas vezes a dica "E" aparece em cada tipo de coisa
   "startMap": "map.street",
   "homeMap": "map.cafe_main",
   "season": "winter",                                  // estação atual (escolhe as cores do dia/noite)

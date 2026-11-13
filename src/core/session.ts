@@ -4773,16 +4773,6 @@ export class GameSession {
       .sort((a, b) => Number(!!a.clearedBy) - Number(!!b.clearedBy))[0];
   }
 
-  /** Tutorial: a dica "E" deste tipo de coisa ainda aparece? (some depois de world.hintTimes usos) */
-  hintWanted(kind: string): boolean {
-    return (this.state.hintUses[kind] ?? 0) < (this.content.world.hintTimesBy?.[kind] ?? this.content.world.hintTimes);
-  }
-
-  /** Ela usou o E neste tipo de coisa: conta para o tutorial (até sumir a dica). */
-  noteHintUse(kind: string): void {
-    if (this.hintWanted(kind)) this.state.hintUses[kind] = (this.state.hintUses[kind] ?? 0) + 1;
-  }
-
   /** A sujeira que dá para varrer mais perto dos pés dela, a até `reach` células (E com a vassoura). */
   dirtNear(from: readonly Cell[], reach = 2): DirtSpot | undefined {
     const { catalog } = this.content;

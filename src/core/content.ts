@@ -344,10 +344,6 @@ export interface BusDestination {
 
 export interface WorldData {
   schemaVersion: 1;
-  /** Tutorial: quantas vezes a dica "E" aparece em cada tipo de coisa antes de sumir de vez. */
-  hintTimes: number;
-  /** Tipos de dica com outro número de vezes (ex.: a cortina, só uma). */
-  hintTimesBy?: Record<string, number>;
   startMap: string;
   homeMap: string;
   /** Estação atual (dados de todas já existem; o prólogo é no inverno). */

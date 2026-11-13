@@ -151,7 +151,7 @@ export interface GameState {
   clinic: ClinicState;
   /** CED (v37; ced.ts): a vaquinha pelo CatPay, quem já doou hoje e a campanha. */
   ced: CedState;
-  /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa (a dica "E" some depois de algumas). */
+  /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa. Sem uso desde a decisão 228 (a dica "E" aparece sempre); fica no save. */
   hintUses: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;

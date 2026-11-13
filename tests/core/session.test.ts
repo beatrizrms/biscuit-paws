@@ -1404,21 +1404,6 @@ describe('meus gatos', () => {
   });
 });
 
-describe('tutorial da dica "E"', () => {
-  it('aparece nas primeiras vezes de cada tipo de coisa (world.hintTimes) e depois some de vez', () => {
-    const { session } = newSession();
-    const times = session.content.world.hintTimes;
-    expect(times).toBe(3);
-    for (let i = 0; i < times; i++) {
-      expect(session.hintWanted('dirt')).toBe(true);
-      session.noteHintUse('dirt');
-    }
-    expect(session.hintWanted('dirt')).toBe(false);
-    session.noteHintUse('dirt'); // não passa do limite
-    expect(session.state.hintUses.dirt).toBe(times);
-    expect(session.hintWanted('int_shelf')).toBe(true); // cada tipo conta à parte
-  });
-});
 
 describe('debug da história e dos cômodos', () => {
   it('pular introdução: conclui até o fim do prólogo, com o gato abrigado e com nome; depois um marco por vez', () => {

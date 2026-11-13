@@ -7,7 +7,7 @@ const INK = '#3b2a32';
 
 /**
  * Dica "E" do tutorial: uma plaquinha com a tecla e o que ela faz ali ("E  Varrer"), flutuando em cima
- * do que o E usaria agora (WorldScene.eTarget decide onde; a sessão decide até quando: hintWanted).
+ * do que o E usaria agora (WorldScene.eTarget decide onde). Aparece sempre, mesmo no que ela já usou (decisão 228).
  * Só desenha; some quando não há nada por perto ou quando ela está ocupada.
  */
 export class InteractHint {

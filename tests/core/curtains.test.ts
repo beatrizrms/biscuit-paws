@@ -75,11 +75,8 @@ describe('cortinas do café', () => {
     expect(session.curtainOpen(it.curtain)).toBe(true);
   });
 
-  it('a dica "E" da cortina aparece uma vez só; o save guarda as abertas (save antigo: fechadas)', () => {
+  it('o save guarda as cortinas abertas (save antigo: fechadas)', () => {
     const { session } = cafe();
-    expect(session.hintWanted('int_curtain')).toBe(true);
-    session.noteHintUse('int_curtain');
-    expect(session.hintWanted('int_curtain')).toBe(false);
     session.toggleCurtain(WIN);
     const known = knownIds(content);
     expect(parseSave(serializeSave(session.state, new Date(0)), known).state.openCurtains).toEqual([WIN]);

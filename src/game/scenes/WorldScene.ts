@@ -419,7 +419,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.pickingUpgrade) return this.pickUpgradeNear();
       if (this.movePick) return this.confirmMovePick();
       const plan = this.planE();
-      if (plan?.run() && plan.hint) this.session.noteHintUse(plan.hint.kind);
+      plan?.run();
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
     // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
@@ -677,7 +677,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else if (this.time.now - this.hintCheckedAt >= 100) {
       this.hintCheckedAt = this.time.now;
       const at = this.eTarget();
-      this.hint.show(at && this.session.hintWanted(at.kind) ? { ...at, label: uiText.hints[at.kind] } : null);
+      this.hint.show(at ? { ...at, label: uiText.hints[at.kind] } : null);
     }
     this.updateCareBubbles();
     this.fadeHudOverWorld();
@@ -1885,9 +1885,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         add(cellsOf(d.at, def), E_TIER.dirt, this.hintFloor(d.at, 'dirt'), () => this.sweepDirt(d), { tool: true });
       }
     }
-    // Ponto de pedido (a decoração da feira, um mini game).
+    // Ponto de pedido (a decoração da feira, um mini game). O que pede a vassoura na barra: sem ela, nada de dica (só explica).
     const point = s.jobPointNear(feet);
-    if (point) add([point.at], E_TIER.job, this.hintCell(point.at, 'job'), () => this.useJobPoint(point));
+    if (point) {
+      const needsTool = s.jobPointProblem(point.id) === 'needs_broom';
+      add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, 'job'), () => this.useJobPoint(point), { weak: needsTool });
+    }
     // A tigela ou a caixa de areia: com a ração/areia ativa na barra, encher (ou o porquê de não dar); sem, diz o que falta.
     const { bowl, box: litter } = this.stationForHand(feet);
     const station = bowl ?? litter;
