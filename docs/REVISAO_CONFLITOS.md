@@ -69,3 +69,26 @@ de ser apresentado, gatos que saíram).
 - **Panfletos demorados:** a feira começada com folga, com os panfletos levando mais de 7 dias, ainda pode cair em cima do Dia do Gato.
 - **Dia do Gato e Concurso de fofura iguais:** os dois têm só o desfile e a foto; mudam a data, a decoração e a recompensa.
 - **Sebe lateral do quintal sem neve** no inverno (a do fundo tem).
+
+As decisões acima foram tomadas e aplicadas: eventos até as 20h com luz fixa no quintal, sem chuva em dia de evento no
+quintal, "Reiniciar o dia" na pausa, a feira repetida pelos panfletos do Market, o Dia do Gato com desfile e foto como
+atividades e neve na sebe lateral.
+
+## Fase 4: saves reais e pontos críticos
+
+Em `tests/core/realSaves.test.ts`. Cada save carrega como no jogo, deixa os dias correrem até a hora-limite (as cenas
+terminam na hora), passa pelas quatro estações e confere **todos os mapas** (café, rua, praça, beco, mercado, clínica e os
+dos mini games) a cada 90 minutos de jogo.
+
+| Caso | Resultado |
+|---|---|
+| Save real do dia 154 (`tests/fixtures/save_real_dia154.json`) | Ok. Também rodado por 125 dias (`SWEEP_DAYS=125 npx vitest run tests/core/realSaves.test.ts`) e no navegador: todos os mapas nas quatro estações, sem erro no console. |
+| Save real do dia 155 (`save_real_dia155.json`, o que dava "Mapa inválido") | Ok (o conserto dos móveis dos cômodos, da fase 2, segue valendo). |
+| Véspera do Dia do Gato, véspera de Natal, último dia de cada estação, véspera de Ano Novo do 2º ano | Ok, com 12 gatos e o quintal mobiliado. |
+
+## Fase 5: rede de proteção
+
+| O quê | Como |
+|---|---|
+| Save com móvel em conflito | Ao carregar, o jogo confere o mapa do café. Móvel da jogadora em cima de outra peça, fora do mapa ou com a base numa parede volta para a mochila, um por vez, até o mapa ficar válido. O que estava dentro da caixa de pet volta junto. Um aviso lista os móveis (evento `save.repaired`). Antes, o café inteiro deixava de abrir. |
+| Dia caótico (`tests/core/safetyNet.test.ts`) | 30 dias seguidos com chuva forçada, gato novo a cada 3 dias, encomenda todo dia (as caixas se acumulam na porta), obra no piso do salão e evento no quintal montado a cada 5 dias, com plateia. Falha se um dia não termina, se um evento fica de um dia para o outro ou se algum mapa fica inválido em qualquer hora. Passou sem nada a corrigir. |

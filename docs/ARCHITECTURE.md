@@ -98,6 +98,7 @@ cat-cafe-game/
 | `dish.washed` | louça suja lavada na pia | `count` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |
 | `game.started` | sessão começou (jogo novo ou carregado) | `isNew` |
+| `save.repaired` | ao carregar, móveis em conflito no mapa voltaram para a mochila | `itemIds` |
 | `map.entered` | a personagem entrou num mapa (porta) | `mapId` |
 | `money.changed` | dinheiro mudou | `from, to, reason` |
 | `item.bought` | item comprado (vai para o inventário) | `itemId, price` |

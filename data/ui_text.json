@@ -654,6 +654,7 @@
     "unpackPlace": "Posicionar agora",
     "unpackStore": "Guardar na mochila",
     "unpackStored": "{name} foi para a mochila.",
+    "repairedOnLoad": "Alguns móveis estavam fora do lugar (um em cima do outro ou na parede) e voltaram para a mochila: {names}. É só posicionar de novo.",
     "ordered": "Pedido feito! Chega às {time} na porta do café.",
     "orderedTomorrow": "Pedido feito! O correio entrega amanhã às {time}.",
     "arrivedAway": "Chegou uma entrega na porta do café!",

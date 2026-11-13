@@ -81,6 +81,7 @@ import {
   type MapDoor,
   type MapInteraction,
   type SurfaceDef,
+  validateMap,
 } from './map';
 
 /** Orçamento da consulta na clínica. */
@@ -374,6 +375,33 @@ export class GameSession {
     this.bus.on('hotbar.changed', syncHeavy);
     this.bus.on('hands.changed', syncHeavy);
     syncHeavy();
+    this.repairPlaced();
+  }
+
+  /** Móveis que o save trazia em conflito e voltaram para a mochila ao carregar (avisados em start()). */
+  private repairedItems: string[] = [];
+
+  /**
+   * Rede de proteção do save: um móvel da jogadora em cima de outra peça, fora do mapa ou com a base numa parede
+   * (save de uma versão com o mapa diferente, ou de um bug) faria o café inteiro deixar de abrir ("Mapa inválido").
+   * Ao carregar, cada móvel em conflito volta para a mochila, um por vez, até o mapa ficar válido.
+   */
+  private repairPlaced(): void {
+    for (let guard = 0; guard < 200; guard++) {
+      const errors = validateMap(this.mapData(), this.content.catalog);
+      // O primeiro móvel citado num problema: o que caiu por cima ("objeto X se sobrepõe a Y": X é o posterior).
+      const uid = errors.map((e) => e.match(/"placed\.([^"]+)"/)?.[1]).find((u) => u !== undefined);
+      if (!uid) return;
+      const index = this.state.placed.findIndex((p) => p.uid === uid);
+      if (index < 0) return;
+      const [removed] = this.state.placed.splice(index, 1);
+      this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
+      // A caixa de pet devolve o que tinha dentro; a vitrine (comida do dia), a máquina e o desgaste somem com ele.
+      const box = this.state.petBoxes[uid];
+      if (box) { for (const id of Object.keys(box)) moveBetween(box, this.state.inventory, id); delete this.state.petBoxes[uid]; }
+      delete this.state.displays[uid]; delete this.state.washers[uid]; delete this.state.wear[uid];
+      this.repairedItems.push(removed!.item);
+    }
   }
 
   /** Começa a sessão: avisa quem escuta e dispara os marcos que já valem (ex.: a abertura). */
@@ -385,6 +413,7 @@ export class GameSession {
     this.checkMilestones();
     this.announceRecipes(true);
     this.bus.emit('game.started', { isNew });
+    if (this.repairedItems.length > 0) this.bus.emit('save.repaired', { itemIds: [...this.repairedItems] });
     this.replayInterruptedScene();
     this.advanceStory();
   }

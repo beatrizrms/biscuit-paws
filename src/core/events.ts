@@ -10,6 +10,8 @@ export type DayEndReason = 'home' | 'passOut' | 'story' | 'sleep' | 'curfew' | '
 
 export interface GameEvents {
   'game.started': { isNew: boolean };
+  /** Ao carregar: móveis em conflito no mapa (um em cima do outro, numa parede) voltaram para a mochila. */
+  'save.repaired': { itemIds: string[] };
   'map.entered': { mapId: string };
   'cat.sheltered': { catId: string };
   /** Saúde (data/health.json): adoeceu, consultou, tomou remédio, sarou; e o fiado sendo pago. */

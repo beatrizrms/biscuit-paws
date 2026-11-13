@@ -307,6 +307,8 @@ export class GameUi {
     bus.on('pet.loaded', ({ itemId, days }) => this.toast(pet.loaded.replace('{name}', itemName(itemId)).replace('{days}', String(days)), 3500));
     bus.on('pet.low', ({ itemId, days }) => this.toast((days > 0 ? pet.low : pet.empty).replace('{name}', itemName(itemId)).replace('{days}', String(days)), 4500));
     bus.on('litter.missed', () => this.toast(pet.litterMissed, 4500));
+    // Save com móveis em conflito no mapa: voltaram para a mochila ao carregar (session.repairPlaced).
+    bus.on('save.repaired', ({ itemIds }) => this.toast(uiText.delivery.repairedOnLoad.replace('{names}', [...new Set(itemIds.map(itemName))].join(', ')), 9000));
     bus.on('cat.medicated', ({ catId, dosesGiven, days }) => {
       if (dosesGiven < days) this.toast(uiText.health.dose.replace('{name}', session.catName(catId)).replace('{n}', String(dosesGiven)).replace('{days}', String(days)));
     });
