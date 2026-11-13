@@ -569,8 +569,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       },
       restartDay: async () => {
         services().audio.fadeOutAll();
-        this.scene.resume();
-        const ok = await restartDay(this, this.slot);
+        const ok = await restartDay(this.slot);
         if (!ok) this.ui.toast(t('pause.noDayStart'), 4000);
       },
       toMenu: async () => {

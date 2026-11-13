@@ -90,6 +90,12 @@ export class BootScene extends Phaser.Scene {
       await startGame(this, { mode: 'new', slot: 'slot1' });
       return;
     }
+    // Reiniciar o dia (pausa): o slot já tem a foto do começo do dia; carrega direto.
+    const daySlot = params.get('dia');
+    if (daySlot === 'slot1' || daySlot === 'slot2' || daySlot === 'slot3') {
+      const r = await startGame(this, { mode: 'load', from: daySlot });
+      if (r.ok) return;
+    }
     if (params.has('jogar')) {
       const recent = await saves.mostRecent();
       const r = recent ? await startGame(this, { mode: 'load', from: recent }) : { ok: false as const, error: '' };

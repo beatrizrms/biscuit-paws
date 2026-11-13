@@ -67,7 +67,7 @@ export class DebugPanel {
       ${section(
         'story',
         'História',
-        `<select data-dbg="story">${opt('intro', 'pular introdução')}${opt('beat', 'concluir o marco da vez')}${opt('all', 'concluir a história toda')}${c.rooms.rooms
+        `<select data-dbg="story">${opt('intro', 'pular introdução')}${opt('beat', 'próximo marco (com a cena)')}${opt('beatQuiet', 'concluir o marco da vez (sem cena)')}${opt('all', 'concluir a história toda')}${c.rooms.rooms
           .filter((r) => r.restore && r.id !== c.rooms.rooms[0]!.id)
           .flatMap((r) => [opt(`open:${r.id}`, `abrir ${roomLabel(r.name)}`), opt(`restore:${r.id}`, `reformar ${roomLabel(r.name)}`)])
           .join('')}</select>
@@ -228,6 +228,12 @@ export class DebugPanel {
         actions.reloadWorld(c.map.id);
         say(`introdução pulada (${n} marcos)`);
       } else if (what === 'beat') {
+        // Cumpre o que o próximo marco pede e deixa o jogo disparar (com a cena), no salão de manhã.
+        // Recarrega antes: a recarga pula as falas e cenas da fila.
+        actions.reloadWorld(c.map.id);
+        const r = session.debugPlayNextBeat();
+        say(!r ? 'história completa' : r.done ? `marco: ${r.id}` : `${r.id}: concluído sem a cena (pedia algo que o debug não cumpre)`);
+      } else if (what === 'beatQuiet') {
         const id = session.debugCompleteBeat();
         actions.reloadWorld();
         say(id ? `concluído: ${id}` : 'história completa');

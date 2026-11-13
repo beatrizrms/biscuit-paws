@@ -3918,6 +3918,8 @@ export class GameSession {
     } else if ('day' in c) this.state.day = Math.max(this.state.day, c.day.gte);
     else if ('served' in c) this.state.service.served = Math.max(this.state.service.served, c.served.gte);
     else if ('milestone' in c) this.state.milestones.reached[c.milestone] ??= this.state.day;
+    // Temporizador (a Gabi chega 1h30 depois da ligação): já venceu.
+    else if ('timer' in c) this.state.timers[c.timer] = Math.min(this.state.timers[c.timer] ?? nowAbs(this.state), nowAbs(this.state));
     else if ('catNamed' in c) {
       const cat = this.state.cats[c.catNamed];
       if (cat && !cat.name) cat.name = this.suggestCatName(c.catNamed, 0);
@@ -3946,12 +3948,31 @@ export class GameSession {
     const beat = this.content.story.beats.find((b) => b.id === beatId);
     if (!beat || this.state.story.completed.includes(beatId)) return;
     for (const before of beat.after ?? []) this.debugCompleteStory(before);
+    // A condição de início e a do marco também (as que dá para cumprir daqui; lugar e hora: ela no salão às 9h).
+    if (beat.start) this.debugSatisfy(beat.start);
     for (const step of beat.goal?.steps ?? []) if (step.when) this.debugSatisfy(step.when);
+    if (beat.when) this.debugSatisfy(beat.when);
     this.state.location = this.content.map.id;
     this.state.time = parseClock('09:00');
     this.packOutOfSeason();
     this.bus.emit('day.started', { day: this.state.day });
     this.advanceStory();
+  }
+
+  /**
+   * Debug, marco por marco com as cenas: o próximo marco da história (na ordem) cumprido do jeito do jogo (o que ele
+   * pede; ela no salão de manhã), para a cena dele acontecer. Devolve o id e se aconteceu com a cena (false: pedia algo
+   * que o debug não cumpre, ex.: um móvel posicionado; foi concluído sem a cena).
+   */
+  debugPlayNextBeat(): { id: string; done: boolean } | null {
+    const done = this.state.story.completed;
+    const next = this.content.story.beats.find((b) => !done.includes(b.id) && (b.after ?? []).every((d) => done.includes(d)));
+    if (!next) return null;
+    this.debugReachBeat(next.id);
+    if (this.state.story.completed.includes(next.id)) return { id: next.id, done: true };
+    // Pede algo que o debug não cumpre (móvel posicionado, ela num lugar): conclui sem a cena, para não travar.
+    this.debugCompleteBeat();
+    return { id: next.id, done: false };
   }
 
   /** Debug: o cômodo pelo menos neste estado (portas abertas; reformado = a sujeira dele limpa). */

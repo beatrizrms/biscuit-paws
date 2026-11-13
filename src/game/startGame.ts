@@ -83,18 +83,16 @@ function attachSaving(session: GameSession, slot: ManualSlot): void {
 
 /**
  * Reiniciar o dia (pausa): volta à foto do começo do dia do slot. O slot manual e o autosave passam a ser ela (o que
- * aconteceu hoje se perde) e o mundo recomeça dali. false = não há foto.
+ * aconteceu hoje se perde) e a página recarrega direto nesse slot (?dia=slot): o mundo nasce do zero, sem nada da
+ * partida de antes (a cena é reaproveitada pelo Phaser; recomeçar no lugar deixava peças velhas presas). false = não há foto.
  */
-export async function restartDay(scene: Phaser.Scene, slot: ManualSlot): Promise<boolean> {
+export async function restartDay(slot: ManualSlot): Promise<boolean> {
   const { saves } = services();
   const r = await saves.readDayStart(slot);
   if (!r.ok) return false;
   await saves.write(slot, r.state);
   await saves.autosave(r.state, slot);
-  const session = new GameSession(content, r.state);
-  await buildPlayerTextures(scene, session.appearance());
-  attachSaving(session, slot);
-  scene.scene.start('World', { session, isNew: false, slot, fromHome: true });
+  window.location.href = window.location.pathname + '?dia=' + slot;
   return true;
 }
 
