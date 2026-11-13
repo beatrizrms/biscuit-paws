@@ -964,4 +964,4 @@ Decisão: abas pela louça (Quentes = xícara, Geladas = copo, Comidas = prato),
 
 ## 235. Preços: chás gelados e bolos em fornada (nov/2026)
 Pedido: a conta de custo e lucro (decisão anterior) mostrou chás gelados quase sem lucro e bolos em fatia com custo quase zero.
-Decisão: chá gelado de frutas vermelhas 11 → 16 e de limão 11 → 15 (lucro 5,5 cada). Os bolos e tortas em fornada usam 3 doses de cada ingrediente (um bolo inteiro gasta mais farinha, ovos, manteiga...): o custo por fatia sobe para 2,5 a 5,8 e o lucro fica entre 12 e 17,5, no nível dos outros doces. Os preços das fatias não mudam.
+Decisão: chá gelado de frutas vermelhas 11 → 16 e de limão 11 → 15 (lucro 5,5 cada). Os bolos e tortas em fornada usam 3 doses de cada ingrediente (um bolo inteiro gasta mais farinha, ovos, manteiga...): o custo por fatia sobe para 2,5 a 5,8 e o lucro fica entre 12 e 17,5, no nível dos outros doces. Os preços das fatias não mudam. A fatia de bolo de limão (sem fornada) cai de 26 para 20 (lucro 14,3), no nível das outras fatias.

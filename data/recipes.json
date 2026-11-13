@@ -550,7 +550,7 @@
         }
       ],
       "vessel": "plate",
-      "price": 26,
+      "price": 20,
       "unlock": {
         "milestone": "milestone.customers_160"
       },
