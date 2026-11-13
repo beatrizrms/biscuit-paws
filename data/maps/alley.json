@@ -51,8 +51,8 @@
     {"id":"obj.beco_lixeira_1","tile":"prop_lixeira","at":[5,6],"overlay":"snow_praca_lixeira"},
     {"id":"obj.beco_caixote","tile":"beco_caixote_frente","at":[6,6],"overlay":"snow_beco_caixote_frente"},
     {"id":"obj.beco_sacos_1","tile":"beco_sacos_lixo","at":[7,6],"overlay":"snow_beco_sacos_lixo"},
-    {"id":"obj.beco_sacos_2","tile":"beco_sacos_lixo","at":[13,6],"overlay":"snow_beco_sacos_lixo"},
-    {"id":"obj.beco_sacos_3","tile":"beco_sacos_lixo","at":[18,6],"overlay":"snow_beco_sacos_lixo"}
+    {"id":"obj.beco_sacos_2","tile":"beco_sacos_lixo","at":[8,6],"overlay":"snow_beco_sacos_lixo"},
+    {"id":"obj.beco_sacos_3","tile":"beco_sacos_lixo","at":[5,10],"overlay":"snow_beco_sacos_lixo"}
   ],
   "spawn": { "player": [20,9] },
   "doors": [

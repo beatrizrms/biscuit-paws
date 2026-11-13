@@ -241,14 +241,15 @@ function legendMaker() {
     objects: [
       // O varal preso no muro.
       obj('varal', 'beco_varal', [5, 3]),
-      // Na ponta esquerda: a caçamba, o poste velho logo depois, a lixeira e o caixote; sacos de lixo pelo chão do muro.
+      // Na ponta esquerda: a caçamba, o poste velho logo depois, a lixeira e o caixote; dois montes de sacos de lixo perto
+      // da lixeira e outro do outro lado do beco (embaixo, no sul).
       obj('cacamba', 'beco_cacamba', [1, 5]),
       obj('poste', 'prop_poste', [3, 3]),
       obj('lixeira_1', 'prop_lixeira', [5, 6]),
       obj('caixote', 'beco_caixote_frente', [6, 6]),
       obj('sacos_1', 'beco_sacos_lixo', [7, 6]),
-      obj('sacos_2', 'beco_sacos_lixo', [13, 6]),
-      obj('sacos_3', 'beco_sacos_lixo', [18, 6]),
+      obj('sacos_2', 'beco_sacos_lixo', [8, 6]),
+      obj('sacos_3', 'beco_sacos_lixo', [5, 10]),
     ],
     lights: [{ at: [4, 3.45], radius: 40, color: '#ffd59a' }],
     // Saída para a rua: andando para a direita, nas linhas de baixo do beco.
