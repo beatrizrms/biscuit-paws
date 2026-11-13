@@ -25,13 +25,13 @@
 /* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
 .touch-layer .t-full { position: absolute; left: 14px; bottom: 96px; width: 28px; font-size: 11px; }
 .touch-layer .t-full[hidden] { display: none; }
-/* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side: a largura útil delas, em px do jogo): o
+/* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side-l / --side-r: a largura útil de cada uma, em px do jogo): o
    direcional e os botões saem de cima do jogo. Esquerda: a barra de itens (ui.css) e o direcional; direita: os atalhos,
    a tela cheia e o E. Faixa estreita: o direcional entra só um pouco no jogo. */
-#stage.sides .touch-layer .t-stick { left: calc(max(4px, (var(--side) - 68px) / 2) - var(--side)); }
-#stage.sides .touch-layer .t-action { right: calc(max(4px, (var(--side) - 46px) / 2) - var(--side)); }
-#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side) - 40px) / 2) - var(--side)); }
-#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 200px; right: calc(max(2px, (var(--side) - 40px) / 2) - var(--side)); width: 40px; height: 25px; }
+#stage.sides .touch-layer .t-stick { left: calc(max(4px, (var(--side-l) - 68px) / 2) - var(--side-l)); }
+#stage.sides .touch-layer .t-action { right: calc(max(4px, (var(--side-r) - 46px) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 200px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); width: 40px; height: 25px; }
 
 /* Celular em pé (tela de toque, mais alta que larga): aviso para girar, por cima de tudo. */
 .rotate-hint { display: none; }

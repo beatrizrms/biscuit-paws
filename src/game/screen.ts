@@ -15,6 +15,9 @@ function renderScale(): number {
   const param = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('escala');
   return param === '1' ? 1 : 2;
 }
+/** As medidas da última arrumação da tela (main.ts: layout); o painel de debug mostra, para conferir no celular. */
+export const screenInfo = { w: 0, h: 0, zoom: 1, bar: 0, insets: [0, 0] as [number, number], touch: false, sides: false };
+
 export const CANVAS_WIDTH = GAME_WIDTH * RENDER_SCALE;
 export const CANVAS_HEIGHT = GAME_HEIGHT * RENDER_SCALE;
 

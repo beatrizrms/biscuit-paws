@@ -23,9 +23,13 @@ const SHORTCUTS: [TouchAction, string][] = [
   ['F', 'Mover'],
 ];
 
-/** Tela de toque sem mouse (celular, tablet), ou ?toque na URL (para testar no PC). */
+/**
+ * Celular ou tablet: o controle principal da tela é o dedo (alguns Androids também dizem ter um ponteiro fino, por
+ * isso só o principal conta; notebook com tela de toque tem o trackpad como principal), ou ?toque na URL (para testar
+ * no PC).
+ */
 export function isTouchDevice(): boolean {
-  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
   return coarse || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('toque'));
 }
 

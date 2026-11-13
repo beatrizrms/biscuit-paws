@@ -1308,4 +1308,4 @@ html.touch-mode .hotbar .key { display: none; }
 html.touch-mode .hotbar .count { font-size: 7px; }
 /* Celular deitado (#stage.sides, main.ts): a barra fica em pé na faixa da esquerda, fora do jogo (o direcional
    fica embaixo dela). */
-html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top { top: 8px; bottom: auto; left: calc(max(2px, (var(--side) - 32px) / 2) - var(--side)); transform: none; flex-direction: column; }
+html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top { top: 8px; bottom: auto; left: calc(max(2px, (var(--side-l) - 32px) / 2) - var(--side-l)); transform: none; flex-direction: column; }
