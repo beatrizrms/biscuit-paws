@@ -58,7 +58,7 @@ import { runFactor } from '../../core/movement';
 import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
 import { daysText, workName } from '../ui/constructionText';
-import { vetLine } from '../ui/vetText';
+import { catSexText, vetLine } from '../ui/vetText';
 import { lightsFloor } from '../../core/lights';
 import { catSpots } from '../../core/cats';
 
@@ -1042,14 +1042,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Algum cercadinho com vaga: a opção é ele (o isolado vai sozinho para a vaga); sem vaga, a caixinha.
     const slots = this.session.content.clinic.pen.slots;
     const penRoom = Object.values(this.session.penAssignments().pen).some((cats) => cats.length < slots);
-    void this.ui.choose(t.sickDrop.replace('{cat}', name).replace('{disease}', disease), [penRoom ? t.sickDropPen : t.sickDropBox, t.sickDropFree]).then((i) => {
+    void this.ui.choose(catSexText(this.session, t.sickDrop, catId).replace('{cat}', name).replace('{disease}', disease), [penRoom ? t.sickDropPen : t.sickDropBox, t.sickDropFree]).then((i) => {
       if (i !== 0 && i !== 1) return;
       const r = this.session.putDownSick(i === 0);
       if (!r.ok) return this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
       if (i === 0 && !penRoom) this.boxSpots.set(catId, at);
       else {
         this.dropCat(catId, at);
-        this.ui.toast(t.sickFreed.replace('{cat}', name).replace('{disease}', disease), 4000);
+        this.ui.toast(catSexText(this.session, t.sickFreed, catId).replace('{cat}', name).replace('{disease}', disease), 4000);
       }
     });
     return true;

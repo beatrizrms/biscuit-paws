@@ -45,3 +45,27 @@ hora. Testes dos pares em `tests/core/conflicts.test.ts`.
 - **Evento perdido:** depois de perdido pelo prazo, não recomeça no mesmo dia. Mas isso não fica no save: recarregando o jogo no mesmo dia, a ideia volta.
 - **Decoração e atividades à noite:** não têm horário limite (pergunta em aberto).
 - **Plateia na chuva:** a plateia fica no quintal mesmo com chuva.
+
+## Fase 3: situações incoerentes
+
+Verificações automáticas nos textos e nas regras (marcadores sem trocar, gênero, horário das cenas, quem aparece antes
+de ser apresentado, gatos que saíram).
+
+| Situação | Resultado |
+|---|---|
+| Marcador cru na tela | **Corrigido.** Na consulta, a linha do remédio mostrava "Remédio (3 x {each})". |
+| Gato sempre no masculino | **Corrigido.** Avisos sobre um gato usavam sempre "ele": sarou ("voltou a ser ele mesmo"), descuido ("esquecido... dele"), chegada assustada, ganhar a confiança ("E nele"), doença contagiosa ("isolado", "solto"), doente sem clínica ("cuidar melhor dele"), a comida da chegada ("Ele comeu...") e a entrega da Fernanda sem cercadinho. Agora seguem o sexo do gato ({sex:ele\|ela}). |
+| Dona Neusa de madrugada | **Corrigido.** A visita dela vinha no exato momento da cafeteira montada, a qualquer hora. Agora é um passo próprio, das 7h às 20h (save que já teve a visita não vê de novo). |
+| Jacque à noite | **Corrigido.** A chegada dela na feira só acontece das 9h às 19h. |
+| Protagonista com gênero errado | Ok: as falas e avisos dela são neutros ou usam {g:...}. |
+| Gente antes de ser apresentada | Ok: Ano Novo, amigo secreto, Halloween, plateia e passeios só chamam quem ela já conhece. |
+| Gato adotado em listas e cuidados | Ok: tudo filtra os gatos abrigados. |
+
+### Para decidir (design)
+
+- **Decoração e atividades à noite:** a placa tem prazo (12h); a decoração e os mini games não.
+- **Plateia na chuva:** a plateia fica no quintal mesmo com chuva ou neve caindo.
+- **Evento perdido e recarregar:** perdido pelo prazo, não recomeça no mesmo dia; mas recarregando o jogo no mesmo dia, a ideia volta (isso não fica no save).
+- **Panfletos demorados:** a feira começada com folga, com os panfletos levando mais de 7 dias, ainda pode cair em cima do Dia do Gato.
+- **Dia do Gato e Concurso de fofura iguais:** os dois têm só o desfile e a foto; mudam a data, a decoração e a recompensa.
+- **Sebe lateral do quintal sem neve** no inverno (a do fundo tem).

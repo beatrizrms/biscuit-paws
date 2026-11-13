@@ -422,7 +422,42 @@
       "effects": [
         {
           "dialogue": "dlg.coffee_ready"
-        },
+        }
+      ]
+    },
+    {
+      "id": "story.neusa_visit",
+      "_comment": "A visita da Dona Neusa depois da cafeteira, de dia (antes vinha na hora, até de madrugada). Save que já teve a visita (met.old_neighbor): nunca fica ativo.",
+      "act": 1,
+      "after": [
+        "story.coffee_machine"
+      ],
+      "start": {
+        "not": {
+          "flag": "met.old_neighbor"
+        }
+      },
+      "when": {
+        "all": [
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "07:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "20:00"
+              }
+            }
+          }
+        ]
+      },
+      "exclusive": true,
+      "effects": [
         {
           "script": "scr.neusa_visit"
         },
@@ -877,6 +912,18 @@
           },
           {
             "playerRoom": "room.backyard"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
           }
         ]
       },

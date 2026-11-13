@@ -171,7 +171,7 @@ export class ConsultPanel {
         <p class="desc">${esc(fill(c.intakeIntro, { name: s.catName(m.catId) }))}</p>
         <div class="bill">
           <span>${c.consultPrice}</span><b>${q.consult} ${cur}</b>
-          ${q.medicine ? `<span>${c.medicinePrice.replace('{days}', String(q.medicine / content.health.prices.medicinePerDay))}</span><b>${q.medicine} ${cur}</b>` : ''}
+          ${q.medicine ? `<span>${fill(c.medicinePrice, { days: q.medicine / content.health.prices.medicinePerDay, each: content.health.prices.medicinePerDay })}</span><b>${q.medicine} ${cur}</b>` : ''}
           ${q.discount ? `<span>${c.discount}</span><b>-${q.discount} ${cur}</b>` : ''}
           <span class="total">${c.total}</span><b class="total">${q.total} ${cur}</b>
         </div>

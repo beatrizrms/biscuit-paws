@@ -16,7 +16,7 @@ import { openingText } from './ScheduleApp';
 import { MenuBoardPanel } from './MenuBoardPanel';
 import { BackpackPanel, handItemName } from './BackpackPanel';
 import { ConsultPanel } from './ConsultPanel';
-import { vetLine } from './vetText';
+import { catSexText, vetLine } from './vetText';
 import { diseaseContagious } from '../../core/health';
 import { Hotbar } from './Hotbar';
 import { fillNames } from './text';
@@ -210,7 +210,7 @@ export class GameUi {
     bus.on('cat.affection_changed', ({ catId, from, to }) => {
       if (to > from) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
-    bus.on('cat.neglected', ({ catId }) => this.toast(uiText.health.neglected.replace('{name}', this.session.catName(catId)), 5000));
+    bus.on('cat.neglected', ({ catId }) => this.toast(catSexText(this.session, uiText.health.neglected, catId).replace('{name}', this.session.catName(catId)), 5000));
     bus.on('dishes.added', ({ itemId }) => this.toast(uiText.health.dishesAdded.replace('{name}', content.items[itemId]?.name ?? ''), 3500));
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
     const s = uiText.service;
@@ -297,7 +297,7 @@ export class GameUi {
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
     bus.on('cat.sick', ({ catId, disease }) => {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
-        this.toast((session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic).replace('{name}', session.catName(catId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4000);
+        this.toast(catSexText(session, session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic, catId).replace('{name}', session.catName(catId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4000);
     });
     // Tigela, areia e automáticos: abasteceu, está acabando, faltou areia.
     const pet = uiText.pet;
@@ -336,7 +336,10 @@ export class GameUi {
         .then(() => this.choose(at.ask.question, list))
         .then((i) => this.session.answerArrivalAsk(i));
     });
-    bus.on('arrival.fed', ({ fed, times }) => this.toast(fed >= times ? at.fedLast : at.fed, 4000));
+    bus.on('arrival.fed', ({ fed, times }) => {
+      const catId = session.state.arrivals.active?.catId ?? '';
+      this.toast(catSexText(session, fed >= times ? at.fedLast : at.fed, catId), 4000);
+    });
     bus.on('arrival.finished', ({ outcome, placement }) => {
       const text = outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
       if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
@@ -381,9 +384,9 @@ export class GameUi {
     });
     // Gato novo: entra assustado (precisa da confiança) e, depois dela, fica de boa.
     // (Depois do nome: o gato gerado chega sem nome e a caixa de nome abre primeiro.)
-    bus.on('cat.named', ({ catId, name }) => session.catSettling(catId) && this.toast(uiText.cats.arrivedScared.replace('{cat}', name), 5000));
+    bus.on('cat.named', ({ catId, name }) => session.catSettling(catId) && this.toast(catSexText(session, uiText.cats.arrivedScared, catId).replace('{cat}', name), 5000));
     bus.on('cat.settled', ({ catId }) => this.toast(uiText.cats.settled.replace('{cat}', session.catName(catId)), 4000));
-    bus.on('cat.cured', ({ catId }) => this.toast(uiText.health.cured.replace('{name}', session.catName(catId)), 3500));
+    bus.on('cat.cured', ({ catId }) => this.toast(catSexText(session, uiText.health.cured, catId).replace('{name}', session.catName(catId)), 3500));
     // Clínica: as falas da Fernanda (data/vet_text.json) quando ela traz o gato, quando ele sai do cercadinho, a
     // complicação e o desconto de amiga. Falas: no balão de fala (por cima de tudo), na fila.
     const fernanda = (text: string) => void this.npcSay(content.clinic.vet, text);
@@ -685,7 +688,7 @@ export class GameUi {
       }
       // Gato que acabou de chegar: a confiança.
       if (ch.kind === 'settle') {
-        today.push(this.row(c.settle.replace('{cat}', this.session.catName(ch.catId!)), { icon: 'petisco_biscoito' }));
+        today.push(this.row(catSexText(this.session, c.settle, ch.catId!).replace('{cat}', this.session.catName(ch.catId!)), { icon: 'petisco_biscoito' }));
         continue;
       }
       // Comida: com um gato, o nome dele; com mais, "Ração para os gatos" (com quantos já comeram).

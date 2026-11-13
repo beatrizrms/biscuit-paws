@@ -535,17 +535,17 @@
   },
   "health": {
     "sick": "{name} não parece bem... {disease}? Melhor levar à clínica da Fernanda.",
-    "sickNoClinic": "{name} não parece bem... Preciso cuidar melhor dele (comida todo dia).",
+    "sickNoClinic": "{name} não parece bem... Preciso cuidar melhor del{sex:e|a} (comida todo dia).",
     "infected": "{name} pegou {disease} de {from}! Doente sem remédio passa para os outros.",
     "customersAway": "Com {n} gatos doentes sem tratamento, ninguém quer entrar no café. Preciso levar à clínica.",
-    "sickDrop": "{cat} está com {disease}, que passa para os outros gatos (mesmo com o remédio). No cercadinho ou na caixinha, fica isolado.",
+    "sickDrop": "{cat} está com {disease}, que passa para os outros gatos (mesmo com o remédio). No cercadinho ou na caixinha, fica isolad{sex:o|a}.",
     "sickDropBox": "Deixar na caixinha",
     "sickDropPen": "Colocar no cercadinho",
     "sickDropFree": "Soltar mesmo assim",
-    "sickFreed": "{cat} está solto: pode passar a {disease} para os outros.",
+    "sickFreed": "{cat} está solt{sex:o|a}: pode passar a {disease} para os outros.",
     "dose": "{name} tomou o remédio ({n}/{days}).",
-    "cured": "{name} sarou! Voltou a ser ele mesmo.",
-    "neglected": "{name} anda esquecido e perdeu um coração. Cuide da saúde, da alegria e da higiene dele.",
+    "cured": "{name} sarou! Voltou a ser {sex:ele|ela} mesm{sex:o|a}.",
+    "neglected": "{name} anda esquecid{sex:o|a} e perdeu um coração. Cuide da saúde, da alegria e da higiene del{sex:e|a}.",
     "dishesAdded": "{name} foram para a louça limpa do café.",
     "debtPaid": "Paguei {amount} do fiado da clínica (faltam {left}).",
     "debtDone": "Paguei {amount} e quitei o fiado da clínica!"
@@ -554,7 +554,7 @@
     "locate": "Toque para ver onde está no café",
     "notHere": "{name} não está à vista agora.",
     "app": "Meus gatos",
-    "arrivedScared": "{cat} chegou no café meio assustado: ganhe a confiança dele (E nele).",
+    "arrivedScared": "{cat} chegou no café meio assustad{sex:o|a}: ganhe a confiança del{sex:e|a} (E n{sex:ele|ela}).",
     "settled": "{cat} já se sente em casa!",
     "none": "Nenhum gato abrigado ainda. Quem sabe um miado na porta...",
     "fed": "Comeu hoje",
@@ -610,7 +610,7 @@
     "title": "hoje",
     "feed": "Comida para {cat}",
     "feedAll": "Ração para os gatos",
-    "settle": "Ganhar a confiança de {cat} (E nele)",
+    "settle": "Ganhar a confiança de {cat} (E n{sex:ele|ela})",
     "clinic": {
       "intake": "Levar {cat} à clínica para a consulta de entrada",
       "pickup": "Buscar {cat} na clínica",
@@ -1287,8 +1287,8 @@
       "pole_treat": "Chama com um petisco! Gato nenhum resiste.",
       "pole_ladder": "Pega a escada e sobe rápido, antes que ele pule!"
     },
-    "fed": "Ele comeu de longe, de olho em você... Amanhã ele chega um pouco mais perto.",
-    "fedLast": "Ele comeu pertinho de você. Acho que ele está pronto."
+    "fed": "{sex:Ele|Ela} comeu de longe, de olho em você... Amanhã {sex:ele|ela} chega um pouco mais perto.",
+    "fedLast": "{sex:Ele|Ela} comeu pertinho de você. Acho que {sex:ele|ela} está pront{sex:o|a}."
   },
   "hints": {
     "customer": "Atender",

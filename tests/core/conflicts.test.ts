@@ -130,6 +130,30 @@ describe('passeios × plateia', () => {
   });
 });
 
+describe('horários das visitas', () => {
+  const scripts = (events: { name: string; payload: unknown }[]) => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
+
+  it('a Dona Neusa não aparece de madrugada: cafeteira montada à noite, a visita fica para a manhã', () => {
+    const { session, state, events } = midGame(['story.neusa_visit']);
+    state.time = 23 * 60;
+    session.enter('map.cafe_main');
+    expect(scripts(events)).not.toContain('scr.neusa_visit');
+    state.time = 9 * 60;
+    session.enter('map.cafe_main');
+    expect(scripts(events)).toContain('scr.neusa_visit');
+    expect(state.flags['met.old_neighbor']).toBe(true);
+  });
+
+  it('save que já teve a visita da Dona Neusa: o passo novo nunca fica ativo nem segura nada', () => {
+    const { session, state, events } = midGame(['story.neusa_visit']);
+    state.flags['met.old_neighbor'] = true;
+    state.time = 9 * 60;
+    session.enter('map.cafe_main');
+    expect(scripts(events)).not.toContain('scr.neusa_visit');
+    expect(session.exclusiveActive()).toBe(false);
+  });
+});
+
 describe('o mapa sempre abre', () => {
   it('café, rua, praça e beco, em cada estação', () => {
     const { session, state } = midGame();
