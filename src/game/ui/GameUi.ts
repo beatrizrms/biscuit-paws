@@ -1351,7 +1351,9 @@ ${rep}`;
     const open = goal.steps.filter((s) => !s.done);
     const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(goal.steps.length)))}</span>` : '';
     const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
-    const [now, ...rest] = open;
+    // Passos sem ordem: nenhum em destaque, todos na lista.
+    const now = goal.together ? undefined : open[0];
+    const rest = goal.together ? open : open.slice(1);
     const nowHtml = now
       ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
         (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +

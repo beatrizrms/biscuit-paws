@@ -305,7 +305,8 @@ export interface Beat {
   /** Condição extra para concluir. Se houver meta, todos os passos também precisam valer. */
   when?: Condition;
   /** Meta visível no diário enquanto o marco estiver ativo. */
-  goal?: { title: string; steps: GoalStep[] };
+  /** together: os passos não têm ordem (o balão mostra todos iguais). */
+  goal?: { title: string; steps: GoalStep[]; together?: boolean };
   effects: Effect[];
 }
 

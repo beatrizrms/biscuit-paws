@@ -344,15 +344,16 @@
       ],
       "goal": {
         "title": "Um cantinho quente",
+        "together": true,
         "steps": [
           {
-            "text": "Uma caixa de areia (Market, aba Pet).",
+            "text": "Uma caixa de areia no café (Market, aba Pet).",
             "when": {
               "placed": "item.litter_box"
             }
           },
           {
-            "text": "Uma caminha macia para {cat:cat.first_stray}.",
+            "text": "Uma caminha macia para {cat:cat.first_stray} (Market, aba Pet).",
             "when": {
               "placed": "item.cat_bed"
             }

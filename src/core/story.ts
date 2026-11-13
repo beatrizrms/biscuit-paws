@@ -131,6 +131,8 @@ export function isBeatSatisfied(beat: Beat, state: GameState, ctx: StoryContext)
 export interface GoalView {
   beatId: string;
   title: string;
+  /** Passos sem ordem (qualquer um primeiro): o balão mostra todos iguais, sem um em destaque. */
+  together?: boolean;
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
   /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
@@ -151,6 +153,7 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
     .map((b) => ({
       beatId: b.id,
       title: b.goal!.title,
+      ...(b.goal!.together ? { together: true } : {}),
       steps: b.goal!.steps.map((s) => {
         // Receita de um gato: as doses dadas de todas, e se a de hoje já foi.
         const treatment = s.doses ? state.cats[s.doses]?.sickness?.treatment : undefined;
