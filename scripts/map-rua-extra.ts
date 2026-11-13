@@ -6,7 +6,7 @@
 // chão de paralelepípedos (neve no inverno), caçamba, poste, caixote e sacos de lixo.
 // Arte do PixelLab (folha pixellab_beco): o muro de tijolos, a caçamba, o varal, o caixote, os sacos de lixo e o chafariz.
 // Saídas pelas bordas: portas com direction (left/right) para a rua.
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 type Obj = { id: string; tile: string; at: [number, number]; inWall?: true; overlay?: string };
 const j = (x: unknown) => JSON.stringify(x);
@@ -108,6 +108,48 @@ function legendMaker() {
     ...Object.fromEntries(['praca_chafariz', 'praca_coreto', 'praca_hotdog', 'praca_banca', 'praca_pipoca', 'praca_balanco', 'praca_escorregador', 'praca_canteiro', 'praca_bebedouro', 'yard_vaso_baixo_flores', 'decor_floreira'].map((t) => [t, `snow_${t}`])),
   };
   const obj = (id: string, tile: string, at: [number, number]): Obj => ({ id: `obj.praca_${id}`, tile, at, ...(SNOW[tile] ? { overlay: SNOW[tile] } : {}) });
+  /**
+   * Mais árvores na grama, espalhadas sem fileira: posições sorteadas (semente fixa), tipos variados (mais jovens e
+   * finas, algumas médias e grandes), com a área inteira da árvore na grama (longe do calçamento e dos caminhos), uma
+   * encostar em outra peça, fora do céu e da sebe (linha 3 em diante).
+   */
+  function scatterTrees(objects: Obj[]): Obj[] {
+    const tiles = (JSON.parse(readFileSync('data/tiles.json', 'utf8')) as { tiles: Record<string, { w: number; h: number }> }).tiles;
+    const taken = new Set<string>();
+    const mark = (o: Obj, pad: number) => {
+      const t = tiles[o.tile];
+      if (!t || o.tile.startsWith('yard_fundo')) return;
+      for (let y = o.at[1] - pad; y < o.at[1] + t.h + pad; y++) for (let x = o.at[0] - pad; x < o.at[0] + t.w + pad; x++) taken.add(`${x},${y}`);
+    };
+    objects.forEach((o) => mark(o, 0));
+    const kinds = ['prop_arvore_jovem', 'prop_arvore_jovem_b', 'prop_arvore_jovem_c', 'prop_arvore_fina', 'prop_arvore_jovem', 'prop_arvore_fina', 'prop_arvore_media', 'prop_arvore_media_b', 'prop_arvore_media_c', 'prop_arvore_grande_b', 'prop_arvore_jovem_c', 'prop_arvore_grande_c'];
+    const grassArea = (c: number, r: number, w: number, h: number) => {
+      for (let y = r; y <= r + h; y++) for (let x = c; x <= c + w; x++) if (paved(x, y)) return false;
+      return true;
+    };
+    const out = [...objects];
+    let n = 0;
+    // As maiores primeiro (onde ainda cabem), depois as jovens preenchem os cantinhos.
+    const place = (pool: string[], max: number) => {
+      let placed = 0;
+      for (let tries = 0; tries < 3000 && placed < max; tries++) {
+        const tile = pool[Math.floor(rnd() * pool.length)]!;
+        const t = tiles[tile]!;
+        const c = Math.floor(rnd() * (COLS - t.w + 1));
+        const r = 3 + Math.floor(rnd() * (ROWS - 3 - t.h + 1));
+        let free = grassArea(c, r, t.w, t.h);
+        for (let y = r; free && y < r + t.h; y++) for (let x = c; x < c + t.w; x++) if (taken.has(`${x},${y}`)) free = false;
+        if (!free) continue;
+        const o = obj(`arvore_extra_${++n}`, tile, [c, r]);
+        out.push(o);
+        mark(o, 0);
+        placed++;
+      }
+    };
+    place(kinds.filter((k) => !k.includes('jovem')), 8);
+    place(kinds.filter((k) => k.includes('jovem')), 7);
+    return out;
+  }
   write('data/maps/praca.json', {
     comment:
       'A pracinha da vila (ponta direita da rua; gerada por scripts/map-rua-extra.ts, semente fixa): céu e cidade, sebe, o caminho de pedregulhos que atravessa e a praça calçada no meio (tiles parque_<variação>_<cantos NW NE SW SE>, g = grama, p = pedregulho; no inverno, neve). No centro, o chafariz grande; à esquerda o coreto e o parquinho; à direita a banca de jornal e os carrinhos de hot dog e pipoca; árvores na terra de 4 jeitos (mudam de cor com a estação). Saída pela esquerda (portas com direction left) para a rua.',
@@ -118,7 +160,7 @@ function legendMaker() {
     legend,
     floor,
     walls,
-    objects: [
+    objects: scatterTrees([
       obj('ceu_a', 'yard_fundo_ceu_telhados', [0, 0]),
       obj('ceu_b', 'yard_fundo_ceu_telhados', [6, 0]),
       obj('ceu_c', 'yard_fundo_ceu_telhados', [12, 0]),
@@ -180,7 +222,7 @@ function legendMaker() {
       obj('arvore_12', 'prop_arvore_jovem', [28, 14]),
       obj('arvore_13', 'prop_arvore_fina', [29, 12]),
       obj('arvore_24', 'prop_arvore_jovem_b', [22, 15]),
-    ],
+    ]),
     lights: [
       { at: [9, 3.45], radius: 46, color: '#ffe2a0' },
       { at: [22, 3.45], radius: 46, color: '#ffe2a0' },

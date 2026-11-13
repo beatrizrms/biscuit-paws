@@ -131,7 +131,17 @@
     {"id":"obj.praca_arvore_11","tile":"prop_arvore_grande","at":[25,13]},
     {"id":"obj.praca_arvore_12","tile":"prop_arvore_jovem","at":[28,14]},
     {"id":"obj.praca_arvore_13","tile":"prop_arvore_fina","at":[29,12]},
-    {"id":"obj.praca_arvore_24","tile":"prop_arvore_jovem_b","at":[22,15]}
+    {"id":"obj.praca_arvore_24","tile":"prop_arvore_jovem_b","at":[22,15]},
+    {"id":"obj.praca_arvore_extra_1","tile":"prop_arvore_fina","at":[7,3]},
+    {"id":"obj.praca_arvore_extra_2","tile":"prop_arvore_fina","at":[25,3]},
+    {"id":"obj.praca_arvore_extra_3","tile":"prop_arvore_fina","at":[2,12]},
+    {"id":"obj.praca_arvore_extra_4","tile":"prop_arvore_jovem","at":[29,15]},
+    {"id":"obj.praca_arvore_extra_5","tile":"prop_arvore_jovem_b","at":[28,12]},
+    {"id":"obj.praca_arvore_extra_6","tile":"prop_arvore_jovem","at":[21,15]},
+    {"id":"obj.praca_arvore_extra_7","tile":"prop_arvore_jovem_c","at":[25,12]},
+    {"id":"obj.praca_arvore_extra_8","tile":"prop_arvore_jovem_b","at":[28,13]},
+    {"id":"obj.praca_arvore_extra_9","tile":"prop_arvore_jovem","at":[0,5]},
+    {"id":"obj.praca_arvore_extra_10","tile":"prop_arvore_jovem","at":[0,12]}
   ],
   "spawn": { "player": [15,14] },
   "doors": [
