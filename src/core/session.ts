@@ -5271,7 +5271,14 @@ export class GameSession {
     if (cells.some(([c, r]) => doorCells.some(([dc, dr]) => dc === c && dr === r))) return 'blocks_door';
     const map = this.mapData();
     const problem = placementProblem(map, this.content.catalog, def, at, [...reserved, this.content.map.spawn.player]);
-    if (problem || !def.solid) return problem;
+    if (problem) return problem;
+    // Peça de parede para tomar em pé (a bancada): só na última linha da parede, com chão logo embaixo (onde o cliente fica).
+    if (this.content.items[itemId]?.stand && def.layer === 'wall') {
+      const bottom = at[1] + def.h;
+      const floorBelow = (c: number) => (map.layers.floor[bottom]?.[c] ?? '.') !== '.' && (map.layers.walls[bottom]?.[c] ?? '.') === '.';
+      for (let c = at[0]; c < at[0] + def.w; c++) if (!floorBelow(c)) return 'wall_base';
+    }
+    if (!def.solid) return null;
     // Não pode isolar a entrada: de onde ela chega (rua, quintal) ainda precisa haver caminho até dentro do café.
     return this.cutsOffEntrance(map, def.name, at) ? 'blocks_door' : null;
   }

@@ -490,6 +490,26 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Mesas e bancadas (decisão 229): bancada de parede (frente e lados; a da direita é a da esquerda espelhada), mesas
+    // altas (para tomar em pé) e mesas de altura normal maiores (redonda larga, quadrada, quadrada grande). Uma imagem do
+    // PixelLab por peça (mesas/); dy encosta a base embaixo do tile.
+    image: 'public/assets/objects/pixellab/tile_pixellab_mesas.png',
+    pieces: 'data/tilesets/pixellab_mesas.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      // Na parede: as mãos-francesas descem até perto do chão (a peça fica na última linha da parede).
+      bar_ledge_front: { file: 'mesas/bancada_frente.png', w: 2, h: 1, dy: 8 },
+      bar_ledge_left: { file: 'mesas/bancada_lado.png', w: 1, h: 2, dy: 4 },
+      bar_ledge_right: { file: 'mesas/bancada_lado.png', w: 1, h: 2, dy: 4, mirror: true },
+      table_tall_round: { file: 'mesas/mesa_alta_redonda.png', w: 1, h: 2, dy: 5 },
+      table_tall_square: { file: 'mesas/mesa_alta_quadrada.png', w: 1, h: 2, dy: 12 },
+      table_wide_oval: { file: 'mesas/mesa_redonda_larga.png', w: 2, h: 1, dy: 2 },
+      table_square: { file: 'mesas/mesa_quadrada.png', w: 1, h: 1 },
+      table_square_big: { file: 'mesas/mesa_quadrada_grande.png', w: 2, h: 2, dy: 5 },
+    },
+  },
+  {
     // Quintal secreto: peças novas (sebe do fundo 3x1, pérgola com o forno, árvore, topiaria, bancos e cadeiras de lado...).
     image: 'public/assets/env/backyard/tile_pixellab_quintal_novos.png',
     pieces: 'data/tilesets/pixellab_quintal_novos.json',

@@ -3704,6 +3704,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const dy = c.dishAt[1] - c.spot[1];
         view.sit(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down', ySortDepth((c.spot[1] + 1) * ts));
       }
+      // Em pé no lugar: virado para a bancada, a mesa alta ou o balcão (de lado na bancada da parede do lado).
+      if (c.kind === 'standing' && c.stage !== 'queue' && view.arrived && view.target[0] === c.spot[0] && view.target[1] === c.spot[1]) {
+        const dx = c.dishAt[0] - c.spot[0];
+        const dy = c.dishAt[1] - c.spot[1];
+        view.sprite.face(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down');
+        // Encosta: a bancada da parede fica na beira da célula dela; sem isso, o cliente parece longe (item.stand.lean).
+        const lean = this.standLean(c.dishAt);
+        view.lean(Math.sign(dx) * lean, Math.sign(dy) * lean);
+      }
       // No lugar (sentado ou em pé no balcão): ela não atravessa. Na fila, não (para não fechar a passagem da porta).
       if (c.stage !== 'queue' && view.arrived && view.target[0] === c.spot[0] && view.target[1] === c.spot[1]) inPlace.push(c.spot);
       view.update();
@@ -3731,6 +3740,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     const offsets = spreadBoxes(withBubble.map((b) => b.box));
     withBubble.forEach(({ v }, i) => v.update(offsets[i]));
+  }
+
+  /** Quanto o cliente em pé encosta na peça desta célula (item.stand.lean, px do jogo); 0 no balcão. */
+  private standLean(cell: Cell): number {
+    const { items, catalog } = this.session.content;
+    const p = this.session.state.placed.find((x) => {
+      const def = catalog.tiles[items[x.item]?.tile ?? ''];
+      return !!items[x.item]?.stand && !!def && cellsOf(x.at, def).some(([c, r]) => c === cell[0] && r === cell[1]);
+    });
+    return p ? (items[p.item]!.stand!.lean ?? 0) : 0;
   }
 
   /** Altura da caixa de colisão nos pés (a base dos móveis: world.objectBaseDepth da célula). */

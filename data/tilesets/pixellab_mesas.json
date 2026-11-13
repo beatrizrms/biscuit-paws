@@ -1,0 +1,55 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 4,
+ "pieces": {
+  "bar_ledge_front": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "bar_ledge_left": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "bar_ledge_right": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "table_tall_round": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "table_tall_square": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "table_wide_oval": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "table_square": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "table_square_big": {
+   "col": 1,
+   "row": 2,
+   "w_tiles": 2,
+   "h_tiles": 2
+  }
+ }
+}

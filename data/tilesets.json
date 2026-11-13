@@ -756,6 +756,17 @@
       "replaces": true
     },
     {
+      "id": "pixellab_mesas",
+      "image": "assets/objects/pixellab/tile_pixellab_mesas.png",
+      "pieces": "pixellab_mesas.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "bar_ledge_front": { "layer": "wall", "solid": false }
+      }
+    },
+    {
       "id": "pixellab_jardim",
       "image": "assets/env/backyard/tile_pixellab_jardim.png",
       "pieces": "pixellab_jardim.json",

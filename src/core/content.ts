@@ -99,6 +99,11 @@ export interface ItemDef {
   orFloor?: boolean;
   /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
   topLift?: number;
+  /**
+   * Para tomar em pé (bancada de parede, mesa alta): de que lados das células o cliente fica, virado para ela. Só a
+   * linha de baixo (a peça alta sobe no desenho), ou todas (`allRows`: a bancada da parede do lado, deitada no chão).
+   */
+  stand?: { sides: ('up' | 'down' | 'left' | 'right')[]; allRows?: boolean; lean?: number };
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */

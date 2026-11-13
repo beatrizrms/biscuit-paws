@@ -228,6 +228,7 @@
     "not_ready": "Ainda não dá para buscar: amanhã.",
     "not_here": "Não dá para pegar agora.",
     "no_complication": "Está tudo bem com ele.",
+    "wall_base": "A bancada vai na parede, logo acima do chão (os clientes ficam embaixo dela).",
     "nobody_here": "Ninguém com fome aqui: já comeu hoje (uma latinha por dia).",
     "recoveryFed": "{cat} comeu a Recovery.",
     "recoveryMore": "{cat} comeu a Recovery. Ainda com fome aqui: {n} (uma latinha cada).",
