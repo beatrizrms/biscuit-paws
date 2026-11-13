@@ -64,7 +64,11 @@ describe('automáticos', () => {
     expect(state.inventory['item.cat_food_basic']).toBe(2);
     expect(session.stationStock('p90')).toBe(10);
     expect(session.feedProblem('p90')).toBe('full');
-    for (let d = 0; d < 8; d++) session.endDay('home');
+    // Os gatos bem cuidados no resto (o teste é do pote): sem descuido, ninguém foge.
+    for (let d = 0; d < 8; d++) {
+      for (const c of Object.values(state.cats)) Object.assign(c, { happiness: 80, hygiene: 80 });
+      session.endDay('home');
+    }
     expect(session.stationStock('p90')).toBe(2);
     expect(state.cats['cat.second']!.fedOn).toBe(state.day - 1);
     expect(events.some((e) => e.name === 'pet.low')).toBe(true);

@@ -35,20 +35,25 @@ export class ScheduleApp {
     const s = sv.schedule();
     const rules = content.service.schedule;
     const lunch = lunchStart(s, rules);
+    // O status é o de hoje (mudar no app só vale amanhã).
+    const today = sv.todaySchedule();
+    const todayLunch = lunchStart(today, rules);
     const status = !sv.enabled()
       ? t.status.disabled
-      : sv.lunchNow() && lunch
-        ? t.status.lunch.replace('{back}', lunchEnd(lunch, rules))
+      : sv.lunchNow() && todayLunch
+        ? t.status.lunch.replace('{back}', lunchEnd(todayLunch, rules))
         : sv.isOpen()
-          ? t.status.open.replace('{close}', s.close)
+          ? t.status.open.replace('{close}', today.close)
           : t.status.closed.replace('{when}', openingText(this.session));
-    const today = sv.weekday();
+    const todayText = sv.opensOn(this.session.state.day) ? `${today.open} às ${today.close}${todayLunch ? ` (almoço ${todayLunch})` : ''}` : uiText.scheduleApp.closedToday;
+    const pending = sv.scheduleChangesTomorrow() ? `<p class="m-hint">${esc(t.fromTomorrow.replace('{today}', todayText))}</p>` : '';
+    const weekday = sv.weekday();
     const days = uiText.weekdays
-      .map((d, i) => `<button class="s-day${s.days[i] ? ' on' : ''}${i === today ? ' today' : ''}" data-day="${i}" aria-pressed="${s.days[i]}">${esc(d)}</button>`)
+      .map((d, i) => `<button class="s-day${s.days[i] ? ' on' : ''}${i === weekday ? ' today' : ''}" data-day="${i}" aria-pressed="${s.days[i]}">${esc(d)}</button>`)
       .join('');
     const time = (key: 'open' | 'close', label: string) => `<div class="s-time"><span class="s-label">${esc(label)}</span>
         <button data-time="${key}" data-step="-1" title="${t.earlier}">−</button><b>${s[key]}</b><button data-time="${key}" data-step="1" title="${t.later}">+</button></div>`;
-    body.innerHTML = `<p class="s-status ${sv.isOpen() ? 'open' : 'closed'}">${esc(status)}</p>
+    body.innerHTML = `<p class="s-status ${sv.isOpen() ? 'open' : 'closed'}">${esc(status)}</p>${pending}
       <h3>${esc(t.days)}</h3><div class="s-days">${days}</div>
       <h3>${esc(t.hours)}</h3>${time('open', t.opens)}${time('close', t.closes)}
       <h3>${esc(t.lunch)}</h3><div class="s-time"><button class="s-lunch-toggle" data-lunch="toggle" aria-pressed="${!!lunch}">${esc(lunch ? t.lunchOn : t.lunchOff)}</button>

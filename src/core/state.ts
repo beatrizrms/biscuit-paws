@@ -48,6 +48,8 @@ export interface GameState {
   flags: Record<string, boolean>;
   /** Itens comprados e ainda não posicionados: itemId -> quantidade. */
   inventory: Record<string, number>;
+  /** Quantos de cada item ela comprou e ainda pode devolver (presente não entra). Sem o campo (save antigo): devolve como antes. */
+  bought?: Record<string, number>;
   placed: PlacedItem[];
   nextUid: number;
   /** Marcos concluídos e o dia em que cada um terminou (v6). */
@@ -242,6 +244,10 @@ export interface CatState {
   curedOn?: number;
   /** Dias seguidos com a saúde, a alegria ou a higiene em zero (descuido: no limite, perde um coração). */
   neglectDays?: number;
+  /** Dias seguidos com saúde, alegria ou higiene em zero (com relationships.neglect.runAwayDays, ele foge). */
+  zeroDays?: number;
+  /** Fugiu do café por descuido (não volta). */
+  ranAway?: boolean;
 }
 
 export function newGameState(startingMoney: number, startMap = 'map.street', time = 7 * 60): GameState {
@@ -251,6 +257,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     money: startingMoney,
     flags: {},
     inventory: {},
+    bought: {},
     placed: [],
     nextUid: 1,
     story: { completed: [], completedOn: {} },

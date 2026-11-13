@@ -136,9 +136,12 @@ const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${S
   state.story.completed.push(...beats);
   state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null } as GameState['cats'][string];
   const s = new GameSession(content, state);
+  // Um gato comum (o da história é protegido: não foge).
+  s.arrivals.debugGenerate(Object.keys(content.catProfiles.personalities)[0]!, 'healthy');
+  const id = s.shelteredCats().find((c) => c !== 'cat.first_stray')!;
   for (let d = 0; d < 60; d++) s.endDay('home');
-  const cat = state.cats['cat.first_stray']!;
-  report('gato largado não tem consequência', cat.sheltered && s.shelteredCats().includes('cat.first_stray'), `60 dias sem comida nem remédio: saúde ${cat.health}, doença ${cat.sickness ? 'sim' : 'não'}, continua no café`);
+  const cat = state.cats[id]!;
+  report('gato largado não tem consequência', !!cat.sheltered, `60 dias sem comida nem remédio: ${cat.ranAway ? 'fugiu do café' : 'continua no café'} (saúde ${cat.health}); reputação ${s.reputation()}`);
 }
 
 for (const r of results) console.log(`${r.open ? 'ABERTA ' : 'fechada'}  ${r.id}: ${r.detail}`);

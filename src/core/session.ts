@@ -6,7 +6,7 @@ import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedu
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
-import { formatClock, parseClock } from './time';
+import { parseClock } from './time';
 import { mapLights } from './lights';
 import type { MapLight } from './map';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
@@ -204,6 +204,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'not_refundable'
         | 'coffee_too_soon'
         | 'seat_taken'
         | 'other_item'
@@ -1401,6 +1402,7 @@ export class GameSession {
     if (newBox && this.pendingDeliveries() >= this.content.delivery.maxPending) return { ok: false, reason: 'door_full' };
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `order:${itemId}`);
+    this.markBought(itemId, 1);
     const delivery: Delivery = { uid: `d${this.state.nextUid++}`, item: itemId, stage: 'shipping', arrivesAt: this.arrivalFor(nowAbs(this.state)), ...(box ? { box } : {}) };
     this.state.deliveries.push(delivery);
     this.bus.emit('delivery.ordered', { deliveryId: delivery.uid, itemId, arrivesAt: delivery.arrivesAt });
@@ -3528,6 +3530,19 @@ export class GameSession {
     const zero = cat.health <= 0 || care.happiness <= 0 || care.hygiene <= 0;
     if (!zero) {
       delete cat.neglectDays;
+      delete cat.zeroDays;
+      return;
+    }
+    // Muitos dias seguidos sem o que precisa: ele foge do café (os gatos protegidos da história, não).
+    cat.zeroDays = (cat.zeroDays ?? 0) + 1;
+    if (n.runAwayDays && cat.zeroDays >= n.runAwayDays && cat.sheltered && !this.content.adoption.protectedCats.includes(catId)) {
+      cat.sheltered = false;
+      cat.ranAway = true;
+      delete cat.zeroDays;
+      delete cat.neglectDays;
+      const rep = n.runAwayReputation ?? 0;
+      if (rep) this.addReputation(rep, `ran_away:${catId}`);
+      this.bus.emit('cat.ran_away', { catId, reputation: rep });
       return;
     }
     cat.neglectDays = (cat.neglectDays ?? 0) + 1;
@@ -3577,10 +3592,9 @@ export class GameSession {
     if (door.to !== this.content.map.id) return null;
     const s = this.service.schedule();
     const rules = this.content.service.schedule;
-    // No almoço, a hora do almoço de hoje (travado quando começou), mesmo que o app já tenha outro para amanhã.
+    // No almoço, a hora do almoço de hoje, mesmo que o app já tenha outro para amanhã.
     const now = this.service.lunchNow();
-    const locked = this.state.service.lunch?.day === this.state.day ? formatClock(this.state.service.lunch.from) : null;
-    const start = now && locked ? locked : lunchStart(s, rules);
+    const start = lunchStart(now ? this.service.todaySchedule() : s, rules);
     const lunch = start ? { from: start, to: lunchEnd(start, rules), now } : undefined;
     return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}) };
   }
@@ -3773,11 +3787,27 @@ export class GameSession {
     return item ? Math.floor(item.price * this.content.economy.refundRate) : 0;
   }
 
-  /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. */
+  /** Anota o que ela comprou (só isso pode ser devolvido; presente, prêmio e recompensa, não). */
+  private markBought(itemId: string, qty: number): void {
+    if (!this.state.bought) return; // save de antes do registro: devolve como antes
+    this.state.bought[itemId] = (this.state.bought[itemId] ?? 0) + qty;
+  }
+
+  /** Dá para devolver: está na mochila, não é chave/ferramenta/peça fixa/presente e foi comprado (não ganho). */
+  refundable(itemId: string): boolean {
+    const item = this.content.items[itemId];
+    if (!item || ['key', 'tool', 'fixture', 'gift'].includes(item.kind ?? 'furniture')) return false;
+    if ((this.state.inventory[itemId] ?? 0) < 1) return false;
+    return !this.state.bought || (this.state.bought[itemId] ?? 0) > 0;
+  }
+
+  /** Devolve um item da bolsa (não posicionado) e recebe o reembolso. Só o que foi comprado. */
   refund(itemId: string): ActionResult {
     const refundable = this.content.items[itemId];
     if (!refundable || ['key', 'tool', 'fixture', 'gift'].includes(refundable.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
+    if (!this.refundable(itemId)) return { ok: false, reason: 'not_refundable' };
+    if (this.state.bought) this.state.bought[itemId] = (this.state.bought[itemId] ?? 1) - 1;
     this.removeFromInventory(itemId);
     const amount = this.refundValue(itemId);
     this.addMoney(amount, `refund:${itemId}`);
@@ -4920,6 +4950,7 @@ export class GameSession {
     const item = this.content.items[itemId]!;
     if (this.state.money < item.price) return { ok: false, reason: 'no_money' };
     this.addMoney(-item.price, `buy:${itemId}`);
+    this.markBought(itemId, 1);
     this.receive(itemId, 1);
     this.service.stockDishes(itemId);
     this.bus.emit('item.bought', { itemId, price: item.price });
@@ -5007,6 +5038,7 @@ export class GameSession {
     this.addMoney(-total, 'checkout');
     for (const { itemId, qty } of lines) {
       this.receive(itemId, qty);
+      this.markBought(itemId, qty);
       const price = this.content.items[itemId]!.price;
       for (let i = 0; i < qty; i++) this.bus.emit('item.bought', { itemId, price });
     }

@@ -295,6 +295,29 @@ describe('contágio e prejuízo', () => {
     expect(state.cats[CAT]!.neglectDays).toBeUndefined();
   });
 
+  it('gato largado (higiene em zero) por runAwayDays dias seguidos foge do café, com aviso e menos reputação; o da história, não', () => {
+    const { session, state, events, endDay } = twoCats();
+    const n = content.relationships.neglect!;
+    session.addReputation(20, 'teste');
+    const rep = session.reputation();
+    for (let d = 0; d < n.runAwayDays!; d++) {
+      expect(session.shelteredCats()).toContain(TWO);
+      state.cats[TWO]!.hygiene = 0;
+      state.cats[CAT]!.hygiene = 0;
+      endDay();
+    }
+    expect(session.shelteredCats()).not.toContain(TWO);
+    expect(state.cats[TWO]!.ranAway).toBe(true);
+    expect(session.reputation()).toBe(rep + n.runAwayReputation!);
+    expect(events.some((e) => e.name === 'cat.ran_away' && (e.payload as { catId: string }).catId === TWO)).toBe(true);
+    // O gato protegido da história fica (perde corações, mas não foge).
+    expect(session.shelteredCats()).toContain(CAT);
+    // Saiu do zero antes do prazo: a contagem zera.
+    state.cats[CAT]!.hygiene = 80;
+    endDay();
+    expect(state.cats[CAT]!.zeroDays).toBeUndefined();
+  });
+
   it('cuidar (escova, varinha, remédio) dá pontos de afeto pelo resultado; falhar não dá', () => {
     const { session, state } = twoCats();
     const pts = content.relationships.careGamePoints!;

@@ -308,6 +308,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     money: v2.money ?? 0,
     flags: { ...(v2.flags ?? {}) },
     inventory,
+    ...(v2.bought && typeof v2.bought === 'object' ? { bought: Object.fromEntries(Object.entries(v2.bought as Record<string, unknown>).filter(([id, n]) => known.items.has(id) && Number.isInteger(n) && (n as number) > 0)) as Record<string, number> } : {}),
     placed: (v2.placed ?? []).filter((p) => knownItem(p.item, `móvel ${p.uid}`)).map((p) => normalizePlaced(p, known)),
     nextUid: v2.nextUid ?? 1,
     story: { completed: [...(v2.story?.completed ?? [])], completedOn: { ...(v2.story?.completedOn ?? {}) } },
@@ -390,8 +391,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       nextCustomerAt: v2.service?.nextCustomerAt ?? null,
       nextCustomerId: v2.service?.nextCustomerId ?? 1,
       served: v2.service?.served ?? 0,
-      ...(v2.service?.lunch && Number.isInteger(v2.service.lunch.day) && Number.isFinite(v2.service.lunch.from) ? { lunch: { day: v2.service.lunch.day, from: v2.service.lunch.from } } : {}),
-      ...(v2.service?.dayClose && Number.isInteger(v2.service.dayClose.day) && Number.isFinite(v2.service.dayClose.close) ? { dayClose: { day: v2.service.dayClose.day, close: v2.service.dayClose.close } } : {}),
+      ...(v2.service?.today && Number.isInteger(v2.service.today.day) && Array.isArray(v2.service.today.schedule?.days) ? { today: { day: v2.service.today.day, schedule: v2.service.today.schedule } } : {}),
     },
     tray: v2.tray === true,
     // Desgaste: só de móveis que continuam no café; números estranhos são descartados.
@@ -739,8 +739,8 @@ function normalizeClinic(c: unknown): ClinicState {
 }
 
 /** Campos da castração no gato (v36), só os bem formados. Sem repro: a sessão sorteia ao carregar. */
-function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown; aftercare?: unknown; quarantine?: unknown; curedOn?: unknown; neglectDays?: unknown }): { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number } {
-  const out: { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number } = {};
+function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown; aftercare?: unknown; quarantine?: unknown; curedOn?: unknown; neglectDays?: unknown; zeroDays?: unknown; ranAway?: unknown }): { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number; zeroDays?: number; ranAway?: boolean } {
+  const out: { repro?: CatRepro; tests?: Record<string, 'negative' | 'positive'>; clinic?: CatClinicStage; aftercare?: Aftercare; quarantine?: boolean; curedOn?: number; neglectDays?: number; zeroDays?: number; ranAway?: boolean } = {};
   const r = c.repro as Partial<CatRepro> | undefined;
   if (
     r &&
@@ -774,6 +774,8 @@ function catClinicFields(c: { repro?: unknown; tests?: unknown; clinic?: unknown
   if (c.quarantine === true) out.quarantine = true;
   if (Number.isInteger(c.curedOn)) out.curedOn = c.curedOn as number;
   if (Number.isInteger(c.neglectDays) && (c.neglectDays as number) > 0) out.neglectDays = c.neglectDays as number;
+  if (Number.isInteger(c.zeroDays) && (c.zeroDays as number) > 0) out.zeroDays = c.zeroDays as number;
+  if (c.ranAway === true) out.ranAway = true;
   return out;
 }
 

@@ -177,6 +177,8 @@ export interface GameEvents {
   /** Uma porta escondida apareceu e o que estava na frente dela foi para a mochila. */
   'door.cleared': { doorId: string; count: number };
   /** Um amigo passou no café com um pedido; o pedido ficou pronto. */
+  /** O gato não tinha o que precisava e fugiu do café (descuido). */
+  'cat.ran_away': { catId: string; reputation: number };
   'request.new': { requestId: string; npc: string };
   'request.done': { requestId: string; npc: string };
   /** Encontro da estação: o amigo chamou; aconteceu (com ou sem o preparo); passou sem ela. */

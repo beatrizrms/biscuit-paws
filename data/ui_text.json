@@ -242,6 +242,7 @@
     "no_beds": "A clínica está sem leito livre hoje.",
     "no_slots": "A agenda de cirurgias de hoje lotou.",
     "energy_full": "A energia já está cheia.",
+    "not_refundable": "Isso foi presente: só dá para devolver o que foi comprado.",
     "coffee_too_soon": "Acabei de tomar um café. Melhor esperar mais {n} min.",
     "seat_taken": "Esse lugar está ocupado por um cliente.",
     "no_money": "Moedas insuficientes.",
@@ -1075,7 +1076,9 @@
     "closes": "Fecha",
     "everyDay": "todos os dias",
     "summary": "Aberto {days}, das {open} às {close}.",
-    "hint": "Depois do horário ninguém novo entra: quem está na fila vai embora, quem já pediu termina. Você só vai para casa quando o último cliente sair.",
+    "hint": "As mudanças valem a partir de amanhã; hoje segue o horário de quando o dia começou. Depois do horário ninguém novo entra: quem está na fila vai embora, quem já pediu termina. Você só vai para casa quando o último cliente sair.",
+    "fromTomorrow": "Horário novo a partir de amanhã. Hoje: {today}.",
+    "closedToday": "fechado",
     "earlier": "mais cedo",
     "later": "mais tarde"
   },
@@ -1155,6 +1158,7 @@
     "opened": "Saiu da caixa: {name}. Posicione (faltam {n}).",
     "lastOne": "Saiu da caixa: {name}. Era o último!"
   },
+  "catRanAway": "{cat} não tinha tudo de que precisava aqui e fugiu do café. A vila comentou: {rep} de reputação.",
   "doorCleared": "Apareceu uma porta: o que estava na frente dela foi para a mochila ({n}).",
   "xmasBox": {
     "packed": "O Natal acabou: os {n} enfeites foram para a caixa de enfeites, na mochila. Ela abre no próximo inverno.",
