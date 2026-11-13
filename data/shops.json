@@ -7,6 +7,7 @@
       "items": [
         "item.cat_food_basic",
         "item.cat_food_premium",
+        "item.food_recovery",
         "item.cat_treat_biscuit","item.cat_wand","item.cat_brush",
         "item.cat_litter","item.cat_blanket",
         "item.coffee_beans_bag",

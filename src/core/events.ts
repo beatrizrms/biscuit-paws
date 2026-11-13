@@ -18,7 +18,7 @@ export interface GameEvents {
   'cat.sheltered': { catId: string };
   /** Saúde (data/health.json): adoeceu, consultou, tomou remédio, sarou; e o fiado sendo pago. */
   'cat.sick': { catId: string; disease: string };
-  'cat.diagnosed': { catId: string; disease: string; days: number; total: number; onCredit: boolean };
+  'cat.diagnosed': { catId: string; disease: string; days: number; total: number; onCredit: boolean; cans?: number };
   'cat.medicated': { catId: string; dosesGiven: number; days: number };
   'cat.cured': { catId: string };
   /** Louça comprada entrou no estoque (pacotes do Market). */

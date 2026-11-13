@@ -9,6 +9,7 @@
     "lowImmunity": "{cat} não está doente, mas vejo que a imunidade está baixando. Se continuar assim, vai acabar adoecendo. Alimente direitinho, todo dia, que logo fica bem.",
     "sick": "{cat} está com {disease}. Nada grave: com o remédio certinho, passa.",
     "sickIsolate": "Essa passa de gato para gato, viu? Até sarar, deixa {cat} no cercadinho, longe da turma (sem vaga, na caixinha). Solto com os outros, passa, mesmo com o remédio. O remédio você dá lá mesmo.",
+    "sickCans": "Deixei {cans} latinha(s) de Recovery na sua mochila, uma por dia, até sarar. Se faltar, tem na prateleira pet do mercado.",
     "neutered": "{cat} já é castrad{sex:o|a}. Alguém cuidou bem dessa fofura antes de você.",
     "earTipped": "Viu a pontinha da orelha cortada? É o sinal de quem já foi castrado na rua. Não precisa operar de novo.",
     "intact": "{cat} ainda não é castrad{sex:o|a}. Se quiser, já opero amanhã cedo: fica aqui esta noite e de manhã eu levo no café.",

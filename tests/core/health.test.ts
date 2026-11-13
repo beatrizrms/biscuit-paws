@@ -128,6 +128,26 @@ describe('a clínica', () => {
     expect(session.consult(CAT)).toEqual({ ok: false, reason: 'already_treated' });
   });
 
+  it('doença que passa: a Fernanda deixa uma latinha Recovery por dia de tratamento; a que não passa, nenhuma', () => {
+    const food = content.clinic.pen.food;
+    const contagious = cfg.diseases.find((d) => d.contagious)!.id;
+    const mild = cfg.diseases.find((d) => !d.contagious)!.id;
+    const a = withCat(500);
+    a.session.makeSick(CAT, contagious);
+    atClinicWithCat(a.session);
+    expect(a.session.consult(CAT)).toEqual({ ok: true });
+    const days = a.cat().sickness!.treatment!.days;
+    expect(a.state.inventory[food]).toBe(days);
+    const b = withCat(500);
+    b.session.makeSick(CAT, mild);
+    atClinicWithCat(b.session);
+    expect(b.session.consult(CAT)).toEqual({ ok: true });
+    expect(b.state.inventory[food] ?? 0).toBe(0);
+    // Se faltar: a prateleira pet do mercado vende.
+    expect(content.shops['shop.market']!.items).toContain(food);
+    expect(content.items[food]!.tags).toContain('pet');
+  });
+
   it('primeira consulta sem dinheiro fica fiado; metade de cada ganho paga a dívida', () => {
     const { session, state, events } = withCat(0);
     session.makeSick(CAT);

@@ -44,7 +44,8 @@ export interface ClinicConfig {
    * O cercadinho de recuperação: o móvel, quantos gatos cabem em cada um e a comida (a latinha, dada direto no
    * cercadinho, alimenta todos lá dentro; sem caixa de areia: forrado com fraldas descartáveis).
    */
-  pen: { item: string; slots: number; food: string };
+  /** treatmentCans: na receita de doença que passa, uma latinha por dia de tratamento (o gato fica isolado). */
+  pen: { item: string; slots: number; food: string; treatmentCans?: boolean };
   procedures: ProcedureDef[];
   repro: ReproConfig;
   /** Testes de doenças transmissíveis na entrada (por enquanto sempre negativo). */

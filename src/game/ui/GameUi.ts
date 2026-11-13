@@ -442,7 +442,11 @@ export class GameUi {
     });
     bus.on('clinic.friend_discount', () => fernanda(vetLine(session, 'discount.friend')));
     // Doença que passa de gato para gato: em tratamento, fica isolado até sarar.
-    bus.on('cat.diagnosed', ({ catId, disease }) => diseaseContagious(content.health, disease) && fernanda(vetLine(session, 'intake.sickIsolate', {}, catId)));
+    bus.on('cat.diagnosed', ({ catId, disease, cans }) => {
+      if (!diseaseContagious(content.health, disease)) return;
+      fernanda(vetLine(session, 'intake.sickIsolate', {}, catId));
+      if (cans) fernanda(vetLine(session, 'intake.sickCans', { cans }, catId));
+    });
     bus.on('clinic.checkup', ({ catId }) => fernanda(vetLine(session, 'intake.checkup', {}, catId)));
     bus.on('clinic.credit', () => fernanda(vetLine(session, 'credit.offer')));
     bus.on('clinic.debt_paid', () => fernanda(vetLine(session, 'credit.retroactive')));

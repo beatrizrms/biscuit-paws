@@ -3347,8 +3347,9 @@ export class GameSession {
     cat.sickness!.treatment = { days: q.days, dosesGiven: 0, lastDoseDay: null };
     const med = this.content.health.medicine.item;
     this.state.inventory[med] = (this.state.inventory[med] ?? 0) + q.days;
+    const cans = this.clinic.treatmentCans(q.disease, q.days);
     this.state.flags['vet.consulted'] = true;
-    this.bus.emit('cat.diagnosed', { catId, disease: q.disease, days: q.days, total: q.total, onCredit: q.onCredit });
+    this.bus.emit('cat.diagnosed', { catId, disease: q.disease, days: q.days, total: q.total, onCredit: q.onCredit, cans });
     // Gato que nunca fez os testes (o primeiro gato, doente quando a clínica abre): a Fernanda aproveita e faz FIV, FeLV e o
     // checkup, sem cobrar a mais; o estado da castração fica confirmado.
     this.clinic.checkup(catId);

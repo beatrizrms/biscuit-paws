@@ -316,7 +316,8 @@ export class ClinicFlow {
       cat.sickness.treatment = { days, dosesGiven: 0, lastDoseDay: null };
       const med = this.h.health.medicine.item;
       this.st.inventory[med] = (this.st.inventory[med] ?? 0) + days;
-      this.h.bus.emit('cat.diagnosed', { catId, disease: cat.sickness.disease, days, total: q.total, onCredit: false });
+      const cans = this.treatmentCans(cat.sickness.disease, days);
+      this.h.bus.emit('cat.diagnosed', { catId, disease: cat.sickness.disease, days, total: q.total, onCredit: false, cans });
     }
     // Consulta feita: ele sai da espera. O resto (castrar, ficar, levar) a jogadora escolhe em seguida.
     cat.clinic = undefined;
@@ -324,6 +325,17 @@ export class ClinicFlow {
     const exam = this.exam(catId)!;
     this.h.bus.emit('cat.examined', { catId, status: exam.status, earTipped: exam.earTipped });
     return { ok: true, exam };
+  }
+
+  /**
+   * Receita de doença que passa (o gato fica isolado, comendo a latinha): a Fernanda deixa uma latinha por dia de
+   * tratamento, inclusa (clinic.pen.treatmentCans). Devolve quantas.
+   */
+  treatmentCans(disease: string, days: number): number {
+    if (!this.h.clinic.pen.treatmentCans || !diseaseContagious(this.h.health, disease)) return 0;
+    const food = this.h.clinic.pen.food;
+    this.st.inventory[food] = (this.st.inventory[food] ?? 0) + days;
+    return days;
   }
 
   /** Checkup junto de outra consulta: testes, estado da castração confirmado (só quem nunca foi examinado). */
