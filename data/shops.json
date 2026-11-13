@@ -45,7 +45,10 @@
         "item.oil",
         "item.sausage",
         "item.beef",
-        "item.chicken"
+        "item.chicken",
+        "item.yard_sapling",
+        "item.yard_tall_grass",
+        "item.yard_short_grass"
       ]
     }
   }

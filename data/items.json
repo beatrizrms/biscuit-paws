@@ -3491,6 +3491,104 @@
         "room": "room.back_room",
         "atLeast": "restored"
       }
+    },
+    {
+      "id": "item.yard_sapling",
+      "name": "Muda de árvore",
+      "price": 15,
+      "tile": "yard_muda",
+      "description": "Planta no quintal: em uns dias vira uma árvore jovem e depois uma árvore. Vendida na banca de plantas do mercado.",
+      "tags": [
+        "furniture",
+        "garden"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      },
+      "grows": {
+        "days": 3,
+        "into": "item.yard_tree_young"
+      }
+    },
+    {
+      "id": "item.yard_tree_young",
+      "name": "Árvore jovem",
+      "price": 0,
+      "tile": "prop_arvore_jovem",
+      "seasonalTile": true,
+      "description": "A muda cresceu! Em mais uns dias vira uma árvore.",
+      "tags": [
+        "furniture",
+        "tree"
+      ],
+      "room": "room.backyard",
+      "grows": {
+        "days": 4,
+        "into": "item.yard_tree_thin"
+      }
+    },
+    {
+      "id": "item.yard_tree_thin",
+      "name": "Árvore",
+      "price": 0,
+      "tile": "prop_arvore_fina",
+      "seasonalTile": true,
+      "description": "Uma árvore do quintal (muda de cor com a estação).",
+      "tags": [
+        "furniture",
+        "tree"
+      ],
+      "room": "room.backyard"
+    },
+    {
+      "id": "item.yard_big_tree",
+      "name": "Árvore grande",
+      "price": 0,
+      "tile": "yard_arvore",
+      "description": "A árvore antiga do quintal.",
+      "tags": [
+        "furniture",
+        "tree"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_tall_grass",
+      "name": "Muda de grama alta",
+      "price": 6,
+      "tile": "yard_grama_alta",
+      "description": "Um tufo de grama alta para enfeitar o quintal. Dá para passar por cima (ela e os gatos).",
+      "tags": [
+        "furniture",
+        "garden"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
+    },
+    {
+      "id": "item.yard_short_grass",
+      "name": "Muda de grama baixa",
+      "price": 4,
+      "tile": "yard_grama_baixa",
+      "description": "Um tufo de grama baixinha para enfeitar o quintal. Dá para passar por cima.",
+      "tags": [
+        "furniture",
+        "garden"
+      ],
+      "room": "room.backyard",
+      "requires": {
+        "room": "room.backyard",
+        "atLeast": "restored"
+      }
     }
   ],
   "upgrades": {

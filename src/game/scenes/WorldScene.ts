@@ -415,6 +415,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.placingFromBox = this.placing ? box : null;
     });
     this.session.bus.on('item.picked_up', rebuildIfHome);
+    this.session.bus.on('item.removed', rebuildIfHome);
+    this.session.bus.on('plant.grew', rebuildIfHome);
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
     // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
@@ -1186,7 +1188,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placing = { itemId: host.item, ghosts: ghostsOf(host.item).ghosts, at: [host.at[0], host.at[1]], moveUid: uid, riders };
     // O original fica no lugar, esmaecido, até soltar (cancelar não muda nada).
     for (const p of group) this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => img.setAlpha(0.35));
-    this.ui.setHint('moving');
+    this.ui.setHint(this.isTree(uid) ? 'movingTree' : 'moving');
     // Pelo teclado, o fantasma começa no lugar do móvel; pelo mouse, no cursor.
     if (fromKeys) this.refreshGhost();
     else this.moveGhost(this.input.activePointer);
@@ -1431,13 +1433,30 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.pickArrow = g;
   }
 
-  /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila. */
+  /** Q enquanto muda de lugar: guarda o móvel (e o que está em cima) na mochila; árvore do quintal: remove (pergunta). */
   private storeMoving(): void {
     const uid = this.placing?.moveUid;
     if (!uid) return;
+    if (this.isTree(uid)) {
+      const t = uiText.trees;
+      void this.ui.confirm(t.removeAsk, t.yes, t.no).then((yes) => {
+        if (!yes) return;
+        const r = this.session.removeTree(uid);
+        if (!r.ok) return this.ui.problem(r.reason);
+        this.cancelPlacing();
+        this.ui.toast(t.removed);
+      });
+      return;
+    }
     const r = this.session.storePlaced(uid);
     if (!r.ok) return this.ui.problem(r.reason);
     this.cancelPlacing();
+  }
+
+  /** Uma árvore do quintal (tag tree): Q remove em vez de guardar. */
+  private isTree(uid: string): boolean {
+    const p = this.session.state.placed.find((x) => x.uid === uid);
+    return !!p && !!this.session.content.items[p.item]?.tags.includes('tree');
   }
 
   private cancelPlacing(): void {

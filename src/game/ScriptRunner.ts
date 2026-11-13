@@ -56,7 +56,8 @@ export class ScriptRunner {
     // ainda não conta como roteiro rodando, então o relógio anda e as portas funcionam (ela anda livre até lá).
     this.waiting = true;
     await this.stage.untilIdle();
-    await this.stage.until(() => this.session.sceneSpotFree());
+    // here: a cena é onde ela está (o susto no quintal), sem esperar o salão.
+    if (!this.session.content.scripts[id]?.here) await this.stage.until(() => this.session.sceneSpotFree());
     await this.stage.untilIdle();
     this.waiting = false;
     this.running = true;
@@ -94,6 +95,15 @@ export class ScriptRunner {
     else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
     else if ('setTime' in step) this.session.advanceClockTo(step.setTime);
     else if ('fireworks' in step) s.fireworks(step.fireworks);
+    else if ('roomQuote' in step) {
+      // A ligação para o Tião; sem dar (em obra, sem dinheiro), a fala de quando não dá.
+      const r = this.session.quoteRoom(step.roomQuote, step.kind);
+      const d = r.ok ? undefined : r.reason === 'busy' ? step.busy : r.reason === 'no_money' ? step.noMoney : undefined;
+      if (d) {
+        this.session.say(d);
+        await s.untilIdle();
+      }
+    }
     else if ('halloween' in step) {
       // Noite das Abóboras: a comilança (avisos de quem comeu o quê), a hora do presente e a reação.
       if (step.halloween === 'feast') this.session.halloweenFeast();

@@ -46,11 +46,17 @@ type ScriptAction =
   /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
   | { setTime: string }
   /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
-  | { fireworks: number };
+  | { fireworks: number }
+  /**
+   * Pede a obra do cômodo ao Tião (a ligação com o orçamento). Sem dar: `busy` (ele em outra obra) ou `noMoney`, a
+   * fala de quando não dá (o pedido não fica pendente: depois, pela pergunta dele no fim da obra ou pelo Market).
+   */
+  | { roomQuote: string; kind: 'room_open' | 'room_clear' | 'room_restore'; busy?: string; noMoney?: string };
 
 export interface ScriptsData {
   schemaVersion: 1;
-  scripts: Record<string, { steps: ScriptStep[] }>;
+  /** here: a cena começa onde ela está (sem esperar ela voltar ao salão; ex.: o susto no quintal). */
+  scripts: Record<string, { steps: ScriptStep[]; here?: boolean }>;
 }
 
 export interface NpcDef {
@@ -139,6 +145,9 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!['feast', 'give', 'reaction'].includes(step.halloween)) errors.push(`${where(i)}: halloween inválido "${String(step.halloween)}"`);
       } else if ('secretSanta' in step) {
         if (!['give', 'reaction', 'receive'].includes(step.secretSanta)) errors.push(`${where(i)}: secretSanta inválido "${String(step.secretSanta)}"`);
+      } else if ('roomQuote' in step) {
+        if (!refs.rooms.has(step.roomQuote)) errors.push(`${where(i)}: cômodo inexistente "${step.roomQuote}"`);
+        for (const d of [step.busy, step.noMoney]) if (d && !refs.dialogues.has(d)) errors.push(`${where(i)}: fala inexistente "${d}"`);
       } else if ('openDoor' in step) {
         if (!refs.doors.has(step.openDoor)) errors.push(`${where(i)}: porta inexistente "${step.openDoor}"`);
       } else if ('showItem' in step || 'giveItem' in step) {

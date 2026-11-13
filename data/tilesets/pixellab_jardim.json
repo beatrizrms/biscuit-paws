@@ -1,0 +1,43 @@
+{
+ "tileSize": 64,
+ "columns": 6,
+ "rows": 2,
+ "pieces": {
+  "dirt_galhos": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "dirt_tora": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "yard_muda": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_grama_alta": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "yard_grama_baixa": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "market_banca_plantas": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 3,
+   "h_tiles": 1
+  }
+ }
+}

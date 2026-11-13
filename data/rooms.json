@@ -131,6 +131,7 @@
     },
     {
       "id": "room.backyard",
+      "firstLook": "scr.yard_first_look",
       "name": "Quintal secreto",
       "separateView": true,
       "initial": "locked",
@@ -162,7 +163,8 @@
         "dirtTag": "backyard",
         "label": "Terminar a reforma do quintal",
         "builder": { "days": 2, "site": { "at": [42, 5], "facing": "right" } },
-        "dialogue": "dlg.room_backyard_restored"
+        "dialogue": "dlg.room_backyard_restored",
+        "placeItems": [{ "item": "item.yard_big_tree", "at": [40, 3] }, { "item": "item.yard_big_tree", "at": [27, 3] }]
       },
       "capacity": {
         "cats": 6,
@@ -215,10 +217,7 @@
             }
           ],
           "objectsByState": {
-            "restored": [
-              { "id": "obj.yard_tree", "tile": "yard_arvore", "at": [40,3] },
-              { "id": "obj.yard_tree_b", "tile": "yard_arvore", "at": [27,3] }
-            ]
+            "restored": []
           }
         }
       }

@@ -97,6 +97,10 @@ export interface ItemDef {
   seasons?: string[];
   /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
   room?: string;
+  /** Planta que cresce: depois de `days` dias posicionada, vira o item `into` (a muda vira árvore jovem...). */
+  grows?: { days: number; into: string };
+  /** O tile muda com a estação (`<estação>_<tile>` quando existe; o tile sem prefixo é o do inverno). */
+  seasonalTile?: boolean;
   /** Lava-louças: quantas peças cabem e quanto dura um ciclo (qualquer quantidade). E deposita a louça suja / liga. */
   washer?: { capacity: number; cycleMinutes: number };
   /** Baú (a caixa pet): espaços e tags aceitas; E no móvel abre o baú dele (src/core/storage.ts). */
@@ -387,7 +391,7 @@ export interface Content {
   npcs: Record<string, NpcDef>;
   /** Passeios de vizinhos na rua (data/npcs.json: walks). */
   npcWalks: NeighborWalkDef[];
-  scripts: Record<string, { steps: ScriptStep[] }>;
+  scripts: Record<string, { steps: ScriptStep[]; here?: boolean }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
   service: ServiceConfig;
@@ -730,6 +734,7 @@ export function validateContent(raw: RawContent): string[] {
     itemIds.add(item.id);
     const kind = item.kind ?? 'furniture';
     if (!['furniture', 'consumable', 'key', 'tool', 'fixture', 'gift'].includes(kind)) err(`items: "${item.id}" tem kind inválido`);
+    if (item.grows && (!raw.items.items.some((x) => x.id === item.grows!.into) || !(item.grows.days >= 1))) err(`items: "${item.id}" cresce para item inexistente ou em dias inválidos`);
     if (kind === 'furniture' && !item.tile) err(`items: "${item.id}" é móvel e precisa de tile`);
     // A condição pode estar dentro de all/any (ex.: a placa: inaugurado e recebida).
     if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => JSON.stringify(o.when ?? {}).includes(`"received":"${item.id}"`))))

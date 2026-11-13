@@ -686,6 +686,299 @@
       "when": {
         "flag": "litter.poop"
       }
+    },
+    {
+      "id": "dirt.backyard_branches_a",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        31,
+        4
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_b",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        35,
+        4
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_c",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        40,
+        4
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_d",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        27,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_e",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        38,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_f",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        29,
+        7
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_g",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        41,
+        9
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_branches_h",
+      "tile": "dirt_galhos",
+      "heavy": true,
+      "at": [
+        32,
+        8
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_log_a",
+      "tile": "dirt_tora",
+      "heavy": true,
+      "at": [
+        29,
+        3
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_log_b",
+      "tile": "dirt_tora",
+      "heavy": true,
+      "at": [
+        37,
+        7
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_log_c",
+      "tile": "dirt_tora",
+      "heavy": true,
+      "at": [
+        26,
+        10
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_log_d",
+      "tile": "dirt_tora",
+      "heavy": true,
+      "at": [
+        39,
+        10
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_grass_a",
+      "tile": "yard_grama_alta",
+      "heavy": true,
+      "at": [
+        31,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_grass_b",
+      "tile": "yard_grama_alta",
+      "heavy": true,
+      "at": [
+        36,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_grass_c",
+      "tile": "yard_grama_alta",
+      "heavy": true,
+      "at": [
+        26,
+        3
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_grass_d",
+      "tile": "yard_grama_alta",
+      "heavy": true,
+      "at": [
+        41,
+        4
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_grass_e",
+      "tile": "yard_grama_alta",
+      "heavy": true,
+      "at": [
+        33,
+        3
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_d",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        33,
+        7
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_e",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        35,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_f",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        30,
+        6
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_g",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        26,
+        4
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_h",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        36,
+        3
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
+    },
+    {
+      "id": "dirt.backyard_leaves_i",
+      "tile": "dirt_folhas_secas",
+      "at": [
+        42,
+        8
+      ],
+      "tags": [
+        "room",
+        "backyard"
+      ]
     }
   ],
   "surfaces": [

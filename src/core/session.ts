@@ -311,6 +311,16 @@ export class GameSession {
     });
     // Save de antes da regra "o abrigo é o café": quem estava no abrigo da vila volta para o café.
     this.arrivals.absorbShelterPool();
+    // Cômodo que já teve a limpeza pesada (algum mato pesado limpo): a sujeira pesada nova dele (galhos, toras) também.
+    for (const room of content.rooms.rooms) {
+      const tag = room.restore?.dirtTag;
+      const heavy = (content.map.dirt ?? []).filter((d) => d.heavy && tag && d.tags.includes(tag));
+      if (heavy.some((d) => state.cleaned.includes(d.id))) for (const d of heavy) if (!state.cleaned.includes(d.id)) state.cleaned.push(d.id);
+      // Reformado antes das peças da reforma (as árvores antigas): ganha agora, uma vez.
+      if (this.roomState(room.id) === 'restored') this.placeRestoreItems(room);
+    }
+    // Planta sem dia (save antigo): conta de hoje.
+    for (const p of state.placed) if (content.items[p.item]?.grows && p.plantedOn === undefined) p.plantedOn = state.day;
     // Saves antigos (v35) e gatos fixos: quem não tem estado reprodutivo ganha um (semente pelo id).
     this.clinic.ensureRepro();
     // Save de antes da caixinha de transporte: castrado que já estava na caixinha (sem vaga) continua nela.
@@ -792,6 +802,7 @@ export class GameSession {
     this.setEnergy(late ? this.content.dayNight.energy.wakeAfterLateNight : this.content.dayNight.energy.max);
     this.state.today = { earned: 0, jobs: 0 };
     this.playgroundDay();
+    this.growPlants();
     const sleepRoom = this.sleepRoom();
     const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
     this.state.location = morning.map;
@@ -1749,8 +1760,82 @@ export class GameSession {
 
   private markRestored(room: RoomDef): void {
     this.state.rooms[room.id] = 'restored';
+    this.placeRestoreItems(room);
     if (room.restore?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.restore.dialogue });
     this.bus.emit('room.restored', { roomId: room.id });
+  }
+
+  /**
+   * As peças que vêm com a reforma (restore.placeItems: as árvores antigas do quintal), uma vez só (marca
+   * `placed.<cômodo>`; se ela remover, não voltam).
+   */
+  private placeRestoreItems(room: RoomDef): void {
+    const flag = `placed.${room.id}`;
+    if (this.state.flags[flag] || !room.restore?.placeItems?.length) return;
+    this.state.flags[flag] = true;
+    for (const p of room.restore.placeItems) {
+      if (!this.content.items[p.item]) continue;
+      this.state.placed.push({ uid: `p${this.state.nextUid++}`, item: p.item, at: [p.at[0], p.at[1]] });
+    }
+  }
+
+  /** O cômodo onde ela está agora (no café), ou undefined. */
+  private playerRoomNow(): string | undefined {
+    return this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined;
+  }
+
+  /**
+   * A primeira vez que ela entra num cômodo aberto e ainda com sujeira pesada (o quintal cheio de galhos e toras): o
+   * roteiro firstLook (o susto e a ligação para o Tião). Uma vez por cômodo.
+   */
+  private checkFirstLook(): void {
+    const id = this.playerRoomNow();
+    const room = id ? this.content.rooms.rooms.find((r) => r.id === id) : undefined;
+    if (!room?.firstLook || this.state.flags[`seen.firstlook.${room.id}`]) return;
+    if (this.roomState(room.id) !== 'abandoned' || this.roomHeavyDirtLeft(room.id) === 0) return;
+    this.state.flags[`seen.firstlook.${room.id}`] = true;
+    this.bus.emit('script.requested', { scriptId: room.firstLook });
+  }
+
+  /** Remove uma árvore do quintal (tag tree): some de vez e libera o espaço. */
+  removeTree(uid: string): ActionResult {
+    const i = this.state.placed.findIndex((p) => p.uid === uid);
+    const p = this.state.placed[i];
+    if (!p || !this.content.items[p.item]?.tags.includes('tree')) return { ok: false, reason: 'not_found' };
+    this.state.placed.splice(i, 1);
+    this.bus.emit('item.removed', { itemId: p.item, uid });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /**
+   * Virada do dia: a planta que completou os dias cresce (vira o próximo item; peça mais alta sobe pela base, no mesmo
+   * lugar). Sem espaço em cima, espera.
+   */
+  private growPlants(): void {
+    const { items, catalog } = this.content;
+    for (const p of [...this.state.placed]) {
+      const grows = items[p.item]?.grows;
+      if (!grows || this.state.day - (p.plantedOn ?? this.state.day) < grows.days) continue;
+      const from = catalog.tiles[items[p.item]!.tile ?? ''];
+      const to = catalog.tiles[items[grows.into]?.tile ?? ''];
+      if (!from || !to) continue;
+      const at: Cell = [p.at[0], p.at[1] + from.h - to.h];
+      const all = this.state.placed;
+      this.state.placed = all.filter((x) => x !== p);
+      let problem: unknown;
+      try {
+        problem = this.checkPlacement(grows.into, at);
+      } finally {
+        this.state.placed = all;
+      }
+      if (problem) continue;
+      const before = p.item;
+      p.item = grows.into;
+      p.at = at;
+      p.plantedOn = this.state.day;
+      this.bus.emit('plant.grew', { uid: p.uid, from: before, to: grows.into });
+    }
   }
 
   /** Descobertas e reformas automáticas (condições dos dados). Diz se mudou algo. */
@@ -2379,6 +2464,7 @@ export class GameSession {
   /** O jogo avisa a célula dos pés dela (as cenas de Natal só começam com ela no salão). */
   setPlayerCell(cell: Cell): void {
     this.playerCell = cell;
+    this.checkFirstLook();
   }
 
   /** Avisos de evento começando já dados (evento -> dia): um por dia cada. */
@@ -3319,7 +3405,11 @@ export class GameSession {
     const works = this.constructionMapParts(base);
     const builder = this.builderAt(base.id);
     const npcs = [...(base.npcs ?? []), ...(builder ? [{ npc: this.content.construction.npc, at: builder.at, facing: builder.facing, anim: 'martelando' }] : [])];
-    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint());
+    return withPlaced({ ...base, layers: works.layers, legend: { ...legend, ...works.legend }, objects: [...base.objects, ...works.objects], npcs, dirt: this.visibleDirt() }, this.state.placed, this.content.items, this.content.world.counterLift ?? 0, (uid) => (this.state.displays[uid]?.length ?? 0) > 0, this.footprint(), (t) => {
+      // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
+      const name = `${this.season()}_${t}`;
+      return this.content.catalog.tiles[name] ? name : t;
+    });
   }
 
   /** O pintor já foi apresentado (flag do conteúdo)? Sem flag configurada, está sempre liberado. */
@@ -4424,7 +4514,7 @@ export class GameSession {
 
     this.removeFromInventory(itemId);
     const uid = `p${this.state.nextUid++}`;
-    this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]] });
+    this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]], ...(this.content.items[itemId]?.grows ? { plantedOn: this.state.day } : {}) });
     this.bus.emit('item.placed', { itemId, uid, at: [at[0], at[1]] });
     this.advanceStory();
     return { ok: true };

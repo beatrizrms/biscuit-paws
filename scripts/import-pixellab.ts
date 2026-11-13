@@ -461,6 +461,23 @@ const SHEETS: Sheet[] = [
     },
   },
   {
+    // Jardim (quintal): a sujeira pesada da primeira vez (galhos e tora, que só o Tião tira), a muda de árvore e a grama
+    // alta (itens do quintal) e a banca de plantas do mercado da vila. Uma imagem do PixelLab por peça (quintal/jardim/).
+    image: 'public/assets/env/backyard/tile_pixellab_jardim.png',
+    pieces: 'data/tilesets/pixellab_jardim.json',
+    columns: 6,
+    auto: true,
+    layout: {
+      dirt_galhos: { file: 'quintal/jardim/galhos.png', w: 1, h: 1, dy: 4 },
+      dirt_tora: { file: 'quintal/jardim/tora.png', w: 2, h: 1, dy: 2 },
+      yard_muda: { file: 'quintal/jardim/muda.png', w: 1, h: 1, dy: 2 },
+      yard_grama_alta: { file: 'quintal/jardim/grama_alta.png', w: 1, h: 1 },
+      // Grama baixa: a alta aparada (só os 24 px de baixo; a linha de corte leva o contorno escuro da própria grama).
+      yard_grama_baixa: { file: '', w: 1, h: 1, build: () => mowedGrass(readPng(`${SRC}/quintal/jardim/grama_alta.png`), 24) },
+      market_banca_plantas: { file: 'quintal/jardim/banca_plantas.png', w: 3, h: 1, dy: 2 },
+    },
+  },
+  {
     // Quintal secreto: peças novas (sebe do fundo 3x1, pérgola com o forno, árvore, topiaria, bancos e cadeiras de lado...).
     image: 'public/assets/env/backyard/tile_pixellab_quintal_novos.png',
     pieces: 'data/tilesets/pixellab_quintal_novos.json',
@@ -1592,6 +1609,29 @@ function snowPlanter(src: PNG): PNG {
       if (y > cy && !inside(x, y)) continue;
       plot(out, x, y, y === top ? line : y >= bottom - 2 ? shade : white);
     }
+  }
+  return out;
+}
+
+/**
+ * Grama aparada: só as `keep` linhas de baixo do tufo; na linha do corte, cada folha ganha a cor mais escura da própria
+ * grama (contorno), para o topo não ficar "serrado" sem borda.
+ */
+function mowedGrass(src: PNG, keep: number): PNG {
+  const out = blank(src.width, src.height);
+  const cut = src.height - keep;
+  let dark: [number, number, number] = [40, 70, 30];
+  let darkest = Infinity;
+  for (let i = 0; i < src.data.length; i += 4) {
+    if (src.data[i + 3]! < 200) continue;
+    const sum = src.data[i]! + src.data[i + 1]! + src.data[i + 2]!;
+    if (sum < darkest) { darkest = sum; dark = [src.data[i]!, src.data[i + 1]!, src.data[i + 2]!]; }
+  }
+  for (let y = cut; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+    const i = (y * src.width + x) * 4;
+    if (!src.data[i + 3]) continue;
+    if (y === cut) plot(out, x, y, dark);
+    else src.data.copy(out.data, i, i, i + 4);
   }
   return out;
 }

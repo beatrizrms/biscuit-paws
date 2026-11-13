@@ -584,6 +584,7 @@ function normalizeFestivals(f: unknown, known: ReadonlySet<string> | undefined, 
 function normalizePlaced(p: PlacedItem, known: KnownIds): PlacedItem {
   const out: PlacedItem = { uid: p.uid, item: p.item, at: [p.at[0], p.at[1]] };
   if (Number.isInteger(p.refilledOn)) out.refilledOn = p.refilledOn;
+  if (Number.isInteger(p.plantedOn)) out.plantedOn = p.plantedOn;
   if (Number.isInteger(p.stock) && p.stock! > 0 && p.stockItem && known.items.has(p.stockItem)) {
     out.stock = p.stock;
     out.stockItem = p.stockItem;

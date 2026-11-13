@@ -220,6 +220,10 @@ export interface GameEvents {
   /** Abriu uma caixa dentro do café: tudo o que veio nela (já na mochila). */
   /** Conversou com um vizinho que passeava na rua (a primeira do dia dá corações). */
   'npc.chatted': { npc: string; points: number };
+  /** Removeu uma árvore do quintal (some de vez). */
+  'item.removed': { itemId: string; uid: string };
+  /** Uma planta do quintal cresceu (a muda virou árvore jovem...). */
+  'plant.grew': { uid: string; from: string; to: string };
   'delivery.box_opened': { itemIds: string[] };
   'job.progress': { jobId: string; pointId: string };
   'job.completed': { jobId: string; reward: number };
