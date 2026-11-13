@@ -476,7 +476,14 @@ export class ClinicFlow {
         const first = !this.st.flags['vet.first_delivery'];
         this.st.flags['vet.first_delivery'] = true;
         this.h.bus.emit('clinic.delivered', { catId: id, inPen, first, isolationDays: proc.isolationDays, aftercareDays: proc.aftercareDays });
-        if (rngForCat(id, day * 31 + 7).next() < proc.complication.chance) this.complicate(id);
+      } else if (s.stage === 'isolation' && !s.complication && day === s.until - proc.isolationDays + 1) {
+        // A manhã seguinte à volta: o pontinho pode ter inflamado (a Fernanda avisa e ela leva à clínica). Não no dia
+        // da entrega: a Fernanda acabou de deixar o gato, não faria sentido pedir para levar de volta.
+        if (rngForCat(id, (day - 1) * 31 + 7).next() < proc.complication.chance) this.complicate(id);
+        else if (s.until <= day) {
+          cat.clinic = undefined;
+          this.h.bus.emit('clinic.released', { catId: id });
+        }
       } else if (s.stage === 'isolation' && s.until <= day && !s.complication) {
         cat.clinic = undefined;
         this.h.bus.emit('clinic.released', { catId: id });

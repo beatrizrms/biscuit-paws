@@ -173,6 +173,30 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect((state.cats[id]!.clinic as { complication?: boolean }).complication).toBeUndefined();
   });
 
+  it('o ponto inflamado aparece na manhã seguinte à volta, nunca no dia em que a Fernanda entrega', () => {
+    const proc = content.clinic.procedures.find((p) => p.id === 'proc.neuter')!;
+    const chance = proc.complication.chance;
+    proc.complication.chance = 1; // sempre inflama (só neste teste)
+    try {
+      const { state, session, id } = setup({ neutered: false });
+      session.debugBookNeuter(id);
+      let when: number | null = null;
+      session.bus.on('clinic.complication', () => (when = state.day));
+      session.debugClinicMorning(); // a entrega
+      const delivered = state.day;
+      expect(when).toBeNull();
+      state.hotbar.slots[0] = content.clinic.pen.food;
+      state.hotbar.active = 0;
+      state.inventory[content.clinic.pen.food] = 5;
+      session.feedIsolated('box');
+      nextDay(session, state);
+      expect(when).toBe(delivered + 1);
+      expect(session.chores().some((c) => c.kind === 'clinic' && c.clinic === 'recheck')).toBe(true);
+    } finally {
+      proc.complication.chance = chance;
+    }
+  });
+
   it('sem comer no cercadinho, a complicação pode vir (com chance), sem castigo pesado', () => {
     const { state, session, id } = setup({ neutered: false });
     session.debugBookNeuter(id);
