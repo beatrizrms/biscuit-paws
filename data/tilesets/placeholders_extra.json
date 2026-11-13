@@ -1,0 +1,13 @@
+{
+  "tileSize": 32,
+  "columns": 4,
+  "rows": 2,
+  "pieces": {
+    "bus_stop": {
+      "col": 0,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 2
+    }
+  }
+}

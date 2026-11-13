@@ -42,6 +42,10 @@ import { CedFlow } from './ced';
 import { clinicBill } from './clinic';
 import { ageMonths } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
+import { ambientLayout, ambientPasses, passesNow, type AmbientLayout, type AmbientPass } from './ambientPeople';
+
+/** Minutos de jogo que um passante leva para atravessar a rua (o jogo some com ele ao chegar na outra ponta). */
+export const AMBIENT_CROSS_MINUTES = 30;
 import { doFestivalPoint, festivalCanStart, festivalCloseDeadline, festivalClosesCafe, festivalDayEnded, festivalEndDeadline, festivalPrepExpired, finishFestival, isFestivalDay, pendingFestivalPoints, recordActivity, startFestival, type FestivalDef } from './festival';
 import { cafeAdoptCats, type AdoptCat } from './adoption';
 import { unlockedPieces } from './costume';
@@ -1078,6 +1082,19 @@ export class GameSession {
     if (this.state.time < parseClock(this.content.dayNight.goHomeFrom)) return 'too_early';
     if (this.state.service.customers.length > 0) return 'customers_inside';
     return null;
+  }
+
+  /**
+   * Ponto de ônibus: vai para o destino (data/world.json: bus). Casa encerra o dia a qualquer hora (o atalho antes de
+   * goHomeFrom); com cliente no café, ela espera o último sair, como na porta.
+   */
+  takeBus(destinationId: string): ActionResult {
+    const dest = this.content.world.bus?.destinations.find((d) => d.id === destinationId);
+    if (!dest) return { ok: false, reason: 'not_found' };
+    if (this.state.service.customers.length > 0) return { ok: false, reason: 'customers_inside' };
+    this.bus.emit('bus.taken', { destination: dest.id });
+    if (dest.goHome) this.endDay('home');
+    return { ok: true };
   }
 
   /** Ela encerra o dia e vai para casa (na porta do café, a partir de goHomeFrom). */
@@ -3722,6 +3739,44 @@ export class GameSession {
    * do café, até crowd.until. Grupinhos parados conversando e alguns passeando; ninguém em cima dos pontos do evento
    * nem da porta. null fora disso.
    */
+  /**
+   * Figurantes na praça e na rua agora (data/npcs.json: ambient): sentados, nas barracas, em grupinhos e passeando.
+   * O sorteio vale o bloco de horas inteiro (guardado; não vai para o save).
+   */
+  ambientPeople(mapId = this.state.location): AmbientLayout | null {
+    const def = this.content.ambient;
+    if (!def) return null;
+    const m = def.maps.find((x) => x.map === mapId);
+    if (!m) return null;
+    const key = `${mapId}:${this.state.day}:${Math.floor((this.state.time - parseClock(m.hours[0])) / m.blockMinutes)}:${this.weather()}`;
+    const cached = this.ambientCache.get(key);
+    if (cached !== undefined) return cached;
+    const map = this.mapData(mapId);
+    const solid = solidGrid(map, this.content.catalog);
+    const avoid: Cell[] = [...(map.doors ?? []).map((d) => d.at), map.spawn.player];
+    const layout = ambientLayout(def, mapId, this.state.day, this.state.time, this.weather(), (c, r) => solid[r]?.[c] === false, avoid);
+    if (this.ambientCache.size > 16) this.ambientCache.clear();
+    this.ambientCache.set(key, layout);
+    return layout;
+  }
+
+  /** Quem está atravessando a rua agora (a agenda do dia; vazio fora do horário ou num mapa sem passantes). */
+  ambientPassersNow(mapId = this.state.location): AmbientPass[] {
+    const def = this.content.ambient;
+    if (!def) return [];
+    const key = `${mapId}:${this.state.day}:${this.weather()}`;
+    let passes = this.passCache.get(key);
+    if (!passes) {
+      passes = ambientPasses(def, mapId, this.state.day, this.weather(), AMBIENT_CROSS_MINUTES);
+      this.passCache.clear();
+      this.passCache.set(key, passes);
+    }
+    return passesNow(passes, this.state.time, AMBIENT_CROSS_MINUTES);
+  }
+
+  private ambientCache = new Map<string, AmbientLayout | null>();
+  private passCache = new Map<string, AmbientPass[]>();
+
   festivalCrowd(mapId = this.state.location): CrowdLayout | null {
     const def = this.content.festivalCrowd;
     if (!def || mapId !== this.content.map.id || !crowdStays(def, this.state.time)) return null;

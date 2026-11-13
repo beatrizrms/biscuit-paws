@@ -747,7 +747,7 @@
 .catalog .cart-row { box-sizing: border-box; }
 
 /* Mochila (I): no centro, barra em cima e grade embaixo, espaços do tamanho dos da barra */
-.catalog.backpack { left: 50%; right: auto; top: 34px; bottom: auto; width: 236px; transform: translateX(-50%); }
+.catalog.backpack { left: 50%; right: auto; top: 34px; bottom: auto; width: 236px; box-sizing: border-box; max-height: calc(100% - 50px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; transform: translateX(-50%); }
 .catalog.backpack .list { overflow: visible; }
 .catalog.backpack .bp-strip { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 4px; margin-bottom: 2px; border-radius: 4px; background: var(--cream2); font-size: 7px; }
 .catalog.backpack .bp-strip button { padding: 0 5px; border: 1px solid #8d78bd; border-radius: 8px; background: #f3edfb; color: #5d4a8a; font: inherit; cursor: pointer; }
@@ -1291,3 +1291,21 @@
 
 /* Debug: erro de código na tela (main.ts), por cima de tudo; toque fecha. */
 .debug-error { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 1000; max-height: 60vh; overflow: auto; margin: 0; padding: 8px 10px; background: #fff0f0; color: #8a1c2c; border: 2px solid #c0394f; border-radius: 6px; font: 11px/1.35 monospace; white-space: pre-wrap; }
+
+/* ---------- Celular (html.touch-mode: o último controle foi o toque; touch.ts) ---------- */
+/* Alvos maiores para o dedo: o fechar das janelas ganha área de toque (o texto continua no mesmo lugar). */
+html.touch-mode .catalog .close, html.touch-mode .p-close { padding: 7px 9px; margin: -7px -9px; font-size: 10px; }
+/* As perguntas sem os números (são atalhos do teclado) e com botões mais altos. */
+html.touch-mode .confirm.choose .options b { display: none; }
+html.touch-mode .confirm.choose .options button { padding: 7px 10px; font-size: 9px; }
+html.touch-mode .confirm .buttons button { min-height: 24px; min-width: 56px; }
+/* A dica do rodapé num fundo escuro (legível em cima do chão claro); vazia, some. */
+html.touch-mode .hint { left: 50%; right: auto; width: max-content; max-width: 420px; transform: translateX(-50%); padding: 2px 8px; border-radius: 8px; background: #3b2a32cc; color: var(--cream); font-size: 8px; text-shadow: none; }
+html.touch-mode .hint:empty { display: none; }
+/* Barra de itens: espaços maiores e sem os números 1 a 8 (teclas). */
+html.touch-mode .hotbar .slot { width: 28px; height: 28px; }
+html.touch-mode .hotbar .key { display: none; }
+html.touch-mode .hotbar .count { font-size: 7px; }
+/* Celular deitado (#stage.sides, main.ts): a barra fica em pé na faixa da esquerda, fora do jogo (o direcional
+   fica embaixo dela). */
+html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top { top: 8px; bottom: auto; left: calc(max(2px, (var(--side-l) - 32px) / 2) - var(--side-l)); transform: none; flex-direction: column; }

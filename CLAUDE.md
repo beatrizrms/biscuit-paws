@@ -8,7 +8,7 @@ Leia `docs/` antes de mexer no código. Este arquivo é o resumo das regras.
 - Código, nomes de variáveis e IDs de conteúdo: **inglês**.
 
 ## Stack
-- Phaser 3 + TypeScript + Vite. Resolução lógica 640 x 360 e grade de 32 px; o canvas tem 1280 x 720 (câmera com zoom 2) para a arte em 64 px por tile (decisão 052). Escala inteira na tela.
+- Phaser 3 + TypeScript + Vite. Resolução lógica 640 x 360 e grade de 32 px; o canvas tem 1280 x 720 (câmera com zoom 2) para a arte em 64 px por tile (decisão 052). Escala inteira na tela (no celular, ocupa a tela toda: decisão 216).
 - Testes da lógica pura: Vitest. Teste visual/fumaça: Playwright.
 
 ## Comandos

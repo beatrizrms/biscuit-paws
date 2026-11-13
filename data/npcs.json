@@ -656,5 +656,47 @@
         "Que coincidência te ver aqui!"
       ]
     }
-  ]
+  ],
+  "_ambient": "Movimento na praça e na rua (src/core/ambientPeople.ts): figurantes (npcs) entre hours. A cada blockMinutes, sorteio novo: spotsUsed dos spots ocupados (sit: sentado no banco; stand: em pé na frente da barraca, do bebedouro, do chafariz, da lousa), chatting pessoas em grupinhos de 2 ou 3 e wanderers passeando dentro de area. passers: na rua, a cada everyMinutes, com chance, alguém entra numa das ends e sai noutra (longe). Com clima em badWeathers, a gente é multiplicada por badWeather. lines: balõezinhos dos grupinhos.",
+  "ambient": {
+    "npcs": ["npc.customer_01", "npc.customer_02", "npc.customer_03", "npc.customer_04", "npc.customer_05", "npc.customer_06", "npc.customer_07", "npc.customer_08", "npc.customer_09", "npc.customer_10"],
+    "badWeather": 0.4,
+    "badWeathers": ["rain", "snow"],
+    "lines": ["Que dia bonito!", "Viu o café dos gatos?", "Vamos de pipoca?", "Hahaha, sério?", "Olha o chafariz!", "Esse cachorro-quente é o melhor.", "Semana corrida...", "Tem gato novo lá, sabia?", "Bora dar mais uma volta?", "Adoro essa praça."],
+    "maps": [
+      {
+        "map": "map.praca",
+        "hours": ["09:00", "21:00"],
+        "blockMinutes": 150,
+        "spots": [
+          { "at": [11, 5], "facing": "down", "pose": "sit" }, { "at": [12, 5], "facing": "down", "pose": "sit" },
+          { "at": [18, 5], "facing": "down", "pose": "sit" }, { "at": [19, 5], "facing": "down", "pose": "sit" },
+          { "at": [11, 12], "facing": "down", "pose": "sit" }, { "at": [12, 12], "facing": "down", "pose": "sit" },
+          { "at": [18, 12], "facing": "down", "pose": "sit" }, { "at": [19, 12], "facing": "down", "pose": "sit" },
+          { "at": [25, 11], "facing": "down", "pose": "sit" }, { "at": [26, 11], "facing": "down", "pose": "sit" },
+          { "at": [24, 6], "facing": "up", "pose": "stand" },
+          { "at": [26, 7], "facing": "up", "pose": "stand" }, { "at": [27, 7], "facing": "up", "pose": "stand" },
+          { "at": [23, 11], "facing": "up", "pose": "stand" },
+          { "at": [1, 7], "facing": "up", "pose": "stand" },
+          { "at": [15, 10], "facing": "up", "pose": "stand" }
+        ],
+        "spotsUsed": [3, 6],
+        "area": { "from": [8, 6], "to": [22, 14] },
+        "chatting": [2, 4],
+        "wanderers": 2
+      },
+      {
+        "map": "map.street",
+        "hours": ["09:00", "21:00"],
+        "blockMinutes": 120,
+        "spots": [
+          { "at": [5, 8], "facing": "down", "pose": "sit" }, { "at": [6, 8], "facing": "down", "pose": "sit" },
+          { "at": [20, 9], "facing": "up", "pose": "stand" },
+          { "at": [16, 9], "facing": "up", "pose": "stand" }
+        ],
+        "spotsUsed": [0, 2],
+        "passers": { "ends": [[0, 9], [0, 10], [43, 9], [43, 10], [24, 8]], "everyMinutes": 12, "chance": 0.7 }
+      }
+    ]
+  }
 }

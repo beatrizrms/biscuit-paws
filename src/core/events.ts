@@ -10,6 +10,8 @@ export type DayEndReason = 'home' | 'passOut' | 'story' | 'sleep' | 'curfew' | '
 
 export interface GameEvents {
   'game.started': { isNew: boolean };
+  /** Pegou o ônibus no ponto da rua (destino de data/world.json: bus). */
+  'bus.taken': { destination: string };
   /** Ao carregar: móveis em conflito no mapa (um em cima do outro, numa parede) voltaram para a mochila. */
   'save.repaired': { itemIds: string[] };
   'map.entered': { mapId: string };

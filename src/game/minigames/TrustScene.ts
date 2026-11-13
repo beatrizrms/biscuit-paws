@@ -9,6 +9,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { crowded, FULL_TRUST, newTrust, stepTrust, trustOutcome, useTreat, type CatMood, type TrustParams, type TrustState } from '../../core/trust';
 import { content, uiText } from '../content';
+import { keyless } from '../touch';
 import { catAnim, CatSprite, catScale, catTexture } from '../entities/Cat';
 import { Player } from '../entities/Player';
 import { services } from '../services';
@@ -191,7 +192,7 @@ export class TrustScene extends MiniGameScene {
   }
 
   private treatLabel(): string {
-    return uiText.minigames.trust.treat.replace('{n}', String(this.s.treatsLeft));
+    return keyless(uiText.minigames.trust.treat.replace('{n}', String(this.s.treatsLeft)));
   }
 
   private giveTreat(): void {

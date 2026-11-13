@@ -11,6 +11,7 @@ import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import { addTileImage } from '../tileArt';
 import { iconHtml } from '../ui/ShopPanel';
 import { MiniGameControls } from './controls';
+import { keyless, touch } from '../touch';
 
 /** O que a cena recebe de quem abriu (o registro monta). */
 export interface MiniGameLaunch {
@@ -147,7 +148,9 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private tutorialHtml(): string {
     const tut = this.def.tutorial;
     if (!tut) return `<p>${esc(this.def.instructions)}</p>`;
-    return `<div class="mg-tutorial">${tut.icon ? `<span class="mg-tut-icon">${iconHtml(tut.icon, 32)}</span>` : ''}<ol>${tut.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ol></div>`;
+    // No celular, as linhas do toque (touchLines), quando o jogo tem.
+    const lines = touch.mode === 'touch' && tut.touchLines ? tut.touchLines : tut.lines;
+    return `<div class="mg-tutorial">${tut.icon ? `<span class="mg-tut-icon">${iconHtml(tut.icon, 32)}</span>` : ''}<ol>${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ol></div>`;
   }
 
   private begin(): void {
@@ -240,7 +243,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   protected hudButton(label: string, onClick: () => void): HTMLButtonElement {
     const b = document.createElement('button');
     b.className = 'menu-btn mg-skip mg-extra';
-    b.textContent = label;
+    b.textContent = keyless(label);
     b.addEventListener('click', (e) => {
       e.stopPropagation();
       if (this.phase === 'playing') onClick();
@@ -252,7 +255,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private overlay(html: string | null): void {
     const o = this.layer?.querySelector<HTMLElement>('.mg-overlay');
     if (!o) return;
-    o.innerHTML = html ? `<div class="panel mg-panel" data-game="${this.gameId}">${html}</div>` : '';
+    o.innerHTML = html ? `<div class="panel mg-panel" data-game="${this.gameId}">${keyless(html)}</div>` : '';
     o.classList.toggle('open', !!html);
     this.layer!.querySelectorAll<HTMLElement>('.mg-skip').forEach((b) => (b.hidden = this.phase === 'result'));
   }

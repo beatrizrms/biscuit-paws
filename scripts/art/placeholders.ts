@@ -291,6 +291,29 @@ function brushIcon(): Canvas {
 }
 writeWithBackup(wandIcon(), 'public/assets/objects/placeholders/icon_wand.png');
 writeWithBackup(brushIcon(), 'public/assets/objects/placeholders/icon_brush.png');
-console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira)');
+// PLACEHOLDER(arte): ponto de ônibus da rua (1x2), entre o beco e a praça. Folha própria (placeholders_extra), para
+// não mudar o layout da folha de cima.
+/** Ponto de ônibus: poste de metal com a placa azul redonda (ônibus branco) e o quadrinho de horários embaixo. */
+function busStop(): Canvas {
+  const c = new Canvas(T, T * 2);
+  c.rect(15, 14, 3, 48, at(P.metal, 2)); // poste
+  c.vline(15, 14, 48, at(P.metal, 3));
+  c.rect(12, 60, 9, 3, at(P.metal, 1)); // base
+  c.ball(16, 11, 10, 10, P.sky, -0.1); // placa redonda
+  c.ellipse(16, 11, 8, 8, at(P.navy, 3));
+  c.rect(10, 7, 12, 7, at(P.porcelain, 4)); // ônibus
+  c.rect(11, 8, 4, 3, at(P.sky, 4)); // janelas
+  c.rect(17, 8, 4, 3, at(P.sky, 4));
+  c.px(12, 14, at(P.metal, 1)); // rodas
+  c.px(20, 14, at(P.metal, 1));
+  c.rect(10, 27, 13, 15, at(P.cream, 5)); // quadro de horários
+  c.rect(10, 27, 13, 3, at(P.butter, 3));
+  for (let y = 32; y < 41; y += 3) c.hline(12, y, 9, at(P.cream, 2));
+  return c.outline();
+}
+const extra = new Canvas(4 * T, T * 2);
+extra.blit(busStop(), 0, 0);
+writeWithBackup(extra, 'public/assets/objects/placeholders/tile_placeholders_extra.png');
+console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

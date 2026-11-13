@@ -119,6 +119,8 @@ const CROWD_TALK_EVERY_MS = 2400;
 const CROWD_TALK_MS = 2200;
 /** Quem passeia na plateia para um pouco em cada ponto. */
 const CROWD_PAUSE_MS = 1400;
+/** Na praça, alguém de um grupinho fala a cada tanto (mais devagar que na plateia da festa). */
+const AMBIENT_TALK_EVERY_MS = 4200;
 /** Celular: segurando o direcional com o fantasma na mão, uma célula a cada tanto (ms). */
 const TOUCH_NUDGE_MS = 220;
 /** Caminhada de roteiro: sem chegar mais perto por tanto tempo (ms), ela muda de eixo e depois desiste. */
@@ -193,6 +195,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private crowdCheckedAt = -Infinity;
   private crowdTalkAt = 0;
   private crowdTurn = 0;
+  /** Figurantes da praça e da rua (session.ambientPeople): os bonecos, o bloco do sorteio na tela e a vez da conversa. */
+  private readonly ambient = new Map<string, NpcSprite>();
+  private ambientBlock: number | null = null;
+  /** Acabou de entrar no mapa: a turma já está lá (sem aparecer devagar). */
+  private ambientFresh = true;
+  private ambientGroups: string[][] = [];
+  private ambientCheckedAt = -Infinity;
+  private ambientTalkAt = 0;
+  private ambientTurn = 0;
+  /** Quem está atravessando a rua (session.ambientPassersNow) e as travessias já começadas neste mapa. */
+  private readonly passers = new Map<string, NpcSprite>();
+  private readonly passesStarted = new Set<string>();
   /** O Tião consertando um equipamento (fora do mapa de NPCs: pode coincidir com ele na obra). */
   private repairNpcs = new Map<string, NpcSprite>();
   /** "!" em cima de cada equipamento quebrado. */
@@ -620,6 +634,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateTouchPlacing(busy);
     this.updateNeighborWalks();
     this.updateCrowd();
+    this.updateAmbient();
     // Controles de toque só quando ela pode andar e agir: com qualquer coisa por cima do jogo (fala, pergunta, cena,
     // placa, janela, pausa), somem (a camada deles fica acima da interface e cobriria os botões da janela).
     touch.setHidden(this.ui.isBusy());
@@ -695,6 +710,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.neighborWalks.clear();
     this.crowd.clear();
     this.crowdGroups = [];
+    this.ambient.clear();
+    this.passers.clear();
+    this.passesStarted.clear();
+    this.ambientGroups = [];
+    this.ambientBlock = null;
+    this.ambientFresh = true;
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -728,6 +749,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.refreshParcels();
     this.clearCustomers();
     this.refreshSurfaces();
+  }
+
+  /** No ponto de ônibus: para onde ir (casa, por enquanto) ou ficar. */
+  private askBus(): void {
+    const t = uiText.bus;
+    const dests = this.session.content.world.bus?.destinations ?? [];
+    void this.ui.choose(t.question, [...dests.map((d) => d.label), t.stay]).then((i) => {
+      const dest = dests[i];
+      if (!dest) return;
+      const r = this.session.takeBus(dest.id);
+      if (!r.ok) this.ui.problem(r.reason);
+    });
   }
 
   /** Na cama do quartinho: dormir no café (depois do horário de ir para casa). */
@@ -1849,6 +1882,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
     else if ('sleep' in it.action) this.askSleep();
     else if ('hours' in it.action) this.ui.showHours(it.action.hours);
+    else if ('bus' in it.action) this.askBus();
     else if ('curtain' in it.action) this.session.toggleCurtain(it.action.curtain, it.action.dialogue, it.action.dialogueWhen, it.action.dialogueAlt);
     else this.ui.openNews('board');
     return true;
@@ -2043,7 +2077,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private faceTalkers(): void {
     const ts = this.map.tileSize;
     for (const [id, npc] of this.npcs) {
-      if (!npc.active || npc.anims.isPlaying || this.crowd.get(id) === npc || this.neighborWalks.has(id)) continue;
+      if (!npc.active || npc.anims.isPlaying || this.crowd.get(id) === npc || this.ambient.get(id) === npc || this.passers.get(id) === npc || this.neighborWalks.has(id)) continue;
       if (this.tweens.getTweensOf(npc).some((t) => t.isPlaying())) continue;
       const dx = this.player.x - npc.x;
       const dy = this.player.y - npc.y;
@@ -2159,6 +2193,117 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     this.crowd.clear();
     this.crowdGroups = [];
+  }
+
+  // ---------- Movimento na praça e na rua ----------
+
+  /**
+   * Das 9h às 21h (data/npcs.json: ambient): na praça, gente sentada nos bancos, nas barracas, em grupinhos e
+   * passeando; a cada bloco de horas a turma troca (uns somem devagar, outros aparecem). Na rua, gente atravessando.
+   */
+  private updateAmbient(): void {
+    if (this.changingMap || this.scripts.isRunning()) return;
+    if (this.time.now - this.ambientCheckedAt >= 500) {
+      this.ambientCheckedAt = this.time.now;
+      const layout = this.session.ambientPeople(this.map.id);
+      const block = layout?.block ?? null;
+      if (block !== this.ambientBlock) {
+        this.clearAmbient();
+        if (layout) this.spawnAmbient(layout, !this.ambientFresh);
+        this.ambientBlock = block;
+      }
+      this.ambientFresh = false;
+      for (const p of this.session.ambientPassersNow(this.map.id)) {
+        const key = `${p.npc}@${p.at}`;
+        if (this.passesStarted.has(key) || this.npcs.has(p.npc)) continue;
+        this.passesStarted.add(key);
+        void this.startPasser(p.npc, p.from, p.to);
+      }
+    }
+    if (this.ambientGroups.length === 0 || this.ui.isBusy() || this.time.now < this.ambientTalkAt) return;
+    this.ambientTalkAt = this.time.now + AMBIENT_TALK_EVERY_MS;
+    const lines = this.session.content.ambient?.lines ?? [];
+    const group = this.ambientGroups[this.ambientTurn % this.ambientGroups.length]!;
+    const id = group[Math.floor(this.ambientTurn / this.ambientGroups.length) % group.length]!;
+    const speaker = this.npcs.get(id) === this.ambient.get(id) ? this.ambient.get(id) : undefined;
+    const line = lines[(this.ambientTurn * 7 + this.session.state.day) % Math.max(1, lines.length)];
+    this.ambientTurn++;
+    if (speaker?.active && line) this.speechBubble(speaker, line, CROWD_TALK_MS);
+  }
+
+  /** Um figurante no lugar (aparece devagar quando a turma troca com ela olhando). */
+  private placeAmbient(id: string, at: Cell, facing: Facing, fade: boolean): NpcSprite | undefined {
+    if (this.npcs.has(id)) return undefined;
+    this.spawnNpc(id, at, facing);
+    const npc = this.npcs.get(id);
+    if (!npc) return undefined;
+    this.ambient.set(id, npc);
+    if (fade) {
+      npc.setAlpha(0);
+      this.tweens.add({ targets: npc, alpha: 1, duration: 600 });
+    }
+    return npc;
+  }
+
+  private spawnAmbient(layout: NonNullable<ReturnType<GameSession['ambientPeople']>>, fade: boolean): void {
+    const ts = this.map.tileSize;
+    for (const s of layout.spots) {
+      const npc = this.placeAmbient(s.npc, s.at, s.facing, fade);
+      // Sentado no banco: na frente dele (o banco é desenhado pela base, na mesma linha).
+      if (npc && s.pose === 'sit' && npc.sit(s.facing)) npc.setDepth(ySortDepth((s.at[1] + 1) * ts) + 1);
+    }
+    this.ambientGroups = layout.groups.map((g) => g.map((m) => m.npc));
+    for (const m of layout.groups.flat()) this.placeAmbient(m.npc, m.at, m.facing, fade);
+    for (const w of layout.walkers) if (this.placeAmbient(w.npc, w.path[0]!, 'down', fade)) void this.ambientWander(w.npc, w.path);
+  }
+
+  /** Quem passeia pela praça vai de um ponto a outro, parando um pouco em cada, enquanto a turma for a mesma. */
+  private async ambientWander(id: string, path: Cell[]): Promise<void> {
+    const npc = this.ambient.get(id);
+    const ts = this.map.tileSize;
+    for (let i = 1; npc?.active && this.ambient.get(id) === npc && this.npcs.get(id) === npc; i++) {
+      // Pelas células livres, sem tirar a personagem do caminho (o npcWalk das cenas faz ela dar um passo).
+      const route = findPath(this.map.solid, [Math.floor(npc.x / ts), Math.floor(npc.y / ts)], path[i % path.length]!);
+      for (const corner of route ? pathCorners(route) : []) {
+        if (!npc.active || this.npcs.get(id) !== npc) return;
+        await npc.walkTo(corner);
+      }
+      if (!npc.active) return;
+      npc.face('down');
+      await new Promise<void>((done) => this.time.delayedCall(CROWD_PAUSE_MS * 2, done));
+    }
+  }
+
+  /** A turma do bloco vai embora (some devagar); um roteiro que trocou o boneco de alguém fica com o dele. */
+  private clearAmbient(): void {
+    for (const [id, npc] of this.ambient) {
+      if (this.npcs.get(id) !== npc) continue;
+      this.npcs.delete(id);
+      if (npc.active) void npc.leave();
+    }
+    this.ambient.clear();
+    this.ambientGroups = [];
+  }
+
+  /** Alguém atravessa a rua: aparece numa ponta (ou saindo de uma porta), anda até a outra e some. */
+  private async startPasser(id: string, from: Cell, to: Cell): Promise<void> {
+    const path = findPath(this.map.solid, from, to);
+    if (!path) return;
+    this.spawnNpc(id, from, to[0] > from[0] ? 'right' : 'left');
+    const npc = this.npcs.get(id);
+    if (!npc) return;
+    this.passers.set(id, npc);
+    npc.setAlpha(0);
+    this.tweens.add({ targets: npc, alpha: 1, duration: 400 });
+    const mine = () => npc.active && this.npcs.get(id) === npc;
+    for (const corner of pathCorners(path)) {
+      if (!mine()) break;
+      await npc.walkTo(corner);
+    }
+    if (this.passers.get(id) === npc) this.passers.delete(id);
+    if (!mine()) return;
+    this.npcs.delete(id);
+    await npc.leave();
   }
 
   // ---------- Vizinhos passeando na rua ----------
