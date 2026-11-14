@@ -50,17 +50,21 @@ export function facingScore(cells: readonly Cell[], feet: readonly Cell[], at: C
 
 /**
  * Escolhe o alvo do E. Ordem: o que é estado (sticky); a ação de verdade antes do que só explica (weak); depois o
- * que está mais na frente dela (facingScore); no empate, o que combina com a ferramenta na mão; depois o tipo (tier);
- * depois o mais perto da célula da frente; e, por fim, a ordem em que os candidatos vieram. `at`: a célula dos pés dela (de onde sai a frente).
+ * que está mais na frente dela (facingScore) e, nisso, o mais perto da célula da frente (o item mais próximo na direção
+ * dela, decisão dela de 2026-11-15); no empate (a mesma célula), o que combina com a ferramenta na mão; depois o tipo
+ * (tier); e, por fim, a ordem em que os candidatos vieram. `at`: a célula dos pés dela (de onde sai a frente).
  */
 export function pickETarget<T>(candidates: readonly ECandidate<T>[], feet: readonly Cell[], at: Cell, facing: Facing): T | null {
   if (candidates.length === 0) return null;
   const [dx, dy] = facing === 'up' ? [0, -1] : facing === 'down' ? [0, 1] : facing === 'left' ? [-1, 0] : [1, 0];
   const front: Cell = [at[0] + dx, at[1] + dy];
+  // Perto dela: quantas células até a coisa (a diagonal encostada conta 1, como o lado); no empate, a mais perto da
+  // célula da frente.
+  const near = (cells: readonly Cell[]) => Math.min(...cells.map(([c, r]) => Math.max(Math.abs(c - at[0]), Math.abs(r - at[1]))));
   const dist = (cells: readonly Cell[]) => Math.min(...cells.map(([c, r]) => Math.abs(c - front[0]) + Math.abs(r - front[1])));
   const ranked = candidates.map((c, i) => ({
     c,
-    key: [c.sticky ? 0 : 1, c.weak ? 1 : 0, c.sticky ? 0 : facingScore(c.cells, feet, at, facing), c.tool ? 0 : 1, c.tier, c.cells.length ? dist(c.cells) : 99, i],
+    key: [c.sticky ? 0 : 1, c.weak ? 1 : 0, c.sticky ? 0 : facingScore(c.cells, feet, at, facing), c.cells.length ? near(c.cells) : 99, c.cells.length ? dist(c.cells) : 99, c.tool ? 0 : 1, c.tier, i],
   }));
   ranked.sort((a, b) => {
     for (let k = 0; k < a.key.length; k++) if (a.key[k] !== b.key[k]) return a.key[k]! - b.key[k]!;

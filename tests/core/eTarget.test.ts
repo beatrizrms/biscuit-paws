@@ -75,6 +75,13 @@ describe('conflitos com sujeira perto dos itens', () => {
     expect(pickETarget([c('caixa de areia', [[5, 4]], 8, { weak: true })], feet, at, 'up')).toBe('caixa de areia');
   });
 
+  it('na mesma direção, o mais perto vence o tipo e a ferramenta (o item mais próximo na direção dela)', () => {
+    // Olhando para cima, as duas na diagonal da frente: a cafeteira encostada e o pó uma célula mais adiante (com a vassoura).
+    expect(pickETarget([c('pó adiante', [[4, 3]], 5, { tool: true }), c('cafeteira', [[6, 4]], 3)], feet, at, 'up')).toBe('cafeteira');
+    // Do lado (nada na frente): o mais perto vence, mesmo sendo de tipo de menos prioridade.
+    expect(pickETarget([c('pia longe', [[7, 5]], 3), c('ponto perto', [[4, 5]], 5)], feet, at, 'up')).toBe('ponto perto');
+  });
+
   it('nenhum candidato: nada', () => {
     expect(pickETarget([], feet, at, 'down')).toBeNull();
   });

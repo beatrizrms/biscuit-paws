@@ -1882,7 +1882,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const feet = this.playerCells();
     const plan = (hint: EPlan['hint'], run: () => boolean): EPlan => ({ hint, run });
-    // Antes de tudo: o Tião na obra, os convidados e vizinhos, as caixas da entrega na porta ou nas mãos.
+    // Antes de tudo, só o que é o momento de um evento ou o que está nas mãos: a troca de presentes da ceia (ou do
+    // Halloween) com o convidado do lado, e soltar as caixas da entrega que ela carrega.
+    const guest = this.santaGuestNear();
+    if (guest && (s.santaGivingNow() || s.halloweenGivingNow())) {
+      const [npc, sprite] = guest;
+      const santa = s.santaGivingNow();
+      const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
+      return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
+    }
+    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
+    // Gente perto (o Tião na obra, convidados da festa, amigos passeando) entra na mesma regra de tudo: quem está na
+    // frente dela vence (antes, o Tião do lado tomava o E da despensa bem na frente).
+    const people: ECandidate<EPlan>[] = [];
     if (s.builderNear(feet)) {
       const at = s.builderAt(s.location())!.at;
       const tiao = s.content.construction.npc;
@@ -1890,38 +1902,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const talk = s.giftProblem(tiao) === null
         ? plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'friend_gift' }, () => this.tryFriendGift(tiao, () => this.talkToBuilder()))
         : plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
-      // As caixas da entrega na porta, com ele trabalhando do lado: vence o que está na frente dela (a regra do E).
-      if (s.parcelsNear(feet) !== 'door') return talk;
-      const door = s.content.delivery.door.at;
-      const boxes = plan(this.hintCell(door, 'parcels_door'), () => this.parcelInteract());
-      return pickETarget([{ cells: [at], tier: 1, value: talk }, { cells: [door], tier: 0, value: boxes }], feet, this.feetCell(), this.player.facingDirection());
+      people.push({ cells: [at], tier: E_TIER.interaction, value: talk });
     }
-    const guest = this.santaGuestNear();
     if (guest) {
       const [npc, sprite] = guest;
+      const cell: Cell = [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)];
       const chat = s.festivePartyOn() && s.partyHasChat(npc);
-      if (s.santaGivingNow() || s.halloweenGivingNow()) {
-        const santa = s.santaGivingNow();
-        const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
-        return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
-      }
-      // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
       const walking = (this.neighborWalks.has(npc) || this.roamers.has(npc)) && s.neighborHasChat(npc);
-      if (s.giftProblem(npc) === null) return plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite));
-      if (chat) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat());
-      if (walking && this.roamers.has(npc)) {
-        const ts = this.map.tileSize;
-        const cell: Cell = [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)];
-        return pickETarget([{ cells: [cell], tier: E_TIER.interaction, value: plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat()) }, ...this.eCandidates()], feet, this.feetCell(), this.player.facingDirection());
-      }
-      if (walking) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
+      // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
+      const talk = s.giftProblem(npc) === null
+        ? plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite))
+        : chat ? plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat())
+        : walking ? plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat())
+        : null;
+      if (talk) people.push({ cells: [cell], tier: E_TIER.interaction, value: talk });
     }
-    const parcels = s.parcelsNear(feet);
-    if (parcels === 'door') return plan(this.hintCell(s.content.delivery.door.at, 'parcels_door'), () => this.parcelInteract());
-    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
+    // As caixas da entrega na porta do café (na rua).
+    if (s.parcelsNear(feet) === 'door') {
+      const door = s.content.delivery.door.at;
+      people.push({ cells: [door], tier: E_TIER.parcels, value: plan(this.hintCell(door, 'parcels_door'), () => this.parcelInteract()) });
+    }
     // O resto (sujeira, equipamento, gato, pote, janela, ponto de pedido...): uma regra só, em src/core/eTarget.ts. O que
     // está bem na frente dela vence; no empate, o que combina com a ferramenta na mão; depois o tipo; depois o mais perto.
-    return pickETarget(this.eCandidates(), feet, this.feetCell(), this.player.facingDirection());
+    return pickETarget([...people, ...this.eCandidates()], feet, this.feetCell(), this.player.facingDirection());
   }
 
   /**
