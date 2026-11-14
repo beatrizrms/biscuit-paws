@@ -22,6 +22,7 @@ import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
 import { RobotVacuumView } from '../RobotVacuumView';
+import { WaiterRobotView } from '../WaiterRobotView';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import { actorsOf } from '../../core/arrivalModels';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
@@ -262,6 +263,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
   private robotView?: RobotVacuumView;
+  private waiterView?: WaiterRobotView;
   /** Sons ligados aos eventos e ao lugar. */
   private sounds: SoundEvents | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
@@ -540,7 +542,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked', 'delivery.dropped'] as const) this.session.bus.on(ev, () => this.refreshParcels());
-    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left', 'waiter.picked'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId }) => {
@@ -960,6 +962,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.roomView.refresh(mapId === this.session.content.map.id);
     this.robotView ??= new RobotVacuumView(this, this.session);
     this.robotView.refresh(mapId, ts, () => this.map.solid);
+    this.waiterView ??= new WaiterRobotView(this, this.session, (vessel) => {
+      // A louça suja na bandeja, no tamanho em que fica na mesa (o ícone tem a escala dele).
+      const img = this.handItemImage({ kind: 'dirty', vessel } as HandItem);
+      return img?.setScale((img.getData('iconScale') as number | undefined) ?? 1);
+    });
+    this.waiterView.refresh(mapId, ts, () => this.map.solid);
   }
 
   /** Cômodos mudaram: mapa, escuro, câmera e luz de fora. */

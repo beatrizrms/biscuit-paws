@@ -2520,6 +2520,20 @@
       }
     },
     {
+      "id": "item.waiter_robot",
+      "name": "Robô garçom",
+      "price": 450,
+      "tile": "ph_waiter_dock",
+      "description": "Recolhe a louça suja das mesas e do balcão e leva para a pia (ou para a lava-louças, se tiver). Posicione a base de recarga: é de lá que ele sai e para lá que ele volta. Não lava nem serve.",
+      "tags": [
+        "furniture",
+        "equipment",
+        "waiter_robot"
+      ],
+      "requires": { "milestone": "milestone.machine_waiter" },
+      "waiter": { "cellsPerMinute": 1, "restMinutes": 1 }
+    },
+    {
       "id": "item.robot_vacuum",
       "name": "Robô aspirador",
       "price": 600,

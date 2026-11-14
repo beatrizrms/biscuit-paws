@@ -84,8 +84,9 @@ O intervalo entre clientes passa a ser multiplicado por um fator da reputação:
 ## 4. Ordem sugerida para fazer
 
 1. ~~Procura pela reputação~~ **feito** (`data/service.json: reputationArrival`).
+2. ~~O interruptor "Movimento"~~ não vai ter (decisão dela).
 2. O interruptor "Movimento" no app Horário (opcional).
-3. A máquina (um objeto, uma regra, um item na aba Assistência).
+3. ~~A máquina~~ **feito:** o robô garçom (conquista Bandeja cheia, 100 clientes; arte provisória).
 4. A pessoa (NPC novo, cena de chegada, as três funções, salário).
 
 ## Para decidir

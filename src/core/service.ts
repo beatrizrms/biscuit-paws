@@ -140,6 +140,9 @@ const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Ma
 const same = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 const loadCount = (load: Record<Vessel, number>) => VESSELS.reduce((n, v) => n + (load[v] ?? 0), 0);
 
+/** Células entre duas (sem diagonal): o tamanho aproximado do caminho do robô garçom. */
+const steps = (a: Cell, b: Cell) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+
 export class CafeService {
   constructor(private h: ServiceHost) {}
 
@@ -752,6 +755,7 @@ export class CafeService {
     const now = this.now();
     const passed = this.lastTickAt === null ? 0 : Math.max(0, now - this.lastTickAt);
     this.lastTickAt = now;
+    this.waiterTick(now);
     const sv = this.st.service;
     // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
     if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += passed;
@@ -931,6 +935,74 @@ export class CafeService {
   }
 
   // ---------- Ações da personagem ----------
+
+  // ---------- Robô garçom ----------
+  // Uma viagem por vez: sai da base até a louça suja mais perto (o tempo pela distância), pega e já deixa na pia ou na
+  // lava-louças (o jogo mostra ele levando). A viagem não vai para o save: carregado no meio, ele recomeça da base e a
+  // louça continua na mesa.
+
+  /** A viagem em andamento (até a louça em `dishAt`, chegando em `arriveAt`) e até quando ele descansa na base. */
+  private waiterTrip: { dishAt: Cell; arriveAt: number } | null = null;
+  private waiterRestUntil = 0;
+
+  /** A base do robô garçom posicionada no café, se tiver. */
+  waiterRobot(): PlacedItem | undefined {
+    return this.st.placed.find((p) => this.h.content.items[p.item]?.waiter);
+  }
+
+  /** Onde a louça vai: a lava-louças com lugar (e não quebrada), senão a pia com lugar; null = tudo cheio. */
+  private waiterTarget(): { kind: 'washer'; uid: string; at: Cell } | { kind: 'sink'; at: Cell } | null {
+    for (const p of this.st.placed) {
+      const def = this.h.content.items[p.item]?.washer;
+      if (!def || this.isBroken(p.uid)) continue;
+      if (loadCount(this.washerState(p.uid).load) < def.capacity) return { kind: 'washer', uid: p.uid, at: p.at };
+    }
+    if (loadCount(this.st.sink.load) < this.cfg.sinkCapacity && !this.st.sink.washing) return { kind: 'sink', at: this.sinkCell() };
+    return null;
+  }
+
+  /**
+   * A viagem leva o tempo do caminho (células, sem diagonal) na velocidade dele: um pouco mais devagar que o desenho, para
+   * o robô chegar na mesa antes de a louça sumir dela.
+   */
+  private waiterTick(now: number): void {
+    const robot = this.waiterRobot();
+    const def = robot ? this.h.content.items[robot.item]?.waiter : undefined;
+    if (!robot || !def) {
+      this.waiterTrip = null;
+      return;
+    }
+    if (this.waiterTrip) {
+      if (now < this.waiterTrip.arriveAt) return;
+      const at = this.waiterTrip.dishAt;
+      this.waiterTrip = null;
+      const i = this.st.surfaces.findIndex((s) => same(s.at, at) && s.item.kind === 'dirty');
+      const target = this.waiterTarget();
+      // A volta: da louça até a pia (ou a lava-louças) e de lá até a base, e um descanso. Sem louça (ela pegou antes) ou
+      // com tudo cheio no caminho, ele volta direto, de mãos vazias.
+      const back = !target || i < 0 ? steps(at, robot.at) : steps(at, target.at) + steps(target.at, robot.at);
+      this.waiterRestUntil = now + Math.ceil(back / def.cellsPerMinute) + def.restMinutes;
+      if (i < 0 || !target) return;
+      const [dish] = this.st.surfaces.splice(i, 1);
+      const vessel = (dish!.item as { vessel: Vessel }).vessel;
+      if (target.kind === 'washer') {
+        const w = this.washerState(target.uid);
+        w.load[vessel] = (w.load[vessel] ?? 0) + 1;
+        this.h.bus.emit('washer.changed', { uid: target.uid, load: loadCount(w.load), washing: !!w.washing });
+      } else {
+        this.st.sink.load[vessel] = (this.st.sink.load[vessel] ?? 0) + 1;
+        this.h.bus.emit('sink.changed', { load: loadCount(this.st.sink.load) });
+      }
+      this.h.bus.emit('waiter.picked', { at: [at[0], at[1]], vessel, to: [target.at[0], target.at[1]] });
+      return;
+    }
+    if (now < this.waiterRestUntil || !this.waiterTarget()) return;
+    // A louça suja mais perto da base (nas mesas e no balcão; a da mão dela não).
+    const dish = this.st.surfaces.filter((s) => s.item.kind === 'dirty').sort((a, b) => steps(a.at, robot.at) - steps(b.at, robot.at))[0];
+    if (!dish) return;
+    this.waiterTrip = { dishAt: [...dish.at], arriveAt: now + Math.max(1, Math.ceil(steps(dish.at, robot.at) / def.cellsPerMinute)) };
+    this.h.bus.emit('waiter.going', { at: [dish.at[0], dish.at[1]] });
+  }
 
   surfaceAt(at: Cell): SurfaceItem | undefined {
     return this.st.surfaces.find((s) => same(s.at, at));
