@@ -1,4 +1,4 @@
-// Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação),
+// Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação), {untilDay:26} ("faltam 3 dias", "falta 1 dia", "é hoje!", "a data já passou"),
 // {santa:name} / {santa:hint} / {santa:giver} (o amigo secreto do ano: quem ela tirou, a dica, quem a tirou),
 // {halloween:name} / {halloween:hint} / {halloween:foods} (a festa de Halloween: quem ela tirou, a dica, os doces favoritos),
 // {arrival:condition} / {arrival:personality} / {arrival:npc} / {arrival:leader} (a chegada de gato em andamento: como chega,
@@ -21,12 +21,18 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{halloween:(\w+)\}/g, (_, what: string) => halloweenText(session, what))
     .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
-    // Dias até um dia do jogo (o dia 26 da inauguração); passou, 0.
-    .replace(/\{daysUntilDay:(\d+)\}/g, (_, day: string) => String(Math.max(0, Number(day) - session.state.day)))
+    // Quanto falta para um dia do jogo (o dia 26 da inauguração), em palavras.
+    .replace(/\{untilDay:(\d+)\}/g, (_, day: string) => untilDayText(Number(day) - session.state.day))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);
       return t === undefined ? '' : formatClock(t, 5);
     });
+}
+
+/** "faltam 3 dias", "falta 1 dia", "é hoje!" ou "a data já passou". */
+function untilDayText(days: number): string {
+  const t = uiText.goals.untilDay;
+  return days > 1 ? t.many.replace('{n}', String(days)) : days === 1 ? t.one : days === 0 ? t.today : t.past;
 }
 
 /** Festa de Halloween: quem ela tirou, a dica do presente e o doce favorito de cada convidado ("a Gabi não resiste..."). */

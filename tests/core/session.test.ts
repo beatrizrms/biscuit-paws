@@ -778,7 +778,7 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta antes do dia 26: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{daysUntilDay:26}');
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{untilDay:26}');
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');
@@ -803,6 +803,25 @@ describe('lousa da porta (peça fixa)', () => {
     session.tickClock(2);
     expect(session.isEventDay()).toBe(false);
     expect(session.state.business).toBe('inaugurated');
+  });
+
+  it('pronta à noite: a inauguração fica para a manhã seguinte (só entre 8h e 18h)', () => {
+    const state = newGameState(5000, 'map.cafe_main', 21 * 60);
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1), 'story.opening_nudge_repairs', 'story.opening_nudge_sign', 'story.opening_nudge_prep');
+    state.business = 'soft_open';
+    state.day = 27;
+    const session = new GameSession(content, state);
+    renovate(session);
+    session.buy('item.cafe_sign');
+    session.tickClock(2);
+    expect(session.state.business).toBe('soft_open');
+    session.state.day = 28;
+    session.state.time = 7 * 60 + 50;
+    session.tickClock(2);
+    expect(session.state.business).toBe('soft_open'); // 7h52: ainda não
+    session.tickClock(10);
+    expect(session.state.business).toBe('inaugurated'); // 8h
   });
 
   it('o empurrão da Gabi: no dia 23, sem os reparos, ela liga lembrando o que falta (uma vez)', () => {

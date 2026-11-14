@@ -33,6 +33,8 @@ export interface ScriptStage {
 export class ScriptRunner {
   private queue: string[] = [];
   private running = false;
+  /** O roteiro rodando agora (ou null). */
+  private current: string | null = null;
   /** Um roteiro esperando a vez de começar (não pausa o jogo). */
   private waiting = false;
 
@@ -50,6 +52,11 @@ export class ScriptRunner {
     return this.running;
   }
 
+  /** O roteiro rodando agora (ou null). */
+  currentId(): string | null {
+    return this.running ? this.current : null;
+  }
+
   private async next(): Promise<void> {
     if (this.running || this.waiting) return;
     const id = this.queue.shift();
@@ -63,8 +70,10 @@ export class ScriptRunner {
     await this.stage.untilIdle();
     this.waiting = false;
     this.running = true;
+    this.current = id;
     for (const step of this.session.content.scripts[id]?.steps ?? []) await this.run(step);
     this.running = false;
+    this.current = null;
     this.session.finishScript(id);
     void this.next();
   }

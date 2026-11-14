@@ -298,6 +298,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private vanBusy = false;
   private vanObjects: Phaser.GameObjects.GameObject[] = [];
   private jobIcons: Phaser.GameObjects.Image[] = [];
+  /** Algo da chegada de gato ou dos pedidos está escondido por um roteiro (clearStage, ou a mesma pessoa em cena): no fim, desenha de novo. */
+  private stageCleared = false;
   /** Gato (e vizinho) da chegada esperando no mapa. */
   private arrivalActors: Phaser.GameObjects.GameObject[] = [];
   /** A fita da inauguração na porta, em três pedaços (só durante a cena). */
@@ -646,7 +648,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.sounds?.update();
     // Clima ou estação novos (o vento continua, mas a estação virou: as folhas trocam de cor).
     if (this.session.weather() !== this.shownWeather || this.session.state.day !== this.shownWeatherDay) this.refreshWeather();
-    this.updateArrivalActors(this.game.loop.delta);
+    // Roteiro com clearStage (a inauguração): sem o "!" dos pedidos nem a chegada de gato no meio da cena.
+    const clear = !!this.session.content.scripts[this.scripts.currentId() ?? '']?.clearStage;
+    if (clear && !this.stageCleared) {
+      this.stageCleared = true;
+      this.hideStageMarks();
+    } else if (this.stageCleared && !this.scripts.isRunning()) {
+      this.stageCleared = false;
+      this.refreshJobPoints();
+    }
+    if (!this.stageCleared) this.updateArrivalActors(this.game.loop.delta);
     this.syncNpcBlockers();
     const k = this.keys;
     const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
@@ -2999,6 +3010,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return icon;
       });
     this.jobIcons = [...arrows, ...icons];
+    if (this.session.content.scripts[this.scripts.currentId() ?? '']?.clearStage) this.hideStageMarks();
   }
 
   /**
@@ -3731,6 +3743,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return true;
   }
 
+  /** Esconde os marcadores dos pedidos e quem está na chegada de gato (o gato, o vizinho, as pegadas). */
+  private hideStageMarks(): void {
+    for (const o of [...this.jobIcons, ...this.arrivalActors]) (o as unknown as Phaser.GameObjects.Components.Visible).setVisible?.(false);
+  }
+
   /** O Tião ao lado do equipamento, martelando (de preferência à esquerda, virado para ele). */
   private showRepairNpc(uid: string): void {
     if (!this.session.atHome() || this.repairNpcs.has(uid)) return;
@@ -4290,8 +4307,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const def = this.session.content.npcs[npcId];
     if (!def) return;
     this.npcs.get(npcId)?.destroy();
-    // A mesma pessoa parada na rua por uma chegada de gato (ex.: a Neusa dando a dica): sai de cena, para não ficar em dobro.
-    for (const a of this.arrivalActors) if (a instanceof NpcSprite && a.def.id === npcId) a.setVisible(false);
+    // Num roteiro, a mesma pessoa parada na rua por uma chegada de gato (ex.: a Neusa dando a dica) sai de cena, para não
+    // ficar em dobro (no fim do roteiro, a chegada é desenhada de novo).
+    if (this.scripts.isRunning()) {
+      for (const a of this.arrivalActors) {
+        if (!(a instanceof NpcSprite) || a.def.id !== npcId) continue;
+        a.setVisible(false);
+        this.stageCleared = true;
+      }
+    }
     const ts = this.map.tileSize;
     const npc = new NpcSprite(this, def, c * ts + ts / 2, (r + 1) * ts - 4, ts);
     npc.face(facing);

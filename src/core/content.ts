@@ -429,7 +429,7 @@ export interface Content {
   npcs: Record<string, NpcDef>;
   /** Passeios de vizinhos na rua (data/npcs.json: walks). */
   npcWalks: NeighborWalkDef[];
-  scripts: Record<string, { steps: ScriptStep[]; here?: boolean }>;
+  scripts: Record<string, { steps: ScriptStep[]; here?: boolean; clearStage?: boolean }>;
   dayNight: DayNightConfig;
   recipes: Record<string, RecipeDef>;
   service: ServiceConfig;

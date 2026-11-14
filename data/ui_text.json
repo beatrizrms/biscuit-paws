@@ -178,6 +178,7 @@
     "reputation": "reputação"
   },
   "goals": {
+    "untilDay": { "many": "faltam {n} dias", "one": "falta 1 dia", "today": "é hoje!", "past": "a data já passou" },
     "story": "história",
     "cafe": "café",
     "service": "Atendimento",

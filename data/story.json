@@ -988,7 +988,7 @@
             }
           },
           {
-            "text": "Inaugurar no dia 26, logo depois do Natal (faltam {daysUntilDay:26} dias). Sem tudo pronto até lá, no primeiro dia pronto depois, fora dos dias de festa (como o Ano Novo).",
+            "text": "Inaugurar no dia 26, logo depois do Natal ({untilDay:26}). Sem tudo pronto até lá, no primeiro dia pronto depois (entre 8h e 18h), fora dos dias de festa (como o Ano Novo).",
             "when": {
               "all": [
                 {
@@ -1039,6 +1039,22 @@
             "when": {
               "placedTag": "plant",
               "gte": 3
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "clock": {
+              "gte": "08:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "18:00"
+              }
             }
           }
         ]

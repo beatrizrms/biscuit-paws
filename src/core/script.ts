@@ -58,8 +58,11 @@ type ScriptAction =
 
 export interface ScriptsData {
   schemaVersion: 1;
-  /** here: a cena começa onde ela está (sem esperar ela voltar ao salão; ex.: o susto no quintal). */
-  scripts: Record<string, { steps: ScriptStep[]; here?: boolean }>;
+  /**
+   * here: a cena começa onde ela está (sem esperar ela voltar ao salão; ex.: o susto no quintal). clearStage: enquanto
+   * a cena roda, os marcadores dos pedidos (o "!") e a chegada de gato em andamento saem de cena (ex.: a inauguração).
+   */
+  scripts: Record<string, { steps: ScriptStep[]; here?: boolean; clearStage?: boolean }>;
 }
 
 export interface NpcDef {

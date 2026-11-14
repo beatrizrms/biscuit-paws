@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut). Ao terminar, flag seen.<id>.",
+  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut). clearStage: enquanto roda, os marcadores dos pedidos e a chegada de gato em andamento somem. Ao terminar, flag seen.<id>.",
   "scripts": {
     "scr.realtor_tour": {
       "steps": [
@@ -2544,6 +2544,7 @@
       ]
     },
     "scr.inauguration": {
+      "clearStage": true,
       "steps": [
         {
           "enter": "map.street",
