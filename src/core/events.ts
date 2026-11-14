@@ -235,6 +235,8 @@ export interface GameEvents {
   'storage.changed': { uid: string; count: number };
   'customer.left': { customerId: string; happy: boolean; stars?: number; reputation?: number };
   'hands.changed': { count: number };
+  /** O cliente levantou e deixou a louça suja na mesa (ou no balcão). */
+  'dish.left': { at: [number, number]; vessel: string };
   'dish.washed': { count: number };
   'delivery.ordered': { deliveryId: string; itemId: string; arrivesAt: number };
   'delivery.arrived': { deliveryId: string; itemId: string };

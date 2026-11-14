@@ -874,6 +874,7 @@ export class CafeService {
     if (!vessel) return;
     const at = [c.dishAt, c.spot].find((cell) => !this.surfaceAt(cell)) ?? c.spot;
     this.st.surfaces.push({ at: [...at], item: { kind: 'dirty', vessel } });
+    this.h.bus.emit('dish.left', { at: [at[0], at[1]], vessel });
   }
 
   /** Quanto da paciência da etapa atual ele já gastou (0 a 1). */

@@ -96,6 +96,7 @@ cat-cafe-game/
 | `prep.started` / `prep.ready` | etapa começou / ficou pronta no equipamento (`final`: o pedido; senão, massa para a próxima etapa) | `stationUid, recipeId` (+ `final`) |
 | `hands.changed` | algo entrou ou saiu das mãos | `count` |
 | `dish.washed` | louça suja lavada na pia | `count` |
+| `dish.left` | o cliente levantou e deixou a louça suja na mesa ou no balcão (o desenho mostra na hora) | `at`, `vessel` |
 | `adoption.completed` | adoção concluída (fase futura) | `catId, customerId` |
 | `game.started` | sessão começou (jogo novo ou carregado) | `isNew` |
 | `bus.taken` | pegou o ônibus no ponto da rua | `destination` |

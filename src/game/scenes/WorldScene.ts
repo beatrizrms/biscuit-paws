@@ -521,7 +521,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked', 'delivery.dropped'] as const) this.session.bus.on(ev, () => this.refreshParcels());
-    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip }) => {
@@ -1136,8 +1136,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (i !== 0 && i !== 1) return;
       const r = this.session.putDownSick(i === 0);
       if (!r.ok) return this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);
-      if (i === 0 && !penRoom) this.boxSpots.set(catId, at);
-      else {
+      // Isolado: no cercadinho com vaga (a arrumação da clínica põe ele lá) ou na caixinha, na frente dela.
+      if (i === 0) {
+        if (!penRoom) this.boxSpots.set(catId, at);
+      } else {
         this.dropCat(catId, at);
         this.ui.toast(catSexText(this.session, t.sickFreed, catId).replace('{cat}', name).replace('{disease}', disease), 4000);
       }
@@ -3365,9 +3367,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       const img = this.handItemImage(s.item);
       if (!img) continue;
-      // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente.
+      // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente. Tampo
+      // mais alto que o balcão (a mesa alta: item.topLift), sobe a diferença.
       const base = (s.at[1] + 1) * ts;
-      img.setPosition((s.at[0] + 0.5) * ts, base - 12).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
+      const lift = this.session.content.world.counterLift ?? 0;
+      const hosts = this.session.placedAllAt(s.at).map((x) => this.session.content.items[x.item]?.topLift ?? 0);
+      const higher = Math.max(0, ...hosts.map((t) => t - lift));
+      img.setPosition((s.at[0] + 0.5) * ts, base - 12 - higher).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
       this.surfaceIcons.push(img);
     }
   }

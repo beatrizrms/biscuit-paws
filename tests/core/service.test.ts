@@ -164,8 +164,11 @@ describe('ciclo do pedido', () => {
     expect(state.service.served).toBe(1);
     expect(events.some((e) => e.name === 'customer.served')).toBe(true);
 
-    // Consome e vai embora: a xícara suja fica no balcão.
+    // Consome e vai embora: a xícara suja fica no balcão, na hora (o aviso dish.left vem com ela já lá, para o desenho).
+    let atLeft: unknown = null;
+    session.bus.on('dish.left', ({ at }) => (atLeft = sv.surfaceAt(at)?.item));
     advance(session, content.service.consumeMinutes.standing + 1);
+    expect(atLeft).toEqual({ kind: 'dirty', vessel: 'cup' });
     expect(state.service.customers.some((x) => x.id === c.id)).toBe(false);
     expect(sv.surfaceAt([4, 5])?.item).toEqual({ kind: 'dirty', vessel: 'cup' });
     expect(sv.capacity().total).toBe(2); // 1 em pé + 1 sentado: os lugares limitam antes da louça
