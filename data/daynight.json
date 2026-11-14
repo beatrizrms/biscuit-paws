@@ -9,7 +9,7 @@
     "shadowAlpha": 0.5,
     "shadowHeight": 8,
     "shadowWidth": 0.85,
-    "actorShadow": { "person": 18, "cat": 14 },
+    "actorShadow": { "person": 26, "cat": 16, "personLift": 4, "catLift": 2, "alpha": 0.7, "height": 7 },
     "edgeSize": 16,
     "edgeAlpha": 0.42,
     "windowTiles": ["ph_window_open", "ph_window_branches", "market_janela", "vet_janela", "vet_janela_azul"],

@@ -11,7 +11,11 @@ export interface AmbienceConfig {
   shadowHeight: number;
   shadowWidth: number;
   /** Sombra dos que andam (personagem, gatos, NPCs): largura em px. */
-  actorShadow: { person: number; cat: number };
+  /**
+   * Sombra de quem anda: largura (pessoa, gato); quanto ela sobe a partir da base do quadro (lift: a sola fica dentro
+   * da sombra, sem parecer flutuando), a opacidade e a altura (mais fina e escura que a dos móveis).
+   */
+  actorShadow: { person: number; cat: number; personLift?: number; catLift?: number; alpha?: number; height?: number };
   /** Oclusão onde a parede encontra o chão: largura da faixa (px) e opacidade junto da parede. */
   edgeSize: number;
   edgeAlpha: number;

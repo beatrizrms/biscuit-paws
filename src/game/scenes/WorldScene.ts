@@ -1754,10 +1754,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { content } = this.session;
     const sh = content.dayNight.ambience.actorShadow;
     // Sentada no sofá: sem sombra no chão (os pés estão escondidos).
-    const actors: AmbienceActor[] = [{ x: this.player.x, y: this.player.y - 1, w: sh.person, visible: this.player.visible && !this.session.resting() }];
-    for (const c of this.cats) actors.push({ x: c.x, y: c.y - 1, w: sh.cat, visible: c.visible });
-    for (const n of this.npcs.values()) actors.push({ x: n.x, y: n.y - 1, w: sh.person, visible: n.visible });
-    for (const v of this.customerViews.values()) actors.push({ x: v.sprite.x, y: v.sprite.y - 1, w: sh.person, visible: v.sprite.visible });
+    const up = sh.personLift ?? 1;
+    const catUp = sh.catLift ?? 1;
+    const actors: AmbienceActor[] = [{ x: this.player.x, y: this.player.y - up, w: sh.person, visible: this.player.visible && !this.session.resting() }];
+    for (const c of this.cats) actors.push({ x: c.x, y: c.y - catUp, w: sh.cat, visible: c.visible });
+    for (const n of this.npcs.values()) actors.push({ x: n.x, y: n.y - up, w: sh.person, visible: n.visible });
+    for (const v of this.customerViews.values()) actors.push({ x: v.sprite.x, y: v.sprite.y - up, w: sh.person, visible: v.sprite.visible });
     const daylight = 1 - darkness(tintAt(this.session.state.time, content.dayNight, this.session.season(), false));
     this.ambience.update(actors, daylight);
   }

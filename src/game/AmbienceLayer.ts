@@ -129,7 +129,8 @@ export class AmbienceLayer {
     this.actorShadows.forEach((img, i) => {
       const a = actors[i];
       if (!a || !a.visible) return void img.setVisible(false);
-      img.setVisible(true).setPosition(Math.round(a.x), Math.round(a.y)).setDisplaySize(a.w, this.cfg.shadowHeight);
+      const act = this.cfg.actorShadow;
+      img.setVisible(true).setPosition(Math.round(a.x), Math.round(a.y)).setDisplaySize(a.w, act.height ?? this.cfg.shadowHeight).setAlpha(act.alpha ?? this.cfg.shadowAlpha);
     });
     this.windowGfx?.setAlpha(this.cfg.windowAlpha * Math.max(0, Math.min(1, daylight)));
   }
