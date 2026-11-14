@@ -854,9 +854,16 @@ export class CafeService {
     if (spot) this.seat(c, spot);
     else this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: null });
     // Antes da inauguração, pouca gente sabe do café: o intervalo entre clientes é maior.
-    const f = (this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1)) * (this.h.openingArrivalFactor?.() ?? 1);
+    const f = (this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1)) * (this.h.openingArrivalFactor?.() ?? 1) * this.reputationArrivalFactor();
     const [a, b] = this.cfg.arrivalEveryMinutes;
     sv.nextCustomerAt = now + Math.round(rng.int(a, b) * f);
+  }
+
+  /** A fama traz gente: o fator do intervalo entre clientes pela reputação de agora (data/service.json: reputationArrival). */
+  reputationArrivalFactor(): number {
+    const rep = this.h.state.reputation.value;
+    const bands = [...(this.cfg.reputationArrival ?? [])].sort((a, b) => a.at - b.at);
+    return bands.filter((b) => rep >= b.at).pop()?.factor ?? 1;
   }
 
   /** Vai para o lugar e faz o pedido (do quadro, que dá para fazer, do tipo do lugar; o favorito pesa mais). */

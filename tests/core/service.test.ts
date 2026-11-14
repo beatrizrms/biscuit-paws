@@ -1024,3 +1024,43 @@ describe('espremedor: suco de fruta fresca, sempre premium', () => {
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('ingredients');
   });
 });
+
+describe('a fama traz gente (reputationArrival)', () => {
+  /** Clientes que chegam num dia inteiro de café inaugurado, com a reputação dada (a fila não lota: muita louça). */
+  function arrivalsInADay(reputation: number, day: number): number {
+    const { session, sv, state } = openCafe({ day });
+    state.business = 'inaugurated';
+    state.reputation.value = reputation;
+    for (let i = 0; i < 6; i++) session.receiveItem('item.dishes_set');
+    sv.toggleMenu('recipe.black_coffee');
+    // Ninguém fica: quem chega some na hora (só contamos as chegadas).
+    let arrived = 0;
+    session.bus.on('customer.arrived', () => arrived++);
+    for (let m = 0; m < 8 * 60; m++) {
+      advance(session, 1);
+      state.service.customers = [];
+    }
+    return arrived;
+  }
+
+  it('o fator segue a maior faixa alcançada: 1 no começo, menor com a fama', () => {
+    const { sv, state } = openCafe();
+    const bands = content.service.reputationArrival!;
+    for (const b of bands) {
+      state.reputation.value = b.at;
+      expect(sv.reputationArrivalFactor()).toBe(b.factor);
+    }
+    state.reputation.value = 0;
+    expect(sv.reputationArrivalFactor()).toBe(1);
+  });
+
+  it('com a reputação lá em cima, chegam bem mais clientes no dia que no começo', () => {
+    let low = 0, high = 0;
+    for (const day of [31, 32, 33, 34]) {
+      low += arrivalsInADay(0, day);
+      high += arrivalsInADay(85, day);
+    }
+    if (process.env.SHOW_ARRIVALS) console.log("chegadas em 4 dias", { low, high });
+    expect(high).toBeGreaterThan(low * 1.6);
+  });
+});

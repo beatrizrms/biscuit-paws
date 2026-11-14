@@ -1,6 +1,6 @@
 # Proposta: o ritmo do café e o ajudante
 
-Status: **proposta, para decidir**. Nada disto está no jogo ainda.
+Status: **em andamento.** Feito: a procura pela reputação (seção 1, a tabela abaixo; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85). As máquinas antigas também vêm por conquista: lava-louças com 120 clientes desde a inauguração e robô aspirador com 200. O resto continua para decidir.
 
 ## O problema
 
@@ -13,8 +13,8 @@ decide quantas mesas, quanta louça e quanto tempo o café abre. Travar móveis 
   9h às 18h, com 1 hora de almoço. Dá uns **12 a 13 por dia** depois da inauguração e uns **6 a 7** antes (o intervalo
   dobra).
 - Mais mesas e louça não trazem mais gente: só deixam mais gente ao mesmo tempo e a fila menor.
-- A reputação (0 a 100, com os níveis Notada na vila 20, De confiança 40, Xodó dos gatos 60 e Lenda felina 80) **não
-  muda** quantos clientes vêm.
+- A reputação (0 a 100, com os níveis Notada na vila 20, De confiança 40, Xodó dos gatos 60 e Lenda felina 80) não
+  mudava quantos clientes vêm (agora muda: seção 1).
 - Já existe automação pequena: lava-louças (200), alimentador automático (150), caixa de areia automática (180) e o
   robô aspirador (600). A aba **Assistência** do Market já existe.
 - Receita de um dia cheio: ~12 clientes × ~13 moedas ≈ **150 a 170 moedas**, mais gorjetas.
@@ -83,14 +83,14 @@ O intervalo entre clientes passa a ser multiplicado por um fator da reputação:
 
 ## 4. Ordem sugerida para fazer
 
-1. Procura pela reputação (só dados e uma conta no núcleo; com testes de quantos clientes por nível).
+1. ~~Procura pela reputação~~ **feito** (`data/service.json: reputationArrival`).
 2. O interruptor "Movimento" no app Horário (opcional).
 3. A máquina (um objeto, uma regra, um item na aba Assistência).
 4. A pessoa (NPC novo, cena de chegada, as três funções, salário).
 
 ## Para decidir
 
-1. A procura sobe com a reputação? Os fatores da tabela estão bons?
+1. ~~A procura sobe com a reputação?~~ Sim, feito com os fatores da tabela (ajustar depois de jogar).
 2. Quer o interruptor "Movimento: tranquilo / normal / cheio"?
 3. A máquina: robô garçom, cafeteira de autoatendimento, ou as duas (uma de cada vez)?
 4. Selo da máquina em 100 clientes? E a pessoa em reputação 40 com o quintal aberto?

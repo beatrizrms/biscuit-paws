@@ -58,6 +58,14 @@
   ],
   "_softOpenArrivalFactor": "Antes da inauguração (funcionamento parcial), o intervalo entre clientes multiplica por isto: 2 = metade dos clientes (pouca gente sabe do café ainda).",
   "softOpenArrivalFactor": 2,
+  "_reputationArrival": "A fama traz gente (docs/PROPOSTA_AJUDANTE.md): o intervalo entre clientes multiplica pelo factor da maior faixa (at = reputação, 0 a 100) que o café já alcançou agora. 1 = como no começo; 0.5 = o dobro de clientes. Quem quer o café calmo controla pelo horário e pelo cardápio.",
+  "reputationArrival": [
+    { "at": 0, "factor": 1 },
+    { "at": 20, "factor": 0.85 },
+    { "at": 40, "factor": 0.7 },
+    { "at": 60, "factor": 0.6 },
+    { "at": 80, "factor": 0.5 }
+  ],
   "patienceMinutes": 90,
   "shoppingListBelow": 5,
   "extraPerEquipment": 1,
