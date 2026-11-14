@@ -9,15 +9,29 @@ const feet: Cell[] = [[5, 5]];
 const c = (name: string, cells: Cell[], tier: number, extra: Partial<ECandidate<string>> = {}): ECandidate<string> => ({ cells, tier, value: name, ...extra });
 
 describe('a frente dela', () => {
-  it('bem na frente (ou nos pés) = 0; na diagonal da frente ou uma mais adiante = 1; do lado ou atrás = 2', () => {
+  it('bem na frente (ou nos pés) = 0; em linha reta mais adiante = 1; na diagonal da frente = 2; do lado ou atrás = 3', () => {
     expect(facingScore([[5, 4]], feet, at, 'up')).toBe(0);
     expect(facingScore([[5, 5]], feet, at, 'up')).toBe(0);
-    expect(facingScore([[4, 4]], feet, at, 'up')).toBe(1);
     expect(facingScore([[5, 3]], feet, at, 'up')).toBe(1);
-    expect(facingScore([[4, 5]], feet, at, 'up')).toBe(2);
-    expect(facingScore([[5, 6]], feet, at, 'up')).toBe(2);
+    expect(facingScore([[4, 4]], feet, at, 'up')).toBe(2);
+    expect(facingScore([[4, 5]], feet, at, 'up')).toBe(3);
+    expect(facingScore([[5, 6]], feet, at, 'up')).toBe(3);
     expect(facingScore([[6, 5]], feet, at, 'right')).toBe(0);
-    expect(facingScore([[7, 6]], feet, at, 'right')).toBe(1);
+    expect(facingScore([[7, 6]], feet, at, 'right')).toBe(2);
+    expect(facingScore([[7, 5]], feet, at, 'right')).toBe(1);
+  });
+
+  it('virada para a janela atrás do lambri: a cortina (em linha reta) ganha do armário na diagonal', () => {
+    // Ela em (2,3) olhando para cima; a parede em (2,2); a janela em (1..2, 0..1); o armário da despensa em (1,2..3).
+    const pick = pickETarget([c('despensa', [[1, 3], [1, 2]], 3), c('cortina', [[2, 1], [1, 0], [2, 0], [1, 1]], 4)], [[2, 3]], [2, 3], 'up');
+    expect(pick).toBe('cortina');
+  });
+
+  it('encostada no armário (o corpo pega a célula dele): vale para onde ela olha', () => {
+    const cands = [c('despensa', [[1, 3], [1, 2]], 3), c('cortina', [[2, 1], [1, 0], [2, 0], [1, 1]], 4)];
+    const body: Cell[] = [[1, 3], [2, 3]];
+    expect(pickETarget(cands, body, [2, 3], 'up')).toBe('cortina');
+    expect(pickETarget(cands, body, [2, 3], 'left')).toBe('despensa');
   });
 });
 

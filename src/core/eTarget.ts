@@ -22,21 +22,30 @@ export interface ECandidate<T> {
 const CONE_DEPTH = 2;
 
 /**
- * Quanto a coisa está na frente dela: 0 = bem na frente (a célula para onde ela olha, ou nos pés dela); 1 = no cone à
- * frente (a diagonal da frente, ou uma célula mais adiante); 2 = do lado ou atrás.
+ * Quanto a coisa está na frente dela: 0 = bem na frente (a célula para onde ela olha, ou nos pés dela); 1 = em linha
+ * reta à frente, um pouco mais adiante (a janela atrás do lambri); 2 = na diagonal da frente; 3 = do lado ou atrás.
+ * A linha reta vence a diagonal: virada para a janela, a cortina ganha do armário do lado.
  */
-export function facingScore(cells: readonly Cell[], feet: readonly Cell[], at: Cell, facing: Facing): 0 | 1 | 2 {
+export function facingScore(cells: readonly Cell[], feet: readonly Cell[], at: Cell, facing: Facing): 0 | 1 | 2 | 3 {
   const [dx, dy] = facing === 'up' ? [0, -1] : facing === 'down' ? [0, 1] : facing === 'left' ? [-1, 0] : [1, 0];
   const ahead: Cell = [at[0] + dx, at[1] + dy];
   const same = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
-  if (cells.some((c) => same(c, ahead) || feet.some((f) => same(c, f)))) return 0;
+  // Nos pés: a célula principal (at). Um pedaço do corpo na célula do lado (encostada no armário) não conta como
+  // "na frente" quando ela olha para outro lado.
+  if (cells.some((c) => same(c, ahead) || same(c, at))) return 0;
+  void feet;
   const inCone = ([c, r]: Cell) => {
     // Distância para a frente e para o lado, no referencial dela.
     const fwd = (c - at[0]) * dx + (r - at[1]) * dy;
     const side = Math.abs((c - at[0]) * dy - (r - at[1]) * dx);
     return fwd >= 1 && fwd <= CONE_DEPTH && side <= 1;
   };
-  return cells.some(inCone) ? 1 : 2;
+  const straight = ([c, r]: Cell) => {
+    const fwd = (c - at[0]) * dx + (r - at[1]) * dy;
+    return fwd >= 1 && fwd <= CONE_DEPTH && (c - at[0]) * dy - (r - at[1]) * dx === 0;
+  };
+  if (cells.some(straight)) return 1;
+  return cells.some(inCone) ? 2 : 3;
 }
 
 /**
