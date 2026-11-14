@@ -12,6 +12,8 @@ export type Mood = 'normal' | 'impatient' | 'furious';
 
 /** Tamanho do ícone de "tomando" (fração do ícone normal da folha). */
 const DRINK_ICON = 0.5;
+/** A barrinha de consumo, desenhada por código nas cores da arte (ui_progress_bar): fina e curta, em px lógicos. */
+const CONSUME_BAR = { w: 20, h: 5, ink: 0x3b2a32, bg: 0xd9d4d6, fill: 0xf6a5b4 };
 
 export class CustomerSprite {
   readonly sprite: NpcSprite;
@@ -24,7 +26,8 @@ export class CustomerSprite {
   private patienceDrawn = -1;
   private waiting: Phaser.GameObjects.Sprite;
   /** Barrinha enquanto consome (depois de pagar): mostra quanto falta para ir embora. */
-  private consuming: Phaser.GameObjects.Image;
+  /** Quanto ele já consumiu (0 a 1); null = não está consumindo. */
+  private consumed: number | null = null;
   /** Ícone de "tomando" ao lado da barrinha de consumo (o que ele pediu). */
   private drinkIcon: Phaser.GameObjects.Image | null = null;
   /** A caixinha por trás do ícone e da barra de consumo (os dois juntos, sem o ícone solto no ar). */
@@ -63,7 +66,6 @@ export class CustomerSprite {
       scene.anims.create({ key: 'bubble-wait', frames: serviceArt.bubble.waiting.map((_, i) => ({ key: `bubble_wait_${i}` })), frameRate: 3, repeat: -1 });
     }
     this.waiting = scene.add.sprite(0, 0, 'bubble_wait_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_500).setScale(serviceArt.bubble.scale);
-    this.consuming = scene.add.image(0, 0, 'progress_0').setOrigin(0.5, 1).setVisible(false).setDepth(99_400);
     this.consumeBox = scene.add.graphics().setVisible(false).setDepth(99_399);
     this.queueBar = scene.add.graphics().setVisible(false).setDepth(99_500);
   }
@@ -138,7 +140,7 @@ export class CustomerSprite {
   /** Consumindo: barrinha de 0 a 1 e o ícone do que ele está tomando (undefined esconde). */
   showConsuming(progress: number | undefined, icon?: string): void {
     if (progress === undefined) {
-      this.consuming.setVisible(false);
+      this.consumed = null;
       this.consumeBox.setVisible(false);
       this.drinkIcon?.destroy();
       this.drinkIcon = null;
@@ -148,8 +150,7 @@ export class CustomerSprite {
       const f = iconFrame(this.scene, icon);
       if (f) this.drinkIcon = this.scene.add.image(0, 0, f.key, f.frame).setOrigin(1, 0.5).setDepth(99_400).setScale(f.scale * DRINK_ICON);
     }
-    const n = serviceArt.progress.length;
-    this.consuming.setTexture(`progress_${Math.min(n - 1, Math.max(0, Math.round(progress * (n - 1))))}`).setVisible(true);
+    this.consumed = Math.min(1, Math.max(0, progress));
     this.consumeBox.setVisible(true);
   }
 
@@ -236,37 +237,43 @@ export class CustomerSprite {
     const [ox, oy] = offset;
     this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - this.bubbleLift() + oy);
     this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy);
-    if (this.consuming.visible) this.layoutConsume();
+    if (this.consumed !== null) this.layoutConsume();
     this.queueBar.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy + 1);
   }
 
   /** O ícone da bebida à esquerda da barra, no meio da altura dela, e a caixinha em volta dos dois. */
   private layoutConsume(): void {
-    const bar = this.consuming;
+    const B = CONSUME_BAR;
     const icon = this.drinkIcon;
     // Os ícones da folha têm margem em volta do desenho (mais em cima): a caixa usa ~70% da altura e o ícone desce um pouco.
     const iconH = icon ? icon.displayHeight * 0.7 : 0;
     const iconW = icon ? icon.displayWidth * 0.85 + 1 : 0;
     const pad = 1.5;
-    // A caixinha fica em cima da cabeça (a base dela na altura do balão de pedido), nunca por cima do rosto.
-    const half0 = Math.max(bar.displayHeight, iconH) / 2;
-    const midY0 = this.sprite.y - this.bubbleLift() - pad - half0;
-    // O conjunto (ícone + barra) centrado no cliente.
-    bar.setPosition(this.sprite.x + iconW / 2, midY0 + bar.displayHeight / 2);
-    const left = bar.x - bar.displayWidth / 2;
-    const midY = bar.y - bar.displayHeight / 2;
+    // A caixinha fica em cima da cabeça (a base dela na altura do balão de pedido), nunca por cima do rosto; o conjunto
+    // (ícone + barra) centrado no cliente.
+    const half = Math.max(B.h, iconH) / 2;
+    const midY = this.sprite.y - this.bubbleLift() - pad - half;
+    const left = Math.round(this.sprite.x - (iconW + B.w) / 2 + iconW);
+    const top = Math.round(midY - B.h / 2);
     icon?.setPosition(left - 1, midY - (icon ? icon.displayHeight * 0.08 : 0));
     const x0 = Math.floor(left - iconW - pad);
-    const x1 = Math.ceil(left + bar.displayWidth + pad);
-    const half = Math.max(bar.displayHeight, iconH) / 2;
+    const x1 = Math.ceil(left + B.w + pad);
     const y0 = Math.floor(midY - half - pad);
     const y1 = Math.ceil(midY + half + pad);
+    // A barra: borda escura, fundo claro e o rosa enchendo (como a arte, menor).
+    const inner = B.w - 2;
     this.consumeBox
       .clear()
       .fillStyle(0xfff4e0, 0.95)
       .fillRoundedRect(x0, y0, x1 - x0, y1 - y0, 3)
-      .lineStyle(1, 0x3b2a32, 0.9)
-      .strokeRoundedRect(x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1, 3);
+      .lineStyle(1, B.ink, 0.9)
+      .strokeRoundedRect(x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1, 3)
+      .fillStyle(B.ink, 1)
+      .fillRect(left, top, B.w, B.h)
+      .fillStyle(B.bg, 1)
+      .fillRect(left + 1, top + 1, inner, B.h - 2)
+      .fillStyle(B.fill, 1)
+      .fillRect(left + 1, top + 1, Math.round(inner * (this.consumed ?? 0)), B.h - 2);
   }
 
   destroy(): void {
@@ -275,7 +282,6 @@ export class CustomerSprite {
     this.queueBar.destroy();
     this.bubble.destroy();
     this.waiting.destroy();
-    this.consuming.destroy();
     this.sprite.destroy();
   }
 }
