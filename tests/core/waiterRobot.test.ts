@@ -1,4 +1,4 @@
-// Robô garçom (item.waiter_robot): leva a louça suja das mesas e do balcão para a pia ou a lava-louças.
+// Robô de mesas (item.waiter_robot): leva a louça suja das mesas e do balcão para a pia ou a lava-louças.
 import { describe, expect, it } from 'vitest';
 import { GameSession } from '../../src/core/session';
 import { newGameState, nowAbs } from '../../src/core/state';
@@ -32,13 +32,13 @@ function cafe(opts: { robot?: boolean; washer?: boolean; dirty?: [number, number
   return { session, state, events, sv: session.service };
 }
 
-describe('robô garçom', () => {
-  it('só aparece no Market com a conquista Bandeja cheia (120 clientes desde a inauguração, depois da lava-louças)', () => {
+describe('robô de mesas', () => {
+  it('só aparece no Market com a conquista Bandeja cheia (160 clientes desde a inauguração, depois da lava-louças e do robô aspirador)', () => {
     const state = newGameState(5000, 'map.cafe_main', 9 * 60);
     state.business = 'inaugurated';
     const session = new GameSession(content, state);
     expect(session.buy('item.waiter_robot')).toEqual({ ok: false, reason: 'locked' });
-    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter')).toMatchObject({ at: 120, track: 'customers_open' });
+    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter')).toMatchObject({ at: 160, track: 'customers_open' });
   });
 
   it('busca a louça suja, uma por viagem, e deixa na pia; sem o robô, ela fica na mesa', () => {
@@ -78,7 +78,7 @@ describe('robô garçom', () => {
   });
 });
 
-describe('robô garçom que serve (upgrade)', () => {
+describe('robô garçom (upgrade de servir do robô de mesas)', () => {
   /** Cliente esperando um café preto em pé no balcão, e o café pronto em `at` (no balcão). */
   function withOrder(opts: { server: boolean; drinkAt?: [number, number] }) {
     const r = cafe();
@@ -96,12 +96,12 @@ describe('robô garçom que serve (upgrade)', () => {
     return r;
   }
 
-  it('só com a conquista Garçom de primeira (180 clientes) aparece na Assistência', () => {
+  it('só com a conquista Garçom de primeira (200 clientes) aparece na Assistência', () => {
     const r = cafe();
     delete r.state.milestones.reached['milestone.machine_waiter_server'];
     const robot = r.state.placed.find((p) => p.item === 'item.waiter_robot')!;
     expect(r.session.upgradeOptions(robot.uid)).toEqual([]);
-    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter_server')).toMatchObject({ at: 180, track: 'customers_open' });
+    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter_server')).toMatchObject({ at: 200, track: 'customers_open' });
   });
 
   it('vem pela Assistência (650) e leva o pedido pronto para quem pediu: preço e aviso como se ela servisse', () => {

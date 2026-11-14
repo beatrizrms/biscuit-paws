@@ -1,6 +1,6 @@
 # Proposta: o ritmo do café e o ajudante
 
-Status: **etapa 1 feita; a pessoa (etapa 2) fica para depois** (pedido dela em 2026-11-14). Feito: a procura pela reputação (seção 1; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85), as máquinas por conquista (lava-louças com 100 clientes desde a inauguração, robô aspirador com 200) e o robô garçom (conquista Bandeja cheia, 100 clientes; arte do PixelLab nas 4 direções, a base é a do robô aspirador).
+Status: **etapa 1 feita; a pessoa (etapa 2) fica para depois** (pedido dela em 2026-11-14). Feito: a procura pela reputação (seção 1; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85), as máquinas por conquista, nesta ordem: lava-louças (100 clientes desde a inauguração), robô aspirador (120), robô de mesas (160, recolhe a louça; arte do PixelLab nas 4 direções, a base é a do robô aspirador) e o upgrade dele para robô garçom (200, Assistência, 650: também serve).
 
 ## O problema
 
@@ -86,7 +86,7 @@ O intervalo entre clientes passa a ser multiplicado por um fator da reputação:
 1. ~~Procura pela reputação~~ **feito** (`data/service.json: reputationArrival`).
 2. ~~O interruptor "Movimento"~~ não vai ter (decisão dela).
 2. O interruptor "Movimento" no app Horário (opcional).
-3. ~~A máquina~~ **feito:** o robô garçom (conquista Bandeja cheia, 120 clientes, depois da lava-louças com 100; arte do PixelLab).
+3. ~~A máquina~~ **feito:** o robô de mesas (160 clientes) e o upgrade para robô garçom (200).
 4. A pessoa (NPC novo, cena de chegada, as três funções, salário).
 
 ## Pendente: a pessoa (etapa 2), para depois
