@@ -94,7 +94,8 @@ const SHEETS: Sheet[] = [
       cat_tree: { file: '01_cafe_1/arvore_gato_vazia.png', w: 2, h: 3 },
       floor_rug: { file: '01_cafe_1/tapete_a_vazio.png', w: 3, h: 2 },
       cat_condo: { file: '01_cafe_1/torre_gato_vazia.png', w: 2, h: 2 },
-      window: { file: '02_cafe_2/janela_fechada_128.png', w: 2, h: 2 },
+      // Cortina de linho (neutra, decisão 245): o rosa vira creme quente.
+      window: { file: '02_cafe_2/janela_fechada_128.png', w: 2, h: 2, recolor: { from: PINK, hue: 38, sat: 0.45, light: 0.04 } },
       bookshelf: { file: '02_cafe_2/estante_64x128.png', w: 1, h: 2 },
       plant_tall: { file: '02_cafe_2/planta_alta_a.png', w: 1, h: 2 },
       door: { file: 'lote01/door64x128.png', w: 1, h: 2, dy: 3 },
@@ -644,9 +645,9 @@ const SHEETS: Sheet[] = [
       // Ponto de montar a feira no quintal: caixotes empilhados com um pano xadrez.
       ph_fair_setup: { file: 'provisorios/fair_setup_crates.png', w: 1, h: 1, dy: 1 },
       // Janela do café com a cortina aberta (par da fechada, `window`): a cortina abre pela ação na janela.
-      ph_window_open: { file: '02_cafe_2/janela_aberta_128.png', w: 2, h: 2 },
+      ph_window_open: { file: '02_cafe_2/janela_aberta_128.png', w: 2, h: 2, recolor: { from: PINK, hue: 38, sat: 0.45, light: 0.04 } },
       // A mesma, com galhos tapando a vista: antes da limpeza pesada do quintal (curtainOvergrown no mapa).
-      ph_window_branches: { file: '02_cafe_2/janela_aberta_galhos_128.png', w: 2, h: 2 },
+      ph_window_branches: { file: '02_cafe_2/janela_aberta_galhos_128.png', w: 2, h: 2, recolor: { from: PINK, hue: 38, sat: 0.45, light: 0.04 } },
       // Porta dos fundos (do salão para o quintal), 1x2: a porta de madeira guardada na reserva.
       ph_back_door: { file: 'reserva/porta_madeira_64x128.png', w: 1, h: 2 },
       // Lote de 6 peças (decisão 187), geradas sobre a imagem antiga de 32 px ampliada (âncora de tamanho):
