@@ -1005,7 +1005,7 @@
             }
           },
           {
-            "text": "Colar 3 cartazes da inauguração: na loja de móveis, no ponto de ônibus e num poste da praça.",
+            "text": "Colar 3 cartazes da inauguração pela vila.",
             "optional": true,
             "when": {
               "openingPosters": {
