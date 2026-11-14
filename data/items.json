@@ -2513,6 +2513,7 @@
         "dishwasher",
         "upgrade"
       ],
+      "requires": { "milestone": "milestone.customers_60" },
       "washer": {
         "capacity": 12,
         "cycleMinutes": 20
@@ -2529,7 +2530,8 @@
         "furniture",
         "equipment",
         "robot_vacuum"
-      ]
+      ],
+      "requires": { "milestone": "milestone.customers_90" }
     },
     {
       "id": "item.pet_box",

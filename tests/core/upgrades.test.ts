@@ -77,6 +77,9 @@ describe('assistência técnica: upgrade de móvel no lugar', () => {
       expect(session.buy('item.dishwasher')).toEqual({ ok: false, reason: 'locked' });
     }
     state.business = 'inaugurated';
+    // A lava-louças pede também o selo Pia cheia (60 clientes).
+    expect(session.itemUnlocked('item.dishwasher')).toBe(false);
+    state.milestones.reached['milestone.customers_60'] = state.day;
     for (const id of upgrades) expect(session.itemUnlocked(id)).toBe(true);
     expect(session.itemUnlocked('item.food_bowl')).toBe(true); // o que não é upgrade não muda
   });
