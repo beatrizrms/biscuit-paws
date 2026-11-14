@@ -122,6 +122,17 @@ export interface NpcIdle {
   pauseMs: [number, number];
 }
 
+/**
+ * NPC que anda pelo lugar (a Fernanda na clínica): vai de um canto a outro de spots (sorteado), para um tempo entre
+ * pauseMs[0] e pauseMs[1] virada para facing e segue. summonedBy: a interação que a chama (a consulta): ela vem até o
+ * lugar dela (at/facing do NPC) e a interação abre quando ela chega.
+ */
+export interface NpcRoam {
+  spots: { at: Cell; facing: Facing }[];
+  pauseMs: [number, number];
+  summonedBy?: string;
+}
+
 /** NPC atendendo: com ela ao alcance da interação (o caixa), repete a animação. */
 export interface NpcBusy {
   anim: string;
@@ -140,9 +151,8 @@ export interface MapData {
   spawn: { player: Cell };
   doors?: MapDoor[];
   interactions?: MapInteraction[];
-  /** NPCs que ficam no mapa (ex.: a Fernanda no balcão da clínica). */
-  /** NPCs parados no mapa; anim: animação extra em repetição (o construtor martelando). */
-  npcs?: { npc: string; at: Cell; facing?: Facing; anim?: string; idle?: NpcIdle; busy?: NpcBusy }[];
+  /** NPCs do mapa; anim: animação extra em repetição (o construtor martelando); roam: anda pelo lugar (a Fernanda na clínica). */
+  npcs?: { npc: string; at: Cell; facing?: Facing; anim?: string; idle?: NpcIdle; busy?: NpcBusy; roam?: NpcRoam }[];
   /** Sujeira desenhada por cima (a sessão tira o que já foi limpo). */
   dirt?: DirtSpot[];
   /** Cor de fundo atrás do mapa (ex.: céu na rua). */

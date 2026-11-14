@@ -71,7 +71,17 @@
     { "id": "obj.vet_mat", "tile": "vet_tapete_entrada", "at": [4, 10] }
   ],
   "npcs": [
-    { "npc": "npc.fernanda", "at": [4, 6], "facing": "right" }
+    {
+      "npc": "npc.fernanda", "at": [4, 6], "facing": "right",
+      "roam": {
+        "spots": [
+          { "at": [1, 3], "facing": "up" }, { "at": [4, 3], "facing": "up" }, { "at": [7, 3], "facing": "up" },
+          { "at": [13, 4], "facing": "down" }, { "at": [16, 5], "facing": "up" }, { "at": [4, 6], "facing": "right" }
+        ],
+        "pauseMs": [3000, 7000],
+        "summonedBy": "int.vet_exam"
+      }
+    }
   ],
   "interactions": [
     { "id": "int.vet_exam", "at": [6, 6], "reach": 2, "action": { "vet": true } }

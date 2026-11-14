@@ -2824,9 +2824,14 @@ export class GameSession {
     this.walkedOn[npc] = this.state.day;
   }
 
-  /** Quem passeia tem fala hoje (só olha: a dica do E). */
+  /** As falas de quem conversa: o passeio ou o lugar (talks). */
+  private chatDef(npc: string): { npc: string; chat: string[]; points?: number } | undefined {
+    return this.content.npcWalks.find((w) => w.npc === npc) ?? this.content.npcTalks.find((t) => t.npc === npc);
+  }
+
+  /** Quem passeia (ou fica num lugar e conversa) tem fala hoje (só olha: a dica do E). */
   neighborHasChat(npc: string): boolean {
-    const def = this.content.npcWalks.find((w) => w.npc === npc);
+    const def = this.chatDef(npc);
     return !!def && !!chatOfDay(def, this.state.day);
   }
 
@@ -2836,14 +2841,14 @@ export class GameSession {
    * dia fica no save, então recarregar não dá os pontos de novo).
    */
   neighborChat(npc: string): string | null {
-    const def = this.content.npcWalks.find((w) => w.npc === npc);
+    const def = this.chatDef(npc);
     const line = def && chatOfDay(def, this.state.day);
     if (!def || !line) return null;
     if (this.friendDef(npc)) this.noteFriendChat(npc);
     else if (this.friendState(npc).chatDay !== this.state.day) {
       this.friendState(npc).chatDay = this.state.day;
-      addPoints(this.state, this.content.relationships, PLAYER, npc, def.points);
-      this.bus.emit('npc.chatted', { npc, points: def.points });
+      addPoints(this.state, this.content.relationships, PLAYER, npc, def.points ?? 0);
+      this.bus.emit('npc.chatted', { npc, points: def.points ?? 0 });
     }
     return line;
   }

@@ -89,11 +89,20 @@ export interface NpcDef {
   placeholder?: boolean;
 }
 
+/** Falas de quem não passeia mas conversa (E nele): uma por dia; points para quem não está na amizade. */
+export interface NpcTalkDef {
+  npc: string;
+  chat: string[];
+  points?: number;
+}
+
 export interface NpcsData {
   schemaVersion: 1;
   npcs: NpcDef[];
   /** Passeios de vizinhos na rua (src/core/neighborWalks.ts). */
   walks?: NeighborWalkDef[];
+  /** Quem fica num lugar e conversa (a Fernanda na clínica): a fala do dia, como nos passeios (chatOfDay). */
+  talks?: NpcTalkDef[];
   /** Movimento na praça e na rua (src/core/ambientPeople.ts). */
   ambient?: AmbientDef;
 }

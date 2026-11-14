@@ -655,6 +655,49 @@
         "Ei! Saindo do trabalho pra almoçar, e você?",
         "Que coincidência te ver aqui!"
       ]
+    },
+    {
+      "npc": "npc.builder",
+      "map": "map.street",
+      "when": {
+        "flag": "builder.called"
+      },
+      "chance": 0.33,
+      "hours": ["17:00", "19:00"],
+      "path": [[1, 9], [42, 9]],
+      "cats": [],
+      "catsPerWalk": [0, 0],
+      "chat": [
+        "Fim de expediente! A janta lá em casa não espera ninguém.",
+        "Hoje foi telhado o dia todo. Minhas costas tão pedindo arrego.",
+        "Martelo bom é igual sapato velho: a gente nem sente na mão.",
+        "Essa rua tem casa de cem anos. Parede antiga é teimosa, mas é firme.",
+        "Passei na padaria e não sobrou nada. Amanhã eu saio mais cedo.",
+        "Cimento, areia e paciência. O resto a gente resolve.",
+        "Tô cansado, mas é cansaço bom. Obra entregue é obra feliz.",
+        "Se o café precisar de qualquer reparo, é só me chamar."
+      ],
+      "points": 10,
+      "barks": [
+        "Opa, boa tarde!",
+        "Fim de expediente!",
+        "Indo pra casa, {player}!"
+      ]
+    }
+  ],
+  "talks": [
+    {
+      "npc": "npc.fernanda",
+      "chat": [
+        "Hoje cedo veio um coelho morrendo de ciúme do gato novo da casa. Acredita?",
+        "Troque a água dos potes duas vezes por dia. Gato gosta de água fresquinha.",
+        "Gato esconde dor como ninguém. Qualquer mudança no jeito deles, me traz.",
+        "Tô organizando as vacinas da semana. No frio aparece muita gripe felina.",
+        "Escovar um pouquinho por dia faz bem pro pelo. Eles gostam, mesmo fingindo que não.",
+        "A balança daqui não mente: tem gato da vizinhança comendo em três casas.",
+        "Atender gato de rua é a parte que eu mais gosto desse trabalho.",
+        "Quando precisar de uma consulta, é só me chamar na mesa de exame."
+      ]
     }
   ],
   "_ambient": "Movimento na praça e na rua (src/core/ambientPeople.ts): figurantes (npcs) entre hours. A cada blockMinutes, sorteio novo: spotsUsed dos spots ocupados (sit: sentado no banco; stand: em pé na frente da barraca, do bebedouro, do chafariz, da lousa), chatting pessoas em grupinhos de 2 ou 3 e wanderers passeando dentro de area. passers: na rua, a cada everyMinutes, com chance, alguém entra numa das ends e sai noutra (longe). Com clima em badWeathers, a gente é multiplicada por badWeather. lines: balõezinhos dos grupinhos.",

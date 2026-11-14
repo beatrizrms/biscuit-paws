@@ -3,7 +3,7 @@ import { touch, type TouchAction } from '../touch';
 import { fillNames } from '../ui/text';
 import { WalkFollowers } from '../WalkFollowers';
 import type { WalkCat } from '../../core/neighborWalks';
-import { cellsOf, doorAt, type DirtSpot, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
+import { cellsOf, doorAt, type DirtSpot, type NpcRoam, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
 import { HAND, HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
@@ -212,6 +212,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private crowdTurn = 0;
   /** Figurantes da praça e da rua (session.ambientPeople): os bonecos, o bloco do sorteio na tela e a vez da conversa. */
   private readonly ambient = new Map<string, NpcSprite>();
+  /** Quem anda pelo lugar (a Fernanda na clínica): o NPC e o jeito de andar; summoned: chamada (vindo ou na consulta). */
+  private readonly roamers = new Map<string, { sprite: NpcSprite; roam: NpcRoam; home: { at: Cell; facing: Facing }; summoned: boolean }>();
   private ambientBlock: number | null = null;
   /** Acabou de entrar no mapa: a turma já está lá (sem aparecer devagar). */
   private ambientFresh = true;
@@ -791,8 +793,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
     }
     // NPCs que ficam no mapa (a Fernanda no balcão da clínica).
+    this.roamers.clear();
     for (const n of this.session.mapData(mapId).npcs ?? []) {
       this.spawnNpc(n.npc, n.at, n.facing);
+      if (n.roam) {
+        const sprite = this.npcs.get(n.npc)!;
+        this.roamers.set(n.npc, { sprite, roam: n.roam, home: { at: n.at, facing: n.facing ?? 'down' }, summoned: false });
+        void this.roamLoop(n.npc, sprite);
+      }
       if (n.anim) this.npcs.get(n.npc)?.loop(n.anim); // o Tião martelando na obra
       // A atendente do mercado: mexe à toa com pausas e, com ela no caixa, passa as compras.
       if (n.idle || n.busy) this.npcs.get(n.npc)?.attend(n.idle, n.busy, () => this.session.interactionAt(this.playerCells())?.id === n.busy?.interaction);
@@ -1889,9 +1897,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
       }
       // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
-      const walking = this.neighborWalks.has(npc) && s.neighborHasChat(npc);
+      const walking = (this.neighborWalks.has(npc) || this.roamers.has(npc)) && s.neighborHasChat(npc);
       if (s.giftProblem(npc) === null) return plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite));
       if (chat) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat());
+      if (walking && this.roamers.has(npc)) {
+        const ts = this.map.tileSize;
+        const cell: Cell = [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)];
+        return pickETarget([{ cells: [cell], tier: E_TIER.interaction, value: plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat()) }, ...this.eCandidates()], feet, this.feetCell(), this.player.facingDirection());
+      }
       if (walking) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
     }
     const parcels = s.parcelsNear(feet);
@@ -2045,7 +2058,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (any) this.ui.openShelf(it.action.shelf, tags);
       else this.ui.toast(it.action.emptyText ?? uiText.shop.shelfEmpty, 3500);
     }
-    else if ('vet' in it.action) this.ui.openConsult();
+    else if ('vet' in it.action) void this.summonRoamer(it.id).then(() => this.ui.openConsult());
     else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
     else if ('sleep' in it.action) this.askSleep();
     else if ('hours' in it.action) this.ui.showHours(it.action.hours);
@@ -2425,6 +2438,61 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
   }
 
+  /**
+   * Quem anda pelo lugar (a Fernanda): de um canto a outro (spots), parando um pouco em cada. Para enquanto conversa
+   * (held), enquanto há fala ou painel aberto, e quando é chamada (summoned); some quando o mapa troca.
+   */
+  private async roamLoop(id: string, sprite: NpcSprite): Promise<void> {
+    const ts = this.map.tileSize;
+    const mine = () => sprite.active && this.npcs.get(id) === sprite && this.roamers.get(id)?.sprite === sprite;
+    const wait = (ms: number) => new Promise<void>((done) => this.time.delayedCall(ms, done));
+    let last = -1;
+    while (mine()) {
+      const r = this.roamers.get(id)!;
+      if (r.summoned || sprite.getData('held') || this.ui.isBusy() || this.scripts.isRunning()) {
+        await wait(400);
+        continue;
+      }
+      const options = r.roam.spots.map((_, i) => i).filter((i) => i !== last);
+      const pick = options[Math.floor(Math.random() * options.length)] ?? 0;
+      last = pick;
+      const spot = r.roam.spots[pick]!;
+      const route = findPath(this.map.solid, [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)], spot.at);
+      for (const corner of route ? pathCorners(route) : []) {
+        if (!mine() || r.summoned) break;
+        while (mine() && sprite.getData('held')) await wait(200);
+        await sprite.walkTo(corner);
+      }
+      if (!mine() || r.summoned) continue;
+      sprite.face(spot.facing);
+      const [a, b] = r.roam.pauseMs;
+      await wait(a + Math.random() * (b - a));
+    }
+  }
+
+  /** A interação chama quem anda pelo lugar (a consulta chama a Fernanda): ela vem para o lugar dela; resolve quando chega. */
+  private async summonRoamer(interactionId: string): Promise<void> {
+    const entry = [...this.roamers.values()].find((r) => r.roam.summonedBy === interactionId);
+    if (!entry || !entry.sprite.active) return;
+    entry.summoned = true;
+    const { sprite, home } = entry;
+    const ts = this.map.tileSize;
+    // Espera o passo que ela está dando terminar e vai pelo caminho livre até o lugar dela.
+    await new Promise<void>((done) => this.time.delayedCall(50, done));
+    const route = findPath(this.map.solid, [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)], home.at);
+    for (const corner of route ? pathCorners(route) : []) {
+      if (!sprite.active) return;
+      await sprite.walkTo(corner);
+    }
+    sprite.face(home.facing);
+    // Ela fica ali enquanto a consulta estiver aberta; depois volta a andar.
+    const release = () => {
+      if (this.ui.isBusy()) return void this.time.delayedCall(300, release);
+      entry.summoned = false;
+    };
+    this.time.delayedCall(600, release);
+  }
+
   /** A turma do bloco vai embora (some devagar); um roteiro que trocou o boneco de alguém fica com o dele. */
   private clearAmbient(): void {
     for (const [id, npc] of this.ambient) {
@@ -2605,7 +2673,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** O vizinho passeando do lado dela (o NPC e a id). */
   private walkerNear(target?: Cell): [string, NpcSprite] | undefined {
     const guest = this.santaGuestNear(target);
-    return guest && this.neighborWalks.has(guest[0]) ? guest : undefined;
+    return guest && (this.neighborWalks.has(guest[0]) || this.roamers.has(guest[0])) ? guest : undefined;
   }
 
   /** E em quem passeia: a próxima fala (a primeira do dia dá corações). */

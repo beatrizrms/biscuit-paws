@@ -20,6 +20,34 @@ function cafe() {
 }
 
 describe('preparativos da inauguração', () => {
+  it('a Fernanda na clínica conversa como os outros: a fala do dia, os corações e o convite', () => {
+    const { session, state } = cafe();
+    expect(session.neighborHasChat('npc.fernanda')).toBe(true);
+    const line = session.neighborChat('npc.fernanda');
+    expect(content.npcTalks.find((t) => t.npc === 'npc.fernanda')!.chat).toContain(line);
+    expect(state.openingPrep?.invited).toEqual(['npc.fernanda']);
+    expect(state.relationships['player|npc.fernanda'] ?? 0).toBeGreaterThan(0);
+  });
+
+  it('o Tião volta para casa pela rua no fim da tarde (com ou sem obra) e a conversa conta o convite', () => {
+    const { session, state } = cafe();
+    state.flags['builder.called'] = true;
+    const def = content.npcWalks.find((w) => w.npc === 'npc.builder')!;
+    expect(def.map).toBe('map.street');
+    // Algum dia da semana ele passa (sorteio pelo dia), entre 17h e 19h.
+    state.time = 17 * 60 + 30;
+    let day = 0;
+    for (let d = 1; d <= 30 && !day; d++) {
+      state.day = d;
+      if (session.neighborWalksNow('map.street').some((w) => w.npc === 'npc.builder')) day = d;
+    }
+    expect(day).toBeGreaterThan(0);
+    state.time = 12 * 60;
+    expect(session.neighborWalksNow('map.street').some((w) => w.npc === 'npc.builder')).toBe(false);
+    expect(session.neighborChat('npc.builder')).toBeTruthy();
+    expect(state.openingPrep?.invited).toEqual(['npc.builder']);
+  });
+
   it('os cartazes: a loja de móveis e o ponto de ônibus (rua) e um poste da praça; colado, o cartaz aparece no lugar', () => {
     const { session, state, events } = cafe();
     const pending = () => [...session.pendingJobPoints('map.street'), ...session.pendingJobPoints('map.praca')].map((p) => p.id);
