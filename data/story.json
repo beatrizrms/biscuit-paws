@@ -787,25 +787,27 @@
             }
           },
           {
-            "text": "Preparativo: colar 3 cartazes da inauguração nas fachadas da rua (um por dia).",
+            "text": "Colar 3 cartazes da inauguração nas fachadas da rua.",
             "optional": true,
             "when": {
               "openingPosters": {
                 "gte": 3
               }
-            }
+            },
+            "daily": true
           },
           {
-            "text": "Preparativo: convidar 3 amigos (conversar com eles; um convite por dia).",
+            "text": "Convidar 3 amigos (conversar com eles).",
             "optional": true,
             "when": {
               "openingInvites": {
                 "gte": 3
               }
-            }
+            },
+            "daily": true
           },
           {
-            "text": "Preparativo: montar o cardápio da estreia (3 receitas no quadro).",
+            "text": "Montar o cardápio da estreia (3 receitas no quadro).",
             "optional": true,
             "when": {
               "menu": {
@@ -814,7 +816,7 @@
             }
           },
           {
-            "text": "Preparativo: enfeitar o café com 3 plantas.",
+            "text": "Enfeitar o café com 3 plantas.",
             "optional": true,
             "when": {
               "placedTag": "plant",

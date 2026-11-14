@@ -310,6 +310,8 @@ export interface GoalStep {
   devNote?: string;
   /** Extra: aparece e conta (bônus), mas não segura o fim da meta. */
   optional?: boolean;
+  /** Um por dia (cartazes, convites): o balão marca "1 por dia" e "hoje ✓" quando o de hoje já foi. */
+  daily?: boolean;
   when: Condition;
 }
 

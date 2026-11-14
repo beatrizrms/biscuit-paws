@@ -1436,13 +1436,17 @@ ${rep}`;
    */
   private storyHtml(goal: GoalView, fill: (t: string) => string): string {
     const g = uiText.goals;
-    const done = goal.steps.filter((s) => s.done).length;
+    const mandatory = goal.steps.filter((s) => !s.optional);
+    const done = mandatory.filter((s) => s.done).length;
     const open = goal.steps.filter((s) => !s.done);
-    const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(goal.steps.length)))}</span>` : '';
+    const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(mandatory.length)))}</span>` : '';
     const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
     // Passos sem ordem: nenhum em destaque, todos na lista.
-    const now = goal.together ? undefined : (open.find((s) => !s.optional) ?? open[0]);
-    const rest = goal.together ? open : open.filter((s) => s !== now);
+    // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
+    const required = open.filter((s) => !s.optional);
+    const extras = goal.steps.filter((s) => s.optional);
+    const now = goal.together ? undefined : (required[0] ?? open[0]);
+    const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
       ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
         (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +
@@ -1451,7 +1455,15 @@ ${rep}`;
           : '') +
         note(now)
       : '';
-    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, cls: s.optional ? 'optional' : undefined, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
+    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
+    const op = uiText.opening;
+    const extraRows = extras
+      .map((s) => {
+        const tag = s.done ? '' : s.daily ? `<span class="g-tag${s.doneToday ? '' : ' daily'}">${esc(s.doneToday ? op.dailyDone : op.daily)}</span>` : '';
+        return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s), html: false });
+      })
+      .join('');
+    const extrasHtml = extraRows ? `<p class="g-extras">${esc(op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
     // No debug, os passos feitos também (para conferir a história).
     const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
     // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
@@ -1462,7 +1474,7 @@ ${rep}`;
       const e = this.session.calendar(today + 1, today + per).find((x) => x.kind === 'event');
       if (e) next = `<p class="g-detail">${esc(uiText.opening.nextEvent.replace('{title}', e.title).replace('{day}', String(((e.day - 1) % per) + 1)))}</p>`;
     }
-    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}</div>`;
+    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
   }
 
   private renderHint(): void {

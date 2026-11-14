@@ -1388,5 +1388,8 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-profit { color: #3f7a4a; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-money { color: #3f7a4a; font-weight: bold; }
 
-/* Passo extra da meta (os preparativos da inauguração): menor e em itálico, com a etiqueta "extra". */
-.hud-goals li.optional { font-style: italic; color: var(--ink2); }
+/* Os passos extras da meta (os preparativos da inauguração): um bloco embaixo, com título, marca "1 por dia" / "hoje ✓". */
+.hud-goals .g-extras { margin: 6px 0 2px; padding-top: 4px; border-top: 1px dashed #cdbfe6; font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); letter-spacing: 0.04em; color: #8d78bd; }
+.hud-goals .g-extra-list li.optional { color: var(--ink2); }
+.hud-goals .g-extra-list li.done { color: var(--grey2); }
+.hud-goals .g-tag.daily { background: #efe7fb; color: #6b55a3; }

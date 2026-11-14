@@ -140,7 +140,14 @@ export interface GoalView {
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
   /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
-  steps: { text: string; done: boolean; optional?: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
+  steps: { text: string; done: boolean; optional?: boolean; daily?: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
+}
+
+/** Passo de um por dia (os preparativos da inauguração): o de hoje já foi? */
+function dailyDoneToday(c: Condition, state: GameState): boolean {
+  if ('openingPosters' in c) return state.openingPrep?.posterDay === state.day;
+  if ('openingInvites' in c) return state.openingPrep?.inviteDay === state.day;
+  return false;
 }
 
 /** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
@@ -169,6 +176,7 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
           text: s.text,
           done: evaluate(s.when, state, ctx),
           ...(s.optional ? { optional: true } : {}),
+          ...(s.daily ? { daily: true, doneToday: dailyDoneToday(s.when, state) } : {}),
           ...(s.detail ? { detail: s.detail } : {}),
           ...(s.icon ? { icon: s.icon } : {}),
           devNote: s.devNote,
