@@ -20,23 +20,26 @@ function cafe() {
 }
 
 describe('preparativos da inauguração', () => {
-  it('os cartazes: 3 pontos na rua durante os preparativos; colado, o cartaz aparece na rua', () => {
+  it('os cartazes: a loja de móveis e o ponto de ônibus (rua) e um poste da praça; colado, o cartaz aparece no lugar', () => {
     const { session, state, events } = cafe();
-    expect(session.pendingJobPoints('map.street').map((p) => p.id)).toEqual(expect.arrayContaining(cfg.posters));
+    const pending = () => [...session.pendingJobPoints('map.street'), ...session.pendingJobPoints('map.praca')].map((p) => p.id);
+    expect(pending()).toEqual(expect.arrayContaining(cfg.posters));
     // Um por dia: o segundo no mesmo dia não vale (e o "!" some até amanhã).
     expect(session.doJobPoint(cfg.posters[0]!)).toEqual({ ok: true });
     expect(session.doJobPoint(cfg.posters[1]!).ok).toBe(false);
-    expect(session.pendingJobPoints('map.street').some((p) => cfg.posters.includes(p.id))).toBe(false);
+    expect(pending().some((id) => cfg.posters.includes(id))).toBe(false);
     for (const id of cfg.posters.slice(1)) {
       state.day += 1;
       expect(session.doJobPoint(id)).toEqual({ ok: true });
     }
     expect(state.openingPrep?.posters).toEqual(cfg.posters);
     expect(events.filter((e) => e === 'opening.poster')).toHaveLength(3);
-    expect(session.pendingJobPoints('map.street').some((p) => cfg.posters.includes(p.id))).toBe(false);
-    const drawn = session.mapData('map.street').objects.filter((o) => o.tile === cfg.posterTile);
+    expect(pending().some((id) => cfg.posters.includes(id))).toBe(false);
+    const drawn = [...session.mapData('map.street').objects, ...session.mapData('map.praca').objects].filter((o) => o.id.startsWith('obj.pt.opening_poster'));
     expect(drawn).toHaveLength(3);
-    expect(drawn[0]!.lift).toBe(cfg.posterLift);
+    // Na parede, o tile e a altura de sempre; nos postes, o tile de objeto (ordenado com o poste), com a altura e o deslocamento do ponto.
+    expect(drawn.find((o) => o.id === 'obj.' + cfg.posters[0])).toMatchObject({ tile: cfg.posterTile, lift: cfg.posterLift });
+    expect(drawn.find((o) => o.id === 'obj.pt.opening_poster_3')).toMatchObject({ tile: 'ph_opening_poster_post', shiftX: 16 });
   });
 
   it('antes do primeiro cliente ou depois de inaugurar, não há cartazes nem convites', () => {

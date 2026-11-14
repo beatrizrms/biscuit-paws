@@ -1142,6 +1142,10 @@
       "solid": true,
       "overrides": {
         "opening_poster": {
+          "layer": "wall",
+          "solid": false
+        },
+        "opening_poster_post": {
           "layer": "object",
           "solid": false
         },

@@ -2907,7 +2907,7 @@ export class GameSession {
     return Math.max(0.3, 1 - prep.steps * cfg.arrivalFactorPerStep);
   }
 
-  /** Os cartazes colados na rua (desenhados na parede) até o fim do dia da inauguração. */
+  /** Os cartazes colados (na parede, no poste ou na sebe) até o fim do dia da inauguração. */
   private posterObjects(mapId: string): MapData['objects'] {
     const cfg = this.content.business.openingPrep;
     const prep = this.state.openingPrep;
@@ -2918,7 +2918,7 @@ export class GameSession {
     return [...decor, ...prep.posters
       .map((id) => this.content.jobPoints[id])
       .filter((p): p is NonNullable<typeof p> => !!p && p.map === mapId)
-      .map((p) => ({ id: `obj.${p.id}`, tile: cfg.posterTile, at: [p.at[0], p.at[1]] as Cell, lift: cfg.posterLift }))];
+      .map((p) => ({ id: `obj.${p.id}`, tile: cfg.posterSpots?.[p.id]?.tile ?? cfg.posterTile, at: [p.at[0], p.at[1]] as Cell, lift: cfg.posterSpots?.[p.id]?.lift ?? cfg.posterLift, ...(cfg.posterSpots?.[p.id]?.shiftX ? { shiftX: cfg.posterSpots[p.id]!.shiftX } : {}) }))];
   }
 
   noteFriendChat(npc: string): number {

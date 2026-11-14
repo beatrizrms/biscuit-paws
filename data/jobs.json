@@ -131,17 +131,17 @@
       "id": "pt.opening_poster_2",
       "map": "map.street",
       "at": [
-        10,
+        39,
         8
       ],
       "action": "press"
     },
     {
       "id": "pt.opening_poster_3",
-      "map": "map.street",
+      "map": "map.praca",
       "at": [
-        26,
-        8
+        8,
+        6
       ],
       "action": "press"
     },

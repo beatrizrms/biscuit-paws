@@ -29,6 +29,8 @@ export interface MapObject {
   when?: DoorCondition;
   /** Desenhado tantos pixels acima (em cima de outro móvel). */
   lift?: number;
+  /** Desenhado tantos pixels para a direita (ex.: o cartaz no meio do poste de 2 tiles). */
+  shiftX?: number;
   /** Embutido na parede (a porta do jardim): pode ter a base na parede e fica atrás de quem passa na frente. */
   inWall?: boolean;
   /** Janela com cortina: o tile com a cortina aberta (a interação "curtain" troca; só a aberta joga luz no piso). */
@@ -169,6 +171,8 @@ export interface MapSprite {
   obj?: string;
   /** Id da sujeira de onde veio (a neve do inverno junta os pedaços dela). */
   dirt?: string;
+  /** Pixels para a direita (MapObject.shiftX). */
+  dx?: number;
   /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
   dy?: number;
   tile: string;
@@ -372,7 +376,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     }
     for (const [col, row] of cellsOf(obj.at, def)) {
       const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
-      sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
+      sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}), ...(obj.shiftX ? { dx: obj.shiftX } : {}) });
       if (over) {
         const overFrame = frameOf(catalog, over, col - c0, row - r0);
         sprites.push({ obj: obj.id, tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });

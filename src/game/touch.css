@@ -16,7 +16,7 @@
 }
 .touch-layer .t-btn {
   position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; border: 2px solid var(--ink, var(--c-ink));
-  background: color-mix(in srgb, var(--c-paper) 85%, transparent); color: var(--ink, var(--c-ink)); font: bold 9px 'Trebuchet MS', sans-serif; padding: 0;
+  background: color-mix(in srgb, var(--c-sand) 95%, transparent); color: var(--ink, var(--c-ink)); font: bold 9px 'Trebuchet MS', sans-serif; padding: 0;
 }
 .touch-layer .t-btn.down { background: var(--c-butter); }
 /* Correr: liga e desliga com um toque (ligado, fica dourado). */

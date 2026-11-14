@@ -905,7 +905,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.mapImages = this.add.group();
     this.objectImages.clear();
     for (const s of this.map.sprites) {
-      const img = addTileImage(this, s.col * ts, s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
+      const img = addTileImage(this, s.col * ts + (s.dx ?? 0), s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
       // Móvel com outra cor (o mesmo desenho, ex.: os automáticos): giro de cor do item.
       if (s.obj?.startsWith(PLACED_PREFIX)) {
         const placed = this.session.state.placed.find((p) => PLACED_PREFIX + p.uid === s.obj);

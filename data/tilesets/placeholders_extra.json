@@ -20,6 +20,12 @@
       "row": 0,
       "w_tiles": 3,
       "h_tiles": 1
+    },
+    "opening_poster_post": {
+      "col": 1,
+      "row": 0,
+      "w_tiles": 1,
+      "h_tiles": 1
     }
   }
 }
