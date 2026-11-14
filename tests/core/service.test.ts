@@ -123,6 +123,22 @@ describe('receitas e cardápio', () => {
     expect(stars[0]).toBeLessThanOrEqual(content.service.review.start - content.service.review.wrongOrder!);
   });
 
+  it('dois clientes na mesma mesa: a bebida vai para quem pediu, nunca vira pedido errado do vizinho', () => {
+    const { sv, state } = openCafe();
+    const now = state.day * 1440 + state.time;
+    const at = (id: string, recipe: string, spot: [number, number]) => ({ id, look: 0, stage: 'waiting' as const, kind: 'table' as const, spot, dishAt: [10, 8] as [number, number], recipe, until: now + 60, favorite: null, wantsPremium: false });
+    // A (café) está primeiro na lista e mais perto; B (chá) do outro lado da mesma mesa.
+    state.service.customers.push(at('cA', 'recipe.black_coffee', [9, 8]), at('cB', 'recipe.black_tea', [11, 8]));
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_tea', vessel: 'cup', quality: 'simple' });
+    const feet: [number, number][] = [[9, 9]];
+    const c = sv.customerToServe(feet)!;
+    expect(c.id).toBe('cB');
+    expect(sv.wrongFor(c)).toBe(false);
+    expect(sv.serve(c.id)).toEqual({ ok: true });
+    expect(state.service.customers.find((x) => x.id === 'cB')?.wrongOrder).toBeUndefined();
+    expect(state.service.customers.find((x) => x.id === 'cA')?.stage).toBe('waiting');
+  });
+
   it('a bebida pode ir para a mesa alta (stand) e voltar para a mão', () => {
     const { session, sv, state } = openCafe();
     session.receiveItem('item.table_tall_round');
