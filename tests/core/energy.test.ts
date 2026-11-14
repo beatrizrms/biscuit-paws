@@ -90,7 +90,23 @@ describe('energia na sessão', () => {
     expect(session.drinkCoffee()).toEqual({ ok: true });
     expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.coffee.amount);
     expect(state.hands).toEqual([{ kind: 'dirty', vessel: 'cup' }]);
+    // Suco (copo) também se toma; o prato (comida), não.
     state.hands = [{ kind: 'drink', recipe: 'recipe.orange_juice', vessel: 'glass' }];
+    expect(session.holdingCoffee()).toBe(true);
+    state.hands = [{ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' }];
+    expect(session.holdingCoffee()).toBe(false);
+  });
+
+  it('outra bebida (chá, suco) também se toma, recompondo menos (otherAmount); comida (prato), não', () => {
+    const { session, state } = cafe();
+    session.spendEnergy(50);
+    const before = session.energy();
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_tea', vessel: 'cup' });
+    expect(session.holdingCoffee()).toBe(true);
+    expect(session.drinkCoffee()).toEqual({ ok: true });
+    expect(session.energy()).toBeCloseTo(before + cfg.restore.coffee.otherAmount!, 5);
+    expect(state.hands[0]).toEqual({ kind: 'dirty', vessel: 'cup' });
+    state.hands = [{ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' }];
     expect(session.holdingCoffee()).toBe(false);
   });
 

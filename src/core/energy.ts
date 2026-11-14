@@ -24,7 +24,7 @@ export interface EnergyConfig {
 
 export interface EnergyRestore {
   /** Tomar um café pronto (das receitas listadas) que está na mão: a xícara fica suja na mão. O próximo, só depois de everyMinutes. */
-  coffee: { recipes: string[]; amount: number; everyMinutes: number };
+  coffee: { recipes: string[]; amount: number; otherAmount?: number; everyMinutes: number };
   /**
    * Sentar num sofá ou cadeira do café: ganha perMinute a cada minuto do jogo, até encher ou ela levantar.
    * tiles: móveis em que dá para sentar (pelo tile), para onde ela olha e os pés abaixo da base (px lógicos).

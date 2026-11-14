@@ -1054,12 +1054,21 @@ export class GameSession {
   }
 
   /** O café que ela pode tomar: o último da mão entre as receitas de restore.coffee. */
+  /**
+   * A bebida pronta da mão que ela pode tomar (o café primeiro; senão qualquer xícara ou copo: chá, suco...). Prato
+   * (comida) não conta.
+   */
   private coffeeInHands(): number {
     const recipes = this.content.dayNight.energy.restore.coffee.recipes;
+    const drinkable = (i: number) => {
+      const h = this.state.hands[i]!;
+      return h.kind === 'drink' && h.vessel !== 'plate';
+    };
     for (let i = this.state.hands.length - 1; i >= 0; i--) {
       const h = this.state.hands[i]!;
       if (h.kind === 'drink' && recipes.includes(h.recipe)) return i;
     }
+    for (let i = this.state.hands.length - 1; i >= 0; i--) if (drinkable(i)) return i;
     return -1;
   }
 
@@ -1085,7 +1094,9 @@ export class GameSession {
     this.state.hands[i] = { kind: 'dirty', vessel: drink.vessel };
     this.bus.emit('hands.changed', { count: this.state.hands.length });
     this.state.lastCoffeeAt = nowAbs(this.state);
-    this.recover('coffee', this.content.dayNight.energy.restore.coffee.amount);
+    // O café (restore.coffee.recipes) recompõe mais; outra bebida (chá, suco), otherAmount.
+    const cfg = this.content.dayNight.energy.restore.coffee;
+    this.recover('coffee', cfg.recipes.includes(drink.recipe) ? cfg.amount : (cfg.otherAmount ?? cfg.amount));
     return { ok: true };
   }
 

@@ -25,7 +25,7 @@
 /* Tomar (o café da mão): ao lado do E, por cima do jogo; só aparece com o café pronto na mão. */
 .touch-layer .t-btn.t-drink { position: absolute; right: 82px; bottom: 66px; background: #ffe3a3; }
 .touch-layer .t-btn.t-drink[hidden] { display: none; }
-#stage.sides .touch-layer .t-btn.t-drink { bottom: 18px; right: calc(max(0px, (var(--side-r) - 60px) / 2) - var(--side-r) + 66px); }
+#stage.sides .touch-layer .t-btn.t-drink { bottom: 14px; right: 6px; }
 .touch-layer .t-action { right: 16px; bottom: 18px; width: 58px; height: 58px; font-size: 19px; }
 .touch-layer .t-shortcuts { position: absolute; right: 8px; top: 86px; display: flex; flex-direction: column; gap: 5px; }
 .touch-layer .t-small { position: static; width: 48px; height: 28px; border-radius: 9px; font-size: 9px; }
@@ -39,11 +39,12 @@
    a tela cheia e o E. Faixa estreita: o direcional entra só um pouco no jogo. */
 #stage.sides .touch-layer .t-stick { width: 104px; height: 104px; bottom: 4px; left: calc(max(2px, (var(--side-l) - 104px) / 2) - var(--side-l)); }
 #stage.sides .touch-layer .t-knob { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
-#stage.sides .touch-layer .t-action { width: 60px; height: 60px; bottom: 6px; right: calc(max(0px, (var(--side-r) - 60px) / 2) - var(--side-r)); }
-#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); }
-#stage.sides .touch-layer .t-small { width: 54px; height: 30px; font-size: 9.5px; }
-#stage.sides .touch-layer .t-btn.t-run { bottom: auto; top: 256px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); }
-#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 220px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); width: 54px; height: 30px; }
+#stage.sides .touch-layer .t-action { --w: min(60px, calc(var(--side-r) - 4px)); width: var(--w); height: var(--w); bottom: 6px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); font-size: min(19px, calc(var(--w) / 3)); }
+#stage.sides .touch-layer .t-shortcuts { --w: min(54px, calc(var(--side-r) - 4px)); top: 8px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); }
+/* Os botões cabem na faixa da direita (no celular com o recorte da câmera, ela fica estreita): nunca por cima do jogo. */
+#stage.sides .touch-layer .t-small { width: min(54px, calc(var(--side-r) - 4px)); height: 30px; font-size: 9.5px; overflow: hidden; }
+#stage.sides .touch-layer .t-btn.t-run { --w: min(54px, calc(var(--side-r) - 4px)); bottom: auto; top: 256px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-full { --w: min(54px, calc(var(--side-r) - 4px)); left: auto; bottom: auto; top: 220px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); height: 30px; }
 
 /* Celular em pé (tela de toque, mais alta que larga): aviso para girar, por cima de tudo. */
 .rotate-hint { display: none; }

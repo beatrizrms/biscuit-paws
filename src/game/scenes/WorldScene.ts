@@ -1945,8 +1945,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Sofá ou cadeira: senta. Sentada, o E levanta (antes de tudo).
     if (s.resting()) add([], 0, null, () => this.tryRest(), { sticky: true });
     else {
+      // De mãos ocupadas não dá para sentar: a cadeira do lado não toma o E de pôr a bebida na mesa (só explica).
       const seat = s.seatNear(feet);
-      if (seat) add(this.placedCells(seat), E_TIER.seat, null, () => this.tryRest());
+      if (seat) add(this.placedCells(seat), E_TIER.seat, null, () => this.tryRest(), { weak: s.state.hands.length > 0 });
     }
     return out;
   }
