@@ -965,6 +965,80 @@
       ]
     },
     {
+      "id": "story.first_poster",
+      "act": 2,
+      "_comment": "Só marca o dia do primeiro cartaz da inauguração colado (a Jacque vê o cartaz e aparece no dia seguinte).",
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "not": {
+          "beat": "story.inauguration"
+        }
+      },
+      "when": {
+        "openingPosters": {
+          "gte": 1
+        }
+      },
+      "effects": []
+    },
+    {
+      "id": "story.jacque_meet_poster",
+      "act": 2,
+      "_comment": "A Jacque viu o cartaz da inauguração: no dia seguinte ao primeiro cartaz, ela bate no café e se apresenta. Não é o convite (para convidar, conversar com ela no passeio). Sem cartaz, ela aparece na feira de adoção (story.jacque_meet).",
+      "after": [
+        "story.first_poster"
+      ],
+      "start": {
+        "all": [
+          {
+            "daysSince": {
+              "beat": "story.first_poster",
+              "gte": 1
+            }
+          },
+          {
+            "not": {
+              "flag": "met.jacque"
+            }
+          },
+          {
+            "not": {
+              "beat": "story.inauguration"
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "clock": {
+              "gte": "10:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "17:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.jacque_meet_poster"
+        },
+        {
+          "setFlag": "met.jacque"
+        }
+      ]
+    },
+    {
       "id": "story.inauguration",
       "act": 2,
       "after": [
@@ -1177,9 +1251,18 @@
       "after": [
         "story.inauguration"
       ],
-      "_start": "Só fica ativo (e exclusivo) no dia da feira: antes, segurava as chegadas desde a inauguração.",
+      "_start": "Plano B (decisão 252): só se ela ainda não conheceu a Jacque pelo cartaz da inauguração; e só no dia da feira (ativo e exclusivo).",
       "start": {
-        "festivalToday": "fest.adoption_fair"
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "not": {
+              "flag": "met.jacque"
+            }
+          }
+        ]
       },
       "when": {
         "all": [
@@ -1215,6 +1298,63 @@
         },
         {
           "setFlag": "met.jacque"
+        }
+      ],
+      "exclusive": true
+    },
+    {
+      "id": "story.jacque_fair_visit",
+      "act": 2,
+      "_comment": "A Jacque já conhecida pelo cartaz da inauguração vai à 1ª feira e comenta (sem se apresentar de novo). Uma vez só.",
+      "after": [
+        "story.inauguration"
+      ],
+      "start": {
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "flag": "met.jacque"
+          },
+          {
+            "not": {
+              "beat": "story.jacque_meet"
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "festivalMounted": true
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "playerRoom": "room.backyard"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.jacque_fair_visit"
         }
       ],
       "exclusive": true

@@ -2731,6 +2731,35 @@
           "facing": "up"
         },
         {
+          "npcSpawn": "npc.jacque",
+          "map": "map.street",
+          "at": [
+            11,
+            10
+          ],
+          "facing": "right",
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            15,
+            10
+          ],
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
+          "npcFace": "npc.jacque",
+          "facing": "up",
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
           "playerWalk": [
             17,
             9
@@ -2990,6 +3019,45 @@
           "facing": "down"
         },
         {
+          "npcSpawn": "npc.jacque",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            10,
+            7
+          ],
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
+          "npcFace": "npc.jacque",
+          "facing": "right",
+          "when": {
+            "flag": "met.jacque"
+          }
+        },
+        {
           "wait": 500
         },
         {
@@ -3022,6 +3090,12 @@
           "dialogue": "dlg.inaug_fernanda",
           "when": {
             "flag": "clinic.open"
+          }
+        },
+        {
+          "dialogue": "dlg.inaug_jacque",
+          "when": {
+            "flag": "met.jacque"
           }
         },
         {
@@ -3062,6 +3136,128 @@
         },
         {
           "npcLeave": "npc.realtor"
+        },
+        {
+          "npcLeave": "npc.jacque",
+          "when": {
+            "flag": "met.jacque"
+          }
+        }
+      ]
+    },
+    "scr.jacque_meet_poster": {
+      "steps": [
+        {
+          "dialogue": "dlg.jacque_knock_poster"
+        },
+        {
+          "npcSpawn": "npc.jacque",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            8
+          ]
+        },
+        {
+          "playerWalk": [
+            12,
+            8
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "npcFace": "npc.jacque",
+          "facing": "left"
+        },
+        {
+          "emote": "player",
+          "balloon": "exclamation",
+          "ms": 700
+        },
+        {
+          "npcAnim": "npc.jacque",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.jacque_meet_poster"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            14,
+            10
+          ]
+        },
+        {
+          "npcLeave": "npc.jacque"
+        }
+      ]
+    },
+    "scr.jacque_fair_visit": {
+      "here": true,
+      "steps": [
+        {
+          "npcSpawn": "npc.jacque",
+          "map": "map.cafe_main",
+          "at": [
+            42,
+            9
+          ],
+          "facing": "left"
+        },
+        {
+          "playerWalk": [
+            37,
+            9
+          ]
+        },
+        {
+          "playerFace": "right"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            38,
+            9
+          ]
+        },
+        {
+          "npcFace": "npc.jacque",
+          "facing": "left"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 700
+        },
+        {
+          "npcAnim": "npc.jacque",
+          "anim": "acenar",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.jacque_fair_visit"
+        },
+        {
+          "npcWalk": "npc.jacque",
+          "to": [
+            42,
+            9
+          ]
+        },
+        {
+          "npcLeave": "npc.jacque"
         }
       ]
     }

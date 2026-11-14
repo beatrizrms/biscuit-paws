@@ -20,6 +20,57 @@ function cafe() {
 }
 
 describe('preparativos da inauguração', () => {
+  it('a Jacque viu o cartaz: no dia seguinte ao primeiro, ela se apresenta no café (sem contar como convite); a feira não repete', () => {
+    const { session, state } = cafe();
+    const beats = content.story.beats.map((b) => b.id);
+    state.story.completed = beats.slice(0, beats.indexOf('story.first_customer') + 1);
+    state.location = content.map.id;
+    const scripts: string[] = [];
+    session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
+    expect(session.doJobPoint(cfg.posters[0]!)).toEqual({ ok: true });
+    session.tickClock(2);
+    expect(state.story.completed).toContain('story.first_poster');
+    expect(scripts).not.toContain('scr.jacque_meet_poster'); // no mesmo dia, não
+    state.day += 1;
+    state.time = 10 * 60 + 5;
+    session.tickClock(2);
+    expect(scripts).toContain('scr.jacque_meet_poster');
+    expect(state.flags['met.jacque']).toBe(true);
+    expect(state.openingPrep?.invited ?? []).not.toContain('npc.jacque');
+    // A feira de adoção (o plano B) não começa para quem já conheceu a Jacque.
+    const fair = content.story.beats.find((b) => b.id === 'story.jacque_meet')!;
+    expect(JSON.stringify(fair.start)).toContain('met.jacque');
+  });
+
+  it('a conversa que convida traz a pista de onde achar outro amigo (só no dia do convite)', () => {
+    const { session, state } = cafe();
+    expect(session.inviteHint('npc.gabi')).toBeNull();
+    session.noteFriendChat('npc.gabi');
+    expect(session.inviteHint('npc.gabi')).toBe(cfg.inviteHints!['npc.gabi']);
+    expect(session.inviteHint('npc.neusa')).toBeNull();
+    state.day += 1;
+    expect(session.inviteHint('npc.gabi')).toBeNull();
+  });
+
+  it('nos preparativos, os amigos passeiam mais (pelo menos friendWalkChance dos dias)', () => {
+    const { session, state } = cafe();
+    state.flags['met.old_neighbor'] = true;
+    state.time = 9 * 60;
+    const days = (on: boolean) => {
+      state.business = on ? 'soft_open' : 'inaugurated';
+      let n = 0;
+      for (let d = 1; d <= 200; d++) {
+        state.day = d;
+        if (session.neighborWalksNow('map.street').some((w) => w.npc === 'npc.neusa')) n++;
+      }
+      return n;
+    };
+    const prep = days(true);
+    const after = days(false);
+    expect(prep).toBeGreaterThan(after);
+    expect(prep / 200).toBeGreaterThan(cfg.friendWalkChance! - 0.1);
+  });
+
   it('a Fernanda na clínica conversa como os outros: a fala do dia, os corações e o convite', () => {
     const { session, state } = cafe();
     expect(session.neighborHasChat('npc.fernanda')).toBe(true);

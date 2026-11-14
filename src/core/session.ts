@@ -2806,7 +2806,9 @@ export class GameSession {
       if (def.map !== mapId || this.walkedOn[def.npc] === this.state.day || inCrowd.has(def.npc)) continue;
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
       if (def.when && !this.holds(def.when as Condition)) continue;
-      const w = walkOfDay(def, this.state.day);
+      // Nos preparativos da inauguração, os amigos passeiam mais (dá tempo de convidar os 3).
+      const boost = this.openingPrepActive() && this.friendDef(def.npc) ? this.content.business.openingPrep?.friendWalkChance ?? 0 : 0;
+      const w = walkOfDay(boost > def.chance ? { ...def, chance: boost } : def, this.state.day);
       if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats, companions: def.companions ?? [] });
     }
     return out;
@@ -2888,6 +2890,13 @@ export class GameSession {
     prep.inviteDay = this.state.day;
     this.bus.emit('opening.invited', { npc, n: prep.invited.length });
     this.advanceStory();
+  }
+
+  /** Na conversa que convidou o amigo hoje, a pista dele: onde costuma achar outro amigo (ou null). */
+  inviteHint(npc: string): string | null {
+    const prep = this.state.openingPrep;
+    if (!prep || prep.inviteDay !== this.state.day || prep.invited.at(-1) !== npc) return null;
+    return this.content.business.openingPrep?.inviteHints?.[npc] ?? null;
   }
 
   /** O bônus da inauguração: os passos extras feitos do marco (reputação e mais clientes no dia). */

@@ -105,6 +105,27 @@ describe('a Jacque chega na primeira feira de adoção', () => {
     expect(scripts).toContain('scr.jacque_meet');
     expect(state.flags['met.jacque']).toBe(true);
   });
+
+  it('já conhecida pelo cartaz da inauguração: na feira ela vem e comenta, sem se apresentar de novo (uma vez)', () => {
+    const state = newGameState(500, 'map.cafe_main', 11 * 60);
+    state.day = 40;
+    state.flags['met.jacque'] = true;
+    state.story.completed.push(...content.story.beats.map((b) => b.id).filter((id) => id !== 'story.jacque_meet' && id !== 'story.jacque_fair_visit'));
+    const session = new GameSession(content, state);
+    const scripts: string[] = [];
+    session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
+    const fair = content.festivals.find((f) => f.id === 'fest.adoption_fair')!;
+    state.festivals.active = { id: fair.id, stage: 'scheduled', day: 40, done: [], results: [] };
+    const setup = fair.activities.filter((a) => a.game === 'fair_setup').map((a) => a.point);
+    state.festivals.active.done.push(fair.closePoint!.point, ...fair.decorations!.map((d) => d.point), ...setup);
+    session.setPlayerCell([34, 8]);
+    session.enter('map.cafe_main');
+    expect(scripts).toContain('scr.jacque_fair_visit');
+    expect(scripts).not.toContain('scr.jacque_meet');
+    session.finishScript('scr.jacque_fair_visit');
+    session.enter('map.cafe_main');
+    expect(scripts.filter((x) => x === 'scr.jacque_fair_visit')).toHaveLength(1);
+  });
 });
 
 describe('balãozinho do passeio', () => {

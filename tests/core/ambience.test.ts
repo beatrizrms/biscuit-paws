@@ -42,6 +42,11 @@ describe('luz e sombra de ambiente', () => {
     expect(a.edges.some((e) => e.wall === 'up' && e.x === 3 * ts && e.y === 4 * ts)).toBe(true); // ponta da parede vertical
   });
 
+  it('peça de parede levantada (o cartaz na fachada) não apaga a faixa de sombra do piso embaixo dela', () => {
+    const a = ambienceOf(room({ objects: [{ id: 'obj.poster', tile: 'ph_opening_poster', at: [1, 2], lift: 30 }] }), content.catalog, cfg, false);
+    expect(a.edges.some((e) => e.wall === 'up' && e.x === 1 * ts && e.y === 2 * ts)).toBe(true);
+  });
+
   it('janela: luz no piso só nos interiores, a partir da primeira linha aberta, inclinada para o lado', () => {
     // Só a janela com a cortina aberta joga luz (windowTiles); a de cortina fechada, nenhuma.
     expect(ambienceOf(room({ objects: [{ id: 'w', tile: 'window', at: [1, 0] }] }), content.catalog, cfg, true).windows).toHaveLength(0);

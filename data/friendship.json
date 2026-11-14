@@ -178,7 +178,7 @@
     },
     {
       "npc": "npc.jacque",
-      "known": { "beat": "story.jacque_meet" },
+      "known": { "flag": "met.jacque" },
       "loves": ["recipe.matcha_cake_slice", "recipe.cat_macarons"],
       "likes": ["recipe.black_coffee", "recipe.paw_cookie", "item.cactus", "item.cactus_ball"],
       "dislikes": ["recipe.fish_cookies_pink", "recipe.strawberry_ice_cream"],
