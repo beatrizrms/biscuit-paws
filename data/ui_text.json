@@ -203,7 +203,7 @@
     "ok": "Oba!"
   },
   "hotbar": {
-    "label": "Barra de itens"
+    "label": "Barra de itens", "hand": "Mãos livres (0): nada na mão"
   },
   "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · I: guardar na mochila · Esc: cancelar",
   "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
@@ -1381,6 +1381,7 @@
     "int_bus": "Ponto de ônibus",
     "builder": "Falar com o Tião",
     "int_curtain": "Abrir a cortina",
+    "int_curtain_close": "Fechar a cortina",
     "dirt": "Varrer",
     "bowl": "Encher a tigela",
     "litter": "Pôr areia",

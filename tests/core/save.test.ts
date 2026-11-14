@@ -245,3 +245,20 @@ describe('save v19: tutorial da dica "E"', () => {
     expect(Object.keys(content.catSprites.variants)).not.toContain('toffee');
   });
 });
+
+describe('a mão livre na barra', () => {
+  it('o espaço fixo "mão" (HAND): nada ativo na mão, a vassoura continua na barra; o save guarda', () => {
+    const state = newGameState(100, 'map.cafe_main');
+    const session = new GameSession(content, state);
+    session.receiveItem('item.broom');
+    const slot = state.hotbar.slots.indexOf('item.broom');
+    expect(slot).toBeGreaterThanOrEqual(0);
+    session.selectHotbarSlot(slot);
+    expect(session.activeItem()).toBe('item.broom');
+    session.selectHotbarSlot(-1);
+    expect(state.hotbar.active).toBe(-1);
+    expect(session.activeItem()).toBeNull();
+    expect(state.hotbar.slots[slot]).toBe('item.broom');
+    expect(parseSave(serializeSave(state, new Date(0)), knownIds(content)).state.hotbar.active).toBe(-1);
+  });
+});

@@ -22,7 +22,7 @@ import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
 import type { MiniGameParams, MiniGameResult, Difficulty } from './minigame';
 import { clampHealth, isContagious, pickDisease, prescriptionDays, rollsContagion, rollsIllness, healthLow } from './health';
-import { activeItem, assignToSlot, fitsHotbar, isSlot, swapSlots, syncHotbar } from './hotbar';
+import { activeItem, assignToSlot, fitsHotbar, HAND, isSlot, swapSlots, syncHotbar } from './hotbar';
 import { lowIngredients } from './shopping';
 import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
@@ -481,15 +481,15 @@ export class GameSession {
     return true;
   }
 
-  /** Escolhe o espaço ativo (0 a HOTBAR_SIZE - 1). */
+  /** Escolhe o espaço ativo (0 a HOTBAR_SIZE - 1, ou HAND: a mão livre). */
   selectHotbarSlot(slot: number): void {
-    if (!isSlot(slot) || slot === this.state.hotbar.active) return;
+    if ((!isSlot(slot) && slot !== HAND) || slot === this.state.hotbar.active) return;
     this.state.hotbar.active = slot;
     this.bus.emit('hotbar.changed', { active: slot });
   }
 
   /** Põe um item da mochila num espaço da barra (padrão: o ativo). Se já estava na barra, troca de lugar. */
-  assignToHotbar(itemId: string, slot = this.state.hotbar.active): ActionResult {
+  assignToHotbar(itemId: string, slot = Math.max(0, this.state.hotbar.active)): ActionResult {
     if (!fitsHotbar(this.content.items[itemId]) || !isSlot(slot)) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
     assignToSlot(this.state.hotbar, slot, itemId);

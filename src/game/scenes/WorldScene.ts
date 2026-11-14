@@ -4,7 +4,7 @@ import { fillNames } from '../ui/text';
 import { WalkFollowers } from '../WalkFollowers';
 import type { WalkCat } from '../../core/neighborWalks';
 import { cellsOf, doorAt, type DirtSpot, playerBlockBoxes, resolveMap, solidBoxes, solidRects, ySortDepth, type Cell, type Facing, type MapDoor, type MapInteraction, type ResolvedMap } from '../../core/map';
-import { HOTBAR_SIZE } from '../../core/hotbar';
+import { HAND, HOTBAR_SIZE } from '../../core/hotbar';
 import type { DayEndReason } from '../../core/events';
 import { spreadBoxes } from '../../core/spread';
 import { nowAbs } from '../../core/state';
@@ -450,15 +450,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Barra de itens: 1 a 8 escolhem o espaço (também com a mochila aberta); a roda do mouse passa de um em um.
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
       const n = Number(e.key);
-      if (!Number.isInteger(n) || n < 1 || n > HOTBAR_SIZE) return;
+      if (!Number.isInteger(n) || n < 0 || n > HOTBAR_SIZE) return;
       if (this.ui.isBusy() && !this.ui.isPanelOpen()) return;
+      // 0: a mão livre (nada na mão).
+      if (n === 0) return this.session.selectHotbarSlot(HAND);
       if (this.ui.backpackNumberKey(n)) return;
       this.session.selectHotbarSlot(n - 1);
     });
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
       if (this.ui.isBusy() || this.placing || dy === 0) return;
+      // A roda passa pela mão livre também (de -1 a HOTBAR_SIZE - 1).
       const { active } = this.session.state.hotbar;
-      this.session.selectHotbarSlot((active + (dy > 0 ? 1 : -1) + HOTBAR_SIZE) % HOTBAR_SIZE);
+      const n = HOTBAR_SIZE + 1;
+      this.session.selectHotbarSlot(((active + 1 + (dy > 0 ? 1 : -1) + n) % n) - 1);
     });
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
@@ -2019,6 +2023,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   private intKind(it: MapInteraction): HintKind {
+    // A cortina aberta: a dica é fechar.
+    if ('curtain' in it.action && this.session.curtainOpen(it.action.curtain)) return 'int_curtain_close';
     return `int_${Object.keys(it.action)[0] as keyof MapInteraction['action'] & string}` as HintKind;
   }
 

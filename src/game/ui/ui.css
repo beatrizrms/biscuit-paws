@@ -154,6 +154,11 @@
   border-radius: 3px;
   cursor: pointer;
 }
+/* A mão livre (o quadrado fixo antes do 1): uma mãozinha aberta desenhada em CSS (PLACEHOLDER(arte)). */
+.hotbar .slot.hand { background: #f6ead8; }
+.hotbar .slot.hand .hand-icon { position: absolute; left: 50%; top: 52%; width: 9px; height: 10px; transform: translate(-50%, -50%); border-radius: 3px 3px 4px 4px; background: #f2c9a6; box-shadow: inset 0 0 0 1px #8a5a44; }
+.hotbar .slot.hand .hand-icon::before { content: ""; position: absolute; left: 1px; top: -4px; width: 7px; height: 5px; background: repeating-linear-gradient(90deg, #f2c9a6 0 1px, #8a5a44 1px 2px); border-radius: 1px 1px 0 0; }
+.hotbar .slot.hand .hand-icon::after { content: ""; position: absolute; left: -3px; top: 3px; width: 4px; height: 3px; background: #f2c9a6; border: 1px solid #8a5a44; border-right: 0; border-radius: 2px 0 0 2px; }
 .hotbar .slot.active { border: 2px solid var(--butter2); box-shadow: 0 0 0 1px var(--butter3); background: var(--cream); }
 .hotbar .slot .icon { image-rendering: pixelated; }
 .hotbar .key { position: absolute; top: 0; left: 1px; font-size: max(calc(5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--ink2); }
@@ -1321,6 +1326,8 @@ html.touch-mode .hotbar .count { font-size: max(calc(7px * var(--fs, 1)), var(--
 /* Celular deitado (#stage.sides, main.ts): a barra fica em pé na faixa da esquerda, fora do jogo (o direcional
    fica embaixo dela). */
 html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top { top: 8px; bottom: auto; left: calc(max(2px, (var(--side-l) - 32px) / 2) - var(--side-l)); transform: none; flex-direction: column; }
+/* Com a mão livre (9 quadrados), a barra em pé cabe acima do direcional: quadrados de 24. */
+html.touch-mode #stage.sides .hotbar .slot { width: 24px; height: 24px; }
 /* Letras no celular: tudo 25% maior e nada abaixo de 8,5 px do jogo (os font-size da interface passam por --fs e
    --fs-min; no computador ficam 1 e 0, sem mudança). */
 html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }

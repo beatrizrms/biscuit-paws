@@ -5,7 +5,7 @@
 // "empilhar", que leva da mochila só o que já está no storage (repor, como no Stardew Valley).
 import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
-import { fitsHotbar } from '../../core/hotbar';
+import { HAND, fitsHotbar } from '../../core/hotbar';
 import type { GameSession } from '../../core/session';
 import { premiumIn, VESSELS } from '../../core/recipes';
 import { content, uiText } from '../content';
@@ -215,7 +215,7 @@ export class BackpackPanel {
           // guardar = passar para o espaço seguinte.
           const tray = this.session.content.carry.tray.item;
           const st = this.session.state;
-          if (st.tray) this.session.selectHotbarSlot((st.hotbar.active + 1) % st.hotbar.slots.length);
+          if (st.tray) this.session.selectHotbarSlot(HAND);
           else if (!this.session.selectHotbarItem(tray)) {
             const r = this.session.assignToHotbar(tray, this.freeSlot());
             if (!r.ok) return void report(r);

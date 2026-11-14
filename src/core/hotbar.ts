@@ -4,10 +4,13 @@ import type { ItemDef } from './content';
 
 export const HOTBAR_SIZE = 8;
 
+/** O espaço fixo "mão" (antes do 1, fora dos HOTBAR_SIZE): ativo, nada na mão (mãos livres). */
+export const HAND = -1;
+
 export interface HotbarState {
   /** Item de cada espaço (null = vazio). Sempre HOTBAR_SIZE espaços. */
   slots: (string | null)[];
-  /** Índice do espaço ativo. */
+  /** Índice do espaço ativo (HAND = a mão livre). */
   active: number;
 }
 
@@ -50,6 +53,7 @@ export function syncHotbar(
 
 /** Item no espaço ativo, se ela ainda tiver. */
 export function activeItem(bar: HotbarState, inventory: Record<string, number>): string | null {
+  if (bar.active === HAND) return null;
   const id = bar.slots[bar.active] ?? null;
   return owned(inventory, id) ? id : null;
 }

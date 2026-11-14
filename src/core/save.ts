@@ -450,7 +450,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
         const id = v2.hotbar?.slots?.[i] ?? null;
         return id && known.items.has(id) ? id : null;
       }),
-      active: Number.isInteger(v2.hotbar?.active) && v2.hotbar!.active >= 0 && v2.hotbar!.active < HOTBAR_SIZE ? v2.hotbar!.active : 0,
+      active: Number.isInteger(v2.hotbar?.active) && v2.hotbar!.active >= -1 && v2.hotbar!.active < HOTBAR_SIZE ? v2.hotbar!.active : 0, // -1: a mão livre
     },
     business: isBusinessStage(v2.business) ? v2.business : 'closed',
     debt: typeof v2.debt === 'number' && v2.debt > 0 ? v2.debt : 0,

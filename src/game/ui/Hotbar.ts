@@ -1,6 +1,8 @@
 // Barra de itens embaixo da tela: espaços com itens da mochila; o ativo (moldura) é o que ela usa para agir.
-// Teclas 1 a 8, roda do mouse ou clique escolhem o espaço. A regra (o que vai, o que vale) está em src/core/hotbar.ts.
+// Teclas 1 a 8, roda do mouse ou clique escolhem o espaço; o primeiro quadrado (tecla 0) é a mão livre: fixo, não
+// conta como espaço. A regra (o que vai, o que vale) está em src/core/hotbar.ts.
 import type { ItemDef } from '../../core/content';
+import { HAND } from '../../core/hotbar';
 import type { GameSession } from '../../core/session';
 import { content, uiText } from '../content';
 import { iconHtml } from './ShopPanel';
@@ -45,7 +47,9 @@ export class Hotbar {
   private render(): void {
     const { slots, active } = this.session.state.hotbar;
     const inv = this.session.state.inventory;
-    this.el.innerHTML = slots
+    // A mão livre: o quadrado fixo antes do 1 (PLACEHOLDER(arte): a mãozinha é um desenho de CSS).
+    const hand = `<button class="slot hand${active === HAND ? ' active' : ''}" data-slot="${HAND}" title="${esc(uiText.hotbar.hand)}"><span class="key">0</span><span class="hand-icon" aria-hidden="true"></span></button>`;
+    this.el.innerHTML = hand + slots
       .map((id, i) => {
         const qty = id ? inv[id] ?? 0 : 0;
         const item = qty > 0 ? content.items[id!] : undefined;
