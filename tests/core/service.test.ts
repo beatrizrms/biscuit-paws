@@ -110,6 +110,7 @@ describe('receitas e cardápio', () => {
     expect(sv.orderable().map((r) => r.id)).toEqual(['recipe.black_coffee']);
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
     state.service.served = 65;
+    state.business = 'inaugurated'; // o chá verde conta desde a inauguração
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
     expect(sv.toggleMenu('recipe.lemonade')).toEqual({ ok: false, reason: 'menu_full' });
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true }); // tirar
@@ -586,6 +587,7 @@ describe('fase 2: forno e receitas em etapas', () => {
   const bakery = () => {
     const ctx = openCafe({ served: 35 });
     const { session, sv } = ctx;
+    session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
     for (const [id, at] of [['item.counter_single', [2, 8]], ['item.counter_single', [4, 8]], ['item.stove', [2, 8]], ['item.oven', [4, 8]]] as const) {
       session.buy(id);
@@ -624,6 +626,7 @@ describe('fase 2: forno e receitas em etapas', () => {
 
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
     const { session, sv } = openCafe({ served: 35 });
+    session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
     session.buy('item.counter_single');
     session.place('item.counter_single', [2, 8]);

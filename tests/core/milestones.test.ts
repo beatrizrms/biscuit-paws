@@ -75,10 +75,14 @@ describe('selos na sessão', () => {
     session.start(false);
     expect(reached()).not.toContain('milestone.customers_40');
     const track = session.milestoneTracks().find((t) => t.track.id === 'customers')!;
-    expect(track.next).toMatchObject({ def: { id: 'milestone.customers_40' }, value: 40, blocked: true });
-    expect(track.reached.map((m) => m.id)).toEqual(['milestone.customers_6', 'milestone.customers_15', 'milestone.customers_25', 'milestone.customers_35']);
-    // Depois do porão, todos os outros selos de clientes (contados pelos dados).
-    expect(track.hidden).toBe(content.milestones.milestones.filter((m) => m.track === 'customers' && m.at > 40).length);
+    // Antes da inauguração: só o chá preto e o suco; o latte (25) também espera a inauguração.
+    expect(track.next).toMatchObject({ def: { id: 'milestone.customers_25' }, value: 25, blocked: true });
+    expect(track.reached.map((m) => m.id)).toEqual(['milestone.customers_6', 'milestone.customers_15']);
+    expect(track.hidden).toBe(content.milestones.milestones.filter((m) => m.track === 'customers' && m.at > 25).length);
+    // As outras receitas contam desde a inauguração: antes dela, 0.
+    const open = session.milestoneTracks().find((t) => t.track.id === 'customers_open')!;
+    expect(open.reached).toEqual([]);
+    expect(open.next?.value).toBe(0);
   });
 
   it('a reputação que cai não tira o selo', () => {
@@ -170,5 +174,41 @@ describe('meta longa (o próximo selo no balão)', () => {
     // Todos conquistados: nada.
     for (const m of content.milestones.milestones) state.milestones.reached[m.id] = 1;
     expect(session.nextAchievement()).toBeNull();
+  });
+});
+
+describe('ritmo das receitas: o inverno antes da inauguração', () => {
+  const inaugurate = (session: GameSession) => (session as unknown as { applyEffect(e: unknown): void }).applyEffect({ setBusiness: 'inaugurated' });
+  const recipes = (session: GameSession) => session.service.unlockedRecipes().map((r) => r.id);
+
+  it('antes da inauguração, mesmo com muitos clientes, só café preto, chá preto e suco; o latte chega na inauguração', () => {
+    const { session, state } = cafe();
+    state.service.served = 120;
+    session.start(false);
+    expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.black_coffee', 'recipe.black_tea', 'recipe.orange_juice']));
+    for (const id of ['recipe.cafe_latte', 'recipe.cheese_bread', 'recipe.green_tea', 'recipe.hot_chocolate']) expect(recipes(session)).not.toContain(id);
+    // Inaugurou: o latte vem junto; o resto conta os clientes dali em diante (não sai tudo de uma vez).
+    inaugurate(session);
+    session.start(false);
+    expect(state.service.servedAtOpening).toBe(120);
+    expect(recipes(session)).toContain('recipe.cafe_latte');
+    expect(recipes(session)).not.toContain('recipe.cheese_bread');
+    state.service.served = 120 + 35;
+    session.start(false);
+    expect(recipes(session)).toContain('recipe.cheese_bread');
+    expect(recipes(session)).not.toContain('recipe.green_tea');
+  });
+
+  it('save inaugurado sem o registro (de antes desta regra): conta o total, nada some', () => {
+    const { session, state } = cafe();
+    state.business = 'inaugurated';
+    state.service.served = 60;
+    session.start(false);
+    expect(session.servedSinceOpening()).toBe(60);
+    expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.cheese_bread', 'recipe.green_tea', 'recipe.strawberry_juice']));
+  });
+
+  it('antes da inauguração, o intervalo entre clientes dobra (service.softOpenArrivalFactor)', () => {
+    expect(content.service.softOpenArrivalFactor).toBe(2);
   });
 });

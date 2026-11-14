@@ -419,6 +419,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
       nextCustomerAt: v2.service?.nextCustomerAt ?? null,
       nextCustomerId: v2.service?.nextCustomerId ?? 1,
       served: v2.service?.served ?? 0,
+      ...(Number.isInteger(v2.service?.servedAtOpening) && v2.service!.servedAtOpening! >= 0 ? { servedAtOpening: v2.service!.servedAtOpening } : {}),
       ...(v2.service?.today && Number.isInteger(v2.service.today.day) && Array.isArray(v2.service.today.schedule?.days) ? { today: { day: v2.service.today.day, schedule: v2.service.today.schedule } } : {}),
     },
     tray: v2.tray === true,

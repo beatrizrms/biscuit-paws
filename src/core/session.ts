@@ -76,7 +76,7 @@ import {
 import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
-import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
+import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
@@ -3675,11 +3675,18 @@ export class GameSession {
 
   // ---------- Selos do café ----------
 
+  /** Clientes atendidos desde a inauguração (antes dela, 0). */
+  servedSinceOpening(): number {
+    if (this.state.business !== 'inaugurated') return 0;
+    return Math.max(0, this.state.service.served - (this.state.service.servedAtOpening ?? 0));
+  }
+
   /** Os números das trilhas dos selos agora (sequências: a melhor, que nunca diminui). */
   milestoneValues(): MilestoneValues {
     const st = this.state.stats.streaks;
     return {
       served: this.state.service.served,
+      servedOpen: this.servedSinceOpening(),
       catsEver: this.catsEverSheltered(),
       reputation: this.reputation(),
       'streak.no_gave_up': st.no_gave_up.best,
@@ -3712,7 +3719,11 @@ export class GameSession {
     const s = this.state.milestones;
     const silent = s.catchUp === true;
     delete s.catchUp;
-    const met = newlyMet(this.content.milestones, s, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+    // Save antigo: as receitas que ele já tinha pelo total de clientes continuam (nada se perde): conta o total e o
+    // selo das receitas não espera a inauguração.
+    const values = silent ? { ...this.milestoneValues(), servedOpen: this.state.service.served } : this.milestoneValues();
+    const when = (c: Condition, m?: { reward: { kind: string } }) => (silent && m?.reward.kind === 'recipe') || evaluate(c, this.state, this.storyContext());
+    const met = this.content.milestones.milestones.filter((m) => s.reached[m.id] === undefined && milestoneMet(this.content.milestones, m, values, (c) => when(c, m)));
     // Anota todos antes dos efeitos: receber um presente volta para a história, que confere de novo.
     for (const m of met) s.reached[m.id] = this.state.day;
     if (silent) return;
@@ -5155,6 +5166,7 @@ export class GameSession {
     const from = this.state.business;
     if (stageAtLeast(from, stage)) return;
     this.state.business = stage;
+    if (stage === 'inaugurated') this.state.service.servedAtOpening = this.state.service.served;
     this.bus.emit('business.changed', { from, to: stage });
   }
 

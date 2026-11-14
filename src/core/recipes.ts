@@ -101,6 +101,8 @@ export interface ServiceConfig {
   /** O primeiro cliente do dia chega depois de tantos minutos; os outros, num intervalo sorteado. */
   firstArrivalMinutes: number;
   arrivalEveryMinutes: [number, number];
+  /** Antes da inauguração (funcionamento parcial), o intervalo entre clientes multiplica por isto (2 = metade dos clientes). */
+  softOpenArrivalFactor?: number;
   /** Quanto tempo o cliente espera o pedido antes de ir embora. */
   patienceMinutes: number;
   /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */

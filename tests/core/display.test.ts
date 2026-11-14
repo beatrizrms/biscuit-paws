@@ -16,6 +16,7 @@ function bakery(withDisplay = true) {
   const state = newGameState(5000, 'map.cafe_main', 9 * 60);
   state.flags['has.cat'] = true;
   state.service.served = 80;
+  state.business = 'inaugurated'; // as receitas depois do pão de queijo contam desde a inauguração
   state.story.completed.push(...untilChairs);
   state.placed.push({ uid: 'b1', item: 'item.blender', at: [7, 5] }, { uid: 'o1', item: 'item.oven', at: [8, 5] });
   if (withDisplay) state.placed.push({ uid: 'v1', item: 'item.display_case', at: [10, 5] });

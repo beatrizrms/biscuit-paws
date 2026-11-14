@@ -55,6 +55,8 @@
     25,
     50
   ],
+  "_softOpenArrivalFactor": "Antes da inauguração (funcionamento parcial), o intervalo entre clientes multiplica por isto: 2 = metade dos clientes (pouca gente sabe do café ainda).",
+  "softOpenArrivalFactor": 2,
   "patienceMinutes": 90,
   "shoppingListBelow": 5,
   "extraPerEquipment": 1,

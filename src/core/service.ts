@@ -62,6 +62,8 @@ export interface ServiceState {
   nextCustomerId: number;
   /** Clientes atendidos (o total do jogo). */
   served: number;
+  /** O total de atendidos no dia da inauguração (os selos de "desde a inauguração" contam dali). Save inaugurado sem o campo: 0. */
+  servedAtOpening?: number;
   /** O horário de hoje, guardado na primeira mudança do dia: o app Horário só muda os dias seguintes. */
   today?: { day: number; schedule: Schedule };
 }
@@ -847,8 +849,10 @@ export class CafeService {
     sv.customers.push(c);
     if (spot) this.seat(c, spot);
     else this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: null });
+    // Antes da inauguração, pouca gente sabe do café: o intervalo entre clientes é maior.
+    const f = this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1);
     const [a, b] = this.cfg.arrivalEveryMinutes;
-    sv.nextCustomerAt = now + rng.int(a, b);
+    sv.nextCustomerAt = now + Math.round(rng.int(a, b) * f);
   }
 
   /** Vai para o lugar e faz o pedido (do quadro, que dá para fazer, do tipo do lugar; o favorito pesa mais). */

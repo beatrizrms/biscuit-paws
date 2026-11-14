@@ -7,7 +7,7 @@ import type { Condition, Effect } from './content';
 import type { StreakId } from './stats';
 
 /** De onde a trilha lê o número. */
-export type MilestoneStat = 'served' | 'catsEver' | 'reputation' | 'fairsHeld' | `streak.${StreakId}`;
+export type MilestoneStat = 'served' | 'servedOpen' | 'catsEver' | 'reputation' | 'fairsHeld' | `streak.${StreakId}`;
 export type MilestoneKind = 'count' | 'streak';
 /** O que o selo dá. A tela mostra só o tipo ("Nova receita ?") até ele ser conquistado. */
 export type RewardKind = 'recipe' | 'room' | 'item' | 'event' | 'gift' | 'costume';
@@ -107,7 +107,7 @@ export function milestoneRefs(c: unknown, out: string[] = []): string[] {
   return out;
 }
 
-const STATS: readonly string[] = ['served', 'catsEver', 'reputation', 'fairsHeld', 'streak.no_gave_up', 'streak.cats_cared'];
+const STATS: readonly string[] = ['served', 'servedOpen', 'catsEver', 'reputation', 'fairsHeld', 'streak.no_gave_up', 'streak.cats_cared'];
 
 /**
  * Confere os dados. `exists` diz se o id de cada tipo de recompensa existe; `storyRefs` são os selos citados pela

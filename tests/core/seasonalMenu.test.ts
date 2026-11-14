@@ -14,6 +14,7 @@ function cafe(day: number, served = 300) {
   state.day = day;
   state.flags['has.cat'] = true;
   state.service.served = served;
+  state.business = 'inaugurated'; // as receitas da estação contam desde a inauguração
   const session = new GameSession(content, state);
   return { session, state, sv: session.service };
 }
