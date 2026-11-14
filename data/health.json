@@ -11,6 +11,7 @@
     "litterPoop": { "afterDays": 2, "perCat": 1, "maxOnFloor": 3, "tag": "litter_poop", "flag": "litter.poop" },
     "bubbles": {
       "medicine": { "icon": "remedio" },
+      "hungry": { "item": "item.cat_food_basic" },
       "dirty": { "icon": "pegadas_lama" },
       "sad": { "emote": "heart" },
       "play": { "item": "item.cat_wand" }

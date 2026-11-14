@@ -972,7 +972,7 @@ Decisão: (1) antes da inauguração, o intervalo entre clientes dobra (`service
 
 ## 237. Gato isolado: repouso, sem banho nem brincadeira (nov/2026)
 Pedido: o gato no cercadinho pedia banho e brincadeira; fica subentendido repouso e que o cercadinho é limpo.
-Decisão: isolado (consulta de entrada, pós-cirurgia, doença que passa: cercadinho ou caixinha), o balão e as tarefas só pedem o remédio; a alegria e a higiene não caem no fim do dia e o pedido de brincar só começa a contar quando ele volta para a turma. A varinha e a escova não abrem com um gato isolado.
+Decisão: isolado (consulta de entrada, pós-cirurgia, doença que passa: cercadinho ou caixinha), o balão e as tarefas só pedem o remédio; a alegria e a higiene não caem no fim do dia e o pedido de brincar só começa a contar quando ele volta para a turma. A varinha e a escova não abrem com um gato isolado. Balão de fome (o ícone da ração) em qualquer gato que passou um dia inteiro sem comer (nem ontem nem hoje), também no cercadinho; não vira tarefa (a ração já tem a dela).
 
 ## 238. No celular, tudo maior (nov/2026)
 Pedido: aumentar um pouco a proporção de tudo no celular, sem distorcer.
