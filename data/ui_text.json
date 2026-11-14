@@ -1280,10 +1280,12 @@
       "box": "Tem uma caixa na porta do café. Ela está... miando?",
       "danger": "Um gato ferido passou correndo pela rua! Precisa de ajuda, já!",
       "litter": "Miadinhos bem finos perto dos caixotes de fruta da calçada...",
-      "routine": "Um gato tímido aparece sempre no fim da tarde, perto da caixa de correio da rua..."
+      "routine": "Um gato tímido aparece sempre no fim da tarde, perto da caixa de correio da rua...",
+      "bench": "Aquele gato laranja do jornal... dizem que ele está de novo no banco da praça, dormindo na neve."
     },
     "goal": {
       "meet": "Ver quem está na porta do café.",
+      "meet_square": "Ir até a praça e chegar perto do gato laranja no banco.",
       "meet_neighbor": "Falar com {arrival:npc} na porta do café.",
       "poster": "Ler o cartaz no mural do mercado (ou no Vila Hoje).",
       "choice": "Decidir se o gato fica.",

@@ -3014,13 +3014,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     if (!a || !step || a.def.place.map !== this.map.id) return;
     const who = actorsOf(a.def);
-    const sitCat = (catId: string | undefined, [c, r]: [number, number], lift = 0) => {
+    const sitCat = (catId: string | undefined, [c, r]: [number, number], lift = 0, pose: 'sit' | 'sleep' = 'sit') => {
       const variant = catId ? this.session.catDef(catId)?.variant : undefined;
       if (!variant || !this.textures.exists(catTexture(variant))) return null;
       CatSprite.createAnimations(this, variant);
       const feet = (r + 1) * ts - 4 - lift;
-      const cat = this.add.sprite((c + 0.5) * ts, feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(variant)).setDepth(ySortDepth(feet));
-      cat.play(`${catTexture(variant)}-sit`);
+      const cat = this.add.sprite((c + 0.5) * ts + (a.def.place.dx ?? 0), feet, catTexture(variant), 0).setOrigin(0.5, 28 / 32).setScale(catScale(variant)).setDepth(ySortDepth(feet));
+      cat.play(`${catTexture(variant)}-${pose}`);
+      // Em cima de um móvel (o banco): na frente dele.
+      if (lift > 0) cat.setDepth(ySortDepth((r + 1) * ts) + 2);
       this.arrivalActors.push(cat);
       return cat;
     };
@@ -3030,7 +3032,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (feed) sitCat(a.catId, feed);
     this.arrivalFeedKey = feed ? feed.join(',') : '';
     // Etapa de mini game (e as dicas antes dela): o gato fica no lugar (preso no alto do poste: place.lift).
-    if (('minigame' in step || 'ask' in step) && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0);
+    if (('minigame' in step || 'ask' in step) && at && who.cat) sitCat(a.catId, at, a.def.place.lift ?? 0, a.def.place.pose);
     // Dicas: os vizinhos em volta, olhando para cima.
     if ('ask' in step && at) {
       step.ask.forEach((o, i) => {
@@ -3054,7 +3056,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.arrivalTrailKey = this.session.arrivals.trailNow().length;
       }
       if (who.cat) {
-        const cat = sitCat(a.catId, at, a.def.place.lift ?? 0);
+        const cat = sitCat(a.catId, at, a.def.place.lift ?? 0, a.def.place.pose);
         if (cat && who.hidden) {
           cat.setVisible(false);
           this.arrivalHidden = cat;

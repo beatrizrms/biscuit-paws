@@ -986,7 +986,7 @@ export class GameUi {
     const g = uiText.arrivals.goal;
     const step = this.session.arrivals.currentStep();
     if (!a || !step) return '';
-    const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : g.meet;
+    const meet = a.def.model === 'vizinho_traz' ? g.meet_neighbor : a.def.model === 'pegadas' ? g.trail : a.def.model === 'gato_leva' ? g.meet_leader : a.def.place.kind === 'square' ? g.meet_square : g.meet;
     const mg = { preso: g.rescue, ninhada: g.litter, dentro_do_cafe: g.inside, em_perigo: g.danger } as Record<string, string>;
     const meetText = a.def.model === 'entrega' ? g.box : meet;
     const clueText = a.def.model === 'entrega' ? g.ask : g.clue;

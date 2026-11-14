@@ -891,6 +891,7 @@ export class GameSession {
     this.playgroundDay();
     this.growPlants();
     this.socialDay();
+    for (const n of this.news()) this.state.flags[`news.seen.${n.id}`] = true;
     const sleepRoom = this.sleepRoom();
     const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
     this.state.location = morning.map;
