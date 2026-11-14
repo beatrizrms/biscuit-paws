@@ -828,7 +828,7 @@
     "closed": "Café fechado · abre {when}"
   },
   "playerFallback": "Você",
-  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar" },
+  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "run": "Correr" },
   "upgrade": {
     "title": "Upgrade",
     "hint": "A assistência técnica troca o móvel por outro do mesmo tipo, no mesmo lugar: outra peça do balcão, a cadeira virada para outro lado, outra cor, o pote automático. Você paga a diferença entre as peças (se a nova for mais cara) + {fee} moedas do serviço. Comprando do zero, você fica com as duas.",

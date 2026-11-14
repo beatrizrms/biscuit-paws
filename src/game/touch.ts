@@ -9,7 +9,7 @@ import { uiText } from './content';
 export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC';
 
 /** Raio do direcional (px da interface, 640 x 360) e a partir de que parte dele conta direção e corrida. */
-const STICK_R = 51;
+const STICK_R = 62;
 const DEAD = 0.3;
 const RUN_AT = 0.92;
 
@@ -36,9 +36,18 @@ export function isTouchDevice(): boolean {
 class TouchInput {
   /** O último controle usado: com "touch", os botões aparecem. */
   mode: 'touch' | 'keys' = 'keys';
-  /** Direção do direcional agora (mesmo formato do teclado) e se está correndo (empurrado até a borda). */
+  /** Direção do direcional agora (mesmo formato do teclado). */
   dir: InputState = { up: false, down: false, left: false, right: false };
-  run = false;
+  /** Direcional empurrado até a borda. */
+  private stickRun = false;
+  /** Botão Correr ligado (um toque liga, outro desliga): corre com o direcional em qualquer ponto. */
+  private runLock = false;
+  private runBtn: HTMLButtonElement | null = null;
+
+  /** Está correndo: o botão Correr ligado ou o direcional na borda. */
+  get run(): boolean {
+    return this.runLock || this.stickRun;
+  }
   /** O botão de ação está sendo segurado (jogos de segurar, como a pescaria). */
   holding = false;
   private listeners = new Map<TouchAction, Set<() => void>>();
@@ -78,6 +87,7 @@ class TouchInput {
     layer.innerHTML = `
       <div class="t-stick"><div class="t-knob"></div></div>
       <button class="t-btn t-action" data-act="E">E</button>
+      <button class="t-btn t-small t-run" aria-pressed="false">${uiText.touch.run}</button>
       <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);
@@ -88,6 +98,12 @@ class TouchInput {
     rotate.innerHTML = `<span class="rotate-phone"></span><p>${uiText.touch.rotate}</p>`;
     document.body.appendChild(rotate);
     this.wireFullscreen(layer.querySelector('.t-full') as HTMLButtonElement);
+    this.runBtn = layer.querySelector('.t-run');
+    this.runBtn?.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.setRunLock(!this.runLock);
+    });
     this.wireStick(layer.querySelector('.t-stick') as HTMLElement, layer.querySelector('.t-knob') as HTMLElement);
     layer.querySelectorAll<HTMLButtonElement>('[data-act]').forEach((b) => {
       const act = b.dataset.act as TouchAction;
@@ -132,7 +148,10 @@ class TouchInput {
     this.root?.classList.toggle('touch-on', mode === 'touch');
     // A interface inteira sabe que é toque (ui.css: html.touch-mode): textos sem teclas, alvos maiores.
     document.documentElement.classList.toggle('touch-mode', mode === 'touch');
-    if (mode === 'keys') this.release();
+    if (mode === 'keys') {
+      this.release();
+      this.setRunLock(false);
+    }
     this.modeListeners.forEach((cb) => cb());
   }
 
@@ -155,10 +174,16 @@ class TouchInput {
     });
   }
 
-  /** Solta tudo (trocou de controle, ou o dedo saiu). */
+  private setRunLock(on: boolean): void {
+    this.runLock = on;
+    this.runBtn?.classList.toggle('on', on);
+    this.runBtn?.setAttribute('aria-pressed', String(on));
+  }
+
+  /** Solta tudo (trocou de controle, ou o dedo saiu). O botão Correr continua como estava. */
   private release(): void {
     this.dir = { up: false, down: false, left: false, right: false };
-    this.run = false;
+    this.stickRun = false;
     this.holding = false;
   }
 
@@ -178,7 +203,7 @@ class TouchInput {
       const kx = Math.cos(a) * dist;
       const ky = Math.sin(a) * dist;
       this.dir = { left: kx < -DEAD, right: kx > DEAD, up: ky < -DEAD, down: ky > DEAD };
-      this.run = dist >= RUN_AT;
+      this.stickRun = dist >= RUN_AT;
       knob.style.transform = `translate(${kx * radius}px, ${ky * radius}px)`;
     };
     const end = (e: PointerEvent) => {

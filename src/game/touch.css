@@ -4,12 +4,12 @@
 .touch-layer { position: absolute; inset: 0; pointer-events: none; display: none; }
 #touch.touch-on .touch-layer { display: block; }
 .touch-layer .t-stick {
-  position: absolute; left: 14px; bottom: 18px; width: 102px; height: 102px; border-radius: 50%;
+  position: absolute; left: 14px; bottom: 14px; width: 124px; height: 124px; border-radius: 50%;
   background: #3b2a3233; border: 2px solid #fff4e088; pointer-events: auto; touch-action: none; box-sizing: border-box;
 }
 .touch-layer .t-stick.down { background: #3b2a3255; }
 .touch-layer .t-knob {
-  position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%;
+  position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%;
   background: #fff4e0cc; border: 2px solid var(--ink, #3b2a32); pointer-events: none;
   /* A borda entra no tamanho: com ela por fora, a bolinha ficava 2 px para a direita e para baixo do centro. */
   box-sizing: border-box;
@@ -19,22 +19,27 @@
   background: #fff4e0d9; color: var(--ink, #3b2a32); font: bold 9px 'Trebuchet MS', sans-serif; padding: 0;
 }
 .touch-layer .t-btn.down { background: #f4c06a; }
-.touch-layer .t-action { right: 18px; bottom: 26px; width: 46px; height: 46px; font-size: 16px; }
-.touch-layer .t-shortcuts { position: absolute; right: 8px; top: 96px; display: flex; flex-direction: column; gap: 5px; }
-.touch-layer .t-small { position: static; width: 40px; height: 25px; border-radius: 8px; font-size: 7.5px; }
+/* Correr: liga e desliga com um toque (ligado, fica dourado). */
+.touch-layer .t-btn.t-run { position: absolute; right: 82px; bottom: 32px; }
+.touch-layer .t-run.on { background: #f4c06a; }
+.touch-layer .t-action { right: 16px; bottom: 18px; width: 58px; height: 58px; font-size: 19px; }
+.touch-layer .t-shortcuts { position: absolute; right: 8px; top: 86px; display: flex; flex-direction: column; gap: 5px; }
+.touch-layer .t-small { position: static; width: 48px; height: 28px; border-radius: 9px; font-size: 9px; }
 /* Nos mini games: só o direcional e o botão de ação. */
-#ui.minigame-on ~ #touch .t-shortcuts { display: none; }
+#ui.minigame-on ~ #touch .t-shortcuts, #ui.minigame-on ~ #touch .t-run { display: none; }
 /* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
-.touch-layer .t-full { position: absolute; left: 14px; bottom: 130px; width: 28px; font-size: 11px; }
+.touch-layer .t-full { position: absolute; left: 14px; bottom: 146px; width: 32px; height: 28px; font-size: 12px; }
 .touch-layer .t-full[hidden] { display: none; }
 /* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side-l / --side-r: a largura útil de cada uma, em px do jogo): o
    direcional e os botões saem de cima do jogo. Esquerda: a barra de itens (ui.css) e o direcional; direita: os atalhos,
    a tela cheia e o E. Faixa estreita: o direcional entra só um pouco no jogo. */
-#stage.sides .touch-layer .t-stick { width: 84px; height: 84px; bottom: 12px; left: calc(max(2px, (var(--side-l) - 84px) / 2) - var(--side-l)); }
-#stage.sides .touch-layer .t-knob { width: 36px; height: 36px; margin: -18px 0 0 -18px; }
-#stage.sides .touch-layer .t-action { width: 42px; height: 42px; right: calc(max(0px, (var(--side-r) - 42px) / 2) - var(--side-r)); }
-#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); }
-#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 200px; right: calc(max(2px, (var(--side-r) - 40px) / 2) - var(--side-r)); width: 40px; height: 25px; }
+#stage.sides .touch-layer .t-stick { width: 104px; height: 104px; bottom: 4px; left: calc(max(2px, (var(--side-l) - 104px) / 2) - var(--side-l)); }
+#stage.sides .touch-layer .t-knob { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
+#stage.sides .touch-layer .t-action { width: 60px; height: 60px; bottom: 6px; right: calc(max(0px, (var(--side-r) - 60px) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-shortcuts { top: 8px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-small { width: 54px; height: 30px; font-size: 9.5px; }
+#stage.sides .touch-layer .t-btn.t-run { bottom: auto; top: 256px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); }
+#stage.sides .touch-layer .t-full { left: auto; bottom: auto; top: 220px; right: calc(max(2px, (var(--side-r) - 54px) / 2) - var(--side-r)); width: 54px; height: 30px; }
 
 /* Celular em pé (tela de toque, mais alta que larga): aviso para girar, por cima de tudo. */
 .rotate-hint { display: none; }
