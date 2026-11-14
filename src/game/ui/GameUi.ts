@@ -60,8 +60,6 @@ export interface UiHandlers {
 export class GameUi {
   private money: HTMLElement;
   private goals: HTMLElement;
-  /** O balão estava aberto e recolheu porque ela passou embaixo: a área dele aberto (volta a abrir quando ela sai dali). */
-  private goalsTucked: DOMRect | null = null;
   private hint: HTMLElement;
   private toastEl: HTMLElement;
   private dialogueLayer: HTMLElement;
@@ -122,11 +120,26 @@ export class GameUi {
       cartEl.innerHTML = `<img src="assets/ui/hud/${count > 0 ? 'icon_cart_full' : 'icon_cart_empty'}.png" alt="${uiText.shop.cartTitle}" /><span>${count} · ${total}</span>`;
     });
     this.goals = $('.hud-goals');
-    // O balão fica recolhido (só o título da meta): um clique abre os detalhes, outro recolhe.
+    // O balão é um ícone no canto; um clique abre o painel no centro da tela. Fecha pelo × (o título), tocando fora
+    // dele ou com Esc. Dentro do painel, clicar não fecha (dá para rolar e usar os botões).
     this.goals.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.wait')) return;
-      this.goals.classList.toggle('open');
+      const t = e.target as HTMLElement;
+      if (t.closest('.wait')) return;
+      if (!this.goals.classList.contains('open')) {
+        this.goals.classList.add('open');
+        return;
+      }
+      if (t.closest('h2')) this.goals.classList.remove('open');
     });
+    window.addEventListener('pointerdown', (e) => {
+      if (this.goals.classList.contains('open') && !this.goals.contains(e.target as Node)) this.goals.classList.remove('open');
+    }, true);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.goals.classList.contains('open')) {
+        e.stopPropagation();
+        this.goals.classList.remove('open');
+      }
+    }, true);
     this.hint = $('.hint');
     touch.onModeChange(() => this.refresh());
     this.toastEl = $('.toast');
@@ -948,7 +961,6 @@ export class GameUi {
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
-    this.tuckGoals(points.slice(0, 2));
     for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy')]) {
       if (el.hidden) continue;
       const r = el.getBoundingClientRect();
@@ -956,32 +968,11 @@ export class GameUi {
       const near = [...(el === this.goals ? points.slice(0, 2) : points), ...spots];
       const under = near.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
       // Recolhido por ela estar embaixo: transparente até ela sair de onde ele estava aberto.
-      el.classList.toggle('see-through', under || (el === this.goals && !!this.goalsTucked));
+      // O painel aberto (no centro) não fica transparente.
+      el.classList.toggle('see-through', under && !(el === this.goals && el.classList.contains('open')));
     }
     const root = this.root.getBoundingClientRect();
     this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
-  }
-
-  /**
-   * Ela embaixo do balão aberto: ele recolhe (fica só o título, transparente) e volta a abrir quando ela sai da área
-   * que ele ocupava aberto (com a área guardada, ele não fica abrindo e fechando na borda).
-   */
-  private tuckGoals(player: readonly { x: number; y: number }[]): void {
-    const inside = (r: DOMRect) => player.some((p) => p.x >= r.left - 4 && p.x <= r.right + 4 && p.y >= r.top - 4 && p.y <= r.bottom + 12);
-    if (this.goalsTucked) {
-      // Ela abriu de novo (clique) ou saiu de baixo: volta ao normal.
-      if (this.goals.classList.contains('open')) this.goalsTucked = null;
-      else if (!inside(this.goalsTucked)) {
-        this.goalsTucked = null;
-        this.goals.classList.add('open');
-      }
-      return;
-    }
-    if (this.goals.hidden || !this.goals.classList.contains('open')) return;
-    const r = this.goals.getBoundingClientRect();
-    if (!inside(r)) return;
-    this.goalsTucked = r;
-    this.goals.classList.remove('open');
   }
 
   /** Linha da chegada de gato no balão (ou vazio). */
@@ -1410,9 +1401,9 @@ ${rep}`;
     const seal = goal ? '' : this.sealHtml();
     this.goals.classList.toggle('empty', !goal && !extra && !seal);
     this.goals.innerHTML = (goal
-      ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
-      : seal ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
-      : extra ? `<h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
+      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
+      : seal ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
+      : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));

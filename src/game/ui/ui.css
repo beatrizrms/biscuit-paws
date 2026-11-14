@@ -1393,3 +1393,24 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .hud-goals .g-extra-list li.optional { color: var(--ink2); }
 .hud-goals .g-extra-list li.done { color: var(--grey2); }
 .hud-goals .g-tag.daily { background: #efe7fb; color: #6b55a3; }
+
+/* ---------- Subconsciente: ícone no canto, painel no centro (decisão 242) ---------- */
+/* Fechado: só o ícone redondo de pensamento (com o "!" vermelho quando tem aviso importante). */
+.hud-goals:not(.open) { width: 26px; height: 26px; max-width: none; padding: 0; display: grid; place-items: center; border-radius: 50%; }
+.hud-goals:not(.open) > *:not(.g-icon) { display: none !important; }
+.hud-goals .g-icon { display: none; }
+.hud-goals:not(.open) .g-icon { display: block; position: relative; width: 14px; height: 6px; background: radial-gradient(circle, #8d78bd 1.6px, transparent 1.9px) 0 0 / 4.7px 6px repeat-x; }
+.hud-goals:not(.open):has(li.warn, .g-alert) .g-icon::after {
+  content: "!"; position: absolute; right: -9px; top: -12px; display: grid; place-items: center; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--berry); color: #fff; font: bold max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)) 'Trebuchet MS', sans-serif;
+}
+.hud-goals:not(.open)::before { width: 6px; height: 6px; left: 3px; bottom: -6px; }
+.hud-goals:not(.open)::after { width: 3px; height: 3px; left: -1px; bottom: -10px; }
+/* Aberto: o painel no centro da tela, por cima de tudo; o título com o × fecha. */
+.hud-goals.open {
+  left: 50%; top: 50%; transform: translate(-50%, -50%); width: 280px; max-width: calc(100% - 40px); max-height: 300px; z-index: 60;
+  box-shadow: 0 0 0 999px #2b1d1a55, 0 3px 0 #bca8e0; cursor: default;
+}
+.hud-goals.open h2 { display: flex; justify-content: space-between; cursor: pointer; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
+.hud-goals.open .toggle::after { content: "✕"; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); }
+.hud-goals.new:not(.open) { animation: thought 0.9s ease-out; }
