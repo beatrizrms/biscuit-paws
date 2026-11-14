@@ -1387,3 +1387,6 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-profit { color: #3f7a4a; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-money { color: #3f7a4a; font-weight: bold; }
+
+/* Passo extra da meta (os preparativos da inauguração): menor e em itálico, com a etiqueta "extra". */
+.hud-goals li.optional { font-style: italic; color: var(--ink2); }

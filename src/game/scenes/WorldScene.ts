@@ -1936,7 +1936,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const point = s.jobPointNear(feet);
     if (point) {
       const needsTool = s.jobPointProblem(point.id) === 'needs_broom';
-      add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, 'job'), () => this.useJobPoint(point), { weak: needsTool });
+      const kind: HintKind = point.id.startsWith('pt.opening_poster') ? 'opening_poster' : 'job';
+      add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, kind), () => this.useJobPoint(point), { weak: needsTool });
     }
     // A tigela ou a caixa de areia: com a ração/areia ativa na barra, encher (ou o porquê de não dar); sem, diz o que falta.
     const { bowl, box: litter } = this.stationForHand(feet);

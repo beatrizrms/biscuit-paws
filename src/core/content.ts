@@ -222,6 +222,9 @@ export type Condition =
   | { location: string }
   /** Receitas no quadro do cardápio. */
   | { menu: { gte: number } }
+  /** Preparativos da inauguração: cartazes colados e amigos convidados. */
+  | { openingPosters: { gte: number } }
+  | { openingInvites: { gte: number } }
   /** Clientes atendidos (no jogo todo). */
   | { served: { gte: number } }
   /** Já está com ela (caixa aberta: na bolsa ou posicionado). Encomendas não contam. */
@@ -290,7 +293,9 @@ export type Effect =
   /** Avança o negócio (ex.: a inauguração). Nunca volta. */
   | { setBusiness: BusinessStage }
   /** Descobre um cômodo (com o momento dele: fala + destaque). Ex.: um vizinho conta. */
-  | { discoverRoom: string };
+  | { discoverRoom: string }
+  /** Inauguração: o bônus dos preparativos feitos (passos optional do marco): reputação e mais clientes no dia. */
+  | { openingBonus: true };
 
 export interface GoalStep {
   /** Texto que a jogadora vê: curto, começando pelo verbo. */
@@ -303,6 +308,8 @@ export interface GoalStep {
   doses?: string;
   /** Nota de desenvolvimento: só aparece no modo debug. */
   devNote?: string;
+  /** Extra: aparece e conta (bônus), mas não segura o fim da meta. */
+  optional?: boolean;
   when: Condition;
 }
 

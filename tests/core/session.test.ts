@@ -778,7 +778,7 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta no inverno: espera a primavera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.at(-1)!.text).toContain('{daysUntil:spring}');
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{daysUntil:spring}');
     expect(session.daysUntil('spring')).toBe(content.seasons.daysPerSeason); // dia 1 do inverno
     session.state.day = content.seasons.daysPerSeason + 1; // primeiro dia da primavera
     session.tickClock(2); // o relógio reavalia a história a cada minuto

@@ -132,6 +132,8 @@ export interface ServiceHost {
   weather(): string;
   /** O encontro da estação de hoje, com o convite feito (fecha mais cedo; a procura de um dia de calor). */
   gatheringToday(): GatheringDef | undefined;
+  /** No dia da inauguração, o intervalo entre clientes cai pelos preparativos (1 = normal). */
+  openingArrivalFactor?(): number;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -852,7 +854,7 @@ export class CafeService {
     if (spot) this.seat(c, spot);
     else this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: null });
     // Antes da inauguração, pouca gente sabe do café: o intervalo entre clientes é maior.
-    const f = this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1);
+    const f = (this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1)) * (this.h.openingArrivalFactor?.() ?? 1);
     const [a, b] = this.cfg.arrivalEveryMinutes;
     sv.nextCustomerAt = now + Math.round(rng.int(a, b) * f);
   }

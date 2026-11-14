@@ -1111,7 +1111,13 @@
       "pieces": "placeholders_extra.json",
       "prefix": "ph_",
       "layer": "object",
-      "solid": true
+      "solid": true,
+      "overrides": {
+        "opening_poster": {
+          "layer": "object",
+          "solid": false
+        }
+      }
     },
     {
       "id": "placeholders",

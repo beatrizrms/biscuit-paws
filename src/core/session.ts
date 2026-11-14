@@ -258,6 +258,7 @@ export class GameSession {
       bus: this.bus,
       rng: () => createRng(state.day * 1009 + state.service.nextCustomerId * 97 + rngCalls++),
       homeMap: () => this.mapData(this.content.map.id),
+      openingArrivalFactor: () => this.openingArrivalFactor(),
       atHome: () => this.atHome(),
       evaluate: (c) => evaluate(c, this.state, this.storyContext()),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
@@ -1790,6 +1791,14 @@ export class GameSession {
     }
     // A chegada de gato da vez: o lugar do encontro ou a pista.
     out.push(...this.arrivals.pendingPoints(mapId));
+    // Os cartazes da inauguração (durante os preparativos), fora de qualquer pedido.
+    if (this.openingPrepActive() && this.state.openingPrep?.posterDay !== this.state.day) {
+      const done = new Set(this.state.openingPrep?.posters ?? []);
+      for (const id of this.content.business.openingPrep?.posters ?? []) {
+        const p = this.content.jobPoints[id];
+        if (p && p.map === mapId && !done.has(id)) out.push(p);
+      }
+    }
     // Os festivais usam pontos de pedido sem ser um pedido (as etapas ficam em state.festivals).
     const fest = this.activeFestival();
     for (const id of fest ? pendingFestivalPoints(this.state.festivals, fest, this.state.day) : []) {
@@ -1856,6 +1865,7 @@ export class GameSession {
 
   /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
   doJobPoint(pointId: string): ActionResult {
+    if (this.content.business.openingPrep?.posters.includes(pointId)) return this.pastePoster(pointId);
     const arrival = this.arrivals.interact(pointId);
     if (typeof arrival === 'string') return { ok: false, reason: arrival };
     if (arrival) return { ok: true };
@@ -2829,6 +2839,73 @@ export class GameSession {
    * Conversou com um amigo (no passeio, na festa, com o Tião na obra): a primeira conversa do dia vale os pontos da
    * amizade (friendship.json: points.chat), uma vez por dia por pessoa. Devolve os pontos dados (0: já conversou hoje).
    */
+  /** Os preparativos da inauguração estão valendo: o café já atende (primeiro cliente) e ainda não inaugurou. */
+  openingPrepActive(): boolean {
+    return !!this.content.business.openingPrep && this.state.story.completed.includes('story.first_customer') && this.state.business !== 'inaugurated';
+  }
+
+  private openingPrepState(): NonNullable<GameState['openingPrep']> {
+    return (this.state.openingPrep ??= { posters: [], invited: [] });
+  }
+
+  /** Cola o cartaz da inauguração num ponto da rua (um por ponto). */
+  private pastePoster(pointId: string): ActionResult {
+    const cfg = this.content.business.openingPrep!;
+    if (!this.openingPrepActive()) return { ok: false, reason: 'not_found' };
+    const prep = this.openingPrepState();
+    if (prep.posters.includes(pointId) || prep.posterDay === this.state.day) return { ok: false, reason: 'not_found' };
+    prep.posters.push(pointId);
+    prep.posterDay = this.state.day;
+    this.bus.emit('opening.poster', { n: prep.posters.length, total: cfg.posters.length });
+    this.advanceStory();
+    return { ok: true };
+  }
+
+  /** Conversou com um amigo durante os preparativos: ele está convidado para a inauguração. */
+  private noteInvite(npc: string): void {
+    if (!this.openingPrepActive() || !this.friendDef(npc)) return;
+    const prep = this.openingPrepState();
+    if (prep.invited.includes(npc) || prep.inviteDay === this.state.day) return;
+    prep.invited.push(npc);
+    prep.inviteDay = this.state.day;
+    this.bus.emit('opening.invited', { npc, n: prep.invited.length });
+    this.advanceStory();
+  }
+
+  /** O bônus da inauguração: os passos extras feitos do marco (reputação e mais clientes no dia). */
+  private applyOpeningBonus(): void {
+    const cfg = this.content.business.openingPrep;
+    const beat = this.content.story.beats.find((x) => x.id === 'story.inauguration');
+    if (!cfg || !beat?.goal) return;
+    const steps = beat.goal.steps.filter((s) => s.optional && evaluate(s.when, this.state, this.storyContext())).length;
+    const prep = this.openingPrepState();
+    prep.openedOn = this.state.day;
+    prep.steps = steps;
+    const rep = steps * cfg.reputationPerStep;
+    if (rep > 0) this.addReputation(rep, 'opening');
+    this.bus.emit('opening.bonus', { steps, reputation: rep });
+  }
+
+  /** No dia da inauguração, o intervalo entre clientes cai pelos preparativos feitos (1 = normal). */
+  openingArrivalFactor(): number {
+    const prep = this.state.openingPrep;
+    const cfg = this.content.business.openingPrep;
+    if (!cfg || prep?.openedOn !== this.state.day || !prep.steps) return 1;
+    return Math.max(0.3, 1 - prep.steps * cfg.arrivalFactorPerStep);
+  }
+
+  /** Os cartazes colados na rua (desenhados na parede) até o fim do dia da inauguração. */
+  private posterObjects(mapId: string): MapData['objects'] {
+    const cfg = this.content.business.openingPrep;
+    const prep = this.state.openingPrep;
+    if (!cfg || !prep?.posters.length) return [];
+    if (this.state.business === 'inaugurated' && prep.openedOn !== this.state.day) return [];
+    return prep.posters
+      .map((id) => this.content.jobPoints[id])
+      .filter((p): p is NonNullable<typeof p> => !!p && p.map === mapId)
+      .map((p) => ({ id: `obj.${p.id}`, tile: cfg.posterTile, at: [p.at[0], p.at[1]] as Cell, lift: cfg.posterLift }));
+  }
+
   noteFriendChat(npc: string): number {
     // Conversando, ela conhece a pessoa (o passeio e a festa já têm a condição deles): não pede o known aqui.
     if (!this.friendDef(npc)) return 0;
@@ -2838,6 +2915,7 @@ export class GameSession {
     const points = this.content.friendship.points.chat;
     addPoints(this.state, this.content.relationships, PLAYER, npc, points);
     this.bus.emit('npc.chatted', { npc, points });
+    this.noteInvite(npc);
     return points;
   }
 
@@ -4023,7 +4101,7 @@ export class GameSession {
       const onHim = (o: MapData['objects'][number]) => !!builder && tiles[o.tile]?.layer === 'object' && cellsOf(o.at, tiles[o.tile]!).some(([c, r]) => c === builder.at[0] && r === builder.at[1]);
       // No encontro da estação, os enfeites dele (a toalha do piquenique, o carrinho de sorvete).
       const decor = (this.gatheringAt(mapId)?.decor ?? []).map((d, i) => ({ id: `gathering_decor_${i}`, tile: d.tile, at: [...d.at] as Cell }));
-      const kept = [...inSeason.objects.filter((o) => !onHim(o)), ...decor];
+      const kept = [...inSeason.objects.filter((o) => !onHim(o)), ...decor, ...this.posterObjects(mapId)];
       const blocked = new Set([inSeason.spawn.player, ...(inSeason.doors ?? []).map((d) => d.at)].map((c) => cellKey(c)));
       for (const o of kept) { const def = tiles[o.tile]; if (def) for (const cell of cellsOf(o.at, def)) blocked.add(cellKey(cell)); }
       return this.withSnowCaps({ ...inSeason, npcs, objects: [...kept, ...this.jobMarkers(mapId), ...this.siteMarkerObjects({ ...inSeason, objects: kept }, blocked)] });
@@ -5588,6 +5666,7 @@ export class GameSession {
     else if ('setTime' in effect) this.state.time = parseClock(effect.setTime);
     else if ('startTimer' in effect) this.state.timers[effect.startTimer] = nowAbs(this.state) + effect.minutes;
     else if ('setBusiness' in effect) this.setBusiness(effect.setBusiness);
+    else if ('openingBonus' in effect) this.applyOpeningBonus();
     else if ('discoverRoom' in effect) this.discoverRoom(effect.discoverRoom);
     else if ('script' in effect) this.bus.emit('script.requested', { scriptId: effect.script });
     else if ('shelterCat' in effect) {

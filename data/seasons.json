@@ -28,6 +28,7 @@
     "autumn": "Começa o outono"
   },
   "events": [
+    { "id": "cal.secret_santa", "title": "Sorteio do amigo secreto", "day": 18, "everyYear": true },
     {
       "id": "cal.christmas",
       "title": "Natal",

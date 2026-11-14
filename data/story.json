@@ -768,14 +768,14 @@
         "title": "A inauguração",
         "steps": [
           {
-            "text": "Reformar o café inteiro com o pintor: papel de parede, lambri, os dois pisos e a fachada.",
+            "text": "Fazer os reparos de dentro e de fora do café com o Tião (Market, aba Construção).",
             "when": {
               "renovated": true
             },
-            "devNote": "Superfícies em data/business.json (requiredSurfaces). O pintor está no Market (C), aba Construção."
+            "devNote": "Condição renovated = os reparos inside e outside (construction.ts: isRenovated). A troca de papel de parede, lambri, pisos e fachada é opcional."
           },
           {
-            "text": "Com a reforma pronta, encomendar a lousa do café (Market, aba Construção, em Fachada) e abrir a caixa.",
+            "text": "Com os reparos prontos, encomendar a lousa do café (Market, aba Construção, em Fachada) e abrir a caixa.",
             "when": {
               "received": "item.cafe_sign"
             }
@@ -784,6 +784,41 @@
             "text": "Esperar a primavera para inaugurar (faltam {daysUntil:spring} dias).",
             "when": {
               "fromSeason": "spring"
+            }
+          },
+          {
+            "text": "Preparativo: colar 3 cartazes da inauguração nas fachadas da rua (um por dia).",
+            "optional": true,
+            "when": {
+              "openingPosters": {
+                "gte": 3
+              }
+            }
+          },
+          {
+            "text": "Preparativo: convidar 3 amigos (conversar com eles; um convite por dia).",
+            "optional": true,
+            "when": {
+              "openingInvites": {
+                "gte": 3
+              }
+            }
+          },
+          {
+            "text": "Preparativo: montar o cardápio da estreia (3 receitas no quadro).",
+            "optional": true,
+            "when": {
+              "menu": {
+                "gte": 3
+              }
+            }
+          },
+          {
+            "text": "Preparativo: enfeitar o café com 3 plantas.",
+            "optional": true,
+            "when": {
+              "placedTag": "plant",
+              "gte": 3
             }
           }
         ]
@@ -794,6 +829,9 @@
         },
         {
           "setFlag": "cafe.inaugurated"
+        },
+        {
+          "openingBonus": true
         },
         {
           "cutscene": "cs.inauguration"

@@ -337,6 +337,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     flags: { ...(v2.flags ?? {}) },
     inventory,
     ...(v2.bought && typeof v2.bought === 'object' ? { bought: Object.fromEntries(Object.entries(v2.bought as Record<string, unknown>).filter(([id, n]) => known.items.has(id) && Number.isInteger(n) && (n as number) > 0)) as Record<string, number> } : {}),
+    ...(v2.openingPrep && typeof v2.openingPrep === 'object' ? { openingPrep: { posters: (Array.isArray(v2.openingPrep.posters) ? v2.openingPrep.posters : []).filter((x: unknown): x is string => typeof x === 'string'), invited: (Array.isArray(v2.openingPrep.invited) ? v2.openingPrep.invited : []).filter((x: unknown): x is string => typeof x === 'string'), ...(Number.isInteger(v2.openingPrep.posterDay) ? { posterDay: v2.openingPrep.posterDay as number } : {}), ...(Number.isInteger(v2.openingPrep.inviteDay) ? { inviteDay: v2.openingPrep.inviteDay as number } : {}), ...(Number.isInteger(v2.openingPrep.openedOn) ? { openedOn: v2.openingPrep.openedOn as number } : {}), ...(Number.isInteger(v2.openingPrep.steps) ? { steps: v2.openingPrep.steps as number } : {}) } } : {}),
     placed: (v2.placed ?? []).filter((p) => knownItem(p.item, `móvel ${p.uid}`)).map((p) => normalizePlaced(p, known)),
     nextUid: v2.nextUid ?? 1,
     story: { completed: [...(v2.story?.completed ?? [])], completedOn: { ...(v2.story?.completedOn ?? {}) } },

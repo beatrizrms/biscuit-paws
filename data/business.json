@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: superfícies que precisam da reforma do pintor para poder inaugurar (condição { renovated: true }). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
+  "_comment": "openingPrep: os preparativos da inauguração (story.inauguration, passos optional): posters = pontos da rua onde ela cola o cartaz (posterTile, desenhado levantado posterLift px, na parede; some depois do dia da inauguração); convidar = conversar com amigos durante os preparativos; no dia da inauguração, cada preparativo feito dá reputationPerStep de reputação e o intervalo entre clientes cai arrivalFactorPerStep. Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: as superfícies da reforma do pintor (a troca é opcional; para inaugurar, a condição { renovated: true } pede só os reparos de dentro e de fora com o Tião). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
   "upgradeTag": "upgrade",
   "upgradesWhen": {
     "business": "inaugurated"
@@ -20,6 +20,13 @@
         "placedTag": "chair"
       }
     ]
+  },
+  "openingPrep": {
+    "posters": ["pt.opening_poster_1", "pt.opening_poster_2", "pt.opening_poster_3"],
+    "posterTile": "ph_opening_poster",
+    "posterLift": 30,
+    "reputationPerStep": 2,
+    "arrivalFactorPerStep": 0.15
   },
   "requiredSurfaces": [
     "surface.wallpaper",

@@ -15,6 +15,8 @@ export interface BusinessData {
   /** Itens com esta tag (os upgrades) só aparecem para comprar quando upgradesWhen vale (ex.: depois da inauguração). */
   upgradeTag?: string;
   upgradesWhen?: Condition;
+  /** Os preparativos da inauguração (passos optional de story.inauguration). */
+  openingPrep?: { posters: string[]; posterTile: string; posterLift: number; reputationPerStep: number; arrivalFactorPerStep: number };
 }
 
 export const isBusinessStage = (x: unknown): x is BusinessStage => typeof x === 'string' && (BUSINESS_STAGES as readonly string[]).includes(x);

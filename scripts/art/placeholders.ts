@@ -311,9 +311,30 @@ function busStop(): Canvas {
   for (let y = 32; y < 41; y += 3) c.hline(12, y, 9, at(P.cream, 2));
   return c.outline();
 }
+// PLACEHOLDER(arte): o cartaz da inauguração colado na fachada (1x1): papel creme com a borda rosa, a xícara com a
+// patinha, as letras (riscos) e as fitas adesivas nos cantos.
+/** Cartaz da inauguração: retrato, com a xícara do café no meio e as linhas do texto. */
+function openingPoster(): Canvas {
+  const c = new Canvas(T, T);
+  c.rect(7, 4, 18, 24, at(P.cream, 5)); // papel
+  c.rect(7, 4, 18, 3, at(P.rose, 3)); // faixa de cima
+  c.rect(8, 5, 16, 1, at(P.rose, 4));
+  c.rect(12, 10, 8, 6, at(P.porcelain, 4)); // xícara
+  c.rect(20, 11, 2, 3, at(P.porcelain, 3)); // asa
+  c.rect(11, 16, 10, 1, at(P.porcelain, 2)); // pires
+  c.rect(13, 11, 6, 2, at(P.oak, 2)); // café
+  c.px(15, 13, at(P.rose, 3)); // patinha
+  c.px(17, 13, at(P.rose, 3));
+  c.px(16, 14, at(P.rose, 3));
+  for (const y of [19, 22, 25]) c.hline(10, y, y === 25 ? 8 : 12, at(P.navy, 3)); // texto
+  c.rect(6, 3, 3, 2, at(P.butter, 4)); // fitas adesivas
+  c.rect(23, 3, 3, 2, at(P.butter, 4));
+  return c.outline();
+}
 const extra = new Canvas(4 * T, T * 2);
 extra.blit(busStop(), 0, 0);
+extra.blit(openingPoster(), T, 0);
 writeWithBackup(extra, 'public/assets/objects/placeholders/tile_placeholders_extra.png');
-console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus)');
+console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus, cartaz da inauguração)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

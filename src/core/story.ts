@@ -61,6 +61,8 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('clock' in c) return state.time >= parseClock(c.clock.gte);
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
+  if ('openingPosters' in c) return (state.openingPrep?.posters.length ?? 0) >= c.openingPosters.gte;
+  if ('openingInvites' in c) return (state.openingPrep?.invited.length ?? 0) >= c.openingInvites.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
   if ('santaGuest' in c) return !!ctx.santaGuest?.(c.santaGuest);
   if ('halloweenGuest' in c) return !!ctx.halloweenGuest?.(c.halloweenGuest);
@@ -125,7 +127,8 @@ export function activeBeats(story: StoryData, state: GameState, ctx: StoryContex
 
 /** Um marco ativo termina quando a condição e todos os passos da meta valem. */
 export function isBeatSatisfied(beat: Beat, state: GameState, ctx: StoryContext): boolean {
-  const stepsDone = (beat.goal?.steps ?? []).every((s) => evaluate(s.when, state, ctx));
+  // Os passos extras (optional) não seguram o fim da meta.
+  const stepsDone = (beat.goal?.steps ?? []).filter((s) => !s.optional).every((s) => evaluate(s.when, state, ctx));
   return stepsDone && (beat.when ? evaluate(beat.when, state, ctx) : true);
 }
 
@@ -137,11 +140,15 @@ export interface GoalView {
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
   /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
-  steps: { text: string; done: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
+  steps: { text: string; done: boolean; optional?: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
 }
 
 /** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
 function progressOf(c: Condition, state: GameState, ctx: StoryContext): [number, number] | undefined {
+  if ('openingPosters' in c) return [Math.min(c.openingPosters.gte, state.openingPrep?.posters.length ?? 0), c.openingPosters.gte];
+  if ('openingInvites' in c) return [Math.min(c.openingInvites.gte, state.openingPrep?.invited.length ?? 0), c.openingInvites.gte];
+  if ('placedTag' in c && c.gte && c.gte > 1) return [Math.min(c.gte, state.placed.filter((p) => ctx.items[p.item]?.tags.includes(c.placedTag)).length), c.gte];
+  if ('menu' in c && c.menu.gte > 1) return [Math.min(c.menu.gte, state.menu.length), c.menu.gte];
   if (!('cleaned' in c)) return undefined;
   const spots = ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned));
   return [spots.filter((d) => isCleaned(state, d)).length, spots.length];
@@ -161,6 +168,7 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
         return {
           text: s.text,
           done: evaluate(s.when, state, ctx),
+          ...(s.optional ? { optional: true } : {}),
           ...(s.detail ? { detail: s.detail } : {}),
           ...(s.icon ? { icon: s.icon } : {}),
           devNote: s.devNote,

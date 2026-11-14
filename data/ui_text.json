@@ -1361,6 +1361,7 @@
     "fed": "{sex:Ele|Ela} comeu de longe, de olho em você... Amanhã {sex:ele|ela} chega um pouco mais perto.",
     "fedLast": "{sex:Ele|Ela} comeu pertinho de você. Acho que {sex:ele|ela} está pront{sex:o|a}."
   },
+  "opening": { "poster": "Cartaz colado ({n} de {total}).", "invited": "{name} vem na inauguração! ({n} de {total} convites)", "bonus": "Inauguração com {n} preparativo(s): +{rep} de reputação e mais clientes hoje!", "bonusNone": "Inauguração sem preparativos: o movimento é o de sempre. Bem-vinda a primavera!", "optional": "extra", "nextEvent": "Próximo: {title} (dia {day})" },
   "hints": {
     "customer": "Atender",
     "customer_wrong": "Entregar (não é o pedido)",
@@ -1374,6 +1375,7 @@
     "surface": "Pegar",
     "display": "Vitrine",
     "job": "Interagir",
+    "opening_poster": "Colar o cartaz",
     "parcels_door": "Pegar as caixas",
     "parcels_inside": "Caixa: abrir ou carregar",
     "parcel_drop": "Soltar a caixa aqui",

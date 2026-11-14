@@ -236,6 +236,10 @@ export class GameUi {
     });
     bus.on('pantry.stored', ({ count }) => this.toast(uiText.backpack.pantryStored.replace('{n}', String(count)), 3000));
     bus.on('storage.changed', ({ count }) => count > 0 && this.toast(uiText.backpack.boxStored.replace('{n}', String(count)), 2500));
+    const op = uiText.opening;
+    bus.on('opening.poster', ({ n, total }) => this.toast(op.poster.replace('{n}', String(n)).replace('{total}', String(total)), 2500));
+    bus.on('opening.invited', ({ npc, n }) => this.toast(op.invited.replace('{name}', content.npcs[npc]?.name ?? npc).replace('{n}', String(n)).replace('{total}', '3'), 3000));
+    bus.on('opening.bonus', ({ steps, reputation }) => this.toast(steps > 0 ? op.bonus.replace('{n}', String(steps)).replace('{rep}', String(reputation)) : op.bonusNone, 5000));
     bus.on('heavy.stored', ({ itemId }) => {
       const to = content.items[itemId]?.storesAs;
       this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
@@ -1437,8 +1441,8 @@ ${rep}`;
     const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(goal.steps.length)))}</span>` : '';
     const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
     // Passos sem ordem: nenhum em destaque, todos na lista.
-    const now = goal.together ? undefined : open[0];
-    const rest = goal.together ? open : open.slice(1);
+    const now = goal.together ? undefined : (open.find((s) => !s.optional) ?? open[0]);
+    const rest = goal.together ? open : open.filter((s) => s !== now);
     const nowHtml = now
       ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
         (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +
@@ -1447,10 +1451,18 @@ ${rep}`;
           : '') +
         note(now)
       : '';
-    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
+    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, cls: s.optional ? 'optional' : undefined, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
     // No debug, os passos feitos também (para conferir a história).
     const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
-    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}</div>`;
+    // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
+    let next = '';
+    if (goal.beatId === 'story.inauguration' && this.session.state.business !== 'inaugurated') {
+      const today = this.session.state.day;
+      const per = content.seasons.daysPerSeason;
+      const e = this.session.calendar(today + 1, today + per).find((x) => x.kind === 'event');
+      if (e) next = `<p class="g-detail">${esc(uiText.opening.nextEvent.replace('{title}', e.title).replace('{day}', String(((e.day - 1) % per) + 1)))}</p>`;
+    }
+    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}</div>`;
   }
 
   private renderHint(): void {

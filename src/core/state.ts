@@ -153,6 +153,8 @@ export interface GameState {
   ced: CedState;
   /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa. Sem uso desde a decisão 228 (a dica "E" aparece sempre); fica no save. */
   hintUses: Record<string, number>;
+  /** Preparativos da inauguração: os cartazes colados (pontos), os amigos convidados, o dia e quantos preparativos valeram. */
+  openingPrep?: { posters: string[]; invited: string[]; posterDay?: number; inviteDay?: number; openedOn?: number; steps?: number };
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;
   /** Selos do café (v28): o dia em que cada um foi conquistado. */

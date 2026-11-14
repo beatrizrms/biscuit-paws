@@ -246,6 +246,10 @@ export interface GameEvents {
   /** Abriu uma caixa dentro do café: tudo o que veio nela (já na mochila). */
   /** Conversou com um vizinho que passeava na rua (a primeira do dia dá corações). */
   'npc.chatted': { npc: string; points: number };
+  /** Preparativos da inauguração: um cartaz colado; um amigo convidado; o bônus no dia. */
+  'opening.poster': { n: number; total: number };
+  'opening.invited': { npc: string; n: number };
+  'opening.bonus': { steps: number; reputation: number };
   /** Deu um presente a um vizinho (friendship.ts): a reação, os pontos e os corações antes e depois. */
   'friend.gifted': { npc: string; gift: string; reaction: string; points: number; hearts: [number, number] };
   /** Descobriu um gosto (pelo presente, por um post da SocialVilla ou pela dica de um evento). */
