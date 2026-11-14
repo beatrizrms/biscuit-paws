@@ -331,10 +331,39 @@ function openingPoster(): Canvas {
   c.rect(23, 3, 3, 2, at(P.butter, 4));
   return c.outline();
 }
-const extra = new Canvas(4 * T, T * 2);
+// PLACEHOLDER(arte): a fita da inauguração na porta do café (3x1): dois pedestais dourados nas pontas e a fita vermelha
+// entre eles, com o laço no meio (o tile do meio, na frente da porta). No corte, cada terço cai para um lado.
+/** Fita da inauguração: pedestais, a fita um pouco caída e o laço com as pontas soltas. */
+function openingRibbon(): Canvas {
+  const c = new Canvas(3 * T, T);
+  for (const x of [4, 90]) {
+    c.rect(x, 12, 2, 18, at(P.gold, 2)); // pedestal
+    c.vline(x, 12, 18, at(P.gold, 3));
+    c.rect(x - 2, 29, 6, 2, at(P.gold, 1)); // base
+    c.ball(x + 1, 10, 2, 2, P.gold, -0.2); // bolinha de cima
+  }
+  // A fita: de um pedestal ao outro, caindo um pouco no meio.
+  for (let x = 6; x < 90; x++) {
+    const sag = Math.round(3 * Math.sin(((x - 6) / 84) * Math.PI));
+    c.vline(x, 13 + sag, 3, at(P.red, 3));
+    c.px(x, 13 + sag, at(P.red, 4));
+  }
+  // O laço no meio (x 48): duas alças, o nó e as pontas.
+  c.ellipse(43, 15, 4, 3, at(P.red, 3));
+  c.ellipse(53, 15, 4, 3, at(P.red, 3));
+  c.ellipse(43, 15, 2, 1, at(P.red, 1));
+  c.ellipse(53, 15, 2, 1, at(P.red, 1));
+  c.rect(46, 13, 4, 5, at(P.red, 2));
+  c.px(47, 14, at(P.red, 4));
+  c.line(47, 18, 44, 24, at(P.red, 3));
+  c.line(49, 18, 52, 24, at(P.red, 3));
+  return c.outline();
+}
+const extra = new Canvas(5 * T, T * 2);
 extra.blit(busStop(), 0, 0);
 extra.blit(openingPoster(), T, 0);
+extra.blit(openingRibbon(), 2 * T, 0);
 writeWithBackup(extra, 'public/assets/objects/placeholders/tile_placeholders_extra.png');
-console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus, cartaz da inauguração)');
+console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus, cartaz e fita da inauguração)');
 const i = process.argv.indexOf('--preview');
 if (i > 0) preview(sheet, 8, process.argv[i + 1]!);

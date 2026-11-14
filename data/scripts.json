@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait. Ao terminar, flag seen.<id>.",
+  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut). Ao terminar, flag seen.<id>.",
   "scripts": {
     "scr.realtor_tour": {
       "steps": [
@@ -2555,6 +2555,13 @@
           "ifAway": true
         },
         {
+          "ribbon": "show",
+          "at": [
+            16,
+            8
+          ]
+        },
+        {
           "wait": 400
         },
         {
@@ -2738,6 +2745,9 @@
           "dialogue": "dlg.inaug_arrive"
         },
         {
+          "ribbon": "cut"
+        },
+        {
           "emote": "player",
           "balloon": "heart",
           "ms": 1000
@@ -2746,13 +2756,311 @@
           "dialogue": "dlg.inaug_open"
         },
         {
-          "fireworks": 12000
+          "enter": "map.cafe_main",
+          "spawn": [
+            11,
+            8
+          ],
+          "facing": "down"
         },
         {
-          "wait": 2000
+          "wait": 300
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            12,
+            6
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "down",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            13,
+            7
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "left",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            10,
+            6
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "down",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcSpawn": "npc.builder",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            14,
+            7
+          ],
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            9,
+            7
+          ],
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "right",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcSpawn": "npc.fernanda",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            14,
+            6
+          ],
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            11,
+            6
+          ],
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcFace": "npc.fernanda",
+          "facing": "down",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.cafe_main",
+          "at": [
+            14,
+            10
+          ],
+          "facing": "up"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            14,
+            6
+          ]
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            13,
+            6
+          ]
+        },
+        {
+          "npcFace": "npc.realtor",
+          "facing": "down"
+        },
+        {
+          "wait": 500
+        },
+        {
+          "dialogue": "dlg.inaug_gabi",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "emote": "npc.joca",
+          "balloon": "heart",
+          "ms": 1000,
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "dialogue": "dlg.inaug_neusa",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "dialogue": "dlg.inaug_builder",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "dialogue": "dlg.inaug_fernanda",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "dialogue": "dlg.inaug_realtor"
         },
         {
           "dialogue": "dlg.inauguration"
+        },
+        {
+          "npcLeave": "npc.gabi",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.joca",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcLeave": "npc.neusa",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcLeave": "npc.builder",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcLeave": "npc.fernanda",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcLeave": "npc.realtor"
         }
       ]
     }

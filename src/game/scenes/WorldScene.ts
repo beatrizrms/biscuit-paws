@@ -300,6 +300,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private jobIcons: Phaser.GameObjects.Image[] = [];
   /** Gato (e vizinho) da chegada esperando no mapa. */
   private arrivalActors: Phaser.GameObjects.GameObject[] = [];
+  /** A fita da inauguração na porta, em três pedaços (só durante a cena). */
+  private ribbonPieces: Phaser.GameObjects.Image[] = [];
   /** pegadas: o gato escondido (só aparece de perto) e quantas pegadas estão desenhadas (a neve cobre com o tempo). */
   private arrivalHidden: Phaser.GameObjects.Sprite | null = null;
   private arrivalTrailKey: number | null = null;
@@ -4392,6 +4394,39 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   fireworks(ms: number): void {
     this.fireworksFx.play(ms, this.session.content.festive.newYear.fireworks);
+  }
+
+  /** A fita da inauguração (ph_opening_ribbon, 3 tiles): estendida na porta; no corte, o laço some e cada lado cai. */
+  ribbon(action: 'show' | 'cut', at?: Cell): Promise<void> {
+    const pieces = this.ribbonPieces;
+    this.ribbonPieces = [];
+    if (action === 'cut') {
+      if (pieces.length < 3) return Promise.resolve();
+      const [left, mid, right] = pieces as [Phaser.GameObjects.Image, Phaser.GameObjects.Image, Phaser.GameObjects.Image];
+      services().audio.jingle('inauguration'); // o jingle da inauguração no corte
+      return new Promise((resolve) => {
+        this.tweens.add({ targets: mid, alpha: 0, y: mid.y + 6, duration: 350 });
+        this.tweens.add({ targets: left, angle: 50, alpha: 0, duration: 700, delay: 120, ease: 'Quad.easeIn' });
+        this.tweens.add({ targets: right, angle: -50, alpha: 0, duration: 700, delay: 120, ease: 'Quad.easeIn', onComplete: () => {
+          pieces.forEach((p) => p.destroy());
+          resolve();
+        } });
+      });
+    }
+    pieces.forEach((p) => p.destroy());
+    const def = this.session.content.catalog.tiles['ph_opening_ribbon'];
+    if (!def || !at) return Promise.resolve();
+    const ts = this.map.tileSize;
+    const first = frameOf(this.session.content.catalog, def);
+    const depth = ySortDepth((at[1] + 1) * ts - 1);
+    // O lado esquerdo gira pela ponta de fora (o pedestal da esquerda); o direito, pela da direita.
+    this.ribbonPieces = [0, 1, 2].map((k) => {
+      const img = addTileImage(this, (at[0] + k) * ts, at[1] * ts, def.sheet, first + k).setDepth(depth);
+      if (k === 0) img.setOrigin(0, 0).setPosition(at[0] * ts, at[1] * ts);
+      if (k === 2) img.setOrigin(1, 0).setPosition((at[0] + 3) * ts, at[1] * ts);
+      return img;
+    });
+    return Promise.resolve();
   }
 
   until(check: () => boolean): Promise<void> {

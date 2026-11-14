@@ -374,7 +374,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "A placa lá fora, os amigos aqui... Ficou lindo."
+          "text": "Valeu, gente. Sem vocês, nada disso estaria de pé."
         },
         {
           "speaker": "{player}",
@@ -1618,19 +1618,94 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Chegou o dia! A placa, os balões... e todo mundo veio."
+          "text": "Chegou o dia! A placa lá fora, a fita na porta... e a turma toda aqui."
         },
         {
           "speaker": "Gabi",
-          "text": "Vai, {player}! Abre logo essa porta!"
+          "npc": "npc.gabi",
+          "text": "Vai, {player}! Corta logo essa fita!"
         }
       ]
     },
     "dlg.inaug_open": {
       "lines": [
         {
+          "speaker": "",
+          "text": "A fita cai, e todo mundo aplaude."
+        },
+        {
           "speaker": "Todos",
-          "text": "GRANDE ABERTURA!"
+          "text": "Viva o Biscuit Paws!"
+        }
+      ]
+    },
+    "dlg.inaug_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "A gente já conhece cada cantinho, mas hoje é diferente: hoje é pra valer!"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Vai dar muito certo, eu tenho certeza."
+        }
+      ]
+    },
+    "dlg.inaug_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Com a placa lá fora, a casa parece até mais quentinha."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Que este lugar viva cheio de gente e de gato. Muito sucesso."
+        }
+      ]
+    },
+    "dlg.inaug_builder": {
+      "lines": [
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "As paredes estão firmes e o piso aguenta muito cliente. O resto é com você."
+        },
+        {
+          "speaker": "Tião",
+          "npc": "npc.builder",
+          "text": "Boa sorte na estreia!"
+        }
+      ]
+    },
+    "dlg.inaug_fernanda": {
+      "lines": [
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Os gatos estão tranquilos, e isso é sinal de casa boa."
+        },
+        {
+          "speaker": "Fernanda",
+          "npc": "npc.fernanda",
+          "text": "Qualquer coisa com eles, a clínica é logo ali. Sucesso!"
+        }
+      ]
+    },
+    "dlg.inaug_realtor": {
+      "lines": [
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Quando entreguei a chave, isto aqui era poeira e teia de aranha."
+        },
+        {
+          "speaker": "Corretora",
+          "npc": "npc.realtor",
+          "text": "Dá orgulho ver assim. Muito sucesso!"
         }
       ]
     }

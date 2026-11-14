@@ -48,6 +48,8 @@ type ScriptAction =
   | { setTime: string }
   /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
   | { fireworks: number }
+  /** A fita da inauguração: "show" estende a fita em `at` (a célula da esquerda das 3); "cut" corta (cada lado cai). */
+  | { ribbon: 'show' | 'cut'; at?: Cell }
   /**
    * Pede a obra do cômodo ao Tião (a ligação com o orçamento). Sem dar: `busy` (ele em outra obra) ou `noMoney`, a
    * fala de quando não dá (o pedido não fica pendente: depois, pela pergunta dele no fim da obra ou pelo Market).
@@ -142,6 +144,9 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!refs.rooms.has(step.discoverRoom)) errors.push(`${where(i)}: cômodo inexistente "${step.discoverRoom}"`);
       } else if ('fireworks' in step) {
         if (!(step.fireworks > 0)) errors.push(`${where(i)}: fireworks precisa de uma duração (ms)`);
+      } else if ('ribbon' in step) {
+        if (step.ribbon !== 'show' && step.ribbon !== 'cut') errors.push(`${where(i)}: ribbon inválido "${String(step.ribbon)}"`);
+        if (step.ribbon === 'show' && !step.at) errors.push(`${where(i)}: ribbon show precisa de at`);
       } else if ('setTime' in step) {
         if (!/^\d{1,2}:\d{2}$/.test(step.setTime)) errors.push(`${where(i)}: hora inválida "${step.setTime}"`);
       } else if ('halloween' in step) {

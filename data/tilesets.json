@@ -1116,6 +1116,10 @@
         "opening_poster": {
           "layer": "object",
           "solid": false
+        },
+        "opening_ribbon": {
+          "layer": "object",
+          "solid": false
         }
       }
     },

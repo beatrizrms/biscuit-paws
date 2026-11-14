@@ -26,6 +26,8 @@ export interface ScriptStage {
   emote(who: string, balloon: string, ms: number): Promise<void>;
   /** Fogos de artifício no céu por `ms` (não espera). */
   fireworks(ms: number): void;
+  /** A fita da inauguração: estende em `at` ou corta (resolve quando os pedaços caem). */
+  ribbon(action: 'show' | 'cut', at?: Cell): Promise<void>;
 }
 
 export class ScriptRunner {
@@ -95,6 +97,7 @@ export class ScriptRunner {
     else if ('openDoor' in step) this.session.useRoomDoor(step.openDoor);
     else if ('setTime' in step) this.session.advanceClockTo(step.setTime);
     else if ('fireworks' in step) s.fireworks(step.fireworks);
+    else if ('ribbon' in step) await s.ribbon(step.ribbon, step.at);
     else if ('roomQuote' in step) {
       // A ligação para o Tião; sem dar (em obra, sem dinheiro), a fala de quando não dá.
       const r = this.session.quoteRoom(step.roomQuote, step.kind);
