@@ -1758,6 +1758,29 @@
           "text": "Os seis lá de casa mandam um miado de boa sorte. Sucesso!"
         }
       ]
+    },
+    "dlg.jacque_fair_visit": {
+      "lines": [
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Oi! Vim ver a feira. Prometi pra mim mesma: nada de sétimo gato."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "...Tá, eu só vou olhar. De longe. Bem de longe."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Sei..."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Os seis lá de casa que não me ouçam! Boa feira! Que todo mundo ache um lar hoje."
+        }
+      ]
     }
   }
 }

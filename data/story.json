@@ -1301,6 +1301,63 @@
         }
       ],
       "exclusive": true
+    },
+    {
+      "id": "story.jacque_fair_visit",
+      "act": 2,
+      "_comment": "A Jacque já conhecida pelo cartaz da inauguração vai à 1ª feira e comenta (sem se apresentar de novo). Uma vez só.",
+      "after": [
+        "story.inauguration"
+      ],
+      "start": {
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "flag": "met.jacque"
+          },
+          {
+            "not": {
+              "beat": "story.jacque_meet"
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "festivalToday": "fest.adoption_fair"
+          },
+          {
+            "festivalMounted": true
+          },
+          {
+            "location": "map.cafe_main"
+          },
+          {
+            "playerRoom": "room.backyard"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "script": "scr.jacque_fair_visit"
+        }
+      ],
+      "exclusive": true
     }
   ]
 }
