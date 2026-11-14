@@ -1,6 +1,6 @@
 # Proposta: o ritmo do café e o ajudante
 
-Status: **em andamento.** Feito: a procura pela reputação (seção 1, a tabela abaixo; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85). As máquinas antigas também vêm por conquista: lava-louças com 120 clientes desde a inauguração e robô aspirador com 200. O resto continua para decidir.
+Status: **etapa 1 feita; a pessoa (etapa 2) fica para depois** (pedido dela em 2026-11-14). Feito: a procura pela reputação (seção 1; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85), as máquinas por conquista (lava-louças com 120 clientes desde a inauguração, robô aspirador com 200) e o robô garçom (conquista Bandeja cheia, 100 clientes; arte do PixelLab nas 4 direções, a base é a do robô aspirador).
 
 ## O problema
 
@@ -89,7 +89,21 @@ O intervalo entre clientes passa a ser multiplicado por um fator da reputação:
 3. ~~A máquina~~ **feito:** o robô garçom (conquista Bandeja cheia, 100 clientes; arte provisória).
 4. A pessoa (NPC novo, cena de chegada, as três funções, salário).
 
-## Para decidir
+## Pendente: a pessoa (etapa 2), para depois
+
+Decidido com ela (2026-11-14), para quando voltar a isto:
+
+- **Quem:** alguém **novo** na vila (não um amigo que já existe). Falta escolher o **nome e o jeito** (aparência,
+  idade, personalidade) e gerar a arte: personagem 64x128 com caminhada nas 4 direções e segurando a bandeja
+  (PixelLab; ver a memória de personagens no PixelLab: testar um antes).
+- **Quando:** reputação **De confiança (40)** e o **quintal aberto**; chega por uma cena (pede emprego).
+- **Onde contrata:** uma **aba nova no Market, de contratação de serviços** (Contratação).
+- **Salário:** **~35 moedas por dia** em que o café abre (dia fechado não paga; sem dinheiro, avisa e não vem).
+- **Funções (ela escolhe e troca no celular):** caixa e entrega, louça, preparo das bebidas simples. Mais devagar que
+  ela (~70%), sai no almoço, conversa e ganha corações como os vizinhos.
+- **Não vai ter:** o interruptor "Movimento" no app Horário (decisão dela).
+
+## Para decidir (respondido em 2026-11-14)
 
 1. ~~A procura sobe com a reputação?~~ Sim, feito com os fatores da tabela (ajustar depois de jogar).
 2. Quer o interruptor "Movimento: tranquilo / normal / cheio"?
