@@ -147,6 +147,23 @@
       "whenFull": "provisional"
     },
     {
+      "id": "arr.bench_cat",
+      "model": "na_porta",
+      "kind": "random",
+      "repeatable": false,
+      "trigger": { "hours": ["13:00", "17:30"], "when": { "flag": "news.seen.news.orange_cat" } },
+      "place": { "kind": "square", "map": "map.praca", "at": [12, 12], "lift": 18, "dx": -16, "pose": "sleep" },
+      "clue": "bench",
+      "cat": { "generate": { "variant": "ruivo", "personality": "sweet", "condition": "healthy" } },
+      "steps": [
+        { "meet": true },
+        { "minigame": { "id": "trust", "difficulty": "easy" } },
+        { "choice": "take_in" }
+      ],
+      "result": { "startPoints": 50, "reputation": 1 },
+      "whenFull": "provisional"
+    },
+    {
       "id": "arr.litter_crates",
       "model": "ninhada",
       "kind": "random",

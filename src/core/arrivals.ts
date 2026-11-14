@@ -12,10 +12,10 @@ import { modelReady, stepsOf } from './arrivalModels';
 export const ARRIVAL_MODELS = ['na_porta', 'pegadas', 'preso', 'vizinho_traz', 'gato_leva', 'ninhada', 'dentro_do_cafe', 'entrega', 'em_perigo', 'mural'] as const;
 export type ArrivalModel = (typeof ARRIVAL_MODELS)[number];
 
-export const PLACE_KINDS = ['cafe_door', 'street', 'roof', 'market', 'backyard', 'inside_cafe', 'clinic'] as const;
+export const PLACE_KINDS = ['cafe_door', 'street', 'roof', 'market', 'backyard', 'inside_cafe', 'clinic', 'square'] as const;
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
-export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'routine', 'none'] as const;
+export const CLUES = ['meow', 'footprints', 'neighbor', 'poster', 'leader', 'noise', 'inside', 'box', 'danger', 'litter', 'routine', 'bench', 'none'] as const;
 export type Clue = (typeof CLUES)[number];
 
 /** Sem efeito desde que o abrigo é o café (com ele cheio, nenhuma chegada começa); fica pelos dados e saves antigos. */
@@ -111,8 +111,12 @@ export interface ArrivalDef {
     trail?: [number, number][];
     /** pegadas: em quantos minutos a neve cobre as pegadas (some primeiro o começo: seguir cedo é mais fácil). */
     fadeMinutes?: number;
-    /** Desenha o gato tantos pixels acima da célula (preso no alto do poste, no telhado). */
+    /** Desenha o gato tantos pixels acima da célula (preso no alto do poste, no telhado, em cima do banco). */
     lift?: number;
+    /** Desloca o gato na horizontal, em px (no meio do banco de 2 células). */
+    dx?: number;
+    /** Como o gato espera: sentado (padrão) ou dormindo (o gato do banco da praça). */
+    pose?: 'sit' | 'sleep';
     /** gato_leva: o caminho do guia; a última célula é onde o gato novo espera. */
     route?: [number, number][];
   };
