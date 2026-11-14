@@ -371,7 +371,7 @@ describe('pintor (reforma)', () => {
   it('acabamento da superfície muda o mapa; outra superfície não muda (as obras em si: construction.test.ts)', () => {
     const { session } = painterSession();
     session.start(true);
-    expect(session.mapData().legend.M).toBe('floor_check_old');
+    expect(session.mapData().legend.M).toBe('floor_oak_old');
     session.state.finishes['surface.hall_floor'] = 'finish.wood_planks';
     expect(session.mapData().legend.M).toBe('floor_wood_b');
     expect(session.mapData().legend.X).toBe('floor_wood_old');
