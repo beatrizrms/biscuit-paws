@@ -2133,7 +2133,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!game) return false;
     const feet = this.playerCells();
     const near = (at: Cell) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1);
-    const cat = this.cats.find((c) => c.visible && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
+    // Isolado (cercadinho, caixinha): repouso, sem brincadeira nem escova.
+    const cat = this.cats.find((c) => c.visible && !this.clinicHeld.has(c.catId) && near(c.cell()) && (!target || (c.cell()[0] === target[0] && c.cell()[1] === target[1])));
     if (!cat) return false;
     void this.openMiniGame(game, { difficulty: this.session.careDifficulty(cat.catId), catId: cat.catId });
     return true;
