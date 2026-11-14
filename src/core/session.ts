@@ -2500,7 +2500,10 @@ export class GameSession {
       // A saúde voltou ao normal: a doença deixa de ser recente.
       if (cat.curedOn !== undefined && !healthLow(cfg, cat.health)) delete cat.curedOn;
       if (!cat.sickness && cat.health < cfg.sickBelow && clinicTomorrow) this.makeSick(id);
-      careAtDayEnd(cat, cfg.care, day, this.playRoom());
+      // Isolado (cercadinho, caixinha, consulta de entrada): repouso, e o cercadinho fica limpo. A alegria e a higiene não
+      // caem, e o pedido de brincar só começa a contar quando ele volta para a turma.
+      if (this.clinic.isolated(id)) cat.playedOn = day;
+      else careAtDayEnd(cat, cfg.care, day, this.playRoom());
       this.neglectAtDayEnd(id);
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
@@ -3388,7 +3391,9 @@ export class GameSession {
     const cat = this.state.cats[catId];
     if (!cat?.sheltered) return null;
     const cfg = this.content.health.care;
-    return { ...careOf(cat, cfg), needs: careNeeds(cat, this.state.day, cfg, this.playRoom()) };
+    // Isolado: só o remédio (repouso no cercadinho limpo: nada de banho nem brincadeira).
+    const needs = careNeeds(cat, this.state.day, cfg, this.playRoom());
+    return { ...careOf(cat, cfg), needs: this.clinic.isolated(catId) ? needs.filter((n) => n === 'medicine') : needs };
   }
 
   /** Brinquedos posicionados (health.json: care.play.toyTag) e gatos no café, para o pedido de brincar. */
