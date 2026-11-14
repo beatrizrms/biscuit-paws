@@ -723,6 +723,8 @@
     "tabs": { "cup": "Quentes", "glass": "Geladas", "plate": "Comidas" },
     "inMenu": "no quadro",
     "isNew": "nova",
+    "boardTitle": "Cardápio",
+    "soldOutMark": "esgotado",
     "money": "Custo {cost} · Venda {price} · Lucro {profit}",
     "legend": { "ok": "Disponível", "ingredients": "Falta ingrediente", "equipment": "Falta equipamento" },
     "noneHere": "Nenhuma receita desta louça na estação.",

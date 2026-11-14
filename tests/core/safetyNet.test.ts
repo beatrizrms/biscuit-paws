@@ -115,5 +115,5 @@ describe('dia caótico', () => {
     expect(built).toBe(true);
     expect(crowdSeen).toBeGreaterThan(0);
     expect(state.deliveries.length).toBeGreaterThan(0); // caixas na porta (até o limite dela), ninguém buscou
-  });
+  }, 30_000); // 30 dias simulados: com a suíte toda rodando junto, passa dos 5 s padrão
 });

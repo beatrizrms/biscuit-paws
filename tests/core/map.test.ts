@@ -45,8 +45,8 @@ describe('cafe_main.json', () => {
 
   it('pisos e paredes velhos usam variações, sempre as mesmas por célula', () => {
     const map = resolveMap(cafe, catalog);
-    const floor = getTile(catalog, 'floor_check_old');
-    const frames = new Set(map.sprites.filter((s) => s.tile === 'floor_check_old').map((s) => s.frame));
+    const floor = getTile(catalog, 'floor_oak_old');
+    const frames = new Set(map.sprites.filter((s) => s.tile === 'floor_oak_old').map((s) => s.frame));
     expect(frames.size).toBeGreaterThan(1);
     expect(variantAt(floor, 5, 6)).toBe(variantAt(floor, 5, 6));
     expect(resolveMap(cafe, catalog).sprites).toEqual(map.sprites);

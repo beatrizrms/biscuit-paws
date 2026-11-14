@@ -2,12 +2,10 @@
 // Quem decide o que pode entrar é o núcleo (CafeService); aqui só desenha e chama.
 import type { GameSession } from '../../core/session';
 import type { RecipeDef, RecipeStatus } from '../../core/recipes';
-import { content, serviceArt, uiText } from '../content';
+import { content, uiText } from '../content';
 import { iconHtml, listNames } from './ShopPanel';
 import { seasonLabel } from './StatsApp';
 
-/** Largura do quadro desenhado no painel (cabe no painel de 178 px). */
-const BOARD_WIDTH = 176;
 /** Por quantos dias uma receita aprendida leva o selo "nova" na lista. */
 const NEW_DAYS = 7;
 /** As abas da lista: pela louça (xícara = quentes, copo = geladas, prato = comidas). */
@@ -115,25 +113,19 @@ export class MenuBoardPanel {
       <button data-recipe="${r.id}">${action}</button></div>`;
   }
 
-  /** O quadro de verdade: ícones nos slots, preço embaixo e o véu de esgotado (largura fixa, posições dos dados). */
+  /**
+   * O quadro: uma lousa desenhada no código (decisão 243), com o título e um quadrado por slot (o ícone da receita e o
+   * preço embaixo; esgotado, apagado com a faixa "esgotado"). Slot vazio fica tracejado.
+   */
   private boardHtml(inMenu: RecipeDef[]): string {
     const slots = content.service.menuSlots;
-    const sizes = Object.keys(serviceArt.boards).map(Number).sort((a, b) => a - b);
-    const board = serviceArt.boards[String(sizes.find((n) => n >= slots) ?? sizes[sizes.length - 1])]!;
-    const [W, H] = board.size;
-    const k = Math.min(1, BOARD_WIDTH / W);
-    const px = (v: number) => `${Math.round(v * k)}px`;
-    const cells = board.slots.slice(0, slots).map((s, i) => {
+    const cells = Array.from({ length: slots }, (_, i) => {
       const r = inMenu[i];
-      if (!r) return '';
-      const [ix, iy, iw, ih] = s.icon;
-      const [qx, qy, qw, qh] = s.price;
+      if (!r) return '<span class="b-slot empty"></span>';
       const soldOut = this.session.service.recipeStatus(r.id) !== 'available';
-      return `<span class="slot-icon" style="left:${px(ix)};top:${px(iy)};width:${px(iw)};height:${px(ih)}">${iconHtml(r.icon, Math.round(iw * k))}${
-        soldOut ? `<img class="veil" src="${serviceArt.soldOut.veil}" alt="" /><img class="mark" src="${serviceArt.soldOut.mark}" alt="" />` : ''
-      }</span><span class="slot-price" style="left:${px(qx)};top:${px(qy)};width:${px(qw)};height:${px(qh)}">${r.price}</span>`;
+      return `<span class="b-slot${soldOut ? ' sold-out' : ''}" title="${esc(r.name)}"><span class="b-icon">${iconHtml(r.icon, 20)}</span>${soldOut ? `<span class="b-mark">${esc(uiText.menuBoard.soldOutMark)}</span>` : ''}<span class="b-price">${r.price}</span></span>`;
     });
-    return `<div class="board" style="width:${px(W)};height:${px(H)};background-image:url(${board.image})">${cells.join('')}</div>`;
+    return `<div class="board" style="--slots:${slots}"><p class="b-title">${esc(uiText.menuBoard.boardTitle)}</p><div class="b-slots">${cells.join('')}</div></div>`;
   }
 
   /** Quantos clientes cabem agora e como (lugares e louça; regras em service.json). */

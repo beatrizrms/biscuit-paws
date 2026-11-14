@@ -1,0 +1,96 @@
+/*
+ * Tema da interface: TODAS as cores da interface moram aqui (paleta "oliva e café", decisão 243). Os outros arquivos
+ * de estilo (ui.css, skin.css, menu.css, touch.css) só usam estas variáveis: para mudar a cara do jogo, mude aqui.
+ * A arte do jogo (pixel art) tem a paleta dela; isto é só a interface (balões, painéis, botões, celular...).
+ *
+ * Grupos: tinta (texto), papel (fundos claros), madeira (molduras), oliva (a cor principal: abas, botões, destaques),
+ * café (a de apoio: botões secundários, selos), terracota (alerta, coração, esgotado), verde (deu certo, disponível),
+ * manteiga (preço, ouro, aviso leve), azul (informação, clima) e lousa (o quadro do cardápio).
+ */
+:root {
+  /* Tinta */
+  --c-ink: #3a3127;
+  --c-ink2: #6e6252;
+  --c-ink3: #9a8f80;
+  --c-shadow: #241d17;
+  /* Papel */
+  --c-white: #ffffff;
+  --c-paper: #fbf5e8;
+  --c-paper2: #f1e7d3;
+  --c-paper3: #ddcbaa;
+  --c-sand: #e8dcc4;
+  /* Madeira */
+  --c-wood-light: #b08a5e;
+  --c-wood: #7a5a3a;
+  --c-wood-dark: #553f2b;
+  /* Oliva (principal) */
+  --c-olive-pale: #eceed9;
+  --c-olive-light: #c9cf9e;
+  --c-olive: #7c8a4e;
+  --c-olive-dark: #55602f;
+  /* Café (apoio) */
+  --c-cafe-pale: #f1e4d4;
+  --c-cafe-light: #d6b896;
+  --c-cafe: #9a6b45;
+  --c-cafe-dark: #6b4a30;
+  /* Terracota (alerta, coração, esgotado) */
+  --c-terra-pale: #f6dfd4;
+  --c-terra-light: #e2a48a;
+  --c-terra: #c46a4a;
+  --c-terra-dark: #8f4530;
+  /* Verde (deu certo, disponível) */
+  --c-green-pale: #e3ead2;
+  --c-green: #6f8f3a;
+  --c-green-dark: #4d6a2a;
+  /* Manteiga (preço, ouro, aviso leve) */
+  --c-butter-pale: #fbf0cc;
+  --c-butter: #f2d27a;
+  --c-butter-dark: #d9a441;
+  --c-gold-dark: #8a6420;
+  /* Azul (informação, clima) */
+  --c-blue-pale: #dbe5ee;
+  --c-blue: #6f8fae;
+  --c-blue-dark: #45607a;
+  /* Lousa do cardápio */
+  --c-board: #4a3b2e;
+  --c-board-line: #6b5847;
+  --c-black: #000000;
+
+  /* Nomes antigos (usados em todo ui.css): agora apontam para a paleta. */
+  --ink: var(--c-ink);
+  --ink2: var(--c-ink2);
+  --cream: var(--c-paper);
+  --cream2: var(--c-paper2);
+  --cream3: var(--c-paper3);
+  --wood3: var(--c-wood);
+  --wood4: var(--c-wood-dark);
+  --pink2: var(--c-olive-light);
+  --pink3: var(--c-olive);
+  --mint2: var(--c-olive-light);
+  --mint3: var(--c-olive);
+  --butter2: var(--c-butter);
+  --butter3: var(--c-butter-dark);
+  --berry: var(--c-terra);
+  --grey2: var(--c-ink3);
+
+  /* Peças (skin.css): painel, botão, fita de título. */
+  --panel-bg: var(--c-paper);
+  --panel-edge: var(--c-wood-light);
+  --panel-edge-dark: var(--c-wood);
+  --btn-bg: var(--c-paper);
+  --btn-edge: var(--c-wood-light);
+  --btn-text: var(--c-ink);
+  --btn-hover: var(--c-white);
+  --btn-main-bg: var(--c-olive);
+  --btn-main-edge: var(--c-olive-dark);
+  --btn-main-text: var(--c-white);
+  --btn-ok-bg: var(--c-green);
+  --btn-ok-edge: var(--c-green-dark);
+  --btn-danger-bg: var(--c-terra);
+  --btn-danger-edge: var(--c-terra-dark);
+  --ribbon-bg: var(--c-olive);
+  --ribbon-edge: var(--c-olive-dark);
+  --ribbon-alt-bg: var(--c-cafe);
+  --ribbon-alt-edge: var(--c-cafe-dark);
+  --heart: var(--c-terra);
+}

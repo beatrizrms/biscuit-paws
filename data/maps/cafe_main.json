@@ -7,10 +7,10 @@
     "rows": 11
   },
   "legend": {
-    "P": "wall_stripe_old",
+    "P": "wall_plaster_old",
     "R": "wall_wainscot_old",
     "X": "floor_wood_old",
-    "M": "floor_check_old",
+    "M": "floor_oak_old",
     "D": "room_parede_divisoria",
     "q": "ph_basement_wall",
     "w": "ph_basement_wall",
