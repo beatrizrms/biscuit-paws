@@ -819,7 +819,7 @@
     "washerLoad": "Lava-louças: {n} para lavar",
     "washerWashing": "Lava-louças: lavando",
     "washing": "Lavando a louça...",
-    "stored": "Guardado no estoque: {name} x{qty}.",
+    "stored": "Saco aberto: {name} x{qty} na barra e na mochila.",
     "trayOn": "Bandeja na mão: leva até {n} louças.",
     "trayOff": "Bandeja guardada.",
     "tray": "Bandeja: {n}/{max}",

@@ -1433,11 +1433,30 @@ export class CafeService {
       this.st.inventory[h!.item] = Math.max(0, (this.st.inventory[h!.item] ?? 0) - 1);
       if (this.st.inventory[h!.item] === 0) delete this.st.inventory[h!.item];
       this.storeItem(h!.item);
+      this.slotStored(h!.item);
     }
     this.h.bus.emit('heavy.stored', { itemId: h!.kind === 'heavy' ? h!.item : '' });
     this.handsChanged();
     this.h.advanceStory();
     return { ok: true };
+  }
+
+  /**
+   * As porções/trocas do saco vão para a barra: no lugar do saco, se ele acabou (o mesmo quadrado, ativo); senão, no
+   * primeiro espaço livre. Sem isso, elas iam só para a mochila e o saco sumia da barra sem nada no lugar.
+   */
+  private slotStored(sackId: string): void {
+    const id = this.h.content.items[sackId]?.storesAs?.item;
+    const bar = this.st.hotbar;
+    if (!id || bar.slots.includes(id)) return;
+    const at = bar.slots.indexOf(sackId);
+    if (at >= 0 && !((this.st.inventory[sackId] ?? 0) > 0)) bar.slots[at] = id;
+    else {
+      const free = bar.slots.findIndex((s) => !s || !((this.st.inventory[s] ?? 0) > 0));
+      if (free < 0) return;
+      bar.slots[free] = id;
+    }
+    this.h.bus.emit('hotbar.changed', { active: bar.active });
   }
 
   private storeItem(itemId: string): void {

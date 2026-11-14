@@ -603,10 +603,14 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     expect(sv.speed()).toBe(content.carry.heavy.speedFactor);
     expect(sv.storeHeavy()).toEqual({ ok: false, reason: 'not_at_home' });
     state.location = 'map.cafe_main';
+    const sackSlot = state.hotbar.active;
     expect(sv.storeHeavy()).toEqual({ ok: true });
     expect(state.inventory['item.cat_food_basic']).toBe(5);
     expect(state.inventory['item.cat_food_sack']).toBeUndefined();
     expect(state.hands).toEqual([]);
+    // As porções ficam no quadrado do saco, ativas (o saco não some da barra sem nada no lugar).
+    expect(state.hotbar.slots[sackSlot]).toBe('item.cat_food_basic');
+    expect(session.activeItem()).toBe('item.cat_food_basic');
   });
 
   it('gato no colo: mãos livres, mais lenta, só põe no chão dentro do café', () => {
