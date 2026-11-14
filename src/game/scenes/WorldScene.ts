@@ -532,9 +532,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
-    this.session.bus.on('customer.served', ({ customerId, price, tip }) => {
+    this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId }) => {
       const view = this.customerViews.get(customerId);
       if (!view) return;
+      // Pedido errado: ele mesmo reclama, num balão de fala.
+      if (wanted) {
+        const name = (id: string) => this.session.content.recipes[id]?.name ?? id;
+        this.speechBubble(view.sprite, uiText.service.wrongBubble.replace('{wanted}', name(wanted)).replace('{name}', name(recipeId)), 3500, 18);
+      }
       const x = view.sprite.x;
       const y = view.sprite.y - 66;
       const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
@@ -2549,7 +2554,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** Balão de fala creme com borda rosa em cima de alguém (acompanha quem fala) por `ms`. */
-  private speechBubble(target: Phaser.GameObjects.Sprite, text: string, ms: number): void {
+  private speechBubble(target: Phaser.GameObjects.Sprite, text: string, ms: number, lift = 0): void {
     const label = this.add.text(0, -9, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', color: '#5c3428', resolution: 4, align: 'center', wordWrap: { width: 150 } }).setOrigin(0.5, 1);
     const w = Math.ceil(label.width) + 12;
     const h = Math.ceil(label.height) + 6;
@@ -2558,7 +2563,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     g.lineStyle(1.5, 0xd97890, 1).strokeRoundedRect(-w / 2, -6 - h, w, h, 5);
     g.fillStyle(0xfff4e0, 1).fillTriangle(-4, -6.5, 4, -6.5, 0, -1);
     g.lineStyle(1.5, 0xd97890, 1).lineBetween(-4, -6, 0, -1).lineBetween(4, -6, 0, -1);
-    const top = () => target.y - target.displayHeight + 6;
+    const top = () => target.y - target.displayHeight + 6 - lift;
     const bubble = this.add.container(target.x, top(), [g, label]).setDepth(160_000).setAlpha(0);
     const follow = () => bubble.active && target.active && bubble.setPosition(target.x, top());
     this.events.on('update', follow);

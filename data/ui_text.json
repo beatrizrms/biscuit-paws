@@ -799,7 +799,7 @@
     "washed": "Louça lavada.",
     "open": "Atendimento: {n}/{cap} clientes",
     "hands": "Nas mãos: {name}",
-    "servedTip": "+{price} ({name}) +{tip} de gorjeta", "servedWrong": "Pedido errado! Queria {wanted} e ganhou {name}: pagou {price}, sem gorjeta (nota baixa).",
+    "servedTip": "+{price} ({name}) +{tip} de gorjeta", "wrongBubble": "Ué... eu pedi {wanted}, não {name}!",
     "premium": "★",
     "wipReady": "Massa pronta: leve ao {equipment}.",
     "sinkLoaded": "Louça na pia: {n}. E com as mãos livres para lavar.",

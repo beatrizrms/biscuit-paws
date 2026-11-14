@@ -240,9 +240,8 @@ export class GameUi {
       const to = content.items[itemId]?.storesAs;
       this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
     });
-    bus.on('customer.served', ({ recipeId, price, tip, quality, wanted }) => {
+    bus.on('customer.served', ({ recipeId, price, tip, quality }) => {
       const name = recipeName(recipeId) + (quality === 'premium' ? ` ${s.premium}` : '');
-      if (wanted) return this.toast(s.servedWrong.replace('{wanted}', recipeName(wanted)).replace('{name}', name).replace('{price}', String(price)), 4000);
       this.toast((tip > 0 ? s.servedTip : s.served).replace('{price}', String(price)).replace('{name}', name).replace('{tip}', String(tip)));
     });
     bus.on('customer.left', ({ happy }) => !happy && this.toast(s.left));
