@@ -528,8 +528,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
 .hud-goals, .hud-money { transition: opacity 0.2s; }
-.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through, .hud-weather.see-through { opacity: 0.18; pointer-events: none; }
-.hud-rep[hidden], .hud-energy[hidden], .hud-weather[hidden] { display: none; }
+.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through { opacity: 0.18; pointer-events: none; }
+.hud-rep[hidden], .hud-energy[hidden], .hud-money .hud-weather-icon[hidden] { display: none; }
 
 /* Transições suaves entre o que aparece na cena (gato, celular...) */
 .cs-stage > * { animation: cs-in 0.6s ease-out; }
@@ -1128,8 +1128,9 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .hud-rep.bump { animation: bump 0.35s; }
 /* Energia (embaixo da reputação): mesma barrinha; cansada, laranja */
 /* Clima do dia (embaixo da energia): o ícone e o nome. PLACEHOLDER(arte): ícones por código (weatherIcons.ts). */
-.hud-weather { position: absolute; top: 54px; right: 6px; display: flex; align-items: center; gap: 3px; padding: 1px 7px 1px 5px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--ink2); transition: opacity 0.2s; }
-.hud-weather .weather svg { display: block; image-rendering: pixelated; }
+/* O clima na barra de cima, na frente da estação (só o ícone; o nome no title). */
+.hud-money .hud-weather-icon { display: inline-flex; align-items: center; margin-right: 4px; }
+.hud-money .hud-weather-icon svg, .hud-money .hud-weather-icon img { display: block; image-rendering: pixelated; }
 .hud-energy { position: absolute; top: 40px; right: 6px; display: flex; align-items: center; gap: 4px; padding: 1px 7px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; transition: opacity 0.2s; }
 .hud-energy .label { color: var(--ink2); font-weight: normal; }
 .hud-energy .bar { position: relative; width: 36px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }

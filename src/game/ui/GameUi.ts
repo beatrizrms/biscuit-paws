@@ -104,10 +104,9 @@ export class GameUi {
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
-      <div class="panel hud-money"><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
       <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
-      <div class="panel hud-weather"><span class="weather"></span><span class="label"></span></div>
       <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
@@ -946,7 +945,7 @@ export class GameUi {
    */
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
     this.tuckGoals(points.slice(0, 2));
-    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy, .hud-weather')]) {
+    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy')]) {
       if (el.hidden) continue;
       const r = el.getBoundingClientRect();
       // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
@@ -1101,7 +1100,10 @@ export class GameUi {
   private layoutHudStack(): void {
     const when = content.world.hud ?? {};
     let top = HUD_STACK_TOP;
-    for (const [cls, cond] of [['.hud-rep', when.reputation], ['.hud-energy', undefined], ['.hud-weather', when.weather]] as const) {
+    // O clima fica na barra de cima, na frente da estação (aparece quando o café começa a atender: hud.weather).
+    const weatherIcon = this.root.querySelector<HTMLElement>('.hud-weather-icon');
+    if (weatherIcon) weatherIcon.hidden = !!when.weather && !this.session.holds(when.weather);
+    for (const [cls, cond] of [['.hud-rep', when.reputation], ['.hud-energy', undefined]] as const) {
       const el = this.root.querySelector<HTMLElement>(cls);
       if (!el) continue;
       el.hidden = !!cond && !this.session.holds(cond);
@@ -1368,18 +1370,20 @@ ${rep}`;
       return;
     }
     const { state } = this.session;
-    (this.money.querySelector('.amount') as HTMLElement).textContent = `${state.money} ${content.economy.currency}`;
+    // Só o número: a moedinha do lado já diz o que é.
+    (this.money.querySelector('.amount') as HTMLElement).textContent = String(state.money);
+    this.money.title = `${state.money} ${content.economy.currency}`;
     this.renderReputation();
     this.renderEnergy();
     this.layoutHudStack();
     const sd = this.session.seasonDay();
     // Clima do dia (o ícone muda junto com o que cai lá fora).
     const weather = this.session.weather();
-    const weatherEl = this.root.querySelector<HTMLElement>('.hud-weather');
+    const weatherEl = this.root.querySelector<HTMLElement>('.hud-weather-icon');
     if (weatherEl && weatherEl.dataset.weather !== weather) {
       weatherEl.dataset.weather = weather;
-      (weatherEl.querySelector('.weather') as HTMLElement).innerHTML = weatherIconSvg(weather);
-      (weatherEl.querySelector('.label') as HTMLElement).textContent = (uiText.weather as Record<string, string>)[weather] ?? '';
+      weatherEl.innerHTML = weatherIconSvg(weather);
+      weatherEl.title = (uiText.weather as Record<string, string>)[weather] ?? '';
     }
     (this.money.querySelector('.day') as HTMLElement).textContent = uiText.seasonDay.replace('{season}', sd.name).replace('{day}', String(sd.day)).replace('{weekday}', uiText.weekdays[this.session.service.weekday()] ?? '');
     if (bumpMoney) {
