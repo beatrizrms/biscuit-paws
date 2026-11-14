@@ -17,7 +17,7 @@ function cafe() {
   const state = newGameState(500, 'map.cafe_main', 9 * 60);
   state.flags['prologue.done'] = true;
   state.business = 'inaugurated';
-  state.milestones.reached['milestone.customers_60'] = 1; // a lava-louças vem com o selo Pia cheia
+  state.milestones.reached['milestone.machine_dishwasher'] = 1; // a lava-louças vem com o conquista Pia cheia
   const session = new GameSession(content, state);
   const put = (item: string, at: [number, number]) => {
     expect(session.buy(item)).toEqual({ ok: true });

@@ -1062,8 +1062,8 @@ describe('passagem dos dias e rotina', () => {
     const dust = () => session.visibleDirt().filter((d) => d.tags.includes('daily')).length;
     expect(dust()).toBe(content.world.dailyDirt);
     session.state.money += 1000;
-    expect(session.buy('item.robot_vacuum')).toEqual({ ok: false, reason: 'locked' }); // vem com o selo Salão impecável
-    session.state.milestones.reached['milestone.customers_90'] = session.state.day;
+    expect(session.buy('item.robot_vacuum')).toEqual({ ok: false, reason: 'locked' }); // vem com o conquista Salão impecável
+    session.state.milestones.reached['milestone.machine_vacuum'] = session.state.day;
     expect(session.buy('item.robot_vacuum')).toEqual({ ok: true });
     expect(session.place('item.robot_vacuum', [1, 8])).toEqual({ ok: true });
     expect(session.robotVacuum()?.item).toBe('item.robot_vacuum');

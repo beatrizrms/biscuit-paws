@@ -16,7 +16,7 @@ function cafe(dirty = 0) {
   const state = newGameState(2000, 'map.cafe_main', 9 * 60);
   state.flags['prologue.done'] = true;
   state.business = 'inaugurated'; // a lava-louças é upgrade: só depois da inauguração
-  state.milestones.reached['milestone.customers_60'] = 1; // e vem com o selo Pia cheia
+  state.milestones.reached['milestone.machine_dishwasher'] = 1; // e vem com o conquista Pia cheia
   const session = new GameSession(content, state);
   expect(session.buy('item.dishwasher')).toEqual({ ok: true });
   expect(session.place('item.dishwasher', [5, 8])).toEqual({ ok: true });
