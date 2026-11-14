@@ -4132,7 +4132,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         onCancel: () => (this.areaSelect = null),
         onEmpty: () => this.ui.toast(t.selectEmpty, 2500),
       },
-      t.selectHint,
+      { hint: t.selectHint, hintTouch: t.selectHintTouch, confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },
     );
   }
 

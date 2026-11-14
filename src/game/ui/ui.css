@@ -1193,6 +1193,13 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Obras: o aviso da seleção da área (instruções e o orçamento ao vivo), no alto da tela. */
 .area-select-hint { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 8px 14px; border-radius: 8px; background: #3a2a2ee6; color: #fff4e0; font: 15px 'Trebuchet MS', sans-serif; text-align: center; pointer-events: none; }
 .area-select-hint b { color: #ffe9a8; }
+.area-select-hint b:empty { display: none; }
+.area-select-hint.low { top: auto; bottom: 10%; }
+.area-select-hint .as-buttons { display: flex; gap: 10px; margin-top: 4px; pointer-events: auto; }
+.area-select-hint .as-buttons button { min-width: 92px; min-height: 36px; padding: 4px 14px; border-radius: 8px; border: 2px solid #fff4e0aa; background: #fff4e0; color: #3a2a2e; font: bold 15px 'Trebuchet MS', sans-serif; touch-action: none; }
+.area-select-hint .as-buttons .as-ok { background: #f4c06a; }
+.area-select-hint .as-buttons .as-cancel { background: #e9d8cf; }
+.area-select-hint .as-buttons button:disabled { opacity: 0.45; }
 
 /* Despensa (armário da cozinha), na mochila: só ver; no armário, o botão de guardar as compras. */
 .catalog.backpack .bp-pantry, .catalog.backpack .bp-box { margin-top: 5px; }
