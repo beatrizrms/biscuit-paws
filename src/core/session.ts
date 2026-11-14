@@ -1727,7 +1727,7 @@ export class GameSession {
 
   /** A dica de hoje da Cartilha do gato (Vila Hoje). */
   catTip(): CatTip | null {
-    return tipForDay(this.content.news, this.state.day);
+    return tipForDay(this.content.news, this.state.day, (c) => this.holds(c as Condition));
   }
 
   /** Pedidos que dá para aceitar agora. */

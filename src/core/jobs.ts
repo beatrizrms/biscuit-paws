@@ -88,6 +88,8 @@ export interface CatTip {
   id: string;
   title: string;
   text: string;
+  /** Só entra na rotação quando vale (ex.: o pote automático, depois da inauguração). */
+  when?: unknown;
 }
 
 export interface NewsData {
@@ -101,8 +103,9 @@ export interface NewsData {
 }
 
 /** A dica da Cartilha do dia: em ordem, uma por dia (dia 1 = a primeira); depois da última, recomeça. */
-export function tipForDay(data: NewsData, day: number): CatTip | null {
-  const tips = data.tips ?? [];
+export function tipForDay(data: NewsData, day: number, holds: (when: unknown) => boolean = () => true): CatTip | null {
+  // Só as que já valem para ela (when); a ordem é a dos dados, e no fim recomeça.
+  const tips = (data.tips ?? []).filter((t) => t.when === undefined || holds(t.when));
   if (tips.length === 0) return null;
   return tips[(((Math.max(1, day) - 1) % tips.length) + tips.length) % tips.length]!;
 }

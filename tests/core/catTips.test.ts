@@ -15,6 +15,17 @@ describe('Cartilha do gato', () => {
     expect(tipForDay({ ...content.news, tips: [] }, 3)).toBeNull();
   });
 
+  it('primeiro mês (antes da inauguração): nada do que ainda não existe (pote automático, cômodos, playground, chocolate quente)', () => {
+    const before = (c: unknown) => !JSON.stringify(c).includes('inaugurated') && !JSON.stringify(c).includes('restored');
+    const month = Array.from({ length: 30 }, (_, i) => tipForDay(content.news, i + 1, before)!.id);
+    for (const id of ['tip.auto', 'tip.rooms', 'tip.playground']) expect(month).not.toContain(id);
+    expect(new Set(month).size).toBe(tips.filter((x) => x.when === undefined).length);
+    // Depois: entram na rotação.
+    const all = Array.from({ length: tips.length }, (_, i) => tipForDay(content.news, i + 1)!.id);
+    expect(all).toContain('tip.auto');
+    expect(JSON.stringify(content.news.items)).not.toContain('chocolate quente');
+  });
+
   it('a dica dos brinquedos fala da regra que está nos dados (1 a cada catsPerToy gatos)', () => {
     const toys = tips.find((t) => t.id === 'tip.toys')!;
     expect(toys.text).toContain(`cada ${content.health.care.play.catsPerToy} gatos`);

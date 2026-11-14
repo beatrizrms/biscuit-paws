@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Jornal do celular. day: só naquele dia. fromDay: entra no sorteio a partir daquele dia (um por dia, sempre o mesmo para o dia). tips: a Cartilha do gato, uma dica por dia, em ordem (dia 1 = a primeira; no fim, recomeça). As dicas explicam as regras do jogo: se um número mudar em health.json, items.json ou rooms.json, mude o texto aqui também.",
+  "_comment": "Jornal do celular. day: só naquele dia. fromDay: entra no sorteio a partir daquele dia (um por dia, sempre o mesmo para o dia). tips: a Cartilha do gato, uma dica por dia, em ordem (dia 1 = a primeira; no fim, recomeça); when (opcional): a dica só entra na rotação quando vale (o pote automático e os cômodos depois da inauguração, o playground com o quintal reformado). As dicas explicam as regras do jogo: se um número mudar em health.json, items.json ou rooms.json, mude o texto aqui também.",
   "app": "Vila Hoje",
   "items": [
     {
@@ -25,7 +25,7 @@
       "id": "news.snow_back",
       "fromDay": 4,
       "headline": "A neve volta amanhã",
-      "text": "A previsão é de mais neve no fim de semana. Bom dia para um chocolate quente."
+      "text": "A previsão é de mais neve no fim de semana. Bom dia para um café quentinho."
     },
     {
       "id": "news.orange_cat",
@@ -60,8 +60,8 @@
     { "id": "tip.contagion", "title": "Doença passa para os outros", "text": "Doente sem tratamento por mais de 2 dias pode passar a doença para os outros gatos. Com 2 gatos doentes, nenhum cliente novo entra no café." },
     { "id": "tip.arrival", "title": "Gato na porta", "text": "Gato com fome na porta precisa de ração antes de entrar; com frio, de um cobertor (mercado, Cuidados); ferido, da clínica." },
     { "id": "tip.trust", "title": "Gato arisco", "text": "Chegue perto devagar. Se ele ficar alerta, pare e espere. Se ele bufar e você continuar andando, ele se assusta." },
-    { "id": "tip.auto", "title": "Pote e caixa automáticos", "text": "O pote de ração e a caixa de areia automáticos guardam até 10 dias e servem os gatos sozinhos. É só abastecer." },
-    { "id": "tip.rooms", "title": "Lugar para todos", "text": "Cada cômodo aberto e reformado aumenta quantos gatos cabem no café. O Market (aba Construção) mostra quantos cabem agora." },
-    { "id": "tip.playground", "title": "Playground no quintal", "text": "Com 10 gatos no café, dá para montar o playground no quintal. Cada módulo dá carinho a todos os gatos, todo dia." }
+    { "id": "tip.auto", "when": { "business": "inaugurated" }, "title": "Pote e caixa automáticos", "text": "O pote de ração e a caixa de areia automáticos guardam até 10 dias e servem os gatos sozinhos. É só abastecer." },
+    { "id": "tip.rooms", "when": { "business": "inaugurated" }, "title": "Lugar para todos", "text": "Cada cômodo aberto e reformado aumenta quantos gatos cabem no café. O Market (aba Construção) mostra quantos cabem agora." },
+    { "id": "tip.playground", "when": { "room": "room.backyard", "atLeast": "restored" }, "title": "Playground no quintal", "text": "Com 10 gatos no café, dá para montar o playground no quintal. Cada módulo dá carinho a todos os gatos, todo dia." }
   ]
 }

@@ -907,7 +907,8 @@ export function validateContent(raw: RawContent): string[] {
       const id = 'placed' in c ? c.placed : c.owned;
       if (!itemIds.has(id)) err(`${where}: item inexistente "${id}"`);
     }
-  };
+  };  for (const t of raw.news.tips ?? []) if (t.when !== undefined) checkCondition(`news: dica "${t.id}"`, t.when as Condition);
+
 
   for (const job of raw.jobs.jobs) if (job.available) checkCondition(`jobs: "${job.id}"`, job.available as Condition);
   for (const item of raw.items.items) {
