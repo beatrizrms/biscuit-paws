@@ -2022,7 +2022,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Interação do mapa: loja, prateleira, consulta, porta, cama, horário, cortina ou o mural. */
   private useInteraction(it: MapInteraction): boolean {
     if ('shop' in it.action) this.ui.openShop(it.action.shop);
-    else if ('shelf' in it.action) this.ui.openShelf(it.action.shelf, it.action.tags);
+    else if ('shelf' in it.action) {
+      // Nada à venda para ela ainda (ex.: as mudas, antes do quintal): só o aviso, sem abrir a prateleira vazia.
+      const tags = it.action.tags;
+      const any = this.session.shopItems(it.action.shelf).some((id) => this.session.content.items[id]?.tags.some((t) => tags.includes(t)) && this.session.itemUnlocked(id));
+      if (any) this.ui.openShelf(it.action.shelf, tags);
+      else this.ui.toast(it.action.emptyText ?? uiText.shop.shelfEmpty, 3500);
+    }
     else if ('vet' in it.action) this.ui.openConsult();
     else if ('door' in it.action) this.session.useRoomDoor(it.action.door); // trancada: a fala avisa; com a chave, abre
     else if ('sleep' in it.action) this.askSleep();

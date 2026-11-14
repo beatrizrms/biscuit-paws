@@ -75,7 +75,7 @@ export interface MapInteraction {
    * curtain: abre/fecha a cortina da janela (id do objeto, com curtainOpen); `dialogue`, a fala da primeira vez que abre (uma vez no jogo),
    * só se `dialogueWhen` valer (ex.: o quintal ainda fechado; aberto antes, ela já sabe o que é o terreno e não fala);
    * `dialogueAlt`: outra fala no lugar dela quando `when` valer (à noite, sem falar do sol). Uma vez no jogo, valendo qualquer das duas. */
-  action: { shop: string } | { shelf: string; tags: string[] } | { board: true } | { vet: true } | { door: string } | { sleep: string } | { hours: string } | { bus: true } | { curtain: string; dialogue?: string; dialogueWhen?: DoorCondition; dialogueAlt?: { when: DoorCondition; dialogue: string } };
+  action: { shop: string } | { shelf: string; tags: string[]; emptyText?: string } | { board: true } | { vet: true } | { door: string } | { sleep: string } | { hours: string } | { bus: true } | { curtain: string; dialogue?: string; dialogueWhen?: DoorCondition; dialogueAlt?: { when: DoorCondition; dialogue: string } };
 }
 
 /** Porta: andar para cima na célula `at` leva ao mapa `to`, na célula `spawn`. */
