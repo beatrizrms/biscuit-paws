@@ -13,6 +13,7 @@ import { sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
 import { preloadCreatorLayers } from '../playerLook';
 import { ROBOT_IMAGE, ROBOT_KEY } from '../RobotVacuumView';
+import { themeColor, themeHex } from '../theme';
 
 /**
  * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
@@ -30,10 +31,10 @@ export class BootScene extends Phaser.Scene {
     const w = 220;
     const x = (GAME_WIDTH - w) / 2;
     const y = GAME_HEIGHT / 2;
-    this.add.text(GAME_WIDTH / 2, y - 16, t('boot.loading'), { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', color: '#fff4e0' }).setOrigin(0.5);
-    this.add.rectangle(x - 2, y - 2, w + 4, 12, 0x5a4048).setOrigin(0);
-    this.add.rectangle(x, y, w, 8, 0xf3e6d8).setOrigin(0);
-    const bar = this.add.rectangle(x, y, 1, 8, 0xe58fa6).setOrigin(0);
+    this.add.text(GAME_WIDTH / 2, y - 16, t('boot.loading'), { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', color: themeColor('--c-paper', '#fbf5e8') }).setOrigin(0.5);
+    this.add.rectangle(x - 2, y - 2, w + 4, 12, themeHex('--c-ink2', '#6e6252')).setOrigin(0);
+    this.add.rectangle(x, y, w, 8, themeHex('--c-paper2', '#f1e7d3')).setOrigin(0);
+    const bar = this.add.rectangle(x, y, 1, 8, themeHex('--c-olive', '#7c8a4e')).setOrigin(0);
     this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => bar.setSize(Math.max(1, Math.round(w * p)), 8));
     preloadAudio(this.load);
     const { sheets } = content.catalog;

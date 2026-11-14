@@ -1,113 +1,89 @@
 /*
- * Pele da interface com a arte do pacote ui_menus (npm run ui-audio): molduras de 9 partes, em pixels do jogo
- * (a interface inteira é ampliada junto com a tela, então 1 px aqui = 1 pixel da arte).
- * Botões 32x32: cortes 8 / 8 / 8 em cima / 10 embaixo; estados normal, hover (e foco), pressed, disabled.
- * Painéis 48x48: cortes de 16; a borda desenhada sai 8 px para fora (border-image-outset), o texto fica a 8 px da moldura.
+ * Pele da interface, desenhada no código (decisão 243: sem as molduras de imagem do pacote ui_menus). Medidas em
+ * pixels do jogo (a interface inteira é ampliada junto com a tela). As cores vêm todas de theme.css.
+ * Painéis: a borda grossa de antes (8 px, que dava o espaço da moldura) continua, pintada da cor do fundo; a moldura é
+ * a sombra de fora (box-shadow), então nada muda de lugar. Botões: o mesmo, com a borda de baixo mais escura (volume).
  * Carregado depois de ui.css e menu.css: só troca o visual, não a disposição.
  */
 
 /* ---------- Botões ---------- */
-.menu-btn {
-  --btn: 'cream';
-  border-style: solid;
-  border-width: 8px 8px 10px;
-  border-radius: 0;
-  border-image: url('/assets/ui/menu/ui_button_cream_normal.png') 8 8 10 fill;
-  background: none;
-  box-shadow: none;
-  padding: 0 4px;
+/* Borda fina e o volume por sombra (a borda de antes tinha 8 px: o padding compensa, nada muda de tamanho). */
+.menu-btn,
+.catalog .cart-bar .pay {
+  border: 2px solid var(--btn-edge);
+  border-radius: 7px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--btn-edge) 45%, transparent);
+  padding: 6px 10px 8px;
   line-height: 12px;
-  image-rendering: pixelated;
 }
 .menu-btn:hover,
 .menu-btn:focus,
-.menu-btn:focus-visible {
-  background: none;
-  border-image-source: url('/assets/ui/menu/ui_button_cream_hover.png');
+.menu-btn:focus-visible,
+.catalog .cart-bar .pay:hover {
+  outline: none;
+  border-color: var(--btn-edge);
+  background: var(--btn-hover);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--btn-edge) 45%, transparent), 0 0 0 2px var(--c-butter);
 }
 .menu-btn:active:not([disabled]) {
-  border-image-source: url('/assets/ui/menu/ui_button_cream_pressed.png');
-  padding-top: 2px; /* o texto desce junto com o botão */
-  padding-bottom: 0;
+  box-shadow: none;
+  padding-top: 8px; /* o texto desce junto com o botão */
+  padding-bottom: 6px;
 }
-.menu-btn[disabled] {
-  background: none;
-  border-image-source: url('/assets/ui/menu/ui_button_cream_disabled.png');
-  color: #8f8389;
+.menu-btn[disabled],
+.catalog .cart-bar .pay:disabled {
+  --btn-bg: var(--c-paper2);
+  --btn-hover: var(--c-paper2);
+  --btn-edge: var(--c-paper3);
+  color: var(--c-ink3);
+  box-shadow: none;
 }
-.menu-btn.small { padding: 0 2px; line-height: 9px; box-shadow: none; }
-.menu-btn.big { padding: 0 8px; line-height: 13px; }
+.menu-btn.small { padding: 6px 4px 8px; line-height: 9px; }
+.menu-btn.big { padding: 6px 12px 8px; line-height: 13px; }
+.catalog .cart-bar .pay { line-height: 10px; padding: 6px 6px 8px; }
 
-/* Botões principais da Home e "seguir em frente" (rosa); confirmar e pagar (menta); apagar (ameixa). */
-.menu-home .menu-btn.big { border-image-source: url('/assets/ui/menu/ui_button_pink_normal.png'); color: #fff8ec; text-shadow: 0 1px 0 #8f3f52; }
-.menu-home .menu-btn.big:hover,
-.menu-home .menu-btn.big:focus { border-image-source: url('/assets/ui/menu/ui_button_pink_hover.png'); }
-.menu-home .menu-btn.big:active:not([disabled]) { border-image-source: url('/assets/ui/menu/ui_button_pink_pressed.png'); }
-.menu-home .menu-btn.big[disabled] { border-image-source: url('/assets/ui/menu/ui_button_pink_disabled.png'); color: #f3e3e8; text-shadow: none; }
-.menu-home .menu-btn.big .sub { color: #ffe3ea; }
-
+/* Botões principais da Home e "seguir em frente" (oliva); confirmar e pagar (verde); apagar (terracota). */
+.menu-home .menu-btn.big { --btn-bg: var(--btn-main-bg); --btn-hover: var(--c-olive-dark); --btn-edge: var(--btn-main-edge); color: var(--btn-main-text); text-shadow: 0 1px 0 var(--btn-main-edge); }
+.menu-home .menu-btn.big[disabled] { --btn-bg: var(--c-olive-light); --btn-hover: var(--c-olive-light); --btn-edge: var(--c-olive); color: var(--c-olive-pale); text-shadow: none; }
+.menu-home .menu-btn.big .sub { color: var(--c-paper); }
 .menu-btn.primary,
 .menu-btn.yes,
-.catalog .cart-bar .pay {
-  border-image-source: url('/assets/ui/menu/ui_button_mint_normal.png');
-}
-.menu-btn.primary:hover,
-.menu-btn.primary:focus,
-.menu-btn.yes:hover,
-.menu-btn.yes:focus,
-.catalog .cart-bar .pay:hover { border-image-source: url('/assets/ui/menu/ui_button_mint_hover.png'); }
-.menu-btn.primary:active,
-.menu-btn.yes:active,
-.catalog .cart-bar .pay:active { border-image-source: url('/assets/ui/menu/ui_button_mint_pressed.png'); }
-.catalog .cart-bar .pay:disabled { border-image-source: url('/assets/ui/menu/ui_button_mint_disabled.png'); }
-.catalog .cart-bar .pay {
-  border-style: solid;
-  border-width: 8px 8px 10px;
-  border-radius: 0;
-  border-image-slice: 8 8 10 fill;
-  background: none;
-  padding: 0 4px;
-  line-height: 10px;
-  image-rendering: pixelated;
-}
-.menu-slot [data-action='delete'] { border-image-source: url('/assets/ui/menu/ui_button_plum_normal.png'); color: #fff8ec; }
-.menu-slot [data-action='delete']:hover,
-.menu-slot [data-action='delete']:focus { border-image-source: url('/assets/ui/menu/ui_button_plum_hover.png'); }
+.catalog .cart-bar .pay { --btn-bg: var(--btn-ok-bg); --btn-hover: var(--c-green-dark); --btn-edge: var(--btn-ok-edge); color: var(--c-white); }
+.menu-slot [data-action='delete'] { --btn-bg: var(--btn-danger-bg); --btn-hover: var(--c-terra-dark); --btn-edge: var(--btn-danger-edge); color: var(--c-white); }
 
 /* ---------- Painéis ---------- */
 .menu-panel,
 .catalog,
 .dialogue-layer .dialogue {
-  border-style: solid;
-  border-width: 8px;
-  border-radius: 0;
-  border-image: url('/assets/ui/menu/ui_panel_cream.png') 16 fill / 16px / 8px;
-  background: none;
-  box-shadow: none;
-  image-rendering: pixelated;
+  --panel-fill: var(--panel-bg);
+  border: 8px solid var(--panel-fill);
+  border-radius: 8px;
+  background: var(--panel-fill);
+  box-shadow: 0 0 0 2px var(--panel-edge), 0 0 0 4px var(--panel-edge-dark), 0 4px 0 2px color-mix(in srgb, var(--c-shadow) 35%, transparent);
 }
 .menu-panel { padding: 2px 4px; }
 .menu-panel.pause,
-.menu-confirm .menu-panel { border-image-source: url('/assets/ui/menu/ui_panel_pink.png'); }
-.catalog.menu-board { border-image-source: url('/assets/ui/menu/ui_panel_wood.png'); }
-/* Narrador (fala sem personagem): a moldura lavanda do pacote, para não confundir com quem fala. */
-.dialogue-layer .dialogue.narrator { border-image-source: url('/assets/ui/menu/ui_panel_lavender.png'); }
+.menu-confirm .menu-panel { --panel-edge: var(--c-olive-light); --panel-edge-dark: var(--c-olive); }
+.catalog.menu-board { --panel-fill: var(--c-board); --panel-edge: var(--c-wood-light); --panel-edge-dark: var(--c-wood-dark); }
+/* Narrador (fala sem personagem): papel café, para não confundir com quem fala. */
+.dialogue-layer .dialogue.narrator { --panel-fill: var(--c-cafe-pale); --panel-edge: var(--c-cafe-light); --panel-edge-dark: var(--c-cafe); }
 
-/* Título dos painéis numa faixa (3 partes: ponta, meio, ponta). */
+/* Título dos painéis numa fita. */
 .menu-panel h2 {
   align-self: flex-start;
   margin: -14px 0 2px -2px;
-  padding: 0 10px;
-  border-style: solid;
-  border-width: 0 14px;
-  border-image: url('/assets/ui/menu/ui_ribbon_pink.png') 0 14 fill;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: var(--ribbon-bg);
+  box-shadow: inset 0 -2px 0 var(--ribbon-edge), 0 1px 0 color-mix(in srgb, var(--c-shadow) 30%, transparent);
   line-height: 20px;
-  color: #fff8ec;
-  text-shadow: 0 1px 0 #8f3f52;
-  image-rendering: pixelated;
+  color: var(--c-white);
+  text-shadow: 0 1px 0 var(--ribbon-edge);
 }
 .menu-panel.creator h2,
-.menu-panel.options h2 { border-image-source: url('/assets/ui/menu/ui_ribbon_mint.png'); text-shadow: 0 1px 0 #3f7a5c; }
+.menu-panel.options h2 { --ribbon-bg: var(--ribbon-alt-bg); --ribbon-edge: var(--ribbon-alt-edge); }
 
 /* ---------- Carrinho no HUD (ícone do pacote) ---------- */
 .hud-cart { display: flex; align-items: center; gap: 3px; padding: 0 6px 0 2px; }

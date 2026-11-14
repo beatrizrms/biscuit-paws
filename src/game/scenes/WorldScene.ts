@@ -17,6 +17,7 @@ import { CatSprite, catScale, catTexture, type CatPlaces } from '../entities/Cat
 import { NpcSprite } from '../entities/Npc';
 import { findPath, pathCorners } from '../../core/path';
 import { pickETarget, type ECandidate } from '../../core/eTarget';
+import { themeColor } from '../theme';
 import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
@@ -2680,7 +2681,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Acima do balãozinho de aceno (que fica logo em cima da cabeça).
     y -= 22;
     const txt = this.add
-      .text(x, y, label, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '30px', fontStyle: 'bold', color: points > 0 ? '#e5487a' : '#7a6a72', stroke: '#fff4e0', strokeThickness: 6 })
+      .text(x, y, label, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '30px', fontStyle: 'bold', color: points > 0 ? themeColor('--heart', '#c46a4a') : themeColor('--c-ink3', '#9a8f80'), stroke: themeColor('--c-paper', '#fbf5e8'), strokeThickness: 6 })
       .setOrigin(0.5, 1)
       .setScale(0.5)
       .setDepth(9000);
