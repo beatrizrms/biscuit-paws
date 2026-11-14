@@ -60,6 +60,202 @@
       "price": 40
     },
     {
+      "id": "finish.floor_oak",
+      "name": "Tábuas de carvalho",
+      "tile": "floor_oak",
+      "kind": "floor",
+      "price": 60
+    },
+    {
+      "id": "finish.floor_walnut",
+      "name": "Tábuas de nogueira",
+      "tile": "floor_walnut",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_herringbone",
+      "name": "Taco espinha de peixe",
+      "tile": "floor_herringbone",
+      "kind": "floor",
+      "price": 80
+    },
+    {
+      "id": "finish.floor_terracotta",
+      "name": "Ladrilho de terracota",
+      "tile": "floor_terracotta",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_hydraulic_olive",
+      "name": "Ladrilho hidráulico oliva",
+      "tile": "floor_hydraulic_olive",
+      "kind": "floor",
+      "price": 90
+    },
+    {
+      "id": "finish.floor_hydraulic_blue",
+      "name": "Ladrilho hidráulico azul",
+      "tile": "floor_hydraulic_blue",
+      "kind": "floor",
+      "price": 90
+    },
+    {
+      "id": "finish.floor_hydraulic_terra",
+      "name": "Ladrilho hidráulico terracota",
+      "tile": "floor_hydraulic_terra",
+      "kind": "floor",
+      "price": 90
+    },
+    {
+      "id": "finish.floor_check_cafe",
+      "name": "Xadrez creme e café",
+      "tile": "floor_check_cafe",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_check_sage",
+      "name": "Xadrez creme e sálvia",
+      "tile": "floor_check_sage",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_check_black",
+      "name": "Xadrez preto e creme",
+      "tile": "floor_check_black",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_concrete",
+      "name": "Cimento queimado",
+      "tile": "floor_concrete",
+      "kind": "floor",
+      "price": 60
+    },
+    {
+      "id": "finish.floor_tile_sage",
+      "name": "Pastilha sálvia",
+      "tile": "floor_tile_sage",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.floor_tile_blue",
+      "name": "Pastilha azul",
+      "tile": "floor_tile_blue",
+      "kind": "floor",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_plaster_cream",
+      "name": "Reboco creme",
+      "tile": "wall_plaster_cream",
+      "kind": "wall",
+      "price": 60
+    },
+    {
+      "id": "finish.wall_plaster_sage",
+      "name": "Pintura sálvia",
+      "tile": "wall_plaster_sage",
+      "kind": "wall",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_plaster_olive",
+      "name": "Pintura oliva",
+      "tile": "wall_plaster_olive",
+      "kind": "wall",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_plaster_latte",
+      "name": "Pintura café com leite",
+      "tile": "wall_plaster_latte",
+      "kind": "wall",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_plaster_bluegrey",
+      "name": "Pintura azul acinzentado",
+      "tile": "wall_plaster_bluegrey",
+      "kind": "wall",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_plaster_terra",
+      "name": "Pintura terracota",
+      "tile": "wall_plaster_terra",
+      "kind": "wall",
+      "price": 70
+    },
+    {
+      "id": "finish.wall_brick",
+      "name": "Tijolinho aparente",
+      "tile": "wall_brick",
+      "kind": "wall",
+      "price": 90
+    },
+    {
+      "id": "finish.wall_stripe_cafe",
+      "name": "Listras creme e café",
+      "tile": "wall_stripe_cafe",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wall_stripe_sage",
+      "name": "Listras creme e sálvia",
+      "tile": "wall_stripe_sage",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wall_stripe_blue",
+      "name": "Listras creme e azul",
+      "tile": "wall_stripe_blue",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wall_sprig_olive",
+      "name": "Raminhos oliva",
+      "tile": "wall_sprig_olive",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wall_sprig_terra",
+      "name": "Raminhos terracota",
+      "tile": "wall_sprig_terra",
+      "kind": "wall",
+      "price": 80
+    },
+    {
+      "id": "finish.wall_slats",
+      "name": "Ripado de madeira",
+      "tile": "wall_slats",
+      "kind": "wall",
+      "price": 90
+    },
+    {
+      "id": "finish.wall_subway",
+      "name": "Azulejo metrô",
+      "tile": "wall_subway",
+      "kind": "wall",
+      "price": 90
+    },
+    {
+      "id": "finish.wall_plaid_sage",
+      "name": "Xadrez escocês sálvia",
+      "tile": "wall_plaid_sage",
+      "kind": "wall",
+      "price": 80
+    },
+    {
       "id": "finish.facade_mint",
       "name": "Fachada menta",
       "tile": "facade_loja_menta",

@@ -756,6 +756,34 @@
       "replaces": true
     },
     {
+      "id": "pixellab_cafe_neutros",
+      "image": "assets/interiors/cafe/tile_pixellab_cafe_neutros.png",
+      "pieces": "pixellab_cafe_neutros.json",
+      "prefix": "",
+      "layer": "floor",
+      "solid": false,
+      "overrides": {
+        "wall_plaster_cream": { "layer": "wall", "solid": true },
+        "wall_plaster_sage": { "layer": "wall", "solid": true },
+        "wall_plaster_olive": { "layer": "wall", "solid": true },
+        "wall_plaster_latte": { "layer": "wall", "solid": true },
+        "wall_plaster_bluegrey": { "layer": "wall", "solid": true },
+        "wall_plaster_terra": { "layer": "wall", "solid": true },
+        "wall_brick": { "layer": "wall", "solid": true },
+        "wall_stripe_cafe": { "layer": "wall", "solid": true },
+        "wall_stripe_sage": { "layer": "wall", "solid": true },
+        "wall_stripe_blue": { "layer": "wall", "solid": true },
+        "wall_sprig_olive": { "layer": "wall", "solid": true },
+        "wall_sprig_terra": { "layer": "wall", "solid": true },
+        "wall_slats": { "layer": "wall", "solid": true },
+        "wall_subway": { "layer": "wall", "solid": true },
+        "wall_plaid_sage": { "layer": "wall", "solid": true },
+        "wall_plaster_old": { "layer": "wall", "solid": true },
+        "floor_oak_old": { "variantWeights": [16, 4, 1, 1] },
+        "wall_plaster_old": { "layer": "wall", "solid": true, "variantWeights": [14, 1, 1, 2] }
+      }
+    },
+    {
       "id": "pixellab_mesas",
       "image": "assets/objects/pixellab/tile_pixellab_mesas.png",
       "pieces": "pixellab_mesas.json",

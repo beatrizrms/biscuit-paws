@@ -23,6 +23,10 @@ interface Recolor {
   sat?: number;
   /** Soma à luminosidade, de -1 a 1 (padrão 0). */
   light?: number;
+  /** Só os pixels com a luz até este valor (0 a 1): o marrom do xadrez sem pegar o creme do mesmo matiz. */
+  maxLight?: number;
+  /** Matiz e saturação fixos (o marrom vira sálvia mesmo com o creme perto; sat 0 = cinza). */
+  setSat?: number;
 }
 
 interface Piece {
@@ -149,6 +153,48 @@ const SHEETS: Sheet[] = [
       floor_check_old: { file: 'cafe_superficies/tile_2.png', w: 1, h: 1, wear: true, variants: 4 },
       wall_stripe_old: { file: 'cafe_superficies/tile_4.png', w: 1, h: 1, wear: true, variants: 4 },
       wall_wainscot_old: { file: 'cafe_superficies/tile_7.png', w: 1, h: 1, rows: [...range(26, 33), ...range(34, 63), ...range(34, 59)], wear: true, variants: 4 },
+    },
+  },
+  {
+    // Pisos e paredes neutros (decisão 244): 16 texturas do PixelLab (create_tiles_pro, cafe_superficies_neutras/),
+    // o reboco liso desenhado no código e as outras cores por troca de matiz (grátis). As versões velhas (_old: com
+    // desgaste) são o café do começo, antes da reforma do pintor.
+    image: 'public/assets/interiors/cafe/tile_pixellab_cafe_neutros.png',
+    pieces: 'data/tilesets/pixellab_cafe_neutros.json',
+    columns: 8,
+    auto: true,
+    layout: {
+      floor_oak: { file: 'cafe_superficies_neutras/tile_0.png', w: 1, h: 1 },
+      floor_walnut: { file: 'cafe_superficies_neutras/tile_1.png', w: 1, h: 1 },
+      floor_herringbone: { file: 'cafe_superficies_neutras/tile_2.png', w: 1, h: 1 },
+      floor_terracotta: { file: 'cafe_superficies_neutras/tile_3.png', w: 1, h: 1 },
+      floor_hydraulic_olive: { file: 'cafe_superficies_neutras/tile_4.png', w: 1, h: 1 },
+      floor_hydraulic_blue: { file: 'cafe_superficies_neutras/tile_4.png', w: 1, h: 1, recolor: { from: [50, 80], hue: 205, sat: 0.9 } },
+      floor_hydraulic_terra: { file: 'cafe_superficies_neutras/tile_4.png', w: 1, h: 1, recolor: { from: [50, 80], hue: 16, sat: 1.2 } },
+      floor_check_cafe: { file: 'cafe_superficies_neutras/tile_5.png', w: 1, h: 1 },
+      floor_check_sage: { file: 'cafe_superficies_neutras/tile_5.png', w: 1, h: 1, recolor: { from: [0, 60], hue: 95, setSat: 0.16, light: 0.12, maxLight: 0.55 } },
+      floor_check_black: { file: 'cafe_superficies_neutras/tile_5.png', w: 1, h: 1, recolor: { from: [0, 60], hue: 30, setSat: 0.05, light: -0.18, maxLight: 0.55 } },
+      floor_concrete: { file: 'cafe_superficies_neutras/tile_6.png', w: 1, h: 1 },
+      floor_tile_sage: { file: 'cafe_superficies_neutras/tile_7.png', w: 1, h: 1 },
+      floor_tile_blue: { file: 'cafe_superficies_neutras/tile_7.png', w: 1, h: 1, recolor: { from: [50, 95], hue: 200, sat: 0.9 } },
+      wall_plaster_cream: { file: '', w: 1, h: 1, build: () => plaster([240, 228, 204], 11) },
+      wall_plaster_sage: { file: '', w: 1, h: 1, build: () => plaster([196, 208, 182], 12) },
+      wall_plaster_olive: { file: '', w: 1, h: 1, build: () => plaster([150, 156, 104], 13) },
+      wall_plaster_latte: { file: '', w: 1, h: 1, build: () => plaster([214, 190, 160], 14) },
+      wall_plaster_bluegrey: { file: '', w: 1, h: 1, build: () => plaster([184, 198, 206], 15) },
+      wall_plaster_terra: { file: '', w: 1, h: 1, build: () => plaster([210, 150, 122], 16) },
+      wall_brick: { file: 'cafe_superficies_neutras/tile_9.png', w: 1, h: 1 },
+      wall_stripe_cafe: { file: 'cafe_superficies_neutras/tile_10.png', w: 1, h: 1 },
+      wall_stripe_sage: { file: 'cafe_superficies_neutras/tile_10.png', w: 1, h: 1, recolor: { from: [0, 60], hue: 95, setSat: 0.2, light: 0.12, maxLight: 0.6 } },
+      wall_stripe_blue: { file: 'cafe_superficies_neutras/tile_10.png', w: 1, h: 1, recolor: { from: [0, 60], hue: 205, setSat: 0.25, light: 0.08, maxLight: 0.6 } },
+      wall_sprig_olive: { file: 'cafe_superficies_neutras/tile_11.png', w: 1, h: 1 },
+      wall_sprig_terra: { file: 'cafe_superficies_neutras/tile_11.png', w: 1, h: 1, recolor: { from: [50, 80], hue: 16, sat: 1.3 } },
+      wall_slats: { file: 'cafe_superficies_neutras/tile_12.png', w: 1, h: 1 },
+      wall_subway: { file: 'cafe_superficies_neutras/tile_13.png', w: 1, h: 1 },
+      wall_plaid_sage: { file: 'cafe_superficies_neutras/tile_14.png', w: 1, h: 1 },
+      // O café do começo: tábua de carvalho e reboco creme, gastos (4 variações de desgaste, como os antigos).
+      floor_oak_old: { file: 'cafe_superficies_neutras/tile_0.png', w: 1, h: 1, wear: true, variants: 4 },
+      wall_plaster_old: { file: '', w: 1, h: 1, build: () => plaster([232, 220, 196], 11), wear: true, variants: 4 },
     },
   },
   {
@@ -1859,9 +1905,10 @@ function recolor(png: PNG, rcs: Recolor | Recolor[]): void {
   for (let i = 0; i < png.data.length; i += 4) {
     if (!png.data[i + 3]) continue;
     const [h, s, l] = rgbToHsl(png.data[i]!, png.data[i + 1]!, png.data[i + 2]!);
-    const rc = list.find((c) => inRange(h, c.from));
+    const rc = list.find((c) => inRange(h, c.from) && (c.maxLight === undefined || l <= c.maxLight));
     if (s < 0.12 || !rc) continue;
-    const [r, g, b] = hslToRgb(rc.hue, Math.min(1, s * (rc.sat ?? 1)), Math.max(0, Math.min(1, l + (rc.light ?? 0))));
+    const sat = rc.setSat !== undefined ? rc.setSat : Math.min(1, s * (rc.sat ?? 1));
+    const [r, g, b] = hslToRgb(rc.hue, sat, Math.max(0, Math.min(1, l + (rc.light ?? 0))));
     png.data[i] = r; png.data[i + 1] = g; png.data[i + 2] = b;
   }
 }
@@ -1887,6 +1934,31 @@ function load(p: Piece, variant = 0): PNG {
     }
   }
   return png;
+}
+
+/**
+ * Reboco (parede lisa) desenhado no código: a cor de base com uma textura bem leve de manchas e pontinhos, que emenda
+ * nos quatro lados (o ruído é de uma grade que dá a volta). As cores das paredes lisas saem daqui (decisão 244).
+ */
+function plaster([r, g, b]: [number, number, number], seed: number): PNG {
+  const out = blank(TS, TS);
+  const N = 8; // grade do ruído (dá a volta: emenda)
+  let s = seed >>> 0;
+  const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const grid = Array.from({ length: N * N }, () => rnd());
+  const at = (gx: number, gy: number) => grid[((gy % N) + N) % N * N + (((gx % N) + N) % N)]!;
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) {
+    const fx = (x / TS) * N, fy = (y / TS) * N;
+    const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = smooth(fx - x0), ty = smooth(fy - y0);
+    const v = (at(x0, y0) * (1 - tx) + at(x0 + 1, y0) * tx) * (1 - ty) + (at(x0, y0 + 1) * (1 - tx) + at(x0 + 1, y0 + 1) * tx) * ty;
+    // Manchas suaves (±4%) e um pontinho mais escuro de vez em quando.
+    let k = 1 + (v - 0.5) * 0.08;
+    if (rnd() < 0.025) k -= 0.06;
+    const i = (y * TS + x) * 4;
+    out.data[i] = Math.round(Math.min(255, r * k)); out.data[i + 1] = Math.round(Math.min(255, g * k)); out.data[i + 2] = Math.round(Math.min(255, b * k)); out.data[i + 3] = 255;
+  }
+  return out;
 }
 
 /** A peça com `rise` tiles vazios em cima (para desenhar o que sobe acima dela). */

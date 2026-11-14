@@ -1,0 +1,189 @@
+{
+ "tileSize": 64,
+ "columns": 8,
+ "rows": 5,
+ "pieces": {
+  "floor_oak": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_walnut": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_herringbone": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_terracotta": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_hydraulic_olive": {
+   "col": 4,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_hydraulic_blue": {
+   "col": 5,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_hydraulic_terra": {
+   "col": 6,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_check_cafe": {
+   "col": 7,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_check_sage": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_check_black": {
+   "col": 1,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_concrete": {
+   "col": 2,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_tile_sage": {
+   "col": 3,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_tile_blue": {
+   "col": 4,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_cream": {
+   "col": 5,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_sage": {
+   "col": 6,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_olive": {
+   "col": 7,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_latte": {
+   "col": 0,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_bluegrey": {
+   "col": 1,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaster_terra": {
+   "col": 2,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_brick": {
+   "col": 3,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_stripe_cafe": {
+   "col": 4,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_stripe_sage": {
+   "col": 5,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_stripe_blue": {
+   "col": 6,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_sprig_olive": {
+   "col": 7,
+   "row": 2,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_sprig_terra": {
+   "col": 0,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_slats": {
+   "col": 1,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_subway": {
+   "col": 2,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "wall_plaid_sage": {
+   "col": 3,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "floor_oak_old": {
+   "col": 4,
+   "row": 3,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  },
+  "wall_plaster_old": {
+   "col": 0,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 4
+  }
+ }
+}

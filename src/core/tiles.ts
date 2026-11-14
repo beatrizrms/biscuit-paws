@@ -88,7 +88,7 @@ export interface ExtraSheet {
   layer: TileLayer;
   solid: boolean;
   /** Exceções por peça (nome sem prefixo). */
-  overrides?: Record<string, { solid?: boolean; layer?: TileLayer }>;
+  overrides?: Record<string, { solid?: boolean; layer?: TileLayer; variantWeights?: number[] }>;
   /**
    * As peças trocam a arte de tiles que já existem (mesmo nome e mesmo tamanho em tiles):
    * mapas, itens e saves continuam iguais e só a imagem muda (arte nova do PixelLab, decisão 065).
@@ -205,6 +205,16 @@ export function buildCatalog(csvText: string, meta: TileMeta, worn?: WornTiles, 
       const layer = o.layer ?? extra.layer;
       if (!LAYERS.includes(layer)) throw new Error(`tilesets.json: layer inválida em "${name}"`);
       tiles[name] = { name, sheet: extra.id, ...at, solid: o.solid ?? extra.solid, layer };
+      // Peça com variações (o desgaste dos pisos e paredes velhos): as células seguidas e os pesos (overrides).
+      if (p.variants && p.variants > 1) {
+        if (p.w_tiles !== 1 || p.h_tiles !== 1) throw new Error(`tilesets.json: "${name}" tem variações e não é 1x1`);
+        if (p.col + p.variants > extra.pieces.columns) throw new Error(`tilesets.json: variações de "${name}" saem da folha`);
+        tiles[name]!.variants = p.variants;
+        if (o.variantWeights) {
+          if (o.variantWeights.length !== p.variants) throw new Error(`tilesets.json: "${name}" precisa de ${p.variants} pesos`);
+          tiles[name]!.variantWeights = o.variantWeights;
+        }
+      }
     }
   }
 
