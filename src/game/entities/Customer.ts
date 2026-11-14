@@ -236,7 +236,6 @@ export class CustomerSprite {
     const [ox, oy] = offset;
     this.bubble.setPosition(this.sprite.x + ox, this.sprite.y - this.bubbleLift() + oy);
     this.waiting.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy);
-    this.consuming.setPosition(this.sprite.x, this.sprite.y - this.bubbleLift() + 8);
     if (this.consuming.visible) this.layoutConsume();
     this.queueBar.setPosition(this.sprite.x + 6 + ox, this.sprite.y - this.bubbleLift() + oy + 1);
   }
@@ -244,14 +243,19 @@ export class CustomerSprite {
   /** O ícone da bebida à esquerda da barra, no meio da altura dela, e a caixinha em volta dos dois. */
   private layoutConsume(): void {
     const bar = this.consuming;
-    const left = bar.x - bar.displayWidth / 2;
-    const midY = bar.y - bar.displayHeight / 2;
     const icon = this.drinkIcon;
     // Os ícones da folha têm margem em volta do desenho (mais em cima): a caixa usa ~70% da altura e o ícone desce um pouco.
     const iconH = icon ? icon.displayHeight * 0.7 : 0;
-    icon?.setPosition(left - 1, midY - (icon ? icon.displayHeight * 0.08 : 0));
     const iconW = icon ? icon.displayWidth * 0.85 + 1 : 0;
     const pad = 1.5;
+    // A caixinha fica em cima da cabeça (a base dela na altura do balão de pedido), nunca por cima do rosto.
+    const half0 = Math.max(bar.displayHeight, iconH) / 2;
+    const midY0 = this.sprite.y - this.bubbleLift() - pad - half0;
+    // O conjunto (ícone + barra) centrado no cliente.
+    bar.setPosition(this.sprite.x + iconW / 2, midY0 + bar.displayHeight / 2);
+    const left = bar.x - bar.displayWidth / 2;
+    const midY = bar.y - bar.displayHeight / 2;
+    icon?.setPosition(left - 1, midY - (icon ? icon.displayHeight * 0.08 : 0));
     const x0 = Math.floor(left - iconW - pad);
     const x1 = Math.ceil(left + bar.displayWidth + pad);
     const half = Math.max(bar.displayHeight, iconH) / 2;
