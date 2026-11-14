@@ -41,7 +41,7 @@
       "day": 30,
       "everyYear": true
     },
-    { "id": "cal.inauguration", "title": "Inauguração do café", "day": 24,
+    { "id": "cal.inauguration", "title": "Inauguração do café", "day": 26,
       "hideWhen": {
         "beat": "story.inauguration"
       }

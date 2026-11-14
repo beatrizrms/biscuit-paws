@@ -105,7 +105,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "A véspera de Natal é daqui a três semanas... Será que dá tempo de inaugurar essa loja até lá?"
+          "text": "Dia 26, logo depois do Natal... são umas três semanas. Será que dá tempo de inaugurar essa loja até lá?"
         }
       ]
     },
@@ -366,7 +366,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Na véspera de Natal, com os reparos feitos e a placa lá fora, faço a inauguração de verdade."
+          "text": "No dia 26, logo depois do Natal, com os reparos feitos e a placa lá fora, faço a inauguração de verdade."
         }
       ]
     },

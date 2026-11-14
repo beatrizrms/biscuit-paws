@@ -51,7 +51,7 @@ export class DebugPanel {
       <div class="buttons dbg-go">
         <select data-dbg="goto" title="Vai para o momento do evento, já com tudo o que ele pede (gatos, cômodos, marcos, amigos)">
           <optgroup label="Eventos no quintal">${c.festivals.map((f) => opt(`fest:${f.id}`, f.name)).join('')}</optgroup>
-          <optgroup label="História">${opt('beat:story.inauguration', 'Inauguração (dia 24)')}</optgroup>
+          <optgroup label="História">${opt('beat:story.inauguration', 'Inauguração (dia 26)')}</optgroup>
           <optgroup label="Natal e Ano Novo">${opt('festive:draw', 'Sorteio do amigo secreto (inv. 18)')}${opt('festive:party', 'Ceia de Natal (inv. 25)')}${opt('festive:newyear', 'Fogos de Ano Novo (inv. 30)')}</optgroup>
           <optgroup label="Halloween">${opt('festive:hw_invite', 'Convite da Dona Neusa (out. 24)')}${opt('festive:hw_party', 'Noite das Abóboras (out. 30)')}</optgroup>
         </select>
