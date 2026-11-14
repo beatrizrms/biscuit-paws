@@ -1389,7 +1389,10 @@ function snowPile(seed: number): PNG {
     const d = ((x - cx) / rx) ** 2 + ((y - base) / ry) ** 2;
     if (d > 1 + rnd() * 0.08) continue;
     const edge = d > 0.86 || y === base;
-    plot(out, x, y, edge ? [150, 170, 196] : y > base - 4 || x > cx + 8 ? [204, 220, 238] : [248, 251, 255]);
+    // Sombra redonda: a luz vem de cima à esquerda (sem o corte reto que parecia um quadrado na calçada).
+    const nx = (x - cx) / rx, ny = (y - base) / ry;
+    const dark = 0.7 * nx + 0.45 * (1 + ny);
+    plot(out, x, y, edge ? [150, 170, 196] : dark > 0.8 ? [204, 220, 238] : dark > 0.58 ? [228, 236, 246] : [248, 251, 255]);
   }
   return out;
 }
