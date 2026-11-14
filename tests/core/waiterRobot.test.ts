@@ -32,12 +32,12 @@ function cafe(opts: { robot?: boolean; washer?: boolean; dirty?: [number, number
 }
 
 describe('robô garçom', () => {
-  it('só aparece no Market com a conquista Bandeja cheia (100 clientes desde a inauguração)', () => {
+  it('só aparece no Market com a conquista Bandeja cheia (120 clientes desde a inauguração, depois da lava-louças)', () => {
     const state = newGameState(5000, 'map.cafe_main', 9 * 60);
     state.business = 'inaugurated';
     const session = new GameSession(content, state);
     expect(session.buy('item.waiter_robot')).toEqual({ ok: false, reason: 'locked' });
-    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter')).toMatchObject({ at: 100, track: 'customers_open' });
+    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter')).toMatchObject({ at: 120, track: 'customers_open' });
   });
 
   it('busca a louça suja, uma por viagem, e deixa na pia; sem o robô, ela fica na mesa', () => {
