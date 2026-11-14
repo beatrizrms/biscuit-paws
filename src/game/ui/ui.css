@@ -138,9 +138,6 @@
 }
 /* A mão livre (o quadrado fixo antes do 1): uma mãozinha aberta desenhada em CSS (PLACEHOLDER(arte)). */
 .hotbar .slot.hand { background: var(--c-paper2); }
-.hotbar .slot.hand .hand-icon { position: absolute; left: 50%; top: 52%; width: 9px; height: 10px; transform: translate(-50%, -50%); border-radius: 3px 3px 4px 4px; background: var(--c-paper3); box-shadow: inset 0 0 0 1px var(--c-wood); }
-.hotbar .slot.hand .hand-icon::before { content: ""; position: absolute; left: 1px; top: -4px; width: 7px; height: 5px; background: repeating-linear-gradient(90deg, var(--c-paper3) 0 1px, var(--c-wood) 1px 2px); border-radius: 1px 1px 0 0; }
-.hotbar .slot.hand .hand-icon::after { content: ""; position: absolute; left: -3px; top: 3px; width: 4px; height: 3px; background: var(--c-paper3); border: 1px solid var(--c-wood); border-right: 0; border-radius: 2px 0 0 2px; }
 .hotbar .slot.active { border: 2px solid var(--butter2); box-shadow: 0 0 0 1px var(--butter3); background: var(--cream); }
 .hotbar .slot .icon { image-rendering: pixelated; }
 .hotbar .key { position: absolute; top: 0; left: 1px; font-size: max(calc(5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--ink2); }

@@ -2599,6 +2599,14 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
   mkdirSync(dir, { recursive: true });
   writeFileSync(`${dir}/robo_aspirador.png`, PNG.sync.write(readPng(`${SRC}/robo_aspirador/robo80.png`)));
   console.log(`${dir}/robo_aspirador.png: robô aspirador`);
+  // Robô garçom: as 4 direções (48 x 74, o mesmo recorte das rotações de 96; src/game/WaiterRobotView.ts) e a mãozinha
+  // da barra (64 x 64).
+  for (const d of ['south', 'north', 'east', 'west']) writeFileSync(`${dir}/robo_garcom_${d}.png`, PNG.sync.write(readPng(`${SRC}/robo_garcom/direcoes/${d}_48x74.png`)));
+  mkdirSync('public/assets/icons', { recursive: true });
+  writeFileSync('public/assets/icons/hand.png', PNG.sync.write(readPng(`${SRC}/robo_garcom/mao_icone_64.png`)));
+  // O churu do mini game do remédio (148 x 148, a ponta aberta embaixo à esquerda; PillScene: TUBE_TIP).
+  writeFileSync('public/assets/minigames/pill/churu.png', PNG.sync.write(readPng(`${SRC}/robo_garcom/churu.png`)));
+  console.log(`${dir}: robô garçom, mãozinha e churu`);
 }
 
 // ---------- Ícones do clima (HUD), brilho da foto e o balão de coração (24 x 24; review_icones/, sem uso até aqui) ----------

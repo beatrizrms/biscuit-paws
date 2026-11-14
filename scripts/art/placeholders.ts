@@ -359,39 +359,10 @@ function openingRibbon(): Canvas {
   c.line(49, 18, 52, 24, at(P.red, 3));
   return c.outline();
 }
-// PLACEHOLDER(arte): o robô garçom (a base de recarga no chão, 1x1, e o robô, 32x48, imagem à parte que anda pelo café).
-/** Base do robô garçom: placa redonda no chão com o raio de recarga. */
-function waiterDock(): Canvas {
-  const c = new Canvas(T, T);
-  c.ellipse(16, 24, 12, 5, at(P.metal, 2)); // a placa
-  c.ellipse(16, 23, 11, 4, at(P.metal, 3));
-  c.ellipse(16, 22, 8, 2, at(P.mint, 3)); // a luz verde
-  c.line(17, 19, 15, 22, at(P.butter, 4)); // o raio
-  c.line(15, 22, 18, 22, at(P.butter, 4));
-  c.line(18, 22, 16, 25, at(P.butter, 4));
-  return c.outline();
-}
-/** Robô garçom: corpo redondo branco, a telinha com o rosto, a bandeja em cima e as rodinhas. */
-function waiterRobot(): Canvas {
-  const c = new Canvas(T, 48);
-  c.rect(6, 13, 20, 3, at(P.metal, 3)); // bandeja
-  c.rect(15, 16, 2, 6, at(P.metal, 2)); // haste
-  c.ball(16, 32, 10, 11, P.porcelain, 0.1); // corpo
-  c.rect(10, 26, 12, 7, at(P.navy, 2)); // tela
-  c.px(13, 29, at(P.mint, 5)); // olhos
-  c.px(18, 29, at(P.mint, 5));
-  c.hline(14, 31, 4, at(P.mint, 4)); // sorriso
-  c.rect(8, 41, 16, 3, at(P.metal, 2)); // base
-  c.px(10, 44, at(P.metal, 1)); // rodinhas
-  c.px(21, 44, at(P.metal, 1));
-  return c.outline();
-}
 const extra = new Canvas(5 * T, T * 2);
 extra.blit(busStop(), 0, 0);
 extra.blit(openingPoster(), T, 0);
 extra.blit(openingRibbon(), 2 * T, 0);
-extra.blit(waiterDock(), T, T); // a base do robô garçom, na linha de baixo (sem mudar as colunas)
-writeWithBackup(waiterRobot(), 'public/assets/objects/placeholders/waiter_robot.png');
 writeWithBackup(extra, 'public/assets/objects/placeholders/tile_placeholders_extra.png');
 console.log('placeholders: public/assets/objects/placeholders/tile_placeholders.png (caixa de areia, cocô, feira) e tile_placeholders_extra.png (ponto de ônibus, cartaz e fita da inauguração)');
 const i = process.argv.indexOf('--preview');

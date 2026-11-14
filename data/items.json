@@ -2523,8 +2523,9 @@
       "id": "item.waiter_robot",
       "name": "Robô garçom",
       "price": 450,
-      "tile": "ph_waiter_dock",
+      "tile": "eletro_robo_base",
       "description": "Recolhe a louça suja das mesas e do balcão e leva para a pia (ou para a lava-louças, se tiver). Posicione a base de recarga: é de lá que ele sai e para lá que ele volta. Não lava nem serve.",
+      "iconImage": "assets/objects/pixellab/robo_garcom_south.png",
       "tags": [
         "furniture",
         "equipment",

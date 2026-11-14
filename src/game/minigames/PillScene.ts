@@ -28,7 +28,9 @@ export const PILL_KEYS = { bowl: 'pill_bowl', pill: 'pill_capsule', paste: 'pill
 // Tudo no mesmo close (o assoalho 3x e o tapete 2x: minigames.json pill.backdrop): o pote é ~1 tile do assoalho;
 // a bisnaga, um terço; o gato, 3,5x o sprite do mundo, sentado em cima do tapete.
 const ART = 0.6;
-const TUBE_ART = 0.75;
+/** O churu na densidade do mundo (meia escala da arte de 64 px): uns 3 tiles de comprido. A ponta aberta é a origem. */
+const TUBE_ART = 0.5;
+const TUBE_TIP = { x: 6 / 148, y: 142 / 148 };
 const PILL = { x: 200, y: 215, w: 26, h: 13, dy: -5 };
 const CAT = { x: 470, y: 250, scale: 3.5 };
 const BAR_W = 120;
@@ -83,7 +85,7 @@ export class PillScene extends MiniGameScene {
       .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
       .setOrigin(0.5);
     this.bar = this.add.graphics().setDepth(100);
-    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setOrigin(0.15, 0.85).setDepth(200).setVisible(false);
+    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setOrigin(TUBE_TIP.x, TUBE_TIP.y).setDepth(200).setVisible(false);
 
     this.btn = this.hudButton(uiText.minigames.pill.ready, () => this.act());
     this.controls.onAction((world) => {

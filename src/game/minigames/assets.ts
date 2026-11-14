@@ -45,7 +45,8 @@ export const FISHING = {
 export const PILL = {
   bowl: { key: 'pill_bowl', file: `${DIR}/pill/bowl.png`, frameWidth: 192, frameHeight: 128, placeholder: 0x86b0d8 },
   capsule: { key: 'pill_capsule', file: `${DIR}/pill/capsule.png`, frameWidth: 48, frameHeight: 24, placeholder: 0xd9475d },
-  tube: { key: 'pill_tube', file: `${DIR}/pill/tube.png`, frameWidth: 48, frameHeight: 48, placeholder: 0xf6e8cc },
+  /** O churu (PixelLab, robo_garcom/churu.png): 148 x 148, deitado na diagonal, a ponta aberta embaixo à esquerda. */
+  tube: { key: 'pill_tube', file: `${DIR}/pill/churu.png`, frameWidth: 148, frameHeight: 148, placeholder: 0xf6e8cc },
 } satisfies Record<string, SheetSpec>;
 
 /** Banho e escovação (PixelLab, npm run pixellab): toalha, nó de pelo e escova. */

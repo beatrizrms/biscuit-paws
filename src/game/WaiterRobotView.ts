@@ -6,9 +6,16 @@ import type { GameSession } from '../core/session';
 import { ySortDepth, type Cell } from '../core/map';
 import { findPath, pathCorners } from '../core/path';
 
-/** PLACEHOLDER(arte): o robô desenhado por código (scripts/art/placeholders.ts), 32 x 48. */
+/**
+ * O robô (PixelLab, robo_garcom/: arte de 64 px por célula, desenhada na metade), uma imagem por direção: de frente
+ * (parado e descendo), de costas (subindo) e de lado.
+ */
 export const WAITER_KEY = 'waiter_robot';
-export const WAITER_IMAGE = 'assets/objects/placeholders/waiter_robot.png';
+export const WAITER_DIRS = ['south', 'north', 'east', 'west'] as const;
+export type WaiterDir = (typeof WAITER_DIRS)[number];
+export const waiterKey = (dir: WaiterDir) => `${WAITER_KEY}_${dir}`;
+export const waiterImage = (dir: WaiterDir) => `assets/objects/pixellab/robo_garcom_${dir}.png`;
+const ART_SCALE = 0.5;
 /** Velocidade (px do jogo por segundo) e quanto ele fica parado pegando ou soltando a louça. */
 const SPEED = 55;
 const PAUSE_MS = 350;
@@ -39,11 +46,11 @@ export class WaiterRobotView {
     this.tileSize = tileSize;
     this.grid = solid;
     const dock = mapId === this.session.content.map.id ? this.session.service.waiterRobot() : undefined;
-    if (!dock || !this.scene.textures.exists(WAITER_KEY)) return;
+    if (!dock || !this.scene.textures.exists(waiterKey('south'))) return;
     const home = this.homeCell();
     if (!home) return;
     const [x, y] = this.pos(home);
-    this.robot = this.scene.add.image(x, y, WAITER_KEY).setOrigin(0.5, 1).setDepth(ySortDepth(y));
+    this.robot = this.scene.add.image(x, y, waiterKey('south')).setOrigin(0.5, 1).setScale(ART_SCALE).setDepth(ySortDepth(y));
   }
 
   clear(): void {
@@ -97,6 +104,7 @@ export class WaiterRobotView {
     this.dish = null;
     const home = this.homeCell();
     if (home) await this.walk(home);
+    if (this.robot?.active) this.robot.setTexture(waiterKey('south'));
   }
 
   /** Anda de esquina em esquina pelas células livres (sem caminho, vai direto). */
@@ -110,6 +118,9 @@ export class WaiterRobotView {
     for (const cell of corners) {
       if (!robot.active) return;
       const [x, y] = this.pos(cell);
+      // Virado para onde anda (de esquina em esquina: cada trecho é reto, na horizontal ou na vertical).
+      const dir: WaiterDir = Math.abs(x - robot.x) > Math.abs(y - robot.y) ? (x > robot.x ? 'east' : 'west') : y < robot.y ? 'north' : 'south';
+      if (this.scene.textures.exists(waiterKey(dir))) robot.setTexture(waiterKey(dir));
       await new Promise<void>((done) =>
         this.scene.tweens.add({
           targets: robot,
@@ -128,7 +139,7 @@ export class WaiterRobotView {
 
   /** A louça na bandeja, em cima dele. */
   private follow(): void {
-    if (this.robot && this.dish) this.dish.setPosition(this.robot.x, this.robot.y - 34).setDepth(this.robot.depth + 1);
+    if (this.robot && this.dish) this.dish.setPosition(this.robot.x, this.robot.y - this.robot.displayHeight + 2).setDepth(this.robot.depth + 1);
   }
 
   private wait(ms: number): Promise<void> {
