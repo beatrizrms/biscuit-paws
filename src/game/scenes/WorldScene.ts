@@ -99,7 +99,8 @@ type EPlan = { hint: { x: number; y: number; kind: HintKind } | null; run: () =>
  * Desempate do E entre coisas igualmente na frente dela (src/core/eTarget.ts): menor vence. A frente dela e a
  * ferramenta na mão vêm antes disto; o que é estado (entregar ao cliente, soltar o saco, levantar) vem antes de tudo.
  */
-const E_TIER = { parcels: 1, catSettling: 2, service: 3, pen: 3, cat: 4, interaction: 4, dirt: 5, job: 5, bowl: 5, bowlEmpty: 8, seat: 9, putDown: 9 } as const;
+// job (o ponto "!" de um pedido aceito, temporário): antes do atendimento e das interações do mesmo lugar (a prateleira).
+const E_TIER = { parcels: 1, catSettling: 2, job: 2, service: 3, pen: 3, cat: 4, interaction: 4, dirt: 5, bowl: 5, bowlEmpty: 8, seat: 9, putDown: 9 } as const;
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'run', Phaser.Input.Keyboard.Key>;
 
