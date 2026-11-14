@@ -2692,7 +2692,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     npc.setData('held', true);
     const [dx, dy] = [this.player.x - npc.x, this.player.y - npc.y];
     npc.face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
-    void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(() => {
+    const hint = this.session.inviteHint(guest[0]);
+    void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(async () => {
+      if (hint) await this.ui.npcSay(guest[0], fillNames(this.session, hint));
       npc.setData('held', false);
       tweens.forEach((t) => t.isPaused() && t.resume());
       if (npc.active) npc.resumeWalk();
@@ -3242,7 +3244,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = this.session.builderAt(this.session.location())!.at;
       this.floatHearts((at[0] + 0.5) * this.map.tileSize, (at[1] - 1.2) * this.map.tileSize, points);
     }
-    this.ui.npcSay(npc, text.replace('{work}', work));
+    const hint = this.session.inviteHint(npc);
+    void this.ui.npcSay(npc, text.replace('{work}', work)).then(() => (hint ? this.ui.npcSay(npc, fillNames(this.session, hint)) : undefined));
     return true;
   }
 

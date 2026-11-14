@@ -20,6 +20,35 @@ function cafe() {
 }
 
 describe('preparativos da inauguração', () => {
+  it('a conversa que convida traz a pista de onde achar outro amigo (só no dia do convite)', () => {
+    const { session, state } = cafe();
+    expect(session.inviteHint('npc.gabi')).toBeNull();
+    session.noteFriendChat('npc.gabi');
+    expect(session.inviteHint('npc.gabi')).toBe(cfg.inviteHints!['npc.gabi']);
+    expect(session.inviteHint('npc.neusa')).toBeNull();
+    state.day += 1;
+    expect(session.inviteHint('npc.gabi')).toBeNull();
+  });
+
+  it('nos preparativos, os amigos passeiam mais (pelo menos friendWalkChance dos dias)', () => {
+    const { session, state } = cafe();
+    state.flags['met.old_neighbor'] = true;
+    state.time = 9 * 60;
+    const days = (on: boolean) => {
+      state.business = on ? 'soft_open' : 'inaugurated';
+      let n = 0;
+      for (let d = 1; d <= 200; d++) {
+        state.day = d;
+        if (session.neighborWalksNow('map.street').some((w) => w.npc === 'npc.neusa')) n++;
+      }
+      return n;
+    };
+    const prep = days(true);
+    const after = days(false);
+    expect(prep).toBeGreaterThan(after);
+    expect(prep / 200).toBeGreaterThan(cfg.friendWalkChance! - 0.1);
+  });
+
   it('a Fernanda na clínica conversa como os outros: a fala do dia, os corações e o convite', () => {
     const { session, state } = cafe();
     expect(session.neighborHasChat('npc.fernanda')).toBe(true);
