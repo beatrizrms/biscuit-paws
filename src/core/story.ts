@@ -28,6 +28,8 @@ export interface StoryContext {
   festivalMounted?: () => boolean;
   /** O amigo vem para o amigo secreto deste ano (condição santaGuest). */
   santaGuest?: (npc: string) => boolean;
+  /** Hoje é dia de festa (a inauguração não cai nele). */
+  eventDay?: () => boolean;
   /** O amigo vem para a festa de Halloween deste ano (condição halloweenGuest). */
   halloweenGuest?: (npc: string) => boolean;
   /** O cômodo do café em que ela está agora (fora do café ou sem posição: undefined). */
@@ -61,6 +63,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('clock' in c) return state.time >= parseClock(c.clock.gte);
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
+  if ('eventDay' in c) return !!ctx.eventDay?.();
   if ('openingPosters' in c) return (state.openingPrep?.posters.length ?? 0) >= c.openingPosters.gte;
   if ('openingInvites' in c) return (state.openingPrep?.invited.length ?? 0) >= c.openingInvites.gte;
   if ('served' in c) return state.service.served >= c.served.gte;

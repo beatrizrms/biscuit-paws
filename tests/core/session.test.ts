@@ -776,16 +776,52 @@ describe('lousa da porta (peça fixa)', () => {
     expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
     renovate(session);
     session.buy('item.cafe_sign');
-    // Pronta no inverno: espera a primavera (o passo mostra quantos dias faltam).
+    // Pronta antes do dia 24: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{daysUntil:spring}');
-    expect(session.daysUntil('spring')).toBe(content.seasons.daysPerSeason); // dia 1 do inverno
-    session.state.day = content.seasons.daysPerSeason + 1; // primeiro dia da primavera
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{daysUntilDay:24}');
+    session.state.day = 24; // véspera de Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
-    expect(session.season()).toBe('spring');
+    expect(session.season()).toBe('winter');
     expect(session.state.business).toBe('inaugurated');
     expect(events).toContain('business.changed');
     expect(chalkboardOnStreet(session)).toBe(true);
+  });
+
+  it('a inauguração não cai em dia de festa: pronta no Natal (25), fica para o dia 26', () => {
+    const state = newGameState(5000, 'map.cafe_main', 10 * 60);
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1), 'story.opening_nudge_repairs', 'story.opening_nudge_sign', 'story.opening_nudge_prep');
+    state.business = 'soft_open';
+    state.day = 25;
+    const session = new GameSession(content, state);
+    renovate(session);
+    session.buy('item.cafe_sign');
+    session.tickClock(2);
+    expect(session.isEventDay()).toBe(true);
+    expect(session.state.business).toBe('soft_open');
+    session.state.day = 26;
+    session.tickClock(2);
+    expect(session.state.business).toBe('inaugurated');
+  });
+
+  it('o empurrão da Gabi: no dia 21, sem os reparos, ela liga lembrando o que falta (uma vez)', () => {
+    const state = newGameState(5000, 'map.cafe_main', 10 * 60);
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1));
+    state.business = 'soft_open';
+    state.day = 20;
+    const session = new GameSession(content, state);
+    const scenes: string[] = [];
+    session.bus.on('cutscene.requested', ({ cutsceneId }) => scenes.push(cutsceneId));
+    session.tickClock(2);
+    expect(scenes).not.toContain('cs.opening_nudge_repairs');
+    session.state.day = 21;
+    session.tickClock(2);
+    expect(scenes).toContain('cs.opening_nudge_repairs');
+    expect(session.state.flags['opening.nudged']).toBe(true);
+    session.state.day = 22;
+    session.tickClock(2);
+    expect(scenes.filter((x) => x.startsWith('cs.opening_nudge'))).toHaveLength(1);
   });
 
   it('compra uma vez só e não tem devolução', () => {

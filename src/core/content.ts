@@ -225,6 +225,8 @@ export type Condition =
   /** Preparativos da inauguração: cartazes colados e amigos convidados. */
   | { openingPosters: { gte: number } }
   | { openingInvites: { gte: number } }
+  /** Hoje é dia de festa: Natal, véspera de Ano Novo, Halloween, encontro da estação ou evento no quintal. */
+  | { eventDay: true }
   /** Clientes atendidos (no jogo todo). */
   | { served: { gte: number } }
   /** Já está com ela (caixa aberta: na bolsa ou posicionado). Encomendas não contam. */

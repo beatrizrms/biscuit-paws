@@ -2542,6 +2542,219 @@
           }
         }
       ]
+    },
+    "scr.inauguration": {
+      "steps": [
+        {
+          "enter": "map.street",
+          "spawn": [
+            17,
+            9
+          ],
+          "facing": "up",
+          "ifAway": true
+        },
+        {
+          "wait": 400
+        },
+        {
+          "npcSpawn": "npc.gabi",
+          "map": "map.street",
+          "at": [
+            11,
+            9
+          ],
+          "facing": "right",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.gabi",
+          "to": [
+            16,
+            9
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.gabi",
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.joca",
+          "map": "map.street",
+          "at": [
+            11,
+            10
+          ],
+          "facing": "right",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcWalk": "npc.joca",
+          "to": [
+            16,
+            10
+          ],
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcFace": "npc.joca",
+          "facing": "up",
+          "when": {
+            "flag": "seen.scr.gabi_visit"
+          }
+        },
+        {
+          "npcSpawn": "npc.neusa",
+          "map": "map.street",
+          "at": [
+            11,
+            9
+          ],
+          "facing": "right",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcWalk": "npc.neusa",
+          "to": [
+            15,
+            9
+          ],
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcFace": "npc.neusa",
+          "facing": "up",
+          "when": {
+            "flag": "met.old_neighbor"
+          }
+        },
+        {
+          "npcSpawn": "npc.builder",
+          "map": "map.street",
+          "at": [
+            23,
+            10
+          ],
+          "facing": "left",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcWalk": "npc.builder",
+          "to": [
+            18,
+            10
+          ],
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcFace": "npc.builder",
+          "facing": "up",
+          "when": {
+            "flag": "builder.called"
+          }
+        },
+        {
+          "npcSpawn": "npc.fernanda",
+          "map": "map.street",
+          "at": [
+            23,
+            9
+          ],
+          "facing": "left",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcWalk": "npc.fernanda",
+          "to": [
+            19,
+            9
+          ],
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcFace": "npc.fernanda",
+          "facing": "up",
+          "when": {
+            "flag": "clinic.open"
+          }
+        },
+        {
+          "npcSpawn": "npc.realtor",
+          "map": "map.street",
+          "at": [
+            23,
+            9
+          ],
+          "facing": "left"
+        },
+        {
+          "npcWalk": "npc.realtor",
+          "to": [
+            18,
+            9
+          ]
+        },
+        {
+          "npcFace": "npc.realtor",
+          "facing": "up"
+        },
+        {
+          "playerWalk": [
+            17,
+            9
+          ]
+        },
+        {
+          "playerFace": "up"
+        },
+        {
+          "wait": 700
+        },
+        {
+          "dialogue": "dlg.inaug_arrive"
+        },
+        {
+          "emote": "player",
+          "balloon": "heart",
+          "ms": 1000
+        },
+        {
+          "dialogue": "dlg.inaug_open"
+        },
+        {
+          "fireworks": 12000
+        },
+        {
+          "wait": 2000
+        },
+        {
+          "dialogue": "dlg.inauguration"
+        }
+      ]
     }
   }
 }

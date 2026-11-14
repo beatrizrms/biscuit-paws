@@ -54,7 +54,7 @@ describe('atalho da inauguração', () => {
     session.debugReachBeat('story.inauguration');
     expect(state.story.completed).toContain('story.inauguration');
     expect(state.flags['cafe.inaugurated']).toBe(true);
-    expect(session.seasonDay().season).toBe('spring');
+    expect(session.state.day).toBeGreaterThanOrEqual(24); // a partir da véspera de Natal
   });
 });
 

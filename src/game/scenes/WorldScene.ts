@@ -4288,6 +4288,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const def = this.session.content.npcs[npcId];
     if (!def) return;
     this.npcs.get(npcId)?.destroy();
+    // A mesma pessoa parada na rua por uma chegada de gato (ex.: a Neusa dando a dica): sai de cena, para não ficar em dobro.
+    for (const a of this.arrivalActors) if (a instanceof NpcSprite && a.def.id === npcId) a.setVisible(false);
     const ts = this.map.tileSize;
     const npc = new NpcSprite(this, def, c * ts + ts / 2, (r + 1) * ts - 4, ts);
     npc.face(facing);

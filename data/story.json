@@ -758,6 +758,213 @@
       "effects": []
     },
     {
+      "id": "story.opening_nudge_repairs",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "all": [
+          {
+            "day": {
+              "gte": 21
+            }
+          },
+          {
+            "not": {
+              "beat": "story.inauguration"
+            }
+          },
+          {
+            "not": {
+              "flag": "opening.nudged"
+            }
+          },
+          {
+            "not": {
+              "renovated": true
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.opening_nudge_repairs"
+        },
+        {
+          "setFlag": "opening.nudged"
+        }
+      ]
+    },
+    {
+      "id": "story.opening_nudge_sign",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "all": [
+          {
+            "day": {
+              "gte": 21
+            }
+          },
+          {
+            "not": {
+              "beat": "story.inauguration"
+            }
+          },
+          {
+            "not": {
+              "flag": "opening.nudged"
+            }
+          },
+          {
+            "renovated": true
+          },
+          {
+            "not": {
+              "received": "item.cafe_sign"
+            }
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.opening_nudge_sign"
+        },
+        {
+          "setFlag": "opening.nudged"
+        }
+      ]
+    },
+    {
+      "id": "story.opening_nudge_prep",
+      "act": 2,
+      "after": [
+        "story.first_customer"
+      ],
+      "start": {
+        "all": [
+          {
+            "day": {
+              "gte": 21
+            }
+          },
+          {
+            "not": {
+              "day": {
+                "gte": 24
+              }
+            }
+          },
+          {
+            "not": {
+              "beat": "story.inauguration"
+            }
+          },
+          {
+            "not": {
+              "flag": "opening.nudged"
+            }
+          },
+          {
+            "renovated": true
+          },
+          {
+            "received": "item.cafe_sign"
+          },
+          {
+            "any": [
+              {
+                "not": {
+                  "openingPosters": {
+                    "gte": 3
+                  }
+                }
+              },
+              {
+                "not": {
+                  "openingInvites": {
+                    "gte": 3
+                  }
+                }
+              },
+              {
+                "not": {
+                  "menu": {
+                    "gte": 3
+                  }
+                }
+              },
+              {
+                "not": {
+                  "placedTag": "plant",
+                  "gte": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "when": {
+        "all": [
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.opening_nudge_prep"
+        },
+        {
+          "setFlag": "opening.nudged"
+        }
+      ]
+    },
+    {
       "id": "story.inauguration",
       "act": 2,
       "after": [
@@ -781,9 +988,20 @@
             }
           },
           {
-            "text": "Esperar a primavera para inaugurar (faltam {daysUntil:spring} dias).",
+            "text": "Inaugurar no dia 24, véspera de Natal (faltam {daysUntilDay:24} dias). Sem tudo pronto até lá, no primeiro dia pronto depois, fora do Natal e do Ano Novo.",
             "when": {
-              "fromSeason": "spring"
+              "all": [
+                {
+                  "day": {
+                    "gte": 24
+                  }
+                },
+                {
+                  "not": {
+                    "eventDay": true
+                  }
+                }
+              ]
             }
           },
           {
@@ -836,10 +1054,7 @@
           "openingBonus": true
         },
         {
-          "cutscene": "cs.inauguration"
-        },
-        {
-          "dialogue": "dlg.inauguration"
+          "script": "scr.inauguration"
         }
       ]
     },

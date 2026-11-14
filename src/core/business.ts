@@ -16,7 +16,7 @@ export interface BusinessData {
   upgradeTag?: string;
   upgradesWhen?: Condition;
   /** Os preparativos da inauguração (passos optional de story.inauguration). */
-  openingPrep?: { posters: string[]; posterTile: string; posterLift: number; reputationPerStep: number; arrivalFactorPerStep: number };
+  openingPrep?: { posters: string[]; posterTile: string; posterLift: number; reputationPerStep: number; arrivalFactorPerStep: number; decor?: { tile: string; at: [number, number]; lift?: number }[] };
 }
 
 export const isBusinessStage = (x: unknown): x is BusinessStage => typeof x === 'string' && (BUSINESS_STAGES as readonly string[]).includes(x);

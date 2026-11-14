@@ -21,9 +21,18 @@
           "cat": "cat.tekinha",
           "animation": "play",
           "loop": [
-            { "animation": "play", "seconds": 1.5 },
-            { "animation": "sit", "seconds": 2.5 },
-            { "animation": "sleep", "seconds": 3.5 }
+            {
+              "animation": "play",
+              "seconds": 1.5
+            },
+            {
+              "animation": "sit",
+              "seconds": 2.5
+            },
+            {
+              "animation": "sleep",
+              "seconds": 3.5
+            }
           ],
           "caption": "Tekinha"
         },
@@ -350,6 +359,111 @@
           "type": "text",
           "speaker": "Tião",
           "text": "Deixa eu anotar aqui... pronto. Vou fazer as contas."
+        },
+        {
+          "type": "hide"
+        }
+      ]
+    },
+    "cs.opening_nudge_repairs": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Gabi",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.gabi"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Gabi."
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Oi, {player}! Tô contando os dias: a inauguração não é no dia 24? Você me prometeu!"
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Ainda faltam os reparos com o Tião e a lousa lá fora, né? Dá tempo, mas corre!"
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Eu sei, eu sei! Vou ver isso hoje mesmo (Market, aba Construção)."
+        },
+        {
+          "type": "hide"
+        }
+      ]
+    },
+    "cs.opening_nudge_sign": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Gabi",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.gabi"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Gabi."
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Oi, {player}! O dia 24 tá chegando, e você prometeu a inauguração!"
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Os reparos ficaram ótimos. Só falta a lousa lá fora: encomenda pelo Market, na aba Construção."
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Verdade! Hoje mesmo eu encomendo."
+        },
+        {
+          "type": "hide"
+        }
+      ]
+    },
+    "cs.opening_nudge_prep": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Gabi",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.gabi"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Gabi."
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Oi, {player}! Tudo pronto para o dia 24? Mal posso esperar!"
+        },
+        {
+          "type": "text",
+          "speaker": "Gabi",
+          "text": "Se der tempo: cola os cartazes na rua, chama a turma, monta o cardápio da estreia e põe umas plantas. Vai ficar lindo!"
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Pode deixar, vou caprichar!"
         },
         {
           "type": "hide"

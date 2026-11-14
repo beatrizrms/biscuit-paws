@@ -2591,6 +2591,19 @@ export class GameSession {
     return this.state.location === this.content.map.id && this.festivalMounted() ? (this.content.dayNight.festivalNightLift ?? 0) : 0;
   }
 
+  /** Hoje é dia de festa: o Natal (a ceia), a véspera de Ano Novo, o Halloween, um encontro da estação ou o evento no quintal. */
+  isEventDay(): boolean {
+    const { seasons, festive } = this.content;
+    const d = this.state.day;
+    return (
+      isChristmas(seasons, festive.secretSanta, d) ||
+      isNewYearEve(seasons, festive.newYear, d) ||
+      isHalloween(seasons, festive.halloween, d) ||
+      !!this.gatheringToday() ||
+      this.festivalInYardToday()
+    );
+  }
+
   /** Hoje tem evento no quintal (marcado para hoje, ou já aconteceu hoje)? */
   private festivalInYardToday(): boolean {
     const f = this.state.festivals;
@@ -2898,12 +2911,14 @@ export class GameSession {
   private posterObjects(mapId: string): MapData['objects'] {
     const cfg = this.content.business.openingPrep;
     const prep = this.state.openingPrep;
-    if (!cfg || !prep?.posters.length) return [];
+    if (!cfg || !prep) return [];
     if (this.state.business === 'inaugurated' && prep.openedOn !== this.state.day) return [];
-    return prep.posters
+    // No dia da inauguração: os balões e as bandeirinhas na frente do café (a cena da rua).
+    const decor = this.state.business === 'inaugurated' && mapId === 'map.street' ? (cfg.decor ?? []).map((x, i) => ({ id: `obj.opening_decor_${i}`, tile: x.tile, at: [x.at[0], x.at[1]] as Cell, ...(x.lift ? { lift: x.lift } : {}) })) : [];
+    return [...decor, ...prep.posters
       .map((id) => this.content.jobPoints[id])
       .filter((p): p is NonNullable<typeof p> => !!p && p.map === mapId)
-      .map((p) => ({ id: `obj.${p.id}`, tile: cfg.posterTile, at: [p.at[0], p.at[1]] as Cell, lift: cfg.posterLift }));
+      .map((p) => ({ id: `obj.${p.id}`, tile: cfg.posterTile, at: [p.at[0], p.at[1]] as Cell, lift: cfg.posterLift }))];
   }
 
   noteFriendChat(npc: string): number {
@@ -5001,6 +5016,7 @@ export class GameSession {
         return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
+      eventDay: () => this.isEventDay(),
       halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
       fairCats: () => this.fairCatIds().length,
       festivalMounted: () => this.festivalMounted(),

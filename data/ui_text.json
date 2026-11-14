@@ -1361,7 +1361,7 @@
     "fed": "{sex:Ele|Ela} comeu de longe, de olho em você... Amanhã {sex:ele|ela} chega um pouco mais perto.",
     "fedLast": "{sex:Ele|Ela} comeu pertinho de você. Acho que {sex:ele|ela} está pront{sex:o|a}."
   },
-  "opening": { "poster": "Cartaz colado ({n} de {total}).", "invited": "{name} vem na inauguração! ({n} de {total} convites)", "bonus": "Inauguração com {n} preparativo(s): +{rep} de reputação e mais clientes hoje!", "bonusNone": "Inauguração sem preparativos: o movimento é o de sempre. Bem-vinda a primavera!", "optionalTitle": "Preparativos · opcionais, dão bônus na inauguração", "daily": "1 por dia", "dailyDone": "hoje ✓", "optional": "extra", "nextEvent": "Próximo: {title} (dia {day})" },
+  "opening": { "poster": "Cartaz colado ({n} de {total}).", "invited": "{name} vem na inauguração! ({n} de {total} convites)", "bonus": "Inauguração com {n} preparativo(s): +{rep} de reputação e mais clientes hoje!", "bonusNone": "Inauguração sem preparativos: o movimento é o de sempre.", "optionalTitle": "Preparativos · opcionais, dão bônus na inauguração", "daily": "1 por dia", "dailyDone": "hoje ✓", "optional": "extra", "nextEvent": "Próximo: {title} (dia {day})" },
   "hints": {
     "customer": "Atender",
     "customer_wrong": "Entregar (não é o pedido)",

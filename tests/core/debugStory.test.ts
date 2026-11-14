@@ -22,6 +22,6 @@ describe('debug: marco por marco com as cenas', () => {
       seen.push(r.id);
     }
     expect(session.debugPlayNextBeat()).toBeNull(); // chegou ao fim
-    for (const scene of ['scr.neusa_visit', 'cs.gabi_call', 'scr.gabi_visit', 'cs.inauguration', 'scr.secret_garden']) expect(scenes).toContain(scene);
+    for (const scene of ['scr.neusa_visit', 'cs.gabi_call', 'scr.gabi_visit', 'scr.inauguration', 'scr.secret_garden']) expect(scenes).toContain(scene);
   });
 });

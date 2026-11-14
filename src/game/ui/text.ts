@@ -21,6 +21,8 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{halloween:(\w+)\}/g, (_, what: string) => halloweenText(session, what))
     .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
+    // Dias até um dia do jogo (o dia 24 da inauguração); passou, 0.
+    .replace(/\{daysUntilDay:(\d+)\}/g, (_, day: string) => String(Math.max(0, Number(day) - session.state.day)))
     .replace(/\{timer:([\w.]+)\}/g, (_, id: string) => {
       const t = session.timerClock(id);
       return t === undefined ? '' : formatClock(t, 5);

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "openingPrep: os preparativos da inauguração (story.inauguration, passos optional): posters = pontos da rua onde ela cola o cartaz (posterTile, desenhado levantado posterLift px, na parede; some depois do dia da inauguração); convidar = conversar com amigos durante os preparativos; no dia da inauguração, cada preparativo feito dá reputationPerStep de reputação e o intervalo entre clientes cai arrivalFactorPerStep. Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: as superfícies da reforma do pintor (a troca é opcional; para inaugurar, a condição { renovated: true } pede só os reparos de dentro e de fora com o Tião). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
+  "_comment": "openingPrep: os preparativos da inauguração (story.inauguration, passos optional): posters = pontos da rua onde ela cola o cartaz (posterTile, desenhado levantado posterLift px, na parede; some depois do dia da inauguração); convidar = conversar com amigos durante os preparativos; decor: os balões e as bandeirinhas na frente do café, na rua, no dia da inauguração (a cena: scr.inauguration); no dia da inauguração, cada preparativo feito dá reputationPerStep de reputação e o intervalo entre clientes cai arrivalFactorPerStep. Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: as superfícies da reforma do pintor (a troca é opcional; para inaugurar, a condição { renovated: true } pede só os reparos de dentro e de fora com o Tião). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
   "upgradeTag": "upgrade",
   "upgradesWhen": {
     "business": "inaugurated"
@@ -22,11 +22,55 @@
     ]
   },
   "openingPrep": {
-    "posters": ["pt.opening_poster_1", "pt.opening_poster_2", "pt.opening_poster_3"],
+    "posters": [
+      "pt.opening_poster_1",
+      "pt.opening_poster_2",
+      "pt.opening_poster_3"
+    ],
     "posterTile": "ph_opening_poster",
     "posterLift": 30,
     "reputationPerStep": 2,
-    "arrivalFactorPerStep": 0.15
+    "arrivalFactorPerStep": 0.15,
+    "decor": [
+      {
+        "tile": "ph_fair_balloons",
+        "at": [
+          15,
+          8
+        ]
+      },
+      {
+        "tile": "ph_fair_balloons",
+        "at": [
+          20,
+          9
+        ]
+      },
+      {
+        "tile": "ph_fair_bunting",
+        "at": [
+          16,
+          8
+        ],
+        "lift": 62
+      },
+      {
+        "tile": "ph_fair_bunting",
+        "at": [
+          17,
+          8
+        ],
+        "lift": 62
+      },
+      {
+        "tile": "ph_fair_bunting",
+        "at": [
+          18,
+          8
+        ],
+        "lift": 62
+      }
+    ]
   },
   "requiredSurfaces": [
     "surface.wallpaper",

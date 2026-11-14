@@ -46,7 +46,7 @@ describe('calendário', () => {
     const year = s.daysPerSeason * s.order.length;
     const all = calendarEntries(s, 1, year + 30);
     expect(all.filter((e) => e.id === 'cal.christmas').map((e) => e.day)).toEqual([25, year + 25]);
-    expect(all.find((e) => e.id === 'cal.inauguration')?.day).toBe(s.daysPerSeason + 1);
+    expect(all.find((e) => e.id === 'cal.inauguration')?.day).toBe(24); // véspera de Natal
     expect(all.find((e) => e.kind === 'season')).toEqual({ id: `season.spring.${s.daysPerSeason + 1}`, day: s.daysPerSeason + 1, title: 'Começa a primavera', kind: 'season' });
     const hidden = calendarEntries(s, 1, year, (e) => e.id === 'cal.inauguration');
     expect(hidden.some((e) => e.id === 'cal.inauguration')).toBe(false);

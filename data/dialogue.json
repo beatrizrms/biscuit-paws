@@ -105,7 +105,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Um mês até a primavera... Será que em 1 mês eu consigo inaugurar essa loja?"
+          "text": "A véspera de Natal é daqui a três semanas... Será que dá tempo de inaugurar essa loja até lá?"
         }
       ]
     },
@@ -366,7 +366,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Na primavera, com tudo reformado e a placa lá fora, faço a inauguração de verdade."
+          "text": "Na véspera de Natal, com os reparos feitos e a placa lá fora, faço a inauguração de verdade."
         }
       ]
     },
@@ -374,7 +374,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Paredes novas, piso novo e a placa lá fora. Ficou lindo."
+          "text": "A placa lá fora, os amigos aqui... Ficou lindo."
         },
         {
           "speaker": "{player}",
@@ -1611,6 +1611,26 @@
         {
           "speaker": "{player}",
           "text": "Vou colocar, prometo."
+        }
+      ]
+    },
+    "dlg.inaug_arrive": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Chegou o dia! A placa, os balões... e todo mundo veio."
+        },
+        {
+          "speaker": "Gabi",
+          "text": "Vai, {player}! Abre logo essa porta!"
+        }
+      ]
+    },
+    "dlg.inaug_open": {
+      "lines": [
+        {
+          "speaker": "Todos",
+          "text": "GRANDE ABERTURA!"
         }
       ]
     }
