@@ -2,7 +2,8 @@
 // 1) Cobrir: o comprimido no meio da comida; arrastar a pasta por cima cobre aos poucos (até 100%).
 // 2) Oferecer: o gato alterna entre atento e distraído (com um aviso curto antes de virar atento). Oferecer distraído
 //    = ele come (sucesso); oferecer atento = a desconfiança sobe muito; desconfiança cheia = ele recusa e foge.
-//    Oferecer com a cobertura incompleta também sobe a desconfiança, um pouco (ele sente o cheiro).
+//    Oferecer com a cobertura abaixo de minCover: ele sente o cheiro do remédio e não come (a desconfiança sobe pelo
+//    quanto falta), e ela volta a cobrir. Cobrir de verdade é o que faz o jogo.
 // Puro: sem Phaser, DOM ou window. Sorteio pelo rng injetado (regra 7).
 import type { Outcome } from './minigame';
 import type { Rng } from './rng';
@@ -20,6 +21,8 @@ export interface PillParams {
   /** Desconfiança (0 a 100) ao oferecer atento, e por 100% de cobertura que faltar ao oferecer. */
   attentivePenalty: number;
   incompletePenalty: number;
+  /** Cobertura mínima (0 a 1) para ele comer; abaixo, sente o cheiro e recusa (volta para o passo 1). */
+  minCover: number;
 }
 
 export const FULL_SUSPICION = 100;
@@ -106,10 +109,12 @@ export function warning(s: PillState, p: PillParams): boolean {
  * Oferece a tigela. Cobertura incompleta: a desconfiança sobe um pouco (o quanto falta). Atento: sobe muito e ele
  * empurra a tigela (dá para tentar de novo). Distraído e sem passar do limite: come. Desconfiança cheia: foge.
  */
-export function offer(s: PillState, p: PillParams): 'ate' | 'caught' | 'fled' | null {
+export function offer(s: PillState, p: PillParams): 'ate' | 'caught' | 'smelled' | 'fled' | null {
   if (s.phase !== 'offer') return null;
   s.offers++;
-  s.suspicion = Math.min(FULL_SUSPICION, s.suspicion + (1 - coverage(s)) * p.incompletePenalty);
+  // Comprimido aparecendo: sente o cheiro (desconfia pelo quanto falta); atento, ainda vê.
+  const smelled = coverage(s) < p.minCover;
+  if (smelled) s.suspicion = Math.min(FULL_SUSPICION, s.suspicion + (1 - coverage(s)) * p.incompletePenalty);
   if (s.mood === 'attentive') s.suspicion = Math.min(FULL_SUSPICION, s.suspicion + p.attentivePenalty);
   if (s.suspicion >= FULL_SUSPICION) {
     s.phase = 'done';
@@ -117,6 +122,11 @@ export function offer(s: PillState, p: PillParams): 'ate' | 'caught' | 'fled' | 
     return 'fled';
   }
   if (s.mood === 'attentive') return 'caught';
+  if (smelled) {
+    // Volta para cobrir mais (o vaivém do gato recomeça no próximo Pronto).
+    s.phase = 'cover';
+    return 'smelled';
+  }
   s.phase = 'done';
   s.result = 'ate';
   return 'ate';

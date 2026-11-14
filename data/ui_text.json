@@ -1025,7 +1025,7 @@
       "hudOffer": "Desconfiança {n}% · coberto {cover}%",
       "ready": "Pronto (E)",
       "offer": "Oferecer (E)",
-      "caught": "Ele viu!",
+      "caught": "Ele viu!", "smelled": "Sentiu o cheiro do remédio! Cubra mais.",
       "ate": "Comeu tudo!",
       "fled": "Desconfiou e foi embora.",
       "result": "Remédio tomado em {offers} oferta(s).",

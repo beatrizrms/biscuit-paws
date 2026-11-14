@@ -92,7 +92,8 @@ export interface MiniGameDef {
    * `rug` (um tile maior, ex.: o tapete) vai centrado em `rugAt` (px lógicos, 640 x 360), `rugScale` vezes maior
    * (inteiro: a arena da varinha é o tapete em 4x).
    */
-  backdrop?: { floor: string[]; rug?: string; rugAt?: [number, number]; rugScale?: number };
+  /** floorScale: o assoalho ampliado (close, no tamanho dos gatos grandes); rugScale: o tapete. */
+  backdrop?: { floor: string[]; floorScale?: number; rug?: string; rugAt?: [number, number]; rugScale?: number };
   rewards: Record<Difficulty, { ok: number; great: number }>;
   /** Parâmetros do jogo por dificuldade (cada jogo define os seus). */
   difficulties: Record<Difficulty, Record<string, unknown>>;

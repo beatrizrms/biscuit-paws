@@ -25,9 +25,12 @@ export const PILL_KEYS = { bowl: 'pill_bowl', pill: 'pill_capsule', paste: 'pill
  * Onde fica o comprimido (px lógicos): a pasta conta só aqui. A arte vai em meia escala (ART: a densidade do mundo,
  * a tigela menor que o gato); dy: o meio da comida na tigela.
  */
-const ART = 0.5;
-const PILL = { x: 200, y: 210, w: 24, h: 12, dy: -4 };
-const CAT = { x: 470, y: 250, scale: 4 };
+// Tudo no mesmo close (o assoalho 3x e o tapete 2x: minigames.json pill.backdrop): o pote é ~1 tile do assoalho;
+// a bisnaga, um terço; o gato, 3,5x o sprite do mundo, sentado em cima do tapete.
+const ART = 0.6;
+const TUBE_ART = 0.75;
+const PILL = { x: 200, y: 215, w: 26, h: 13, dy: -5 };
+const CAT = { x: 470, y: 250, scale: 3.5 };
 const BAR_W = 120;
 
 export class PillScene extends MiniGameScene {
@@ -80,7 +83,7 @@ export class PillScene extends MiniGameScene {
       .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
       .setOrigin(0.5);
     this.bar = this.add.graphics().setDepth(100);
-    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(ART).setOrigin(0.15, 0.85).setDepth(200).setVisible(false);
+    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setOrigin(0.15, 0.85).setDepth(200).setVisible(false);
 
     this.btn = this.hudButton(uiText.minigames.pill.ready, () => this.act());
     this.controls.onAction((world) => {
@@ -131,6 +134,15 @@ export class PillScene extends MiniGameScene {
     if (!r) return;
     // A tigela vai até o gato e volta (se ele não comer).
     this.tweens.add({ targets: this.bowl, x: CAT.x - 70, duration: 180, yoyo: r === 'caught', ease: 'Quad.Out' });
+    if (r === 'smelled') {
+      // Recusou pelo cheiro: a tigela volta para ela cobrir mais.
+      this.sfx(this.def.sounds?.caught);
+      this.float(t.smelled, '#d9475d');
+      if (this.btn) this.btn.textContent = keyless(t.ready);
+      this.tweens.killTweensOf(this.bowl);
+      this.tweens.add({ targets: this.bowl, x: PILL.x, y: PILL.y, scale: 1, delay: 360, duration: 300 });
+      return;
+    }
     if (r === 'caught') {
       this.sfx(this.def.sounds?.caught);
       this.float(t.caught, '#d9475d');

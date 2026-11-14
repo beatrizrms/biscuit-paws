@@ -80,6 +80,34 @@ describe('remédio escondido', () => {
     expect(pillOutcome(s)).toBe('fail');
   });
 
+  it('comprimido aparecendo (abaixo de minCover): mesmo distraído, ele sente o cheiro, não come e ela volta a cobrir', () => {
+    expect(p.minCover).toBeGreaterThan(0.5);
+    const s = newPill(p);
+    spread(s, p, 0.5, 0.5); // um pouquinho só
+    startOffering(s, p, createRng(2));
+    until(s, 'distracted');
+    expect(offer(s, p)).toBe('smelled');
+    expect(s.phase).toBe('cover');
+    expect(s.suspicion).toBeGreaterThan(30);
+    expect(pillOutcome(s)).toBeNull();
+    // Cobriu direito: agora, distraído, come (na segunda oferta: ok, não perfeito).
+    coverAll(s);
+    startOffering(s, p, createRng(3));
+    until(s, 'distracted');
+    expect(offer(s, p)).toBe('ate');
+    expect(pillOutcome(s)).toBe('ok');
+  });
+
+  it('sem cobrir nada, duas ofertas e ele foge (cobrir é o jogo)', () => {
+    const s = newPill(p);
+    startOffering(s, p, createRng(4));
+    until(s, 'distracted');
+    expect(offer(s, p)).toBe('smelled');
+    startOffering(s, p, createRng(4));
+    until(s, 'distracted');
+    expect(offer(s, p)).toBe('fled');
+  });
+
   it('gato desconfiado: a janela de distração encolhe', () => {
     const avg = (scale: number) => {
       const s = newPill(p, scale);

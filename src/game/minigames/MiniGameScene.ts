@@ -91,10 +91,14 @@ export abstract class MiniGameScene extends Phaser.Scene {
     if (!b) return;
     const cat = content.catalog;
     const ts = cat.tileSize;
-    for (let r = 0; r * ts < GAME_HEIGHT; r++) {
-      for (let c = 0; c * ts < GAME_WIDTH; c++) {
+    // Close (floorScale): os tiles ampliados, do mesmo tamanho do gato grande e do tapete.
+    const fk = b.floorScale ?? 1;
+    const step = ts * fk;
+    for (let r = 0; r * step < GAME_HEIGHT; r++) {
+      for (let c = 0; c * step < GAME_WIDTH; c++) {
         const t = cat.tiles[b.floor[r % b.floor.length]!]!;
-        addTileImage(this, c * ts, r * ts, t.sheet, frameOf(cat, t)).setDepth(-1000);
+        const img = addTileImage(this, c * step, r * step, t.sheet, frameOf(cat, t)).setDepth(-1000);
+        img.setScale(img.scaleX * fk);
       }
     }
     const rug = b.rug ? cat.tiles[b.rug] : undefined;

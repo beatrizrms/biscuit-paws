@@ -365,9 +365,9 @@
     },
     "pill": {
       "name": "Remédio escondido",
-      "backdrop": {"floor":["floor_wood_b"],"rug":"floor_rug","rugAt":[470,236]},
-      "instructions": "Primeiro, cubra o comprimido com a pasta, arrastando até não aparecer nada. Depois ofereça a tigela quando ele estiver distraído. Se ele estiver olhando, desconfia; desconfiança cheia, ele recusa e foge.",
-      "tutorial": {"lines":["Segure e arraste a pasta sobre o comprimido até cobrir 100%. Depois, Pronto (E).","Ofereça (E) quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Oferecer olhando ou com o comprimido aparecendo: desconfiança. Comeu na primeira = Perfeito!"],"touchLines":["Arraste a pasta com o dedo sobre o comprimido até cobrir 100%. Depois, toque em Pronto.","Toque em Oferecer quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Oferecer olhando ou com o comprimido aparecendo: desconfiança. Comeu na primeira = Perfeito!"]},
+      "backdrop": {"floor":["floor_wood_b"],"floorScale":3,"rug":"floor_rug","rugAt":[470,236],"rugScale":2},
+      "instructions": "Primeiro, cubra o comprimido com a pasta, arrastando até não aparecer nada. Depois ofereça a tigela quando ele estiver distraído. Se ele estiver olhando, desconfia; com o comprimido aparecendo, ele sente o cheiro e não come. Desconfiança cheia, ele recusa e foge.",
+      "tutorial": {"lines":["Segure e arraste a pasta sobre o comprimido até cobrir 100%. Depois, Pronto (E).","Ofereça (E) quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Comprimido aparecendo: ele sente o cheiro, desconfia e não come (cubra mais). Oferecer olhando: desconfia muito. Comeu na primeira = Perfeito!"],"touchLines":["Arraste a pasta com o dedo sobre o comprimido até cobrir 100%. Depois, toque em Pronto.","Toque em Oferecer quando ele olhar para outro lado. Orelha mexendo: ele vai virar!","Comprimido aparecendo: ele sente o cheiro, desconfia e não come (cubra mais). Oferecer olhando: desconfia muito. Comeu na primeira = Perfeito!"]},
       "reputation": {"ok":1,"great":2},
       "sounds": {"spread":"put_down","ready":"success","turn":"meow_1","caught":"error","ate":"purr","fled":"error"},
       "rewards": {
@@ -376,9 +376,9 @@
         "hard": {"ok":8,"great":16}
       },
       "difficulties": {
-        "easy": {"grid":[8,4],"brushRadius":1.3,"distractedMs":[2200,3200],"attentiveMs":[1200,2000],"warnMs":600,"attentivePenalty":40,"incompletePenalty":40},
-        "normal": {"grid":[10,5],"brushRadius":1.1,"distractedMs":[1600,2600],"attentiveMs":[1400,2400],"warnMs":450,"attentivePenalty":50,"incompletePenalty":50},
-        "hard": {"grid":[12,6],"brushRadius":0.9,"distractedMs":[1100,1900],"attentiveMs":[1600,2800],"warnMs":350,"attentivePenalty":60,"incompletePenalty":70}
+        "easy": {"grid":[8,4],"brushRadius":1.3,"distractedMs":[2200,3200],"attentiveMs":[1200,2000],"warnMs":600,"attentivePenalty":40,"incompletePenalty":60,"minCover":0.8},
+        "normal": {"grid":[10,5],"brushRadius":1.1,"distractedMs":[1600,2600],"attentiveMs":[1400,2400],"warnMs":450,"attentivePenalty":50,"incompletePenalty":70,"minCover":0.9},
+        "hard": {"grid":[12,6],"brushRadius":0.9,"distractedMs":[1100,1900],"attentiveMs":[1600,2800],"warnMs":350,"attentivePenalty":60,"incompletePenalty":80,"minCover":1}
       }
     }
   }

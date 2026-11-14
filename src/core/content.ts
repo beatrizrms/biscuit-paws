@@ -684,6 +684,8 @@ export function validateContent(raw: RawContent): string[] {
     for (const t of [...(g.backdrop?.floor ?? []), g.backdrop?.rug]) if (t && !raw.catalog.tiles[t]) err(`minigames: "${id}" usa no fundo um tile inexistente "${t}"`);
     const k = g.backdrop?.rugScale;
     if (k !== undefined && !(Number.isInteger(k) && k >= 1)) err(`minigames: "${id}": backdrop.rugScale deve ser um inteiro >= 1`);
+    const f = g.backdrop?.floorScale;
+    if (f !== undefined && !(Number.isInteger(f) && f >= 1)) err(`minigames: "${id}": backdrop.floorScale deve ser um inteiro >= 1`);
   }
   for (const [id, g] of Object.entries(raw.minigames.games)) if (g.treatItem && !raw.items.items.some((i) => i.id === g.treatItem)) err(`minigames: "${id}" usa petisco inexistente "${g.treatItem}"`);
   for (const p of raw.jobs.points) if (p.minigame && !raw.minigames.games[p.minigame.id]) err(`jobs: ponto "${p.id}" abre um mini game inexistente "${p.minigame.id}"`);
