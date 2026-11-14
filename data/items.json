@@ -2065,6 +2065,7 @@
     },
     {
       "id": "item.orange",
+      "edible": true,
       "name": "Laranja",
       "description": "Laranja fresca, para o suco no espremedor (sai premium). Uma por copo.",
       "price": 3,
@@ -2081,6 +2082,7 @@
     },
     {
       "id": "item.strawberry",
+      "edible": true,
       "name": "Morango",
       "description": "Morango fresco, para o suco no espremedor (sai premium). Um por copo.",
       "price": 4,
@@ -2129,6 +2131,7 @@
     },
     {
       "id": "item.apple",
+      "edible": true,
       "name": "Maçã",
       "description": "Maçã da estação, para a torta de maçã e a maçã do amor: rende 4 receitas. No verão e no outono.",
       "price": 5,
@@ -2146,6 +2149,7 @@
     },
     {
       "id": "item.coconut",
+      "edible": true,
       "name": "Coco",
       "description": "Coco verde da estação, para a água de coco e o doce de abóbora: rende 4 receitas. No verão e no outono.",
       "price": 6,
@@ -2212,6 +2216,7 @@
     },
     {
       "id": "item.honey",
+      "edible": true,
       "name": "Mel",
       "description": "Pote de mel: rende 10 doses.",
       "price": 15,
@@ -2589,6 +2594,7 @@
     },
     {
       "id": "item.milk",
+      "edible": true,
       "name": "Leite",
       "description": "Leite para o pão de queijo: rende 5 receitas.",
       "price": 8,
@@ -2615,6 +2621,7 @@
     },
     {
       "id": "item.chocolate",
+      "edible": true,
       "name": "Chocolate",
       "description": "Chocolate para o bolo: rende 8 receitas.",
       "price": 14,
@@ -2693,6 +2700,7 @@
     },
     {
       "id": "item.almond",
+      "edible": true,
       "name": "Amêndoas",
       "description": "Amêndoas para os macarons e o croissant de amêndoa: rende 8 receitas.",
       "price": 18,

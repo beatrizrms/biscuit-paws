@@ -369,14 +369,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       this.cancelPlacing();
       this.ui.toggleCatalog();
     });
-    // T: toma o café pronto que está na mão (recompõe energia; um por hora do jogo).
+    // T: come ou bebe o que está pronto na mão (recompõe energia: cafeína mais, depois açúcar; um por hora do jogo).
     this.onKey('T', () => {
       if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
       this.tryDrinkCoffee();
     });
-    // No toque, o botão Tomar aparece só com o café pronto na mão.
-    const drinkBtn = () => touch.showDrink(this.session.holdingCoffee());
-    this.session.bus.on('hands.changed', drinkBtn);
+    // No toque, o botão Tomar (bebida) ou Comer (prato) aparece só com algo pronto na mão.
+    const drinkBtn = () => {
+      const snack = this.session.snackInHands();
+      touch.showDrink(snack ? (snack.food ? uiText.touch.eat : uiText.touch.drink) : this.session.edibleActive() ? uiText.touch.eat : null);
+    };
+    for (const ev of ['hands.changed', 'hotbar.changed', 'item.received', 'energy.recovered'] as const) this.session.bus.on(ev, drinkBtn);
     drinkBtn();
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
@@ -3439,8 +3442,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** T com um café pronto na mão: ela toma (a xícara fica suja na mão). Um por hora do jogo. */
   private tryDrinkCoffee(): void {
-    if (!this.session.holdingCoffee()) return;
-    const r = this.session.drinkCoffee();
+    const eat = !this.session.holdingCoffee() ? this.session.edibleActive() : null;
+    if (!this.session.holdingCoffee() && !eat) return;
+    const r = eat ? this.session.eatItem(eat) : this.session.drinkCoffee();
     if (r.ok) return;
     if (r.reason === 'coffee_too_soon') this.ui.problem('coffee_too_soon', { n: String(this.session.coffeeWait()) });
     else this.ui.problem(r.reason as Parameters<GameUi['problem']>[0]);

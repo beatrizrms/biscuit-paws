@@ -120,6 +120,8 @@ export interface ItemDef {
   storage?: StorageDef;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */
   storesAs?: { item: string; qty: number };
+  /** Dá para comer puro (fruta fresca, leite, chocolate, amêndoas): T com ele ativo na barra, ou Comer na mochila. */
+  edible?: boolean;
   /** Conjunto de louça: quanto entra no estoque limpo ao receber (ex.: o presente da Gabi). */
   dishes?: Partial<Record<Vessel, number>>;
   /**
@@ -722,7 +724,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateDayNight(raw.dayNight));
   errors.push(...validateLights(raw.dayNight.lightTiles, raw.dayNight.lightsOn, raw.catalog));
   const restore = raw.dayNight.energy.restore;
-  for (const id of restore.coffee.recipes) if (!raw.recipes.recipes.some((r) => r.id === id)) err(`daynight: energy.restore.coffee: receita "${id}" não existe`);
+  for (const t of restore.coffee.tiers) for (const id of t.ingredients) if (!raw.items.items.some((i) => i.id === id)) err(`daynight: energy.restore.coffee: ingrediente "${id}" não existe (nível ${t.name})`);
   for (const tile of Object.keys(restore.seat.tiles)) if (!raw.catalog.tiles[tile]) err(`daynight: energy.restore.seat: tile "${tile}" não existe`);
   for (const m of raw.maps) {
     for (const n of m.npcs ?? []) {

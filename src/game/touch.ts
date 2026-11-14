@@ -71,10 +71,12 @@ class TouchInput {
     b.classList.toggle('t-context', !!text);
   }
 
-  /** O botão Tomar (o T do teclado) só aparece com o café pronto na mão. */
-  showDrink(on: boolean): void {
+  /** O botão do T (Tomar ou Comer) só aparece com algo pronto na mão; null esconde. */
+  showDrink(label: string | null): void {
     const b = this.root?.querySelector<HTMLButtonElement>('.t-drink');
-    if (b && b.hidden === on) b.hidden = !on;
+    if (!b) return;
+    b.hidden = label === null;
+    if (label !== null && b.textContent !== label) b.textContent = label;
   }
 
   /** Ouve um botão; devolve a função que para de ouvir (os mini games param no fim da partida). */

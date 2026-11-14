@@ -207,6 +207,7 @@ export type ActionResult =
         | 'needs_litter'
         | 'full'
         | 'energy_full'
+        | 'not_edible'
         | 'not_refundable'
         | 'coffee_too_soon'
         | 'seat_taken'
@@ -1053,23 +1054,56 @@ export class GameSession {
     return this.restingOn;
   }
 
-  /** O café que ela pode tomar: o último da mão entre as receitas de restore.coffee. */
-  /**
-   * A bebida pronta da mão que ela pode tomar (o café primeiro; senão qualquer xícara ou copo: chá, suco...). Prato
-   * (comida) não conta.
-   */
+  /** Quanto esta receita recompõe: o primeiro nível (cafeína, açúcar) com um dos ingredientes dela; senão, otherAmount. */
+  snackEnergy(recipeId: string): number {
+    const cfg = this.content.dayNight.energy.restore.coffee;
+    const r = this.content.recipes[recipeId];
+    if (!r) return cfg.otherAmount;
+    const ings = new Set([...Object.keys(r.ingredients ?? {}), ...(r.steps ?? []).flatMap((st) => Object.keys((st as { ingredients?: Record<string, number> }).ingredients ?? {}))]);
+    return cfg.tiers.find((t) => t.ingredients.some((i) => ings.has(i)))?.amount ?? cfg.otherAmount;
+  }
+
+  /** Quanto um ingrediente comido puro recompõe: o nível em que ele mesmo está (chocolate: açúcar); senão, otherAmount. */
+  itemEnergy(itemId: string): number {
+    const cfg = this.content.dayNight.energy.restore.coffee;
+    return cfg.tiers.find((t) => t.ingredients.includes(itemId))?.amount ?? cfg.otherAmount;
+  }
+
+  /** Come um ingrediente puro da mochila (edible): sai um, recompõe, e conta como a pausa da hora (como o café). */
+  eatItem(itemId: string): ActionResult {
+    if (!this.content.items[itemId]?.edible) return { ok: false, reason: 'not_edible' };
+    if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
+    if (this.energyFull()) return { ok: false, reason: 'energy_full' };
+    if (this.coffeeWait() > 0) return { ok: false, reason: 'coffee_too_soon' };
+    this.removeFromInventory(itemId);
+    this.state.lastCoffeeAt = nowAbs(this.state);
+    this.recover('coffee', this.itemEnergy(itemId));
+    return { ok: true };
+  }
+
+  /** O ingrediente comestível ativo na barra (o T come), ou null. */
+  edibleActive(): string | null {
+    const id = this.activeItem();
+    return id && this.content.items[id]?.edible ? id : null;
+  }
+
+  /** O que ela pode comer ou beber agora: o pronto da mão que mais recompõe (comida ou bebida). */
   private coffeeInHands(): number {
-    const recipes = this.content.dayNight.energy.restore.coffee.recipes;
-    const drinkable = (i: number) => {
-      const h = this.state.hands[i]!;
-      return h.kind === 'drink' && h.vessel !== 'plate';
-    };
-    for (let i = this.state.hands.length - 1; i >= 0; i--) {
-      const h = this.state.hands[i]!;
-      if (h.kind === 'drink' && recipes.includes(h.recipe)) return i;
-    }
-    for (let i = this.state.hands.length - 1; i >= 0; i--) if (drinkable(i)) return i;
-    return -1;
+    let best = -1;
+    let bestAmount = -1;
+    this.state.hands.forEach((h, i) => {
+      if (h.kind !== 'drink') return;
+      const amount = this.snackEnergy(h.recipe);
+      if (amount > bestAmount) [best, bestAmount] = [i, amount];
+    });
+    return best;
+  }
+
+  /** O pronto da mão que o T come ou bebe: prato = comer; xícara ou copo = tomar (o botão do celular). */
+  snackInHands(): { recipe: string; food: boolean } | null {
+    const i = this.coffeeInHands();
+    const h = i >= 0 ? this.state.hands[i] : undefined;
+    return h?.kind === 'drink' ? { recipe: h.recipe, food: h.vessel === 'plate' } : null;
   }
 
   holdingCoffee(): boolean {
@@ -1094,9 +1128,8 @@ export class GameSession {
     this.state.hands[i] = { kind: 'dirty', vessel: drink.vessel };
     this.bus.emit('hands.changed', { count: this.state.hands.length });
     this.state.lastCoffeeAt = nowAbs(this.state);
-    // O café (restore.coffee.recipes) recompõe mais; outra bebida (chá, suco), otherAmount.
-    const cfg = this.content.dayNight.energy.restore.coffee;
-    this.recover('coffee', cfg.recipes.includes(drink.recipe) ? cfg.amount : (cfg.otherAmount ?? cfg.amount));
+    // Cafeína recompõe mais, depois açúcar, depois o resto (restore.coffee.tiers).
+    this.recover('coffee', this.snackEnergy(drink.recipe));
     return { ok: true };
   }
 

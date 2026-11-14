@@ -189,7 +189,7 @@
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
-  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · T: tomar café · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
+  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · T: comer/beber · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "unlocks": {
     "title": "Nova conquista!",
@@ -253,8 +253,9 @@
     "no_beds": "A clínica está sem leito livre hoje.",
     "no_slots": "A agenda de cirurgias de hoje lotou.",
     "energy_full": "A energia já está cheia.",
+    "not_edible": "Isso não se come assim, puro.",
     "not_refundable": "Isso foi presente: só dá para devolver o que foi comprado.",
-    "coffee_too_soon": "Acabei de tomar um café. Melhor esperar mais {n} min.",
+    "coffee_too_soon": "Acabei de comer e beber. Melhor esperar mais {n} min.",
     "seat_taken": "Esse lugar está ocupado por um cliente.",
     "no_money": "Moedas insuficientes.",
     "out_of_bounds": "Fora do café.",
@@ -743,6 +744,7 @@
     "none": "Nada por aqui.",
     "doses": "{n} doses",
     "hold": "segurar",
+    "eat": "comer",
     "stow": "guardar",
     "togo": "guardar na mochila",
     "dirty": "{name} suja",
@@ -833,7 +835,7 @@
     "closed": "Café fechado · abre {when}"
   },
   "playerFallback": "Você",
-  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "run": "Correr", "drink": "Tomar" },
+  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "run": "Correr", "drink": "Tomar", "eat": "Comer" },
   "upgrade": {
     "title": "Upgrade",
     "hint": "A assistência técnica troca o móvel por outro do mesmo tipo, no mesmo lugar: outra peça do balcão, a cadeira virada para outro lado, outra cor, o pote automático. Você paga a diferença entre as peças (se a nova for mais cara) + {fee} moedas do serviço. Comprando do zero, você fica com as duas.",
@@ -1189,7 +1191,7 @@
     "low": "Pouca energia: andar fica mais devagar e não dá para correr.",
     "empty": "Sem energia nenhuma. Melhor encerrar o dia e descansar.",
     "curfewSoon": "Está ficando tarde: daqui a uma hora preciso ir para casa.",
-    "coffee": "Um cafezinho para se recompor: +{n} de energia.",
+    "coffee": "Uma pausa para se recompor: +{n} de energia.",
     "play": "Brincar com o gato recarrega: +{n} de energia.",
     "sofa": "Descansando um pouco... (ande ou aperte E para levantar)",
     "rested": "Energia cheia de novo!"

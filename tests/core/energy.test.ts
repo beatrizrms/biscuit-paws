@@ -88,26 +88,33 @@ describe('energia na sessão', () => {
     expect(session.drinkCoffee()).toEqual({ ok: false, reason: 'energy_full' });
     session.spendEnergy(50);
     expect(session.drinkCoffee()).toEqual({ ok: true });
-    expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.coffee.amount);
+    expect(session.energy()).toBe(cfg.max - 50 + cfg.restore.coffee.tiers[0]!.amount);
     expect(state.hands).toEqual([{ kind: 'dirty', vessel: 'cup' }]);
-    // Suco (copo) também se toma; o prato (comida), não.
+    // Suco (copo) e pão de queijo (prato) também: tudo que está pronto se come ou bebe.
     state.hands = [{ kind: 'drink', recipe: 'recipe.orange_juice', vessel: 'glass' }];
     expect(session.holdingCoffee()).toBe(true);
     state.hands = [{ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' }];
-    expect(session.holdingCoffee()).toBe(false);
+    expect(session.snackInHands()).toEqual({ recipe: 'recipe.cheese_bread', food: true });
   });
 
-  it('outra bebida (chá, suco) também se toma, recompondo menos (otherAmount); comida (prato), não', () => {
+  it('três níveis pela composição: cafeína (café, chá preto) > açúcar (açúcar, mel, chocolate) > o resto', () => {
+    const { session } = cafe();
+    const [caf, sugar] = cfg.restore.coffee.tiers.map((t) => t.amount);
+    expect(caf).toBeGreaterThan(sugar!);
+    expect(sugar).toBeGreaterThan(cfg.restore.coffee.otherAmount);
+    for (const id of ['recipe.black_coffee', 'recipe.cafe_latte', 'recipe.black_tea', 'recipe.iced_lemon_tea']) expect(session.snackEnergy(id)).toBe(caf);
+    for (const id of ['recipe.orange_juice', 'recipe.cake_slice', 'recipe.hot_chocolate', 'recipe.chamomile_honey']) expect(session.snackEnergy(id)).toBe(sugar);
+    for (const id of ['recipe.green_tea', 'recipe.bread', 'recipe.cheese_bread', 'recipe.coconut_water']) expect(session.snackEnergy(id)).toBe(cfg.restore.coffee.otherAmount);
+  });
+
+  it('comer: o pronto da mão que mais recompõe vai primeiro; a louça fica suja na mão', () => {
     const { session, state } = cafe();
-    session.spendEnergy(50);
+    session.spendEnergy(60);
     const before = session.energy();
-    state.hands.push({ kind: 'drink', recipe: 'recipe.black_tea', vessel: 'cup' });
-    expect(session.holdingCoffee()).toBe(true);
+    state.hands.push({ kind: 'drink', recipe: 'recipe.bread', vessel: 'plate' }, { kind: 'drink', recipe: 'recipe.cookie', vessel: 'plate' });
     expect(session.drinkCoffee()).toEqual({ ok: true });
-    expect(session.energy()).toBeCloseTo(before + cfg.restore.coffee.otherAmount!, 5);
-    expect(state.hands[0]).toEqual({ kind: 'dirty', vessel: 'cup' });
-    state.hands = [{ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' }];
-    expect(session.holdingCoffee()).toBe(false);
+    expect(session.energy()).toBeCloseTo(before + cfg.restore.coffee.tiers[1]!.amount, 5);
+    expect(state.hands).toEqual([{ kind: 'drink', recipe: 'recipe.bread', vessel: 'plate' }, { kind: 'dirty', vessel: 'plate' }]);
   });
 
   it('café: um por hora do jogo; o save lembra a hora do último', () => {
@@ -127,7 +134,7 @@ describe('energia na sessão', () => {
     expect(parseSave(JSON.stringify({ ...raw, lastCoffeeAt: state.lastCoffeeAt }), known).state.lastCoffeeAt).toBe(state.lastCoffeeAt);
     state.time += 1;
     expect(session.drinkCoffee()).toEqual({ ok: true });
-    expect(session.energy()).toBe(cfg.max - 80 + 2 * cfg.restore.coffee.amount);
+    expect(session.energy()).toBe(cfg.max - 80 + 2 * cfg.restore.coffee.tiers[0]!.amount);
   });
 
   it('sofá: senta (até cheia), recompõe a cada minuto e, ao encher, avisa e continua sentada', () => {
@@ -177,5 +184,27 @@ describe('energia na sessão', () => {
     session.stopRest();
     state.service.customers.push({ id: 'x', look: 0, stage: 'waiting', kind: 'table', spot: [8, 6], dishAt: [7, 6], recipe: null, until: 99999, favorite: null, wantsPremium: false });
     expect(session.startRest('c1')).toEqual({ ok: false, reason: 'seat_taken' });
+  });
+});
+
+describe('ingredientes que se comem puros', () => {
+  it('fruta, leite, chocolate, amêndoas e mel: come da mochila; pó de café, farinha, açúcar e polpa, não', () => {
+    const content = loadContent();
+    const edible = (id: string) => content.items[id]?.edible === true;
+    for (const id of ['item.orange', 'item.strawberry', 'item.apple', 'item.coconut', 'item.milk', 'item.chocolate', 'item.almond', 'item.honey']) expect(edible(id)).toBe(true);
+    for (const id of ['item.coffee_ground', 'item.coffee_beans_bag', 'item.flour', 'item.sugar', 'item.pulp_orange', 'item.tea_black_bag', 'item.eggs']) expect(edible(id)).toBe(false);
+    const session = new GameSession(content, newGameState(100, 'map.cafe_main'));
+    const cfgE = content.dayNight.energy;
+    session.spendEnergy(50);
+    session.receiveItem('item.chocolate');
+    session.receiveItem('item.flour');
+    const before = session.energy();
+    expect(session.eatItem('item.flour')).toEqual({ ok: false, reason: 'not_edible' });
+    expect(session.eatItem('item.chocolate')).toEqual({ ok: true });
+    expect(session.energy()).toBeCloseTo(before + cfgE.restore.coffee.tiers[1]!.amount, 5); // chocolate: açúcar
+    expect(session.state.inventory['item.chocolate'] ?? 0).toBe(0);
+    session.receiveItem('item.apple');
+    expect(session.eatItem('item.apple')).toEqual({ ok: false, reason: 'coffee_too_soon' }); // a pausa é uma por hora
+    expect(session.itemEnergy('item.apple')).toBe(cfgE.restore.coffee.otherAmount);
   });
 });

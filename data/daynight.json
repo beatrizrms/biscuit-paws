@@ -105,9 +105,9 @@
     "emptySpeed": 0.6,
     "wakeAfterLateNight": 75,
     "costs": { "dirt.cleaned": 2, "prep.started": 2, "customer.served": 1, "dish.washed": 1, "minigame.finished": 6, "cat.fed": 1, "litter.refilled": 2 },
-    "_restore": "Como ela se recompõe: coffee = tomar um café pronto que está na mão (tecla T; a xícara fica suja na mão): amount de energia, e o próximo só depois de everyMinutes minutos do jogo; seat = sentar num sofá ou cadeira do café (senta mesmo com a energia cheia; perMinute por minuto do jogo até encher, e continua sentada até andar ou apertar E de novo; tiles: os móveis em que dá para sentar, para onde ela olha e quantos px lógicos os pés ficam abaixo da base do móvel; a cadeira de costas fica de fora até existir a pose de costas; cadeira com cliente não serve, e a dela sai dos lugares dos clientes); play = brincar com o gato nos mini games listados (quando dá certo, ganha em vez de gastar).",
+    "_restore": "Como ela se recompõe: coffee = comer ou beber algo pronto que está na mão (tecla T; a louça fica suja na mão): a energia pelo primeiro nível (tiers) que tem um dos ingredientes da receita (cafeína: café ou chá preto; açúcar: açúcar, mel ou chocolate), senão otherAmount, e o próximo só depois de everyMinutes minutos do jogo; seat = sentar num sofá ou cadeira do café (senta mesmo com a energia cheia; perMinute por minuto do jogo até encher, e continua sentada até andar ou apertar E de novo; tiles: os móveis em que dá para sentar, para onde ela olha e quantos px lógicos os pés ficam abaixo da base do móvel; a cadeira de costas fica de fora até existir a pose de costas; cadeira com cliente não serve, e a dela sai dos lugares dos clientes); play = brincar com o gato nos mini games listados (quando dá certo, ganha em vez de gastar).",
     "restore": {
-      "coffee": { "recipes": ["recipe.black_coffee", "recipe.cafe_latte"], "amount": 30, "otherAmount": 15, "everyMinutes": 60 },
+      "coffee": { "tiers": [{ "name": "cafeína", "ingredients": ["item.coffee_ground", "item.tea_black_bag"], "amount": 30 }, { "name": "açúcar", "ingredients": ["item.sugar", "item.honey", "item.chocolate"], "amount": 20 }], "otherAmount": 10, "everyMinutes": 60 },
       "seat": {
         "perMinute": 3,
         "tiles": {
