@@ -1321,9 +1321,9 @@ html.touch-mode .hotbar .count { font-size: max(calc(7px * var(--fs, 1)), var(--
 /* Celular deitado (#stage.sides, main.ts): a barra fica em pé na faixa da esquerda, fora do jogo (o direcional
    fica embaixo dela). */
 html.touch-mode #stage.sides .hotbar, html.touch-mode #stage.sides .hotbar.top { top: 8px; bottom: auto; left: calc(max(2px, (var(--side-l) - 32px) / 2) - var(--side-l)); transform: none; flex-direction: column; }
-/* Letras no celular: tudo 10% maior e nada abaixo de 7,5 px do jogo (os font-size da interface passam por --fs e
+/* Letras no celular: tudo 25% maior e nada abaixo de 8,5 px do jogo (os font-size da interface passam por --fs e
    --fs-min; no computador ficam 1 e 0, sem mudança). */
-html.touch-mode { --fs: 1.1; --fs-min: 7.5px; }
+html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 
 /* ---------- SocialVilla (SocialApp.ts) ---------- */
 .p-icon.social { background: #b9a6ec; }

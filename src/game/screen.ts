@@ -32,3 +32,30 @@ export const SCREEN_OFFSET_Y = (CANVAS_HEIGHT / 2) * (1 - 1 / RENDER_SCALE);
 export function setupCamera(scene: Phaser.Scene): Phaser.Cameras.Scene2D.Camera {
   return scene.cameras.main.setZoom(RENDER_SCALE);
 }
+
+/**
+ * No celular, o mundo aparece maior: a câmera do mapa chega mais perto (mostra 16 x 9 tiles em vez de 20 x 11) e segue
+ * a personagem. A proporção não muda (16:9). No computador, 1. ?toque na URL testa no PC.
+ */
+export const WORLD_ZOOM = worldZoom();
+
+function worldZoom(): number {
+  if (typeof window === 'undefined') return 1;
+  const touch = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || new URLSearchParams(window.location.search).has('toque');
+  return touch ? 1.25 : 1;
+}
+
+/** O pedaço do mundo que cabe na tela no mapa (px lógicos): 640 x 360 no PC, menos no celular. */
+export const VIEW_WIDTH = GAME_WIDTH / WORLD_ZOOM;
+export const VIEW_HEIGHT = GAME_HEIGHT / WORLD_ZOOM;
+
+/** A câmera do mapa (WorldScene): a resolução lógica e o zoom do celular. */
+export function setupWorldCamera(scene: Phaser.Scene): Phaser.Cameras.Scene2D.Camera {
+  return scene.cameras.main.setZoom(RENDER_SCALE * WORLD_ZOOM);
+}
+
+/** Um retângulo fixo na tela (scrollFactor 0) que cobre a vista inteira, no zoom atual da câmera da cena. */
+export function fixedScreenRect(scene: Phaser.Scene): { x: number; y: number; w: number; h: number } {
+  const z = scene.cameras.main.zoom;
+  return { x: (CANVAS_WIDTH / 2) * (1 - 1 / z), y: (CANVAS_HEIGHT / 2) * (1 - 1 / z), w: CANVAS_WIDTH / z, h: CANVAS_HEIGHT / z };
+}

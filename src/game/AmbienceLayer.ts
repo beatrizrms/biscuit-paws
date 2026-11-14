@@ -6,7 +6,7 @@ import type { Ambience, AmbienceConfig } from '../core/ambience';
 import { hexToRgb, rgbToHex } from '../core/time';
 import { frameOf } from '../core/tiles';
 import { content } from './content';
-import { GAME_HEIGHT, GAME_WIDTH, SCREEN_OFFSET_X, SCREEN_OFFSET_Y } from './screen';
+import { fixedScreenRect } from './screen';
 
 const SHADOW_TEXTURE = 'ambience-shadow';
 const VIGNETTE_TEXTURE = 'ambience-vignette';
@@ -41,10 +41,11 @@ export class AmbienceLayer {
     private cfg: AmbienceConfig,
   ) {
     AmbienceLayer.createTextures(scene);
+    const view = fixedScreenRect(scene);
     this.vignette = scene.add
-      .image(SCREEN_OFFSET_X, SCREEN_OFFSET_Y, VIGNETTE_TEXTURE)
+      .image(view.x, view.y, VIGNETTE_TEXTURE)
       .setOrigin(0)
-      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
+      .setDisplaySize(view.w, view.h)
       .setScrollFactor(0)
       .setDepth(VIGNETTE_DEPTH)
       .setAlpha(cfg.vignetteAlpha);

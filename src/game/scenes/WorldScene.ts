@@ -29,7 +29,7 @@ import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
-import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
+import { VIEW_HEIGHT, VIEW_WIDTH, setupWorldCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, content, emoteImage, itemUse, serviceArt, uiText } from '../content';
@@ -343,7 +343,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   create(): void {
-    setupCamera(this);
+    setupWorldCamera(this);
     const uiRoot = document.getElementById('ui')!;
     this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: () => this.faceTalkers() }, isDebugOn());
 
@@ -956,16 +956,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const cam = this.cameras.main;
     this.dayNight.setOutdoorAreas(home ? (this.roomView?.outdoorAreas() ?? []) : []);
     this.refreshWeather();
-    if (area.w <= GAME_WIDTH && area.h <= GAME_HEIGHT) {
+    if (area.w <= VIEW_WIDTH && area.h <= VIEW_HEIGHT) {
       cam.stopFollow();
       cam.removeBounds();
       cam.centerOn(area.x + area.w / 2, area.y + area.h / 2);
       return;
     }
     // Se sobrar largura, centraliza; se sobrar altura, a sobra fica em cima (céu), nunca embaixo do chão.
-    const bx = area.w < GAME_WIDTH ? area.x + (area.w - GAME_WIDTH) / 2 : area.x;
-    const by = area.h < GAME_HEIGHT ? area.y + area.h - GAME_HEIGHT : area.y;
-    cam.setBounds(bx, by, Math.max(area.w, GAME_WIDTH), Math.max(area.h, GAME_HEIGHT));
+    const bx = area.w < VIEW_WIDTH ? area.x + (area.w - VIEW_WIDTH) / 2 : area.x;
+    const by = area.h < VIEW_HEIGHT ? area.y + area.h - VIEW_HEIGHT : area.y;
+    cam.setBounds(bx, by, Math.max(area.w, VIEW_WIDTH), Math.max(area.h, VIEW_HEIGHT));
     cam.startFollow(this.player, true);
   }
 
@@ -1715,7 +1715,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Pontos do mundo que não podem ficar escondidos pelo HUD: o mouse e a personagem (cabeça e pés). */
   private fadeHudOverWorld(): void {
     const rect = this.game.canvas.getBoundingClientRect();
-    const zoom = rect.width / GAME_WIDTH;
+    const zoom = rect.width / VIEW_WIDTH;
     const view = this.cameras.main.worldView;
     const toClient = (x: number, y: number) => ({ x: rect.left + (x - view.x) * zoom, y: rect.top + (y - view.y) * zoom });
     const p = this.input.activePointer;

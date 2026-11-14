@@ -1099,7 +1099,8 @@ export class GameUi {
    */
   private layoutHudStack(): void {
     const when = content.world.hud ?? {};
-    let top = HUD_STACK_TOP;
+    // Pela altura de verdade das caixas (no celular, a letra é maior e as caixas crescem): nunca uma em cima da outra.
+    let top = Math.max(HUD_STACK_TOP, this.money.offsetTop + this.money.offsetHeight);
     // O clima fica na barra de cima, na frente da estação (aparece quando o café começa a atender: hud.weather).
     const weatherIcon = this.root.querySelector<HTMLElement>('.hud-weather-icon');
     if (weatherIcon) weatherIcon.hidden = !!when.weather && !this.session.holds(when.weather);
@@ -1109,7 +1110,7 @@ export class GameUi {
       el.hidden = !!cond && !this.session.holds(cond);
       if (el.hidden) continue;
       el.style.top = `${top}px`;
-      top += HUD_STACK_STEP;
+      top += Math.max(HUD_STACK_STEP, el.offsetHeight);
     }
   }
 
