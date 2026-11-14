@@ -709,7 +709,10 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog .cart-row { grid-template-columns: 1fr auto auto; align-items: center; gap: 4px; cursor: default; }
 .catalog .cart-row.in-cart { border-color: var(--mint3); }
 .catalog.checkout .cart-row { grid-template-columns: 1fr auto auto auto; }
-.catalog .qty { display: inline-flex; align-items: center; gap: 2px; }
+/* Preço (moeda + número) separado da quantidade (a caixinha − n +), para os dois números não se confundirem. */
+.catalog .cart-row .price { display: inline-flex; align-items: center; gap: 2px; margin-right: 6px; font-variant-numeric: tabular-nums; }
+.catalog .cart-row .price .coin-img { width: 8px; height: 8px; image-rendering: pixelated; }
+.catalog .qty { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px; border-radius: 4px; background: var(--cream2); box-shadow: inset 0 0 0 1px var(--wood3); }
 .catalog .qty button, .catalog .cart-row .drop {
   min-width: 14px; height: 14px; padding: 0 3px;
   font: inherit; font-weight: bold; line-height: 1;

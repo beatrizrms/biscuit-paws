@@ -461,7 +461,7 @@
     "cartLine": "{count} {items} · {total} moedas",
     "itemOne": "item",
     "itemMany": "itens",
-    "payAtCashier": "Pague no caixa.",
+    "payAtCashier": "Pague no caixa.", "each": "Preço de cada um", "qtyTitle": "Quantos no carrinho",
     "cashierTitle": "Caixa",
     "emptyCart": "O carrinho está vazio. Pegue os itens nas prateleiras.",
     "pay": "Pagar {total} moedas",

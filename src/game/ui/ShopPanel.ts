@@ -120,7 +120,7 @@ export class ShopPanel {
 
   private qtyControls(id: string): string {
     const qty = this.session.cart.qty(id);
-    return `<span class="qty">
+    return `<span class="qty" title="${uiText.shop.qtyTitle}">
         <button data-act="sub" data-item="${id}" ${qty === 0 ? 'disabled' : ''} aria-label="menos">−</button>
         <span class="n">${qty}</span>
         <button data-act="add" data-item="${id}" aria-label="${uiText.shop.add}">+</button>
@@ -144,7 +144,7 @@ export class ShopPanel {
       const owned = state.inventory[id] ?? 0;
       const tip = itemTip(item);
       return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}"${tip ? ` data-tip="${esc(tip)}"` : ''}>
-          <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price}</span>${this.qtyControls(id)}
+          <span class="name">${shopIcon(item)}${item.name}</span><span class="price" title="${uiText.shop.each}">${COIN}${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
         </div>`;
     };
@@ -172,7 +172,7 @@ export class ShopPanel {
       .map(({ itemId, qty }) => {
         const item = content.items[itemId]!;
         return `<div class="row cart-row in-cart" data-row="${itemId}">
-            <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${item.price * qty}</span>${this.qtyControls(itemId)}
+            <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${COIN}${item.price * qty}</span>${this.qtyControls(itemId)}
             <button class="drop" data-act="drop" data-item="${itemId}">${uiText.shop.removeAll}</button>
           </div>`;
       })
@@ -184,6 +184,9 @@ export class ShopPanel {
       <button class="pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })} <span class="key">${uiText.shop.payKey}</span></button>`;
   }
 }
+
+/** A moeda do HUD, ao lado do preço (o preço não se confunde com a quantidade). */
+const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_16.png" alt="" />';
 
 /** Ícone do item na loja: a imagem própria (iconImage) ou o da folha de ícones. */
 function shopIcon(item: { icon?: string; iconImage?: string }): string {
