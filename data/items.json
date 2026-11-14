@@ -2540,11 +2540,11 @@
       "price": 1095,
       "tile": "eletro_robo_base",
       "iconImage": "assets/objects/pixellab/robo_garcom_south.png",
-      "description": "O robô garçom com o upgrade de servir: além da louça suja, leva os pedidos prontos (do balcão ou do equipamento) para quem pediu exatamente aquilo e está esperando. O preço, a gorjeta e a nota são os de sempre. Só pela Assistência, a partir do robô garçom.",
+      "description": "O robô garçom com o upgrade de servir: além da louça suja, leva os pedidos prontos (do balcão ou do equipamento) para quem pediu exatamente aquilo e está esperando. O preço, a gorjeta e a nota são os de sempre. Só pela Assistência, a partir do robô garçom, com a conquista Garçom de primeira.",
       "tags": [
         "waiter_robot"
       ],
-      "requires": { "milestone": "milestone.machine_waiter" },
+      "requires": { "milestone": "milestone.machine_waiter_server" },
       "waiter": { "cellsPerMinute": 1, "restMinutes": 1, "serves": true }
     },
     {

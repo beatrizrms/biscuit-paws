@@ -31,6 +31,7 @@
     { "id": "milestone.customers_150", "track": "customers_open", "name": "Chá da tarde", "at": 150, "reward": { "kind": "recipe", "ids": ["recipe.matcha_cake_slice"] } },
     { "id": "milestone.customers_160", "track": "customers_open", "name": "Toque cítrico", "at": 160, "reward": { "kind": "recipe", "ids": ["recipe.lemon_cake_slice"] } },
     { "id": "milestone.customers_180", "track": "customers_open", "name": "Salgados da casa", "at": 180, "reward": { "kind": "recipe", "ids": ["recipe.sausage_croissant", "recipe.beef_croissant", "recipe.chicken_croissant"] } },
+    { "id": "milestone.machine_waiter_server", "track": "customers_open", "name": "Garçom de primeira", "at": 180, "reward": { "kind": "item", "ids": ["item.waiter_robot_server"] } },
     { "id": "milestone.customers_200", "track": "customers_open", "name": "Duzentos sorrisos", "at": 200, "reward": { "kind": "recipe", "ids": ["recipe.cat_cupcake", "recipe.vanilla_cupcake"] } },
     { "id": "milestone.machine_vacuum", "track": "customers_open", "name": "Salão impecável", "at": 200, "reward": { "kind": "item", "ids": ["item.robot_vacuum"] } },
     { "id": "milestone.customers_220", "track": "customers_open", "name": "Doce francês", "at": 220, "reward": { "kind": "recipe", "ids": ["recipe.macarons"] } },

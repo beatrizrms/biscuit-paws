@@ -16,6 +16,7 @@ function cafe(opts: { robot?: boolean; washer?: boolean; dirty?: [number, number
   state.business = 'inaugurated';
   state.milestones.reached['milestone.machine_waiter'] = 1;
   state.milestones.reached['milestone.machine_dishwasher'] = 1;
+  state.milestones.reached['milestone.machine_waiter_server'] = 1;
   const session = new GameSession(content, state);
   const events: { name: string; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
@@ -94,6 +95,14 @@ describe('robô garçom que serve (upgrade)', () => {
     r.state.surfaces.push({ at: opts.drinkAt ?? [8, 8], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' } });
     return r;
   }
+
+  it('só com a conquista Garçom de primeira (180 clientes) aparece na Assistência', () => {
+    const r = cafe();
+    delete r.state.milestones.reached['milestone.machine_waiter_server'];
+    const robot = r.state.placed.find((p) => p.item === 'item.waiter_robot')!;
+    expect(r.session.upgradeOptions(robot.uid)).toEqual([]);
+    expect(content.milestones.milestones.find((m) => m.id === 'milestone.machine_waiter_server')).toMatchObject({ at: 180, track: 'customers_open' });
+  });
 
   it('vem pela Assistência (650) e leva o pedido pronto para quem pediu: preço e aviso como se ela servisse', () => {
     const { session, state, events } = withOrder({ server: true });
