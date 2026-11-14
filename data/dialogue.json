@@ -1708,6 +1708,56 @@
           "text": "Dá orgulho ver assim. Muito sucesso!"
         }
       ]
+    },
+    "dlg.jacque_knock_poster": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Alguém espia pela porta do café, com um cartaz da inauguração na mão."
+        }
+      ]
+    },
+    "dlg.jacque_meet_poster": {
+      "lines": [
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Oi! Vi o cartaz da inauguração e não resisti. Eu sou a Jacque, acabei de me mudar aqui pra rua."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Sou gateira assumida: lá em casa são seis! A Sabrina e a Cacau, que são pretinhas, o Branquinho, a Jojo, que é frajola, a Amora, tigradinha, e o Feijão, meu siamês."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Seis! Então você entende bem do assunto."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Entendo de pelo no sofá, isso sim! Um café de gatos na minha rua... Vou passar sempre por aqui, às vezes com algum deles."
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Boa sorte com os preparativos!"
+        }
+      ]
+    },
+    "dlg.inaug_jacque": {
+      "lines": [
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Guardei o cartaz da inauguração de lembrança. Foi ele que me trouxe aqui, né?"
+        },
+        {
+          "speaker": "Jacque",
+          "npc": "npc.jacque",
+          "text": "Os seis lá de casa mandam um miado de boa sorte. Sucesso!"
+        }
+      ]
     }
   }
 }

@@ -20,6 +20,28 @@ function cafe() {
 }
 
 describe('preparativos da inauguração', () => {
+  it('a Jacque viu o cartaz: no dia seguinte ao primeiro, ela se apresenta no café (sem contar como convite); a feira não repete', () => {
+    const { session, state } = cafe();
+    const beats = content.story.beats.map((b) => b.id);
+    state.story.completed = beats.slice(0, beats.indexOf('story.first_customer') + 1);
+    state.location = content.map.id;
+    const scripts: string[] = [];
+    session.bus.on('script.requested', ({ scriptId }) => scripts.push(scriptId));
+    expect(session.doJobPoint(cfg.posters[0]!)).toEqual({ ok: true });
+    session.tickClock(2);
+    expect(state.story.completed).toContain('story.first_poster');
+    expect(scripts).not.toContain('scr.jacque_meet_poster'); // no mesmo dia, não
+    state.day += 1;
+    state.time = 10 * 60 + 5;
+    session.tickClock(2);
+    expect(scripts).toContain('scr.jacque_meet_poster');
+    expect(state.flags['met.jacque']).toBe(true);
+    expect(state.openingPrep?.invited ?? []).not.toContain('npc.jacque');
+    // A feira de adoção (o plano B) não começa para quem já conheceu a Jacque.
+    const fair = content.story.beats.find((b) => b.id === 'story.jacque_meet')!;
+    expect(JSON.stringify(fair.start)).toContain('met.jacque');
+  });
+
   it('a conversa que convida traz a pista de onde achar outro amigo (só no dia do convite)', () => {
     const { session, state } = cafe();
     expect(session.inviteHint('npc.gabi')).toBeNull();
