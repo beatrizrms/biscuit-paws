@@ -26,4 +26,20 @@ describe('gato isolado: repouso no cercadinho limpo', () => {
     expect(cat.happiness).toBe(10);
     expect(session.chores().filter((c) => c.kind === 'care' && c.catId === id).map((c) => (c as { need: string }).need)).toEqual(['medicine']);
   });
+
+  it('balão de fome: um dia inteiro sem comer (também no cercadinho), mas não no dia em que só ainda não comeu', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    const session = new GameSession(content, state);
+    session.debugCompleteStory();
+    const id = Object.keys(state.cats).find((k) => state.cats[k]!.sheltered)!;
+    const cat = state.cats[id]!;
+    cat.fedOn = state.day - 1;
+    expect(session.catCare(id)!.needs).not.toContain('hungry');
+    cat.fedOn = state.day - 2;
+    expect(session.catCare(id)!.needs).toContain('hungry');
+    cat.clinic = { stage: 'isolation', until: state.day + 3, procedure: 'neuter' };
+    expect(session.catCare(id)!.needs).toEqual(['hungry']);
+    cat.fedOn = state.day;
+    expect(session.catCare(id)!.needs).toEqual([]);
+  });
 });

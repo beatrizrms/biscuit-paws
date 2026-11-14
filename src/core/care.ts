@@ -32,7 +32,7 @@ export interface CareConfig {
 }
 
 /** O que o gato está precisando agora (o balão mostra o primeiro). */
-export type CareNeed = 'medicine' | 'dirty' | 'sad' | 'play';
+export type CareNeed = 'medicine' | 'hungry' | 'dirty' | 'sad' | 'play';
 
 const clamp = (cfg: CareConfig, v: number) => Math.max(0, Math.min(cfg.max, Math.round(v)));
 
@@ -97,11 +97,17 @@ export function needsMedicine(cat: CatState, day: number): boolean {
   return !!t && t.lastDoseDay !== day;
 }
 
-/** O que falta, na ordem de urgência: remédio, banho, carinho, brincar (o pedido, ainda sem tristeza). */
+/** Passou um dia inteiro sem comer (nem ontem nem hoje; quem chegou hoje ainda não conta). */
+export function isHungry(cat: CatState, day: number): boolean {
+  return (cat.fedOn ?? cat.shelteredOn ?? day) < day - 1;
+}
+
+/** O que falta, na ordem de urgência: remédio, fome (um dia sem comer), banho, carinho, brincar (o pedido, ainda sem tristeza). */
 export function careNeeds(cat: CatState, day: number, cfg: CareConfig, room: PlayRoom): CareNeed[] {
   const c = careOf(cat, cfg);
   const out: CareNeed[] = [];
   if (needsMedicine(cat, day)) out.push('medicine');
+  if (isHungry(cat, day)) out.push('hungry');
   if (c.hygiene < cfg.low.hygiene) out.push('dirty');
   if (c.happiness < cfg.low.happiness) out.push('sad');
   else if (wantsPlay(cat, day, playInterval(cfg, room))) out.push('play');

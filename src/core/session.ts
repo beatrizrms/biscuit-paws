@@ -1427,7 +1427,8 @@ export class GameSession {
       out.push({ kind: 'care', catId: id, need: 'medicine', hasTool: owns('medicine'), done: false });
     }
     for (const id of this.homeCats()) {
-      for (const need of this.catCare(id)?.needs ?? []) {
+      // A fome já tem a tarefa da ração (o pote): o balão basta.
+      for (const need of (this.catCare(id)?.needs ?? []).filter((n) => n !== 'hungry')) {
         const use = toolFor[need];
         out.push({ kind: 'care', catId: id, need, hasTool: !use || owns(use), done: false });
       }
@@ -3391,9 +3392,9 @@ export class GameSession {
     const cat = this.state.cats[catId];
     if (!cat?.sheltered) return null;
     const cfg = this.content.health.care;
-    // Isolado: só o remédio (repouso no cercadinho limpo: nada de banho nem brincadeira).
+    // Isolado: só o remédio e a fome (repouso no cercadinho limpo: nada de banho nem brincadeira).
     const needs = careNeeds(cat, this.state.day, cfg, this.playRoom());
-    return { ...careOf(cat, cfg), needs: this.clinic.isolated(catId) ? needs.filter((n) => n === 'medicine') : needs };
+    return { ...careOf(cat, cfg), needs: this.clinic.isolated(catId) ? needs.filter((n) => n === 'medicine' || n === 'hungry') : needs };
   }
 
   /** Brinquedos posicionados (health.json: care.play.toyTag) e gatos no café, para o pedido de brincar. */

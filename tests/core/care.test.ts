@@ -8,7 +8,8 @@ import { loadContent } from './content';
 
 const content = loadContent();
 const cfg = content.health.care;
-const cat = (over: Partial<CatState> = {}): CatState => ({ sheltered: true, name: 'Mimi', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, ...over });
+// Alimentado (fedOn longe no futuro): estes testes não olham a fome.
+const cat = (over: Partial<CatState> = {}): CatState => ({ sheltered: true, name: 'Mimi', map: 'map.cafe_main', shelteredOn: 1, fedOn: 999, health: 80, sickness: null, ...over });
 
 describe('cuidados (puro)', () => {
   it('sem o campo, vale o inicial; soma fica entre 0 e max', () => {

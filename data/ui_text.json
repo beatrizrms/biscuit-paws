@@ -648,6 +648,7 @@
       "dirty": { "do": "Escovar {cat}: o pelo está sujo", "buy": "Escovar {cat}: comprar uma escova (mercado, Cuidados)" },
       "sad": { "do": "Brincar com {cat}: anda sem ânimo", "buy": "Brincar com {cat}: comprar uma varinha (mercado, Brinquedos)" },
       "medicine": { "do": "Dar o remédio de hoje para {cat}", "buy": "Remédio de {cat}: passar na clínica" },
+      "hungry": { "do": "{cat} está sem comer desde ontem", "buy": "{cat} está sem comer desde ontem: comprar ração" },
       "play": { "do": "{cat} quer brincar: a varinha", "buy": "{cat} quer brincar: comprar uma varinha (mercado, Brinquedos)" }
     },
     "toys": "Brinquedos para os gatos (1 a cada 3): Market, aba Pet",
