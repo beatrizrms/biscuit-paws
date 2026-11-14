@@ -943,6 +943,66 @@ export class CafeService {
 
   /** A viagem em andamento (até a louça em `dishAt`, chegando em `arriveAt`) e até quando ele descansa na base. */
   private waiterTrip: { dishAt: Cell; arriveAt: number } | null = null;
+  /**
+   * Robô que serve: a viagem até o pedido pronto (`toDrink`) e dali até o cliente (`toCustomer`). O pedido fica na
+   * superfície até a entrega (o jogo esconde o que ele está levando: waiterCarrying); carregado no meio, ele recomeça.
+   */
+  private serveTrip: { drinkAt: Cell; customerId: string; recipe: string; phase: 'toDrink' | 'toCustomer'; arriveAt: number } | null = null;
+
+  /** O pedido que o robô está levando agora (a célula de onde ele saiu), para o jogo não desenhar no balcão. */
+  waiterCarrying(): Cell | null {
+    return this.serveTrip?.phase === 'toCustomer' ? this.serveTrip.drinkAt : null;
+  }
+
+  /** O pedido pronto nesta célula, se ainda for o mesmo (ninguém pegou). */
+  private readyAt(at: Cell, recipe: string): Extract<HandItem, { kind: 'drink' }> | undefined {
+    const s = this.st.surfaces.find((x) => same(x.at, at) && x.item.kind === 'drink' && x.item.recipe === recipe);
+    return s?.item as Extract<HandItem, { kind: 'drink' }> | undefined;
+  }
+
+  /** Quem ainda espera aquele pedido (sentado ou em pé, no lugar). */
+  private waitingFor(customerId: string, recipe: string): Customer | undefined {
+    return this.st.service.customers.find((c) => c.id === customerId && c.stage === 'waiting' && c.recipe === recipe);
+  }
+
+  /** A viagem de servir: chega no pedido, leva até o cliente e entrega (ou desiste, se algo mudou no caminho). */
+  private serveTick(now: number, robot: PlacedItem, def: { cellsPerMinute: number; restMinutes: number }): void {
+    const t = this.serveTrip!;
+    if (now < t.arriveAt) return;
+    const c = this.waitingFor(t.customerId, t.recipe);
+    const item = this.readyAt(t.drinkAt, t.recipe);
+    const giveUp = (from: Cell) => {
+      this.serveTrip = null;
+      this.waiterRestUntil = now + Math.ceil(steps(from, robot.at) / def.cellsPerMinute) + def.restMinutes;
+      this.h.bus.emit('waiter.served', { at: [from[0], from[1]], ok: false });
+    };
+    if (t.phase === 'toDrink') {
+      if (!c || !item) return giveUp(t.drinkAt);
+      t.phase = 'toCustomer';
+      t.arriveAt = now + Math.max(1, Math.ceil(steps(t.drinkAt, c.spot) / def.cellsPerMinute));
+      this.h.bus.emit('waiter.serving', { from: [t.drinkAt[0], t.drinkAt[1]], to: [c.spot[0], c.spot[1]], recipe: t.recipe });
+      return;
+    }
+    // Ela pegou o pedido do balcão, ou o cliente desistiu no caminho: o pedido fica onde estava.
+    if (!c || !item) return giveUp(c?.spot ?? t.drinkAt);
+    this.st.surfaces = this.st.surfaces.filter((x) => x.item !== item);
+    this.serveTrip = null;
+    this.deliver(c, item, false);
+    this.waiterRestUntil = now + Math.ceil(steps(c.spot, robot.at) / def.cellsPerMinute) + def.restMinutes;
+    this.h.bus.emit('waiter.served', { at: [c.spot[0], c.spot[1]], ok: true });
+  }
+
+  /** Um pedido pronto para quem espera exatamente ele: o de quem espera há mais tempo, o pronto mais perto da base. */
+  private serveJob(robot: PlacedItem): { drinkAt: Cell; customer: Customer } | null {
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe).sort((a, b) => a.until - b.until);
+    for (const c of waiting) {
+      const ready = this.st.surfaces
+        .filter((s) => s.item.kind === 'drink' && s.item.recipe === c.recipe)
+        .sort((a, b) => steps(a.at, robot.at) - steps(b.at, robot.at))[0];
+      if (ready) return { drinkAt: [...ready.at], customer: c };
+    }
+    return null;
+  }
   private waiterRestUntil = 0;
 
   /** A base do robô garçom posicionada no café, se tiver. */
@@ -970,7 +1030,12 @@ export class CafeService {
     const def = robot ? this.h.content.items[robot.item]?.waiter : undefined;
     if (!robot || !def) {
       this.waiterTrip = null;
+      this.serveTrip = null;
       return;
+    }
+    if (this.serveTrip) {
+      if (def.serves) return this.serveTick(now, robot, def);
+      this.serveTrip = null; // voltou a ser o robô só de louça
     }
     if (this.waiterTrip) {
       if (now < this.waiterTrip.arriveAt) return;
@@ -996,7 +1061,15 @@ export class CafeService {
       this.h.bus.emit('waiter.picked', { at: [at[0], at[1]], vessel, to: [target.at[0], target.at[1]] });
       return;
     }
-    if (now < this.waiterRestUntil || !this.waiterTarget()) return;
+    if (now < this.waiterRestUntil) return;
+    // Servir vem antes da louça: cliente esperando é a prioridade.
+    const job = def.serves ? this.serveJob(robot) : null;
+    if (job) {
+      this.serveTrip = { drinkAt: job.drinkAt, customerId: job.customer.id, recipe: job.customer.recipe!, phase: 'toDrink', arriveAt: now + Math.max(1, Math.ceil(steps(job.drinkAt, robot.at) / def.cellsPerMinute)) };
+      this.h.bus.emit('waiter.going', { at: [job.drinkAt[0], job.drinkAt[1]] });
+      return;
+    }
+    if (!this.waiterTarget()) return;
     // A louça suja mais perto da base (nas mesas e no balcão; a da mão dela não).
     const dish = this.st.surfaces.filter((s) => s.item.kind === 'dirty').sort((a, b) => steps(a.at, robot.at) - steps(b.at, robot.at))[0];
     if (!dish) return;
@@ -1198,6 +1271,9 @@ export class CafeService {
   pickUp(at: Cell): ServiceResult {
     const s = this.surfaceAt(at);
     if (!s) return { ok: false, reason: 'nothing_here' };
+    // O pedido que o robô garçom está levando (já saiu do balcão na tela): não dá para pegar.
+    const carrying = this.waiterCarrying();
+    if (carrying && same(carrying, at) && s.item.kind === 'drink') return { ok: false, reason: 'nothing_here' };
     const problem = this.canHold(s.item);
     if (problem) return { ok: false, reason: problem };
     this.st.surfaces = this.st.surfaces.filter((x) => x !== s);
@@ -1260,11 +1336,18 @@ export class CafeService {
     if (wrong) i = this.st.hands.findIndex((h) => h.kind === 'drink');
     if (i < 0) return { ok: false, reason: 'wrong_order' };
     const [served] = this.st.hands.splice(i, 1);
-    const quality: Quality = served!.kind === 'drink' ? served!.quality ?? 'simple' : 'simple';
+    this.deliver(c, served as Extract<HandItem, { kind: 'drink' }>, wrong);
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Entrega o pedido ao cliente (da mão dela ou do robô garçom): preço, gorjeta, o consumo e o aviso. */
+  private deliver(c: Customer, served: Extract<HandItem, { kind: 'drink' }>, wrong: boolean): void {
+    const quality: Quality = served.quality ?? 'simple';
     const wanted = c.recipe!;
-    if (wrong && served!.kind === 'drink') {
+    if (wrong) {
       c.wrongOrder = true;
-      c.recipe = served!.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
+      c.recipe = served.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
     }
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
@@ -1278,9 +1361,7 @@ export class CafeService {
     recordServed(this.st.stats);
     this.h.addMoney(price + tip, `sale:${r.id}`);
     this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality, ...(wrong ? { wanted } : {}) });
-    this.handsChanged();
     this.h.advanceStory();
-    return { ok: true };
   }
 
   // ---------- Pia ----------

@@ -1,7 +1,7 @@
 // Robô garçom (item.waiter_robot): leva a louça suja das mesas e do balcão para a pia ou a lava-louças.
 import { describe, expect, it } from 'vitest';
 import { GameSession } from '../../src/core/session';
-import { newGameState } from '../../src/core/state';
+import { newGameState, nowAbs } from '../../src/core/state';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -74,5 +74,60 @@ describe('robô garçom', () => {
     advance(session, 30);
     expect(sv.sinkLoad()).toBe(0);
     expect(events.some((e) => e.name === 'waiter.picked')).toBe(false);
+  });
+});
+
+describe('robô garçom que serve (upgrade)', () => {
+  /** Cliente esperando um café preto em pé no balcão, e o café pronto em `at` (no balcão). */
+  function withOrder(opts: { server: boolean; drinkAt?: [number, number] }) {
+    const r = cafe();
+    const robot = r.state.placed.find((p) => p.item === 'item.waiter_robot')!;
+    if (opts.server) {
+      const up = r.session.upgradeOptions(robot.uid).find((o) => o.itemId === 'item.waiter_robot_server');
+      expect(up?.cost).toBe(650);
+      expect(r.session.upgradePlaced(robot.uid, 'item.waiter_robot_server')).toEqual({ ok: true });
+    }
+    r.state.service.customers.push({
+      id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [6, 9], dishAt: [6, 8], recipe: 'recipe.black_coffee',
+      until: nowAbs(r.state) + 90, favorite: null, wantsPremium: false,
+    } as never);
+    r.state.surfaces.push({ at: opts.drinkAt ?? [8, 8], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' } });
+    return r;
+  }
+
+  it('vem pela Assistência (650) e leva o pedido pronto para quem pediu: preço e aviso como se ela servisse', () => {
+    const { session, state, events } = withOrder({ server: true });
+    const money = state.money;
+    advance(session, 30);
+    // Servido (e, em 30 minutos, já tomou e foi embora): o aviso de servido é o de sempre.
+    expect(events.find((e) => e.name === 'customer.served')?.payload).toMatchObject({ customerId: 'c1', recipeId: 'recipe.black_coffee' });
+    expect(state.money).toBeGreaterThan(money);
+    expect(state.surfaces.some((s) => s.item.kind === 'drink')).toBe(false);
+    expect(events.some((e) => e.name === 'customer.served')).toBe(true);
+    expect(events.find((e) => e.name === 'waiter.served')?.payload).toMatchObject({ ok: true });
+  });
+
+  it('o robô sem o upgrade não serve (só a louça)', () => {
+    const { session, state } = withOrder({ server: false });
+    advance(session, 30);
+    expect(state.service.customers.find((x) => x.id === 'c1')!.stage).toBe('waiting');
+    expect(state.surfaces.some((s) => s.item.kind === 'drink')).toBe(true);
+  });
+
+  it('se ela pegar o pedido antes de ele chegar, ele desiste e o cliente continua esperando', () => {
+    const { session, state, events } = withOrder({ server: true, drinkAt: [20, 12] });
+    advance(session, 1);
+    expect(events.some((e) => e.name === 'waiter.going')).toBe(true);
+    state.surfaces = state.surfaces.filter((s) => s.item.kind !== 'drink'); // ela pegou
+    advance(session, 30);
+    expect(state.service.customers.find((x) => x.id === 'c1')!.stage).toBe('waiting');
+    expect(events.find((e) => e.name === 'waiter.served')?.payload).toMatchObject({ ok: false });
+  });
+
+  it('só leva o pedido certo: pronto de outra receita fica no balcão', () => {
+    const { session, state } = withOrder({ server: true });
+    state.surfaces = state.surfaces.map((s) => (s.item.kind === 'drink' ? { ...s, item: { ...s.item, recipe: 'recipe.black_tea' } } : s));
+    advance(session, 30);
+    expect(state.service.customers.find((x) => x.id === 'c1')!.stage).toBe('waiting');
   });
 });

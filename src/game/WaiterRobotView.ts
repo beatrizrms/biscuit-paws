@@ -1,5 +1,6 @@
 // Robô garçom no café: fica parado na frente da base e, quando o núcleo manda (waiter.going), anda até a louça suja,
-// pega (waiter.picked: ela já está na pia ou na lava-louças, para o núcleo) e leva até lá, e volta para a base.
+// pega (waiter.picked: ela já está na pia ou na lava-louças, para o núcleo) e leva até lá, e volta para a base. Com o
+// upgrade de servir: vai até o pedido pronto, leva na bandeja até o cliente (waiter.serving) e entrega (waiter.served).
 // Só desenha: quem decide a viagem e mexe na louça é o núcleo (service.waiterTick).
 import Phaser from 'phaser';
 import type { GameSession } from '../core/session';
@@ -32,10 +33,13 @@ export class WaiterRobotView {
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly session: GameSession,
-    private readonly dishImage: (vessel: string) => Phaser.GameObjects.Image | undefined,
+    /** A imagem do que vai na bandeja: a louça suja ou o pedido pronto (o mesmo ícone do balcão). */
+    private readonly trayImage: (what: { vessel: string } | { recipe: string }) => Phaser.GameObjects.Image | undefined,
   ) {
     session.bus.on('waiter.going', ({ at }) => this.enqueue(() => this.goTo(at)));
-    session.bus.on('waiter.picked', ({ vessel, to }) => this.enqueue(() => this.carry(vessel, to)));
+    session.bus.on('waiter.picked', ({ vessel, to }) => this.enqueue(() => this.carry({ vessel }, to, true)));
+    session.bus.on('waiter.serving', ({ recipe, to }) => this.enqueue(() => this.carry({ recipe }, to, false)));
+    session.bus.on('waiter.served', () => this.enqueue(() => this.home()));
   }
 
   /** Mapa refeito (entrou no café, móvel mudou): o robô parado na base (no café com a base posicionada). */
@@ -88,17 +92,25 @@ export class WaiterRobotView {
     if (stop) await this.walk(stop);
   }
 
-  /** Pegou a louça: ela vai na bandeja até a pia (ou a lava-louças), sai de lá e ele volta para a base. */
-  private async carry(vessel: string, to: [number, number]): Promise<void> {
+  /**
+   * Pegou (a louça suja ou o pedido pronto): vai na bandeja até `to` (a pia ou o cliente). Com a louça, deixa lá e volta
+   * para a base; com o pedido, espera o núcleo entregar (waiter.served) e só então volta.
+   */
+  private async carry(what: { vessel: string } | { recipe: string }, to: [number, number], thenHome: boolean): Promise<void> {
     const robot = this.robot;
     if (!robot) return;
     await this.wait(PAUSE_MS);
     this.dish?.destroy();
-    this.dish = this.dishImage(vessel) ?? null;
+    this.dish = this.trayImage(what) ?? null;
     this.dish?.setOrigin(0.5, 1);
     this.follow();
     const stop = this.freeNear(to);
     if (stop) await this.walk(stop);
+    if (thenHome) await this.home();
+  }
+
+  /** Solta o que está na bandeja e volta para a base, de frente. */
+  private async home(): Promise<void> {
     await this.wait(PAUSE_MS);
     this.dish?.destroy();
     this.dish = null;

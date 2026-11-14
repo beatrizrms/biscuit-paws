@@ -116,8 +116,11 @@ export interface ItemDef {
   seasonalTile?: boolean;
   /** Lava-louças: quantas peças cabem e quanto dura um ciclo (qualquer quantidade). E deposita a louça suja / liga. */
   washer?: { capacity: number; cycleMinutes: number };
-  /** Robô garçom: leva a louça suja das mesas e do balcão para a pia ou a lava-louças (células por minuto de jogo; pausa entre viagens). */
-  waiter?: { cellsPerMinute: number; restMinutes: number };
+  /**
+   * Robô garçom: leva a louça suja das mesas e do balcão para a pia ou a lava-louças (células por minuto de jogo; pausa
+   * entre viagens). serves (o upgrade): também leva os pedidos prontos para quem pediu aquilo e está esperando.
+   */
+  waiter?: { cellsPerMinute: number; restMinutes: number; serves?: boolean };
   /** Baú (a caixa pet): espaços e tags aceitas; E no móvel abre o baú dele (src/core/storage.ts). */
   storage?: StorageDef;
   /** Saco pesado: ao guardar no café, vira estas porções (ex.: 5 rações simples). */

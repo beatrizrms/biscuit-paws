@@ -542,7 +542,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked', 'delivery.dropped'] as const) this.session.bus.on(ev, () => this.refreshParcels());
-    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left', 'waiter.picked'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left', 'waiter.picked', 'waiter.serving', 'waiter.served'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId }) => {
@@ -962,9 +962,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.roomView.refresh(mapId === this.session.content.map.id);
     this.robotView ??= new RobotVacuumView(this, this.session);
     this.robotView.refresh(mapId, ts, () => this.map.solid);
-    this.waiterView ??= new WaiterRobotView(this, this.session, (vessel) => {
-      // A louça suja na bandeja, no tamanho em que fica na mesa (o ícone tem a escala dele).
-      const img = this.handItemImage({ kind: 'dirty', vessel } as HandItem);
+    this.waiterView ??= new WaiterRobotView(this, this.session, (what) => {
+      // Na bandeja, o mesmo ícone do balcão (a louça suja ou o pedido pronto), no tamanho de lá.
+      const item = ('recipe' in what ? { kind: 'drink', recipe: what.recipe, vessel: 'cup' } : { kind: 'dirty', vessel: what.vessel }) as HandItem;
+      const img = this.handItemImage(item);
       return img?.setScale((img.getData('iconScale') as number | undefined) ?? 1);
     });
     this.waiterView.refresh(mapId, ts, () => this.map.solid);
@@ -3484,7 +3485,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.anims.exists('ready-pulse')) {
       this.anims.create({ key: 'ready-pulse', frames: serviceArt.readyMarker.map((_, i) => ({ key: `ready_${i}` })), frameRate: 3, repeat: -1 });
     }
+    // O pedido que o robô garçom está levando sai do balcão (no núcleo ele só sai quando entrega).
+    const carrying = this.session.service.waiterCarrying();
     for (const s of this.session.state.surfaces) {
+      if (carrying && s.at[0] === carrying[0] && s.at[1] === carrying[1] && s.item.kind === 'drink') continue;
       // Pronto para pegar (pedido ou massa): o marcador pulsa embaixo.
       if (s.item.kind === 'drink' || s.item.kind === 'wip') {
         const marker = this.add.sprite(s.at[0] * ts, s.at[1] * ts, 'ready_0').setOrigin(0).setDepth(ySortDepth((s.at[1] + 1) * ts) + 4);
