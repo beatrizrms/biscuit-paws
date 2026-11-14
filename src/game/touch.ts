@@ -6,7 +6,7 @@ import type { InputState } from '../core/movement';
 import { uiText } from './content';
 
 /** As ações dos botões: o nome da tecla equivalente (o mesmo do onKey do mundo). */
-export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC';
+export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC' | 'T';
 
 /** Raio do direcional (px da interface, 640 x 360) e a partir de que parte dele conta direção e corrida. */
 const STICK_R = 62;
@@ -71,6 +71,12 @@ class TouchInput {
     b.classList.toggle('t-context', !!text);
   }
 
+  /** O botão Tomar (o T do teclado) só aparece com o café pronto na mão. */
+  showDrink(on: boolean): void {
+    const b = this.root?.querySelector<HTMLButtonElement>('.t-drink');
+    if (b && b.hidden === on) b.hidden = !on;
+  }
+
   /** Ouve um botão; devolve a função que para de ouvir (os mini games param no fim da partida). */
   on(action: TouchAction, cb: () => void): () => void {
     if (!this.listeners.has(action)) this.listeners.set(action, new Set());
@@ -88,6 +94,7 @@ class TouchInput {
       <div class="t-stick"><div class="t-knob"></div></div>
       <button class="t-btn t-action" data-act="E">E</button>
       <button class="t-btn t-small t-run" aria-pressed="false">${uiText.touch.run}</button>
+      <button class="t-btn t-small t-drink" data-act="T" hidden>${uiText.touch.drink}</button>
       <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);

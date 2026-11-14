@@ -100,6 +100,42 @@ describe('receitas e cardápio', () => {
     expect(sv.doses('item.tea_black_bag')).toBe(0);
   });
 
+  it('pedido errado: dá para entregar, ele toma o que recebeu, paga sem gorjeta e a nota cai (review.wrongOrder)', () => {
+    const seatChance = content.service.seatChance;
+    content.service.seatChance = 0;
+    onTestFinished(() => void (content.service.seatChance = seatChance));
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    advance(session, 6);
+    const c = state.service.customers[0]!;
+    expect(c.recipe).toBe('recipe.black_coffee');
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_tea', vessel: 'cup', quality: 'simple' });
+    expect(sv.customerToServe([[4, 7]])).toBe(c);
+    expect(sv.wrongFor(c)).toBe(true);
+    const stars: number[] = [];
+    session.bus.on('customer.left', (e) => e.stars !== undefined && stars.push(e.stars));
+    const money = state.money;
+    expect(sv.serve(c.id)).toEqual({ ok: true });
+    expect(c.wrongOrder).toBe(true);
+    expect(c.recipe).toBe('recipe.black_tea');
+    expect(state.money).toBe(money + content.recipes['recipe.black_tea']!.price); // sem gorjeta
+    advance(session, content.service.consumeMinutes.standing + 1);
+    expect(stars[0]).toBeLessThanOrEqual(content.service.review.start - content.service.review.wrongOrder!);
+  });
+
+  it('a bebida pode ir para a mesa alta (stand) e voltar para a mão', () => {
+    const { session, sv, state } = openCafe();
+    session.receiveItem('item.table_tall_round');
+    expect(session.place('item.table_tall_round', [14, 8])).toEqual({ ok: true });
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup', quality: 'simple' });
+    const feet: [number, number][] = [[14, 10]];
+    expect(sv.canPutDown([14, 9], feet, false)).toBe(true);
+    expect(sv.putDown([14, 9], feet, false)).toEqual({ ok: true });
+    expect(sv.surfaceAt([14, 9])?.item.kind).toBe('drink');
+    expect(sv.pickUp([14, 9])).toEqual({ ok: true });
+    expect(state.hands).toHaveLength(1);
+  });
+
   it('o quadro tem slots (dados) e só aceita receita desbloqueada', () => {
     const { sv, state } = openCafe({ served: 15 });
     expect(sv.toggleMenu('recipe.cafe_latte')).toEqual({ ok: false, reason: 'not_unlocked' });

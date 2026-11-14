@@ -374,6 +374,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
       this.tryDrinkCoffee();
     });
+    // No toque, o botão Tomar aparece só com o café pronto na mão.
+    const drinkBtn = () => touch.showDrink(this.session.holdingCoffee());
+    this.session.bus.on('hands.changed', drinkBtn);
+    drinkBtn();
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
     // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
@@ -1321,7 +1325,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    */
   private onKey(key: string, fn: () => void): void {
     // O botão de toque da mesma tecla faz o mesmo (só com o mundo ativo: num mini game, os botões são do jogo).
-    if (['E', 'I', 'C', 'M', 'P', 'F', 'ESC'].includes(key)) touch.on(key as TouchAction, () => this.scene.isActive() && !this.miniGameOpen && fn());
+    if (['E', 'I', 'C', 'M', 'P', 'F', 'ESC', 'T'].includes(key)) touch.on(key as TouchAction, () => this.scene.isActive() && !this.miniGameOpen && fn());
     let last: KeyboardEvent | null = null;
     this.input.keyboard!.on(`keydown-${key}`, (e: KeyboardEvent) => {
       if (e === last) return;
@@ -3170,7 +3174,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const placedAt = (uid: string) => st.placed.find((p) => p.uid === uid)!.at;
     const customer = sv.customerToServe(feet);
     // Com o pedido na mão e o cliente ao alcance, entregar vence tudo em volta.
-    if (customer && !target) add([customer.spot], E_TIER.service, this.hintCell(customer.spot, 'customer'), () => report(sv.serve(customer.id)), true);
+    if (customer && !target) add([customer.spot], E_TIER.service, this.hintCell(customer.spot, sv.wrongFor(customer) ? 'customer_wrong' : 'customer'), () => report(sv.serve(customer.id)), true);
     // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
     const sink = sv.sinkCell();
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
@@ -3273,7 +3277,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // para pegar ao alcance não larga a louça da bandeja no chão.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
-      if (sv.canPutDown(at, feet, !!target)) add([at], E_TIER.putDown, null, () => report(sv.putDown(at, feet, !!target)));
+      if (sv.canPutDown(at, feet, !!target)) add([at], E_TIER.putDown, this.hintCell(at, 'put_down'), () => report(sv.putDown(at, feet, !!target)));
     }
     return out;
   }

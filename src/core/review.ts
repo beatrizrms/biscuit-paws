@@ -18,6 +18,8 @@ export interface ReviewConfig {
   dirt: ReviewBand[];
   /** Nota de quem desiste (a paciência acabou). */
   gaveUp: number;
+  /** Estrelas a menos de quem recebeu outra coisa (pedido errado). */
+  wrongOrder?: number;
   /** Reputação por nota ("1" a "5"). */
   reputation: Record<string, number>;
   /** A nota do café (HUD) é a média das últimas tantas avaliações. */
@@ -33,9 +35,9 @@ export interface Waits {
 const minusOf = (bands: readonly ReviewBand[], value: number) => Math.max(0, ...bands.filter((b) => value > b.over).map((b) => b.minus));
 
 /** Estrelas de 1 a 5 (inteiras). */
-export function reviewStars(cfg: ReviewConfig, waits: Waits, dirt: number, gaveUp = false): number {
+export function reviewStars(cfg: ReviewConfig, waits: Waits, dirt: number, gaveUp = false, wrongOrder = false): number {
   if (gaveUp) return cfg.gaveUp;
-  const stars = cfg.start - minusOf(cfg.queue, waits.queue) - minusOf(cfg.seated, waits.seated) - minusOf(cfg.dirt, dirt);
+  const stars = cfg.start - minusOf(cfg.queue, waits.queue) - minusOf(cfg.seated, waits.seated) - minusOf(cfg.dirt, dirt) - (wrongOrder ? (cfg.wrongOrder ?? 0) : 0);
   return Math.max(1, Math.min(5, Math.round(stars)));
 }
 

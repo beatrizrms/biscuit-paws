@@ -799,7 +799,7 @@
     "washed": "Louça lavada.",
     "open": "Atendimento: {n}/{cap} clientes",
     "hands": "Nas mãos: {name}",
-    "servedTip": "+{price} ({name}) +{tip} de gorjeta",
+    "servedTip": "+{price} ({name}) +{tip} de gorjeta", "servedWrong": "Pedido errado! Queria {wanted} e ganhou {name}: pagou {price}, sem gorjeta (nota baixa).",
     "premium": "★",
     "wipReady": "Massa pronta: leve ao {equipment}.",
     "sinkLoaded": "Louça na pia: {n}. E com as mãos livres para lavar.",
@@ -832,7 +832,7 @@
     "closed": "Café fechado · abre {when}"
   },
   "playerFallback": "Você",
-  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "run": "Correr" },
+  "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "run": "Correr", "drink": "Tomar" },
   "upgrade": {
     "title": "Upgrade",
     "hint": "A assistência técnica troca o móvel por outro do mesmo tipo, no mesmo lugar: outra peça do balcão, a cadeira virada para outro lado, outra cor, o pote automático. Você paga a diferença entre as peças (se a nova for mais cara) + {fee} moedas do serviço. Comprando do zero, você fica com as duas.",
@@ -1357,6 +1357,8 @@
   },
   "hints": {
     "customer": "Atender",
+    "customer_wrong": "Entregar (não é o pedido)",
+    "put_down": "Pôr aqui",
     "sink": "Pia",
     "washer": "Lava-louças",
     "repair": "Consertar",

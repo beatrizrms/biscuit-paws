@@ -22,6 +22,10 @@
 /* Correr: liga e desliga com um toque (ligado, fica dourado). */
 .touch-layer .t-btn.t-run { position: absolute; right: 82px; bottom: 32px; }
 .touch-layer .t-run.on { background: #f4c06a; }
+/* Tomar (o café da mão): ao lado do E, por cima do jogo; só aparece com o café pronto na mão. */
+.touch-layer .t-btn.t-drink { position: absolute; right: 82px; bottom: 66px; background: #ffe3a3; }
+.touch-layer .t-btn.t-drink[hidden] { display: none; }
+#stage.sides .touch-layer .t-btn.t-drink { bottom: 18px; right: calc(max(0px, (var(--side-r) - 60px) / 2) - var(--side-r) + 66px); }
 .touch-layer .t-action { right: 16px; bottom: 18px; width: 58px; height: 58px; font-size: 19px; }
 .touch-layer .t-shortcuts { position: absolute; right: 8px; top: 86px; display: flex; flex-direction: column; gap: 5px; }
 .touch-layer .t-small { position: static; width: 48px; height: 28px; border-radius: 9px; font-size: 9px; }

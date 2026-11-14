@@ -36,6 +36,8 @@ export interface Customer {
   favorite: string | null;
   wantsPremium: boolean;
   /** Quanto da paciência gastou em pé (fila) e sentado (até ser atendido), de 0 a 1: entra na avaliação. */
+  /** Recebeu outra coisa (pedido errado): a nota cai (review.wrongOrder). */
+  wrongOrder?: boolean;
   waits?: Waits;
 }
 
@@ -899,7 +901,7 @@ export class CafeService {
     // Desistiu (a paciência acabou): conta nas estatísticas e quebra a sequência "ninguém sai de mãos vazias".
     if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
-    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy);
+    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true);
     recordReview(this.st.stats, stars);
     const reputation = reviewReputation(cfg, stars);
     if (reputation !== 0) this.h.addReputation(reputation, `review:${stars}`);
@@ -1149,26 +1151,44 @@ export class CafeService {
     return { ok: true };
   }
 
-  /** Cliente ao alcance que está esperando algo que ela tem na mão. */
+  /**
+   * Cliente ao alcance esperando, com um pedido pronto na mão: primeiro quem pediu o que ela tem; senão, qualquer um
+   * (dá para entregar o pedido errado: ele aceita, mas a nota cai).
+   */
   customerToServe(feet: readonly Cell[]): Customer | undefined {
     const drinks = this.st.hands.filter((i) => i.kind === 'drink');
-    return this.st.service.customers.find(
-      (c) => c.stage === 'waiting' && near(feet, c.spot) && drinks.some((d) => d.kind === 'drink' && d.recipe === c.recipe),
-    );
+    if (drinks.length === 0) return undefined;
+    // Perto dele ou da mesa dele (do outro lado da mesa também): entregar vence pôr a bebida na mesa.
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe && (near(feet, c.spot) || near(feet, c.dishAt)));
+    return waiting.find((c) => drinks.some((d) => d.kind === 'drink' && d.recipe === c.recipe)) ?? waiting[0];
+  }
+
+  /** O que ela tem na mão não é o que este cliente pediu (a entrega seria o pedido errado). */
+  wrongFor(c: Customer): boolean {
+    return !this.st.hands.some((h) => h.kind === 'drink' && h.recipe === c.recipe);
   }
 
   /** Entrega o pedido: o cliente paga (premium paga mais) e, satisfeito, deixa gorjeta. */
   serve(customerId: string): ServiceResult {
     const c = this.st.service.customers.find((x) => x.id === customerId);
     if (!c || c.stage !== 'waiting') return { ok: false, reason: 'nothing_here' };
-    const i = this.st.hands.findIndex((h) => h.kind === 'drink' && h.recipe === c.recipe);
+    // O pedido certo; sem ele, o primeiro pronto da mão (pedido errado: ele aceita, paga o que recebeu, sem gorjeta, e
+    // a nota cai: review.wrongOrder).
+    let i = this.st.hands.findIndex((h) => h.kind === 'drink' && h.recipe === c.recipe);
+    const wrong = i < 0;
+    if (wrong) i = this.st.hands.findIndex((h) => h.kind === 'drink');
     if (i < 0) return { ok: false, reason: 'wrong_order' };
     const [served] = this.st.hands.splice(i, 1);
     const quality: Quality = served!.kind === 'drink' ? served!.quality ?? 'simple' : 'simple';
+    const wanted = c.recipe!;
+    if (wrong && served!.kind === 'drink') {
+      c.wrongOrder = true;
+      c.recipe = served!.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
+    }
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
     c.waits = { queue: c.waits?.queue ?? 0, seated: this.used(c) };
-    const satisfied = patienceLeft >= this.cfg.tipPatience && (!c.wantsPremium || quality === 'premium');
+    const satisfied = !wrong && patienceLeft >= this.cfg.tipPatience && (!c.wantsPremium || quality === 'premium');
     const price = this.priceOf(r.id, quality);
     const tip = satisfied ? Math.max(1, Math.round(price * this.cfg.tipRate)) : 0;
     c.stage = 'drinking';
@@ -1176,7 +1196,7 @@ export class CafeService {
     this.st.service.served++;
     recordServed(this.st.stats);
     this.h.addMoney(price + tip, `sale:${r.id}`);
-    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality });
+    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality, ...(wrong ? { wanted } : {}) });
     this.handsChanged();
     this.h.advanceStory();
     return { ok: true };

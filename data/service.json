@@ -2,12 +2,13 @@
   "schemaVersion": 1,
   "_comment": "Atendimento. demand: peso no sorteio do pedido para receitas quentes (hot) e geladas (cold), por estação e por clima (multiplicam; o que não está aqui pesa 1). menuSlots: itens no quadro. servedAt: onde cada louça pode ser servida (beber em pé ou na mesa; comer só na mesa); a capacidade sai dos lugares e da louça (capacity.ts), sem teto fixo. enabledWhen: quando entram clientes (a partir do funcionamento parcial, data/business.json). queue: fila na entrada. sink: pia; pantry: o armário da cozinha (despensa), ao lado da pia: as compras de ingrediente vão para a mochila e ela guarda ali; só o que está na despensa conta para as receitas; sinkCapacity peças; washMinutesPerDish por peça. equipment: chave -> tag do móvel. customerLooks: NPCs de cliente. premiumPriceMultiplier: premium vende mais caro. shoppingListBelow: ingrediente do cardápio com menos doses que isto entra na lista de compras (botão do cardápio). breakdown: os equipamentos de preparo e a lava-louças quebram depois de um número de usos sorteado entre minUses e maxUses (cada etapa de preparo e cada ciclo = 1 uso); E no quebrado chama o Tião, que vem na hora e conserta em repairMinutes por repairPrice moedas (o contador recomeça com outro sorteio). extraPerEquipment: sem pedido, ela pode adiantar uma receita do cardápio (escolhe numa lista), mas cada equipamento só tem até tantos itens sem dono (preparando, na mão ou em cima de balcão e mesa, menos os pedidos esperando). Gorjeta (tipRate do preço) quando satisfeito: atendido com pelo menos tipPatience da paciência e, se gosta de premium, servido premium. preferences: favorito do quadro e gosto por premium (sorteados). schedule: horário de funcionamento (a jogadora escolhe no app Horário do celular): default (days: segunda a domingo; open/close), earliest/latest, stepMinutes, minHours; lunch (no default) e lunchMinutes: o almoço, que ela escolhe no mesmo app (ou desliga): por lunchMinutes não entra cliente novo, mas a fila e quem já pediu continuam, com a paciência parada (quem está consumindo segue normal). Fora do horário não entra cliente novo; quem está na fila vai embora; ela só vai para casa depois que o último cliente sair. fixtures: o armário da despensa e a pia, móveis da jogadora que já vêm no café (no lugar de at; saves antigos ganham ao carregar): mudam de lugar (Mover), mas não vão para a mochila nem estão à venda (tag fixture); use: a célula da ação (a despensa, a pia) a partir do canto do móvel. sink e pantry: as células da ação sem esses móveis.",
   "review": {
-    "_comment": "Avaliação ao sair (src/core/review.ts): começa em start e perde a maior faixa alcançada de cada coisa. queue e seated: fração da paciência gasta em pé (fila) e sentado até ser atendido (0 a 1). dirt: sujeiras visíveis no salão + louça suja nas mesas, na hora em que ele sai. gaveUp: nota de quem desiste. reputation: reputação por nota. averageOf: a nota do café (estrelas no HUD) é a média das últimas tantas avaliações; sem nenhuma, zerada.",
+    "_comment": "Avaliação ao sair (src/core/review.ts): começa em start e perde a maior faixa alcançada de cada coisa. queue e seated: fração da paciência gasta em pé (fila) e sentado até ser atendido (0 a 1). dirt: sujeiras visíveis no salão + louça suja nas mesas, na hora em que ele sai. gaveUp: nota de quem desiste. wrongOrder: estrelas a menos de quem recebeu outra coisa (pedido errado). reputation: reputação por nota. averageOf: a nota do café (estrelas no HUD) é a média das últimas tantas avaliações; sem nenhuma, zerada.",
     "start": 5,
     "queue": [{ "over": 0.25, "minus": 1 }, { "over": 0.6, "minus": 2 }],
     "seated": [{ "over": 0.3, "minus": 1 }, { "over": 0.7, "minus": 2 }],
     "dirt": [{ "over": 0, "minus": 1 }, { "over": 3, "minus": 2 }],
     "gaveUp": 1,
+    "wrongOrder": 3,
     "reputation": { "1": -2, "2": -1, "3": 0, "4": 1, "5": 2 },
     "averageOf": 50
   },
@@ -121,10 +122,7 @@
       "tag": "oven"
     }
   },
-  "surfaceTags": [
-    "bar",
-    "table"
-  ],
+  "surfaceTags": ["bar", "table", "stand"],
   "standingTag": "bar",
   "_seatChance": "Com mesa livre e lugar livre no balcão, a chance de o cliente preferir sentar (a mesa e o lugar no balcão são sorteados entre os livres).",
   "seatChance": 0.7,

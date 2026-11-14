@@ -213,7 +213,8 @@ export interface GameEvents {
   'prep.started': { stationUid: string; recipeId: string };
   'prep.ready': { stationUid: string; recipeId: string; final: boolean };
   'customer.arrived': { customerId: string; recipeId: string | null };
-  'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium' };
+  /** wanted: o que ele tinha pedido, quando recebeu outra coisa (pedido errado). */
+  'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium'; wanted?: string };
   'sink.changed': { load: number };
   /** A lavagem na pia pausou (ela saiu da frente da pia) ou voltou a andar. */
   'sink.paused': { paused: boolean };
