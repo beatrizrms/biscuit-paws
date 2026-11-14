@@ -81,7 +81,8 @@ export function ambienceOf(map: MapData, catalog: TileCatalog, cfg: AmbienceConf
     const def = catalog.tiles[obj.tile];
     if (!def) continue;
     const door = obj.id.startsWith('obj.door.');
-    if (def.layer !== 'wall' && !door) continue;
+    // Peça levantada (lift: o cartaz colado na fachada) só é desenhada na parede; a célula dela é piso e tem a sombra.
+    if ((def.layer !== 'wall' && !door) || obj.lift) continue;
     for (let dy = door ? def.h - 1 : 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) extraWalls.add(`${obj.at[0] + dx},${obj.at[1] + dy}`);
   }
   const isWall = (c: number, r: number) =>
