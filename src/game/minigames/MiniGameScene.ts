@@ -10,6 +10,8 @@ import { content, uiText } from '../content';
 import { GAME_HEIGHT, GAME_WIDTH, setupCamera } from '../screen';
 import { addTileImage } from '../tileArt';
 import { iconHtml } from '../ui/ShopPanel';
+import { isDebugOn } from '../debug';
+import { startPerfMeter } from './perfMeter';
 import { MiniGameControls } from './controls';
 import { keyless, touch } from '../touch';
 
@@ -228,6 +230,11 @@ export abstract class MiniGameScene extends Phaser.Scene {
       <button class="menu-btn mg-skip" data-act="skip">${this.skipLabel()}</button></div><div class="mg-overlay"></div>`;
     root.appendChild(this.layer);
     this.hud = this.layer.querySelector('.mg-time');
+    // Debug: o medidor de quadros (travadas que só acontecem num aparelho).
+    if (isDebugOn()) {
+      const stop = startPerfMeter(this, this.layer);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, stop);
+    }
     this.layer.addEventListener('click', (e) => {
       const act = (e.target as HTMLElement).closest<HTMLElement>('[data-act]')?.dataset.act;
       if (act === 'start') this.begin();
