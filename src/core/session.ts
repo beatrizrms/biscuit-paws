@@ -235,6 +235,9 @@ export type ActionResult =
 /** Quantos dias do jogo a etiqueta Novo fica (no Market e nas receitas do cardápio). */
 export const NEW_BADGE_DAYS = 2;
 
+/** O ponto do "!" da porta escondida do porão (data/jobs.json). */
+const BASEMENT_POINT = 'pt.basement_find';
+
 export class GameSession {
   readonly bus = new EventBus();
 
@@ -765,11 +768,11 @@ export class GameSession {
   }
 
   /**
-   * A ração (ou a areia) que vai no pote (ou na caixa): a ativa na barra, se for uma; senão a primeira que ela tiver na
-   * mochila (na ordem dos itens: a simples antes da premium). Assim um E no pote basta, sem escolher na barra.
+   * A ração (ou a areia) que vai no pote (ou na caixa): só a ativa na barra (decisão 255: sem ela selecionada, o E diz
+   * para escolher na barra; antes, pegava a primeira da mochila).
    */
   supplyFor(use: 'food_bowl' | 'litter_box'): string | null {
-    return this.activeUse(use) ?? Object.values(this.content.items).find((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0)?.id ?? null;
+    return this.activeUse(use);
   }
 
   /** Gatos do café (os que comem na tigela e usam a caixa de areia). */
@@ -1885,6 +1888,11 @@ export class GameSession {
         if (p && p.map === mapId && !done.has(id)) out.push(p);
       }
     }
+    // O porão: depois da ligação da Dona Neusa, com o café vazio, o "!" na parede da porta escondida.
+    if (this.basementFindPending()) {
+      const p = this.content.jobPoints[BASEMENT_POINT];
+      if (p && p.map === mapId) out.push(p);
+    }
     // Os festivais usam pontos de pedido sem ser um pedido (as etapas ficam em state.festivals).
     const fest = this.activeFestival();
     for (const id of fest ? pendingFestivalPoints(this.state.festivals, fest, this.state.day) : []) {
@@ -1951,6 +1959,13 @@ export class GameSession {
 
   /** Faz um ponto de pedido; no último ponto do último passo, o pedido é pago. */
   doJobPoint(pointId: string): ActionResult {
+    // O "!" da porta escondida: ela olha a parede e acha o porão (a descoberta do rooms.json, com a fala e a porta).
+    if (pointId === BASEMENT_POINT) {
+      if (!this.basementFindPending()) return { ok: false, reason: 'not_found' };
+      this.state.flags['basement.found'] = true;
+      this.advanceStory();
+      return { ok: true };
+    }
     if (this.content.business.openingPrep?.posters.includes(pointId)) return this.pastePoster(pointId);
     const arrival = this.arrivals.interact(pointId);
     if (typeof arrival === 'string') return { ok: false, reason: arrival };
@@ -2945,6 +2960,16 @@ export class GameSession {
    * Conversou com um amigo (no passeio, na festa, com o Tião na obra): a primeira conversa do dia vale os pontos da
    * amizade (friendship.json: points.chat), uma vez por dia por pessoa. Devolve os pontos dados (0: já conversou hoje).
    */
+  /** O "!" do porão: a ligação já foi, a porta ainda está escondida e não tem cliente no café. */
+  private basementFindPending(): boolean {
+    return (
+      this.state.story.completed.includes('story.basement_call') &&
+      !this.state.flags['basement.found'] &&
+      this.roomState('room.back_room') === 'locked' &&
+      this.state.service.customers.length === 0
+    );
+  }
+
   /** Os preparativos da inauguração estão valendo: o café já atende (primeiro cliente) e ainda não inaugurou. */
   openingPrepActive(): boolean {
     return !!this.content.business.openingPrep && this.state.story.completed.includes('story.first_customer') && this.state.business !== 'inaugurated';
@@ -5223,6 +5248,7 @@ export class GameSession {
       santaGuest: (npc) => this.santaGuests().includes(npc),
       eventDay: () => this.isEventDay(),
       christmasDay: () => isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day),
+      afterHours: () => this.state.time >= parseClock(this.service.todaySchedule().close),
       christmasTreat: (id) => {
         const t = this.santaTreat();
         // Com a ligação da manhã, só depois dela (a novidade entra quando a ligação fecha).

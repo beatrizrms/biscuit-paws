@@ -152,7 +152,9 @@ describe('começo da história', () => {
     expect(session.buy('item.cat_food_basic')).toEqual({ ok: true });
     buyAndPlace(session, 'item.food_bowl', [14, 9]);
     expect(session.goals().map((g) => g.title)).toEqual(['Hora de comer']);
-    // Alimentar: um E no pote basta (a ração da mochila vai sozinha). Pontinhos de afeto, cartão final e fim do dia.
+    // Alimentar: só com a ração ativa na barra (sem ela, o E pede para escolher). Pontinhos de afeto, cartão final e fim do dia.
+    expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: false, reason: 'needs_food' });
+    expect(session.selectHotbarItem('item.cat_food_basic')).toBe(true);
     expect(session.feedFromBowl(session.bowlNear([[14, 8]])!)).toEqual({ ok: true });
     expect(session.state.relationships['player|cat.first_stray']).toBe(content.relationships.feedPoints);
     session.finishCutscene('cs.prologue_end');

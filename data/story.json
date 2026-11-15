@@ -692,7 +692,7 @@
       "after": [
         "story.inauguration"
       ],
-      "_when": "A Dona Neusa liga contando do porão (nunca no dia da inauguração); a porta só aparece depois, quando ela olhar o café com calma (rooms.json: discover).",
+      "_when": "A Dona Neusa liga contando do porão no fim do expediente (passou a hora de fechar), a partir do dia seguinte à inauguração. Depois, com o café vazio, um \"!\" aparece na parede da porta escondida (pt.basement_find); o E nele descobre a porta (rooms.json: discover).",
       "when": {
         "all": [
           {
@@ -702,26 +702,13 @@
             "nextDay": "story.inauguration"
           },
           {
-            "clock": {
-              "gte": "09:00"
-            }
-          },
-          {
-            "not": {
-              "clock": {
-                "gte": "19:00"
-              }
-            }
+            "afterHours": true
           }
         ]
       },
       "effects": [
         {
           "cutscene": "cs.neusa_basement_call"
-        },
-        {
-          "startTimer": "basement.look",
-          "minutes": 40
         }
       ],
       "exclusive": true

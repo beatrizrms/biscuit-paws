@@ -26,7 +26,7 @@ function afterFirstCustomer(money = 1000, progress: { served?: number; day?: num
   state.story.completed.push(...until('story.inauguration').filter((b) => b !== 'story.back_room' && b !== 'story.backyard' && b !== 'story.basement_call'));
   if (progress.call !== false) {
     state.story.completed.push('story.basement_call');
-    state.timers['basement.look'] = 0;
+    state.flags['basement.found'] = true;
   }
   state.business = 'inaugurated';
   state.service.served = progress.served ?? 40;
@@ -112,17 +112,31 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.goals().map((g) => g.title)).toContain('O porão');
   });
 
-  it('a Dona Neusa liga primeiro (nunca no dia da inauguração); a porta só aparece depois de um tempo, no café', () => {
-    // No dia da inauguração: nada.
+  it('a Dona Neusa liga no fim do expediente, a partir do dia seguinte à inauguração; com o café vazio, o "!" na parede mostra a porta', () => {
+    const call = (events: { name: EventName; payload: unknown }[]) => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.neusa_basement_call');
+    // No dia da inauguração, mesmo depois de fechar: nada.
     const same = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 0 });
+    same.state.time = parseClock(same.session.service.todaySchedule().close);
+    same.session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(same.state.story.completed).not.toContain('story.basement_call');
-    expect(same.session.roomState('room.back_room')).toBe('locked');
-    // No dia seguinte: a ligação, e a porta ainda não.
-    const { session, events } = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 1 });
-    expect(events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.neusa_basement_call')).toBe(true);
+    // No dia seguinte, durante o expediente: ainda não.
+    const { session, state, events } = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 1 });
+    expect(call(events)).toBe(false);
+    // Na hora de fechar: a ligação, e a porta ainda não.
+    state.time = parseClock(session.service.todaySchedule().close);
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(call(events)).toBe(true);
     expect(session.roomState('room.back_room')).toBe('locked');
-    // Uns 40 minutos depois, no café: ela acha a porta.
-    for (let i = 0; i < 45; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
+    // Com clientes no café, o "!" ainda não aparece; quando o último sai, aparece na parede da porta escondida.
+    state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: 99999, favorite: null, wantsPremium: false });
+    expect(session.pendingJobPoints('map.cafe_main').some((p) => p.id === 'pt.basement_find')).toBe(false);
+    state.service.customers = [];
+    expect(session.pendingJobPoints('map.cafe_main').some((p) => p.id === 'pt.basement_find')).toBe(true);
+    for (let i = 0; i < 30; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(session.roomState('room.back_room')).toBe('locked'); // sem o E no "!", a porta não aparece sozinha
+    // E no "!": a descoberta (a fala e a porta), e o "!" some.
+    expect(session.doJobPoint('pt.basement_find')).toEqual({ ok: true });
+    expect(session.pendingJobPoints('map.cafe_main').some((p) => p.id === 'pt.basement_find')).toBe(false);
     expect(session.roomState('room.back_room')).toBe('discovered');
     expect(dialogues(events)).toContain('dlg.room_back_found');
   });

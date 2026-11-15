@@ -415,6 +415,23 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     for (const id of ids) state.cats[id] = { sheltered: true, name: id, map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
   };
 
+  it('as chegadas vêm espaçadas: a próxima da fila só começa minDaysBetween dias depois do fim da anterior', () => {
+    const { session, state } = cafe();
+    session.arrivals.queueNow('arr.cat_on_pole');
+    expect(state.arrivals.active?.id).toBe('arr.cat_on_pole');
+    session.arrivals.finish('declined');
+    state.arrivals.queue.push('arr.cat_on_pole'); // entrou na fila pelo gatilho dela
+    session.arrivals.tick();
+    expect(state.arrivals.active).toBeNull(); // no mesmo dia, espera
+    const gap = content.arrivals.minDaysBetween!;
+    state.day += gap - 1;
+    session.arrivals.tick();
+    expect(state.arrivals.active).toBeNull();
+    state.day += 1;
+    session.arrivals.tick();
+    expect(state.arrivals.active?.id).toBe('arr.cat_on_pole');
+  });
+
   it('gato no poste: quem ela ouve muda a dificuldade e ganha corações; a vila ganha reputação', () => {
     const { session, state, events } = cafe();
     session.arrivals.queueNow('arr.cat_on_pole');

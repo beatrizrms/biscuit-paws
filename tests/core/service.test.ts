@@ -267,6 +267,14 @@ describe('ciclo do pedido', () => {
     expect(state.dishes.cup).toBe(6);
   });
 
+  it('dois pedidos iguais na mesma mesa: a entrega vai para quem espera há mais tempo', () => {
+    const { sv, state } = openCafe();
+    const base = { look: 0, stage: 'waiting' as const, kind: 'table' as const, dishAt: [4, 6] as [number, number], recipe: 'recipe.black_coffee', favorite: null, wantsPremium: false };
+    state.service.customers.push({ ...base, id: 'novo', spot: [3, 6], until: 900 }, { ...base, id: 'antigo', spot: [5, 6], until: 600 });
+    state.hands = [{ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup', quality: 'simple' }];
+    expect(sv.customerToServe([[4, 7]])?.id).toBe('antigo');
+  });
+
   it('ela escolhe a receita no equipamento (sem limite de itens sem dono); só um pronto em cima do equipamento', () => {
     const { session, sv, state } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
@@ -624,24 +632,24 @@ describe('quest: o primeiro cliente', () => {
 });
 
 describe('fase 2: bandeja, pesados e gato no colo', () => {
-  it('com a bandeja selecionada na barra, leva até 3 louças (só louça) e fica um pouco mais lenta', () => {
+  it('com a bandeja selecionada na barra, leva até 6 louças (só louça) e fica um pouco mais lenta', () => {
     const { session, sv, state } = openCafe();
     expect(sv.toggleTray()).toEqual({ ok: false, reason: 'no_tray' });
     expect(session.buy('item.tray')).toEqual({ ok: true });
     expect(session.buy('item.tray')).toEqual({ ok: false, reason: 'already_owned' });
     expect(session.selectHotbarItem('item.tray')).toBe(true);
     expect(state.tray).toBe(true);
-    for (const at of [[4, 6], [5, 6], [6, 6], [6, 7]] as [number, number][]) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
-    expect(sv.pickUp([4, 6])).toEqual({ ok: true });
-    expect(sv.pickUp([5, 6])).toEqual({ ok: true });
-    expect(sv.pickUp([6, 6])).toEqual({ ok: true });
-    expect(sv.pickUp([6, 7])).toEqual({ ok: false, reason: 'hands_full' });
-    expect(sv.speed()).toBeCloseTo(content.carry.tray.speedFactor - 3 * content.carry.speedPenaltyPerItem);
+    const spots: [number, number][] = [[4, 6], [5, 6], [6, 6], [6, 7], [5, 7], [4, 7], [3, 7]];
+    for (const at of spots) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
+    for (const at of spots.slice(0, 6)) expect(sv.pickUp(at)).toEqual({ ok: true });
+    expect(sv.pickUp(spots[6]!)).toEqual({ ok: false, reason: 'hands_full' });
+    // Cheia (6): cada louça na bandeja pesa só penaltyPerItem (2%).
+    expect(sv.speed()).toBeCloseTo(content.carry.tray.speedFactor - 6 * content.carry.tray.penaltyPerItem!);
     session.buy('item.cat_treat_biscuit');
     expect(sv.hold('item.cat_treat_biscuit')).toEqual({ ok: false, reason: 'not_on_tray' });
-    // Na pia, as três de uma vez.
+    // Na pia (cabem 6), as seis de uma vez.
     expect(sv.depositDirty()).toEqual({ ok: true });
-    expect(sv.sinkLoad()).toBe(3);
+    expect(sv.sinkLoad()).toBe(6);
     // Trocar de item na barra guarda a bandeja.
     session.selectHotbarSlot((state.hotbar.slots.indexOf('item.tray') + 1) % state.hotbar.slots.length);
     expect(state.tray).toBe(false);

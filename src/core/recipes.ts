@@ -168,8 +168,8 @@ export interface CarryConfig {
   carryCapacity: number;
   /** Quanto cada objeto na mão tira da velocidade (0.1 = 10%). */
   speedPenaltyPerItem: number;
-  /** Bandeja: o item da mochila, quanta louça leva e a velocidade com ela. */
-  tray: { item: string; capacity: number; speedFactor: number };
+  /** Bandeja: o item da mochila, quanta louça leva, a velocidade com ela e quanto cada louça em cima tira (penaltyPerItem). */
+  tray: { item: string; capacity: number; speedFactor: number; penaltyPerItem?: number };
   /** Itens pesados (tag): ocupam as mãos sozinhos e deixam lenta. */
   heavy: { tag: string; speedFactor: number };
   /** Gato no colo. */

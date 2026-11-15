@@ -142,6 +142,8 @@ export interface ArrivalsData {
   /** O sorteio automático só começa quando isto vale (depois dos gatos escritos à mão). */
   autoStartWhen?: unknown;
   queueMax: number;
+  /** Dias mínimos entre o fim de uma chegada e o começo da próxima (qualquer uma: da fila ou sorteada). */
+  minDaysBetween?: number;
   provisional: { days: number };
   /**
    * Chegada que ela não atendeu: com tantos dias ainda na primeira etapa, o gato segue o caminho dele e a vez passa
@@ -189,6 +191,8 @@ export interface ArrivalsState {
   shelterPool: string[];
   /** Chegada escrita à mão que passou sem resposta: tenta de novo a partir deste dia. */
   retryOn?: Record<string, number>;
+  /** Dia em que a última chegada terminou (a próxima espera minDaysBetween). Saves antigos: sem. */
+  lastFinishedOn?: number;
 }
 
 export function newArrivals(): ArrivalsState {

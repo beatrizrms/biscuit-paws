@@ -61,7 +61,7 @@ export class DebugPanel {
       ${section(
         'time',
         'Tempo e clima',
-        `<button data-act="hour">+1 h</button><button data-act="day">+1 dia</button>
+        `<button data-act="hourBack">−1 h</button><button data-act="hour">+1 h</button><button data-act="dayBack">−1 dia</button><button data-act="day">+1 dia</button>
          <select data-dbg="season">${c.seasons.order.map((s) => opt(s, c.seasons.names[s] ?? s)).join('')}</select>
          <button data-act="season">ir para a estação</button>
          <select data-dbg="weather">${opt('', 'clima do dia')}${[...new Set(Object.values(c.seasons.weather ?? {}).flatMap((w) => Object.keys(w)))].map((w) => opt(w, w)).join('')}</select>
@@ -218,6 +218,17 @@ export class DebugPanel {
       session.arrivals.tick();
     });
     on('day', () => session.endDay('home'));
+    // Para trás: só posiciona o tempo (não desfaz o que já aconteceu); o dia volta e o mapa redesenha (estação, enfeites).
+    on('hourBack', () => {
+      session.state.time = Math.max(0, session.state.time - 60);
+      session.arrivals.tick();
+    });
+    on('dayBack', () => {
+      if (session.state.day <= 1) return say('já é o primeiro dia');
+      session.state.day -= 1;
+      actions.reloadWorld(session.location());
+      say(`dia ${session.state.day}`);
+    });
     on('season', () => session.debugGoToSeason(val('season')));
     on('full', (b) => {
       session.arrivals.debug.cafeFull = !session.arrivals.debug.cafeFull;
