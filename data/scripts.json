@@ -1035,7 +1035,20 @@
           "ms": 1000
         },
         {
-          "dialogue": "dlg.santa_party_open"
+          "dialogue": "dlg.santa_party_open",
+          "when": {
+            "placedTag": "xmas",
+            "gte": 2
+          }
+        },
+        {
+          "dialogue": "dlg.santa_party_open_plain",
+          "when": {
+            "not": {
+              "placedTag": "xmas",
+              "gte": 2
+            }
+          }
         },
         {
           "secretSanta": "give"
@@ -1377,7 +1390,22 @@
     "scr.xmas_party_close": {
       "steps": [
         {
-          "dialogue": "dlg.santa_party_end"
+          "dialogue": "dlg.santa_party_end",
+          "when": {
+            "santaTreatServed": {
+              "gte": 1
+            }
+          }
+        },
+        {
+          "dialogue": "dlg.santa_party_end_plain",
+          "when": {
+            "not": {
+              "santaTreatServed": {
+                "gte": 1
+              }
+            }
+          }
         },
         {
           "enter": "map.cafe_main",

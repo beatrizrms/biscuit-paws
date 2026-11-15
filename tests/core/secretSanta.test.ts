@@ -137,7 +137,9 @@ describe('amigo secreto: o Natal', () => {
     expect(session.partyGiftPending()).toBe(false);
     // A troca não encerra a festa: as falas de cada convidado, uma por vez, voltando ao começo.
     expect(session.festivePartyOn()).toBe(true);
-    const lines = SS.partyChat['npc.gabi']!;
+    // Sem chocolate quente servido nem árvore: as falas de quem não teve os preparativos (as com when).
+    const lines = SS.partyChat['npc.gabi']!.flatMap((l) => (typeof l === 'string' ? [l] : session.holds(l.when) ? [l.text] : []));
+    expect(lines.every((l) => !l.includes('terceira caneca'))).toBe(true);
     expect([session.partyChat('npc.gabi'), session.partyChat('npc.gabi'), session.partyChat('npc.gabi')]).toEqual([lines[0], lines[1], lines[0]]);
     expect(session.partyChat('npc.nobody')).toBeNull();
     expect(named(events, 'script.requested')).not.toContainEqual({ scriptId: SS.partyCloseScript });
@@ -216,14 +218,14 @@ describe('amigo secreto: o Natal', () => {
     session.endDay('home');
     expect(state.day).toBe(XMAS);
     expect(state.cats['cat.first_stray']!.happiness).toBeGreaterThan(50);
-    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: true, stockingCats: 1 }]);
+    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: true, stockingCats: 1, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente' } }]);
   });
 
   it('sem meia, sem petisco', () => {
     const { session, state, events } = cafe(XMAS - 1, 20 * 60);
     state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 90, hygiene: 70 };
     session.endDay('home');
-    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: false, stockingCats: 0 }]);
+    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: false, stockingCats: 0, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente' } }]);
   });
 
   it('o Natal acabou sem a ceia: perdida, sem castigo (o presente dela fica na porta)', () => {

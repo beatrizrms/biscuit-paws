@@ -43,8 +43,30 @@ export interface SecretSantaData {
   partyEndScript: string;
   /** O fim da festa, quando ela sai pela porta da rua e confirma (a despedida; os convidados vão embora). */
   partyCloseScript: string;
-  /** Depois da troca, os convidados ficam: o E num deles mostra estas falas, uma por vez (npc -> falas). */
-  partyChat: Record<string, string[]>;
+  /**
+   * Depois da troca, os convidados ficam: o E num deles mostra estas falas, uma por vez (npc -> falas). Uma fala pode ter
+   * `when` (ex.: a do chocolate quente só se ela serviu): sem valer, fica de fora.
+   */
+  partyChat: Record<string, (string | { text: string; when: Condition })[]>;
+  /**
+   * O quitute da ceia, um por ano (years, em ordem; depois recomeça): a receita, a mistura vendida só no dia da ceia
+   * (mix, que vira a receita pelo jeito alternativo) e o plural para os textos ({treats}; {treat} é o nome da receita).
+   * Deixado nas mesas, a cada minuto da festa (depois da troca), com a chance chancePerMinute, um convidado que ainda não
+   * pegou pega um (`take`: npc -> fala; `points` de coração). Quem está em `refuse` não pega (npc -> fala). Cada ano
+   * pode trocar as falas (take/refuse do ano valem por cima das de sempre).
+   */
+  treat?: {
+    points: number;
+    chancePerMinute: number;
+    take: Record<string, string>;
+    refuse?: Record<string, string>;
+    years: { recipe: string; mix?: string; plural: string; take?: Record<string, string>; refuse?: Record<string, string> }[];
+  };
+  /**
+   * A meta da ceia (todo ano, do sorteio até o fim da ceia): passos opcionais (text com {treat}/{treats}, when). No fim
+   * da ceia, cada passo feito vale pointsPerStep de coração para cada convidado.
+   */
+  prep?: { title: string; extrasTitle: string; pointsPerStep: number; steps: { text: string; when: Condition }[] };
   /** Condição para a ceia começar na hora (ex.: fora do café, ou no salão: o roteiro não a tira de outro cômodo). */
   partyWhen: Condition;
   /** Tag dos presentes (o que ela pode dar). */
@@ -73,6 +95,8 @@ export interface SantaRecord {
   gift?: string;
   giver?: string;
   received?: string;
+  /** Os convidados que já pegaram o quitute da ceia na mesa. */
+  treatTaken?: string[];
 }
 
 /** É o dia do Natal (a ceia)? */

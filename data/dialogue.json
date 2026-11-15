@@ -964,7 +964,7 @@
         },
         {
           "speaker": "",
-          "text": "A turma se despede aos poucos, entre abraços, chocolate quente e gatos pedindo um pedacinho de tudo."
+          "text": "A turma se despede aos poucos, entre abraços, {treat} e gatos pedindo um pedacinho de tudo."
         }
       ]
     },
@@ -1779,6 +1779,37 @@
           "speaker": "Jacque",
           "npc": "npc.jacque",
           "text": "Os seis lá de casa que não me ouçam! Boa feira! Que todo mundo ache um lar hoje."
+        }
+      ]
+    },
+    "dlg.santa_party_open_plain": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Feliz Natal, {player}! Que bom estar aqui com todo mundo!"
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Bom, todo mundo pronto? Hora do amigo secreto! Você começa: vai lá entregar o seu presente!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Meu amigo secreto é... {santa:name}! Deixa eu pegar o presente."
+        }
+      ]
+    },
+    "dlg.santa_party_end_plain": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Melhor Natal! Ano que vem tem de novo, hein?"
+        },
+        {
+          "speaker": "",
+          "text": "A turma se despede aos poucos, entre abraços, panetone e gatos pedindo um pedacinho de tudo."
         }
       ]
     }
