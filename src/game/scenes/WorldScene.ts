@@ -2030,9 +2030,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // O cercadinho (ou a caixinha): a latinha (ferramenta na mão), ou pegar o gato.
     const pen = this.penChoice();
     if (pen) add(this.penCells(pen), E_TIER.pen, pen.hint, () => this.penDo(pen), { tool: pen.act === 'feed' || (pen.act === 'medicine' && !!pen.hint), weak: pen.act === 'nobody' || (pen.act === 'medicine' && !pen.hint) });
-    // Interação do mapa (a janela, uma plaquinha): a célula dela e a peça inteira (a janela, na cortina).
-    const it = s.interactionAt(feet);
-    if (it) add(this.interactionCells(it), E_TIER.interaction, this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
+    // Interações do mapa (a janela, uma plaquinha, as prateleiras): a célula de cada uma e a peça inteira (a janela, na
+    // cortina; a banca ou a gôndola embaixo dela). Todas ao alcance entram: a que está na frente dela vence.
+    for (const it of s.interactionsAt(feet)) add(this.interactionCells(it), E_TIER.interaction, this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
     // A sujeira, com a vassoura na mão: toda a que dá para varrer daqui. Sem a vassoura, ela não toma o E de nada.
     if (s.atHome() && s.activeItem() === s.content.world.tools.sweep) {
       const { catalog } = s.content;
@@ -2045,7 +2045,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Ponto de pedido (a decoração da feira, um mini game). O que pede a vassoura na barra: sem ela, nada de dica (só explica).
     const point = s.jobPointNear(feet);
     if (point) {
-      const needsTool = s.jobPointProblem(point.id) === 'needs_broom';
+      // Sem a vassoura ou com o gato na caixa de transporte: sem dica, o E só explica.
+      const needsTool = ['needs_broom', 'carrying_cat'].includes(s.jobPointProblem(point.id) ?? '');
       const kind: HintKind = point.id.startsWith('pt.opening_poster') ? 'opening_poster' : point.id === 'pt.basement_find' ? 'basement_find' : 'job';
       add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, kind), () => this.useJobPoint(point), { weak: needsTool });
     }
@@ -2084,7 +2085,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const obj = 'curtain' in it.action ? this.map.sprites.find((x) => x.obj === (it.action as { curtain: string }).curtain) : undefined;
     const objDef = obj ? tiles[obj.tile] : undefined;
     const placedObj = obj && objDef ? this.session.mapData().objects.find((o) => o.id === obj.obj) : undefined;
-    return [it.at, ...(placedObj && objDef ? cellsOf(placedObj.at, objDef) : [])];
+    // A peça sólida embaixo da interação (a banca de frutas, a gôndola): ela inteira conta como "na frente".
+    const under = 'shelf' in it.action && this.session.mapData().objects.find((o) => {
+      const def = tiles[o.tile];
+      return !!def?.solid && cellsOf(o.at, def).some(([c, r]) => c === it.at[0] && r === it.at[1]);
+    });
+    const underDef = under ? tiles[under.tile] : undefined;
+    return [it.at, ...(placedObj && objDef ? cellsOf(placedObj.at, objDef) : []), ...(under && underDef ? cellsOf(under.at, underDef) : [])];
   }
 
   /** As células do cercadinho (3x2) ou da caixinha escolhida. */
@@ -2905,7 +2912,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Carregando caixas no café: solta uma na frente dela (ou na célula clicada).
     if (this.session.atHome() && this.session.boxesAt('carried') > 0) {
-      const dropped = this.session.dropParcel(target ?? this.facingCell());
+      const dropped = this.session.dropParcel(target ?? this.facingCell(), this.playerCells());
       if (dropped.ok) return true;
       if (parcels !== 'inside') {
         this.ui.problem(dropped.reason);
@@ -3441,7 +3448,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const bringsWip = st.hands.some((h) => h.kind === 'wip' && sv.recipe(h.recipe)?.steps[h.step]?.equipment === equipment);
       // Algo pronto em cima (para pegar) ou trabalho para ele: um pouco antes dos outros equipamentos do lado.
       const busy = sv.stationHasWork(station.uid) ? -1 : 0;
-      if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) add(station.cells, E_TIER.service + busy, this.hintCell(station.at, 'station'), () => report(sv.pickUp(station.at)));
+      // Trabalhando (a barra em cima dele): sem dica até ficar pronto; o E ali só avisa que está ocupado.
+      if (sv.prepProgress(station.uid) !== undefined) add(station.cells, E_TIER.service, null, () => this.prepareAt(station.uid, equipment));
+      else if (sv.surfaceAt(station.at) && st.hands.length < sv.handsCapacity()) add(station.cells, E_TIER.service + busy, this.hintCell(station.at, 'station'), () => report(sv.pickUp(station.at)));
       else if (st.hands.length === 0 || bringsWip) add(station.cells, E_TIER.service + busy, this.hintCell(station.at, 'station'), () => this.prepareAt(station.uid, equipment));
     }
     // Vitrine ao alcance com um doce (ou o bolo inteiro) na mão: guarda.

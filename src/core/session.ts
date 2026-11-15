@@ -85,6 +85,7 @@ import {
   cellsOf,
   solidGrid,
   interactionNear,
+  interactionsNear,
   type Cell,
   type DirtSpot,
   type Facing,
@@ -174,6 +175,7 @@ export type ActionResult =
       reason:
         | 'unknown_item'
         | 'washer_busy'
+        | 'carrying_cat'
         | 'equipment_broken'
         | StorageProblem
         | 'no_money'
@@ -650,6 +652,11 @@ export class GameSession {
   interactionAt(feet: readonly Cell[], target?: Cell): MapInteraction | undefined {
     const map = this.mapData(this.state.location);
     return interactionNear({ interactions: map.interactions ?? [] }, feet, target);
+  }
+
+  /** Todas as interações ao alcance no mapa atual (a mais perto primeiro). */
+  interactionsAt(feet: readonly Cell[]): MapInteraction[] {
+    return interactionsNear({ interactions: this.mapData(this.state.location).interactions ?? [] }, feet);
   }
 
   /** Itens à venda numa loja (na ordem dos dados). */
@@ -1749,12 +1756,14 @@ export class GameSession {
    * Solta uma das caixas que ela carrega numa célula livre do chão do café (salão, porão ou quintal). Fica fechada
    * até ela abrir. Uma caixa por célula.
    */
-  dropParcel(at: Cell): ActionResult {
+  dropParcel(at: Cell, feet?: readonly Cell[]): ActionResult {
     const carried = this.state.deliveries.filter((d) => d.stage === 'carried');
     if (carried.length === 0) return { ok: false, reason: 'nothing_here' };
     if (!this.atHome()) return { ok: false, reason: 'parcel_only_inside' };
+    // Só pertinho dela (o toque longe soltava a caixa do outro lado do café, ou dentro de um cômodo fechado, onde sumia).
+    if (feet && !feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= 1)) return { ok: false, reason: 'too_far' };
     const solid = solidGrid(this.mapData(this.content.map.id), this.content.catalog);
-    const blocked = solid[at[1]]?.[at[0]] !== false || this.floorBoxes().some((b) => b.at[0] === at[0] && b.at[1] === at[1]) || this.placedAt(at);
+    const blocked = solid[at[1]]?.[at[0]] !== false || !this.cellOpen(at) || this.floorBoxes().some((b) => b.at[0] === at[0] && b.at[1] === at[1]) || this.placedAt(at);
     if (blocked) return { ok: false, reason: 'cannot_put_here' };
     const box = this.boxOf(carried[0]!);
     for (const d of carried.filter((x) => this.boxOf(x) === box)) {
@@ -1940,7 +1949,9 @@ export class GameSession {
   }
 
   /** Por que ela não pode fazer este ponto agora (ou null): a interface confere antes de tocar a varrida. */
-  jobPointProblem(pointId: string): 'needs_broom' | 'no_fair_cats' | null {
+  jobPointProblem(pointId: string): 'needs_broom' | 'no_fair_cats' | 'carrying_cat' | null {
+    // Com o gato no colo (fora do café, na caixa de transporte), nada de trabalho da vila: primeiro deixar o gato.
+    if (this.service.carriedCat() && this.activeJobs().some((j) => j.steps[this.jobStep(j.id)]?.points.includes(pointId))) return 'carrying_cat';
     if (this.content.jobPoints[pointId]?.action === 'sweep') return this.toolProblem('sweep');
     // Feira sem nenhum gato castrado no café: não tem quem levar (o abrigo é o café; não vem gato de fora).
     const game = this.activeFestival()?.activities.find((a) => a.point === pointId)?.game;
@@ -1974,6 +1985,7 @@ export class GameSession {
     const job = this.activeJobs().find((j) => this.pendingJobPoints(this.content.jobPoints[pointId]?.map).some((p) => p.id === pointId) && j.steps[this.jobStep(j.id)]?.points.includes(pointId));
     const point = this.content.jobPoints[pointId];
     if (!job || !point) return { ok: false, reason: 'not_found' };
+    if (this.service.carriedCat()) return { ok: false, reason: 'carrying_cat' };
     if (point.action === 'sweep') {
       const problem = this.toolProblem('sweep');
       if (problem) return { ok: false, reason: problem };

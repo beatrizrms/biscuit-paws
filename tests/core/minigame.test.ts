@@ -77,6 +77,15 @@ describe('mini game pela missão (Gatinho fujão)', () => {
     return { session, state };
   }
 
+  it('com o gato na caixa de transporte, o trabalho da vila não anda', () => {
+    const { session, state } = withJob();
+    state.hands.push({ kind: 'cat', catId: 'cat.first_stray' } as (typeof state.hands)[number]);
+    expect(session.jobPointProblem('pt.runaway_cat')).toBe('carrying_cat');
+    expect(session.doJobPoint('pt.runaway_cat')).toEqual({ ok: false, reason: 'carrying_cat' });
+    state.hands.length = 0;
+    expect(session.jobPointProblem('pt.runaway_cat')).toBeNull();
+  });
+
   it('deu certo: moedas do jogo + recompensa do pedido, e o pedido conta como feito hoje', () => {
     const { session, state } = withJob();
     const r = makeResult(cfg, 'chase', 'normal', 'ok', 10);

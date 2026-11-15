@@ -404,69 +404,20 @@
         "board": true
       }
     },
-    {
-      "id": "int.market_shelf_grocery",
-      "at": [
-        2,
-        3
-      ],
-      "reach": 2,
-      "action": {
-        "shelf": "shop.market",
-        "tags": [
-          "coffee",
-          "tea",
-          "pantry",
-          "bakery",
-          "tool"
-        ]
-      }
-    },
-    {
-      "id": "int.market_shelf_grocery_2",
-      "at": [
-        5,
-        3
-      ],
-      "reach": 2,
-      "action": {
-        "shelf": "shop.market",
-        "tags": [
-          "coffee",
-          "tea",
-          "pantry",
-          "bakery",
-          "tool"
-        ]
-      }
-    },
-    {
-      "id": "int.market_crates_fruit",
-      "at": [
-        4,
-        6
-      ],
-      "reach": 2,
-      "action": {
-        "shelf": "shop.market",
-        "tags": [
-          "fruit"
-        ]
-      }
-    },
-    {
-      "id": "int.market_shelf_pet",
-      "at": [
-        9,
-        3
-      ],
-      "reach": 2,
-      "action": {
-        "shelf": "shop.market",
-        "tags": [
-          "pet"
-        ]
-      }
-    }
+    { "id": "int.market_shelf_grocery", "at": [2, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_shelf_grocery_2", "at": [5, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_shelf_pet", "at": [9, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["pet"] } },
+    { "id": "int.market_crates_fruit", "at": [2, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_2", "at": [2, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_3", "at": [6, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_4", "at": [6, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_5", "at": [10, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_6", "at": [10, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_7", "at": [2, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_8", "at": [2, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_9", "at": [6, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_10", "at": [6, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_11", "at": [10, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_12", "at": [10, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } }
   ]
 }

@@ -548,12 +548,22 @@ export function interactionNear(
   feet: readonly Cell[],
   target?: Cell,
 ): MapInteraction | undefined {
+  return interactionsNear(map, feet, target)[0];
+}
+
+/** Todas as interações ao alcance dos pés, da mais perto para a mais longe (o E escolhe pela frente dela). */
+export function interactionsNear(
+  map: Pick<ResolvedMap, 'interactions'>,
+  feet: readonly Cell[],
+  target?: Cell,
+): MapInteraction[] {
   const dist = (a: Cell, b: Cell) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
   return map.interactions
     .filter((i) => !target || (i.at[0] === target[0] && i.at[1] === target[1]))
     .map((i) => ({ i, d: Math.min(...feet.map((f) => dist(f, i.at))) }))
     .filter(({ i, d }) => d <= (i.reach ?? 1))
-    .sort((a, b) => a.d - b.d)[0]?.i;
+    .sort((a, b) => a.d - b.d)
+    .map(({ i }) => i);
 }
 
 /** Tiles com várias versões: cada célula usa uma, sempre a mesma (sem guardar nada no save). */

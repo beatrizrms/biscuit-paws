@@ -1114,7 +1114,7 @@ describe('passagem dos dias e rotina', () => {
 /** Solta as caixas que ela carrega, uma ao lado da outra a partir do canto de sempre. */
 function dropAll(session: GameSession): void {
   const [c, r] = content.delivery.inside.at;
-  for (let dc = 0; session.boxesAt('carried') > 0 && dc < 12; dc++) session.dropParcel([c + dc, r]);
+  for (let dc = 0; session.boxesAt('carried') > 0 && dc < 12; dc++) session.dropParcel([c - dc, r]);
 }
 
 describe('correio: compras do catálogo chegam na porta', () => {
@@ -1211,17 +1211,34 @@ describe('correio: compras do catálogo chegam na porta', () => {
     const [c, r] = content.delivery.inside.at;
     expect(session.dropParcel([c, r])).toEqual({ ok: true });
     expect(session.dropParcel([c, r])).toEqual({ ok: false, reason: 'cannot_put_here' });
-    expect(session.dropParcel([c + 2, r])).toEqual({ ok: true });
-    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c, r], [c + 2, r]]);
+    expect(session.dropParcel([c - 2, r])).toEqual({ ok: true });
+    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c, r], [c - 2, r]]);
     // Pega a primeira de volta (fechada) e solta em outro lugar.
     const first = session.floorBoxes()[0]!;
     expect(session.carryParcel(first.box)).toEqual({ ok: true });
     expect(session.boxesAt('carried')).toBe(1);
-    expect(session.dropParcel([c + 4, r])).toEqual({ ok: true });
+    expect(session.dropParcel([c - 4, r])).toEqual({ ok: true });
     // Abre a que ela escolher.
-    const second = session.floorBoxes().find((b) => b.at[0] === c + 2)!;
+    const second = session.floorBoxes().find((b) => b.at[0] === c - 2)!;
     expect(session.unpackParcel(second.box)).toEqual({ ok: true, itemIds: second.itemIds });
-    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c + 4, r]]);
+    expect(session.floorBoxes().map((b) => b.at)).toEqual([[c - 4, r]]);
+  });
+
+  it('caixa: não solta longe dela nem num cômodo ainda fechado (sumia lá)', () => {
+    const { session } = inCafe();
+    session.addMoney(500, 'test');
+    session.order('item.cactus');
+    session.tickClock(minutes(61));
+    session.enter('map.street');
+    session.pickUpParcels();
+    session.enter('map.cafe_main');
+    const [c, r] = content.delivery.inside.at;
+    expect(session.dropParcel([c - 3, r], [[c, r]])).toEqual({ ok: false, reason: 'too_far' });
+    // O quartinho dos fundos começa trancado: a célula dele não vale, mesmo sem parede.
+    const back = content.rooms.rooms.find((x) => x.id === 'room.back_room')!.area;
+    const inside: [number, number] = [back.from[0] + 2, back.from[1] + 5];
+    expect(session.dropParcel(inside)).toEqual({ ok: false, reason: 'cannot_put_here' });
+    expect(session.dropParcel([c - 1, r], [[c, r]])).toEqual({ ok: true });
   });
 
   it('pega na porta, leva para dentro e abre: cada caixa sai inteira (pedidos separados, caixas separadas)', () => {

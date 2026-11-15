@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { reachableCells, resolveMap, solidRects, validateMap, type MapData } from '../../src/core/map';
+import { interactionsNear, reachableCells, resolveMap, solidRects, validateMap, type Cell, type MapData } from '../../src/core/map';
 import { frameOf, getTile } from '../../src/core/tiles';
 import { variantAt } from '../../src/core/map';
 import { loadContent } from './content';
@@ -207,6 +207,30 @@ describe('rua: a frente do café fica livre', () => {
           const [c, r] = [o.at[0] + dx, o.at[1] + dy];
           expect(keep.some(([kc, kr]) => kc === c && kr === r), `${o.id} cobre (${c},${r})`).toBe(false);
         }
+      }
+    }
+  });
+});
+
+describe('mercado: prateleiras ao alcance', () => {
+  const market = JSON.parse(readFileSync('data/maps/market.json', 'utf8')) as MapData;
+  const solid = resolveMap(market, catalog).solid;
+  const tagsAt = (feet: Cell) => interactionsNear({ interactions: market.interactions ?? [] }, [feet])
+    .flatMap((i) => ('shelf' in i.action ? i.action.tags : []));
+  const bancas = market.objects.filter((o) => o.tile.startsWith('market_banca_') && o.tile !== 'market_banca_plantas');
+
+  it('a prateleira pet só alcança quem está na frente da gôndola, não de perto das frutas', () => {
+    const fromPet: Cell[] = [];
+    solid.forEach((line, r) => line.forEach((s, c) => !s && tagsAt([c, r]).includes('pet') && fromPet.push([c, r])));
+    expect(fromPet).toEqual([[8, 3], [9, 3], [10, 3]]);
+  });
+
+  it('em volta de toda banca de frutas, o E alcança o hortifruti', () => {
+    expect(bancas).toHaveLength(12);
+    for (const b of bancas) {
+      for (const at of [[b.at[0], b.at[1] - 1], [b.at[0], b.at[1] + 1], [b.at[0] - 1, b.at[1]]] as Cell[]) {
+        if (solid[at[1]]?.[at[0]] !== false) continue;
+        expect(tagsAt(at), `${b.tile} em (${b.at}), de (${at})`).toContain('fruit');
       }
     }
   });
