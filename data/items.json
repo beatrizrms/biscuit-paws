@@ -2513,10 +2513,39 @@
         "dishwasher",
         "upgrade"
       ],
+      "requires": { "milestone": "milestone.machine_dishwasher" },
       "washer": {
         "capacity": 12,
         "cycleMinutes": 20
       }
+    },
+    {
+      "id": "item.waiter_robot",
+      "name": "Robô de mesas",
+      "price": 450,
+      "tile": "eletro_robo_base",
+      "description": "Recolhe a louça suja das mesas e do balcão e leva para a pia (ou para a lava-louças, se tiver). Posicione a base de recarga: é de lá que ele sai e para lá que ele volta. Não lava nem serve (servir vem com o upgrade para robô garçom, na Assistência).",
+      "iconImage": "assets/objects/pixellab/robo_garcom_south.png",
+      "tags": [
+        "furniture",
+        "equipment",
+        "waiter_robot"
+      ],
+      "requires": { "milestone": "milestone.machine_waiter" },
+      "waiter": { "cellsPerMinute": 1, "restMinutes": 1 }
+    },
+    {
+      "id": "item.waiter_robot_server",
+      "name": "Robô garçom",
+      "price": 1095,
+      "tile": "eletro_robo_base",
+      "iconImage": "assets/objects/pixellab/robo_garcom_south.png",
+      "description": "O robô de mesas com o upgrade de servir: além da louça suja, leva os pedidos prontos (do balcão ou do equipamento) para quem pediu exatamente aquilo e está esperando. O preço, a gorjeta e a nota são os de sempre. Só pela Assistência, a partir do robô de mesas, com a conquista Garçom de primeira.",
+      "tags": [
+        "waiter_robot"
+      ],
+      "requires": { "milestone": "milestone.machine_waiter_server" },
+      "waiter": { "cellsPerMinute": 1, "restMinutes": 1, "serves": true }
     },
     {
       "id": "item.robot_vacuum",
@@ -2529,7 +2558,8 @@
         "furniture",
         "equipment",
         "robot_vacuum"
-      ]
+      ],
+      "requires": { "milestone": "milestone.machine_vacuum" }
     },
     {
       "id": "item.pet_box",
@@ -3776,6 +3806,7 @@
   "upgrades": {
     "fee": 5,
     "groups": [
+      { "id": "upg.waiter_robot", "name": "Robô de mesas", "items": ["item.waiter_robot", "item.waiter_robot_server"] },
       { "id": "upg.counter", "name": "Balcão", "items": ["item.counter_left", "item.counter_mid", "item.counter_right", "item.counter_single", "item.counter_register", "item.counter_a_left", "item.counter_a_mid", "item.counter_a_right", "item.counter_a_single", "item.counter_b_left", "item.counter_b_mid", "item.counter_b_right", "item.counter_b_single"] },
       { "id": "upg.chair", "name": "Cadeira", "items": ["item.chair_front", "item.chair_back", "item.chair_left", "item.chair_right"] },
       { "id": "upg.sofa", "name": "Sofá", "items": ["item.sofa", "item.sofa_rosa", "item.sofa_ceu"] },

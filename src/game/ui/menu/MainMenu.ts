@@ -75,7 +75,7 @@ export class MainMenu {
         <button class="menu-btn big" data-act="options">${t('home.options')}</button>
         <button class="menu-btn big" data-act="credits">${t('home.credits')}</button>
       </div>
-      <p class="menu-hint">${t('home.hint')}</p>`;
+      <p class="menu-hint"><span class="keys-hint">${t('home.hint')}</span><span class="touch-hint">${t('home.hintTouch')}</span></p>`;
     const again = () => void this.render();
     const on = (act: string, fn: () => void) => (this.el.querySelector(`[data-act="${act}"]`) as HTMLElement).addEventListener('click', fn);
     on('continue', () => recent && void this.play(recent));

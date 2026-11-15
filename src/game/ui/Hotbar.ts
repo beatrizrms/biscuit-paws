@@ -17,6 +17,8 @@ export function itemIconHtml(item: ItemDef | undefined, px: number): string {
 
 /** Pés da personagem abaixo desta altura (pixels do jogo, de 360): a barra sobe para o topo. Volta com folga, sem piscar. */
 const GO_UP_BELOW = 270;
+/** A mãozinha da mão livre (64 x 64, desenhada em 16). */
+const HAND_ICON = 'assets/icons/hand.png';
 const GO_DOWN_ABOVE = 250;
 
 export class Hotbar {
@@ -47,8 +49,8 @@ export class Hotbar {
   private render(): void {
     const { slots, active } = this.session.state.hotbar;
     const inv = this.session.state.inventory;
-    // A mão livre: o quadrado fixo antes do 1 (PLACEHOLDER(arte): a mãozinha é um desenho de CSS).
-    const hand = `<button class="slot hand${active === HAND ? ' active' : ''}" data-slot="${HAND}" title="${esc(uiText.hotbar.hand)}"><span class="key">0</span><span class="hand-icon" aria-hidden="true"></span></button>`;
+    // A mão livre: o quadrado fixo antes do 1 (a mãozinha do PixelLab, robo_garcom/mao_icone_64).
+    const hand = `<button class="slot hand${active === HAND ? ' active' : ''}" data-slot="${HAND}" title="${esc(uiText.hotbar.hand)}"><span class="key">0</span><img class="icon" src="${HAND_ICON}" alt="" style="width:16px;height:16px" /></button>`;
     this.el.innerHTML = hand + slots
       .map((id, i) => {
         const qty = id ? inv[id] ?? 0 : 0;

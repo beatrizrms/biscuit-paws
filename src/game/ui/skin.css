@@ -44,10 +44,10 @@
 .menu-btn.big { padding: 6px 12px 8px; line-height: 13px; }
 .catalog .cart-bar .pay { line-height: 10px; padding: 6px 6px 8px; }
 
-/* Botões principais da Home e "seguir em frente" (oliva); confirmar e pagar (verde); apagar (terracota). */
-.menu-home .menu-btn.big { --btn-bg: var(--btn-main-bg); --btn-hover: var(--c-olive-dark); --btn-edge: var(--btn-main-edge); color: var(--btn-main-text); text-shadow: 0 1px 0 var(--btn-main-edge); }
-.menu-home .menu-btn.big[disabled] { --btn-bg: var(--c-olive-light); --btn-hover: var(--c-olive-light); --btn-edge: var(--c-olive); color: var(--c-olive-pale); text-shadow: none; }
-.menu-home .menu-btn.big .sub { color: var(--c-paper); }
+/* Botões principais da Home (bege com marrom, pedido dela); confirmar e pagar (verde); apagar (terracota). */
+.menu-home .menu-btn.big { --btn-bg: var(--c-paper); --btn-hover: var(--c-sand); --btn-edge: var(--c-wood); color: var(--c-wood-dark); text-shadow: none; }
+.menu-home .menu-btn.big[disabled] { --btn-bg: var(--c-paper2); --btn-hover: var(--c-paper2); --btn-edge: var(--c-paper3); color: var(--c-ink3); text-shadow: none; }
+.menu-home .menu-btn.big .sub { color: var(--c-wood); }
 .menu-btn.primary,
 .menu-btn.yes,
 .catalog .cart-bar .pay { --btn-bg: var(--btn-ok-bg); --btn-hover: var(--c-green-dark); --btn-edge: var(--btn-ok-edge); color: var(--c-white); }

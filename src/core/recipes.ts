@@ -103,8 +103,18 @@ export interface ServiceConfig {
   arrivalEveryMinutes: [number, number];
   /** Antes da inauguração (funcionamento parcial), o intervalo entre clientes multiplica por isto (2 = metade dos clientes). */
   softOpenArrivalFactor?: number;
+  /**
+   * A fama traz gente: o intervalo entre clientes multiplica pelo fator da maior faixa de reputação alcançada
+   * (`at`: reputação de 0 a 100). Sem isto, 1.
+   */
+  reputationArrival?: { at: number; factor: number }[];
   /** Quanto tempo o cliente espera o pedido antes de ir embora. */
   patienceMinutes: number;
+  /**
+   * Com ela fora do café (no Market, na rua...), a paciência de quem espera corre mais devagar: esta fração do normal
+   * (0,25 = um quarto). Dá tempo de ir buscar o ingrediente que acabou. Sem isto, 1 (sem diferença).
+   */
+  awayPatienceRate?: number;
   /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */
   shoppingListBelow: number;
   /** Sem pedido, ela pode adiantar uma receita; cada equipamento (o da 1ª etapa) só tem até tantos itens sem dono. */
@@ -229,6 +239,10 @@ export function validateRecipes(
   }
   if (!(service.sinkCapacity >= 1) || !(service.washMinutesPerDish > 0)) errors.push('service: sinkCapacity e washMinutesPerDish precisam ser positivos');
   if (!(service.premiumPriceMultiplier >= 1) || !(service.tipRate >= 0)) errors.push('service: premiumPriceMultiplier >= 1 e tipRate >= 0');
+  for (const b of service.reputationArrival ?? []) {
+    if (!(b.at >= 0 && b.at <= 100) || !(b.factor > 0)) errors.push(`service: reputationArrival precisa de at entre 0 e 100 e factor > 0 (at ${b.at})`);
+  }
+  if (service.seatChance !== undefined && !(service.seatChance >= 0 && service.seatChance <= 1)) errors.push('service: seatChance entre 0 e 1');
   for (const [key, eq] of Object.entries(service.equipment)) {
     if (!refs.itemTags.has(eq.tag)) errors.push(`service: equipamento "${key}" usa tag que nenhum item tem ("${eq.tag}")`);
   }

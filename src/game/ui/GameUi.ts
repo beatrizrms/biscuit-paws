@@ -757,7 +757,9 @@ export class GameUi {
       }
       // Comida: "Ração para os gatos", com quantos já comeram (x/y), mesmo com um gato só.
       const feedText = c.feedAll;
-      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? c.pantry : c.sweep;
+      // Despensa: quais compras ainda estão na mochila ("Guardar na despensa: Laranja, Açúcar").
+      const pantryText = c.pantryItems.replace('{items}', listNames(this.session.service.ingredientsToStore().map((id) => content.items[id]?.name ?? id)));
+      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? pantryText : c.sweep;
       const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }
@@ -1441,8 +1443,10 @@ ${rep}`;
     // Passos sem ordem: nenhum em destaque, todos na lista.
     // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
     const required = open.filter((s) => !s.optional);
-    const extras = goal.steps.filter((s) => s.optional);
-    const now = goal.together ? undefined : (required[0] ?? (extras.length ? undefined : open[0]));
+    // Feito num dia que já acabou: sai da lista (riscado, só no dia em que foi feito).
+    const extras = goal.steps.filter((s) => s.optional && !s.doneBefore);
+    // Meta só de extras (a ceia de Natal): nenhum passo em destaque, todos no bloco.
+    const now = goal.together ? undefined : (required[0] ?? (goal.steps.some((s) => s.optional) ? undefined : open[0]));
     const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
       ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
@@ -1461,8 +1465,8 @@ ${rep}`;
       })
       .join('');
     const extrasHtml = extraRows ? `<p class="g-extras">${esc(goal.extrasTitle ?? op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
-    // No debug, os passos feitos também (para conferir a história).
-    const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
+    // Os passos obrigatórios feitos hoje, riscados (amanhã saem da lista).
+    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('');
     // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
     let next = '';
     if (goal.beatId === 'story.inauguration' && this.session.state.business !== 'inaugurated') {

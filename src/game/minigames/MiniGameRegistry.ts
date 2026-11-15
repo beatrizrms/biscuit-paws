@@ -18,20 +18,21 @@ export const MiniGameRegistry = {
   },
 
   /**
-   * Abre o jogo por cima da cena que chamou (ela fica pausada: relógio, NPCs e teclas param) e resolve com o
-   * resultado quando a jogadora fecha a tela de resultado.
+   * Abre o jogo por cima da cena que chamou e resolve com o resultado quando a jogadora fecha a tela de resultado.
+   * A cena que chamou dorme (relógio, NPCs e teclas param, e ela nem é desenhada): todo mini game cobre a tela
+   * inteira, e desenhar o café por baixo a cada quadro (gatos, NPCs, carros) deixava o jogo lento no celular.
    */
   open(caller: Phaser.Scene, gameId: string, params: MiniGameParams, world: Omit<MiniGameLaunch, 'params' | 'done'>): Promise<MiniGameResult> {
     const key = SCENES[gameId];
     if (!key) return Promise.reject(new Error(`mini game não registrado "${gameId}"`));
     return new Promise((resolve) => {
-      caller.scene.pause();
+      caller.scene.sleep();
       const launch: MiniGameLaunch = {
         ...world,
         params,
         done: (result) => {
           caller.scene.stop(key);
-          caller.scene.resume();
+          caller.scene.wake();
           resolve(result);
         },
       };

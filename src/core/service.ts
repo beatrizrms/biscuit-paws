@@ -103,6 +103,7 @@ export type ServiceProblem =
   | 'broken'
   | 'no_money'
   | 'not_at_home'
+  | 'pantry_opened_only'
   | ScheduleProblem;
 
 export type ServiceResult = { ok: true } | { ok: false; reason: ServiceProblem };
@@ -140,6 +141,9 @@ const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Ma
 const same = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 const loadCount = (load: Record<Vessel, number>) => VESSELS.reduce((n, v) => n + (load[v] ?? 0), 0);
 
+/** Células entre duas (sem diagonal): o tamanho aproximado do caminho do robô garçom. */
+const steps = (a: Cell, b: Cell) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+
 export class CafeService {
   constructor(private h: ServiceHost) {}
 
@@ -169,7 +173,14 @@ export class CafeService {
 
   /** Ingredientes ainda na mochila (comprados e não guardados): pacotes. */
   ingredientsInBag(): number {
-    return Object.entries(this.st.inventory).filter(([id]) => this.isIngredient(id)).reduce((n, [, q]) => n + q, 0);
+    return this.ingredientsToStore().reduce((n, id) => n + (this.st.inventory[id] ?? 0), 0);
+  }
+
+  /** Ingredientes na mochila para guardar na despensa (o que está na barra ela pôs lá de propósito: não conta). */
+  ingredientsToStore(): string[] {
+    return Object.entries(this.st.inventory)
+      .filter(([id, q]) => q > 0 && this.isIngredient(id) && !this.st.hotbar.slots.includes(id))
+      .map(([id]) => id);
   }
 
   isIngredient(itemId: string): boolean {
@@ -209,6 +220,19 @@ export class CafeService {
     }
     this.h.bus.emit('pantry.stored', { count: moved.reduce((n, [, q]) => n + q, 0) });
     this.h.advanceStory();
+    return { ok: true };
+  }
+
+  /**
+   * Da despensa de volta para a mochila (para levar, dar ou guardar em outro lugar): um pacote fechado por vez. O pacote
+   * aberto (doses soltas) fica: não dá para fechar de novo.
+   */
+  takeFromPantry(itemId: string): ServiceResult {
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    if ((this.st.pantry[itemId] ?? 0) <= 0) return { ok: false, reason: (this.st.pantryOpen[itemId] ?? 0) > 0 ? 'pantry_opened_only' : 'nothing_here' };
+    this.st.pantry[itemId]! -= 1;
+    if (this.st.pantry[itemId] === 0) delete this.st.pantry[itemId];
+    this.st.inventory[itemId] = (this.st.inventory[itemId] ?? 0) + 1;
     return { ok: true };
   }
 
@@ -265,6 +289,26 @@ export class CafeService {
       else return { ok: false, quality: 'simple', use: [] };
     }
     return { ok: true, quality: 'simple', use };
+  }
+
+  /**
+   * Quantas porções dá para fazer com a despensa de agora (o quadro do cardápio mostra): o ingrediente que acaba
+   * primeiro manda; a troca premium conta como mais doses daquele ingrediente; a fornada rende `batch.yields` porções.
+   * O jeito alternativo (outro equipamento, outros ingredientes) vale se render mais. `missing`: o que falta para a
+   * próxima (vazio quando dá para fazer pelo menos uma). `each`: quantas porções cada ingrediente sozinho rende.
+   */
+  servingsFromPantry(recipeId: string): { servings: number; missing: string[]; each: { item: string; servings: number }[] } {
+    const r = this.recipe(recipeId);
+    if (!r) return { servings: 0, missing: [], each: [] };
+    const subs = r.premium ?? {};
+    const entries = Object.entries(r.ingredients);
+    const per = entries.map(([item, n]) => Math.floor((this.doses(item) + (subs[item] ? this.doses(subs[item]!) : 0)) / n));
+    let runs = entries.length > 0 ? Math.min(...per) : 0;
+    const alt = Object.entries(r.alternative?.ingredients ?? {});
+    if (alt.length > 0 && this.stationsFor(r.alternative!.equipment).length > 0) runs = Math.max(runs, Math.min(...alt.map(([item, n]) => Math.floor(this.doses(item) / n))));
+    const missing = runs > 0 ? [] : entries.filter((_, i) => per[i] === 0).map(([item]) => item);
+    const yields = r.batch?.yields ?? 1;
+    return { servings: runs * yields, missing, each: entries.map(([item], i) => ({ item, servings: per[i]! * yields })) };
   }
 
   /** Ingredientes do jeito alternativo (receita.alternative): todos precisam ter doses, e sai sempre premium. */
@@ -461,6 +505,8 @@ export class CafeService {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
     if (!this.inSeasonNow(r)) return 'season';
+    // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
+    if (this.spareReady(r.id) > 0) return 'available';
     if (r.display && this.displaysPlaced().length === 0) return 'equipment';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
     if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
@@ -752,9 +798,16 @@ export class CafeService {
     const now = this.now();
     const passed = this.lastTickAt === null ? 0 : Math.max(0, now - this.lastTickAt);
     this.lastTickAt = now;
+    this.waiterTick(now);
     const sv = this.st.service;
     // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
-    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += passed;
+    // Ela fora do café (foi buscar ingrediente, por exemplo): a paciência corre só awayPatienceRate do normal.
+    const slack = this.lunchNow()
+      ? passed
+      : this.st.location !== this.h.content.map.id
+        ? passed * (1 - Math.min(1, Math.max(0, this.cfg.awayPatienceRate ?? 1)))
+        : 0;
+    if (slack > 0) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += slack;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
@@ -854,9 +907,16 @@ export class CafeService {
     if (spot) this.seat(c, spot);
     else this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: null });
     // Antes da inauguração, pouca gente sabe do café: o intervalo entre clientes é maior.
-    const f = (this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1)) * (this.h.openingArrivalFactor?.() ?? 1);
+    const f = (this.h.state.business === 'inaugurated' ? 1 : (this.cfg.softOpenArrivalFactor ?? 1)) * (this.h.openingArrivalFactor?.() ?? 1) * this.reputationArrivalFactor();
     const [a, b] = this.cfg.arrivalEveryMinutes;
     sv.nextCustomerAt = now + Math.round(rng.int(a, b) * f);
+  }
+
+  /** A fama traz gente: o fator do intervalo entre clientes pela reputação de agora (data/service.json: reputationArrival). */
+  reputationArrivalFactor(): number {
+    const rep = this.h.state.reputation.value;
+    const bands = [...(this.cfg.reputationArrival ?? [])].sort((a, b) => a.at - b.at);
+    return bands.filter((b) => rep >= b.at).pop()?.factor ?? 1;
   }
 
   /** Vai para o lugar e faz o pedido (do quadro, que dá para fazer, do tipo do lugar; o favorito pesa mais). */
@@ -924,6 +984,147 @@ export class CafeService {
   }
 
   // ---------- Ações da personagem ----------
+
+  // ---------- Robô garçom ----------
+  // Uma viagem por vez: sai da base até a louça suja mais perto (o tempo pela distância), pega e já deixa na pia ou na
+  // lava-louças (o jogo mostra ele levando). A viagem não vai para o save: carregado no meio, ele recomeça da base e a
+  // louça continua na mesa.
+
+  /** A viagem em andamento (até a louça em `dishAt`, chegando em `arriveAt`) e até quando ele descansa na base. */
+  private waiterTrip: { dishAt: Cell; arriveAt: number } | null = null;
+  /**
+   * Robô que serve: a viagem até o pedido pronto (`toDrink`) e dali até o cliente (`toCustomer`). O pedido fica na
+   * superfície até a entrega (o jogo esconde o que ele está levando: waiterCarrying); carregado no meio, ele recomeça.
+   */
+  private serveTrip: { drinkAt: Cell; customerId: string; recipe: string; phase: 'toDrink' | 'toCustomer'; arriveAt: number } | null = null;
+
+  /** O pedido que o robô está levando agora (a célula de onde ele saiu), para o jogo não desenhar no balcão. */
+  waiterCarrying(): Cell | null {
+    return this.serveTrip?.phase === 'toCustomer' ? this.serveTrip.drinkAt : null;
+  }
+
+  /** O pedido pronto nesta célula, se ainda for o mesmo (ninguém pegou). */
+  private readyAt(at: Cell, recipe: string): Extract<HandItem, { kind: 'drink' }> | undefined {
+    const s = this.st.surfaces.find((x) => same(x.at, at) && x.item.kind === 'drink' && x.item.recipe === recipe);
+    return s?.item as Extract<HandItem, { kind: 'drink' }> | undefined;
+  }
+
+  /** Quem ainda espera aquele pedido (sentado ou em pé, no lugar). */
+  private waitingFor(customerId: string, recipe: string): Customer | undefined {
+    return this.st.service.customers.find((c) => c.id === customerId && c.stage === 'waiting' && c.recipe === recipe);
+  }
+
+  /** A viagem de servir: chega no pedido, leva até o cliente e entrega (ou desiste, se algo mudou no caminho). */
+  private serveTick(now: number, robot: PlacedItem, def: { cellsPerMinute: number; restMinutes: number }): void {
+    const t = this.serveTrip!;
+    if (now < t.arriveAt) return;
+    const c = this.waitingFor(t.customerId, t.recipe);
+    const item = this.readyAt(t.drinkAt, t.recipe);
+    const giveUp = (from: Cell) => {
+      this.serveTrip = null;
+      this.waiterRestUntil = now + Math.ceil(steps(from, robot.at) / def.cellsPerMinute) + def.restMinutes;
+      this.h.bus.emit('waiter.served', { at: [from[0], from[1]], ok: false });
+    };
+    if (t.phase === 'toDrink') {
+      if (!c || !item) return giveUp(t.drinkAt);
+      t.phase = 'toCustomer';
+      t.arriveAt = now + Math.max(1, Math.ceil(steps(t.drinkAt, c.spot) / def.cellsPerMinute));
+      this.h.bus.emit('waiter.serving', { from: [t.drinkAt[0], t.drinkAt[1]], to: [c.spot[0], c.spot[1]], recipe: t.recipe });
+      return;
+    }
+    // Ela pegou o pedido do balcão, ou o cliente desistiu no caminho: o pedido fica onde estava.
+    if (!c || !item) return giveUp(c?.spot ?? t.drinkAt);
+    this.st.surfaces = this.st.surfaces.filter((x) => x.item !== item);
+    this.serveTrip = null;
+    this.deliver(c, item, false);
+    this.waiterRestUntil = now + Math.ceil(steps(c.spot, robot.at) / def.cellsPerMinute) + def.restMinutes;
+    this.h.bus.emit('waiter.served', { at: [c.spot[0], c.spot[1]], ok: true });
+  }
+
+  /** Um pedido pronto para quem espera exatamente ele: o de quem espera há mais tempo, o pronto mais perto da base. */
+  private serveJob(robot: PlacedItem): { drinkAt: Cell; customer: Customer } | null {
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe).sort((a, b) => a.until - b.until);
+    for (const c of waiting) {
+      const ready = this.st.surfaces
+        .filter((s) => s.item.kind === 'drink' && s.item.recipe === c.recipe)
+        .sort((a, b) => steps(a.at, robot.at) - steps(b.at, robot.at))[0];
+      if (ready) return { drinkAt: [...ready.at], customer: c };
+    }
+    return null;
+  }
+  private waiterRestUntil = 0;
+
+  /** A base do robô garçom posicionada no café, se tiver. */
+  waiterRobot(): PlacedItem | undefined {
+    return this.st.placed.find((p) => this.h.content.items[p.item]?.waiter);
+  }
+
+  /** Onde a louça vai: a lava-louças com lugar (e não quebrada), senão a pia com lugar; null = tudo cheio. */
+  private waiterTarget(): { kind: 'washer'; uid: string; at: Cell } | { kind: 'sink'; at: Cell } | null {
+    for (const p of this.st.placed) {
+      const def = this.h.content.items[p.item]?.washer;
+      if (!def || this.isBroken(p.uid)) continue;
+      if (loadCount(this.washerState(p.uid).load) < def.capacity) return { kind: 'washer', uid: p.uid, at: p.at };
+    }
+    if (loadCount(this.st.sink.load) < this.cfg.sinkCapacity && !this.st.sink.washing) return { kind: 'sink', at: this.sinkCell() };
+    return null;
+  }
+
+  /**
+   * A viagem leva o tempo do caminho (células, sem diagonal) na velocidade dele: um pouco mais devagar que o desenho, para
+   * o robô chegar na mesa antes de a louça sumir dela.
+   */
+  private waiterTick(now: number): void {
+    const robot = this.waiterRobot();
+    const def = robot ? this.h.content.items[robot.item]?.waiter : undefined;
+    if (!robot || !def) {
+      this.waiterTrip = null;
+      this.serveTrip = null;
+      return;
+    }
+    if (this.serveTrip) {
+      if (def.serves) return this.serveTick(now, robot, def);
+      this.serveTrip = null; // voltou a ser o robô só de louça
+    }
+    if (this.waiterTrip) {
+      if (now < this.waiterTrip.arriveAt) return;
+      const at = this.waiterTrip.dishAt;
+      this.waiterTrip = null;
+      const i = this.st.surfaces.findIndex((s) => same(s.at, at) && s.item.kind === 'dirty');
+      const target = this.waiterTarget();
+      // A volta: da louça até a pia (ou a lava-louças) e de lá até a base, e um descanso. Sem louça (ela pegou antes) ou
+      // com tudo cheio no caminho, ele volta direto, de mãos vazias.
+      const back = !target || i < 0 ? steps(at, robot.at) : steps(at, target.at) + steps(target.at, robot.at);
+      this.waiterRestUntil = now + Math.ceil(back / def.cellsPerMinute) + def.restMinutes;
+      if (i < 0 || !target) return;
+      const [dish] = this.st.surfaces.splice(i, 1);
+      const vessel = (dish!.item as { vessel: Vessel }).vessel;
+      if (target.kind === 'washer') {
+        const w = this.washerState(target.uid);
+        w.load[vessel] = (w.load[vessel] ?? 0) + 1;
+        this.h.bus.emit('washer.changed', { uid: target.uid, load: loadCount(w.load), washing: !!w.washing });
+      } else {
+        this.st.sink.load[vessel] = (this.st.sink.load[vessel] ?? 0) + 1;
+        this.h.bus.emit('sink.changed', { load: loadCount(this.st.sink.load) });
+      }
+      this.h.bus.emit('waiter.picked', { at: [at[0], at[1]], vessel, to: [target.at[0], target.at[1]] });
+      return;
+    }
+    if (now < this.waiterRestUntil) return;
+    // Servir vem antes da louça: cliente esperando é a prioridade.
+    const job = def.serves ? this.serveJob(robot) : null;
+    if (job) {
+      this.serveTrip = { drinkAt: job.drinkAt, customerId: job.customer.id, recipe: job.customer.recipe!, phase: 'toDrink', arriveAt: now + Math.max(1, Math.ceil(steps(job.drinkAt, robot.at) / def.cellsPerMinute)) };
+      this.h.bus.emit('waiter.going', { at: [job.drinkAt[0], job.drinkAt[1]] });
+      return;
+    }
+    if (!this.waiterTarget()) return;
+    // A louça suja mais perto da base (nas mesas e no balcão; a da mão dela não).
+    const dish = this.st.surfaces.filter((s) => s.item.kind === 'dirty').sort((a, b) => steps(a.at, robot.at) - steps(b.at, robot.at))[0];
+    if (!dish) return;
+    this.waiterTrip = { dishAt: [...dish.at], arriveAt: now + Math.max(1, Math.ceil(steps(dish.at, robot.at) / def.cellsPerMinute)) };
+    this.h.bus.emit('waiter.going', { at: [dish.at[0], dish.at[1]] });
+  }
 
   surfaceAt(at: Cell): SurfaceItem | undefined {
     return this.st.surfaces.find((s) => same(s.at, at));
@@ -1022,6 +1223,12 @@ export class CafeService {
   }
 
   /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
+  /** Quantos desta receita estão prontos ou a caminho além dos pedidos que já esperam por ela (os sem dono). */
+  private spareReady(recipe: string): number {
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe === recipe).length;
+    return this.covered(recipe) - waiting;
+  }
+
   private covered(recipe: string): number {
     return (
       this.st.service.preps.filter((p) => p.recipe === recipe).length * (this.recipe(recipe)?.batch?.yields ?? 1) +
@@ -1119,6 +1326,9 @@ export class CafeService {
   pickUp(at: Cell): ServiceResult {
     const s = this.surfaceAt(at);
     if (!s) return { ok: false, reason: 'nothing_here' };
+    // O pedido que o robô garçom está levando (já saiu do balcão na tela): não dá para pegar.
+    const carrying = this.waiterCarrying();
+    if (carrying && same(carrying, at) && s.item.kind === 'drink') return { ok: false, reason: 'nothing_here' };
     const problem = this.canHold(s.item);
     if (problem) return { ok: false, reason: problem };
     this.st.surfaces = this.st.surfaces.filter((x) => x !== s);
@@ -1181,11 +1391,18 @@ export class CafeService {
     if (wrong) i = this.st.hands.findIndex((h) => h.kind === 'drink');
     if (i < 0) return { ok: false, reason: 'wrong_order' };
     const [served] = this.st.hands.splice(i, 1);
-    const quality: Quality = served!.kind === 'drink' ? served!.quality ?? 'simple' : 'simple';
+    this.deliver(c, served as Extract<HandItem, { kind: 'drink' }>, wrong);
+    this.handsChanged();
+    return { ok: true };
+  }
+
+  /** Entrega o pedido ao cliente (da mão dela ou do robô garçom): preço, gorjeta, o consumo e o aviso. */
+  private deliver(c: Customer, served: Extract<HandItem, { kind: 'drink' }>, wrong: boolean): void {
+    const quality: Quality = served.quality ?? 'simple';
     const wanted = c.recipe!;
-    if (wrong && served!.kind === 'drink') {
+    if (wrong) {
       c.wrongOrder = true;
-      c.recipe = served!.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
+      c.recipe = served.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
     }
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
@@ -1199,9 +1416,7 @@ export class CafeService {
     recordServed(this.st.stats);
     this.h.addMoney(price + tip, `sale:${r.id}`);
     this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality, ...(wrong ? { wanted } : {}) });
-    this.handsChanged();
     this.h.advanceStory();
-    return { ok: true };
   }
 
   // ---------- Pia ----------

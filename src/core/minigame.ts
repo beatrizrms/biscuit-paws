@@ -111,6 +111,8 @@ export interface MiniGameDef {
   /** Caça ao filhote: os esconderijos possíveis, os tipos com arte, a dica de calor e o pedaço da arena na tela. */
   hideouts?: Hideout[];
   hideoutKinds?: string[];
+  /** Caça ao filhote: tipo de esconderijo desenhado com um tile do catálogo (a arte nova), no lugar da folha do pacote. */
+  hideoutTiles?: Record<string, string>;
   heat?: HeatLevel[];
   heatRange?: number;
   /** Escovação: os emaranhados e as zonas do corpo (pixels do sprite de lado) e quanto o gato é ampliado. */
@@ -133,8 +135,12 @@ export interface MiniGameDef {
   /** Raio do esbarrão por tipo de obstáculo (px lógicos) e a folga depois de um tropeço (ms). */
   hitRadius?: Record<string, number>;
   graceMs?: number;
-  /** Confiança do gato: onde o gato fica (célula) e o item que vale um petisco a mais (params.itemId). */
+  /**
+   * Confiança do gato: onde o gato fica (célula; ela anda até ele pela mesma linha, que precisa estar livre), o zoom a
+   * mais da câmera (2 = o dobro; a vista centra entre ela e o gato) e o item que vale um petisco a mais (params.itemId).
+   */
   catAt?: [number, number];
+  zoom?: number;
   treatItem?: string;
 }
 

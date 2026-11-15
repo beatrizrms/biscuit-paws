@@ -381,7 +381,7 @@
     }
   ],
   "interactions": [
-    { "id": "int.market_shelf_garden", "at": [15, 6], "action": { "shelf": "shop.market", "tags": ["garden"], "emptyText": "Mudas para o quintal: ficam à venda quando o quintal estiver reformado." } },
+    { "id": "int.market_shelf_garden", "at": [15, 6], "action": { "shelf": "shop.market", "tags": ["garden"], "emptyText": "Ainda não estão à venda." } },
     {
       "id": "int.market_cashier",
       "at": [

@@ -155,6 +155,11 @@ export interface GameState {
   hintUses: Record<string, number>;
   /** Preparativos da inauguração: os cartazes colados (pontos), os amigos convidados, o dia e quantos preparativos valeram. */
   openingPrep?: { posters: string[]; invited: string[]; posterDay?: number; inviteDay?: number; openedOn?: number; steps?: number };
+  /**
+   * Passos das metas já feitos num dia que acabou ("beat#índice" -> o dia): no balão, o passo feito fica riscado só no
+   * dia em que foi feito; do dia seguinte em diante, sai da lista.
+   */
+  goalStepsDone?: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;
   /** Selos do café (v28): o dia em que cada um foi conquistado. */

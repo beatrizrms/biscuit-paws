@@ -13,6 +13,7 @@ import { sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
 import { preloadCreatorLayers } from '../playerLook';
 import { ROBOT_IMAGE, ROBOT_KEY } from '../RobotVacuumView';
+import { WAITER_DIRS, waiterImage, waiterKey } from '../WaiterRobotView';
 import { themeColor, themeHex } from '../theme';
 
 /**
@@ -54,6 +55,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('emotes', emotes.image);
     for (const [name, path] of Object.entries(emotes.hd ?? {})) this.load.image(`emote_hd:${name}`, path);
     this.load.image(ROBOT_KEY, ROBOT_IMAGE);
+    for (const dir of WAITER_DIRS) this.load.image(waiterKey(dir), waiterImage(dir));
     this.load.image('van_left', content.delivery.van.left);
     // O ônibus do ponto (sem a arte, o furgão faz o papel).
     const busArt = content.world.bus?.vehicle;

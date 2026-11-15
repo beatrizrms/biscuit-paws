@@ -21,14 +21,24 @@ export class MiniGameControls {
     const kb = scene.input.keyboard!;
     const action = () => this.actionCbs.forEach((cb) => cb());
     const pause = () => this.pauseCbs.forEach((cb) => cb());
+    // Clique ou toque na tela (o dedo não é o "botão esquerdo" do mouse: sem o wasTouch, tocar não fazia nada).
     const click = (p: Phaser.Input.Pointer) => {
-      if (p.leftButtonDown()) this.actionCbs.forEach((cb) => cb(this.toWorld(p)));
+      if (p.leftButtonDown() || p.wasTouch) this.actionCbs.forEach((cb) => cb(this.toWorld(p)));
     };
     // Setas/WASD como "passos" (um por toque): escolher um alvo sem mouse (esconderijos, cartas...).
     const move = (e: KeyboardEvent) => {
       const dir = MOVE_KEYS[e.code];
       if (dir) this.moveCbs.forEach((cb) => cb(dir));
     };
+    // O direcional de toque também anda um passo por empurrão (como as setas): sem isso, no celular não dava para
+    // trocar o esconderijo escolhido.
+    let held = { up: false, down: false, left: false, right: false };
+    const stickSteps = () => {
+      const now = { ...touch.dir };
+      for (const dir of ['up', 'down', 'left', 'right'] as const) if (now[dir] && !held[dir]) this.moveCbs.forEach((cb) => cb(dir));
+      held = now;
+    };
+    scene.events.on(Phaser.Scenes.Events.UPDATE, stickSteps);
     kb.on('keydown', move);
     kb.on('keydown-E', action);
     kb.on('keydown-SPACE', action);
@@ -43,6 +53,7 @@ export class MiniGameControls {
       kb.off('keydown-SPACE', action);
       kb.off('keydown-ESC', pause);
       scene.input.off('pointerdown', click);
+      scene.events.off(Phaser.Scenes.Events.UPDATE, stickSteps);
       offTouch.forEach((off) => off());
     });
   }

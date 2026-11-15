@@ -3,6 +3,8 @@ import Phaser from 'phaser';
 const DEPTH = 99_000; // acima do mundo, abaixo do fantasma de posicionar
 const KEY = 13; // a teclinha "E"
 const PAD = 4;
+/** Folga da plaquinha até a borda da tela (px do mundo). */
+const EDGE = 3;
 const INK = '#3b2a32';
 
 /**
@@ -17,7 +19,7 @@ export class InteractHint {
   private readonly label: Phaser.GameObjects.Text;
   private key = '';
 
-  constructor(scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.bg = scene.add.graphics();
     const style = { fontFamily: 'Trebuchet MS, sans-serif', fontStyle: 'bold', color: INK, resolution: 4 };
     this.letter = scene.add.text(0, 0, 'E', { ...style, fontSize: '10px' }).setOrigin(0.5, 0.5);
@@ -30,7 +32,8 @@ export class InteractHint {
 
   /** Mostra em cima do ponto (x, y: o topo do objeto, em pixels do mundo) com o texto da ação, ou esconde (null). */
   show(at: { x: number; y: number; label: string } | null): void {
-    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label}` : '';
+    const view = this.scene.cameras.main.worldView;
+    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.width)}` : '';
     if (key === this.key) return;
     this.key = key;
     this.box.setVisible(!!at);
@@ -44,14 +47,17 @@ export class InteractHint {
     g.fillStyle(0x3b2a32, 0.3).fillRoundedRect(left, -h / 2 + 1, w, h, 4); // sombra
     g.fillStyle(0xfff4e0, 0.96).fillRoundedRect(left, -h / 2, w, h, 4);
     g.lineStyle(1, 0x8a5a44, 1).strokeRoundedRect(left, -h / 2, w, h, 4);
-    g.fillStyle(0x8a5a44, 1).fillTriangle(-3, h / 2, 3, h / 2, 0, h / 2 + 3);
+    // Perto da borda da tela, a plaquinha encosta dentro dela e só a setinha fica em cima do objeto.
+    const x = Math.round(Math.min(Math.max(at.x, view.x + w / 2 + EDGE), view.right - w / 2 - EDGE));
+    const tip = Math.max(left + 4, Math.min(-left - 4, Math.round(at.x) - x));
+    g.fillStyle(0x8a5a44, 1).fillTriangle(tip - 3, h / 2, tip + 3, h / 2, tip, h / 2 + 3);
     // A tecla: quadradinho branco com borda, como no teclado.
     const kx = left + PAD;
     g.fillStyle(0xffffff, 1).fillRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
     g.lineStyle(1, 0x3b2a32, 0.8).strokeRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
     this.letter.setPosition(kx + KEY / 2, 0);
     this.label.setPosition(kx + KEY + PAD, 0);
-    this.box.setPosition(Math.round(at.x), Math.round(at.y - h / 2 - 5));
+    this.box.setPosition(x, Math.round(at.y - h / 2 - 5));
   }
 
   destroy(): void {

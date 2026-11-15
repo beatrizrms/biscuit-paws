@@ -10,7 +10,8 @@ import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
 import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
-import { addTileImage } from '../tileArt';
+import { frameOf } from '../../core/tiles';
+import { addTileImage, tileScale } from '../tileArt';
 import { ART_SCALE, CHASE, ensurePlaceholders, HUNT_SHEETS, KITTEN_HUNT, loadCatVariants, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
 
@@ -19,7 +20,8 @@ export const KITTEN_HUNT_SCENE = 'MiniGame.kitten_hunt';
 /** Espera depois do último achado (ou da última tentativa) para a tela de resultado: dá para ver o filhote. */
 const END_DELAY_MS = 900;
 /** Escala do filhote (o gato do Cosy Cats, menor). */
-const KITTEN_SCALE = 0.75;
+/** O filhote no tamanho dos gatos do café: escala inteira, sem distorcer os pixels (0.75 deixava torto e pequeno). */
+const KITTEN_SCALE = 1;
 
 interface SpotView {
   id: string;
@@ -65,9 +67,13 @@ export class KittenHuntScene extends MiniGameScene {
     // Esconderijos: os da partida, ordenados da esquerda para a direita (as setas andam nessa ordem).
     const spots = [...this.state.spots].sort((a, b) => a.at[0] - b.at[0] || a.at[1] - b.at[1]);
     for (const h of spots) {
-      const sheet = HUNT_SHEETS[h.kind] ?? CHASE.hideBox;
       const bottom = (h.at[1] + 1) * ts;
-      const sprite = this.add.sprite(h.at[0] * ts + ts / 2, bottom, sheet.key, 0).setOrigin(0.5, 1).setScale(ART_SCALE).setDepth(bottom);
+      // Com um tile do catálogo para o tipo (def.hideoutTiles: a arte nova), ele; senão, a folha do pacote.
+      const tile = content.catalog.tiles[def.hideoutTiles?.[h.kind] ?? ''];
+      const sheet = HUNT_SHEETS[h.kind] ?? CHASE.hideBox;
+      const sprite = (tile ? this.add.sprite(h.at[0] * ts + ts / 2, bottom, tile.sheet, frameOf(content.catalog, tile)).setScale(tileScale(tile.sheet)) : this.add.sprite(h.at[0] * ts + ts / 2, bottom, sheet.key, 0).setScale(ART_SCALE))
+        .setOrigin(0.5, 1)
+        .setDepth(bottom);
       sprite.setInteractive({ useHandCursor: true });
       sprite.on('pointerover', () => this.select(this.views.findIndex((v) => v.id === h.id)));
       this.views.push({ id: h.id, sprite });

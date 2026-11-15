@@ -284,7 +284,10 @@ export class MarketApp {
     // Troca de acabamento (depois do reparo interno): cada superfície do café, os acabamentos que servem.
     const inside = s.repaired.includes('inside');
     const finishes = Object.values(content.finishes);
+    // O piso é um só (salão e balcão): uma seção "Piso", e ela marca no café onde quer.
     const areas = (content.map.surfaces ?? [])
+      .filter((surface, i, all) => surface.kind !== 'floor' || all.findIndex((x) => x.kind === 'floor') === i)
+      .map((surface) => surface.kind === 'floor' ? { ...surface, name: t.floorTitle } : surface)
       .map((surface) => {
         const per = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
         const cards = finishes

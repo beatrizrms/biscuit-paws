@@ -1,6 +1,6 @@
 # Proposta: o ritmo do café e o ajudante
 
-Status: **proposta, para decidir**. Nada disto está no jogo ainda.
+Status: **etapa 1 feita; a pessoa (etapa 2) fica para depois** (pedido dela em 2026-11-14). Feito: a procura pela reputação (seção 1; medido nos testes: ~12 clientes por dia com reputação 0 e ~23 com 85), as máquinas por conquista, nesta ordem: lava-louças (100 clientes desde a inauguração), robô aspirador (120), robô de mesas (160, recolhe a louça; arte do PixelLab nas 4 direções, a base é a do robô aspirador) e o upgrade dele para robô garçom (200, Assistência, 650: também serve).
 
 ## O problema
 
@@ -13,8 +13,8 @@ decide quantas mesas, quanta louça e quanto tempo o café abre. Travar móveis 
   9h às 18h, com 1 hora de almoço. Dá uns **12 a 13 por dia** depois da inauguração e uns **6 a 7** antes (o intervalo
   dobra).
 - Mais mesas e louça não trazem mais gente: só deixam mais gente ao mesmo tempo e a fila menor.
-- A reputação (0 a 100, com os níveis Notada na vila 20, De confiança 40, Xodó dos gatos 60 e Lenda felina 80) **não
-  muda** quantos clientes vêm.
+- A reputação (0 a 100, com os níveis Notada na vila 20, De confiança 40, Xodó dos gatos 60 e Lenda felina 80) não
+  mudava quantos clientes vêm (agora muda: seção 1).
 - Já existe automação pequena: lava-louças (200), alimentador automático (150), caixa de areia automática (180) e o
   robô aspirador (600). A aba **Assistência** do Market já existe.
 - Receita de um dia cheio: ~12 clientes × ~13 moedas ≈ **150 a 170 moedas**, mais gorjetas.
@@ -83,14 +83,29 @@ O intervalo entre clientes passa a ser multiplicado por um fator da reputação:
 
 ## 4. Ordem sugerida para fazer
 
-1. Procura pela reputação (só dados e uma conta no núcleo; com testes de quantos clientes por nível).
+1. ~~Procura pela reputação~~ **feito** (`data/service.json: reputationArrival`).
+2. ~~O interruptor "Movimento"~~ não vai ter (decisão dela).
 2. O interruptor "Movimento" no app Horário (opcional).
-3. A máquina (um objeto, uma regra, um item na aba Assistência).
+3. ~~A máquina~~ **feito:** o robô de mesas (160 clientes) e o upgrade para robô garçom (200).
 4. A pessoa (NPC novo, cena de chegada, as três funções, salário).
 
-## Para decidir
+## Pendente: a pessoa (etapa 2), para depois
 
-1. A procura sobe com a reputação? Os fatores da tabela estão bons?
+Decidido com ela (2026-11-14), para quando voltar a isto:
+
+- **Quem:** alguém **novo** na vila (não um amigo que já existe). Falta escolher o **nome e o jeito** (aparência,
+  idade, personalidade) e gerar a arte: personagem 64x128 com caminhada nas 4 direções e segurando a bandeja
+  (PixelLab; ver a memória de personagens no PixelLab: testar um antes).
+- **Quando:** reputação **De confiança (40)** e o **quintal aberto**; chega por uma cena (pede emprego).
+- **Onde contrata:** uma **aba nova no Market, de contratação de serviços** (Contratação).
+- **Salário:** **~35 moedas por dia** em que o café abre (dia fechado não paga; sem dinheiro, avisa e não vem).
+- **Funções (ela escolhe e troca no celular):** caixa e entrega, louça, preparo das bebidas simples. Mais devagar que
+  ela (~70%), sai no almoço, conversa e ganha corações como os vizinhos.
+- **Não vai ter:** o interruptor "Movimento" no app Horário (decisão dela).
+
+## Para decidir (respondido em 2026-11-14)
+
+1. ~~A procura sobe com a reputação?~~ Sim, feito com os fatores da tabela (ajustar depois de jogar).
 2. Quer o interruptor "Movimento: tranquilo / normal / cheio"?
 3. A máquina: robô garçom, cafeteira de autoatendimento, ou as duas (uma de cada vez)?
 4. Selo da máquina em 100 clientes? E a pessoa em reputação 40 com o quintal aberto?

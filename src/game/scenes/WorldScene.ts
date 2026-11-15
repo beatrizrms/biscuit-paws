@@ -22,6 +22,7 @@ import { CustomerSprite } from '../entities/Customer';
 import { iconFrame, iconSheetKey } from '../icons';
 import { addTileImage, applyHue, tileScale } from '../tileArt';
 import { RobotVacuumView } from '../RobotVacuumView';
+import { WaiterRobotView } from '../WaiterRobotView';
 import { MiniGameRegistry } from '../minigames/MiniGameRegistry';
 import { actorsOf } from '../../core/arrivalModels';
 import type { MiniGameParams, MiniGameResult } from '../../core/minigame';
@@ -262,6 +263,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Cômodos do café: escuro, destaque, câmera, luz de fora. */
   private roomView: RoomView | null = null;
   private robotView?: RobotVacuumView;
+  private waiterView?: WaiterRobotView;
   /** Sons ligados aos eventos e ao lugar. */
   private sounds: SoundEvents | null = null;
   /** Varrendo (a jogadora fica parada até terminar). */
@@ -433,6 +435,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
       if (this.movePick) return this.confirmMovePick();
+      // Com o móvel na mão (mudando de lugar ou posicionando), E solta: não usa o que está perto (a cafeteira...).
+      if (this.placing) return this.dropPlacing();
       const plan = this.planE();
       plan?.run();
     });
@@ -540,7 +544,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else this.ui.toast(uiText.delivery.arrivedAway);
     });
     for (const ev of ['delivery.ordered', 'delivery.picked_up', 'delivery.unpacked', 'delivery.dropped'] as const) this.session.bus.on(ev, () => this.refreshParcels());
-    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
+    for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left', 'waiter.picked', 'waiter.serving', 'waiter.served'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
     this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId }) => {
@@ -968,6 +972,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.roomView.refresh(mapId === this.session.content.map.id);
     this.robotView ??= new RobotVacuumView(this, this.session);
     this.robotView.refresh(mapId, ts, () => this.map.solid);
+    this.waiterView ??= new WaiterRobotView(this, this.session, (what) => {
+      // Na bandeja, o mesmo ícone do balcão (a louça suja ou o pedido pronto), no tamanho de lá.
+      const item = ('recipe' in what ? { kind: 'drink', recipe: what.recipe, vessel: 'cup' } : { kind: 'dirty', vessel: what.vessel }) as HandItem;
+      const img = this.handItemImage(item);
+      return img?.setScale((img.getData('iconScale') as number | undefined) ?? 1);
+    });
+    this.waiterView.refresh(mapId, ts, () => this.map.solid);
   }
 
   /** Cômodos mudaram: mapa, escuro, câmera e luz de fora. */
@@ -1881,7 +1892,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const ts = this.map.tileSize;
     const feet = this.playerCells();
     const plan = (hint: EPlan['hint'], run: () => boolean): EPlan => ({ hint, run });
-    // Antes de tudo: o Tião na obra, os convidados e vizinhos, as caixas da entrega na porta ou nas mãos.
+    // Antes de tudo, só o que é o momento de um evento ou o que está nas mãos: a troca de presentes da ceia (ou do
+    // Halloween) com o convidado do lado, e soltar as caixas da entrega que ela carrega.
+    const guest = this.santaGuestNear();
+    if (guest && (s.santaGivingNow() || s.halloweenGivingNow())) {
+      const [npc, sprite] = guest;
+      const santa = s.santaGivingNow();
+      const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
+      return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
+    }
+    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
+    // Gente perto (o Tião na obra, convidados da festa, amigos passeando) entra na mesma regra de tudo: quem está na
+    // frente dela vence (antes, o Tião do lado tomava o E da despensa bem na frente).
+    const people: ECandidate<EPlan>[] = [];
     if (s.builderNear(feet)) {
       const at = s.builderAt(s.location())!.at;
       const tiao = s.content.construction.npc;
@@ -1889,38 +1912,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const talk = s.giftProblem(tiao) === null
         ? plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'friend_gift' }, () => this.tryFriendGift(tiao, () => this.talkToBuilder()))
         : plan({ x: (at[0] + 0.5) * ts, y: (at[1] - 1.6) * ts, kind: 'builder' }, () => this.talkToBuilder());
-      // As caixas da entrega na porta, com ele trabalhando do lado: vence o que está na frente dela (a regra do E).
-      if (s.parcelsNear(feet) !== 'door') return talk;
-      const door = s.content.delivery.door.at;
-      const boxes = plan(this.hintCell(door, 'parcels_door'), () => this.parcelInteract());
-      return pickETarget([{ cells: [at], tier: 1, value: talk }, { cells: [door], tier: 0, value: boxes }], feet, this.feetCell(), this.player.facingDirection());
+      people.push({ cells: [at], tier: E_TIER.interaction, value: talk });
     }
-    const guest = this.santaGuestNear();
     if (guest) {
       const [npc, sprite] = guest;
+      const cell: Cell = [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)];
       const chat = s.festivePartyOn() && s.partyHasChat(npc);
-      if (s.santaGivingNow() || s.halloweenGivingNow()) {
-        const santa = s.santaGivingNow();
-        const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
-        return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
-      }
-      // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
       const walking = (this.neighborWalks.has(npc) || this.roamers.has(npc)) && s.neighborHasChat(npc);
-      if (s.giftProblem(npc) === null) return plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite));
-      if (chat) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat());
-      if (walking && this.roamers.has(npc)) {
-        const ts = this.map.tileSize;
-        const cell: Cell = [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)];
-        return pickETarget([{ cells: [cell], tier: E_TIER.interaction, value: plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat()) }, ...this.eCandidates()], feet, this.feetCell(), this.player.facingDirection());
-      }
-      if (walking) return plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat());
+      // Amigo, com um presente à mão (e ainda sem o desta semana): dar ou só conversar.
+      const talk = s.giftProblem(npc) === null
+        ? plan(this.hintNpc(sprite, 'friend_gift'), () => this.tryFriendGift(npc, () => (chat ? this.tryPartyChat() : walking ? this.tryNeighborChat() : false), sprite))
+        : chat ? plan(this.hintNpc(sprite, 'party_chat'), () => this.tryPartyChat())
+        : walking ? plan(this.hintNpc(sprite, 'party_chat'), () => this.tryNeighborChat())
+        : null;
+      if (talk) people.push({ cells: [cell], tier: E_TIER.interaction, value: talk });
     }
-    const parcels = s.parcelsNear(feet);
-    if (parcels === 'door') return plan(this.hintCell(s.content.delivery.door.at, 'parcels_door'), () => this.parcelInteract());
-    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
+    // As caixas da entrega na porta do café (na rua).
+    if (s.parcelsNear(feet) === 'door') {
+      const door = s.content.delivery.door.at;
+      people.push({ cells: [door], tier: E_TIER.parcels, value: plan(this.hintCell(door, 'parcels_door'), () => this.parcelInteract()) });
+    }
     // O resto (sujeira, equipamento, gato, pote, janela, ponto de pedido...): uma regra só, em src/core/eTarget.ts. O que
     // está bem na frente dela vence; no empate, o que combina com a ferramenta na mão; depois o tipo; depois o mais perto.
-    return pickETarget(this.eCandidates(), feet, this.feetCell(), this.player.facingDirection());
+    return pickETarget([...people, ...this.eCandidates()], feet, this.feetCell(), this.player.facingDirection());
   }
 
   /**
@@ -2155,6 +2169,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa: a dica do planE. null: sem dica. */
   private eTarget(): { x: number; y: number; kind: HintKind } | null {
+    // Com o móvel na mão, o E solta: sem a dica do que está perto.
+    if (this.placing) return null;
     return this.planE()?.hint ?? null;
   }
 
@@ -3484,7 +3500,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.anims.exists('ready-pulse')) {
       this.anims.create({ key: 'ready-pulse', frames: serviceArt.readyMarker.map((_, i) => ({ key: `ready_${i}` })), frameRate: 3, repeat: -1 });
     }
+    // O pedido que o robô garçom está levando sai do balcão (no núcleo ele só sai quando entrega).
+    const carrying = this.session.service.waiterCarrying();
     for (const s of this.session.state.surfaces) {
+      if (carrying && s.at[0] === carrying[0] && s.at[1] === carrying[1] && s.item.kind === 'drink') continue;
       // Pronto para pegar (pedido ou massa): o marcador pulsa embaixo.
       if (s.item.kind === 'drink' || s.item.kind === 'wip') {
         const marker = this.add.sprite(s.at[0] * ts, s.at[1] * ts, 'ready_0').setOrigin(0).setDepth(ySortDepth((s.at[1] + 1) * ts) + 4);

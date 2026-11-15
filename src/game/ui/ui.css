@@ -138,9 +138,6 @@
 }
 /* A mão livre (o quadrado fixo antes do 1): uma mãozinha aberta desenhada em CSS (PLACEHOLDER(arte)). */
 .hotbar .slot.hand { background: var(--c-paper2); }
-.hotbar .slot.hand .hand-icon { position: absolute; left: 50%; top: 52%; width: 9px; height: 10px; transform: translate(-50%, -50%); border-radius: 3px 3px 4px 4px; background: var(--c-paper3); box-shadow: inset 0 0 0 1px var(--c-wood); }
-.hotbar .slot.hand .hand-icon::before { content: ""; position: absolute; left: 1px; top: -4px; width: 7px; height: 5px; background: repeating-linear-gradient(90deg, var(--c-paper3) 0 1px, var(--c-wood) 1px 2px); border-radius: 1px 1px 0 0; }
-.hotbar .slot.hand .hand-icon::after { content: ""; position: absolute; left: -3px; top: 3px; width: 4px; height: 3px; background: var(--c-paper3); border: 1px solid var(--c-wood); border-right: 0; border-radius: 2px 0 0 2px; }
 .hotbar .slot.active { border: 2px solid var(--butter2); box-shadow: 0 0 0 1px var(--butter3); background: var(--cream); }
 .hotbar .slot .icon { image-rendering: pixelated; }
 .hotbar .key { position: absolute; top: 0; left: 1px; font-size: max(calc(5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--ink2); }
@@ -768,6 +765,11 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-detail-actions button { padding: 1px 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer; white-space: nowrap; }
 .catalog.backpack .bp-detail-actions button:disabled { opacity: 0.5; cursor: default; }
 .catalog.backpack .bp-detail-actions .why { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--grey2); }
+/* Ações só com ícone (o nome no title): em fileira, quadradinhos; o número pequeno (espaço da barra) do lado. */
+.catalog.backpack .bp-detail-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.catalog.backpack .bp-detail-actions button.bp-icon-btn { display: inline-flex; align-items: center; gap: 1px; padding: 2px; border-radius: 5px; color: var(--c-wood-dark); line-height: 0; }
+.catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon { width: calc(10px * var(--fs, 1)); height: calc(10px * var(--fs, 1)); }
+.catalog.backpack .bp-detail-actions .bp-icon-btn .badge { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; }
 .catalog.backpack .bp-hint { margin: 5px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-style: italic; color: var(--grey2); }
 
 /* Celular: apps no topo (Vila Hoje, Meus gatos); o mural do mercado não tem apps */
@@ -1202,7 +1204,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-pantry h3, .catalog.backpack .bp-box h3 { display: flex; align-items: center; gap: 6px; }
 .catalog.backpack .bp-pantry h3 button, .catalog.backpack .bp-box h3 button { padding: 0 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer; }
 .catalog.backpack .bp-pantry h3 .why { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: normal; color: var(--grey2); }
-.catalog.backpack span.bp-pantry-slot { opacity: 1; }
+.catalog.backpack .bp-pantry-slot { opacity: 1; cursor: pointer; }
 /* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */
 #ui:has(.catalog.backpack.open) > .hotbar { display: none; }
 .catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
@@ -1366,6 +1368,13 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 .catalog.menu-board .m-new { padding: 0 4px; border-radius: 6px; background: var(--c-green-pale); color: var(--c-ink2); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-in { padding: 0 4px; border-radius: 6px; background: var(--butter2); color: var(--ink); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .m-price { color: var(--c-cafe); }
+/* Porções que a despensa rende (×N), ao lado do preço; sem nenhuma, apagado. */
+.catalog.menu-board .m-servings { padding: 0 3px; border-radius: 5px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
+.catalog.menu-board .m-servings.none { color: var(--c-ink3); background: transparent; }
+/* Na receita aberta: quanto cada ingrediente rende, um por linha; o que acaba primeiro em destaque. */
+.catalog.menu-board .m-pantry { display: flex; flex-direction: column; }
+.catalog.menu-board .m-pantry .m-ing { padding-left: 6px; }
+.catalog.menu-board .m-pantry .m-ing.limit { color: var(--c-wood-dark); font-weight: bold; }
 .catalog.menu-board .m-chev { color: var(--c-ink3); font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .m-list .recipe { margin: 0; border-radius: 0; background: var(--cream); padding: 2px 6px 5px 14px; border-bottom: 1px solid var(--c-sand); }
 .catalog.menu-board .m-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; color: var(--cream2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }

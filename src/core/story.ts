@@ -158,7 +158,8 @@ export interface GoalView {
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
   /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
-  steps: { text: string; done: boolean; optional?: boolean; daily?: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
+  /** doneBefore: feito num dia que já acabou (o balão tira da lista; riscado, só no dia em que foi feito). */
+  steps: { text: string; done: boolean; doneBefore?: boolean; optional?: boolean; daily?: boolean; detail?: string; icon?: string; devNote?: string; progress?: [number, number]; doneToday?: boolean; waitUntil?: number }[];
 }
 
 /** Passo de um por dia (os preparativos da inauguração): o de hoje já foi? */
@@ -181,6 +182,15 @@ export function progressOf(c: Condition, state: GameState, ctx: StoryContext): [
   return [spots.filter((d) => isCleaned(state, d)).length, spots.length];
 }
 
+/** Fim do dia: os passos feitos das metas ativas ficam marcados (amanhã, saem da lista do balão). */
+export function markGoalStepsDone(story: StoryData, state: GameState, ctx: StoryContext, day: number): void {
+  for (const g of currentGoals(story, state, ctx)) {
+    g.steps.forEach((s, i) => {
+      if (s.done && !s.doneBefore) (state.goalStepsDone ??= {})[`${g.beatId}#${i}`] = day;
+    });
+  }
+}
+
 /** Metas para mostrar no diário. */
 export function currentGoals(story: StoryData, state: GameState, ctx: StoryContext): GoalView[] {
   return activeBeats(story, state, ctx)
@@ -189,12 +199,14 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
       beatId: b.id,
       title: b.goal!.title,
       ...(b.goal!.together ? { together: true } : {}),
-      steps: b.goal!.steps.map((s) => {
+      steps: b.goal!.steps.map((s, i) => {
         // Receita de um gato: as doses dadas de todas, e se a de hoje já foi.
         const treatment = s.doses ? state.cats[s.doses]?.sickness?.treatment : undefined;
+        const done = evaluate(s.when, state, ctx);
         return {
           text: s.text,
-          done: evaluate(s.when, state, ctx),
+          done,
+          ...(done && state.goalStepsDone?.[`${b.id}#${i}`] !== undefined ? { doneBefore: true } : {}),
           ...(s.optional ? { optional: true } : {}),
           ...(s.daily ? { daily: true, doneToday: dailyDoneToday(s.when, state) } : {}),
           ...(s.detail ? { detail: s.detail } : {}),

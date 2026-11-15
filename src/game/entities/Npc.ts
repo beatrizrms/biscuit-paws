@@ -77,10 +77,12 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
 
   /** Volta a andar na direção do trecho (depois de parar para conversar). */
   resumeWalk(): void {
-    if (this.legDir) this.play(`${npcTexture(this.def.id)}-walk_${this.legDir}`, true);
+    if (this.active && this.legDir) this.play(`${npcTexture(this.def.id)}-walk_${this.legDir}`, true);
   }
 
   private leg(x: number, y: number, dir: Facing): Promise<void> {
+    // Saiu da cena no meio do caminho (o mapa trocou, o cliente foi embora): não anda mais.
+    if (!this.active || !this.anims) return Promise.resolve();
     const dist = Math.hypot(x - this.x, y - this.y);
     this.legDir = dir;
     this.play(`${npcTexture(this.def.id)}-walk_${dir}`, true);
@@ -102,6 +104,7 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
 
   /** Toca uma animação extra (acenar, segurar as chaves...) por um tempo. */
   async act(anim: string, ms: number): Promise<void> {
+    if (!this.active) return;
     this.play(`${npcTexture(this.def.id)}-${anim}`, true);
     await new Promise((r) => this.scene.time.delayedCall(ms, r));
   }

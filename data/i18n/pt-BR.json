@@ -12,7 +12,8 @@
     "options": "Opções",
     "credits": "Créditos",
     "noSave": "Nenhum save ainda",
-    "hint": "Setas: escolher · Enter: confirmar · Esc: voltar"
+    "hint": "Setas: escolher · Enter: confirmar · Esc: voltar",
+    "hintTouch": "Toque para escolher"
   },
   "slot": {
     "slot1": "Slot 1",

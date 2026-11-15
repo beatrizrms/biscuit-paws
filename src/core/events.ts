@@ -242,6 +242,12 @@ export interface GameEvents {
   'hands.changed': { count: number };
   /** O cliente levantou e deixou a louça suja na mesa (ou no balcão). */
   'dish.left': { at: [number, number]; vessel: string };
+  /** Robô garçom: saiu da base para buscar a louça suja em `at`; e pegou (levando para `to`, a pia ou a lava-louças). */
+  'waiter.going': { at: [number, number] };
+  'waiter.picked': { at: [number, number]; vessel: string; to: [number, number] };
+  /** Robô garçom que serve: pegou o pedido pronto em `from` e leva para o cliente em `to`; e entregou (ok) ou desistiu. */
+  'waiter.serving': { from: [number, number]; to: [number, number]; recipe: string };
+  'waiter.served': { at: [number, number]; ok: boolean };
   'dish.washed': { count: number };
   'delivery.ordered': { deliveryId: string; itemId: string; arrivesAt: number };
   'delivery.arrived': { deliveryId: string; itemId: string };

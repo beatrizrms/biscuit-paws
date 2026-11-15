@@ -78,7 +78,7 @@ import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
-import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
+import { activeBeats, currentGoals, markGoalStepsDone, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
   solidGrid,
@@ -880,6 +880,8 @@ export class GameSession {
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     const noPrep = festivalPrepExpired(this.state.festivals, this.content.festivals, day + 1);
     if (noPrep) this.bus.emit('festival.noPrep', { festivalId: noPrep.id, retryIn: noPrep.retryIn });
+    // Os passos feitos hoje: amanhã saem da lista do balão (hoje ficam riscados).
+    markGoalStepsDone(this.content.story, this.state, this.storyContext(), day);
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.constructionDayEnded(day + 1);
@@ -5216,9 +5218,12 @@ export class GameSession {
     if (!surface || !finish || finish.kind !== surface.kind || surface.kind === 'facade') return null;
     const c = this.content.construction;
     const seen = new Set<string>();
+    // Piso é um só para ela (salão e balcão juntos): a área pega as células de todas as superfícies de piso.
+    const group = surface.kind === 'floor' ? (this.content.map.surfaces ?? []).filter((x) => x.kind === 'floor') : [surface];
     const cells = [[a, b] as const, ...more]
-      .flatMap(([x, y]) => surfaceCells(this.content.map, surface, x, y))
-      .filter((cell) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.finishAt(surface, cell) !== finishId));
+      .flatMap(([x, y]) => group.flatMap((g) => surfaceCells(this.content.map, g, x, y).map((cell) => [g, cell] as const)))
+      .filter(([g, cell]) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.finishAt(g, cell) !== finishId))
+      .map(([, cell]) => cell);
     const perTile = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
     return { cells, material: cells.length * perTile, labor: cells.length * c.laborPerTile, days: jobDays(cells.length, c) };
   }

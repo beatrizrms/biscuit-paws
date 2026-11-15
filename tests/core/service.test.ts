@@ -55,6 +55,35 @@ const scheduleNow = (session: GameSession, schedule: Parameters<GameSession['ser
 const coffeeMachineUid = (session: GameSession) => session.state.placed.find((p) => p.item === 'item.coffee_machine')!.uid;
 
 describe('receitas e cardápio', () => {
+  it('porções que a despensa rende: o ingrediente que acaba primeiro manda; sem nenhuma, diz o que falta', () => {
+    const { sv } = openCafe();
+    const r = content.recipes['recipe.black_coffee']!;
+    const expected = Math.min(...Object.entries(r.ingredients).map(([item, n]) => Math.floor(sv.doses(item) / n)));
+    expect(expected).toBeGreaterThan(0);
+    const got = sv.servingsFromPantry(r.id);
+    expect(got).toMatchObject({ servings: expected, missing: [] });
+    // Cada ingrediente sozinho: quanto ele rende; o menor é o total.
+    expect(got.each.map((e) => e.item)).toEqual(Object.keys(r.ingredients));
+    expect(Math.min(...got.each.map((e) => e.servings))).toBe(expected);
+    const empty = openCafe({ coffee: false }).sv;
+    const none = empty.servingsFromPantry(r.id);
+    expect(none.servings).toBe(0);
+    expect(none.missing.sort()).toEqual(Object.keys(r.ingredients).sort());
+  });
+
+  it('sem o ingrediente na despensa, o que já está pronto sem dono continua no cardápio até acabar', () => {
+    const { sv, state } = openCafe({ coffee: false });
+    sv.toggleMenu('recipe.black_coffee');
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
+    // Um café adiantado no balcão: dá para pedir.
+    state.surfaces.push({ at: [4, 5], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' } });
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
+    expect(sv.orderable().map((r) => r.id)).toContain('recipe.black_coffee');
+    // Um cliente já pediu ele: o pronto tem dono, e sem ingrediente volta a esgotar.
+    state.service.customers.push({ id: 'cx', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: 99999999, favorite: null, wantsPremium: false } as never);
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
+  });
+
   it('esgotado por falta de equipamento, ingrediente ou louça limpa', () => {
     const state = newGameState(500, 'map.cafe_main', 9 * 60);
     const session = new GameSession(content, state);
@@ -469,6 +498,56 @@ describe('ciclo do pedido', () => {
   });
 });
 
+describe('despensa de volta para a mochila', () => {
+  it('um pacote fechado por vez; o aberto fica', () => {
+    const { sv, state } = openCafe();
+    const id = 'item.paper_filter';
+    const packs = state.pantry[id]!;
+    expect(packs).toBeGreaterThan(0);
+    expect(sv.takeFromPantry(id)).toEqual({ ok: true });
+    expect(state.inventory[id]).toBe(1);
+    expect(state.pantry[id] ?? 0).toBe(packs - 1);
+    // Só doses soltas (pacote aberto): não volta.
+    delete state.pantry[id];
+    state.pantryOpen[id] = 3;
+    expect(sv.takeFromPantry(id)).toEqual({ ok: false, reason: 'pantry_opened_only' });
+    expect(sv.takeFromPantry('item.milk')).toEqual({ ok: false, reason: 'nothing_here' });
+  });
+
+  it('o lembrete de guardar só conta o que está na mochila (o que está na barra ela pôs lá de propósito)', () => {
+    const { session, sv, state } = openCafe();
+    expect(sv.takeFromPantry('item.paper_filter')).toEqual({ ok: true });
+    expect(sv.ingredientsToStore()).toEqual(['item.paper_filter']);
+    expect(session.assignToHotbar('item.paper_filter', 3)).toEqual({ ok: true });
+    expect(sv.ingredientsToStore()).toEqual([]);
+    expect(sv.ingredientsInBag()).toBe(0);
+    expect(state.inventory['item.paper_filter']).toBe(1);
+  });
+});
+
+describe('paciência com ela fora do café', () => {
+  it('fora do café, quem espera perde paciência a awayPatienceRate do normal; dentro, no ritmo de sempre', () => {
+    const rate = content.service.awayPatienceRate!;
+    expect(rate).toBeGreaterThan(0);
+    expect(rate).toBeLessThan(1);
+    const left = (away: boolean) => {
+      const { sv, state } = openCafe();
+      state.service.nextCustomerAt = 99999999; // ninguém novo chega no meio
+      state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: nowAbs(state) + 90, favorite: null, wantsPremium: false } as never);
+      if (away) state.location = 'map.market';
+      sv.tick();
+      for (let i = 0; i < 40; i++) {
+        state.time += 1;
+        sv.tick();
+      }
+      const c = state.service.customers.find((x) => x.id === 'c1')!;
+      return c.until - nowAbs(state);
+    };
+    expect(left(false)).toBeCloseTo(50);
+    expect(left(true)).toBeCloseTo(90 - 40 * rate);
+  });
+});
+
 describe('mãos', () => {
   it('soltar só ao lado dela, numa superfície ou no chão livre; uma coisa por célula', () => {
     const { session, sv, state } = openCafe();
@@ -519,6 +598,24 @@ describe('quest: o primeiro cliente', () => {
     // Depois do primeiro cliente vem a inauguração (reforma completa + placa).
     // Depois do primeiro cliente vem a inauguração (os cômodos só bem depois).
     expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
+  });
+
+  it('passo feito: riscado só no dia em que foi feito; no dia seguinte, marcado para sair da lista', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    advance(session, 6);
+    sv.prepare(coffeeMachineUid(session));
+    advance(session, 11);
+    sv.pickUp([7, 5]);
+    sv.serve(state.service.customers[0]!.id);
+    const step = () => session.goals()[0]!.steps.find((s) => s.done);
+    // O cardápio da estreia já tem 1 receita; com mais duas, o passo fica feito.
+    state.menu = ['recipe.black_coffee', 'recipe.black_tea', 'recipe.orange_juice'];
+    expect(step()).toBeDefined();
+    expect(step()!.doneBefore).toBeUndefined();
+    session.endDay();
+    expect(session.goals()[0]!.title).toBe('A inauguração');
+    expect(step()!.doneBefore).toBe(true);
   });
 
   it('sem a mesa e a cadeira, a quest não aparece', () => {
@@ -1022,5 +1119,45 @@ describe('espremedor: suco de fruta fresca, sempre premium', () => {
     delete state.pantry['item.orange'];
     delete state.pantryOpen['item.orange'];
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('ingredients');
+  });
+});
+
+describe('a fama traz gente (reputationArrival)', () => {
+  /** Clientes que chegam num dia inteiro de café inaugurado, com a reputação dada (a fila não lota: muita louça). */
+  function arrivalsInADay(reputation: number, day: number): number {
+    const { session, sv, state } = openCafe({ day });
+    state.business = 'inaugurated';
+    state.reputation.value = reputation;
+    for (let i = 0; i < 6; i++) session.receiveItem('item.dishes_set');
+    sv.toggleMenu('recipe.black_coffee');
+    // Ninguém fica: quem chega some na hora (só contamos as chegadas).
+    let arrived = 0;
+    session.bus.on('customer.arrived', () => arrived++);
+    for (let m = 0; m < 8 * 60; m++) {
+      advance(session, 1);
+      state.service.customers = [];
+    }
+    return arrived;
+  }
+
+  it('o fator segue a maior faixa alcançada: 1 no começo, menor com a fama', () => {
+    const { sv, state } = openCafe();
+    const bands = content.service.reputationArrival!;
+    for (const b of bands) {
+      state.reputation.value = b.at;
+      expect(sv.reputationArrivalFactor()).toBe(b.factor);
+    }
+    state.reputation.value = 0;
+    expect(sv.reputationArrivalFactor()).toBe(1);
+  });
+
+  it('com a reputação lá em cima, chegam bem mais clientes no dia que no começo', () => {
+    let low = 0, high = 0;
+    for (const day of [31, 32, 33, 34]) {
+      low += arrivalsInADay(0, day);
+      high += arrivalsInADay(85, day);
+    }
+    if (process.env.SHOW_ARRIVALS) console.log("chegadas em 4 dias", { low, high });
+    expect(high).toBeGreaterThan(low * 1.6);
   });
 });
