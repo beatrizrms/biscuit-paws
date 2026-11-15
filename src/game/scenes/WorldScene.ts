@@ -576,6 +576,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Fim do dia: ela vai para casa (transição) e amanhece chegando pela rua.
     // Ponto de extensão: com o quartinho (world.sleepMap), ela dorme no café em vez de ir para casa.
     // Energia: sentar/levantar do sofá e o ícone depois de um café ou de brincar com o gato.
+    // Ceia de Natal: quem pegou o quitute na mesa fala (balão) e ganha corações; a louça fica suja na mesa.
+    this.session.bus.on('xmas.treat_taken', ({ npc, line, points }) => {
+      const sprite = this.npcs.get(npc);
+      if (!sprite) return;
+      this.floatHearts(sprite.x, sprite.y - sprite.displayHeight, points);
+      this.speechBubble(sprite, fillNames(this.session, line), 3500);
+      this.refreshSurfaces();
+    });
     this.session.bus.on('rest.changed', ({ uid }) => (uid ? this.sitOn(uid) : this.standUp()));
     this.session.bus.on('energy.recovered', () => (this.recoverIconUntil = this.time.now + RECOVER_ICON_MS));
     // O balão da folha de ícones (64 px, no tamanho dos balões de cuidado); sem a folha, o desenhado por código.

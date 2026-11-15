@@ -816,12 +816,25 @@
       "vessel": "cup",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "any": [
+          {
+            "milestone": "milestone.customers_50"
+          },
+          {
+            "christmasTreat": "recipe.hot_chocolate"
+          }
+        ]
       },
       "temp": "hot",
       "seasons": [
         "winter"
-      ]
+      ],
+      "alternative": {
+        "equipment": "teapot",
+        "ingredients": {
+          "item.hot_chocolate_mix": 1
+        }
+      }
     },
     {
       "id": "recipe.chamomile_honey",

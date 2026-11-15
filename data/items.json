@@ -2634,6 +2634,20 @@
       ]
     },
     {
+      "id": "item.hot_chocolate_mix",
+      "name": "Mistura para chocolate quente",
+      "description": "Só no Natal: no bule, vira chocolate quente. Rende 4.",
+      "price": 10,
+      "kind": "consumable",
+      "icon": "chocolate",
+      "servings": 4,
+      "requires": { "christmasTreat": "item.hot_chocolate_mix" },
+      "tags": [
+        "ingredient",
+        "bakery"
+      ]
+    },
+    {
       "id": "item.salt",
       "name": "Sal",
       "description": "Sal para o pão e os salgados: rende 20 receitas.",

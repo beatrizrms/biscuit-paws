@@ -1,4 +1,4 @@
-// Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação), {untilDay:26} ("faltam 3 dias", "falta 1 dia", "é hoje!", "a data já passou"),
+// Marcadores nos textos dos dados: {g:feminino|masculino} (pelo pronome escolhido no criador), {player} (nome da protagonista), {cat:cat.id} (nome do gato), {timer:id} (hora marcada), {daysUntil:spring} (dias até a estação), {untilDay:26} ("faltam 3 dias", "falta 1 dia", "é hoje!", "a data já passou"), {treat} / {treats} (o quitute da ceia de Natal do ano, no singular e no plural),
 // {santa:name} / {santa:hint} / {santa:giver} (o amigo secreto do ano: quem ela tirou, a dica, quem a tirou),
 // {halloween:name} / {halloween:hint} / {halloween:foods} (a festa de Halloween: quem ela tirou, a dica, os doces favoritos),
 // {arrival:condition} / {arrival:personality} / {arrival:npc} / {arrival:leader} (a chegada de gato em andamento: como chega,
@@ -19,6 +19,8 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{arrival:(\w+)\}/g, (_, what: string) => arrivalText(session, what))
     .replace(/\{santa:(\w+)\}/g, (_, what: string) => santaText(session, what))
     .replace(/\{halloween:(\w+)\}/g, (_, what: string) => halloweenText(session, what))
+    .replace(/\{treats\}/g, () => session.santaTreat()?.plural ?? '')
+    .replace(/\{treat\}/g, () => session.santaTreat()?.name ?? '')
     .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     // Quanto falta para um dia do jogo (o dia 26 da inauguração), em palavras.

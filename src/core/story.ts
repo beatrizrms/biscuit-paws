@@ -30,6 +30,10 @@ export interface StoryContext {
   santaGuest?: (npc: string) => boolean;
   /** Hoje é dia de festa (a inauguração não cai nele). */
   eventDay?: () => boolean;
+  christmasDay?: () => boolean;
+  /** O quitute da ceia: na mesa + tomados (made) e tomados (served); christmasTreat: hoje é a ceia e o id é o quitute do ano. */
+  santaTreat?: () => { made: number; served: number };
+  christmasTreat?: (id: string) => boolean;
   /** O amigo vem para a festa de Halloween deste ano (condição halloweenGuest). */
   halloweenGuest?: (npc: string) => boolean;
   /** O cômodo do café em que ela está agora (fora do café ou sem posição: undefined). */
@@ -51,7 +55,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('catNamed' in c) return (state.cats[c.catNamed]?.name ?? '') !== '';
   if ('cleaned' in c) return ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned)).every((d) => isCleaned(state, d));
   if ('placedTag' in c) {
-    const count = state.placed.filter((p) => ctx.items[p.item]?.tags.includes(c.placedTag)).length;
+    const count = placedWithTag(c, state, ctx);
     return count >= (c.gte ?? 1);
   }
   if ('placed' in c) return placedCount(state, c.placed) >= (c.gte ?? 1);
@@ -64,6 +68,10 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('location' in c) return state.location === c.location;
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('eventDay' in c) return !!ctx.eventDay?.();
+  if ('christmasDay' in c) return !!ctx.christmasDay?.();
+  if ('santaTreat' in c) return (ctx.santaTreat?.().made ?? 0) >= c.santaTreat.gte;
+  if ('santaTreatServed' in c) return (ctx.santaTreat?.().served ?? 0) >= c.santaTreatServed.gte;
+  if ('christmasTreat' in c) return !!ctx.christmasTreat?.(c.christmasTreat);
   if ('openingPosters' in c) return (state.openingPrep?.posters.length ?? 0) >= c.openingPosters.gte;
   if ('openingInvites' in c) return (state.openingPrep?.invited.length ?? 0) >= c.openingInvites.gte;
   if ('served' in c) return state.service.served >= c.served.gte;
@@ -116,6 +124,11 @@ const isCompleted = (beat: Beat, state: GameState) => state.story.completed.incl
  * Marcos ativos, na ordem do arquivo: não concluídos, com todos os "after" concluídos e o "start" valendo.
  * Um marco exclusivo ativo segura os seguintes (uma quest por vez).
  */
+/** Quantas peças posicionadas têm a tag (sem o exceptItem). */
+function placedWithTag(c: { placedTag: string; exceptItem?: string }, state: GameState, ctx: StoryContext): number {
+  return state.placed.filter((p) => p.item !== c.exceptItem && !!ctx.items[p.item]?.tags.includes(c.placedTag)).length;
+}
+
 export function activeBeats(story: StoryData, state: GameState, ctx: StoryContext): Beat[] {
   const active: Beat[] = [];
   for (const b of story.beats) {
@@ -140,6 +153,8 @@ export interface GoalView {
   title: string;
   /** Passos sem ordem (qualquer um primeiro): o balão mostra todos iguais, sem um em destaque. */
   together?: boolean;
+  /** Título do bloco dos passos extras (sem ele, o padrão da interface). */
+  extrasTitle?: string;
   /** progress: [feitos, total] quando o passo conta coisas (ex.: teias limpas). */
   /** waitUntil: momento absoluto em que o passo conclui sozinho (o balão oferece "Esperar"). */
   /** doneToday: o passo é de todo dia (doses) e o de hoje já foi; não há o que fazer agora. */
@@ -154,11 +169,13 @@ function dailyDoneToday(c: Condition, state: GameState): boolean {
 }
 
 /** Quanto de um passo já foi feito, quando dá para contar (hoje: faxina). */
-function progressOf(c: Condition, state: GameState, ctx: StoryContext): [number, number] | undefined {
+export function progressOf(c: Condition, state: GameState, ctx: StoryContext): [number, number] | undefined {
   if ('openingPosters' in c) return [Math.min(c.openingPosters.gte, state.openingPrep?.posters.length ?? 0), c.openingPosters.gte];
   if ('openingInvites' in c) return [Math.min(c.openingInvites.gte, state.openingPrep?.invited.length ?? 0), c.openingInvites.gte];
-  if ('placedTag' in c && c.gte && c.gte > 1) return [Math.min(c.gte, state.placed.filter((p) => ctx.items[p.item]?.tags.includes(c.placedTag)).length), c.gte];
+  if ('placedTag' in c && c.gte && c.gte > 1) return [Math.min(c.gte, placedWithTag(c, state, ctx)), c.gte];
   if ('menu' in c && c.menu.gte > 1) return [Math.min(c.menu.gte, state.menu.length), c.menu.gte];
+  if ('santaTreat' in c && ctx.santaTreat) return [Math.min(c.santaTreat.gte, ctx.santaTreat().made), c.santaTreat.gte];
+  if ('santaTreatServed' in c && ctx.santaTreat) return [Math.min(c.santaTreatServed.gte, ctx.santaTreat().served), c.santaTreatServed.gte];
   if (!('cleaned' in c)) return undefined;
   const spots = ctx.dirt.filter((d) => !d.clearedBy && d.tags.includes(c.cleaned));
   return [spots.filter((d) => isCleaned(state, d)).length, spots.length];

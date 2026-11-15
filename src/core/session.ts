@@ -78,7 +78,7 @@ import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
-import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
+import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
   solidGrid,
@@ -956,6 +956,7 @@ export class GameSession {
       this.checkBuilderShift();
       this.advanceStory();
       this.checkSecretSanta();
+      this.santaTreatTick();
       this.checkHalloween();
       this.checkGatherings();
       this.checkNewYear();
@@ -3171,6 +3172,71 @@ export class GameSession {
     this.partyChatSaid = {};
   }
 
+  /** As falas da festa deste convidado que valem agora (as com `when` só quando a condição vale). */
+  private partyLines(npc: string): string[] {
+    return (this.partyData()?.partyChat[npc] ?? []).flatMap((l) => (typeof l === 'string' ? [l] : this.holds(l.when) ? [l.text] : []));
+  }
+
+  /** O quitute da ceia deste ano (a lista recomeça depois do último): a receita, o nome, o plural e a mistura. */
+  santaTreat(): { recipe: string; name: string; plural: string; mix: string | null; take: Record<string, string>; refuse: Record<string, string> } | null {
+    const t = this.content.festive.secretSanta.treat;
+    if (!t || t.years.length === 0) return null;
+    const y = t.years[(yearOf(this.content.seasons, this.state.day) - 1) % t.years.length]!;
+    const name = (this.content.recipes[y.recipe]?.name ?? y.recipe).toLowerCase();
+    return { recipe: y.recipe, name, plural: y.plural, mix: y.mix ?? null, take: { ...t.take, ...y.take }, refuse: { ...t.refuse, ...y.refuse } };
+  }
+
+  /** O quitute deixado nas mesas e balcões (no dia da ceia): as posições em state.surfaces. */
+  private santaTreatOnTables(): number[] {
+    const t = this.santaTreat();
+    if (!t || !isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day)) return [];
+    return this.state.surfaces.flatMap((x, i) => (x.item.kind === 'drink' && x.item.recipe === t.recipe ? [i] : []));
+  }
+
+  /**
+   * Na ceia (a cada minuto, depois da troca): de vez em quando (sorteio com semente), um convidado que ainda não pegou
+   * pega o quitute numa mesa (a louça fica suja ali): corações e a fala dele. Quem está em `refuse` não pega.
+   */
+  private santaTreatTick(): void {
+    const cfg = this.content.festive.secretSanta.treat;
+    const t = this.santaTreat();
+    const record = this.santaRecord();
+    if (!cfg || !t || this.party !== 'xmas' || !record || record.stage !== 'done') return;
+    const tables = this.santaTreatOnTables();
+    const guests = this.santaGuests().filter((g) => !t.refuse[g] && t.take[g] && !record.treatTaken?.includes(g));
+    if (tables.length === 0 || guests.length === 0) return;
+    const rng = createRng(this.state.day * 7907 + Math.floor(this.state.time) * 31);
+    if (!rng.chance(cfg.chancePerMinute)) return;
+    const npc = guests[rng.int(0, guests.length - 1)]!;
+    const spot = this.state.surfaces[tables[rng.int(0, tables.length - 1)]!]!;
+    if (spot.item.kind !== 'drink') return;
+    spot.item = { kind: 'dirty', vessel: spot.item.vessel };
+    (record.treatTaken ??= []).push(npc);
+    addPoints(this.state, this.content.relationships, PLAYER, npc, cfg.points);
+    this.bus.emit('xmas.treat_taken', { npc, line: t.take[npc]!, points: cfg.points });
+    this.advanceStory();
+  }
+
+  /** A meta da ceia (todo ano, do sorteio até a ceia acabar): os passos opcionais de festive.secretSanta.prep. */
+  private santaPrepGoal(): GoalView | null {
+    const prep = this.content.festive.secretSanta.prep;
+    const ss = this.content.festive.secretSanta;
+    const record = this.santaRecord();
+    if (!prep || !record || record.stage === 'missed' || seasonOf(this.content.seasons, this.state.day) !== ss.season) return null;
+    const d = dayInSeason(this.content.seasons, this.state.day);
+    if (d < ss.drawDay || d > ss.day || (record.stage === 'done' && this.party !== 'xmas')) return null;
+    const ctx = this.storyContext();
+    return {
+      beatId: 'xmas.party_prep',
+      title: prep.title,
+      extrasTitle: prep.extrasTitle,
+      steps: prep.steps.map((s) => {
+        const progress = progressOf(s.when, this.state, ctx);
+        return { text: s.text, done: evaluate(s.when, this.state, ctx), optional: true, ...(progress ? { progress } : {}) };
+      }),
+    };
+  }
+
   private partyData() {
     return this.party === 'xmas' ? this.content.festive.secretSanta : this.party === 'halloween' ? this.content.festive.halloween : null;
   }
@@ -3187,12 +3253,12 @@ export class GameSession {
 
   /** O convidado tem o que conversar nesta festa? (a dica "Conversar") */
   partyHasChat(npc: string): boolean {
-    return (this.partyData()?.partyChat[npc]?.length ?? 0) > 0;
+    return this.partyLines(npc).length > 0;
   }
 
   /** A próxima fala do convidado na festa (null: não é convidado ou não tem fala). */
   partyChat(npc: string): string | null {
-    const lines = this.partyData()?.partyChat[npc];
+    const lines = this.partyLines(npc);
     if (!lines?.length) return null;
     const n = this.partyChatSaid[npc] ?? 0;
     this.partyChatSaid[npc] = n + 1;
@@ -3203,10 +3269,22 @@ export class GameSession {
   endFestiveParty(): void {
     const data = this.partyData();
     if (!data) return;
+    if (this.party === 'xmas') this.applySantaPrepBonus();
     this.party = null;
     this.santaGiving = false;
     this.halloweenGiving = false;
     this.bus.emit('script.requested', { scriptId: data.partyCloseScript });
+  }
+
+  /** Fim da ceia: cada preparativo feito (árvore, enfeites, chocolates) vale corações para todos os convidados. */
+  private applySantaPrepBonus(): void {
+    const prep = this.content.festive.secretSanta.prep;
+    if (!prep) return;
+    const done = prep.steps.filter((s) => this.holds(s.when)).length;
+    if (done === 0) return;
+    const points = done * prep.pointsPerStep;
+    for (const g of this.santaGuests()) addPoints(this.state, this.content.relationships, PLAYER, g, points);
+    this.bus.emit('xmas.prep_bonus', { steps: done, points });
   }
 
   /** Na ceia, a hora de entregar: ela anda até quem tirou e o E abre a escolha do presente (não salva: é da cena). */
@@ -3435,7 +3513,8 @@ export class GameSession {
         cats++;
       }
     }
-    this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats });
+    const treat = this.santaTreat();
+    this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats, treat: treat ? { name: treat.name, mix: treat.mix ? this.content.items[treat.mix]?.name ?? null : null } : null });
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */
@@ -5031,6 +5110,15 @@ export class GameSession {
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
       eventDay: () => this.isEventDay(),
+      christmasDay: () => isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day),
+      christmasTreat: (id) => {
+        const t = this.santaTreat();
+        return !!t && isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day) && (t.recipe === id || t.mix === id);
+      },
+      santaTreat: () => {
+        const served = this.santaRecord()?.treatTaken?.length ?? 0;
+        return { made: this.santaTreatOnTables().length + served, served };
+      },
       halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
       fairCats: () => this.fairCatIds().length,
       festivalMounted: () => this.festivalMounted(),
@@ -5304,7 +5392,8 @@ export class GameSession {
 
 
   goals(): GoalView[] {
-    return currentGoals(this.content.story, this.state, this.storyContext());
+    const prep = this.santaPrepGoal();
+    return [...currentGoals(this.content.story, this.state, this.storyContext()), ...(prep ? [prep] : [])];
   }
 
   /** Se a meta ativa só espera o relógio (ex.: a Gabi chegar), o momento em que ela conclui. */

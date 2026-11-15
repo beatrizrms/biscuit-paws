@@ -201,12 +201,51 @@
     "partyEndScript": "scr.xmas_party_end",
     "partyCloseScript": "scr.xmas_party_close",
     "partyChat": {
-      "npc.gabi": ["Esse chocolate quente tá perigoso, já tô na terceira caneca!","Olha a árvore! Ficou linda demais, {player}."],
+      "npc.gabi": [
+        { "text": "Esse {treat} tá perigoso, já peguei três vezes da mesa!", "when": {"santaTreatServed":{"gte":1}} },
+        { "text": "Ano que vem eu trago um quitute de Natal, viu? Ceia de inverno pede.", "when": {"not":{"santaTreatServed":{"gte":1}}} },
+        { "text": "Olha a árvore! Ficou linda demais, {player}.", "when": {"placed":"item.christmas_tree"} },
+        { "text": "Ano que vem a gente monta uma árvore aqui junto, combinado?", "when": {"not":{"placed":"item.christmas_tree"}} }
+      ],
       "npc.joca": ["Natal com gato, cachorro e vizinho na mesma mesa... quem diria!","Já comi tanto que vou rolar até em casa."],
       "npc.neusa": ["Esse prédio já teve muita ceia, sabe? Que bom ver a luz acesa de novo.","Prova o panetone que eu trouxe. Receita da minha mãe."],
       "npc.builder": ["Hoje não tem martelo, só rabanada!","Esse café tá ficando bonito, hein? Tem um dedinho meu aí."],
       "npc.fernanda": ["Os gatinhos estão adorando a bagunça.","Tirei foto de tudo! Depois te mando."],
       "npc.realtor": ["Quando te mostrei esse ponto, não imaginei uma ceia aqui. Que bom que você acreditou.","Feliz Natal! Esse lugar só valoriza, viu?"]
+    },
+    "treat": {
+      "points": 15,
+      "chancePerMinute": 0.08,
+      "take": {
+        "npc.gabi": "Achei {treat} na mesa! Agora sim é Natal. Já volto pra pegar mais, hein?",
+        "npc.neusa": "Que carinho, {treat}! Do jeito que a minha mãe fazia.",
+        "npc.builder": "Opa, {treat}! Isso esquenta mais que fogareiro de obra.",
+        "npc.fernanda": "Que delícia! Depois de um dia de plantão, {treat} é um abraço.",
+        "npc.realtor": "Hum, {treat}! Esse café sabe receber, viu?"
+      },
+      "refuse": {
+        "npc.joca": "*O Joca fareja a mesa e a Gabi puxa a guia:* Isso não é pra cachorro! Pra ele, só carinho."
+      },
+      "years": [
+        {
+          "recipe": "recipe.hot_chocolate",
+          "mix": "item.hot_chocolate_mix",
+          "plural": "chocolates quentes",
+          "refuse": {
+            "npc.joca": "*O Joca fareja a caneca e a Gabi puxa a guia:* Chocolate faz mal pra cachorro! Pra ele, só carinho."
+          }
+        }
+      ]
+    },
+    "prep": {
+      "title": "Ceia de Natal",
+      "extrasTitle": "Para a ceia · opcionais, deixam a turma mais feliz",
+      "pointsPerStep": 10,
+      "steps": [
+        { "text": "Montar uma árvore de Natal no salão.", "when": { "placed": "item.christmas_tree" } },
+        { "text": "Enfeitar o salão com 3 decorações natalinas.", "when": { "placedTag": "xmas", "gte": 3, "exceptItem": "item.christmas_tree" } },
+        { "text": "No dia da ceia, deixar 3 {treats} nas mesas para a turma.", "when": { "santaTreat": { "gte": 3 } } }
+      ]
     },
     "partyWhen": {
       "playerRoom": "room.hall"

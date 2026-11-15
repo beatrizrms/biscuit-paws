@@ -205,7 +205,8 @@ export type Condition =
   | { beat: string }
   | { placed: string; gte?: number }
   /** Quantos móveis posicionados têm esta tag (ex.: "chair" conta cadeiras de qualquer tipo). */
-  | { placedTag: string; gte?: number }
+  /** Peças posicionadas com a tag (exceptItem: sem este item, ex.: os enfeites de Natal sem a árvore). */
+  | { placedTag: string; gte?: number; exceptItem?: string }
   | { owned: string; gte?: number }
   /** A personagem já entrou neste mapa. */
   | { visited: string }
@@ -227,6 +228,16 @@ export type Condition =
   | { openingInvites: { gte: number } }
   /** Hoje é dia de festa: Natal, véspera de Ano Novo, Halloween, encontro da estação ou evento no quintal. */
   | { eventDay: true }
+  /** Hoje é o dia da ceia de Natal (festive.secretSanta). */
+  | { christmasDay: true }
+  /**
+   * O quitute da ceia deste ano (festive.secretSanta.treat): deixado nas mesas no dia da ceia, contando os já tomados
+   * (santaTreat), e os tomados pelos convidados (santaTreatServed). christmasTreat: hoje é a ceia e este id é o quitute
+   * do ano (a receita ou a mistura do mercado).
+   */
+  | { santaTreat: { gte: number } }
+  | { santaTreatServed: { gte: number } }
+  | { christmasTreat: string }
   /** Clientes atendidos (no jogo todo). */
   | { served: { gte: number } }
   /** Já está com ela (caixa aberta: na bolsa ou posicionado). Encomendas não contam. */

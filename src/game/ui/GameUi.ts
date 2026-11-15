@@ -302,12 +302,14 @@ export class GameUi {
     bus.on('cat.ran_away', ({ catId, reputation }) => this.toast(uiText.catRanAway.replace('{cat}', this.session.catName(catId)).replace('{rep}', String(reputation)), 8000));
     bus.on('door.cleared', ({ count }) => this.toast(uiText.doorCleared.replace('{n}', String(count)), 6000));
     const boxText = (box: string) => (box === content.festive.boxes[0]!.item ? uiText.xmasBox : uiText.halloweenBox);
+    bus.on('xmas.prep_bonus', ({ steps }) => this.toast(uiText.secretSanta.prepBonus.replace('{n}', String(steps)), 4500));
     bus.on('xmas.packed', ({ count, box }) => this.toast(boxText(box).packed.replace('{n}', String(count)), 6000));
     bus.on('xmas.box_opened', ({ itemId, left, box }) => this.toast((left > 0 ? boxText(box).opened : boxText(box).lastOne).replace('{name}', content.items[itemId]?.name ?? '').replace('{n}', String(left))));
     // Natal: o aviso da manhã (o café fecha mais cedo; a ceia), as meias e a ceia perdida.
-    bus.on('xmas.day', ({ closeAt, partyAt, party, stockingCats }) => {
+    bus.on('xmas.day', ({ closeAt, partyAt, party, stockingCats, treat }) => {
       const t = uiText.secretSanta;
       this.toast((party ? t.dayParty : t.day).replace('{close}', closeAt).replace('{time}', partyAt), 6000);
+      if (treat?.mix) this.toast(t.treatNews.replace('{mix}', treat.mix.toLowerCase()).replace('{treat}', treat.name), 6000);
       if (stockingCats > 0) this.toast(t.stockings, 5000);
     });
     bus.on('newyear.eve', () => this.toast(uiText.newYear.eve, 6000));
@@ -1388,7 +1390,11 @@ ${rep}`;
       this.money.classList.add('bump');
     }
 
-    const goal = this.session.goals()[0];
+    // Mais de uma meta da história ao mesmo tempo (a ceia de Natal durante a espera da inauguração): todas, a que tem
+    // passo obrigatório em cima e as só de extras (opcionais) embaixo.
+    const onlyExtras = (g: GoalView) => g.steps.every((x) => x.optional);
+    const storyGoals = [...this.session.goals()].sort((a, b) => Number(onlyExtras(a)) - Number(onlyExtras(b)));
+    const goal = storyGoals[0];
     const fill = (text: string) => this.fillNames(text);
     if (goal?.beatId !== this.shownGoal) {
       this.shownGoal = goal?.beatId;
@@ -1401,7 +1407,7 @@ ${rep}`;
     const seal = goal ? '' : this.sealHtml();
     this.goals.classList.toggle('empty', !goal && !extra && !seal);
     this.goals.innerHTML = (goal
-      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${this.storyHtml(goal, fill)}`
+      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g, i) => (i === 0 ? this.storyHtml(g, fill) : this.storyHtml(g, fill).replace(/^<h4>[^<]*<\/h4>/, ''))).join('')}`
       : seal ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
@@ -1436,7 +1442,7 @@ ${rep}`;
     // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
     const required = open.filter((s) => !s.optional);
     const extras = goal.steps.filter((s) => s.optional);
-    const now = goal.together ? undefined : (required[0] ?? open[0]);
+    const now = goal.together ? undefined : (required[0] ?? (extras.length ? undefined : open[0]));
     const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
       ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
@@ -1454,7 +1460,7 @@ ${rep}`;
         return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s), html: false });
       })
       .join('');
-    const extrasHtml = extraRows ? `<p class="g-extras">${esc(op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
+    const extrasHtml = extraRows ? `<p class="g-extras">${esc(goal.extrasTitle ?? op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
     // No debug, os passos feitos também (para conferir a história).
     const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
     // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.

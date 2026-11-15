@@ -44,7 +44,7 @@ export interface HalloweenData {
   /** O fim da festa, quando ela sai pela porta da rua e confirma (a despedida; os convidados vão embora). */
   partyCloseScript: string;
   /** Depois da troca, os convidados ficam: o E num deles mostra estas falas, uma por vez (npc -> falas). */
-  partyChat: Record<string, string[]>;
+  partyChat: Record<string, (string | { text: string; when: Condition })[]>;
   partyWhen: Condition;
   /** Tag dos presentes (o que ela pode dar). */
   giftTag: string;
