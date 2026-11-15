@@ -76,11 +76,20 @@ export class AudioManager {
   private fadeOf = new WeakMap<Phaser.Sound.BaseSound, number>();
   /** Menu de pausa aberto: a música fica parada (o ambiente e os efeitos, não). */
   private musicPaused = false;
+  /**
+   * O aparelho não deixou o som começar ("Failed to start the audio device": no iPhone, com a chave do silencioso).
+   * Cada som novo tentava de novo e travava a página por segundos (a varinha parava); com isto, o jogo fica mudo até
+   * recarregar, sem travar.
+   */
+  private broken = false;
 
   constructor(
     private game: Phaser.Game,
     private settings: Settings,
   ) {
+    const failed = (reason: unknown) => /audio device/i.test(String((reason as Error | undefined)?.message ?? reason)) && this.giveUp();
+    window.addEventListener('unhandledrejection', (e) => failed(e.reason));
+    window.addEventListener('error', (e) => failed(e.error ?? e.message));
     // Liberou o áudio (primeiro clique/toque): começa o que estava pedido.
     game.sound.once(Phaser.Sound.Events.UNLOCKED, () => {
       for (const ch of ['music', 'ambient'] as const) {
@@ -106,8 +115,23 @@ export class AudioManager {
     return effectiveVolume(this.settings[CHANNEL[group]]) * (audioData[group][id]?.gain ?? 1);
   }
 
+  /** O som falhou no aparelho: para o que estava tocando e não tenta mais (ver broken). */
+  private giveUp(): void {
+    if (this.broken) return;
+    this.broken = true;
+    for (const id of this.fades) window.clearInterval(id);
+    this.fades.clear();
+    this.loops.clear();
+    this.current = { music: null, ambient: null };
+    try {
+      this.game.sound.stopAll();
+    } catch {
+      // o próprio áudio quebrado pode reclamar: o jogo segue mudo
+    }
+  }
+
   private canPlay(group: Group, id: string): boolean {
-    return this.isUnlocked() && !!audioData[group][id]?.file && this.game.cache.audio.exists(trackKey(group, id));
+    return !this.broken && this.isUnlocked() && !!audioData[group][id]?.file && this.game.cache.audio.exists(trackKey(group, id));
   }
 
   /** Aplica configurações novas (o volume muda com fade; desligar some devagar). */
