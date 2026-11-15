@@ -17,7 +17,7 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
-import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
+import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, togoRecipe, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
 import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
 import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
 import { EventBus, type DayEndReason } from './events';
@@ -403,8 +403,58 @@ export class GameSession {
     this.bus.on('hotbar.changed', syncHeavy);
     this.bus.on('hands.changed', syncHeavy);
     syncHeavy();
+    // Bebida ou doce "para viagem" selecionado na barra: fica na mão, pronto para servir ou dar de presente. Save com
+    // ele na mão: volta a ser só da mochila (ele continua contado lá).
+    state.hands = state.hands.filter((h) => !(h.kind === 'drink' && h.togo));
+    // Em todo evento: a mão muda por muitos caminhos (servir, presente, comer, soltar no balcão).
+    this.bus.onAny(() => this.syncTogo());
+    this.syncTogo();
     this.repairPlaced();
   }
+
+  /** O item "para viagem" que está na mão agora (saiu da barra), para saber quando ele sai da mão por outro caminho. */
+  private togoHeld: string | null = null;
+
+  /**
+   * O item "para viagem" selecionado na barra vira a bebida (ou o doce) na mão; outro item selecionado, ele volta a ser
+   * só da mochila. Saiu da mão de outro jeito (servido, dado de presente, comido, deixado no balcão): sai da mochila.
+   */
+  private syncTogo(): void {
+    if (this.syncingTogo) return;
+    this.syncingTogo = true;
+    try {
+      const hands = this.state.hands;
+      const i = hands.findIndex((h) => h.kind === 'drink' && h.togo);
+      const inHand = i >= 0 ? togoItemId((hands[i] as { recipe: string }).recipe) : null;
+      if (this.togoHeld && inHand !== this.togoHeld) {
+        this.removeFromInventory(this.togoHeld);
+        this.togoHeld = null;
+      }
+      const active = this.activeItem();
+      const recipe = active ? togoRecipe(active) : undefined;
+      const want = recipe && this.content.recipes[recipe] ? active : null;
+      if (inHand && inHand !== want) {
+        const [h] = hands.splice(i, 1);
+        if (h?.kind === 'drink') this.state.dishes[h.vessel] = (this.state.dishes[h.vessel] ?? 0) + 1;
+        this.togoHeld = null;
+        this.bus.emit('hands.changed', { count: hands.length });
+      }
+      if (want && !hands.some((h) => h.kind === 'drink' && h.togo)) {
+        const r = this.content.recipes[recipe!]!;
+        const drink = { kind: 'drink' as const, recipe: r.id, vessel: r.vessel, togo: true as const };
+        if (this.service.holdProblem(drink) === null) {
+          if ((this.state.dishes[r.vessel] ?? 0) > 0) this.state.dishes[r.vessel]! -= 1;
+          hands.push(drink);
+          this.togoHeld = want;
+          this.bus.emit('hands.changed', { count: hands.length });
+        }
+      }
+    } finally {
+      this.syncingTogo = false;
+    }
+  }
+
+  private syncingTogo = false;
 
   /** Móveis que o save trazia em conflito e voltaram para a mochila ao carregar (avisados em start()). */
   private repairedItems: string[] = [];
@@ -3128,6 +3178,7 @@ export class GameSession {
     if (gift.from === 'hand') {
       const [h] = this.state.hands.splice(gift.handIndex, 1);
       if (h?.kind === 'drink') this.state.dishes[h.vessel] = (this.state.dishes[h.vessel] ?? 0) + 1;
+      this.bus.emit('hands.changed', { count: this.state.hands.length });
     } else this.removeFromInventory(gift.itemId);
     const reaction = reactionOf(def, gift.key);
     const points = this.content.friendship.points[reaction];
@@ -3158,13 +3209,18 @@ export class GameSession {
     const i = this.state.hands.findIndex((h) => h.kind === 'drink');
     const h = this.state.hands[i];
     if (h?.kind !== 'drink' || !this.content.items[togoItemId(h.recipe)]) return { ok: false, reason: 'nothing_to_store' };
+    // A que saiu da barra já está contada na mochila: só sai da mão (a barra continua nela).
+    if (h.togo) {
+      this.selectHotbarSlot(HAND);
+      return { ok: true, itemId: togoItemId(h.recipe) };
+    }
     this.state.hands.splice(i, 1);
     this.state.dishes[h.vessel] = (this.state.dishes[h.vessel] ?? 0) + 1;
     const itemId = togoItemId(h.recipe);
     this.state.inventory[itemId] = (this.state.inventory[itemId] ?? 0) + 1;
     this.bus.emit('togo.stored', { itemId });
-    // Já fica selecionado na barra: o E num amigo oferece o presente.
-    this.selectHotbarItem(itemId);
+    // Guardou para ficar de mãos livres: o espaço novo da barra pode ser o ativo, e aí ele voltaria para a mão.
+    this.selectHotbarSlot(HAND);
     return { ok: true, itemId };
   }
 

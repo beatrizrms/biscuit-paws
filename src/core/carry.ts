@@ -5,8 +5,9 @@ import type { Cell } from './map';
 import type { CarryConfig, Quality, Vessel } from './recipes';
 
 export type HandItem =
-  /** Pedido pronto, na louça (a louça volta suja depois que o cliente consome). */
-  | { kind: 'drink'; recipe: string; vessel: Vessel; quality?: Quality }
+  /** Pedido pronto, na louça (a louça volta suja depois que o cliente consome). `togo`: saiu do item "para viagem"
+   * selecionado na barra (continua contado na mochila até sair da mão). */
+  | { kind: 'drink'; recipe: string; vessel: Vessel; quality?: Quality; togo?: true }
   /** Louça suja, a caminho da pia. */
   | { kind: 'dirty'; vessel: Vessel }
   /** Massa entre etapas (ex.: pão de queijo escaldado, indo para o forno). `step`: a próxima etapa. */

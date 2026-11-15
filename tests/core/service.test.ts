@@ -1053,6 +1053,11 @@ describe('vários equipamentos ao alcance', () => {
     expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'equipment_off_menu' });
     state.menu.push(tea.id);
     expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'nothing_to_prepare' });
+    // No cardápio mas sem louça limpa ou sem ingrediente: diz isso, não que ninguém pediu.
+    vi.mocked(sv.recipeStatus).mockReturnValue('vessel');
+    expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'no_vessel' });
+    vi.mocked(sv.recipeStatus).mockReturnValue('ingredients');
+    expect(sv.prepare('tp')).toEqual({ ok: false, reason: 'no_ingredients' });
   });
 });
 

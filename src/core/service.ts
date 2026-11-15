@@ -1284,7 +1284,7 @@ export class CafeService {
    * Por que o equipamento não tem o que preparar: nenhuma receita dele liberada ainda, nenhuma no cardápio, ou nenhum
    * cliente pediu agora (aí ela pode escolher uma receita para adiantar).
    */
-  private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'nothing_to_prepare' {
+  private idleReason(equipment: string): 'equipment_locked' | 'equipment_off_menu' | 'nothing_to_prepare' | 'no_vessel' | 'no_ingredients' {
     const recipes = Object.values(this.h.content.recipes).filter((r) => this.startsAt(r, equipment));
     // Equipamento só de etapa do meio (o forno do pão de queijo): sem receita que comece nele.
     if (recipes.length === 0) return 'nothing_to_prepare';
@@ -1296,6 +1296,10 @@ export class CafeService {
     );
     if (unlocked.length === 0) return midStep ? 'nothing_to_prepare' : 'equipment_locked';
     if (!unlocked.some((r) => this.st.menu.includes(r.id))) return 'equipment_off_menu';
+    // Tem receita dele no cardápio, mas nenhuma dá para fazer agora: o motivo de verdade (não é falta de pedido).
+    const status = unlocked.filter((r) => this.st.menu.includes(r.id)).map((r) => this.recipeStatus(r.id));
+    if (status.includes('vessel')) return 'no_vessel';
+    if (status.includes('ingredients')) return 'no_ingredients';
     return 'nothing_to_prepare';
   }
 

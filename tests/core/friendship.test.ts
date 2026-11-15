@@ -3,6 +3,7 @@ import { giftKey, publishDay, thanksLine, togoItemId, validateFriendship, weekOf
 import { hearts, points, PLAYER } from '../../src/core/relationships';
 import { knownIds, parseSave, serializeSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
+import { HAND } from '../../src/core/hotbar';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
 
@@ -124,6 +125,26 @@ describe('amizade: presentes', () => {
     holdItem(state, 'item.togo.cheese_bread');
     expect(session.giveGift('npc.neusa')).toMatchObject({ ok: true, reaction: 'loved' });
     expect(state.inventory['item.togo.cheese_bread']).toBeUndefined();
+  });
+
+  it('para viagem na barra: selecionado, vai para a mão (servir ou dar); outro item, volta para a mochila', () => {
+    const { state, session } = cafe();
+    const id = togoItemId('recipe.black_tea');
+    state.hands.push({ kind: 'drink', recipe: 'recipe.black_tea', vessel: content.recipes['recipe.black_tea']!.vessel });
+    expect(session.storeToGo()).toEqual({ ok: true, itemId: id });
+    expect(state.hands).toEqual([]);
+    expect(session.selectHotbarItem(id)).toBe(true);
+    expect(state.hands).toMatchObject([{ kind: 'drink', recipe: 'recipe.black_tea', togo: true }]);
+    expect(state.inventory[id]).toBe(1);
+    // Mãos livres: volta a ser só da mochila.
+    session.selectHotbarSlot(HAND);
+    expect(state.hands).toEqual([]);
+    expect(state.inventory[id]).toBe(1);
+    // De novo na mão e dado de presente: sai da mochila também.
+    session.selectHotbarItem(id);
+    expect(session.giveGift('npc.neusa')).toMatchObject({ ok: true });
+    expect(state.hands).toEqual([]);
+    expect(state.inventory[id]).toBeUndefined();
   });
 
   it('o presente descobre o gosto (o neutro fica anotado como neutro)', () => {
