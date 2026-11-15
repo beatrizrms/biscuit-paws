@@ -199,7 +199,12 @@
     "reason": "{track}: {n}",
     "reasonStreak": "{track}: {n} dias seguidos",
     "newRecipes": "No caderno de receitas",
-    "recipesReason": "O café cresceu","titleNew":"Novidade!","newItems":"Novo à venda","itemsReason":"Já dá para comprar","special":"Especial de Natal","specialReason":"Só hoje, para a ceia (faça no equipamento; não entra no cardápio)",
+    "recipesReason": "O café cresceu",
+    "titleNew": "Novidade!",
+    "newItems": "Novo à venda",
+    "itemsReason": "Já dá para comprar",
+    "special": "Especial de Natal",
+    "specialReason": "Só hoje, para a ceia (não entra no cardápio)",
     "recipeTip": "Receitas novas: ponha no quadro do cardápio (M). O que elas precisam já está à venda.",
     "ok": "Oba!"
   },
