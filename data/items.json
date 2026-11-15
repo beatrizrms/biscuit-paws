@@ -7,7 +7,7 @@
       "description": "Uma porção de ração. Selecione na barra e use na tigela de ração para alimentar os gatos do dia. Também serve para um gato com fome que chega na porta.",
       "price": 15,
       "kind": "consumable",
-      "icon": "racao_aberta",
+      "icon": "racao_simples",
       "tags": [
         "cat:food",
         "pet",
@@ -21,7 +21,7 @@
       "description": "Ração de qualidade: no dia em que comem a premium, os gatos ganham 25% mais saúde que com a simples. Também serve para um gato com fome que chega na porta.",
       "price": 35,
       "kind": "consumable",
-      "icon": "racao_premium",
+      "icon": "racao_premium_saco",
       "tags": [
         "cat:food",
         "pet",
@@ -97,7 +97,7 @@
       "name": "Areia",
       "price": 12,
       "kind": "consumable",
-      "icon": "areia_balde",
+      "icon": "areia_saco",
       "use": "litter_box",
       "description": "Uma troca de areia. Ponha na caixa de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "tags": [
@@ -2407,7 +2407,7 @@
       "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 5 porções de ração simples.",
       "price": 60,
       "kind": "consumable",
-      "icon": "racao_aberta",
+      "icon": "racao_saco5",
       "tags": [
         "cat:food",
         "pet",
@@ -2424,7 +2424,7 @@
       "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 4 trocas de areia.",
       "price": 40,
       "kind": "consumable",
-      "icon": "areia_balde",
+      "icon": "areia_saco4",
       "tags": [
         "cat:care",
         "pet",
