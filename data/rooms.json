@@ -48,7 +48,7 @@
         "when": {
           "all": [
             { "beat": "story.basement_call" },
-            { "timer": "basement.look" },
+            { "flag": "basement.found" },
             { "location": "map.cafe_main" }
           ]
         },
