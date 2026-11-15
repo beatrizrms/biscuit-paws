@@ -2,6 +2,7 @@
 // Pet, Móveis, Eletro, Natal (só quando tem itens da estação), Decor e Construção (data/ui_text.json: market.tabs). Cada item é um cartão com a miniatura do móvel.
 // Construção também tem as obras dos cômodos e o pintor. Quem decide (preço, limites, entrega) é a sessão.
 // Como no mercado, nada é comprado no toque: o item vai para o pedido (session.orderCart) e só sai ao confirmar.
+import { hiddenVariant } from '../../core/variants';
 import { daysText, workName } from './constructionText';
 import type { GameSession, RoomWork } from '../../core/session';
 import { content, uiText } from '../content';
@@ -145,7 +146,8 @@ export class MarketApp {
     // A tag online põe no Market o que também se vende no mercado da vila (o except não vale para ela: a varinha).
     const groupOf = (tags: readonly string[]) => groups.find((g) => tags.includes(g.tag) && (tags.includes('online') || !g.except?.some((x) => tags.includes(x))));
     // Os móveis fixos do café (armário da despensa, pia) não estão à venda.
-    const items = Object.values(content.items).filter((i) => !i.deprecated && !i.tags.includes('fixture') && this.session.itemUnlocked(i.id));
+    // Famílias (cadeira que gira, balcão que se completa): só a peça principal está à venda.
+    const items = Object.values(content.items).filter((i) => !i.deprecated && !i.tags.includes('fixture') && this.session.itemUnlocked(i.id) && !hiddenVariant(content.variants, i.id));
     const blocks = tab.groups.map((g) => {
       const cards = items
         .filter((i) => groupOf(i.tags) === g)
