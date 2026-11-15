@@ -236,6 +236,8 @@ export class GameUi {
     bus.on('cat.neglected', ({ catId }) => this.toast(catSexText(this.session, uiText.health.neglected, catId).replace('{name}', this.session.catName(catId)), 5000));
     bus.on('dishes.added', ({ itemId }) => this.toast(uiText.health.dishesAdded.replace('{name}', content.items[itemId]?.name ?? ''), 3500));
     bus.on('dialogue.requested', ({ dialogueId }) => this.queueDialogue(dialogueId));
+    // Achou um item limpando: no meio da tela, como a chave do café; a fala vem depois.
+    bus.on('item.found', ({ itemId, dialogueId }) => void this.showItem(itemId).then(() => dialogueId && this.queueDialogue(dialogueId)));
     const s = uiText.service;
     const recipeName = (id: string) => content.recipes[id]?.name ?? '';
     bus.on('prep.started', ({ recipeId }) => this.toast(s.prepStarted.replace('{name}', recipeName(recipeId))));

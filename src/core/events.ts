@@ -183,6 +183,8 @@ export interface GameEvents {
   /** Pagou no caixa: tudo o que estava no carrinho. */
   'cart.checked_out': { lines: { itemId: string; qty: number }[]; total: number };
   'item.received': { itemId: string };
+  /** Achou um item limpando (a chave enferrujada embaixo do lençol): a tela mostra no meio e depois a fala. */
+  'item.found': { itemId: string; dialogueId?: string };
   'item.placed': { itemId: string; uid: string; at: Cell };
   /** Uma porta escondida apareceu e o que estava na frente dela foi para a mochila. */
   'door.cleared': { doorId: string; count: number };

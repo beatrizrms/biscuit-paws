@@ -135,8 +135,19 @@ cat-cafe-game/
 | `script.requested` | o core pede um roteiro no mundo (NPCs andam, falam...) | `scriptId` |
 | `script.finished` | o roteiro terminou (marca `seen.<id>`) | `scriptId` |
 | `cutscene.finished` | a cena terminou (marca a flag `seen.<id>`) | `cutsceneId` |
+| `item.found` | achou um item limpando (a chave enferrujada): mostra no meio da tela, depois a fala | `itemId, dialogueId?` |
 
 Nomes novos entram nesta tabela antes de serem usados.
+
+### Fila de momentos (cenas que acontecem sozinhas)
+
+Cenas que o mundo dispara sem ela pedir (a Fernanda trazendo o gato operado, a fala da obra que terminou de noite, o
+Tião perguntando depois da obra) passam pela fila `src/game/MomentQueue.ts`, como um sistema de mensagens: uma de cada
+vez, na ordem em que entraram, cada uma só com a tela livre (sem resumo do dia, fala, cena ou roteiro) e quando a
+condição dela vale (`ready`: no café, no salão). Se uma está acontecendo ou não pode ainda, as outras esperam ou passam
+na frente, sem se perder. A pendência de verdade fica no save, no núcleo (`clinic.deliveries`, `hallDialogues`,
+`construction.askPending`); a cena só põe na fila o que está pendente (`WorldScene.syncMoments`) e o núcleo tira quando
+a cena termina. Momento novo: o núcleo guarda a pendência e `syncMoments` ganha uma linha.
 
 ## Plataforma
 `src/platform/storage.ts` define a interface (`load(key)`, `save(key, json)`, `remove(key)`, `list()`), **assíncrona** (o Electron vai ler arquivos de forma assíncrona). Hoje a implementação usa `localStorage`. No empacotamento para a Steam (Electron), troca-se por arquivos em disco, sem mexer no `core`.

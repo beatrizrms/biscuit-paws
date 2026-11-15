@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
-import { parseSave, knownIds } from '../../src/core/save';
+import { parseSave, knownIds, serializeSave } from '../../src/core/save';
 import { loadContent } from './content';
 import fs from 'node:fs';
 
@@ -81,6 +81,13 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(state.inventory[content.clinic.pen.food]).toBe(neuter.recoveryCans);
     expect(session.catPlace(id)).toBe('isolated');
     expect(events).toEqual(['cat.examined', 'procedure.booked', 'cat.neutered', 'clinic.delivered']);
+    // A entrega fica guardada (no save também) até a cena com a Fernanda acontecer.
+    expect(session.pendingVetDeliveries()).toMatchObject([{ catId: id, first: true, isolationDays: neuter.isolationDays }]);
+    const back = parseSave(serializeSave(state, new Date(0)), knownIds(content)).state;
+    expect(back.clinic.deliveries).toEqual(state.clinic.deliveries);
+    session.vetDeliveryShown(id);
+    expect(session.pendingVetDeliveries()).toEqual([]);
+    expect(state.clinic.deliveries).toBeUndefined();
   });
 
   it('novo demais: não opera e a ficha mostra "aguardando idade" com o dia', () => {

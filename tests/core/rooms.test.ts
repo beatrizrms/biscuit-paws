@@ -219,7 +219,7 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
     ctx.session.openRoom('room.back_room');
     cleanTag(session, 'back_room');
     expect(state.inventory['item.key_backyard']).toBe(1);
-    expect(dialogues(events)).toContain('dlg.key_backyard_found');
+    expect(events.find((e) => e.name === 'item.found')?.payload).toEqual({ itemId: 'item.key_backyard', dialogueId: 'dlg.key_backyard_found' });
     const scripts = () => events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId);
     state.day += 29;
     session.tickClock(1 / content.dayNight.minutesPerSecond);

@@ -66,6 +66,8 @@ import { daysText, workName } from '../ui/constructionText';
 import { catSexText, vetLine } from '../ui/vetText';
 import { lightsFloor } from '../../core/lights';
 import { catSpots } from '../../core/cats';
+import type { ClinicDelivery } from '../../core/clinic';
+import { MomentQueue } from '../MomentQueue';
 
 /** Caixa de entrega: escala na pilha (0,5 = 32 px como a antiga) e nas mãos, e o passo da pilha. */
 const PARCEL_PILE_SCALE = 0.5;
@@ -200,7 +202,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    */
   /** Marcando a área de uma obra (troca de acabamento). */
   private areaSelect: AreaSelect | null = null;
-  private builderAsking = false;
+  /** Fila dos momentos que acontecem sozinhos no mundo (MomentQueue): um de cada vez, nenhum se perde. */
+  private moments = new MomentQueue();
   /** Vizinhos passeando neste mapa agora (data/npcs.json: walks) e os gatos que vão atrás. */
   private readonly neighborWalks = new Map<string, WalkFollowers>();
   private neighborWalksCheckedAt = -Infinity;
@@ -513,7 +516,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       void npc?.leave();
     });
     this.session.bus.on('construction.shift', ({ working, map }) => {
-      if (map !== this.map.id || this.builderAsking) return;
+      if (map !== this.map.id || this.moments.has('builder')) return;
       const npcId = this.session.content.construction.npc;
       const spot = this.session.builderAt(map);
       if (working && spot) {
@@ -584,7 +587,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
     this.session.bus.on('cat.affection_changed', ({ catId, from, to }) => to > from && this.floatHeart(catId));
     // Ração no pote: todos comeram (núcleo), mas vão até o pote um de cada vez (a fila do pote).
-    this.session.bus.on('clinic.delivered', (d) => this.queueVetDelivery(d));
     this.session.bus.on('cat.fed', ({ catId, bowlUid }) => {
       this.bowlUid = bowlUid;
       if (!this.eatQueue.includes(catId)) this.eatQueue.push(catId);
@@ -688,8 +690,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.syncNpcBlockers();
     const k = this.keys;
     const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
-    // A obra que terminou de noite: a fala só com o resumo do dia fechado (isBusy) e ela no salão.
-    if (!busy && this.session.state.hallDialogues?.length) this.session.releaseHallDialogues(this.feetCell());
+    // Momentos que esperam a vez (a Fernanda com o gato operado, a fala da obra, o Tião perguntando): um de cada vez,
+    // só com a tela livre (o resumo do dia fechado, sem fala nem cena) e quando a condição de cada um vale.
+    this.syncMoments();
+    this.moments.tick(!busy);
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     this.updateEatQueue();
     // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).
@@ -837,10 +841,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // A atendente do mercado: mexe à toa com pausas e, com ela no caixa, passa as compras.
       if (n.idle || n.busy) this.npcs.get(n.npc)?.attend(n.idle, n.busy, () => this.session.interactionAt(this.playerCells())?.id === n.busy?.interaction);
     }
-    // A obra terminou: no café, o Tião vem perguntar se ela quer mais algum serviço.
-    if (mapId === this.session.content.map.id && this.session.state.construction.askPending) void this.builderAsk();
-    // A Fernanda trouxe um gato operado: a entrega acontece quando ela entra no café.
-    if (mapId === this.session.content.map.id && this.vetDeliveries.length) void this.vetDeliveryScene();
     this.refreshJobPoints();
     this.stopVan();
     this.refreshParcels();
@@ -4359,47 +4359,57 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     );
   }
 
-  /** Gatos operados que a Fernanda trouxe e cuja entrega ela ainda não viu (as falas de cada um). */
-  private vetDeliveries: { catId: string; lines: string[] }[] = [];
   /** Onde ela deixou cada caixinha de transporte no chão (sem isto, a caixinha vai para um canto livre). */
   private boxSpots = new Map<string, Cell>();
-  private vetDelivering = false;
 
-  /** A volta da castração: guarda a entrega; no café, a cena já começa (fora dele, espera ela entrar). */
-  private queueVetDelivery(d: { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number; cans?: number; inflamed?: boolean }): void {
-    const cans = d.cans ?? this.session.content.clinic.procedures.find((p) => p.id === 'proc.neuter')?.recoveryCans ?? 0;
-    // O pontinho inflamado: ela conta primeiro (por isso os dias, as doses e as latinhas a mais).
-    const lines = d.inflamed ? [vetLine(this.session, 'neuter.inflamed', {}, d.catId)] : [];
-    lines.push(vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays, cans }, d.catId));
-    // A primeira vez: o cercadinho com fraldas e as latinhas.
-    if (d.first) lines.push(vetLine(this.session, 'neuter.diapers', {}, d.catId));
-    this.vetDeliveries.push({ catId: d.catId, lines });
-    if (this.session.atHome() && !this.changingMap) void this.vetDeliveryScene();
+  /**
+   * Põe na fila o que está pendente no save (núcleo): a entrega de cada gato operado, a fala da obra que terminou de
+   * noite e o Tião perguntando depois da obra. A ordem de entrada é a ordem em que acontecem.
+   */
+  private syncMoments(): void {
+    const s = this.session;
+    const inCafe = () => s.state.location === s.content.map.id && !this.changingMap;
+    for (const d of s.pendingVetDeliveries()) this.moments.add({ key: `vet:${d.catId}`, ready: inCafe, run: () => this.vetDeliveryScene(d) });
+    if (s.state.hallDialogues?.length) {
+      this.moments.add({
+        key: 'hall',
+        ready: () => inCafe() && s.roomAt(this.feetCell())?.id === 'room.hall',
+        run: async () => {
+          if (s.releaseHallDialogues(this.feetCell())) await this.untilScreenFree();
+        },
+      });
+    }
+    if (s.state.construction.askPending) this.moments.add({ key: 'builder', ready: inCafe, run: () => this.builderAsk() });
+  }
+
+  /** Espera a fala (ou a cena) que acabou de abrir terminar. */
+  private async untilScreenFree(): Promise<void> {
+    await this.wait(100);
+    while (this.ui.isBusy() || this.scripts.isRunning()) await this.wait(200);
   }
 
   /** A Fernanda aparece ao lado da caixinha (ou do cercadinho) do gato, conta como foi e vai embora pela porta. */
-  private async vetDeliveryScene(): Promise<void> {
-    if (this.vetDelivering) return;
-    this.vetDelivering = true;
-    // Espera a entrada no mapa (o gato já no lugar dele) e o que estiver na tela acabar.
+  private async vetDeliveryScene(d: ClinicDelivery): Promise<void> {
+    // Espera a entrada no mapa (o gato já no lugar dele).
     await this.wait(600);
-    while (this.ui.isBusy() || this.scripts.isRunning() || this.changingMap) await this.wait(300);
+    // O pontinho inflamado: ela conta primeiro (por isso os dias, as doses e as latinhas a mais).
+    const lines = d.inflamed ? [vetLine(this.session, 'neuter.inflamed', {}, d.catId)] : [];
+    lines.push(vetLine(this.session, d.inPen ? 'neuter.delivered' : 'neuter.deliveredNoPen', { days: d.isolationDays, aftercare: d.aftercareDays, cans: d.cans }, d.catId));
+    // A primeira vez: o cercadinho com fraldas e as latinhas.
+    if (d.first) lines.push(vetLine(this.session, 'neuter.diapers', {}, d.catId));
     const npcId = this.session.content.clinic.vet;
-    while (this.vetDeliveries.length && this.session.atHome()) {
-      const d = this.vetDeliveries.shift()!;
-      const spot = this.besideClinicCat(d.catId);
-      if (spot) {
-        this.spawnNpc(npcId, spot.at, spot.facing);
-        const npc = this.npcs.get(npcId)!;
-        npc.setAlpha(0);
-        this.tweens.add({ targets: npc, alpha: 1, duration: 250 });
-      }
-      for (const line of d.lines) await this.ui.npcSay(npcId, line);
-      const npc = this.npcs.get(npcId);
-      this.npcs.delete(npcId);
-      if (npc) await this.walkOutAndLeave(npc);
+    const spot = this.besideClinicCat(d.catId);
+    if (spot) {
+      this.spawnNpc(npcId, spot.at, spot.facing);
+      const npc = this.npcs.get(npcId)!;
+      npc.setAlpha(0);
+      this.tweens.add({ targets: npc, alpha: 1, duration: 250 });
     }
-    this.vetDelivering = false;
+    for (const line of lines) await this.ui.npcSay(npcId, line);
+    this.session.vetDeliveryShown(d.catId);
+    const npc = this.npcs.get(npcId);
+    this.npcs.delete(npcId);
+    if (npc) await this.walkOutAndLeave(npc);
   }
 
   /** Uma célula livre ao lado de onde o gato isolado está (a caixinha do canto ou a vaga do cercadinho), virada para ele. */
@@ -4423,11 +4433,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** O Tião terminou a obra: vem até ela, pergunta se quer mais algum serviço e vai embora (sim abre a aba Construção). */
   private async builderAsk(): Promise<void> {
-    if (this.builderAsking) return;
-    this.builderAsking = true;
-    // Espera a entrada no mapa e o que estiver na tela (falas, roteiros) acabar.
+    // Espera a entrada no mapa (a fila de momentos só chama com a tela livre).
     await this.wait(600);
-    while (this.ui.isBusy() || this.scripts.isRunning() || this.changingMap) await this.wait(300);
     const npcId = this.session.content.construction.npc;
     const [pc, pr] = this.feetCell();
     const spot = ([[2, 0], [-2, 0], [0, 2], [1, 1], [-1, 1]] as const).map(([dx, dy]) => [pc + dx, pr + dy] as Cell).find(([c, r]) => this.map.solid[r]?.[c] === false);
@@ -4450,7 +4457,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const npc = this.npcs.get(npcId);
     this.npcs.delete(npcId);
     if (npc) void this.walkOutAndLeave(npc);
-    this.builderAsking = false;
     if (more) this.ui.openConstruction(true);
   }
 

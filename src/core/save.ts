@@ -770,6 +770,9 @@ function normalizeClinic(c: unknown): ClinicState {
   out.consults = Number.isInteger(x.consults) && x.consults! >= 0 ? x.consults! : 0;
   out.friendSaid = x.friendSaid === true;
   out.debt = typeof x.debt === 'number' && x.debt > 0 ? Math.round(x.debt) : 0;
+  const deliveries = (Array.isArray(x.deliveries) ? x.deliveries : []).filter((d) => d && typeof d.catId === 'string' && Number.isInteger(d.isolationDays) && Number.isInteger(d.aftercareDays) && Number.isInteger(d.cans))
+    .map((d) => ({ catId: d.catId, inPen: d.inPen === true, first: d.first === true, isolationDays: d.isolationDays, aftercareDays: d.aftercareDays, cans: d.cans, inflamed: d.inflamed === true }));
+  if (deliveries.length) out.deliveries = deliveries;
   for (const [day, n] of Object.entries(x.surgeries ?? {})) if (/^\d+$/.test(day) && Number.isInteger(n) && n > 0) out.surgeries[day] = n;
   return out;
 }

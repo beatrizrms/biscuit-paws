@@ -45,7 +45,7 @@ import { addReputation, reputationForResult } from './reputation';
 import { ArrivalSystem } from './arrivalSystem';
 import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
 import { CedFlow } from './ced';
-import { clinicBill } from './clinic';
+import { clinicBill, type ClinicDelivery } from './clinic';
 import { ageMonths } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
 import { ambientLayout, ambientPasses, passesNow, type AmbientLayout, type AmbientPass } from './ambientPeople';
@@ -2602,6 +2602,18 @@ export class GameSession {
     if (isolate && this.clinic.contagiousSick(catId)) cat.quarantine = true;
     else delete cat.quarantine;
     return r;
+  }
+
+  /** As entregas da Fernanda (gato operado) cuja cena ela ainda não viu, na ordem em que vieram. */
+  pendingVetDeliveries(): readonly ClinicDelivery[] {
+    return this.state.clinic.deliveries ?? [];
+  }
+
+  /** A cena da entrega deste gato aconteceu: sai da lista. */
+  vetDeliveryShown(catId: string): void {
+    const left = (this.state.clinic.deliveries ?? []).filter((d) => d.catId !== catId);
+    if (left.length) this.state.clinic.deliveries = left;
+    else delete this.state.clinic.deliveries;
   }
 
   /** Castrado sem vaga no cercadinho: na caixinha de transporte (no colo também), até ir para um cercadinho. */
@@ -5285,7 +5297,7 @@ export class GameSession {
     if (d.gives) {
       this.state.inventory[d.gives] = (this.state.inventory[d.gives] ?? 0) + 1;
       this.bus.emit('item.received', { itemId: d.gives });
-      if (d.foundDialogue) this.bus.emit('dialogue.requested', { dialogueId: d.foundDialogue });
+      this.bus.emit('item.found', { itemId: d.gives, ...(d.foundDialogue ? { dialogueId: d.foundDialogue } : {}) });
     }
     this.advanceStory();
     return { ok: true };

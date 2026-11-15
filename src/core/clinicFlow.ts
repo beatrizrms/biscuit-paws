@@ -493,7 +493,10 @@ export class ClinicFlow {
         // A primeira entrega: a Fernanda explica as fraldas do cercadinho e as latinhas.
         const first = !this.st.flags['vet.first_delivery'];
         this.st.flags['vet.first_delivery'] = true;
-        this.h.bus.emit('clinic.delivered', { catId: id, inPen, first, isolationDays, aftercareDays, cans, inflamed: extra > 0 });
+        const delivery = { catId: id, inPen, first, isolationDays, aftercareDays, cans, inflamed: extra > 0 };
+        // Guardada até a cena acontecer (a tela pode estar ocupada com outra coisa; o jogo pode fechar antes).
+        (this.st.clinic.deliveries ??= []).push(delivery);
+        this.h.bus.emit('clinic.delivered', delivery);
       } else if (s.stage === 'isolation' && s.until <= day && !s.complication) {
         cat.clinic = undefined;
         this.h.bus.emit('clinic.released', { catId: id });

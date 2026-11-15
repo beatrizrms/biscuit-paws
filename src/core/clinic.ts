@@ -81,6 +81,19 @@ export interface ClinicState {
   surgeries: Record<string, number>;
   /** Fiado: quanto ela deve à clínica (paga junto na próxima castração; com dívida, não há outro fiado). */
   debt: number;
+  /** Gatos operados que a Fernanda trouxe e cuja entrega (a cena com as falas) ela ainda não viu: ficam até a cena. */
+  deliveries?: ClinicDelivery[];
+}
+
+/** A entrega de um gato operado (o que a Fernanda conta na cena). */
+export interface ClinicDelivery {
+  catId: string;
+  inPen: boolean;
+  first: boolean;
+  isolationDays: number;
+  aftercareDays: number;
+  cans: number;
+  inflamed: boolean;
 }
 
 export function newClinic(): ClinicState {
