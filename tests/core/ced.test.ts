@@ -60,6 +60,7 @@ function setup(time = '10:00') {
   const state = newGameState(500, 'map.cafe_main');
   state.flags['prologue.done'] = true;
   state.flags['vet.neutered_once'] = true;
+  state.day = 45; // o meio da primavera (data/ced.json: intro.when)
   const [h, m] = time.split(':').map(Number);
   state.time = h! * 60 + m!;
   const session = new GameSession(content, state);
@@ -82,6 +83,13 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     session.tickClock(1);
     expect(state.ced.stage).toBe('off');
     expect(session.ced.appVisible()).toBe(false);
+  });
+
+  it('antes do meio da primavera, a Fernanda ainda não chama (mesmo com a castração feita)', () => {
+    const { state, session } = setup();
+    state.day = 44;
+    session.tickClock(1);
+    expect(state.ced.stage).toBe('off');
   });
 
   it('a Fernanda chama de dia: a vaquinha começa (meta = gatos x kit), com a plaquinha na mochila', () => {
