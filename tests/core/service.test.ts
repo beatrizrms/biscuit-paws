@@ -498,6 +498,23 @@ describe('ciclo do pedido', () => {
   });
 });
 
+describe('despensa de volta para a mochila', () => {
+  it('um pacote fechado por vez; o aberto fica', () => {
+    const { sv, state } = openCafe();
+    const id = 'item.paper_filter';
+    const packs = state.pantry[id]!;
+    expect(packs).toBeGreaterThan(0);
+    expect(sv.takeFromPantry(id)).toEqual({ ok: true });
+    expect(state.inventory[id]).toBe(1);
+    expect(state.pantry[id] ?? 0).toBe(packs - 1);
+    // Só doses soltas (pacote aberto): não volta.
+    delete state.pantry[id];
+    state.pantryOpen[id] = 3;
+    expect(sv.takeFromPantry(id)).toEqual({ ok: false, reason: 'pantry_opened_only' });
+    expect(sv.takeFromPantry('item.milk')).toEqual({ ok: false, reason: 'nothing_here' });
+  });
+});
+
 describe('paciência com ela fora do café', () => {
   it('fora do café, quem espera perde paciência a awayPatienceRate do normal; dentro, no ritmo de sempre', () => {
     const rate = content.service.awayPatienceRate!;

@@ -103,6 +103,7 @@ export type ServiceProblem =
   | 'broken'
   | 'no_money'
   | 'not_at_home'
+  | 'pantry_opened_only'
   | ScheduleProblem;
 
 export type ServiceResult = { ok: true } | { ok: false; reason: ServiceProblem };
@@ -212,6 +213,19 @@ export class CafeService {
     }
     this.h.bus.emit('pantry.stored', { count: moved.reduce((n, [, q]) => n + q, 0) });
     this.h.advanceStory();
+    return { ok: true };
+  }
+
+  /**
+   * Da despensa de volta para a mochila (para levar, dar ou guardar em outro lugar): um pacote fechado por vez. O pacote
+   * aberto (doses soltas) fica: não dá para fechar de novo.
+   */
+  takeFromPantry(itemId: string): ServiceResult {
+    if (!this.h.atHome()) return { ok: false, reason: 'not_at_home' };
+    if ((this.st.pantry[itemId] ?? 0) <= 0) return { ok: false, reason: (this.st.pantryOpen[itemId] ?? 0) > 0 ? 'pantry_opened_only' : 'nothing_here' };
+    this.st.pantry[itemId]! -= 1;
+    if (this.st.pantry[itemId] === 0) delete this.st.pantry[itemId];
+    this.st.inventory[itemId] = (this.st.inventory[itemId] ?? 0) + 1;
     return { ok: true };
   }
 

@@ -184,6 +184,10 @@ export class BackpackPanel {
           if (id) report(sv.storeInPantry(id));
           this.selected = null;
           return this.render();
+        case 'pantry-take':
+          // Um pacote fechado de volta para a mochila (o aberto fica).
+          if (id) report(sv.takeFromPantry(id));
+          return this.render();
         case 'pantry-stack':
           report(sv.stackInPantry());
           return this.render();
@@ -354,7 +358,8 @@ export class BackpackPanel {
     if (this.selected?.from === 'pantry' && id && content.items[id]) {
       const stored = content.items[id]!;
       return `<div class="bp-detail"><span class="bp-detail-icon">${itemIconHtml(stored, 22)}</span>
-      <span class="bp-detail-text"><b>${esc(stored.name)}</b> <span class="amount">${esc(t.inPantry.replace('{n}', String(this.session.service.doses(id))))}</span><br /><span class="purpose">${esc(purpose(stored))}</span></span></div>`;
+      <span class="bp-detail-text"><b>${esc(stored.name)}</b> <span class="amount">${esc(t.inPantry.replace('{n}', String(this.session.service.doses(id))))}</span><br /><span class="purpose">${esc(purpose(stored))}</span></span>
+      <span class="bp-detail-actions">${this.session.atHome() ? iconButton('pantry-take', 'pantryOut', t.pantryTake) : ''}</span></div>`;
     }
     const item = this.owned(id) ? content.items[id] : undefined;
     if (!item) return `<p class="bp-hint">${t.gridHint}</p>`;

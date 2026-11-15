@@ -93,6 +93,21 @@ const ICONS: Record<string, string[]> = {
     '############',
     '.#........#.',
   ],
+  // Armário com seta saindo: da despensa de volta para a mochila.
+  pantryOut: [
+    '.....##.....',
+    '....####....',
+    '...######...',
+    '.....##.....',
+    '############',
+    '#....##....#',
+    '#....##....#',
+    '#...#..#...#',
+    '#....##....#',
+    '#....##....#',
+    '############',
+    '.#........#.',
+  ],
   // Caixa com seta entrando: guardar na caixa pet.
   boxIn: [
     '.....##.....',
