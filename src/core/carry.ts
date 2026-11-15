@@ -37,7 +37,9 @@ export function speedFactor(hands: readonly HandItem[], tray: boolean, cfg: Carr
   if (hands.some((h) => h.kind === 'heavy')) return cfg.heavy.speedFactor;
   if (hands.some((h) => h.kind === 'cat')) return cfg.cat.speedFactor;
   const base = tray ? cfg.tray.speedFactor : 1;
-  return Math.max(0.4, base - hands.length * cfg.speedPenaltyPerItem);
+  // Na bandeja, cada louça pesa pouco (cabem 6; data/carry.json: tray.penaltyPerItem).
+  const per = tray ? cfg.tray.penaltyPerItem ?? cfg.speedPenaltyPerItem : cfg.speedPenaltyPerItem;
+  return Math.max(0.4, base - hands.length * per);
 }
 
 /** A louça que este objeto ocupa (pedido pronto ou suja), se ocupar. */
