@@ -188,9 +188,6 @@ export class BackpackPanel {
           // Um pacote fechado de volta para a mochila (o aberto fica).
           if (id) report(sv.takeFromPantry(id));
           return this.render();
-        case 'pantry-stack':
-          report(sv.stackInPantry());
-          return this.render();
         case 'box-stack':
           if (this.boxUid) report(this.session.stackIntoStorage(this.boxUid));
           return this.render();
@@ -418,12 +415,12 @@ export class BackpackPanel {
     const total = Math.max(PANTRY_SLOTS, Math.ceil(ids.length / 8) * 8);
     const empty = '<span class="bp-slot is-empty"></span>'.repeat(total - ids.length);
     const inBag = sv.ingredientsInBag();
-    const stack = this.atPantry ? sv.pantryStackable() : 0;
+    // Só ingrediente entra na despensa: o "guardar da mochila" já leva tudo (o empilhar seria o mesmo botão).
     const action =
       inBag === 0
         ? ''
         : this.atPantry
-        ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>${stack > 0 ? `<button data-act="pantry-stack" title="${esc(t.stackTip)}">${esc(t.stack.replace('{n}', String(stack)))}</button>` : ''}`
+        ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>`
         : `<span class="why">${esc(t.pantryWhere)}</span>`;
     // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
     const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
