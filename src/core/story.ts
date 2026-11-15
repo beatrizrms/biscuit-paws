@@ -31,6 +31,7 @@ export interface StoryContext {
   /** Hoje é dia de festa (a inauguração não cai nele). */
   eventDay?: () => boolean;
   christmasDay?: () => boolean;
+  afterHours?: () => boolean;
   /** O quitute da ceia: na mesa + tomados (made) e tomados (served); christmasTreat: hoje é a ceia e o id é o quitute do ano. */
   santaTreat?: () => { made: number; served: number };
   christmasTreat?: (id: string) => boolean;
@@ -70,6 +71,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('menu' in c) return state.menu.length >= c.menu.gte;
   if ('eventDay' in c) return !!ctx.eventDay?.();
   if ('christmasDay' in c) return !!ctx.christmasDay?.();
+  if ('afterHours' in c) return !!ctx.afterHours?.();
   if ('santaTreat' in c) return (ctx.santaTreat?.().made ?? 0) >= c.santaTreat.gte;
   if ('santaTreatServed' in c) return (ctx.santaTreat?.().served ?? 0) >= c.santaTreatServed.gte;
   if ('christmasTreat' in c) return !!ctx.christmasTreat?.(c.christmasTreat);

@@ -5223,6 +5223,7 @@ export class GameSession {
       santaGuest: (npc) => this.santaGuests().includes(npc),
       eventDay: () => this.isEventDay(),
       christmasDay: () => isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day),
+      afterHours: () => this.state.time >= parseClock(this.service.todaySchedule().close),
       christmasTreat: (id) => {
         const t = this.santaTreat();
         // Com a ligação da manhã, só depois dela (a novidade entra quando a ligação fecha).

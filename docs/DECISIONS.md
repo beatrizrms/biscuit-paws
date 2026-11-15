@@ -1045,3 +1045,7 @@ Decisão: receita nova `recipe.hot_chocolate_xmas` ("Chocolate quente de Natal",
 ## 255. Ração e areia só com o item ativo na barra (nov/2026)
 Pedido: a areia e a ração estavam deixando fazer a ação mesmo sem o item selecionado na barra.
 Decisão: `session.supplyFor` passa a devolver só o item ativo na barra (antes, sem ele, pegava a primeira ração ou areia da mochila: o atalho da decisão do jogo fluido, "um E no pote basta"). Sem o item ativo, o pote e a caixa (comuns e automáticos) dão o aviso de escolher (`needs_food` / `needs_litter`), e a dica do E só aparece com ele ativo (como os outros itens que precisam estar na barra).
+
+## 256. O porão só no fim do expediente do dia seguinte à inauguração (nov/2026)
+Pedido: só abrir o porão no final do expediente do dia pós inauguração.
+Decisão: a ligação da Dona Neusa (`story.basement_call`) troca a janela das 9h às 19h pela condição nova `{ afterHours: true }` (já passou a hora de fechar do horário de hoje, `service.todaySchedule().close`); continua a partir do dia seguinte à inauguração e com os 40 clientes. A porta aparece 10 minutos depois da ligação (eram 40), com ela no café.

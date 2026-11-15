@@ -112,17 +112,23 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.goals().map((g) => g.title)).toContain('O porão');
   });
 
-  it('a Dona Neusa liga primeiro (nunca no dia da inauguração); a porta só aparece depois de um tempo, no café', () => {
-    // No dia da inauguração: nada.
+  it('a Dona Neusa liga no fim do expediente, a partir do dia seguinte à inauguração; a porta aparece logo depois, no café', () => {
+    const call = (events: { name: EventName; payload: unknown }[]) => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.neusa_basement_call');
+    // No dia da inauguração, mesmo depois de fechar: nada.
     const same = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 0 });
+    same.state.time = parseClock(same.session.service.todaySchedule().close);
+    same.session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(same.state.story.completed).not.toContain('story.basement_call');
-    expect(same.session.roomState('room.back_room')).toBe('locked');
-    // No dia seguinte: a ligação, e a porta ainda não.
-    const { session, events } = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 1 });
-    expect(events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.neusa_basement_call')).toBe(true);
+    // No dia seguinte, durante o expediente: ainda não.
+    const { session, state, events } = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 1 });
+    expect(call(events)).toBe(false);
+    // Na hora de fechar: a ligação, e a porta ainda não.
+    state.time = parseClock(session.service.todaySchedule().close);
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(call(events)).toBe(true);
     expect(session.roomState('room.back_room')).toBe('locked');
-    // Uns 40 minutos depois, no café: ela acha a porta.
-    for (let i = 0; i < 45; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
+    // Uns 10 minutos depois, no café: ela acha a porta.
+    for (let i = 0; i < 12; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(session.roomState('room.back_room')).toBe('discovered');
     expect(dialogues(events)).toContain('dlg.room_back_found');
   });

@@ -252,6 +252,8 @@ export type Condition =
   | { eventDay: true }
   /** Hoje é o dia da ceia de Natal (festive.secretSanta). */
   | { christmasDay: true }
+  /** Já passou a hora de fechar do horário de hoje (o fim do expediente; app Horário). */
+  | { afterHours: true }
   /**
    * O quitute da ceia deste ano (festive.secretSanta.treat): deixado nas mesas no dia da ceia, contando os já tomados
    * (santaTreat), e os tomados pelos convidados (santaTreatServed). christmasTreat: hoje é a ceia e este id é o quitute
