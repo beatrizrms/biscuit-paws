@@ -7,6 +7,8 @@ import { content, uiText } from '../content';
 import { hoverTips } from './hoverTip';
 
 const ICON_PX = 16;
+/** Na loja (caixa do mercado), maior: a lista é a vitrine. */
+const SHOP_ICON_PX = 24;
 
 const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]!);
 
@@ -190,7 +192,7 @@ const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_16.png" alt="" />
 
 /** Ícone do item na loja: a imagem própria (iconImage) ou o da folha de ícones. */
 function shopIcon(item: { icon?: string; iconImage?: string }): string {
-  return item.iconImage ? `<img class="icon" src="${item.iconImage}" alt="" style="width:${ICON_PX}px;height:${ICON_PX}px" />` : iconHtml(item.icon);
+  return item.iconImage ? `<img class="icon" src="${item.iconImage}" alt="" style="width:${SHOP_ICON_PX}px;height:${SHOP_ICON_PX}px" />` : iconHtml(item.icon, SHOP_ICON_PX);
 }
 
 /** Ícone do item, recortado da folha de ícones (CSS, sem suavizar). */

@@ -449,7 +449,9 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .naming button.confirm { background: var(--mint2); }
 
 /* Loja (caixa do mercado): usa o visual do catálogo */
-.catalog.shop { top: 40px; bottom: auto; max-height: 260px; }
+.catalog.shop { top: 40px; bottom: auto; max-height: 260px; width: 270px; }
+/* Na loja, o ícone maior e sem encolher (antes cortava). */
+.catalog.shop .name .icon { flex: 0 0 auto; width: 24px; height: 24px; margin-right: 6px; }
 .catalog .icon {
   display: inline-block;
   width: 16px;

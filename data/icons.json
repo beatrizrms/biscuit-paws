@@ -17,13 +17,13 @@
       "row": 0,
       "sheet": "pixellab"
     },
-    "racao_10kg": {"col":5,"row":1,"sheet":"pixellab","hue":160},
-    "areia_10kg": {"col":0,"row":0,"sheet":"pixellab","hue":160},
-    "racao_simples": {
-      "col": 5,
-      "row": 1,
-      "sheet": "pixellab"
-    },
+    "racao_10kg": {"col":2,"row":0,"sheet":"variants"},
+    "racao_saco5": {"col":1,"row":0,"sheet":"variants"},
+    "racao_premium_saco": {"col":3,"row":0,"sheet":"variants"},
+    "areia_saco": {"col":0,"row":1,"sheet":"variants"},
+    "areia_saco4": {"col":1,"row":1,"sheet":"variants"},
+    "areia_10kg": {"col":2,"row":1,"sheet":"variants"},
+    "racao_simples": {"col":0,"row":0,"sheet":"variants"},
     "racao_premium": {
       "col": 4,
       "row": 1,
@@ -760,6 +760,12 @@
       "_comment": "Ração e areia com silhuetas diferentes (na barra, os dois saquinhos se confundiam).",
       "image": "assets/icons/sheets/icon_sheet_pixellab_barra.png",
       "columns": 2,
+      "tileSize": 64
+    },
+    "variants": {
+      "_comment": "Gerada por npm run art:icons (scripts/art/icon-variants.ts): a ração (saco aberto verde) e a areia (balde) da barra recoloridas por item, só a embalagem. Linha 0: ração simples, 5 porções, 10 kg, premium; linha 1: areia, 4 trocas, 10 kg.",
+      "image": "assets/icons/sheets/icon_sheet_variants.png",
+      "columns": 4,
       "tileSize": 64
     }
   }
