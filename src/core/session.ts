@@ -873,10 +873,16 @@ export class GameSession {
    */
   endDay(reason: DayEndReason = 'story'): void {
     const day = this.state.day;
-    // O especial (a ceia de Natal) só vale no dia: o que sobrou pronto vira louça suja.
+    // O especial (a ceia de Natal) só vale no dia: o que sobrou pronto some e a louça volta limpa para o armário
+    // (virar louça suja no mesmo lugar parecia a louça lavada voltando).
     const special = (i: HandItem) => i.kind === 'drink' && !!this.content.recipes[i.recipe]?.special;
-    this.state.hands = this.state.hands.map((h) => (special(h) && h.kind === 'drink' ? { kind: 'dirty', vessel: h.vessel } : h));
-    for (const x of this.state.surfaces) if (special(x.item) && x.item.kind === 'drink') x.item = { kind: 'dirty', vessel: x.item.vessel };
+    const giveBack = (i: HandItem) => {
+      if (i.kind === 'drink') this.state.dishes[i.vessel] = (this.state.dishes[i.vessel] ?? 0) + 1;
+    };
+    this.state.hands.filter(special).forEach(giveBack);
+    this.state.hands = this.state.hands.filter((h) => !special(h));
+    this.state.surfaces.filter((x) => special(x.item)).forEach((x) => giveBack(x.item));
+    this.state.surfaces = this.state.surfaces.filter((x) => !special(x.item));
     const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
     this.statsAtDayEnd(day);
     // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
@@ -3559,7 +3565,7 @@ export class GameSession {
     const rng = createRng(this.state.day * 104729 + 3);
     const first = !this.state.flags['xmas.santa_received'];
     record.giver = pickGiver(this.santaGuests(), record.drawn, rng) ?? ss.proposer;
-    record.received = playerGift(ss, first, rng);
+    record.received = playerGift(ss, first, rng, record.gift);
     this.state.flags['xmas.santa_received'] = true;
     this.receiveItem(record.received);
     return { dialogue: ss.receiveDialogue, itemId: record.received };
