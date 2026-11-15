@@ -435,6 +435,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
       if (this.movePick) return this.confirmMovePick();
+      // Com o móvel na mão (mudando de lugar ou posicionando), E solta: não usa o que está perto (a cafeteira...).
+      if (this.placing) return this.dropPlacing();
       const plan = this.planE();
       plan?.run();
     });
@@ -2159,6 +2161,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa: a dica do planE. null: sem dica. */
   private eTarget(): { x: number; y: number; kind: HintKind } | null {
+    // Com o móvel na mão, o E solta: sem a dica do que está perto.
+    if (this.placing) return null;
     return this.planE()?.hint ?? null;
   }
 

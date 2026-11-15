@@ -765,6 +765,11 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-detail-actions button { padding: 1px 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer; white-space: nowrap; }
 .catalog.backpack .bp-detail-actions button:disabled { opacity: 0.5; cursor: default; }
 .catalog.backpack .bp-detail-actions .why { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--grey2); }
+/* Ações só com ícone (o nome no title): em fileira, quadradinhos; o número pequeno (espaço da barra) do lado. */
+.catalog.backpack .bp-detail-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.catalog.backpack .bp-detail-actions button.bp-icon-btn { display: inline-flex; align-items: center; gap: 1px; padding: 3px; border-radius: 6px; color: var(--c-wood-dark); line-height: 0; }
+.catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon { width: calc(15px * var(--fs, 1)); height: calc(15px * var(--fs, 1)); }
+.catalog.backpack .bp-detail-actions .bp-icon-btn .badge { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; }
 .catalog.backpack .bp-hint { margin: 5px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-style: italic; color: var(--grey2); }
 
 /* Celular: apps no topo (Vila Hoje, Meus gatos); o mural do mercado não tem apps */
@@ -1199,7 +1204,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-pantry h3, .catalog.backpack .bp-box h3 { display: flex; align-items: center; gap: 6px; }
 .catalog.backpack .bp-pantry h3 button, .catalog.backpack .bp-box h3 button { padding: 0 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer; }
 .catalog.backpack .bp-pantry h3 .why { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: normal; color: var(--grey2); }
-.catalog.backpack span.bp-pantry-slot { opacity: 1; }
+.catalog.backpack .bp-pantry-slot { opacity: 1; cursor: pointer; }
 /* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */
 #ui:has(.catalog.backpack.open) > .hotbar { display: none; }
 .catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
