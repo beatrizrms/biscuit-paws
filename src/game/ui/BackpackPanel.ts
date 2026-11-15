@@ -235,10 +235,6 @@ export class BackpackPanel {
         case 'hold':
           if (id) report(sv.hold(id));
           return;
-        case 'eat':
-          if (id) report(this.session.eatItem(id));
-          if (id && !this.owned(id)) this.selected = null;
-          return this.render();
         case 'tray': {
           // A bandeja vale quando está selecionada na barra: usar = selecionar (põe na barra se não estiver);
           // guardar = passar para o espaço seguinte.
@@ -391,10 +387,9 @@ export class BackpackPanel {
       if (to === 'pantry') buttons.push(iconButton('to-pantry', 'pantry', t.pantryOne));
       if (to === 'box') buttons.push(iconButton('to-box', 'boxIn', t.boxOne.replace('{item}', item.name)));
     }
-    // O resto (segurar, comer, abrir, bandeja) só para o que está com ela (mochila ou barra).
+    // O resto (segurar, abrir, bandeja; comer é pela barra, com o item na mão) só para o que está com ela (mochila ou barra).
     if (from === 'pantry' || from === 'box') return this.detailBox(item, amount, buttons);
     if (item.tags.includes('treat')) buttons.push(iconButton('hold', 'hold', t.hold));
-    if (item.edible) buttons.push(iconButton('eat', 'eat', t.eat));
     // Caixa de enfeites (Natal ou Halloween): abre só na estação dela (e no café), e os enfeites saem um por um.
     const festive = content.festive.boxes.find((b) => b.item === item.id);
     if (festive) {
