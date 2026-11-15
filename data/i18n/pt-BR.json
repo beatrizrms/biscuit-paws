@@ -10,6 +10,7 @@
     "newGame": "Novo jogo",
     "load": "Carregar / recuperar saves",
     "options": "Opções",
+    "howTo": "Como jogar",
     "credits": "Créditos",
     "noSave": "Nenhum save ainda",
     "hint": "Setas: escolher · Enter: confirmar · Esc: voltar",
@@ -63,6 +64,53 @@
     "noFiles": "Ainda não há arquivos de som: os canais estão prontos e mudos.",
     "close": "fechar"
   },
+  "howTo": {
+    "title": "Como jogar",
+    "keysTitle": "Teclado e mouse",
+    "touchTitle": "Toque",
+    "showKeys": "Ver teclado",
+    "showTouch": "Ver toque",
+    "close": "Fechar",
+    "keys": [
+      "Setas ou WASD | Andar",
+      "R (segurando) | Correr",
+      "E | Usar o que está perto (a dica do E aparece em cima)",
+      "Clique | Usar o que você clicou",
+      "1 a 8 ou a roda do mouse | Escolher o item ativo na barra",
+      "0 | Mão livre (nada na mão)",
+      "T | Comer ou beber o que está na mão",
+      "C | Market (compras pelo celular)",
+      "I | Mochila",
+      "P | Celular",
+      "M | Cardápio",
+      "F | Mover um móvel (de novo para soltar; Q guarda na mochila)",
+      "Esc | Pausa"
+    ],
+    "touch": [
+      "Direcional | Andar (na borda, corre)",
+      "Correr | Liga e desliga a corrida",
+      "E | Usar o que está perto (a dica do E aparece em cima)",
+      "Tocar | Usar o que você tocou",
+      "Barra | Escolher o item ativo (a mãozinha é a mão livre)",
+      "Tomar ou Comer | Consumir o que está na mão",
+      "Market | Compras pelo celular",
+      "Mochila | Mochila",
+      "Cel | Celular",
+      "Cardápio | Cardápio",
+      "Mover | Mover um móvel (Soltar solta; Mochila guarda)",
+      "❚❚ | Pausa"
+    ],
+    "activeTitle": "Itens que precisam estar ativos na barra",
+    "active": [
+      "Vassoura | Varrer a sujeira",
+      "Ração | Encher a tigela",
+      "Areia | Trocar a areia da caixa",
+      "Escova | Escovar um gato",
+      "Varinha | Brincar com um gato",
+      "Petisco | Dar a um gato",
+      "Remédio | Dar a um gato doente"
+    ]
+  },
   "credits": {
     "title": "Créditos",
     "lines": [
@@ -78,6 +126,7 @@
     "title": "Pausa",
     "resume": "Continuar",
     "options": "Opções",
+    "howTo": "Como jogar",
     "save": "Salvar",
     "toMenu": "Voltar ao menu",
     "restartDay": "Reiniciar o dia",

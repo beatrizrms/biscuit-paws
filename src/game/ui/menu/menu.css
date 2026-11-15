@@ -81,3 +81,12 @@ html.touch-mode .menu-hint .touch-hint { display: inline; }
 .creator-row button:focus, .creator-row button:hover { background: var(--c-paper); border-color: var(--c-olive-light); outline: none; }
 .creator-error { min-height: 10px; margin: 2px 0; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); text-align: center; }
 .menu-btn.primary { background: var(--c-green-pale); }
+
+/* Como jogar: duas colunas (o controle e o que ele faz), rolando se não couber. */
+.menu-panel.howto { max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; text-align: left; }
+.menu-panel.howto h2 { text-align: center; }
+.menu-panel.howto .howto-mode { margin: 6px 0 2px; font-weight: bold; color: var(--c-ink3); font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
+.howto-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
+.howto-list li { display: contents; }
+.howto-list b { white-space: nowrap; color: var(--c-ink); }
+.howto-list span { color: var(--c-ink2); }
