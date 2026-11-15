@@ -9,6 +9,7 @@ import { content, uiText } from '../content';
 import { CatSprite, catAnim, catFrameSize, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { GROOMING, loadSheets } from './assets';
+import { fillBarPart } from './bar';
 import { MiniGameScene } from './MiniGameScene';
 
 export const GROOMING_SCENE = 'MiniGame.grooming';
@@ -166,8 +167,8 @@ export class GroomingScene extends MiniGameScene {
       .fillRoundedRect(x - 2, y - 2, BAR_W + 4, 10, 4)
       .fillStyle(0xf3d9c2, 1)
       .fillRoundedRect(x, y, BAR_W, 6, 3)
-      .fillStyle(color, 1)
-      .fillRoundedRect(x, y, Math.max(0.01, BAR_W * pat), 6, 3);
+      .fillStyle(color, 1);
+    fillBarPart(this.bar, x, y, BAR_W * pat, 6, 3);
     const t = uiText.minigames.grooming;
     this.setHudInfo(t.hud.replace('{patience}', String(Math.round(this.s.patience))).replace('{done}', String(Math.round(groomingProgress(this.s, this.mats, this.p) * 100))));
   }

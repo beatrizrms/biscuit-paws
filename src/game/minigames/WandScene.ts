@@ -8,6 +8,7 @@ import { content, uiText } from '../content';
 import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadSheets, WAND } from './assets';
+import { fillBarPart } from './bar';
 import { MiniGameScene } from './MiniGameScene';
 
 export const WAND_SCENE = 'MiniGame.wand';
@@ -131,8 +132,8 @@ export class WandScene extends MiniGameScene {
       .fillRoundedRect(x - 2, y - 2, BAR_W + 4, 10, 4)
       .fillStyle(0xf3d9c2, 1)
       .fillRoundedRect(x, y, BAR_W, 6, 3)
-      .fillStyle(0xd97890, 1)
-      .fillRoundedRect(x, y, Math.max(0.01, (BAR_W * s.excitement) / FULL_EXCITEMENT), 6, 3);
+      .fillStyle(0xd97890, 1);
+    fillBarPart(this.bar, x, y, (BAR_W * s.excitement) / FULL_EXCITEMENT, 6, 3);
     const t = uiText.minigames.wand;
     this.setHudInfo(t.hud.replace('{n}', String(Math.floor(s.excitement))).replace('{bored}', String(s.bored)));
   }
