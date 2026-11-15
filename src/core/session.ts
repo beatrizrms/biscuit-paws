@@ -991,6 +991,7 @@ export class GameSession {
       this.checkBuilderShift();
       this.advanceStory();
       this.checkSecretSanta();
+      this.checkTreatCall();
       this.santaTreatTick();
       this.checkHalloween();
       this.checkGatherings();
@@ -3227,6 +3228,26 @@ export class GameSession {
     return { recipe: y.recipe, name, plural: y.plural, mix: y.mix ?? null, call: y.call && (!y.callWhen || this.holds(y.callWhen)) ? y.call : null, take: { ...t.take, ...y.take }, refuse: { ...t.refuse, ...y.refuse } };
   }
 
+  /** A marca de que a ligação do quitute deste ano já aconteceu. */
+  private treatCallFlag(): string {
+    return `xmas.treat_call.${yearOf(this.content.seasons, this.state.day)}`;
+  }
+
+  /**
+   * Manhã da ceia, na hora de treat.callAt: a ligação contando do quitute do ano (a Neusa, se ela a conhece). O especial e a
+   * mistura só ficam à venda depois dela (a tela de novidades entra quando a ligação fecha). Abrindo o jogo depois da hora,
+   * ela liga na hora.
+   */
+  private checkTreatCall(): void {
+    const cfg = this.content.festive.secretSanta.treat;
+    const t = this.santaTreat();
+    if (!cfg || !t?.call || !isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day)) return;
+    if (this.state.flags[this.treatCallFlag()] || this.state.time < parseClock(cfg.callAt ?? '07:00')) return;
+    this.state.flags[this.treatCallFlag()] = true;
+    this.bus.emit('cutscene.requested', { cutsceneId: t.call });
+    this.advanceStory();
+  }
+
   /** O quitute deixado nas mesas e balcões (no dia da ceia): as posições em state.surfaces. */
   private santaTreatOnTables(): number[] {
     const t = this.santaTreat();
@@ -3559,8 +3580,6 @@ export class GameSession {
     }
     const treat = this.santaTreat();
     this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats, treat: treat ? { name: treat.name, mix: treat.mix ? this.content.items[treat.mix]?.name ?? null : null, called: !!treat.call } : null });
-    // A ligação da manhã contando do quitute do ano (a Neusa, se ela a conhece).
-    if (treat?.call) this.bus.emit('cutscene.requested', { cutsceneId: treat.call });
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */
@@ -5159,7 +5178,8 @@ export class GameSession {
       christmasDay: () => isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day),
       christmasTreat: (id) => {
         const t = this.santaTreat();
-        return !!t && isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day) && (t.recipe === id || t.mix === id);
+        // Com a ligação da manhã, só depois dela (a novidade entra quando a ligação fecha).
+        return !!t && isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day) && (t.recipe === id || t.mix === id) && (!t.call || !!this.state.flags[this.treatCallFlag()]);
       },
       santaTreat: () => {
         const served = this.santaRecord()?.treatTaken?.length ?? 0;

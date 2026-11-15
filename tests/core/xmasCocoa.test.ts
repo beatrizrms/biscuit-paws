@@ -40,7 +40,16 @@ function party(cocoasOnTables: number) {
 describe('ceia de Natal preparada', () => {
   it('o quitute do ano: a receita e a mistura só no dia da ceia; a lista recomeça a cada ano', () => {
     expect(cafe(XMAS - 1).session.itemUnlocked(MIX)).toBe(false);
-    const { session } = cafe(XMAS);
+    // Manhã da ceia: antes da ligação da Neusa (7h20), nada; ela liga e aí a mistura e o especial ficam à venda.
+    const { session, state } = cafe(XMAS, 7 * 60);
+    const calls: string[] = [];
+    session.bus.on('cutscene.requested', ({ cutsceneId }) => calls.push(cutsceneId));
+    session.tickClock(5);
+    expect(calls).toEqual([]);
+    expect(session.itemUnlocked(MIX)).toBe(false);
+    state.time = 7 * 60 + 19;
+    session.tickClock(2);
+    expect(calls).toEqual(['cs.xmas_treat_neusa_cocoa']);
     expect(session.itemUnlocked(MIX)).toBe(true);
     expect(session.service.recipeStatus(COCOA)).not.toBe('locked');
     expect(content.recipes[COCOA]!.ingredients).toEqual({ [MIX]: 1 });
