@@ -1053,3 +1053,7 @@ Decisão: a ligação da Dona Neusa (`story.basement_call`) troca a janela das 9
 ## 257. Chegadas de gato espaçadas (nov/2026)
 Pedido: três avisos juntos às 7h (o gato da Dona Neusa entrando no café, com dois avisos que diziam o mesmo, e as pegadas de outro gato começando no mesmo minuto): rápido demais e sem sentido juntos; as aparições de gatos precisam ser espaçadas em vários dias.
 Decisão: `arrivals.json: minDaysBetween` (3): depois que uma chegada termina (`ArrivalsState.lastFinishedOn`), a próxima, da fila ou sorteada, só começa minDaysBetween dias depois. O atalho do debug (Chegadas) começa na hora, sem esperar. Gato que entra assustado: só o aviso com o nome dele ("Mingau chegou no café meio assustada..."); o "Um gato novo no café!" não sai junto.
+
+## 258. Ritmo das chegadas: de 5 a 14 dias (nov/2026)
+Pedido: as chegadas sorteadas (depois do 3º gato) entre 5 e 14 dias, ao acaso; nada menos que 5.
+Decisão: `arrivals.json: pacing` com uma fase só, `everyDays: [5, 14]` (saem as fases de 2–3 dias até o dia 21 e de 4–7 depois). `minDaysBetween` sobe de 3 para 5 (decisão 257): nenhuma chegada, da fila ou escrita à mão, começa menos de 5 dias depois do fim da anterior. O debug continua começando na hora.
