@@ -55,6 +55,19 @@ const scheduleNow = (session: GameSession, schedule: Parameters<GameSession['ser
 const coffeeMachineUid = (session: GameSession) => session.state.placed.find((p) => p.item === 'item.coffee_machine')!.uid;
 
 describe('receitas e cardápio', () => {
+  it('sem o ingrediente na despensa, o que já está pronto sem dono continua no cardápio até acabar', () => {
+    const { sv, state } = openCafe({ coffee: false });
+    sv.toggleMenu('recipe.black_coffee');
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
+    // Um café adiantado no balcão: dá para pedir.
+    state.surfaces.push({ at: [4, 5], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' } });
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
+    expect(sv.orderable().map((r) => r.id)).toContain('recipe.black_coffee');
+    // Um cliente já pediu ele: o pronto tem dono, e sem ingrediente volta a esgotar.
+    state.service.customers.push({ id: 'cx', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: 99999999, favorite: null, wantsPremium: false } as never);
+    expect(sv.recipeStatus('recipe.black_coffee')).toBe('ingredients');
+  });
+
   it('esgotado por falta de equipamento, ingrediente ou louça limpa', () => {
     const state = newGameState(500, 'map.cafe_main', 9 * 60);
     const session = new GameSession(content, state);

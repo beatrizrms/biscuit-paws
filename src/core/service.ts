@@ -464,6 +464,8 @@ export class CafeService {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
     if (!this.inSeasonNow(r)) return 'season';
+    // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
+    if (this.spareReady(r.id) > 0) return 'available';
     if (r.display && this.displaysPlaced().length === 0) return 'equipment';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
     if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
@@ -1174,6 +1176,12 @@ export class CafeService {
   }
 
   /** Quantos desta receita já estão a caminho: preparando, massa ou pronto (na mão, no balcão, na mesa). */
+  /** Quantos desta receita estão prontos ou a caminho além dos pedidos que já esperam por ela (os sem dono). */
+  private spareReady(recipe: string): number {
+    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe === recipe).length;
+    return this.covered(recipe) - waiting;
+  }
+
   private covered(recipe: string): number {
     return (
       this.st.service.preps.filter((p) => p.recipe === recipe).length * (this.recipe(recipe)?.batch?.yields ?? 1) +
