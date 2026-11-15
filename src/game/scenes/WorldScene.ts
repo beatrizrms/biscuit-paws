@@ -739,6 +739,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // O carrinho em cima da cabeça dela, no mercado (fora dele, o HUD lembra de pagar).
     const shopping = this.cartNow.count > 0 && (this.session.content.world.cartBalloonMaps ?? []).includes(this.map.id) && !this.changingMap;
     this.cartBalloon.show(shopping ? { x: this.player.x, y: this.player.y - this.player.displayHeight, text: `${this.cartNow.count} · ${this.cartNow.total}` } : null);
+    this.hideBangsUnderHint();
     this.updateCareBubbles();
     this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {
@@ -1808,6 +1809,19 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const uids = this.furnitureCandidates([this.cellAt(pointer)]);
       if (uids.length === 1) this.startMoving(uids[0]!);
       else if (uids.length > 1) this.chooseToMove(uids);
+    }
+  }
+
+  /**
+   * O "!" (ponto de trabalho, equipamento quebrado) some enquanto a dica do E está em cima dele (os dois juntos ficavam
+   * embaralhados); quando ela se afasta e a dica sai, ele volta.
+   */
+  private hideBangsUnderHint(): void {
+    const hint = this.hint.bounds();
+    const bangs = [...this.jobIcons.filter((i) => i.frame.name === 'exclamation'), ...this.brokenIcons.values()];
+    for (const icon of bangs) {
+      if (!icon.active) continue;
+      icon.setAlpha(hint && Phaser.Geom.Intersects.RectangleToRectangle(hint, icon.getBounds()) ? 0 : 1);
     }
   }
 
