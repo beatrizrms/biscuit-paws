@@ -248,7 +248,7 @@
       "steps": [
         { "text": "Montar uma árvore de Natal no salão.", "when": { "placed": "item.christmas_tree" } },
         { "text": "Enfeitar o salão com 3 decorações natalinas.", "when": { "placedTag": "xmas", "gte": 3, "exceptItem": "item.christmas_tree" } },
-        { "text": "No dia da ceia, deixar 3 {treats} nas mesas para a turma.", "when": { "santaTreat": { "gte": 3 } } }
+        { "text": "No dia da ceia, deixar 4 {treats} nas mesas para a turma.", "when": { "santaTreat": { "gte": 4 } } }
       ]
     },
     "partyWhen": {

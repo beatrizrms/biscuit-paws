@@ -90,13 +90,13 @@ describe('ceia de Natal preparada', () => {
   });
 
   it('o passo da mesa conta o que está nas mesas e o que a turma já pegou; com tudo pronto, corações a mais no fim', () => {
-    const { session, state } = party(3);
+    const { session, state } = party(4);
     state.placed.push(
       ...['item.christmas_tree', 'item.xmas_wreath', 'item.xmas_lights', 'item.xmas_stocking'].map((item, i) => ({ uid: `x${i}`, item, at: [2 + i * 2, 3] as [number, number] })),
     );
-    expect(session.holds({ santaTreat: { gte: 3 } })).toBe(true);
+    expect(session.holds({ santaTreat: { gte: 4 } })).toBe(true);
     for (let m = 0; m < 60; m++) session.tickClock(1);
-    expect(session.holds({ santaTreat: { gte: 3 } })).toBe(true); // pegar não desfaz o passo
+    expect(session.holds({ santaTreat: { gte: 4 } })).toBe(true); // pegar não desfaz o passo
     const before = state.relationships[pairKey('player', 'npc.neusa')] ?? 0;
     const bonus: number[] = [];
     session.bus.on('xmas.prep_bonus', ({ steps, points }) => bonus.push(steps, points));
