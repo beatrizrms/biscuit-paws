@@ -2,6 +2,7 @@
 // pegando o quitute na mesa durante a festa.
 import { describe, expect, it } from 'vitest';
 import { pairKey } from '../../src/core/relationships';
+import { playerGift } from '../../src/core/secretSanta';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
@@ -12,6 +13,7 @@ const XMAS = SS.day;
 const YEAR = content.seasons.daysPerSeason * content.seasons.order.length;
 const MIX = 'item.hot_chocolate_mix';
 const COCOA = 'recipe.hot_chocolate_xmas';
+const same = (a: readonly number[], b: readonly number[]) => a[0] === b[0] && a[1] === b[1];
 
 /** Café funcionando no primeiro ano; ela conhece a Gabi (e o Joca) e a Dona Neusa. */
 function cafe(day: number, time = 10 * 60) {
@@ -117,15 +119,17 @@ describe('ceia de Natal preparada', () => {
 });
 
 describe('o especial de Natal só vale no dia', () => {
-  it('cliente não recebe o especial; o que sobrou pronto vira louça suja no fim do dia', () => {
+  it('cliente não recebe o especial; o que sobrou pronto some no fim do dia e a louça volta limpa', () => {
     const { session, state } = cafe(XMAS, 15 * 60);
     state.hands = [{ kind: 'drink', recipe: COCOA, vessel: 'cup' } as never];
     state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [10, 8], dishAt: [10, 7], recipe: 'recipe.black_tea', until: 99999, favorite: null, wantsPremium: false });
     expect(session.service.customerToServe([[10, 7]])).toBeUndefined();
     state.surfaces.push({ at: [8, 5], item: { kind: 'drink', recipe: COCOA, vessel: 'cup' } as never });
+    const clean = state.dishes.cup ?? 0;
     session.endDay('sleep');
-    expect(state.hands.every((h) => h.kind !== 'drink')).toBe(true);
-    expect(state.surfaces.some((x) => x.item.kind === 'drink' && x.item.recipe === COCOA)).toBe(false);
+    expect(state.hands).toEqual([]);
+    expect(state.surfaces.some((x) => same(x.at, [8, 5]))).toBe(false); // nem cheio nem sujo no lugar
+    expect(state.dishes.cup).toBe(clean + 2);
   });
 
   it('no dia da ceia, a mistura e o especial aparecem como novidade (sempre que algo novo fica à venda)', () => {
@@ -139,5 +143,16 @@ describe('o especial de Natal só vale no dia', () => {
     session.tickClock(2);
     expect(recipes).toContain(COCOA);
     expect(items).toContain(MIX);
+  });
+});
+
+describe('o presente que ela ganha no amigo secreto', () => {
+  it('nunca é o mesmo item que ela acabou de dar', () => {
+    for (const gave of SS.playerGifts.later) {
+      for (let seed = 1; seed < 30; seed++) {
+        const rng = { int: (a: number, b: number) => a + (seed % (b - a + 1)), next: () => 0, chance: () => false } as never;
+        expect(playerGift(SS, false, rng, gave)).not.toBe(gave);
+      }
+    }
   });
 });

@@ -141,9 +141,12 @@ export function pickGiver(guests: readonly string[], drawn: string, rng: Rng): s
 }
 
 /** O presente que ela ganha: o fixo no primeiro amigo secreto; depois, um dos outros (sorteado). */
-export function playerGift(data: SecretSantaData, firstTime: boolean, rng: Rng): string {
+export function playerGift(data: SecretSantaData, firstTime: boolean, rng: Rng, gave?: string): string {
   if (firstTime || data.playerGifts.later.length === 0) return data.playerGifts.first;
-  return data.playerGifts.later[rng.int(0, data.playerGifts.later.length - 1)]!;
+  // Nunca o mesmo item que ela acabou de dar (parecia que o presente dela não tinha saído da mochila).
+  const options = data.playerGifts.later.filter((id) => id !== gave);
+  const list = options.length > 0 ? options : data.playerGifts.later;
+  return list[rng.int(0, list.length - 1)]!;
 }
 
 export interface SantaRefs {
