@@ -60,6 +60,11 @@ export class InteractHint {
     this.box.setPosition(x, Math.round(at.y - h / 2 - 5));
   }
 
+  /** Onde a plaquinha está agora (px do mundo), ou null se escondida: o "!" que cair embaixo dela some. */
+  bounds(): Phaser.Geom.Rectangle | null {
+    return this.box.visible ? this.box.getBounds() : null;
+  }
+
   destroy(): void {
     this.box.destroy();
   }
