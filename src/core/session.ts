@@ -240,6 +240,9 @@ export const NEW_BADGE_DAYS = 2;
 /** O ponto do "!" da porta escondida do porão (data/jobs.json). */
 const BASEMENT_POINT = 'pt.basement_find';
 
+/** O salão do café (data/rooms.json): onde as falas da obra feita de noite aparecem. */
+const HALL_ROOM = 'room.hall';
+
 export class GameSession {
   readonly bus = new EventBus();
 
@@ -2165,7 +2168,7 @@ export class GameSession {
     }
     this.state.rooms[roomId] = 'abandoned';
     this.placeRoomItems(room);
-    if (room.unlock?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.unlock.dialogue });
+    if (room.unlock?.dialogue) this.roomDialogue(room.unlock.dialogue);
     this.bus.emit('room.opened', { roomId });
     this.advanceStory();
   }
@@ -2246,7 +2249,7 @@ export class GameSession {
   private markRestored(room: RoomDef): void {
     this.state.rooms[room.id] = 'restored';
     this.placeRoomItems(room);
-    if (room.restore?.dialogue) this.bus.emit('dialogue.requested', { dialogueId: room.restore.dialogue });
+    if (room.restore?.dialogue) this.roomDialogue(room.restore.dialogue);
     this.bus.emit('room.restored', { roomId: room.id });
   }
 
@@ -5538,8 +5541,37 @@ export class GameSession {
     return out;
   }
 
+  /** Na virada do dia (obra que terminou), a fala espera ela entrar no salão (releaseHallDialogues); senão, já. */
+  private roomDialogue(dialogueId: string): void {
+    if (this.dayEnding) (this.state.hallDialogues ??= []).push(dialogueId);
+    else this.bus.emit('dialogue.requested', { dialogueId });
+  }
+
+  private dayEnding = false;
+
+  /**
+   * As falas da obra que terminou de noite: só com o resumo do dia fechado (a cena chama) e ela no salão. Devolve se
+   * soltou alguma.
+   */
+  releaseHallDialogues(feet: Cell): boolean {
+    const due = this.state.hallDialogues;
+    if (!due?.length || this.state.location !== this.content.map.id || this.roomAt(feet)?.id !== HALL_ROOM) return false;
+    delete this.state.hallDialogues;
+    for (const dialogueId of due) this.bus.emit('dialogue.requested', { dialogueId });
+    return true;
+  }
+
   /** Fim do dia: a obra que terminou entra no café (ou na fachada). */
   private constructionDayEnded(newDay: number): void {
+    this.dayEnding = true;
+    try {
+      this.constructionDone(newDay);
+    } finally {
+      this.dayEnding = false;
+    }
+  }
+
+  private constructionDone(newDay: number): void {
     const facade = this.content.facade?.surface.id ?? 'surface.facade';
     const done = finishJobIfDone(this.state.construction, this.state.finishes, newDay, this.content.construction, facade);
     if (!done) return;

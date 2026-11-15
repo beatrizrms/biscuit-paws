@@ -162,6 +162,9 @@ export interface GameState {
   goalStepsDone?: Record<string, number>;
   /** Market aos poucos: o dia em que cada etapa abriu (a etiqueta Novo dos itens dela). */
   marketStagesOn?: Record<string, number>;
+  /** Falas da obra que terminou na virada do dia (o porão aberto, a reforma pronta): esperam o resumo do dia fechar e
+   * ela entrar no salão. */
+  hallDialogues?: string[];
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;
   /** Selos do café (v28): o dia em que cada um foi conquistado. */

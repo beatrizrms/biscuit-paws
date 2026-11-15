@@ -688,6 +688,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.syncNpcBlockers();
     const k = this.keys;
     const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
+    // A obra que terminou de noite: a fala só com o resumo do dia fechado (isBusy) e ela no salão.
+    if (!busy && this.session.state.hallDialogues?.length) this.session.releaseHallDialogues(this.feetCell());
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
     this.updateEatQueue();
     // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).

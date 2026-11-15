@@ -324,8 +324,20 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
     expect(state.money).toBe(1000 - 200);
     expect(session.roomState('room.back_room')).toBe('abandoned');
     expect(session.doorState('door.back_room')).toBe('open');
-    expect(dialogues(events)).toContain('dlg.room_back_opened');
     expect(state.construction.job).toBeNull();
+    // A fala espera o resumo do dia e ela no salão (não sai na tela do dia, nem na rua, nem no porão).
+    expect(dialogues(events)).not.toContain('dlg.room_back_opened');
+    expect(state.hallDialogues).toEqual(['dlg.room_back_opened']);
+    state.location = 'map.street';
+    expect(session.releaseHallDialogues([5, 5])).toBe(false);
+    state.location = 'map.cafe_main';
+    expect(session.releaseHallDialogues([20, 5])).toBe(false);
+    expect(session.releaseHallDialogues([5, 5])).toBe(true);
+    expect(dialogues(events)).toContain('dlg.room_back_opened');
+    expect(state.hallDialogues).toBeUndefined();
+    // Saída e volta do save no meio: a fala continua esperando.
+    state.hallDialogues = ['dlg.room_back_opened'];
+    expect(parseSave(serializeSave(state, new Date(0)), knownIds(content)).state.hallDialogues).toEqual(['dlg.room_back_opened']);
   });
 
   it('reforma: só depois de limpar; 2 dias dentro do porão; termina reformado', () => {
