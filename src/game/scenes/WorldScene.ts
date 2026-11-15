@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { nextRotation } from '../../core/variants';
 import { touch, type TouchAction } from '../touch';
 import { fillNames } from '../ui/text';
 import { WalkFollowers } from '../WalkFollowers';
@@ -246,7 +247,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private parcelQueue: string[] = [];
   /** O balão com o nome do gato (Meus gatos > tocar no gato). */
   private catLabel?: Phaser.GameObjects.Container;
-  private placing: { itemId: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
+  /** `as`: a peça girada (outra da mesma família, items.json: variants); sem, a do próprio item. */
+  private placing: { itemId: string; as?: string; ghosts: Phaser.GameObjects.Image[]; at: Cell; moveUid?: string; riders?: { ghosts: Phaser.GameObjects.Image[]; w: number; lift: number }[] } | null = null;
   /** Imagens do mapa por objeto (id): o móvel sendo mudado de lugar fica esmaecido no lugar de origem. */
   private objectImages = new Map<string, Phaser.GameObjects.Image[]>();
   /** Clínica: gatos que a cena segura (isolados ou internados: sem andar nem colidir) e as caixinhas do canto. */
@@ -388,15 +390,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // T: come ou bebe o que está pronto na mão (recompõe energia: cafeína mais, depois açúcar; um por hora do jogo).
     this.onKey('T', () => {
       if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
+      // Com o móvel na mão, o botão do T é o Girar (no celular).
+      if (this.placing) return this.rotatePlacing();
       this.tryDrinkCoffee();
     });
-    // No toque, o botão Tomar (bebida) ou Comer (prato) aparece só com algo pronto na mão.
-    const drinkBtn = () => {
-      const snack = this.session.snackInHands();
-      touch.showDrink(snack ? (snack.food ? uiText.touch.eat : uiText.touch.drink) : this.session.edibleActive() ? uiText.touch.eat : null);
-    };
-    for (const ev of ['hands.changed', 'hotbar.changed', 'item.received', 'energy.recovered'] as const) this.session.bus.on(ev, drinkBtn);
-    drinkBtn();
+    // G: gira o móvel na mão (a cadeira, a banqueta...).
+    this.onKey('G', () => this.placing && !this.ui.isBusy() && this.rotatePlacing());
+    for (const ev of ['hands.changed', 'hotbar.changed', 'item.received', 'energy.recovered'] as const) this.session.bus.on(ev, () => this.refreshDrinkButton());
+    this.refreshDrinkButton();
     // Q: mudando um móvel de lugar, guarda na mochila.
     this.onKey('Q', () => this.storeMoving());
     // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
@@ -1385,6 +1386,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placing = { itemId, ghosts, at: [fc, Math.max(0, fr + 1 - (def.h - 1))] };
     this.ui.setHint('placing');
     this.refreshGhost();
+    this.refreshDrinkButton();
   }
 
   /**
@@ -1400,6 +1402,31 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       last = e;
       fn();
     });
+  }
+
+  /**
+   * No toque, o botão do T: com um móvel que gira na mão, Girar; senão, Tomar (bebida) ou Comer (prato), só com algo
+   * pronto na mão.
+   */
+  private refreshDrinkButton(): void {
+    if (this.placing && nextRotation(this.session.content.variants, this.placing.as ?? this.placing.itemId)) return touch.showDrink(uiText.touch.turn);
+    const snack = this.session.snackInHands();
+    touch.showDrink(snack ? (snack.food ? uiText.touch.eat : uiText.touch.drink) : this.session.edibleActive() ? uiText.touch.eat : null);
+  }
+
+  /** Gira o móvel na mão: a próxima peça da família (o fantasma troca e o lugar é conferido de novo). */
+  private rotatePlacing(): void {
+    if (!this.placing) return;
+    const next = nextRotation(this.session.content.variants, this.placing.as ?? this.placing.itemId);
+    if (!next) return;
+    const { catalog, items } = this.session.content;
+    const def = catalog.tiles[items[next]!.tile ?? '']!;
+    this.placing.ghosts.forEach((g) => g.destroy());
+    const ghosts: Phaser.GameObjects.Image[] = [];
+    for (let dy = 0; dy < def.h; dy++) for (let dx = 0; dx < def.w; dx++) ghosts.push(addTileImage(this, 0, 0, def.sheet, frameOf(catalog, def, dx, dy)).setAlpha(0.8).setDepth(GHOST_DEPTH));
+    this.placing.ghosts = ghosts;
+    this.placing.as = next === this.placing.itemId ? undefined : next;
+    this.refreshGhost();
   }
 
   /** Botão direito (ou F) num móvel do café: muda de lugar sem passar pela mochila; o que está em cima vai junto. */
@@ -1423,6 +1450,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // O original fica no lugar, esmaecido, até soltar (cancelar não muda nada).
     for (const p of group) this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => img.setAlpha(0.35));
     this.ui.setHint(this.isTree(uid) ? 'movingTree' : 'moving');
+    this.refreshDrinkButton();
     // Pelo teclado, o fantasma começa no lugar do móvel; pelo mouse, no cursor.
     if (fromKeys) this.refreshGhost();
     else this.moveGhost(this.input.activePointer);
@@ -1483,7 +1511,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.placing) return;
     const { itemId, at, moveUid } = this.placing;
     const def = this.ghostDef();
-    const result = moveUid ? this.session.move(moveUid, at, this.playerCells()) : this.session.place(itemId, at, this.playerCells());
+    const turned = this.placing.as;
+    const result = moveUid ? this.session.move(moveUid, at, this.playerCells(), turned) : this.session.place(itemId, at, this.playerCells(), turned);
     if (!result.ok) return this.ui.problem(result.reason);
     // Gato à toa em cima de onde o móvel foi parar (ex.: o cercadinho): sai para o lado, não fica "dentro" dele.
     this.shooCatsFrom(at, def.w, def.h);
@@ -1701,6 +1730,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placing = null;
     this.placingFromBox = null;
     this.ui?.setHint('walk');
+    if (this.session) this.refreshDrinkButton();
   }
 
   /** O cursor aponta para a célula da base (canto inferior esquerdo) da peça. */
@@ -1719,7 +1749,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const def = this.ghostDef();
     const [c0, r0] = this.placing.at;
     const { moveUid } = this.placing;
-    const ok = (moveUid ? this.session.moveProblem(moveUid, this.placing.at, this.playerCells()) : this.session.checkPlacement(this.placing.itemId, this.placing.at, this.playerCells())) === null;
+    const { as } = this.placing;
+    const ok = (moveUid ? this.session.moveProblem(moveUid, this.placing.at, this.playerCells(), as) : this.session.checkPlacement(as ?? this.placing.itemId, this.placing.at, this.playerCells())) === null;
     this.placing.ghosts.forEach((g, i) => {
       g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts).setTint(ok ? GHOST_OK : GHOST_BAD);
     });
@@ -4249,7 +4280,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   private ghostDef() {
     const { catalog, items } = this.session.content;
-    return catalog.tiles[items[this.placing!.itemId]!.tile ?? '']!;
+    return catalog.tiles[items[this.placing!.as ?? this.placing!.itemId]!.tile ?? '']!;
   }
 
   private cellAt(pointer: Phaser.Input.Pointer): Cell {

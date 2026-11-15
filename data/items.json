@@ -3807,6 +3807,20 @@
       "room": "room.backyard"
     }
   ],
+  "_variants": "Famílias (src/core/variants.ts). rotate: a mesma peça em direções diferentes; girar (G ou o botão Girar) troca para a próxima; o primeiro é o que está à venda e o que volta para a mochila. autotile: os módulos do balcão de uma cor; à venda só o single; o desenho de cada um sai dos vizinhos da mesma cor na mesma linha (cores diferentes não se juntam). O balcão com caixa registradora fica de fora.",
+  "variants": {
+    "rotate": [
+      ["item.chair_front", "item.chair_right", "item.chair_back", "item.chair_left"],
+      ["item.bar_ledge_front", "item.bar_ledge_right", "item.bar_ledge_left"],
+      ["item.yard_wicker_chair", "item.yard_wicker_chair_left"],
+      ["item.yard_lounger", "item.yard_lounger_left"]
+    ],
+    "autotile": [
+      { "single": "item.counter_single", "left": "item.counter_left", "mid": "item.counter_mid", "right": "item.counter_right" },
+      { "single": "item.counter_a_single", "left": "item.counter_a_left", "mid": "item.counter_a_mid", "right": "item.counter_a_right" },
+      { "single": "item.counter_b_single", "left": "item.counter_b_left", "mid": "item.counter_b_mid", "right": "item.counter_b_right" }
+    ]
+  },
   "upgrades": {
     "fee": 5,
     "groups": [

@@ -1,5 +1,6 @@
 // Sessão de jogo: o único lugar que muda o estado. O Phaser chama estas ações
 // e escuta os eventos. Puro: sem Phaser, DOM ou window.
+import { autotilePiece, mainVariant, sameFamily } from './variants';
 import { itemSize, packBoxes } from './parcels';
 import { barkOfDay, chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
@@ -4299,7 +4300,11 @@ export class GameSession {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;
-    }, (p) => p.refilledOn === this.state.day));
+    }, (p) => p.refilledOn === this.state.day, (p) => {
+      // Balcão que se completa: o módulo pelos vizinhos da mesma cor (items.json: variants.autotile).
+      const piece = autotilePiece(this.content.variants, this.state.placed, p.item, p.at);
+      return piece ? this.content.items[piece]?.tile : undefined;
+    }));
   }
 
   /**
@@ -5662,17 +5667,21 @@ export class GameSession {
     return this.cafeArrivals().some((a) => findPath(before, a, target) !== null && findPath(after, a, target) === null);
   }
 
-  /** Tira um item do inventário e posiciona no café. */
-  place(itemId: string, at: Cell, reserved: readonly Cell[] = []): ActionResult {
+  /**
+   * Tira um item do inventário e posiciona no café. `as`: a peça girada (outra da mesma família, items.json: variants):
+   * sai o item da mochila e fica a peça girada no lugar.
+   */
+  place(itemId: string, at: Cell, reserved: readonly Cell[] = [], as?: string): ActionResult {
     if (!this.content.items[itemId]) return { ok: false, reason: 'unknown_item' };
     if ((this.state.inventory[itemId] ?? 0) < 1) return { ok: false, reason: 'not_in_inventory' };
-    const problem = this.checkPlacement(itemId, at, reserved);
+    const piece = as && this.content.items[as] && sameFamily(this.content.variants, itemId, as) ? as : itemId;
+    const problem = this.checkPlacement(piece, at, reserved);
     if (problem) return { ok: false, reason: problem };
 
     this.removeFromInventory(itemId);
     const uid = `p${this.state.nextUid++}`;
-    this.state.placed.push({ uid, item: itemId, at: [at[0], at[1]], ...(this.content.items[itemId]?.grows ? { plantedOn: this.state.day } : {}) });
-    this.bus.emit('item.placed', { itemId, uid, at: [at[0], at[1]] });
+    this.state.placed.push({ uid, item: piece, at: [at[0], at[1]], ...(this.content.items[piece]?.grows ? { plantedOn: this.state.day } : {}) });
+    this.bus.emit('item.placed', { itemId: piece, uid, at: [at[0], at[1]] });
     this.advanceStory();
     return { ok: true };
   }
@@ -5752,21 +5761,29 @@ export class GameSession {
    * Por que o móvel (e o que vai com ele) não pode ir para `to` (ou null). Confere como se ele já tivesse saído do
    * lugar: a peça não "esbarra" nela mesma nem no que está em cima.
    */
-  moveProblem(uid: string, to: Cell, reserved: readonly Cell[] = []): PlaceProblem | 'not_found' | null {
+  moveProblem(uid: string, to: Cell, reserved: readonly Cell[] = [], as?: string): PlaceProblem | 'not_found' | null {
     const group = this.movingGroup(uid);
     if (group.length === 0) return 'not_found';
     const all = this.state.placed;
     this.state.placed = all.filter((p) => !group.includes(p));
     try {
-      return this.checkPlacement(group[0]!.item, to, reserved);
+      return this.checkPlacement(this.turned(group[0]!.item, as), to, reserved);
     } finally {
       this.state.placed = all;
     }
   }
 
-  /** Muda o móvel de lugar sem passar pela mochila: o que está em cima (e a louça no balcão) vai junto. */
-  move(uid: string, to: Cell, reserved: readonly Cell[] = []): ActionResult {
-    const problem = this.moveProblem(uid, to, reserved);
+  /** A peça girada, se for da mesma família; senão, a de sempre. */
+  private turned(item: string, as?: string): string {
+    return as && this.content.items[as] && sameFamily(this.content.variants, item, as) ? as : item;
+  }
+
+  /**
+   * Muda o móvel de lugar sem passar pela mochila: o que está em cima (e a louça no balcão) vai junto. `as`: girado
+   * (outra peça da mesma família, items.json: variants).
+   */
+  move(uid: string, to: Cell, reserved: readonly Cell[] = [], as?: string): ActionResult {
+    const problem = this.moveProblem(uid, to, reserved, as);
     if (problem) return { ok: false, reason: problem };
     const group = this.movingGroup(uid);
     const host = group[0]!;
@@ -5776,6 +5793,7 @@ export class GameSession {
     // Louça e pedidos prontos em cima do balcão (atendimento) acompanham.
     for (const s of this.state.surfaces) if (cells.some(([c, r]) => c === s.at[0] && r === s.at[1])) s.at = [s.at[0] + dc, s.at[1] + dr];
     for (const p of group) p.at = [p.at[0] + dc, p.at[1] + dr];
+    host.item = this.turned(host.item, as);
     this.bus.emit('item.moved', { itemId: host.item, uid, at: [to[0], to[1]], carried: group.length - 1 });
     this.advanceStory();
     return { ok: true };
@@ -5808,7 +5826,9 @@ export class GameSession {
     // Quebrado: só depois do conserto (senão guardar e pôr de novo consertaria de graça).
     if (this.service.isBroken(uid)) return { ok: false, reason: 'equipment_broken' };
     const [removed] = this.state.placed.splice(index, 1);
-    this.state.inventory[removed!.item] = (this.state.inventory[removed!.item] ?? 0) + 1;
+    // Peça girada ou módulo de balcão: volta para a mochila como a peça principal da família.
+    const back = mainVariant(this.content.variants, removed!.item);
+    this.state.inventory[back] = (this.state.inventory[back] ?? 0) + 1;
     delete this.state.washers[uid];
     delete this.state.wear[uid];
     // Baú recolhido: o que estava dentro volta para a mochila.

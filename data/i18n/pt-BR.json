@@ -84,6 +84,7 @@
       "P | Celular",
       "M | Cardápio",
       "F | Mover um móvel (de novo para soltar; Q guarda na mochila)",
+      "G | Girar o móvel na mão (cadeira, banqueta)",
       "Esc | Pausa"
     ],
     "touch": [
@@ -97,7 +98,7 @@
       "Mochila | Mochila",
       "Cel | Celular",
       "Cardápio | Cardápio",
-      "Mover | Mover um móvel (Soltar solta; Mochila guarda)",
+      "Mover | Mover um móvel (Soltar solta; Girar gira; Mochila guarda)",
       "❚❚ | Pausa"
     ],
     "activeTitle": "Itens que precisam estar ativos na barra",
