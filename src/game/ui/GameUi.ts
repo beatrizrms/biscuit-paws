@@ -393,7 +393,9 @@ export class GameUi {
       const catId = session.state.arrivals.active?.catId ?? '';
       this.toast(catSexText(session, fed >= times ? at.fedLast : at.fed, catId), 4000);
     });
-    bus.on('arrival.finished', ({ outcome, placement }) => {
+    bus.on('arrival.finished', ({ outcome, placement, catId }) => {
+      // Gato que entrou assustado: o aviso com o nome dele (cat.named) já conta; o "gato novo no café" repetia.
+      if (outcome === 'accepted' && placement === 'sheltered' && catId && session.catSettling(catId)) return;
       const text = outcome === 'expired' ? at.finished.expired : outcome !== 'accepted' ? at.finished.declined : placement ? at.finished[placement] : '';
       if (text) this.toast(text.replace('{days}', String(content.arrivals.provisional.days)), 4500);
     });

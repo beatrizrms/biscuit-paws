@@ -9,6 +9,7 @@
   },
   "autoStartWhen": { "cats": { "gte": 3 } },
   "queueMax": 3,
+  "minDaysBetween": 3,
   "provisional": { "days": 7 },
   "expire": { "days": 4, "retryDays": 3 },
   "arrivals": [

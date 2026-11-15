@@ -166,6 +166,9 @@ export class ArrivalSystem {
    */
   private tryStart(): void {
     if (this.st.active) return;
+    // Gatos chegando espaçados: a próxima só depois de minDaysBetween dias do fim da anterior (nunca duas juntas).
+    const gap = this.data.minDaysBetween ?? 0;
+    if (this.st.lastFinishedOn !== undefined && this.h.state.day - this.st.lastFinishedOn < gap) return;
     if (this.h.shelteredCount() >= this.capacity()) return;
     // Urgente (em_perigo) não espera os marcos exclusivos da história.
     const exclusive = this.h.exclusiveActive();
@@ -416,6 +419,7 @@ export class ArrivalSystem {
       if (tip?.points) this.h.addPoints('player', tip.npc, tip.points);
     } else for (const id of [a.catId, ...(a.extraCats ?? [])]) if (s.catDefs[id] && !s.cats[id]) delete s.catDefs[id];
     if (def.kind === 'random') this.st.nextOn = s.day + nextGap(this.data, s.day, this.rng());
+    this.st.lastFinishedOn = s.day;
     this.h.bus.emit('arrival.finished', { arrivalId: def.id, catId: a.catId, outcome, placement });
     this.tryStart();
     return placement;
@@ -454,6 +458,8 @@ export class ArrivalSystem {
   queueNow(arrivalId: string): boolean {
     const def = this.def(arrivalId);
     if (!def || this.st.queue.includes(arrivalId) || this.st.active?.id === arrivalId) return false;
+    // Debug: começa já, sem esperar o espaço entre chegadas.
+    delete this.st.lastFinishedOn;
     this.st.queue.push(arrivalId);
     this.tryStart();
     return true;
