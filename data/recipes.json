@@ -816,25 +816,36 @@
       "vessel": "cup",
       "price": 14,
       "unlock": {
-        "any": [
-          {
-            "milestone": "milestone.customers_50"
-          },
-          {
-            "christmasTreat": "recipe.hot_chocolate"
-          }
-        ]
+        "milestone": "milestone.customers_50"
       },
       "temp": "hot",
       "seasons": [
         "winter"
-      ],
-      "alternative": {
-        "equipment": "teapot",
-        "ingredients": {
-          "item.hot_chocolate_mix": 1
+      ]
+    },
+    {
+      "id": "recipe.hot_chocolate_xmas",
+      "name": "Chocolate quente de Natal",
+      "icon": "chocolate_quente",
+      "special": true,
+      "ingredients": {
+        "item.hot_chocolate_mix": 1
+      },
+      "steps": [
+        {
+          "equipment": "teapot",
+          "minutes": 6
         }
-      }
+      ],
+      "vessel": "cup",
+      "price": 0,
+      "unlock": {
+        "christmasTreat": "recipe.hot_chocolate_xmas"
+      },
+      "temp": "hot",
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "recipe.chamomile_honey",

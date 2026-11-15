@@ -434,6 +434,41 @@
           "type": "hide"
         }
       ]
+    },
+    "cs.xmas_treat_neusa_cocoa": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Dona Neusa",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.neusa"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Dona Neusa."
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Feliz Natal, {player}! Nada combina mais com esse inverno que um chocolatinho quente, né?"
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Não sei se você já conseguiu comprar o fogão, mas fiquei sabendo que o mercado está vendendo, só hoje, uma mistura pronta de chocolate quente. É só esquentar no bule!"
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Legal, né? Pra ceia de hoje à noite vai ser uma beleza."
+        },
+        {
+          "type": "hide"
+        }
+      ]
     }
   }
 }

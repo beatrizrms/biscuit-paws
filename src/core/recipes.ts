@@ -25,6 +25,11 @@ export interface RecipeStep {
 export interface RecipeDef {
   id: string;
   name: string;
+  /**
+   * Especial (o quitute da ceia de Natal): não entra no cardápio, cliente não pede nem recebe, não conta nas receitas
+   * aprendidas e não tem limite de itens sem dono: ela escolhe fazer no equipamento (E), com ou sem cliente esperando.
+   */
+  special?: boolean;
   /** Ícone (data/icons.json). */
   icon: string;
   /** Ingrediente -> doses (um pacote rende `servings` doses, em items.json). */
@@ -118,7 +123,6 @@ export interface ServiceConfig {
   /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */
   shoppingListBelow: number;
   /** Sem pedido, ela pode adiantar uma receita; cada equipamento (o da 1ª etapa) só tem até tantos itens sem dono. */
-  extraPerEquipment: number;
   /** Quebra: depois de minUses a maxUses usos (sorteado por equipamento); o Tião conserta na hora (preço e minutos). */
   breakdown?: { minUses: number; maxUses: number; repairPrice: number; repairMinutes: number };
   /** Quanto tempo ele fica consumindo. */
@@ -225,10 +229,9 @@ export function validateRecipes(
       if (!(s.minutes > 0)) errors.push(`${where}: etapa sem tempo`);
     }
     if (!VESSELS.includes(r.vessel)) errors.push(`${where}: louça inválida "${r.vessel}"`);
-    if (!(r.price > 0)) errors.push(`${where}: preço precisa ser positivo`);
+    if (!r.special && !(r.price > 0)) errors.push(`${where}: preço precisa ser positivo`);
   }
   if (!(service.menuSlots >= 1)) errors.push('service: menuSlots precisa ser 1 ou mais');
-  if (!Number.isInteger(service.extraPerEquipment) || service.extraPerEquipment < 0) errors.push('service: extraPerEquipment precisa ser um inteiro, 0 ou mais');
   const b = service.breakdown;
   if (b && !(Number.isInteger(b.minUses) && b.minUses >= 1 && Number.isInteger(b.maxUses) && b.maxUses >= b.minUses && b.repairPrice >= 0 && b.repairMinutes > 0)) {
     errors.push('service: breakdown precisa de minUses >= 1, maxUses >= minUses (inteiros), repairPrice >= 0 e repairMinutes > 0');

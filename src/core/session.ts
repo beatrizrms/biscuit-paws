@@ -10,6 +10,7 @@ import { parseClock } from './time';
 import { mapLights } from './lights';
 import type { MapLight } from './map';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
+import type { HandItem } from './carry';
 import { createRng } from './rng';
 import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
@@ -548,11 +549,35 @@ export class GameSession {
   /** Receitas destrancadas que ela ainda não viu: avisa uma vez (o café evoluiu). Na abertura, só marca. */
   private announceRecipes(silent: boolean): void {
     for (const r of this.service.unlockedRecipes()) {
+      // Especial (a ceia de Natal): avisa todo ano em que libera (mesmo ao abrir o jogo); não entra nas receitas aprendidas.
+      if (r.special) {
+        const seen = `recipe.special.${r.id}.${yearOf(this.content.seasons, this.state.day)}`;
+        if (!this.state.flags[seen]) {
+          this.state.flags[seen] = true;
+          this.bus.emit('recipe.unlocked', { recipeId: r.id });
+        }
+        continue;
+      }
       const flag = `recipe.known.${r.id}`;
       if (this.state.flags[flag]) continue;
       this.state.flags[flag] = true;
       this.state.recipesOn[r.id] = this.state.day;
       if (!silent && r.unlock) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+    }
+    this.announceItems(silent);
+  }
+
+  /**
+   * Itens à venda (nas lojas ou no Market) que ela ainda não viu liberados: avisa uma vez cada (a tela de novidades). Na
+   * abertura do jogo, só marca os que já estão à venda.
+   */
+  private announceItems(silent: boolean): void {
+    const inShops = new Set(Object.values(this.content.shops).flatMap((s) => s.items));
+    for (const item of Object.values(this.content.items)) {
+      const forSale = inShops.has(item.id) || ((item.price ?? 0) > 0 && !item.deprecated && !item.tags.includes('fixture'));
+      if (!forSale || this.state.flags[`item.known.${item.id}`] || !this.itemUnlocked(item.id)) continue;
+      this.state.flags[`item.known.${item.id}`] = true;
+      if (!silent) this.bus.emit('item.unlocked', { itemId: item.id });
     }
   }
 
@@ -561,8 +586,8 @@ export class GameSession {
    * quantas receitas o jogo tem.
    */
   learnedRecipes(): { recipes: { id: string; name: string; icon?: string; day: number | null }[]; total: number } {
-    const all = Object.values(this.content.recipes);
-    const known = all.filter((r) => this.state.flags[`recipe.known.${r.id}`]);
+    const all = Object.values(this.content.recipes).filter((r) => !r.special);
+    const known = all.filter((r) => !r.special && this.state.flags[`recipe.known.${r.id}`]);
     const day = (id: string) => this.state.recipesOn[id] ?? null;
     known.sort((a, b) => (day(b.id) ?? -1) - (day(a.id) ?? -1));
     return { recipes: known.map((r) => ({ id: r.id, name: r.name, ...(r.icon ? { icon: r.icon } : {}), day: day(r.id) })), total: all.length };
@@ -843,6 +868,10 @@ export class GameSession {
    */
   endDay(reason: DayEndReason = 'story'): void {
     const day = this.state.day;
+    // O especial (a ceia de Natal) só vale no dia: o que sobrou pronto vira louça suja.
+    const special = (i: HandItem) => i.kind === 'drink' && !!this.content.recipes[i.recipe]?.special;
+    this.state.hands = this.state.hands.map((h) => (special(h) && h.kind === 'drink' ? { kind: 'dirty', vessel: h.vessel } : h));
+    for (const x of this.state.surfaces) if (special(x.item) && x.item.kind === 'drink') x.item = { kind: 'dirty', vessel: x.item.vessel };
     const summary = { day, reason, earned: this.state.today.earned, jobs: this.state.today.jobs };
     this.statsAtDayEnd(day);
     // Pedidos pela metade não passam para o dia seguinte (e a caixa da entrega volta para o mercado).
@@ -3180,19 +3209,22 @@ export class GameSession {
   }
 
   /** O quitute da ceia deste ano (a lista recomeça depois do último): a receita, o nome, o plural e a mistura. */
-  santaTreat(): { recipe: string; name: string; plural: string; mix: string | null; take: Record<string, string>; refuse: Record<string, string> } | null {
+  santaTreat(): { recipe: string; name: string; plural: string; mix: string | null; call: string | null; take: Record<string, string>; refuse: Record<string, string> } | null {
     const t = this.content.festive.secretSanta.treat;
     if (!t || t.years.length === 0) return null;
     const y = t.years[(yearOf(this.content.seasons, this.state.day) - 1) % t.years.length]!;
-    const name = (this.content.recipes[y.recipe]?.name ?? y.recipe).toLowerCase();
-    return { recipe: y.recipe, name, plural: y.plural, mix: y.mix ?? null, take: { ...t.take, ...y.take }, refuse: { ...t.refuse, ...y.refuse } };
+    const name = y.name ?? (this.content.recipes[y.recipe]?.name ?? y.recipe).toLowerCase();
+    return { recipe: y.recipe, name, plural: y.plural, mix: y.mix ?? null, call: y.call && (!y.callWhen || this.holds(y.callWhen)) ? y.call : null, take: { ...t.take, ...y.take }, refuse: { ...t.refuse, ...y.refuse } };
   }
 
   /** O quitute deixado nas mesas e balcões (no dia da ceia): as posições em state.surfaces. */
   private santaTreatOnTables(): number[] {
     const t = this.santaTreat();
     if (!t || !isChristmas(this.content.seasons, this.content.festive.secretSanta, this.state.day)) return [];
-    return this.state.surfaces.flatMap((x, i) => (x.item.kind === 'drink' && x.item.recipe === t.recipe ? [i] : []));
+    // Nas mesas e balcões: o que ainda está em cima do equipamento (acabou de ficar pronto) não conta.
+    const stations = this.service.allStations().map((s) => s.at);
+    const onStation = (at: Cell) => stations.some((c) => c[0] === at[0] && c[1] === at[1]);
+    return this.state.surfaces.flatMap((x, i) => (x.item.kind === 'drink' && x.item.recipe === t.recipe && !onStation(x.at) ? [i] : []));
   }
 
   /**
@@ -3516,7 +3548,9 @@ export class GameSession {
       }
     }
     const treat = this.santaTreat();
-    this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats, treat: treat ? { name: treat.name, mix: treat.mix ? this.content.items[treat.mix]?.name ?? null : null } : null });
+    this.bus.emit('xmas.day', { closeAt: ss.closeAt, partyAt: ss.partyAt, party: this.santaPartyPending(), stockingCats: cats, treat: treat ? { name: treat.name, mix: treat.mix ? this.content.items[treat.mix]?.name ?? null : null, called: !!treat.call } : null });
+    // A ligação da manhã contando do quitute do ano (a Neusa, se ela a conhece).
+    if (treat?.call) this.bus.emit('cutscene.requested', { cutsceneId: treat.call });
   }
 
   /** A clínica atende neste dia do jogo? (o horário da porta que leva até ela; sem horário, todo dia) */

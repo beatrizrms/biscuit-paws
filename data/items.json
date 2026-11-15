@@ -2666,7 +2666,7 @@
     {
       "id": "item.hot_chocolate_mix",
       "name": "Mistura para chocolate quente",
-      "description": "Só no Natal: no bule, vira chocolate quente. Rende 4.",
+      "description": "Só no Natal: no bule, vira o chocolate quente da ceia (não entra no cardápio). Rende 4.",
       "price": 10,
       "kind": "consumable",
       "icon": "chocolate",

@@ -78,6 +78,8 @@ export interface GameEvents {
   'xmas.prep_bonus': { steps: number; points: number };
   /** Na ceia, um convidado pegou o quitute na mesa (a fala e os corações). */
   'xmas.treat_taken': { npc: string; line: string; points: number };
+  /** Item novo à venda (a tela de novidades). */
+  'item.unlocked': { itemId: string };
   'xmas.santa_exchanged': { npc: string; result: 'loved' | 'liked' | 'none'; itemId: string | null };
   /** Na ceia, a hora de entregar o presente para quem ela tirou. */
   'xmas.santa_giving': { npc: string };
@@ -93,7 +95,7 @@ export interface GameEvents {
   'halloween.missed': { npc: string };
   /** A véspera de Ano Novo acabou sem ela ver os fogos (só um aviso). */
   'newyear.missed': Record<string, never>;
-  'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number; treat: { name: string; mix: string | null } | null };
+  'xmas.day': { closeAt: string; partyAt: string; party: boolean; stockingCats: number; treat: { name: string; mix: string | null; called: boolean } | null };
   /** Véspera de Ano Novo: a vizinhança chamou para a rua (os amigos que ela conhece vão juntos). */
   'newyear.started': { friends: string[] };
   /** Manhã do último dia do ano (o aviso dos fogos). */

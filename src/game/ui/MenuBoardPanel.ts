@@ -163,7 +163,7 @@ export class MenuBoardPanel {
     const inMenu = menu.map((id) => sv.recipe(id)).filter((r): r is RecipeDef => !!r);
     const t = uiText.menuBoard;
     // Só o que está na época (as do quadro também), separado em abas pela louça; o resto fica numa linha recolhida.
-    const all = [...inMenu, ...sv.unlockedRecipes().filter((r) => !menu.includes(r.id))];
+    const all = [...inMenu, ...sv.unlockedRecipes().filter((r) => !menu.includes(r.id) && !r.special)];
     const now = all.filter((r) => sv.recipeStatus(r.id) !== 'season');
     const off = all.filter((r) => sv.recipeStatus(r.id) === 'season');
     const byTab = (tab: Tab) => now.filter((r) => r.vessel === tab);

@@ -11,7 +11,7 @@ describe('receitas nas conquistas', () => {
     const session = new GameSession(content, state);
     session.debugCompleteStory();
     const learned = session.learnedRecipes();
-    expect(learned.total).toBe(Object.keys(content.recipes).length);
+    expect(learned.total).toBe(Object.values(content.recipes).filter((r) => !r.special).length); // o especial de Natal não conta
     expect(learned.recipes.length).toBeGreaterThan(0);
     // Cada receita conhecida tem o dia em que entrou (a de hoje, numa sessão nova).
     for (const r of learned.recipes) expect(r.day).not.toBeNull();

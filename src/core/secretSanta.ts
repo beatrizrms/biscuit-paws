@@ -60,7 +60,9 @@ export interface SecretSantaData {
     chancePerMinute: number;
     take: Record<string, string>;
     refuse?: Record<string, string>;
-    years: { recipe: string; mix?: string; plural: string; take?: Record<string, string>; refuse?: Record<string, string> }[];
+    /** name: como o quitute aparece nas falas ({treat}); sem ele, o nome da receita em minúsculas. */
+    /** call: a ligação da manhã da ceia (cena) contando do quitute, se callWhen vale (ex.: ela conhece a Neusa); sem ela, só o aviso. */
+    years: { recipe: string; name?: string; mix?: string; plural: string; call?: string; callWhen?: Condition; take?: Record<string, string>; refuse?: Record<string, string> }[];
   };
   /**
    * A meta da ceia (todo ano, do sorteio até o fim da ceia): passos opcionais (text com {treat}/{treats}, when). No fim

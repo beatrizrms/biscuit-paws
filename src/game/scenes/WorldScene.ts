@@ -3419,7 +3419,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     return out;
   }
 
-  /** Preparar no equipamento: o pedido de quem espera; sem pedido, ela pode adiantar uma receita do cardápio. */
+  /** Preparar no equipamento: ela escolhe qual receita (as que dá para fazer ali agora); massa na mão continua direto. */
   private prepareAt(uid: string, equipment: string | undefined): boolean {
     const sv = this.session.service;
     const report = (r: { ok: true } | { ok: false; reason: string }) => {
@@ -3427,11 +3427,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       return true;
     };
     const pose = equipment === 'stove' ? 'stir' : 'operate';
-    const r = sv.prepare(uid);
-    if (r.ok || r.reason !== 'nothing_to_prepare') return report(this.withPose(r, pose));
-    // Ninguém pediu: ela pode adiantar uma receita do cardápio (escolhe na lista; uma só, já começa).
-    const options = sv.extraRecipes(uid);
-    if (options.length === 0) return report(r);
+    // Massa da etapa anterior na mão: continua direto.
+    if (sv.carriesDoughFor(uid)) return report(this.withPose(sv.prepare(uid), pose));
+    // Ela escolhe a receita: as que dá para fazer aqui agora (do cardápio e o especial do dia). Uma só: já começa.
+    const options = sv.extraRecipes(uid).filter((id) => sv.recipeStatus(id) === 'available');
+    if (options.length === 0) return report(this.withPose(sv.prepare(uid), pose));
     if (options.length === 1) return report(this.withPose(sv.prepare(uid, options[0]), pose));
     const names = options.map((id) => this.session.content.recipes[id]?.name ?? id);
     void this.ui.choose(uiText.service.extraAsk, [...names, uiText.service.extraCancel]).then((i) => {

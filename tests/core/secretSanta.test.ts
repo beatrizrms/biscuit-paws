@@ -218,14 +218,14 @@ describe('amigo secreto: o Natal', () => {
     session.endDay('home');
     expect(state.day).toBe(XMAS);
     expect(state.cats['cat.first_stray']!.happiness).toBeGreaterThan(50);
-    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: true, stockingCats: 1, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente' } }]);
+    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: true, stockingCats: 1, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente', called: true } }]);
   });
 
   it('sem meia, sem petisco', () => {
     const { session, state, events } = cafe(XMAS - 1, 20 * 60);
     state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null, happiness: 90, hygiene: 70 };
     session.endDay('home');
-    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: false, stockingCats: 0, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente' } }]);
+    expect(named(events, 'xmas.day')).toEqual([{ closeAt: SS.closeAt, partyAt: SS.partyAt, party: false, stockingCats: 0, treat: { name: 'chocolate quente', mix: 'Mistura para chocolate quente', called: true } }]);
   });
 
   it('o Natal acabou sem a ceia: perdida, sem castigo (o presente dela fica na porta)', () => {
