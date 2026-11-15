@@ -160,6 +160,8 @@ export interface GameState {
    * dia em que foi feito; do dia seguinte em diante, sai da lista.
    */
   goalStepsDone?: Record<string, number>;
+  /** Market aos poucos: o dia em que cada etapa abriu (a etiqueta Novo dos itens dela). */
+  marketStagesOn?: Record<string, number>;
   /** Estatísticas do café (v27; app Café em números e selos): o dia em andamento, os últimos dias, totais e sequências. */
   stats: StatsState;
   /** Selos do café (v28): o dia em que cada um foi conquistado. */

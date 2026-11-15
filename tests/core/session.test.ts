@@ -6,16 +6,18 @@ import { doorAt } from '../../src/core/map';
 import { loadContent } from './content';
 
 const content = loadContent();
+/** Com as etapas do Market aos poucos: a história do começo tem que conseguir comprar o que cada meta pede. */
+const storyContent = loadContent({ marketStages: true });
 
-function newSession(withCat = true) {
-  const state = newGameState(content.economy.startingMoney);
+function newSession(withCat = true, c = content) {
+  const state = newGameState(c.economy.startingMoney);
   // A maioria dos testes compra itens de gato: libera direto (o fluxo do gato tem testes próprios).
   if (withCat) state.flags['has.cat'] = true;
   // A árvore de gato (o móvel grande dos testes) vem com o selo de 3 gatos.
   state.milestones.reached['milestone.cats_3'] = 1;
   // A vassoura da corretora (o roteiro não roda nos testes): já entra ativa no primeiro espaço da barra.
   state.inventory['item.broom'] = 1;
-  const session = new GameSession(content, state);
+  const session = new GameSession(c, state);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   return { session, events, dialogues: () => events.filter((e) => e.name === 'dialogue.requested').map((e) => e.payload) };
@@ -90,7 +92,7 @@ function buyAndPlace(session: GameSession, itemId: string, at: [number, number])
 
 describe('começo da história', () => {
   it('um jogo novo abre com a cena dos pensamentos; a rua e a fala vêm depois dela', () => {
-    const { session, dialogues, events } = newSession();
+    const { session, dialogues, events } = newSession(true, storyContent);
     session.start(true);
     expect(events.filter((e) => e.name === 'cutscene.requested').map((e) => e.payload)).toEqual([{ cutsceneId: 'cs.prologue_thoughts' }]);
     expect(dialogues()).toEqual([]);
@@ -101,7 +103,7 @@ describe('começo da história', () => {
   });
 
   it('um jogo novo começa na rua: a fala de chegada e, em seguida, o roteiro da corretora', () => {
-    const { session, dialogues, events } = newSession();
+    const { session, dialogues, events } = newSession(true, storyContent);
     startOnStreet(session);
     expect(session.location()).toBe('map.street');
     expect(session.atHome()).toBe(false);
@@ -113,7 +115,7 @@ describe('começo da história', () => {
   });
 
   it('a corretora leva para dentro e entrega a chave; depois vem o interior e a faxina', () => {
-    const { session, dialogues, events } = newSession();
+    const { session, dialogues, events } = newSession(true, storyContent);
     startOnStreet(session);
     realtorTour(session);
     expect(session.atHome()).toBe(true);
@@ -141,7 +143,7 @@ describe('começo da história', () => {
   });
 
   it('o prólogo inteiro dá para fazer com o dinheiro inicial', () => {
-    const { session, dialogues } = newSession();
+    const { session, dialogues } = newSession(true, storyContent);
     startInCafe(session);
 
     // Água e comida: tigela de água, ração do mercado, tigela de ração.
@@ -167,7 +169,7 @@ describe('começo da história', () => {
   });
 
   it('os primeiros dias: uma quest por vez, dinheiro com pedidos, Dona Neusa pela cafeteira, Gabi pelas mesas', () => {
-    const { session, events } = newSession();
+    const { session, events } = newSession(true, storyContent);
     startInCafe(session);
     finishPrologue(session);
     const titles = () => session.goals().map((g) => g.title);
@@ -243,7 +245,7 @@ describe('começo da história', () => {
   });
 
   it('a Gabi não liga de noite: se as mesas forem compradas tarde, liga na manhã seguinte', () => {
-    const { session, events } = newSession();
+    const { session, events } = newSession(true, storyContent);
     startInCafe(session);
     finishPrologue(session);
     warmCorner(session);

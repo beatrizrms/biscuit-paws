@@ -62,8 +62,10 @@ export class MarketApp {
   /** Desenha o app dentro de `body` (a tela do celular) e liga os botões. */
   render(body: HTMLElement): void {
     const m = uiText.market;
-    // Aba da estação (seasonal: a de Natal) só aparece quando tem algo à venda.
-    const visible = m.tabs.filter((t) => !('seasonal' in t && t.seasonal) || this.tabHtml(t) !== '');
+    // Aba só aparece quando tem algo à venda (Market aos poucos; a da estação também). Construção e Assistência têm
+    // conteúdo próprio (obras, trocas): ficam sempre.
+    const own = (t: (typeof m.tabs)[number]) => ('rooms' in t && t.rooms) || ('renovation' in t && t.renovation) || ('upgrade' in t && t.upgrade);
+    const visible = m.tabs.filter((t) => own(t) || this.tabHtml(t) !== '');
     const tab = visible.find((t) => t.id === this.tab) ?? visible[0]!;
     const tabs = visible.map((t) => `<button class="m-tab${t.id === tab.id ? ' on' : ''}" data-tab="${t.id}">${esc(t.title)}</button>`).join('');
     const content = this.tabHtml(tab);
@@ -181,7 +183,7 @@ export class MarketApp {
     // Para que serve: no balão de hover (data-tip), não embaixo do nome.
     const tip = itemTip(i);
     return `<div class="m-cell"${tip ? ` data-tip="${esc(tip)}"` : ''}><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
-        <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>
+        <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>${this.session.marketNew(id) ? `<span class="m-new">${esc(uiText.market.isNew)}</span>` : ''}
         <span class="m-name">${esc(i.name)}</span>
         <span class="m-price">${COIN}${i.price}</span>${status}
       </button>${order}${refund}</div>`;

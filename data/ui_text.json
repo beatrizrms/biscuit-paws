@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "market": {
+    "isNew": "Novo",
+    "newStuff": "Chegou coisa nova no Market",
     "app": "Market",
     "online": "Compra online: chega pela entregadora, na porta do café, em 1 hora.",
     "tabs": [

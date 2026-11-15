@@ -1415,3 +1415,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .hud-goals.open h2 { display: flex; justify-content: space-between; cursor: pointer; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
 .hud-goals.open .toggle::after { content: "✕"; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); }
 .hud-goals.new:not(.open) { animation: thought 0.9s ease-out; }
+
+/* Etiqueta Novo no cartão do Market (2 dias: etapa nova ou receita nova), no canto da miniatura. */
+.m-card { position: relative; }
+.m-card .m-new { position: absolute; top: 2px; left: 2px; padding: 0 4px; border-radius: 6px; background: var(--c-green-pale); color: var(--c-ink2); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
