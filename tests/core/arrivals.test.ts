@@ -49,12 +49,10 @@ describe('chegadas (puro)', () => {
     expect(canHappen(again, s, 8)).toBe(true);
   });
 
-  it('ritmo: mais seguidas nas primeiras semanas, depois mais espaçadas', () => {
-    const early = Array.from({ length: 50 }, (_, i) => nextGap(content.arrivals, 5, createRng(i)));
-    const late = Array.from({ length: 50 }, (_, i) => nextGap(content.arrivals, 60, createRng(i)));
-    const [p0, p1] = content.arrivals.pacing.phases;
-    expect(early.every((g) => g >= p0!.everyDays[0] && g <= p0!.everyDays[1])).toBe(true);
-    expect(late.every((g) => g >= p1!.everyDays[0] && g <= p1!.everyDays[1])).toBe(true);
+  it('ritmo: a próxima sorteada entre 5 e 14 dias, em qualquer fase do jogo; nunca menos de 5 depois da anterior', () => {
+    const gaps = [5, 60].flatMap((day) => Array.from({ length: 50 }, (_, i) => nextGap(content.arrivals, day, createRng(i))));
+    expect(gaps.every((g) => g >= 5 && g <= 14)).toBe(true);
+    expect(content.arrivals.minDaysBetween).toBeGreaterThanOrEqual(5);
   });
 
   it('fila: as escritas à mão quando o gatilho vale; a sorteada só com o sorteio ligado e no dia', () => {
@@ -463,11 +461,12 @@ describe('eventos de exemplo e debug (etapa e)', () => {
     expect(state.arrivals.active).toBeNull();
     expect(events.some((e) => e.name === 'arrival.finished' && (e.payload as { outcome: string }).outcome === 'expired')).toBe(true);
     expect(session.shelteredCats()).toEqual(['cat.first_stray']);
-    // Antes da nova tentativa, não volta; depois, a Dona Neusa traz o gato de novo.
-    state.day = 8 + days + retryDays - 1;
+    // Antes da nova tentativa (e do espaço mínimo entre chegadas), não volta; depois, a Dona Neusa traz o gato de novo.
+    const wait = Math.max(retryDays, content.arrivals.minDaysBetween ?? 0);
+    state.day = 8 + days + wait - 1;
     session.arrivals.tick();
     expect(state.arrivals.active).toBeNull();
-    state.day = 8 + days + retryDays;
+    state.day = 8 + days + wait;
     session.arrivals.tick();
     expect(state.arrivals.active?.id).toBe('arr.second_cat');
   });
