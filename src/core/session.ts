@@ -232,6 +232,9 @@ export type ActionResult =
         | PlaceProblem;
     };
 
+/** Quantos dias do jogo a etiqueta Novo fica (no Market e nas receitas do cardápio). */
+export const NEW_BADGE_DAYS = 2;
+
 export class GameSession {
   readonly bus = new EventBus();
 
@@ -432,6 +435,7 @@ export class GameSession {
     for (const id of Object.keys(this.state.inventory)) this.service.stockDishes(id);
     this.checkMilestones();
     this.announceRecipes(true);
+    this.announceMarketStages(true);
     this.bus.emit('game.started', { isNew });
     if (this.repairedItems.length > 0) this.bus.emit('save.repaired', { itemIds: [...this.repairedItems] });
     this.replayInterruptedScene();
@@ -536,6 +540,9 @@ export class GameSession {
     const recipes = Object.values(this.content.recipes);
     const equipment = this.content.service.equipment;
     const isEquipment = Object.values(equipment).some((e) => item.tags.includes(e.tag));
+    // Market aos poucos: o resto (móveis, decoração, coisas dos gatos) entra pela etapa da história.
+    const stage = this.content.marketStages.find((s) => s.items.includes(itemId));
+    if (!isEquipment && !item.tags.includes('ingredient') && stage && !evaluate(stage.when, this.state, this.storyContext())) return false;
     const usedBy = recipes.filter((r) =>
       isEquipment
         ? [...r.steps.map((st) => st.equipment), ...(r.alternative ? [r.alternative.equipment] : [])].some((eq) => item.tags.includes(equipment[eq]?.tag ?? ''))
@@ -545,6 +552,35 @@ export class GameSession {
     if (usedBy.length === 0) return !isEquipment && !item.tags.includes('ingredient');
     // Só o que serve para receitas destrancadas e na época (fora de época, o ingrediente sai da prateleira).
     return usedBy.some((r) => !['locked', 'season'].includes(this.service.recipeStatus(r.id)));
+  }
+
+  /** Etapas do Market que abriram: guarda o dia (etiqueta Novo) e avisa uma vez. Na abertura do jogo, só marca. */
+  private announceMarketStages(silent: boolean): void {
+    const on = (this.state.marketStagesOn ??= {});
+    for (const st of this.content.marketStages) {
+      if (on[st.id] !== undefined || !evaluate(st.when, this.state, this.storyContext())) continue;
+      // Ao abrir um save já adiante, marca como antiga (sem a etiqueta Novo em tudo).
+      on[st.id] = silent ? this.state.day - NEW_BADGE_DAYS : this.state.day;
+      if (!silent) this.bus.emit('market.stage_opened', { stageId: st.id });
+    }
+  }
+
+  /**
+   * Etiqueta Novo no Market (2 dias): o item de uma etapa que abriu há pouco, ou o equipamento/ingrediente de uma
+   * receita aprendida há pouco.
+   */
+  marketNew(itemId: string): boolean {
+    const recent = (day: number | undefined) => day !== undefined && this.state.day - day < NEW_BADGE_DAYS;
+    const stage = this.content.marketStages.find((s) => s.items.includes(itemId));
+    if (stage) return recent(this.state.marketStagesOn?.[stage.id]);
+    const item = this.content.items[itemId];
+    if (!item) return false;
+    const equipment = this.content.service.equipment;
+    return Object.values(this.content.recipes).some((r) => {
+      if (!recent(this.state.recipesOn[r.id])) return false;
+      const eqs = [...r.steps.map((st) => st.equipment), ...(r.alternative ? [r.alternative.equipment] : [])];
+      return eqs.some((eq) => item.tags.includes(equipment[eq]?.tag ?? '')) || itemId in r.ingredients || Object.values(r.premium ?? {}).includes(itemId) || itemId in (r.alternative?.ingredients ?? {});
+    });
   }
 
   /** Receitas destrancadas que ela ainda não viu: avisa uma vez (o café evoluiu). Na abertura, só marca. */
@@ -5863,7 +5899,10 @@ export class GameSession {
       if (this.state.business === 'closed' && evaluate(this.content.business.softOpenWhen, this.state, this.storyContext())) this.setBusiness('soft_open');
       const ctx = this.storyContext();
       const next = activeBeats(this.content.story, this.state, ctx).find((b) => isBeatSatisfied(b, this.state, ctx));
-      if (!next) return this.announceRecipes(false);
+      if (!next) {
+        this.announceMarketStages(false);
+        return this.announceRecipes(false);
+      }
       this.state.story.completed.push(next.id);
       this.state.story.completedOn[next.id] = this.state.day;
       // Efeitos antes do aviso: quem escuta já sabe que uma fala foi aberta (o HUD espera ela acabar).

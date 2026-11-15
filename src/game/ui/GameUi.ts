@@ -118,6 +118,8 @@ export class GameUi {
     const cartEl = $('.hud-cart');
     let cartCount = 0;
     const showCart = () => (cartEl.hidden = cartCount === 0 || (content.world.cartBalloonMaps ?? []).includes(session.state.location));
+    // Market aos poucos: uma etapa abriu (coisas novas à venda).
+    session.bus.on('market.stage_opened', () => this.toast(uiText.market.newStuff, 3500));
     session.bus.on('cart.changed', ({ count, total }) => {
       cartCount = count;
       cartEl.innerHTML = `<img src="assets/ui/hud/${count > 0 ? 'icon_cart_full' : 'icon_cart_empty'}.png" alt="${uiText.shop.cartTitle}" /><span>${count} · ${total}</span>`;

@@ -175,6 +175,15 @@ export interface ItemsData {
   upgrades?: UpgradesData;
   /** Famílias: girar (a cadeira) e o balcão que se completa (src/core/variants.ts). */
   variants?: VariantsData;
+  /** Market aos poucos: etapas (condição + itens) em que os itens entram à venda. */
+  marketStages?: MarketStage[];
+}
+
+/** Uma etapa do Market aos poucos: os itens só aparecem à venda quando `when` vale. */
+export interface MarketStage {
+  id: string;
+  when: Condition;
+  items: string[];
 }
 
 /** Acabamento que o pintor aplica numa superfície (piso, papel de parede, lambri). */
@@ -444,6 +453,7 @@ export interface Content {
   /** Assistência técnica (upgrade de móvel no lugar). */
   upgrades: UpgradesData;
   variants: VariantsData;
+  marketStages: MarketStage[];
   economy: EconomyData;
   story: StoryData;
   dialogue: DialogueData;
@@ -603,7 +613,7 @@ export function buildContent(raw: RawContent): Content {
   }
   const finishes: Record<string, FinishDef> = {};
   for (const finish of raw.finishes.finishes) finishes[finish.id] = finish;
-  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, variants: raw.items.variants ?? NO_VARIANTS, economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
+  return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, variants: raw.items.variants ?? NO_VARIANTS, marketStages: raw.items.marketStages ?? [], economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
     npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], npcTalks: raw.npcs.talks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, friendship: raw.friendship, facade: raw.finishes.facade ?? null };
@@ -765,6 +775,18 @@ export function validateContent(raw: RawContent): string[] {
   for (const i of raw.items.items) if (i.use && !ITEM_USES.includes(i.use)) err(`items: "${i.id}" use inválido "${i.use}"`);
   errors.push(...validateUpgrades(raw.items.upgrades ?? NO_UPGRADES, Object.fromEntries(raw.items.items.map((i) => [i.id, i])), raw.catalog));
   errors.push(...validateVariants(raw.items.variants ?? NO_VARIANTS, new Set(raw.items.items.map((i) => i.id))));
+  {
+    const ids = new Set(raw.items.items.map((i) => i.id));
+    const seen = new Set<string>();
+    for (const st of raw.items.marketStages ?? []) {
+      if (!st.id.startsWith('market.')) err(`items.marketStages: id "${st.id}" deve começar com "market."`);
+      for (const id of st.items) {
+        if (!ids.has(id)) err(`items.marketStages "${st.id}": item inexistente "${id}"`);
+        if (seen.has(id)) err(`items.marketStages "${st.id}": "${id}" já está em outra etapa`);
+        seen.add(id);
+      }
+    }
+  }
   for (const i of raw.items.items) if (i.carrySprite && !(i.carrySprite in raw.emotes.frames)) err(`items: "${i.id}" carrySprite inexistente em emotes.json "${i.carrySprite}"`);
   // Todo ponto de pedido precisa ser alcançável a pé a partir do spawn do mapa (ele ou um vizinho).
   for (const p of raw.jobs.points) {

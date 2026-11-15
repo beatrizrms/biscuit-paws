@@ -147,6 +147,8 @@ export interface GameEvents {
   'litter.refilled': { uid: string };
   /** A tigela comum foi enchida hoje (a arte cheia). */
   'bowl.filled': { uid: string };
+  /** Uma etapa do Market aos poucos abriu (itens novos à venda). */
+  'market.stage_opened': { stageId: string };
   /** Fim de um dia sem areia limpa: a higiene dos gatos caiu mais. */
   'litter.missed': { day: number };
   'litter.pooped': { count: number };

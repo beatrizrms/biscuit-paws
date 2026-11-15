@@ -1,5 +1,6 @@
 // Quadro do cardápio: a jogadora escolhe as receitas dos slots. Esgotado mostra o motivo.
 // Quem decide o que pode entrar é o núcleo (CafeService); aqui só desenha e chama.
+import { NEW_BADGE_DAYS } from '../../core/session';
 import type { GameSession } from '../../core/session';
 import type { RecipeDef, RecipeStatus } from '../../core/recipes';
 import { content, uiText } from '../content';
@@ -7,7 +8,8 @@ import { iconHtml, listNames } from './ShopPanel';
 import { seasonLabel } from './StatsApp';
 
 /** Por quantos dias uma receita aprendida leva o selo "nova" na lista. */
-const NEW_DAYS = 7;
+/** A etiqueta Novo das receitas: a mesma regra do Market (2 dias do jogo). */
+const NEW_DAYS = NEW_BADGE_DAYS;
 /** As abas da lista: pela louça (xícara = quentes, copo = geladas, prato = comidas). */
 const TABS = ['cup', 'glass', 'plate'] as const;
 type Tab = (typeof TABS)[number];

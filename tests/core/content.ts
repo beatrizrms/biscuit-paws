@@ -59,6 +59,13 @@ export function rawContent(): RawContent {
   };
 }
 
-export function loadContent(): Content {
-  return buildContent(rawContent());
+/**
+ * O conteúdo de data/. Sem as etapas do Market aos poucos (items.json: marketStages), a não ser que peça: a maioria
+ * dos testes monta o jogo direto (compra uma mesa num save novo), sem passar pela história. Os testes da história do
+ * começo e os do Market aos poucos pedem as etapas.
+ */
+export function loadContent(opts: { marketStages?: boolean } = {}): Content {
+  const raw = rawContent();
+  if (!opts.marketStages) raw.items = { ...raw.items, marketStages: [] };
+  return buildContent(raw);
 }
