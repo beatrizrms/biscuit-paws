@@ -111,6 +111,8 @@ export interface MiniGameDef {
   /** Caça ao filhote: os esconderijos possíveis, os tipos com arte, a dica de calor e o pedaço da arena na tela. */
   hideouts?: Hideout[];
   hideoutKinds?: string[];
+  /** Caça ao filhote: tipo de esconderijo desenhado com um tile do catálogo (a arte nova), no lugar da folha do pacote. */
+  hideoutTiles?: Record<string, string>;
   heat?: HeatLevel[];
   heatRange?: number;
   /** Escovação: os emaranhados e as zonas do corpo (pixels do sprite de lado) e quanto o gato é ampliado. */

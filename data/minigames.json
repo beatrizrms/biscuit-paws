@@ -133,6 +133,7 @@
       ],
       "sounds": {"hint":"meow_kitten","found":"success","empty":"broom"},
       "hideoutKinds": ["box","trash","bush","car","basket","crate","pot"],
+      "hideoutTiles": {"box":"prop_caixa_gato_vazia"},
       "hideouts": [
         {"id":"h.box_a","kind":"box","at":[7,7]},
         {"id":"h.bush_a","kind":"bush","at":[12,6]},
