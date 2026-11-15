@@ -498,6 +498,29 @@ describe('ciclo do pedido', () => {
   });
 });
 
+describe('paciência com ela fora do café', () => {
+  it('fora do café, quem espera perde paciência a awayPatienceRate do normal; dentro, no ritmo de sempre', () => {
+    const rate = content.service.awayPatienceRate!;
+    expect(rate).toBeGreaterThan(0);
+    expect(rate).toBeLessThan(1);
+    const left = (away: boolean) => {
+      const { sv, state } = openCafe();
+      state.service.nextCustomerAt = 99999999; // ninguém novo chega no meio
+      state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [4, 6], dishAt: [4, 5], recipe: 'recipe.black_coffee', until: nowAbs(state) + 90, favorite: null, wantsPremium: false } as never);
+      if (away) state.location = 'map.market';
+      sv.tick();
+      for (let i = 0; i < 40; i++) {
+        state.time += 1;
+        sv.tick();
+      }
+      const c = state.service.customers.find((x) => x.id === 'c1')!;
+      return c.until - nowAbs(state);
+    };
+    expect(left(false)).toBeCloseTo(50);
+    expect(left(true)).toBeCloseTo(90 - 40 * rate);
+  });
+});
+
 describe('mãos', () => {
   it('soltar só ao lado dela, numa superfície ou no chão livre; uma coisa por célula', () => {
     const { session, sv, state } = openCafe();

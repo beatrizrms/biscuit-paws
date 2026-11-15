@@ -780,7 +780,13 @@ export class CafeService {
     this.waiterTick(now);
     const sv = this.st.service;
     // Almoço: a paciência de quem espera (na fila ou pelo pedido) fica parada; quem está consumindo segue.
-    if (this.lunchNow()) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += passed;
+    // Ela fora do café (foi buscar ingrediente, por exemplo): a paciência corre só awayPatienceRate do normal.
+    const slack = this.lunchNow()
+      ? passed
+      : this.st.location !== this.h.content.map.id
+        ? passed * (1 - Math.min(1, Math.max(0, this.cfg.awayPatienceRate ?? 1)))
+        : 0;
+    if (slack > 0) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += slack;
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;

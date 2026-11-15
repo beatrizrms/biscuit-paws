@@ -110,6 +110,11 @@ export interface ServiceConfig {
   reputationArrival?: { at: number; factor: number }[];
   /** Quanto tempo o cliente espera o pedido antes de ir embora. */
   patienceMinutes: number;
+  /**
+   * Com ela fora do café (no Market, na rua...), a paciência de quem espera corre mais devagar: esta fração do normal
+   * (0,25 = um quarto). Dá tempo de ir buscar o ingrediente que acabou. Sem isto, 1 (sem diferença).
+   */
+  awayPatienceRate?: number;
   /** Lista de compras: ingrediente do cardápio com menos doses que isto é anotado (botão do cardápio). */
   shoppingListBelow: number;
   /** Sem pedido, ela pode adiantar uma receita; cada equipamento (o da 1ª etapa) só tem até tantos itens sem dono. */
