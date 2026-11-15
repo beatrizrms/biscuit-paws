@@ -35,10 +35,14 @@ describe('tigela e caixa de areia comuns', () => {
     expect(session.feedProblem('p90')).toBe('already_fed');
   });
 
-  it('areia: a da mochila vai sozinha (sem escolher na barra); uma troca por dia; sem areia limpa, a higiene cai mais', () => {
+  it('areia: só com a areia ativa na barra; uma troca por dia; sem areia limpa, a higiene cai mais', () => {
     const { session, state } = cafe();
     expect(session.litterProblem('p91')).toBe('no_litter');
     state.inventory['item.cat_litter'] = 2;
+    // Na mochila, mas não selecionada na barra: o E pede para escolher (não usa sozinha).
+    expect(session.litterProblem('p91')).toBe('needs_litter');
+    expect(session.refillLitter('p91')).toEqual({ ok: false, reason: 'needs_litter' });
+    expect(session.assignToHotbar('item.cat_litter')).toEqual({ ok: true });
     expect(session.litterProblem('p91')).toBeNull();
     expect(session.refillLitter('p91')).toEqual({ ok: true });
     expect(state.inventory['item.cat_litter']).toBe(1);

@@ -729,11 +729,11 @@ export class GameSession {
   }
 
   /**
-   * A ração (ou a areia) que vai no pote (ou na caixa): a ativa na barra, se for uma; senão a primeira que ela tiver na
-   * mochila (na ordem dos itens: a simples antes da premium). Assim um E no pote basta, sem escolher na barra.
+   * A ração (ou a areia) que vai no pote (ou na caixa): só a ativa na barra (decisão 255: sem ela selecionada, o E diz
+   * para escolher na barra; antes, pegava a primeira da mochila).
    */
   supplyFor(use: 'food_bowl' | 'litter_box'): string | null {
-    return this.activeUse(use) ?? Object.values(this.content.items).find((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0)?.id ?? null;
+    return this.activeUse(use);
   }
 
   /** Gatos do café (os que comem na tigela e usam a caixa de areia). */
