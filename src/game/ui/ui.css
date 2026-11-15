@@ -1093,6 +1093,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .minigame-layer .mg-tutorial ol { margin: 0; padding-left: 12px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.45; }
 .minigame-layer .mg-info { padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--cream); font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
 .minigame-layer .mg-info:empty { display: none; }
+/* Medidor de quadros (só no debug), embaixo à esquerda, por cima do jogo. */
+.minigame-layer .mg-perf { position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 2px 6px; border-radius: 6px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--cream); font: 9px monospace; pointer-events: none; }
 /* Resultado do match de adoção: um cartão por par (retrato, gato → família, selo do veredito e o porquê) e o resumo em selos. */
 .minigame-layer .mg-panel[data-game='adoption'] { width: 330px; }
 .minigame-layer .ad-results { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px; padding: 0; list-style: none; text-align: left; }
