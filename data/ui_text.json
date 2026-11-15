@@ -648,6 +648,7 @@
     },
     "sweep": "Varrer a poeira do dia",
     "pantry": "Guardar as compras na despensa",
+    "pantryItems": "Guardar na despensa: {items}",
     "sick": "Gatos doentes sem tratamento: clientes não entram",
     "care": {
       "dirty": { "do": "Escovar {cat}: o pelo está sujo", "buy": "Escovar {cat}: comprar uma escova (mercado, Cuidados)" },

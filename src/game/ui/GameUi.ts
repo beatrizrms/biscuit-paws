@@ -755,7 +755,9 @@ export class GameUi {
       }
       // Comida: "Ração para os gatos", com quantos já comeram (x/y), mesmo com um gato só.
       const feedText = c.feedAll;
-      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? c.pantry : c.sweep;
+      // Despensa: quais compras ainda estão na mochila ("Guardar na despensa: Laranja, Açúcar").
+      const pantryText = c.pantryItems.replace('{items}', listNames(this.session.service.ingredientsToStore().map((id) => content.items[id]?.name ?? id)));
+      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? pantryText : c.sweep;
       const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }

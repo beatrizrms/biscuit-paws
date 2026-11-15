@@ -173,7 +173,14 @@ export class CafeService {
 
   /** Ingredientes ainda na mochila (comprados e não guardados): pacotes. */
   ingredientsInBag(): number {
-    return Object.entries(this.st.inventory).filter(([id]) => this.isIngredient(id)).reduce((n, [, q]) => n + q, 0);
+    return this.ingredientsToStore().reduce((n, id) => n + (this.st.inventory[id] ?? 0), 0);
+  }
+
+  /** Ingredientes na mochila para guardar na despensa (o que está na barra ela pôs lá de propósito: não conta). */
+  ingredientsToStore(): string[] {
+    return Object.entries(this.st.inventory)
+      .filter(([id, q]) => q > 0 && this.isIngredient(id) && !this.st.hotbar.slots.includes(id))
+      .map(([id]) => id);
   }
 
   isIngredient(itemId: string): boolean {

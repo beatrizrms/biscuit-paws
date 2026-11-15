@@ -513,6 +513,16 @@ describe('despensa de volta para a mochila', () => {
     expect(sv.takeFromPantry(id)).toEqual({ ok: false, reason: 'pantry_opened_only' });
     expect(sv.takeFromPantry('item.milk')).toEqual({ ok: false, reason: 'nothing_here' });
   });
+
+  it('o lembrete de guardar só conta o que está na mochila (o que está na barra ela pôs lá de propósito)', () => {
+    const { session, sv, state } = openCafe();
+    expect(sv.takeFromPantry('item.paper_filter')).toEqual({ ok: true });
+    expect(sv.ingredientsToStore()).toEqual(['item.paper_filter']);
+    expect(session.assignToHotbar('item.paper_filter', 3)).toEqual({ ok: true });
+    expect(sv.ingredientsToStore()).toEqual([]);
+    expect(sv.ingredientsInBag()).toBe(0);
+    expect(state.inventory['item.paper_filter']).toBe(1);
+  });
 });
 
 describe('paciência com ela fora do café', () => {
