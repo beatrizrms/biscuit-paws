@@ -76,6 +76,19 @@ export class MenuBoardPanel {
     return t.locked;
   }
 
+  /**
+   * "Na despensa: dá para fazer 6" e, um por linha, quanto cada ingrediente sozinho rende ("Pó de café: rende 12");
+   * o que acaba primeiro (o que manda no total) em destaque.
+   */
+  private pantryLines(r: RecipeDef): string {
+    const t = uiText.menuBoard;
+    const { servings, each } = this.session.service.servingsFromPantry(r.id);
+    const items = each
+      .map(({ item, servings: n }) => `<span class="m-ing${n === servings ? ' limit' : ''}">${esc((n === 1 ? t.pantryIngredientOne : t.pantryIngredient).replace('{name}', content.items[item]?.name ?? item).replace('{n}', String(n)))}</span>`)
+      .join('');
+    return `<span class="desc m-pantry"><b>${esc(t.pantryServings.replace('{n}', String(servings)))}</b>${items}</span>`;
+  }
+
   /** "Custo 2,3 · Venda 15 · Lucro 12,7" (por porção). */
   private moneyLine(r: RecipeDef): string {
     const cost = this.session.service.costOf(r.id);
@@ -94,8 +107,11 @@ export class MenuBoardPanel {
     const learned = this.session.state.recipesOn[r.id];
     const isNew = learned !== undefined && this.session.state.day - learned < NEW_DAYS;
     const open = this.openId === r.id;
+    // Quantas porções a despensa rende (fora de época e bloqueada, não mostra: nem dá para pôr no quadro).
+    const servings = status === 'season' || status === 'locked' ? null : this.session.service.servingsFromPantry(r.id).servings;
+    const chip = servings === null ? '' : `<span class="m-servings${servings === 0 ? ' none' : ''}" title="${esc(t.servingsChipTitle)}">${esc(t.servingsChip.replace('{n}', String(servings)))}</span>`;
     return `<div class="m-row${open ? ' open' : ''}${inMenu ? ' in-menu' : ''}" data-open="${r.id}">
-      <i class="m-dot ${this.dot(status)}"></i>${iconHtml(r.icon)}<span class="m-name">${esc(r.name)}</span>${isNew ? `<span class="m-new">${esc(t.isNew)}</span>` : ''}${inMenu ? `<span class="m-in">${esc(t.inMenu)}</span>` : ''}<b class="m-price">${r.price}</b><span class="m-chev">${open ? '▲' : '▼'}</span></div>${open ? this.row(r, inMenu) : ''}`;
+      <i class="m-dot ${this.dot(status)}"></i>${iconHtml(r.icon)}<span class="m-name">${esc(r.name)}</span>${isNew ? `<span class="m-new">${esc(t.isNew)}</span>` : ''}${inMenu ? `<span class="m-in">${esc(t.inMenu)}</span>` : ''}${chip}<b class="m-price">${r.price}</b><span class="m-chev">${open ? '▲' : '▼'}</span></div>${open ? this.row(r, inMenu) : ''}`;
   }
 
   private row(r: RecipeDef, inMenu: boolean): string {
@@ -105,6 +121,7 @@ export class MenuBoardPanel {
     return `<div class="recipe ${status === 'available' ? '' : 'sold-out'}">
       <span class="desc">${esc(ingredients)} · ${esc(content.service.vessels[r.vessel].name)}</span>
       <span class="desc m-money">${esc(this.moneyLine(r))}</span>
+      ${this.pantryLines(r)}
       ${r.steps.length > 1 ? `<span class="desc">${esc(uiText.menuBoard.steps.replace('{steps}', r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → ')))}</span>` : ''}
       ${seasonLabel(r) ? `<span class="desc season">${esc(uiText.menuBoard.seasonal.replace('{when}', seasonLabel(r)))}</span>` : ''}
       ${r.batch ? `<span class="desc">${esc(uiText.menuBoard.batch.replace('{name}', r.batch.name).replace('{n}', String(r.batch.yields)))}</span>` : ''}

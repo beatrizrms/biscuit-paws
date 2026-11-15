@@ -1363,6 +1363,13 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 .catalog.menu-board .m-new { padding: 0 4px; border-radius: 6px; background: var(--c-green-pale); color: var(--c-ink2); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-in { padding: 0 4px; border-radius: 6px; background: var(--butter2); color: var(--ink); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .m-price { color: var(--c-cafe); }
+/* Porções que a despensa rende (×N), ao lado do preço; sem nenhuma, apagado. */
+.catalog.menu-board .m-servings { padding: 0 3px; border-radius: 5px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
+.catalog.menu-board .m-servings.none { color: var(--c-ink3); background: transparent; }
+/* Na receita aberta: quanto cada ingrediente rende, um por linha; o que acaba primeiro em destaque. */
+.catalog.menu-board .m-pantry { display: flex; flex-direction: column; }
+.catalog.menu-board .m-pantry .m-ing { padding-left: 6px; }
+.catalog.menu-board .m-pantry .m-ing.limit { color: var(--c-wood-dark); font-weight: bold; }
 .catalog.menu-board .m-chev { color: var(--c-ink3); font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .m-list .recipe { margin: 0; border-radius: 0; background: var(--cream); padding: 2px 6px 5px 14px; border-bottom: 1px solid var(--c-sand); }
 .catalog.menu-board .m-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; color: var(--cream2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }

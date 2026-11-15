@@ -55,6 +55,22 @@ const scheduleNow = (session: GameSession, schedule: Parameters<GameSession['ser
 const coffeeMachineUid = (session: GameSession) => session.state.placed.find((p) => p.item === 'item.coffee_machine')!.uid;
 
 describe('receitas e cardápio', () => {
+  it('porções que a despensa rende: o ingrediente que acaba primeiro manda; sem nenhuma, diz o que falta', () => {
+    const { sv } = openCafe();
+    const r = content.recipes['recipe.black_coffee']!;
+    const expected = Math.min(...Object.entries(r.ingredients).map(([item, n]) => Math.floor(sv.doses(item) / n)));
+    expect(expected).toBeGreaterThan(0);
+    const got = sv.servingsFromPantry(r.id);
+    expect(got).toMatchObject({ servings: expected, missing: [] });
+    // Cada ingrediente sozinho: quanto ele rende; o menor é o total.
+    expect(got.each.map((e) => e.item)).toEqual(Object.keys(r.ingredients));
+    expect(Math.min(...got.each.map((e) => e.servings))).toBe(expected);
+    const empty = openCafe({ coffee: false }).sv;
+    const none = empty.servingsFromPantry(r.id);
+    expect(none.servings).toBe(0);
+    expect(none.missing.sort()).toEqual(Object.keys(r.ingredients).sort());
+  });
+
   it('sem o ingrediente na despensa, o que já está pronto sem dono continua no cardápio até acabar', () => {
     const { sv, state } = openCafe({ coffee: false });
     sv.toggleMenu('recipe.black_coffee');

@@ -270,6 +270,26 @@ export class CafeService {
     return { ok: true, quality: 'simple', use };
   }
 
+  /**
+   * Quantas porções dá para fazer com a despensa de agora (o quadro do cardápio mostra): o ingrediente que acaba
+   * primeiro manda; a troca premium conta como mais doses daquele ingrediente; a fornada rende `batch.yields` porções.
+   * O jeito alternativo (outro equipamento, outros ingredientes) vale se render mais. `missing`: o que falta para a
+   * próxima (vazio quando dá para fazer pelo menos uma). `each`: quantas porções cada ingrediente sozinho rende.
+   */
+  servingsFromPantry(recipeId: string): { servings: number; missing: string[]; each: { item: string; servings: number }[] } {
+    const r = this.recipe(recipeId);
+    if (!r) return { servings: 0, missing: [], each: [] };
+    const subs = r.premium ?? {};
+    const entries = Object.entries(r.ingredients);
+    const per = entries.map(([item, n]) => Math.floor((this.doses(item) + (subs[item] ? this.doses(subs[item]!) : 0)) / n));
+    let runs = entries.length > 0 ? Math.min(...per) : 0;
+    const alt = Object.entries(r.alternative?.ingredients ?? {});
+    if (alt.length > 0 && this.stationsFor(r.alternative!.equipment).length > 0) runs = Math.max(runs, Math.min(...alt.map(([item, n]) => Math.floor(this.doses(item) / n))));
+    const missing = runs > 0 ? [] : entries.filter((_, i) => per[i] === 0).map(([item]) => item);
+    const yields = r.batch?.yields ?? 1;
+    return { servings: runs * yields, missing, each: entries.map(([item], i) => ({ item, servings: per[i]! * yields })) };
+  }
+
   /** Ingredientes do jeito alternativo (receita.alternative): todos precisam ter doses, e sai sempre premium. */
   private alternativeIngredients(r: RecipeDef): { ok: boolean; quality: Quality; use: [string, number][] } {
     const use = Object.entries(r.alternative?.ingredients ?? {});
