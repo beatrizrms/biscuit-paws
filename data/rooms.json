@@ -47,10 +47,9 @@
         "trigger": "neighbor_tells",
         "when": {
           "all": [
-            {
-              "beat": "story.inauguration"
-            },
-            { "milestone": "milestone.customers_40" }
+            { "beat": "story.basement_call" },
+            { "timer": "basement.look" },
+            { "location": "map.cafe_main" }
           ]
         },
         "dialogue": "dlg.room_back_found",

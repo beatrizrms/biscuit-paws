@@ -84,3 +84,14 @@ describe('gatos e os objetos deles', () => {
     expect(validateCats({ schemaVersion: 1, objectUses: { cat_bed: [{ action: 'dance' as 'sit', cell: [0, 0] }] }, cats: [] }, content.catSprites).length).toBeGreaterThan(0);
   });
 });
+
+describe('brinquedos dos gatos', () => {
+  it('todo brinquedo de chão (cat:toy com arte) tem onde o gato brincar (data/cats.json: objectUses)', () => {
+    const uses = (JSON.parse(readFileSync('data/cats.json', 'utf8')) as { objectUses: Record<string, unknown> }).objectUses;
+    const missing = Object.values(content.items)
+      .filter((i) => !i.deprecated && i.tags.includes('cat:toy') && i.tile)
+      .filter((i) => !uses[i.tile!])
+      .map((i) => i.id);
+    expect(missing).toEqual([]);
+  });
+});

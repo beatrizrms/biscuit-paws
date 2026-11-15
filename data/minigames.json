@@ -174,7 +174,7 @@
       "sounds": {"bump":"error","arrive":"door_bell"},
       "items": [
         {"id":"coffee","name":"Café","icon":"cafe_para_viagem","verb":"esfriando","decayPerSec":1.6,"hitLoss":12},
-        {"id":"cat_food","name":"Ração","icon":"racao_simples","verb":"chacoalhando","decayPerSec":0.7,"hitLoss":20},
+        {"id":"cat_food","name":"Ração","icon":"racao_aberta","verb":"chacoalhando","decayPerSec":0.7,"hitLoss":20},
         {"id":"cake","name":"Bolo","icon":"bolo_fatia","verb":"amassando","decayPerSec":1.0,"hitLoss":25},
         {"id":"hurt_cat","name":"Gatinho ferido","icon":"remedio","verb":"piorando","decayPerSec":1.2,"hitLoss":15}
       ],

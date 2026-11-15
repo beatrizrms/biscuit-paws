@@ -58,10 +58,10 @@
     { "id": "tip.treat", "title": "Petisco", "text": "Com o petisco na barra, aperte E perto do gato: é um carinho a mais. No mini game da confiança, o petisco (P) também ajuda." },
     { "id": "tip.sick", "title": "Gato doente", "text": "Gato doente vai para a consulta na clínica. A receita dá uma dose de remédio por dia: o balão do remédio lembra a dose de hoje." },
     { "id": "tip.contagion", "title": "Doença passa para os outros", "text": "Doente sem tratamento por mais de 2 dias pode passar a doença para os outros gatos. Com 2 gatos doentes, nenhum cliente novo entra no café." },
-    { "id": "tip.arrival", "title": "Gato na porta", "text": "Gato com fome na porta precisa de ração antes de entrar; com frio, de um cobertor (mercado, Cuidados); ferido, da clínica." },
+    { "id": "tip.arrival", "title": "Gato na porta", "text": "Gato com fome na porta precisa de ração antes de entrar; com frio, de um cobertor; ferido, da clínica." },
     { "id": "tip.trust", "title": "Gato arisco", "text": "Chegue perto devagar. Se ele ficar alerta, pare e espere. Se ele bufar e você continuar andando, ele se assusta." },
     { "id": "tip.auto", "when": { "business": "inaugurated" }, "title": "Pote e caixa automáticos", "text": "O pote de ração e a caixa de areia automáticos guardam até 10 dias e servem os gatos sozinhos. É só abastecer." },
-    { "id": "tip.rooms", "when": { "business": "inaugurated" }, "title": "Lugar para todos", "text": "Cada cômodo aberto e reformado aumenta quantos gatos cabem no café. O Market (aba Construção) mostra quantos cabem agora." },
+    { "id": "tip.rooms", "when": { "business": "inaugurated" }, "title": "Lugar para todos", "text": "Cada cômodo aberto e reformado aumenta quantos gatos cabem no café." },
     { "id": "tip.playground", "when": { "room": "room.backyard", "atLeast": "restored" }, "title": "Playground no quintal", "text": "Com 10 gatos no café, dá para montar o playground no quintal. Cada módulo dá carinho a todos os gatos, todo dia." }
   ]
 }

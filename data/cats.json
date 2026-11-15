@@ -92,6 +92,51 @@
         ]
       }
     ],
+    "pet_novelo_rosa": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "pet_novelo_verde": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "pet_novelo_creme": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "pet_novelo_lilas": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
+    "pet_cesta_novelos": [
+      {
+        "action": "play",
+        "cell": [
+          0,
+          0
+        ]
+      }
+    ],
     "scratch_post": [
       { "action": "play", "cell": [-1, 0], "toward": 18 },
       { "action": "play", "cell": [1, 0], "toward": 18 }

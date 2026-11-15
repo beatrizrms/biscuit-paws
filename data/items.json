@@ -7,7 +7,7 @@
       "description": "Uma porção de ração. Selecione na barra e use na tigela de ração para alimentar os gatos do dia. Também serve para um gato com fome que chega na porta.",
       "price": 15,
       "kind": "consumable",
-      "icon": "racao_simples",
+      "icon": "racao_aberta",
       "tags": [
         "cat:food",
         "pet",
@@ -68,7 +68,8 @@
       "tags": [
         "cat:toy",
         "pet",
-        "toy"
+        "toy",
+        "online"
       ],
       "requires": {
         "flag": "has.cat"
@@ -96,7 +97,7 @@
       "name": "Areia",
       "price": 12,
       "kind": "consumable",
-      "icon": "areia",
+      "icon": "areia_balde",
       "use": "litter_box",
       "description": "Uma troca de areia. Ponha na caixa de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "tags": [
@@ -195,6 +196,7 @@
       "description": "Ponha uma troca de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "price": 15,
       "tile": "ph_litter_box",
+      "fillTiles": { "empty": "litter_box_vazia" },
       "tags": [
         "cat:care",
         "furniture",
@@ -210,7 +212,7 @@
       "name": "Tigela de água",
       "description": "Água fresca para os gatos.",
       "price": 8,
-      "tile": "water_bowl",
+      "tile": "water_bowl_cheia",
       "tags": [
         "cat:food",
         "furniture",
@@ -248,6 +250,7 @@
       "description": "Encha com ração todo dia para alimentar os gatos.",
       "price": 8,
       "tile": "food_bowl",
+      "fillTiles": { "full": "food_bowl_cheia" },
       "tags": [
         "cat:food",
         "furniture",
@@ -1886,6 +1889,7 @@
       "description": "Ponha uma troca de areia todo dia: sem areia limpa, a higiene dos gatos cai.",
       "price": 18,
       "tile": "pet_caixa_areia_verde",
+      "fillTiles": { "empty": "caixa_areia_verde_vazia" },
       "tags": [
         "cat:care",
         "furniture",
@@ -2403,7 +2407,7 @@
       "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 5 porções de ração simples.",
       "price": 60,
       "kind": "consumable",
-      "icon": "racao_simples",
+      "icon": "racao_aberta",
       "tags": [
         "cat:food",
         "pet",
@@ -2420,7 +2424,7 @@
       "description": "Saco pesado: fica na barra; selecionado, vai na mão e deixa você mais devagar. No café, aperte E para guardar: vira 4 trocas de areia.",
       "price": 40,
       "kind": "consumable",
-      "icon": "areia",
+      "icon": "areia_balde",
       "tags": [
         "cat:care",
         "pet",
@@ -2918,7 +2922,7 @@
       "name": "Tigela do quintal",
       "description": "Módulo do playground (quintal, com 10 gatos): água para os gatos. Cada módulo dá carinho a todos os gatos, todo dia.",
       "price": 15,
-      "tile": "water_bowl",
+      "tile": "water_bowl_cheia",
       "tags": [
         "furniture",
         "for:cats",

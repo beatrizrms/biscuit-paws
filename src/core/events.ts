@@ -145,6 +145,8 @@ export interface GameEvents {
   'pet.low': { itemId: string; days: number };
   /** Areia limpa na caixa comum. */
   'litter.refilled': { uid: string };
+  /** A tigela comum foi enchida hoje (a arte cheia). */
+  'bowl.filled': { uid: string };
   /** Fim de um dia sem areia limpa: a higiene dos gatos caiu mais. */
   'litter.missed': { day: number };
   'litter.pooped': { count: number };

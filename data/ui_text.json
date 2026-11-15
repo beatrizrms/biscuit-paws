@@ -186,7 +186,7 @@
     "doneToday": "✓ {n} feita(s) hoje",
     "doneToday1": "hoje: feito · volta amanhã",
     "nextSeal": "Próxima conquista: {name}",
-    "nextSealDetail": "{track}: {value} de {at}. Recompensa: {reward} (no celular, Café em números, aba Conquistas)."
+    "nextSealDetail": "{track}: {value} de {at}. Recompensa: {reward}."
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
@@ -636,29 +636,29 @@
   },
   "chores": {
     "title": "hoje",
-    "feed": "Comida para {cat}",
-    "feedAll": "Ração para os gatos",
-    "settle": "Ganhar a confiança de {cat} (E n{sex:ele|ela})",
+    "feed": "Dê comida para {cat}",
+    "feedAll": "Encha a tigela de ração",
+    "settle": "Ganhe a confiança de {cat}",
     "clinic": {
-      "intake": "Levar {cat} à clínica para a consulta de entrada",
-      "pickup": "Buscar {cat} na clínica",
-      "recheck": "Levar {cat} à clínica: o pontinho inflamou",
-      "pen_food": "Recovery para os gatos do cercadinho (E no cercadinho)"
+      "intake": "Leve {cat} à clínica para a consulta de entrada",
+      "pickup": "Busque {cat} na clínica",
+      "recheck": "Leve {cat} à clínica: o pontinho inflamou",
+      "pen_food": "Dê Recovery aos gatos do cercadinho"
     },
-    "sweep": "Varrer a poeira do dia",
-    "pantry": "Guardar as compras na despensa",
-    "pantryItems": "Guardar na despensa: {items}",
+    "sweep": "Varra a poeira do dia",
+    "pantry": "Guarde as compras na despensa",
+    "pantryItems": "Guarde na despensa: {items}",
     "sick": "Gatos doentes sem tratamento: clientes não entram",
     "care": {
-      "dirty": { "do": "Escovar {cat}: o pelo está sujo", "buy": "Escovar {cat}: comprar uma escova (mercado, Cuidados)" },
-      "sad": { "do": "Brincar com {cat}: anda sem ânimo", "buy": "Brincar com {cat}: comprar uma varinha (mercado, Brinquedos)" },
-      "medicine": { "do": "Dar o remédio de hoje para {cat}", "buy": "Remédio de {cat}: passar na clínica" },
-      "hungry": { "do": "{cat} está sem comer desde ontem", "buy": "{cat} está sem comer desde ontem: comprar ração" },
-      "play": { "do": "{cat} quer brincar: a varinha", "buy": "{cat} quer brincar: comprar uma varinha (mercado, Brinquedos)" }
+      "dirty": { "do": "Escove {cat}: o pelo está sujo", "buy": "Escove {cat}: compre uma escova" },
+      "sad": { "do": "Brinque com {cat}: anda sem ânimo", "buy": "Brinque com {cat}: compre uma varinha" },
+      "medicine": { "do": "Dê o remédio de hoje a {cat}", "buy": "Remédio de {cat}: passe na clínica" },
+      "hungry": { "do": "{cat} está sem comer desde ontem", "buy": "{cat} está sem comer desde ontem: compre ração" },
+      "play": { "do": "{cat} quer brincar", "buy": "{cat} quer brincar: compre uma varinha", "more": "{cat} quer brincar: compre mais brinquedos" }
     },
-    "toys": "Brinquedos para os gatos (1 a cada 3): Market, aba Pet",
-    "poop": "Cocô no chão: varrer e trocar a areia da caixa",
-    "job": "Pedido"
+    "litter": "Troque a areia da caixa",
+    "poop": "Varra o cocô e troque a areia",
+    "job": "Trabalho"
   },
   "party": {
     "question": "Sair agora encerra a festa: os convidados vão para casa.",
@@ -768,9 +768,9 @@
     "pantryEmpty": "Vazia. Compre ingredientes no mercado e guarde aqui: só o que está na despensa vale nas receitas.",
     "pantryStored": "Guardado na despensa: {n} pacote(s).",
     "box": "Caixa pet",
-    "boxOne": "guardar na caixa",
+    "boxOne": "Guarde o {item} na caixa pet",
     "boxInside": "na caixa",
-    "boxEmpty": "Vazia. Guarde aqui ração, areia, petiscos, brinquedos e cuidados dos gatos: clique no item da mochila ou arraste até a caixa.",
+    "boxEmpty": "Vazia. Guarde aqui ração, areia, petiscos, brinquedos e cuidados dos gatos.",
     "boxStored": "Guardado na caixa pet: {n} item(ns).",
     "place": "posicionar",
     "openBox": "abrir ({n} enfeites)",
@@ -835,10 +835,10 @@
     "sinkPaused": "Pia: lavagem parada (volte à pia)",
     "sinkLeft": "A louça espera você voltar à pia.",
     "blocked": {
-      "empty_menu": "Ninguém entra: o quadro está vazio. Ponha receitas (M).",
-      "vessel": "Ninguém entra: tudo do quadro esgotado. Lave a louça na pia.",
-      "ingredients": "Ninguém entra: tudo do quadro esgotado. Faltam ingredientes (mercado).",
-      "equipment": "Ninguém entra: tudo do quadro esgotado. Falta equipamento."
+      "empty_menu": "Ninguém entra: o cardápio está vazio. Monte o cardápio.",
+      "vessel": "Ninguém entra: tudo do cardápio esgotado. Lave a louça.",
+      "ingredients": "Ninguém entra: tudo do cardápio esgotado. Compre ingredientes.",
+      "equipment": "Ninguém entra: tudo do cardápio esgotado. Falta equipamento."
     },
     "closed": "Café fechado · abre {when}"
   },

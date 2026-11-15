@@ -7,7 +7,7 @@ import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { coverage, FULL_SUSPICION, newPill, offer, pillOutcome, spread, startOffering, stepPill, warning, type PillParams, type PillState } from '../../core/pill';
 import { content, uiText } from '../content';
-import { keyless } from '../touch';
+import { keyless, touch } from '../touch';
 import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadSheets, PILL as PILL_ART } from './assets';
@@ -32,7 +32,9 @@ const ART = 0.6;
 /** O churu na densidade do mundo (meia escala da arte de 64 px): uns 3 tiles de comprido. A ponta aberta é a origem. */
 const TUBE_ART = 0.5;
 const TUBE_TIP = { x: 6 / 148, y: 142 / 148 };
-const PILL = { x: 200, y: 215, w: 26, h: 13, dy: -5 };
+/** No toque, o dedo segura a outra ponta (a de cima, à direita): a ponta aberta e a pasta ficam à vista. */
+const TUBE_END = { x: 134 / 148, y: 12 / 148 };
+const PILL = { x: 200, y: 215, w: 26, h: 13, dy: -5, tubeArt: 148 };
 const CAT = { x: 470, y: 250, scale: 3.5 };
 const BAR_W = 120;
 
@@ -86,7 +88,10 @@ export class PillScene extends MiniGameScene {
       .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
       .setOrigin(0.5);
     this.bar = this.add.graphics().setDepth(100);
-    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setOrigin(TUBE_TIP.x, TUBE_TIP.y).setDepth(200).setVisible(false);
+    this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setDepth(200).setVisible(false);
+    // No mouse, a ponta aberta é o cursor; no toque, o dedo segura a ponta de cima (a aberta fica fora do dedo).
+    const hold = touch.mode === 'touch' && this.tube.width === PILL.tubeArt ? TUBE_END : TUBE_TIP;
+    this.tube.setOrigin(hold.x, hold.y);
 
     this.btn = this.hudButton(uiText.minigames.pill.ready, () => this.act());
     this.controls.onAction((world) => {
@@ -108,7 +113,9 @@ export class PillScene extends MiniGameScene {
     const ptr = this.controls.pointer();
     const moved = ptr.x !== 0 || ptr.y !== 0;
     this.tube.setVisible(moved && this.s.phase === 'cover').setPosition(ptr.x, ptr.y);
-    if (this.s.phase === 'cover' && ptr.down) this.paste(ptr.x, ptr.y);
+    // A pasta sai da ponta aberta (no toque, ela fica longe do dedo).
+    const tip = { x: ptr.x + (TUBE_TIP.x - this.tube.originX) * this.tube.displayWidth, y: ptr.y + (TUBE_TIP.y - this.tube.originY) * this.tube.displayHeight };
+    if (this.s.phase === 'cover' && ptr.down) this.paste(tip.x, tip.y);
     const ev = stepPill(this.s, this.p, delta, this.rng);
     if (ev.turned) this.sfx(this.def.sounds?.turn);
     this.draw();

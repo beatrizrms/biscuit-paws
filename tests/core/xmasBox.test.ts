@@ -82,6 +82,30 @@ describe('a guirlanda da Dona Neusa', () => {
     expect(events).toContain('dialogue.requested');
   });
 
+  it('nunca no dia da visita da Gabi (a Dona Neusa aparece no fim dela): só no dia seguinte', () => {
+    const { session, state } = cafe(10);
+    state.story.completed = content.story.beats.map((b) => b.id).filter((id) => id !== 'story.xmas_wreath_gift');
+    state.story.completedOn['story.gabi_visit'] = state.day;
+    state.flags['met.old_neighbor'] = true;
+    session.start(false);
+    expect(state.story.completed).not.toContain('story.xmas_wreath_gift');
+    session.endDay('home');
+    session.enter('map.cafe_main');
+    expect(state.story.completed).toContain('story.xmas_wreath_gift');
+  });
+
+  it('quem já tem uma guirlanda (na mochila ou na caixa de enfeites) não ganha outra', () => {
+    for (const where of ['inventory', 'xmasBox'] as const) {
+      const { session, state } = cafe(10);
+      state.story.completed = content.story.beats.map((b) => b.id).filter((id) => id !== 'story.xmas_wreath_gift');
+      state.flags['met.old_neighbor'] = true;
+      state[where]['item.xmas_wreath'] = 1;
+      session.start(false);
+      expect(state.story.completed).not.toContain('story.xmas_wreath_gift');
+      expect(state[where]['item.xmas_wreath']).toBe(1);
+    }
+  });
+
   it('fora do inverno ela espera o próximo', () => {
     const { session, state } = cafe(S.daysPerSeason + 10);
     state.story.completed = content.story.beats.map((b) => b.id).filter((id) => id !== 'story.xmas_wreath_gift');

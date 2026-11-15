@@ -69,6 +69,9 @@ function warmCorner(session: GameSession) {
   expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
   buyAndPlace(session, 'item.litter_box', [11, 9]);
   buyAndPlace(session, 'item.cat_bed', [12, 9]);
+  // O passo "Compre areia e encha a caixa" (a primeira troca de areia).
+  session.state.flags['litter.refilled'] = true;
+  session.tickClock(1 / content.dayNight.minutesPerSecond);
 }
 
 /** Aceita um pedido da vila e faz todos os pontos, passo a passo. */
@@ -176,10 +179,14 @@ describe('começo da história', () => {
     expect(titles()).toEqual(['Que cheiro é esse?']);
     expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
     expect(events).toContainEqual({ name: 'dialogue.requested', payload: { dialogueId: 'dlg.forgot_litter' } });
-    expect(titles()).toEqual(['Um cantinho quente']);
+    expect(titles()).toEqual(['Tudo que um gatinho precisa']);
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
-    expect(titles()).toEqual(['Um cantinho quente']);
+    expect(titles()).toEqual(['Tudo que um gatinho precisa']);
     buyAndPlace(session, 'item.litter_box', [11, 9]);
+    // Falta encher a caixa com areia.
+    expect(titles()).toEqual(['Tudo que um gatinho precisa']);
+    session.state.flags['litter.refilled'] = true;
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(titles()).toEqual(['Uma cafeteira']);
     // A cafeteira e o balcão não cabem no dinheiro: precisa dos pedidos da vila.
     expect(session.state.money).toBeLessThan(205);
@@ -202,13 +209,13 @@ describe('começo da história', () => {
     // As mesas só no dia seguinte.
     expect(titles()).toEqual([]);
     session.endDay('home');
-    expect(titles()).toEqual(['Mesas para o salão']);
-    // Dia 3: comprar as mesas faz a Gabi ligar (ela já está com dinheiro dos pedidos).
+    expect(titles()).toEqual(['Mesa e cadeira']);
+    // Dia 3: comprar a mesa e a cadeira faz a Gabi ligar (ela já está com dinheiro dos pedidos).
     for (const job of ['job.market_shelves', 'job.clear_snow', 'job.delivery', 'job.flyers']) doJob(session, job);
     session.state.time = 9 * 60;
     expect(session.buy('item.table_round')).toEqual({ ok: true });
     expect(cutscenes()).not.toContain('cs.gabi_call');
-    expect(session.buy('item.table_round')).toEqual({ ok: true });
+    expect(session.buy('item.chair_front')).toEqual({ ok: true });
     expect(cutscenes()).toContain('cs.gabi_call');
     session.finishCutscene('cs.gabi_call');
     // Espera com hora marcada: a meta diz a hora e conclui sozinha pelo relógio, em qualquer lugar.
@@ -221,15 +228,17 @@ describe('começo da história', () => {
     session.tickClock(2 / content.dayNight.minutesPerSecond);
     expect(scripts()).toContain('scr.gabi_visit');
     expect(session.waitTarget()).toBeUndefined();
-    // Durante a visita, nada novo aparece: as cadeiras só depois que a Gabi vai embora.
+    // Durante a visita, nada novo aparece.
     expect(titles()).toEqual([]);
     session.finishScript('scr.gabi_visit');
-    // Cadeiras: quest à parte, sem evento.
-    expect(titles()).toEqual(['Cadeiras']);
+    // Sem a meta das cadeiras (a cadeira já veio com a mesa): montar as duas só dá a fala, sem evento.
+    expect(titles()).not.toContain('Cadeiras');
     const before = events.length;
-    buyAndPlace(session, 'item.chair_front', [3, 7]);
-    buyAndPlace(session, 'item.chair_back', [5, 7]);
-    expect(titles()).toEqual([]);
+    session.state.inventory['item.table_round'] = 1;
+    expect(session.place('item.table_round', [4, 8])).toEqual({ ok: true });
+    session.state.inventory['item.chair_front'] = 1;
+    expect(session.place('item.chair_front', [3, 8])).toEqual({ ok: true });
+    expect(events.slice(before).some((e) => e.name === 'dialogue.requested' && (e.payload as { dialogueId: string }).dialogueId === 'dlg.chairs_done')).toBe(true);
     expect(events.slice(before).some((e) => e.name === 'script.requested' || e.name === 'cutscene.requested')).toBe(false);
   });
 
@@ -246,7 +255,7 @@ describe('começo da história', () => {
     session.endDay('home');
     session.state.time = 20 * 60;
     session.buy('item.table_round');
-    session.buy('item.table_round');
+    session.buy('item.chair_front');
     const called = () => events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.gabi_call');
     expect(called()).toBe(false);
     session.endDay('home');
@@ -778,7 +787,7 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta antes do dia 26: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toContain('{untilDay:26}');
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café dia 26');
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');
@@ -1300,7 +1309,7 @@ describe('correio: compras do catálogo chegam na porta', () => {
     session.endDay('home');
     session.state.time = 10 * 60;
     session.order('item.table_round');
-    session.order('item.table_round');
+    session.order('item.chair_front');
     expect(called()).toBe(false);
     session.tickClock(minutes(61));
     expect(called()).toBe(true);

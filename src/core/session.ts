@@ -777,6 +777,8 @@ export class GameSession {
       return { ok: true };
     }
     this.removeFromInventory(food);
+    p.refilledOn = this.state.day;
+    this.bus.emit('bowl.filled', { uid: bowlUid });
     for (const catId of this.homeCats()) {
       if (this.state.cats[catId]!.fedOn === this.state.day) continue;
       this.state.flags[`fed.${catId}`] = true;
@@ -816,6 +818,8 @@ export class GameSession {
     }
     this.removeFromInventory(litter);
     p.refilledOn = this.state.day;
+    // Já trocou a areia alguma vez (passo "Compre areia e encha a caixa" da meta do começo).
+    this.state.flags['litter.refilled'] = true;
     this.bus.emit('litter.refilled', { uid: boxUid });
     return { ok: true };
   }
@@ -1469,9 +1473,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'toys' | 'poop' | 'clinic'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1494,10 +1498,16 @@ export class GameSession {
     // Cocô no chão (areia suja há dias): varrer e trocar a areia.
     const lpTag = this.content.health.care.litterPoop?.tag;
     if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
-    // Brinquedos de menos para os gatos do café (1 a cada catsPerToy): eles pedem para brincar todo dia.
-    const room = this.playRoom();
-    const missing = toysMissing(this.content.health.care, room);
-    if (missing > 0) out.push({ kind: 'toys', done: false, progress: [room.toys, room.toys + missing] });
+    // Areia: trocar a de cada caixa comum todo dia (a automática se vira sozinha).
+    const boxes = this.state.placed.filter((p) => { const it = this.content.items[p.item]; return stationKind(it) === 'litter_box' && !it?.autoDays; });
+    // Com cocô no chão, a linha do cocô já pede para trocar a areia: esta não repete.
+    if (home.length > 0 && boxes.length > 0 && !out.some((c) => c.kind === 'poop')) {
+      const changed = boxes.filter((p) => p.refilledOn === this.state.day).length;
+      out.push({ kind: 'litter', done: changed === boxes.length, progress: [changed, boxes.length] });
+    }
+    // Brinquedos de menos (1 a cada catsPerToy): os gatos pedem para brincar todo dia. Não é uma linha à parte: a linha
+    // do gato que quer brincar diz "compre mais brinquedos".
+    const toysShort = toysMissing(this.content.health.care, this.playRoom()) > 0;
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
     const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
     const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
@@ -1508,7 +1518,7 @@ export class GameSession {
       // A fome já tem a tarefa da ração (o pote): o balão basta.
       for (const need of (this.catCare(id)?.needs ?? []).filter((n) => n !== 'hungry')) {
         const use = toolFor[need];
-        out.push({ kind: 'care', catId: id, need, hasTool: !use || owns(use), done: false });
+        out.push({ kind: 'care', catId: id, need, hasTool: !use || owns(use), ...(need === 'play' && toysShort ? { toysShort: true } : {}), done: false });
       }
     }
     const daily = (this.content.map.dirt ?? []).filter((d) => !d.clearedBy && d.tags.includes('daily'));
@@ -4270,7 +4280,7 @@ export class GameSession {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;
-    }));
+    }, (p) => p.refilledOn === this.state.day));
   }
 
   /**

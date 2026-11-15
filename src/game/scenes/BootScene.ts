@@ -9,7 +9,7 @@ import { startGame } from '../startGame';
 import { catTexture, loadCatSheet } from '../entities/Cat';
 import { npcTexture } from '../entities/Npc';
 import { iconSheetKey } from '../icons';
-import { sheetFrameSize } from '../tileArt';
+import { insetSheetFrames, sheetFrameSize } from '../tileArt';
 import tilesetsJson from '../../../data/tilesets.json';
 import { preloadCreatorLayers } from '../playerLook';
 import { ROBOT_IMAGE, ROBOT_KEY } from '../RobotVacuumView';
@@ -91,6 +91,8 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    // As folhas de tiles sem as linhas do celular (cada quadro lê só a própria peça: tileArt.insetSheetFrames).
+    for (const id of Object.keys(content.catalog.sheets)) insetSheetFrames(this, id);
     // Quadros da vassoura (tamanhos diferentes na mesma folha).
     const tex = this.textures.get('broom');
     for (const [name, [x, y, w, h]] of Object.entries(broom.frames)) tex.add(name, 0, x, y, w, h);

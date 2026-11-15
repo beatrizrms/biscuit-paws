@@ -389,7 +389,7 @@ export class BackpackPanel {
       if (to === 'bar') buttons.push(iconButton('to-bar', 'toBar', t.toBar.replace('{n}', String(this.freeSlot() + 1)), false, String(this.freeSlot() + 1)));
       if (to === 'bag') buttons.push(iconButton('to-bag', 'toBag', from === 'pantry' ? t.pantryTake : t.toBag));
       if (to === 'pantry') buttons.push(iconButton('to-pantry', 'pantry', t.pantryOne));
-      if (to === 'box') buttons.push(iconButton('to-box', 'boxIn', t.boxOne));
+      if (to === 'box') buttons.push(iconButton('to-box', 'boxIn', t.boxOne.replace('{item}', item.name)));
     }
     // O resto (segurar, comer, abrir, bandeja) só para o que está com ela (mochila ou barra).
     if (from === 'pantry' || from === 'box') return this.detailBox(item, amount, buttons);

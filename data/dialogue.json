@@ -100,8 +100,8 @@
           "text": "Minha padaria. Antes de qualquer coisa: uma boa faxina."
         },
         {
-          "speaker": "",
-          "text": "Clique na sujeira perto de você para varrer. Para sair, vá até a porta e siga em frente."
+          "speaker": "{player}",
+          "text": "Vou começar varrendo essa sujeira."
         },
         {
           "speaker": "{player}",
@@ -148,8 +148,8 @@
           "text": "Você precisa de um cantinho quente... e de comida."
         },
         {
-          "speaker": "",
-          "text": "Aperte C para abrir o Market no celular. O mercado fica ali na rua: no caixa, aperte E."
+          "speaker": "{player}",
+          "text": "Posso encomendar pelo celular ou passar no mercado da vila."
         }
       ]
     },
@@ -158,10 +158,6 @@
         {
           "speaker": "{player}",
           "text": "Água fresquinha, ração na bolsa. Agora é só encher a tigela."
-        },
-        {
-          "speaker": "",
-          "text": "Chegue perto da tigela de ração e aperte E (ou clique nela)."
         }
       ]
     },
@@ -318,7 +314,7 @@
         },
         {
           "speaker": "",
-          "text": "Agora dá para chamar o Tião pelo Market (C), na aba Construção. Primeiro, os reparos: o de dentro e o da fachada."
+          "text": "Agora dá para chamar o Tião. Primeiro, os reparos: o de dentro e o da fachada."
         },
         {
           "speaker": "",
@@ -497,15 +493,15 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "O café está cheio de gente todo dia... preciso de mais espaço."
+          "text": "Fiquei com a ligação da Dona Neusa na cabeça... um porão embaixo da loja?"
         },
         {
           "speaker": "{player}",
-          "text": "A Dona Neusa comentou que o seu Antônio tinha um porão embaixo da loja. Olha ali, nesta parede: o contorno de uma porta!"
+          "text": "Espera... olha ali, nesta parede: o contorno de uma porta! Estava aqui esse tempo todo."
         },
         {
           "speaker": "{player}",
-          "text": "Com uma obra dá para abrir a passagem (Market, aba Construção)."
+          "text": "Com uma obra dá para abrir a passagem."
         }
       ]
     },
@@ -521,7 +517,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "Ainda é só uma porta velha emperrada. Preciso pagar a obra para abrir (Market, aba Construção)."
+          "text": "Ainda é só uma porta velha emperrada. Preciso pagar a obra para abrir."
         }
       ]
     },
@@ -591,11 +587,11 @@
         },
         {
           "speaker": "{player}",
-          "text": "Por enquanto é só grama e árvore. O resto eu monto do meu jeito (Market, aba Decor)."
+          "text": "Por enquanto é só grama e árvore. O resto eu monto do meu jeito."
         },
         {
           "speaker": "{player}",
-          "text": "Com 10 gatos no abrigo, dá para montar um playground (Market, aba Pet)."
+          "text": "Com 10 gatos no abrigo, dá para montar um playground."
         }
       ]
     },
@@ -611,11 +607,7 @@
         },
         {
           "speaker": "{player}",
-          "text": "Me desculpe, {cat:cat.first_stray}. Ontem acabei não comprando uma caminha pra você, mas vou resolver isso agora mesmo!"
-        },
-        {
-          "speaker": "{player}",
-          "text": "Pelo menos você não passou frio essa noite."
+          "text": "Vou resolver isso agora mesmo!"
         }
       ]
     },
@@ -892,7 +884,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Os presentes de Natal estão no Market, na aba Natal. Até o dia 25!"
+          "text": "Os presentes de Natal já estão à venda. Até o dia 25!"
         }
       ]
     },
@@ -1239,7 +1231,7 @@
         {
           "speaker": "Dona Neusa",
           "npc": "npc.neusa",
-          "text": "Os enfeites e os presentes estão no Market, na aba Halloween. Os doces da Semana do Halloween vão pro seu cardápio. Põe tudo nas mesas e nos balcões, viu?"
+          "text": "Os enfeites e os presentes já estão à venda. Os doces da Semana do Halloween vão pro seu cardápio. Põe tudo nas mesas e nos balcões, viu?"
         }
       ]
     },
@@ -1492,7 +1484,7 @@
       "lines": [
         {
           "speaker": "{player}",
-          "text": "(A limpeza pesada do Tião custa mais do que eu tenho agora. Quando juntar, peço pelo Market, na aba Construção.)"
+          "text": "(A limpeza pesada do Tião custa mais do que eu tenho agora. Quando juntar, eu peço.)"
         }
       ]
     },

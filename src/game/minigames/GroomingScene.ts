@@ -11,6 +11,7 @@ import { services } from '../services';
 import { GROOMING, loadSheets } from './assets';
 import { fillBarPart } from './bar';
 import { MiniGameScene } from './MiniGameScene';
+import { touch } from '../touch';
 
 export const GROOMING_SCENE = 'MiniGame.grooming';
 
@@ -45,6 +46,10 @@ export class GroomingScene extends MiniGameScene {
   private cat!: Phaser.GameObjects.Sprite;
   private matImgs = new Map<string, Phaser.GameObjects.Image>();
   private brush!: Phaser.GameObjects.Image;
+  /** Onde ficam as cerdas na imagem (0 a 1): é o ponto que escova (no mouse, ele fica na ponta do cursor). */
+  private bristles = { x: 0.2, y: 0.15 };
+  /** No toque, o dedo segura a ponta do cabo (à direita da imagem): as cerdas ficam à vista, à esquerda do dedo. */
+  private static readonly HANDLE_END = { x: 0.92, y: 0.5 };
   private bar!: Phaser.GameObjects.Graphics;
   private reactAt = { sensitive: -Infinity, comfort: -Infinity };
   private ended = false;
@@ -108,7 +113,12 @@ export class GroomingScene extends MiniGameScene {
     }
     this.brush = this.add.image(0, 0, GROOMING_KEYS.brush).setOrigin(0.2, 0.15).setDepth(100).setVisible(false);
     // A escova do PixelLab em 2x, com as cerdas (embaixo da cabeça, à esquerda) na ponta do mouse.
-    if (this.brush.width === GROOMING.brush.frameWidth) this.brush.setScale(2).setOrigin(0.3, 0.85);
+    if (this.brush.width === GROOMING.brush.frameWidth) {
+      this.bristles = { x: 0.3, y: 0.85 };
+      this.brush.setScale(2);
+    }
+    const hold = touch.mode === 'touch' ? GroomingScene.HANDLE_END : this.bristles;
+    this.brush.setOrigin(hold.x, hold.y);
     this.bar = this.add.graphics().setDepth(100);
     this.input.setDefaultCursor('none');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.setDefaultCursor('default'));
@@ -125,10 +135,12 @@ export class GroomingScene extends MiniGameScene {
     // Pelo controls.pointer(): o worldX do Phaser vem em pixels do canvas quando a cena abre por cima de outra.
     const raw = this.input.activePointer;
     const ptr = this.controls.pointer();
-    const at = { x: (ptr.x - this.origin.x) / this.zoom, y: (ptr.y - this.origin.y) / this.zoom };
-    const ev = stepGrooming(this.s, this.p, this.mats, this.zones, { ...at, down: ptr.down }, delta);
     // Antes do mouse se mexer, a posição é (0, 0): a escova só aparece depois.
     this.brush.setVisible(!!(raw.x || raw.y)).setPosition(ptr.x, ptr.y).setAngle(ptr.down ? Math.sin(this.time.now / 60) * 10 : -15);
+    // O ponto que escova: as cerdas. No mouse, é o próprio cursor; no toque, fica à esquerda do dedo (que segura o cabo).
+    const tip = this.bristlePoint();
+    const at = { x: (tip.x - this.origin.x) / this.zoom, y: (tip.y - this.origin.y) / this.zoom };
+    const ev = stepGrooming(this.s, this.p, this.mats, this.zones, { ...at, down: ptr.down }, delta);
     this.onEvents(ev);
     this.draw();
     const out = groomingOutcome(this.s, this.p);
@@ -139,6 +151,15 @@ export class GroomingScene extends MiniGameScene {
     if (r.skipped) return '';
     const t = uiText.minigames.grooming;
     return r.outcome === 'fail' ? t.failed : t.result.replace('{patience}', String(Math.round(this.s.patience)));
+  }
+
+  /** Onde estão as cerdas na tela agora (a imagem girada em volta do ponto que o dedo ou o mouse segura). */
+  private bristlePoint(): { x: number; y: number } {
+    const b = this.brush;
+    const dx = (this.bristles.x - b.originX) * b.displayWidth;
+    const dy = (this.bristles.y - b.originY) * b.displayHeight;
+    const a = b.rotation;
+    return { x: b.x + dx * Math.cos(a) - dy * Math.sin(a), y: b.y + dx * Math.sin(a) + dy * Math.cos(a) };
   }
 
   // ---------- Desenho ----------
@@ -185,7 +206,7 @@ export class GroomingScene extends MiniGameScene {
     }
     if (ev.sensitive && now - this.reactAt.sensitive > REACT_MS) {
       this.reactAt.sensitive = now;
-      this.float(t.sensitive, '#d9475d', this.brush.x, this.brush.y - 20);
+      this.float(t.sensitive, '#d9475d', this.bristlePoint().x, this.bristlePoint().y - 20);
       this.sfx(snd.sensitive);
       this.cat.setTint(0xffb0b0);
       this.time.delayedCall(180, () => !this.ended && this.cat.clearTint());
@@ -194,7 +215,7 @@ export class GroomingScene extends MiniGameScene {
     }
     if (ev.comfort && now - this.reactAt.comfort > REACT_MS * 1.5) {
       this.reactAt.comfort = now;
-      this.float('♥', '#d97890', this.brush.x, this.brush.y - 20);
+      this.float('♥', '#d97890', this.bristlePoint().x, this.bristlePoint().y - 20);
       this.sfx(snd.comfort);
     }
   }

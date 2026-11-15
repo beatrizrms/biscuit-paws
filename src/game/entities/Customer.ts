@@ -6,17 +6,20 @@ import type { AnchoredBox } from '../../core/spread';
 import type { NpcDef } from '../../core/script';
 import { serviceArt } from '../content';
 import { iconFrame } from '../icons';
+import { themeHex } from '../theme';
 import { NpcSprite } from './Npc';
 
 export type Mood = 'normal' | 'impatient' | 'furious';
 
 /** Tamanho do ícone de "tomando" (fração do ícone normal da folha). */
-const DRINK_ICON = 0.5;
+const DRINK_ICON = 0.75;
 /**
  * Consumindo: a xicrinha num disquinho claro e um anel fino em volta que fecha conforme ele consome (como um relógio).
  * Formato diferente da barra de paciência (a do balão do pedido), para as duas não se confundirem. px lógicos.
  */
-const CONSUME_RING = { r: 7, width: 1.5, disc: 0xfff4e0, track: 0xd9d4d6, fill: 0xe0708a };
+const CONSUME_RING = { r: 10, width: 2, disc: 0xfff4e0, track: 0xd9d4d6 };
+/** O verde da paleta (theme.css), lido uma vez só (não a cada quadro). */
+let ringGreen: number | null = null;
 
 export class CustomerSprite {
   readonly sprite: NpcSprite;
@@ -257,7 +260,8 @@ export class CustomerSprite {
     const g = this.consumeBox.clear();
     g.fillStyle(R.disc, 0.9).fillCircle(cx, cy, R.r);
     g.lineStyle(R.width, R.track, 0.9).strokeCircle(cx, cy, R.r);
-    if (done > 0) g.lineStyle(R.width, R.fill, 1).beginPath().arc(cx, cy, R.r, start, start + done * Math.PI * 2, false).strokePath();
+    // O anel que fecha: o verde da paleta do jogo (theme.css).
+    if (done > 0) g.lineStyle(R.width, (ringGreen ??= themeHex('--c-green', '#6f8f3a')), 1).beginPath().arc(cx, cy, R.r, start, start + done * Math.PI * 2, false).strokePath();
   }
 
   destroy(): void {

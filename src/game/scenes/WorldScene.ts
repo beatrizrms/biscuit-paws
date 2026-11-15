@@ -53,6 +53,7 @@ import { poseTexture } from '../playerLook';
 import { RoomView } from '../rooms/RoomView';
 import { SoundEvents } from '../audio/SoundEvents';
 import { InteractHint } from '../InteractHint';
+import { CartBalloon } from '../CartBalloon';
 import { PLACED_PREFIX } from '../../core/placement';
 import type { PlacedItem } from '../../core/state';
 import { CareBubbles, type CareStatus } from '../careBubbles';
@@ -277,6 +278,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private waitUntilAbs: number | null = null;
   /** Dica "E" em cima do que dá para usar agora. */
   private hint!: InteractHint;
+  /** O carrinho do mercado em cima da cabeça dela (no mercado, com algo nele). */
+  private cartBalloon!: CartBalloon;
+  private cartNow = { count: 0, total: 0 };
   private hintCheckedAt = 0;
   /** Balão de cuidado em cima de cada gato (remédio, banho, carinho); o que falta é relido 2 vezes por segundo. */
   private careBubbles!: CareBubbles;
@@ -363,6 +367,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.fireworksFx = new FireworksLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
+    this.cartBalloon = new CartBalloon(this);
+    this.session.bus.on('cart.changed', ({ count, total }) => (this.cartNow = { count, total }));
     this.careBubbles = new CareBubbles(this, this.session.content.health.care);
     this.ambience = new AmbienceLayer(this, this.session.content.dayNight.ambience);
     this.loadMap(this.session.location());
@@ -495,6 +501,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('plant.grew', rebuildIfHome);
     this.session.bus.on('item.moved', rebuildIfHome);
     this.session.bus.on('item.upgraded', rebuildIfHome);
+    // Tigela enchida e areia trocada: a arte cheia (item.fillTiles).
+    this.session.bus.on('bowl.filled', rebuildIfHome);
+    this.session.bus.on('litter.refilled', rebuildIfHome);
     // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
     this.session.bus.on('equipment.repair_started', ({ uid }) => this.showRepairNpc(uid));
     this.session.bus.on('equipment.repaired', ({ uid }) => {
@@ -710,7 +719,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Cansada (pouca energia), anda mais devagar e não corre.
       this.player.speedFactor = this.session.service.speed() * this.session.energySpeed();
       // R segurado: corre (carregando algo, um pouco menos). Guiada por roteiro, anda normal.
-      this.player.runFactor = runFactor(!this.autoWalk && (k.run.isDown || touch.run) && this.session.canRun(), this.session.service.carrying(), playerRun);
+      // O botão Correr do celular corre um pouco mais que o direcional na borda (e que o R).
+      const running = !this.autoWalk && (k.run.isDown || touch.run) && this.session.canRun();
+      this.player.runFactor = runFactor(running && touch.runButton ? 'button' : running, this.session.service.carrying(), playerRun);
       this.player.move(input);
       this.player.updateDepth();
     }
@@ -724,6 +735,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = this.eTarget();
       this.hint.show(at ? { ...at, label: uiText.hints[at.kind] } : null);
     }
+    // O carrinho em cima da cabeça dela, no mercado (fora dele, o HUD lembra de pagar).
+    const shopping = this.cartNow.count > 0 && (this.session.content.world.cartBalloonMaps ?? []).includes(this.map.id) && !this.changingMap;
+    this.cartBalloon.show(shopping ? { x: this.player.x, y: this.player.y - this.player.displayHeight, text: `${this.cartNow.count} · ${this.cartNow.total}` } : null);
     this.updateCareBubbles();
     this.fadeHudOverWorld();
     for (const w of this.waiters.filter((x) => x.until())) {

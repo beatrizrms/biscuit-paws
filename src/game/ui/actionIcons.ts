@@ -142,8 +142,17 @@ const ICONS: Record<string, string[]> = {
 
 export type ActionIcon = keyof typeof ICONS;
 
-/** O ícone em SVG (12 x 12 pixels da arte, desenhado em `px`), na cor do texto. */
+/** Ícones com arte do PixelLab (assets/ui/actions, 32 x 32): no lugar do desenho por código. */
+const ART: Partial<Record<ActionIcon, string>> = {
+  place: 'assets/ui/actions/place.png',
+  pantry: 'assets/ui/actions/to_pantry.png',
+  toBag: 'assets/ui/actions/to_bag.png',
+};
+
+/** O ícone: a arte do PixelLab, se houver; senão o SVG (12 x 12 pixels da arte, desenhado em `px`), na cor do texto. */
 export function actionIconSvg(name: ActionIcon, px = 12): string {
+  const art = ART[name];
+  if (art) return `<img class="action-icon art" src="${art}" alt="" aria-hidden="true" />`;
   const rows = ICONS[name] ?? [];
   const rects: string[] = [];
   rows.forEach((row, y) => {

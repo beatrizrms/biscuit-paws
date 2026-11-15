@@ -18,7 +18,7 @@ const SHORTCUTS: [TouchAction, string][] = [
   ['ESC', '❚❚'],
   ['P', 'Cel'],
   ['C', 'Market'],
-  ['M', 'Menu'],
+  ['M', 'Cardápio'],
   ['I', 'Mochila'],
   ['F', 'Mover'],
 ];
@@ -47,6 +47,10 @@ class TouchInput {
   /** Está correndo: o botão Correr ligado ou o direcional na borda. */
   get run(): boolean {
     return this.runLock || this.stickRun;
+  }
+  /** O botão Correr está ligado (corre um pouco mais que o direcional na borda). */
+  get runButton(): boolean {
+    return this.runLock;
   }
   /** O botão de ação está sendo segurado (jogos de segurar, como a pescaria). */
   holding = false;

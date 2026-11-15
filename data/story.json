@@ -72,14 +72,14 @@
         "title": "Uma boa faxina",
         "steps": [
           {
-            "text": "Tirar essas teias dos cantos.",
+            "text": "Tire as teias dos cantos",
             "when": {
               "cleaned": "web"
             },
             "devNote": "Clique na sujeira, com a personagem a até 2 células."
           },
           {
-            "text": "Varrer a poeira, os papéis e os cacos.",
+            "text": "Varra a poeira, os papéis e os cacos",
             "when": {
               "cleaned": "floor"
             }
@@ -103,7 +103,7 @@
         "title": "Esse miado...",
         "steps": [
           {
-            "text": "Vem da porta da frente. Vou ver.",
+            "text": "Veja quem está miando na porta",
             "when": {
               "flag": "seen.cs.meow_door"
             },
@@ -147,13 +147,13 @@
         "title": "Água e comida",
         "steps": [
           {
-            "text": "Uma tigela de água para {cat:cat.first_stray}.",
+            "text": "Compre uma tigela de água",
             "when": {
               "placed": "item.water_bowl"
             }
           },
           {
-            "text": "Não tenho ração... preciso ir ao mercado.",
+            "text": "Compre ração",
             "when": {
               "any": [
                 {
@@ -167,7 +167,7 @@
             "devNote": "Mercado: porta na coluna 24 da rua; caixa em (13,9), tecla E."
           },
           {
-            "text": "E uma tigela para a ração.",
+            "text": "Compre uma tigela de ração",
             "when": {
               "placed": "item.food_bowl"
             }
@@ -191,7 +191,7 @@
         "title": "Hora de comer",
         "steps": [
           {
-            "text": "Escolher a ração na barra e encher a tigela de {cat:cat.first_stray}.",
+            "text": "Encha a tigela de {cat:cat.first_stray}",
             "when": {
               "flag": "fed.cat.first_stray"
             },
@@ -270,7 +270,7 @@
         "title": "Gatinho doente",
         "steps": [
           {
-            "text": "Ver se a obra no fim da rua já virou a clínica veterinária.",
+            "text": "Procure a clínica veterinária da vila",
             "when": {
               "any": [
                 {
@@ -287,7 +287,7 @@
             "devNote": "Andar até a porta da clínica (rua): o intercept da porta roda scr.clinic_opening, que leva para dentro. Já ter consultado também conta (save de antes da cena de inauguração)."
           },
           {
-            "text": "Buscar {cat:cat.first_stray} no café e levar no colo até a clínica da Fernanda.",
+            "text": "Leve {cat:cat.first_stray} no colo até a clínica",
             "when": {
               "any": [
                 {
@@ -301,8 +301,8 @@
             "devNote": "E perto do gato pega no colo; na clínica, E no balcão da Fernanda abre a consulta. A consulta de entrada (vet.intake_done) também conta: com o gato doente, ela já começa o tratamento."
           },
           {
-            "text": "Dar o remédio para {cat:cat.first_stray}",
-            "detail": "Uma dose por dia, até acabar a receita.",
+            "text": "Dê o remédio a {cat:cat.first_stray}",
+            "detail": "Uma dose por dia, até acabar.",
             "icon": "remedio",
             "doses": "cat.first_stray",
             "when": {
@@ -332,7 +332,7 @@
         "title": "Que cheiro é esse?",
         "steps": [
           {
-            "text": "Recolher o \"presente\" de {cat:cat.first_stray} com a vassoura.",
+            "text": "Varra o \"presente\" de {cat:cat.first_stray}",
             "when": {
               "cleaned": "poop"
             },
@@ -353,17 +353,23 @@
         "story.litter_surprise"
       ],
       "goal": {
-        "title": "Um cantinho quente",
+        "title": "Tudo que um gatinho precisa",
         "together": true,
         "steps": [
           {
-            "text": "Uma caixa de areia no café (Market, aba Pet).",
+            "text": "Compre uma caixa de areia",
             "when": {
               "placed": "item.litter_box"
             }
           },
           {
-            "text": "Uma caminha macia para {cat:cat.first_stray} (Market, aba Pet).",
+            "text": "Compre areia e encha a caixa",
+            "when": {
+              "flag": "litter.refilled"
+            }
+          },
+          {
+            "text": "Compre uma caminha",
             "when": {
               "placed": "item.cat_bed"
             }
@@ -388,7 +394,7 @@
         "title": "Uma cafeteira",
         "steps": [
           {
-            "text": "Juntar 205 moedas com pedidos da vila (mural do mercado ou celular, tecla P): a cafeteira (180) e um balcão para ela (25).",
+            "text": "Junte 205 moedas fazendo trabalhos para a vila",
             "when": {
               "any": [
                 {
@@ -410,19 +416,19 @@
             }
           },
           {
-            "text": "Encomendar um balcão pelo Market (C).",
-            "when": {
-              "ownedTag": "bar"
-            }
-          },
-          {
-            "text": "Encomendar a cafeteira pelo Market (C).",
+            "text": "Encomende uma cafeteira",
             "when": {
               "owned": "item.coffee_machine"
             }
           },
           {
-            "text": "Montar o balcão e pôr a cafeteira em cima dele.",
+            "text": "Encomende um balcão",
+            "when": {
+              "ownedTag": "bar"
+            }
+          },
+          {
+            "text": "Monte o balcão com a cafeteira em cima",
             "when": {
               "placed": "item.coffee_machine"
             },
@@ -494,39 +500,60 @@
       },
       "exclusive": true,
       "goal": {
-        "title": "Mesas para o salão",
+        "title": "Mesa e cadeira",
         "steps": [
           {
-            "text": "Juntar 120 moedas para duas mesas.",
+            "text": "Junte 75 moedas fazendo trabalhos para a vila",
             "when": {
               "any": [
                 {
                   "money": {
-                    "gte": 120
+                    "gte": 75
                   }
                 },
                 {
-                  "ownedTag": "table",
-                  "gte": 2
+                  "all": [
+                    {
+                      "ownedTag": "table"
+                    },
+                    {
+                      "ownedTag": "chair"
+                    }
+                  ]
                 }
               ]
             }
           },
           {
-            "text": "Encomendar duas mesas pelo Market (C).",
+            "text": "Encomende uma mesa",
             "when": {
-              "ownedTag": "table",
-              "gte": 2
+              "ownedTag": "table"
+            }
+          },
+          {
+            "text": "Encomende uma cadeira",
+            "when": {
+              "ownedTag": "chair"
             }
           }
         ]
       },
       "effects": [],
       "when": {
-        "deliveryTag": "table",
-        "stage": "door",
-        "gte": 2
-      }
+        "all": [
+          {
+            "deliveryTag": "table",
+            "stage": "door",
+            "gte": 1
+          },
+          {
+            "deliveryTag": "chair",
+            "stage": "door",
+            "gte": 1
+          }
+        ]
+      },
+      "_when": "Uma mesa e uma cadeira (antes: duas mesas e, depois da Gabi, a meta das cadeiras)."
     },
     {
       "id": "story.gabi_call",
@@ -571,7 +598,7 @@
         "title": "A visita da Gabi",
         "steps": [
           {
-            "text": "A Gabi chega às {timer:gabi.arrival}.",
+            "text": "Espere a Gabi: ela chega às {timer:gabi.arrival}",
             "when": {
               "timer": "gabi.arrival"
             }
@@ -592,25 +619,21 @@
         "story.gabi_visit"
       ],
       "exclusive": true,
-      "goal": {
-        "title": "Cadeiras",
-        "steps": [
-          {
-            "text": "Encomendar duas cadeiras para as mesas.",
-            "when": {
-              "ownedTag": "chair",
-              "gte": 2
-            }
-          }
-        ]
-      },
       "effects": [
         {
           "dialogue": "dlg.chairs_done"
         }
       ],
-      "start": {
-        "flag": "seen.scr.gabi_visit"
+      "_when": "Sem meta desde que a mesa e a cadeira vêm juntas (story.tables): só a fala, com as duas montadas. O id fica (saves).",
+      "when": {
+        "all": [
+          {
+            "placedTag": "table"
+          },
+          {
+            "placedTag": "chair"
+          }
+        ]
       }
     },
     {
@@ -637,13 +660,7 @@
         "title": "O primeiro cliente",
         "steps": [
           {
-            "text": "Um balcão para servir em pé.",
-            "when": {
-              "placedTag": "bar"
-            }
-          },
-          {
-            "text": "Montar o cardápio no quadro (tecla M).",
+            "text": "Monte o cardápio",
             "when": {
               "menu": {
                 "gte": 1
@@ -651,7 +668,7 @@
             }
           },
           {
-            "text": "Atender o primeiro cliente: preparar, entregar e lavar a louça.",
+            "text": "Atenda o primeiro cliente",
             "when": {
               "served": {
                 "gte": 1
@@ -670,6 +687,46 @@
       ]
     },
     {
+      "id": "story.basement_call",
+      "act": 2,
+      "after": [
+        "story.inauguration"
+      ],
+      "_when": "A Dona Neusa liga contando do porão (nunca no dia da inauguração); a porta só aparece depois, quando ela olhar o café com calma (rooms.json: discover).",
+      "when": {
+        "all": [
+          {
+            "milestone": "milestone.customers_40"
+          },
+          {
+            "nextDay": "story.inauguration"
+          },
+          {
+            "clock": {
+              "gte": "09:00"
+            }
+          },
+          {
+            "not": {
+              "clock": {
+                "gte": "19:00"
+              }
+            }
+          }
+        ]
+      },
+      "effects": [
+        {
+          "cutscene": "cs.neusa_basement_call"
+        },
+        {
+          "startTimer": "basement.look",
+          "minutes": 40
+        }
+      ],
+      "exclusive": true
+    },
+    {
       "id": "story.back_room",
       "act": 2,
       "after": [
@@ -683,20 +740,20 @@
         "title": "O porão",
         "steps": [
           {
-            "text": "Pagar a obra para abrir o acesso ao porão (Market, aba Construção).",
+            "text": "Pague a obra para abrir o porão",
             "when": {
               "room": "room.back_room",
               "atLeast": "abandoned"
             }
           },
           {
-            "text": "Limpar o porão.",
+            "text": "Limpe o porão",
             "when": {
               "cleaned": "back_room"
             }
           },
           {
-            "text": "Terminar a reforma (Market, aba Construção).",
+            "text": "Termine a reforma do porão",
             "when": {
               "room": "room.back_room",
               "atLeast": "restored"
@@ -720,7 +777,7 @@
         "title": "O quintal secreto",
         "steps": [
           {
-            "text": "Achar a chave do cadeado.",
+            "text": "Ache a chave do cadeado",
             "when": {
               "any": [
                 {
@@ -734,20 +791,20 @@
             }
           },
           {
-            "text": "Abrir a porta com a chave (E na porta).",
+            "text": "Abra a porta com a chave",
             "when": {
               "room": "room.backyard",
               "atLeast": "abandoned"
             }
           },
           {
-            "text": "Limpar o quintal (folhas e mato).",
+            "text": "Limpe o quintal",
             "when": {
               "cleaned": "backyard"
             }
           },
           {
-            "text": "Terminar a reforma (Market, aba Construção).",
+            "text": "Termine a reforma do quintal",
             "when": {
               "room": "room.backyard",
               "atLeast": "restored"
@@ -1049,20 +1106,20 @@
         "title": "A inauguração",
         "steps": [
           {
-            "text": "Fazer os reparos de dentro e de fora do café com o Tião (Market, aba Construção).",
+            "text": "Faça os reparos do café com o Tião",
             "when": {
               "renovated": true
             },
             "devNote": "Condição renovated = os reparos inside e outside (construction.ts: isRenovated). A troca de papel de parede, lambri, pisos e fachada é opcional."
           },
           {
-            "text": "Com os reparos prontos, encomendar a lousa do café (Market, aba Construção, em Fachada) e abrir a caixa.",
+            "text": "Encomende a lousa do café",
             "when": {
               "received": "item.cafe_sign"
             }
           },
           {
-            "text": "Inaugurar no dia 26, logo depois do Natal ({untilDay:26}). Sem tudo pronto até lá, no primeiro dia pronto depois (entre 8h e 18h), fora dos dias de festa (como o Ano Novo).",
+            "text": "Inaugure o café dia 26",
             "when": {
               "all": [
                 {
@@ -1079,7 +1136,7 @@
             }
           },
           {
-            "text": "Colar 3 cartazes da inauguração pela vila.",
+            "text": "Cole 3 cartazes pela vila",
             "optional": true,
             "when": {
               "openingPosters": {
@@ -1089,7 +1146,7 @@
             "daily": true
           },
           {
-            "text": "Convidar 3 amigos (conversar com eles).",
+            "text": "Convide 3 amigos",
             "optional": true,
             "when": {
               "openingInvites": {
@@ -1099,7 +1156,7 @@
             "daily": true
           },
           {
-            "text": "Montar o cardápio da estreia (3 receitas no quadro).",
+            "text": "Monte o cardápio da estreia (3 receitas)",
             "optional": true,
             "when": {
               "menu": {
@@ -1108,7 +1165,7 @@
             }
           },
           {
-            "text": "Enfeitar o café com 3 plantas.",
+            "text": "Enfeite o café com 3 plantas",
             "optional": true,
             "when": {
               "placedTag": "plant",
@@ -1218,10 +1275,19 @@
     {
       "id": "story.xmas_wreath_gift",
       "act": 1,
+      "_when": "Só se ela ainda não tem uma guirlanda; e nunca no dia em que conheceu a Dona Neusa (ela aparece no fim da visita da Gabi).",
       "when": {
         "all": [
           {
             "flag": "met.old_neighbor"
+          },
+          {
+            "nextDay": "story.gabi_visit"
+          },
+          {
+            "not": {
+              "owned": "item.xmas_wreath"
+            }
           },
           {
             "season": "winter"
