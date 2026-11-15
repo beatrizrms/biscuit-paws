@@ -1382,14 +1382,17 @@ export class CafeService {
   }
 
   /**
-   * Cliente ao alcance esperando, com um pedido pronto na mão: primeiro quem pediu o que ela tem; senão, qualquer um
-   * (dá para entregar o pedido errado: ele aceita, mas a nota cai).
+   * Cliente ao alcance esperando, com um pedido pronto na mão: primeiro quem pediu o que ela tem (entre esses, quem espera
+   * há mais tempo); senão, qualquer um (dá para entregar o pedido errado: ele aceita, mas a nota cai).
    */
   customerToServe(feet: readonly Cell[]): Customer | undefined {
     const drinks = this.st.hands.filter((i) => i.kind === 'drink' && !this.recipe(i.recipe)?.special);
     if (drinks.length === 0) return undefined;
     // Perto dele ou da mesa dele (do outro lado da mesa também): entregar vence pôr a bebida na mesa.
-    const waiting = this.st.service.customers.filter((c) => c.stage === 'waiting' && c.recipe && (near(feet, c.spot) || near(feet, c.dishAt)));
+    // Quem espera há mais tempo primeiro (o prazo da paciência mais perto): com dois pedidos iguais na mesa, leva quem pediu antes.
+    const waiting = this.st.service.customers
+      .filter((c) => c.stage === 'waiting' && c.recipe && (near(feet, c.spot) || near(feet, c.dishAt)))
+      .sort((a, b) => a.until - b.until);
     return waiting.find((c) => drinks.some((d) => d.kind === 'drink' && d.recipe === c.recipe)) ?? waiting[0];
   }
 

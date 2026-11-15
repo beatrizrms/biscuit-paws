@@ -267,6 +267,14 @@ describe('ciclo do pedido', () => {
     expect(state.dishes.cup).toBe(6);
   });
 
+  it('dois pedidos iguais na mesma mesa: a entrega vai para quem espera há mais tempo', () => {
+    const { sv, state } = openCafe();
+    const base = { look: 0, stage: 'waiting' as const, kind: 'table' as const, dishAt: [4, 6] as [number, number], recipe: 'recipe.black_coffee', favorite: null, wantsPremium: false };
+    state.service.customers.push({ ...base, id: 'novo', spot: [3, 6], until: 900 }, { ...base, id: 'antigo', spot: [5, 6], until: 600 });
+    state.hands = [{ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup', quality: 'simple' }];
+    expect(sv.customerToServe([[4, 7]])?.id).toBe('antigo');
+  });
+
   it('ela escolhe a receita no equipamento (sem limite de itens sem dono); só um pronto em cima do equipamento', () => {
     const { session, sv, state } = openCafe();
     sv.toggleMenu('recipe.black_coffee');

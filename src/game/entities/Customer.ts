@@ -154,7 +154,13 @@ export class CustomerSprite {
     }
     if (!this.drinkIcon && icon) {
       const f = iconFrame(this.scene, icon);
-      if (f) this.drinkIcon = this.scene.add.image(0, 0, f.key, f.frame).setOrigin(0.5, 0.5).setDepth(99_400).setScale(f.scale * DRINK_ICON);
+      if (f) {
+        this.drinkIcon = this.scene.add.image(0, 0, f.key, f.frame).setOrigin(0.5, 0.5).setDepth(99_400).setScale(f.scale * DRINK_ICON);
+        // Cabe dentro do disco do anel (o copo e a xícara passavam da borda).
+        const max = CONSUME_RING.r * 2 - 4;
+        const size = Math.max(this.drinkIcon.displayWidth, this.drinkIcon.displayHeight);
+        if (size > max) this.drinkIcon.setScale(this.drinkIcon.scaleX * (max / size));
+      }
     }
     this.consumed = Math.min(1, Math.max(0, progress));
     this.consumeBox.setVisible(true);
