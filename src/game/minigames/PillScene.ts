@@ -11,6 +11,7 @@ import { keyless } from '../touch';
 import { CatSprite, catScale, catTexture } from '../entities/Cat';
 import { services } from '../services';
 import { loadSheets, PILL as PILL_ART } from './assets';
+import { fillBarPart } from './bar';
 import { MiniGameScene } from './MiniGameScene';
 
 export const PILL_SCENE = 'MiniGame.pill';
@@ -210,8 +211,8 @@ export class PillScene extends MiniGameScene {
         .fillRoundedRect(x - 2, y - 2, BAR_W + 4, 10, 4)
         .fillStyle(0xf3d9c2, 1)
         .fillRoundedRect(x, y, BAR_W, 6, 3)
-        .fillStyle(k > 0.6 ? 0xd9475d : 0xe0a94e, 1)
-        .fillRoundedRect(x, y, Math.max(0.01, BAR_W * k), 6, 3);
+        .fillStyle(k > 0.6 ? 0xd9475d : 0xe0a94e, 1);
+      fillBarPart(this.bar, x, y, BAR_W * k, 6, 3);
     }
     const cov = Math.round(coverage(s) * 100);
     this.setHudInfo(s.phase === 'cover' ? t.hudCover.replace('{n}', String(cov)) : t.hudOffer.replace('{n}', String(Math.round(s.suspicion))).replace('{cover}', String(cov)));
