@@ -7,6 +7,7 @@ import { openCreator } from './CreatorPanel';
 import { gameInfo, t } from '../../i18n';
 import { services } from '../../services';
 import { openCredits } from './CreditsPanel';
+import { openHowTo } from './HowToPanel';
 import { esc, menuToast, pushLayer, popLayer, slotName, slotText, type MenuLayer } from './MenuKit';
 import { openOptions } from './OptionsPanel';
 import { openSlots } from './SlotsPanel';
@@ -73,6 +74,7 @@ export class MainMenu {
         <button class="menu-btn big" data-act="new">${t('home.newGame')}</button>
         <button class="menu-btn big" data-act="load">${t('home.load')}</button>
         <button class="menu-btn big" data-act="options">${t('home.options')}</button>
+        <button class="menu-btn big" data-act="howTo">${t('home.howTo')}</button>
         <button class="menu-btn big" data-act="credits">${t('home.credits')}</button>
       </div>
       <p class="menu-hint"><span class="keys-hint">${t('home.hint')}</span><span class="touch-hint">${t('home.hintTouch')}</span></p>`;
@@ -82,6 +84,7 @@ export class MainMenu {
     on('new', () => void this.newGame());
     on('load', () => openSlots(this.root, 'load', { onPlay: (s) => void this.play(s), onNewGame: (s) => this.create(s), onClose: again }));
     on('options', () => openOptions(this.root, again));
+    on('howTo', () => openHowTo(this.root, again));
     on('credits', () => openCredits(this.root, again));
     const first = this.el.querySelector<HTMLElement>('[data-act]:not([disabled])');
     if (!this.pushed) {

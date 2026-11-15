@@ -609,6 +609,19 @@ export function buildContent(raw: RawContent): Content {
 const DEV_WORDS = /\b(marcos?|debug|placeholder)\b/i;
 const DEV_MARKERS = /\b(TODO|FIXME|WIP)\b/; // só em maiúsculas: "todo dia" é português comum
 
+/**
+ * Textos do jogo (metas, falas, cenas, dicas) só dizem a ação e o objeto: sem tecla ("(E)", "aperte C"), sem clique e
+ * sem caminho de menu ("aba Pet"). Os controles moram na página "Como jogar" e na dica do E em cima das coisas
+ * (docs/PLANO_TEXTOS_METAS.md). As instruções dos mini games ficam de fora: lá a tecla é o assunto.
+ */
+export function controlMention(text: string): string | null {
+  const m =
+    text.match(/\((?:E|C|M|P|I|F|Q|T|R|G|Esc|Enter)\)/) ??
+    text.match(/\b(?:tecla|teclas|clique|clicar|clicando|aperte|apertar|apertando)\b/i) ??
+    text.match(/\baba\s+[A-ZÁÉÍÓÚÂÊÔÃÕ]\p{L}*/u);
+  return m ? m[0] : null;
+}
+
 /** Confere IDs, prefixos e referências cruzadas. Lista vazia = tudo certo. */
 export function validateContent(raw: RawContent): string[] {
   const dupScenes = Object.keys(raw.cedText.cutscenes).filter((id) => id in raw.cutscenes.cutscenes);
@@ -619,6 +632,11 @@ export function validateContent(raw: RawContent): string[] {
   const err = (msg: string) => errors.push(msg);
   const playerText = (where: string, text: string) => {
     if (DEV_WORDS.test(text) || DEV_MARKERS.test(text)) err(`${where}: texto da jogadora parece nota de desenvolvimento ("${text}"); use "devNote"`);
+  };
+  const gameText = (where: string, text: string) => {
+    playerText(where, text);
+    const hit = controlMention(text);
+    if (hit) err(`${where}: texto do jogo cita controle ou menu ("${hit}" em "${text}"); isso vai na página Como jogar`);
   };
 
   // Mapas e portas
@@ -1187,11 +1205,12 @@ export function validateContent(raw: RawContent): string[] {
   raw.finishes.finishes.forEach((f) => playerText(`finish "${f.id}"`, f.name));
   (home?.surfaces ?? []).forEach((s) => playerText(`surface "${s.id}"`, s.name));
   for (const beat of raw.story.beats) {
-    if (beat.goal) playerText(`story "${beat.id}"`, beat.goal.title);
-    beat.goal?.steps.forEach((s) => [s.text, s.detail].forEach((t) => t && playerText(`story "${beat.id}"`, t)));
+    if (beat.goal) gameText(`story "${beat.id}"`, beat.goal.title);
+    beat.goal?.steps.forEach((s) => [s.text, s.detail].forEach((t) => t && gameText(`story "${beat.id}"`, t)));
   }
-  for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => playerText(`dialogue "${id}"`, l.text));
-  for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => playerText(`cutscene "${id}"`, t));
+  for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => gameText(`dialogue "${id}"`, l.text));
+  for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => gameText(`cutscene "${id}"`, t));
+  for (const tip of raw.news.tips ?? []) gameText(`news: dica "${tip.id}"`, tip.text);
 
   return errors;
 }

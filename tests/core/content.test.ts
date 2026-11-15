@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { validateContent } from '../../src/core/content';
+import { readFileSync } from 'node:fs';
+import { controlMention, validateContent } from '../../src/core/content';
 import { rawContent } from './content';
 
 describe('validateContent', () => {
@@ -10,6 +11,30 @@ describe('validateContent', () => {
     const errors = validateContent(raw).join('\n');
     expect(errors).toMatch(/story "story.warm_corner": texto da jogadora/);
     expect(errors).toMatch(/dialogue "dlg.intro": texto da jogadora/);
+  });
+
+  it('acusa tecla, clique ou caminho de menu nos textos do jogo (metas, falas, dicas)', () => {
+    const raw = rawContent();
+    raw.story.beats.find((b) => b.id === 'story.warm_corner')!.goal!.steps[0]!.text = 'Compre uma caixa de areia (Market, aba Pet)';
+    raw.dialogue.dialogues['dlg.intro']!.lines[0]!.text = 'Aperte C para abrir o Market.';
+    raw.news.tips![0]!.text = 'Clique na tigela (E).';
+    const errors = validateContent(raw).join('\n');
+    expect(errors).toMatch(/story "story.warm_corner": texto do jogo cita controle ou menu \("aba Pet"/);
+    expect(errors).toMatch(/dialogue "dlg.intro": texto do jogo cita controle ou menu \("Aperte"/);
+    expect(errors).toMatch(/news: dica .*cita controle ou menu/);
+  });
+
+  it('as tarefas do dia e os avisos do balão também não citam tecla, clique nem menu', () => {
+    const ui = JSON.parse(readFileSync('data/ui_text.json', 'utf8')) as { chores: unknown; service: { blocked: unknown }; goals: { nextSealDetail: string } };
+    const texts: string[] = [];
+    const walk = (v: unknown) => (typeof v === 'string' ? texts.push(v) : v && typeof v === 'object' && Object.values(v).forEach(walk));
+    walk(ui.chores);
+    walk(ui.service.blocked);
+    texts.push(ui.goals.nextSealDetail);
+    expect(texts.filter((t) => controlMention(t))).toEqual([]);
+    // E o detector pega o que deve.
+    expect(['Ponha receitas (M).', 'Market, aba Construção', 'aperte E', 'clique nela'].map(controlMention)).toEqual(['(M)', 'aba Construção', 'aperte', 'clique']);
+    expect(controlMention('Encha a tigela de ração')).toBeNull();
   });
 
   it('o conteúdo de data/ é válido', () => {
