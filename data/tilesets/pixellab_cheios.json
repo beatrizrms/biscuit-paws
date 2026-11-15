@@ -1,0 +1,31 @@
+{
+ "tileSize": 64,
+ "columns": 4,
+ "rows": 1,
+ "pieces": {
+  "food_bowl_cheia": {
+   "col": 0,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "water_bowl_cheia": {
+   "col": 1,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "litter_box_vazia": {
+   "col": 2,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixa_areia_verde_vazia": {
+   "col": 3,
+   "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  }
+ }
+}

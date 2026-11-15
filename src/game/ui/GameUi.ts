@@ -113,12 +113,17 @@ export class GameUi {
       </div>`;
     const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
     this.money = $('.hud-money');
-    // Carrinho no HUD: aparece enquanto tem algo nele (mesmo fora do mercado, para lembrar de pagar).
+    // Carrinho no HUD: aparece enquanto tem algo nele, fora do mercado (para lembrar de pagar). No mercado, ele vai num
+    // balão em cima da cabeça dela (WorldScene: CartBalloon; aqui ficava escondido embaixo da energia).
     const cartEl = $('.hud-cart');
+    let cartCount = 0;
+    const showCart = () => (cartEl.hidden = cartCount === 0 || (content.world.cartBalloonMaps ?? []).includes(session.state.location));
     session.bus.on('cart.changed', ({ count, total }) => {
-      cartEl.hidden = count === 0;
+      cartCount = count;
       cartEl.innerHTML = `<img src="assets/ui/hud/${count > 0 ? 'icon_cart_full' : 'icon_cart_empty'}.png" alt="${uiText.shop.cartTitle}" /><span>${count} · ${total}</span>`;
+      showCart();
     });
+    session.bus.on('map.entered', showCart);
     this.goals = $('.hud-goals');
     // O balão é um ícone no canto; um clique abre o painel no centro da tela. Fecha pelo × (o título), tocando fora
     // dele ou com Esc. Dentro do painel, clicar não fecha (dá para rolar e usar os botões).
@@ -731,19 +736,20 @@ export class GameUi {
       }
       if (ch.kind === 'care') {
         // O mesmo ícone do balão em cima do gato; sem a escova/varinha, diz onde comprar.
-        const t = c.care[ch.need!];
-        const line = (ch.hasTool ? t.do : t.buy).replace('{cat}', this.session.catName(ch.catId!));
+        const t = c.care[ch.need!] as { do: string; buy: string; more?: string };
+        // Sem a ferramenta: comprar; com brinquedos de menos no café: "compre mais brinquedos".
+        const line = (!ch.hasTool ? t.buy : ch.toysShort && t.more ? t.more : t.do).replace('{cat}', this.session.catName(ch.catId!));
         const art = content.health.care.bubbles[ch.need!];
         const icon = art?.icon ?? (art?.item ? content.items[art.item]?.icon : undefined);
         today.push(this.row(line, { icon }));
         continue;
       }
       if (ch.kind === 'poop') {
-        today.push(this.row(c.poop, { icon: 'areia' }));
+        today.push(this.row(c.poop, { icon: 'areia_balde' }));
         continue;
       }
-      if (ch.kind === 'toys') {
-        today.push(this.row(c.toys, { right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+      if (ch.kind === 'litter') {
+        today.push(this.row(c.litter, { icon: 'areia_balde', right: ch.progress && ch.progress[1] > 1 ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       // Clínica: consulta de entrada, buscar, pontinho e a latinha do cercadinho.
@@ -757,12 +763,12 @@ export class GameUi {
         today.push(this.row(catSexText(this.session, c.settle, ch.catId!).replace('{cat}', this.session.catName(ch.catId!)), { icon: 'petisco_biscoito' }));
         continue;
       }
-      // Comida: "Ração para os gatos", com quantos já comeram (x/y), mesmo com um gato só.
+      // Comida: "Encha a tigela de ração", com quantos já comeram (x/y), mesmo com um gato só.
       const feedText = c.feedAll;
-      // Despensa: quais compras ainda estão na mochila ("Guardar na despensa: Laranja, Açúcar").
+      // Despensa: quais compras ainda estão na mochila ("Guarde na despensa: Laranja, Açúcar").
       const pantryText = c.pantryItems.replace('{items}', listNames(this.session.service.ingredientsToStore().map((id) => content.items[id]?.name ?? id)));
       const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? pantryText : c.sweep;
-      const icon = ch.kind === 'feed' ? 'racao_simples' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
+      const icon = ch.kind === 'feed' ? 'racao_aberta' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }
     for (const job of this.session.activeJobs()) {

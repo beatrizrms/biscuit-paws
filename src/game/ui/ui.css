@@ -769,6 +769,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-detail-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
 .catalog.backpack .bp-detail-actions button.bp-icon-btn { display: inline-flex; align-items: center; gap: 1px; padding: 2px; border-radius: 5px; color: var(--c-wood-dark); line-height: 0; }
 .catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon { width: calc(10px * var(--fs, 1)); height: calc(10px * var(--fs, 1)); }
+/* Os ícones com arte (32 x 32 do PixelLab): um pouco maiores, para o desenho aparecer. */
+.catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon.art { width: calc(14px * var(--fs, 1)); height: calc(14px * var(--fs, 1)); image-rendering: pixelated; }
 .catalog.backpack .bp-detail-actions .bp-icon-btn .badge { font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; }
 .catalog.backpack .bp-hint { margin: 5px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-style: italic; color: var(--grey2); }
 

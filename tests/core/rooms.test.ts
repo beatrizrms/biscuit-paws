@@ -13,17 +13,25 @@ const content = loadContent();
 const beats = content.story.beats.map((b) => b.id);
 const until = (id: string) => beats.slice(0, beats.indexOf(id) + 1);
 
-/** No café, já inaugurado e com movimento (o quartinho já pode ser descoberto: 40 clientes, dia 6). */
-function afterFirstCustomer(money = 1000, progress: { served?: number; day?: number } = {}) {
+/**
+ * No café, já inaugurado e com movimento (o quartinho já pode ser descoberto: 40 clientes, dia 6). A ligação da Dona
+ * Neusa sobre o porão já aconteceu e o tempo de olhar já passou (`call: false`: ainda não ligou).
+ */
+function afterFirstCustomer(money = 1000, progress: { served?: number; day?: number; call?: boolean; inauguratedDaysAgo?: number } = {}) {
   const state = newGameState(money, 'map.cafe_main', 10 * 60);
   state.flags['has.cat'] = true;
   state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
   state.inventory['item.broom'] = 1;
   // Os marcos dos cômodos ficam antes da inauguração no arquivo: não entram como concluídos.
-  state.story.completed.push(...until('story.inauguration').filter((b) => b !== 'story.back_room' && b !== 'story.backyard'));
+  state.story.completed.push(...until('story.inauguration').filter((b) => b !== 'story.back_room' && b !== 'story.backyard' && b !== 'story.basement_call'));
+  if (progress.call !== false) {
+    state.story.completed.push('story.basement_call');
+    state.timers['basement.look'] = 0;
+  }
   state.business = 'inaugurated';
   state.service.served = progress.served ?? 40;
   state.day = progress.day ?? 6;
+  if (progress.inauguratedDaysAgo !== undefined) state.story.completedOn['story.inauguration'] = state.day - progress.inauguratedDaysAgo;
   const session = new GameSession(content, state);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
@@ -104,6 +112,21 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.goals().map((g) => g.title)).toContain('O porão');
   });
 
+  it('a Dona Neusa liga primeiro (nunca no dia da inauguração); a porta só aparece depois de um tempo, no café', () => {
+    // No dia da inauguração: nada.
+    const same = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 0 });
+    expect(same.state.story.completed).not.toContain('story.basement_call');
+    expect(same.session.roomState('room.back_room')).toBe('locked');
+    // No dia seguinte: a ligação, e a porta ainda não.
+    const { session, events } = afterFirstCustomer(1000, { call: false, inauguratedDaysAgo: 1 });
+    expect(events.some((e) => e.name === 'cutscene.requested' && (e.payload as { cutsceneId: string }).cutsceneId === 'cs.neusa_basement_call')).toBe(true);
+    expect(session.roomState('room.back_room')).toBe('locked');
+    // Uns 40 minutos depois, no café: ela acha a porta.
+    for (let i = 0; i < 45; i++) session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(session.roomState('room.back_room')).toBe('discovered');
+    expect(dialogues(events)).toContain('dlg.room_back_found');
+  });
+
   it('reformado sem limpar (save antigo): a sujeira do porão não aparece', () => {
     const { session, state } = afterFirstCustomer();
     state.rooms['room.back_room'] = 'abandoned';
@@ -118,8 +141,10 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(dialogues(events)).toContain('dlg.door_back_room_locked');
   });
 
-  it('o ritmo: sem a inauguração e 40 clientes, o quartinho continua oculto', () => {
-    expect(afterFirstCustomer(1000, { served: 39 }).session.roomState('room.back_room')).toBe('locked');
+  it('o ritmo: sem a inauguração e 40 clientes, a Dona Neusa não liga e o quartinho continua oculto', () => {
+    const { session, state } = afterFirstCustomer(1000, { served: 39, call: false });
+    expect(state.story.completed).not.toContain('story.basement_call');
+    expect(session.roomState('room.back_room')).toBe('locked');
   });
 
   it('obra: sem dinheiro não abre; pagando, abre sujo e a capacidade sobe (o quintal ainda não)', () => {

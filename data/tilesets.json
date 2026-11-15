@@ -1206,6 +1206,19 @@
       }
     },
     {
+      "id": "pixellab_cheios",
+      "_comment": "PixelLab (edição da arte de sempre): tigela de ração cheia, tigela de água cheia e as caixas de areia vazias (itens: fillTiles).",
+      "image": "assets/objects/pixellab/tile_pixellab_cheios.png",
+      "pieces": "pixellab_cheios.json",
+      "prefix": "",
+      "layer": "object",
+      "solid": true,
+      "overrides": {
+        "food_bowl_cheia": { "solid": false },
+        "water_bowl_cheia": { "solid": false }
+      }
+    },
+    {
       "id": "pixellab_provisorios",
       "image": "assets/objects/pixellab/tile_pixellab_provisorios.png",
       "pieces": "pixellab_provisorios.json",

@@ -27,3 +27,20 @@ export const hueCss = (hue: number | undefined) => (hue ? `filter:hue-rotate(${h
 export function addTileImage(scene: Phaser.Scene, x: number, y: number, sheet: string, frame: number): Phaser.GameObjects.Image {
   return scene.add.image(x, y, sheet, frame).setOrigin(0).setScale(tileScale(sheet));
 }
+
+/**
+ * Tira uma lasca de `inset` px de cada borda do que cada quadro lê da folha (só no WebGL; o desenho continua do mesmo
+ * tamanho). No celular o zoom (1,25) não divide a arte de 64 px por inteiro, e em algumas posições da câmera o iPhone
+ * lia a fileira de pixels da peça vizinha na folha: viravam linhas claras atravessando o chão. Com a lasca, a borda
+ * lê a própria peça. 0,15 px não aparece a olho.
+ */
+export function insetSheetFrames(scene: Phaser.Scene, key: string, inset = 0.15): void {
+  if (!scene.textures.exists(key)) return;
+  const texture = scene.textures.get(key);
+  for (const name of texture.getFrameNames()) {
+    const f = texture.get(name);
+    const tw = f.source.width;
+    const th = f.source.height;
+    f.setUVs(f.cutWidth, f.cutHeight, (f.cutX + inset) / tw, (f.cutY + inset) / th, (f.cutX + f.cutWidth - inset) / tw, (f.cutY + f.cutHeight - inset) / th);
+  }
+}

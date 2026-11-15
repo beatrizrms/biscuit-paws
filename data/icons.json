@@ -5,6 +5,8 @@
   "tileSize": 32,
   "columns": 5,
   "icons": {
+    "racao_aberta": { "col": 0, "row": 0, "sheet": "pixellab_barra" },
+    "areia_balde": { "col": 1, "row": 0, "sheet": "pixellab_barra" },
     "areia": {
       "col": 0,
       "row": 0,
@@ -752,6 +754,12 @@
     "pixellab": {
       "image": "assets/icons/sheets/icon_sheet_pixellab.png",
       "columns": 8,
+      "tileSize": 64
+    },
+    "pixellab_barra": {
+      "_comment": "Ração e areia com silhuetas diferentes (na barra, os dois saquinhos se confundiam).",
+      "image": "assets/icons/sheets/icon_sheet_pixellab_barra.png",
+      "columns": 2,
       "tileSize": 64
     }
   }

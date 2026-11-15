@@ -106,6 +106,11 @@ export interface ItemDef {
   stand?: { sides: ('up' | 'down' | 'left' | 'right')[]; allRows?: boolean; lean?: number };
   /** Vitrine: guarda `slots` doces (receitas com display); com algo dentro, desenha `fullTile` no lugar de `tile`. */
   display?: { slots: number; fullTile?: string };
+  /**
+   * Tigela e caixa de areia: a arte cheia (`full`, no dia em que ela encheu ou trocou: PlacedItem.refilledOn) e a vazia
+   * (`empty`, nos outros dias). Sem uma delas, vale o `tile` de sempre.
+   */
+  fillTiles?: { full?: string; empty?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
   seasons?: string[];
   /** Só pode ser posicionado neste cômodo (ex.: módulos do playground no quintal). */
@@ -394,6 +399,8 @@ export interface WorldData {
   goHomeDoors: string[];
   /** Quadros do HUD que só aparecem quando a condição vale (no começo, a reputação e o clima ainda não importam). */
   hud?: { reputation?: Condition; weather?: Condition };
+  /** Mapas onde o carrinho de compras aparece num balão em cima da cabeça dela (o mercado). Fora deles, no HUD. */
+  cartBalloonMaps?: string[];
   /** Cômodo do café onde as cenas começam (com ela em outro cômodo, esperam ela voltar). */
   sceneRoom: string;
   /** Quantas poeiras do café voltam a cada manhã (rotina de varrer). */
@@ -828,6 +835,7 @@ export function validateContent(raw: RawContent): string[] {
     if (kind === 'fixture' && !raw.maps.some((m) => m.objects.some((o) => JSON.stringify(o.when ?? {}).includes(`"received":"${item.id}"`))))
       err(`items: "${item.id}" é peça fixa e nenhum objeto de mapa aparece com ela (when: { received })`);
     if (item.tile && !raw.catalog.tiles[item.tile]) err(`items: "${item.id}" usa tile inexistente "${item.tile}"`);
+    for (const t of [item.fillTiles?.full, item.fillTiles?.empty]) if (t && !raw.catalog.tiles[t]) err(`items: "${item.id}" usa em fillTiles um tile inexistente "${t}"`);
     if (!Number.isInteger(item.price) || item.price < 0) err(`items: "${item.id}" tem preço inválido`);
   }
 

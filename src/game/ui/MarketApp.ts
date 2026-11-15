@@ -142,7 +142,8 @@ export class MarketApp {
     // estação (Halloween, Natal) vêm por último na lista, mas têm a vez primeiro: o enfeite (que também é "decor") fica nelas.
     const seasonalFirst = [...uiText.market.tabs].sort((a, b) => Number('seasonal' in b && !!b.seasonal) - Number('seasonal' in a && !!a.seasonal));
     const groups: { tag: string; title: string; except?: string[] }[] = seasonalFirst.flatMap((t) => t.groups);
-    const groupOf = (tags: readonly string[]) => groups.find((g) => tags.includes(g.tag) && !g.except?.some((x) => tags.includes(x)));
+    // A tag online põe no Market o que também se vende no mercado da vila (o except não vale para ela: a varinha).
+    const groupOf = (tags: readonly string[]) => groups.find((g) => tags.includes(g.tag) && (tags.includes('online') || !g.except?.some((x) => tags.includes(x))));
     // Os móveis fixos do café (armário da despensa, pia) não estão à venda.
     const items = Object.values(content.items).filter((i) => !i.deprecated && !i.tags.includes('fixture') && this.session.itemUnlocked(i.id));
     const blocks = tab.groups.map((g) => {

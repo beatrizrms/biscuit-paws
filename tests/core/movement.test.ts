@@ -35,6 +35,10 @@ describe('correr (R)', () => {
     expect(runFactor(false, true, cfg)).toBe(1);
     expect(runFactor(true, false, cfg)).toBe(1.6);
     expect(runFactor(true, true, cfg)).toBe(1.3);
+    // O botão Correr do celular: um pouco mais rápido; sem buttonFactor, igual ao correr normal.
+    expect(runFactor('button', false, { ...cfg, buttonFactor: 1.85, buttonCarryingFactor: 1.45 })).toBe(1.85);
+    expect(runFactor('button', true, { ...cfg, buttonFactor: 1.85, buttonCarryingFactor: 1.45 })).toBe(1.45);
+    expect(runFactor('button', false, cfg)).toBe(1.6);
   });
 
   it('os números de data/player.json seguem a regra: correr carregando fica entre andar e correr livre', () => {

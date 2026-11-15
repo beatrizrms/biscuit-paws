@@ -222,11 +222,11 @@ describe('o dia 6', () => {
     expect(session.doorIntercept(door)).toBe('scr.clinic_opening');
     expect(events.filter((e) => e.name === 'script.requested').map((e) => (e.payload as { scriptId: string }).scriptId)).toContain('scr.clinic_opening');
     const step = () => session.goals()[0]!.steps.find((x) => !x.done)!.text;
-    expect(step()).toContain('obra no fim da rua');
+    expect(step()).toBe('Procure a clínica veterinária da vila');
     session.finishScript('scr.clinic_opening');
     expect(session.doorIntercept(door)).toBeUndefined();
     expect(session.canUseDoor(door)).toBe(true);
-    expect(step()).toContain('levar no colo');
+    expect(step()).toContain('no colo até a clínica');
   });
 });
 

@@ -41,10 +41,17 @@ export function movementFromInput(input: InputState, speed: number, current: Dir
 export interface RunConfig {
   factor: number;
   carryingFactor: number;
+  /** O botão Correr do celular: um pouco mais rápido que o direcional na borda (sem isto, igual a factor). */
+  buttonFactor?: number;
+  buttonCarryingFactor?: number;
 }
 
-/** Multiplicador da velocidade: andando, 1; correndo, factor; correndo carregando algo, um pouco menos. */
-export function runFactor(running: boolean, carrying: boolean, cfg: RunConfig): number {
+/**
+ * Multiplicador da velocidade: andando, 1; correndo, factor; correndo carregando algo, um pouco menos. 'button': o
+ * botão Correr do celular, um pouco mais rápido.
+ */
+export function runFactor(running: boolean | 'button', carrying: boolean, cfg: RunConfig): number {
   if (!running) return 1;
+  if (running === 'button') return carrying ? (cfg.buttonCarryingFactor ?? cfg.carryingFactor) : (cfg.buttonFactor ?? cfg.factor);
   return carrying ? cfg.carryingFactor : cfg.factor;
 }

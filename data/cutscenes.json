@@ -208,6 +208,51 @@
         }
       ]
     },
+    "cs.neusa_basement_call": {
+      "steps": [
+        {
+          "type": "phone",
+          "mode": "call",
+          "app": "Dona Neusa",
+          "title": "chamando...",
+          "lines": [],
+          "caller": "npc.neusa"
+        },
+        {
+          "type": "text",
+          "speaker": "",
+          "text": "O celular toca. É a Dona Neusa."
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Oi, {player}! Desculpa ligar assim do nada, é que me veio uma lembrança agora há pouco."
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "O seu Antônio, o antigo dono da padaria, guardava farinha num porão embaixo da loja. Eu descia lá com ele quando era mocinha!"
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Você nunca viu nada assim por aí? Uma porta, uma escadinha... Depois que ele fechou, nunca mais ouvi falar."
+        },
+        {
+          "type": "text",
+          "speaker": "{player}",
+          "text": "Um porão? Não vi nada, não... mas vou dar uma olhada com calma."
+        },
+        {
+          "type": "text",
+          "speaker": "Dona Neusa",
+          "text": "Olha mesmo! Com esse café cheio do jeito que está, um cantinho a mais ia cair bem."
+        },
+        {
+          "type": "hide"
+        }
+      ]
+    },
     "cs.arrival_door": {
       "background": "#3b2a32",
       "steps": [
@@ -358,7 +403,7 @@
         {
           "type": "text",
           "speaker": "{player}",
-          "text": "Eu sei, eu sei! Vou ver isso hoje mesmo (Market, aba Construção)."
+          "text": "Eu sei, eu sei! Vou ver isso hoje mesmo!"
         },
         {
           "type": "hide"
@@ -388,7 +433,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Os reparos ficaram ótimos. Só falta a lousa lá fora: encomenda pelo Market, na aba Construção."
+          "text": "Os reparos ficaram ótimos. Só falta a lousa lá fora."
         },
         {
           "type": "text",
