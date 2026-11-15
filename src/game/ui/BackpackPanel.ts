@@ -1,8 +1,8 @@
 // Mochila (tecla I): painel no centro com a barra (1 a 8) em cima e a grade da mochila embaixo, só ícones e quantidade.
 // Selecionar um item mostra o nome, para que serve e as ações numa linha de detalhes. Para pôr na barra: arrastar
 // até um espaço, clicar no espaço com o item selecionado ou apertar 1 a 8. Arrastar da barra para a grade tira da barra.
-// No armário da cozinha e na caixa pet, o storage aparece embaixo: guardar (clicar ou arrastar), pegar de volta e o
-// "empilhar", que leva da mochila só o que já está no storage (repor, como no Stardew Valley).
+// No armário da cozinha e na caixa pet, o storage aparece embaixo; os itens passam entre barra, mochila, despensa e
+// caixa pelos ícones do item selecionado (o ícone é o destino) ou arrastando.
 import { actionIconSvg, type ActionIcon } from './actionIcons';
 import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
@@ -214,12 +214,6 @@ export class BackpackPanel {
       const id = this.selectedItem();
       const report = (r: { ok: boolean; reason?: string }) => !r.ok && r.reason && this.onProblem(r.reason);
       switch (act.dataset.act) {
-        case 'pantry-store':
-          report(sv.storeInPantry());
-          return this.render();
-        case 'box-stack':
-          if (this.boxUid) report(this.session.stackIntoStorage(this.boxUid));
-          return this.render();
         case 'to-bar':
         case 'to-bag':
         case 'to-pantry':
@@ -422,8 +416,8 @@ export class BackpackPanel {
   }
 
   /**
-   * A despensa (aberta pelo armário): os ingredientes guardados e as doses de cada um, e o botão que guarda o que
-   * está na mochila.
+   * A despensa (aberta pelo armário): os ingredientes guardados e as doses de cada um. Entra e sai pelos ícones
+   * do item selecionado (ou arrastando).
    */
   private pantryHtml(): string {
     const t = uiText.backpack;
@@ -440,15 +434,12 @@ export class BackpackPanel {
       .join('');
     const total = Math.max(PANTRY_SLOTS, Math.ceil(ids.length / 8) * 8);
     const empty = '<span class="bp-slot is-empty"></span>'.repeat(total - ids.length);
-    const inBag = sv.ingredientsInBag();
-    // Só ingrediente entra na despensa: o "guardar da mochila" já leva tudo (o empilhar seria o mesmo botão).
-    const action = inBag === 0 ? '' : `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>`;
     // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
     const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
-    return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3><div class="bp-row">${slots}${empty}</div>${slots ? '' : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
+    return `<div class="bp-pantry"><h3>${t.pantry}</h3><div class="bp-row">${slots}${empty}</div>${slots ? '' : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
   }
 
-  /** A caixa pet aberta: os espaços dela (um tipo de item por espaço), o "empilhar" e a dica quando está vazia. */
+  /** A caixa pet aberta: os espaços dela (um tipo de item por espaço) e a dica quando está vazia. */
   private boxHtml(uid: string): string {
     const t = uiText.backpack;
     const box = this.session.storageContents(uid);
@@ -463,9 +454,7 @@ export class BackpackPanel {
       const qty = box[id] ?? 0;
       return `<button class="bp-slot${sel}" data-box="${id}" title="${esc(item.name)}" draggable="true">${itemIconHtml(item, 18)}${qty > 1 ? `<span class="count">${qty}</span>` : ''}</button>`;
     }).join('');
-    const stack = this.session.storageStackable(uid);
-    const action = stack > 0 ? `<button data-act="box-stack" title="${esc(t.stackTip)}">${esc(t.stack.replace('{n}', String(stack)))}</button>` : '';
-    return `<div class="bp-box"><h3>${t.box}${action ? ` ${action}` : ''}</h3><div class="bp-row">${cells}</div>${ids.length ? '' : `<p class="bp-hint">${t.boxEmpty}</p>`}</div>`;
+    return `<div class="bp-box"><h3>${t.box}</h3><div class="bp-row">${cells}</div>${ids.length ? '' : `<p class="bp-hint">${t.boxEmpty}</p>`}</div>`;
   }
 
   private render(): void {
