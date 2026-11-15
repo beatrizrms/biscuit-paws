@@ -78,7 +78,7 @@ import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
 import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
-import { activeBeats, currentGoals, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
+import { activeBeats, currentGoals, markGoalStepsDone, evaluate, isBeatSatisfied, isCleaned, type GoalView, type StoryContext } from './story';
 import {
   cellsOf,
   solidGrid,
@@ -880,6 +880,8 @@ export class GameSession {
     if (missed) this.bus.emit('festival.missed', { festivalId: missed, day });
     const noPrep = festivalPrepExpired(this.state.festivals, this.content.festivals, day + 1);
     if (noPrep) this.bus.emit('festival.noPrep', { festivalId: noPrep.id, retryIn: noPrep.retryIn });
+    // Os passos feitos hoje: amanhã saem da lista do balão (hoje ficam riscados).
+    markGoalStepsDone(this.content.story, this.state, this.storyContext(), day);
     this.arrivals.dayEnded(day + 1);
     this.state.day = day + 1;
     this.constructionDayEnded(day + 1);

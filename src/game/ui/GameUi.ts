@@ -1435,7 +1435,8 @@ ${rep}`;
     // Passos sem ordem: nenhum em destaque, todos na lista.
     // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
     const required = open.filter((s) => !s.optional);
-    const extras = goal.steps.filter((s) => s.optional);
+    // Feito num dia que já acabou: sai da lista (riscado, só no dia em que foi feito).
+    const extras = goal.steps.filter((s) => s.optional && !s.doneBefore);
     const now = goal.together ? undefined : (required[0] ?? open[0]);
     const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
@@ -1455,8 +1456,8 @@ ${rep}`;
       })
       .join('');
     const extrasHtml = extraRows ? `<p class="g-extras">${esc(op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
-    // No debug, os passos feitos também (para conferir a história).
-    const doneList = this.debug ? goal.steps.filter((s) => s.done).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('') : '';
+    // Os passos obrigatórios feitos hoje, riscados (amanhã saem da lista).
+    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('');
     // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
     let next = '';
     if (goal.beatId === 'story.inauguration' && this.session.state.business !== 'inaugurated') {

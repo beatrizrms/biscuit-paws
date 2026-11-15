@@ -590,6 +590,24 @@ describe('quest: o primeiro cliente', () => {
     expect(session.goals().map((g) => g.title)).toEqual(['A inauguração']);
   });
 
+  it('passo feito: riscado só no dia em que foi feito; no dia seguinte, marcado para sair da lista', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    advance(session, 6);
+    sv.prepare(coffeeMachineUid(session));
+    advance(session, 11);
+    sv.pickUp([7, 5]);
+    sv.serve(state.service.customers[0]!.id);
+    const step = () => session.goals()[0]!.steps.find((s) => s.done);
+    // O cardápio da estreia já tem 1 receita; com mais duas, o passo fica feito.
+    state.menu = ['recipe.black_coffee', 'recipe.black_tea', 'recipe.orange_juice'];
+    expect(step()).toBeDefined();
+    expect(step()!.doneBefore).toBeUndefined();
+    session.endDay();
+    expect(session.goals()[0]!.title).toBe('A inauguração');
+    expect(step()!.doneBefore).toBe(true);
+  });
+
   it('sem a mesa e a cadeira, a quest não aparece', () => {
     const state = newGameState(500, 'map.cafe_main', 9 * 60);
     state.story.completed.push(...untilChairs);
