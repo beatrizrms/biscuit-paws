@@ -2,7 +2,7 @@
 import type { ConstructionJob } from '../../core/construction';
 import { content, uiText } from '../content';
 
-/** "Reparo interno", "Piso do salão: Tacos de madeira", "Cor da fachada: Menta", "Abrir o acesso ao porão". */
+/** "Reparo interno", "Piso: Tacos de madeira", "Cor da fachada: Menta", "Abrir o acesso ao porão". */
 export function workName(job: Pick<ConstructionJob, 'kind' | 'surfaceId' | 'finishId' | 'roomId'>): string {
   const c = content.construction;
   if (job.kind === 'room_open' || job.kind === 'room_clear' || job.kind === 'room_restore') {
@@ -14,7 +14,9 @@ export function workName(job: Pick<ConstructionJob, 'kind' | 'surfaceId' | 'fini
   if (job.kind === 'outside') return c.repairs.outside.name;
   const finish = content.finishes[job.finishId ?? '']?.name ?? '';
   if (job.kind === 'facade') return `${uiText.construction.facadeTitle}: ${finish}`;
-  const surface = (content.map.surfaces ?? []).find((x) => x.id === job.surfaceId)?.name ?? '';
+  const def = (content.map.surfaces ?? []).find((x) => x.id === job.surfaceId);
+  // Piso é um só (salão e balcão juntos).
+  const surface = def?.kind === 'floor' ? uiText.construction.floorTitle : (def?.name ?? '');
   return `${surface}: ${finish}`;
 }
 

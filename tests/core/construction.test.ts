@@ -123,6 +123,15 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.state.construction.quote).toBeNull();
   });
 
+  it('piso é um só: a área pega o salão e o balcão juntos', () => {
+    const s = session();
+    s.state.construction.repaired = ['inside', 'outside'];
+    // Colunas 6 a 9, linhas 3 e 4: metade balcão (X), metade salão (M).
+    const q = s.finishQuote('surface.hall_floor', 'finish.wood_planks', [6, 3], [9, 4])!;
+    expect(q.cells.length).toBe(8);
+    expect(s.finishQuote('surface.counter_floor', 'finish.wood_planks', [6, 3], [9, 4])!.cells.length).toBe(8);
+  });
+
   it('Ctrl + arrastar: duas áreas separadas viram uma obra só; célula repetida conta uma vez', () => {
     const s = session();
     s.state.construction.repaired = ['inside', 'outside'];

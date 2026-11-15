@@ -379,6 +379,7 @@
     "areaHint": "Escolha o acabamento e marque a área no café. Preço por tile: material (você compra) + mão de obra.",
     "areaLocked": "Depois do reparo interno.",
     "facadeTitle": "Cor da fachada",
+    "floorTitle": "Piso",
     "perTile": "/tile",
     "selectHint": "Arraste para marcar a área (Ctrl + arrastar: mais uma). Teclado: setas + Espaço; Ctrl + Espaço guarda. Enter confirma, Esc cancela.",
     "selectHintTouch": "Arraste o dedo para marcar a área. Para marcar mais uma, toque em + Área e arraste de novo.",

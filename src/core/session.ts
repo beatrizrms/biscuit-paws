@@ -5128,9 +5128,12 @@ export class GameSession {
     if (!surface || !finish || finish.kind !== surface.kind || surface.kind === 'facade') return null;
     const c = this.content.construction;
     const seen = new Set<string>();
+    // Piso é um só para ela (salão e balcão juntos): a área pega as células de todas as superfícies de piso.
+    const group = surface.kind === 'floor' ? (this.content.map.surfaces ?? []).filter((x) => x.kind === 'floor') : [surface];
     const cells = [[a, b] as const, ...more]
-      .flatMap(([x, y]) => surfaceCells(this.content.map, surface, x, y))
-      .filter((cell) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.finishAt(surface, cell) !== finishId));
+      .flatMap(([x, y]) => group.flatMap((g) => surfaceCells(this.content.map, g, x, y).map((cell) => [g, cell] as const)))
+      .filter(([g, cell]) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.finishAt(g, cell) !== finishId))
+      .map(([, cell]) => cell);
     const perTile = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
     return { cells, material: cells.length * perTile, labor: cells.length * c.laborPerTile, days: jobDays(cells.length, c) };
   }
