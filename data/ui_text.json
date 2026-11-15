@@ -199,7 +199,7 @@
     "reason": "{track}: {n}",
     "reasonStreak": "{track}: {n} dias seguidos",
     "newRecipes": "No caderno de receitas",
-    "recipesReason": "O café cresceu",
+    "recipesReason": "O café cresceu","titleNew":"Novidade!","newItems":"Novo à venda","itemsReason":"Já dá para comprar","special":"Especial de Natal","specialReason":"Só hoje, para a ceia (faça no equipamento; não entra no cardápio)",
     "recipeTip": "Receitas novas: ponha no quadro do cardápio (M). O que elas precisam já está à venda.",
     "ok": "Oba!"
   },
@@ -319,7 +319,6 @@
     "not_accepted": "Isso não vai na caixa pet: ela guarda ração, areia, brinquedos e cuidados dos gatos.",
     "storage_full": "A caixa pet está cheia (8 tipos de item). Tire alguma coisa antes.",
     "in_hands": "Esse saco está nas suas mãos. Escolha outro item na barra antes de guardar.",
-    "extra_ready": "Já tem um feito aqui sem ninguém ter pedido. Espere alguém pedir.",
     "equipment_locked": "Ainda não tem receita liberada para este equipamento. Atenda mais clientes para liberar.",
     "equipment_off_menu": "Nenhuma receita deste equipamento está no cardápio. Ponha uma no quadro (M).",
     "station_busy": "O equipamento está ocupado. Pegue o que está pronto primeiro.",
@@ -802,7 +801,7 @@
   "service": {
     "prepStarted": "Preparando: {name}",
     "prepReady": "{name} pronto!",
-    "extraAsk": "Ninguém pediu ainda. Adiantar o quê?",
+    "extraAsk": "O que preparar?",
     "displayAsk": "O que tirar da vitrine?",
     "displaySlices": "{name} ({n} fatias)",
     "extraCancel": "Nada agora",
@@ -1244,7 +1243,7 @@
   },
   "secretSanta": {
     "prepBonus": "A turma adorou a ceia preparada ({n} de 3): corações para todo mundo!",
-    "treatNews": "Hoje o mercado tem {mix}: no bule, vira {treat}. Só hoje!",
+    "treatNews": "Especial de Natal: a {mix} do mercado vira {treat} no bule, para a ceia. Só hoje!",
     "title": "Amigo secreto",
     "goal": "presente para {name}",
     "ready": "presente na mochila",

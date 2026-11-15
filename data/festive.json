@@ -228,8 +228,11 @@
       },
       "years": [
         {
-          "recipe": "recipe.hot_chocolate",
+          "recipe": "recipe.hot_chocolate_xmas",
+          "name": "chocolate quente",
           "mix": "item.hot_chocolate_mix",
+          "call": "cs.xmas_treat_neusa_cocoa",
+          "callWhen": { "flag": "met.old_neighbor" },
           "plural": "chocolates quentes",
           "refuse": {
             "npc.joca": "*O Joca fareja a caneca e a Gabi puxa a guia:* Chocolate faz mal pra cachorro! Pra ele, só carinho."

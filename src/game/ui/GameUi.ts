@@ -309,7 +309,7 @@ export class GameUi {
     bus.on('xmas.day', ({ closeAt, partyAt, party, stockingCats, treat }) => {
       const t = uiText.secretSanta;
       this.toast((party ? t.dayParty : t.day).replace('{close}', closeAt).replace('{time}', partyAt), 6000);
-      if (treat?.mix) this.toast(t.treatNews.replace('{mix}', treat.mix.toLowerCase()).replace('{treat}', treat.name), 6000);
+      if (treat?.mix && !treat.called) this.toast(t.treatNews.replace('{mix}', treat.mix.toLowerCase()).replace('{treat}', treat.name), 6000);
       if (stockingCats > 0) this.toast(t.stockings, 5000);
     });
     bus.on('newyear.eve', () => this.toast(uiText.newYear.eve, 6000));
@@ -336,6 +336,8 @@ export class GameUi {
     });
     // Selo do café: o nome e o que ele deu (app Café em números, aba Selos).
     bus.on('milestone.reached', ({ milestoneId }) => this.queueUnlock({ milestone: milestoneId }));
+    // Todo item novo à venda: a tela de novidades (junto com o que mais liberou no mesmo minuto).
+    bus.on('item.unlocked', ({ itemId }) => this.queueUnlock({ item: itemId }));
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
     bus.on('cat.sick', ({ catId, disease }) => {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
@@ -873,13 +875,14 @@ export class GameUi {
   // ---------- Selos e desbloqueios: a tela no centro ----------
 
   /** Selos e receitas destrancados que ainda vão aparecer (juntam os do mesmo momento numa tela só). */
-  private unlockQueue: { milestones: string[]; recipes: string[] } = { milestones: [], recipes: [] };
+  private unlockQueue: { milestones: string[]; recipes: string[]; items: string[] } = { milestones: [], recipes: [], items: [] };
   private unlockTimer: number | null = null;
 
   /** Guarda o selo (ou a receita destrancada) e mostra a tela quando nada mais estiver aberto. */
-  private queueUnlock(u: { milestone?: string; recipe?: string }): void {
+  private queueUnlock(u: { milestone?: string; recipe?: string; item?: string }): void {
     if (u.milestone && !this.unlockQueue.milestones.includes(u.milestone)) this.unlockQueue.milestones.push(u.milestone);
     if (u.recipe && !this.unlockQueue.recipes.includes(u.recipe)) this.unlockQueue.recipes.push(u.recipe);
+    if (u.item && !this.unlockQueue.items.includes(u.item)) this.unlockQueue.items.push(u.item);
     if (this.unlockTimer !== null) return;
     const tryShow = () => {
       // Espera falas, cenas e janelas fecharem (a tela entra depois, sem atropelar nada).
@@ -889,15 +892,15 @@ export class GameUi {
       }
       this.unlockTimer = null;
       const batch = this.unlockQueue;
-      this.unlockQueue = { milestones: [], recipes: [] };
-      if (batch.milestones.length || batch.recipes.length) void this.showUnlocks(batch);
+      this.unlockQueue = { milestones: [], recipes: [], items: [] };
+      if (batch.milestones.length || batch.recipes.length || batch.items.length) void this.showUnlocks(batch);
     };
     // Um pouco mais de um minuto do jogo: as receitas que o selo destranca chegam no minuto seguinte e entram juntas.
     this.unlockTimer = window.setTimeout(tryShow, 1500);
   }
 
   /** Tela cheia: cada selo com o motivo (o marco) e um retângulo para cada coisa liberada. */
-  private showUnlocks(batch: { milestones: string[]; recipes: string[] }): Promise<void> {
+  private showUnlocks(batch: { milestones: string[]; recipes: string[]; items: string[] }): Promise<void> {
     // O selo que destranca a receita (unlock: { milestone }), se for esse o caso.
     const unlockedBy = (r: string) => {
       const u = content.recipes[r]?.unlock;
@@ -931,12 +934,18 @@ export class GameUi {
       return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${[...ids.map((id) => reward(m.reward.kind, id)), ...extra.map((r) => reward('recipe', r))].join('')}</div></section>`;
     });
     // Receitas destrancadas sem selo nesta tela (o selo veio antes): um grupo próprio.
-    const loose = batch.recipes.filter((r) => !ms.some((m) => unlockedBy(r) === m.id));
-    if (loose.length) groups.push(`<section class="u-group"><h3>${esc(t.newRecipes)}</h3><p class="u-reason">${esc(t.recipesReason)}</p><div class="u-cards">${loose.map((r) => reward('recipe', r)).join('')}</div></section>`);
-    const hasRecipe = ms.some((m) => m.reward.kind === 'recipe') || batch.recipes.length > 0;
+    const special = batch.recipes.filter((r) => content.recipes[r]?.special);
+    const loose = batch.recipes.filter((r) => !content.recipes[r]?.special && !ms.some((m) => unlockedBy(r) === m.id));
+    const group = (title: string, why: string, cards: string) => `<section class="u-group"><h3>${esc(title)}</h3><p class="u-reason">${esc(why)}</p><div class="u-cards">${cards}</div></section>`;
+    if (loose.length) groups.push(group(t.newRecipes, t.recipesReason, loose.map((r) => reward('recipe', r)).join('')));
+    if (special.length) groups.push(group(t.special, t.specialReason, special.map((r) => card(iconHtml(content.recipes[r]?.icon, 32), content.recipes[r]?.name ?? r, t.special)).join('')));
+    const inSeal = new Set(ms.filter((m) => m.reward.kind === 'item' || m.reward.kind === 'gift').flatMap((m) => m.reward.ids));
+    const items = batch.items.filter((i) => !inSeal.has(i));
+    if (items.length) groups.push(group(t.newItems, t.itemsReason, items.map((i) => reward('item', i)).join('')));
+    const hasRecipe = ms.some((m) => m.reward.kind === 'recipe') || loose.length > 0;
     const el = document.createElement('div');
     el.className = 'item-reveal unlocks';
-    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : t.titleRecipes)}</h2><div class="u-groups">${groups.join('')}</div>${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
+    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : loose.length ? t.titleRecipes : t.titleNew)}</h2><div class="u-groups">${groups.join('')}</div>${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     return new Promise((resolve) => {

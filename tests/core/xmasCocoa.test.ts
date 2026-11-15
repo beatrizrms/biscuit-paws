@@ -11,7 +11,7 @@ const SS = content.festive.secretSanta;
 const XMAS = SS.day;
 const YEAR = content.seasons.daysPerSeason * content.seasons.order.length;
 const MIX = 'item.hot_chocolate_mix';
-const COCOA = 'recipe.hot_chocolate';
+const COCOA = 'recipe.hot_chocolate_xmas';
 
 /** Café funcionando no primeiro ano; ela conhece a Gabi (e o Joca) e a Dona Neusa. */
 function cafe(day: number, time = 10 * 60) {
@@ -43,8 +43,11 @@ describe('ceia de Natal preparada', () => {
     const { session } = cafe(XMAS);
     expect(session.itemUnlocked(MIX)).toBe(true);
     expect(session.service.recipeStatus(COCOA)).not.toBe('locked');
-    expect(content.recipes[COCOA]!.alternative).toEqual({ equipment: 'teapot', ingredients: { [MIX]: 1 } });
-    expect(session.santaTreat()).toMatchObject({ recipe: COCOA, name: 'chocolate quente', mix: MIX });
+    expect(content.recipes[COCOA]!.ingredients).toEqual({ [MIX]: 1 });
+    expect(session.santaTreat()).toMatchObject({ recipe: COCOA, name: 'chocolate quente', mix: MIX, call: 'cs.xmas_treat_neusa_cocoa' });
+    // O especial não vai para o cardápio; o chocolate quente normal continua pela conquista (fogão).
+    expect(session.service.toggleMenu(COCOA)).toEqual({ ok: false, reason: 'not_unlocked' });
+    expect(session.service.recipeStatus('recipe.hot_chocolate')).toBe('locked');
     expect(cafe(XMAS + 1).session.service.recipeStatus(COCOA)).toBe('locked');
     const years = SS.treat!.years;
     expect(cafe(XMAS + YEAR).session.santaTreat()!.recipe).toBe(years[1 % years.length]!.recipe);
@@ -101,5 +104,31 @@ describe('ceia de Natal preparada', () => {
     session.bus.on('xmas.prep_bonus', ({ steps }) => bonus.push(steps));
     session.endFestiveParty();
     expect(bonus).toEqual([]);
+  });
+});
+
+describe('o especial de Natal só vale no dia', () => {
+  it('cliente não recebe o especial; o que sobrou pronto vira louça suja no fim do dia', () => {
+    const { session, state } = cafe(XMAS, 15 * 60);
+    state.hands = [{ kind: 'drink', recipe: COCOA, vessel: 'cup' } as never];
+    state.service.customers.push({ id: 'c1', look: 0, stage: 'waiting', kind: 'standing', spot: [10, 8], dishAt: [10, 7], recipe: 'recipe.black_tea', until: 99999, favorite: null, wantsPremium: false });
+    expect(session.service.customerToServe([[10, 7]])).toBeUndefined();
+    state.surfaces.push({ at: [8, 5], item: { kind: 'drink', recipe: COCOA, vessel: 'cup' } as never });
+    session.endDay('sleep');
+    expect(state.hands.every((h) => h.kind !== 'drink')).toBe(true);
+    expect(state.surfaces.some((x) => x.item.kind === 'drink' && x.item.recipe === COCOA)).toBe(false);
+  });
+
+  it('no dia da ceia, a mistura e o especial aparecem como novidade (sempre que algo novo fica à venda)', () => {
+    const { session, state } = cafe(XMAS - 1, 23 * 60);
+    const recipes: string[] = [];
+    const items: string[] = [];
+    session.bus.on('recipe.unlocked', ({ recipeId }) => recipes.push(recipeId));
+    session.bus.on('item.unlocked', ({ itemId }) => items.push(itemId));
+    state.day = XMAS;
+    state.time = 8 * 60;
+    session.tickClock(2);
+    expect(recipes).toContain(COCOA);
+    expect(items).toContain(MIX);
   });
 });
