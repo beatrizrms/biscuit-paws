@@ -89,6 +89,11 @@ export class TrustScene extends MiniGameScene {
     this.player = new Player(this, this.catX - this.s.distance, feet + 2);
     (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
     this.player.face('right');
+    // De perto: a câmera chega mais (def.zoom) e centra entre ela e o gato, um pouco acima dos pés (os dois inteiros).
+    if (def.zoom && def.zoom !== 1) {
+      const cam = this.cameras.main;
+      cam.setZoom(cam.zoom * def.zoom).centerOn(this.catX - this.s.distance / 2, feet - 24);
+    }
 
     this.bar = this.add.graphics().setDepth(1e5);
     this.alertIcon = this.add.image(this.catX, feet - 30, CHASE.alerts.key, 0).setScale(ART_SCALE).setDepth(1e5).setVisible(false);

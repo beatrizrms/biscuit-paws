@@ -205,7 +205,8 @@
       "reputation": {"fail":-2,"ok":3,"great":6},
       "map": "map.praca",
       "view": [10,1,20,12],
-      "catAt": [26,7],
+      "catAt": [26,8],
+      "zoom": 2,
       "treatItem": "item.cat_treat_biscuit",
       "sounds": {"hiss":"error","scare":"error","trust":"purr","treat":"meow_1","done":"success"},
       "rewards": {
