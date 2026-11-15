@@ -766,14 +766,12 @@
     "pantryOne": "guardar na despensa",
     "inPantry": "{n} doses na despensa",
     "pantryTake": "pôr na mochila (1 pacote fechado)",
-    "pantryWhere": "guarde no armário, ao lado da pia",
     "pantryEmpty": "Vazia. Compre ingredientes no mercado e guarde aqui: só o que está na despensa vale nas receitas.",
     "pantryStored": "Guardado na despensa: {n} pacote(s).",
     "stack": "empilhar ({n})",
     "stackTip": "Leva da mochila só o que já está aqui (repor).",
     "box": "Caixa pet",
     "boxOne": "guardar na caixa",
-    "boxTake": "pegar",
     "boxInside": "na caixa",
     "boxEmpty": "Vazia. Guarde aqui ração, areia, petiscos, brinquedos e cuidados dos gatos: clique no item da mochila ou arraste até a caixa.",
     "boxStored": "Guardado na caixa pet: {n} item(ns).",
@@ -782,7 +780,7 @@
     "boxOpensIn": "abre no {season}",
     "placeAtHome": "só dentro do café",
     "toBar": "pôr na barra ({n})",
-    "offBar": "tirar da barra",
+    "toBag": "pôr na mochila",
     "needsCounter": "precisa de balcão",
     "purpose": {
       "sweep": "Varre a sujeira do café e a neve da rua.",
@@ -801,7 +799,7 @@
     "wip": "{name} ({equipment})",
     "cat": "{name} no colo",
     "cake": "{name} ({n} fatias)",
-    "gridHint": "Selecione um item para ver o que ele faz. Para pôr na barra: arraste até um espaço, ou selecione e aperte 1 a 8."
+    "gridHint": "Selecione um item (na barra, na mochila, na despensa ou na caixa) para ver o que ele faz e para onde pode ir. Também dá para arrastar; para pôr na barra, selecione e aperte 1 a 8."
   },
   "service": {
     "prepStarted": "Preparando: {name}",

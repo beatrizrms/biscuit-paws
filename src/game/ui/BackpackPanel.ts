@@ -62,6 +62,8 @@ function purpose(item: ItemDef): string {
 }
 
 type Selection = { from: 'bag'; id: string } | { from: 'bar'; slot: number } | { from: 'box'; id: string } | { from: 'pantry'; id: string } | null;
+/** Onde um item pode estar (e para onde pode ir). */
+type Place = 'bar' | 'bag' | 'pantry' | 'box';
 
 /**
  * Botão de ação da mochila só com o ícone (o nome no title e no aria-label, para o mouse e o leitor de tela).
@@ -93,7 +95,7 @@ export class BackpackPanel {
     this.body.addEventListener('click', (e) => this.onClick(e));
     this.body.addEventListener('dragstart', (e) => this.onDragStart(e));
     this.body.addEventListener('dragover', (e) => {
-      // A despensa só recebe no armário (arrastar um ingrediente até ela guarda os pacotes dele).
+      // A despensa (aberta pelo armário) recebe: arrastar um ingrediente até ela guarda os pacotes dele.
       const into = ['[data-bar]', '.bp-bag', ...(this.atPantry ? ['.bp-pantry'] : []), ...(this.boxUid ? ['.bp-box'] : [])].join(', ');
       if ((e.target as HTMLElement).closest(into)) e.preventDefault();
     });
@@ -130,8 +132,9 @@ export class BackpackPanel {
   /** Tecla 1 a 8 com a mochila aberta e um item selecionado: vai para aquele espaço. Devolve se usou a tecla. */
   numberKey(n: number): boolean {
     const id = this.selectedItem();
-    if (!this.open || this.selected?.from !== 'bag' || !id || !fitsHotbar(content.items[id])) return false;
-    this.assign(id, n - 1);
+    const from = this.selected?.from;
+    if (!this.open || !from || from === 'bar' || !id || !fitsHotbar(content.items[id])) return false;
+    this.moveTo(from, id, 'bar', n - 1);
     return true;
   }
 
@@ -158,6 +161,40 @@ export class BackpackPanel {
     return !!id && (st.inventory[id] ?? 0) > 0;
   }
 
+  /**
+   * Para onde o item pode ir daqui, pelo tipo dele: a barra (o que não é móvel), a mochila, a despensa (ingrediente,
+   * com ela aberta pelo armário), a caixa pet (o que ela aceita, com a caixa aberta). Nunca o lugar onde ele já está.
+   */
+  private destinations(from: Place, itemId: string): Place[] {
+    const item = content.items[itemId];
+    if (!item) return [];
+    const out: Place[] = [];
+    if (from !== 'bar' && fitsHotbar(item)) out.push('bar');
+    if (from !== 'bag') out.push('bag');
+    if (from !== 'pantry' && this.atPantry && this.session.service.isIngredient(itemId)) out.push('pantry');
+    if (from !== 'box' && this.boxUid && this.session.storageProblem(this.boxUid, itemId) !== 'not_accepted') out.push('box');
+    return out;
+  }
+
+  /** Leva o item de um lugar para outro (da despensa sai um pacote fechado por vez; da caixa, tudo). */
+  private moveTo(from: Place, id: string, to: Place, slot = this.freeSlot()): void {
+    const sv = this.session.service;
+    const report = (r: { ok: boolean; reason?: string }) => {
+      if (!r.ok && r.reason) this.onProblem(r.reason);
+      return r.ok;
+    };
+    // Primeiro, para a mochila (a barra é um atalho para o que está na mochila).
+    if (from === 'pantry' && !report(sv.takeFromPantry(id))) return this.render();
+    if (from === 'box' && !(this.boxUid && report(this.session.takeFromStorage(this.boxUid, id)))) return this.render();
+    if (from === 'bar' && this.selected?.from === 'bar' && to === 'bag') this.session.clearHotbarSlot(this.selected.slot);
+    if (to === 'bar') return this.assign(id, slot);
+    if (to === 'pantry' && !report(sv.storeInPantry(id))) return this.render();
+    if (to === 'box' && !(this.boxUid && report(this.session.storeInStorage(this.boxUid, id)))) return this.render();
+    // Fica selecionado no lugar novo (se ainda houver).
+    this.selected = to === 'pantry' ? { from: 'pantry', id } : to === 'box' ? { from: 'box', id } : { from: 'bag', id };
+    this.render();
+  }
+
   private assign(itemId: string, slot: number): void {
     const r = this.session.assignToHotbar(itemId, slot);
     if (!r.ok) return this.onProblem(r.reason);
@@ -180,32 +217,15 @@ export class BackpackPanel {
         case 'pantry-store':
           report(sv.storeInPantry());
           return this.render();
-        case 'pantry-one':
-          if (id) report(sv.storeInPantry(id));
-          this.selected = null;
-          return this.render();
-        case 'pantry-take':
-          // Um pacote fechado de volta para a mochila (o aberto fica).
-          if (id) report(sv.takeFromPantry(id));
-          return this.render();
         case 'box-stack':
           if (this.boxUid) report(this.session.stackIntoStorage(this.boxUid));
           return this.render();
-        case 'box-one':
-          if (id && this.boxUid) report(this.session.storeInStorage(this.boxUid, id));
-          this.selected = id && this.boxUid && this.boxContents()[id] ? { from: 'box', id } : null;
-          return this.render();
-        case 'box-take':
-          if (id && this.boxUid) report(this.session.takeFromStorage(this.boxUid, id));
-          this.selected = id && this.owned(id) ? { from: 'bag', id } : null;
-          return this.render();
         case 'to-bar':
-          if (id) this.assign(id, this.freeSlot());
+        case 'to-bag':
+        case 'to-pantry':
+        case 'to-box':
+          if (id && this.selected) this.moveTo(this.selected.from, id, act.dataset.act.slice(3) as Place);
           return;
-        case 'off-bar':
-          if (this.selected?.from === 'bar') this.session.clearHotbarSlot(this.selected.slot);
-          this.selected = id ? { from: 'bag', id } : null;
-          return this.render();
         case 'place':
           if (!id) return;
           this.close();
@@ -272,10 +292,10 @@ export class BackpackPanel {
   }
 
   private onDragStart(e: DragEvent): void {
-    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-bar], [data-bag], [data-box]');
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-bar], [data-bag], [data-box], [data-pantry]');
     if (!el || !e.dataTransfer) return;
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', el.dataset.bar !== undefined ? `bar:${el.dataset.bar}` : el.dataset.box !== undefined ? `box:${el.dataset.box}` : `bag:${el.dataset.bag}`);
+    e.dataTransfer.setData('text/plain', el.dataset.bar !== undefined ? `bar:${el.dataset.bar}` : el.dataset.box !== undefined ? `box:${el.dataset.box}` : el.dataset.pantry !== undefined ? `pan:${el.dataset.pantry}` : `bag:${el.dataset.bag}`);
   }
 
   private onDrop(e: DragEvent): void {
@@ -290,6 +310,12 @@ export class BackpackPanel {
       if (id) report(this.session.storeInStorage(this.boxUid, id));
       this.selected = id && this.boxContents()[id] ? { from: 'box', id } : null;
       return this.render();
+    }
+    // Da despensa para a mochila (um pacote fechado) ou para a barra.
+    if (from === 'pan') {
+      if (bar) return this.moveTo('pantry', value, 'bar');
+      if ((e.target as HTMLElement).closest('.bp-bag')) return this.moveTo('pantry', value, 'bag');
+      return;
     }
     // Da caixa de volta para a mochila (ou para a barra: vai para a mochila e ocupa o espaço).
     if (this.boxUid && from === 'box') {
@@ -310,8 +336,8 @@ export class BackpackPanel {
       if (from === 'bag' && fitsHotbar(content.items[value])) return this.assign(value, slot);
       return;
     }
-    // Ingrediente arrastado até a despensa (no armário): guarda os pacotes dele.
-    if (this.atPantry && (e.target as HTMLElement).closest('.bp-pantry')) {
+    // Ingrediente arrastado até a despensa: guarda os pacotes dele.
+    if (from !== 'pan' && this.atPantry && (e.target as HTMLElement).closest('.bp-pantry')) {
       const id = from === 'bar' ? this.session.state.hotbar.slots[Number(value)] : value;
       if (!id || !this.session.service.isIngredient(id)) return;
       const r = this.session.service.storeInPantry(id);
@@ -344,40 +370,35 @@ export class BackpackPanel {
   private detailHtml(): string {
     const t = uiText.backpack;
     const id = this.selectedItem();
-    // Item da caixa pet: quanto tem lá e pegar de volta.
-    if (this.selected?.from === 'box' && id && this.boxContents()[id]) {
-      const boxed = content.items[id]!;
-      return `<div class="bp-detail"><span class="bp-detail-icon">${itemIconHtml(boxed, 22)}</span>
-      <span class="bp-detail-text"><b>${esc(boxed.name)}</b> <span class="amount">x${this.boxContents()[id]} ${esc(t.boxInside)}</span><br /><span class="purpose">${esc(purpose(boxed))}</span></span>
-      <span class="bp-detail-actions">${iconButton('box-take', 'boxOut', t.boxTake)}</span></div>`;
-    }
-    // Ingrediente da despensa: as doses e para que serve (só ver; as receitas usam direto daqui).
-    if (this.selected?.from === 'pantry' && id && content.items[id]) {
-      const stored = content.items[id]!;
-      return `<div class="bp-detail"><span class="bp-detail-icon">${itemIconHtml(stored, 22)}</span>
-      <span class="bp-detail-text"><b>${esc(stored.name)}</b> <span class="amount">${esc(t.inPantry.replace('{n}', String(this.session.service.doses(id))))}</span><br /><span class="purpose">${esc(purpose(stored))}</span></span>
-      <span class="bp-detail-actions">${this.session.atHome() ? iconButton('pantry-take', 'pantryOut', t.pantryTake) : ''}</span></div>`;
-    }
-    const item = this.owned(id) ? content.items[id] : undefined;
-    if (!item) return `<p class="bp-hint">${t.gridHint}</p>`;
+    const from: Place | null = this.selected ? this.selected.from : null;
+    const item = id ? content.items[id] : undefined;
+    if (!item || !from) return `<p class="bp-hint">${t.gridHint}</p>`;
     const st = this.session.state;
-    const amount = `x${st.inventory[item.id] ?? 0}`;
-    const onBar = st.hotbar.slots.indexOf(item.id);
+    // Quanto tem onde ele está: doses na despensa, unidades na caixa ou na mochila.
+    const amount =
+      from === 'pantry'
+        ? t.inPantry.replace('{n}', String(this.session.service.doses(item.id)))
+        : from === 'box'
+          ? `x${this.boxContents()[item.id] ?? 0} ${t.boxInside}`
+          : `x${st.inventory[item.id] ?? 0}`;
     const buttons: string[] = [];
-    if (isFurniture(item)) {
+    // Móvel: posicionar (da barra ou da mochila; móvel não entra na barra).
+    if (isFurniture(item) && (from === 'bag' || from === 'bar')) {
       const why = this.session.missingHost(item.id);
       const away = !this.session.atHome();
       buttons.push(iconButton('place', 'place', t.place, !!(why || away)));
       if (why) buttons.push(`<span class="why">${t.needsCounter}</span>`);
       else if (away) buttons.push(`<span class="why">${t.placeAtHome}</span>`);
-    } else if (fitsHotbar(item)) {
-      if (onBar >= 0) buttons.push(iconButton('off-bar', 'offBar', t.offBar));
-      else buttons.push(iconButton('to-bar', 'toBar', t.toBar.replace('{n}', String(this.freeSlot() + 1)), false, String(this.freeSlot() + 1)));
     }
-    // Ingrediente, no armário: guardar só ele na despensa.
-    if (this.atPantry && this.session.service.isIngredient(item.id)) buttons.push(iconButton('pantry-one', 'pantry', t.pantryOne));
-    // Na caixa pet: guardar (o que ela não aceita nem mostra o botão).
-    if (this.boxUid && this.session.storageProblem(this.boxUid, item.id) !== 'not_accepted') buttons.push(iconButton('box-one', 'boxIn', t.boxOne));
+    // Para onde mais ele pode ir (o ícone é o destino).
+    for (const to of this.destinations(from, item.id)) {
+      if (to === 'bar') buttons.push(iconButton('to-bar', 'toBar', t.toBar.replace('{n}', String(this.freeSlot() + 1)), false, String(this.freeSlot() + 1)));
+      if (to === 'bag') buttons.push(iconButton('to-bag', 'toBag', from === 'pantry' ? t.pantryTake : t.toBag));
+      if (to === 'pantry') buttons.push(iconButton('to-pantry', 'pantry', t.pantryOne));
+      if (to === 'box') buttons.push(iconButton('to-box', 'boxIn', t.boxOne));
+    }
+    // O resto (segurar, comer, abrir, bandeja) só para o que está com ela (mochila ou barra).
+    if (from === 'pantry' || from === 'box') return this.detailBox(item, amount, buttons);
     if (item.tags.includes('treat')) buttons.push(iconButton('hold', 'hold', t.hold));
     if (item.edible) buttons.push(iconButton('eat', 'eat', t.eat));
     // Caixa de enfeites (Natal ou Halloween): abre só na estação dela (e no café), e os enfeites saem um por um.
@@ -390,14 +411,19 @@ export class BackpackPanel {
       else if (away) buttons.push(`<span class="why">${t.placeAtHome}</span>`);
     }
     if (item.id === content.carry.tray.item) buttons.push(iconButton('tray', 'tray', st.tray ? t.stowTray : t.useTray));
+    return this.detailBox(item, amount, buttons);
+  }
+
+  /** A linha de detalhes: ícone, nome, quanto tem, para que serve e os botões. */
+  private detailBox(item: ItemDef, amount: string, buttons: string[]): string {
     return `<div class="bp-detail"><span class="bp-detail-icon">${isFurniture(item) ? tileThumbHtml(item.tile, 22, item.hue) : itemIconHtml(item, 22)}</span>
-      <span class="bp-detail-text"><b>${esc(item.name)}</b> <span class="amount">${amount}</span><br /><span class="purpose">${esc(purpose(item))}</span></span>
+      <span class="bp-detail-text"><b>${esc(item.name)}</b> <span class="amount">${esc(amount)}</span><br /><span class="purpose">${esc(purpose(item))}</span></span>
       <span class="bp-detail-actions">${buttons.join('')}</span></div>`;
   }
 
   /**
-   * A despensa (só ver): os ingredientes guardados no armário e as doses de cada um. No armário, o botão guarda o que
-   * está na mochila; longe dele, a dica de onde guardar.
+   * A despensa (aberta pelo armário): os ingredientes guardados e as doses de cada um, e o botão que guarda o que
+   * está na mochila.
    */
   private pantryHtml(): string {
     const t = uiText.backpack;
@@ -409,19 +435,14 @@ export class BackpackPanel {
       .map((id) => {
         const item = content.items[id]!;
         const sel = this.selected?.from === 'pantry' && this.selected.id === id ? ' selected' : '';
-        return `<button class="bp-slot bp-pantry-slot${sel}" data-pantry="${id}" title="${esc(item.name)} · ${esc(t.doses.replace('{n}', String(sv.doses(id))))}">${itemIconHtml(item, 18)}<span class="count">${sv.doses(id)}</span></button>`;
+        return `<button class="bp-slot bp-pantry-slot${sel}" data-pantry="${id}" draggable="true" title="${esc(item.name)} · ${esc(t.doses.replace('{n}', String(sv.doses(id))))}">${itemIconHtml(item, 18)}<span class="count">${sv.doses(id)}</span></button>`;
       })
       .join('');
     const total = Math.max(PANTRY_SLOTS, Math.ceil(ids.length / 8) * 8);
     const empty = '<span class="bp-slot is-empty"></span>'.repeat(total - ids.length);
     const inBag = sv.ingredientsInBag();
     // Só ingrediente entra na despensa: o "guardar da mochila" já leva tudo (o empilhar seria o mesmo botão).
-    const action =
-      inBag === 0
-        ? ''
-        : this.atPantry
-        ? `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>`
-        : `<span class="why">${esc(t.pantryWhere)}</span>`;
+    const action = inBag === 0 ? '' : `<button data-act="pantry-store">${esc(t.pantryStore.replace('{n}', String(inBag)))}</button>`;
     // A louça limpa também mora na despensa (o presente da Gabi chega aqui).
     const dishes = VESSELS.map((v) => `<span class="vessel" title="${esc(content.service.vessels[v].name)}">${iconHtml(content.service.vessels[v].icon, 12)}${st.dishes[v] ?? 0}</span>`).join('');
     return `<div class="bp-pantry"><h3>${t.pantry}${action ? ` ${action}` : ''}</h3><div class="bp-row">${slots}${empty}</div>${slots ? '' : `<p class="bp-hint">${t.pantryEmpty}</p>`}<p class="dishes"><b>${t.dishes}:</b> ${dishes}</p></div>`;
@@ -474,7 +495,7 @@ export class BackpackPanel {
       <h3>${t.bar}</h3><div class="bp-row">${bar}</div>
       <h3>${t.bag}</h3><div class="bp-row bp-bag">${bag}</div>
       ${this.detailHtml()}
-      ${this.boxUid ? this.boxHtml(this.boxUid) : this.pantryHtml()}`;
+      ${this.boxUid ? this.boxHtml(this.boxUid) : this.atPantry ? this.pantryHtml() : ''}`;
     if (this.atPantry) this.body.querySelector('.bp-pantry')?.scrollIntoView({ block: 'nearest' });
     if (this.boxUid) this.body.querySelector('.bp-box')?.scrollIntoView({ block: 'nearest' });
   }
