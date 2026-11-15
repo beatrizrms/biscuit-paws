@@ -217,6 +217,8 @@ describe('festivais na sessão', () => {
     const pieces = () => session.mapData().objects.filter((o) => o.id.startsWith('fest.'));
     expect(pieces()).toHaveLength(1 + fair.decorations!.length);
     const [setup, table] = fair.activities.map((a) => a.point) as [string, string];
+    // (O porão já foi achado no jogo de verdade antes da feira: o quintal vem depois dele.)
+    state.flags['basement.found'] = true;
     expect(session.pendingJobPoints('map.cafe_main').map((p) => p.id)).toEqual([setup]);
     expect(session.festivalStatus()).toMatchObject({ next: 'activity', game: 'fair_setup' });
     // Montar a feira: os gatos do café que podem ir (o da história nunca vai).
