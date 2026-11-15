@@ -214,6 +214,7 @@
       "npc.realtor": ["Quando te mostrei esse ponto, não imaginei uma ceia aqui. Que bom que você acreditou.","Feliz Natal! Esse lugar só valoriza, viu?"]
     },
     "treat": {
+      "callAt": "07:20",
       "points": 15,
       "chancePerMinute": 0.08,
       "take": {

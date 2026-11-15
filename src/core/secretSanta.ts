@@ -56,6 +56,8 @@ export interface SecretSantaData {
    * pode trocar as falas (take/refuse do ano valem por cima das de sempre).
    */
   treat?: {
+    /** A hora da ligação da manhã (a do quitute do ano que tem `call`). */
+    callAt?: string;
     points: number;
     chancePerMinute: number;
     take: Record<string, string>;
