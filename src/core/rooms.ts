@@ -69,7 +69,8 @@ export interface RoomDef {
   capacity: { cats: number; customers: number };
   features?: RoomFeature[];
   /** Funcionalidade "sleep": a cama (E para dormir) e onde ela acorda. */
-  sleep?: { bed: Cell; wake: Cell };
+  /** Dormir no café: onde ela acorda. A cama é um item (tag bed) que ela compra e posiciona no cômodo. */
+  sleep?: { wake: Cell };
   look?: RoomLook;
   /** Variantes visuais (ex.: quintal "hedge"); `variant` diz qual vale. */
   variants?: Record<string, RoomLook>;
@@ -241,7 +242,7 @@ export function validateRooms(
       if (b && (!Number.isInteger(b.days) || b.days < 1 || !inMap(b.site.at))) errors.push(`${w}: obra do construtor com dias ou lugar inválidos`);
     }
     for (const f of r.features ?? []) if (!(ROOM_FEATURES as readonly string[]).includes(f)) errors.push(`${w}: funcionalidade inválida "${f}"`);
-    if (r.features?.includes('sleep') && (!r.sleep || !inArea(r, r.sleep.bed) || !inArea(r, r.sleep.wake))) errors.push(`${w}: "sleep" precisa de cama e lugar de acordar dentro do cômodo`);
+    if (r.features?.includes('sleep') && (!r.sleep || !inArea(r, r.sleep.wake))) errors.push(`${w}: "sleep" precisa do lugar de acordar dentro do cômodo`);
     if (r.variant && !r.variants?.[r.variant]) errors.push(`${w}: variante inexistente "${r.variant}"`);
     for (const look of [r.look, ...Object.values(r.variants ?? {})]) {
       if (!look) continue;

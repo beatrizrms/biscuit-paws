@@ -740,6 +740,12 @@
             }
           },
           {
+            "text": "Ponha uma cama no porão",
+            "when": {
+              "placedTag": "bed"
+            }
+          },
+          {
             "text": "Deixe o porão confortável para poder dormir lá",
             "when": {
               "room": "room.back_room",

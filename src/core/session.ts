@@ -242,6 +242,10 @@ const BASEMENT_POINT = 'pt.basement_find';
 
 /** O salão do café (data/rooms.json): onde as falas da obra feita de noite aparecem. */
 const HALL_ROOM = 'room.hall';
+/** A cama do quartinho (data/items.json): dormir no café só com ela posicionada no cômodo do sleep. */
+const BED_TAG = 'bed';
+/** Save de antes da cama comprada: o porão reformado tinha a cama fixa aqui; ela vira a cama posicionada. */
+const OLD_BED = { item: 'item.bed', room: 'room.back_room', at: [18, 4] as Cell };
 
 export class GameSession {
   readonly bus = new EventBus();
@@ -412,6 +416,14 @@ export class GameSession {
     // Em todo evento: a mão muda por muitos caminhos (servir, presente, comer, soltar no balcão).
     this.bus.onAny(() => this.syncTogo());
     this.syncTogo();
+    // Save de antes da cama comprada: o porão já reformado tinha a cama fixa; ela fica lá, agora como a cama posicionada.
+    // Com um móvel dela no lugar (o cercadinho...), a cama vai para a mochila e ela posiciona onde quiser.
+    if (content.items[OLD_BED.item] && this.roomState(OLD_BED.room) === 'restored' && !this.bedIn(OLD_BED.room) && !state.inventory[OLD_BED.item]) {
+      const def = content.catalog.tiles[content.items[OLD_BED.item]!.tile ?? ''];
+      const free = !(def ? cellsOf(OLD_BED.at, def) : [OLD_BED.at]).some((c) => this.placedAt(c));
+      if (free) state.placed.push({ uid: `p${state.nextUid++}`, item: OLD_BED.item, at: [OLD_BED.at[0], OLD_BED.at[1]] });
+      else state.inventory[OLD_BED.item] = 1;
+    }
     this.repairPlaced();
   }
 
@@ -2093,10 +2105,15 @@ export class GameSession {
     return this.shelteredCats().length < this.catCapacity();
   }
 
-  /** O cômodo com "sleep" restaurado (ela dorme no café), se houver. */
+  /** O cômodo com "sleep" restaurado e com a cama posicionada nele (ela dorme no café), se houver. */
   sleepRoom(): RoomDef | undefined {
     if (!activeFeatures(this.content.rooms, this.state).has('sleep')) return undefined;
-    return this.content.rooms.rooms.find((r) => r.features?.includes('sleep') && this.roomState(r.id) === 'restored');
+    return this.content.rooms.rooms.find((r) => r.features?.includes('sleep') && this.roomState(r.id) === 'restored' && this.bedIn(r.id));
+  }
+
+  /** A cama (item com a tag bed) posicionada no cômodo, ou undefined. */
+  bedIn(roomId: string): PlacedItem | undefined {
+    return this.state.placed.find((p) => this.content.items[p.item]?.tags.includes(BED_TAG) && this.roomAt(p.at)?.id === roomId);
   }
 
   /** Sujeiras ainda visíveis de um cômodo (a tag de restore.dirtTag). */
@@ -4551,8 +4568,9 @@ export class GameSession {
       const look = resolvedLook(room, s);
       Object.assign(legend, look.legend);
       objects.push(...look.objects);
-      if (s === 'restored' && room.features?.includes('sleep') && room.sleep) {
-        interactions.push({ id: `int.sleep.${room.id}`, at: room.sleep.bed, reach: 2, action: { sleep: room.id } });
+      const bed = s === 'restored' && room.features?.includes('sleep') ? this.bedIn(room.id) : undefined;
+      if (bed) {
+        interactions.push({ id: `int.sleep.${room.id}`, at: bed.at, reach: 2, action: { sleep: room.id } });
       }
     }
     for (const door of this.content.rooms.doors) {

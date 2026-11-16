@@ -198,6 +198,15 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.restoreRoom('room.back_room')).toEqual({ ok: true });
     expect(session.roomState('room.back_room')).toBe('restored');
     expect(session.mapData().legend.f).toBe('floor_wood_b');
+    // Sem a cama posicionada, não dorme no café (a cama é comprada no Market).
+    state.time = parseClock(content.dayNight.goHomeFrom);
+    expect(session.sleepRoom()).toBeUndefined();
+    expect(session.sleepInCafe()).toEqual({ ok: false, reason: 'locked' });
+    state.inventory['item.bed'] = 1;
+    expect(session.checkPlacement('item.bed', [10, 7])).toBe('wrong_room');
+    expect(session.place('item.bed', [18, 4])).toEqual({ ok: true });
+    expect(session.mapData().interactions?.find((i) => 'sleep' in i.action)?.at).toEqual([18, 4]);
+    state.time = 9 * 60;
     expect(session.sleepInCafe()).toEqual({ ok: false, reason: 'too_early' });
     state.time = parseClock(content.dayNight.goHomeFrom);
     const day = state.day;
@@ -205,6 +214,24 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(state.day).toBe(day + 1);
     expect(state.location).toBe('map.cafe_main');
     expect(session.morningSpawn()).toEqual([20, 6]);
+  });
+
+  it('save de antes da cama comprada: o porão reformado fica com a cama no lugar de sempre e ela continua dormindo lá', () => {
+    const { state } = afterFirstCustomer();
+    state.rooms['room.back_room'] = 'restored';
+    for (const d of content.rooms.doors.filter((x) => x.to === 'room.back_room')) state.doors[d.id] = 'open';
+    const session = new GameSession(content, state);
+    expect(state.placed.filter((p) => p.item === 'item.bed').map((p) => p.at)).toEqual([[18, 4]]);
+    expect(session.sleepRoom()?.id).toBe('room.back_room');
+    // Carregar de novo não põe outra.
+    new GameSession(content, state);
+    expect(state.placed.filter((p) => p.item === 'item.bed')).toHaveLength(1);
+    // Com um móvel dela no lugar da cama antiga: a cama vai para a mochila (nada por cima do cercadinho).
+    state.placed = state.placed.filter((p) => p.item !== 'item.bed');
+    state.placed.push({ uid: 'pen1', item: 'item.recovery_pen', at: [17, 3] });
+    new GameSession(content, state);
+    expect(state.placed.some((p) => p.item === 'item.bed')).toBe(false);
+    expect(state.inventory['item.bed']).toBe(1);
   });
 
   it('não dá para pôr móvel em cômodo fechado nem na frente da passagem', () => {
@@ -519,16 +546,20 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
   });
 });
 
-describe('quarto: decorações no Market depois do porão reformado', () => {
-  it('só aparecem com o porão reformado; as de quarto só no porão; as de parede na parede', () => {
-    const { session, state } = afterFirstCustomer(2000);
-    const bedroom = Object.values(content.items).filter((i) => i.tile?.startsWith('quarto_'));
-    expect(bedroom.length).toBe(22);
+describe('quarto: a cama e as decorações no Market na primeira visita ao porão', () => {
+  it('aparecem quando ela entra no porão pela primeira vez (a fala do quartinho); as de quarto só no porão; as de parede na parede', () => {
+    const { state } = afterFirstCustomer(2000);
+    const session = new GameSession(loadContent({ marketStages: true }), state);
+    const bedroom = [...Object.values(content.items).filter((i) => i.tile?.startsWith('quarto_')), content.items['item.bed']!];
+    expect(bedroom.length).toBe(23);
     expect(bedroom.some((i) => session.itemUnlocked(i.id))).toBe(false);
     session.openRoom('room.back_room');
-    cleanTag(session, 'back_room');
-    expect(session.restoreRoom('room.back_room')).toEqual({ ok: true });
+    expect(bedroom.some((i) => session.itemUnlocked(i.id))).toBe(false);
+    session.setPlayerCell([20, 5]);
+    session.firstVisitTalk('room.back_room');
     expect(bedroom.every((i) => session.itemUnlocked(i.id))).toBe(true);
+    session.tickClock(1 / content.dayNight.minutesPerSecond); // o aviso "Chegou coisa nova" e a etiqueta Novo
+    expect(session.marketNew('item.bed')).toBe(true);
     for (const id of ['item.bedroom_wardrobe', 'item.bedroom_mirror', 'item.bedroom_pouf_pink']) state.inventory[id] = 1;
     expect(session.checkPlacement('item.bedroom_wardrobe', [10, 7])).toBe('wrong_room');
     expect(session.checkPlacement('item.bedroom_wardrobe', [21, 5])).toBeNull();
