@@ -2315,6 +2315,25 @@ export class GameSession {
     this.bus.emit('script.requested', { scriptId: room.firstLook });
   }
 
+  /**
+   * A fala da primeira vez dela no cômodo aberto (rooms.json: firstDialogue), enquanto ainda não apareceu: a cena põe na
+   * fila de momentos e chama firstVisitTalk quando é a vez.
+   */
+  firstVisitPending(): { roomId: string } | null {
+    const id = this.playerRoomNow();
+    const room = id ? this.content.rooms.rooms.find((r) => r.id === id) : undefined;
+    if (!room?.firstDialogue || this.state.flags[`seen.firstvisit.${room.id}`] || this.roomState(room.id) === 'locked' || this.roomState(room.id) === 'discovered') return null;
+    return { roomId: room.id };
+  }
+
+  /** Mostra a fala da primeira vez no cômodo (uma vez no jogo). */
+  firstVisitTalk(roomId: string): void {
+    const room = this.content.rooms.rooms.find((r) => r.id === roomId);
+    if (!room?.firstDialogue || this.state.flags[`seen.firstvisit.${roomId}`]) return;
+    this.state.flags[`seen.firstvisit.${roomId}`] = true;
+    this.bus.emit('dialogue.requested', { dialogueId: room.firstDialogue });
+  }
+
   /** Remove uma árvore do quintal (tag tree): some de vez e libera o espaço. */
   removeTree(uid: string): ActionResult {
     const i = this.state.placed.findIndex((p) => p.uid === uid);

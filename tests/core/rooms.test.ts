@@ -176,6 +176,20 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(resolveMap(session.mapData(), content.catalog).solid[7]![16]).toBe(false);
   });
 
+  it('primeira vez no porão aberto: a fala dela, uma vez só (trancado ou fora dele, nada)', () => {
+    const { session, events } = afterFirstCustomer(1000);
+    session.setPlayerCell([20, 5]);
+    expect(session.firstVisitPending()).toBeNull(); // ainda trancado
+    session.openRoom('room.back_room');
+    session.setPlayerCell([5, 5]);
+    expect(session.firstVisitPending()).toBeNull(); // no salão
+    session.setPlayerCell([20, 5]);
+    expect(session.firstVisitPending()).toEqual({ roomId: 'room.back_room' });
+    session.firstVisitTalk('room.back_room');
+    expect(dialogues(events)).toContain('dlg.room_back_first_visit');
+    expect(session.firstVisitPending()).toBeNull();
+  });
+
   it('reforma: só depois de limpar; com a obra paga, ela dorme no café e acorda no quartinho', () => {
     const { session, state } = afterFirstCustomer();
     session.openRoom('room.back_room');

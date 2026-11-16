@@ -505,6 +505,18 @@
         }
       ]
     },
+    "dlg.room_back_first_visit": {
+      "lines": [
+        {
+          "speaker": "{player}",
+          "text": "Nossa, que sujeira! Nem acredito que tinha esse cômodo escondido... Se eu limpar bem, acho que consigo aproveitar para alguma coisa."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Ou até fazer um quartinho, me livrar do aluguel do meu apartamentinho e ficar de vez na vila."
+        }
+      ]
+    },
     "dlg.room_back_opened": {
       "lines": [
         {

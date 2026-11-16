@@ -63,6 +63,8 @@ export interface RoomDef {
   placeItems?: { item: string; at: Cell }[];
   /** Roteiro da primeira vez que ela entra no cômodo aberto e ainda com sujeira pesada (o susto no quintal). */
   firstLook?: string;
+  /** Fala (dialogue.json) da primeira vez que ela entra no cômodo aberto (o que ela pensa do lugar). Uma vez no jogo. */
+  firstDialogue?: string;
   /** Quantos gatos moram aqui; clientes: só informação (o atendimento não tem teto fixo). */
   capacity: { cats: number; customers: number };
   features?: RoomFeature[];

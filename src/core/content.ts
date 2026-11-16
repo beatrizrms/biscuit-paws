@@ -1136,6 +1136,7 @@ export function validateContent(raw: RawContent): string[] {
     if (d.foundDialogue && !dialogueIds.has(d.foundDialogue)) err(`mapa: sujeira "${d.id}" com fala inexistente "${d.foundDialogue}"`);
     if (d.when) checkCondition(`mapa: sujeira "${d.id}"`, d.when as Condition);
   }
+  for (const r of raw.rooms.rooms) if (r.firstDialogue && !dialogueIds.has(r.firstDialogue)) err(`rooms: "${r.id}" com fala inexistente "${r.firstDialogue}"`);
   for (const id of raw.service.customerLooks) if (!npcIds.has(id)) err(`service: customerLooks tem NPC inexistente "${id}"`);
   for (const item of raw.items.items) {
     if (item.healthMultiplier !== undefined && !(item.healthMultiplier > 0)) err(`items: "${item.id}" healthMultiplier inválido`);

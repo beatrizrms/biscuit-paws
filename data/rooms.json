@@ -32,6 +32,7 @@
     {
       "id": "room.back_room",
       "name": "Porão",
+      "firstDialogue": "dlg.room_back_first_visit",
       "initial": "locked",
       "area": {
         "from": [

@@ -4380,6 +4380,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       });
     }
     if (s.state.construction.askPending) this.moments.add({ key: 'builder', ready: inCafe, run: () => this.builderAsk() });
+    // A primeira vez dela num cômodo (o porão): a fala com o que ela pensa do lugar, enquanto ela ainda está lá.
+    const first = s.firstVisitPending();
+    if (first) {
+      this.moments.add({
+        key: `firstvisit:${first.roomId}`,
+        ready: () => s.firstVisitPending()?.roomId === first.roomId,
+        run: async () => {
+          s.firstVisitTalk(first.roomId);
+          await this.untilScreenFree();
+        },
+      });
+    }
   }
 
   /** Espera a fala (ou a cena) que acabou de abrir terminar. */
