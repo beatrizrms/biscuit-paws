@@ -5660,8 +5660,8 @@ export class GameSession {
     const room = this.content.rooms.rooms.find((r) => r.id === done.roomId);
     if (room && done.kind === 'room_open' && this.roomState(room.id) === 'discovered') this.applyRoomOpen(room);
     if (room && done.kind === 'room_clear') {
-      // Limpeza pesada: o mato alto do cômodo sai todo de uma vez.
-      for (const d of this.visibleDirt().filter((x) => x.heavy && x.tags.includes(room.restore?.dirtTag ?? ''))) {
+      // Limpeza e reparo: toda a sujeira do cômodo sai de uma vez (o mato, as toras, os galhos e as folhas).
+      for (const d of this.visibleDirt().filter((x) => !x.clearedBy && x.tags.includes(room.restore?.dirtTag ?? ''))) {
         this.state.cleaned.push(d.id);
         this.bus.emit('dirt.cleaned', { dirtId: d.id });
       }

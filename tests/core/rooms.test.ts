@@ -479,7 +479,8 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     expect(trees()).toHaveLength(1); // já no quintal sujo, com as outras espalhadas
     expect(state.placed.filter((p) => content.items[p.item]?.tags.includes('tree')).length).toBeGreaterThan(4);
     cleanTag(session, 'backyard', true);
-    expect(session.restoreRoom('room.backyard')).toEqual({ ok: true });
+    session.tickClock(1 / content.dayNight.minutesPerSecond); // limpo de tudo: o quintal fica pronto sozinho
+    expect(session.roomState('room.backyard')).toBe('restored');
     expect(trees()).toHaveLength(1); // a reforma não traz outras
     expect(session.removeTree(trees()[0]!.uid)).toEqual({ ok: true });
     expect(trees()).toHaveLength(0);
@@ -513,20 +514,17 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     expect(session.roomDirtLeft('room.backyard')).toBe(heavy.length);
   });
 
-  it('a reforma espera a limpeza pesada: o Tião tira o mato num dia e depois reforma', () => {
+  it('limpeza e reparo do quintal: uma obra só do Tião; tira tudo (mato, toras, galhos e folhas) e o quintal fica pronto', () => {
     const { session, state } = yardOpen();
-    cleanTag(session, 'backyard');
     const money = state.money;
-    expect(session.roomWorks('room.backyard').map((w) => w.kind)).toEqual(['room_clear', 'room_restore']);
+    expect(session.roomWorks('room.backyard')).toMatchObject([{ kind: 'room_clear', cost: 200, days: 2, label: 'Limpeza e reparo do quintal' }]);
     expect(session.quoteRoom('room.backyard', 'room_restore')).toEqual({ ok: false, reason: 'room_not_ready' });
-    expect(session.quoteRoom('room.backyard', 'room_clear')).toEqual({ ok: true });
-    finishJob(session);
-    expect(session.roomHeavyDirtLeft('room.backyard')).toBe(0);
-    expect(session.roomWorks('room.backyard').map((w) => w.kind)).toEqual(['room_restore']);
     expect(session.quoteRoom('room.backyard')).toEqual({ ok: true });
     finishJob(session);
+    expect(session.roomDirtLeft('room.backyard')).toBe(0);
     expect(session.roomState('room.backyard')).toBe('restored');
-    expect(state.money).toBe(money - 80 - 120);
+    expect(session.roomWorks('room.backyard')).toEqual([]);
+    expect(state.money).toBe(money - 200);
   });
 
   it('os itens do quintal só aparecem depois da reforma; os de quintal só ficam no quintal', () => {
@@ -535,7 +533,8 @@ describe('quintal: limpeza pesada do Tião e os itens dos cômodos no Market', (
     expect(yardItems.length).toBeGreaterThan(10);
     expect(yardItems.some((i) => session.itemUnlocked(i.id))).toBe(false);
     cleanTag(session, 'backyard', true);
-    expect(session.restoreRoom('room.backyard')).toEqual({ ok: true });
+    session.tickClock(1 / content.dayNight.minutesPerSecond); // limpo de tudo: o quintal fica pronto sozinho
+    expect(session.roomState('room.backyard')).toBe('restored');
     expect(yardItems.every((i) => session.itemUnlocked(i.id))).toBe(true);
     state.inventory['item.yard_garden_bench'] = 1;
     expect(session.checkPlacement('item.yard_garden_bench', [10, 8])).toBe('wrong_room');

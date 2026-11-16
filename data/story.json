@@ -791,13 +791,7 @@
             }
           },
           {
-            "text": "Limpe o quintal",
-            "when": {
-              "cleaned": "backyard"
-            }
-          },
-          {
-            "text": "Termine a reforma do quintal",
+            "text": "Faça a limpeza e reparo do quintal",
             "when": {
               "room": "room.backyard",
               "atLeast": "restored"
