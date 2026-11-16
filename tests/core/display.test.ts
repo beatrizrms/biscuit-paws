@@ -128,3 +128,24 @@ describe('vitrine no save', () => {
     expect(parseSave(readFileSync('tests/fixtures/save_v29.json', 'utf8'), knownIds(content)).state.displays).toEqual({});
   });
 });
+
+describe('meta da vitrine', () => {
+  it('depois de servir a segunda comida de vitrine diferente (sem vitrine no café): "Uma vitrine"; bebida não conta', () => {
+    const { session, state } = bakery(false);
+    state.story.completed.push('story.coffee_machine');
+    const started = () => session.goals().some((g) => g.title === 'Uma vitrine');
+    const serve = (recipeId: string) => session.bus.emit('customer.served', { customerId: 'c', recipeId, price: 1, tip: 0, quality: 'simple' });
+    serve('recipe.black_coffee'); // bebida: não conta
+    serve('recipe.cake_slice');
+    serve('recipe.cake_slice'); // a mesma receita: conta uma vez
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(started()).toBe(false);
+    serve('recipe.paw_cookie');
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(started()).toBe(true);
+    // Encomendou e montou: a meta termina.
+    state.inventory['item.display_case'] = 1;
+    expect(session.place('item.display_case', [10, 5])).toEqual({ ok: true });
+    expect(state.story.completed).toContain('story.display_case');
+  });
+});

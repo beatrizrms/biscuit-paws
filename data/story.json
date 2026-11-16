@@ -1072,6 +1072,37 @@
       ]
     },
     {
+      "id": "story.display_case",
+      "_comment": "Depois de servir a segunda comida de vitrine diferente (servedDisplay), a meta de ter uma vitrine. Sem ela, as fornadas servem do balcão; com ela, ficam guardadas juntas. Quem já tem vitrine conclui na hora.",
+      "act": 2,
+      "after": [
+        "story.coffee_machine"
+      ],
+      "start": {
+        "servedDisplay": {
+          "gte": 2
+        }
+      },
+      "goal": {
+        "title": "Uma vitrine",
+        "steps": [
+          {
+            "text": "Encomende uma vitrine",
+            "when": {
+              "owned": "item.display_case"
+            }
+          },
+          {
+            "text": "Monte a vitrine no café",
+            "when": {
+              "placed": "item.display_case"
+            }
+          }
+        ]
+      },
+      "effects": []
+    },
+    {
       "id": "story.inauguration",
       "act": 2,
       "after": [

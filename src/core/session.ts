@@ -378,6 +378,10 @@ export class GameSession {
     });
     // Pedidos dos amigos: receita servida e cuidado com os gatos contam.
     this.bus.on('customer.served', ({ recipeId }) => this.countRequests((r) => r.kind === 'serve' && r.recipe === recipeId));
+    // Comida de vitrine servida (a meta da vitrine conta quantas diferentes): uma marca por receita.
+    this.bus.on('customer.served', ({ recipeId }) => {
+      if (this.content.recipes[recipeId]?.display) this.state.flags[`served.${recipeId}`] = true;
+    });
     this.bus.on('cat.cared', ({ gameId }) => this.countRequests((r) => r.kind === 'care' && (!r.game || r.game === gameId)));
     this.bus.on('cat.cared', ({ gameId }) => {
       const play = this.content.dayNight.energy.restore.play;

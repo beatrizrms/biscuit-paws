@@ -105,6 +105,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   }
   if ('business' in c) return stageAtLeast(state.business, c.business);
   if ('renovated' in c) return isRenovated(state.construction);
+  if ('servedDisplay' in c) return Object.keys(state.flags).filter((k) => k.startsWith('served.recipe.') && state.flags[k]).length >= c.servedDisplay.gte;
   if ('roomItems' in c) return state.placed.filter((p) => roomAt(ctx.rooms, p.at)?.id === c.roomItems.room).length >= c.roomItems.gte;
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
   if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);

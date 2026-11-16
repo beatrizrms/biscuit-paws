@@ -231,6 +231,8 @@ export type Condition =
   | { placedTag: string; gte?: number; exceptItem?: string }
   /** Quantos itens dela estão posicionados dentro do cômodo (o porão com a cama e mais alguma coisa). */
   | { roomItems: { room: string; gte: number } }
+  /** Quantas comidas de vitrine diferentes (recipes.json: display) ela já serviu a clientes (flags served.recipe.*). */
+  | { servedDisplay: { gte: number } }
   | { owned: string; gte?: number }
   /** A personagem já entrou neste mapa. */
   | { visited: string }
@@ -985,6 +987,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!raw.milestones.milestones.some((m) => m.id === c.milestone)) err(`${where}: selo inexistente "${c.milestone}"`);
     } else if ('fromSeason' in c) {
       if (!raw.seasons.order.includes(c.fromSeason)) err(`${where}: estação inexistente "${c.fromSeason}"`);
+    } else if ('servedDisplay' in c) {
+      if (!Number.isInteger(c.servedDisplay.gte) || c.servedDisplay.gte < 1) err(`${where}: servedDisplay.gte precisa ser um inteiro >= 1`);
     } else if ('roomItems' in c) {
       if (!raw.rooms.rooms.some((r) => r.id === c.roomItems.room)) err(`${where}: cômodo inexistente "${c.roomItems.room}"`);
     } else if ('room' in c) {
