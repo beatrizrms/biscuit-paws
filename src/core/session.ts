@@ -6106,6 +6106,17 @@ export class GameSession {
     return placeOn ? hostAt(this.state.placed.filter((x) => x !== p), this.content.items, placeOn, p.at, this.footprint()) : undefined;
   }
 
+  /**
+   * Quanto o item sobe se for posto em `at`: em cima de um apoio, até o tampo dele (como o mapa desenha, withPlaced);
+   * no chão, 0. `ignoreUid`: o próprio móvel sendo mudado de lugar.
+   */
+  placeLift(itemId: string, at: Cell, ignoreUid?: string): number {
+    const placeOn = this.content.items[itemId]?.placeOn;
+    if (!placeOn) return 0;
+    const host = hostAt(this.state.placed.filter((x) => x.uid !== ignoreUid), this.content.items, placeOn, at, this.footprint());
+    return host ? this.content.items[host.item]?.topLift ?? this.content.world.counterLift ?? 0 : 0;
+  }
+
   /** As células de uma porta: no vão da parede divisória, a passagem e os dois lados; na parede de cima, ela (1x2) e a da frente. */
   private doorCells(doorId: string): Cell[] {
     const d = this.content.rooms.doors.find((x) => x.id === doorId);

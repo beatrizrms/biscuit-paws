@@ -110,7 +110,6 @@ const E_TIER = { parcels: 1, catSettling: 2, job: 2, service: 3, pen: 3, cat: 4,
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'run', Phaser.Input.Keyboard.Key>;
 
-const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
@@ -1806,11 +1805,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { moveUid } = this.placing;
     const { as } = this.placing;
     const ok = (moveUid ? this.session.moveProblem(moveUid, this.placing.at, this.playerCells(), as) : this.session.checkPlacement(as ?? this.placing.itemId, this.placing.at, this.playerCells())) === null;
+    // Em cima de um apoio (vaso na mesa), sobe até o tampo, como fica depois de posto.
+    const lift = this.session.placeLift(as ?? this.placing.itemId, this.placing.at, moveUid);
+    // Lugar bom: as cores do próprio móvel (um tom por cima mudava a cor dele: o vaso rosa parecia verde); ruim: vermelho.
+    const tint = (g: Phaser.GameObjects.Image) => (ok ? g.clearTint() : g.setTint(GHOST_BAD));
     this.placing.ghosts.forEach((g, i) => {
-      g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts).setTint(ok ? GHOST_OK : GHOST_BAD);
+      tint(g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts - lift).setDepth(GHOST_DEPTH));
     });
     // O que vai em cima: na célula de origem do apoio, subido até o tampo.
-    for (const r of this.placing.riders ?? []) r.ghosts.forEach((g, i) => g.setPosition((c0 + (i % r.w)) * ts, (r0 + Math.floor(i / r.w)) * ts - r.lift).setTint(ok ? GHOST_OK : GHOST_BAD));
+    for (const r of this.placing.riders ?? []) r.ghosts.forEach((g, i) => tint(g.setPosition((c0 + (i % r.w)) * ts, (r0 + Math.floor(i / r.w)) * ts - r.lift)));
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
