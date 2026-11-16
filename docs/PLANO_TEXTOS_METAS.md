@@ -88,9 +88,8 @@ Exemplo, só para mostrar o tamanho (a versão final vai na tabela da etapa 3):
 | O primeiro cliente | Um balcão para servir em pé. | **(sai: a mesa e a cadeira já bastam)** |
 | | Montar o cardápio no quadro (tecla M). | Monte o cardápio |
 | | Atender o primeiro cliente: preparar, entregar e lavar a louça. | Atenda o primeiro cliente |
-| O porão | Pagar a obra para abrir o acesso ao porão (Market, aba Construção). | Pague a obra para abrir o porão |
-| | Limpar o porão. | Limpe o porão |
-| | Terminar a reforma (Market, aba Construção). | Deixe o porão confortável para poder dormir lá |
+| Porão habitável | Pagar a obra para abrir e tirar toda a sujeira. | Limpe o porão |
+| | Uma cama e mais um móvel ou enfeite (aí dá para dormir lá). | Decore o porão |
 | O quintal secreto | Achar a chave do cadeado. | Ache a chave do cadeado |
 | | Abrir a porta com a chave (E na porta). | Abra a porta com a chave |
 | | Limpar o quintal (folhas e mato). | Limpe o quintal |

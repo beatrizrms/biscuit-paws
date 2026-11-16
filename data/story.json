@@ -724,29 +724,18 @@
         "atLeast": "discovered"
       },
       "goal": {
-        "title": "O porão",
+        "title": "Porão habitável",
         "steps": [
           {
-            "text": "Pague a obra para abrir o porão",
-            "when": {
-              "room": "room.back_room",
-              "atLeast": "abandoned"
-            }
-          },
-          {
-            "text": "Deixe o porão habitável",
+            "text": "Limpe o porão",
+            "detail": "Pague a obra para abrir e tire toda a sujeira",
             "when": {
               "cleaned": "back_room"
             }
           },
           {
-            "text": "Ponha uma cama no porão",
-            "when": {
-              "placedTag": "bed"
-            }
-          },
-          {
-            "text": "Deixe o porão confortável: além da cama, ponha um móvel ou enfeite",
+            "text": "Decore o porão",
+            "detail": "Uma cama e mais um móvel ou enfeite",
             "when": {
               "room": "room.back_room",
               "atLeast": "restored"
