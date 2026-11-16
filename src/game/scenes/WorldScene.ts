@@ -3449,6 +3449,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const sinkHint = { ...this.hintCell(sink, 'sink')!, count: `${sv.sinkLoad()}/${sv.sinkCapacity()}` };
       if (act === 'deposit') add([sink], E_TIER.service, sinkHint, () => report(sv.depositDirty()));
       else if (act === 'wash') add([sink], E_TIER.service, sinkHint, () => report(this.withPose(sv.startWash(), 'wash')));
+      else if (act === 'resume') add([sink], E_TIER.service, sinkHint, () => report(this.withPose(sv.resumeWash(), 'wash')));
     }
     // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
     const washer = sv.washerNear(feet, target);

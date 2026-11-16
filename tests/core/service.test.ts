@@ -1067,7 +1067,7 @@ describe('avaliação dos clientes (estrelas)', () => {
 });
 
 describe('lavar na pia é à mão', () => {
-  it('fora da frente da pia a lavagem pausa (a barra fica parada); de volta, continua de onde parou', () => {
+  it('fora da frente da pia a lavagem pausa (a barra fica parada); de volta, só continua com o E, de onde parou', () => {
     const { session, sv, state } = openCafe();
     state.sink.load = { cup: 4, glass: 0, plate: 0 }; // 4 peças x 3 min = 12 min
     state.service.nextCustomerAt = 1e9;
@@ -1082,13 +1082,20 @@ describe('lavar na pia é à mão', () => {
     advance(session, 20);
     expect(state.dishes.cup).toBe(cups);
     expect(sv.washProgress()).toBeCloseTo(half, 1);
-    // Voltou: termina no que faltava (uns 6 minutos).
+    // Voltou: parada até o E; com o E, termina no que faltava (uns 6 minutos). A louça conta na pia até ficar limpa.
     sv.setSinkAttended(true);
+    expect(sv.sinkPaused()).toBe(true);
+    expect(sv.sinkLoad()).toBe(4);
+    advance(session, 5);
+    expect(sv.washProgress()).toBeCloseTo(half, 1);
+    expect(sv.sinkAction()).toBe('resume');
+    expect(sv.resumeWash()).toEqual({ ok: true });
     expect(sv.sinkPaused()).toBe(false);
     advance(session, 4);
     expect(state.dishes.cup).toBe(cups);
     advance(session, 4);
     expect(state.dishes.cup).toBe(cups + 4);
+    expect(sv.sinkLoad()).toBe(0);
   });
 });
 

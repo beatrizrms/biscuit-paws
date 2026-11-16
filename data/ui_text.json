@@ -863,7 +863,7 @@
     "sinkLoad": "Pia: {n} para lavar",
     "sinkWashing": "Pia: lavando",
     "sinkPaused": "Pia: lavagem parada (volte à pia)",
-    "sinkLeft": "A louça espera você voltar à pia.",
+    "sinkLeft": "A lavagem parou: volte à pia e aperte E para continuar.",
     "blocked": {
       "empty_menu": "Ninguém entra: o cardápio está vazio. Monte o cardápio.",
       "vessel": "Ninguém entra: tudo do cardápio esgotado. Lave a louça.",

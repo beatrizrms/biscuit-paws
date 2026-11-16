@@ -826,19 +826,27 @@ export class CafeService {
    * lava-louças lava sozinha). Padrão true (sem cena, como nos testes, a pia lava direto).
    */
   private sinkAttended = true;
+  /**
+   * A lavagem anda só depois do E (começar ou continuar): saindo da frente da pia, para; voltando, espera outro E.
+   * Ao abrir o jogo com louça lavando, fica parada até o E.
+   */
+  private sinkRunning = false;
   /** Minuto do último tick, para saber quanto tempo a lavagem ficou pausada. */
   private lastTickAt: number | null = null;
 
   setSinkAttended(attended: boolean): void {
     if (attended === this.sinkAttended) return;
     this.sinkAttended = attended;
-    // Avisa (o balão do subconsciente troca "lavando" por "parada") só se há lavagem em andamento.
-    if (this.st.sink.washing) this.h.bus.emit('sink.paused', { paused: !attended });
+    if (attended) return;
+    // Saiu da frente da pia: a lavagem para e só volta com o E. Avisa se estava lavando.
+    const was = this.sinkRunning;
+    this.sinkRunning = false;
+    if (this.st.sink.washing && was) this.h.bus.emit('sink.paused', { paused: true });
   }
 
-  /** Lavando na pia, mas pausado (ela saiu da frente da pia). */
+  /** Lavando na pia, mas pausado (ela saiu da frente da pia e ainda não apertou E de novo). */
   sinkPaused(): boolean {
-    return !!this.st.sink.washing && !this.sinkAttended;
+    return !!this.st.sink.washing && !(this.sinkAttended && this.sinkRunning);
   }
 
   /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
@@ -885,7 +893,7 @@ export class CafeService {
     }
     // Pia: só lava com ela em frente; fora, o fim da lavagem anda junto com o relógio (pausa).
     const washing = this.st.sink.washing;
-    if (washing && !this.sinkAttended) washing.readyAt += passed;
+    if (washing && this.sinkPaused()) washing.readyAt += passed;
     if (washing && washing.readyAt <= now) {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
@@ -1517,9 +1525,10 @@ export class CafeService {
     return near(feet, this.sinkCell());
   }
 
-  /** O que a pia faria com um E agora: receber a louça suja das mãos ou começar a lavar. */
-  sinkAction(): 'deposit' | 'wash' | null {
-    if (this.st.hands.some((h) => h.kind === 'dirty')) return 'deposit';
+  /** O que a pia faria com um E agora: receber a louça suja das mãos, começar a lavar ou continuar a lavagem parada. */
+  sinkAction(): 'deposit' | 'wash' | 'resume' | null {
+    if (this.st.hands.some((h) => h.kind === 'dirty') && this.sinkLoad() < this.cfg.sinkCapacity) return 'deposit';
+    if (this.sinkPaused()) return 'resume';
     if (this.st.hands.length === 0 && !this.st.sink.washing && loadCount(this.st.sink.load) > 0) return 'wash';
     return null;
   }
@@ -1528,7 +1537,7 @@ export class CafeService {
   depositDirty(): ServiceResult {
     const dirty = this.st.hands.filter((i) => i.kind === 'dirty');
     if (dirty.length === 0) return { ok: false, reason: 'hands_empty' };
-    let room = this.cfg.sinkCapacity - loadCount(this.st.sink.load);
+    let room = this.cfg.sinkCapacity - this.sinkLoad();
     if (room <= 0) return { ok: false, reason: 'sink_full' };
     const kept: HandItem[] = [];
     for (const h of this.st.hands) {
@@ -1550,7 +1559,16 @@ export class CafeService {
     if (this.st.sink.washing) return { ok: false, reason: 'station_busy' };
     this.st.sink.washing = { readyAt: this.now() + n * this.cfg.washMinutesPerDish, load: { ...this.st.sink.load } };
     this.st.sink.load = emptyLoad();
+    this.sinkRunning = true;
     this.h.bus.emit('sink.changed', { load: 0 });
+    return { ok: true };
+  }
+
+  /** Continua a lavagem parada (ela saiu da pia e voltou): E de novo. */
+  resumeWash(): ServiceResult {
+    if (!this.st.sink.washing) return { ok: false, reason: 'nothing_here' };
+    this.sinkRunning = true;
+    this.h.bus.emit('sink.paused', { paused: false });
     return { ok: true };
   }
 
@@ -1563,8 +1581,9 @@ export class CafeService {
     return Math.min(1, Math.max(0, 1 - (w.readyAt - at) / total));
   }
 
+  /** Louças na pia: as esperando e as que estão sendo lavadas (só saem dela limpas, quando a barra termina). */
   sinkLoad(): number {
-    return loadCount(this.st.sink.load);
+    return loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad());
   }
 
   /** Quantas louças cabem na pia. */
