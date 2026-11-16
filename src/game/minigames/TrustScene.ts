@@ -154,7 +154,9 @@ export class TrustScene extends MiniGameScene {
   protected resultText(r: MiniGameResult): string {
     if (r.skipped) return '';
     const t = uiText.minigames.trust;
-    return r.outcome === 'fail' ? t.failed : t.result.replace('{scares}', String(this.s.scares));
+    // O gato do café (que acabou de chegar): a próxima tentativa fica mais fácil, e ela fica sabendo.
+    if (r.outcome === 'fail') return this.launch.params.catId ? t.failedSettle : t.failed;
+    return t.result.replace('{scares}', String(this.s.scares));
   }
 
   // ---------- Desenho ----------

@@ -2997,8 +2997,9 @@ export class GameSession {
   settleDifficulty(catId: string): 'easy' | 'normal' | 'hard' {
     const levels = ['easy', 'normal', 'hard'] as const;
     const base = this.content.catProfiles.personalities[this.catDef(catId)?.personality ?? '']?.trust ?? 'normal';
-    // Castrado: mais calmo (clinic.json: effects.trustEasier níveis mais fácil).
-    return levels[Math.max(0, levels.indexOf(base) - this.clinic.effects(catId).trustEasier)]!;
+    // Castrado: mais calmo (clinic.json: effects.trustEasier níveis mais fácil); cada tentativa perdida, um nível a menos.
+    const fails = this.state.cats[catId]?.settleFails ?? 0;
+    return levels[Math.max(0, levels.indexOf(base) - this.clinic.effects(catId).trustEasier - fails)]!;
   }
 
   /** Dá para uma cena começar agora: ela fora do café, ou no cômodo das cenas (o salão). Em outro cômodo, espera. */
@@ -4145,7 +4146,11 @@ export class GameSession {
     const newcomer = params.catId ? this.state.cats[params.catId] : undefined;
     if (result.gameId === 'trust' && newcomer?.settling && result.outcome !== 'fail' && !result.skipped) {
       delete newcomer.settling;
+      delete newcomer.settleFails;
       this.bus.emit('cat.settled', { catId: params.catId! });
+    } else if (result.gameId === 'trust' && newcomer?.settling && result.outcome === 'fail' && !result.skipped) {
+      // Perdeu: da próxima vez ele está um pouco mais acostumado (um nível mais fácil, até o fácil).
+      newcomer.settleFails = (newcomer.settleFails ?? 0) + 1;
     }
     // Remédio escondido: deu certo (sem pular), a dose do dia vai.
     if (result.gameId === 'pill' && params.catId && result.outcome !== 'fail' && !result.skipped) this.pillDose(params.catId);

@@ -962,6 +962,7 @@
       "scared": "Assustou!",
       "result": "Confiança conquistada com {scares} susto(s).",
       "failed": "Ele se assustou demais e fugiu.",
+      "failedSettle": "Ele se assustou e fugiu. Da próxima vez ele vai estar mais acostumado.",
       "treatGiven": "Petisco!",
       "startled": "Um barulho!",
       "crowded": "Ele quer espaço"
