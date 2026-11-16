@@ -1604,9 +1604,11 @@ export class GameSession {
     }
     for (const id of this.clinic.readyForPickup()) out.push({ kind: 'clinic', clinic: 'pickup', catId: id, done: false });
     const isolated = this.shelteredCats().filter((id) => this.clinic.isolated(id) && this.service.carriedCat() !== id);
+    // Gatos em recuperação (cercadinho ou caixinha): um lembrete por dia enquanto houver algum, comida e remédio
+    // juntos. Cada gato conta quando comeu hoje e, com remédio a dar, já tomou o de hoje.
     if (isolated.length > 0) {
-      const fedPen = isolated.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
-      out.push({ kind: 'clinic', clinic: 'pen_food', done: fedPen === isolated.length, progress: [fedPen, isolated.length] });
+      const cared = isolated.filter((id) => this.state.cats[id]!.fedOn === this.state.day && !needsMedicine(this.state.cats[id]!, this.state.day)).length;
+      out.push({ kind: 'clinic', clinic: 'pen_food', done: cared === isolated.length, progress: [cared, isolated.length] });
     }
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
@@ -1630,8 +1632,9 @@ export class GameSession {
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
     const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
     const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
-    for (const id of this.shelteredCats().filter((x) => this.clinic.isolated(x) && needsMedicine(this.state.cats[x]!, this.state.day))) {
-      out.push({ kind: 'care', catId: id, need: 'medicine', hasTool: owns('medicine'), done: false });
+    // O remédio dos gatos em recuperação já está no lembrete deles; à parte, só quando falta o remédio (passar na clínica).
+    if (!owns('medicine')) {
+      for (const id of isolated.filter((x) => needsMedicine(this.state.cats[x]!, this.state.day))) out.push({ kind: 'care', catId: id, need: 'medicine', hasTool: false, done: false });
     }
     for (const id of this.homeCats()) {
       // A fome já tem a tarefa da ração (o pote): o balão basta.

@@ -42,7 +42,7 @@ describe('confiança do gato', () => {
     expect(moodFor(p.hissAt, p)).toBe('hissing');
   });
 
-  it('atenta ao humor dele, completa em 25 a 75 s; no fácil e no normal sem susto (no difícil, um sustinho na hora errada pode custar um)', () => {
+  it('atenta ao humor dele, completa em 20 a 75 s; no fácil e no normal sem susto (no difícil, um sustinho na hora errada pode custar um)', () => {
     for (const d of ['easy', 'normal', 'hard'] as const) {
       const p = params(d);
       for (const seed of [1, 2, 7, 42]) {
@@ -51,7 +51,7 @@ describe('confiança do gato', () => {
         if (d === 'hard') expect(['great', 'ok'], `${d} semente ${seed}`).toContain(out);
         else expect(out, `${d} semente ${seed}`).toBe('great');
         expect(s.scares, `${d} semente ${seed}`).toBeLessThanOrEqual(1);
-        expect(sec, `${d} semente ${seed}`).toBeGreaterThanOrEqual(25);
+        expect(sec, `${d} semente ${seed}`).toBeGreaterThanOrEqual(20);
         expect(sec, `${d} semente ${seed}`).toBeLessThanOrEqual(75);
       }
     }
@@ -144,6 +144,34 @@ describe('confiança do gato', () => {
     expect(stepTrust(s, p, { approach: true, back: false }, DT, rng).scared).toBe(false); // ainda no intervalo
   });
 
+  it('toda dificuldade começa com petisco (o difícil também)', () => {
+    for (const d of ['easy', 'normal', 'hard'] as const) expect(newTrust(params(d), createRng(1)).treatsLeft, d).toBeGreaterThanOrEqual(2);
+  });
+
+  it('petisco: enquanto ele come, nada de susto, de espaço pessoal nem de barulho; depois volta ao normal', () => {
+    const p = params('hard');
+    const rng = createRng(3);
+    const s = newTrust(p, rng);
+    s.distance = p.minDistance + 5;
+    s.comfort = p.nearDistance; // perto demais para o humor dele
+    s.tension = 0.9; // bufando
+    s.nextStartleAt = 500; // um barulho daqui a pouco
+    expect(useTreat(s, p)).toBe(true);
+    let scared = 0;
+    let startled = 0;
+    for (let t = 0; t < (p.treatSec * 1000) / DT - 1; t++) {
+      const r = stepTrust(s, p, { approach: true, back: false }, DT, rng);
+      scared += r.scared ? 1 : 0;
+      startled += r.startled ? 1 : 0;
+    }
+    expect([scared, startled]).toEqual([0, 0]);
+    expect(s.tension).toBeLessThan(0.9);
+    // Acabou o petisco: perto demais e andando, a tensão volta a subir.
+    const before = s.tension;
+    for (let t = 0; t < 30; t++) stepTrust(s, p, { approach: true, back: false }, DT, rng);
+    expect(s.tension).toBeGreaterThan(before);
+  });
+
   it('petisco: acelera a confiança e acalma; acaba', () => {
     const p = params('easy');
     const rng = createRng(2);
@@ -161,7 +189,8 @@ describe('confiança do gato', () => {
     }
     expect(fast.trust).toBeGreaterThan(slow.trust);
     expect(useTreat(fast, p)).toBe(true);
-    expect(useTreat(fast, p)).toBe(false); // o fácil tem 2
+    expect(useTreat(fast, p)).toBe(true);
+    expect(useTreat(fast, p)).toBe(false); // o fácil tem 3
     expect(fast.trust).toBeLessThanOrEqual(FULL_TRUST);
   });
 });

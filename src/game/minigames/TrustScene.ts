@@ -132,8 +132,10 @@ export class TrustScene extends MiniGameScene {
       this.float(uiText.minigames.trust.startled, '#c48a1e');
       this.sfx(this.def.sounds?.hiss);
     }
-    // Perto demais para o humor de agora: avisa uma vez (o "!" de alerta aparece quando a tensão subir).
-    if (crowded(this.s) && !this.crowdWarned) {
+    // Perto demais para o humor de agora: avisa uma vez (o "!" de alerta aparece quando a tensão subir). Comendo o
+    // petisco, ele não liga: sem aviso.
+    const eating = this.s.elapsed < this.s.treatUntil;
+    if (crowded(this.s) && !eating && !this.crowdWarned) {
       this.crowdWarned = true;
       this.float(uiText.minigames.trust.crowded, '#9a86b4');
     } else if (!crowded(this.s)) this.crowdWarned = false;

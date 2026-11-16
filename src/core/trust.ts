@@ -1,7 +1,8 @@
 // Ganhar a confiança do gato assustado: sem cronômetro. A jogadora segura para chegar perto, devagar. O gato
 // fica tenso quando ela se mexe (mais quanto mais perto) e relaxa quando ela para. A tensão decide o humor:
 // calmo -> alerta -> bufando. Bufando e ela continua andando = um susto (perde confiança e recua); no último susto,
-// acabou. Calmo, com ela perto e parada (ou bem devagar), a confiança sobe. Um petisco acelera.
+// acabou. Calmo, com ela perto e parada (ou bem devagar), a confiança sobe. Um petisco acalma na hora e, por treatSec,
+// ele fica entretido: nada de susto, de "quer espaço" nem de barulho, e a confiança sobe mais rápido.
 // O humor dele muda sozinho: o espaço pessoal (o mais perto que ele aceita agora) é sorteado de tempos em tempos e,
 // mais perto que isso, ele fica tenso mesmo com ela parada (ela recua um pouco, espera e volta); de vez em quando
 // um barulho o assusta do nada. Respeitando o espaço, quanto mais perto, mais rápido a confiança sobe.
@@ -34,7 +35,7 @@ export interface TrustParams {
   scarePushback: number;
   maxScares: number;
   scareCooldownMs: number;
-  /** Petiscos da dificuldade, quanto aceleram a confiança, por quanto tempo e quanto acalmam na hora. */
+  /** Petiscos da dificuldade, quanto aceleram a confiança, por quanto tempo (a pausa: sem susto nem tensão) e quanto acalmam na hora. */
   treats: number;
   treatGain: number;
   treatSec: number;
@@ -115,8 +116,11 @@ export function stepTrust(s: TrustState, p: TrustParams, input: TrustInput, dtMs
     s.comfort = between(rng, p.comfortRange);
     s.nextComfortAt = s.elapsed + between(rng, p.comfortEverySec) * 1000;
   }
+  // Comendo o petisco: entretido, nem se incomoda (sem barulho, sem espaço pessoal, sem tensão por ela andar).
+  const eating = s.elapsed < s.treatUntil;
   let startled = false;
-  if (s.elapsed >= s.nextStartleAt) {
+  if (eating && s.elapsed >= s.nextStartleAt) s.nextStartleAt = s.treatUntil + between(rng, p.startleEverySec) * 1000;
+  else if (s.elapsed >= s.nextStartleAt) {
     startled = true;
     s.tension = Math.min(1, s.tension + p.startleTension);
     s.nextStartleAt = s.elapsed + between(rng, p.startleEverySec) * 1000;
@@ -127,14 +131,14 @@ export function stepTrust(s: TrustState, p: TrustParams, input: TrustInput, dtMs
 
   // Andar perto assusta mais que andar longe; parada (ou se afastando), ele relaxa.
   const closeness = 1 - (s.distance - p.minDistance) / (p.startDistance - p.minDistance);
-  if (moving) s.tension = Math.min(1, s.tension + p.tensionRate * (p.farTension + (1 - p.farTension) * closeness) * dt);
-  else if (!crowded(s)) s.tension = Math.max(0, s.tension - p.relaxRate * dt);
-  // Perto demais para o humor de agora: tenso mesmo com ela parada.
-  if (crowded(s)) s.tension = Math.min(1, s.tension + p.crowdRate * dt);
+  if (moving && !eating) s.tension = Math.min(1, s.tension + p.tensionRate * (p.farTension + (1 - p.farTension) * closeness) * dt);
+  else if (!moving && (eating || !crowded(s))) s.tension = Math.max(0, s.tension - p.relaxRate * dt);
+  // Perto demais para o humor de agora: tenso mesmo com ela parada (comendo, não liga).
+  if (crowded(s) && !eating) s.tension = Math.min(1, s.tension + p.crowdRate * dt);
   s.mood = moodFor(s.tension, p);
 
   let scared = false;
-  if (s.mood === 'hissing' && moving && s.elapsed - s.lastScareAt >= p.scareCooldownMs) {
+  if (!eating && s.mood === 'hissing' && moving && s.elapsed - s.lastScareAt >= p.scareCooldownMs) {
     scared = true;
     s.scares++;
     s.lastScareAt = s.elapsed;
@@ -143,15 +147,15 @@ export function stepTrust(s: TrustState, p: TrustParams, input: TrustInput, dtMs
   }
 
   // Calmo, perto e respeitando o espaço dele: a confiança sobe, mais rápido quanto mais perto.
-  if (s.mood === 'calm' && s.distance <= p.nearDistance && !crowded(s)) {
-    const treat = s.elapsed < s.treatUntil ? p.treatGain : 1;
+  if (s.mood === 'calm' && s.distance <= p.nearDistance && (eating || !crowded(s))) {
+    const treat = eating ? p.treatGain : 1;
     const near = 1 + p.closeBonus * Math.max(0, (p.nearDistance - s.distance) / (p.nearDistance - p.minDistance));
     s.trust = Math.min(FULL_TRUST, s.trust + p.gainPerSec * (moving ? p.movingGain : 1) * treat * near * dt);
   }
   return { scared, startled };
 }
 
-/** Dá um petisco (se ainda tem): acelera a confiança por treatSec e acalma na hora. */
+/** Dá um petisco (se ainda tem): acalma na hora e, por treatSec, sem susto nem tensão e com a confiança mais rápida. */
 export function useTreat(s: TrustState, p: TrustParams): boolean {
   if (s.treatsLeft <= 0) return false;
   s.treatsLeft--;

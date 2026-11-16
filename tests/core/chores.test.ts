@@ -36,3 +36,28 @@ describe('tarefas do dia', () => {
     expect(session.chores().some((c) => (c.kind as string) === 'toys')).toBe(false);
   });
 });
+
+describe('gatos em recuperação', () => {
+  it('um lembrete por dia, comida e remédio juntos; cada gato conta quando comeu e tomou o de hoje', () => {
+    const { session, state } = cafe();
+    const cat = state.cats['cat.first_stray']!;
+    cat.clinic = { stage: 'isolation', until: state.day + 3, procedure: 'proc.neuter' };
+    cat.aftercare = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    state.inventory[content.health.medicine.item] = 3;
+    const line = () => session.chores().find((c) => c.kind === 'clinic' && c.clinic === 'pen_food');
+    expect(line()).toMatchObject({ done: false, progress: [0, 1] });
+    // O remédio está no lembrete: sem linha à parte (ela tem o remédio).
+    expect(session.chores().some((c) => c.kind === 'care' && c.need === 'medicine')).toBe(false);
+    cat.fedOn = state.day;
+    expect(line()).toMatchObject({ done: false, progress: [0, 1] });
+    cat.aftercare.lastDoseDay = state.day;
+    expect(line()).toMatchObject({ done: true, progress: [1, 1] });
+    // Sem o remédio na mochila: a linha de passar na clínica aparece.
+    cat.aftercare.lastDoseDay = null;
+    delete state.inventory[content.health.medicine.item];
+    expect(session.chores().find((c) => c.kind === 'care' && c.need === 'medicine')).toMatchObject({ hasTool: false });
+    // Fora da recuperação: some.
+    delete cat.clinic;
+    expect(line()).toBeUndefined();
+  });
+});
