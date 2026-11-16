@@ -507,6 +507,18 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.upgraded', rebuildIfHome);
     // Tigela enchida e areia trocada: a arte cheia (item.fillTiles).
     this.session.bus.on('bowl.filled', rebuildIfHome);
+    // Vitrine: a arte cheia (display.fullTile) com algo dentro, a vazia sem nada. Só redesenha quando ela passa de uma
+    // para a outra (o primeiro doce que entra, o último que sai), não a cada fatia.
+    const displayDrawn = new Map<string, boolean>();
+    const displayChanged = ({ uid }: { uid: string }) => {
+      if (!uid) return;
+      const stocked = (this.session.state.displays[uid]?.length ?? 0) > 0;
+      if (displayDrawn.get(uid) === stocked) return;
+      displayDrawn.set(uid, stocked);
+      rebuildIfHome();
+    };
+    this.session.bus.on('display.stored', displayChanged);
+    this.session.bus.on('display.taken', displayChanged);
     this.session.bus.on('litter.refilled', rebuildIfHome);
     // O Tião chega às 08:00 e vai embora no fim do expediente: aparece martelando ou some, se ela estiver no mapa da obra.
     this.session.bus.on('equipment.repair_started', ({ uid }) => this.showRepairNpc(uid));
