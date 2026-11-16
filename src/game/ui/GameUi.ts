@@ -57,6 +57,25 @@ export interface UiHandlers {
   onSpeak?(npc: string | undefined): void;
 }
 
+/**
+ * A estação caindo pela tela do cartão: neve no inverno; pétalas e folhas nas outras (as cores do vento da estação,
+ * data/seasons.json: weatherFx). Só CSS (ui.css: .season-fall), sem arte.
+ */
+function seasonFall(season: string): HTMLElement {
+  const fx = content.seasons.weatherFx;
+  const snow = season === 'winter';
+  const colors = (snow ? fx?.snow?.colors : (fx?.wind?.seasonColors?.[season] ?? fx?.wind?.colors)) ?? ['#ffffff'];
+  const box = document.createElement('div');
+  box.className = `season-fall ${snow ? 'flakes' : 'petals'}`;
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('i');
+    const size = snow ? 2 + Math.random() * 3 : 4 + Math.random() * 4;
+    p.style.cssText = `left:${Math.random() * 100}%;width:${size}px;height:${snow ? size : size * 0.6}px;background:${colors[i % colors.length]};animation-duration:${5 + Math.random() * 4}s;animation-delay:${-Math.random() * 8}s;--sway:${(Math.random() * 2 - 1) * 30}px`;
+    box.appendChild(p);
+  }
+  return box;
+}
+
 export class GameUi {
   private money: HTMLElement;
   private goals: HTMLElement;
@@ -1192,7 +1211,18 @@ ${rep}`;
     const report = summary && summary.reason !== 'story'
       ? `<ul class="summary"><li>${t.earned}: <b>${summary.earned}</b></li><li>${t.jobs}: <b>${summary.jobs}</b></li>${hearts}</ul>`
       : '';
-    el.innerHTML = `<p class="home">${esc(this.fillNames(t[summary?.reason ?? 'home']))}</p>${report}<p class="next">${uiText.day} ${day}</p>`;
+    // Primeiro dia de uma estação: o cartão dela (o nome, uma frase, o que chega) e a estação caindo pela tela.
+    const card = this.session.seasonCard();
+    const seasonHtml = card
+      ? `<div class="season-card s-${esc(card.season)}"><p class="s-name">${esc(card.name)}</p><p class="s-line">${esc((t.season.lines as Record<string, string>)[card.season] ?? '')}</p><ul class="s-news">${(
+          [['recipes', card.recipes], ['items', card.items], ['events', card.events]] as const
+        )
+          .filter(([, list]) => list.length > 0)
+          .map(([k, list]) => `<li>${esc(t.season[k].replace('{items}', listNames(list)))}</li>`)
+          .join('')}</ul></div>`
+      : '';
+    el.innerHTML = `<p class="home">${esc(this.fillNames(t[summary?.reason ?? 'home']))}</p>${report}${seasonHtml}<p class="next">${uiText.day} ${day}</p>`;
+    if (card) el.appendChild(seasonFall(card.season));
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     this.reveal = { el, done: () => undefined };
@@ -1216,7 +1246,8 @@ ${rep}`;
       };
       window.setTimeout(() => window.addEventListener('keydown', done), 400);
       el.addEventListener('click', done);
-      window.setTimeout(done, summary && summary.reason !== 'story' ? 4500 : 2600);
+      // Com o cartão da estação, mais tempo para ler.
+      window.setTimeout(done, card ? 9000 : summary && summary.reason !== 'story' ? 4500 : 2600);
     });
   }
 

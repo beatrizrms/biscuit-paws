@@ -73,3 +73,37 @@ describe('clima do dia', () => {
     expect(session.weather()).toBe('rain');
   });
 });
+
+describe('virada da estação', () => {
+  const at = (day: number) => {
+    const state = newGameState(500, 'map.street', 9 * 60);
+    state.day = day;
+    return { state, session: new GameSession(content, state) };
+  };
+
+  it('cartão: só no primeiro dia de cada estação (a primeira do jogo não tem), com o nome e o que chega', () => {
+    const per = content.seasons.daysPerSeason;
+    expect(at(1).session.seasonCard()).toBeNull();
+    expect(at(per + 2).session.seasonCard()).toBeNull();
+    const card = at(per + 1).session.seasonCard()!;
+    expect(card).toMatchObject({ season: 'spring', name: content.seasons.names.spring });
+    expect(Array.isArray(card.recipes) && Array.isArray(card.items) && Array.isArray(card.events)).toBe(true);
+  });
+
+  it('a rua: a primeira vez na estação nova, mostra a anterior e muda; uma vez por estação; só nos mapas que mudam', () => {
+    const per = content.seasons.daysPerSeason;
+    expect(at(5).session.seasonRevealPending('map.street')).toBeNull(); // a primeira estação do jogo
+    const { session, state } = at(per + 3);
+    expect(session.seasonRevealPending('map.cafe_main')).toBeNull();
+    expect(session.seasonRevealPending('map.street')).toBe('winter');
+    // A prévia: o mapa desenhado como no inverno, por um instante.
+    session.previewSeason('winter');
+    expect(session.season()).toBe('winter');
+    session.previewSeason(null);
+    expect(session.season()).toBe('spring');
+    session.seasonRevealed();
+    expect(session.seasonRevealPending('map.street')).toBeNull();
+    state.day = per * 2 + 1;
+    expect(session.seasonRevealPending('map.street')).toBe('spring');
+  });
+});

@@ -500,6 +500,17 @@
     "earned": "Moedas ganhas",
     "jobs": "Pedidos feitos",
     "sleep": "Você dormiu no porão do café.",
+    "season": {
+      "lines": {
+        "winter": "O frio chegou. Chá quente, cobertor e gato no colo.",
+        "spring": "As flores voltaram, e os gatos querem sol na janela.",
+        "summer": "Dias longos, suco gelado e gato esticado no chão fresquinho.",
+        "autumn": "Folhas no chão e cheiro de bolo saindo do forno."
+      },
+      "recipes": "No cardápio: {items}",
+      "items": "Na feira: {items}",
+      "events": "No calendário: {items}"
+    },
     "curfew": "“Está muito tarde, amanhã tem expediente e preciso acordar cedo.”",
     "tired": "“Não aguento mais de cansaço, preciso ir descansar.”"
   },

@@ -5448,9 +5448,49 @@ export class GameSession {
 
   // ---------- Calendário (data/seasons.json) ----------
 
-  /** Estação de hoje. */
+  /** Estação de hoje (ou a da prévia: a rua desenhada como na estação anterior, na virada). */
   season(): string {
-    return seasonOf(this.content.seasons, this.state.day);
+    return this.seasonPreview ?? seasonOf(this.content.seasons, this.state.day);
+  }
+
+  /** Só para a cena desenhar o mapa como na estação anterior, por um instante (a virada da estação na rua). */
+  private seasonPreview: string | null = null;
+
+  previewSeason(season: string | null): void {
+    this.seasonPreview = season;
+  }
+
+  /**
+   * A virada da estação na rua: a primeira vez nesta estação num mapa que muda com ela (data/seasons.json: maps), a
+   * cena mostra a estação anterior e a troca na frente dela. Devolve a estação anterior (ou null: já viu, mapa que não
+   * muda, ou a primeira estação do jogo). Marca no save (flag por ano e estação) quando a cena chama seasonRevealed.
+   */
+  seasonRevealPending(mapId: string): string | null {
+    const data = this.content.seasons;
+    if (!data.maps?.[mapId] || this.state.day <= data.daysPerSeason) return null;
+    const season = seasonOf(data, this.state.day);
+    if (this.state.flags[`season.seen.${yearOf(data, this.state.day)}.${season}`]) return null;
+    const i = data.order.indexOf(season);
+    return data.order[(i - 1 + data.order.length) % data.order.length] ?? null;
+  }
+
+  seasonRevealed(): void {
+    const data = this.content.seasons;
+    this.state.flags[`season.seen.${yearOf(data, this.state.day)}.${seasonOf(data, this.state.day)}`] = true;
+  }
+
+  /**
+   * O cartão da estação na tela do dia (o primeiro dia dela): o nome e o que chega (receitas de época liberadas, as
+   * frutas da época à venda e o que está no calendário). null nos outros dias e na primeira estação do jogo.
+   */
+  seasonCard(): { season: string; name: string; recipes: string[]; items: string[]; events: string[] } | null {
+    const data = this.content.seasons;
+    if (dayInSeason(data, this.state.day) !== 1 || this.state.day <= data.daysPerSeason) return null;
+    const season = seasonOf(data, this.state.day);
+    const recipes = Object.values(this.content.recipes).filter((r) => r.seasons?.includes(season) && !r.special && this.service.recipeStatus(r.id) !== 'locked').map((r) => r.name);
+    const items = Object.values(this.content.items).filter((i) => i.seasons?.includes(season) && this.itemUnlocked(i.id)).map((i) => i.name);
+    const events = [...new Set(this.calendar(this.state.day, this.state.day + data.daysPerSeason - 1).filter((e) => e.kind === 'event').map((e) => e.title))];
+    return { season, name: data.names[season] ?? season, recipes, items, events };
   }
 
   /** "Inverno, dia 12". */

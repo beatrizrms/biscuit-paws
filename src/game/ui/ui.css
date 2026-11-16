@@ -658,6 +658,23 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Resumo do dia */
 .day-transition .summary { margin: 6px 0 4px; padding: 0; list-style: none; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); text-align: center; color: var(--cream2); }
 .day-transition .summary li { margin: 1px 0; }
+/* Primeiro dia de uma estação: o cartão e a estação caindo pela tela. */
+.day-transition .season-card { position: relative; z-index: 1; margin: 6px 0 2px; padding: 8px 14px; max-width: 70%; border-radius: 10px; text-align: center; background: color-mix(in srgb, var(--c-white) 8%, transparent); }
+.day-transition .season-card .s-name { margin: 0; font-size: max(calc(20px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; letter-spacing: 0.08em; }
+.day-transition .s-winter .s-name { color: var(--c-season-winter); }
+.day-transition .s-spring .s-name { color: var(--c-season-spring); }
+.day-transition .s-summer .s-name { color: var(--c-season-summer); }
+.day-transition .s-autumn .s-name { color: var(--c-season-autumn); }
+.day-transition .season-card .s-line { margin: 2px 0 4px; font-style: italic; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--cream2); }
+.day-transition .season-card .s-news { margin: 0; padding: 0; list-style: none; font-size: max(calc(8.5px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--cream2); }
+.day-transition .season-fall { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.day-transition .season-fall i { position: absolute; top: -10px; border-radius: 50%; opacity: 0.9; animation-name: season-fall; animation-timing-function: linear; animation-iteration-count: infinite; }
+.day-transition .season-fall.petals i { border-radius: 70% 0 70% 0; }
+@keyframes season-fall {
+  0% { transform: translate(0, -10px) rotate(0deg); }
+  50% { transform: translate(var(--sway), 50vh) rotate(180deg); }
+  100% { transform: translate(0, 105vh) rotate(360deg); }
+}
 .day-transition .summary .hearts { color: var(--c-olive-light); }
 
 /* Quadro do cardápio e mochila */

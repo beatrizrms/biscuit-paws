@@ -26,6 +26,11 @@
   /* Oliva (principal) */
   --c-olive-pale: #eceed9;
   --c-olive-light: #c9cf9e;
+  /* Nome da estação no cartão da virada (tela do dia). */
+  --c-season-winter: #dfeaf6;
+  --c-season-spring: #f7c6d4;
+  --c-season-summer: #f3d27a;
+  --c-season-autumn: #e8a25a;
   --c-olive: #7c8a4e;
   --c-olive-dark: #55602f;
   /* Café (apoio) */

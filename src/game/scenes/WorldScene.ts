@@ -32,7 +32,7 @@ import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
-import { RENDER_SCALE, VIEW_HEIGHT, VIEW_WIDTH, WORLD_ZOOM, setupWorldCamera } from '../screen';
+import { RENDER_SCALE, VIEW_HEIGHT, VIEW_WIDTH, WORLD_ZOOM, fixedScreenRect, setupWorldCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, content, emoteImage, itemUse, serviceArt, uiText } from '../content';
@@ -689,7 +689,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!this.stageCleared) this.updateArrivalActors(this.game.loop.delta);
     this.syncNpcBlockers();
     const k = this.keys;
-    const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null;
+    const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null || this.seasonRevealing;
     // Momentos que esperam a vez (a Fernanda com o gato operado, a fala da obra, o Tião perguntando): um de cada vez,
     // só com a tela livre (o resumo do dia fechado, sem fala nem cena) e quando a condição de cada um vale.
     this.syncMoments();
@@ -811,6 +811,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.ambientGroups = [];
     this.ambientBlock = null;
     this.ambientFresh = true;
+    // A virada da estação: a primeira vez na rua na estação nova, ela aparece como na anterior e muda na frente dela.
+    const prevSeason = this.seasonRevealing ? null : this.session.seasonRevealPending(mapId);
+    if (prevSeason) this.session.previewSeason(prevSeason);
     this.buildMap(mapId);
     const ts = this.map.tileSize;
     const width = this.map.cols * ts;
@@ -823,6 +826,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.placePlayer(col, row);
     this.player.face(facing);
     this.applyCamera();
+    if (prevSeason) {
+      this.session.previewSeason(null);
+      void this.seasonReveal(mapId);
+    }
 
     // Gatos que moram neste mapa.
     for (const catId of this.session.shelteredCats()) {
@@ -933,6 +940,45 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /** (Re)desenha o mapa e a colisão. Sem `mapId`, redesenha o mapa atual (ex.: um móvel mudou). */
+  /** A virada da estação na rua acontecendo (ela fica parada olhando). */
+  private seasonRevealing = false;
+
+  /**
+   * A rua desenhada como na estação anterior (loadMap) vira a de agora: espera a tela do dia e a câmera clarearem,
+   * guarda a imagem da tela, redesenha o mapa na estação nova e a imagem antiga some devagar por cima.
+   */
+  private async seasonReveal(mapId: string): Promise<void> {
+    this.seasonRevealing = true;
+    await this.wait(900);
+    while (this.changingMap || this.ui.isBusy()) await this.wait(200);
+    // Saiu do mapa antes (não marca: na próxima vez na rua, de novo).
+    if (this.session.location() !== mapId || this.map.id !== mapId) {
+      this.seasonRevealing = false;
+      return;
+    }
+    this.session.seasonRevealed();
+    await this.wait(700);
+    const shot = await new Promise<HTMLImageElement>((resolve) => this.game.renderer.snapshot((img) => resolve(img as HTMLImageElement)));
+    const key = 'season_reveal_shot';
+    if (this.textures.exists(key)) this.textures.remove(key);
+    this.textures.addImage(key, shot);
+    this.buildMap(mapId);
+    this.applyCamera();
+    const v = fixedScreenRect(this);
+    const old = this.add.image(v.x, v.y, key).setOrigin(0).setDisplaySize(v.w, v.h).setScrollFactor(0).setDepth(200_000);
+    this.tweens.add({
+      targets: old,
+      alpha: 0,
+      duration: 2400,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        old.destroy();
+        if (this.textures.exists(key)) this.textures.remove(key);
+        this.seasonRevealing = false;
+      },
+    });
+  }
+
   private buildMap(mapId = this.session.location()): void {
     this.endMovePick(); // os desenhos dos móveis vão ser refeitos (o pisca sairia do lugar)
     this.map =resolveMap(this.session.mapData(mapId), this.session.content.catalog);
