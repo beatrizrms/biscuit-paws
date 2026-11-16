@@ -190,7 +190,7 @@ describe('receitas e cardápio', () => {
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true });
     expect(sv.orderable().map((r) => r.id)).toEqual(['recipe.black_coffee']);
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
-    state.service.served = 65;
+    state.service.served = 150;
     state.business = 'inaugurated'; // o chá verde conta desde a inauguração
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
     expect(sv.toggleMenu('recipe.lemonade')).toEqual({ ok: false, reason: 'menu_full' });

@@ -9,7 +9,7 @@ const S = content.seasons;
 /** Primeiro dia (do jogo) da estação, no primeiro ano. */
 const firstDay = (season: string) => S.order.indexOf(season) * S.daysPerSeason + 1;
 
-function cafe(day: number, served = 300) {
+function cafe(day: number, served = 700) {
   const state = newGameState(5000, 'map.cafe_main', 9 * 60);
   state.day = day;
   state.flags['has.cat'] = true;
@@ -33,8 +33,10 @@ describe('cardápio das estações', () => {
     expect(inSeason(r['recipe.macaron_tower']!, S, firstDay('summer') + 20)).toBe(false);
   });
 
-  it('fora de época: status próprio, não entra no quadro', () => {
-    const { sv } = cafe(firstDay('summer'));
+  it('fora de época: a que ela ainda não aprendeu fica trancada; a que já conhece tem status próprio e não entra no quadro', () => {
+    const { sv, state } = cafe(firstDay('summer'));
+    expect(sv.recipeStatus('recipe.hot_chocolate')).toBe('locked');
+    state.flags['recipe.known.recipe.hot_chocolate'] = true;
     expect(sv.recipeStatus('recipe.hot_chocolate')).toBe('season');
     expect(sv.toggleMenu('recipe.hot_chocolate')).toEqual({ ok: false, reason: 'out_of_season' });
   });
@@ -51,18 +53,36 @@ describe('cardápio das estações', () => {
     expect(cafe(firstDay('summer')).session.itemUnlocked('item.tea_chamomile_box')).toBe(false);
   });
 
-  it('a virada de estação tira do quadro o que saiu de época e anuncia o que chegou', () => {
+  it('a virada de estação tira do quadro o que saiu de época; a que volta é avisada, a que chega pela primeira vez é receita nova', () => {
     const { session, state, sv } = cafe(firstDay('spring') - 1);
     sv.toggleMenu('recipe.hot_chocolate');
     sv.toggleMenu('recipe.black_coffee');
+    // A torta de morango ela já conhecia (do ano passado); o chá gelado de frutas vermelhas, não.
+    state.flags['recipe.known.recipe.strawberry_tart_slice'] = true;
     const events: { arrived: string[]; left: string[] }[] = [];
+    const learned: string[] = [];
     session.bus.on('menu.season', (e) => events.push(e));
+    session.bus.on('recipe.unlocked', (e) => learned.push(e.recipeId));
     session.endDay('home');
     expect(state.menu).toEqual(['recipe.black_coffee']);
     expect(events).toHaveLength(1);
     expect(events[0]!.left).toEqual(['recipe.hot_chocolate']);
-    expect(events[0]!.arrived).toEqual(expect.arrayContaining(['recipe.strawberry_tart_slice', 'recipe.iced_berry_tea', 'recipe.chicken_croissant']));
-    expect(events[0]!.arrived).not.toContain('recipe.black_coffee');
+    expect(events[0]!.arrived).toEqual(['recipe.strawberry_tart_slice']);
+    expect(learned).toEqual(expect.arrayContaining(['recipe.iced_berry_tea', 'recipe.chicken_croissant']));
+    expect(learned).not.toContain('recipe.strawberry_tart_slice');
+    expect(learned).not.toContain('recipe.hot_chocolate');
+  });
+
+  it('a conquista do cardápio da estação ensina só as receitas da estação de agora', () => {
+    const { session, state } = cafe(firstDay('spring') + 3, 0);
+    session.start(false);
+    const learned: string[] = [];
+    session.bus.on('recipe.unlocked', (e) => learned.push(e.recipeId));
+    state.service.served = 90;
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(state.milestones.reached['milestone.customers_50']).toBeDefined();
+    expect(learned).toEqual(expect.arrayContaining(['recipe.strawberry_tart_slice', 'recipe.iced_berry_tea']));
+    for (const id of ['recipe.hot_chocolate', 'recipe.panettone_slice', 'recipe.web_cupcake', 'recipe.iced_lemon_tea']) expect(learned).not.toContain(id);
   });
 
   it('a procura: no inverno e na chuva pesa o quente; no verão, o gelado', () => {

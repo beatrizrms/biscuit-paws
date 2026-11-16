@@ -302,11 +302,8 @@ export class GameUi {
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).
-    // A receita que vem de um selo já sai no aviso do selo (o último aviso apagaria o outro).
-    bus.on('recipe.unlocked', ({ recipeId }) => {
-      if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
-      this.queueUnlock({ recipe: recipeId });
-    });
+    // A receita de uma conquista na mesma tela entra no grupo dela; a de outra estação chega sozinha quando a época começa.
+    bus.on('recipe.unlocked', ({ recipeId }) => this.queueUnlock({ recipe: recipeId }));
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
     // Encontros da estação: feito (com o presente) ou perdido.
     const gatheringDef = (id: string) => content.festive.gatherings?.find((x) => x.id === id);
@@ -968,17 +965,20 @@ export class GameUi {
       const track = content.milestones.tracks.find((x) => x.id === m.track);
       return track?.kind === 'streak' ? t.reasonStreak.replace('{track}', track.name).replace('{n}', String(m.at)) : t.reason.replace('{track}', track?.name ?? m.track).replace('{n}', String(m.at));
     };
+    const known = (r: string) => !!this.session.state.flags[`recipe.known.${r}`];
     const groups = ms.map((m) => {
-      const ids = [...new Set(m.reward.ids)];
-      // Receitas destrancadas por este selo sem estar na lista dele (as da estação): no mesmo grupo.
-      const extra = batch.recipes.filter((r) => unlockedBy(r) === m.id);
-      return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${[...ids.map((id) => reward(m.reward.kind, id)), ...extra.map((r) => reward('recipe', r))].join('')}</div></section>`;
+      const all = [...new Set(m.reward.ids)];
+      // Receita: só as que ela já aprendeu (as de outra estação chegam na época delas); mais as destrancadas por esta
+      // conquista sem estar na lista dela.
+      const ids = m.reward.kind === 'recipe' ? [...new Set([...all.filter(known), ...batch.recipes.filter((r) => unlockedBy(r) === m.id)])] : all;
+      const later = m.reward.kind === 'recipe' && all.some((r) => !known(r)) ? `<p class="u-reason">${esc(t.laterSeasons)}</p>` : '';
+      return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${ids.map((id) => reward(m.reward.kind === 'recipe' ? 'recipe' : m.reward.kind, id)).join('')}</div>${later}</section>`;
     });
     // Receitas destrancadas sem selo nesta tela (o selo veio antes): um grupo próprio.
     const special = batch.recipes.filter((r) => content.recipes[r]?.special);
     const loose = batch.recipes.filter((r) => !content.recipes[r]?.special && !ms.some((m) => unlockedBy(r) === m.id));
     const group = (title: string, why: string, cards: string) => `<section class="u-group"><h3>${esc(title)}</h3><p class="u-reason">${esc(why)}</p><div class="u-cards">${cards}</div></section>`;
-    if (loose.length) groups.push(group(t.newRecipes, t.recipesReason, loose.map((r) => reward('recipe', r)).join('')));
+    if (loose.length) groups.push(group(t.newRecipes, loose.every((r) => content.recipes[r]?.seasons || content.recipes[r]?.window) ? t.seasonReason : t.recipesReason, loose.map((r) => reward('recipe', r)).join('')));
     if (special.length) groups.push(group(t.special, t.specialReason, special.map((r) => card(iconHtml(content.recipes[r]?.icon, 32), content.recipes[r]?.name ?? r, t.special)).join('')));
     const inSeal = new Set(ms.filter((m) => m.reward.kind === 'item' || m.reward.kind === 'gift').flatMap((m) => m.reward.ids));
     const items = batch.items.filter((i) => !inSeal.has(i));

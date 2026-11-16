@@ -202,9 +202,9 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
   it('save inaugurado sem o registro (de antes desta regra): conta o total, nada some', () => {
     const { session, state } = cafe();
     state.business = 'inaugurated';
-    state.service.served = 60;
+    state.service.served = 120;
     session.start(false);
-    expect(session.servedSinceOpening()).toBe(60);
+    expect(session.servedSinceOpening()).toBe(120);
     expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.cheese_bread', 'recipe.green_tea', 'recipe.strawberry_juice']));
   });
 

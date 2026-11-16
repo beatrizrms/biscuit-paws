@@ -357,7 +357,8 @@ export class CafeService {
    */
   seasonalMenu(yesterday: number): { arrived: string[]; left: string[] } {
     const seasons = this.h.content.seasons;
-    const unlocked = Object.values(this.h.content.recipes).filter((r) => !r.unlock || this.h.evaluate(r.unlock));
+    // Só as que ela já conhece: a que chega pela primeira vez tem a tela de receita nova (announceRecipes).
+    const unlocked = Object.values(this.h.content.recipes).filter((r) => (!r.unlock || this.h.evaluate(r.unlock)) && (!r.unlock || this.st.flags[`recipe.known.${r.id}`]));
     const arrived = unlocked.filter((r) => inSeason(r, seasons, this.st.day) && !inSeason(r, seasons, yesterday)).map((r) => r.id);
     const left = this.st.menu.filter((id) => {
       const r = this.recipe(id);
@@ -534,7 +535,8 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
-    if (!this.inSeasonNow(r)) return 'season';
+    // A de outra estação que ela ainda não aprendeu continua trancada: chega (e é anunciada) quando a época começar.
+    if (!this.inSeasonNow(r)) return this.st.flags[`recipe.known.${r.id}`] ? 'season' : 'locked';
     // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
     if (this.spareReady(r.id) > 0) return 'available';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
