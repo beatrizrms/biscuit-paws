@@ -139,9 +139,22 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.finishQuote('surface.hall_floor', 'finish.wood_planks', [14, 5], [18, 5])!.cells).toEqual([[14, 5], [15, 5]]);
     s.state.rooms['room.back_room'] = 'abandoned';
     expect(s.finishQuote('surface.hall_floor', 'finish.wood_planks', [14, 5], [18, 5])!.cells).toEqual([[14, 5], [15, 5], [17, 5], [18, 5]]);
-    // Parede: as colunas do porão entram com o papel de parede (o tipo é um só).
+    // Parede: as colunas do porão entram com o papel de parede (o tipo é um só), a parede inteira, com a faixa do
+    // rodapé/lambri (o lambri não é obrigatório).
     const wall = s.finishQuote('surface.wallpaper', 'finish.wallpaper_mint', [18, 0], [18, 0])!;
-    expect(wall.cells).toEqual([[18, 0], [18, 1]]);
+    expect(wall.cells).toEqual([[18, 0], [18, 1], [18, 2]]);
+  });
+
+  it('a parede pode ficar sem lambri: o papel de parede cobre a faixa do lambri; o lambri, se ela quiser, vai depois por cima', () => {
+    const s = session();
+    s.state.construction.repaired = ['inside', 'outside'];
+    const lambri = Object.values(content.finishes).find((f) => f.kind === 'wainscot')!.id;
+    // Coluna 5 do salão: papel de parede (linhas 0, 1) e lambri (linha 2).
+    expect(s.finishQuote('surface.wallpaper', 'finish.wallpaper_mint', [5, 0], [5, 0])!.cells).toEqual([[5, 0], [5, 1], [5, 2]]);
+    s.state.construction.cells['5,2'] = 'finish.wallpaper_mint';
+    expect(s.mapData().legend[s.mapData().layers.walls[2]![5]!]).toBe(content.finishes['finish.wallpaper_mint']!.tile);
+    // O lambri continua só na faixa de baixo.
+    expect(s.finishQuote('surface.wainscot', lambri, [5, 0], [5, 0])!.cells).toEqual([[5, 2]]);
   });
 
   it('Ctrl + arrastar: duas áreas separadas viram uma obra só; célula repetida conta uma vez', () => {

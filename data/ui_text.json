@@ -574,9 +574,8 @@
     "doneCredit": "Fiado! Remédio na mochila: uma dose por dia, por {days} dia(s)."
   },
   "health": {
-    "sick": "{name} não parece bem... {disease}? Melhor levar à clínica da Fernanda.",
+    "sick": "{name} não parece bem... Melhor levar à clínica da Fernanda.",
     "sickNoClinic": "{name} não parece bem... Preciso cuidar melhor del{sex:e|a} (comida todo dia).",
-    "infected": "{name} pegou {disease} de {from}! Doente sem remédio passa para os outros.",
     "customersAway": "Com {n} gatos doentes sem tratamento, ninguém quer entrar no café. Preciso levar à clínica.",
     "sickDrop": "{cat} está com {disease}, que passa para os outros gatos (mesmo com o remédio). No cercadinho ou na caixinha, fica isolad{sex:o|a}.",
     "sickDropBox": "Deixar na caixinha",
@@ -604,7 +603,7 @@
     "heartsTitle": "{n} de {max} corações",
     "health": "Saúde",
     "healthTitle": "Saúde {n} de {max}",
-    "sickUntreated": "Doente: {disease}. Levar à clínica (no colo).",
+    "sickUntreated": "Não parece bem. Levar à clínica (no colo).",
     "sickTreated": "Doente: {disease} · remédio {n}/{days}",
     "dosedToday": "Já tomou o remédio hoje",
     "doseDue": "Falta o remédio de hoje",

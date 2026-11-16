@@ -365,8 +365,9 @@ export class GameUi {
     bus.on('cat.medicated', ({ catId, dosesGiven, days }) => {
       if (dosesGiven < days) this.toast(uiText.health.dose.replace('{name}', session.catName(catId)).replace('{n}', String(dosesGiven)).replace('{days}', String(days)));
     });
-    bus.on('cat.infected', ({ catId, fromCatId, disease }) =>
-      this.toast(uiText.health.infected.replace('{name}', session.catName(catId)).replace('{from}', session.catName(fromCatId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4500),
+    // Pegou de outro gato: sem a consulta, ninguém sabe o que é ainda (o diagnóstico é da Fernanda), só que não parece bem.
+    bus.on('cat.infected', ({ catId }) =>
+      this.toast(catSexText(session, session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic, catId).replace('{name}', session.catName(catId)), 4500),
     );
     bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
     // Chegada de gatos: a pista, a pergunta (sim/não) e onde o gato foi parar.

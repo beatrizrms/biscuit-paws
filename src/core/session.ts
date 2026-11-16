@@ -2630,6 +2630,11 @@ export class GameSession {
     return this.clinic.contagiousSick(catId);
   }
 
+  /** Doença que passa e já diagnosticada na consulta (com o tratamento da Fernanda): antes disso, ela não sabe. */
+  catKnownContagious(catId: string): boolean {
+    return this.catContagious(catId) && !!this.state.cats[catId]?.sickness?.treatment;
+  }
+
   /**
    * Põe no chão o gato do colo que tem doença que passa: isolado (`true`: no cercadinho; sem vaga, na caixinha) ou solto
    * com a turma (`false`: pode passar para os outros, mesmo em tratamento).
@@ -5509,7 +5514,10 @@ export class GameSession {
     const seen = new Set<string>();
     // Cada tipo é um só para ela (o piso do salão, do balcão e do porão; a parede do salão e a do porão): a área pega as
     // células de todas as superfícies do mesmo tipo. Cômodo ainda fechado fica de fora.
-    const group = (this.content.map.surfaces ?? []).filter((x) => x.kind === surface.kind);
+    // O papel de parede vai na parede inteira, também na faixa do lambri (a parede pode ficar sem lambri; o lambri,
+    // se ela quiser, vai depois por cima da faixa).
+    const kinds = surface.kind === 'wall' ? ['wall', 'wainscot'] : [surface.kind];
+    const group = (this.content.map.surfaces ?? []).filter((x) => kinds.includes(x.kind));
     const cells = [[a, b] as const, ...more]
       .flatMap(([x, y]) => group.flatMap((g) => surfaceCells(this.content.map, g, x, y).map((cell) => [g, cell] as const)))
       .filter(([g, cell]) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.cellOpen(cell) && this.finishAt(g, cell) !== finishId))

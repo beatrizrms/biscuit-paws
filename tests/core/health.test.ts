@@ -257,6 +257,15 @@ describe('contágio e prejuízo', () => {
     for (const d of cfg.diseases.filter((x) => x.id !== SNIFFLES)) expect(isContagious(cfg, { ...s, disease: d.id }, 9)).toBe(false);
   });
 
+  it('sem a consulta, ela não sabe o que é: a doença que passa só pede isolamento depois do diagnóstico', () => {
+    const { session, state } = twoCats();
+    session.makeSick(CAT, SNIFFLES);
+    expect(session.catContagious(CAT)).toBe(true);
+    expect(session.catKnownContagious(CAT)).toBe(false);
+    state.cats[CAT]!.sickness!.treatment = { days: 9, dosesGiven: 0, lastDoseDay: null }; // a consulta
+    expect(session.catKnownContagious(CAT)).toBe(true);
+  });
+
   it('Fungadinha: solta com a turma, passa (mesmo em tratamento); isolada (cercadinho/caixinha), não; sarou, volta', () => {
     const { session, state, endDay } = twoCats();
     session.makeSick(CAT, SNIFFLES);

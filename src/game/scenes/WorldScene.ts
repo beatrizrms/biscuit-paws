@@ -3429,7 +3429,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const carried = sv.carriedCat();
     // Gato no colo (ou na caixinha): o E é pôr no chão, antes de tudo.
     if (carried && this.session.catBoxed(carried)) return [...out, { cells: [], tier: 0, sticky: true, value: { hint: null, run: () => this.putDownBoxedCat(carried, target) } }];
-    if (carried && this.session.catContagious(carried)) return [...out, { cells: [], tier: 0, sticky: true, value: { hint: null, run: () => this.putDownSickCat(carried, target) } }];
+    // Doença que passa, já diagnosticada: ela escolhe isolar (antes da consulta, ela não sabe o que é).
+    if (carried && this.session.catKnownContagious(carried)) return [...out, { cells: [], tier: 0, sticky: true, value: { hint: null, run: () => this.putDownSickCat(carried, target) } }];
     if (carried) {
       add([], 0, null, () => {
         const r = sv.putDownCat();
