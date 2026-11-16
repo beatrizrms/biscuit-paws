@@ -737,15 +737,14 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
 });
 
 describe('fase 2: forno e receitas em etapas', () => {
-  /** Café com fogão, forno, mesa, cadeira e ingredientes do pão de queijo; o quadro só com ele. */
+  /** Café com fogão, forno, vitrine, mesa, cadeira e ingredientes do pão de queijo; o quadro só com ele. */
   const bakery = () => {
     const ctx = openCafe({ served: 35 });
     const { session, sv } = ctx;
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
-    for (const [id, at] of [['item.counter_single', [2, 8]], ['item.counter_single', [4, 8]], ['item.stove', [2, 8]], ['item.oven', [4, 8]]] as const) {
-      session.buy(id);
-      session.place(id, [at[0], at[1]]);
+    for (const [id, at] of [['item.counter_single', [2, 8]], ['item.counter_single', [4, 8]], ['item.stove', [2, 8]], ['item.oven', [4, 8]], ['item.display_case', [6, 8]]] as const) {
+      expect([session.buy(id), session.place(id, [at[0], at[1]])], id).toEqual([{ ok: true }, { ok: true }]);
     }
     for (const id of ['item.flour', 'item.eggs', 'item.milk']) session.buy(id);
     sv.storeInPantry();
@@ -754,7 +753,7 @@ describe('fase 2: forno e receitas em etapas', () => {
   };
   const uid = (session: GameSession, item: string) => session.state.placed.find((p) => p.item === item)!.uid;
 
-  it('pão de queijo: fogão, leva a massa ao forno, serve na mesa no prato', () => {
+  it('pão de queijo: o bowl sai do fogão, vai ao forno, a assadeira (4 porções) vai para a vitrine e de lá sai o prato com 3', () => {
     const { session, sv, state } = bakery();
     expect(sv.recipeStatus('recipe.cheese_bread')).toBe('available');
     advance(session, 6);
@@ -765,27 +764,40 @@ describe('fase 2: forno e receitas em etapas', () => {
     expect(sv.prepare(uid(session, 'item.stove'))).toEqual({ ok: true });
     advance(session, 7);
     expect(sv.surfaceAt([2, 8])?.item).toMatchObject({ kind: 'wip', recipe: 'recipe.cheese_bread', step: 1 });
-    // Leva a massa ao forno: etapa 2.
     sv.pickUp([2, 8]);
+    // A massa crua (o bowl) não se entrega.
+    expect(sv.serve(c.id)).toEqual({ ok: false, reason: 'not_ready' });
     expect(sv.prepare(uid(session, 'item.oven'))).toEqual({ ok: true });
-    expect(state.hands).toEqual([]);
     advance(session, 21);
-    expect(sv.surfaceAt([4, 8])?.item).toMatchObject({ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' });
+    // A assadeira inteira (4 porções) sai em cima do forno; ela leva à vitrine.
+    expect(sv.surfaceAt([4, 8])?.item).toMatchObject({ kind: 'cake', recipe: 'recipe.cheese_bread', portions: 4 });
     sv.pickUp([4, 8]);
+    expect(sv.storeInDisplay(uid(session, 'item.display_case'))).toEqual({ ok: true });
+    expect(sv.displayPortions('recipe.cheese_bread')).toBe(4);
+    // Da vitrine: uma porção (o prato com 3 pães de queijo) na mão, para servir.
+    expect(sv.takeFromDisplay(uid(session, 'item.display_case'), 0)).toEqual({ ok: true });
+    expect(sv.displayPortions('recipe.cheese_bread')).toBe(3);
     expect(sv.serve(c.id)).toEqual({ ok: true });
     // Come na mesa e deixa o prato sujo na mesa.
     advance(session, content.service.consumeMinutes.table + 1);
     expect(sv.surfaceAt([10, 8])?.item).toEqual({ kind: 'dirty', vessel: 'plate' });
   });
 
+  it('toda receita do forno sai em fornada (menos a pirâmide de macarons), cada uma com a sua quantidade', () => {
+    const oven = Object.values(content.recipes).filter((r) => r.steps.some((x) => x.equipment === 'oven'));
+    expect(oven.filter((r) => !r.batch).map((r) => r.id)).toEqual(['recipe.macaron_tower']);
+    expect(content.recipes['recipe.cheese_bread']!.batch!.yields).toBe(4);
+    for (const r of oven) if (r.batch) expect(r.display, r.id).toBe(true);
+  });
+
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
     const { session, sv } = openCafe({ served: 35 });
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
-    session.buy('item.counter_single');
-    session.place('item.counter_single', [2, 8]);
-    session.buy('item.stove');
-    session.place('item.stove', [2, 8]);
+    for (const [id, at] of [['item.counter_single', [2, 8]], ['item.stove', [2, 8]], ['item.display_case', [6, 8]]] as const) {
+      session.buy(id);
+      session.place(id, [at[0], at[1]]);
+    }
     expect(sv.recipeStatus('recipe.cheese_bread')).toBe('equipment');
     expect(sv.missingEquipment('recipe.cheese_bread')).toBe('oven');
   });

@@ -180,8 +180,11 @@
     },
     {
       "id": "recipe.cheese_bread",
+      "wipIcon": "bowl_pao_de_queijo",
       "name": "Pão de queijo",
-      "icon": "pao_de_queijo",
+      "icon": "prato_pao_de_queijo",
+      "batch": { "yields": 4, "name": "Assadeira de pão de queijo", "icon": "assadeira_pao_de_queijo" },
+      "display": true,
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -205,6 +208,7 @@
     },
     {
       "id": "recipe.cake_slice",
+      "wipIcon": "bowl_chocolate",
       "name": "Fatia de bolo de chocolate",
       "icon": "fatia_chocolate",
       "ingredients": {
@@ -237,8 +241,10 @@
     },
     {
       "id": "recipe.paw_cookie",
+      "wipIcon": "bowl_biscoito",
       "name": "Biscoito de patinha",
       "icon": "biscoito_patinha",
+      "batch": { "yields": 9, "name": "Assadeira de biscoitos de patinha", "icon": "assadeira_biscoito_patinha" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -263,6 +269,7 @@
     },
     {
       "id": "recipe.strawberry_cake_slice",
+      "wipIcon": "bowl_morango",
       "name": "Fatia de bolo de morango",
       "icon": "fatia_morango",
       "ingredients": {
@@ -301,6 +308,8 @@
       "id": "recipe.bread",
       "name": "Pão",
       "icon": "pao",
+      "batch": { "yields": 3, "name": "Assadeira de pães", "icon": "assadeira_pao" },
+      "display": true,
       "ingredients": {
         "item.flour": 1,
         "item.salt": 1,
@@ -322,6 +331,7 @@
       "id": "recipe.croissant",
       "name": "Croissant",
       "icon": "croissant",
+      "batch": { "yields": 4, "name": "Assadeira de croissants", "icon": "assadeira_croissant" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1
@@ -346,6 +356,7 @@
       "id": "recipe.pain_au_chocolat",
       "name": "Pain au chocolat",
       "icon": "pain_au_chocolat",
+      "batch": { "yields": 4, "name": "Assadeira de pain au chocolat", "icon": "assadeira_pain_au_chocolat" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -371,6 +382,7 @@
       "id": "recipe.fish_crackers",
       "name": "Biscoitos de peixinho",
       "icon": "biscoito_peixe_laranja",
+      "batch": { "yields": 10, "name": "Assadeira de biscoitos de peixinho", "icon": "assadeira_peixinho" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -396,6 +408,7 @@
       "id": "recipe.fish_cookies_glazed",
       "name": "Biscoitos de peixinho com glacê",
       "icon": "biscoito_peixe_glace",
+      "batch": { "yields": 6, "name": "Assadeira de peixinhos com glacê", "icon": "assadeira_peixinho_glace" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -421,6 +434,7 @@
       "id": "recipe.fish_cookies_pink",
       "name": "Biscoitos de peixinho de morango",
       "icon": "biscoito_peixe_rosa",
+      "batch": { "yields": 6, "name": "Assadeira de peixinhos de morango", "icon": "assadeira_peixinho_morango" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -447,6 +461,7 @@
       "id": "recipe.cookie",
       "name": "Cookie",
       "icon": "biscoito",
+      "batch": { "yields": 8, "name": "Assadeira de cookies", "icon": "assadeira_cookie" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -470,6 +485,7 @@
       "id": "recipe.almond_croissant",
       "name": "Croissant de amêndoa",
       "icon": "croissant_amendoa",
+      "batch": { "yields": 4, "name": "Assadeira de croissants de amêndoa", "icon": "assadeira_croissant_amendoa" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -494,6 +510,7 @@
     },
     {
       "id": "recipe.matcha_cake_slice",
+      "wipIcon": "bowl_matcha",
       "name": "Fatia de bolo de matcha",
       "icon": "fatia_matcha",
       "ingredients": {
@@ -530,8 +547,10 @@
     },
     {
       "id": "recipe.lemon_cake_slice",
+      "wipIcon": "bowl_limao",
       "name": "Fatia de bolo de limão",
       "icon": "fatia_limao",
+      "batch": { "yields": 6, "name": "Bolo de limão", "icon": "bolo_limao" },
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -561,8 +580,10 @@
     },
     {
       "id": "recipe.sausage_croissant",
+      "wipIcon": "bowl_salsicha",
       "name": "Croissant de calabresa",
       "icon": "croissant",
+      "batch": { "yields": 4, "name": "Assadeira de croissants de calabresa", "icon": "assadeira_croissant_calabresa" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -590,8 +611,10 @@
     },
     {
       "id": "recipe.beef_croissant",
+      "wipIcon": "bowl_carne",
       "name": "Croissant de carne",
       "icon": "croissant",
+      "batch": { "yields": 4, "name": "Assadeira de croissants de carne", "icon": "assadeira_croissant_carne" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -619,8 +642,10 @@
     },
     {
       "id": "recipe.chicken_croissant",
+      "wipIcon": "bowl_frango",
       "name": "Croissant de frango",
       "icon": "croissant",
+      "batch": { "yields": 4, "name": "Assadeira de croissants de frango", "icon": "assadeira_croissant_frango" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -648,8 +673,10 @@
     },
     {
       "id": "recipe.cat_cupcake",
+      "wipIcon": "bowl_baunilha",
       "name": "Cupcake de gatinho",
       "icon": "cupcake_gatinho",
+      "batch": { "yields": 6, "name": "Assadeira de cupcakes de gatinho", "icon": "assadeira_cupcake_gatinho" },
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -678,8 +705,10 @@
     },
     {
       "id": "recipe.vanilla_cupcake",
+      "wipIcon": "bowl_morango",
       "name": "Cupcake de baunilha",
       "icon": "cupcake_baunilha",
+      "batch": { "yields": 6, "name": "Assadeira de cupcakes de baunilha", "icon": "assadeira_cupcake_baunilha" },
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -709,8 +738,10 @@
     },
     {
       "id": "recipe.macarons",
+      "wipIcon": "bowl_amendoa",
       "name": "Macarons",
       "icon": "macarons_pilha",
+      "batch": { "yields": 9, "name": "Assadeira de macarons", "icon": "assadeira_macarons" },
       "ingredients": {
         "item.almond": 1,
         "item.eggs": 1,
@@ -738,8 +769,10 @@
     },
     {
       "id": "recipe.cat_macarons",
+      "wipIcon": "bowl_chocolate",
       "name": "Macarons de gatinho",
       "icon": "macarons_gatinho",
+      "batch": { "yields": 6, "name": "Assadeira de macarons de gatinho", "icon": "assadeira_macarons_gatinho" },
       "ingredients": {
         "item.almond": 1,
         "item.eggs": 1,
@@ -768,6 +801,7 @@
     },
     {
       "id": "recipe.macaron_tower",
+      "wipIcon": "bowl_amendoa",
       "name": "Pirâmide de macarons",
       "icon": "macarons_piramide",
       "ingredients": {
@@ -873,6 +907,7 @@
     },
     {
       "id": "recipe.strawberry_tart_slice",
+      "wipIcon": "bowl_morango",
       "name": "Fatia de torta de morango",
       "icon": "fatia_torta_morango",
       "ingredients": {
@@ -991,8 +1026,10 @@
     },
     {
       "id": "recipe.honey_cake",
+      "wipIcon": "bowl_chocolate",
       "name": "Pão de mel",
       "icon": "pao_de_mel",
+      "batch": { "yields": 4, "name": "Assadeira de pães de mel", "icon": "assadeira_pao_de_mel" },
       "ingredients": {
         "item.flour": 1,
         "item.honey": 1,
@@ -1047,6 +1084,7 @@
     },
     {
       "id": "recipe.panettone_slice",
+      "wipIcon": "bowl_baunilha",
       "name": "Fatia de panetone",
       "icon": "fatia_panetone",
       "ingredients": {
@@ -1116,6 +1154,7 @@
     },
     {
       "id": "recipe.pumpkin_cake_slice",
+      "wipIcon": "bowl_abobora",
       "name": "Fatia de bolo de abóbora",
       "icon": "fatia_bolo_abobora",
       "ingredients": {
@@ -1157,6 +1196,7 @@
       "id": "recipe.ghost_cookies",
       "name": "Cookies de fantasminha",
       "icon": "cookies_fantasma",
+      "batch": { "yields": 9, "name": "Assadeira de cookies de fantasminha", "icon": "assadeira_fantasminha" },
       "ingredients": {
         "item.flour": 1,
         "item.butter": 1,
@@ -1184,8 +1224,10 @@
     },
     {
       "id": "recipe.web_cupcake",
+      "wipIcon": "bowl_chocolate",
       "name": "Cupcake de teia",
       "icon": "cupcake_teia",
+      "batch": { "yields": 6, "name": "Assadeira de cupcakes de teia", "icon": "assadeira_cupcake_teia" },
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -1297,6 +1339,7 @@
     },
     {
       "id": "recipe.apple_pie_slice",
+      "wipIcon": "bowl_maca",
       "name": "Fatia de torta de maçã",
       "icon": "fatia_torta_maca",
       "ingredients": {

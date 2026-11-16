@@ -32,6 +32,8 @@ export interface RecipeDef {
   special?: boolean;
   /** Ícone (data/icons.json). */
   icon: string;
+  /** Receita em etapas: o semipronto entre uma e outra (o bowl de inox com a massa ou o recheio, data/icons.json). */
+  wipIcon?: string;
   /** Ingrediente -> doses (um pacote rende `servings` doses, em items.json). */
   ingredients: Record<string, number>;
   /** Trocas premium: ingrediente simples -> o melhor (ex.: pó de café -> café em grãos). */
@@ -193,6 +195,8 @@ export function validateRecipes(
     if (ids.has(r.id)) errors.push(`${where}: id repetido`);
     ids.add(r.id);
     if (!refs.icons.has(r.icon)) errors.push(`${where}: ícone inexistente "${r.icon}"`);
+    if (r.wipIcon && !refs.icons.has(r.wipIcon)) errors.push(`${where}: ícone do semipronto inexistente "${r.wipIcon}"`);
+    if (r.steps.length > 1 && !r.wipIcon) errors.push(`${where}: receita em etapas precisa de wipIcon (o semipronto)`);
     if (Object.keys(r.ingredients).length === 0) errors.push(`${where}: sem ingredientes`);
     for (const [item, n] of Object.entries(r.ingredients)) {
       if (!refs.items.has(item)) errors.push(`${where}: item inexistente "${item}"`);

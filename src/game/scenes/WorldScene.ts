@@ -3433,6 +3433,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const customer = sv.customerToServe(feet);
     // Com o pedido na mão e o cliente ao alcance, entregar vence tudo em volta.
     if (customer && !target) add([customer.spot], E_TIER.service, this.hintCell(customer.spot, sv.wrongFor(customer) ? 'customer_wrong' : 'customer'), () => report(sv.serve(customer.id)), true);
+    // Só a massa (semipronto) na mão, perto de quem espera: o E no cliente avisa que ainda não está pronto.
+    const waiting = !customer && !target && st.hands.some((h) => h.kind === 'wip') ? sv.waitingCustomerNear(feet) : undefined;
+    // Não é "só explica" (weak): virada para o cliente, o aviso vence soltar a massa na mesa dele.
+    if (waiting) out.push({ cells: [waiting.spot], tier: E_TIER.service, value: { hint: null, run: () => report(sv.serve(waiting.id)) } });
     // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
     const sink = sv.sinkCell();
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
@@ -3522,14 +3526,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       add(this.placedCells(display.uid), E_TIER.service, hint, () => {
         const stock = sv.displayStock(display.uid);
         if (stock.length === 0) return report({ ok: false, reason: 'display_empty' });
+        // Como a barra: cada espaço com o ícone da porção e quantas sobram; tocar tira uma para a mão.
         const recipes = this.session.content.recipes;
-        const names = stock.map((d) =>
-          recipes[d.recipe]?.batch
-            ? uiText.service.displaySlices.replace('{name}', recipes[d.recipe]?.name ?? '').replace('{n}', String(d.portions))
-            : (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''),
-        );
-        void this.ui.choose(uiText.service.displayAsk, [...names, uiText.service.extraCancel]).then((i) => {
-          if (i < stock.length) report(sv.takeFromDisplay(display.uid, i));
+        const slots = this.session.content.items[st.placed.find((p) => p.uid === display.uid)?.item ?? '']?.display?.slots ?? stock.length;
+        const view = stock.map((d) => ({ icon: recipes[d.recipe]?.icon, name: (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''), portions: d.portions }));
+        void this.ui.chooseDisplay(uiText.service.displayAsk, slots, view).then((i) => {
+          if (i >= 0 && i < stock.length) report(sv.takeFromDisplay(display.uid, i));
         });
         return true;
       });
@@ -3658,14 +3660,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     if (item.kind === 'cat') return undefined; // o gato no colo é desenhado à parte (animado)
     const icon =
-      item.kind === 'wip' ? c.recipes[item.recipe]?.icon
+      item.kind === 'wip' ? (c.recipes[item.recipe]?.wipIcon ?? c.recipes[item.recipe]?.icon)
       : item.kind === 'cake' ? c.recipes[item.recipe]?.batch?.icon
       : item.kind === 'item' || item.kind === 'heavy' ? c.items[item.item]?.icon
       : undefined;
     const f = icon ? iconFrame(this, icon) : undefined;
     if (!f) return undefined;
     const img = this.add.image(0, 0, f.key, f.frame).setData('iconScale', f.scale);
-    if (item.kind === 'wip') img.setTint(0xf2dcb8); // massa crua, ainda não terminou
+    // Sem a arte do semipronto (o bowl), a massa é o pronto mais claro.
+    if (item.kind === 'wip' && !c.recipes[item.recipe]?.wipIcon) img.setTint(0xf2dcb8);
     return img;
   }
 

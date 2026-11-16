@@ -94,6 +94,7 @@ export type ServiceProblem =
   | 'cannot_put_here'
   | 'nothing_here'
   | 'wrong_order'
+  | 'not_ready'
   | 'not_a_treat'
   | 'not_on_tray'
   | 'no_tray'
@@ -1400,6 +1401,13 @@ export class CafeService {
     return waiting.find((c) => drinks.some((d) => d.kind === 'drink' && d.recipe === c.recipe)) ?? waiting[0];
   }
 
+  /** Cliente esperando o pedido ao alcance (ou a mesa dele), o que espera há mais tempo primeiro. */
+  waitingCustomerNear(feet: readonly Cell[]): Customer | undefined {
+    return this.st.service.customers
+      .filter((c) => c.stage === 'waiting' && c.recipe && (near(feet, c.spot) || near(feet, c.dishAt)))
+      .sort((a, b) => a.until - b.until)[0];
+  }
+
   /** O que ela tem na mão não é o que este cliente pediu (a entrega seria o pedido errado). */
   wrongFor(c: Customer): boolean {
     return !this.st.hands.some((h) => h.kind === 'drink' && h.recipe === c.recipe);
@@ -1414,7 +1422,8 @@ export class CafeService {
     let i = this.st.hands.findIndex((h) => h.kind === 'drink' && h.recipe === c.recipe);
     const wrong = i < 0;
     if (wrong) i = this.st.hands.findIndex((h) => h.kind === 'drink' && !this.recipe(h.recipe)?.special);
-    if (i < 0) return { ok: false, reason: 'wrong_order' };
+    // Só a massa (semipronto) na mão: ainda não terminou, não dá para entregar.
+    if (i < 0) return { ok: false, reason: this.st.hands.some((h) => h.kind === 'wip') ? 'not_ready' : 'wrong_order' };
     const [served] = this.st.hands.splice(i, 1);
     this.deliver(c, served as Extract<HandItem, { kind: 'drink' }>, wrong);
     this.handsChanged();
