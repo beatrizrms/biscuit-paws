@@ -51,6 +51,12 @@ export class AmbienceLayer {
       .setAlpha(cfg.vignetteAlpha);
   }
 
+  /** A câmera mudou de zoom (a vista geral da obra): a vinheta volta a cobrir a tela inteira. */
+  refit(): void {
+    const view = fixedScreenRect(this.scene);
+    this.vignette.setPosition(view.x, view.y).setDisplaySize(view.w, view.h);
+  }
+
   /** Texturas macias geradas uma vez (gradientes; não são arte do pacote). */
   private static createTextures(scene: Phaser.Scene): void {
     const tex = scene.textures;

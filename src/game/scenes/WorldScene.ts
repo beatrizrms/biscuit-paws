@@ -32,7 +32,7 @@ import type { HandItem } from '../../core/carry';
 import { ScriptRunner, type ScriptStage } from '../ScriptRunner';
 import { createRng, cellHash } from '../../core/rng';
 import { isDebugOn } from '../debug';
-import { VIEW_HEIGHT, VIEW_WIDTH, setupWorldCamera } from '../screen';
+import { RENDER_SCALE, VIEW_HEIGHT, VIEW_WIDTH, WORLD_ZOOM, setupWorldCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
 import { broom, catObjectUses, content, emoteImage, itemUse, serviceArt, uiText } from '../content';
@@ -1034,6 +1034,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const cam = this.cameras.main;
     this.dayNight.setOutdoorAreas(home ? (this.roomView?.outdoorAreas() ?? []) : []);
     this.refreshWeather();
+    // Na vista geral da obra (seleção de área), a câmera fica parada mostrando o café inteiro.
+    if (this.overview) return;
     if (area.w <= VIEW_WIDTH && area.h <= VIEW_HEIGHT) {
       cam.stopFollow();
       cam.removeBounds();
@@ -1836,8 +1838,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Pontos do mundo que não podem ficar escondidos pelo HUD: o mouse e a personagem (cabeça e pés). */
   private fadeHudOverWorld(): void {
     const rect = this.game.canvas.getBoundingClientRect();
-    const zoom = rect.width / VIEW_WIDTH;
     const view = this.cameras.main.worldView;
+    // Pela vista de agora (na vista geral da obra, a câmera mostra mais que VIEW_WIDTH).
+    const zoom = rect.width / view.width;
     const toClient = (x: number, y: number) => ({ x: rect.left + (x - view.x) * zoom, y: rect.top + (y - view.y) * zoom });
     const p = this.input.activePointer;
     const feet = toClient(this.player.x, this.player.y);
@@ -4329,9 +4332,39 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   // ---------- Obras com o construtor ----------
 
   /** Troca de acabamento: ela marca a área no café (retângulo); confirmar abre a ligação com o orçamento. */
+  /** Vista geral (a câmera afastada mostrando o café que ela conhece): só enquanto escolhe a área da obra. */
+  private overview = false;
+
+  /** Afasta a câmera até caber o café inteiro que ela conhece (sem passar do zoom de sempre). */
+  private zoomToOverview(): void {
+    const ts = this.map.tileSize;
+    const area = this.roomView?.cameraArea(this.feetCell()) || { x: 0, y: 0, w: this.map.cols * ts, h: this.map.rows * ts };
+    const fit = Math.min(1, VIEW_WIDTH / area.w, VIEW_HEIGHT / area.h);
+    if (fit >= 1) return;
+    this.overview = true;
+    const cam = this.cameras.main;
+    cam.stopFollow();
+    cam.removeBounds();
+    cam.setZoom(RENDER_SCALE * WORLD_ZOOM * fit);
+    cam.centerOn(area.x + area.w / 2, area.y + area.h / 2);
+    this.dayNight.refit();
+    this.ambience.refit();
+  }
+
+  /** Volta a câmera de sempre (segue a personagem). */
+  private zoomBack(): void {
+    if (!this.overview) return;
+    this.overview = false;
+    setupWorldCamera(this);
+    this.dayNight.refit();
+    this.ambience.refit();
+    this.applyCamera();
+  }
+
   private startAreaSelect(surfaceId: string, finishId: string): void {
     if (!this.session.atHome()) return this.ui.toast(uiText.construction.selectNotHere, 3000);
     this.cancelPlacing();
+    this.zoomToOverview();
     const t = uiText.construction;
     this.areaSelect = new AreaSelect(
       this,
@@ -4349,10 +4382,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         onConfirm: ([first, ...more]) => {
           const [a, b] = first!;
           this.areaSelect = null;
+          this.zoomBack();
           const r = this.session.quoteFinish(surfaceId, finishId, a, b, more);
           if (!r.ok) this.ui.problem(r.reason as keyof typeof uiText.problems);
         },
-        onCancel: () => (this.areaSelect = null),
+        onCancel: () => {
+          this.areaSelect = null;
+          this.zoomBack();
+        },
         onEmpty: () => this.ui.toast(t.selectEmpty, 2500),
       },
       { hint: t.selectHint, hintTouch: t.selectHintTouch, confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },

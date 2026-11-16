@@ -42,6 +42,12 @@ export class DayNightLayer {
     if (!scene.textures.exists(LIGHT_TEXTURE)) DayNightLayer.createLightTexture(scene);
   }
 
+  /** A câmera mudou de zoom (a vista geral da obra): o véu volta a cobrir a tela inteira. */
+  refit(): void {
+    const view = fixedScreenRect(this.scene);
+    this.tint.setPosition(view.x, view.y).setSize(view.w, view.h);
+  }
+
   /** Brilho redondo e macio (gerado uma vez; não é arte do pacote). */
   private static createLightTexture(scene: Phaser.Scene): void {
     const canvas = scene.textures.createCanvas(LIGHT_TEXTURE, LIGHT_PX, LIGHT_PX)!;
