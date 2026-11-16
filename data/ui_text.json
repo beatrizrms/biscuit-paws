@@ -66,6 +66,10 @@
           {
             "tag": "for:guests",
             "title": "Para os clientes"
+          },
+          {
+            "tag": "furniture:bedroom",
+            "title": "Quarto"
           }
         ]
       },

@@ -3341,6 +3341,7 @@
       "price": 150,
       "tile": "room_cama_quartinho",
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "bed"
@@ -3354,6 +3355,7 @@
       "price": 120,
       "tile": "quarto_guarda_roupa",
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom"
       ],
@@ -3367,6 +3369,7 @@
       "tile": "quarto_comoda",
       "topLift": 14,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "surface"
@@ -3381,6 +3384,7 @@
       "tile": "quarto_escrivaninha",
       "topLift": 12,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "surface"
@@ -3395,6 +3399,7 @@
       "tile": "quarto_criado_madeira",
       "topLift": 10,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "surface"
@@ -3409,6 +3414,7 @@
       "tile": "quarto_criado_creme",
       "topLift": 10,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "surface"
@@ -3423,6 +3429,7 @@
       "tile": "quarto_bau",
       "topLift": 8,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:bedroom",
         "surface"
@@ -3436,6 +3443,7 @@
       "price": 20,
       "tile": "quarto_pufe_rosa",
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:other"
       ]
@@ -3447,6 +3455,7 @@
       "price": 20,
       "tile": "quarto_pufe_salvia",
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:other"
       ]
@@ -3470,6 +3479,7 @@
       "tile": "quarto_mesinha_lateral",
       "topLift": 10,
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:other",
         "surface"
@@ -3482,6 +3492,7 @@
       "price": 60,
       "tile": "quarto_poltrona",
       "tags": [
+        "furniture:bedroom",
         "furniture",
         "area:other"
       ]
