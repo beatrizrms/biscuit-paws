@@ -1018,11 +1018,12 @@ describe('avaliação dos clientes (estrelas)', () => {
     return { session, state, events };
   }
 
-  it('rápido e salão limpo: 5 estrelas e a reputação delas', () => {
+  it('rápido e salão limpo: 5 estrelas; a reputação vem no fim do dia, pela média do dia', () => {
     const { state, events, session } = serveAfter(0, true);
     // A xícara suja que ele deixou conta como sujeira só depois que ele saiu.
-    expect(left(events)).toEqual([{ customerId: 'c1', happy: true, stars: 5, reputation: content.service.review.reputation['5'] }].map(({ customerId, ...r }) => ({ customerId, ...r })));
-    expect(state.reputation.value).toBe(content.service.review.reputation['5']!);
+    expect(left(events)).toEqual([{ customerId: 'c1', happy: true, stars: 5, reputation: 0 }]);
+    expect(state.reputation.value).toBe(0);
+    expect(state.stats.today.stars).toEqual([5]);
     expect(session.hallDirt()).toBe(1);
     // Estatísticas do dia: um atendido e as doses do café preto.
     expect(state.stats.today).toMatchObject({ served: 1, gaveUp: 0, doses: content.recipes['recipe.black_coffee']!.ingredients });
@@ -1037,7 +1038,7 @@ describe('avaliação dos clientes (estrelas)', () => {
     expect(left(dirty.events)[0]!.stars).toBeLessThan(5);
   });
 
-  it('desistiu sentado ou na fila: 1 estrela e a reputação cai', () => {
+  it('desistiu sentado ou na fila: 2 estrelas e a reputação cai no fim do dia', () => {
     const { session, sv, state, events } = openCafe();
     sv.toggleMenu('recipe.black_coffee');
     // Só o lugar em pé: o segundo cliente vai para a fila.
@@ -1053,8 +1054,11 @@ describe('avaliação dos clientes (estrelas)', () => {
     const gaveUp = left(events).filter((e) => !e.happy);
     expect(gaveUp.length).toBeGreaterThanOrEqual(2); // o sentado e o da fila
     expect(gaveUp.every((e) => e.stars === content.service.review.gaveUp)).toBe(true);
-    expect(state.reputation.value).toBeLessThan(10);
     expect(state.stats.today.gaveUp).toBe(gaveUp.length);
+    // A reputação cai só no fim do dia, pela média do dia (2 estrelas: -1).
+    expect(state.reputation.value).toBe(10);
+    session.endDay('home');
+    expect(state.reputation.value).toBeLessThan(10);
   });
 });
 

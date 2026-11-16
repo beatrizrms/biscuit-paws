@@ -41,7 +41,7 @@ export interface DayStats {
 /** No save (v27). */
 export interface StatsState {
   /** O dia em andamento. sickAtStart: gatos doentes ao amanhecer (só eles precisam do remédio hoje). */
-  today: { served: number; gaveUp: number; doses: Record<string, number>; sickAtStart: string[] };
+  today: { served: number; gaveUp: number; doses: Record<string, number>; sickAtStart: string[]; stars?: number[] };
   /** Os últimos STATS_HISTORY_DAYS dias fechados, do mais antigo ao mais novo. */
   days: DayStats[];
   /** Totais do jogo (a partir do save v27; antes disso só havia o total de atendidos). */
@@ -73,6 +73,8 @@ export function recordGaveUp(s: StatsState): void {
 /** Guarda a nota de quem saiu (a nota do café é a média das últimas). */
 export function recordReview(s: StatsState, stars: number): void {
   s.reviews.push(stars);
+  // As do dia: no fim do dia, a média delas mexe na reputação (review.daily).
+  (s.today.stars ??= []).push(stars);
   if (s.reviews.length > REVIEWS_KEPT) s.reviews.splice(0, s.reviews.length - REVIEWS_KEPT);
 }
 
@@ -195,6 +197,7 @@ export function normalizeStats(v: unknown, knownItem: (id: string) => boolean): 
       gaveUp: count(t.gaveUp),
       doses: doseMap(t.doses, knownItem),
       sickAtStart: Array.isArray(t.sickAtStart) ? t.sickAtStart.filter((id): id is string => typeof id === 'string') : [],
+      ...(Array.isArray(t.stars) ? { stars: t.stars.filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= 5) } : {}),
     },
     days: (Array.isArray(x.days) ? x.days : [])
       .filter((d): d is DayStats => !!d && Number.isInteger(d.day) && d.day >= 1)

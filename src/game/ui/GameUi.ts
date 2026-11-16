@@ -123,7 +123,7 @@ export class GameUi {
       <div class="panel hud-goals"></div>
       <div class="panel hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
       <div class="panel hud-cart" hidden></div>
-      <div class="panel hud-rep"><span class="label">${uiText.reputation.label}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="panel hud-rep"><span class="label">${uiText.reputation.ratingLabel}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
       <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
@@ -1187,7 +1187,10 @@ export class GameUi {
     (el.querySelector('.fill') as HTMLElement).style.width = `${(avg / 5) * 100}%`;
     (el.querySelector('.value') as HTMLElement).textContent = avg.toFixed(1).replace('.', ',');
     const rating = count ? uiText.reputation.rating.replace('{value}', avg.toFixed(1).replace('.', ',')).replace('{n}', String(count)) : uiText.reputation.noRating;
-    const rep = uiText.reputation.title.replace('{value}', String(Math.round(this.session.reputation()))).replace('{max}', String(content.reputation.max));
+    // A reputação (0 a 100) e o título dela ao passar o mouse; as estrelas são a nota do café.
+    const value = Math.round(this.session.reputation());
+    const level = [...content.reputation.thresholds].reverse().find((t) => value >= t.at);
+    const rep = (level ? uiText.reputation.titleLevel.replace('{level}', level.name) : uiText.reputation.title).replace('{value}', String(value)).replace('{max}', String(content.reputation.max));
     el.title = `${rating}
 ${rep}`;
   }

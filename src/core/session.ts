@@ -42,6 +42,7 @@ import { isNewYearEve, newYearFlag } from './newYear';
 import { halloweenOfYear, inInviteWindow, isHalloween, pickFood, type HalloweenFriend, type HalloweenRecord } from './halloween';
 import { drawFriend, inDrawWindow, isChristmas, pickGift, pickGiver, playerGift, recordOfYear, type SantaFriend, type SantaRecord } from './secretSanta';
 import { addReputation, reputationForResult } from './reputation';
+import { dailyReputation } from './review';
 import { ArrivalSystem } from './arrivalSystem';
 import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
 import { CedFlow } from './ced';
@@ -4232,6 +4233,10 @@ export class GameSession {
       const s = this.state.cats[id];
       return s?.sheltered && s.sickness && s.sickness.treatment?.lastDoseDay !== day;
     }).length;
+    // A reputação do atendimento: uma vez por dia, pela nota média do dia (service.json: review.daily).
+    const dayStars = this.state.stats.today.stars ?? [];
+    const rep = dailyReputation(this.content.service.review, dayStars);
+    if (rep !== 0) this.addReputation(rep, `service_day:${day}`);
     const { record, broken } = closeDay(this.state.stats, {
       day,
       open: this.service.opensOn(day),
