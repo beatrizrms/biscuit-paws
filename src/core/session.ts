@@ -4614,7 +4614,16 @@ export class GameSession {
         if (d.when && !evaluate(d.when as Condition, this.state, this.storyContext())) return false;
         return d.clearedBy ? !this.state.finishes[d.clearedBy] : !isCleaned(this.state, d);
       })
-      .map((d) => (this.state.dirtAt?.[d.id] ? { ...d, at: this.state.dirtAt[d.id]! } : d.when ? this.freeSpotFor(d) : d));
+      // A da reforma (rachadura, mancha: clearedBy) fica onde está; a de varrer sai de baixo do móvel (freeSpotFor).
+      .map((d) => (this.state.dirtAt?.[d.id] ? { ...d, at: this.state.dirtAt[d.id]! } : d.clearedBy ? d : this.freeSpotFor(d)))
+      // A cor chapada (a teia clara na pedra) só vale na parede de sempre: com acabamento novo por baixo, a cor normal.
+      .map((d) => (d.fill && this.dirtOnFinish(d) ? { ...d, fill: undefined } : d));
+  }
+
+  /** Alguma célula da sujeira tem acabamento novo da obra (papel de parede, piso)? */
+  private dirtOnFinish(d: DirtSpot): boolean {
+    const def = this.content.catalog.tiles[d.tile];
+    return (def ? cellsOf(d.at, def) : [d.at]).some((c) => this.state.construction.cells[cellKey(c)] !== undefined);
   }
 
   /** A célula não fica num cômodo ainda fechado. */
@@ -4639,15 +4648,34 @@ export class GameSession {
     return ([c, r]: Cell) => !taken.has(`${c},${r}`) && solid[r]?.[c] === false && this.cellOpen([c, r]);
   }
 
+  /**
+   * Onde a sujeira aparece: no lugar dela ou, com um móvel dela por cima (posto em cima da sujeira, ou a do meio do
+   * jogo, com `when`, numa célula onde ela já tinha posto um móvel), no lugar livre mais perto, do mesmo tipo (chão ou
+   * parede). Assim nenhuma fica escondida embaixo de um móvel sem dar para varrer (a meta do porão contava 3/5 com
+   * duas embaixo dos móveis).
+   */
   private freeSpotFor(d: DirtSpot): DirtSpot {
-    const free = this.floorFree();
-    if (free(d.at)) return d;
+    const { catalog, items } = this.content;
+    const def = catalog.tiles[d.tile];
+    const spanOf = (at: Cell): Cell[] => (def ? cellsOf(at, def) : [at]);
+    const taken = new Set<string>();
+    for (const p of this.state.placed) {
+      const pd = catalog.tiles[items[p.item]?.tile ?? ''];
+      if (pd) for (const c of cellsOf(p.at, pd)) taken.add(cellKey(c));
+    }
+    const covered = (at: Cell) => spanOf(at).some((c) => taken.has(cellKey(c)));
+    // Sem nada por cima, fica onde está (a do meio do jogo, também sem parede ou objeto sólido embaixo).
+    if (!covered(d.at) && !(d.when && !this.floorFree()(d.at))) return d;
+    const walls = this.content.map.layers.walls;
+    const onWall = (walls[d.at[1]]?.[d.at[0]] ?? '.') !== '.';
+    const floor = onWall ? null : this.floorFree();
+    const fits = (at: Cell) => spanOf(at).every(([c, r]) => !taken.has(`${c},${r}`) && this.cellOpen([c, r]) && (onWall ? (walls[r]?.[c] ?? '.') !== '.' : floor!([c, r])));
     for (let dist = 1; dist <= 6; dist++)
       for (let dr = -dist; dr <= dist; dr++)
         for (let dc = -dist; dc <= dist; dc++) {
           if (Math.max(Math.abs(dc), Math.abs(dr)) !== dist) continue;
           const at: Cell = [d.at[0] + dc, d.at[1] + dr];
-          if (free(at)) return { ...d, at };
+          if (fits(at)) return { ...d, at };
         }
     return d;
   }

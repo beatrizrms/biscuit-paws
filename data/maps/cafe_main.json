@@ -464,7 +464,8 @@
       "tags": [
         "room",
         "back_room"
-      ]
+      ],
+      "fill": "#e8dfcf"
     },
     {
       "id": "dirt.back_room_web_right",
@@ -476,7 +477,8 @@
       "tags": [
         "room",
         "back_room"
-      ]
+      ],
+      "fill": "#e8dfcf"
     },
     {
       "id": "dirt.back_room_dust",

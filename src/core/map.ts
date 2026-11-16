@@ -63,6 +63,8 @@ export interface DirtSpot {
   when?: unknown;
   /** Inverno ao ar livre: neve por cima (como MapObject.snowCap; o mato e o entulho do quintal). */
   snowCap?: boolean;
+  /** Cor chapada por cima do desenho ("#rrggbb"): a teia cinza-clara some na pedra do porão; clara, aparece. */
+  fill?: string;
 }
 
 /** Ponto de interação (tecla E ou clique, de perto): ex.: o caixa do mercado abre a loja. */
@@ -185,6 +187,8 @@ export interface MapSprite {
   dx?: number;
   /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
   dy?: number;
+  /** Cor chapada por cima do desenho (DirtSpot.fill). */
+  fill?: string;
   tile: string;
   /** Folha (textura) do tile. */
   sheet: string;
@@ -399,7 +403,7 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     const [c0, r0] = d.at;
     const depth = def.layer === 'floor' ? (d.tags?.includes('repair') ? DEPTH.floorCrack : DEPTH.floorDirt) : def.layer === 'wall' ? DEPTH.wallDirt : ySortDepth((r0 + def.h) * ts);
     for (const [col, row] of cellsOf(d.at, def)) {
-      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, dirt: d.id, ...(d.lift ? { dy: d.lift } : {}) });
+      sprites.push({ tile: d.tile, sheet: def.sheet, frame: frameOf(catalog, def, col - c0, row - r0), col, row, depth, dirt: d.id, ...(d.lift ? { dy: d.lift } : {}), ...(d.fill ? { fill: d.fill } : {}) });
     }
     if (d.snowCap && def.layer !== 'wall') snowCaps.push({ obj: d.id, col: c0, row: r0, depth: depth + OVERLAY_LIFT * 2, dy: d.lift ?? 0 });
   }

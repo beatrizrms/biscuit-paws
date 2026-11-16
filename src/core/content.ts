@@ -229,6 +229,8 @@ export type Condition =
   /** Quantos móveis posicionados têm esta tag (ex.: "chair" conta cadeiras de qualquer tipo). */
   /** Peças posicionadas com a tag (exceptItem: sem este item, ex.: os enfeites de Natal sem a árvore). */
   | { placedTag: string; gte?: number; exceptItem?: string }
+  /** Quantos itens dela estão posicionados dentro do cômodo (o porão com a cama e mais alguma coisa). */
+  | { roomItems: { room: string; gte: number } }
   | { owned: string; gte?: number }
   /** A personagem já entrou neste mapa. */
   | { visited: string }
@@ -983,6 +985,8 @@ export function validateContent(raw: RawContent): string[] {
       if (!raw.milestones.milestones.some((m) => m.id === c.milestone)) err(`${where}: selo inexistente "${c.milestone}"`);
     } else if ('fromSeason' in c) {
       if (!raw.seasons.order.includes(c.fromSeason)) err(`${where}: estação inexistente "${c.fromSeason}"`);
+    } else if ('roomItems' in c) {
+      if (!raw.rooms.rooms.some((r) => r.id === c.roomItems.room)) err(`${where}: cômodo inexistente "${c.roomItems.room}"`);
     } else if ('room' in c) {
       if (!raw.rooms.rooms.some((r) => r.id === c.room)) err(`${where}: cômodo inexistente "${c.room}"`);
       if (!(ROOM_STATES as readonly string[]).includes(c.atLeast)) err(`${where}: estado de cômodo inválido "${c.atLeast}"`);

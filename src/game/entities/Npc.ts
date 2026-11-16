@@ -87,6 +87,8 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     this.legDir = dir;
     this.play(`${npcTexture(this.def.id)}-walk_${dir}`, true);
     return new Promise((resolve) => {
+      // Sumiu no meio do trecho (o mapa trocou): a espera acaba também, senão quem esperava fica preso.
+      this.once(Phaser.GameObjects.Events.DESTROY, () => resolve());
       this.scene.tweens.add({
         targets: this,
         x,
@@ -106,7 +108,10 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
   async act(anim: string, ms: number): Promise<void> {
     if (!this.active) return;
     this.play(`${npcTexture(this.def.id)}-${anim}`, true);
-    await new Promise((r) => this.scene.time.delayedCall(ms, r));
+    await new Promise<void>((r) => {
+      this.once(Phaser.GameObjects.Events.DESTROY, () => r());
+      this.scene.time.delayedCall(ms, () => r());
+    });
   }
 
   /** Fica repetindo uma animação extra (o construtor martelando na obra). */
@@ -148,6 +153,8 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
 
   /** Sai de cena (some devagar). */
   leave(): Promise<void> {
+    // Já saiu de cena (ela trocou de mapa no meio, ex.: entrou no café com a entregadora andando): nada a fazer.
+    if (!this.scene) return Promise.resolve();
     return new Promise((resolve) => {
       this.scene.tweens.add({ targets: this, alpha: 0, duration: 400, onComplete: () => (this.destroy(), resolve()) });
     });

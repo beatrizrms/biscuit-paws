@@ -734,7 +734,7 @@
             }
           },
           {
-            "text": "Limpe o porão",
+            "text": "Deixe o porão habitável",
             "when": {
               "cleaned": "back_room"
             }
@@ -746,7 +746,7 @@
             }
           },
           {
-            "text": "Deixe o porão confortável para poder dormir lá",
+            "text": "Deixe o porão confortável: além da cama, ponha um móvel ou enfeite",
             "when": {
               "room": "room.back_room",
               "atLeast": "restored"

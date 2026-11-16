@@ -190,21 +190,26 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(session.firstVisitPending()).toBeNull();
   });
 
-  it('reforma: só depois de limpar; com a obra paga, ela dorme no café e acorda no quartinho', () => {
+  it('porão habitável: limpo, com a cama e mais um móvel, fica pronto sozinho (sem obra paga); aí ela dorme no café', () => {
     const { session, state } = afterFirstCustomer();
     session.openRoom('room.back_room');
-    expect(session.restoreRoom('room.back_room')).toMatchObject({ ok: false, problem: 'still_dirty' });
-    cleanTag(session, 'back_room');
-    expect(session.restoreRoom('room.back_room')).toEqual({ ok: true });
-    expect(session.roomState('room.back_room')).toBe('restored');
-    expect(session.mapData().legend.f).toBe('floor_wood_b');
-    // Sem a cama posicionada, não dorme no café (a cama é comprada no Market).
-    state.time = parseClock(content.dayNight.goHomeFrom);
-    expect(session.sleepRoom()).toBeUndefined();
-    expect(session.sleepInCafe()).toEqual({ ok: false, reason: 'locked' });
+    // Não tem mais a obra "Terminar a reforma": fica pronto sozinho.
+    expect(session.restoreRoom('room.back_room')).toMatchObject({ ok: false, problem: 'automatic' });
+    expect(session.roomWorks('room.back_room').some((w) => w.kind === 'room_restore')).toBe(false);
     state.inventory['item.bed'] = 1;
+    state.inventory['item.bedroom_pouf_pink'] = 1;
     expect(session.checkPlacement('item.bed', [10, 7])).toBe('wrong_room');
     expect(session.place('item.bed', [18, 4])).toEqual({ ok: true });
+    // Sujo e só com a cama: ainda não; sem o porão pronto, não dorme no café.
+    state.time = parseClock(content.dayNight.goHomeFrom);
+    expect(session.roomState('room.back_room')).toBe('abandoned');
+    expect(session.sleepInCafe()).toEqual({ ok: false, reason: 'locked' });
+    cleanTag(session, 'back_room');
+    expect(session.roomState('room.back_room')).toBe('abandoned');
+    expect(session.place('item.bedroom_pouf_pink', [22, 7])).toEqual({ ok: true });
+    expect(session.roomState('room.back_room')).toBe('restored');
+    // O piso e a parede não mudam sozinhos: ela reforma pela obra de acabamentos.
+    expect(session.mapData().legend.f).toBe('ph_basement_floor');
     expect(session.mapData().interactions?.find((i) => 'sleep' in i.action)?.at).toEqual([18, 4]);
     state.time = 9 * 60;
     expect(session.sleepInCafe()).toEqual({ ok: false, reason: 'too_early' });
@@ -381,20 +386,24 @@ describe('obras dos cômodos pelo Tião (data/rooms.json builder)', () => {
     expect(parseSave(serializeSave(state, new Date(0)), knownIds(content)).state.hallDialogues).toEqual(['dlg.room_back_opened']);
   });
 
-  it('reforma: só depois de limpar; 2 dias dentro do porão; termina reformado', () => {
-    const { session, state } = withBuilder();
+  it('o porão não tem obra de reforma do Tião (fica pronto sozinho); o quintal continua tendo', () => {
+    const { session } = withBuilder();
     session.openRoom('room.back_room');
-    expect(session.quoteRoom('room.back_room')).toEqual({ ok: false, reason: 'room_not_ready' });
     cleanTag(session, 'back_room');
-    expect(session.quoteRoom('room.back_room')).toEqual({ ok: true });
-    const spots: unknown[] = [];
-    acceptAndWait(session, () => {
-      session.state.time = 10 * 60; // no expediente dele
-      spots.push(session.builderAt('map.cafe_main'));
-    });
-    expect(spots).toEqual([{ at: [24, 4], facing: 'right' }, { at: [24, 4], facing: 'right' }]);
-    expect(session.roomState('room.back_room')).toBe('restored');
-    expect(state.money).toBe(1000 - 200 - 150);
+    expect(session.quoteRoom('room.back_room')).toEqual({ ok: false, reason: 'room_not_ready' });
+  });
+
+  it('sujeira embaixo de um móvel aparece no lugar livre mais perto (dá para varrer)', () => {
+    const { session, state } = afterFirstCustomer();
+    session.openRoom('room.back_room');
+    const papers = () => session.visibleDirt().find((d) => d.id === 'dirt.back_room_papers')!;
+    expect(papers().at).toEqual([18, 9]);
+    state.inventory['item.bedroom_pouf_pink'] = 1;
+    expect(session.place('item.bedroom_pouf_pink', [18, 9])).toEqual({ ok: true });
+    expect(papers().at).not.toEqual([18, 9]);
+    expect(session.placedAt(papers().at)).toBeUndefined();
+    const d = papers();
+    expect(session.clean(d.id, [d.at])).toEqual({ ok: true });
   });
 
   it('uma obra por vez; antes dos reparos não dá; sem dinheiro, avisa', () => {

@@ -6,7 +6,7 @@ import { deliveredCount, nowAbs, ownedCount, placedCount, type GameState } from 
 import { parseClock } from './time';
 import { stageAtLeast } from './business';
 import { isRenovated } from './construction';
-import { atLeast as roomAtLeast, roomState, type RoomsData } from './rooms';
+import { atLeast as roomAtLeast, roomAt, roomState, type RoomsData } from './rooms';
 import { firstDayOf, type SeasonsData, seasonOf } from './calendar';
 
 /** O que as condições precisam saber além do estado. */
@@ -105,6 +105,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   }
   if ('business' in c) return stageAtLeast(state.business, c.business);
   if ('renovated' in c) return isRenovated(state.construction);
+  if ('roomItems' in c) return state.placed.filter((p) => roomAt(ctx.rooms, p.at)?.id === c.roomItems.room).length >= c.roomItems.gte;
   if ('room' in c) return roomAtLeast(roomState(ctx.rooms, state, c.room), c.atLeast);
   if ('fromSeason' in c) return state.day >= firstDayOf(ctx.seasons, c.fromSeason);
   if ('festivalToday' in c) {

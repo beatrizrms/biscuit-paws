@@ -946,6 +946,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.objectImages.clear();
     for (const s of this.map.sprites) {
       const img = addTileImage(this, s.col * ts + (s.dx ?? 0), s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
+      // Sujeira com cor chapada (a teia clara na pedra do porão).
+      if (s.fill) img.setTintFill(Phaser.Display.Color.HexStringToColor(s.fill).color);
       // Móvel com outra cor (o mesmo desenho, ex.: os automáticos): giro de cor do item.
       if (s.obj?.startsWith(PLACED_PREFIX)) {
         const placed = this.session.state.placed.find((p) => PLACED_PREFIX + p.uid === s.obj);
@@ -4242,6 +4244,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       carrier.face('down');
       await this.wait(250);
       await carrier.walkTo([dc + 4, dr + 1]);
+      // Ela entrou no café no meio: o furgão e a entregadora já sumiram (stopVan).
+      if (!carrier.active) break;
       await carrier.leave();
       if (!van.active) break;
       await this.tweenTo(van, -120, 1600);
