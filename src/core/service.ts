@@ -146,8 +146,8 @@ const loadCount = (load: Record<Vessel, number>) => VESSELS.reduce((n, v) => n +
 /** Células entre duas (sem diagonal): o tamanho aproximado do caminho do robô garçom. */
 const steps = (a: Cell, b: Cell) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 
-/** Onde a fornada (o bolo inteiro) pode ficar: só em mesa (a da feira também). */
-const TABLE_TAGS = ['table', 'stand'];
+/** Onde a fornada (o bolo inteiro) pode ficar: mesa (as altas também) ou balcão livre (sem equipamento em cima). */
+const TABLE_TAGS = ['table', 'stand', 'bar'];
 
 export class CafeService {
   constructor(private h: ServiceHost) {}
@@ -1398,7 +1398,7 @@ export class CafeService {
 
   /**
    * Dá para soltar aqui? Balcão, mesa ou equipamento (superfícies) ou chão livre, ao lado dela, sem nada em cima. Móvel
-   * sem tampo na célula (arranhador, caminha, vaso): não. A fornada (o bolo inteiro na mão): só em mesa.
+   * sem tampo na célula (arranhador, caminha, vaso): não. A fornada (o bolo inteiro na mão): só em mesa ou balcão.
    */
   canPutDown(at: Cell, feet: readonly Cell[], allowFloor = true): boolean {
     const tables = this.st.hands[this.st.hands.length - 1]?.kind === 'cake';
