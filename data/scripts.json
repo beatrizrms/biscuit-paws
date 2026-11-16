@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut). clearStage: enquanto roda, os marcadores dos pedidos e a chegada de gato em andamento somem. Ao terminar, flag seen.<id>.",
+  "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut), requestIntro (a fala do pedido de amigo). NPC @visitor: quem veio fazer o pedido de amigo (scr.request_visit, chamado pela sessão na hora da visita). clearStage: enquanto roda, os marcadores dos pedidos e a chegada de gato em andamento somem. Ao terminar, flag seen.<id>.",
   "scripts": {
     "scr.realtor_tour": {
       "steps": [
@@ -106,6 +106,16 @@
         {
           "npcLeave": "npc.realtor"
         }
+      ]
+    },
+    "scr.request_visit": {
+      "steps": [
+        { "npcSpawn": "@visitor", "map": "map.cafe_main", "at": [14, 10], "facing": "up" },
+        { "npcWalk": "@visitor", "to": [13, 7] },
+        { "emote": "player", "balloon": "exclamation", "ms": 600 },
+        { "requestIntro": true },
+        { "npcWalk": "@visitor", "to": [14, 10] },
+        { "npcLeave": "@visitor" }
       ]
     },
     "scr.gabi_visit": {

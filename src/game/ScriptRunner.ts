@@ -1,7 +1,7 @@
 // Executa os roteiros (data/scripts.json) passo a passo. Cada passo espera o anterior terminar
 // (o NPC chegar, a fala fechar, a jogadora fechar a chave...). No fim, avisa a sessão.
 import type { Cell, Facing } from '../core/map';
-import type { ScriptStep } from '../core/script';
+import { VISITOR, type ScriptStep } from '../core/script';
 import type { GameSession } from '../core/session';
 
 /** O que o roteiro precisa da cena (a WorldScene implementa). */
@@ -78,8 +78,18 @@ export class ScriptRunner {
     void this.next();
   }
 
-  private async run(step: ScriptStep): Promise<void> {
+  /** O NPC "@visitor" vira quem veio fazer o pedido de amigo. */
+  private withVisitor(step: ScriptStep): ScriptStep {
+    const who = this.session.requestVisitor();
+    if (!who) return step;
+    const out: Record<string, unknown> = { ...step };
+    for (const k of ['npcSpawn', 'npcWalk', 'npcAnim', 'npcFace', 'npcLeave', 'npcToCat', 'emote']) if (out[k] === VISITOR) out[k] = who;
+    return out as ScriptStep;
+  }
+
+  private async run(raw: ScriptStep): Promise<void> {
     const s = this.stage;
+    const step = this.withVisitor(raw);
     if (step.when && !this.session.holds(step.when)) return;
     if ('npcSpawn' in step) {
       if (step.map === this.session.location()) s.spawnNpc(step.npcSpawn, step.at, step.facing);
@@ -126,6 +136,10 @@ export class ScriptRunner {
         this.session.say(d);
         await s.untilIdle();
       }
+    } else if ('requestIntro' in step) {
+      // A fala do pedido de quem veio (com o retrato dele).
+      this.session.sayRequestIntro();
+      await s.untilIdle();
     } else if ('secretSanta' in step) {
       // Amigo secreto: a fala vem da sessão (quem recebeu reage; quem a tirou entrega o presente dela).
       if (step.secretSanta === 'give') this.session.openSantaGiving();
