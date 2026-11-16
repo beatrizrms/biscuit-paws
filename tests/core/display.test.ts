@@ -107,11 +107,14 @@ describe('vitrine e fornada', () => {
     expect(session.pickUp('v1')).toEqual({ ok: false, reason: 'display_not_empty' });
   });
 
-  it('o bolo inteiro só pode ser solto num balcão, nunca no chão', () => {
+  it('a fornada (o bolo inteiro) só pode ser solta numa mesa: nem no chão, nem no equipamento, nem no arranhador', () => {
     const { state, sv } = bakery();
+    state.placed.push({ uid: 't1', item: 'item.table_round', at: [12, 8] }, { uid: 's1', item: 'item.scratch_post', at: [13, 8] });
     state.hands = [{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6 }];
-    expect(sv.canPutDown([7, 5], [[7, 6]])).toBe(true);
-    expect(sv.putDown([7, 7], [[7, 6]])).toEqual({ ok: false, reason: 'cannot_put_here' });
+    expect(sv.canPutDown([7, 5], [[7, 6]])).toBe(false); // em cima do liquidificador
+    expect(sv.putDown([7, 7], [[7, 6]])).toEqual({ ok: false, reason: 'cannot_put_here' }); // no chão
+    expect(sv.putDown([13, 8], [[13, 9]])).toEqual({ ok: false, reason: 'cannot_put_here' }); // no arranhador
+    expect(sv.putDown([12, 8], [[12, 9]])).toEqual({ ok: true }); // na mesa
   });
 });
 

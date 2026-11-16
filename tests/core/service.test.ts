@@ -561,6 +561,27 @@ describe('mãos', () => {
     expect(session.service.surfaceAt([5, 6])).toBeDefined();
   });
 
+  it('móvel sem tampo na célula (arranhador): não dá para soltar nada ali', () => {
+    const { sv, state } = openCafe();
+    state.placed.push({ uid: 's1', item: 'item.scratch_post', at: [5, 7] });
+    state.hands.push({ kind: 'dirty', vessel: 'cup' });
+    expect(sv.canPutDown([5, 7], [[5, 8]])).toBe(false);
+    expect(sv.putDown([5, 8], [[5, 9]])).toEqual({ ok: true }); // o chão do lado, sim
+  });
+
+  it('louça suja e pedido pronto não vão juntos, nas mãos nem na bandeja', () => {
+    const { sv, state } = openCafe();
+    state.tray = true;
+    state.hands.push({ kind: 'dirty', vessel: 'cup' });
+    state.surfaces.push({ at: [4, 5], item: { kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' } });
+    expect(sv.pickUp([4, 5])).toEqual({ ok: false, reason: 'mixed_dishes' });
+    state.surfaces.push({ at: [5, 5], item: { kind: 'dirty', vessel: 'glass' } });
+    expect(sv.pickUp([5, 5])).toEqual({ ok: true }); // suja com suja
+    state.hands = [{ kind: 'drink', recipe: 'recipe.black_coffee', vessel: 'cup' }];
+    state.surfaces.push({ at: [6, 5], item: { kind: 'dirty', vessel: 'cup' } });
+    expect(sv.pickUp([6, 5])).toEqual({ ok: false, reason: 'mixed_dishes' });
+  });
+
   it('carregar deixa mais lenta; petisco na mão vai para o gato', () => {
     const { session, sv, state } = openCafe();
     state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
