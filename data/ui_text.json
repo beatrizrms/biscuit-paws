@@ -654,7 +654,8 @@
       "intake": "Leve {cat} à clínica para a consulta de entrada",
       "pickup": "Busque {cat} na clínica",
       "recheck": "Leve {cat} à clínica: o pontinho inflamou",
-      "pen_food": "Cuide dos gatos em recuperação: comida e remédio"
+      "pen_food": "Cuide dos gatos em recuperação: comida e remédio",
+      "sick": "Leve {cat} à clínica: não parece bem"
     },
     "sweep": "Varra a poeira do dia",
     "pantry": "Guarde as compras na despensa",

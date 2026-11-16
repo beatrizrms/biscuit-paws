@@ -61,3 +61,16 @@ describe('gatos em recuperação', () => {
     expect(line()).toBeUndefined();
   });
 });
+
+describe('gato doente sem consulta', () => {
+  it('com a clínica aberta: "leve à clínica" até a consulta (depois, o remédio)', () => {
+    const { session, state } = cafe();
+    const line = () => session.chores().find((c) => c.kind === 'clinic' && c.clinic === 'sick');
+    state.cats['cat.first_stray']!.sickness = { disease: content.health.diseases[0]!.id, since: state.day, treatment: null };
+    expect(line()).toBeUndefined(); // sem a clínica ainda
+    state.flags[content.health.randomIllness.requiresFlag] = true;
+    expect(line()).toMatchObject({ catId: 'cat.first_stray', done: false });
+    state.cats['cat.first_stray']!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
+    expect(line()).toBeUndefined();
+  });
+});

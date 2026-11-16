@@ -1593,9 +1593,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1604,6 +1604,13 @@ export class GameSession {
       else if (st?.stage === 'isolation' && st.complication) out.push({ kind: 'clinic', clinic: 'recheck', catId: id, done: false });
     }
     for (const id of this.clinic.readyForPickup()) out.push({ kind: 'clinic', clinic: 'pickup', catId: id, done: false });
+    // Doente sem consulta (com a clínica aberta): levar à Fernanda. O que ele tem, só ela diz.
+    if (this.state.flags[this.content.health.randomIllness.requiresFlag]) {
+      for (const id of this.shelteredCats()) {
+        const cat = this.state.cats[id]!;
+        if (cat.sickness && !cat.sickness.treatment && !cat.clinic) out.push({ kind: 'clinic', clinic: 'sick', catId: id, done: false });
+      }
+    }
     const isolated = this.shelteredCats().filter((id) => this.clinic.isolated(id) && this.service.carriedCat() !== id);
     // Gatos em recuperação (cercadinho ou caixinha): um lembrete por dia enquanto houver algum, comida e remédio
     // juntos. Cada gato conta quando comeu hoje e, com remédio a dar, já tomou o de hoje.
