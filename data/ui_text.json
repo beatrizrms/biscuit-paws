@@ -1234,9 +1234,11 @@
   },
   "reputation": {
     "label": "Reputação",
+    "ratingLabel": "Nota do café",
     "rating": "Nota do café: {value} de 5 (média das últimas {n} avaliações)",
     "noRating": "Nota do café: ainda sem avaliações",
     "title": "Reputação felina da cidade: {value} de {max}",
+    "titleLevel": "Reputação felina da cidade: {value} de {max} ({level})",
     "reached": "Reputação felina: agora você é \"{name}\"!"
   },
   "halloweenBox": {

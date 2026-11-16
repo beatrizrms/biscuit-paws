@@ -20,8 +20,8 @@ export interface ReviewConfig {
   gaveUp: number;
   /** Estrelas a menos de quem recebeu outra coisa (pedido errado). */
   wrongOrder?: number;
-  /** Reputação por nota ("1" a "5"). */
-  reputation: Record<string, number>;
+  /** Reputação do atendimento, uma vez por dia pela nota média do dia: a primeira faixa com atLeast <= média. */
+  daily: { atLeast: number; reputation: number }[];
   /** A nota do café (HUD) é a média das últimas tantas avaliações. */
   averageOf: number;
 }
@@ -41,8 +41,11 @@ export function reviewStars(cfg: ReviewConfig, waits: Waits, dirt: number, gaveU
   return Math.max(1, Math.min(5, Math.round(stars)));
 }
 
-export function reviewReputation(cfg: ReviewConfig, stars: number): number {
-  return cfg.reputation[String(stars)] ?? 0;
+/** Reputação do dia pela média das avaliações do dia (sem avaliação: 0). */
+export function dailyReputation(cfg: ReviewConfig, stars: readonly number[]): number {
+  if (stars.length === 0) return 0;
+  const avg = stars.reduce((a, b) => a + b, 0) / stars.length;
+  return [...cfg.daily].sort((a, b) => b.atLeast - a.atLeast).find((b) => avg >= b.atLeast)?.reputation ?? 0;
 }
 
 export function validateReview(cfg: ReviewConfig | undefined): string[] {
@@ -52,7 +55,8 @@ export function validateReview(cfg: ReviewConfig | undefined): string[] {
   if (!(cfg.start >= 1 && cfg.start <= 5)) err('start precisa ser de 1 a 5');
   if (!(cfg.gaveUp >= 1 && cfg.gaveUp <= 5)) err('gaveUp precisa ser de 1 a 5');
   if (!(Number.isInteger(cfg.averageOf) && cfg.averageOf >= 1)) err('averageOf precisa ser um inteiro maior que 0');
-  for (let s = 1; s <= 5; s++) if (typeof cfg.reputation[String(s)] !== 'number') err(`falta a reputação de ${s} estrela(s)`);
+  if (!Array.isArray(cfg.daily) || cfg.daily.length === 0) err('falta daily (reputação do dia pela média)');
+  else if (!cfg.daily.some((b) => b.atLeast <= 1)) err('daily precisa de uma faixa que cubra a média mínima (atLeast <= 1)');
   for (const [name, bands] of [['queue', cfg.queue], ['seated', cfg.seated], ['dirt', cfg.dirt]] as const) {
     for (const b of bands) if (!(b.minus > 0)) err(`${name}: minus precisa ser maior que 0`);
   }

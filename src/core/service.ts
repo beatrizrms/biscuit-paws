@@ -1,7 +1,7 @@
 // Atendimento do café: cardápio, pedidos, preparo nos equipamentos (em etapas), mãos e bandeja, itens pesados,
 // gato no colo, louça e pia, clientes com preferências. Puro: sem Phaser, DOM ou window.
 // O tempo é o relógio do jogo (minutos absolutos, nowAbs). A cena só desenha e chama as ações.
-import { reviewReputation, reviewStars, type Waits } from './review';
+import { reviewStars, type Waits } from './review';
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
@@ -995,9 +995,8 @@ export class CafeService {
     const cfg = this.cfg.review;
     const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true);
     recordReview(this.st.stats, stars);
-    const reputation = reviewReputation(cfg, stars);
-    if (reputation !== 0) this.h.addReputation(reputation, `review:${stars}`);
-    this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation });
+    // A reputação do atendimento vem uma vez por dia, pela média (session: statsAtDayEnd).
+    this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation: 0 });
   }
 
   /** Fim do dia: clientes vão embora (a louça em uso volta limpa), preparos param, o saco vai para o estoque e o gato fica em casa. */
