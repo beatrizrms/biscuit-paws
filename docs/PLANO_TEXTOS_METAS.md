@@ -90,7 +90,7 @@ Exemplo, só para mostrar o tamanho (a versão final vai na tabela da etapa 3):
 | | Atender o primeiro cliente: preparar, entregar e lavar a louça. | Atenda o primeiro cliente |
 | O porão | Pagar a obra para abrir o acesso ao porão (Market, aba Construção). | Pague a obra para abrir o porão |
 | | Limpar o porão. | Limpe o porão |
-| | Terminar a reforma (Market, aba Construção). | Termine a reforma do porão |
+| | Terminar a reforma (Market, aba Construção). | Deixe o porão confortável para poder dormir lá |
 | O quintal secreto | Achar a chave do cadeado. | Ache a chave do cadeado |
 | | Abrir a porta com a chave (E na porta). | Abra a porta com a chave |
 | | Limpar o quintal (folhas e mato). | Limpe o quintal |

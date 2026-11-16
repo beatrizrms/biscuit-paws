@@ -740,7 +740,7 @@
             }
           },
           {
-            "text": "Termine a reforma do porão",
+            "text": "Deixe o porão confortável para poder dormir lá",
             "when": {
               "room": "room.back_room",
               "atLeast": "restored"
