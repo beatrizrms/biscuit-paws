@@ -371,6 +371,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
               ...(happiness !== undefined ? { happiness } : {}),
               ...(hygiene !== undefined ? { hygiene } : {}),
               ...(c.settling === true ? { settling: true } : {}),
+              ...(Number.isInteger(c.settleFails) && (c.settleFails as number) > 0 ? { settleFails: c.settleFails as number } : {}),
               ...catClinicFields(c),
             },
           ];

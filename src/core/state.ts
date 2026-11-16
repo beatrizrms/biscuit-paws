@@ -249,6 +249,8 @@ export interface CatState {
    * confiança em vez de pegar no colo ou fazer carinho. Ausente = já está de boa no café.
    */
   settling?: boolean;
+  /** Tentativas perdidas da confiança na chegada: cada uma deixa a próxima um nível mais fácil (até o fácil). */
+  settleFails?: number;
   /** Estado reprodutivo (v36; repro.ts): castrado ou não, sexo, idade, peso, marca na orelha e o que ela sabe. */
   repro?: CatRepro;
   /** Testes de doenças transmissíveis da consulta de entrada (v36): teste -> resultado. Sem = ainda não fez. */

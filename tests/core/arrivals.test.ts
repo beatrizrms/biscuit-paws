@@ -593,6 +593,21 @@ describe('o gato aceito entra no café na hora e chega assustado (confiança)', 
     expect(state.cats['cat.gen.1']?.settling).toBeUndefined();
   });
 
+  it('cada tentativa perdida deixa a próxima um nível mais fácil, até o fácil (e fica no save)', () => {
+    const { session, state } = accept('healthy');
+    state.cats['cat.gen.1']!.repro = undefined; // sem castração no meio da conta
+    const levels = ['easy', 'normal', 'hard'];
+    const base = levels.indexOf(session.settleDifficulty('cat.gen.1'));
+    trust(session, 'fail');
+    expect(session.settleDifficulty('cat.gen.1')).toBe(levels[Math.max(0, base - 1)]);
+    trust(session, 'fail');
+    trust(session, 'fail');
+    expect(session.settleDifficulty('cat.gen.1')).toBe('easy');
+    expect(state.cats['cat.gen.1']?.settleFails).toBe(3);
+    trust(session, 'ok');
+    expect(state.cats['cat.gen.1']?.settleFails).toBeUndefined();
+  });
+
   it('quem já ganhou a confiança na chegada (o do poste) entra tranquilo', () => {
     const { session, state } = accept('healthy', [{ minigame: { id: 'trust', difficulty: 'easy' } }, { choice: 'take_in' }]);
     const mg = session.pendingJobPoints('map.street').find((pt) => pt.minigame?.id === 'trust')!;
