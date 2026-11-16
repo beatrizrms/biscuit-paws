@@ -99,7 +99,8 @@ type HintKind = keyof typeof uiText.hints;
  * O que o E faz agora: a dica (onde e o quê; null: o E age sem balão, como soltar a louça) e a ação. A dica e o E
  * saem do mesmo plano (planE), então o balão nunca diz uma coisa com o E fazendo outra.
  */
-type EPlan = { hint: { x: number; y: number; kind: HintKind } | null; run: () => boolean };
+/** `count`: o contador ao lado do texto da dica ("Pia 3/6", "Pegar 2/6" com a bandeja). */
+type EPlan = { hint: { x: number; y: number; kind: HintKind; count?: string } | null; run: () => boolean };
 
 /**
  * Desempate do E entre coisas igualmente na frente dela (src/core/eTarget.ts): menor vence. A frente dela e a
@@ -110,7 +111,6 @@ const E_TIER = { parcels: 1, catSettling: 2, job: 2, service: 3, pen: 3, cat: 4,
 
 type Keys = Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'run', Phaser.Input.Keyboard.Key>;
 
-const GHOST_OK = 0x9fd8b5;
 const GHOST_BAD = 0xd9475d;
 
 /** Os móveis que têm troca piscam (sobe e desce a transparência) enquanto ela escolhe na assistência técnica. */
@@ -742,7 +742,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else if (this.time.now - this.hintCheckedAt >= 100) {
       this.hintCheckedAt = this.time.now;
       const at = this.eTarget();
-      this.hint.show(at ? { ...at, label: uiText.hints[at.kind] } : null);
+      this.hint.show(at ? { ...at, label: uiText.hints[at.kind] + (at.count ? ` ${at.count}` : '') } : null);
     }
     // O carrinho em cima da cabeça dela, no mercado (fora dele, o HUD lembra de pagar).
     const shopping = this.cartNow.count > 0 && (this.session.content.world.cartBalloonMaps ?? []).includes(this.map.id) && !this.changingMap;
@@ -1806,11 +1806,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const { moveUid } = this.placing;
     const { as } = this.placing;
     const ok = (moveUid ? this.session.moveProblem(moveUid, this.placing.at, this.playerCells(), as) : this.session.checkPlacement(as ?? this.placing.itemId, this.placing.at, this.playerCells())) === null;
+    // Em cima de um apoio (vaso na mesa), sobe até o tampo, como fica depois de posto.
+    const lift = this.session.placeLift(as ?? this.placing.itemId, this.placing.at, moveUid);
+    // Lugar bom: as cores do próprio móvel (um tom por cima mudava a cor dele: o vaso rosa parecia verde); ruim: vermelho.
+    const tint = (g: Phaser.GameObjects.Image) => (ok ? g.clearTint() : g.setTint(GHOST_BAD));
     this.placing.ghosts.forEach((g, i) => {
-      g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts).setTint(ok ? GHOST_OK : GHOST_BAD);
+      tint(g.setPosition((c0 + (i % def.w)) * ts, (r0 + Math.floor(i / def.w)) * ts - lift).setDepth(GHOST_DEPTH));
     });
     // O que vai em cima: na célula de origem do apoio, subido até o tampo.
-    for (const r of this.placing.riders ?? []) r.ghosts.forEach((g, i) => g.setPosition((c0 + (i % r.w)) * ts, (r0 + Math.floor(i / r.w)) * ts - r.lift).setTint(ok ? GHOST_OK : GHOST_BAD));
+    for (const r of this.placing.riders ?? []) r.ghosts.forEach((g, i) => tint(g.setPosition((c0 + (i % r.w)) * ts, (r0 + Math.floor(i / r.w)) * ts - r.lift)));
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer): void {
@@ -2289,7 +2293,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
 
   /** Onde o E agiria agora (o topo do objeto, em pixels) e em que tipo de coisa: a dica do planE. null: sem dica. */
-  private eTarget(): { x: number; y: number; kind: HintKind } | null {
+  private eTarget(): { x: number; y: number; kind: HintKind; count?: string } | null {
     // Com o móvel na mão, o E solta: sem a dica do que está perto.
     if (this.placing) return null;
     return this.planE()?.hint ?? null;
@@ -3441,8 +3445,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const sink = sv.sinkCell();
     if (sv.sinkNear(feet) && (!target || (target[0] === sink[0] && target[1] === sink[1]))) {
       const act = sv.sinkAction();
-      if (act === 'deposit') add([sink], E_TIER.service, this.hintCell(sink, 'sink'), () => report(sv.depositDirty()));
-      else if (act === 'wash') add([sink], E_TIER.service, this.hintCell(sink, 'sink'), () => report(this.withPose(sv.startWash(), 'wash')));
+      // A louça na pia sobre o que cabe nela (3/6).
+      const sinkHint = { ...this.hintCell(sink, 'sink')!, count: `${sv.sinkLoad()}/${sv.sinkCapacity()}` };
+      if (act === 'deposit') add([sink], E_TIER.service, sinkHint, () => report(sv.depositDirty()));
+      else if (act === 'wash') add([sink], E_TIER.service, sinkHint, () => report(this.withPose(sv.startWash(), 'wash')));
     }
     // Lava-louças: com louça suja na mão, põe lá; com as mãos livres e louça dentro, liga.
     const washer = sv.washerNear(feet, target);
@@ -3532,7 +3538,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       });
     } else if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
       // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
-      add([surface.at], E_TIER.service, this.hintCell(surface.at, 'surface'), () => report(sv.pickUp(surface.at)));
+      // Com a bandeja: quanto já tem nela sobre o que cabe (2/6).
+      const pickHint = st.tray ? { ...this.hintCell(surface.at, 'surface')!, count: `${st.hands.length}/${sv.handsCapacity()}` } : this.hintCell(surface.at, 'surface');
+      add([surface.at], E_TIER.service, pickHint, () => report(sv.pickUp(surface.at)));
     }
     // Vitrine com as mãos livres: escolhe o que tirar (do bolo inteiro, sai uma fatia).
     else if (display && st.hands.length < sv.handsCapacity()) {
@@ -3550,11 +3558,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return true;
       });
     }
-    // Soltar: na célula clicada (até no chão) ou, com o E, só num balcão, mesa ou equipamento na frente: o E sem nada
-    // para pegar ao alcance não larga a louça da bandeja no chão.
+    // Soltar: na célula clicada (até no chão) ou, com o E, num balcão, mesa ou equipamento na frente. Louça (xícara, prato,
+    // suja ou com pedido) o E solta também no chão livre da frente: com a pia cheia e sem mesa livre, dá para largar.
     if (st.hands.length > 0) {
       const at = target ?? this.facingCell();
-      if (sv.canPutDown(at, feet, !!target)) add([at], E_TIER.putDown, this.hintCell(at, 'put_down'), () => report(sv.putDown(at, feet, !!target)));
+      const last = st.hands[st.hands.length - 1]!;
+      const floor = !!target || last.kind === 'drink' || last.kind === 'dirty';
+      if (sv.canPutDown(at, feet, floor)) add([at], E_TIER.putDown, this.hintCell(at, 'put_down'), () => report(sv.putDown(at, feet, floor)));
     }
     return out;
   }

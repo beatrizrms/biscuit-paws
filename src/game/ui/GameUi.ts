@@ -318,11 +318,8 @@ export class GameUi {
       const def = gatheringDef(gatheringId);
       if (def) this.toast(def.texts.missed, 6000);
     });
-    // Pedidos dos amigos: a fala de quem passou no café e o agradecimento.
-    bus.on('request.new', ({ requestId }) => {
-      const def = content.requests.requests.find((r) => r.id === requestId);
-      if (def) this.toast(def.intro, 7000);
-    });
+    // Pedidos dos amigos: quem veio ao café fala o pedido (no balão de fala, com o retrato; scr.request_visit) e, feito, agradece.
+    bus.on('npc.line', ({ npc, text }) => void this.npcSay(npc, text));
     bus.on('request.done', ({ requestId }) => {
       const def = content.requests.requests.find((r) => r.id === requestId);
       if (def) this.toast(def.thanks, 5000);

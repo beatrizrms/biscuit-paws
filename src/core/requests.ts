@@ -35,6 +35,8 @@ export interface RequestsData {
   everyDays: [number, number];
   /** Quantos pedidos abertos ao mesmo tempo (um por amigo). */
   maxActive: number;
+  /** A visita: o amigo passa no café entre essas horas (sorteada) para fazer o pedido conversando. */
+  visitHours: [string, string];
   requests: FriendRequestDef[];
 }
 
@@ -53,6 +55,8 @@ export interface RequestsState {
   done: Record<string, number>;
   /** Dia do próximo pedido novo (null: ainda não calculado). */
   nextOn: number | null;
+  /** O pedido sorteado esperando a visita (o amigo vem ao café no dia on, a partir do minuto at, e pede conversando). */
+  visit?: { id: string; on: number; at: number } | null;
 }
 
 export function newRequests(): RequestsState {
@@ -62,20 +66,43 @@ export function newRequests(): RequestsState {
 /** Os pedidos que podem aparecer agora: não abertos, não feitos (ou repetíveis), de um amigo sem pedido aberto. */
 export function requestCandidates(data: RequestsData, s: RequestsState, ok: (def: FriendRequestDef) => boolean): FriendRequestDef[] {
   const busy = new Set(s.active.map((a) => data.requests.find((r) => r.id === a.id)?.npc));
+  if (s.visit) busy.add(data.requests.find((r) => r.id === s.visit!.id)?.npc);
   return data.requests.filter((r) => !s.active.some((a) => a.id === r.id) && (!s.done[r.id] || r.repeatable) && !busy.has(r.npc) && ok(r));
 }
 
-/** De manhã: na data, se cabe mais um pedido e a história não tem meta, sorteia um. Devolve o pedido novo. */
-export function maybeNewRequest(data: RequestsData, s: RequestsState, day: number, rng: Rng, storyGoal: boolean, ok: (def: FriendRequestDef) => boolean): FriendRequestDef | null {
+/** O minuto da visita: sorteado entre visitHours (em minutos do dia). */
+export function visitMinute(data: RequestsData, rng: Rng, parse: (hhmm: string) => number): number {
+  return rng.int(parse(data.visitHours[0]), parse(data.visitHours[1]));
+}
+
+/**
+ * De manhã: na data, se cabe mais um pedido e a história não tem meta, sorteia um e marca a visita (o amigo vem pedir
+ * conversando; só depois dela o pedido abre). A visita que não aconteceu (ela fora do café) passa para hoje. Devolve o
+ * pedido sorteado agora.
+ */
+export function maybeNewRequest(data: RequestsData, s: RequestsState, day: number, rng: Rng, storyGoal: boolean, ok: (def: FriendRequestDef) => boolean, minute: () => number): FriendRequestDef | null {
   const gap = () => rng.int(data.everyDays[0], data.everyDays[1]);
+  if (s.visit) {
+    if (s.visit.on < day) s.visit = { id: s.visit.id, on: day, at: minute() };
+    return null;
+  }
   if (s.nextOn === null) s.nextOn = day + gap();
   if (day < s.nextOn || storyGoal || s.active.length >= data.maxActive) return null;
   const options = requestCandidates(data, s, ok);
   if (options.length === 0) return null;
   const pick = options[rng.int(0, options.length - 1)]!;
-  s.active.push({ id: pick.id, since: day, progress: 0 });
+  s.visit = { id: pick.id, on: day, at: minute() };
   s.nextOn = day + gap();
   return pick;
+}
+
+/** Depois da visita: o pedido abre (vira linha no balão). Devolve o pedido aberto. */
+export function acceptVisit(data: RequestsData, s: RequestsState, day: number): FriendRequestDef | null {
+  const def = s.visit ? data.requests.find((r) => r.id === s.visit!.id) : undefined;
+  s.visit = null;
+  if (!def) return null;
+  s.active.push({ id: def.id, since: day, progress: 0 });
+  return def;
 }
 
 /** Conta um passo (uma receita servida, um cuidado). Devolve os pedidos que ficaram completos. */
@@ -101,6 +128,7 @@ export function validateRequests(data: RequestsData, refs: { npcs: ReadonlySet<s
   const err = (m: string) => errors.push(`requests: ${m}`);
   if (!(data.everyDays?.[0] >= 1 && data.everyDays[1] >= data.everyDays[0])) err('everyDays precisa ser [mín, máx], mín >= 1');
   if (!(Number.isInteger(data.maxActive) && data.maxActive >= 1)) err('maxActive precisa ser um inteiro >= 1');
+  if (!(Array.isArray(data.visitHours) && data.visitHours.length === 2 && data.visitHours.every((h) => /^\d\d:\d\d$/.test(h)) && data.visitHours[0] <= data.visitHours[1])) err('visitHours precisa ser ["HH:MM", "HH:MM"], de <= até');
   const ids = new Set<string>();
   for (const r of data.requests ?? []) {
     const w = `"${r.id}"`;

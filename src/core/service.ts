@@ -97,6 +97,8 @@ export type ServiceProblem =
   | 'not_ready'
   | 'not_a_treat'
   | 'not_on_tray'
+  /** Louça suja e pedido pronto não vão juntos (nas mãos ou na bandeja). */
+  | 'mixed_dishes'
   | 'no_tray'
   | 'sink_full'
   | 'washer_full'
@@ -143,6 +145,9 @@ const loadCount = (load: Record<Vessel, number>) => VESSELS.reduce((n, v) => n +
 
 /** Células entre duas (sem diagonal): o tamanho aproximado do caminho do robô garçom. */
 const steps = (a: Cell, b: Cell) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+
+/** Onde a fornada (o bolo inteiro) pode ficar: mesa (as altas também) ou balcão livre (sem equipamento em cima). */
+const TABLE_TAGS = ['table', 'stand', 'bar'];
 
 export class CafeService {
   constructor(private h: ServiceHost) {}
@@ -1366,6 +1371,9 @@ export class CafeService {
     if (hands.some(exclusive) || (exclusive(item) && hands.length > 0)) return 'hands_full';
     // Gato ou saco pesado com as mãos vazias: ela larga a bandeja (syncTray guarda quando as mãos mudam).
     if (exclusive(item)) return null;
+    // Suja com suja, pronto com pronto: pegar um pedido com louça suja na mão (ou o contrário) não dá.
+    const dirty = (i: HandItem) => i.kind === 'dirty';
+    if ((item.kind === 'dirty' || item.kind === 'drink') && hands.some((h) => (h.kind === 'dirty' || h.kind === 'drink') && dirty(h) !== dirty(item))) return 'mixed_dishes';
     if (this.st.tray) {
       if (!onTray(item)) return 'not_on_tray';
       return hands.length < this.carry.tray.capacity ? null : 'hands_full';
@@ -1387,16 +1395,21 @@ export class CafeService {
     return { ok: true };
   }
 
-  /** Dá para soltar aqui? Balcão, mesa ou equipamento (superfícies) ou chão livre, ao lado dela, sem nada em cima. */
+  /**
+   * Dá para soltar aqui? Balcão, mesa ou equipamento (superfícies) ou chão livre, ao lado dela, sem nada em cima. Móvel
+   * sem tampo na célula (arranhador, caminha, vaso): não. A fornada (o bolo inteiro na mão): só em mesa ou balcão.
+   */
   canPutDown(at: Cell, feet: readonly Cell[], allowFloor = true): boolean {
+    const tables = this.st.hands[this.st.hands.length - 1]?.kind === 'cake';
     if (!near(feet, at) || this.surfaceAt(at)) return false;
     if (this.st.service.customers.some((c) => same(c.spot, at))) return false;
-    const items = this.h.content.items;
-    const surfaceTags = [...this.cfg.surfaceTags, ...Object.values(this.cfg.equipment).map((e) => e.tag)];
-    const onSurface = this.st.placed.some(
-      (p) => items[p.item]?.tags.some((t) => surfaceTags.includes(t)) && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)),
-    );
-    if (onSurface) return true;
+    const { items, catalog } = this.h.content;
+    const surfaceTags = tables ? TABLE_TAGS : [...this.cfg.surfaceTags, ...Object.values(this.cfg.equipment).map((e) => e.tag)];
+    const here = this.st.placed.filter((p) => catalog.tiles[items[p.item]?.tile ?? '']?.layer === 'object' && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)));
+    const isSurface = (p: PlacedItem) => !!items[p.item]?.tags.some((t) => surfaceTags.includes(t));
+    if (here.some((p) => !isSurface(p))) return false;
+    if (here.some(isSurface)) return true;
+    if (tables) return false;
     if (!allowFloor) return false;
     const solid = solidGrid(this.h.homeMap(), this.h.content.catalog);
     return !!solid[at[1]] && solid[at[1]]![at[0]] === false;
@@ -1406,7 +1419,7 @@ export class CafeService {
   putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
     if (!item) return { ok: false, reason: 'hands_empty' };
-    if ((exclusive(item) && item.kind !== 'cake') || !this.canPutDown(at, feet, allowFloor && item.kind !== 'cake')) return { ok: false, reason: 'cannot_put_here' };
+    if ((exclusive(item) && item.kind !== 'cake') || !this.canPutDown(at, feet, allowFloor)) return { ok: false, reason: 'cannot_put_here' };
     this.st.hands.pop();
     this.st.surfaces.push({ at: [...at], item });
     this.handsChanged();
@@ -1534,6 +1547,11 @@ export class CafeService {
 
   sinkLoad(): number {
     return loadCount(this.st.sink.load);
+  }
+
+  /** Quantas louças cabem na pia. */
+  sinkCapacity(): number {
+    return this.cfg.sinkCapacity;
   }
 
   // ---------- Lava-louças ----------

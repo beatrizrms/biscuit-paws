@@ -7,6 +7,9 @@ import type { AmbientDef } from './ambientPeople';
 import type { Cell, Facing } from './map';
 
 /** Qualquer passo pode ter `when` (condição da história): sem ela valer na hora, o passo é pulado. */
+/** Nos passos de NPC: quem veio fazer o pedido de amigo (a sessão diz quem é; scr.request_visit). */
+export const VISITOR = '@visitor';
+
 export type ScriptStep = ScriptAction & { when?: Condition };
 
 type ScriptAction =
@@ -44,6 +47,8 @@ type ScriptAction =
    * para e ela vai entregar o presente (E em quem tirou); "reaction" = a fala de quem recebeu.
    */
   | { halloween: 'feast' | 'give' | 'reaction' }
+  /** Pedido de amigo (data/requests.json): a fala do pedido de quem veio (a intro dele). Quem veio é o NPC "@visitor". */
+  | { requestIntro: true }
   /** Acerta o relógio ("HH:MM"; ex.: a ceia foi até tarde). Só para a frente: hora já passada não volta. */
   | { setTime: string }
   /** Fogos de artifício no céu por tantos ms (não espera: os passos seguintes rodam com os fogos estourando). */
@@ -126,7 +131,7 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
     if (!id.startsWith('scr.')) errors.push(`roteiro "${id}": id deve começar com "scr."`);
     script.steps.forEach((step, i) => {
       const npc = (npcId: string) => {
-        if (!refs.npcs.has(npcId)) errors.push(`${where(i)}: NPC inexistente "${npcId}"`);
+        if (npcId !== VISITOR && !refs.npcs.has(npcId)) errors.push(`${where(i)}: NPC inexistente "${npcId}"`);
       };
       if ('npcSpawn' in step) {
         npc(step.npcSpawn);
@@ -150,7 +155,7 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
       } else if ('catWalk' in step) {
         if (!refs.cats.has(step.catWalk)) errors.push(`${where(i)}: gato inexistente "${step.catWalk}"`);
       } else if ('emote' in step) {
-        if (step.emote !== 'player' && !refs.npcs.has(step.emote) && !refs.cats.has(step.emote)) errors.push(`${where(i)}: ninguém chamado "${step.emote}"`);
+        if (step.emote !== 'player' && step.emote !== VISITOR && !refs.npcs.has(step.emote) && !refs.cats.has(step.emote)) errors.push(`${where(i)}: ninguém chamado "${step.emote}"`);
         if (!refs.balloons.has(step.balloon)) errors.push(`${where(i)}: balão inexistente "${step.balloon}"`);
       } else if ('discoverRoom' in step) {
         if (!refs.rooms.has(step.discoverRoom)) errors.push(`${where(i)}: cômodo inexistente "${step.discoverRoom}"`);

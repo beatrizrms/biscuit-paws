@@ -602,6 +602,8 @@ function normalizeRequests(r: unknown): RequestsState {
     active: (Array.isArray(x?.active) ? x.active : []).filter((a) => a && typeof a.id === 'string' && num(a.since) && num(a.progress)).map((a) => ({ id: a.id, since: a.since, progress: a.progress })),
     done: Object.fromEntries(Object.entries(x?.done ?? {}).filter(([, n]) => num(n))),
     nextOn: num(x?.nextOn) ? (x!.nextOn as number) : null,
+    // A visita marcada (o amigo ainda vai passar para pedir); saves antigos não têm.
+    ...(x?.visit && typeof x.visit.id === 'string' && num(x.visit.on) && num(x.visit.at) ? { visit: { id: x.visit.id, on: x.visit.on, at: x.visit.at } } : {}),
   };
 }
 

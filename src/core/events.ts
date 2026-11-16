@@ -136,7 +136,8 @@ export interface GameEvents {
   'minigame.finished': { gameId: string; outcome: 'fail' | 'ok' | 'great'; coins: number; skipped: boolean };
   'cat.named': { catId: string; name: string };
   'cat.affection_changed': { catId: string; from: number; to: number };
-  'cat.fed': { catId: string; itemId: string; bowlUid: string };
+  /** late: comeu sozinho da tigela já cheia (entrou no café depois): não gasta a energia dela. */
+  'cat.fed': { catId: string; itemId: string; bowlUid: string; late?: boolean };
   /** O gato que acabou de chegar ganhou confiança (mini game trust): está de boa no café. */
   'cat.settled': { catId: string };
   /** Abasteceu um automático (pote de ração, caixa de areia): o item e quantos dias ficou guardado. */
@@ -196,6 +197,8 @@ export interface GameEvents {
   /** O gato não tinha o que precisava e fugiu do café (descuido). */
   'cat.ran_away': { catId: string; reputation: number };
   'request.new': { requestId: string; npc: string };
+  /** Uma fala avulsa de um NPC (com o retrato), montada na hora: o pedido de quem veio ao café. */
+  'npc.line': { npc: string; text: string };
   'request.done': { requestId: string; npc: string };
   /** Encontro da estação: o amigo chamou; aconteceu (com ou sem o preparo); passou sem ela. */
   'gathering.invited': { gatheringId: string };

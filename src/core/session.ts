@@ -18,7 +18,7 @@ import { moveBetween, stackInto, storeProblem, type StorageContents, type Storag
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, togoRecipe, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
-import { completeRequest, countRequest, maybeNewRequest, type FriendRequestDef } from './requests';
+import { acceptVisit, completeRequest, countRequest, maybeNewRequest, visitMinute, type FriendRequestDef } from './requests';
 import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
 import { EventBus, type DayEndReason } from './events';
 import { clampEnergy, energyLevel, energySpeed, ENERGY_EVENTS, type EnergyLevel, type SeatDef } from './energy';
@@ -238,6 +238,8 @@ export type ActionResult =
 /** Quantos dias do jogo a etiqueta Novo fica (no Market e nas receitas do cardápio). */
 export const NEW_BADGE_DAYS = 2;
 
+/** O roteiro da visita do pedido de amigo (data/scripts.json; o NPC dele é "@visitor"). */
+const REQUEST_VISIT_SCRIPT = 'scr.request_visit';
 /** O ponto do "!" da porta escondida do porão (data/jobs.json). */
 const BASEMENT_POINT = 'pt.basement_find';
 
@@ -392,6 +394,7 @@ export class GameSession {
     for (const name of ENERGY_EVENTS) {
       this.bus.on(name, (e) => {
         if ('skipped' in e && e.skipped) return;
+        if ('late' in e && e.late) return;
         // Brincar com o gato não cansa: recompõe (cat.cared, abaixo).
         if ('gameId' in e && this.content.dayNight.energy.restore.play.games.includes(e.gameId)) return;
         const cost = this.content.dayNight.energy.costs[name] ?? 0;
@@ -539,6 +542,8 @@ export class GameSession {
   private restingOn: string | null = null;
   /** Dia em que já lembrou da hora-limite (não vai para o save: recarregar pode lembrar de novo). */
   private curfewRemindedOn = 0;
+  /** Dia em que a visita do pedido de amigo já foi chamada (o roteiro espera ela no salão). */
+  private requestVisitAsked = 0;
 
   private ownedNow(): Set<string> {
     return new Set(Object.keys(this.state.inventory).filter((id) => (this.state.inventory[id] ?? 0) > 0));
@@ -907,6 +912,27 @@ export class GameSession {
     return { ok: true };
   }
 
+  /**
+   * Gato que entrou no café depois da tigela cheia hoje (saiu do cercadinho, chegou, voltou da clínica): come da
+   * mesma tigela (a porção serve todos), sem ela precisar encher de novo.
+   */
+  private feedLateCats(): void {
+    const day = this.state.day;
+    const bowl = this.state.placed.find((p) => p.refilledOn === day && !!this.content.items[p.item]?.tags.includes('food_bowl') && !this.content.items[p.item]?.autoDays);
+    if (!bowl) return;
+    const cats = this.homeCats();
+    const fedWith = cats.map((id) => this.state.cats[id]!).find((c) => c.fedOn === day && c.fedWith)?.fedWith;
+    for (const catId of cats) {
+      const cat = this.state.cats[catId]!;
+      if (cat.fedOn === day) continue;
+      this.state.flags[`fed.${catId}`] = true;
+      cat.fedOn = day;
+      if (fedWith) cat.fedWith = fedWith;
+      this.bus.emit('cat.fed', { catId, itemId: fedWith ?? '', bowlUid: bowl.uid, late: true });
+      this.addCatAffection(catId, this.content.relationships.feedPoints);
+    }
+  }
+
   /** Por que não dá para pôr areia na caixa agora (ou null). Automática: abastece até autoDays dias. */
   litterProblem(boxUid: string): 'not_found' | 'already_clean' | 'no_litter' | 'needs_litter' | 'full' | 'other_item' | null {
     const p = this.state.placed.find((x) => x.uid === boxUid);
@@ -1116,6 +1142,7 @@ export class GameSession {
       this.advanceStory();
       this.checkSecretSanta();
       this.checkTreatCall();
+      this.checkRequestVisit();
       this.santaTreatTick();
       this.checkHalloween();
       this.checkGatherings();
@@ -1475,13 +1502,42 @@ export class GameSession {
     });
   }
 
-  /** De manhã: um amigo pode passar com um pedido (fora da história, no intervalo dos dados). */
+  /**
+   * De manhã: um amigo pode ter um pedido (fora da história, no intervalo dos dados). Ele vem ao café na hora sorteada
+   * (visitHours) e pede conversando (scr.request_visit); só aí o pedido abre. Pedido de pôr ou trazer um item, só com o
+   * item já à venda.
+   */
   private newFriendRequest(): void {
     if (!this.state.flags['prologue.done']) return;
     const ok = (r: FriendRequestDef) =>
-      (r.when === undefined || evaluate(r.when, this.state, this.storyContext())) && (r.kind !== 'serve' || this.service.unlockedRecipes().some((x) => x.id === r.recipe));
-    const pick = maybeNewRequest(this.content.requests, this.state.requests, this.state.day, createRng(this.state.day * 7919 + 11), this.goals().length > 0, ok);
-    if (pick) this.bus.emit('request.new', { requestId: pick.id, npc: pick.npc });
+      (r.when === undefined || evaluate(r.when, this.state, this.storyContext())) &&
+      (r.kind !== 'serve' || this.service.unlockedRecipes().some((x) => x.id === r.recipe)) &&
+      ((r.kind !== 'place' && r.kind !== 'bring') || this.itemUnlocked(r.item!));
+    const rng = createRng(this.state.day * 7919 + 11);
+    maybeNewRequest(this.content.requests, this.state.requests, this.state.day, rng, this.goals().length > 0, ok, () => visitMinute(this.content.requests, rng, parseClock));
+  }
+
+  /** Quem veio (ou vem hoje) fazer o pedido de amigo: o NPC "@visitor" de scr.request_visit. */
+  requestVisitor(): string | undefined {
+    const v = this.state.requests.visit;
+    return v ? this.content.requests.requests.find((r) => r.id === v.id)?.npc : undefined;
+  }
+
+  /** A fala do pedido de quem veio (o passo requestIntro do roteiro). */
+  sayRequestIntro(): void {
+    const v = this.state.requests.visit;
+    const def = v && this.content.requests.requests.find((r) => r.id === v.id);
+    if (def) this.bus.emit('npc.line', { npc: def.npc, text: def.intro });
+  }
+
+  /** A cada minuto: na hora da visita (até o fim de visitHours), com ela no café, o amigo vem (o roteiro da visita). */
+  private checkRequestVisit(): void {
+    const v = this.state.requests.visit;
+    if (!v || v.on !== this.state.day || this.requestVisitAsked === this.state.day) return;
+    if (this.state.time < v.at || this.state.time > parseClock(this.content.requests.visitHours[1])) return;
+    if (this.state.location !== this.content.map.id) return;
+    this.requestVisitAsked = this.state.day;
+    this.bus.emit('script.requested', { scriptId: REQUEST_VISIT_SCRIPT });
   }
 
   private countRequests(match: (r: FriendRequestDef) => boolean): void {
@@ -4438,6 +4494,11 @@ export class GameSession {
   finishScript(scriptId: string): void {
     this.state.flags[seenFlag(scriptId)] = true;
     this.bus.emit('script.finished', { scriptId });
+    // Pedido de amigo: depois da visita, o pedido abre.
+    if (scriptId === REQUEST_VISIT_SCRIPT) {
+      const def = acceptVisit(this.content.requests, this.state.requests, this.state.day);
+      if (def) this.bus.emit('request.new', { requestId: def.id, npc: def.npc });
+    }
     const gathering = (this.content.festive.gatherings ?? []).find((g) => g.partyScript === scriptId);
     if (gathering) this.finishGathering(gathering);
     this.arrivals.stepFinished({ script: scriptId });
@@ -6050,6 +6111,17 @@ export class GameSession {
     return placeOn ? hostAt(this.state.placed.filter((x) => x !== p), this.content.items, placeOn, p.at, this.footprint()) : undefined;
   }
 
+  /**
+   * Quanto o item sobe se for posto em `at`: em cima de um apoio, até o tampo dele (como o mapa desenha, withPlaced);
+   * no chão, 0. `ignoreUid`: o próprio móvel sendo mudado de lugar.
+   */
+  placeLift(itemId: string, at: Cell, ignoreUid?: string): number {
+    const placeOn = this.content.items[itemId]?.placeOn;
+    if (!placeOn) return 0;
+    const host = hostAt(this.state.placed.filter((x) => x.uid !== ignoreUid), this.content.items, placeOn, at, this.footprint());
+    return host ? this.content.items[host.item]?.topLift ?? this.content.world.counterLift ?? 0 : 0;
+  }
+
   /** As células de uma porta: no vão da parede divisória, a passagem e os dois lados; na parede de cima, ela (1x2) e a da frente. */
   private doorCells(doorId: string): Cell[] {
     const d = this.content.rooms.doors.find((x) => x.id === doorId);
@@ -6166,6 +6238,7 @@ export class GameSession {
    * Repete porque concluir um marco pode liberar o próximo. Marcos concluídos não voltam atrás.
    */
   private advanceStory(): void {
+    this.feedLateCats();
     this.checkMilestones();
     this.checkRequests();
     this.maybeStartFestivals();

@@ -35,6 +35,23 @@ describe('tigela e caixa de areia comuns', () => {
     expect(session.feedProblem('p90')).toBe('already_fed');
   });
 
+  it('gato que entra no café depois da tigela cheia come dela (sem encher de novo nem gastar energia)', () => {
+    const { session, state, hold } = cafe();
+    state.inventory['item.cat_food_basic'] = 2;
+    hold('item.cat_food_basic');
+    expect(session.feedFromBowl('p90')).toEqual({ ok: true });
+    // Um terceiro gato entra no café depois (chegou, voltou do cercadinho): come da tigela de hoje.
+    state.cats['cat.third'] = { sheltered: true, name: 'Mingau', map: 'map.cafe_main', shelteredOn: 1 } as (typeof state.cats)[string];
+    const energy = session.energy();
+    session.tickClock(5);
+    expect(state.cats['cat.third']!.fedOn).toBe(state.day);
+    expect(state.cats['cat.third']!.fedWith).toBe('item.cat_food_basic');
+    expect(state.inventory['item.cat_food_basic']).toBe(1);
+    expect(session.energy()).toBe(energy);
+    state.flags['prologue.done'] = true;
+    expect(session.chores().find((c) => c.kind === 'feed')).toMatchObject({ done: true, progress: [3, 3] });
+  });
+
   it('areia: só com a areia ativa na barra; uma troca por dia; sem areia limpa, a higiene cai mais', () => {
     const { session, state } = cafe();
     expect(session.litterProblem('p91')).toBe('no_litter');
