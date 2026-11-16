@@ -4,6 +4,7 @@ import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { doorAt } from '../../src/core/map';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 /** Com as etapas do Market aos poucos: a história do começo tem que conseguir comprar o que cada meta pede. */
@@ -1456,6 +1457,7 @@ describe('evolução das receitas', () => {
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(false);
     expect(session.buy('item.teapot')).toEqual({ ok: false, reason: 'locked' });
     session.state.service.served = 6;
+    learnRecipes(session);
     expect(session.itemUnlocked('item.teapot')).toBe(true);
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(true);
     // O forno só com o pão de queijo; móveis e coisas de gato não mudam.

@@ -6,6 +6,7 @@ import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 const known = knownIds(content);
@@ -62,6 +63,7 @@ describe('selos na sessão', () => {
     expect(session.service.recipeStatus('recipe.black_tea')).toBe('locked');
     state.service.served = 6;
     session.start(false);
+    learnRecipes(session);
     expect(reached()).toEqual(['milestone.customers_6']);
     expect(state.milestones.reached['milestone.customers_6']).toBe(state.day);
     expect(session.service.recipeStatus('recipe.black_tea')).not.toBe('locked');
@@ -73,6 +75,7 @@ describe('selos na sessão', () => {
     const { session, state, reached } = cafe();
     state.service.served = 40;
     session.start(false);
+    learnRecipes(session);
     expect(reached()).not.toContain('milestone.customers_40');
     const track = session.milestoneTracks().find((t) => t.track.id === 'customers')!;
     // Antes da inauguração: só o chá preto e o suco; o latte (25) também espera a inauguração.
@@ -108,6 +111,7 @@ describe('selos na sessão', () => {
     const { session, state, reached } = cafe();
     state.stats.streaks.no_gave_up = { current: 3, best: 3 };
     session.start(false);
+    learnRecipes(session);
     expect(reached()).toEqual(['milestone.no_gave_up_3']);
     expect(state.inventory['item.flower_vase']).toBe(1);
   });
@@ -116,6 +120,7 @@ describe('selos na sessão', () => {
     const { session, state } = cafe();
     state.stats.streaks.cats_cared = { current: 0, best: 3 };
     session.start(false);
+    learnRecipes(session);
     expect(state.inventory['item.cat_treat_biscuit']).toBe(3);
   });
 
@@ -124,6 +129,7 @@ describe('selos na sessão', () => {
     expect(session.service.recipeStatus('recipe.paw_cookie')).toBe('locked');
     state.stats.streaks.cats_cared = { current: 7, best: 7 };
     session.start(false);
+    learnRecipes(session);
     expect(session.service.recipeStatus('recipe.paw_cookie')).not.toBe('locked');
   });
 });
@@ -144,6 +150,7 @@ describe('selos no save', () => {
     const events: string[] = [];
     session.bus.onAny((name) => events.push(name));
     session.start(false);
+    learnRecipes(session);
     expect(Object.keys(state.milestones.reached).sort()).toEqual([
       'milestone.cats_cared_3', // o fixture tem 11 dias de bigodes bem cuidados
       'milestone.cats_cared_7',
@@ -185,16 +192,19 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
     const { session, state } = cafe();
     state.service.served = 120;
     session.start(false);
+    learnRecipes(session);
     expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.black_coffee', 'recipe.black_tea', 'recipe.orange_juice']));
     for (const id of ['recipe.cafe_latte', 'recipe.cheese_bread', 'recipe.green_tea', 'recipe.hot_chocolate']) expect(recipes(session)).not.toContain(id);
     // Inaugurou: o latte vem junto; o resto conta os clientes dali em diante (não sai tudo de uma vez).
     inaugurate(session);
     session.start(false);
+    learnRecipes(session);
     expect(state.service.servedAtOpening).toBe(120);
     expect(recipes(session)).toContain('recipe.cafe_latte');
     expect(recipes(session)).not.toContain('recipe.cheese_bread');
     state.service.served = 120 + 35;
     session.start(false);
+    learnRecipes(session);
     expect(recipes(session)).toContain('recipe.cheese_bread');
     expect(recipes(session)).not.toContain('recipe.green_tea');
   });
@@ -204,6 +214,7 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
     state.business = 'inaugurated';
     state.service.served = 120;
     session.start(false);
+    learnRecipes(session);
     expect(session.servedSinceOpening()).toBe(120);
     expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.cheese_bread', 'recipe.green_tea', 'recipe.strawberry_juice']));
   });

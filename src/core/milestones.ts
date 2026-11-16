@@ -40,6 +40,8 @@ export interface MilestoneDef {
 /** data/milestones.json */
 export interface MilestonesData {
   schemaVersion: 1;
+  /** No máximo quantas receitas novas ela aprende por dia; as outras esperam na fila (decisão 262). */
+  recipesPerDay?: number;
   tracks: MilestoneTrack[];
   milestones: MilestoneDef[];
 }

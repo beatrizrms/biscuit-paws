@@ -4,6 +4,7 @@ import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 const untilChairs = content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.chairs') + 1).map((b) => b.id);
@@ -22,6 +23,7 @@ function bakery(withDisplay = true) {
   if (withDisplay) state.placed.push({ uid: 'v1', item: 'item.display_case', at: [10, 5] });
   for (const id of ['item.flour', 'item.eggs', 'item.butter', 'item.chocolate', 'item.sugar']) state.pantry[id] = 3;
   const session = new GameSession(content, state);
+  learnRecipes(session);
   session.receiveItem('item.dishes_set');
   const sv = session.service;
   sv.toggleMenu('recipe.cake_slice');

@@ -4,12 +4,14 @@ import { describe, expect, it } from 'vitest';
 import { GameSession, NEW_BADGE_DAYS } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent({ marketStages: true });
 
 function game() {
   const state = newGameState(5000, 'map.cafe_main', 9 * 60);
   const session = new GameSession(content, state);
+  learnRecipes(session);
   const events: string[] = [];
   session.bus.onAny((name) => events.push(name));
   return { session, state, events };
@@ -49,7 +51,10 @@ describe('Market aos poucos', () => {
     const teaBags = Object.keys(tea.ingredients);
     const unlocked = () => session.service.recipeStatus(tea.id) !== 'locked';
     // Com a receita liberada, o bule e o chá aparecem, mesmo com o café ainda fechado.
-    if (!unlocked()) state.service.served = 999;
+    if (!unlocked()) {
+      state.service.served = 999;
+      learnRecipes(session);
+    }
     expect(unlocked()).toBe(true);
     expect(state.flags['cafe.open']).toBeUndefined();
     expect(session.itemUnlocked(teapot.id)).toBe(true);

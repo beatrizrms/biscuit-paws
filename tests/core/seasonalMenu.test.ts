@@ -3,6 +3,7 @@ import { inSeason } from '../../src/core/recipes';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 const S = content.seasons;
@@ -16,6 +17,7 @@ function cafe(day: number, served = 700) {
   state.service.served = served;
   state.business = 'inaugurated'; // as receitas da estação contam desde a inauguração
   const session = new GameSession(content, state);
+  learnRecipes(session);
   return { session, state, sv: session.service };
 }
 
@@ -68,13 +70,14 @@ describe('cardápio das estações', () => {
     expect(events).toHaveLength(1);
     expect(events[0]!.left).toEqual(['recipe.hot_chocolate']);
     expect(events[0]!.arrived).toEqual(['recipe.strawberry_tart_slice']);
-    expect(learned).toEqual(expect.arrayContaining(['recipe.iced_berry_tea', 'recipe.chicken_croissant']));
+    // Várias de primavera chegam juntas: no máximo recipesPerDay hoje; as outras, nos próximos dias.
+    expect(learned).toHaveLength(content.milestones.recipesPerDay!);
     expect(learned).not.toContain('recipe.strawberry_tart_slice');
     expect(learned).not.toContain('recipe.hot_chocolate');
   });
 
   it('a conquista do cardápio da estação ensina só as receitas da estação de agora', () => {
-    const { session, state } = cafe(firstDay('spring') + 3, 0);
+    const { session, state } = cafe(firstDay('spring') + 3, 60);
     session.start(false);
     const learned: string[] = [];
     session.bus.on('recipe.unlocked', (e) => learned.push(e.recipeId));
@@ -107,5 +110,30 @@ describe('itens de Natal', () => {
     }
     expect(content.items['item.snow_globe_cafe']!.tags).not.toContain('decor');
     expect(content.items['item.snow_globe_cafe']!.tags).not.toContain('xmas');
+  });
+});
+
+describe('fila das receitas novas', () => {
+  it('no máximo recipesPerDay por dia; as outras chegam nos dias seguintes, na ordem', () => {
+    const perDay = content.milestones.recipesPerDay!;
+    const { session, state } = cafe(firstDay('spring') + 3, 0);
+    session.start(false);
+    const learned: string[][] = [[]];
+    session.bus.on('recipe.unlocked', (e) => learned[learned.length - 1]!.push(e.recipeId));
+    state.service.served = 700;
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(learned[0]).toHaveLength(perDay);
+    // A fila não anda no mesmo dia.
+    session.tickClock(5 / content.dayNight.minutesPerSecond);
+    expect(learned[0]).toHaveLength(perDay);
+    const waiting = session.service.recipesToLearn().length;
+    expect(waiting).toBeGreaterThan(0);
+    for (let d = 0; d < 3; d++) {
+      learned.push([]);
+      session.endDay('home');
+      session.tickClock(1 / content.dayNight.minutesPerSecond);
+      expect(learned[d + 1]!.length).toBeLessThanOrEqual(perDay);
+    }
+    expect(learned.flat()).toHaveLength(new Set(learned.flat()).size);
   });
 });

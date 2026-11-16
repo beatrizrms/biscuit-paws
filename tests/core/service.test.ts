@@ -4,6 +4,7 @@ import { GameSession } from '../../src/core/session';
 import { newGameState, nowAbs } from '../../src/core/state';
 import { validateRecipes, type RecipeDef } from '../../src/core/recipes';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 /** Avança o relógio minuto a minuto (como o jogo, quadro a quadro). */
@@ -22,6 +23,7 @@ function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number; 
   state.service.served = opts.served ?? 0;
   state.story.completed.push(...untilChairs);
   const session = new GameSession(content, state);
+  learnRecipes(session);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   const put = (item: string, at: [number, number]) => {
@@ -112,6 +114,7 @@ describe('receitas e cardápio', () => {
     // Café novo: só o café preto. O chá destranca com clientes atendidos e aí pede o bule.
     expect(sv.recipeStatus('recipe.black_tea')).toBe('locked');
     session.state.service.served = 15;
+    learnRecipes(session);
     expect(sv.recipeStatus('recipe.black_tea')).toBe('equipment');
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('equipment');
     // Receitas para depois ficam bloqueadas até a condição delas.
@@ -182,7 +185,7 @@ describe('receitas e cardápio', () => {
   });
 
   it('o quadro tem slots (dados) e só aceita receita desbloqueada', () => {
-    const { sv, state } = openCafe({ served: 15 });
+    const { session, sv, state } = openCafe({ served: 15 });
     expect(sv.toggleMenu('recipe.cafe_latte')).toEqual({ ok: false, reason: 'not_unlocked' });
     expect(sv.toggleMenu('recipe.black_coffee')).toEqual({ ok: true });
     expect(state.menu).toEqual(['recipe.black_coffee']);
@@ -192,6 +195,7 @@ describe('receitas e cardápio', () => {
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
     state.service.served = 150;
     state.business = 'inaugurated'; // o chá verde conta desde a inauguração
+    learnRecipes(session);
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
     expect(sv.toggleMenu('recipe.lemonade')).toEqual({ ok: false, reason: 'menu_full' });
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true }); // tirar

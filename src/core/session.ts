@@ -675,11 +675,25 @@ export class GameSession {
         }
         continue;
       }
+      // As sem condição (as do começo): já sabidas.
       const flag = `recipe.known.${r.id}`;
       if (this.state.flags[flag]) continue;
       this.state.flags[flag] = true;
       this.state.recipesOn[r.id] = this.state.day;
-      if (!silent && r.unlock) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+    }
+    // A fila: no máximo recipesPerDay receitas novas por dia (as outras ficam para os próximos dias). Save de antes do
+    // registro do dia (nenhuma receita de conquista nele): ao abrir, tudo o que já vale entra sem aviso, como antes.
+    const legacy = silent && !Object.keys(this.state.recipesOn).some((id) => this.content.recipes[id]?.unlock);
+    if (!silent || legacy) {
+      const perDay = this.content.milestones.recipesPerDay ?? Infinity;
+      let today = Object.entries(this.state.recipesOn).filter(([id, d]) => d === this.state.day && this.content.recipes[id]?.unlock).length;
+      for (const r of this.service.recipesToLearn()) {
+        if (!legacy && today >= perDay) break;
+        this.state.flags[`recipe.known.${r.id}`] = true;
+        this.state.recipesOn[r.id] = this.state.day;
+        today++;
+        if (!silent) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+      }
     }
     this.announceItems(silent);
   }

@@ -535,8 +535,10 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
-    // A de outra estação que ela ainda não aprendeu continua trancada: chega (e é anunciada) quando a época começar.
-    if (!this.inSeasonNow(r)) return this.st.flags[`recipe.known.${r.id}`] ? 'season' : 'locked';
+    // Receita de conquista que ela ainda não aprendeu continua trancada: chega pela fila (no máximo recipesPerDay por
+    // dia) e a de outra estação só entra na fila quando a época começar (session.announceRecipes).
+    if (r.unlock && !r.special && !this.st.flags[`recipe.known.${r.id}`]) return 'locked';
+    if (!this.inSeasonNow(r)) return 'season';
     // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
     if (this.spareReady(r.id) > 0) return 'available';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
@@ -555,6 +557,20 @@ export class CafeService {
     const r = this.recipe(id);
     if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
     return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
+  }
+
+  /**
+   * A fila das receitas novas: as de conquista (ou outra condição) que já valem, na época, e que ela ainda não aprendeu;
+   * na ordem em que as conquistas foram alcançadas (empate: a ordem do arquivo).
+   */
+  recipesToLearn(): RecipeDef[] {
+    const reachedOn = (r: RecipeDef) => {
+      const m = r.unlock && 'milestone' in r.unlock ? r.unlock.milestone : undefined;
+      return m ? this.st.milestones.reached[m] ?? 0 : 0;
+    };
+    return Object.values(this.h.content.recipes)
+      .filter((r) => r.unlock && !r.special && !this.st.flags[`recipe.known.${r.id}`] && this.h.evaluate(r.unlock) && this.inSeasonNow(r))
+      .sort((a, b) => reachedOn(a) - reachedOn(b));
   }
 
   unlockedRecipes(): RecipeDef[] {
