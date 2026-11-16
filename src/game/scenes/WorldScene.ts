@@ -3516,7 +3516,21 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (display && st.hands.some((h) => sv.storable(h))) add(this.placedCells(display.uid), E_TIER.service, this.hintCell(placedAt(display.uid), 'display'), () => report(sv.storeInDisplay(display.uid)));
     // Pegar de uma superfície (a clicada ou a mais perto).
     const surface = target ? sv.surfaceAt(target) : st.surfaces.find((x) => near(x.at));
-    if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
+    // A assadeira (ou o bolo inteiro) num balcão ou mesa, fora do forno: serve dali, uma porção por vez. Com vitrine no
+    // café, ela escolhe: tirar uma porção ou levar a assadeira (para a vitrine). Em cima do forno, pega inteira.
+    const onStation = !!surface && sv.allStations().some((x) => x.at[0] === surface.at[0] && x.at[1] === surface.at[1]);
+    if (surface && near(surface.at) && surface.item.kind === 'cake' && !onStation && st.hands.length < sv.handsCapacity()) {
+      const at = surface.at;
+      add([at], E_TIER.service, this.hintCell(at, 'surface'), () => {
+        if (sv.displaysPlaced().length === 0 || st.hands.length > 0) return report(sv.takeFromCake(at));
+        const t = uiText.service;
+        void this.ui.choose(t.cakeAsk, [t.cakeTake, t.cakeCarry, t.extraCancel]).then((i) => {
+          if (i === 0) report(sv.takeFromCake(at));
+          else if (i === 1) report(sv.pickUp(at));
+        });
+        return true;
+      });
+    } else if (surface && near(surface.at) && st.hands.length < sv.handsCapacity()) {
       // Pegar é na hora: a louça vai direto para a mão ou a bandeja (sem pose de ação).
       add([surface.at], E_TIER.service, this.hintCell(surface.at, 'surface'), () => report(sv.pickUp(surface.at)));
     }

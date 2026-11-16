@@ -783,6 +783,33 @@ describe('fase 2: forno e receitas em etapas', () => {
     expect(sv.surfaceAt([10, 8])?.item).toEqual({ kind: 'dirty', vessel: 'plate' });
   });
 
+  it('sem vitrine: a assadeira vai para o balcão e serve dali, uma porção por vez; a dica da vitrine sai uma vez', () => {
+    const { session, sv, state, events } = bakery();
+    state.placed = state.placed.filter((p) => p.item !== 'item.display_case');
+    expect(sv.recipeStatus('recipe.cheese_bread')).toBe('available');
+    expect(sv.missingEquipment('recipe.cheese_bread')).toBeUndefined();
+    expect(sv.prepare(uid(session, 'item.stove'), 'recipe.cheese_bread')).toEqual({ ok: true });
+    advance(session, 7);
+    sv.pickUp([2, 8]);
+    expect(sv.prepare(uid(session, 'item.oven'))).toEqual({ ok: true });
+    advance(session, 21);
+    expect(events.filter((e) => e.name === 'hint.display')).toHaveLength(1);
+    // Leva a assadeira para um balcão e tira as porções dali.
+    sv.pickUp([4, 8]);
+    state.surfaces.push({ at: [2, 9], item: state.hands.pop()! }); // como se ela soltasse no balcão
+    expect(sv.displayPortions('recipe.cheese_bread')).toBe(4);
+    expect(sv.takeFromCake([2, 9])).toEqual({ ok: true });
+    expect(state.hands).toMatchObject([{ kind: 'drink', recipe: 'recipe.cheese_bread' }]);
+    expect(sv.displayPortions('recipe.cheese_bread')).toBe(3);
+    state.hands = [];
+    for (let i = 0; i < 3; i++) {
+      expect(sv.takeFromCake([2, 9])).toEqual({ ok: true });
+      state.hands = [];
+    }
+    expect(sv.surfaceAt([2, 9])).toBeUndefined(); // acabou: a assadeira some
+    expect(state.flags['hint.display']).toBe(true);
+  });
+
   it('toda receita do forno sai em fornada (menos a pirâmide de macarons), cada uma com a sua quantidade', () => {
     const oven = Object.values(content.recipes).filter((r) => r.steps.some((x) => x.equipment === 'oven'));
     expect(oven.filter((r) => !r.batch).map((r) => r.id)).toEqual(['recipe.macaron_tower']);

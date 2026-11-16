@@ -377,9 +377,34 @@ export class CafeService {
     return this.st.displays[uid] ?? [];
   }
 
-  /** Quantas fatias (ou doces) desta receita estão nas vitrines. */
+  /** Quantas porções desta receita estão prontas: nas vitrines e nas assadeiras (ou bolos inteiros) em cima de balcões e mesas. */
   displayPortions(recipe: string): number {
-    return Object.values(this.st.displays).reduce((n, slots) => n + slots.filter((s) => s.recipe === recipe).reduce((a, s) => a + s.portions, 0), 0);
+    const inDisplays = Object.values(this.st.displays).reduce((n, slots) => n + slots.filter((s) => s.recipe === recipe).reduce((a, s) => a + s.portions, 0), 0);
+    const onSurfaces = this.st.surfaces.reduce((n, s) => n + (s.item.kind === 'cake' && s.item.recipe === recipe ? s.item.portions : 0), 0);
+    return inDisplays + onSurfaces;
+  }
+
+  /**
+   * Tira uma porção da assadeira (ou do bolo inteiro) que está nesta célula, num prato limpo, para a mão. Sem vitrine,
+   * a fornada fica num balcão e serve dali; acabou, a assadeira some.
+   */
+  takeFromCake(at: Cell): ServiceResult {
+    const s = this.surfaceAt(at);
+    if (!s || s.item.kind !== 'cake') return { ok: false, reason: 'nothing_here' };
+    const cake = s.item;
+    const r = this.recipe(cake.recipe);
+    if (!r) return { ok: false, reason: 'nothing_here' };
+    const item: HandItem = { kind: 'drink', recipe: r.id, vessel: r.vessel, ...(cake.quality ? { quality: cake.quality } : {}) };
+    const problem = this.canHold(item);
+    if (problem) return { ok: false, reason: problem };
+    if (this.cleanFree(r.vessel) < 1) return { ok: false, reason: 'no_vessel' };
+    this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
+    this.st.hands.push(item);
+    cake.portions -= 1;
+    if (cake.portions <= 0) this.st.surfaces = this.st.surfaces.filter((x) => x !== s);
+    this.h.bus.emit('display.taken', { uid: '', recipeId: r.id });
+    this.handsChanged();
+    return { ok: true };
   }
 
   /** Este objeto da mão vai para a vitrine? (um doce pronto ou um bolo inteiro) */
@@ -507,7 +532,6 @@ export class CafeService {
     if (!this.inSeasonNow(r)) return 'season';
     // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
     if (this.spareReady(r.id) > 0) return 'available';
-    if (r.display && this.displaysPlaced().length === 0) return 'equipment';
     // Já tem na vitrine: serve a fatia (ou o doce) sem preparar.
     if (r.display && this.displayPortions(r.id) > 0) return this.cleanFree(r.vessel) < 1 ? 'vessel' : 'available';
     // Dois jeitos (receita.alternative): basta um ter os equipamentos e, com eles, os ingredientes.
@@ -522,7 +546,6 @@ export class CafeService {
   /** Primeiro equipamento que falta para a receita (para o quadro dizer qual). */
   missingEquipment(id: string): string | undefined {
     const r = this.recipe(id);
-    if (r?.display && this.displaysPlaced().length === 0) return 'display';
     if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
     return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
   }
@@ -824,6 +847,11 @@ export class CafeService {
       const last = prep.step >= r.steps.length - 1;
       if (last && r.batch) {
         this.st.surfaces.push({ at: [...station.at], item: { kind: 'cake', recipe: r.id, portions: r.batch.yields, quality: prep.quality } });
+        // Sem vitrine: uma vez no jogo, a dica de que a vitrine organiza as fornadas (dá para servir do balcão).
+        if (this.displaysPlaced().length === 0 && !this.st.flags['hint.display']) {
+          this.st.flags['hint.display'] = true;
+          this.h.bus.emit('hint.display', {});
+        }
       } else if (last) {
         this.st.dishes[r.vessel] = (this.st.dishes[r.vessel] ?? 0) - 1;
         this.st.surfaces.push({ at: [...station.at], item: { kind: 'drink', recipe: r.id, vessel: r.vessel, quality: prep.quality } });

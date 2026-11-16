@@ -38,10 +38,10 @@ function bakery(withDisplay = true) {
 }
 
 describe('vitrine e fornada', () => {
-  it('os doces só entram no cardápio com uma vitrine; o quadro diz que falta a vitrine', () => {
+  it('a vitrine não é obrigatória: sem ela, os doces entram no cardápio do mesmo jeito (servem da assadeira no balcão)', () => {
     const { sv } = bakery(false);
-    expect(sv.recipeStatus('recipe.cake_slice')).toBe('equipment');
-    expect(sv.missingEquipment('recipe.cake_slice')).toBe('display');
+    expect(sv.recipeStatus('recipe.cake_slice')).toBe('available');
+    expect(sv.missingEquipment('recipe.cake_slice')).toBeUndefined();
     expect(bakery().sv.recipeStatus('recipe.cake_slice')).toBe('available');
   });
 

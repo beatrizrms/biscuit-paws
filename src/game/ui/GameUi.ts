@@ -367,6 +367,8 @@ export class GameUi {
     // Todo item novo à venda: a tela de novidades (junto com o que mais liberou no mesmo minuto).
     bus.on('item.unlocked', ({ itemId }) => this.queueUnlock({ item: itemId }));
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
+    // A primeira fornada sem vitrine: a dica (uma vez no jogo).
+    bus.on('hint.display', () => this.toast(uiText.service.displayHint, 9000));
     // Fim do dia: os avisos que vierem dele (gato doente, ração acabando...) esperam a tela do dia fechar.
     bus.on('day.ending', () => (this.inDayTransition = true));
     bus.on('cat.sick', ({ catId, disease }) => {
