@@ -70,6 +70,7 @@ cat-cafe-game/
 | `cat.named` | a jogadora deu nome ao gato | `catId, name` |
 | `cat.affection_changed` | corações entre a protagonista e um gato mudam | `catId, from, to` (corações) |
 | `day.started` | amanheceu (ela chega de casa) | `day` |
+| `day.ending` | o fim do dia começou (antes de tudo o que ele faz): a interface segura os avisos até a tela do dia fechar | `day` |
 | `day.ended` | fim do dia (ela vai para casa) | `day` (o dia que acabou), `reason` (`home`, `passOut`, `story`, `sleep`, `curfew`, `tired`), `earned`, `jobs` (resumo do dia) |
 | `energy.changed` | a energia dela mudou (tarefa ou ao acordar) | `energy`, `max`, `level` (`ok`, `low`, `empty`) |
 | `energy.recovered` | ela se recompôs (café ou brincadeira) | `source` (`coffee`, `play`), `amount` |

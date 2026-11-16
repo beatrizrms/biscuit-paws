@@ -157,6 +157,8 @@ export interface GameEvents {
    * "curfew" (deu a hora-limite e amanhã tem expediente), "tired" (a hora-limite da véspera de folga).
    */
   'day.ended': { day: number; reason: DayEndReason; earned: number; jobs: number };
+  /** O fim do dia começou (antes de tudo o que ele faz: gato que adoece, ração que acaba...): a tela do dia vem depois. */
+  'day.ending': { day: number };
   /** A energia mudou (gastou numa tarefa ou acordou). level: 'ok', 'low' (cansada) ou 'empty'. */
   'energy.changed': { energy: number; max: number; level: 'ok' | 'low' | 'empty' };
   /** Ela se recompôs (café ou brincadeira; o sofá avisa por rest.changed). */

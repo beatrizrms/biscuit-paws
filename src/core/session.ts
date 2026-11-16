@@ -984,6 +984,7 @@ export class GameSession {
    */
   endDay(reason: DayEndReason = 'story'): void {
     const day = this.state.day;
+    this.bus.emit('day.ending', { day });
     // O especial (a ceia de Natal) só vale no dia: o que sobrou pronto some e a louça volta limpa para o armário
     // (virar louça suja no mesmo lugar parecia a louça lavada voltando).
     const special = (i: HandItem) => i.kind === 'drink' && !!this.content.recipes[i.recipe]?.special;

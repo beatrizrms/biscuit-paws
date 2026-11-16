@@ -348,6 +348,8 @@ export class GameUi {
     // Todo item novo à venda: a tela de novidades (junto com o que mais liberou no mesmo minuto).
     bus.on('item.unlocked', ({ itemId }) => this.queueUnlock({ item: itemId }));
     // Saúde: um gato adoeceu à toa (a doença do dia 6 já tem fala), sarou, e o fiado sendo pago.
+    // Fim do dia: os avisos que vierem dele (gato doente, ração acabando...) esperam a tela do dia fechar.
+    bus.on('day.ending', () => (this.inDayTransition = true));
     bus.on('cat.sick', ({ catId, disease }) => {
       if (!session.state.story.completed.includes('story.cat_falls_ill') || session.state.story.completed.includes('story.vet_visit'))
         this.toast(catSexText(session, session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic, catId).replace('{name}', session.catName(catId)).replace('{disease}', content.health.diseases.find((d) => d.id === disease)?.name ?? ''), 4000);
@@ -657,7 +659,15 @@ export class GameUi {
    * Aviso na pilha: o novo entra embaixo dos que estão na tela, cada um some no seu tempo; com mais de MAX_TOASTS, o
    * mais antigo sai na hora. O mesmo texto de novo não duplica: só renova o tempo dele.
    */
+  /** Tela de fim de dia aberta: os avisos que chegam nela (gato doente, ração acabando...) esperam ela fechar. */
+  private inDayTransition = false;
+  private heldToasts: { text: string; ms: number }[] = [];
+
   toast(text: string, ms = 1600): void {
+    if (this.inDayTransition) {
+      this.heldToasts.push({ text, ms });
+      return;
+    }
     text = keyless(text);
     const same = this.toasts.find((t) => t.text === text);
     if (same) {
@@ -1185,6 +1195,7 @@ ${rep}`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     this.reveal = { el, done: () => undefined };
+    this.inDayTransition = true;
     return new Promise((resolve) => {
       let finished = false;
       const done = () => {
@@ -1195,6 +1206,9 @@ ${rep}`;
         window.setTimeout(() => {
           el.remove();
           this.reveal = null;
+          this.inDayTransition = false;
+          // Os avisos que chegaram durante a tela: agora, um pouco depois do outro.
+          this.heldToasts.splice(0).forEach((t, i) => window.setTimeout(() => this.toast(t.text, t.ms), 300 + i * 400));
           this.refresh();
           resolve();
         }, 400);
