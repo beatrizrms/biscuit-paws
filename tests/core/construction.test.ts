@@ -132,6 +132,18 @@ describe('obras: troca de acabamento por área', () => {
     expect(s.finishQuote('surface.counter_floor', 'finish.wood_planks', [6, 3], [9, 4])!.cells.length).toBe(8);
   });
 
+  it('o porão também: piso e parede entram junto com os do salão, mas só com o porão aberto', () => {
+    const s = session();
+    s.state.construction.repaired = ['inside', 'outside'];
+    // Do salão (colunas 14 e 15) até dentro do porão (17 e 18), linha 5.
+    expect(s.finishQuote('surface.hall_floor', 'finish.wood_planks', [14, 5], [18, 5])!.cells).toEqual([[14, 5], [15, 5]]);
+    s.state.rooms['room.back_room'] = 'abandoned';
+    expect(s.finishQuote('surface.hall_floor', 'finish.wood_planks', [14, 5], [18, 5])!.cells).toEqual([[14, 5], [15, 5], [17, 5], [18, 5]]);
+    // Parede: as colunas do porão entram com o papel de parede (o tipo é um só).
+    const wall = s.finishQuote('surface.wallpaper', 'finish.wallpaper_mint', [18, 0], [18, 0])!;
+    expect(wall.cells).toEqual([[18, 0], [18, 1]]);
+  });
+
   it('Ctrl + arrastar: duas áreas separadas viram uma obra só; célula repetida conta uma vez', () => {
     const s = session();
     s.state.construction.repaired = ['inside', 'outside'];

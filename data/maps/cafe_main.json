@@ -1005,6 +1005,24 @@
       "name": "Piso do balcão",
       "legend": "X",
       "kind": "floor"
+    },
+    {
+      "id": "surface.back_room_floor",
+      "name": "Piso do porão",
+      "legend": "f",
+      "kind": "floor"
+    },
+    {
+      "id": "surface.back_room_wall",
+      "name": "Parede do porão",
+      "legend": "q",
+      "kind": "wall"
+    },
+    {
+      "id": "surface.back_room_wainscot",
+      "name": "Rodapé do porão",
+      "legend": "w",
+      "kind": "wainscot"
     }
   ]
 }
