@@ -237,7 +237,7 @@ export class GameUi {
       if (cutsceneId === CALL_CUTSCENE || cutsceneId === CALL_AGAIN_CUTSCENE) void this.askQuote();
     });
     bus.on('cutscene.requested', ({ cutsceneId }) => {
-      if (this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
+      if (this.inDayTransition || this.dialogueLayer.classList.contains('open') || this.dialogueQueue.length > 0) this.pendingCutscenes.push(cutsceneId);
       else this.cutscene.request(cutsceneId);
     });
     const ced = content.cedText.lines;
@@ -1240,6 +1240,9 @@ ${rep}`;
           this.inDayTransition = false;
           // Os avisos que chegaram durante a tela: agora, um pouco depois do outro.
           this.heldToasts.splice(0).forEach((t, i) => window.setTimeout(() => this.toast(t.text, t.ms), 300 + i * 400));
+          // As falas e cenas que chegaram durante a tela (a Fernanda soltando o gato do cercadinho...): agora, as falas primeiro.
+          if (this.dialogueQueue.length > 0) this.openDialogueIfFree();
+          else for (const id of this.pendingCutscenes.splice(0)) this.cutscene.request(id);
           this.refresh();
           resolve();
         }, 400);
@@ -1575,6 +1578,7 @@ ${rep}`;
   private openDialogueIfFree(): void {
     if (this.dialogueQueue.length === 0 || this.dialogueLayer.classList.contains('open')) return;
     if (this.cutscene?.isOpen() || this.naming?.isOpen()) return; // abre quando elas fecharem
+    if (this.inDayTransition) return; // a tela do fim do dia não é interrompida: a fala abre quando ela fechar
     this.closeCatalog();
     this.dialogueLayer.classList.add('open');
     this.advanceDialogue();
