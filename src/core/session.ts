@@ -1713,7 +1713,9 @@ export class GameSession {
     // do gato que quer brincar diz "compre mais brinquedos".
     const toysShort = toysMissing(this.content.health.care, this.playRoom()) > 0;
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
-    const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
+    // Tem a ferramenta: na mochila ou guardada na caixa pet (aí a linha só pede o cuidado, não a compra).
+    const boxed = (id: string) => Object.values(this.state.petBoxes ?? {}).some((b) => (b[id] ?? 0) > 0);
+    const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && ((this.state.inventory[i.id] ?? 0) > 0 || boxed(i.id)));
     const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
     // O remédio dos gatos em recuperação já está no lembrete deles; à parte, só quando falta o remédio (passar na clínica).
     if (!owns('medicine')) {

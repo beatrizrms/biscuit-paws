@@ -27,6 +27,15 @@ describe('tarefas do dia', () => {
     expect(session.chores().find((c) => c.kind === 'litter')).toMatchObject({ done: true, progress: [1, 1] });
   });
 
+  it('a varinha guardada na caixa pet conta: a linha só pede para brincar (sem "compre uma varinha")', () => {
+    const { session, state } = cafe();
+    state.cats['cat.first_stray']!.playedOn = 1;
+    const play = () => session.chores().find((c) => c.kind === 'care' && c.need === 'play');
+    expect(play()).toMatchObject({ hasTool: false });
+    state.petBoxes = { box1: { 'item.cat_wand': 1 } };
+    expect(play()).toMatchObject({ hasTool: true });
+  });
+
   it('brinquedos de menos não são uma linha à parte: a linha do gato que quer brincar pede mais brinquedos', () => {
     const { session, state } = cafe();
     state.inventory['item.cat_wand'] = 1;
