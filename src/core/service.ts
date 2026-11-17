@@ -1461,7 +1461,8 @@ export class CafeService {
   /** O que está nesta célula está no chão (nenhum móvel embaixo), não num tampo: a cena desenha sem subir. */
   onFloor(at: Cell): boolean {
     const { items, catalog } = this.h.content;
-    return !this.st.placed.some((p) => catalog.tiles[items[p.item]?.tile ?? '']?.layer === 'object' && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)));
+    // Qualquer móvel que não seja de piso (o tapete): objeto ou de parede (a bancada de frente, encostada nela).
+    return !this.st.placed.some((p) => { const layer = catalog.tiles[items[p.item]?.tile ?? '']?.layer; return !!layer && layer !== 'floor' && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)); });
   }
 
   /** Solta o último objeto da mão (o gato e o saco têm ações próprias). `allowFloor`: false = só em superfície. */
