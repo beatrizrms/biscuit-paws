@@ -1077,3 +1077,7 @@ Decisão: `milestones.json: recipesPerDay` (3). Receita com condição (`unlock`
 ## 263. Pia: a lavagem só anda com o E e a louça fica na pia até ficar limpa (nov/2026)
 Pedido: a louça sumia da pia antes de a barra terminar; e, depois de sair, bastava encostar na pia para a barra voltar a andar; deveria precisar do E.
 Decisão: a lavagem anda só depois do E (`startWash` ou, parada, `resumeWash`; `sinkAction` = resume). Saindo da frente da pia, para (aviso "A lavagem parou: volte à pia e aperte E para continuar."); voltando, continua parada até o E. Ao abrir o jogo com louça lavando, também espera o E. A louça sendo lavada continua contando na pia (`sinkLoad` soma as esperando e as lavando: a dica "Pia 3/6" e a capacidade) e só sai dela limpa, quando a barra termina.
+
+## 264. Fornada com estoque na vitrine: continua na lista do E, com a quantidade (nov/2026)
+Pedido: no fogão, para fazer pão de queijo, aparecia "Nenhum cliente pediu nada deste equipamento agora." e não deixava fazer.
+Decisão: a receita de vitrine com porções guardadas não sai mais da lista do equipamento (antes saía, "não assa outro à toa", decisão 254, e sem opção nenhuma vinha a mensagem de sem pedido). A lista (`service.prepareOptions`) mostra "Pão de queijo (4 na vitrine)" e, com estoque, a cena sempre pergunta (mesmo com uma opção só), para não fazer outra fornada sem querer. Fornada não precisa de prato limpo para começar (só para servir). Com estoque na vitrine e sem ingrediente para outra, o aviso é o de falta de ingrediente.

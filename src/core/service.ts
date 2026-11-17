@@ -1319,9 +1319,24 @@ export class CafeService {
   extraRecipes(stationUid: string): string[] {
     const equipment = this.equipmentOf(stationUid);
     if (!equipment) return [];
-    // Bolo com fatias na vitrine: não assa outro à toa.
-    const menu = this.st.menu.filter((id) => this.startsAt(this.recipe(id), equipment) && this.recipeStatus(id) !== 'locked' && !(this.recipe(id)?.display && this.displayPortions(id) > 0));
+    const menu = this.st.menu.filter((id) => this.startsAt(this.recipe(id), equipment) && this.recipeStatus(id) !== 'locked');
     return [...menu, ...this.specialRecipes(stationUid)];
+  }
+
+  /**
+   * A lista do E no equipamento: as receitas que dá para começar aqui agora. Com fornada ainda na vitrine, continua na
+   * lista (a cena sempre pergunta e mostra quantas tem); fornada não precisa de prato limpo (só para servir).
+   */
+  prepareOptions(stationUid: string): string[] {
+    const equipment = this.equipmentOf(stationUid);
+    if (!equipment) return [];
+    return this.extraRecipes(stationUid).filter((id) => {
+      const r = this.recipe(id)!;
+      if (r.special) return true;
+      const status = this.recipeStatus(id);
+      if (status !== 'available' && !(status === 'vessel' && r.batch)) return false;
+      return this.ingredientsAt(r, equipment).ok && (!!r.batch || this.cleanFree(r.vessel) > 0);
+    });
   }
 
   /** Os especiais liberados hoje (a ceia de Natal) que começam neste equipamento e têm ingrediente: sem limite de sem dono. */
@@ -1359,6 +1374,8 @@ export class CafeService {
     const status = unlocked.filter((r) => this.st.menu.includes(r.id)).map((r) => this.recipeStatus(r.id));
     if (status.includes('vessel')) return 'no_vessel';
     if (status.includes('ingredients')) return 'no_ingredients';
+    // Fornada ainda na vitrine (o status diz que dá para servir): para outra, falta o ingrediente.
+    if (unlocked.some((r) => this.st.menu.includes(r.id) && r.display && this.displayPortions(r.id) > 0 && !this.ingredientsAt(r, equipment).ok)) return 'no_ingredients';
     return 'nothing_to_prepare';
   }
 

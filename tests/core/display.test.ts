@@ -90,14 +90,25 @@ describe('vitrine e fornada', () => {
     expect(sv.storeInDisplay('v1')).toEqual({ ok: false, reason: 'display_full' });
   });
 
-  it('com fatias na vitrine dá para servir mesmo sem ingredientes, e não assa outro bolo à toa', () => {
+  it('com fatias na vitrine dá para servir mesmo sem ingredientes; outro bolo só com ingrediente (e a cena pergunta)', () => {
     const { state, sv } = bakery();
     state.pantry = {};
     state.pantryOpen = {};
     expect(sv.recipeStatus('recipe.cake_slice')).toBe('ingredients');
     state.displays.v1 = [{ recipe: 'recipe.cake_slice', portions: 3 }];
     expect(sv.recipeStatus('recipe.cake_slice')).toBe('available');
-    expect(sv.extraRecipes('b1')).toEqual([]);
+    expect(sv.prepareOptions('b1')).toEqual([]);
+    for (const id of ['item.flour', 'item.eggs', 'item.butter', 'item.chocolate', 'item.sugar']) state.pantry[id] = 3;
+    expect(sv.prepareOptions('b1')).toEqual(['recipe.cake_slice']);
+    expect(sv.displayPortions('recipe.cake_slice')).toBe(3);
+  });
+
+  it('fornada não precisa de prato limpo para começar (só para servir)', () => {
+    const { state, sv } = bakery();
+    state.dishes.plate = 0;
+    expect(sv.recipeStatus('recipe.cake_slice')).toBe('vessel');
+    expect(sv.prepareOptions('b1')).toEqual(['recipe.cake_slice']);
+    expect(sv.prepare('b1', 'recipe.cake_slice')).toEqual({ ok: true });
   });
 
   it('com doces dentro, a vitrine não pode ser recolhida, e desenha a arte cheia', () => {

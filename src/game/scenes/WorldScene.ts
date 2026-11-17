@@ -3593,10 +3593,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Massa da etapa anterior na mão: continua direto.
     if (sv.carriesDoughFor(uid)) return report(this.withPose(sv.prepare(uid), pose));
     // Ela escolhe a receita: as que dá para fazer aqui agora (do cardápio e o especial do dia). Uma só: já começa.
-    const options = sv.extraRecipes(uid).filter((id) => sv.recipeStatus(id) === 'available');
+    // Com fornada ainda na vitrine, sempre pergunta (e mostra quantas tem), para não fazer outra sem querer.
+    const options = sv.prepareOptions(uid);
+    const stocked = (id: string) => sv.displayPortions(id);
     if (options.length === 0) return report(this.withPose(sv.prepare(uid), pose));
-    if (options.length === 1) return report(this.withPose(sv.prepare(uid, options[0]), pose));
-    const names = options.map((id) => this.session.content.recipes[id]?.name ?? id);
+    if (options.length === 1 && stocked(options[0]!) === 0) return report(this.withPose(sv.prepare(uid, options[0]), pose));
+    const names = options.map((id) => {
+      const name = this.session.content.recipes[id]?.name ?? id;
+      return stocked(id) > 0 ? uiText.service.extraInDisplay.replace('{name}', name).replace('{n}', String(stocked(id))) : name;
+    });
     void this.ui.choose(uiText.service.extraAsk, [...names, uiText.service.extraCancel]).then((i) => {
       if (i < options.length) report(this.withPose(sv.prepare(uid, options[i]), pose));
     });
