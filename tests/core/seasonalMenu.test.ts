@@ -79,6 +79,8 @@ describe('cardápio das estações', () => {
   it('a conquista do cardápio da estação ensina só as receitas da estação de agora', () => {
     const { session, state } = cafe(firstDay('spring') + 3, 60);
     session.start(false);
+    // As conquistas de antes já vieram há tempo (o intervalo entre as de receita, recipeGap, já passou).
+    for (const id of ['milestone.customers_35', 'milestone.customers_45']) state.milestones.reached[id] = state.day - 10;
     const learned: string[] = [];
     session.bus.on('recipe.unlocked', (e) => learned.push(e.recipeId));
     state.service.served = 90;

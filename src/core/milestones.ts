@@ -42,6 +42,11 @@ export interface MilestonesData {
   schemaVersion: 1;
   /** No máximo quantas receitas novas ela aprende por dia; as outras esperam na fila (decisão 262). */
   recipesPerDay?: number;
+  /**
+   * Intervalo entre as conquistas de receita destas trilhas (decisão 266): a próxima só chega `days` dias depois da
+   * anterior, mesmo com os clientes já contados (o café cresce e o número sozinho ficava rápido).
+   */
+  recipeGap?: { days: number; tracks: string[] };
   tracks: MilestoneTrack[];
   milestones: MilestoneDef[];
 }
@@ -75,23 +80,36 @@ export interface TrackView {
   track: MilestoneTrack;
   value: number;
   reached: MilestoneDef[];
-  next: { def: MilestoneDef; value: number; blocked: boolean } | null;
+  /** waitDays: chegou no número, mas espera o intervalo das conquistas de receita (recipeGap). */
+  next: { def: MilestoneDef; value: number; blocked: boolean; waitDays?: number } | null;
   hidden: number;
 }
 
-export function trackViews(data: MilestonesData, s: MilestonesState, values: MilestoneValues, when: (c: Condition) => boolean): TrackView[] {
+/** Dias que esta conquista ainda espera pelo intervalo das de receita (recipeGap); 0 = pode chegar. */
+export function recipeGapWait(data: MilestonesData, s: MilestonesState, m: MilestoneDef, day: number): number {
+  const gap = data.recipeGap;
+  if (!gap || m.reward.kind !== 'recipe' || !gap.tracks.includes(m.track)) return 0;
+  const days = data.milestones.filter((x) => x.reward.kind === 'recipe' && gap.tracks.includes(x.track)).map((x) => s.reached[x.id]).filter((d): d is number => d !== undefined);
+  return days.length ? Math.max(0, Math.max(...days) + gap.days - day) : 0;
+}
+
+export function trackViews(data: MilestonesData, s: MilestonesState, values: MilestoneValues, when: (c: Condition) => boolean, day = 0): TrackView[] {
   return data.tracks.map((track) => {
     const all = data.milestones.filter((m) => m.track === track.id).sort((a, b) => a.at - b.at);
     const value = values[track.stat];
     const reached = all.filter((m) => s.reached[m.id] !== undefined);
     const pending = all.filter((m) => s.reached[m.id] === undefined);
     const first = pending[0];
+    const nextView = (m: MilestoneDef) => {
+      const waitDays = value >= m.at ? recipeGapWait(data, s, m, day) : 0;
+      return { def: m, value: Math.min(value, m.at), blocked: value >= m.at && ((!!m.when && !when(m.when)) || waitDays > 0), ...(waitDays > 0 ? { waitDays } : {}) };
+    };
     return {
       track,
       value,
       reached,
       // Chegou no número mas falta a condição a mais: o selo espera (blocked).
-      next: first ? { def: first, value: Math.min(value, first.at), blocked: value >= first.at && !!first.when && !when(first.when) } : null,
+      next: first ? nextView(first) : null,
       hidden: Math.max(0, pending.length - 1),
     };
   });

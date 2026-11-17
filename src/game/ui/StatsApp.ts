@@ -76,7 +76,7 @@ export class StatsApp {
       const n = v.next;
       const next = n
         ? `<li class="s-next"><b>${esc(n.def.name)}</b><span class="s-progress"><span class="bar"><span class="fill" style="width:${Math.round((n.value / n.def.at) * 100)}%"></span></span><i>${n.value}/${n.def.at}</i></span>
-            <span class="s-teaser">${esc(t.rewardKinds[n.def.reward.kind])} ?</span>${n.blocked && n.def.whenText ? `<span class="s-when">${esc(n.def.whenText)}</span>` : ''}</li>`
+            <span class="s-teaser">${esc(t.rewardKinds[n.def.reward.kind])} ?</span>${n.waitDays ? `<span class="s-when">${esc((n.waitDays === 1 ? t.waitOne : t.waitDays).replace('{n}', String(n.waitDays)))}</span>` : n.blocked && n.def.whenText ? `<span class="s-when">${esc(n.def.whenText)}</span>` : ''}</li>`
         : `<li class="s-all">${esc(t.allDone)}</li>`;
       const more = v.hidden > 0 ? `<li class="s-more">${esc((v.hidden === 1 ? t.moreOne : t.more).replace('{n}', String(v.hidden)))}</li>` : '';
       return `<section class="s-track ${v.track.kind}"><h3>${esc(v.track.name)}</h3><ul>${done}${next}${more}</ul></section>`;

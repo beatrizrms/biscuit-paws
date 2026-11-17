@@ -223,3 +223,28 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
     expect(content.service.softOpenArrivalFactor).toBe(2);
   });
 });
+
+describe('intervalo entre as conquistas de receita (recipeGap)', () => {
+  it('com muitos clientes de uma vez: uma conquista; a próxima só depois de recipeGap.days dias', () => {
+    const gap = content.milestones.recipeGap!;
+    const state = newGameState(5000, 'map.cafe_main', 9 * 60);
+    state.business = 'inaugurated';
+    state.service.servedAtOpening = 0;
+    const session = new GameSession(content, state);
+    session.start(false);
+    state.service.served = 700;
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    const gated = () => content.milestones.milestones.filter((m) => m.reward.kind === 'recipe' && gap.tracks.includes(m.track) && state.milestones.reached[m.id] !== undefined);
+    expect(gated().map((m) => m.id)).toEqual(['milestone.customers_35']);
+    const next = session.milestoneTracks().find((t) => t.track.id === 'customers_open')!.next!;
+    expect(next).toMatchObject({ def: { id: 'milestone.customers_45' }, blocked: true, waitDays: gap.days });
+    for (let d = 1; d < gap.days; d++) {
+      session.endDay('home');
+      session.tickClock(1 / content.dayNight.minutesPerSecond);
+    }
+    expect(gated()).toHaveLength(1);
+    session.endDay('home');
+    session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(gated().map((m) => m.id)).toEqual(['milestone.customers_35', 'milestone.customers_45']);
+  });
+});

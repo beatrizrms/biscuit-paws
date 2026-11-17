@@ -79,7 +79,7 @@ import {
 import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
-import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
+import { recipeGapWait, milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, markGoalStepsDone, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
 import {
@@ -4300,7 +4300,7 @@ export class GameSession {
 
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
   milestoneTracks(): TrackView[] {
-    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()), this.state.day);
   }
 
   /**
@@ -4315,7 +4315,14 @@ export class GameSession {
     // selo das receitas não espera a inauguração.
     const values = silent ? { ...this.milestoneValues(), servedOpen: this.state.service.served } : this.milestoneValues();
     const when = (c: Condition, m?: { reward: { kind: string } }) => (silent && m?.reward.kind === 'recipe') || evaluate(c, this.state, this.storyContext());
-    const met = this.content.milestones.milestones.filter((m) => s.reached[m.id] === undefined && milestoneMet(this.content.milestones, m, values, (c) => when(c, m)));
+    let met = this.content.milestones.milestones.filter((m) => s.reached[m.id] === undefined && milestoneMet(this.content.milestones, m, values, (c) => when(c, m)));
+    // Conquistas de receita (recipeGap): uma de cada vez, a próxima só depois do intervalo de dias (a menor primeiro).
+    if (!silent && this.content.milestones.recipeGap) {
+      const data = this.content.milestones;
+      const gated = met.filter((m) => m.reward.kind === 'recipe' && data.recipeGap!.tracks.includes(m.track)).sort((a, b) => a.at - b.at);
+      const pass = gated[0] && recipeGapWait(data, s, gated[0], this.state.day) === 0 ? gated[0] : undefined;
+      met = met.filter((m) => !gated.includes(m) || m === pass);
+    }
     // Anota todos antes dos efeitos: receber um presente volta para a história, que confere de novo.
     for (const m of met) s.reached[m.id] = this.state.day;
     if (silent) return;
