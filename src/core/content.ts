@@ -122,7 +122,8 @@ export interface ItemDef {
   display?: { slots: number; fullTile?: string };
   /**
    * Tigela e caixa de areia: a arte cheia (`full`, no dia em que ela encheu ou trocou: PlacedItem.refilledOn) e a vazia
-   * (`empty`, nos outros dias). Sem uma delas, vale o `tile` de sempre.
+   * (`empty`, nos outros dias). Nos automáticos (autoDays), cheia com ração ou areia guardada (PlacedItem.stock > 0).
+   * Sem uma delas, vale o `tile` de sempre.
    */
   fillTiles?: { full?: string; empty?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */

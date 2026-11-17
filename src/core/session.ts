@@ -4648,7 +4648,7 @@ export class GameSession {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;
-    }, (p) => p.refilledOn === this.state.day, (p) => {
+    }, (p) => (this.content.items[p.item]?.autoDays ? (p.stock ?? 0) > 0 : p.refilledOn === this.state.day), (p) => {
       // Balcão que se completa: o módulo pelos vizinhos da mesma cor (items.json: variants.autotile).
       const piece = autotilePiece(this.content.variants, this.state.placed, p.item, p.at);
       return piece ? this.content.items[piece]?.tile : undefined;

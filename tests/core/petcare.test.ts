@@ -159,6 +159,17 @@ describe('automáticos', () => {
     expect(back.state.inventory['item.auto_feeder'] ?? 0).toBe(0);
   });
 
+  it('automáticos: a arte cheia com ração ou areia guardada; sem estoque, a de sempre', () => {
+    const { session, state } = cafe({ auto: true });
+    const tileOf = (uid: string) => session.mapData().objects.find((o) => o.id.endsWith(uid))?.tile;
+    expect(tileOf('p90')).toBe('pet_auto_feeder');
+    expect(tileOf('p91')).toBe('pet_auto_litter');
+    state.placed.find((p) => p.uid === 'p90')!.stock = 4;
+    state.placed.find((p) => p.uid === 'p91')!.stock = 1;
+    expect(tileOf('p90')).toBe('pet_auto_feeder_cheio');
+    expect(tileOf('p91')).toBe('pet_auto_litter_cheia');
+  });
+
   it('o estoque dos automáticos e a areia do dia vão no save', () => {
     const { session, state, hold } = cafe({ auto: true });
     state.inventory['item.cat_litter'] = 4;

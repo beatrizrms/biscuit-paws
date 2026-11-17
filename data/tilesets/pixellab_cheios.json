@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 4,
- "rows": 1,
+ "rows": 2,
  "pieces": {
   "food_bowl_cheia": {
    "col": 0,
@@ -24,6 +24,18 @@
   "caixa_areia_verde_vazia": {
    "col": 3,
    "row": 0,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pet_auto_feeder_cheio": {
+   "col": 0,
+   "row": 1,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "pet_auto_litter_cheia": {
+   "col": 1,
+   "row": 1,
    "w_tiles": 1,
    "h_tiles": 1
   }

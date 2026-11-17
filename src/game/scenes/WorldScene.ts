@@ -507,6 +507,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.session.bus.on('item.upgraded', rebuildIfHome);
     // Tigela enchida e areia trocada: a arte cheia (item.fillTiles).
     this.session.bus.on('bowl.filled', rebuildIfHome);
+    // Pote e caixa automáticos: abasteceu, a arte cheia (com ração ou areia guardada).
+    this.session.bus.on('pet.loaded', rebuildIfHome);
     // Vitrine: a arte cheia (display.fullTile) com algo dentro, a vazia sem nada. Só redesenha quando ela passa de uma
     // para a outra (o primeiro doce que entra, o último que sai), não a cada fatia.
     const displayDrawn = new Map<string, boolean>();
