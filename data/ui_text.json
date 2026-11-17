@@ -747,6 +747,9 @@
     "steps": "Etapas: {steps}",
     "premiumPrice": "premium {price}",
     "premiumAt": "(no {equipment}, com a fruta fresca)",
+    "premiumAlt": "ou no {equipment}:",
+    "profit": "lucro",
+    "batchShort": "fornada · {n} fatias",
     "display": "Vitrine",
     "batch": "Fornada: {name}, {n} fatias (fica na vitrine).",
     "seasonal": "Cardápio: {when}",
@@ -766,6 +769,8 @@
     "shoppingAdded": "Anotado nas Notas: {items}",
     "shoppingNothing": "Nada faltando: o cardápio está abastecido.",
     "capacity": {
+      "short": "Capacidade: {total} clientes",
+      "split": "({standing} em pé / {seated} sentados)",
       "line": "Cabem {total} clientes por vez",
       "detail": "({standing} em pé no balcão, {seated} sentados).",
       "canEat": "Comida: servida na mesa, com prato.",

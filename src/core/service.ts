@@ -318,6 +318,23 @@ export class CafeService {
     return { servings: runs * yields, missing, each: entries.map(([item], i) => ({ item, servings: per[i]! * yields })) };
   }
 
+  /**
+   * O premium da receita, para o quadro do cardápio: as trocas (o ingrediente comum e o premium no lugar dele, com
+   * quantas porções a troca sozinha rende na despensa) e quantas saem premium agora (todas as trocas juntas). O jeito
+   * alternativo (outro equipamento e ingredientes, sempre premium) vem à parte. Sem premium, null.
+   */
+  premiumView(recipeId: string): { swaps: { from: string; to: string; servings: number }[]; servings: number; alternative?: { equipment: string; items: { item: string; servings: number }[] } } | null {
+    const r = this.recipe(recipeId);
+    if (!r || (!r.premium && !r.alternative)) return null;
+    const subs = r.premium ?? {};
+    const yields = r.batch?.yields ?? 1;
+    const entries = Object.entries(r.ingredients);
+    const swaps = entries.filter(([item]) => subs[item]).map(([item, n]) => ({ from: item, to: subs[item]!, servings: Math.floor(this.doses(subs[item]!) / n) * yields }));
+    const servings = swaps.length > 0 ? Math.min(...entries.map(([item, n]) => Math.floor(this.doses(subs[item] ?? item) / n))) * yields : 0;
+    const alt = r.alternative ? { equipment: r.alternative.equipment, items: Object.entries(r.alternative.ingredients).map(([item, n]) => ({ item, servings: Math.floor(this.doses(item) / n) * yields })) } : undefined;
+    return { swaps, servings, ...(alt ? { alternative: alt } : {}) };
+  }
+
   /** Ingredientes do jeito alternativo (receita.alternative): todos precisam ter doses, e sai sempre premium. */
   private alternativeIngredients(r: RecipeDef): { ok: boolean; quality: Quality; use: [string, number][] } {
     const use = Object.entries(r.alternative?.ingredients ?? {});

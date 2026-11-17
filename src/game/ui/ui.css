@@ -764,6 +764,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Capacidade no quadro do cardápio */
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 4px 6px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.4; color: var(--ink); background: var(--cream2); border-radius: 4px; }
+.catalog.menu-board .m-dishes { margin: 4px 0 0; color: var(--cream2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .shopping-add { display: block; margin: 3px 0; padding: 2px 6px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.shop .list { overflow-x: hidden; }
 .catalog .cart-row { box-sizing: border-box; }
@@ -1417,6 +1418,27 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-profit { color: var(--c-green-dark); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-money { color: var(--c-green-dark); font-weight: bold; }
+/* Receita aberta (visual): a conta da despensa com ícones, a faixa do premium, etiquetas e o lucro. */
+.catalog.menu-board .coin-img { width: 7px; height: 7px; margin-right: 1px; image-rendering: pixelated; vertical-align: -1px; }
+.catalog.menu-board .m-coins { display: inline-flex; align-items: center; white-space: nowrap; }
+.catalog.menu-board .m-calc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.catalog.menu-board .m-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border-radius: 8px; background: var(--c-paper); color: var(--ink); font-weight: bold; cursor: pointer; }
+.catalog.menu-board .m-chip.limit { box-shadow: inset 0 0 0 1px var(--c-wood-dark); }
+.catalog.menu-board .m-chip.none { background: var(--c-terra); color: var(--c-white); }
+.catalog.menu-board .m-chip.result { background: var(--c-green-pale); }
+.catalog.menu-board .m-chip.result.none { background: var(--c-terra); color: var(--c-white); }
+.catalog.menu-board .m-op { color: var(--c-ink3); font-weight: bold; }
+.catalog.menu-board .m-prem { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 2px 5px; border-radius: 6px; background: var(--butter2); color: var(--ink); font-weight: bold; }
+.catalog.menu-board .m-prem .m-swaps { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.catalog.menu-board .m-swap { display: inline-flex; align-items: center; gap: 2px; }
+.catalog.menu-board .m-alt { font-weight: normal; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.catalog.menu-board .m-tag { padding: 0 4px; border-radius: 6px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-tag.season { color: var(--c-olive); font-weight: bold; }
+.catalog.menu-board .m-foot { display: flex; align-items: center; gap: 4px; }
+.catalog.menu-board .m-foot .m-profit { flex: 1; }
+.catalog.menu-board .m-foot button { align-self: auto; }
+.catalog.menu-board .b-price .coin-img { width: 6px; height: 6px; }
 
 /* Os passos extras da meta (os preparativos da inauguração): um bloco embaixo, com título, marca "1 por dia" / "hoje ✓". */
 .hud-goals .g-extras { margin: 6px 0 2px; padding-top: 4px; border-top: 1px dashed var(--c-sand); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); letter-spacing: 0.04em; color: var(--c-ink3); }
