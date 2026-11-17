@@ -732,8 +732,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateAmbient();
     this.updateTraffic();
     // Controles de toque só quando ela pode andar e agir: com qualquer coisa por cima do jogo (fala, pergunta, cena,
-    // placa, janela, pausa), somem (a camada deles fica acima da interface e cobriria os botões da janela).
-    touch.setHidden(this.ui.isBusy());
+    // placa, janela, pausa), somem (a camada deles fica acima da interface e cobriria os botões da janela). Na seleção
+    // da área da reforma (o pintor), também: o toque é para escolher os tiles, e os botões cobriam o piso.
+    touch.setHidden(this.ui.isBusy() || this.areaSelect !== null);
     // Sentada no sofá: fica parada; andar levanta.
     if (this.session.resting() && (input.up || input.down || input.left || input.right)) this.session.stopRest();
     if (!this.session.resting()) {
