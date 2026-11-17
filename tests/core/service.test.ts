@@ -1243,5 +1243,6 @@ describe('a fama traz gente (reputationArrival)', () => {
     }
     if (process.env.SHOW_ARRIVALS) console.log("chegadas em 4 dias", { low, high });
     expect(high).toBeGreaterThan(low * 1.6);
-  });
+    // Simula 8 dias inteiros (uns 2 s sozinho): com a suíte toda junto passava dos 5 s às vezes.
+  }, 30_000);
 });

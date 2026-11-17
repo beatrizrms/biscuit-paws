@@ -3673,26 +3673,47 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const carrying = this.session.service.waiterCarrying();
     for (const s of this.session.state.surfaces) {
       if (carrying && s.at[0] === carrying[0] && s.at[1] === carrying[1] && s.item.kind === 'drink') continue;
-      // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente. Tampo
-      // mais alto que o balcão (a mesa alta: item.topLift), sobe a diferença. Solta no chão (o E na frente, sem móvel):
-      // fica no piso, sem subir (subindo, parecia dentro do balcão de trás).
+      // Em cima do móvel da célula (balcão, mesa, mesa alta): no meio do tampo, a altura dele (item.topLift ou
+      // counterLift) mais world.surfaceDepth para dentro (antes ficava na borda da frente). Em cima de um equipamento (a
+      // cafeteira no balcão): na frente dele, como antes. Solta no chão (o E na frente, sem móvel): no piso, sem subir.
       const base = (s.at[1] + 1) * ts;
-      const lift = this.session.content.world.counterLift ?? 0;
-      const hosts = this.session.placedAllAt(s.at).map((x) => this.session.content.items[x.item]?.topLift ?? 0);
-      const higher = Math.max(0, ...hosts.map((t) => t - lift));
-      const y = this.session.service.onFloor(s.at) ? base - 4 : base - 12 - higher;
+      const world = this.session.content.world;
+      const items = this.session.content.items;
+      const lift = world.counterLift ?? 0;
+      const here = this.session.placedAllAt(s.at);
+      const host = here.find((x) => !items[x.item]?.placeOn);
+      const onEquipment = here.some((x) => items[x.item]?.placeOn);
+      const higher = Math.max(0, ...here.map((x) => (items[x.item]?.topLift ?? 0) - lift));
+      const y = this.session.service.onFloor(s.at)
+        ? base - 4
+        : onEquipment || !host
+        ? base - 12 - higher
+        : base - this.surfaceY(host, s.at);
+      // No móvel de duas linhas (a mesa 2x2), a louça da linha de cima fica na frente do tampo: a profundidade é a da base dele.
+      const hostDef = host ? this.session.content.catalog.tiles[items[host.item]?.tile ?? ''] : undefined;
+      const front = host && hostDef && !onEquipment ? Math.max(base, (host.at[1] + hostDef.h) * ts) : base;
+      const dx = host && !onEquipment && !this.session.service.onFloor(s.at) ? items[host.item]?.surfaceX ?? 0 : 0;
       // Pronto para pegar (pedido ou massa): o tracejado pulsa embaixo da louça, onde ela estiver (tampo ou chão). Na
       // arte (32 x 32), a oval fica no alto da imagem (centro na linha 6): o centro vai um pouco acima da base da louça.
       if (s.item.kind === 'drink' || s.item.kind === 'wip') {
-        const marker = this.add.sprite((s.at[0] + 0.5) * ts, y - 5, 'ready_0').setOrigin(0.5, 6 / 32).setDepth(ySortDepth(base) + 4);
+        const marker = this.add.sprite((s.at[0] + 0.5) * ts + dx, y - 5, 'ready_0').setOrigin(0.5, 6 / 32).setDepth(ySortDepth(front) + 4);
         marker.play('ready-pulse');
         this.surfaceIcons.push(marker as unknown as Phaser.GameObjects.Image);
       }
       const img = this.handItemImage(s.item);
       if (!img) continue;
-      img.setPosition((s.at[0] + 0.5) * ts, y).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
+      img.setPosition((s.at[0] + 0.5) * ts + dx, y).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(front) + 5);
       this.surfaceIcons.push(img);
     }
+  }
+
+  /** A que altura fica a base da louça solta no tampo deste móvel, nesta célula (item.surfaceY, por linha do tile). */
+  private surfaceY(host: { item: string; at: Cell }, at: Cell): number {
+    const def = this.session.content.items[host.item];
+    const w = this.session.content.world;
+    const y = def?.surfaceY;
+    if (Array.isArray(y)) return y[Math.max(0, Math.min(y.length - 1, at[1] - host.at[1]))] ?? 0;
+    return y ?? (def?.topLift ?? w.counterLift ?? 0) + (w.surfaceDepth ?? 0);
   }
 
   /** Imagem do que está na mão (bebida: ícone da receita; louça suja: ícone apagado; item: ícone do item). */

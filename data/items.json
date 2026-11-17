@@ -621,6 +621,7 @@
       "description": "Bancada presa na parede para tomar em pé: os clientes do cafezinho rápido ficam embaixo dela, e o balcão fica livre para você trabalhar. Vai na parede, como os quadros.",
       "price": 70,
       "tile": "bar_ledge_front",
+      "surfaceY": 15,
       "stand": { "sides": ["down"], "lean": 6 },
       "topLift": 14,
       "tags": [
@@ -636,6 +637,8 @@
       "description": "Bancada para tomar em pé, presa na parede da esquerda: os clientes ficam de lado, ao longo dela.",
       "price": 60,
       "tile": "bar_ledge_left",
+      "surfaceY": [10, 24],
+      "surfaceX": -4,
       "stand": { "sides": ["right"], "allRows": true, "lean": 21 },
       "tags": [
         "furniture",
@@ -650,6 +653,8 @@
       "description": "Bancada para tomar em pé, presa na parede da direita: os clientes ficam de lado, ao longo dela.",
       "price": 60,
       "tile": "bar_ledge_right",
+      "surfaceY": [10, 24],
+      "surfaceX": 4,
       "stand": { "sides": ["left"], "allRows": true, "lean": 21 },
       "tags": [
         "furniture",
@@ -664,6 +669,7 @@
       "description": "Mesa de bistrô para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
       "price": 55,
       "tile": "table_tall_round",
+      "surfaceY": 31,
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
       "topBaseRow": true,
@@ -680,6 +686,7 @@
       "description": "Mesa de bistrô quadrada para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
       "price": 55,
       "tile": "table_tall_square",
+      "surfaceY": 30,
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
       "topBaseRow": true,
@@ -696,6 +703,7 @@
       "description": "Mesa comprida para os clientes: cabem mais cadeiras em volta (cada cadeira encostada vira um lugar).",
       "price": 110,
       "tile": "table_wide_oval",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -710,6 +718,7 @@
       "description": "Mesa quadrada para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_square",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -724,6 +733,7 @@
       "description": "Mesa grande para grupos: cadeiras dos lados e na frente viram lugares.",
       "price": 140,
       "tile": "table_square_big",
+      "surfaceY": [10, 30],
       "topLift": 12,
       "tags": [
         "furniture",
@@ -738,6 +748,7 @@
       "description": "Mesa para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_round",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -3156,6 +3167,7 @@
       "description": "Decoração do quintal: mesa redonda de jardim.",
       "price": 45,
       "tile": "yard_mesa_redonda_branca",
+      "surfaceY": [8, 32],
       "topLift": 12,
       "tags": [
         "furniture",

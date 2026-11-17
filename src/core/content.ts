@@ -106,6 +106,14 @@ export interface ItemDef {
    */
   topBaseRow?: boolean;
   /**
+   * Louça e objetos soltos no tampo: a que altura (px acima da base da célula) fica a base deles, logo atrás da borda da
+   * frente do tampo (medido na arte). Lista: um valor por linha do tile, de cima para baixo (mesa 2x2). Sem o campo,
+   * topLift (ou counterLift) mais world.surfaceDepth.
+   */
+  surfaceY?: number | number[];
+  /** Tampo fora do meio da célula (a bancada lateral, encostada na parede): quanto a louça anda para o lado (px). */
+  surfaceX?: number;
+  /**
    * Para tomar em pé (bancada de parede, mesa alta): de que lados das células o cliente fica, virado para ela. Só a
    * linha de baixo (a peça alta sobe no desenho), ou todas (`allRows`: a bancada da parede do lado, deitada no chão).
    */
@@ -430,6 +438,11 @@ export interface WorldData {
   dailyDirt: number;
   /** Pixels que um equipamento sobe quando está em cima do balcão. */
   counterLift?: number;
+  /**
+   * Louça e objetos soltos num tampo sem item.surfaceY (balcões, móveis do quarto): a base fica este tanto (px) acima
+   * do topLift do móvel (ou do counterLift), para dentro do tampo, longe da borda da frente.
+   */
+  surfaceDepth?: number;
   /** Ação -> item que precisa estar ativo na barra (sweep: varrer sujeira e neve). */
   tools: { sweep: string };
   /**
