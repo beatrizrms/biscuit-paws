@@ -818,7 +818,11 @@ export class GameUi {
     for (const v of this.session.gatheringsView()) {
       const t = v.def.texts;
       today.push(this.row(`<b>${esc(v.today ? t.goalToday : t.goal)}</b>`, { html: true }));
-      if (v.prep && t.prep) today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { right: this.pips(v.prep[0], v.prep[1]) }));
+      // O preparo: feito (tudo no lugar), marcado como feito; o quanto falta, só no contador da direita.
+      if (v.prep && t.prep) {
+        const ready = v.prep[0] >= v.prep[1];
+        today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { cls: ready ? 'done' : '', right: this.pips(v.prep[0], v.prep[1]) }));
+      }
     }
     // Pedidos dos amigos (não expiram): quem pediu, o que fazer e quanto falta.
     for (const r of this.session.friendRequests()) {
