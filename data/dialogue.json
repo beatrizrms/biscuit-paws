@@ -1531,16 +1531,6 @@
           "text": "Olha só essa praça florida! E o café, então, parece um jardim."
         },
         {
-          "speaker": "Dona Neusa",
-          "npc": "npc.neusa",
-          "text": "Na minha época, o piquenique da primavera era a festa mais esperada da rua. Que saudade."
-        },
-        {
-          "speaker": "Joca",
-          "npc": "npc.joca",
-          "text": "Eu trouxe sanduíche! E um petisco para os gatos, claro."
-        },
-        {
           "speaker": "{player}",
           "text": "Que bom ter vocês aqui. Os gatos também acharam ótimo."
         }
@@ -1551,7 +1541,7 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
-          "text": "Que tarde gostosa. Ano que vem tem de novo, combinado?"
+          "text": "Olha o céu ficando laranja... Que tarde gostosa. Ano que vem tem de novo, combinado?"
         },
         {
           "speaker": "{player}",
@@ -1814,6 +1804,68 @@
         {
           "speaker": "",
           "text": "A turma se despede aos poucos, entre abraços, panetone e gatos pedindo um pedacinho de tudo."
+        }
+      ]
+    },
+    "dlg.picnic_hello_gabi": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Chegou! Vem, a toalha já está esticada e o Joca já escolheu o lugar dele."
+        }
+      ]
+    },
+    "dlg.picnic_hello_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Trouxe bolo de fubá, receita da minha mãe. Hoje ninguém sai daqui com fome."
+        }
+      ]
+    },
+    "dlg.picnic_joca": {
+      "lines": [
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
+          "text": "Joca, esse sanduíche é da gente! ...Tá bom, tá bom. Só um pedacinho."
+        }
+      ]
+    },
+    "dlg.picnic_story_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Na minha época, o piquenique da primavera era a festa mais esperada da rua."
+        },
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Tinha corrida de saco, e o padeiro passava com pão doce para todo mundo. Uma vez eu caí de cara no gramado!"
+        },
+        {
+          "speaker": "{player}",
+          "text": "Corrida de saco! Ano que vem a gente faz uma."
+        }
+      ]
+    },
+    "dlg.picnic_time": {
+      "lines": [
+        {
+          "speaker": "",
+          "text": "Entre bolo, sanduíche e histórias, a tarde passa sem ninguém ver."
+        }
+      ]
+    },
+    "dlg.picnic_bye_neusa": {
+      "lines": [
+        {
+          "speaker": "Dona Neusa",
+          "npc": "npc.neusa",
+          "text": "Obrigada pelo convite. Fazia tempo que eu não ria tanto."
         }
       ]
     }
