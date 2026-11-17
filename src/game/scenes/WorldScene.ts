@@ -344,7 +344,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private eatQueue: string[] = [];
   private bowlUid = '';
   private nextSnackAt = 0;
-  private autoWalk: { x: number; y: number; resolve: () => void; best?: number; since?: number; verticalFirst?: boolean } | null = null;
+  private autoWalk: { x: number; y: number; resolve: () => void; best?: number; since?: number; verticalFirst?: boolean; lastDx?: number; lastDy?: number } | null = null;
   private catColliders: Phaser.Physics.Arcade.Collider[] = [];
   /** Depois de passar por uma porta, só usa outra quando a jogadora soltar a seta para cima (sem vai e vem). */
   private doorLocked = false;
@@ -4894,15 +4894,28 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    */
   private autoWalkInput(): { up: boolean; down: boolean; left: boolean; right: boolean } {
     const t = this.autoWalk!;
-    const dx = t.x - this.player.x;
-    const dy = t.y - this.player.y;
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    let dx = t.x - this.player.x;
+    let dy = t.y - this.player.y;
+    // Passou do alvo num eixo (com poucos quadros por segundo, um passo anda mais que a tolerância): encaixa nesse eixo,
+    // senão ela ficava indo e voltando em volta do alvo (o piquenique, no iPhone).
+    if (t.lastDx !== undefined && Math.sign(dx) !== 0 && Math.sign(dx) !== Math.sign(t.lastDx) && Math.abs(dx) < 24) {
+      body.reset(t.x, this.player.y);
+      dx = 0;
+    }
+    if (t.lastDy !== undefined && Math.sign(dy) !== 0 && Math.sign(dy) !== Math.sign(t.lastDy) && Math.abs(dy) < 24) {
+      body.reset(this.player.x, t.y);
+      dy = 0;
+    }
+    t.lastDx = dx;
+    t.lastDy = dy;
     const done = () => {
       this.autoWalk = null;
       t.resolve();
       return NO_INPUT;
     };
     if (Math.abs(dx) <= 1.5 && Math.abs(dy) <= 1.5) {
-      (this.player.body as Phaser.Physics.Arcade.Body).reset(t.x, t.y);
+      body.reset(t.x, t.y);
       return done();
     }
     const dist = Math.abs(dx) + Math.abs(dy);
