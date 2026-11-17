@@ -79,7 +79,7 @@ import {
 import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
-import { recipeGapWait, milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
+import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type SeasonNow, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, markGoalStepsDone, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
 import {
@@ -434,6 +434,7 @@ export class GameSession {
     }
     this.repairPlaced();
     this.service.mergeDisplays();
+    this.markKnownRecipeMilestones();
   }
 
   /** O item "para viagem" que está na mão agora (saiu da barra), para saber quando ele sai da mão por outro caminho. */
@@ -503,6 +504,20 @@ export class GameSession {
       if (box) { for (const id of Object.keys(box)) moveBetween(box, this.state.inventory, id); delete this.state.petBoxes[uid]; }
       delete this.state.displays[uid]; delete this.state.washers[uid]; delete this.state.wear[uid];
       this.repairedItems.push(removed!.item);
+    }
+  }
+
+  /**
+   * Save de antes das metas da estação (decisão 267): conquista de receita cujas receitas ela já sabe fica conquistada,
+   * no dia em que aprendeu (sem tela de novo e sem gastar a meta desta estação).
+   */
+  private markKnownRecipeMilestones(): void {
+    const s = this.state.milestones;
+    for (const m of this.content.milestones.milestones) {
+      if (s.reached[m.id] !== undefined || m.reward.kind !== 'recipe') continue;
+      if (!m.reward.ids.every((id) => this.state.flags[`recipe.known.${id}`])) continue;
+      const days = m.reward.ids.map((id) => this.state.recipesOn[id]).filter((d): d is number => d !== undefined);
+      s.reached[m.id] = days.length ? Math.min(...days) : 0;
     }
   }
 
@@ -4279,6 +4294,7 @@ export class GameSession {
     return {
       served: this.state.service.served,
       servedOpen: this.servedSinceOpening(),
+      servedSeason: this.servedThisSeason(),
       catsEver: this.catsEverSheltered(),
       reputation: this.reputation(),
       'streak.no_gave_up': st.no_gave_up.best,
@@ -4287,20 +4303,38 @@ export class GameSession {
     };
   }
 
+  /** A estação de agora e o dia em que começou (as metas da estação contam dali). */
+  seasonNow(): SeasonNow {
+    const per = this.content.seasons.daysPerSeason;
+    const day = this.state.day;
+    return { season: this.season(), start: day - ((Math.max(1, day) - 1) % per) };
+  }
+
+  /**
+   * Clientes atendidos nesta estação (as metas da estação, decisão 267): os dias fechados da estação (o registro guarda
+   * uma estação inteira) mais o de hoje; só depois da inauguração.
+   */
+  servedThisSeason(): number {
+    const { start } = this.seasonNow();
+    const st = this.state.stats;
+    const season = st.days.filter((d) => d.day >= start).reduce((n, d) => n + d.served, 0) + st.today.served;
+    return Math.min(season, this.servedSinceOpening());
+  }
+
   /**
    * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
    * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
    */
   nextAchievement(): { trackName: string; name: string; value: number; at: number; reward: string } | null {
-    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.def.at);
-    const best = open.sort((a, b) => b.next!.value / b.next!.def.at - a.next!.value / a.next!.def.at || a.next!.def.at - a.next!.value - (b.next!.def.at - b.next!.value))[0];
+    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.at);
+    const best = open.sort((a, b) => b.next!.value / b.next!.at - a.next!.value / a.next!.at || a.next!.at - a.next!.value - (b.next!.at - b.next!.value))[0];
     if (!best?.next) return null;
-    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.def.at, reward: best.next.def.reward.kind };
+    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.at, reward: best.next.def.reward.kind };
   }
 
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
   milestoneTracks(): TrackView[] {
-    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()), this.state.day);
+    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()), this.seasonNow());
   }
 
   /**
@@ -4315,14 +4349,7 @@ export class GameSession {
     // selo das receitas não espera a inauguração.
     const values = silent ? { ...this.milestoneValues(), servedOpen: this.state.service.served } : this.milestoneValues();
     const when = (c: Condition, m?: { reward: { kind: string } }) => (silent && m?.reward.kind === 'recipe') || evaluate(c, this.state, this.storyContext());
-    let met = this.content.milestones.milestones.filter((m) => s.reached[m.id] === undefined && milestoneMet(this.content.milestones, m, values, (c) => when(c, m)));
-    // Conquistas de receita (recipeGap): uma de cada vez, a próxima só depois do intervalo de dias (a menor primeiro).
-    if (!silent && this.content.milestones.recipeGap) {
-      const data = this.content.milestones;
-      const gated = met.filter((m) => m.reward.kind === 'recipe' && data.recipeGap!.tracks.includes(m.track)).sort((a, b) => a.at - b.at);
-      const pass = gated[0] && recipeGapWait(data, s, gated[0], this.state.day) === 0 ? gated[0] : undefined;
-      met = met.filter((m) => !gated.includes(m) || m === pass);
-    }
+    const met = newlyMet(this.content.milestones, s, values, when, this.seasonNow());
     // Anota todos antes dos efeitos: receber um presente volta para a história, que confere de novo.
     for (const m of met) s.reached[m.id] = this.state.day;
     if (silent) return;
@@ -5506,7 +5533,8 @@ export class GameSession {
       seasons: this.content.seasons,
       milestoneMet: (id) => {
         const m = this.content.milestones.milestones.find((x) => x.id === id);
-        return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+        // Conquistado (as metas da estação só valem assim) ou, nas de quantidade, o número já alcançado.
+        return !!m && (this.state.milestones.reached[id] !== undefined || milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext())));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
       eventDay: () => this.isEventDay(),

@@ -292,7 +292,7 @@
       "vessel": "plate",
       "price": 18,
       "unlock": {
-        "milestone": "milestone.customers_100"
+        "milestone": "milestone.season_spring_2"
       },
       "display": true,
       "batch": {
@@ -345,7 +345,7 @@
       "vessel": "plate",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_120"
+        "milestone": "milestone.season_summer_2"
       },
       "display": true,
       "seasons": [
@@ -371,7 +371,7 @@
       "vessel": "plate",
       "price": 16,
       "unlock": {
-        "milestone": "milestone.customers_120"
+        "milestone": "milestone.season_winter_2"
       },
       "display": true,
       "seasons": [
@@ -397,7 +397,7 @@
       "vessel": "plate",
       "price": 10,
       "unlock": {
-        "milestone": "milestone.customers_130"
+        "milestone": "milestone.season_summer_3"
       },
       "display": true,
       "seasons": [
@@ -423,7 +423,7 @@
       "vessel": "plate",
       "price": 12,
       "unlock": {
-        "milestone": "milestone.customers_130"
+        "milestone": "milestone.season_autumn_3"
       },
       "display": true,
       "seasons": [
@@ -450,7 +450,7 @@
       "vessel": "plate",
       "price": 13,
       "unlock": {
-        "milestone": "milestone.customers_130"
+        "milestone": "milestone.season_spring_3"
       },
       "display": true,
       "seasons": [
@@ -501,7 +501,7 @@
       "vessel": "plate",
       "price": 18,
       "unlock": {
-        "milestone": "milestone.customers_140"
+        "milestone": "milestone.season_winter_3"
       },
       "display": true,
       "seasons": [
@@ -533,7 +533,7 @@
       "vessel": "plate",
       "price": 20,
       "unlock": {
-        "milestone": "milestone.customers_150"
+        "milestone": "milestone.season_autumn_2"
       },
       "display": true,
       "batch": {
@@ -571,7 +571,7 @@
       "vessel": "plate",
       "price": 20,
       "unlock": {
-        "milestone": "milestone.customers_160"
+        "milestone": "milestone.season_summer_3"
       },
       "display": true,
       "seasons": [
@@ -602,7 +602,7 @@
       "vessel": "plate",
       "price": 17,
       "unlock": {
-        "milestone": "milestone.customers_180"
+        "milestone": "milestone.season_autumn_3"
       },
       "display": true,
       "seasons": [
@@ -633,7 +633,7 @@
       "vessel": "plate",
       "price": 18,
       "unlock": {
-        "milestone": "milestone.customers_180"
+        "milestone": "milestone.season_winter_4"
       },
       "display": true,
       "seasons": [
@@ -664,7 +664,7 @@
       "vessel": "plate",
       "price": 17,
       "unlock": {
-        "milestone": "milestone.customers_180"
+        "milestone": "milestone.season_spring_4"
       },
       "display": true,
       "seasons": [
@@ -696,7 +696,7 @@
       "vessel": "plate",
       "price": 15,
       "unlock": {
-        "milestone": "milestone.customers_200"
+        "milestone": "milestone.season_spring_4"
       },
       "display": true,
       "seasons": [
@@ -729,7 +729,7 @@
       "vessel": "plate",
       "price": 15,
       "unlock": {
-        "milestone": "milestone.customers_200"
+        "milestone": "milestone.season_summer_4"
       },
       "display": true,
       "seasons": [
@@ -760,7 +760,7 @@
       "vessel": "plate",
       "price": 18,
       "unlock": {
-        "milestone": "milestone.customers_220"
+        "milestone": "milestone.season_summer_4"
       },
       "display": true,
       "seasons": [
@@ -792,7 +792,7 @@
       "vessel": "plate",
       "price": 22,
       "unlock": {
-        "milestone": "milestone.customers_250"
+        "milestone": "milestone.season_autumn_4"
       },
       "display": true,
       "seasons": [
@@ -822,7 +822,7 @@
       "vessel": "plate",
       "price": 32,
       "unlock": {
-        "milestone": "milestone.customers_250"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -850,7 +850,7 @@
       "vessel": "cup",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_winter_1"
       },
       "temp": "hot",
       "seasons": [
@@ -898,7 +898,7 @@
       "vessel": "cup",
       "price": 10,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_winter_1"
       },
       "temp": "hot",
       "seasons": [
@@ -930,7 +930,7 @@
       "vessel": "plate",
       "price": 20,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_spring_1"
       },
       "seasons": [
         "spring"
@@ -960,7 +960,7 @@
       "vessel": "glass",
       "price": 16,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_spring_1"
       },
       "temp": "cold",
       "seasons": [
@@ -987,7 +987,7 @@
       "unlock": {
         "any": [
           {
-            "milestone": "milestone.customers_50"
+            "milestone": "milestone.season_summer_1"
           },
           {
             "flag": "gathering.icecream_night"
@@ -1017,7 +1017,7 @@
       "vessel": "glass",
       "price": 15,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_summer_1"
       },
       "temp": "cold",
       "seasons": [
@@ -1049,7 +1049,7 @@
       "vessel": "plate",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_autumn_1"
       },
       "seasons": [
         "autumn"
@@ -1075,7 +1075,7 @@
       "vessel": "cup",
       "price": 17,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_autumn_1"
       },
       "temp": "hot",
       "seasons": [
@@ -1107,7 +1107,7 @@
       "vessel": "plate",
       "price": 20,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "batch": {
@@ -1142,7 +1142,7 @@
       "vessel": "plate",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -1177,7 +1177,7 @@
       "vessel": "plate",
       "price": 18,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "batch": {
@@ -1212,7 +1212,7 @@
       "vessel": "plate",
       "price": 12,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -1248,7 +1248,7 @@
       "vessel": "plate",
       "price": 14,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -1276,7 +1276,7 @@
       "vessel": "plate",
       "price": 10,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -1303,7 +1303,7 @@
       "vessel": "plate",
       "price": 9,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "business": "inaugurated"
       },
       "display": true,
       "window": {
@@ -1329,7 +1329,7 @@
       "vessel": "glass",
       "price": 10,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_summer_2"
       },
       "temp": "cold",
       "seasons": [
@@ -1362,7 +1362,7 @@
       "vessel": "plate",
       "price": 20,
       "unlock": {
-        "milestone": "milestone.customers_50"
+        "milestone": "milestone.season_autumn_2"
       },
       "seasons": [
         "summer",
