@@ -38,6 +38,8 @@ export interface Customer {
   /** Quanto da paciência gastou em pé (fila) e sentado (até ser atendido), de 0 a 1: entra na avaliação. */
   /** Recebeu outra coisa (pedido errado): a nota cai (review.wrongOrder). */
   wrongOrder?: boolean;
+  /** Recebeu o pedido premium: a nota ganha review.premium (meia estrela). */
+  premium?: boolean;
   waits?: Waits;
 }
 
@@ -1045,7 +1047,7 @@ export class CafeService {
     // Desistiu (a paciência acabou): conta nas estatísticas e quebra a sequência "ninguém sai de mãos vazias".
     if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
-    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true);
+    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true, c.premium === true);
     recordReview(this.st.stats, stars);
     // A reputação do atendimento vem uma vez por dia, pela média (session: statsAtDayEnd).
     this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation: 0 });
@@ -1549,6 +1551,7 @@ export class CafeService {
       c.wrongOrder = true;
       c.recipe = served.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
     }
+    if (quality === 'premium') c.premium = true;
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
     c.waits = { queue: c.waits?.queue ?? 0, seated: this.used(c) };

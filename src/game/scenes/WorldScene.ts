@@ -4102,8 +4102,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const face = happy && stars >= art.happyFrom ? 'review_happy' : 'review_sad';
     let row: Phaser.GameObjects.Container | Phaser.GameObjects.Text;
     if (this.textures.exists(face) && this.textures.exists('review_star')) {
-      const keys = [face, ...Array<string>(stars).fill('review_star')];
+      // Meia estrela (o premium dá 0,5 a mais): a última sai cortada ao meio.
+      const full = Math.floor(stars);
+      const keys = [face, ...Array<string>(full + (stars > full ? 1 : 0)).fill('review_star')];
       const icons = keys.map((k) => this.add.image(0, 0, k).setOrigin(0, 1).setScale(art.scale));
+      if (stars > full) {
+        const half = icons[icons.length - 1]!;
+        half.setCrop(0, 0, half.width / 2, half.height);
+      }
       const width = icons.reduce((w, i) => w + i.displayWidth, 0) + art.gap * (icons.length - 1);
       let left = -width / 2;
       for (const i of icons) {
@@ -4111,7 +4117,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         left += i.displayWidth + art.gap;
       }
       row = this.add.container(x, y, icons).setDepth(99_800);
-    } else row = this.add.text(x, y, '★'.repeat(stars) + '☆'.repeat(5 - stars), style(11, '#f2c45a')).setOrigin(0.5, 1).setDepth(99_800);
+    } else row = this.add.text(x, y, '★'.repeat(Math.round(stars)) + '☆'.repeat(5 - Math.round(stars)), style(11, '#f2c45a')).setOrigin(0.5, 1).setDepth(99_800);
     const rep = reputation ? this.add.text(x, y + 1, (reputation > 0 ? '+' : '−') + Math.abs(reputation) + ' ' + uiText.review.reputation, style(7, reputation > 0 ? '#a8e6a1' : '#ff9aa8')).setOrigin(0.5, 0).setDepth(99_800) : null;
     const targets = rep ? [row, rep] : [row];
     this.tweens.add({ targets, y: '-=14', duration: 1400, ease: 'Sine.easeOut' });

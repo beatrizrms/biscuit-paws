@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dailyReputation, reviewStars, validateReview, type ReviewConfig } from '../../src/core/review';
+import { normalizeStats } from '../../src/core/stats';
 import { loadContent } from './content';
 
 const cfg: ReviewConfig = loadContent().service.review;
@@ -28,5 +29,20 @@ describe('estrelas da avaliação', () => {
     expect(dailyReputation(cfg, [1, 1])).toBe(-2);
     expect(validateReview(cfg)).toEqual([]);
     expect(validateReview({ ...cfg, daily: [] })).toContain('service: review: falta daily (reputação do dia pela média)');
+  });
+});
+
+describe('premium: meia estrela a mais', () => {
+  it('soma review.premium à nota inteira, sem passar de 5; quem desiste não ganha', () => {
+    expect(cfg.premium).toBe(0.5);
+    expect(reviewStars(cfg, { queue: 0.3, seated: 0 }, 0, false, false, true)).toBe(4.5);
+    expect(reviewStars(cfg, { queue: 0, seated: 0 }, 0, false, false, true)).toBe(5);
+    expect(reviewStars(cfg, { queue: 0, seated: 0 }, 0, true, false, true)).toBe(cfg.gaveUp);
+  });
+
+  it('a meia estrela fica no save (a nota do café conta com ela)', () => {
+    const s = normalizeStats({ reviews: [4.5, 3, 2.7], today: { served: 0, gaveUp: 0, doses: {}, sickAtStart: [], stars: [4.5] } }, () => true);
+    expect(s.reviews).toEqual([4.5, 3]);
+    expect(s.today.stars).toEqual([4.5]);
   });
 });
