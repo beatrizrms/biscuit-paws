@@ -1440,7 +1440,7 @@ describe('evolução das receitas', () => {
     session.start(true);
     const unlocked = () => session.service.unlockedRecipes().map((r) => r.id);
     expect(unlocked()).toEqual(['recipe.black_coffee']);
-    session.state.service.served = 6;
+    session.state.service.served = 15;
     session.service.toggleMenu('recipe.black_coffee'); // qualquer ação avança a história
     expect(unlocked()).toContain('recipe.black_tea');
     expect(events.filter((e) => e.name === 'recipe.unlocked').map((e) => e.payload)).toEqual([{ recipeId: 'recipe.black_tea' }]);
@@ -1456,7 +1456,7 @@ describe('evolução das receitas', () => {
     expect(session.itemUnlocked('item.teapot')).toBe(false);
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(false);
     expect(session.buy('item.teapot')).toEqual({ ok: false, reason: 'locked' });
-    session.state.service.served = 6;
+    session.state.service.served = 15;
     learnRecipes(session);
     expect(session.itemUnlocked('item.teapot')).toBe(true);
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(true);

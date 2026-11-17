@@ -58,10 +58,10 @@ describe('selos: dados', () => {
 });
 
 describe('selos na sessão', () => {
-  it('6 clientes: o selo sai uma vez e o chá preto destranca', () => {
+  it('15 clientes: o selo sai uma vez e o chá preto destranca', () => {
     const { session, state, reached } = cafe();
     expect(session.service.recipeStatus('recipe.black_tea')).toBe('locked');
-    state.service.served = 6;
+    state.service.served = 15;
     session.start(false);
     learnRecipes(session);
     expect(reached()).toEqual(['milestone.customers_6']);
@@ -81,7 +81,8 @@ describe('selos na sessão', () => {
     // Antes da inauguração: só o chá preto e o suco; o latte (25) também espera a inauguração.
     expect(track.next).toMatchObject({ def: { id: 'milestone.customers_25' }, value: 25, blocked: true });
     expect(track.reached.map((m) => m.id)).toEqual(['milestone.customers_6', 'milestone.customers_15']);
-    expect(track.hidden).toBe(content.milestones.milestones.filter((m) => m.track === 'customers' && m.at > 25).length);
+    // Falta só o porão (40) depois do latte.
+    expect(track.hidden).toBe(1);
     // As outras receitas contam desde a inauguração: antes dela, 0.
     const open = session.milestoneTracks().find((t) => t.track.id === 'customers_open')!;
     expect(open.reached).toEqual([]);
@@ -202,7 +203,7 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
     expect(state.service.servedAtOpening).toBe(120);
     expect(recipes(session)).toContain('recipe.cafe_latte');
     expect(recipes(session)).not.toContain('recipe.cheese_bread');
-    state.service.served = 120 + 35;
+    state.service.served = 120 + 60;
     session.start(false);
     learnRecipes(session);
     expect(recipes(session)).toContain('recipe.cheese_bread');
@@ -212,10 +213,10 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
   it('save inaugurado sem o registro (de antes desta regra): conta o total, nada some', () => {
     const { session, state } = cafe();
     state.business = 'inaugurated';
-    state.service.served = 120;
+    state.service.served = 240;
     session.start(false);
     learnRecipes(session);
-    expect(session.servedSinceOpening()).toBe(120);
+    expect(session.servedSinceOpening()).toBe(240);
     expect(recipes(session)).toEqual(expect.arrayContaining(['recipe.cheese_bread', 'recipe.green_tea', 'recipe.strawberry_juice']));
   });
 
@@ -224,27 +225,79 @@ describe('ritmo das receitas: o inverno antes da inauguração', () => {
   });
 });
 
-describe('intervalo entre as conquistas de receita (recipeGap)', () => {
-  it('com muitos clientes de uma vez: uma conquista; a próxima só depois de recipeGap.days dias', () => {
-    const gap = content.milestones.recipeGap!;
+describe('metas da estação (contador que zera)', () => {
+  const day = (season: string, d = 1) => content.seasons.order.indexOf(season) * content.seasons.daysPerSeason + d;
+  const open = (d: number) => {
     const state = newGameState(5000, 'map.cafe_main', 9 * 60);
+    state.day = d;
     state.business = 'inaugurated';
     state.service.servedAtOpening = 0;
     const session = new GameSession(content, state);
     session.start(false);
-    state.service.served = 700;
+    return { session, state };
+  };
+  const serve = (state: ReturnType<typeof open>['state'], n: number) => {
+    state.stats.today.served += n;
+    state.service.served += n;
+  };
+
+  it('200 clientes na estação: a primeira da fila dela; 450: a segunda; mais nenhuma nesta estação', () => {
+    const { session, state } = open(day('spring', 3));
+    const tick = () => session.tickClock(1 / content.dayNight.minutesPerSecond);
+    serve(state, 199);
+    tick();
+    expect(state.milestones.reached['milestone.season_spring_1']).toBeUndefined();
+    const view = session.milestoneTracks().find((t) => t.track.id === 'season_spring')!;
+    expect(view.next).toMatchObject({ def: { id: 'milestone.season_spring_1' }, at: 200, value: 199 });
+    expect(session.milestoneTracks().some((t) => t.track.id === 'season_summer')).toBe(false);
+    serve(state, 1);
+    tick();
+    expect(state.milestones.reached['milestone.season_spring_1']).toBe(state.day);
+    serve(state, 1000);
+    tick();
+    expect(state.milestones.reached['milestone.season_spring_2']).toBe(state.day);
+    expect(state.milestones.reached['milestone.season_spring_3']).toBeUndefined();
+    expect(session.milestoneTracks().find((t) => t.track.id === 'season_spring')!.next).toBeNull();
+  });
+
+  it('no ano seguinte o contador zerou e a fila continua de onde parou', () => {
+    const year = content.seasons.daysPerSeason * content.seasons.order.length;
+    const { session, state } = open(day('spring', 2) + year);
+    state.milestones.reached['milestone.season_spring_1'] = day('spring', 10);
+    // Os clientes do ano passado não contam (o registro só tem os dias desta estação).
+    state.stats.days = [{ day: day('spring', 10), open: true, served: 500, gaveUp: 0, earned: 0, doses: {}, cats: 0, untreated: 0 }];
+    expect(session.servedThisSeason()).toBe(0);
+    serve(state, 200);
     session.tickClock(1 / content.dayNight.minutesPerSecond);
-    const gated = () => content.milestones.milestones.filter((m) => m.reward.kind === 'recipe' && gap.tracks.includes(m.track) && state.milestones.reached[m.id] !== undefined);
-    expect(gated().map((m) => m.id)).toEqual(['milestone.customers_35']);
-    const next = session.milestoneTracks().find((t) => t.track.id === 'customers_open')!.next!;
-    expect(next).toMatchObject({ def: { id: 'milestone.customers_45' }, blocked: true, waitDays: gap.days });
-    for (let d = 1; d < gap.days; d++) {
-      session.endDay('home');
-      session.tickClock(1 / content.dayNight.minutesPerSecond);
+    expect(state.milestones.reached['milestone.season_spring_2']).toBe(state.day);
+    expect(state.milestones.reached['milestone.season_spring_3']).toBeUndefined();
+  });
+
+  it('toda receita tem de onde vir: uma conquista, uma festa ou o começo', () => {
+    const fromMilestone = new Set(content.milestones.milestones.flatMap((m) => (m.reward.kind === 'recipe' ? m.reward.ids : [])));
+    for (const r of Object.values(content.recipes)) {
+      const u = JSON.stringify(r.unlock ?? {});
+      const ok = !r.unlock || fromMilestone.has(r.id) || u.includes('business') || u.includes('christmasTreat');
+      expect(ok, r.id).toBe(true);
     }
-    expect(gated()).toHaveLength(1);
-    session.endDay('home');
-    session.tickClock(1 / content.dayNight.minutesPerSecond);
-    expect(gated().map((m) => m.id)).toEqual(['milestone.customers_35', 'milestone.customers_45']);
+  });
+});
+
+describe('save de antes das metas da estação', () => {
+  it('conquista cujas receitas ela já sabe fica conquistada no dia em que aprendeu (sem tela, sem gastar a meta)', () => {
+    const state = newGameState(5000, 'map.cafe_main', 9 * 60);
+    state.day = content.seasons.daysPerSeason + 5; // primavera
+    state.flags['recipe.known.recipe.strawberry_tart_slice'] = true;
+    state.flags['recipe.known.recipe.iced_berry_tea'] = true;
+    state.recipesOn['recipe.strawberry_tart_slice'] = 3;
+    state.recipesOn['recipe.iced_berry_tea'] = 3;
+    const session = new GameSession(content, state);
+    expect(state.milestones.reached['milestone.season_spring_1']).toBe(3);
+    expect(state.milestones.reached['milestone.season_spring_2']).toBeUndefined();
+    // A meta desta primavera continua: a primeira dela agora dá a próxima da fila.
+    state.business = 'inaugurated';
+    state.service.servedAtOpening = 0;
+    const view = session.milestoneTracks().find((t) => t.track.id === 'season_spring')!;
+    expect(view.next).toMatchObject({ def: { id: 'milestone.season_spring_2' }, at: 200 });
   });
 });

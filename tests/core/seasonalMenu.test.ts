@@ -10,12 +10,14 @@ const S = content.seasons;
 /** Primeiro dia (do jogo) da estação, no primeiro ano. */
 const firstDay = (season: string) => S.order.indexOf(season) * S.daysPerSeason + 1;
 
-function cafe(day: number, served = 700) {
+function cafe(day: number, served = 700, seasonDone = true) {
   const state = newGameState(5000, 'map.cafe_main', 9 * 60);
   state.day = day;
   state.flags['has.cat'] = true;
   state.service.served = served;
   state.business = 'inaugurated'; // as receitas da estação contam desde a inauguração
+  // As metas de todas as estações já saíram (num ano passado): as receitas de estação valem na época delas.
+  if (seasonDone) for (const m of content.milestones.milestones) if (m.track.startsWith('season_')) state.milestones.reached[m.id] = 0;
   const session = new GameSession(content, state);
   learnRecipes(session);
   return { session, state, sv: session.service };
@@ -76,16 +78,16 @@ describe('cardápio das estações', () => {
     expect(learned).not.toContain('recipe.hot_chocolate');
   });
 
-  it('a conquista do cardápio da estação ensina só as receitas da estação de agora', () => {
-    const { session, state } = cafe(firstDay('spring') + 3, 60);
+  it('a meta da primavera ensina as receitas da primavera, e só elas', () => {
+    const { session, state } = cafe(firstDay('spring') + 3, 250, false);
     session.start(false);
-    // As conquistas de antes já vieram há tempo (o intervalo entre as de receita, recipeGap, já passou).
-    for (const id of ['milestone.customers_35', 'milestone.customers_45']) state.milestones.reached[id] = state.day - 10;
+    learnRecipes(session);
     const learned: string[] = [];
     session.bus.on('recipe.unlocked', (e) => learned.push(e.recipeId));
-    state.service.served = 90;
+    state.service.served += 200;
+    state.stats.today.served += 200;
     session.tickClock(1 / content.dayNight.minutesPerSecond);
-    expect(state.milestones.reached['milestone.customers_50']).toBeDefined();
+    expect(state.milestones.reached['milestone.season_spring_1']).toBeDefined();
     expect(learned).toEqual(expect.arrayContaining(['recipe.strawberry_tart_slice', 'recipe.iced_berry_tea']));
     for (const id of ['recipe.hot_chocolate', 'recipe.panettone_slice', 'recipe.web_cupcake', 'recipe.iced_lemon_tea']) expect(learned).not.toContain(id);
   });

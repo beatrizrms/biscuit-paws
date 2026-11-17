@@ -2,8 +2,8 @@
 // curto por dia fechado, totais do jogo e as sequências de bom comportamento. Puro: sem Phaser, DOM ou window.
 // O total de clientes atendidos já mora em service.served; gatos já abrigados são as entradas de state.cats.
 
-/** Quantos dias fechados ficam no save (o gráfico mostra os últimos 14; a média usa os últimos 7). */
-export const STATS_HISTORY_DAYS = 28;
+/** Quantos dias fechados ficam no save (uma estação inteira: as metas da estação somam dali; o gráfico mostra os últimos 14; a média usa os últimos 7). */
+export const STATS_HISTORY_DAYS = 30;
 /** A média da semana: os últimos 7 dias fechados, divididos só pelos que o café abriu. */
 export const STATS_WEEK_DAYS = 7;
 

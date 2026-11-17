@@ -113,7 +113,7 @@ describe('receitas e cardápio', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
     // Café novo: só o café preto. O chá destranca com clientes atendidos e aí pede o bule.
     expect(sv.recipeStatus('recipe.black_tea')).toBe('locked');
-    session.state.service.served = 15;
+    session.state.service.served = 30;
     learnRecipes(session);
     expect(sv.recipeStatus('recipe.black_tea')).toBe('equipment');
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('equipment');
@@ -185,7 +185,7 @@ describe('receitas e cardápio', () => {
   });
 
   it('o quadro tem slots (dados) e só aceita receita desbloqueada', () => {
-    const { session, sv, state } = openCafe({ served: 15 });
+    const { session, sv, state } = openCafe({ served: 30 });
     expect(sv.toggleMenu('recipe.cafe_latte')).toEqual({ ok: false, reason: 'not_unlocked' });
     expect(sv.toggleMenu('recipe.black_coffee')).toEqual({ ok: true });
     expect(state.menu).toEqual(['recipe.black_coffee']);
@@ -193,7 +193,7 @@ describe('receitas e cardápio', () => {
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true });
     expect(sv.orderable().map((r) => r.id)).toEqual(['recipe.black_coffee']);
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
-    state.service.served = 150;
+    state.service.served = 480;
     state.business = 'inaugurated'; // o chá verde conta desde a inauguração
     learnRecipes(session);
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
@@ -767,7 +767,7 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
 describe('fase 2: forno e receitas em etapas', () => {
   /** Café com fogão, forno, vitrine, mesa, cadeira e ingredientes do pão de queijo; o quadro só com ele. */
   const bakery = () => {
-    const ctx = openCafe({ served: 35 });
+    const ctx = openCafe({ served: 60 });
     const { session, sv } = ctx;
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
@@ -846,7 +846,7 @@ describe('fase 2: forno e receitas em etapas', () => {
   });
 
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
-    const { session, sv } = openCafe({ served: 35 });
+    const { session, sv } = openCafe({ served: 60 });
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
     for (const [id, at] of [['item.counter_single', [2, 8]], ['item.stove', [2, 8]], ['item.display_case', [6, 8]]] as const) {
@@ -909,7 +909,7 @@ describe('fase 2: qualidade e preferências', () => {
 
 describe('equipamentos em cima do balcão', () => {
   it('só vão em cima de um balcão livre; o balcão não sai com algo em cima; não vira lugar de cliente', () => {
-    const { session, sv, state } = openCafe({ served: 6 });
+    const { session, sv, state } = openCafe({ served: 15 });
     const machine = state.placed.find((p) => p.item === 'item.coffee_machine')!;
     const counter = state.placed.find((p) => p.item === 'item.counter_single' && p.at[0] === 7)!;
     // Já tem a cafeteira em cima: o bule não cabe no mesmo balcão.
@@ -1160,7 +1160,7 @@ describe('soltar louça', () => {
 describe('espremedor: suco de fruta fresca, sempre premium', () => {
   /** Café com 15 clientes (o suco de laranja destrancado), um equipamento de suco num balcão e polpa, fruta e açúcar. */
   function juiceBar(equipment: 'item.blender' | 'item.juicer') {
-    const ctx = openCafe({ served: 15 });
+    const ctx = openCafe({ served: 30 });
     const { session, state, sv } = ctx;
     state.money = 2000;
     expect(session.buy(equipment)).toEqual({ ok: true });
@@ -1174,7 +1174,7 @@ describe('espremedor: suco de fruta fresca, sempre premium', () => {
 
   it('o espremedor aparece no Market junto com o suco', () => {
     expect(openCafe().session.itemUnlocked('item.juicer')).toBe(false);
-    expect(openCafe({ served: 15 }).session.itemUnlocked('item.juicer')).toBe(true);
+    expect(openCafe({ served: 30 }).session.itemUnlocked('item.juicer')).toBe(true);
   });
 
   it('no liquidificador o suco usa a polpa e sai simples', () => {
