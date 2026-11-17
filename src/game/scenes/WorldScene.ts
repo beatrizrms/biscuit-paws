@@ -3565,7 +3565,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         // Como a barra: cada espaço com o ícone da porção e quantas sobram; tocar tira uma para a mão.
         const recipes = this.session.content.recipes;
         const slots = this.session.content.items[st.placed.find((p) => p.uid === display.uid)?.item ?? '']?.display?.slots ?? stock.length;
-        const view = stock.map((d) => ({ icon: recipes[d.recipe]?.icon, name: (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''), portions: d.portions }));
+        const view = stock.map((d) => ({ icon: recipes[d.recipe]?.icon, name: (recipes[d.recipe]?.name ?? d.recipe) + (d.quality === 'premium' ? ` ${uiText.service.premium}` : ''), portions: d.portions, premium: d.quality === 'premium' }));
         void this.ui.chooseDisplay(uiText.service.displayAsk, slots, view).then((i) => {
           if (i >= 0 && i < stock.length) report(sv.takeFromDisplay(display.uid, i));
         });

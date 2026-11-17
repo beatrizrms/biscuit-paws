@@ -425,16 +425,37 @@ export class CafeService {
     const i = this.st.hands.findIndex((h) => this.storable(h));
     if (i < 0) return { ok: false, reason: 'nothing_to_store' };
     const slots = (this.st.displays[uid] ??= []);
-    if (slots.length >= def.slots) return { ok: false, reason: 'display_full' };
+    const held = this.st.hands[i]!;
+    // A mesma receita, na mesma qualidade, empilha no espaço que já tem (outra fornada, ou a fatia que voltou).
+    const premium = (held.kind === 'cake' || held.kind === 'drink') && held.quality === 'premium';
+    const same = held.kind === 'cake' || held.kind === 'drink' ? slots.find((s) => s.recipe === held.recipe && (s.quality === 'premium') === premium) : undefined;
+    if (!same && slots.length >= def.slots) return { ok: false, reason: 'display_full' };
     const [h] = this.st.hands.splice(i, 1);
-    if (h!.kind === 'cake') slots.push({ recipe: h!.recipe, portions: h!.portions, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    const add = (portions: number) => {
+      if (same) same.portions += portions;
+      else slots.push({ recipe: (h as { recipe: string }).recipe, portions, ...(premium ? { quality: 'premium' as const } : {}) });
+    };
+    if (h!.kind === 'cake') add(h!.portions);
     else if (h!.kind === 'drink') {
       this.st.dishes[h!.vessel] = (this.st.dishes[h!.vessel] ?? 0) + 1;
-      slots.push({ recipe: h!.recipe, portions: 1, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+      add(1);
     }
     this.h.bus.emit('display.stored', { uid, recipeId: h!.kind === 'cake' || h!.kind === 'drink' ? h!.recipe : '' });
     this.handsChanged();
     return { ok: true };
+  }
+
+  /** Save de antes de empilhar: espaços da mesma receita e qualidade na mesma vitrine viram um só. */
+  mergeDisplays(): void {
+    for (const [uid, slots] of Object.entries(this.st.displays)) {
+      const out: typeof slots = [];
+      for (const s of slots) {
+        const same = out.find((o) => o.recipe === s.recipe && o.quality === s.quality);
+        if (same) same.portions += s.portions;
+        else out.push({ ...s });
+      }
+      this.st.displays[uid] = out;
+    }
   }
 
   /** Tira da vitrine um doce (ou uma fatia do bolo do espaço `index`), num prato limpo. */

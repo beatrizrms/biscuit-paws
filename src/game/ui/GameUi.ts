@@ -1392,17 +1392,17 @@ ${rep}`;
    * A vitrine como a barra: os espaços (com o ícone do que está guardado e quantas porções sobram) lado a lado; tocar
    * (ou 1 a N) tira uma porção dali. Esc, o fundo ou o botão de fechar: nada. Devolve o espaço ou -1.
    */
-  chooseDisplay(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number }[]): Promise<number> {
+  chooseDisplay(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number; premium?: boolean }[]): Promise<number> {
     return this.oneAtATime(() => this.chooseDisplayNow(title, slots, stock));
   }
 
-  private chooseDisplayNow(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number }[]): Promise<number> {
+  private chooseDisplayNow(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number; premium?: boolean }[]): Promise<number> {
     const el = document.createElement('div');
     el.className = 'confirm-layer';
     const cells = Array.from({ length: slots }, (_, i) => {
       const s = stock[i];
       return s
-        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}<span class="count">${s.portions}</span></button>`
+        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}<span class="count">${s.portions}${s.premium ? `<span class="prem">${esc(uiText.service.premium)}</span>` : ''}</span></button>`
         : `<span class="slot empty"></span>`;
     }).join('');
     el.innerHTML = `<div class="panel confirm display-pick"><p>${esc(title)}</p><div class="slots">${cells}</div><button class="close">${esc(uiText.service.extraCancel)}</button></div>`;

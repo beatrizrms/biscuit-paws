@@ -433,6 +433,7 @@ export class GameSession {
       else state.inventory[OLD_BED.item] = 1;
     }
     this.repairPlaced();
+    this.service.mergeDisplays();
   }
 
   /** O item "para viagem" que está na mão agora (saiu da barra), para saber quando ele sai da mão por outro caminho. */
