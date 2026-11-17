@@ -2535,7 +2535,7 @@
       "requires": { "milestone": "milestone.machine_dishwasher" },
       "washer": {
         "capacity": 12,
-        "cycleMinutes": 20
+        "cycleMinutes": 12
       }
     },
     {
