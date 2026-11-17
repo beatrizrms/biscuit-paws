@@ -665,6 +665,10 @@
     "title": "diários",
     "feed": "Dê comida para {cat}",
     "feedAll": "Encha a tigela de ração",
+    "autoFood": "Pote automático: {days} de ração",
+    "autoLitter": "Caixa automática: {days} de areia",
+    "autoDays": "{n} dias",
+    "autoDay": "1 dia",
     "settle": "Ganhe a confiança de {cat}",
     "clinic": {
       "intake": "Leve {cat} à clínica para a consulta de entrada",

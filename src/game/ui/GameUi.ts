@@ -762,6 +762,12 @@ export class GameUi {
         alerts.push(c.sick);
         continue;
       }
+      // Pote ou caixa automáticos abastecidos: feito sozinho; a linha fica, só com os dias guardados.
+      if (ch.done && ch.auto !== undefined) {
+        const days = (ch.auto === 1 ? c.autoDay : c.autoDays).replace('{n}', String(ch.auto));
+        today.push(this.row((ch.kind === 'feed' ? c.autoFood : c.autoLitter).replace('{days}', days), { icon: ch.kind === 'feed' ? 'racao_aberta' : 'areia_balde', cls: 'auto' }));
+        continue;
+      }
       if (ch.done) {
         doneToday++;
         continue;

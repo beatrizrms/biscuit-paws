@@ -988,6 +988,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Aviso no balão: ninguém entra (quadro vazio ou tudo esgotado) */
 .hud-goals .chores li.job.warn { color: var(--berry); font-weight: bold; }
+/* Pote e caixa automáticos abastecidos: feito sozinho, só a informação dos dias. */
+.hud-goals .chores li.auto { color: var(--grey2); }
 
 /* Balão recolhido: só o título da meta; um clique abre os detalhes (.open). Aviso importante: "!" mesmo recolhido. */
 .hud-goals { pointer-events: auto; cursor: pointer; }

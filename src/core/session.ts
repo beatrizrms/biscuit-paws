@@ -1684,9 +1684,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1713,17 +1713,25 @@ export class GameSession {
     }
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
-    // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só.
+    // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só. Com o pote
+    // automático abastecido, já está feita (ele serve sozinho): a linha só mostra os dias guardados (`auto`).
     const home = this.homeCats();
     const fed = home.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
-    if (home.length > 0) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
+    const autoStock = (kind: 'food_bowl' | 'litter_box') =>
+      Math.max(0, ...this.state.placed.filter((p) => { const it = this.content.items[p.item]; return stationKind(it) === kind && !!it?.autoDays; }).map((p) => p.stock ?? 0));
+    const autoFood = autoStock('food_bowl');
+    if (home.length > 0 && autoFood > 0) out.push({ kind: 'feed', done: true, auto: autoFood });
+    else if (home.length > 0) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
     // Cocô no chão (areia suja há dias): varrer e trocar a areia.
     const lpTag = this.content.health.care.litterPoop?.tag;
     if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
     // Areia: trocar a de cada caixa comum todo dia (a automática se vira sozinha).
     const boxes = this.state.placed.filter((p) => { const it = this.content.items[p.item]; return stationKind(it) === 'litter_box' && !it?.autoDays; });
+    // Com a caixa automática abastecida, já está feita: a linha só mostra os dias guardados.
+    const autoLitter = autoStock('litter_box');
+    if (home.length > 0 && autoLitter > 0) out.push({ kind: 'litter', done: true, auto: autoLitter });
     // Com cocô no chão, a linha do cocô já pede para trocar a areia: esta não repete.
-    if (home.length > 0 && boxes.length > 0 && !out.some((c) => c.kind === 'poop')) {
+    else if (home.length > 0 && boxes.length > 0 && !out.some((c) => c.kind === 'poop')) {
       const changed = boxes.filter((p) => p.refilledOn === this.state.day).length;
       out.push({ kind: 'litter', done: changed === boxes.length, progress: [changed, boxes.length] });
     }
