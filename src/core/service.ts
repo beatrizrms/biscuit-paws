@@ -1458,6 +1458,12 @@ export class CafeService {
     return !!solid[at[1]] && solid[at[1]]![at[0]] === false;
   }
 
+  /** O que está nesta célula está no chão (nenhum móvel embaixo), não num tampo: a cena desenha sem subir. */
+  onFloor(at: Cell): boolean {
+    const { items, catalog } = this.h.content;
+    return !this.st.placed.some((p) => catalog.tiles[items[p.item]?.tile ?? '']?.layer === 'object' && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)));
+  }
+
   /** Solta o último objeto da mão (o gato e o saco têm ações próprias). `allowFloor`: false = só em superfície. */
   putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];

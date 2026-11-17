@@ -3682,12 +3682,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const img = this.handItemImage(s.item);
       if (!img) continue;
       // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente. Tampo
-      // mais alto que o balcão (a mesa alta: item.topLift), sobe a diferença.
+      // mais alto que o balcão (a mesa alta: item.topLift), sobe a diferença. Solta no chão (o E na frente, sem móvel):
+      // fica no piso, sem subir (subindo, parecia dentro do balcão de trás).
       const base = (s.at[1] + 1) * ts;
       const lift = this.session.content.world.counterLift ?? 0;
       const hosts = this.session.placedAllAt(s.at).map((x) => this.session.content.items[x.item]?.topLift ?? 0);
       const higher = Math.max(0, ...hosts.map((t) => t - lift));
-      img.setPosition((s.at[0] + 0.5) * ts, base - 12 - higher).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
+      const y = this.session.service.onFloor(s.at) ? base - 4 : base - 12 - higher;
+      img.setPosition((s.at[0] + 0.5) * ts, y).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
       this.surfaceIcons.push(img);
     }
   }
