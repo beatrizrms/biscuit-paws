@@ -2131,9 +2131,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (station) {
       const supply = bowl ? s.supplyFor('food_bowl') : s.supplyFor('litter_box');
       const at = s.state.placed.find((x) => x.uid === station)!.at;
-      const hint = !supply ? null : bowl ? (s.feedProblem(bowl) ? null : this.hintFloor(at, 'bowl')) : s.litterProblem(litter!) ? null : this.hintFloor(at, 'litter');
+      const action = !supply ? null : bowl ? (s.feedProblem(bowl) ? null : this.hintFloor(at, 'bowl')) : s.litterProblem(litter!) ? null : this.hintFloor(at, 'litter');
+      // Automático: os dias que ainda tem guardados, sempre (cheio ou sem nada na mão, a dica mostra só os dias).
+      const stock = s.stationStock(station);
+      const days = stock === undefined ? undefined : (stock === 1 ? uiText.pet.dayLeft : uiText.pet.daysLeft).replace('{n}', String(stock));
+      const hint = days === undefined ? action : { ...(action ?? this.hintFloor(at, bowl ? 'auto_food' : 'auto_litter')!), count: days };
       // Sem a ração/areia na mão (ou já cheio): só diz o que falta, e perde de qualquer ação de verdade em volta.
-      add(this.placedCells(station), supply ? E_TIER.bowl : E_TIER.bowlEmpty, hint, () => this.useBowlOrBox(bowl, litter), { tool: !!supply && !!hint, weak: !hint });
+      add(this.placedCells(station), supply ? E_TIER.bowl : E_TIER.bowlEmpty, hint, () => this.useBowlOrBox(bowl, litter), { tool: !!supply && !!action, weak: !action });
     }
     // Sofá ou cadeira: senta. Sentada, o E levanta (antes de tudo).
     if (s.resting()) add([], 0, null, () => this.tryRest(), { sticky: true });

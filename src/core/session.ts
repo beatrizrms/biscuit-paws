@@ -1684,9 +1684,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1703,11 +1703,13 @@ export class GameSession {
       }
     }
     const isolated = this.shelteredCats().filter((id) => this.clinic.isolated(id) && this.service.carriedCat() !== id);
-    // Gatos em recuperação (cercadinho ou caixinha): um lembrete por dia enquanto houver algum, comida e remédio
-    // juntos. Cada gato conta quando comeu hoje e, com remédio a dar, já tomou o de hoje.
+    // Gatos isolados (cercadinho ou caixinha): um lembrete por dia enquanto houver algum. Em recuperação (operado, em
+    // tratamento), comida e remédio juntos; só esperando a consulta de entrada, só a comida (pen_wait). Cada gato conta
+    // quando comeu hoje e, com remédio a dar, já tomou o de hoje.
     if (isolated.length > 0) {
       const cared = isolated.filter((id) => this.state.cats[id]!.fedOn === this.state.day && !needsMedicine(this.state.cats[id]!, this.state.day)).length;
-      out.push({ kind: 'clinic', clinic: 'pen_food', done: cared === isolated.length, progress: [cared, isolated.length] });
+      const recovering = isolated.some((id) => this.state.cats[id]!.clinic?.stage !== 'intake' || !!activeTreatment(this.state.cats[id]!));
+      out.push({ kind: 'clinic', clinic: recovering ? 'pen_food' : 'pen_wait', done: cared === isolated.length, progress: [cared, isolated.length] });
     }
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });

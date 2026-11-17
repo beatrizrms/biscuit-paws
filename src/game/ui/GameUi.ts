@@ -787,7 +787,7 @@ export class GameUi {
       // Clínica: consulta de entrada, buscar, pontinho e a latinha do cercadinho.
       if (ch.kind === 'clinic') {
         const text = c.clinic[ch.clinic!].replace('{cat}', ch.catId ? this.session.catName(ch.catId) : '');
-        today.push(this.row(text, { icon: ch.clinic === 'pen_food' ? content.items[content.clinic.pen.food]?.icon : ch.clinic === 'sick' ? 'sinal_termometro' : 'remedio', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        today.push(this.row(text, { icon: ch.clinic === 'pen_food' || ch.clinic === 'pen_wait' ? content.items[content.clinic.pen.food]?.icon : ch.clinic === 'sick' ? 'sinal_termometro' : 'remedio', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       // Gato que acabou de chegar: a confiança.

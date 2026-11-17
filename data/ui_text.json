@@ -671,6 +671,7 @@
       "pickup": "Busque {cat} na clínica",
       "recheck": "Leve {cat} à clínica: o pontinho inflamou",
       "pen_food": "Cuide dos gatos em recuperação: comida e remédio",
+      "pen_wait": "Alimente os gatos isolados",
       "sick": "Leve {cat} à clínica: não parece bem"
     },
     "sweep": "Varra a poeira do dia",
@@ -1083,6 +1084,8 @@
   },
   "pet": {
     "loaded": "{name}: {days} dias guardados.",
+    "daysLeft": "· {n} dias",
+    "dayLeft": "· 1 dia",
     "low": "{name}: só mais {days} dia(s). Hora de abastecer.",
     "empty": "{name} acabou. Abasteça com a barra.",
     "litterMissed": "Ficou sem areia limpa: os gatos estão menos limpinhos."
@@ -1444,6 +1447,8 @@
     "dirt": "Varrer",
     "bowl": "Encher a tigela",
     "litter": "Pôr areia",
+    "auto_food": "Ração guardada",
+    "auto_litter": "Areia guardada",
     "cat_treat": "Dar o petisco",
     "cat_medicine": "Dar o remédio",
     "cat_medicine_done": "Remédio: já tomou hoje",

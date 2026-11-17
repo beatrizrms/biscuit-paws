@@ -1,7 +1,7 @@
 // Assistência técnica: upgrade de móvel (troca a peça no mesmo lugar por outra do mesmo grupo).
 // Os grupos ficam em data/items.json ("upgrades"): peças do mesmo tamanho que podem virar uma na outra
 // (balcão esquerda/meio/direita e os modelos, cadeira virada para cada lado, cores, tigela -> pote automático).
-// Preço: a diferença entre as peças (se a nova for mais cara) + a taxa do serviço. Puro: sem Phaser, DOM ou window.
+// Preço: a diferença entre as peças (se a nova for mais cara), com o desconto de troca, + a taxa do serviço. Puro: sem Phaser, DOM ou window.
 import type { ItemDef } from './content';
 import type { TileCatalog } from './tiles';
 
@@ -11,6 +11,11 @@ export interface UpgradeGroup {
   name: string;
   /** Itens que trocam entre si (todos do mesmo tamanho e da mesma camada). */
   items: string[];
+  /**
+   * Desconto sobre a diferença de preço (0 a 1) neste grupo: trocar sai mais barato que comprar a peça nova (a tigela
+   * vira o pote automático com a antiga dando parte do valor). Sem o campo, nenhum.
+   */
+  discount?: number;
 }
 
 export interface UpgradesData {
@@ -26,10 +31,11 @@ export function upgradeGroupOf(data: UpgradesData, itemId: string): UpgradeGroup
   return data.groups.find((g) => g.items.includes(itemId));
 }
 
-/** Quanto custa trocar `from` por `to`: a diferença (só se a nova for mais cara; não há troco) + a taxa. */
+/** Quanto custa trocar `from` por `to`: a diferença (só se a nova for mais cara; não há troco) com o desconto + a taxa. */
 export function upgradeCost(data: UpgradesData, items: Record<string, ItemDef>, from: string, to: string): number {
   const diff = (items[to]?.price ?? 0) - (items[from]?.price ?? 0);
-  return Math.max(0, diff) + data.fee;
+  const discount = upgradeGroupOf(data, from)?.discount ?? 0;
+  return Math.round(Math.max(0, diff) * (1 - discount)) + data.fee;
 }
 
 export function validateUpgrades(data: UpgradesData, items: Record<string, ItemDef>, catalog: TileCatalog): string[] {
@@ -41,6 +47,7 @@ export function validateUpgrades(data: UpgradesData, items: Record<string, ItemD
     const w = `upgrades: grupo "${g.id}"`;
     if (!g.id.startsWith('upg.')) errors.push(`${w}: id deve começar com "upg."`);
     if (seenGroups.has(g.id)) errors.push(`${w}: id repetido`);
+    if (g.discount !== undefined && !(g.discount >= 0 && g.discount < 1)) errors.push(`${w}: discount precisa ser de 0 a 1 (menor que 1)`);
     seenGroups.add(g.id);
     if (g.items.length < 2) errors.push(`${w}: precisa de pelo menos 2 itens`);
     let shape: string | null = null;

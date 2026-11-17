@@ -69,6 +69,16 @@ describe('gatos em recuperação', () => {
     delete cat.clinic;
     expect(line()).toBeUndefined();
   });
+
+  it('isolado só esperando a consulta de entrada: a linha pede só a comida (não é recuperação)', () => {
+    const { session, state } = cafe();
+    const cat = state.cats['cat.first_stray']!;
+    cat.clinic = { stage: 'intake' };
+    const pen = () => session.chores().find((c) => c.kind === 'clinic' && (c.clinic === 'pen_food' || c.clinic === 'pen_wait'));
+    expect(pen()).toMatchObject({ clinic: 'pen_wait', done: false, progress: [0, 1] });
+    cat.fedOn = state.day;
+    expect(pen()).toMatchObject({ clinic: 'pen_wait', done: true, progress: [1, 1] });
+  });
 });
 
 describe('gato doente sem consulta', () => {
