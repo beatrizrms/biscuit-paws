@@ -845,7 +845,7 @@ export class CafeService {
     // Primeira mudança do dia: guarda o horário de hoje como estava.
     const sv = this.st.service;
     if (sv.today?.day !== this.st.day) sv.today = { day: this.st.day, schedule: structuredClone(this.schedule()) };
-    this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}) };
+    this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}), ...(s.lunchMinutes !== undefined ? { lunchMinutes: s.lunchMinutes } : {}) };
     this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
     return { ok: true };
   }

@@ -105,12 +105,25 @@ describe('horário de almoço', () => {
 
   it('o padrão tem almoço às 12:00, por 1 h; sem o campo vale o padrão; null desliga', () => {
     expect(lunchStart(weekdays, rules)).toBe(rules.default.lunch);
-    expect(lunchEnd('12:00', rules)).toBe('13:00');
+    expect(lunchEnd('12:00', rules.lunchMinutes)).toBe('13:00');
     expect(inLunch({ ...weekdays, lunch: '12:00' }, rules, 12 * 60 + 30)).toBe(true);
     expect(inLunch({ ...weekdays, lunch: '12:00' }, rules, 13 * 60)).toBe(false);
     expect(inLunch({ ...weekdays, lunch: null }, rules, 12 * 60 + 30)).toBe(false);
     expect(scheduleProblem({ ...weekdays, lunch: '12:15' }, rules)).toBe('bad_step');
     expect(scheduleProblem({ ...weekdays, lunch: '13:30' }, rules)).toBeNull();
+  });
+
+  it('a duração do almoço vem do app (30 min a 2 h, em passos), e o save guarda', () => {
+    const { sv, state } = cafe();
+    const lunch = { ...weekdays, days: Array(7).fill(true), lunch: '12:00' };
+    expect(inLunch({ ...lunch, lunchMinutes: 90 }, rules, 13 * 60 + 15)).toBe(true);
+    expect(inLunch({ ...lunch, lunchMinutes: 30 }, rules, 12 * 60 + 45)).toBe(false);
+    expect(scheduleProblem({ ...lunch, lunchMinutes: 45 }, rules)).toBe('bad_step');
+    expect(scheduleProblem({ ...lunch, lunchMinutes: rules.lunchRange[1] + 30 }, rules)).toBe('out_of_range');
+    expect(sv.setSchedule({ ...lunch, lunchMinutes: 90 })).toEqual({ ok: true });
+    expect(sv.schedule().lunchMinutes).toBe(90);
+    const back = parseSave(serializeSave(state, new Date(0)), knownIds(content)).state;
+    expect(back.schedule?.lunchMinutes).toBe(90);
   });
 
   it('no almoço não chega cliente novo; a fila e quem já pediu continuam; o café segue aberto', () => {

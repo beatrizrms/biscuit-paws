@@ -3,7 +3,7 @@
 import { autotilePiece, mainVariant, sameFamily } from './variants';
 import { itemSize, packBoxes } from './parcels';
 import { barkOfDay, chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
-import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
+import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchLength, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
@@ -4485,8 +4485,9 @@ export class GameSession {
     const rules = this.content.service.schedule;
     // No almoço, a hora do almoço de hoje, mesmo que o app já tenha outro para amanhã.
     const now = this.service.lunchNow();
-    const start = lunchStart(now ? this.service.todaySchedule() : s, rules);
-    const lunch = start ? { from: start, to: lunchEnd(start, rules), now } : undefined;
+    const shown = now ? this.service.todaySchedule() : s;
+    const start = lunchStart(shown, rules);
+    const lunch = start ? { from: start, to: lunchEnd(start, lunchLength(shown, rules)), now } : undefined;
     const t = this.service.todaySchedule();
     const today = this.service.scheduleChangesTomorrow() ? { today: { opens: t.days[this.service.weekday()] === true, open: t.open, close: t.close } } : {};
     return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}), ...today };
