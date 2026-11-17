@@ -1164,7 +1164,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * (sentado ou dormindo) ou, sem vaga, na caixinha num canto; quem volta para a turma é solto na frente do cercadinho.
    */
   private layoutClinicCats(): void {
-    if (!this.session.atHome()) return;
+    if (!this.session.atHome()) {
+      // Fora do café, as caixinhas do canto do salão não existem: sem isto, a imagem ficava no mesmo lugar no mercado.
+      for (const img of this.isoBoxes.values()) img.destroy();
+      this.isoBoxes.clear();
+      return;
+    }
     const ts = this.map.tileSize;
     const carried = this.session.service.carriedCat();
     const a = this.session.penAssignments();
