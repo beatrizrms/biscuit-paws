@@ -1520,10 +1520,12 @@ ${rep}`;
     const extra = this.extrasHtml();
     // Sem meta da história: a meta longa (o próximo selo mais perto), para o jogo sempre ter um rumo.
     const seal = goal ? '' : this.sealHtml();
-    this.goals.classList.toggle('empty', !goal && !extra && !seal);
+    // Em cima, sem título: as metas da história (ou o próximo selo) e a de clientes ("Atenda X clientes").
+    const clients = this.clientsGoalHtml();
+    this.goals.classList.toggle('empty', !goal && !extra && !seal && !clients);
     this.goals.innerHTML = (goal
-      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g, i) => (i === 0 ? this.storyHtml(g, fill) : this.storyHtml(g, fill).replace(/^<h4>[^<]*<\/h4>/, ''))).join('')}`
-      : seal ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
+      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g) => this.storyHtml(g, fill)).join('')}${clients}`
+      : seal || clients ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}${clients}`
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
@@ -1532,9 +1534,16 @@ ${rep}`;
     this.renderHint();
   }
 
-  /** O próximo selo como meta do balão: o nome, a trilha com o progresso (bolinhas) e o tipo de recompensa. */
+  /** A meta de clientes da próxima receita (a da estação ou a geral, a que falta menos): "Atenda X clientes". */
+  private clientsGoalHtml(): string {
+    const goal = this.session.recipeGoals().sort((a, b) => a.at - a.value - (b.at - b.value))[0];
+    if (!goal || goal.at <= goal.value) return '';
+    return `<ul class="chores">${this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: `<span class="g-count">${goal.value}/${goal.at}</span>` })}</ul>`;
+  }
+
+  /** O próximo selo como meta do balão: o nome e a trilha com o progresso (sem a recompensa: só a meta). */
   private sealHtml(): string {
-    const n = this.session.nextAchievement();
+    const n = this.session.nextAchievement(true);
     if (!n) return '';
     const g = uiText.goals;
     const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
@@ -1588,7 +1597,7 @@ ${rep}`;
       const e = this.session.calendar(today + 1, today + per).find((x) => x.kind === 'event');
       if (e) next = `<p class="g-detail">${esc(uiText.opening.nextEvent.replace('{title}', e.title).replace('{day}', String(((e.day - 1) % per) + 1)))}</p>`;
     }
-    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
+    return `<div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
   }
 
   private renderHint(): void {

@@ -4325,11 +4325,21 @@ export class GameSession {
    * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
    * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
    */
-  nextAchievement(): { trackName: string; name: string; value: number; at: number; reward: string } | null {
-    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.at);
+  nextAchievement(skipRecipes = false): { trackName: string; name: string; value: number; at: number; reward: string } | null {
+    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.at && !(skipRecipes && t.next.def.reward.kind === 'recipe'));
     const best = open.sort((a, b) => b.next!.value / b.next!.at - a.next!.value / a.next!.at || a.next!.at - a.next!.value - (b.next!.at - b.next!.value))[0];
     if (!best?.next) return null;
     return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.at, reward: best.next.def.reward.kind };
+  }
+
+  /**
+   * As metas de clientes que dão receita, para o balão: a da estação e a do contador geral (a próxima de cada, sem as
+   * que esperam uma condição a mais).
+   */
+  recipeGoals(): { trackName: string; value: number; at: number }[] {
+    return this.milestoneTracks()
+      .filter((t) => t.next && !t.next.blocked && t.next.def.reward.kind === 'recipe' && (t.track.kind === 'season' || t.track.stat === 'served' || t.track.stat === 'servedOpen'))
+      .map((t) => ({ trackName: t.track.name, value: t.next!.value, at: t.next!.at }));
   }
 
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */

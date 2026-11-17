@@ -192,7 +192,8 @@
     "doneToday": "✓ {n} feita(s) hoje",
     "doneToday1": "hoje: feito · volta amanhã",
     "nextSeal": "Próxima conquista: {name}",
-    "nextSealDetail": "{track}: {value} de {at}. Recompensa: {reward}."
+    "nextSealDetail": "{track}: {value} de {at}.",
+    "recipeGoal": "Atenda {n} clientes"
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
@@ -661,7 +662,7 @@
     }
   },
   "chores": {
-    "title": "hoje",
+    "title": "diários",
     "feed": "Dê comida para {cat}",
     "feedAll": "Encha a tigela de ração",
     "settle": "Ganhe a confiança de {cat}",

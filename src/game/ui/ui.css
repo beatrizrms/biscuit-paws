@@ -1206,6 +1206,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .hud-goals .g-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 3px 0 0 15px; }
 .hud-goals .g-tag { padding: 0 4px; border-radius: 4px; background: var(--c-olive-pale); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.6; }
 .hud-goals .pips { display: inline-flex; gap: 2px; margin-left: auto; }
+.hud-goals .g-count { margin-left: auto; padding-left: 4px; font-weight: bold; color: var(--c-ink2); white-space: nowrap; }
 .hud-goals .g-progress .pips { margin-left: 0; }
 .hud-goals .pips i { width: 5px; height: 5px; border-radius: 50%; border: 1px solid var(--mint3); box-sizing: border-box; }
 .hud-goals .pips i.on { background: var(--mint3); }
