@@ -1402,7 +1402,7 @@ ${rep}`;
     const cells = Array.from({ length: slots }, (_, i) => {
       const s = stock[i];
       return s
-        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}<span class="count">${s.portions}${s.premium ? `<span class="prem">${esc(uiText.service.premium)}</span>` : ''}</span></button>`
+        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}${s.premium ? `<span class="prem">${esc(uiText.service.premium)}</span>` : ''}<span class="count">${s.portions}</span></button>`
         : `<span class="slot empty"></span>`;
     }).join('');
     el.innerHTML = `<div class="panel confirm display-pick"><p>${esc(title)}</p><div class="slots">${cells}</div><button class="close">${esc(uiText.service.extraCancel)}</button></div>`;
