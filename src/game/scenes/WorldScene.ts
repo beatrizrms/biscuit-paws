@@ -3673,14 +3673,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const carrying = this.session.service.waiterCarrying();
     for (const s of this.session.state.surfaces) {
       if (carrying && s.at[0] === carrying[0] && s.at[1] === carrying[1] && s.item.kind === 'drink') continue;
-      // Pronto para pegar (pedido ou massa): o marcador pulsa embaixo.
-      if (s.item.kind === 'drink' || s.item.kind === 'wip') {
-        const marker = this.add.sprite(s.at[0] * ts, s.at[1] * ts, 'ready_0').setOrigin(0).setDepth(ySortDepth((s.at[1] + 1) * ts) + 4);
-        marker.play('ready-pulse');
-        this.surfaceIcons.push(marker as unknown as Phaser.GameObjects.Image);
-      }
-      const img = this.handItemImage(s.item);
-      if (!img) continue;
       // Em cima do móvel da célula (balcão, mesa, equipamento): mesma profundidade da base dele, um pouco à frente. Tampo
       // mais alto que o balcão (a mesa alta: item.topLift), sobe a diferença. Solta no chão (o E na frente, sem móvel):
       // fica no piso, sem subir (subindo, parecia dentro do balcão de trás).
@@ -3689,6 +3681,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const hosts = this.session.placedAllAt(s.at).map((x) => this.session.content.items[x.item]?.topLift ?? 0);
       const higher = Math.max(0, ...hosts.map((t) => t - lift));
       const y = this.session.service.onFloor(s.at) ? base - 4 : base - 12 - higher;
+      // Pronto para pegar (pedido ou massa): o tracejado pulsa embaixo da louça, onde ela estiver (tampo ou chão). Na
+      // arte (32 x 32), a oval fica no alto da imagem (centro na linha 6): o centro vai um pouco acima da base da louça.
+      if (s.item.kind === 'drink' || s.item.kind === 'wip') {
+        const marker = this.add.sprite((s.at[0] + 0.5) * ts, y - 5, 'ready_0').setOrigin(0.5, 6 / 32).setDepth(ySortDepth(base) + 4);
+        marker.play('ready-pulse');
+        this.surfaceIcons.push(marker as unknown as Phaser.GameObjects.Image);
+      }
+      const img = this.handItemImage(s.item);
+      if (!img) continue;
       img.setPosition((s.at[0] + 0.5) * ts, y).setOrigin(0.5, 1).setScale((s.item.kind === 'item' ? 0.6 : 1) * ((img.getData('iconScale') as number | undefined) ?? 1)).setDepth(ySortDepth(base) + 5);
       this.surfaceIcons.push(img);
     }
