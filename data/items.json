@@ -1590,7 +1590,7 @@
       "id": "item.catpay_sign",
       "name": "Plaquinha do CatPay",
       "price": 0,
-      "tile": "vet_placa_cruz_vet",
+      "tile": "pet_placa_catpay",
       "description": "Plaquinha com o código da vaquinha no CatPay. No balcão, os clientes doam enquanto pagam; sem ela, quase ninguém lembra.",
       "tags": [
         "furniture",

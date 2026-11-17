@@ -78,6 +78,11 @@ export class CedFlow {
     return this.st.crowdfund?.status === 'active' ? this.st.crowdfund : null;
   }
 
+  /** Vaquinha aberta e a plaquinha do CatPay ainda não posicionada no café (a meta do balão pede para pôr). */
+  signPending(): boolean {
+    return !!this.active() && !this.h.state.placed.some((p) => p.item === this.h.ced.counter.signItem);
+  }
+
   /** O app CatPay já apareceu (a Fernanda chamou para a CED)? */
   appVisible(): boolean {
     return this.st.stage !== 'off';
@@ -208,6 +213,11 @@ export class CedFlow {
 
   /** Uma cena da CED terminou: o fornecedor pago (compra dos kits, no extrato) e, depois, a ligação para a Gabi. */
   sceneFinished(cutsceneId: string): void {
+    // Acabou a ligação da Fernanda: a plaquinha do CatPay aparece grande (ela vai para a mochila, para pôr no balcão).
+    if (cutsceneId === CED_SCENES.intro) {
+      this.h.bus.emit('item.found', { itemId: this.h.ced.counter.signItem });
+      return;
+    }
     if (cutsceneId === CED_SCENES.supplier && this.st.stage === 'funded') {
       const c = this.st.crowdfund!;
       const usedFor = `campanha ${this.st.history.length + 1} (${this.st.campaignCats} gatos)`;

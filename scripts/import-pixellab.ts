@@ -748,6 +748,8 @@ const SHEETS: Sheet[] = [
       // Vieram junto na geração do robô aspirador (robo_aspirador/), à venda na aba Pet: toquinha e arranhador de papelão.
       toquinha: { file: 'robo_aspirador/toquinha.png', w: 1, h: 1 },
       arranhador_papelao: { file: 'robo_aspirador/arranhador_papelao.png', w: 1, h: 1 },
+      // Plaquinha do CatPay da vaquinha da CED (em cima do balcão): Pro Flash 64x64 com o pote como âncora (2026-11-17).
+      placa_catpay: { file: 'automaticos/placa_catpay.png', w: 1, h: 1 },
     },
   },
   {

@@ -948,10 +948,26 @@ export class GameSession {
    */
   private feedLateCats(): void {
     const day = this.state.day;
-    const bowl = this.state.placed.find((p) => p.refilledOn === day && !!this.content.items[p.item]?.tags.includes('food_bowl') && !this.content.items[p.item]?.autoDays);
-    if (!bowl) return;
     const cats = this.homeCats();
-    const fedWith = cats.map((id) => this.state.cats[id]!).find((c) => c.fedOn === day && c.fedWith)?.fedWith;
+    if (!cats.some((id) => this.state.cats[id]!.fedOn !== day)) return;
+    let bowl = this.state.placed.find((p) => p.refilledOn === day && !!this.content.items[p.item]?.tags.includes('food_bowl') && !this.content.items[p.item]?.autoDays);
+    let fedWith = cats.map((id) => this.state.cats[id]!).find((c) => c.fedOn === day && c.fedWith)?.fedWith;
+    // Pote automático com ração: serve na hora quem ainda não comeu hoje (abasteceu de manhã, o gato chegou depois).
+    // Gasta um dia de estoque por dia (refilledOn: o dia em que ele já serviu); no fim do dia, ninguém come de novo.
+    if (!bowl) {
+      const feeder = this.state.placed.find((p) => !!this.content.items[p.item]?.tags.includes('food_bowl') && !!this.content.items[p.item]?.autoDays && ((p.stock ?? 0) > 0 || p.refilledOn === day));
+      if (!feeder) return;
+      if (feeder.refilledOn !== day) {
+        feeder.refilledOn = day;
+        fedWith = feeder.stockItem ?? fedWith;
+        feeder.stock = (feeder.stock ?? 0) - 1;
+        if (feeder.stock === 0) delete feeder.stockItem;
+        if (feeder.stock <= PET_LOW_DAYS) this.bus.emit('pet.low', { itemId: feeder.item, days: feeder.stock });
+        // Acabou a ração guardada: o pote volta para a arte vazia.
+        if (feeder.stock === 0) this.bus.emit('bowl.filled', { uid: feeder.uid });
+      }
+      bowl = feeder;
+    }
     for (const catId of cats) {
       const cat = this.state.cats[catId]!;
       if (cat.fedOn === day) continue;
@@ -1684,9 +1700,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1711,6 +1727,8 @@ export class GameSession {
       const recovering = isolated.some((id) => this.state.cats[id]!.clinic?.stage !== 'intake' || !!activeTreatment(this.state.cats[id]!));
       out.push({ kind: 'clinic', clinic: recovering ? 'pen_food' : 'pen_wait', done: cared === isolated.length, progress: [cared, isolated.length] });
     }
+    // Vaquinha da CED: a plaquinha do CatPay ainda na mochila (ou guardada): pôr no café, que os clientes doam ao pagar.
+    if (this.ced.signPending()) out.push({ kind: 'ced_sign', done: false });
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
     // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só. Com o pote

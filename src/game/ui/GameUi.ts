@@ -782,6 +782,10 @@ export class GameUi {
         today.push(this.row(line, { icon }));
         continue;
       }
+      if (ch.kind === 'ced_sign') {
+        today.push(this.row(c.cedSign, { icon: 'caixa_bilhete' }));
+        continue;
+      }
       if (ch.kind === 'poop') {
         today.push(this.row(c.poop, { icon: 'areia_balde' }));
         continue;

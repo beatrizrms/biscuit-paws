@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 2,
- "rows": 6,
+ "rows": 7,
  "pieces": {
   "auto_feeder": {
    "col": 0,
@@ -72,6 +72,12 @@
   "arranhador_papelao": {
    "col": 1,
    "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "placa_catpay": {
+   "col": 0,
+   "row": 6,
    "w_tiles": 1,
    "h_tiles": 1
   }

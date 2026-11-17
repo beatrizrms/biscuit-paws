@@ -63,6 +63,8 @@ export function stationsAtDayEnd(placed: PlacedItem[], items: Record<string, Ite
     if (feeder) {
       fedWith = feeder.stockItem;
       spend(feeder);
+      // Já serviu hoje: quem chegar depois come dele sem gastar de novo (session.feedLateCats).
+      feeder.refilledOn = day;
       fed = true;
     }
   }
