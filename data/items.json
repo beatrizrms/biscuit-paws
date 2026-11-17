@@ -666,6 +666,7 @@
       "tile": "table_tall_round",
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
+      "topBaseRow": true,
       "tags": [
         "furniture",
         "for:guests",
@@ -681,6 +682,7 @@
       "tile": "table_tall_square",
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
+      "topBaseRow": true,
       "tags": [
         "furniture",
         "for:guests",

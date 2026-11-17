@@ -101,6 +101,11 @@ export interface ItemDef {
   /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
   topLift?: number;
   /**
+   * Apoio alto (a mesa alta, 1x2): só a linha de baixo tem tampo; a de cima é o desenho subindo. Sem o campo, todas as
+   * células recebem (bancada de parede deitada, mesa grande 2x2).
+   */
+  topBaseRow?: boolean;
+  /**
    * Para tomar em pé (bancada de parede, mesa alta): de que lados das células o cliente fica, virado para ela. Só a
    * linha de baixo (a peça alta sobe no desenho), ou todas (`allRows`: a bancada da parede do lado, deitada no chão).
    */
