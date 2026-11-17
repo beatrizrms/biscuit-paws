@@ -1847,9 +1847,9 @@ export class CafeService {
     return speedFactor(this.st.hands, this.st.tray, this.carry);
   }
 
-  /** Está carregando algo (nas mãos, na bandeja ou no colo)? Correr fica um pouco mais devagar. */
+  /** Está carregando algo (nas mãos, na bandeja ou no colo)? Correr fica um pouco mais devagar. A bandeja vazia não conta. */
   carrying(): boolean {
-    return this.st.hands.length > 0 || !!this.st.tray;
+    return this.st.hands.length > 0;
   }
 
   /** Quantos cabem nas mãos agora (para a interface). */

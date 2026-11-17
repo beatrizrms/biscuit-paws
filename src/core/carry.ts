@@ -37,7 +37,8 @@ export const exclusive = (item: HandItem): boolean => item.kind === 'heavy' || i
 export function speedFactor(hands: readonly HandItem[], tray: boolean, cfg: CarryConfig): number {
   if (hands.some((h) => h.kind === 'heavy')) return cfg.heavy.speedFactor;
   if (hands.some((h) => h.kind === 'cat')) return cfg.cat.speedFactor;
-  const base = tray ? cfg.tray.speedFactor : 1;
+  // A bandeja vazia não pesa: o passo mais lento só com louça em cima.
+  const base = tray && hands.length > 0 ? cfg.tray.speedFactor : 1;
   // Na bandeja, cada louça pesa pouco (cabem 6; data/carry.json: tray.penaltyPerItem).
   const per = tray ? cfg.tray.penaltyPerItem ?? cfg.speedPenaltyPerItem : cfg.speedPenaltyPerItem;
   return Math.max(0.4, base - hands.length * per);

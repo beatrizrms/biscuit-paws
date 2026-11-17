@@ -664,6 +664,9 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     expect(session.buy('item.tray')).toEqual({ ok: false, reason: 'already_owned' });
     expect(session.selectHotbarItem('item.tray')).toBe(true);
     expect(state.tray).toBe(true);
+    // Vazia, a bandeja não deixa lenta (nem andando nem correndo).
+    expect(sv.speed()).toBe(1);
+    expect(sv.carrying()).toBe(false);
     const spots: [number, number][] = [[4, 6], [5, 6], [6, 6], [6, 7], [5, 7], [4, 7], [3, 7]];
     for (const at of spots) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
     for (const at of spots.slice(0, 6)) expect(sv.pickUp(at)).toEqual({ ok: true });
