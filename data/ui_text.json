@@ -192,7 +192,7 @@
     "doneToday": "✓ {n} feita(s) hoje",
     "doneToday1": "hoje: feito · volta amanhã",
     "nextSeal": "Próxima conquista: {name}",
-    "nextSealDetail": "{track}: {value} de {at}.",
+    "nextSealDetail": "{track}",
     "recipeGoal": "Atenda {n} clientes"
   },
   "goalsShow": "Clique para ver os detalhes",
