@@ -1538,7 +1538,7 @@ ${rep}`;
   private clientsGoalHtml(): string {
     const goal = this.session.recipeGoals().sort((a, b) => a.at - a.value - (b.at - b.value))[0];
     if (!goal || goal.at <= goal.value) return '';
-    return `<ul class="chores">${this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: `<span class="g-count">${goal.value}/${goal.at}</span>` })}</ul>`;
+    return `<ul class="chores">${this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: this.pips(goal.value, goal.at) })}</ul>`;
   }
 
   /** O próximo selo como meta do balão: o nome e a trilha com o progresso (sem a recompensa: só a meta). */
@@ -1548,7 +1548,7 @@ ${rep}`;
     const g = uiText.goals;
     const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
     const detail = g.nextSealDetail.replace('{track}', n.trackName).replace('{value}', String(n.value)).replace('{at}', String(n.at)).replace('{reward}', reward);
-    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span></div><p class="g-detail">${esc(detail)}</p>` + (n.at <= 12 ? `<div class="g-progress">${this.pips(n.value, n.at)}</div>` : '');
+    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span>${this.pips(n.value, n.at)}</div><p class="g-detail">${esc(detail)}</p>`;
   }
 
   /**
@@ -1561,7 +1561,6 @@ ${rep}`;
     const done = mandatory.filter((s) => s.done).length;
     const open = goal.steps.filter((s) => !s.done);
     const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(mandatory.length)))}</span>` : '';
-    const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
     // Passos sem ordem: nenhum em destaque, todos na lista.
     // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
     const required = open.filter((s) => !s.optional);
@@ -1571,33 +1570,24 @@ ${rep}`;
     const now = goal.together ? undefined : (required[0] ?? (goal.steps.some((s) => s.optional) ? undefined : open[0]));
     const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
-      ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
+      ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span>${now.progress ? this.pips(now.progress[0], now.progress[1]) : ''}</div>` +
         (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +
-        (now.progress || now.doneToday || now.waitUntil !== undefined
-          ? `<div class="g-progress">${now.progress ? this.pips(now.progress[0], now.progress[1]) : ''}${now.doneToday ? `<span class="g-tag">${esc(g.doneToday1)}</span>` : ''}${now.waitUntil !== undefined ? this.waitButton(now.waitUntil) : ''}</div>`
-          : '') +
-        note(now)
+        (now.doneToday || now.waitUntil !== undefined
+          ? `<div class="g-progress">${now.doneToday ? `<span class="g-tag">${esc(g.doneToday1)}</span>` : ''}${now.waitUntil !== undefined ? this.waitButton(now.waitUntil) : ''}</div>`
+          : '')
       : '';
-    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
+    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: s.progress ? this.pips(s.progress[0], s.progress[1]) : '' })).join('');
     const op = uiText.opening;
     const extraRows = extras
       .map((s) => {
         const tag = s.done ? '' : s.daily ? `<span class="g-tag${s.doneToday ? '' : ' daily'}">${esc(s.doneToday ? op.dailyDone : op.daily)}</span>` : '';
-        return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s), html: false });
+        return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : ''), html: false });
       })
       .join('');
     const extrasHtml = extraRows ? `<p class="g-extras">${esc(goal.extrasTitle ?? op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
     // Os passos obrigatórios feitos hoje, riscados (amanhã saem da lista).
-    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('');
-    // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
-    let next = '';
-    if (goal.beatId === 'story.inauguration' && this.session.state.business !== 'inaugurated') {
-      const today = this.session.state.day;
-      const per = content.seasons.daysPerSeason;
-      const e = this.session.calendar(today + 1, today + per).find((x) => x.kind === 'event');
-      if (e) next = `<p class="g-detail">${esc(uiText.opening.nextEvent.replace('{title}', e.title).replace('{day}', String(((e.day - 1) % per) + 1)))}</p>`;
-    }
-    return `<div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
+    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done' })).join('');
+    return `<div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
   }
 
   private renderHint(): void {
