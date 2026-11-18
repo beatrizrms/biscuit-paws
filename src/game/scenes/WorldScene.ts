@@ -3882,7 +3882,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Bandeja só quando está selecionada na barra: nas mãos, com uma louça em cima, mesmo levando várias (o número
       // não aparece). Sem ela, a louça (uma por vez) vai direto nas mãos, na mesma pose de mãos à frente.
       const onTray = st.tray;
-      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty') : undefined;
+      // O bolo (ou a torta) inteiro vai como a louça: nas mãos à frente, com a base na altura delas.
+      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty' || h.kind === 'cake') : undefined;
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela, de mãos vazias; o jogo desenha o objeto.
       this.player.setCarryPose(onTray || dish ? 'tray' : catId || boxes ? 'cat' : null);
       if (dish) {
