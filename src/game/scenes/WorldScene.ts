@@ -3756,7 +3756,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private handScale(item: HandItem | undefined): number {
     if (!item) return 1;
     // O bolo (ou a torta) inteiro na mão: menor que o tamanho cheio (ocupava a célula toda e cobria a personagem).
-    return item.kind === 'heavy' ? 0.85 : item.kind === 'cake' ? 0.75 : item.kind === 'item' || item.kind === 'wip' ? 0.55 : 1;
+    return item.kind === 'heavy' ? 0.85 : item.kind === 'cake' ? 0.75 : item.kind === 'wip' ? 0.7 : item.kind === 'item' ? 0.55 : 1;
   }
 
   /** Pega o gato que estiver ao lado (mãos livres). */
@@ -3882,8 +3882,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Bandeja só quando está selecionada na barra: nas mãos, com uma louça em cima, mesmo levando várias (o número
       // não aparece). Sem ela, a louça (uma por vez) vai direto nas mãos, na mesma pose de mãos à frente.
       const onTray = st.tray;
-      // O bolo (ou a torta) inteiro vai como a louça: nas mãos à frente, com a base na altura delas.
-      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty' || h.kind === 'cake') : undefined;
+      // O bolo (ou a torta) inteiro e o bowl com a mistura vão como a louça: nas mãos à frente, com a base na altura delas.
+      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty' || h.kind === 'cake' || h.kind === 'wip') : undefined;
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela, de mãos vazias; o jogo desenha o objeto.
       this.player.setCarryPose(onTray || dish ? 'tray' : catId || boxes ? 'cat' : null);
       if (dish) {
