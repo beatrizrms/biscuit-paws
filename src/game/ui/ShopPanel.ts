@@ -146,7 +146,7 @@ export class ShopPanel {
       const owned = state.inventory[id] ?? 0;
       const tip = itemTip(item);
       return `<div class="row cart-row${this.session.cart.qty(id) > 0 ? ' in-cart' : ''}" data-row="${id}"${tip ? ` data-tip="${esc(tip)}"` : ''}>
-          <span class="name">${shopIcon(item)}${item.name}</span><span class="price" title="${uiText.shop.each}">${COIN}${item.price}</span>${this.qtyControls(id)}
+          <span class="name">${shopIcon(item)}${item.name}${yieldHtml(item)}</span><span class="price" title="${uiText.shop.each}">${COIN}${item.price}</span>${this.qtyControls(id)}
           ${owned > 0 ? `<span class="owned">${owned} ${uiText.shop.inBag}</span>` : ''}
         </div>`;
     };
@@ -191,6 +191,11 @@ export class ShopPanel {
 const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_16.png" alt="" />';
 
 /** Ícone do item na loja: a imagem própria (iconImage) ou o da folha de ícones. */
+/** Ingrediente que rende mais de uma dose (a dúzia de ovos, o pacote de farinha): "rende 12" ao lado do nome. */
+export function yieldHtml(item: { servings?: number }): string {
+  return (item.servings ?? 1) > 1 ? `<span class="yield">${uiText.shop.yields.replace('{n}', String(item.servings))}</span>` : '';
+}
+
 function shopIcon(item: { icon?: string; iconImage?: string }): string {
   return item.iconImage ? `<img class="icon" src="${item.iconImage}" alt="" style="width:${SHOP_ICON_PX}px;height:${SHOP_ICON_PX}px" />` : iconHtml(item.icon, SHOP_ICON_PX);
 }

@@ -3480,8 +3480,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (washer && sv.isBroken(washer) && st.hands.length === 0) add(this.placedCells(washer), E_TIER.service, sv.isRepairing(washer) ? null : this.hintCell(placedAt(washer), 'repair'), () => this.askRepair(washer));
     else if (washer) {
       const act = sv.washerAction(washer);
-      if (act === 'deposit') add(this.placedCells(washer), E_TIER.service, this.hintCell(placedAt(washer), 'washer'), () => report(sv.depositInWasher(washer)));
-      else if (act === 'wash') add(this.placedCells(washer), E_TIER.service, this.hintCell(placedAt(washer), 'washer'), () => report(this.withPose(sv.startWasher(washer), 'operate')));
+      // A louça dentro sobre o que cabe (5/12), como na pia.
+      const washerHint = { ...this.hintCell(placedAt(washer), 'washer')!, count: `${sv.washerLoad(washer)}/${sv.washerCapacity(washer)}` };
+      if (act === 'deposit') add(this.placedCells(washer), E_TIER.service, washerHint, () => report(sv.depositInWasher(washer)));
+      else if (act === 'wash') add(this.placedCells(washer), E_TIER.service, washerHint, () => report(this.withPose(sv.startWasher(washer), 'operate')));
     }
     // Armário da cozinha, de mãos livres: abre a despensa (o armário ocupa a célula da frente e a de cima).
     const pantry = sv.pantryCell();

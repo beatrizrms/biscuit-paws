@@ -973,6 +973,9 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .m-thumb { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 4px; background: var(--cream2); }
 .m-thumb .thumb { display: block; image-rendering: pixelated; background-repeat: no-repeat; }
 .m-name { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.15; text-align: center; }
+/* Quanto uma compra rende (a dúzia de ovos: 12), ao lado do nome na loja e embaixo dele no Market. */
+.yield { margin-left: 4px; padding: 0 3px; border-radius: 5px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; white-space: nowrap; }
+.m-card .yield { margin: 0; }
 .m-price { display: flex; align-items: center; gap: 2px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--wood4); }
 .m-price .coin { width: 7px; height: 7px; image-rendering: pixelated; }
 .m-owned { font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.2; text-align: center; color: var(--mint3); }
@@ -1427,11 +1430,10 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-coins { display: inline-flex; align-items: center; white-space: nowrap; }
 .catalog.menu-board .m-calc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .catalog.menu-board .m-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border-radius: 8px; background: var(--c-paper); color: var(--ink); font-weight: bold; cursor: pointer; }
-.catalog.menu-board .m-chip.limit { box-shadow: inset 0 0 0 1px var(--c-wood-dark); }
 .catalog.menu-board .m-chip.none { background: var(--c-terra); color: var(--c-white); }
-.catalog.menu-board .m-chip.result { background: var(--c-green-pale); }
-.catalog.menu-board .m-chip.result.none { background: var(--c-terra); color: var(--c-white); }
 .catalog.menu-board .m-op { color: var(--c-ink3); font-weight: bold; }
+/* A legenda em cima dos ingredientes (por receita ou por fornada). */
+.catalog.menu-board .m-per { margin: 0 0 1px; color: var(--c-ink3); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board .m-prem { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 2px 5px; border-radius: 6px; background: var(--butter2); color: var(--ink); font-weight: bold; }
 .catalog.menu-board .m-prem .m-swaps { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
 .catalog.menu-board .m-swap { display: inline-flex; align-items: center; gap: 2px; }

@@ -86,19 +86,26 @@ export class MenuBoardPanel {
   }
 
   /**
-   * Um ingrediente na conta: o ícone e quantas porções ele sozinho rende na despensa (o que acaba primeiro em destaque;
-   * sem nenhuma, vermelho). Tocar mostra o nome (data-name).
+   * Um ingrediente da receita: o ícone e quanto ela pede. Sem o bastante na despensa, vermelho (o quanto tem não
+   * aparece: a bolinha da linha já diz se dá para fazer). Tocar mostra o nome (data-name).
    */
-  private chip(itemId: string, n: number, limit = false): string {
+  private chip(itemId: string, need: number, have: number): string {
     const item = content.items[itemId];
-    return `<span class="m-chip${n === 0 ? ' none' : limit ? ' limit' : ''}" data-name="${esc(item?.name ?? itemId)}" title="${esc(item?.name ?? itemId)}">${iconHtml(item?.icon, 12)}${n}</span>`;
+    return `<span class="m-chip${have < need ? ' none' : ''}" data-name="${esc(item?.name ?? itemId)}" title="${esc(item?.name ?? itemId)}">${iconHtml(item?.icon, 12)}${need}</span>`;
   }
 
-  /** A conta da despensa: ingrediente + ingrediente = quantas dá para fazer (com o ícone da receita). */
+  /** O que a receita pede de cada ingrediente; em cima, por quanto é: uma receita, ou uma fornada (N fatias). */
   private pantryCalc(r: RecipeDef): string {
-    const { servings, each } = this.session.service.servingsFromPantry(r.id);
-    const parts = each.map(({ item, servings: n }) => this.chip(item, n, n === servings)).join('<span class="m-op">+</span>');
-    return `<div class="m-calc">${parts}<span class="m-op">=</span><span class="m-chip result${servings === 0 ? ' none' : ''}" data-name="${esc(r.name)}" title="${esc(r.name)}">${iconHtml(r.icon, 12)}${servings}</span></div>`;
+    const sv = this.session.service;
+    const t = uiText.menuBoard;
+    const subs = r.premium ?? {};
+    // O que tem conta a troca premium também (ela serve no lugar quando falta o comum).
+    const have = (item: string) => sv.doses(item) + (subs[item] ? sv.doses(subs[item]!) : 0);
+    const parts = Object.entries(r.ingredients)
+      .map(([item, need]) => this.chip(item, need, have(item)))
+      .join('<span class="m-op">+</span>');
+    const per = r.batch ? t.perBatch.replace('{n}', String(r.batch.yields)) : t.perRecipe;
+    return `<p class="m-per">${esc(per)}</p><div class="m-calc">${parts}</div>`;
   }
 
   /**
@@ -110,10 +117,10 @@ export class MenuBoardPanel {
     if (!p) return '';
     const t = uiText.menuBoard;
     const swaps = p.swaps
-      .map((s) => `<span class="m-swap">${iconHtml(content.items[s.from]?.icon, 12)}<span class="m-op">→</span>${this.chip(s.to, s.servings)}</span>`)
+      .map((s) => `<span class="m-swap">${iconHtml(content.items[s.from]?.icon, 12)}<span class="m-op">→</span>${this.chip(s.to, r.ingredients[s.from] ?? 1, this.session.service.doses(s.to))}</span>`)
       .join('');
     const alt = p.alternative
-      ? `<span class="m-swap"><span class="m-alt">${esc(t.premiumAlt.replace('{equipment}', this.equipmentName(p.alternative.equipment).toLowerCase()))}</span>${p.alternative.items.map((x) => this.chip(x.item, x.servings)).join('')}</span>`
+      ? `<span class="m-swap"><span class="m-alt">${esc(t.premiumAlt.replace('{equipment}', this.equipmentName(p.alternative.equipment).toLowerCase()))}</span>${p.alternative.items.map((x) => this.chip(x.item, r.alternative?.ingredients[x.item] ?? 1, this.session.service.doses(x.item))).join('')}</span>`
       : '';
     return `<div class="m-prem"><span class="m-star">${uiText.service.premium}</span>${this.price(this.session.service.priceOf(r.id, 'premium'))}<span class="m-swaps">${swaps}${alt}</span></div>`;
   }
@@ -145,12 +152,11 @@ export class MenuBoardPanel {
     const why = status === 'available' || status === 'ingredients' ? '' : `<span class="status">${esc(this.statusText(r, status))}</span>`;
     const steps = r.steps.length > 1 ? `<span class="m-tag">${esc(r.steps.map((s) => content.service.equipment[s.equipment]?.name ?? s.equipment).join(' → '))}</span>` : '';
     const season = seasonLabel(r) ? `<span class="m-tag season">${esc(seasonLabel(r))}</span>` : '';
-    const batch = r.batch ? `<span class="m-tag">${esc(t.batchShort.replace('{n}', String(r.batch.yields)))}</span>` : '';
     const profit = r.price - this.session.service.costOf(r.id);
     return `<div class="recipe ${status === 'available' ? '' : 'sold-out'}">
       ${this.pantryCalc(r)}
       ${this.premiumStrip(r)}
-      ${steps || season || batch ? `<div class="m-tags">${steps}${season}${batch}</div>` : ''}
+      ${steps || season ? `<div class="m-tags">${steps}${season}</div>` : ''}
       ${why}
       <div class="m-foot"><span class="m-profit">${esc(t.profit)} ${this.price(profit)}</span><button data-recipe="${r.id}">${action}</button></div></div>`;
   }

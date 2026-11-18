@@ -433,6 +433,7 @@
     "buy": "comprar",
     "bought": "Comprado!",
     "inBag": "na bolsa",
+    "yields": "rende {n}",
     "premium": "★ premium em {recipes}",
     "close": "fechar",
     "sections": [
@@ -758,7 +759,8 @@
     "premiumAt": "(no {equipment}, com a fruta fresca)",
     "premiumAlt": "ou no {equipment}:",
     "profit": "lucro",
-    "batchShort": "fornada · {n} fatias",
+    "perRecipe": "Por receita:",
+    "perBatch": "Por fornada ({n} fatias):",
     "display": "Vitrine",
     "batch": "Fornada: {name}, {n} fatias (fica na vitrine).",
     "seasonal": "Cardápio: {when}",

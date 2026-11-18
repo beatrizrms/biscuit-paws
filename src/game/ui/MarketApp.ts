@@ -7,7 +7,7 @@ import { daysText, workName } from './constructionText';
 import type { GameSession, RoomWork } from '../../core/session';
 import { content, uiText } from '../content';
 import { hoverTips } from './hoverTip';
-import { itemTip } from './ShopPanel';
+import { itemTip, yieldHtml } from './ShopPanel';
 import { itemThumbHtml, tileThumbHtml } from './thumbs';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -184,7 +184,7 @@ export class MarketApp {
     const tip = itemTip(i);
     return `<div class="m-cell"${tip ? ` data-tip="${esc(tip)}"` : ''}><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
         <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>${this.session.marketNew(id) ? `<span class="m-new">${esc(uiText.market.isNew)}</span>` : ''}
-        <span class="m-name">${esc(i.name)}</span>
+        <span class="m-name">${esc(i.name)}</span>${yieldHtml(i)}
         <span class="m-price">${COIN}${i.price}</span>${status}
       </button>${order}${refund}</div>`;
   }

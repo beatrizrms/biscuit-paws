@@ -1735,6 +1735,11 @@ export class CafeService {
     return loadCount(this.st.washers[uid]?.load ?? emptyLoad());
   }
 
+  /** Quantas louças cabem na lava-louças. */
+  washerCapacity(uid: string): number {
+    return this.washerDef(uid)?.capacity ?? 0;
+  }
+
   /** Tem louça dentro (esperando ou lavando)? Assim ela não pode ser guardada na mochila. */
   washerBusy(uid: string): boolean {
     const w = this.st.washers[uid];
