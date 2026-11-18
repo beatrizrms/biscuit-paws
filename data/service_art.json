@@ -373,6 +373,8 @@
     "assets/ui/hud/ui_ready_marker_1.png",
     "assets/ui/hud/ui_ready_marker_2.png"
   ],
+  "_trayHold": "A bandeja nas mãos: de lado, a diagonal (trayIcons[0]); de frente e de costas, a de frente (front). bottom: a linha da imagem (de 64) onde a arte acaba (fica apoiada nas mãos); surface: a linha do meio do tampo (a base da louça em cima).",
+  "trayHold": { "side": { "icon": "bandeja_vazia", "bottom": 52, "surface": 36 }, "front": { "icon": "bandeja_frente", "bottom": 42, "surface": 33 } },
   "trayIcons": [
     "bandeja_vazia",
     "bandeja_1_itens",

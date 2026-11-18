@@ -120,6 +120,8 @@ export const serviceArt = serviceArtJson as unknown as {
   review: { happy: string; sad: string; star: string; scale: number; gap: number; happyFrom: number };
   readyMarker: string[];
   trayIcons: string[];
+  /** A bandeja nas mãos: de lado (side) e de frente ou de costas (front); bottom e surface em linhas da imagem de 64. */
+  trayHold: Record<'side' | 'front', { icon: string; bottom: number; surface: number }>;
   handAnchor: Record<'down' | 'left' | 'right' | 'up', [number, number]>;
   dishes: { image: string; tile: number; rows: Record<string, number>; cols: Record<'clean' | 'full' | 'dirty', number> };
 };

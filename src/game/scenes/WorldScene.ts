@@ -3872,7 +3872,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Mãos: o ícone vai na frente dela.
     // Caixas nas mãos: a pose de carregar, a mesma do gato no colo, sem gato desenhado.
     const boxes = this.carriedImages.length > 0;
-    const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome()]);
+    // A bandeja muda com a direção (de frente e de costas, a de frente; de lado, a diagonal).
+    const trayView = st.tray ? (['up', 'down'].includes(this.player.facingDirection()) ? 'front' : 'side') : '';
+    const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome(), trayView]);
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
@@ -3892,12 +3894,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         item?.setScale(this.handScale(dish) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true);
         this.handIcons = item ? [item] : [];
       } else if (onTray) {
-        const tray = iconFrame(this, serviceArt.trayIcons[0]!);
+        const hold = serviceArt.trayHold[trayView === 'front' ? 'front' : 'side'];
+        const tray = iconFrame(this, hold.icon);
         const top = st.hands[0];
         const item = top ? this.handItemImage(top) : undefined;
         // A bandeja com a base nas mãos (como a louça); a louça em cima, no meio do tampo dela.
-        const trayImg = tray ? this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, TRAY_ART_BOTTOM).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true) : undefined;
-        const surface = DISH_HAND_LIFT - (trayImg ? (TRAY_ART_BOTTOM - 0.5) * trayImg.displayHeight : 0) + TRAY_ITEM_LIFT;
+        const trayImg = tray ? this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, hold.bottom / 64).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true) : undefined;
+        const surface = DISH_HAND_LIFT - (trayImg ? ((hold.bottom - hold.surface) / 64) * trayImg.displayHeight : 0);
         item?.setScale(this.handScale(top) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, surface]).setData('onTray', true);
         this.handIcons = [...(trayImg ? [trayImg] : []), ...(item ? [item] : [])];
       } else {
@@ -4984,10 +4987,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 }
 
-/** Louça em cima da bandeja na mão: altura do pé dela a partir do meio da bandeja (pixels do jogo). */
-const TRAY_ITEM_LIFT = 2;
-/** A base da arte da bandeja na imagem (linha 52 de 64): ela fica apoiada nas mãos por ali. */
-const TRAY_ART_BOTTOM = 52 / 64;
 /** Louça direto nas mãos (sem bandeja): a base fica tanto abaixo do meio das mãos (px lógicos). */
 const DISH_HAND_LIFT = 3;
 

@@ -783,6 +783,11 @@
       "col": 3,
       "row": 18,
       "sheet": "pixellab"
+    },
+    "bandeja_frente": {
+      "col": 4,
+      "row": 18,
+      "sheet": "pixellab"
     }
   },
   "sheets": {
