@@ -782,6 +782,10 @@ export class GameUi {
         today.push(this.row(line, { icon }));
         continue;
       }
+      if (ch.kind === 'ced_goal') {
+        today.push(this.row(c.cedGoal, { icon: 'caixa_bilhete', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        continue;
+      }
       if (ch.kind === 'ced_sign') {
         today.push(this.row(c.cedSign, { icon: 'caixa_bilhete' }));
         continue;

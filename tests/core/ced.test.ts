@@ -102,6 +102,9 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     state.location = 'map.cafe_main';
     state.placed.push({ uid: 'sg', item: cfg.counter.signItem, at: [8, 8] });
     expect(session.chores().some((c) => c.kind === 'ced_sign')).toBe(false);
+    // A meta da vaquinha fica no balão com o quanto já entrou, enquanto ela estiver aberta.
+    const fund = state.ced.crowdfund!;
+    expect(session.chores().find((c) => c.kind === 'ced_goal')).toMatchObject({ progress: [fund.raised, fund.target] });
   });
 
   it('num dia de evento (piquenique, festa), a Fernanda não chama; no dia seguinte, sim', () => {

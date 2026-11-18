@@ -666,6 +666,7 @@
     "feed": "Dê comida para {cat}",
     "feedAll": "Encha a tigela de ração",
     "cedSign": "Ponha a plaquinha do CatPay no café",
+    "cedGoal": "Atinja a meta da vaquinha da CED",
     "autoFood": "Pote automático: {days} de ração",
     "autoLitter": "Caixa automática: {days} de areia",
     "autoDays": "{n} dias",
