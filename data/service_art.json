@@ -344,7 +344,7 @@
     "down": [0, -5],
     "left": [-14, -12],
     "right": [14, -12],
-    "up": [0, -5]
+    "up": [0, -13]
   },
   "dishIcons": {
     "_comment": "Louça na mão e em cima do balcão/mesa (arte nova): o pedido pronto usa o ícone da receita; a louça suja, o ícone daqui. scale: tamanho em relação ao ícone normal (0.5 = 16 px no mundo, o tamanho da louça).",
