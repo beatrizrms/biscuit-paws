@@ -842,6 +842,7 @@
     "prepReady": "{name} pronto!",
     "extraAsk": "O que preparar?",
     "extraInDisplay": "{name} ({n} na vitrine)",
+    "extraInDisplayWhole": "{name} ({n} fatias na vitrine)",
     "displayAsk": "O que tirar da vitrine?",
     "cakeAsk": "A fornada:",
     "cakeTake": "Tirar uma porção",

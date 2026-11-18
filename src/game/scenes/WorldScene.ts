@@ -3611,8 +3611,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (options.length === 0) return report(this.withPose(sv.prepare(uid), pose));
     if (options.length === 1 && stocked(options[0]!) === 0) return report(this.withPose(sv.prepare(uid, options[0]), pose));
     const names = options.map((id) => {
-      const name = this.session.content.recipes[id]?.name ?? id;
-      return stocked(id) > 0 ? uiText.service.extraInDisplay.replace('{name}', name).replace('{n}', String(stocked(id))) : name;
+      // Bolo, torta, panetone: ela faz o inteiro (as fatias são as porções); o nome é o dele.
+      const r = this.session.content.recipes[id];
+      const name = (r?.batch?.whole ? r.batch.name : r?.name) ?? id;
+      return stocked(id) > 0 ? (r?.batch?.whole ? uiText.service.extraInDisplayWhole : uiText.service.extraInDisplay).replace('{name}', name).replace('{n}', String(stocked(id))) : name;
     });
     void this.ui.choose(uiText.service.extraAsk, [...names, uiText.service.extraCancel]).then((i) => {
       if (i < options.length) report(this.withPose(sv.prepare(uid, options[i]), pose));
@@ -3753,7 +3755,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Tamanho do objeto na mão (petisco e massa pequenos; saco grande). */
   private handScale(item: HandItem | undefined): number {
     if (!item) return 1;
-    return item.kind === 'heavy' ? 0.85 : item.kind === 'item' || item.kind === 'wip' ? 0.55 : 1;
+    // O bolo (ou a torta) inteiro na mão: menor que o tamanho cheio (ocupava a célula toda e cobria a personagem).
+    return item.kind === 'heavy' ? 0.85 : item.kind === 'cake' ? 0.75 : item.kind === 'item' || item.kind === 'wip' ? 0.55 : 1;
   }
 
   /** Pega o gato que estiver ao lado (mãos livres). */

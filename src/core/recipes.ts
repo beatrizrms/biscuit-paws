@@ -57,7 +57,8 @@ export interface RecipeDef {
    * Fornada: o preparo rende o bolo inteiro (sem louça), que vai para a vitrine e vale `yields` fatias; o cliente
    * pede a fatia (esta receita). `name` e `icon`: o bolo inteiro.
    */
-  batch?: { yields: number; name: string; icon: string };
+  /** whole: a fornada é um inteiro (bolo, torta, panetone) servido em fatias: no equipamento, ela faz o inteiro (o nome dele). */
+  batch?: { yields: number; name: string; icon: string; whole?: boolean };
   /** Quente ou gelada: os clientes pedem mais conforme a estação e o clima (service.json: demand). */
   temp?: 'hot' | 'cold';
   /** Só entra no cardápio nestas estações (sem o campo: o ano todo). */
