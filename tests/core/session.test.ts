@@ -792,7 +792,7 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta antes do dia 26: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café dia 26');
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café no dia 26');
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');

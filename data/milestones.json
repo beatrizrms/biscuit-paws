@@ -4,17 +4,17 @@
   "recipesPerDay": 3,
   "_comment": "Conquistas do café (decisão 267: metas da estação; as receitas de estação vêm das trilhas season_*: o contador da estação zera e cada estação dá até goals.length conquistas da fila dela; as de festa chegam na primeira festa depois da inauguração). Selos do café (src/core/milestones.ts; app Café em números, aba Selos). tracks: de onde cada trilha lê o número (stat: served = clientes atendidos no jogo todo; servedOpen = clientes atendidos desde a inauguração (antes dela, 0: as receitas a partir do pão de queijo contam dali, para o inverno, antes de inaugurar, ter poucas receitas); catsEver = gatos que já passaram pelo café, adotados contam; reputation = a reputação agora; streak.no_gave_up e streak.cats_cared = a MELHOR sequência, que nunca diminui; fairsHeld = feiras de adoção que aconteceram até o fim). kind: count (quantidade fixa: as recompensas que importam) ou streak (sequência sem recaída: só presentes ou receita bônus; nada da história pode depender delas, o check acusa). Cada selo: at (o número), when/whenText (condição a mais e o texto que explica na tela), reward { kind: recipe | room | item | event | gift | costume, ids } e effects (opcional, como os da história). recipe/room/item/event/costume: o selo só mostra; quem destrava é a condição { \"milestone\": id } na receita, no cômodo ou no item (requires). gift: os itens entram na mochila ao conquistar (repita o id para dar mais de um). Selo conquistado não volta atrás; ids nunca reaproveitados.",
   "tracks": [
-    { "id": "customers", "name": "Clientes atendidos", "kind": "count", "stat": "served" },
-    { "id": "customers_open", "name": "Clientes desde a inauguração", "kind": "count", "stat": "servedOpen" },
-    { "id": "season_winter", "name": "Clientes neste inverno", "kind": "season", "stat": "servedSeason", "season": "winter", "goals": [200, 450] },
-    { "id": "season_spring", "name": "Clientes nesta primavera", "kind": "season", "stat": "servedSeason", "season": "spring", "goals": [200, 450] },
-    { "id": "season_summer", "name": "Clientes neste verão", "kind": "season", "stat": "servedSeason", "season": "summer", "goals": [200, 450] },
-    { "id": "season_autumn", "name": "Clientes neste outono", "kind": "season", "stat": "servedSeason", "season": "autumn", "goals": [200, 450] },
-    { "id": "cats", "name": "Gatos que passaram pelo café", "kind": "count", "stat": "catsEver" },
-    { "id": "reputation", "name": "Reputação", "kind": "count", "stat": "reputation" },
-    { "id": "no_gave_up", "name": "Ninguém sai de mãos vazias", "kind": "streak", "stat": "streak.no_gave_up" },
-    { "id": "cats_cared", "name": "Bigodes bem cuidados", "kind": "streak", "stat": "streak.cats_cared" },
-    { "id": "fairs", "name": "Feiras de adoção", "kind": "count", "stat": "fairsHeld" }
+    { "id": "customers", "name": "Clientes atendidos", "goal": "Atenda {n} clientes", "kind": "count", "stat": "served" },
+    { "id": "customers_open", "name": "Clientes desde a inauguração", "goal": "Atenda {n} clientes", "kind": "count", "stat": "servedOpen" },
+    { "id": "season_winter", "name": "Clientes neste inverno", "goal": "Atenda {n} clientes", "kind": "season", "stat": "servedSeason", "season": "winter", "goals": [200, 450] },
+    { "id": "season_spring", "name": "Clientes nesta primavera", "goal": "Atenda {n} clientes", "kind": "season", "stat": "servedSeason", "season": "spring", "goals": [200, 450] },
+    { "id": "season_summer", "name": "Clientes neste verão", "goal": "Atenda {n} clientes", "kind": "season", "stat": "servedSeason", "season": "summer", "goals": [200, 450] },
+    { "id": "season_autumn", "name": "Clientes neste outono", "goal": "Atenda {n} clientes", "kind": "season", "stat": "servedSeason", "season": "autumn", "goals": [200, 450] },
+    { "id": "cats", "name": "Gatos que passaram pelo café", "goal": "Receba mais {n} gatos no café", "kind": "count", "stat": "catsEver" },
+    { "id": "reputation", "name": "Reputação", "goal": "Chegue a {at} de reputação", "kind": "count", "stat": "reputation" },
+    { "id": "no_gave_up", "name": "Ninguém sai de mãos vazias", "goal": "Passe {at} dias seguidos sem ninguém desistir", "kind": "streak", "stat": "streak.no_gave_up" },
+    { "id": "cats_cared", "name": "Bigodes bem cuidados", "goal": "Cuide bem dos gatos {at} dias seguidos", "kind": "streak", "stat": "streak.cats_cared" },
+    { "id": "fairs", "name": "Feiras de adoção", "goal": "Faça mais {n} feiras de adoção", "kind": "count", "stat": "fairsHeld" }
   ],
   "milestones": [
     { "id": "milestone.customers_6", "track": "customers", "name": "Primeira freguesia", "at": 15, "reward": { "kind": "recipe", "ids": ["recipe.black_tea"] } },

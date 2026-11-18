@@ -765,7 +765,7 @@ export class GameUi {
       // Pote ou caixa automáticos abastecidos: feito sozinho; a linha fica, só com os dias guardados.
       if (ch.done && ch.auto !== undefined) {
         const days = (ch.auto === 1 ? c.autoDay : c.autoDays).replace('{n}', String(ch.auto));
-        today.push(this.row((ch.kind === 'feed' ? c.autoFood : c.autoLitter).replace('{days}', days), { icon: ch.kind === 'feed' ? 'racao_aberta' : 'areia_balde', cls: 'auto' }));
+        cafe.push(this.row(ch.kind === 'feed' ? c.autoFood : c.autoLitter, { icon: ch.kind === 'feed' ? 'racao_aberta' : 'areia_balde', cls: 'auto', right: `<span class="count">${esc(days)}</span>` }));
         continue;
       }
       if (ch.done) {
@@ -846,14 +846,14 @@ export class GameUi {
     if (santa) today.push(santa);
     const hw = this.halloweenLine();
     if (hw) today.push(hw);
-    if (doneToday > 0) today.push(`<li class="done-sum">${esc(g.doneToday.replace('{n}', String(doneToday)))}</li>`);
+    if (doneToday > 0) today.push(`<li class="done-sum">${esc((doneToday === 1 ? g.doneTodayOne : g.doneToday).replace('{n}', String(doneToday)))}</li>`);
 
     const sv = this.session.service;
     // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
     if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) cafe.push(this.row(uiText.service.closed.replace('{when}', openingText(this.session)), { icon: 'xicara_limpa' }));
     if (sv.isOpen()) {
       const cap = sv.capacity().total;
-      cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
+      if (cap > 0) cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
       const blocked = sv.arrivalsBlocked();
       if (blocked) alerts.push(uiText.service.blocked[blocked]);
     }
@@ -863,13 +863,13 @@ export class GameUi {
       const item = this.session.state.placed.find((pl) => pl.uid === uid)?.item ?? '';
       alerts.push(uiText.service.brokenAlert.replace('{name}', content.items[item]?.name ?? '').replace('{price}', String(content.service.breakdown?.repairPrice ?? 0)));
     }
-    if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
+    if (this.session.state.tray) cafe.push(this.row(uiText.service.tray, { icon: 'bandeja_vazia', right: this.pips(this.session.state.hands.length, sv.handsCapacity()) }));
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
     if (this.session.state.sink.washing) cafe.push(this.row(sv.sinkPaused() ? uiText.service.sinkPaused : uiText.service.sinkWashing, { icon: 'xicara_suja' }));
-    else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
+    else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad, { icon: 'xicara_suja', right: `<span class="count">${sv.sinkLoad()}</span>` }));
     for (const uid of Object.keys(this.session.state.washers)) {
       if (sv.washerProgress(uid) !== undefined) cafe.push(this.row(uiText.service.washerWashing, { icon: 'xicara_suja' }));
-      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad.replace('{n}', String(sv.washerLoad(uid))), { icon: 'xicara_suja' }));
+      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad, { icon: 'xicara_suja', right: `<span class="count">${sv.washerLoad(uid)}</span>` }));
     }
     const d = uiText.delivery;
     const next = this.session.nextArrival();
@@ -879,9 +879,9 @@ export class GameUi {
     }
     const n = (stage: 'door' | 'carried' | 'inside') => this.session.boxesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
-    if (atDoor > 0) cafe.push(this.row(d.atDoor.replace('{n}', String(atDoor)), { icon: 'caixa_entrega_fechada' }));
-    if (n('carried')) cafe.push(this.row(d.carried.replace('{n}', String(n('carried'))), { icon: 'caixa_entrega_fechada' }));
-    if (n('inside')) cafe.push(this.row(d.inside.replace('{n}', String(n('inside'))), { icon: 'caixa_entrega_aberta' }));
+    if (atDoor > 0) cafe.push(this.row(d.atDoor, { icon: 'caixa_entrega_fechada', right: `<span class="count">${atDoor}</span>` }));
+    if (n('carried')) cafe.push(this.row(d.carried, { icon: 'caixa_entrega_fechada', right: `<span class="count">${n('carried')}</span>` }));
+    if (n('inside')) cafe.push(this.row(d.inside, { icon: 'caixa_entrega_aberta', right: `<span class="count">${n('inside')}</span>` }));
 
     const section = (title: string, items: string[]) => (items.length ? `<h4>${esc(title)}</h4><ul class="chores">${items.join('')}</ul>` : '');
     // O alerta: a primeira frase vira o título (até o ":"), o resto é o que fazer.
@@ -1059,11 +1059,12 @@ export class GameUi {
     const clueText = a.def.model === 'entrega' ? g.ask : g.clue;
     if ('feed' in step) {
       const done = this.session.state.arrivals.active?.fed ?? 0;
-      const f = g.feed.replace('{n}', String(done)).replace('{total}', String(step.feed.times)).replace('{from}', step.feed.hours[0]).replace('{to}', step.feed.hours[1]);
-      return `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(f)}</span></li>`;
+      const f = g.feed.replace('{from}', step.feed.hours[0]).replace('{to}', step.feed.hours[1]);
+      return this.row(f, { icon: 'petisco_biscoito', right: this.pips(done, step.feed.times) });
     }
     const text = 'ask' in step ? g.ask : 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
-    return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
+    // A meta da chegada como as outras: a ação (no imperativo, dizendo que é um gato), sem o "Um gato:" na frente.
+    return text ? this.row(this.fillNames(text), { icon: 'petisco_biscoito' }) : '';
   }
 
   /** Linha do festival no balão (ou vazio, sem evento em andamento). Os textos vêm do festival (festivals.json: texts). */
@@ -1537,13 +1538,14 @@ ${rep}`;
     }
     const extra = this.extrasHtml();
     // Sem meta da história: a meta longa (o próximo selo mais perto), para o jogo sempre ter um rumo.
-    const seal = goal ? '' : this.sealHtml();
-    // Em cima, sem título: as metas da história (ou o próximo selo) e a de clientes ("Atenda X clientes").
-    const clients = this.clientsGoalHtml();
-    this.goals.classList.toggle('empty', !goal && !extra && !seal && !clients);
+    // Em cima, sem título: as metas da história e, em linhas do mesmo nível, a próxima conquista (sem meta da
+    // história) e a de clientes ("Atenda X clientes"), cada uma com o contador à direita.
+    const rows = (goal ? '' : this.sealRow()) + this.clientsGoalRow();
+    const metas = rows ? `<ul class="chores">${rows}</ul>` : '';
+    this.goals.classList.toggle('empty', !goal && !extra && !metas);
     this.goals.innerHTML = (goal
-      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g) => this.storyHtml(g, fill)).join('')}${clients}`
-      : seal || clients ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}${clients}`
+      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g) => this.storyHtml(g, fill)).join('')}${metas}`
+      : metas ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${metas}`
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
@@ -1553,20 +1555,17 @@ ${rep}`;
   }
 
   /** A meta de clientes da próxima receita (a da estação ou a geral, a que falta menos): "Atenda X clientes". */
-  private clientsGoalHtml(): string {
+  private clientsGoalRow(): string {
     const goal = this.session.recipeGoals().sort((a, b) => a.at - a.value - (b.at - b.value))[0];
     if (!goal || goal.at <= goal.value) return '';
-    return `<ul class="chores">${this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: this.pips(goal.value, goal.at) })}</ul>`;
+    return this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: this.pips(goal.value, goal.at) });
   }
 
-  /** O próximo selo como meta do balão: o nome e a trilha com o progresso (sem a recompensa: só a meta). */
-  private sealHtml(): string {
+  /** A próxima conquista (sem as de receita): a ação dela numa linha, com o contador à direita (sem o nome nem a recompensa). */
+  private sealRow(): string {
     const n = this.session.nextAchievement(true);
     if (!n) return '';
-    const g = uiText.goals;
-    const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
-    const detail = g.nextSealDetail.replace('{track}', n.trackName).replace('{value}', String(n.value)).replace('{at}', String(n.at)).replace('{reward}', reward);
-    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span>${this.pips(n.value, n.at)}</div><p class="g-detail">${esc(detail)}</p>`;
+    return this.row(n.goal.replace('{n}', String(n.at - n.value)).replace('{at}', String(n.at)), { right: this.pips(n.value, n.at) });
   }
 
   /**

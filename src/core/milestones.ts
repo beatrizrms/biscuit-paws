@@ -22,6 +22,8 @@ export interface MilestoneTrack {
   name: string;
   kind: MilestoneKind;
   stat: MilestoneStat;
+  /** A meta no balão: a ação, com {n} (quanto falta) e {at} (o número da meta). Sem o campo, o nome da trilha. */
+  goal?: string;
   /** Trilha da estação (kind season): de qual estação e as metas de clientes dela, em ordem. */
   season?: string;
   goals?: number[];

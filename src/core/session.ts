@@ -4356,11 +4356,11 @@ export class GameSession {
    * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
    * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
    */
-  nextAchievement(skipRecipes = false): { trackName: string; name: string; value: number; at: number; reward: string } | null {
+  nextAchievement(skipRecipes = false): { trackName: string; goal: string; name: string; value: number; at: number; reward: string } | null {
     const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.at && !(skipRecipes && t.next.def.reward.kind === 'recipe'));
     const best = open.sort((a, b) => b.next!.value / b.next!.at - a.next!.value / a.next!.at || a.next!.at - a.next!.value - (b.next!.at - b.next!.value))[0];
     if (!best?.next) return null;
-    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.at, reward: best.next.def.reward.kind };
+    return { trackName: best.track.name, goal: best.track.goal ?? best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.at, reward: best.next.def.reward.kind };
   }
 
   /**
