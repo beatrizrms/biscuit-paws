@@ -47,16 +47,16 @@ describe('vitrine e fornada', () => {
     expect(bakery().sv.recipeStatus('recipe.cake_slice')).toBe('available');
   });
 
-  it('a fornada rende o bolo inteiro (6 fatias) sem usar prato; ele vai para a vitrine', () => {
+  it('a fornada rende o bolo inteiro (8 fatias) sem usar prato; ele vai para a vitrine', () => {
     const { state, sv, bakeCake } = bakery();
     const plates = sv.cleanFree('plate');
     bakeCake();
-    expect(state.hands).toEqual([{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'simple' }]);
+    expect(state.hands).toEqual([{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 8, quality: 'simple' }]);
     expect(sv.cleanFree('plate')).toBe(plates);
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
     expect(state.hands).toEqual([]);
-    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 6 }]);
-    expect(sv.displayPortions('recipe.cake_slice')).toBe(6);
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 8 }]);
+    expect(sv.displayPortions('recipe.cake_slice')).toBe(8);
   });
 
   it('tirar uma fatia usa um prato limpo e diminui o bolo; a última fatia libera o espaço', () => {
@@ -177,13 +177,13 @@ describe('vitrine empilha o que é igual', () => {
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
     state.hands = [{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'simple' }];
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
-    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 12 }]);
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }]);
     expect(sv.takeFromDisplay('v1', 0)).toEqual({ ok: true });
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
-    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 12 }]);
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }]);
     state.hands = [{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'premium' }];
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
-    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 12 }, { recipe: 'recipe.cake_slice', portions: 6, quality: 'premium' }]);
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }, { recipe: 'recipe.cake_slice', portions: 6, quality: 'premium' }]);
   });
 
   it('save com a mesma receita em dois espaços: ao abrir, vira um só', () => {

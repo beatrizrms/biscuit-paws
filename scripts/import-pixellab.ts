@@ -2363,6 +2363,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['agua_coco', 'torta_maca', 'fatia_torta_maca'] as const).map((name) => ({ name, file: `${SRC}/comidas_halloween/${name}.png` })),
     // Sinais em cima da cabeça dos gatos: operado (tesoura), doente (termômetro) e doença que passa (micróbio). Pro Flash 64x64, a latinha como estilo.
     ...(['sinal_tesoura', 'sinal_termometro', 'sinal_microbio'] as const).map((name) => ({ name, file: `${SRC}/icones_extra/${name}.png` })),
+    // Bandeja de frente (Pro Flash 64x64, a bandeja diagonal como estilo): nas mãos, de frente e de costas.
+    { name: 'bandeja_frente', file: `${SRC}/icones_extra/bandeja_frente.png` },
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });

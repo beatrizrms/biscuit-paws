@@ -3611,8 +3611,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (options.length === 0) return report(this.withPose(sv.prepare(uid), pose));
     if (options.length === 1 && stocked(options[0]!) === 0) return report(this.withPose(sv.prepare(uid, options[0]), pose));
     const names = options.map((id) => {
-      const name = this.session.content.recipes[id]?.name ?? id;
-      return stocked(id) > 0 ? uiText.service.extraInDisplay.replace('{name}', name).replace('{n}', String(stocked(id))) : name;
+      // Bolo, torta, panetone: ela faz o inteiro (as fatias são as porções); o nome é o dele.
+      const r = this.session.content.recipes[id];
+      const name = (r?.batch?.whole ? r.batch.name : r?.name) ?? id;
+      return stocked(id) > 0 ? (r?.batch?.whole ? uiText.service.extraInDisplayWhole : uiText.service.extraInDisplay).replace('{name}', name).replace('{n}', String(stocked(id))) : name;
     });
     void this.ui.choose(uiText.service.extraAsk, [...names, uiText.service.extraCancel]).then((i) => {
       if (i < options.length) report(this.withPose(sv.prepare(uid, options[i]), pose));
@@ -3753,7 +3755,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** Tamanho do objeto na mão (petisco e massa pequenos; saco grande). */
   private handScale(item: HandItem | undefined): number {
     if (!item) return 1;
-    return item.kind === 'heavy' ? 0.85 : item.kind === 'item' || item.kind === 'wip' ? 0.55 : 1;
+    // O bolo (ou a torta) inteiro na mão: menor que o tamanho cheio (ocupava a célula toda e cobria a personagem).
+    return item.kind === 'heavy' ? 0.85 : item.kind === 'cake' ? 0.75 : item.kind === 'wip' ? 0.7 : item.kind === 'item' ? 0.55 : 1;
   }
 
   /** Pega o gato que estiver ao lado (mãos livres). */
@@ -3869,7 +3872,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Mãos: o ícone vai na frente dela.
     // Caixas nas mãos: a pose de carregar, a mesma do gato no colo, sem gato desenhado.
     const boxes = this.carriedImages.length > 0;
-    const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome()]);
+    // A bandeja muda com a direção (de frente e de costas, a de frente; de lado, a diagonal).
+    const trayView = st.tray ? (['up', 'down'].includes(this.player.facingDirection()) ? 'front' : 'side') : '';
+    const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome(), trayView]);
     if (key !== this.handsKey) {
       this.handsKey = key;
       this.handIcons.forEach((i) => i.destroy());
@@ -3879,7 +3884,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Bandeja só quando está selecionada na barra: nas mãos, com uma louça em cima, mesmo levando várias (o número
       // não aparece). Sem ela, a louça (uma por vez) vai direto nas mãos, na mesma pose de mãos à frente.
       const onTray = st.tray;
-      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty') : undefined;
+      // Toda comida (louça, bolo, bowl com a mistura, fruta, para viagem) vai como a louça: nas mãos à frente, com a base
+      // na altura delas. Só o saco (pesado) e o gato têm o jeito deles.
+      const dish = !onTray ? st.hands.find((h) => h.kind === 'drink' || h.kind === 'dirty' || h.kind === 'cake' || h.kind === 'wip' || h.kind === 'item') : undefined;
       // Pose de carregar (bandeja, gato no colo): a personagem anda com ela, de mãos vazias; o jogo desenha o objeto.
       this.player.setCarryPose(onTray || dish ? 'tray' : catId || boxes ? 'cat' : null);
       if (dish) {
@@ -3887,11 +3894,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         item?.setScale(this.handScale(dish) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true);
         this.handIcons = item ? [item] : [];
       } else if (onTray) {
-        const tray = iconFrame(this, serviceArt.trayIcons[0]!);
+        const hold = serviceArt.trayHold[trayView === 'front' ? 'front' : 'side'];
+        const tray = iconFrame(this, hold.icon);
         const top = st.hands[0];
         const item = top ? this.handItemImage(top) : undefined;
-        item?.setScale(this.handScale(top) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, TRAY_ITEM_LIFT]).setData('onTray', true);
-        this.handIcons = [...(tray ? [this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, 0.5).setData('handOffset', [0, 0]).setData('onTray', true)] : []), ...(item ? [item] : [])];
+        // A bandeja com a base nas mãos (como a louça); a louça em cima, no meio do tampo dela.
+        const trayImg = tray ? this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, hold.bottom / 64).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true) : undefined;
+        const surface = DISH_HAND_LIFT - (trayImg ? ((hold.bottom - hold.surface) / 64) * trayImg.displayHeight : 0);
+        item?.setScale(this.handScale(top) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, surface]).setData('onTray', true);
+        this.handIcons = [...(trayImg ? [trayImg] : []), ...(item ? [item] : [])];
       } else {
         this.handIcons = st.hands
           .map((h) => ({ h, img: this.handItemImage(h) }))
@@ -4976,8 +4987,6 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 }
 
-/** Louça em cima da bandeja na mão: altura do pé dela a partir do meio da bandeja (pixels do jogo). */
-const TRAY_ITEM_LIFT = 2;
 /** Louça direto nas mãos (sem bandeja): a base fica tanto abaixo do meio das mãos (px lógicos). */
 const DISH_HAND_LIFT = 3;
 

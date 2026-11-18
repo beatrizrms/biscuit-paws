@@ -234,8 +234,9 @@
       },
       "display": true,
       "batch": {
-        "yields": 6,
-        "name": "Bolo de chocolate de gatinho",
+        "whole": true,
+        "yields": 8,
+        "name": "Bolo de chocolate",
         "icon": "bolo_chocolate_gatinho"
       }
     },
@@ -296,7 +297,8 @@
       },
       "display": true,
       "batch": {
-        "yields": 6,
+        "whole": true,
+        "yields": 8,
         "name": "Bolo de morango",
         "icon": "bolo_morango"
       },
@@ -537,7 +539,8 @@
       },
       "display": true,
       "batch": {
-        "yields": 6,
+        "whole": true,
+        "yields": 8,
         "name": "Bolo de matcha",
         "icon": "bolo_matcha"
       },
@@ -550,7 +553,7 @@
       "wipIcon": "bowl_limao",
       "name": "Fatia de bolo de limão",
       "icon": "fatia_limao",
-      "batch": { "yields": 6, "name": "Bolo de limão", "icon": "bolo_limao" },
+      "batch": { "whole": true, "yields": 8, "name": "Bolo de limão", "icon": "bolo_limao" },
       "ingredients": {
         "item.flour": 1,
         "item.eggs": 1,
@@ -937,7 +940,8 @@
       ],
       "display": true,
       "batch": {
-        "yields": 6,
+        "whole": true,
+        "yields": 8,
         "name": "Torta de morango",
         "icon": "torta_morango"
       }
@@ -1111,6 +1115,7 @@
       },
       "display": true,
       "batch": {
+        "whole": true,
         "yields": 6,
         "name": "Panetone",
         "icon": "panetone"
@@ -1181,7 +1186,8 @@
       },
       "display": true,
       "batch": {
-        "yields": 6,
+        "whole": true,
+        "yields": 8,
         "name": "Bolo de abóbora",
         "icon": "bolo_abobora"
       },
@@ -1370,7 +1376,8 @@
       ],
       "display": true,
       "batch": {
-        "yields": 6,
+        "whole": true,
+        "yields": 8,
         "name": "Torta de maçã",
         "icon": "torta_maca"
       }
