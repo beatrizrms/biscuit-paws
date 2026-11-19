@@ -82,7 +82,7 @@ Um documento curto (`docs/GUIA_DE_ESTILO.md`) que vira a regra para tudo o que e
 | Fase | O quê | Esforço |
 |---|---|---|
 | 0. Guia de padrão | Escrever o `GUIA_DE_ESTILO.md` (tabela acima), com a Beatriz escolhendo as referências | baixo |
-| 1. Interface e tipografia | Fonte com personalidade (feito: Pixelify Sans + Nunito, decisão 270); tirar a faixa de teclas fixa (só no "Como jogar" ou nos primeiros minutos); um painel de HUD só; diálogo menor; ícones no lugar dos emojis e desenhos em CSS; transições curtas | baixo (código) |
+| 1. Interface e tipografia | Feito: fonte (Pixelify Sans + Nunito, decisão 270); faixa de teclas só no prólogo; HUD num painel só; nome de quem fala dentro da caixa, alinhado ao texto; emoji do cardápio trocado por ícone; entrada curta dos painéis (decisão 271). Falta: os ícones do celular desenhados em CSS (relógio, calendário, notas) e diminuir a caixa de diálogo | baixo (código) |
 | 2. Personagens | Medir a proporção de cada personagem (cabeça e corpo, altura); escolher a medida do guia; refazer ou ajustar os fora do padrão (a protagonista primeiro) | médio a alto (PixelLab) |
 | 3. Itens na mão | Âncora da mão por quadro e por pose; a vassoura, a bandeja, o colo do gato e o que mais for segurado presos a ela | médio (dados e código) |
 | 4. Coesão dos objetos | Passar os objetos fora do estilo pelo contorno e pela paleta; trocar os ícones avulsos | médio (PixelLab e scripts) |

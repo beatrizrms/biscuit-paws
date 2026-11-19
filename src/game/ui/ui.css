@@ -201,11 +201,12 @@ html.touch-mode .display-pick .slot .key { display: none; }
   padding: 9px 12px 10px;
   font-size: max(calc(10.5px * var(--fs, 1)), var(--fs-min, 0px));
 }
+/* O nome de quem fala dentro da caixa, na mesma coluna do texto (antes flutuava na borda, alinhado ao retrato). */
 .dialogue .speaker {
-  position: absolute;
-  top: -11px;
-  left: 10px;
-  padding: 1px 7px;
+  display: block;
+  width: fit-content;
+  margin: 0 0 3px;
+  padding: 0 6px;
   background: var(--pink2);
   border: 2px solid var(--wood3);
   border-radius: 4px;
@@ -525,7 +526,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
 .hud-goals, .hud-money { transition: opacity 0.2s; }
-.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through { opacity: 0.18; pointer-events: none; }
+.hud-goals.see-through, .hud-stack.see-through { opacity: 0.18; pointer-events: none; }
 .hud-rep[hidden], .hud-energy[hidden], .hud-money .hud-weather-icon[hidden] { display: none; }
 
 /* Transições suaves entre o que aparece na cena (gato, celular...) */
@@ -768,7 +769,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Capacidade no quadro do cardápio */
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 4px 6px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.4; color: var(--ink); background: var(--cream2); border-radius: 4px; }
 .catalog.menu-board .m-dishes { margin: 4px 0 0; color: var(--cream2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
-.catalog.menu-board .shopping-add { display: block; margin: 3px 0; padding: 2px 6px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .shopping-add { display: inline-flex; align-items: center; gap: 4px; margin: 3px 0; padding: 2px 6px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.shop .list { overflow-x: hidden; }
 .catalog .cart-row { box-sizing: border-box; }
 
@@ -1487,3 +1488,24 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
   font-weight: 600;
   letter-spacing: 0.02em;
 }
+
+/* Entrada curta dos painéis (plano de polimento, fase 1): em vez de aparecer de uma vez, um esmaecer com leve deslize.
+   Com translate/scale (não transform), para não desfazer o transform de quem se centraliza com ele (mochila, consulta). */
+@keyframes panel-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@keyframes pop-in { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
+#ui .catalog.open, #ui .phone-ui.open { animation: panel-in 0.14s ease-out; }
+#ui .dialogue-layer.open .dialogue { animation: panel-in 0.12s ease-out; }
+#ui .hud-goals.open { animation: pop-in 0.12s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  #ui .catalog.open, #ui .phone-ui.open, #ui .dialogue-layer.open .dialogue, #ui .hud-goals.open { animation: none; }
+}
+
+/* HUD de cima num painel só (plano de polimento, fase 1): hora e moedas em cima; nota do café e energia embaixo,
+   na mesma largura, separadas por uma linha fina (antes eram três caixinhas soltas de larguras diferentes). */
+.hud-stack { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; padding: 0; overflow: hidden; transition: opacity 0.2s; }
+.hud-stack > .hud-money, .hud-stack > .hud-rep, .hud-stack > .hud-energy { position: static; top: auto; right: auto; background: none; border: 0; box-shadow: none; border-radius: 0; }
+.hud-stack > .hud-money { padding: 2px 8px 2px 4px; }
+.hud-stack > .hud-rep, .hud-stack > .hud-energy { justify-content: space-between; padding: 1px 8px; border-top: 1px solid var(--cream3); }
+.hud-stack > .hud-rep .label, .hud-stack > .hud-energy .label { margin-right: auto; }
+.hud-stack > .hud-energy .bar { flex: 1; max-width: 60px; }
+.hud-cart { top: 58px; }

@@ -776,7 +776,7 @@
     "money": "Custo {cost} · Venda {price} · Lucro {profit}",
     "legend": { "ok": "Disponível", "ingredients": "Falta ingrediente", "equipment": "Falta equipamento" },
     "noneHere": "Nenhuma receita desta louça na estação.",
-    "shoppingAdd": "📝 anotar o que falta",
+    "shoppingAdd": "Anotar o que falta",
     "shoppingAdded": "Anotado nas Notas: {items}",
     "shoppingNothing": "Nada faltando: o cardápio está abastecido.",
     "capacity": {

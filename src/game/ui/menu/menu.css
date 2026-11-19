@@ -93,3 +93,5 @@ html.touch-mode .menu-hint .touch-hint { display: inline; }
 
 /* Tipografia (plano de polimento, fase 1): o título do jogo e os dos painéis do menu na fonte pixel. */
 .menu-title, .menu-panel h2 { font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; }
+.menu-panel { animation: pop-in 0.14s ease-out; }
+@media (prefers-reduced-motion: reduce) { .menu-panel { animation: none; } }

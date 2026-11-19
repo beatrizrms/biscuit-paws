@@ -121,10 +121,10 @@ export class GameUi {
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
-      <div class="panel hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-stack"><div class="hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="hud-rep"><span class="label">${uiText.reputation.ratingLabel}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div></div>
       <div class="panel hud-cart" hidden></div>
-      <div class="panel hud-rep"><span class="label">${uiText.reputation.ratingLabel}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
-      <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <div class="dialogue-layer">
@@ -1033,7 +1033,8 @@ export class GameUi {
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
-    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy')]) {
+    // O HUD de cima é um painel só (hora, moedas, nota, energia): fica transparente inteiro.
+    for (const el of [this.goals, this.root.querySelector<HTMLElement>('.hud-stack')!]) {
       if (el.hidden) continue;
       const r = el.getBoundingClientRect();
       // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
@@ -1611,6 +1612,12 @@ ${rep}`;
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
     // No celular, a dica fala dos botões de toque (sem setas nem teclas).
     const touchText = touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : undefined;
+    // Andando, depois do prólogo: sem a faixa de teclas (as teclas ficam no Como jogar). Nos modos de posicionar e
+    // mover, e nas falas, a dica continua (só aparece nessas horas).
+    if (mode === 'walk' && this.session.state.flags['prologue.done']) {
+      this.hint.textContent = '';
+      return;
+    }
     this.hint.textContent = touchText ?? (
       mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk);
   }

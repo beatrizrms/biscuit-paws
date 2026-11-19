@@ -215,7 +215,7 @@ export class MenuBoardPanel {
     const scroll = this.body.scrollTop; // redesenhar não pode mexer na rolagem de quem está lendo
     // A lista de compras logo embaixo do quadro (o que está esgotado e o que está disponível); a capacidade numa linha.
     this.body.innerHTML = `${this.boardHtml(inMenu)}
-      <button class="shopping-add" data-shopping>${t.shoppingAdd}</button>
+      <button class="shopping-add" data-shopping>${iconHtml('caixa_bilhete', 10)}${esc(t.shoppingAdd)}</button>
       ${this.capacityHtml()}
       <h3>${t.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${tabs}<div class="m-list">${lines}</div>${legend}
