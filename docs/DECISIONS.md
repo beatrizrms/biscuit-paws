@@ -1122,3 +1122,11 @@ Decisão: `docs/GUIA_DE_ESTILO.md` vira a regra para o que entra no jogo: escala
 Pedido: a vassoura e a bandeja não encaixavam na mão da personagem.
 Causa: cada roupa da protagonista foi desenhada à parte e põe as mãos num lugar diferente (no moletom, de lado, as mãos ficam bem mais à frente que no vestido), mas o jogo usava um ponto fixo por direção.
 Decisão: `npm run hands` mede as mãos na máscara da pele de cada quadro das poses de segurar (bandeja, colo e ação), por roupa e direção, e grava `data/hand_anchors.json`. A bandeja, a louça, o gato no colo, as caixas e a vassoura ficam presos a esse ponto no quadro de agora (`Player.handPoint()`) e acompanham o passo. De lado, a bandeja vira junto com ela (a de perspectiva, espelhada para o lado em que ela olha) e fica na altura do peito, sem cobrir o rosto; o gato no colo fica com o corpo nos braços, não em cima deles. A vassoura vai inteira na frente do corpo e mais deitada (antes, o cabo passava por trás e parecia atravessar a personagem). Sem medida (caminhada comum), continua o ponto fixo de antes.
+
+## 275. Movimento, fase 7 do polimento (nov/2026)
+Pedido: fazer antes dos personagens tudo o que não depende de arte nova.
+Decisão:
+- **Caminhos naturais:** os NPCs (cenas, passeios, quem atravessa a rua, quem vai embora) andam em linha reta, também na diagonal, até o ponto mais longe do caminho que dá para alcançar sem raspar num móvel (`smoothPath` em `src/core/path.ts`), em vez dos degraus da grade. A caminhada usa a direção que mais pesa no trecho. Os clientes continuam pelas esquinas, por causa das mesas.
+- **Respirar parado:** a protagonista e os NPCs em pé, sem animação tocando, sobem o corpo 1 pixel do jogo e voltam, num ciclo de 2,8 s, cada um no seu tempo (`src/game/breathing.ts`). Sentada, não.
+- **Câmera suave:** segue a protagonista com um leve atraso; ao trocar de mapa ou de cômodo, começa já no lugar dela.
+- **Resposta ao servir:** moedinhas pulam de quem paga, e a bebida quente solta vapor no anel de consumo.

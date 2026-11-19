@@ -13,6 +13,8 @@ export type Mood = 'normal' | 'impatient' | 'furious';
 
 /** Tamanho do ícone de "tomando" (fração do ícone normal da folha). */
 const DRINK_ICON = 0.75;
+/** Fiapos de vapor por bebida quente servida. */
+const STEAM_PUFFS = 3;
 /**
  * Consumindo: a xicrinha num disquinho claro e um anel fino em volta que fecha conforme ele consome (como um relógio).
  * Formato diferente da barra de paciência (a do balão do pedido), para as duas não se confundirem. px lógicos.
@@ -164,6 +166,17 @@ export class CustomerSprite {
     }
     this.consumed = Math.min(1, Math.max(0, progress));
     this.consumeBox.setVisible(true);
+  }
+
+  /** Bebida quente servida: fiapos de vapor sobem da xícara do anel de consumo (só visual). */
+  steam(): void {
+    const icon = this.drinkIcon;
+    if (!icon) return;
+    for (let i = 0; i < STEAM_PUFFS; i++) {
+      const dx = (i - (STEAM_PUFFS - 1) / 2) * 3;
+      const puff = this.scene.add.rectangle(icon.x + dx, icon.y - icon.displayHeight / 2, 2, 2, 0xffffff, 0.85).setDepth(99_450);
+      this.scene.tweens.add({ targets: puff, y: puff.y - 9, x: puff.x + (i % 2 ? 1 : -1), alpha: 0, delay: i * 220, duration: 900, ease: 'Sine.easeOut', onComplete: () => puff.destroy() });
+    }
   }
 
   /** Paciência: o balão muda de cara (impaciente, furioso). */

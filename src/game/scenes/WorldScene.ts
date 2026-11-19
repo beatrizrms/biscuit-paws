@@ -16,7 +16,7 @@ import { snowCapDepth, snowCapPixels } from '../../core/snowCap';
 import { Player } from '../entities/Player';
 import { CatSprite, catScale, catTexture, type CatPlaces } from '../entities/Cat';
 import { NpcSprite } from '../entities/Npc';
-import { findPath, pathCorners } from '../../core/path';
+import { findPath, pathCorners, smoothPath } from '../../core/path';
 import { pickETarget, type ECandidate } from '../../core/eTarget';
 import { themeColor } from '../theme';
 import { CustomerSprite } from '../entities/Customer';
@@ -589,6 +589,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
       const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
       this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
+      // Moedinhas saltando de quem pagou e, na bebida quente, o vapor subindo (guia de estilo, seção 7).
+      this.coinBurst(x, view.sprite.y - 40);
+      if (this.session.content.recipes[recipeId]?.vessel === 'cup') this.time.delayedCall(120, () => view.steam());
     });
     this.session.bus.on('crowdfund.donated', ({ customerId, amount }) => {
       const view = customerId ? this.customerViews.get(customerId) : undefined;
@@ -1109,7 +1112,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const bx = area.w < VIEW_WIDTH ? area.x + (area.w - VIEW_WIDTH) / 2 : area.x;
     const by = area.h < VIEW_HEIGHT ? area.y + area.h - VIEW_HEIGHT : area.y;
     cam.setBounds(bx, by, Math.max(area.w, VIEW_WIDTH), Math.max(area.h, VIEW_HEIGHT));
-    cam.startFollow(this.player, true);
+    // Segue com um leve atraso (câmera suave, guia de estilo, seção 7); ao chegar no mapa ou cômodo, já começa no
+    // lugar dela (sem deslizar desde o mapa anterior).
+    cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
+    cam.centerOn(this.player.x, this.player.y);
   }
 
   /** Momento da descoberta: a câmera vai até a porta, ela pulsa; o gato leva até lá (cat_leads). */
@@ -2601,9 +2607,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (let i = 1; npc?.active && this.ambient.get(id) === npc && this.npcs.get(id) === npc; i++) {
       // Pelas células livres, sem tirar a personagem do caminho (o npcWalk das cenas faz ela dar um passo).
       const route = findPath(this.map.solid, [Math.floor(npc.x / ts), Math.floor(npc.y / ts)], path[i % path.length]!);
-      for (const corner of route ? pathCorners(route) : []) {
+      for (const corner of route ? smoothPath(this.map.solid, route) : []) {
         if (!npc.active || this.npcs.get(id) !== npc) return;
-        await npc.walkTo(corner);
+        await npc.walkStraight(corner);
       }
       if (!npc.active) return;
       npc.face('down');
@@ -2631,10 +2637,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       last = pick;
       const spot = r.roam.spots[pick]!;
       const route = findPath(this.map.solid, [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)], spot.at);
-      for (const corner of route ? pathCorners(route) : []) {
+      for (const corner of route ? smoothPath(this.map.solid, route) : []) {
         if (!mine() || r.summoned) break;
         while (mine() && sprite.getData('held')) await wait(200);
-        await sprite.walkTo(corner);
+        await sprite.walkStraight(corner);
       }
       if (!mine() || r.summoned) continue;
       sprite.face(spot.facing);
@@ -2653,9 +2659,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Espera o passo que ela está dando terminar e vai pelo caminho livre até o lugar dela.
     await new Promise<void>((done) => this.time.delayedCall(50, done));
     const route = findPath(this.map.solid, [Math.floor(sprite.x / ts), Math.floor(sprite.y / ts)], home.at);
-    for (const corner of route ? pathCorners(route) : []) {
+    for (const corner of route ? smoothPath(this.map.solid, route) : []) {
       if (!sprite.active) return;
-      await sprite.walkTo(corner);
+      await sprite.walkStraight(corner);
     }
     sprite.face(home.facing);
     // Ela fica ali enquanto a consulta estiver aberta; depois volta a andar.
@@ -2688,9 +2694,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     npc.setAlpha(0);
     this.tweens.add({ targets: npc, alpha: 1, duration: 400 });
     const mine = () => npc.active && this.npcs.get(id) === npc;
-    for (const corner of pathCorners(path)) {
+    for (const corner of smoothPath(this.map.solid, path)) {
       if (!mine()) break;
-      await npc.walkTo(corner);
+      await npc.walkStraight(corner);
     }
     if (this.passers.get(id) === npc) this.passers.delete(id);
     if (!mine()) return;
@@ -2794,9 +2800,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const path = findPath(this.map.solid, from, to);
     // Para se uma cena chamou o mesmo NPC (o boneco dela entra no lugar): o passeio não mexe no boneco da cena.
     const mine = () => npc.active && this.npcs.get(w.npc) === npc;
-    for (const corner of path ? pathCorners(path) : [to]) {
+    for (const corner of path ? smoothPath(this.map.solid, path) : [to]) {
       if (!mine()) break;
-      await npc.walkTo(corner);
+      await npc.walkStraight(corner);
     }
     if (this.neighborWalks.get(w.npc) !== followers) return; // trocou de mapa no meio
     this.neighborWalks.delete(w.npc);
@@ -4006,6 +4012,17 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.syncCustomers();
   }
 
+  /** Moedinhas que pulam de um ponto e somem (pagamento). Só visual. */
+  private coinBurst(x: number, y: number): void {
+    for (let i = 0; i < COIN_BURST; i++) {
+      const dx = (i - (COIN_BURST - 1) / 2) * 7;
+      const coin = this.add.image(x, y, 'coin16').setScale(0.6).setDepth(99_590);
+      this.tweens.add({ targets: coin, x: x + dx, duration: 520, delay: i * 60 });
+      this.tweens.add({ targets: coin, y: y - 12 - (i % 2) * 3, duration: 260, delay: i * 60, ease: 'Quad.easeOut', yoyo: true });
+      this.tweens.add({ targets: coin, alpha: 0, delay: 420 + i * 60, duration: 200, onComplete: () => coin.destroy() });
+    }
+  }
+
   /** Equipamento quebrado: "!" balançando em cima; com o Tião consertando, a barra do conserto no lugar. */
   private updateBroken(): void {
     const sv = this.session.service;
@@ -4682,9 +4699,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const door = home ? this.map.doors.find((d) => this.session.content.world.goHomeDoors.includes(d.id)) : undefined;
     const exit: Cell = door ? door.at : [from[0] < this.map.cols / 2 ? 0 : this.map.cols - 1, from[1]];
     const path = findPath(this.map.solid, from, exit);
-    for (const corner of path ? pathCorners(path) : []) {
+    for (const corner of path ? smoothPath(this.map.solid, path) : []) {
       if (!npc.active) return;
-      await npc.walkTo(corner);
+      await npc.walkStraight(corner);
     }
     if (npc.active) await npc.leave();
   }
@@ -4721,10 +4738,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const from: Cell = [Math.floor(npc.x / ts), Math.floor(npc.y / ts)];
     const others = [...this.npcs].filter(([id]) => id !== npcId).map(([, n]): Cell => [Math.floor(n.x / ts), Math.floor(n.y / ts)]);
     const onPlayer = this.playerCells().some(([c, r]) => c === to[0] && r === to[1]);
-    let path = onPlayer ? null : findPath(this.solidWith([...this.playerCells(), ...others], to), from, to);
+    let grid = this.solidWith([...this.playerCells(), ...others], to);
+    let path = onPlayer ? null : findPath(grid, from, to);
     if (!path) {
       // Ela é que tapa a passagem: dá um passo para o lado (uma célula livre fora do caminho dele) e ele passa.
-      const around = findPath(this.solidWith(others, to), from, to);
+      grid = this.solidWith(others, to);
+      const around = findPath(grid, from, to);
       const aside = around && this.stepAsideCell(around);
       if (aside) {
         await this.playerWalk(aside);
@@ -4733,9 +4752,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
     // Nem assim (obstáculo dos dois lados): anda direto, para a cena nunca travar.
     if (!path) return npc.walkTo(to);
-    for (const corner of pathCorners(path)) {
+    // Em linha reta (também na diagonal) sempre que o caminho deixa: sem as voltas em degrau da grade.
+    for (const corner of smoothPath(grid, path)) {
       if (!npc.active) return;
-      await npc.walkTo(corner);
+      await npc.walkStraight(corner);
     }
   }
 
@@ -5006,6 +5026,10 @@ const DISH_HAND_LIFT = 3;
 const CAT_SIDE_DROP = 5;
 /** Vassoura na mão: quanto ela deita além do desenho (graus). */
 const BROOM_TILT = 22;
+/** Câmera: quanto do caminho até ela anda a cada quadro (1 = presa nela, sem atraso). */
+const CAMERA_LERP = 0.14;
+/** Quantas moedinhas pulam de quem paga. */
+const COIN_BURST = 3;
 
 /** Variante do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {

@@ -44,6 +44,11 @@ ocupada antes de usar.
   item vira junto (a bandeja em perspectiva, espelhada para o lado em que ela olha).
 - Nada atravessa o corpo nem cobre o rosto. Um cabo longo (vassoura) vai inteiro na frente, inclinado para passar ao
   lado da cabeça.
+- **Pegada da vassoura (para quando a protagonista for refeita):** gerar uma pose própria de varrer, e não reaproveitar
+  a pose genérica de ação. As duas mãos ficam no cabo, **uma mais para cima que a outra**: a de cima perto do ombro e a
+  de baixo na altura da cintura. O cabo cruza o corpo na diagonal, por fora, e as cerdas encostam no chão ao lado dos
+  pés. A referência da Beatriz (nov/2026) é um boneco de frente segurando a vassoura assim. Com essa pose, a vassoura
+  ganha dois pontos de mão (de cima e de baixo) em `data/hand_anchors.json`, no lugar de um só.
 
 ## 4. Objetos e cenário
 

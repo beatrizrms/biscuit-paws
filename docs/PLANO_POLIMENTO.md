@@ -83,13 +83,13 @@ Um documento curto (`docs/GUIA_DE_ESTILO.md`) que vira a regra para tudo o que e
 |---|---|---|
 | 0. Guia de padrão | Feito: `docs/GUIA_DE_ESTILO.md` (decisão 273), com as referências de cabeça escolhidas pela Beatriz e `npm run lineup` para comparar | baixo |
 | 1. Interface e tipografia | Feito: fonte (Pixelify Sans + Nunito, decisão 270); faixa de teclas só no prólogo; HUD num painel só; nome de quem fala dentro da caixa, alinhado ao texto; emoji do cardápio trocado por ícone; entrada curta dos painéis (decisão 271). Depois: caixa de fala menor e centrada, e os ícones dos apps do celular em pixel art no lugar dos desenhos em CSS (decisão 272). Fase concluída | baixo (código) |
-| 2. Personagens | Por último (decisão da Beatriz). Medida escolhida (guia, seção 2). Refazer: a protagonista (com o cabelo gerado sobre a cabeça e a pele por cor-chave), a corretora, a Gabi, a Dona Neusa e os clientes 02, 05 e 08; faltam conferir Jacque, entregadora e clientes 06 e 07 | médio a alto (PixelLab) |
+| 2. Personagens | Por último (decisão da Beatriz). Medida escolhida (guia, seção 2). Refazer: a protagonista (com o cabelo gerado sobre a cabeça, a pele por cor-chave e uma pose própria de varrer, com uma mão acima da outra no cabo), a corretora, a Gabi, a Dona Neusa e os clientes 02, 05 e 08; faltam conferir Jacque, entregadora e clientes 06 e 07 | médio a alto (PixelLab) |
 | 3. Itens na mão | Feito (decisão 274): `npm run hands` mede as mãos por roupa, pose, direção e quadro; bandeja, louça, gato, caixas e vassoura presos a elas. Rodar de novo quando a protagonista for refeita | médio (dados e código) |
 | 4. Coesão dos objetos | Passar os objetos fora do estilo pelo contorno e pela paleta; trocar os ícones avulsos | médio (PixelLab e scripts) |
 | 5. Logo e tela inicial | Logo desenhado; menu com a rua animada; abertura com cena em vez de só texto | médio |
 | 6. Mapas com vida | Variar o piso e tirar a grade aparente; objetos nas paredes e cantos; quebrar a simetria e a repetição do mercado | médio |
-| 7. Movimento | NPCs entrando andando e com caminhos naturais; parados respirando; partículas ao servir, limpar e ganhar moedas; câmera suave | médio |
+| 7. Movimento | Feito (decisão 275): NPCs em linha reta e na diagonal quando dá; parados respirando; câmera suave; moedinhas e vapor ao servir (varrer já tinha poeira e brilho) | médio |
 | 8. Texto | Revisar avisos e balão para mostrar mais por ícone e falar menos | baixo a médio |
 
-Ordem combinada (nov/2026): 0, 1 e 3 feitas; depois 7, 8, 6, 4 e 5; os personagens (2) por último. Ordem sugerida antes: 0 e 1 primeiro (mudam a primeira impressão sem arte nova), depois 2 e 3 (o que mais se nota em
+Ordem combinada (nov/2026): 0, 1, 3 e 7 feitas; depois 8, 6, 4 e 5; os personagens (2) por último. Ordem sugerida antes: 0 e 1 primeiro (mudam a primeira impressão sem arte nova), depois 2 e 3 (o que mais se nota em
 movimento), e o resto em seguida. Cada fase com print antes e depois.

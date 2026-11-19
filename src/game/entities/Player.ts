@@ -4,6 +4,7 @@ import { movementFromInput, type Direction, type InputState } from '../../core/m
 import { ySortDepth } from '../../core/map';
 import type { Pose } from '../../core/appearance';
 import { content } from '../content';
+import { breathPhase, breathScale } from '../breathing';
 import { allPoseTextures, handOffset, PLAYER_IDLE_TEXTURE, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
 
 const DIRECTIONS = playerJson.directions as Direction[];
@@ -73,6 +74,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.anims.timeScale = m.moving ? this.runFactor : 1;
     if (m.moving) this.anims.play(`${this.look}-${m.facing}`, true);
     else this.idle();
+  }
+
+  private readonly breath = breathPhase();
+
+  /** Em pé, parada e sem animação tocando: respira (sobe 1 pixel e volta). Sentada não (o recorte da cadeira usa a escala). */
+  protected override preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta);
+    const base = 1 / playerFrame().resolution;
+    const still = !this.sitting && !this.anims.isPlaying;
+    this.setScale(base, still ? base * breathScale(time, this.breath, this.height * base) : base);
   }
 
   /** Onde estão as mãos dela no quadro de agora (pose de segurar algo), no mundo; null na caminhada comum. */
