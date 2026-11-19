@@ -169,7 +169,7 @@ export class WandScene extends MiniGameScene {
 
   private float(text: string, color: string): void {
     const label = this.add
-      .text(this.cat.x, this.cat.y - 60, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(this.cat.x, this.cat.y - 60, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     this.tweens.add({ targets: label, y: label.y - 16, alpha: 0, delay: 300, duration: 700, onComplete: () => label.destroy() });

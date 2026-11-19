@@ -29,6 +29,8 @@
     "minigames": "tsx scripts/import-minigames.ts"
   },
   "dependencies": {
+    "@fontsource/nunito": "^5.3.0",
+    "@fontsource/pixelify-sans": "^5.3.0",
     "phaser": "^3.90.0"
   },
   "devDependencies": {

@@ -21,7 +21,7 @@ export class InteractHint {
 
   constructor(private readonly scene: Phaser.Scene) {
     this.bg = scene.add.graphics();
-    const style = { fontFamily: 'Trebuchet MS, sans-serif', fontStyle: 'bold', color: INK, resolution: 4 };
+    const style = { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontStyle: 'bold', color: INK, resolution: 4 };
     this.letter = scene.add.text(0, 0, 'E', { ...style, fontSize: '10px' }).setOrigin(0.5, 0.5);
     this.label = scene.add.text(0, 0, '', { ...style, fontSize: '9px' }).setOrigin(0, 0.5);
     // A de dentro sobe e desce devagar (chama a atenção sem piscar); a de fora fica no lugar do objeto.

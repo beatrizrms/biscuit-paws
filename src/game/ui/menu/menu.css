@@ -90,3 +90,6 @@ html.touch-mode .menu-hint .touch-hint { display: inline; }
 .howto-list li { display: contents; }
 .howto-list b { white-space: nowrap; color: var(--c-ink); }
 .howto-list span { color: var(--c-ink2); }
+
+/* Tipografia (plano de polimento, fase 1): o título do jogo e os dos painéis do menu na fonte pixel. */
+.menu-title, .menu-panel h2 { font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; }

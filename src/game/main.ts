@@ -1,4 +1,11 @@
 import Phaser from 'phaser';
+// Fontes do jogo, embutidas (funcionam offline): Nunito nos textos, Pixelify Sans nos números e títulos (só o alfabeto latino).
+import '@fontsource/nunito/latin-400.css';
+import '@fontsource/nunito/latin-600.css';
+import '@fontsource/nunito/latin-700.css';
+import '@fontsource/nunito/latin-800.css';
+import '@fontsource/pixelify-sans/latin-500.css';
+import '@fontsource/pixelify-sans/latin-600.css';
 import './ui/theme.css';
 import './ui/ui.css';
 import { BootScene } from './scenes/BootScene';

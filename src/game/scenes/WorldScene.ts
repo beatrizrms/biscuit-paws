@@ -587,7 +587,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const x = view.sprite.x;
       const y = view.sprite.y - 66;
       const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
-      const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
+      const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
       this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
     });
     this.session.bus.on('crowdfund.donated', ({ customerId, amount }) => {
@@ -595,7 +595,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!view) return;
       const x = view.sprite.x;
       const y = view.sprite.y - 84;
-      const label = this.add.text(x, y, `♥ +${amount}`, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', color: '#d97890', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0.5).setDepth(99_600);
+      const label = this.add.text(x, y, `♥ +${amount}`, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', color: '#d97890', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0.5).setDepth(99_600);
       this.tweens.add({ targets: label, y: y - 16, alpha: 0, delay: 900, duration: 1000, onComplete: () => label.destroy() });
     });
     this.session.bus.on('cat.sheltered', ({ catId }) => this.spawnCat(catId, this.feetCell()));
@@ -2824,7 +2824,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Balão de fala creme com borda rosa em cima de alguém (acompanha quem fala) por `ms`. */
   private speechBubble(target: Phaser.GameObjects.Sprite, text: string, ms: number, lift = 0): void {
-    const label = this.add.text(0, -9, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', color: '#5c3428', resolution: 4, align: 'center', wordWrap: { width: 150 } }).setOrigin(0.5, 1);
+    const label = this.add.text(0, -9, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', color: '#5c3428', resolution: 4, align: 'center', wordWrap: { width: 150 } }).setOrigin(0.5, 1);
     const w = Math.ceil(label.width) + 12;
     const h = Math.ceil(label.height) + 6;
     const g = this.add.graphics();
@@ -2937,7 +2937,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Acima do balãozinho de aceno (que fica logo em cima da cabeça).
     y -= 22;
     const txt = this.add
-      .text(x, y, label, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '30px', fontStyle: 'bold', color: points > 0 ? themeColor('--heart', '#c46a4a') : themeColor('--c-ink3', '#9a8f80'), stroke: themeColor('--c-paper', '#fbf5e8'), strokeThickness: 6 })
+      .text(x, y, label, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '30px', fontStyle: 'bold', color: points > 0 ? themeColor('--heart', '#c46a4a') : themeColor('--c-ink3', '#9a8f80'), stroke: themeColor('--c-paper', '#fbf5e8'), strokeThickness: 6 })
       .setOrigin(0.5, 1)
       .setScale(0.5)
       .setDepth(9000);
@@ -3171,7 +3171,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!cat) return false;
     this.catLabel?.destroy();
     // Balão creme com borda rosa e a pontinha para o gato, acima da luz do dia (a cor da manhã/noite não apaga).
-    const text = this.add.text(0, -9, this.session.catName(catId), { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#5c3428', resolution: 4 }).setOrigin(0.5, 1);
+    const text = this.add.text(0, -9, this.session.catName(catId), { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#5c3428', resolution: 4 }).setOrigin(0.5, 1);
     const w = Math.ceil(text.width) + 10;
     const h = Math.ceil(text.height) + 4;
     const g = this.add.graphics();
@@ -3196,7 +3196,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const cat = this.cats.find((c) => c.catId === catId);
     if (!cat) return;
     const heart = this.add
-      .text(cat.x, cat.y - 30, '♥', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '16px', color: '#d97890' })
+      .text(cat.x, cat.y - 30, '♥', { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '16px', color: '#d97890' })
       .setOrigin(0.5)
       .setDepth(100_000);
     this.tweens.add({ targets: heart, y: heart.y - 18, alpha: 0, duration: 1200, ease: 'Quad.easeOut', onComplete: () => heart.destroy() });
@@ -4121,7 +4121,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (!view) return; // só existe no café: fora dele, ninguém vê
     const x = view.sprite.x;
     const y = view.sprite.y - 52;
-    const style = (size: number, color: string) => ({ fontFamily: 'Trebuchet MS, sans-serif', fontSize: `${size}px`, fontStyle: 'bold', color, stroke: '#3b2a2f', strokeThickness: 2, resolution: 4 });
+    const style = (size: number, color: string) => ({ fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: `${size}px`, fontStyle: 'bold', color, stroke: '#3b2a2f', strokeThickness: 2, resolution: 4 });
     const art = serviceArt.review;
     const face = happy && stars >= art.happyFrom ? 'review_happy' : 'review_sad';
     let row: Phaser.GameObjects.Container | Phaser.GameObjects.Text;

@@ -13,6 +13,9 @@
 - Clínica veterinária (fachada nas 4 estações, interior e a médica Fernanda): arte gerada por código/IA na paleta Cosy (uso declarado na página da Steam).
 - Mini games (esconderijos, poeira, seta e balões da fuga; água, boia, cais, barra e peixes da pescaria; xícara, jarra e guias da latte art): arte gerada por IA (uso declarado na página da Steam).
 
+## Fontes
+- Pixelify Sans (Stefie Justprince) e Nunito (Vernon Adams, Cyreal, Jacques Le Bailly): SIL Open Font License 1.1, via Google Fonts, embutidas no jogo pelos pacotes @fontsource. Pixelify Sans nos números e títulos, Nunito nos textos.
+
 ## Planejados (marcos futuros)
 - Cosy UI Kit: https://leckie1989.itch.io/cosy-ui-kit-soft-pixel-interface
 

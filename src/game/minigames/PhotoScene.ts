@@ -34,7 +34,7 @@ const DECOR: { tile: string; at: [number, number] }[] = [
 ];
 
 const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Trebuchet MS, sans-serif',
+  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
   fontSize: `${size}px`,
   fontStyle: bold ? 'bold' : 'normal',
   color,

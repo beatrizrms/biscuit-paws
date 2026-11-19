@@ -32,7 +32,7 @@ const REVIEW_MS = 1800;
 
 const C = { card: 0xfff7e6, edge: 0x7f4b33, slot: 0xf6e2c4, valid: 0x68ad8a, invalid: 0xd9475d, good: 0x68ad8a, ok: 0xe0a94e, bad: 0xd9475d };
 const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Trebuchet MS, sans-serif',
+  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
   fontSize: `${size}px`,
   fontStyle: bold ? 'bold' : 'normal',
   color,

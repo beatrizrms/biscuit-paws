@@ -241,7 +241,7 @@ export class DeliveryScene extends MiniGameScene {
 
   private float(text: string): void {
     const label = this.add
-      .text(this.player.x, this.carryY() - 14, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(this.player.x, this.carryY() - 14, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e6);
     this.tweens.add({ targets: label, y: label.y - 12, alpha: 0, delay: 400, duration: 500, onComplete: () => label.destroy() });
