@@ -319,7 +319,7 @@ export class MarketApp {
     const t = uiText.upgrade;
     const fee = String(content.upgrades.fee);
     const pick = `<button class="m-row" data-upgrade-pick><span class="m-name">${esc(t.pick)}</span><span class="m-note">${esc(t.pickNote)}</span></button>`;
-    const head = `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint.replace('{fee}', fee))}</p>${pick}`;
+    const head = `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint).replace('{fee}', `${COIN}${fee}`)}</p>${pick}`;
     const target = this.session.state.placed.find((p) => p.uid === this.upgradeTarget);
     if (!target) return head;
     const options = this.session.upgradeOptions(target.uid);

@@ -106,4 +106,6 @@ ocupada antes de usar.
 - **Neutro de gênero.** Quando não der, use `{g:feminino|masculino}`.
 - **Metas e dicas não dizem onde achar as coisas.** Procurar faz parte do jogo.
 - **Ícone no lugar de frase** sempre que o ícone bastar: preço com moeda, capacidade como "X/Y".
+- **Teclas desenhadas, não frases:** faixa de teclas no formato "Enter: Pôr · G: Girar · Esc: Cancelar" (uma palavra por
+  ação), que `keyHint.ts` desenha como teclas. O que não é tecla (arrastar, clicar) fica como texto, sem ":".
 - Detalhes do balão de metas em `PLANO_TEXTOS_METAS.md`.

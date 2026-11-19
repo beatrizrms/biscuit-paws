@@ -1130,3 +1130,10 @@ Decisão:
 - **Respirar parado:** a protagonista e os NPCs em pé, sem animação tocando, sobem o corpo 1 pixel do jogo e voltam, num ciclo de 2,8 s, cada um no seu tempo (`src/game/breathing.ts`). Sentada, não.
 - **Câmera suave:** segue a protagonista com um leve atraso; ao trocar de mapa ou de cômodo, começa já no lugar dela.
 - **Resposta ao servir:** moedinhas pulam de quem paga, e a bebida quente solta vapor no anel de consumo.
+
+## 276. Texto, fase 8 do polimento (nov/2026)
+Pedido: mostrar mais por ícone e falar menos (aprovado pela Beatriz na lista de antes e depois).
+Decisão:
+- **Explicações mais curtas:** upgrade da assistência ("Troca o móvel por outro do mesmo tipo, no mesmo lugar. Você paga a diferença + [moeda] 5 do serviço."), horário de funcionamento, mochila, vitrine, móveis fora do lugar ao carregar, obras do Tião e sujeira pesada. Este último deixou de dizer em que aba comprar: achar onde comprar faz parte do jogo.
+- **Faixas de teclas desenhadas:** ao posicionar, mover, escolher o móvel, marcar a área da obra, nas falas e no prólogo, cada tecla é uma tecla desenhada (Pixelify, em relevo) com uma palavra ao lado: **[Enter] Pôr · [G] Girar · [I] Guardar · [Esc] Cancelar** (`src/game/ui/keyHint.ts`; texto no formato "tecla: ação · ..."). No toque continuam as frases dos botões.
+- Os avisos de cerca de 100 caracteres (gato doente, fiado na clínica, gostos no SocialVilla) ficam como estavam.

@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import { itemThumbHtml } from './thumbs';
+import { keyHintHtml } from './keyHint';
 import { byInput, keyless, touch } from '../touch';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
@@ -1618,8 +1619,14 @@ ${rep}`;
       this.hint.textContent = '';
       return;
     }
-    this.hint.textContent = touchText ?? (
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk);
+    // No toque, a frase dos botões; no teclado, as teclas desenhadas com uma palavra (keyHint.ts).
+    if (touchText !== undefined) {
+      this.hint.textContent = touchText;
+      return;
+    }
+    this.hint.innerHTML = keyHintHtml(
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk,
+    );
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */

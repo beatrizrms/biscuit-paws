@@ -980,6 +980,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .m-card .yield { margin: 0; }
 .m-price { display: flex; align-items: center; gap: 2px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--wood4); }
 .m-price .coin { width: 7px; height: 7px; image-rendering: pixelated; }
+.m-hint .coin { width: 7px; height: 7px; margin: 0 1px; image-rendering: pixelated; vertical-align: -1px; }
 .m-owned { font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.2; text-align: center; color: var(--mint3); }
 .m-owned.coming { color: var(--c-ink3); }
 .m-refund { padding: 0 4px; font: inherit; font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--wood3); background: var(--cream); border: 1px solid var(--cream3); border-radius: 4px; cursor: pointer; }
@@ -1504,3 +1505,12 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
    a folha em branco, com o número do dia por cima (muda todo dia). */
 .p-icon .cal-art { position: relative; display: grid; place-items: center; width: 32px; height: 32px; }
 .p-icon .cal-art b { position: absolute; left: 0; right: 0; top: 13px; text-align: center; font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--c-ink); }
+
+/* Faixa de teclas desenhada (keyHint.ts): tecla em relevo + uma palavra (guia de estilo, seções 6 e 8). */
+.hint .kh-item, .area-select-hint .kh-item { display: inline-flex; align-items: center; gap: 3px; margin: 0 5px; white-space: nowrap; }
+.hint kbd, .area-select-hint kbd {
+  display: inline-block; min-width: 1.6em; padding: 0 3px; border: 1px solid var(--c-wood-dark); border-radius: 3px;
+  background: var(--c-paper); color: var(--c-ink); box-shadow: 0 1px 0 var(--c-wood-dark);
+  font: 600 1em var(--font-pixel, 'Pixelify Sans', sans-serif); line-height: 1.35; text-align: center; text-shadow: none;
+}
+.hint kbd + kbd, .area-select-hint kbd + kbd { margin-left: 1px; }

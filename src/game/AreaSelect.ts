@@ -5,6 +5,7 @@
 // Só desenha e lê a entrada: quem diz quais células contam e quanto custa é a sessão (finishQuote).
 import Phaser from 'phaser';
 import type { Cell } from '../core/map';
+import { keyHintHtml } from './ui/keyHint';
 
 export interface AreaSelectOptions {
   tileSize: number;
@@ -56,7 +57,10 @@ export class AreaSelect {
     this.label.className = 'area-select-hint';
     const touch = document.documentElement.classList.contains('touch-mode');
     this.label.innerHTML = `<span></span><b></b><div class="as-buttons"><button class="as-more"></button><button class="as-cancel"></button><button class="as-ok"></button></div>`;
-    (this.label.querySelector('span') as HTMLElement).textContent = touch ? texts.hintTouch : texts.hint;
+    const hintEl = this.label.querySelector('span') as HTMLElement;
+    // No teclado, as teclas desenhadas (keyHint.ts); no toque, a frase dos botões.
+    if (touch) hintEl.textContent = texts.hintTouch;
+    else hintEl.innerHTML = keyHintHtml(texts.hint);
     this.quoteEl = this.label.querySelector('b') as HTMLElement;
     this.moreBtn = this.label.querySelector('.as-more') as HTMLButtonElement;
     const wire = (btn: HTMLButtonElement, text: string, run: () => void) => {

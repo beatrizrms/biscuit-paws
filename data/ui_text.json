@@ -198,7 +198,7 @@
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
-  "hintWalk": "Setas/WASD: andar · R: correr · E: interagir · T: comer/beber · 1–8: barra · C: market · M: cardápio · I: mochila · P: celular · F: mover móvel",
+  "hintWalk": "WASD: Andar · R: Correr · E: Usar · T: Comer · 1–8: Barra · C: Market · M: Cardápio · I: Mochila · P: Celular · F: Mover",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "unlocks": {
     "title": "Nova conquista!",
@@ -221,9 +221,9 @@
   "hotbar": {
     "label": "Barra de itens", "hand": "Mãos livres (0): nada na mão"
   },
-  "hintPlacing": "Setas ou mouse: escolher o lugar · Enter ou clique: posicionar · G: girar · I: guardar na mochila · Esc: cancelar",
-  "hintUpgradePick": "Clique no móvel que brilha (ou chegue perto e aperte E, F ou Enter) · Esc: cancelar",
-  "hintMovePick": "O móvel que pisca é o que vai mudar de lugar · F: próximo · E, Enter ou clique: escolher · Esc: cancelar",
+  "hintPlacing": "Enter: Pôr · G: Girar · I: Guardar · Esc: Cancelar",
+  "hintUpgradePick": "E: Escolher · Esc: Cancelar",
+  "hintMovePick": "F: Próximo · Enter: Escolher · Esc: Cancelar",
   "friends": {
     "giveAsk": "Dar {item} para {name}?",
     "give": "Dar",
@@ -243,10 +243,10 @@
     "movingTree": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: remover a árvore · ❚❚: cancela",
     "movePick": "O móvel dourado é o que vai mudar de lugar · Próximo: o outro · OK (ou toque nele): escolhe · ❚❚: cancela"
   },
-  "hintMovingTree": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · Q: remover a árvore · Esc: cancelar",
+  "hintMovingTree": "Enter: Soltar · Q: Remover · Esc: Cancelar",
   "trees": { "removeAsk": "Remover esta árvore? Ela some de vez e libera o espaço.", "yes": "Remover", "no": "Deixar", "removed": "Árvore removida." },
-  "hintMoving": "Setas ou mouse: escolher o lugar · F, Enter ou clique: soltar · G: girar · Q: guardar na mochila · Esc: cancelar",
-  "hintDialogue": "Espaço, Enter ou clique: continuar",
+  "hintMoving": "Enter: Soltar · G: Girar · Q: Guardar · Esc: Cancelar",
+  "hintDialogue": "Espaço: Continuar",
   "narrator": "",
   "problems": {
     "not_pending": "Este gato já passou pela consulta de entrada.",
@@ -294,7 +294,7 @@
     "no_upgrade": "Esse móvel não tem troca na assistência.",
     "no_upgradable_near": "Chegue pertinho de um móvel que tem troca (os que brilham).",
     "no_furniture_near": "Chegue pertinho de um móvel para mudar ele de lugar (F).",
-    "heavy_dirt": "Isso não sai com a vassoura. É serviço pro Tião: limpeza e reparo do quintal (Market, aba Construção).",
+    "heavy_dirt": "Isso não sai com a vassoura. É serviço pro Tião.",
     "no_cells": "Nada para trocar nessa área.",
     "too_far": "Preciso chegar mais perto.",
     "needs_broom": "Preciso da vassoura na mão. Escolha ela na barra (teclas 1 a 8).",
@@ -380,7 +380,7 @@
   },
   "construction": {
     "title": "Obras do Tião",
-    "hint": "Uma obra por vez. Você liga, ele passa o orçamento (pago adiantado) e começa no dia seguinte, cedinho.",
+    "hint": "Uma obra por vez. Pagamento adiantado; ele começa no dia seguinte.",
     "working": "Em obra: {work}. Termina {day}.",
     "talkToday": "Hoje eu termino! ({work})",
     "nextTomorrow": "Terminei o serviço por aqui! Agora vou fazer a obra que você me pediu: {work}. Amanhã eu começo!",
@@ -399,7 +399,7 @@
     "facadeTitle": "Cor da fachada",
     "floorTitle": "Piso",
     "perTile": "/tile",
-    "selectHint": "Arraste para marcar a área (Ctrl + arrastar: mais uma). Teclado: setas + Espaço; Ctrl + Espaço guarda. Enter confirma, Esc cancela.",
+    "selectHint": "Arraste para marcar · Ctrl: Mais uma área · Enter: Confirmar · Esc: Cancelar",
     "selectHintTouch": "Arraste o dedo para marcar a área. Para marcar mais uma, toque em + Área e arraste de novo.",
     "selectConfirm": "Confirmar",
     "selectCancel": "Cancelar",
@@ -721,7 +721,7 @@
     "unpackPlace": "Posicionar agora",
     "unpackStore": "Guardar na mochila",
     "unpackStored": "{name} foi para a mochila.",
-    "repairedOnLoad": "Alguns móveis estavam fora do lugar (um em cima do outro ou na parede) e voltaram para a mochila: {names}. É só posicionar de novo.",
+    "repairedOnLoad": "Voltaram para a mochila, fora do lugar: {names}. Posicione de novo.",
     "ordered": "Pedido feito! Chega às {time} na porta do café.",
     "orderedTomorrow": "Pedido feito! O correio entrega amanhã às {time}.",
     "arrivedAway": "Chegou uma entrega na porta do café!",
@@ -839,7 +839,7 @@
     "wip": "{name} ({equipment})",
     "cat": "{name} no colo",
     "cake": "{name} ({n} fatias)",
-    "gridHint": "Selecione um item (na barra, na mochila, na despensa ou na caixa) para ver o que ele faz e para onde pode ir. Também dá para arrastar; para pôr na barra, selecione e aperte 1 a 8."
+    "gridHint": "Selecione um item para ver o que ele faz. Arraste para mover."
   },
   "service": {
     "prepStarted": "Preparando: {name}",
@@ -851,7 +851,7 @@
     "cakeAsk": "A fornada:",
     "cakeTake": "Tirar uma porção",
     "cakeCarry": "Levar a assadeira",
-    "displayHint": "Dica: dá para servir direto da assadeira, deixando ela num balcão. Com uma vitrine, as fornadas ficam guardadas juntas (até 6) e é só escolher o que tirar.",
+    "displayHint": "Sirva direto da assadeira no balcão. A vitrine guarda até 6 fornadas.",
     "extraCancel": "Nada agora",
     "served": "+{price} ({name})",
     "left": "Um cliente cansou de esperar e foi embora.",
@@ -894,7 +894,7 @@
   "touch": { "rotate": "Gire o celular para jogar", "next": "Próximo", "ok": "OK", "drop": "Soltar", "turn": "Girar", "run": "Correr", "drink": "Tomar", "eat": "Comer" },
   "upgrade": {
     "title": "Upgrade",
-    "hint": "A assistência técnica troca o móvel por outro do mesmo tipo, no mesmo lugar: outra peça do balcão, a cadeira virada para outro lado, outra cor, o pote automático. Você paga a diferença entre as peças (se a nova for mais cara) + {fee} moedas do serviço. Comprando do zero, você fica com as duas.",
+    "hint": "Troca o móvel por outro do mesmo tipo, no mesmo lugar. Você paga a diferença + {fee} do serviço.",
     "pick": "Escolher o móvel no café",
     "pickNote": "os que têm troca brilham",
     "current": "Trocar",
@@ -1165,7 +1165,7 @@
     "closes": "Fecha",
     "everyDay": "todos os dias",
     "summary": "Aberto {days}, das {open} às {close}.",
-    "hint": "As mudanças valem a partir de amanhã; hoje segue o horário de quando o dia começou. Depois do horário ninguém novo entra: quem está na fila vai embora, quem já pediu termina. Você só vai para casa quando o último cliente sair.",
+    "hint": "Vale a partir de amanhã. Depois do horário não entra ninguém novo; quem já pediu termina.",
     "fromTomorrow": "Horário novo a partir de amanhã. Hoje: {today}.",
     "closedToday": "fechado",
     "earlier": "mais cedo",
