@@ -1219,6 +1219,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (inBox.has(id) && id !== carried) continue;
       img.destroy();
       this.isoBoxes.delete(id);
+      // Saiu da caixinha (foi para o cercadinho ou para a turma): o lugar fica livre para outra.
+      if (!inBox.has(id)) this.boxSpots.delete(id);
     }
   }
 
@@ -1226,9 +1228,29 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private boxImage(catId: string): Phaser.GameObjects.Image {
     const ts = this.map.tileSize;
     const box = clinicBoxTile()!;
-    const [c, r] = this.boxSpots.get(catId) ?? this.freeCellNear(this.map.spawn, createRng(cellHash(catId.length * 7, this.isoBoxes.size + 3)));
+    const [c, r] = this.boxSpots.get(catId) ?? this.freeBoxCell();
+    this.boxSpots.set(catId, [c, r]);
     const bottom = (r + 1) * ts;
     return this.add.image((c + 0.5) * ts, bottom, box.sheet, box.frame).setOrigin(0.5, 1).setScale(tileScale(box.sheet)).setDepth(ySortDepth(bottom));
+  }
+
+  /**
+   * Um lugar para mais uma caixinha: a célula livre mais perto da entrada que nenhuma outra caixinha usa (antes era
+   * sorteado e, numa ninhada, duas caíam no mesmo lugar: parecia faltar gato).
+   */
+  private freeBoxCell(): Cell {
+    const taken = new Set([...this.boxSpots.values()].map(([c, r]) => `${c},${r}`));
+    const [c0, r0] = this.map.spawn;
+    for (let d = 0; d <= 6; d++) {
+      for (let dr = -d; dr <= d; dr++) {
+        for (let dc = -d; dc <= d; dc++) {
+          if (Math.max(Math.abs(dc), Math.abs(dr)) !== d) continue;
+          const c = c0 + dc, r = r0 + dr;
+          if (this.map.solid[r]?.[c] === false && !taken.has(`${c},${r}`)) return [c, r];
+        }
+      }
+    }
+    return [c0, r0];
   }
 
   /** O cercadinho ao alcance dela (ou o da célula clicada). */
