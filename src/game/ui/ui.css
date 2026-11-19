@@ -1010,15 +1010,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Ícones desenhados (Horário: relógio; Calendário: folhinha com o dia) */
 .p-icon.schedule { background: var(--c-blue-pale); }
 .p-icon.calendar { background: var(--c-cafe-pale); }
-.p-icon .clock-face { position: relative; width: 22px; height: 22px; border-radius: 50%; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; }
-.p-icon .clock-face::before, .p-icon .clock-face::after { content: ""; position: absolute; left: 50%; bottom: 50%; width: 2px; background: var(--wood4); transform-origin: 50% 100%; margin-left: -1px; }
-.p-icon .clock-face::before { height: 7px; }
-.p-icon .clock-face::after { height: 5px; transform: rotate(110deg); }
-.p-icon .cal-face { display: flex; flex-direction: column; align-items: center; width: 24px; height: 24px; border-radius: 3px; overflow: hidden; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; line-height: 1; color: var(--wood4); }
-.p-icon .cal-face b { display: block; width: 100%; height: 5px; margin-bottom: 2px; background: var(--berry); }
 /* Ícone das Notas: bloquinho amarelo com linhas (desenhado no CSS, como o relógio e o calendário). */
-.p-icon .notes-face { display: flex; flex-direction: column; justify-content: center; gap: 3px; width: 20px; height: 24px; padding: 0 3px; border-radius: 2px; background: var(--butter2); border: 2px solid var(--wood4); border-top-width: 4px; box-sizing: border-box; }
-.p-icon .notes-face i { display: block; height: 1px; background: var(--wood3); }
 
 /* App Notas (lista de compras): bloco de notas de celular, papel claro, título grande e bolinhas amarelas */
 .phone-ui[data-app='notes'] .phone-bar button, .phone-ui[data-app='notes'] .phone-bar h2 { color: var(--c-butter-dark); }
@@ -1077,11 +1069,6 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* App Café em números (StatsApp): quadrinhos com o número grande, o gráfico de palitos, o consumo e as sequências */
 .p-icon.stats { background: var(--c-paper3); }
-.p-icon .stats-face { display: flex; align-items: flex-end; gap: 2px; width: 22px; height: 20px; padding: 0 2px 2px; border-bottom: 2px solid var(--wood4); box-sizing: border-box; }
-.p-icon .stats-face i { flex: 1; border-radius: 1px 1px 0 0; background: var(--wood4); }
-.p-icon .stats-face i:nth-child(1) { height: 6px; background: var(--mint3); }
-.p-icon .stats-face i:nth-child(2) { height: 11px; background: var(--butter3); }
-.p-icon .stats-face i:nth-child(3) { height: 16px; background: var(--pink3); }
 .stats-app { padding-bottom: 4px; }
 .s-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
 .s-tiles.two { grid-template-columns: repeat(2, 1fr); }
@@ -1271,7 +1258,6 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 @keyframes hover-tip-in { from { opacity: 0; } }
 
 /* App CatPay (vaquinha da CED): carteira de app de pagamento, verde-menta com a barra da meta */
-.p-icon .catpay-face { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--mint2); border: 2px solid var(--mint3); box-sizing: border-box; font-size: max(calc(12px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--c-white); text-shadow: 0 1px 0 var(--mint3); }
 .phone-ui[data-app='catpay'] .phone-bar button, .phone-ui[data-app='catpay'] .phone-bar h2 { color: var(--mint3); }
 .phone-ui[data-app='catpay'] .phone-body { background: var(--c-white); }
 .catpay-app { padding: 0 2px 4px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--ink); }
@@ -1367,7 +1353,6 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 
 /* ---------- SocialVilla (SocialApp.ts) ---------- */
 .p-icon.social { background: var(--c-paper3); }
-.p-icon .social-face { display: grid; place-items: center; width: 24px; height: 20px; border-radius: 8px 8px 8px 2px; background: var(--cream); color: var(--c-terra); font-size: 13px; line-height: 1; box-shadow: 0 1px 0 color-mix(in srgb, var(--c-ink) 27%, transparent); }
 .social-app .sv-feed, .social-app .sv-friends { display: flex; flex-direction: column; gap: 6px; }
 .social-app .sv-post, .social-app .sv-friend { display: flex; gap: 6px; padding: 6px; border-radius: 8px; background: var(--c-paper); box-shadow: 0 1px 0 color-mix(in srgb, var(--c-ink) 13%, transparent); }
 .social-app .sv-post.new { box-shadow: 0 0 0 1px var(--c-paper3), 0 1px 0 color-mix(in srgb, var(--c-ink) 13%, transparent); }
@@ -1509,3 +1494,13 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .hud-stack > .hud-rep .label, .hud-stack > .hud-energy .label { margin-right: auto; }
 .hud-stack > .hud-energy .bar { flex: 1; max-width: 60px; }
 .hud-cart { top: 58px; }
+
+/* Caixa de fala mais compacta (plano de polimento, fase 1): mais estreita e centrada, com menos espaço vazio. */
+.dialogue { left: 0; right: 0; margin: 0 auto; width: min(460px, calc(100% - 40px)); box-sizing: border-box; min-height: 44px; padding: 7px 12px 8px; }
+.dialogue.with-portrait { padding-left: 56px; }
+.dialogue.with-portrait .portrait { left: 6px; top: 6px; width: 40px; height: 40px; }
+
+/* Ícones dos apps do celular (plano de polimento, fase 1): arte do PixelLab no lugar dos desenhos em CSS. O calendário é
+   a folha em branco, com o número do dia por cima (muda todo dia). */
+.p-icon .cal-art { position: relative; display: grid; place-items: center; width: 32px; height: 32px; }
+.p-icon .cal-art b { position: absolute; left: 0; right: 0; top: 13px; text-align: center; font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--c-ink); }

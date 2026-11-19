@@ -239,15 +239,13 @@ export class NewsPanel {
       { id: 'news', name: content.news.app, icon: `<img src="${phone.apps.classificados}" alt="" />`, badge: pending > 0 },
       { id: 'cats', name: uiText.cats.app, icon: catIcon },
       { id: 'market', name: uiText.market.app, icon: '<img class="cart" src="assets/ui/hud/icon_cart_full.png" alt="" />' },
-      { id: 'schedule', name: uiText.scheduleApp.app, icon: '<span class="clock-face"></span>' },
-      { id: 'calendar', name: uiText.calendarApp.app, icon: `<span class="cal-face"><b></b>${this.session.seasonDay().day}</span>` },
-      { id: 'notes', name: uiText.notesApp.app, icon: '<span class="notes-face"><i></i><i></i><i></i></span>', badge: this.session.state.shoppingList.length > 0 },
-      { id: 'stats', name: uiText.statsApp.app, icon: '<span class="stats-face"><i></i><i></i><i></i></span>' },
+      { id: 'schedule', name: uiText.scheduleApp.app, icon: `<img src="${phone.apps.horario}" alt="" />` },
+      { id: 'calendar', name: uiText.calendarApp.app, icon: `<span class="cal-art"><img src="${phone.apps.calendario}" alt="" /><b>${this.session.seasonDay().day}</b></span>` },
+      { id: 'notes', name: uiText.notesApp.app, icon: `<img src="${phone.apps.notas}" alt="" />`, badge: this.session.state.shoppingList.length > 0 },
+      { id: 'stats', name: uiText.statsApp.app, icon: `<img src="${phone.apps.numeros}" alt="" />` },
     ];
-    // PLACEHOLDER(arte): ícone da SocialVilla desenhado por CSS (balão com coração) até a arte nova.
-    if (this.socialApp.visible()) apps.push({ id: 'social', name: uiText.socialApp.app, icon: '<span class="social-face">♥</span>', badge: this.socialApp.hasNew() });
-    // PLACEHOLDER(arte): ícone do CatPay desenhado por CSS (pata + moeda) até a arte nova.
-    if (this.session.ced.appVisible()) apps.push({ id: 'catpay', name: uiText.catPayApp.app, icon: '<span class="catpay-face">₵</span>' });
+    if (this.socialApp.visible()) apps.push({ id: 'social', name: uiText.socialApp.app, icon: `<img src="${phone.apps.socialvilla}" alt="" />`, badge: this.socialApp.hasNew() });
+    if (this.session.ced.appVisible()) apps.push({ id: 'catpay', name: uiText.catPayApp.app, icon: `<img src="${phone.apps.catpay}" alt="" />` });
     return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
       .map(
         (a) => `<button class="p-app" data-app="${a.id}"><span class="p-icon ${a.id}">${a.icon}${

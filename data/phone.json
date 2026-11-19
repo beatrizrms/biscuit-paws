@@ -1,10 +1,18 @@
 {
   "schemaVersion": 1,
-  "_comment": "Celular das cenas (pacote celular, gerado por IA na paleta Cosy). A moldura tem a tela transparente: o conteúdo vai por baixo, na área 'screen'.",
+  "_comment": "Celular das cenas (pacote celular, gerado por IA na paleta Cosy). A moldura tem a tela transparente: o conteúdo vai por baixo, na área 'screen'. apps: os ícones dos apps da tela de início (32x32; o calendário é a folha em branco, o número do dia vai por cima).",
   "frame": "assets/ui/phone/ui_phone_frame_plum.png",
   "size": [160, 256],
   "screen": { "x": 10, "y": 18, "w": 140, "h": 224 },
   "status": "assets/ui/phone/ui_phone_status.png",
   "notification": "assets/ui/phone/ui_phone_notification.png",
-  "apps": { "classificados": "assets/ui/phone/ui_phone_app_classifieds.png" }
+  "apps": {
+    "classificados": "assets/ui/phone/ui_phone_app_classifieds.png",
+    "horario": "assets/ui/phone/ui_phone_app_clock.png",
+    "calendario": "assets/ui/phone/ui_phone_app_calendar.png",
+    "notas": "assets/ui/phone/ui_phone_app_notes.png",
+    "numeros": "assets/ui/phone/ui_phone_app_stats.png",
+    "socialvilla": "assets/ui/phone/ui_phone_app_social.png",
+    "catpay": "assets/ui/phone/ui_phone_app_catpay.png"
+  }
 }
