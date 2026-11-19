@@ -71,6 +71,15 @@ ocupada antes de usar.
 - **Cantos e paredes ocupados:** quadros, prateleiras, plantas, luminárias.
 - **Arrume em cantinhos, não em fileiras simétricas.** Grupos de 2 a 4 peças, com algum desalinhamento.
 - **Nunca a mesma peça repetida lado a lado sem variação.** Alterne o modelo, espelhe ou mude o conteúdo.
+- **Nada solto (decisão 277).** Toda peça encosta em outra ou na parede, formando fileiras contínuas (`shiftX` emenda as que
+  não ocupam a célula toda); ilhas com corredores de pelo menos 1,5 tile em volta, para a personagem passar; coisas
+  pequenas (cestos, potes) ficam juntas de uma peça maior, nunca no meio do chão. Sem placas penduradas no meio da sala.
+- **Perspectiva da nossa câmera (de frente, um pouco de cima):** na parede do fundo e nas ilhas, o que tem frente
+  (prateleiras, geladeiras), virado para a câmera. Nas paredes dos lados, só o que se lê por cima (bancas inclinadas de
+  hortifrúti, caixotes, freezers abertos): uma geladeira de perfil vira um painel liso. Peça de lado sai do
+  `create_8_direction_object` com a peça de frente como referência (endireitar a frente antes, se ela vier torta).
+- **Mercado:** prateleiras do corredor em fileiras horizontais, com o expositor de perfil fechando as pontas; o hortifrúti
+  numa estante contínua na parede da esquerda e numa ilha à direita.
 
 ## 6. Interface
 

@@ -56,6 +56,13 @@
    "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "piso_vinil": {
+   "col": 4,
+   "row": 4,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 2
   }
  }
 }

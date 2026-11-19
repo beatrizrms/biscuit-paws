@@ -1137,3 +1137,13 @@ Decisão:
 - **Explicações mais curtas:** upgrade da assistência ("Troca o móvel por outro do mesmo tipo, no mesmo lugar. Você paga a diferença + [moeda] 5 do serviço."), horário de funcionamento, mochila, vitrine, móveis fora do lugar ao carregar, obras do Tião e sujeira pesada. Este último deixou de dizer em que aba comprar: achar onde comprar faz parte do jogo.
 - **Faixas de teclas desenhadas:** ao posicionar, mover, escolher o móvel, marcar a área da obra, nas falas e no prólogo, cada tecla é uma tecla desenhada (Pixelify, em relevo) com uma palavra ao lado: **[Enter] Pôr · [G] Girar · [I] Guardar · [Esc] Cancelar** (`src/game/ui/keyHint.ts`; texto no formato "tecla: ação · ..."). No toque continuam as frases dos botões.
 - Os avisos de cerca de 100 caracteres (gato doente, fiado na clínica, gostos no SocialVilla) ficam como estavam.
+
+## 277. Mapas, fase 6 do polimento: piso novo, clínica em cantinhos e mercado com corredores (nov/2026)
+Pedido: tirar a grade do piso e a cara de "tabuleiro" do mercado e da clínica; no mercado, corredores de verdade, nada solto.
+Decisão:
+- **Piso** (PixelLab, `create_tiles_pro` sem borda escura, 15 gerações): lajota creme no mercado (`market_chao_c`) e vinil sálvia na clínica (`vet_piso_vinil`), cada um com 2 variações sorteadas por célula. O brilho que repetia em grade sai no import (`remapColors`).
+- **Clínica em cantinhos:** exame à esquerda (pia, banho, mesa, carrinho; a Fernanda atende de frente para a mesa), gaiolas no fundo, espera à direita.
+- **Mercado:** paredes dos lados (faixa fina, sem piso por fora); duas fileiras de prateleiras de corredor com o expositor de perfil nas pontas; estante contínua de hortifrúti na parede da esquerda; ilha de bancas à direita com corredores em volta; freezers, pães, ovos e geleias perto do caixa; carrinho e cestos na entrada. Saíram os carrinhos empilhados, os caixotes soltos, os vasinhos e as placas penduradas.
+- **Arte nova do mercado** (PixelLab, 172 gerações no total): freezer de ilha, 16 itens pequenos, a prateleira de corredor e o expositor (endireitados de frente e girados para os lados, `create_8_direction_object`) e as bancas de hortifrúti de perfil em tamanho grande. Teste que não entrou: a geladeira de perfil (vira um painel liso na nossa câmera).
+- **Mapa:** objetos ganham `flipX` (espelhar); `shiftX` e `flipX` valem também para a parte da arte que sobe acima da peça; a sombra de contato segue o `shiftX`.
+- A regra da perspectiva e do "nada solto" foi para o guia de estilo (seção 5).

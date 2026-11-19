@@ -633,7 +633,7 @@ describe('mercado', () => {
     session.enter('map.market');
     expect(session.interactionAt([[13, 11]])?.action).toEqual({ shop: 'shop.market' });
     expect(session.interactionAt([[13, 11]], [13, 9])?.id).toBe('int.market_cashier');
-    expect(session.interactionAt([[3, 11]])).toBeUndefined(); // longe
+    expect(session.interactionAt([[18, 11]])).toBeUndefined(); // longe
     expect(session.interactionAt([[13, 11]], [12, 5])).toBeUndefined(); // clicou em outra coisa
   });
 

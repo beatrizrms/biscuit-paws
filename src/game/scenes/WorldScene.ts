@@ -1009,7 +1009,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.mapImages = this.add.group();
     this.objectImages.clear();
     for (const s of this.map.sprites) {
-      const img = addTileImage(this, s.col * ts + (s.dx ?? 0), s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth);
+      const img = addTileImage(this, s.col * ts + (s.dx ?? 0), s.row * ts - (s.dy ?? 0), s.sheet, s.frame).setDepth(s.depth).setFlipX(!!s.flipX);
       // Sujeira com cor chapada (a teia clara na pedra do porão).
       if (s.fill) img.setTintFill(Phaser.Display.Color.HexStringToColor(s.fill).color);
       // Móvel com outra cor (o mesmo desenho, ex.: os automáticos): giro de cor do item.

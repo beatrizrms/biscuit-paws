@@ -95,7 +95,9 @@ export function ambienceOf(map: MapData, catalog: TileCatalog, cfg: AmbienceConf
     // Só o que fica no chão: objeto em cima de outro (lift: cafeteira no balcão) já tem a sombra do de baixo.
     if (!def || def.layer !== 'object' || obj.lift) continue;
     const [c0, r0] = obj.at;
-    shadows.push({ x: (c0 + def.w / 2) * ts, y: (r0 + def.h) * ts - 2, w: def.w * ts * cfg.shadowWidth, tile: obj.tile, left: c0 * ts, top: r0 * ts });
+    // A peça deslocada (shiftX: as prateleiras emendadas do corredor) leva a sombra junto.
+    const dx = obj.shiftX ?? 0;
+    shadows.push({ x: (c0 + def.w / 2) * ts + dx, y: (r0 + def.h) * ts - 2, w: def.w * ts * cfg.shadowWidth, tile: obj.tile, left: c0 * ts + dx, top: r0 * ts });
   }
 
   const edges: WallEdge[] = [];

@@ -42,6 +42,8 @@ Regras:
 - `id` de objeto é único dentro do mapa e estável.
 - Solidez: vem do catálogo (`solid: true`) ou das camadas de parede. O mapa não repete essa informação.
 - Validar em `npm run check`: nomes existentes, dentro dos limites, sem sobreposição de objetos sólidos, linhas com o comprimento certo.
+- Opções de um objeto: `lift` (desenhado tantos pixels acima, em cima de outro móvel; sem sombra no chão), `shiftX` (desenhado tantos pixels para a direita: emenda peças cuja arte não ocupa a célula toda, como as prateleiras do corredor do mercado; a sombra vai junto, a célula e a solidez não mudam), `flipX` (espelhado, inclusive a parte que sobe acima da peça: duas peças iguais lado a lado não parecem cópias), `overlay`, `snowCap`, `when`, `inWall`.
+- Paredes dos lados (mercado): `market_parede_lateral_esq` / `_dir`, a faixa do topo da parede na borda de dentro da célula; a célula de fora fica sem piso (fundo do mapa), para a sombra da parede encostar na faixa.
 
 ### Café inicial (16 x 11)
 

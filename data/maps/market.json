@@ -29,37 +29,39 @@
   "legend": {
     "T": "market_parede_topo",
     "R": "market_parede_rodape",
-    "a": "market_chao_a",
-    "m": "market_capacho"
+    "a": "market_chao_c",
+    "m": "market_capacho",
+    "E": "market_parede_lateral_esq",
+    "D": "market_parede_lateral_dir"
   },
   "layers": {
     "floor": [
       "....................",
       "....................",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa",
-      "aaaaaaaaaaaaaaaaaaaa"
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa.",
+      ".aaaaaaaaaaaaaaaaaa."
     ],
     "walls": [
       "TTTTTTTTTTTTTTTTTTTT",
       "RRRRRRRRRRRRRRRRRRRR",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "....................",
-      "...................."
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D",
+      "E..................D"
     ],
     "overlay": [
       "....................",
@@ -77,263 +79,54 @@
     ]
   },
   "objects": [
-    { "id": "obj.market_banca_plantas", "tile": "market_banca_plantas", "at": [14, 5] },
-    {
-      "id": "obj.market_janela",
-      "tile": "market_janela",
-      "at": [
-        0,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_janela_2",
-      "tile": "market_janela",
-      "at": [
-        19,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_placa_mercearia",
-      "tile": "market_placa_mercearia",
-      "at": [
-        2,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_luminaria",
-      "tile": "market_luminaria",
-      "at": [
-        6,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_placa_pet",
-      "tile": "market_placa_pet",
-      "at": [
-        8,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_job_board",
-      "tile": "market_placa_ofertas",
-      "at": [
-        12,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_luminaria_2",
-      "tile": "market_luminaria",
-      "at": [
-        16,
-        0
-      ]
-    },
-    {
-      "id": "obj.market_gondola_mercearia",
-      "tile": "market_gondola_mercearia",
-      "at": [
-        1,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_gondola_mercearia_2",
-      "tile": "market_gondola_mercearia",
-      "at": [
-        4,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_gondola_pet",
-      "tile": "market_gondola_pet",
-      "at": [
-        8,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_geladeira_bebidas",
-      "tile": "market_geladeira_bebidas",
-      "at": [
-        12,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_geladeira_bebidas_2",
-      "tile": "market_geladeira_bebidas",
-      "at": [
-        13,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_geladeira_bebidas_3",
-      "tile": "market_geladeira_bebidas",
-      "at": [
-        14,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_geladeira_bebidas_4",
-      "tile": "market_geladeira_bebidas",
-      "at": [
-        15,
-        1
-      ]
-    },
-    {
-      "id": "obj.market_cestas",
-      "tile": "market_cestas",
-      "at": [
-        17,
-        2
-      ]
-    },
-    {
-      "id": "obj.market_cestas_vime",
-      "tile": "market_cestas_vime",
-      "at": [
-        17,
-        3
-      ]
-    },
-    {
-      "id": "obj.market_lixeira",
-      "tile": "market_lixeira",
-      "at": [
-        0,
-        3
-      ]
-    },
-    {
-      "id": "obj.market_banca_a",
-      "tile": "market_banca_a",
-      "at": [
-        1,
-        4
-      ]
-    },
-    {
-      "id": "obj.market_banca_b",
-      "tile": "market_banca_b",
-      "at": [
-        1,
-        5
-      ]
-    },
-    {
-      "id": "obj.market_banca_b_2",
-      "tile": "market_banca_b",
-      "at": [
-        5,
-        4
-      ]
-    },
-    {
-      "id": "obj.market_banca_a_2",
-      "tile": "market_banca_a",
-      "at": [
-        5,
-        5
-      ]
-    },
-    {
-      "id": "obj.market_banca_a_3",
-      "tile": "market_banca_a",
-      "at": [
-        9,
-        4
-      ]
-    },
-    {
-      "id": "obj.market_banca_b_3",
-      "tile": "market_banca_b",
-      "at": [
-        9,
-        5
-      ]
-    },
-    {
-      "id": "obj.market_banca_b_4",
-      "tile": "market_banca_b",
-      "at": [
-        1,
-        7
-      ]
-    },
-    {
-      "id": "obj.market_banca_a_4",
-      "tile": "market_banca_a",
-      "at": [
-        1,
-        8
-      ]
-    },
-    {
-      "id": "obj.market_banca_a_5",
-      "tile": "market_banca_a",
-      "at": [
-        5,
-        7
-      ]
-    },
-    {
-      "id": "obj.market_banca_b_5",
-      "tile": "market_banca_b",
-      "at": [
-        5,
-        8
-      ]
-    },
-    {
-      "id": "obj.market_banca_b_6",
-      "tile": "market_banca_b",
-      "at": [
-        9,
-        7
-      ]
-    },
-    {
-      "id": "obj.market_banca_a_6",
-      "tile": "market_banca_a",
-      "at": [
-        9,
-        8
-      ]
-    },
-    {
-      "id": "obj.market_caixa",
-      "tile": "market_caixa",
-      "at": [
-        12,
-        8
-      ]
-    },
-    {
-      "id": "obj.market_carrinho",
-      "tile": "market_carrinho",
-      "at": [
-        18,
-        7
-      ]
-    },
-    {
-      "id": "obj.market_carrinhos_fila",
-      "tile": "market_carrinhos_fila",
-      "at": [
-        18,
-        9
-      ]
-    }
+    { "id": "obj.market_janela", "tile": "market_janela", "at": [0, 0] },
+    { "id": "obj.market_janela_2", "tile": "market_janela", "at": [19, 0] },
+    { "id": "obj.market_placa_mercearia", "tile": "market_placa_mercearia", "at": [2, 0] },
+    { "id": "obj.market_luminaria", "tile": "market_luminaria", "at": [6, 0] },
+    { "id": "obj.market_placa_pet", "tile": "market_placa_pet", "at": [8, 0] },
+    { "id": "obj.market_job_board", "tile": "market_placa_ofertas", "at": [12, 0] },
+    { "id": "obj.market_luminaria_2", "tile": "market_luminaria", "at": [16, 0] },
+    { "id": "obj.market_gondola_mercearia", "tile": "market_gondola_mercearia", "at": [1, 1] },
+    { "id": "obj.market_gondola_mercearia_2", "tile": "market_gondola_mercearia", "at": [4, 1] },
+    { "id": "obj.market_gondola_pet", "tile": "market_gondola_pet", "at": [8, 1] },
+    { "id": "obj.market_geladeira_bebidas", "tile": "market_geladeira_bebidas", "at": [12, 1] },
+    { "id": "obj.market_geladeira_bebidas_2", "tile": "market_geladeira_bebidas", "at": [13, 1] },
+    { "id": "obj.market_geladeira_bebidas_3", "tile": "market_geladeira_bebidas", "at": [14, 1] },
+    { "id": "obj.market_geladeira_bebidas_4", "tile": "market_geladeira_bebidas", "at": [15, 1] },
+    { "id": "obj.market_caixa", "tile": "market_caixa", "at": [12, 8] },
+    { "id": "obj.market_banca_a", "tile": "market_banca_a", "at": [11, 4] },
+    { "id": "obj.market_banca_b", "tile": "market_banca_b", "at": [11, 5], "flipX": true },
+    { "id": "obj.market_banca_b_2", "tile": "market_banca_b", "at": [14, 4] },
+    { "id": "obj.market_banca_a_2", "tile": "market_banca_a", "at": [14, 5], "flipX": true },
+    { "id": "obj.market_planta_alta", "tile": "decor_planta_alta_b", "at": [1, 9] },
+    { "id": "obj.market_lixeira", "tile": "market_lixeira", "at": [4, 10] },
+    { "id": "obj.market_corredor_1_ponta", "tile": "market_expositor_ponta_esq", "at": [2, 4], "shiftX": 25 },
+    { "id": "obj.market_corredor_1_a", "tile": "market_prateleira_corredor", "at": [3, 4], "shiftX": 22 },
+    { "id": "obj.market_corredor_1_b", "tile": "market_prateleira_corredor_verso", "at": [5, 4], "shiftX": 16 },
+    { "id": "obj.market_corredor_1_c", "tile": "market_prateleira_corredor", "at": [7, 4], "shiftX": 10 },
+    { "id": "obj.market_corredor_1_ponta_2", "tile": "market_expositor_ponta_dir", "at": [9, 4], "shiftX": 7 },
+    { "id": "obj.market_corredor_2_ponta", "tile": "market_expositor_ponta_esq", "at": [2, 7], "shiftX": 25 },
+    { "id": "obj.market_corredor_2_a", "tile": "market_prateleira_corredor_verso", "at": [3, 7], "shiftX": 22 },
+    { "id": "obj.market_corredor_2_b", "tile": "market_prateleira_corredor", "at": [5, 7], "shiftX": 16 },
+    { "id": "obj.market_corredor_2_c", "tile": "market_prateleira_corredor_verso", "at": [7, 7], "shiftX": 10 },
+    { "id": "obj.market_corredor_2_ponta_2", "tile": "market_expositor_ponta_dir", "at": [9, 7], "shiftX": 7 },
+    { "id": "obj.market_cestas_vime", "tile": "market_cestas_vime", "at": [5, 10] },
+    { "id": "obj.market_freezer", "tile": "market_freezer_ilha", "at": [17, 6] },
+    { "id": "obj.market_freezer_2", "tile": "market_freezer_ilha", "at": [17, 7], "flipX": true },
+    { "id": "obj.market_banca_lado", "tile": "market_banca_corrida_esq_0", "at": [1, 3] },
+    { "id": "obj.market_banca_lado_2", "tile": "market_banca_corrida_esq_1", "at": [1, 4] },
+    { "id": "obj.market_banca_lado_3", "tile": "market_banca_corrida_esq_2", "at": [1, 5] },
+    { "id": "obj.market_banca_lado_4", "tile": "market_banca_corrida_esq_3", "at": [1, 6] },
+    { "id": "obj.market_banca_lado_5", "tile": "market_banca_corrida_esq_4", "at": [1, 7] },
+    { "id": "obj.market_banca_lado_6", "tile": "market_banca_corrida_esq_5", "at": [1, 8] },
+    { "id": "obj.market_banca_plantas", "tile": "market_banca_plantas", "at": [2, 9] },
+    { "id": "obj.market_planta_alta_2", "tile": "decor_planta_alta_c", "at": [18, 8] },
+    { "id": "obj.market_cesto_paes", "tile": "market_cesto_paes", "at": [16, 9] },
+    { "id": "obj.market_cesto_ovos", "tile": "market_cesto_ovos", "at": [17, 9] },
+    { "id": "obj.market_expositor_geleias", "tile": "market_expositor_geleias", "at": [16, 10] },
+    { "id": "obj.market_carrinho", "tile": "market_carrinho", "at": [6, 10] },
+    { "id": "obj.market_cestas", "tile": "market_cestas", "at": [7, 10] },
+    { "id": "obj.market_cavalete_preco", "tile": "market_cavalete_preco", "at": [11, 10] }
   ],
   "npcs": [
     {
@@ -381,7 +174,13 @@
     }
   ],
   "interactions": [
-    { "id": "int.market_shelf_garden", "at": [15, 6], "action": { "shelf": "shop.market", "tags": ["garden"], "emptyText": "Ainda não estão à venda." } },
+    { "id": "int.market_fruit_7", "at": [1, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_8", "at": [1, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_aisle_1", "at": [4, 4], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_aisle_2", "at": [7, 4], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_aisle_3", "at": [4, 7], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_aisle_4", "at": [7, 7], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
+    { "id": "int.market_shelf_garden", "at": [3, 9], "action": { "shelf": "shop.market", "tags": ["garden"], "emptyText": "Ainda não estão à venda." } },
     {
       "id": "int.market_cashier",
       "at": [
@@ -407,17 +206,9 @@
     { "id": "int.market_shelf_grocery", "at": [2, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
     { "id": "int.market_shelf_grocery_2", "at": [5, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["coffee", "tea", "pantry", "bakery", "tool"] } },
     { "id": "int.market_shelf_pet", "at": [9, 2], "reach": 1, "action": { "shelf": "shop.market", "tags": ["pet"] } },
-    { "id": "int.market_crates_fruit", "at": [2, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_2", "at": [2, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_3", "at": [6, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_4", "at": [6, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_5", "at": [10, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_6", "at": [10, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_7", "at": [2, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_8", "at": [2, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_9", "at": [6, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_10", "at": [6, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_11", "at": [10, 7], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
-    { "id": "int.market_fruit_12", "at": [10, 8], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } }
+    { "id": "int.market_crates_fruit", "at": [12, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_2", "at": [12, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_3", "at": [15, 4], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } },
+    { "id": "int.market_fruit_4", "at": [15, 5], "reach": 2, "action": { "shelf": "shop.market", "tags": ["fruit"] } }
   ]
 }

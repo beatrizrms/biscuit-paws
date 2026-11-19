@@ -1,7 +1,7 @@
 {
  "tileSize": 64,
  "columns": 6,
- "rows": 5,
+ "rows": 15,
  "pieces": {
   "gondola_mercearia": {
    "col": 0,
@@ -44,6 +44,234 @@
    "row": 4,
    "w_tiles": 1,
    "h_tiles": 1
+  },
+  "chao_c": {
+   "col": 0,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "variants": 2
+  },
+  "parede_lateral_esq": {
+   "col": 2,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "parede_lateral_dir": {
+   "col": 3,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_lado_frutas_esq": {
+   "col": 4,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_lado_frutas_dir": {
+   "col": 5,
+   "row": 5,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_lado_verduras_esq": {
+   "col": 0,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_lado_verduras_dir": {
+   "col": 1,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_lado_corrida_esq": {
+   "col": 2,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "banca_lado_corrida_dir": {
+   "col": 3,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 2
+  },
+  "banca_corrida_esq_0": {
+   "col": 4,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_corrida_esq_1": {
+   "col": 5,
+   "row": 6,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_corrida_esq_2": {
+   "col": 0,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_corrida_esq_3": {
+   "col": 1,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_corrida_esq_4": {
+   "col": 2,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "banca_corrida_esq_5": {
+   "col": 3,
+   "row": 8,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "freezer_ilha": {
+   "col": 4,
+   "row": 8,
+   "w_tiles": 2,
+   "h_tiles": 1
+  },
+  "placa_frutas": {
+   "col": 0,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "placa_mercearia_icone": {
+   "col": 1,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "placa_pet_icone": {
+   "col": 2,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "placa_bebidas": {
+   "col": 3,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "balanca_frutas": {
+   "col": 4,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "balde_flores": {
+   "col": 5,
+   "row": 9,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixote_melancias": {
+   "col": 0,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cesto_paes": {
+   "col": 1,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixotes_laranjas": {
+   "col": 2,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cavalete_preco": {
+   "col": 3,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixote_batatas": {
+   "col": 4,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixote_abobora": {
+   "col": 5,
+   "row": 10,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "balde_girassois": {
+   "col": 0,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "expositor_geleias": {
+   "col": 1,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "cesto_ovos": {
+   "col": 2,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "caixote_limoes": {
+   "col": 3,
+   "row": 11,
+   "w_tiles": 1,
+   "h_tiles": 1
+  },
+  "prateleira_corredor": {
+   "col": 4,
+   "row": 11,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "rise": 1
+  },
+  "prateleira_corredor_verso": {
+   "col": 0,
+   "row": 13,
+   "w_tiles": 2,
+   "h_tiles": 1,
+   "rise": 1
+  },
+  "expositor_ponta": {
+   "col": 2,
+   "row": 13,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "rise": 1
+  },
+  "expositor_ponta_esq": {
+   "col": 3,
+   "row": 13,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "rise": 1
+  },
+  "expositor_ponta_dir": {
+   "col": 4,
+   "row": 13,
+   "w_tiles": 1,
+   "h_tiles": 1,
+   "rise": 1
   }
  }
 }

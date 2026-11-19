@@ -11,7 +11,7 @@
   "legend": {
     "T": "vet_parede_papel_topo",
     "A": "vet_parede_azulejo",
-    "X": "vet_piso_xadrez"
+    "X": "vet_piso_vinil"
   },
   "layers": {
     "floor": [
@@ -57,26 +57,28 @@
     { "id": "obj.vet_bin", "tile": "vet_lixeira_pedal", "at": [2, 2] },
     { "id": "obj.vet_sink", "tile": "vet_bancada_pia", "at": [3, 2] },
     { "id": "obj.vet_cages", "tile": "vet_gaiola_vazia", "at": [7, 1] },
-    { "id": "obj.vet_bench_1", "tile": "vet_banco_espera", "at": [17, 2] },
+    { "id": "obj.vet_bench_1", "tile": "vet_banco_espera", "at": [16, 2] },
     { "id": "obj.vet_plant_1", "tile": "vet_planta_vaso", "at": [0, 3] },
     { "id": "obj.vet_plant_2", "tile": "vet_planta_vaso", "at": [19, 3] },
     { "id": "obj.vet_reception_desk", "tile": "vet_balcao_recepcao", "at": [12, 4] },
     { "id": "obj.vet_scale", "tile": "vet_balanca", "at": [16, 4] },
-    { "id": "obj.vet_exam_table", "tile": "vet_mesa_exame", "at": [5, 5] },
-    { "id": "obj.vet_bath", "tile": "vet_banho", "at": [1, 6] },
-    { "id": "obj.vet_cart", "tile": "vet_carrinho_instrumentos", "at": [7, 6] },
-    { "id": "obj.vet_bench_side_r", "tile": "vet_banco_lado_dir", "at": [12, 7] },
-    { "id": "obj.vet_bench_side_l", "tile": "vet_banco_lado_esq", "at": [15, 7] },
-    { "id": "obj.vet_carrier", "tile": "vet_caixa_transporte", "at": [18, 8] },
-    { "id": "obj.vet_mat", "tile": "vet_tapete_entrada", "at": [4, 10] }
+    { "id": "obj.vet_exam_table", "tile": "vet_mesa_exame", "at": [4, 4] },
+    { "id": "obj.vet_bath", "tile": "vet_banho", "at": [1, 5] },
+    { "id": "obj.vet_cart", "tile": "vet_carrinho_instrumentos", "at": [6, 5] },
+    { "id": "obj.vet_bench_side_r", "tile": "vet_banco_lado_dir", "at": [15, 7] },
+    { "id": "obj.vet_bench_side_l", "tile": "vet_banco_lado_esq", "at": [18, 7] },
+    { "id": "obj.vet_carrier", "tile": "vet_caixa_transporte", "at": [16, 9] },
+    { "id": "obj.vet_mat", "tile": "vet_tapete_entrada", "at": [4, 10] },
+    { "id": "obj.vet_cages_2", "tile": "vet_gaiola_vazia", "at": [9, 1], "flipX": true },
+    { "id": "obj.vet_plant_waiting", "tile": "decor_vaso_folhagem", "at": [17, 9] }
   ],
   "npcs": [
     {
-      "npc": "npc.fernanda", "at": [4, 6], "facing": "right",
+      "npc": "npc.fernanda", "at": [4, 6], "facing": "up",
       "roam": {
         "spots": [
           { "at": [1, 3], "facing": "up" }, { "at": [4, 3], "facing": "up" }, { "at": [7, 3], "facing": "up" },
-          { "at": [13, 4], "facing": "down" }, { "at": [16, 5], "facing": "up" }, { "at": [4, 6], "facing": "right" }
+          { "at": [13, 4], "facing": "down" }, { "at": [16, 5], "facing": "up" }, { "at": [4, 6], "facing": "up" }
         ],
         "pauseMs": [3000, 7000],
         "summonedBy": "int.vet_exam"
@@ -84,7 +86,7 @@
     }
   ],
   "interactions": [
-    { "id": "int.vet_exam", "at": [6, 6], "reach": 2, "action": { "vet": true } }
+    { "id": "int.vet_exam", "at": [5, 6], "reach": 2, "action": { "vet": true } }
   ],
   "spawn": {
     "player": [5, 9]

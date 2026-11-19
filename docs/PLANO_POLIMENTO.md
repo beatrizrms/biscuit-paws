@@ -87,9 +87,9 @@ Um documento curto (`docs/GUIA_DE_ESTILO.md`) que vira a regra para tudo o que e
 | 3. Itens na mão | Feito (decisão 274): `npm run hands` mede as mãos por roupa, pose, direção e quadro; bandeja, louça, gato, caixas e vassoura presos a elas. Rodar de novo quando a protagonista for refeita | médio (dados e código) |
 | 4. Coesão dos objetos | Passar os objetos fora do estilo pelo contorno e pela paleta; trocar os ícones avulsos | médio (PixelLab e scripts) |
 | 5. Logo e tela inicial | Logo desenhado; menu com a rua animada; abertura com cena em vez de só texto | médio |
-| 6. Mapas com vida | Variar o piso e tirar a grade aparente; objetos nas paredes e cantos; quebrar a simetria e a repetição do mercado | médio |
+| 6. Mapas com vida | Mercado e clínica feitos (decisão 277): piso novo sem grade, clínica em cantinhos, mercado com corredores e nada solto. Faltam: café (piso velho é proposital), rua e praça | médio |
 | 7. Movimento | Feito (decisão 275): NPCs em linha reta e na diagonal quando dá; parados respirando; câmera suave; moedinhas e vapor ao servir (varrer já tinha poeira e brilho) | médio |
 | 8. Texto | Feito (decisão 276): explicações longas encurtadas; faixas de teclas com as teclas desenhadas e uma palavra; preço com a moeda | baixo a médio |
 
-Ordem combinada (nov/2026): 0, 1, 3, 7 e 8 feitas; depois 6, 4 e 5; os personagens (2) por último. Ordem sugerida antes: 0 e 1 primeiro (mudam a primeira impressão sem arte nova), depois 2 e 3 (o que mais se nota em
+Ordem combinada (nov/2026): 0, 1, 3, 7 e 8 feitas, 6 em parte; depois 6, 4 e 5; os personagens (2) por último. Ordem sugerida antes: 0 e 1 primeiro (mudam a primeira impressão sem arte nova), depois 2 e 3 (o que mais se nota em
 movimento), e o resto em seguida. Cada fase com print antes e depois.
