@@ -1113,3 +1113,12 @@ Decisão: hora e moedas, nota do café e energia viram um painel só (`.hud-stac
 ## 272. Fim da fase 1: caixa de fala compacta e ícones do celular em pixel art (nov/2026)
 Pedido: terminar a fase 1 do plano de polimento.
 Decisão: a caixa de fala fica mais estreita (até 460 px, centrada), mais baixa e com o retrato menor (40 px), sem o espaço vazio de antes. Os seis apps do celular que usavam desenho em CSS (Horário, Calendário, Notas, Café em números, SocialVilla, CatPay) ganham ícones do PixelLab no estilo dos objetos (30 gerações); o Calendário é a folha em branco com o número do dia por cima, na fonte pixel. Os caminhos ficam em `data/phone.json: apps`.
+
+## 273. Guia de estilo, fase 0 do polimento (nov/2026)
+Pedido: deixar a refação dos personagens por último e fazer antes tudo o que der.
+Decisão: `docs/GUIA_DE_ESTILO.md` vira a regra para o que entra no jogo: escala em tiles, proporção dos personagens, itens na mão, objetos, mapas, interface, movimento e texto. A medida da cabeça segue as referências escolhidas pela Beatriz (Tião, Fernanda e os clientes 01, 03, 04, 09 e 10). Estão fora do padrão, com o rosto maior, a protagonista, a corretora, a Gabi, a Dona Neusa e os clientes 02, 05 e 08; eles serão refeitos por último (fase 2). `npm run lineup` põe todos os personagens lado a lado, alinhados pelos pés e com as referências marcadas, para conferir um personagem novo antes de aprovar.
+
+## 274. Itens presos às mãos, fase 3 do polimento (nov/2026)
+Pedido: a vassoura e a bandeja não encaixavam na mão da personagem.
+Causa: cada roupa da protagonista foi desenhada à parte e põe as mãos num lugar diferente (no moletom, de lado, as mãos ficam bem mais à frente que no vestido), mas o jogo usava um ponto fixo por direção.
+Decisão: `npm run hands` mede as mãos na máscara da pele de cada quadro das poses de segurar (bandeja, colo e ação), por roupa e direção, e grava `data/hand_anchors.json`. A bandeja, a louça, o gato no colo, as caixas e a vassoura ficam presos a esse ponto no quadro de agora (`Player.handPoint()`) e acompanham o passo. De lado, a bandeja vira junto com ela (a de perspectiva, espelhada para o lado em que ela olha) e fica na altura do peito, sem cobrir o rosto; o gato no colo fica com o corpo nos braços, não em cima deles. A vassoura vai inteira na frente do corpo e mais deitada (antes, o cabo passava por trás e parecia atravessar a personagem). Sem medida (caminhada comum), continua o ponto fixo de antes.

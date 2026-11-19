@@ -26,7 +26,9 @@
     "mannequin": "tsx scripts/import-mannequin.ts",
     "npcs": "tsx scripts/import-npcs.ts",
     "gatos": "tsx scripts/import-cats.ts",
-    "minigames": "tsx scripts/import-minigames.ts"
+    "minigames": "tsx scripts/import-minigames.ts",
+    "lineup": "tsx scripts/character-lineup.ts",
+    "hands": "tsx scripts/measure-hands.ts"
   },
   "dependencies": {
     "@fontsource/nunito": "^5.3.0",

@@ -3875,7 +3875,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Caixas nas mãos: a pose de carregar, a mesma do gato no colo, sem gato desenhado.
     const boxes = this.carriedImages.length > 0;
     // A bandeja muda com a direção (de frente e de costas, a de frente; de lado, a diagonal).
-    const trayView = st.tray ? (['up', 'down'].includes(this.player.facingDirection()) ? 'front' : 'side') : '';
+    const trayView = st.tray ? (['up', 'down'].includes(this.player.facingDirection()) ? 'front' : this.player.facingDirection()) : '';
     const key = JSON.stringify([st.hands, st.tray, boxes, this.session.atHome(), trayView]);
     if (key !== this.handsKey) {
       this.handsKey = key;
@@ -3901,7 +3901,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const top = st.hands[0];
         const item = top ? this.handItemImage(top) : undefined;
         // A bandeja com a base nas mãos (como a louça); a louça em cima, no meio do tampo dela.
-        const trayImg = tray ? this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, hold.bottom / 64).setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true) : undefined;
+        // De lado, a bandeja em perspectiva, espelhada para o lado em que ela olha.
+        const trayImg = tray ? this.add.image(0, 0, tray.key, tray.frame).setScale(tray.scale).setOrigin(0.5, hold.bottom / 64).setFlipX(this.player.facingDirection() === 'left').setData('handOffset', [0, DISH_HAND_LIFT]).setData('onTray', true) : undefined;
         const surface = DISH_HAND_LIFT - (trayImg ? ((hold.bottom - hold.surface) / 64) * trayImg.displayHeight : 0);
         item?.setScale(this.handScale(top) * ((item.getData('iconScale') as number | undefined) ?? 1)).setOrigin(0.5, 1).setData('handOffset', [0, surface]).setData('onTray', true);
         this.handIcons = [...(trayImg ? [trayImg] : []), ...(item ? [item] : [])];
@@ -3922,22 +3923,27 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const box = !this.session.atHome() || this.session.catBoxed(catId) ? clinicBoxTile() : null;
         if (box) this.carriedCatSprite = this.add.sprite(0, 0, box.sheet, box.frame).setOrigin(0.5, 0.95).setScale(tileScale(box.sheet));
         // Na pose de dormir o corpo fica na parte de baixo do quadro: origem 1,05 põe o gato na altura das mãos.
-        else this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 1.05).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
+        else this.carriedCatSprite = this.add.sprite(0, 0, catTexture(variant), 0).setOrigin(0.5, 0.8).setScale(catScale(variant)).play(`${catTexture(variant)}-sleep`);
       }
     }
     const dir = this.player.facingDirection();
+    // As mãos no quadro de agora (data/hand_anchors.json): o que ela segura acompanha o passo e a pose. Sem a medida
+    // (caminhada comum), o ponto fixo da direção.
+    const hand = this.player.handPoint();
     const [ax, ay] = serviceArt.handAnchor[dir];
-    const hx = this.player.x - 16 + ax;
-    const hy = this.player.y - 64 + ay;
+    const hx = hand?.x ?? this.player.x - 16 + ax;
+    const hy = hand?.y ?? this.player.y - 64 + ay;
     const front = this.player.depth + (dir === 'up' ? -1 : 2);
     this.handIcons.forEach((img, i) => {
       const off = img.getData('handOffset') as [number, number] | undefined;
-      // Bandeja e louça em cima: o meio da bandeja vai onde trayHand manda para esta direção.
-      const tray: [number, number] = img.getData('onTray') ? serviceArt.trayHand[dir] : [0, 0];
+      // Bandeja e louça em cima: o meio da bandeja em relação às mãos, por direção.
+      const tray: [number, number] = img.getData('onTray') ? (hand ? serviceArt.trayOnHands[dir] : serviceArt.trayHand[dir]) : [0, 0];
       if (off) img.setPosition(hx + tray[0] + off[0], hy + tray[1] + off[1]).setDepth(front + (i > 0 ? 0.5 : 0));
       else img.setPosition(hx, hy - (st.tray ? 0 : i * 7)).setDepth(front);
     });
-    this.carriedCatSprite?.setPosition(hx, hy).setDepth(front).setFlipX(dir === 'left');
+    // De lado as mãos ficam mais altas (no peito): o gato desce um pouco para não cobrir o rosto.
+    const side = dir === 'left' || dir === 'right';
+    this.carriedCatSprite?.setPosition(hx, hy + (side && hand ? CAT_SIDE_DROP : 0)).setDepth(front).setFlipX(dir === 'left');
     // Lavar na pia é à mão: só anda com ela em frente à pia (fora do café, também não).
     sv.setSinkAttended(this.session.atHome() && sv.sinkNear(this.playerCells()));
     if (!this.session.atHome()) return;
@@ -4353,9 +4359,12 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     while (this.carriedImages.length > frames.length) this.carriedImages.pop()!.destroy();
     while (this.carriedImages.length < frames.length) this.carriedImages.push(this.parcelImage(PARCEL_HAND_SCALE));
     const dir = this.player.facingDirection();
+    const hand = this.player.handPoint();
     const [ax, ay] = serviceArt.handAnchor[dir];
+    const hx = hand?.x ?? this.player.x - 16 + ax;
+    const hy = hand?.y ?? this.player.y - 64 + ay;
     const front = this.player.depth + (dir === 'up' ? -1 : 2);
-    this.carriedImages.forEach((img, i) => img.setPosition(this.player.x - 16 + ax, this.player.y - 64 + ay + PARCEL_HAND_DROP - i * PARCEL_HAND_STEP).setDepth(front + i * (dir === 'up' ? -0.01 : 0.01)));
+    this.carriedImages.forEach((img, i) => img.setPosition(hx, hy + PARCEL_HAND_DROP - i * PARCEL_HAND_STEP).setDepth(front + i * (dir === 'up' ? -0.01 : 0.01)));
   }
 
   /** Furgão do correio: chega pela rua, a entregadora deixa a caixa na porta e vai embora. Uma de cada vez. */
@@ -4423,23 +4432,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const posed = this.textures.exists(poseTexture('sweep'));
     if (posed) void this.player.playAction('sweep', broom.sweepMs);
     // A vassoura na mão: o cabo vai onde estão as mãos no quadro atual da pose de ação, as cerdas no chão.
-    // Duas metades da mesma imagem: das mãos para baixo, na frente dela; das mãos para cima, atrás (o cabo passa
-    // por trás da cabeça, e não na frente do rosto).
+    // Inteira na frente dela, como quem segura: atrás do corpo, o cabo parecia atravessar a personagem.
     const hold = broom.hold;
     const img = this.textures.get('broom_hold').getSourceImage() as { width: number; height: number };
-    const gripY = Math.round(hold.grip[1]);
     const half = (depth: number, cropY: number, cropH: number) =>
       this.add
         .image(this.player.x, this.player.y, 'broom_hold')
         .setOrigin(hold.grip[0] / img.width, hold.grip[1] / img.height)
         .setScale(1 / hold.resolution)
         .setFlipX(!left) // a imagem tem as cerdas à esquerda: espelha para elas irem para o lado da sujeira
+        // Mais deitada que o desenho: o cabo passa ao lado da cabeça, e não na frente do rosto.
+        .setAngle(left ? BROOM_TILT : -BROOM_TILT)
         .setCrop(0, cropY, img.width, cropH)
         .setDepth(depth);
-    const tools = [half(this.player.depth - 1, 0, gripY), half(this.player.depth + 1, gripY, img.height - gripY)];
+    const tools = [half(this.player.depth + 1, 0, img.height)];
     const followHands = () => {
+      // As mãos no quadro de agora (data/hand_anchors.json); sem a medida, a posição média da ação.
+      const hand = this.player.handPoint();
       const col = Number(this.player.frame.name) % hold.handDx.length;
-      for (const t of tools) t.setPosition(this.player.x + (hold.handDx[col] ?? 0) / hold.resolution, this.player.y - hold.handHeight / hold.resolution);
+      for (const t of tools) t.setPosition(hand?.x ?? this.player.x + (hold.handDx[col] ?? 0) / hold.resolution, hand?.y ?? this.player.y - hold.handHeight / hold.resolution);
     };
     const dust = this.add.image(x, y, 'broom', 'poeira_1').setDepth(100_000);
     const frameMs = 1000 / broom.sweepFps;
@@ -4991,6 +5002,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
 /** Louça direto nas mãos (sem bandeja): a base fica tanto abaixo do meio das mãos (px lógicos). */
 const DISH_HAND_LIFT = 3;
+/** Gato no colo, de lado: quanto ele desce em relação ao ponto das mãos (pixels do jogo). */
+const CAT_SIDE_DROP = 5;
+/** Vassoura na mão: quanto ela deita além do desenho (graus). */
+const BROOM_TILT = 22;
 
 /** Variante do gato do mini game: o pedido, ou o primeiro abrigado, ou o gato de rua do prólogo. */
 function miniGameCatVariant(scene: WorldScene, catId?: string): string {

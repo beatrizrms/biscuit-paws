@@ -5,6 +5,7 @@ import Phaser from 'phaser';
 import { layerPieces, layerRamps, POSES, type Appearance, type Pose } from '../core/appearance';
 import { lightRanges, recolor } from '../core/recolor';
 import { content } from './content';
+import handAnchorsJson from '../../data/hand_anchors.json';
 
 const C = content.character;
 const M = C.mannequin;
@@ -23,6 +24,23 @@ export function allPoseTextures(): { key: string; pose: Pose }[] {
 /** Tamanho do quadro e escala do desenho da jogadora (a arte tem `resolution` pixels por pixel do jogo). */
 export function playerFrame(): { width: number; height: number; resolution: number } {
   return { width: M.frameWidth, height: M.frameHeight, resolution: M.resolution };
+}
+
+/** Onde ficam as mãos em cada quadro (data/hand_anchors.json, npm run hands): roupa -> animação -> direção -> quadros. */
+const handAnchors = handAnchorsJson as unknown as { resolution: number; outfits: Record<string, Record<string, Record<string, [number, number][]>>> };
+/** A roupa das folhas montadas agora (as mãos mudam de lugar de uma roupa para outra). */
+let outfitInUse = M.fallback.outfit;
+
+/**
+ * Onde estão as mãos no quadro `frame` da textura `key`, em pixels do jogo a partir do meio dos pés; null quando a
+ * textura não é uma pose que segura algo (a caminhada comum) ou a roupa não foi medida.
+ */
+export function handOffset(key: string, frame: number): [number, number] | null {
+  const pose = POSES.find((p) => poseTexture(p) === key);
+  const rows = pose ? handAnchors.outfits[outfitInUse]?.[M.poseAnim[pose]] : undefined;
+  const dir = rows ? C.sheet.rows[Math.floor(frame / C.sheet.columns)] : undefined;
+  const p = dir ? rows?.[dir]?.[frame % C.sheet.columns] : undefined;
+  return p ? [p[0] / handAnchors.resolution, p[1] / handAnchors.resolution] : null;
 }
 
 /** Chave e endereço de um arquivo das camadas. */
@@ -123,6 +141,7 @@ function sheetFromCanvas(textures: Phaser.Textures.TextureManager, key: string, 
 /** Monta caminhada, parada e poses da aparência (antes de abrir o mundo). */
 export async function buildPlayerTextures(scene: Phaser.Scene, a: Appearance): Promise<void> {
   const p = layerPieces(M, a);
+  outfitInUse = p.outfitInGame;
   const files = [outfitFile(p.outfitInGame, 'front'), maskFile(p.outfitInGame, 'front')];
   for (const anim of M.anims) files.push(outfitFile(p.outfitInGame, anim), maskFile(p.outfitInGame, anim));
   if (p.hairInGame) {

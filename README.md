@@ -27,6 +27,8 @@ npm run check       # tipos + validação de todo o conteúdo (mapas, itens, his
 npm run vet         # importa a clínica (Fernanda e interior) de assets/_originais_pacotes para public/assets
 npm run mannequin   # monta as peças da personagem (manequim, roupas e cabelos do PixelLab, 64 px) em public/assets/characters/player_mannequin
 npm run npcs        # monta as folhas dos NPCs na arte nova (Gabi, Corretora, Dona Neusa, Jacque, Entregadora, Fernanda só com a caminhada, a atendente do mercado só de costas, o Joca e os 10 clientes com caminhada e sentado) em public/assets/characters/npcs/v64
+npm run hands       # mede onde ficam as mãos da personagem em cada quadro das poses de segurar, por roupa (data/hand_anchors.json); rodar de novo depois de npm run mannequin
+npm run lineup      # todos os personagens lado a lado, alinhados pelos pés, para conferir a proporção da cabeça (assets/_lineup/lineup.png)
 npm run gatos       # monta as folhas dos gatos na arte nova (64 px, layout do Cosy Cats + comer e estranhar) em public/assets/characters/cats: o ruivo (âncora) e as pelagens de assets/_pixellab/gatos/base_<pelagem>
 npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em folhas de 64 px em public/assets (café, cômodos, mercado, clínica, rua, quintal, ícones e mini games)
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
@@ -151,7 +153,7 @@ O formato está em `docs/DATA_CONTRACTS.md`. Rode `npm run check`: ele acusa ref
 ### Ajustar a personagem
 `data/player.json`: velocidade, quadros por segundo e tamanho da caixa dos pés.
 
-**A personagem** é o manequim do PixelLab (arte em 64 px) com roupa e cabelo em camadas (decisões 077, 083 e 087). No Novo jogo, "Sua personagem" escolhe nome, pronome, pele (clara, morena, parda, negra), penteado (longo, chanel, coque, rabo de cavalo, cacheado, afro, curto, afro curto, social, topete ou sem cabelo), cor do cabelo e roupa (moletom, camiseta, camisa de gola, vestido, blazer, casaco de inverno). As roupas ficam nas cores do desenho; pele e cabelo mudam de cor por código. Todas as peças andam e fazem as poses (bandeja, colo, ação); bandeja, gato e vassoura são desenhados pelo jogo. As peças saem de `npm run mannequin`.
+**A personagem** é o manequim do PixelLab (arte em 64 px) com roupa e cabelo em camadas (decisões 077, 083 e 087). No Novo jogo, "Sua personagem" escolhe nome, pronome, pele (clara, morena, parda, negra), penteado (longo, chanel, coque, rabo de cavalo, cacheado, afro, curto, afro curto, social, topete ou sem cabelo), cor do cabelo e roupa (moletom, camiseta, camisa de gola, vestido, blazer, casaco de inverno). As roupas ficam nas cores do desenho; pele e cabelo mudam de cor por código. Todas as peças andam e fazem as poses (bandeja, colo, ação); bandeja, gato e vassoura são desenhados pelo jogo, presos ao ponto das mãos de cada quadro (`data/hand_anchors.json`, de `npm run hands`). As peças saem de `npm run mannequin`. O padrão visual de tudo o que entra no jogo está em `docs/GUIA_DE_ESTILO.md`.
 
 ## Como o código está organizado
 

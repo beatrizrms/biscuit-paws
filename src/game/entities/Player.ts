@@ -4,7 +4,7 @@ import { movementFromInput, type Direction, type InputState } from '../../core/m
 import { ySortDepth } from '../../core/map';
 import type { Pose } from '../../core/appearance';
 import { content } from '../content';
-import { allPoseTextures, PLAYER_IDLE_TEXTURE, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
+import { allPoseTextures, handOffset, PLAYER_IDLE_TEXTURE, PLAYER_TEXTURE, playerFrame, poseTexture } from '../playerLook';
 
 const DIRECTIONS = playerJson.directions as Direction[];
 const C = content.character;
@@ -73,6 +73,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.anims.timeScale = m.moving ? this.runFactor : 1;
     if (m.moving) this.anims.play(`${this.look}-${m.facing}`, true);
     else this.idle();
+  }
+
+  /** Onde estão as mãos dela no quadro de agora (pose de segurar algo), no mundo; null na caminhada comum. */
+  handPoint(): { x: number; y: number } | null {
+    const off = handOffset(this.texture.key, Number(this.frame.name));
+    return off ? { x: this.x + off[0], y: this.y + off[1] } : null;
   }
 
   /** Para onde ela está olhando. */
