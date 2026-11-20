@@ -2428,6 +2428,73 @@ const STRIPS: Strip[] = [
 
 const ONLY = process.argv.slice(2);
 
+// Contorno padronizado (polimento, fase 4; guia de estilo, seção 4): o contorno de toda peça é marrom-escuro fino.
+// RECOLOR: peças com o contorno preto ou cinza: a borda escura vira marrom, guardando a diferença entre os tons.
+// ADD: peças sem contorno: o anel da borda vira marrom-escuro. De fora: plantas e folhagem (com borda em cada folha,
+// escurecem demais), o expositor de doces e o novelo, que ficaram pesados. Só a borda de fora conta (não os vãos de dentro). Só a borda (pixels encostados no transparente) muda; o
+// miolo fica igual. Nomes do catálogo (data/tiles.json, com o prefixo da folha).
+const OUTLINE_RECOLOR = new Set([
+  'table_round', 'chair_back', 'sofa', 'cat_condo', 'scratch_post', 'cushion_mint', 'cushion_sky', 'cushion_lav', 'cushion_butter',
+  'cat_bed', 'water_bowl', 'plant_pot', 'cactus', 'flower_vase', 'chair_left', 'chair_right', 'prop_lousa_cafe', 'yard_banquinho_ceramica',
+  'spring_prop_lousa_cafe', 'summer_prop_lousa_cafe', 'autumn_prop_lousa_cafe', 'pl1_cookie_jar_a_full', 'pl1_cookie_jar_a_empty',
+  'sofa_ceu', 'cat_bed_rosa', 'cat_bed_lilas', 'market_freezer_ilha', 'market_expositor_ponta', 'market_expositor_ponta_esq',
+  'market_expositor_ponta_dir', 'table_wide_oval', 'yard_vaso_baixo_b', 'eletro_robo_base', 'pet_novelo_lilas', 'pet_toquinha',
+  'pet_arranhador_papelao', 'decor_obra_cone', 'decor_cacto_bracos', 'decor_natal_globo_gato', 'decor_natal_globo_cafe',
+  'prop_arvore_jovem', 'prop_arvore_jovem_b', 'prop_arvore_jovem_c',
+]);
+const OUTLINE_ADD = new Set([
+  'market_geladeira_bebidas', 'market_geladeira_pet', 'market_gondola_pet', 'display_case', 'decor_vitrine_vazia',
+  'prop_enfeite_a',
+]);
+const TILESETS = JSON.parse(readFileSync('data/tilesets.json', 'utf8')) as { sheets: { pieces: string; prefix?: string }[] };
+
+/**
+ * A borda de fora da área (x0, y0, w, h) da folha: pixels opacos encostados (8 direções) no transparente de FORA da peça,
+ * o que se alcança a partir da beira da área sem atravessar o desenho. Os vãos de dentro (o vidro da vitrine, entre os
+ * doces) não contam: o contorno fica só em volta do móvel.
+ */
+function outlinePass(out: PNG, x0: number, y0: number, w: number, h: number, mode: 'recolor' | 'add'): number {
+  const op = (x: number, y: number) => x >= x0 && y >= y0 && x < x0 + w && y < y0 + h && out.data[(y * out.width + x) * 4 + 3]! > 100;
+  const lum = (i: number) => 0.299 * out.data[i]! + 0.587 * out.data[i + 1]! + 0.114 * out.data[i + 2]!;
+  // O transparente de fora: enchente a partir da beira da área.
+  const outside = new Uint8Array(w * h);
+  const stack: number[] = [];
+  const seed = (x: number, y: number) => {
+    const k = (y - y0) * w + (x - x0);
+    if (!outside[k] && !op(x, y)) { outside[k] = 1; stack.push(x, y); }
+  };
+  for (let x = x0; x < x0 + w; x++) { seed(x, y0); seed(x, y0 + h - 1); }
+  for (let y = y0; y < y0 + h; y++) { seed(x0, y); seed(x0 + w - 1, y); }
+  while (stack.length) {
+    const y = stack.pop()!, x = stack.pop()!;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx!, ny = y + dy!;
+      if (nx >= x0 && ny >= y0 && nx < x0 + w && ny < y0 + h) seed(nx, ny);
+    }
+  }
+  const isOut = (x: number, y: number) => x < x0 || y < y0 || x >= x0 + w || y >= y0 + h || outside[(y - y0) * w + (x - x0)] === 1;
+  const edge: number[] = [];
+  for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+    if (!op(x, y)) continue;
+    let open = false;
+    for (let dy = -1; dy <= 1 && !open; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && isOut(x + dx, y + dy)) { open = true; break; }
+    if (open) edge.push((y * out.width + x) * 4);
+  }
+  let n = 0;
+  for (const i of edge) {
+    const l = lum(i);
+    let rgb: [number, number, number] | null = null;
+    // Do mais escuro ao mais claro do contorno: marrom quase preto (#1e0f06) até o marrom do guia (#5c3420).
+    if (mode === 'recolor' && l < 80) { const t = l / 80; rgb = [30 + t * 62, 15 + t * 37, 6 + t * 26]; }
+    if (mode === 'add' && l >= 80) rgb = [52, 28, 16];
+    if (!rgb) continue;
+    out.data[i] = Math.round(rgb[0]); out.data[i + 1] = Math.round(rgb[1]); out.data[i + 2] = Math.round(rgb[2]);
+    n++;
+  }
+  return n;
+}
+
+const outlined: string[] = [];
 for (const sheet of SHEETS) {
   if (ONLY.length && !ONLY.some((o) => sheet.pieces.includes(o))) continue;
   const rows = sheet.auto ? autoLayout(sheet) : sheet.rows!;
@@ -2448,12 +2515,18 @@ for (const sheet of SHEETS) {
     }
     pieces[name] = { col: p.col!, row: p.row!, w_tiles: p.w, h_tiles: p.h, ...(p.variants ? { variants: p.variants } : {}), ...(p.rise ? { rise: p.rise } : {}) };
     for (const alias of p.aliases ?? []) pieces[alias] = pieces[name]!;
+    // Contorno padronizado: pelo nome no catálogo (com o prefixo da folha) ou um dos apelidos.
+    const prefix = TILESETS.sheets.find((t) => sheet.pieces.endsWith(t.pieces))?.prefix ?? '';
+    const names = [name, prefix + name, ...(p.aliases ?? []), ...(p.aliases ?? []).map((a) => prefix + a)];
+    const mode = names.some((n) => OUTLINE_RECOLOR.has(n)) ? 'recolor' : names.some((n) => OUTLINE_ADD.has(n)) ? 'add' : null;
+    if (mode) outlined.push(`${prefix + name} (${mode}: ${outlinePass(out, p.col! * TS, p.row! * TS, p.w * (p.variants ?? 1) * TS, (p.h + (p.rise ?? 0)) * TS, mode)} px)`);
   }
   mkdirSync(sheet.image.slice(0, sheet.image.lastIndexOf('/')), { recursive: true });
   writeFileSync(sheet.image, PNG.sync.write(out));
   writeFileSync(sheet.pieces, JSON.stringify({ tileSize: TS, columns: sheet.columns, rows, pieces }, null, 1) + '\n');
   console.log(`${sheet.image}: ${Object.keys(pieces).length} peças`);
 }
+if (outlined.length) console.log(`contorno padronizado: ${outlined.length} peças\n  ${outlined.join('\n  ')}`);
 // Com filtro, só as folhas pedidas (as faixas, ícones e mini games ficam como estão).
 if (ONLY.length) process.exit(0);
 
