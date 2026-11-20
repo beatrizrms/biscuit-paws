@@ -2680,8 +2680,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const layout = this.session.ambientPeople(this.map.id);
       const block = layout?.block ?? null;
       if (block !== this.ambientBlock) {
-        this.clearAmbient();
-        if (layout) this.spawnAmbient(layout, !this.ambientFresh);
+        // Ao chegar no mapa, já estão no lugar; com ela olhando, quem sai anda até a saída e quem chega entra andando.
+        if (this.ambientFresh || !layout) {
+          this.clearAmbient();
+          if (layout) this.spawnAmbient(layout, false);
+        } else this.swapAmbient(layout);
         this.ambientBlock = block;
       }
       this.ambientFresh = false;
@@ -2703,18 +2706,74 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (speaker?.active && line) this.speechBubble(speaker, line, CROWD_TALK_MS);
   }
 
-  /** Um figurante no lugar (aparece devagar quando a turma troca com ela olhando). */
-  private placeAmbient(id: string, at: Cell, facing: Facing, fade: boolean): NpcSprite | undefined {
+  /** Um figurante já no lugar (ao chegar no mapa). */
+  private placeAmbient(id: string, at: Cell, facing: Facing, _fade = false): NpcSprite | undefined {
     if (this.npcs.has(id)) return undefined;
     this.spawnNpc(id, at, facing);
     const npc = this.npcs.get(id);
     if (!npc) return undefined;
     this.ambient.set(id, npc);
-    if (fade) {
-      npc.setAlpha(0);
-      this.tweens.add({ targets: npc, alpha: 1, duration: 600 });
-    }
     return npc;
+  }
+
+  /** A saída do mapa mais perto (a porta), onde quem chega aparece e quem vai embora some. */
+  private ambientExit(from: Cell): Cell {
+    const doors = this.map.doors ?? [];
+    const best = [...doors].sort((a, b) => Math.hypot(a.at[0] - from[0], a.at[1] - from[1]) - Math.hypot(b.at[0] - from[0], b.at[1] - from[1]))[0];
+    return best ? [best.at[0], best.at[1]] : this.map.spawn;
+  }
+
+  /** Anda pelas células livres até a célula (que pode ser o banco: o destino fica livre para a conta). */
+  private async ambientWalk(npc: NpcSprite, to: Cell): Promise<void> {
+    const ts = this.map.tileSize;
+    const grid = this.map.solid.map((row) => [...row]);
+    if (grid[to[1]]) grid[to[1]]![to[0]] = false;
+    const from: Cell = [Math.floor(npc.x / ts), Math.floor((npc.y - 1) / ts)];
+    if (grid[from[1]]) grid[from[1]]![from[0]] = false;
+    const route = findPath(grid, from, to);
+    for (const corner of route ? smoothPath(grid, route) : [to]) {
+      if (!npc.active) return;
+      await npc.walkStraight(corner);
+    }
+  }
+
+  /**
+   * A turma troca com ela olhando: quem não fica anda até a saída e some ali; quem fica vai para o lugar novo; quem
+   * chega entra pela saída e anda até o lugar dele (senta no banco, vira para a barraca ou para o grupinho).
+   */
+  private swapAmbient(layout: NonNullable<ReturnType<GameSession['ambientPeople']>>): void {
+    const ts = this.map.tileSize;
+    const targets = new Map<string, { at: Cell; facing: Facing; sit: boolean; path?: Cell[] }>();
+    for (const sp of layout.spots) targets.set(sp.npc, { at: sp.at, facing: sp.facing, sit: sp.pose === 'sit' });
+    for (const m of layout.groups.flat()) targets.set(m.npc, { at: m.at, facing: m.facing, sit: false });
+    for (const w of layout.walkers) targets.set(w.npc, { at: w.path[0]!, facing: 'down', sit: false, path: w.path });
+    // Quem vai embora: sai da turma e anda até a saída.
+    for (const [id, npc] of [...this.ambient]) {
+      if (targets.has(id) || this.npcs.get(id) !== npc) continue;
+      this.ambient.delete(id);
+      this.npcs.delete(id);
+      const exit = this.ambientExit([Math.floor(npc.x / ts), Math.floor(npc.y / ts)]);
+      void this.ambientWalk(npc, exit).then(() => {
+        if (npc.active) void npc.leave();
+      });
+    }
+    this.ambientGroups = layout.groups.map((g) => g.map((m) => m.npc));
+    for (const [id, t] of targets) {
+      let npc = this.ambient.get(id);
+      if (!npc || this.npcs.get(id) !== npc) {
+        // Quem chega: aparece na saída mais perto do lugar dele.
+        if (this.npcs.has(id)) continue;
+        npc = this.placeAmbient(id, this.ambientExit(t.at), 'up');
+        if (!npc) continue;
+      }
+      const who = npc;
+      void this.ambientWalk(who, t.at).then(() => {
+        if (!who.active || this.ambient.get(id) !== who) return;
+        if (t.path) return void this.ambientWander(id, t.path);
+        who.face(t.facing);
+        if (t.sit && who.sit(t.facing)) who.setDepth(ySortDepth((t.at[1] + 1) * ts) + 1);
+      });
+    }
   }
 
   private spawnAmbient(layout: NonNullable<ReturnType<GameSession['ambientPeople']>>, fade: boolean): void {
