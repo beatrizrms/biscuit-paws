@@ -1154,3 +1154,10 @@ Decisão:
 - **Praça:** saem as 17 mudinhas soltas na grama; o escorregador encosta no balanço (o parquinho) e a pipoca vai para o lado do cachorro-quente. Feito no gerador (`scripts/map-rua-extra.ts`), depois do sorteio, para as outras árvores não mudarem de lugar.
 - **Beco:** o muro ganha as duas portas dos fundos das casas (`beco_porta`, `inWall`), cada uma com o seu cantinho encostado no muro (caixote e vaso; lixeira e sacos); os sacos soltos no meio do chão vão para o monte da caçamba.
 - **Rua:** o monte de neve deixa de ser uma bola e vira um montinho baixo e irregular na beira da calçada (`snowPile` no import, por código).
+
+## 279. Logo e tela inicial, fase 5 do polimento (nov/2026)
+Pedido: tirar a cara de amador da primeira impressão (o título era só a fonte com sombra e o "toque para começar" uma pílula).
+Decisão:
+- **Logo:** o emblema é o frajola de um olho só das fotos da Beatriz, segurando um biscoito com patinha, no estilo dos retratos dos NPCs (PixelLab, Pro Flash 128x128 com o retrato da Fernanda como âncora; uma edição do rosto), retocado à mão por ela no Pixelorama (as manchinhas na faixa branca e a mancha do nariz). Fica num medalhão redondo com borda de madeira, em cima do nome. O nome é escrito por código (Pixelify Sans, creme com contorno marrom e sombra mel), para as letras nunca saírem tortas.
+- **Tela inicial:** o fundo continua a rua animada; o logo entra devagar; o "toque ou clique para começar" perde a pílula e pulsa; os botões viram placas de papel com borda de madeira, com destaque no escolhido; tudo cabe na tela.
+- A abertura já era uma cena (a Tekinha, o celular com o anúncio), e ficou como está.
