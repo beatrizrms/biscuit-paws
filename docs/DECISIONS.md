@@ -1224,3 +1224,7 @@ Decisão: na meta "Mesa e cadeira", encomendar a mesa e a cadeira ficam no mesmo
 ## 294. Tarefa "Compre os ingredientes do cardápio" (nov/2026)
 Pedido: se ela põe uma receita no quadro mas não compra os ingredientes, uma meta para isso.
 Decisão: com receita no quadro e nenhuma saindo por falta de ingrediente na despensa (`ServiceFlow.menuNeedsIngredients`), o balão mostra a tarefa "Compre os ingredientes do cardápio" (sem dizer onde comprar). Com compras de ingrediente ainda na mochila, vale a tarefa da despensa ("Guarde na despensa: ...") no lugar dela.
+
+## 295. A lista de novidades rola; o Horário e o Café em números chegam depois (nov/2026)
+Pedido: na tela "Novidade!" com muitos itens não dava para rolar; o app Horário só depois do primeiro cliente e o Café em números só depois da inauguração. E a fala do primeiro cliente dizia que ele "foi embora sorrindo", mas ele ainda estava consumindo.
+Decisão: o painel da novidade é uma coluna flex e os grupos encolhiam para caber (cortados, sem nada para rolar); agora eles não encolhem (`.u-panel > * { flex: none }`) e a lista rola com o "Oba!" fixo embaixo. No celular, o Horário aparece com a flag `cafe.open` (o primeiro cliente) e o Café em números com `cafe.inaugurated` (antes disso, as conquistas aparecem só na tela de novidade). A fala do primeiro cliente virou "Meu primeiro cliente! Que alegria ver alguém tomando café aqui." (sem gênero, e ele ainda está lá).
