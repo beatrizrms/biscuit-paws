@@ -1591,3 +1591,14 @@ describe('Inauguração com o gatinho doente no meio', () => {
     expect(ids).toContain('story.inauguration');
   });
 });
+
+describe('Market aos poucos: plantas para a inauguração', () => {
+  it('com o café aberto (a meta da inauguração pede 3 plantas), as plantas já estão à venda', () => {
+    const session = new GameSession(storyContent, newGameState(500, 'map.cafe_main', 600));
+    session.debugCompleteStory('story.first_customer');
+    expect(session.state.flags['cafe.open']).toBe(true);
+    expect(session.itemUnlocked('item.plant_pot')).toBe(true);
+    expect(session.itemUnlocked('item.cactus')).toBe(true);
+    expect(session.state.business).not.toBe('inaugurated');
+  });
+});
