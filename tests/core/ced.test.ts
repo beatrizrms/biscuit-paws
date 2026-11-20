@@ -208,13 +208,24 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     expect(state.ced.crowdfund!.raised - before).toBeGreaterThanOrEqual(cfg.antiStall.minBoost);
   });
 
-  it('meta batida: fornecedor (compra no extrato), depois a ligação para a Gabi e a campanha pronta', () => {
+  it('meta batida: o celular apita, a plaquinha sai, o fornecedor (compra no extrato), a ligação para a Gabi e a campanha pronta', () => {
     const { state, session, scenes, events } = setup();
     session.ced.debugStart();
     session.finishCutscene(CED_SCENES.intro);
+    // A plaquinha no balcão e uma na barra: as duas saem quando bate a meta.
+    const sign = cfg.counter.signItem;
+    state.placed.push({ uid: 'p.sign', item: sign, at: [3, 3] } as never);
+    state.hotbar.slots[2] = sign;
     session.ced.debugComplete();
     expect(state.ced.stage).toBe('funded');
     expect(state.ced.campaignCats).toBe(cfg.vaquinha.cats);
+    expect(state.placed.some((p) => p.item === sign)).toBe(false);
+    expect(state.inventory[sign] ?? 0).toBe(0);
+    expect(state.hotbar.slots.includes(sign)).toBe(false);
+    expect(events.some((e) => e.name === 'item.removed')).toBe(true);
+    // Primeiro a meta cumprida no celular; depois a Fernanda liga do fornecedor.
+    expect(scenes().at(-1)).toBe(CED_SCENES.goal);
+    session.finishCutscene(CED_SCENES.goal);
     expect(scenes().at(-1)).toBe(CED_SCENES.supplier);
     session.finishCutscene(CED_SCENES.supplier);
     const c = state.ced.crowdfund!;
@@ -227,6 +238,14 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     expect(state.ced.history).toHaveLength(1);
     expect(state.flags['ced.campaign_ready']).toBe(true);
     expect(events.some((e) => e.name === 'ced.ready')).toBe(true);
+    // A campanha fica marcada alguns dias depois: no balão (quantos dias faltam) e no Calendário.
+    const campaign = state.day + cfg.campaign.daysAfterReady;
+    expect(state.ced.campaignDay).toBe(campaign);
+    expect(session.chores().find((c) => c.kind === 'ced_campaign')?.days).toBe(cfg.campaign.daysAfterReady);
+    expect(session.calendar(state.day, campaign).some((e) => e.id === 'cal.ced_campaign' && e.day === campaign)).toBe(true);
+    // Save de antes da data (pronta, sem dia): marca a partir de hoje.
+    state.ced.campaignDay = null;
+    expect(session.ced.daysToCampaign()).toBe(cfg.campaign.daysAfterReady);
     // Sem vaquinha ativa: o app continua, com "nenhuma vaquinha ativa".
     expect(session.ced.appVisible()).toBe(true);
     expect(session.ced.active()).toBeNull();
@@ -239,11 +258,11 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     const spy = session.exclusiveActive;
     session.exclusiveActive = () => true;
     session.ced.debugComplete();
-    expect(state.ced.pendingScene).toBe(CED_SCENES.supplier);
+    expect(state.ced.pendingScene).toBe(CED_SCENES.goal);
     session.exclusiveActive = spy;
     session.tickClock(1);
     expect(state.ced.pendingScene).toBeNull();
-    expect(scenes().at(-1)).toBe(CED_SCENES.supplier);
+    expect(scenes().at(-1)).toBe(CED_SCENES.goal);
   });
 
   it('save v37: a vaquinha do meio continua de onde parou; v36 chega com a CED desligada', () => {

@@ -26,9 +26,11 @@ export type CutsceneStep =
       mode?: 'lock' | 'app' | 'call';
       /** Quem liga (modo "call"): NPC com retrato. */
       caller?: string;
-      /** Hora e data da tela de bloqueio. */
+      /** Hora e data da tela de bloqueio ("{now}": a hora do jogo). */
       time?: string;
       date?: string;
+      /** Som ao aparecer (data/audio.json: jingle ou efeito), ex.: o apito da notificação. */
+      sound?: string;
     }
   | { type: 'card'; text: string }
   /**

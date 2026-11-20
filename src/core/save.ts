@@ -855,6 +855,8 @@ function normalizeCed(c: unknown): CedState {
   out.scheduled = (Array.isArray(x.scheduled) ? x.scheduled : []).filter((d) => d && typeof d.donor === 'string' && Number.isFinite(d.at) && Number.isFinite(d.amount));
   out.campaignCats = Number.isInteger(x.campaignCats) ? x.campaignCats! : 0;
   out.pendingScene = typeof x.pendingScene === 'string' ? x.pendingScene : null;
+  // Sem o dia da campanha (save de antes): a sessão marca quando precisar (ced.campaignDay).
+  out.campaignDay = Number.isInteger(x.campaignDay) ? x.campaignDay! : null;
   // Arrecadando sem vaquinha (save quebrado): volta a desligada.
   if (out.stage === 'collecting' && !out.crowdfund) out.stage = 'off';
   return out;

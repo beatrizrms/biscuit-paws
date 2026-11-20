@@ -2,6 +2,7 @@
 // Só apresenta: quando a cena acaba, avisa a sessão (finishCutscene), que segue a história.
 import { ARRIVAL_CAT, type CutsceneDef, type CutsceneStep } from '../../core/cutscene';
 import type { GameSession } from '../../core/session';
+import { formatClock } from '../../core/time';
 import { content, phone, uiText } from '../content';
 import { fillNames } from './text';
 import { byInput } from '../touch';
@@ -117,6 +118,7 @@ export class CutsceneView {
         break;
       case 'phone':
         this.stage.innerHTML = this.phoneHtml(step);
+        if (step.sound) this.onSound?.(step.sound);
         break;
       case 'hide':
         this.stage.innerHTML = '';
@@ -156,7 +158,7 @@ export class CutsceneView {
       return `<div class="cs-phone lock" style="width:${w}px;height:${h}px">
         <div class="screen" style="left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px">
           <img class="status" src="${phone.status}" alt="" />
-          <div class="clock">${esc(step.time ?? '')}</div>
+          <div class="clock">${esc(step.time === '{now}' ? formatClock(this.session.state.time) : (step.time ?? ''))}</div>
           <div class="date">${esc(step.date ?? '')}</div>
           <div class="notification">
             <span class="badge-wrap">${icon ? `<img src="${icon}" alt="" />` : ''}<img class="badge" src="${phone.notification}" alt="" /></span>

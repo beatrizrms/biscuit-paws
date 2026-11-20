@@ -5,10 +5,16 @@
     "donationRemote": "CatPay: +{amount} de {donor}",
     "donationCounter": "{donor} doou {amount} pelo CatPay",
     "stallBoost": "Vi a vaquinha dos gatinhos! Mandei uma ajudinha, viu?",
-    "goal": "A vaquinha bateu a meta! {total} de {target}",
     "topUp": "Você completou a vaquinha com {amount} do caixa."
   },
   "cutscenes": {
+    "cs.ced_goal": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "phone", "mode": "lock", "app": "CatPay", "appIcon": "catpay", "title": "Meta cumprida! A vaquinha dos gatinhos chegou lá.", "lines": [], "time": "{now}", "sound": "new_order" },
+        { "type": "text", "speaker": "", "text": "O celular apita: meta cumprida no CatPay!" }
+      ]
+    },
     "cs.ced_intro": {
       "background": "#2a2333",
       "steps": [

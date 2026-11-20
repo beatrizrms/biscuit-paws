@@ -18,6 +18,8 @@ export interface CedConfig {
   remote: { donors: string[]; base: number; ratingMin: number; heartWeight: number; reach: number; maxChance: number; hours: [string, string] };
   antiStall: { afterDays: number; windowDays: number; minPerDay: number; npc: string; boostShare: number; minBoost: number };
   topUp: { maxShare: number };
+  /** A campanha: marcada daysAfterReady dias depois da ligação para a Gabi (Calendário e balão). */
+  campaign: { daysAfterReady: number; name: string };
 }
 
 /** Onde a CED está: desligada, arrecadando, meta batida (falta a ligação do fornecedor), pronta para a campanha. */
@@ -37,13 +39,15 @@ export interface CedState {
   campaignCats: number;
   /** Cena da CED esperando a vez (a cena só começa com ela livre). */
   pendingScene: string | null;
+  /** O dia da campanha (marcado na ligação para a Gabi), ou null. */
+  campaignDay: number | null;
 }
 
 export function newCed(): CedState {
-  return { stage: 'off', crowdfund: null, history: [], donatedOn: {}, scheduled: [], campaignCats: 0, pendingScene: null };
+  return { stage: 'off', crowdfund: null, history: [], donatedOn: {}, scheduled: [], campaignCats: 0, pendingScene: null, campaignDay: null };
 }
 
-export const CED_SCENES = { intro: 'cs.ced_intro', supplier: 'cs.ced_supplier', callGabi: 'cs.ced_call_gabi' } as const;
+export const CED_SCENES = { intro: 'cs.ced_intro', goal: 'cs.ced_goal', supplier: 'cs.ced_supplier', callGabi: 'cs.ced_call_gabi' } as const;
 
 export interface CedHost {
   state: GameState;
@@ -60,6 +64,8 @@ export interface CedHost {
   addMoney(delta: number, reason: string): void;
   /** Nome de quem doou (NPC). */
   npcName(npc: string): string;
+  /** Tira o item de todo lugar (posicionado no café, mochila e barra): a plaquinha quando a vaquinha acaba. */
+  retireItem(itemId: string): void;
 }
 
 export class CedFlow {
@@ -81,6 +87,23 @@ export class CedFlow {
   /** Vaquinha aberta e a plaquinha do CatPay ainda não posicionada no café (a meta do balão pede para pôr). */
   signPending(): boolean {
     return !!this.active() && !this.h.state.placed.some((p) => p.item === this.h.ced.counter.signItem);
+  }
+
+  /**
+   * O dia da campanha. Save de antes da data marcada (já ligou para a Gabi, sem dia): marca agora, daysAfterReady
+   * dias depois de hoje.
+   */
+  campaignDay(): number | null {
+    if (this.st.stage !== 'ready') return null;
+    if (this.st.campaignDay === null) this.st.campaignDay = this.h.state.day + this.h.ced.campaign.daysAfterReady;
+    return this.st.campaignDay;
+  }
+
+  /** Quantos dias faltam para a campanha (0 = hoje), ou null (sem campanha marcada, ou já passou). */
+  daysToCampaign(): number | null {
+    const day = this.campaignDay();
+    if (day === null || day < this.h.state.day) return null;
+    return day - this.h.state.day;
   }
 
   /** O app CatPay já apareceu (a Fernanda chamou para a CED)? */
@@ -208,7 +231,10 @@ export class CedFlow {
     // Os gatos que a campanha vai conseguir pegar: os kits que o saldo compra (no mínimo a meta da vaquinha).
     this.st.campaignCats = Math.max(1, kitsAffordable(c));
     this.h.bus.emit('crowdfund.completed', { crowdfundId: c.id, raised: c.raised, target: c.target });
-    this.queueScene(CED_SCENES.supplier);
+    // A plaquinha do CatPay já cumpriu o papel: sai do balcão (ou da mesa) e da mochila.
+    this.h.retireItem(this.h.ced.counter.signItem);
+    // Primeiro o celular apita com a meta cumprida; depois a Fernanda liga do fornecedor.
+    this.queueScene(CED_SCENES.goal);
   }
 
   /** Uma cena da CED terminou: o fornecedor pago (compra dos kits, no extrato) e, depois, a ligação para a Gabi. */
@@ -216,6 +242,10 @@ export class CedFlow {
     // Acabou a ligação da Fernanda: a plaquinha do CatPay aparece grande (ela vai para a mochila, para pôr no balcão).
     if (cutsceneId === CED_SCENES.intro) {
       this.h.bus.emit('item.found', { itemId: this.h.ced.counter.signItem });
+      return;
+    }
+    if (cutsceneId === CED_SCENES.goal && this.st.stage === 'funded') {
+      this.queueScene(CED_SCENES.supplier);
       return;
     }
     if (cutsceneId === CED_SCENES.supplier && this.st.stage === 'funded') {
@@ -226,6 +256,7 @@ export class CedFlow {
       this.queueScene(CED_SCENES.callGabi);
     } else if (cutsceneId === CED_SCENES.callGabi && this.st.stage === 'funded') {
       this.st.stage = 'ready';
+      this.st.campaignDay = this.h.state.day + this.h.ced.campaign.daysAfterReady;
       this.st.history.push(this.st.crowdfund!);
       this.st.crowdfund = null;
       this.h.state.flags['ced.campaign_ready'] = true;
@@ -280,7 +311,7 @@ export interface CedText {
 /** As falas e cenas que o jogo chama precisam existir. */
 export function validateCedText(t: CedText): string[] {
   const errors: string[] = [];
-  for (const k of ['donationRemote', 'donationCounter', 'stallBoost', 'goal', 'topUp']) if (typeof t.lines?.[k] !== 'string') errors.push(`ced_text: falta lines.${k}`);
+  for (const k of ['donationRemote', 'donationCounter', 'stallBoost', 'topUp']) if (typeof t.lines?.[k] !== 'string') errors.push(`ced_text: falta lines.${k}`);
   for (const id of Object.values(CED_SCENES)) if (!t.cutscenes?.[id]) errors.push(`ced_text: falta a cena "${id}"`);
   return errors;
 }
@@ -300,5 +331,6 @@ export function validateCed(cfg: CedConfig, refs: { items: ReadonlySet<string>; 
   if (!refs.npcs.has(cfg.antiStall.npc)) err(`antiStall.npc inexistente "${cfg.antiStall.npc}"`);
   if (!p(cfg.antiStall.boostShare)) err('antiStall.boostShare entre 0 e 1');
   if (!p(cfg.topUp.maxShare)) err('topUp.maxShare entre 0 e 1');
+  if (!(Number.isInteger(cfg.campaign?.daysAfterReady) && cfg.campaign.daysAfterReady >= 1)) err('campaign.daysAfterReady precisa ser 1 ou mais');
   return errors;
 }
