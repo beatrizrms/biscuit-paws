@@ -428,7 +428,11 @@ export interface WorldData {
   /** Ponto de ônibus (interação bus): os destinos, na ordem; goHome encerra o dia a qualquer hora. */
   /** Carros passando na rua (src/core/traffic.ts). */
   traffic?: TrafficDef;
-  bus?: { destinations: BusDestination[]; vehicle?: { left: string; right: string; scale?: number } };
+  /**
+   * Ponto de ônibus: destinos, a arte do ônibus e arriveAt (a célula do ponto, no mapa da manhã: quem foi para casa de
+   * ônibus volta de ônibus, descendo ali).
+   */
+  bus?: { destinations: BusDestination[]; vehicle?: { left: string; right: string; scale?: number }; arriveAt?: Cell };
   /** Portas do café onde ela pode encerrar o dia (a partir de dayNight.goHomeFrom). */
   goHomeDoors: string[];
   /** Quadros do HUD que só aparecem quando a condição vale (no começo, a reputação e o clima ainda não importam). */

@@ -716,7 +716,8 @@
   },
   "bus": {
     "question": "Ponto de ônibus. Para onde?",
-    "stay": "Ficar"
+    "stay": "Ficar",
+    "liveHere": "Agora você mora no café. Não precisa mais do ônibus para ir para casa."
   },
   "delivery": {
     "boxAsk": "Caixa com {name}.",

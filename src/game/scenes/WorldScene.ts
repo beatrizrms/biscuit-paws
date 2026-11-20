@@ -671,8 +671,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         this.waitUntilAbs = null;
         await this.ui.showDayTransition(day, this.lastDay ?? undefined);
         this.loadMap(this.session.location(), this.session.morningSpawn(), 'down');
+        // Foi para casa de ônibus: volta de ônibus (ela some até ele parar no ponto).
+        if (this.session.arrivingByBus()) this.player.setAlpha(0);
         cam.fadeIn(600, 27, 33, 64);
         this.changingMap = false;
+        if (this.session.arrivingByBus()) void this.arriveByBus();
         if (this.session.state.flags['prologue.done']) this.ui.toast(uiText.news.arrived);
       });
     });
@@ -916,7 +919,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private askBus(): void {
     if (this.ridingBus) return;
     const t = uiText.bus;
-    const dests = this.session.content.world.bus?.destinations ?? [];
+    const dests = this.session.busDestinations();
+    // Ela mora no café (já dormiu na cama de lá): o ônibus não leva mais para casa.
+    if (dests.length === 0) return this.ui.toast(t.liveHere);
     void this.ui.choose(t.question, [...dests.map((d) => d.label), t.stay]).then((i) => {
       const dest = dests[i];
       if (!dest) return;
@@ -948,6 +953,30 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     await this.tweenTo(bus, -160, 2200);
     bus.destroy();
     this.ridingBus = false;
+  }
+
+  /**
+   * De manhã, depois de ir para casa de ônibus: o ônibus chega pela rua, para no ponto, ela aparece na calçada e ele vai
+   * embora (o contrário da ida, rideBus).
+   */
+  private async arriveByBus(): Promise<void> {
+    this.ridingBus = true;
+    this.player.setAlpha(0);
+    const ts = this.map.tileSize;
+    const curbY = Math.min(this.map.rows * ts - 4, this.player.y + 10);
+    const art = this.textures.exists('bus_left') ? 'bus_left' : 'van_left';
+    const scale = art === 'bus_left' ? (this.session.content.world.bus?.vehicle?.scale ?? 0.5) : (this.session.content.delivery.van.scale ?? 1);
+    const bus = this.add.image(this.map.cols * ts + 160, curbY, art).setOrigin(0.5, 1).setScale(scale).setDepth(Math.max(ySortDepth(curbY), this.player.depth + 1));
+    this.vanObjects.push(bus);
+    await this.tweenTo(bus, this.player.x, 2200);
+    await this.wait(400);
+    this.tweens.add({ targets: this.player, alpha: 1, duration: 300 });
+    await this.wait(600);
+    await this.tweenTo(bus, -160, 2200);
+    bus.destroy();
+    this.player.setAlpha(1);
+    this.ridingBus = false;
+    this.session.busArrived();
   }
 
   /** Na cama do quartinho: dormir no café (depois do horário de ir para casa). */

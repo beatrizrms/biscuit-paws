@@ -46,4 +46,28 @@ describe('ponto de ônibus', () => {
     expect(s.takeBus('bus.home')).toEqual({ ok: false, reason: 'customers_inside' });
     expect(ended).toBe(false);
   });
+
+  it('quem foi para casa de ônibus volta de ônibus: amanhece no ponto, uma vez só', () => {
+    const state = newGameState(0, 'map.street', 11 * 60);
+    state.day = 20;
+    const s = new GameSession(content, state);
+    expect(s.takeBus('bus.home')).toEqual({ ok: true });
+    expect(s.arrivingByBus()).toBe(true);
+    expect(s.morningSpawn()).toEqual(content.world.bus!.arriveAt);
+    s.busArrived();
+    expect(s.arrivingByBus()).toBe(false);
+    expect(s.morningSpawn()).toEqual(content.world.morning.spawn);
+    // Pela porta do café (sem ônibus), amanhece no lugar de sempre.
+    s.state.time = 18 * 60;
+    s.goHome();
+    expect(s.arrivingByBus()).toBe(false);
+  });
+
+  it('depois da primeira noite na cama do café, o ônibus não leva mais para casa', () => {
+    const state = newGameState(0, 'map.street', 11 * 60);
+    state.flags['cafe.slept'] = true;
+    const s = new GameSession(content, state);
+    expect(s.busDestinations().some((d) => d.goHome)).toBe(false);
+    expect(s.takeBus('bus.home')).toEqual({ ok: false, reason: 'not_found' });
+  });
 });
