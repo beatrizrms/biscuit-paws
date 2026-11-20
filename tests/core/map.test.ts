@@ -64,6 +64,16 @@ describe('resolveMap', () => {
     expect(new Set(tree.map((s) => s.depth))).toEqual(new Set([(1 + 3) * 32])); // base da árvore inteira
   });
 
+  it('peça espelhada (flipX): cada célula desenha a do lado oposto, virada', () => {
+    const map = resolveMap(tinyMap([{ id: 'obj.tree', tile: 'cat_tree', at: [1, 1], flipX: true }]), catalog);
+    const def = getTile(catalog, 'cat_tree');
+    const left = map.sprites.find((s) => s.tile === 'cat_tree' && s.col === 1 && s.row === 1)!;
+    const right = map.sprites.find((s) => s.tile === 'cat_tree' && s.col === 2 && s.row === 1)!;
+    expect(left.frame).toBe(frameOf(catalog, def, 1, 0));
+    expect(right.frame).toBe(frameOf(catalog, def, 0, 0));
+    expect(left.flipX && right.flipX).toBe(true);
+  });
+
   it('peça sólida bloqueia só a linha de baixo (decisão 010)', () => {
     const { solid } = resolveMap(tinyMap([{ id: 'obj.tree', tile: 'cat_tree', at: [1, 1] }]), catalog);
     expect(solid[1]).toEqual([false, false, false, false]);
@@ -226,7 +236,7 @@ describe('mercado: prateleiras ao alcance', () => {
   });
 
   it('em volta de toda banca de frutas, o E alcança o hortifruti', () => {
-    expect(bancas).toHaveLength(12);
+    expect(bancas).toHaveLength(10);
     for (const b of bancas) {
       for (const at of [[b.at[0], b.at[1] - 1], [b.at[0], b.at[1] + 1], [b.at[0] - 1, b.at[1]]] as Cell[]) {
         if (solid[at[1]]?.[at[0]] !== false) continue;

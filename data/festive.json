@@ -480,7 +480,7 @@
       "texts": {
         "goal": "Piquenique das flores: dia 15, às 17h, na praça (o café fecha às 16h).",
         "goalToday": "Piquenique das flores: hoje, às 17h, na praça.",
-        "prep": "Enfeitar o café com plantas ({n}/{count}).",
+        "prep": "Enfeite o café com plantas",
         "done": "Que piquenique! A turma adorou, e a Gabi deixou uma garrafa de lavanda de presente.",
         "missed": "O piquenique das flores passou... a turma sentiu sua falta."
       }

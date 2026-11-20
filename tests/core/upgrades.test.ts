@@ -33,6 +33,9 @@ describe('assistência técnica: upgrade de móvel no lugar', () => {
     expect(upgradeCost(upgrades, items, 'item.counter_mid', 'item.counter_left')).toBe(20 - 15 + upgrades.fee);
     expect(upgradeCost(upgrades, items, 'item.counter_left', 'item.counter_mid')).toBe(upgrades.fee);
     expect(upgradeCost(upgrades, items, 'item.counter_left', 'item.counter_right')).toBe(upgrades.fee);
+    // Trocar pelo automático sai mais barato que comprar o automático novo.
+    expect(upgradeCost(upgrades, items, 'item.food_bowl', 'item.auto_feeder')).toBeLessThan(items['item.auto_feeder']!.price! - 20);
+    expect(upgradeCost(upgrades, items, 'item.litter_box', 'item.auto_litter_box')).toBeLessThan(items['item.auto_litter_box']!.price! - 20);
   });
 
   it('a peça do meio vira a ponta, no mesmo lugar e com o mesmo uid; a cafeteira em cima fica', () => {

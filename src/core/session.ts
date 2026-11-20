@@ -3,7 +3,7 @@
 import { autotilePiece, mainVariant, sameFamily } from './variants';
 import { itemSize, packBoxes } from './parcels';
 import { barkOfDay, chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
-import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchStart } from './schedule';
+import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchLength, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
 import type { Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
@@ -79,7 +79,7 @@ import {
 import { footprintOf, hasFreeHost, hostAt, itemOnTop, placedItemAt, placedItemsAt, placementProblem, placeOnProblem, ridersOf, withPlaced, type PlaceProblem } from './placement';
 import { upgradeCost, upgradeGroupOf } from './upgrades';
 import { closeDay, reviewAverage, statsView, type StatsView } from './stats';
-import { milestoneMet, trackViews, type MilestoneValues, type TrackView } from './milestones';
+import { milestoneMet, newlyMet, trackViews, type MilestoneValues, type SeasonNow, type TrackView } from './milestones';
 import { nowAbs, placedCount, type Delivery, type DeliveryStage, type GameState, type PlacedItem } from './state';
 import { activeBeats, currentGoals, markGoalStepsDone, evaluate, isBeatSatisfied, isCleaned, progressOf, type GoalView, type StoryContext } from './story';
 import {
@@ -433,6 +433,8 @@ export class GameSession {
       else state.inventory[OLD_BED.item] = 1;
     }
     this.repairPlaced();
+    this.service.mergeDisplays();
+    this.markKnownRecipeMilestones();
   }
 
   /** O item "para viagem" que está na mão agora (saiu da barra), para saber quando ele sai da mão por outro caminho. */
@@ -502,6 +504,20 @@ export class GameSession {
       if (box) { for (const id of Object.keys(box)) moveBetween(box, this.state.inventory, id); delete this.state.petBoxes[uid]; }
       delete this.state.displays[uid]; delete this.state.washers[uid]; delete this.state.wear[uid];
       this.repairedItems.push(removed!.item);
+    }
+  }
+
+  /**
+   * Save de antes das metas da estação (decisão 267): conquista de receita cujas receitas ela já sabe fica conquistada,
+   * no dia em que aprendeu (sem tela de novo e sem gastar a meta desta estação).
+   */
+  private markKnownRecipeMilestones(): void {
+    const s = this.state.milestones;
+    for (const m of this.content.milestones.milestones) {
+      if (s.reached[m.id] !== undefined || m.reward.kind !== 'recipe') continue;
+      if (!m.reward.ids.every((id) => this.state.flags[`recipe.known.${id}`])) continue;
+      const days = m.reward.ids.map((id) => this.state.recipesOn[id]).filter((d): d is number => d !== undefined);
+      s.reached[m.id] = days.length ? Math.min(...days) : 0;
     }
   }
 
@@ -675,11 +691,25 @@ export class GameSession {
         }
         continue;
       }
+      // As sem condição (as do começo): já sabidas.
       const flag = `recipe.known.${r.id}`;
       if (this.state.flags[flag]) continue;
       this.state.flags[flag] = true;
       this.state.recipesOn[r.id] = this.state.day;
-      if (!silent && r.unlock) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+    }
+    // A fila: no máximo recipesPerDay receitas novas por dia (as outras ficam para os próximos dias). Save de antes do
+    // registro do dia (nenhuma receita de conquista nele): ao abrir, tudo o que já vale entra sem aviso, como antes.
+    const legacy = silent && !Object.keys(this.state.recipesOn).some((id) => this.content.recipes[id]?.unlock);
+    if (!silent || legacy) {
+      const perDay = this.content.milestones.recipesPerDay ?? Infinity;
+      let today = Object.entries(this.state.recipesOn).filter(([id, d]) => d === this.state.day && this.content.recipes[id]?.unlock).length;
+      for (const r of this.service.recipesToLearn()) {
+        if (!legacy && today >= perDay) break;
+        this.state.flags[`recipe.known.${r.id}`] = true;
+        this.state.recipesOn[r.id] = this.state.day;
+        today++;
+        if (!silent) this.bus.emit('recipe.unlocked', { recipeId: r.id });
+      }
     }
     this.announceItems(silent);
   }
@@ -918,10 +948,26 @@ export class GameSession {
    */
   private feedLateCats(): void {
     const day = this.state.day;
-    const bowl = this.state.placed.find((p) => p.refilledOn === day && !!this.content.items[p.item]?.tags.includes('food_bowl') && !this.content.items[p.item]?.autoDays);
-    if (!bowl) return;
     const cats = this.homeCats();
-    const fedWith = cats.map((id) => this.state.cats[id]!).find((c) => c.fedOn === day && c.fedWith)?.fedWith;
+    if (!cats.some((id) => this.state.cats[id]!.fedOn !== day)) return;
+    let bowl = this.state.placed.find((p) => p.refilledOn === day && !!this.content.items[p.item]?.tags.includes('food_bowl') && !this.content.items[p.item]?.autoDays);
+    let fedWith = cats.map((id) => this.state.cats[id]!).find((c) => c.fedOn === day && c.fedWith)?.fedWith;
+    // Pote automático com ração: serve na hora quem ainda não comeu hoje (abasteceu de manhã, o gato chegou depois).
+    // Gasta um dia de estoque por dia (refilledOn: o dia em que ele já serviu); no fim do dia, ninguém come de novo.
+    if (!bowl) {
+      const feeder = this.state.placed.find((p) => !!this.content.items[p.item]?.tags.includes('food_bowl') && !!this.content.items[p.item]?.autoDays && ((p.stock ?? 0) > 0 || p.refilledOn === day));
+      if (!feeder) return;
+      if (feeder.refilledOn !== day) {
+        feeder.refilledOn = day;
+        fedWith = feeder.stockItem ?? fedWith;
+        feeder.stock = (feeder.stock ?? 0) - 1;
+        if (feeder.stock === 0) delete feeder.stockItem;
+        if (feeder.stock <= PET_LOW_DAYS) this.bus.emit('pet.low', { itemId: feeder.item, days: feeder.stock });
+        // Acabou a ração guardada: o pote volta para a arte vazia.
+        if (feeder.stock === 0) this.bus.emit('bowl.filled', { uid: feeder.uid });
+      }
+      bowl = feeder;
+    }
     for (const catId of cats) {
       const cat = this.state.cats[catId]!;
       if (cat.fedOn === day) continue;
@@ -1654,9 +1700,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number] }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1673,25 +1719,40 @@ export class GameSession {
       }
     }
     const isolated = this.shelteredCats().filter((id) => this.clinic.isolated(id) && this.service.carriedCat() !== id);
-    // Gatos em recuperação (cercadinho ou caixinha): um lembrete por dia enquanto houver algum, comida e remédio
-    // juntos. Cada gato conta quando comeu hoje e, com remédio a dar, já tomou o de hoje.
+    // Gatos isolados (cercadinho ou caixinha): um lembrete por dia enquanto houver algum. Em recuperação (operado, em
+    // tratamento), comida e remédio juntos; só esperando a consulta de entrada, só a comida (pen_wait). Cada gato conta
+    // quando comeu hoje e, com remédio a dar, já tomou o de hoje.
     if (isolated.length > 0) {
       const cared = isolated.filter((id) => this.state.cats[id]!.fedOn === this.state.day && !needsMedicine(this.state.cats[id]!, this.state.day)).length;
-      out.push({ kind: 'clinic', clinic: 'pen_food', done: cared === isolated.length, progress: [cared, isolated.length] });
+      const recovering = isolated.some((id) => this.state.cats[id]!.clinic?.stage !== 'intake' || !!activeTreatment(this.state.cats[id]!));
+      out.push({ kind: 'clinic', clinic: recovering ? 'pen_food' : 'pen_wait', done: cared === isolated.length, progress: [cared, isolated.length] });
     }
+    // Vaquinha da CED: a plaquinha do CatPay ainda na mochila (ou guardada): pôr no café, que os clientes doam ao pagar.
+    if (this.ced.signPending()) out.push({ kind: 'ced_sign', done: false });
+    // A meta da vaquinha: quanto já entrou (moedas) de quanto precisa, enquanto ela estiver aberta.
+    const fund = this.ced.active();
+    if (fund) out.push({ kind: 'ced_goal', done: false, progress: [Math.min(fund.raised, fund.target), fund.target] });
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
-    // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só.
+    // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só. Com o pote
+    // automático abastecido, já está feita (ele serve sozinho): a linha só mostra os dias guardados (`auto`).
     const home = this.homeCats();
     const fed = home.filter((id) => this.state.cats[id]!.fedOn === this.state.day).length;
-    if (home.length > 0) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
+    const autoStock = (kind: 'food_bowl' | 'litter_box') =>
+      Math.max(0, ...this.state.placed.filter((p) => { const it = this.content.items[p.item]; return stationKind(it) === kind && !!it?.autoDays; }).map((p) => p.stock ?? 0));
+    const autoFood = autoStock('food_bowl');
+    if (home.length > 0 && autoFood > 0) out.push({ kind: 'feed', done: true, auto: autoFood });
+    else if (home.length > 0) out.push({ kind: 'feed', done: fed === home.length, progress: [fed, home.length] });
     // Cocô no chão (areia suja há dias): varrer e trocar a areia.
     const lpTag = this.content.health.care.litterPoop?.tag;
     if (lpTag && this.visibleDirt().some((d) => d.tags.includes(lpTag))) out.push({ kind: 'poop', done: false });
     // Areia: trocar a de cada caixa comum todo dia (a automática se vira sozinha).
     const boxes = this.state.placed.filter((p) => { const it = this.content.items[p.item]; return stationKind(it) === 'litter_box' && !it?.autoDays; });
+    // Com a caixa automática abastecida, já está feita: a linha só mostra os dias guardados.
+    const autoLitter = autoStock('litter_box');
+    if (home.length > 0 && autoLitter > 0) out.push({ kind: 'litter', done: true, auto: autoLitter });
     // Com cocô no chão, a linha do cocô já pede para trocar a areia: esta não repete.
-    if (home.length > 0 && boxes.length > 0 && !out.some((c) => c.kind === 'poop')) {
+    else if (home.length > 0 && boxes.length > 0 && !out.some((c) => c.kind === 'poop')) {
       const changed = boxes.filter((p) => p.refilledOn === this.state.day).length;
       out.push({ kind: 'litter', done: changed === boxes.length, progress: [changed, boxes.length] });
     }
@@ -1699,7 +1760,9 @@ export class GameSession {
     // do gato que quer brincar diz "compre mais brinquedos".
     const toysShort = toysMissing(this.content.health.care, this.playRoom()) > 0;
     // O balão em cima do gato (sujo, triste, remédio): a mesma coisa vira um lembrete aqui, dizendo o que fazer.
-    const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && (this.state.inventory[i.id] ?? 0) > 0);
+    // Tem a ferramenta: na mochila ou guardada na caixa pet (aí a linha só pede o cuidado, não a compra).
+    const boxed = (id: string) => Object.values(this.state.petBoxes ?? {}).some((b) => (b[id] ?? 0) > 0);
+    const owns = (use: string) => Object.values(this.content.items).some((i) => i.use === use && ((this.state.inventory[i.id] ?? 0) > 0 || boxed(i.id)));
     const toolFor: Partial<Record<CareNeed, string>> = { dirty: 'brush', sad: 'wand', play: 'wand', medicine: 'medicine' };
     // O remédio dos gatos em recuperação já está no lembrete deles; à parte, só quando falta o remédio (passar na clínica).
     if (!owns('medicine')) {
@@ -4262,6 +4325,7 @@ export class GameSession {
     return {
       served: this.state.service.served,
       servedOpen: this.servedSinceOpening(),
+      servedSeason: this.servedThisSeason(),
       catsEver: this.catsEverSheltered(),
       reputation: this.reputation(),
       'streak.no_gave_up': st.no_gave_up.best,
@@ -4270,20 +4334,48 @@ export class GameSession {
     };
   }
 
+  /** A estação de agora e o dia em que começou (as metas da estação contam dali). */
+  seasonNow(): SeasonNow {
+    const per = this.content.seasons.daysPerSeason;
+    const day = this.state.day;
+    return { season: this.season(), start: day - ((Math.max(1, day) - 1) % per) };
+  }
+
+  /**
+   * Clientes atendidos nesta estação (as metas da estação, decisão 267): os dias fechados da estação (o registro guarda
+   * uma estação inteira) mais o de hoje; só depois da inauguração.
+   */
+  servedThisSeason(): number {
+    const { start } = this.seasonNow();
+    const st = this.state.stats;
+    const season = st.days.filter((d) => d.day >= start).reduce((n, d) => n + d.served, 0) + st.today.served;
+    return Math.min(season, this.servedSinceOpening());
+  }
+
   /**
    * A meta longa do balão quando a história não tem meta: o próximo selo mais perto (a maior fração já feita, entre
    * os que não esperam uma condição a mais). Null sem nenhum selo pela frente.
    */
-  nextAchievement(): { trackName: string; name: string; value: number; at: number; reward: string } | null {
-    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.def.at);
-    const best = open.sort((a, b) => b.next!.value / b.next!.def.at - a.next!.value / a.next!.def.at || a.next!.def.at - a.next!.value - (b.next!.def.at - b.next!.value))[0];
+  nextAchievement(skipRecipes = false): { trackName: string; goal: string; name: string; value: number; at: number; reward: string } | null {
+    const open = this.milestoneTracks().filter((t) => t.next && !t.next.blocked && t.next.value < t.next.at && !(skipRecipes && t.next.def.reward.kind === 'recipe'));
+    const best = open.sort((a, b) => b.next!.value / b.next!.at - a.next!.value / a.next!.at || a.next!.at - a.next!.value - (b.next!.at - b.next!.value))[0];
     if (!best?.next) return null;
-    return { trackName: best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.def.at, reward: best.next.def.reward.kind };
+    return { trackName: best.track.name, goal: best.track.goal ?? best.track.name, name: best.next.def.name, value: best.next.value, at: best.next.at, reward: best.next.def.reward.kind };
+  }
+
+  /**
+   * As metas de clientes que dão receita, para o balão: a da estação e a do contador geral (a próxima de cada, sem as
+   * que esperam uma condição a mais).
+   */
+  recipeGoals(): { trackName: string; value: number; at: number }[] {
+    return this.milestoneTracks()
+      .filter((t) => t.next && !t.next.blocked && t.next.def.reward.kind === 'recipe' && (t.track.kind === 'season' || t.track.stat === 'served' || t.track.stat === 'servedOpen'))
+      .map((t) => ({ trackName: t.track.name, value: t.next!.value, at: t.next!.at }));
   }
 
   /** As trilhas na tela (aba Selos): conquistados, o próximo com o progresso e quantos faltam. */
   milestoneTracks(): TrackView[] {
-    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+    return trackViews(this.content.milestones, this.state.milestones, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()), this.seasonNow());
   }
 
   /**
@@ -4298,7 +4390,7 @@ export class GameSession {
     // selo das receitas não espera a inauguração.
     const values = silent ? { ...this.milestoneValues(), servedOpen: this.state.service.served } : this.milestoneValues();
     const when = (c: Condition, m?: { reward: { kind: string } }) => (silent && m?.reward.kind === 'recipe') || evaluate(c, this.state, this.storyContext());
-    const met = this.content.milestones.milestones.filter((m) => s.reached[m.id] === undefined && milestoneMet(this.content.milestones, m, values, (c) => when(c, m)));
+    const met = newlyMet(this.content.milestones, s, values, when, this.seasonNow());
     // Anota todos antes dos efeitos: receber um presente volta para a história, que confere de novo.
     for (const m of met) s.reached[m.id] = this.state.day;
     if (silent) return;
@@ -4414,8 +4506,9 @@ export class GameSession {
     const rules = this.content.service.schedule;
     // No almoço, a hora do almoço de hoje, mesmo que o app já tenha outro para amanhã.
     const now = this.service.lunchNow();
-    const start = lunchStart(now ? this.service.todaySchedule() : s, rules);
-    const lunch = start ? { from: start, to: lunchEnd(start, rules), now } : undefined;
+    const shown = now ? this.service.todaySchedule() : s;
+    const start = lunchStart(shown, rules);
+    const lunch = start ? { from: start, to: lunchEnd(start, lunchLength(shown, rules)), now } : undefined;
     const t = this.service.todaySchedule();
     const today = this.service.scheduleChangesTomorrow() ? { today: { opens: t.days[this.service.weekday()] === true, open: t.open, close: t.close } } : {};
     return { name: '', cafe: true, enabled: this.service.enabled(), days: s.days, open: s.open, close: s.close, openNow: this.service.isOpen(), next: this.service.nextOpening(), ...(lunch ? { lunch } : {}), ...today };
@@ -4577,7 +4670,7 @@ export class GameSession {
       // Planta da estação: `<estação>_<tile>` quando existe (o tile sem prefixo é o do inverno).
       const name = `${this.season()}_${t}`;
       return this.content.catalog.tiles[name] ? name : t;
-    }, (p) => p.refilledOn === this.state.day, (p) => {
+    }, (p) => (this.content.items[p.item]?.autoDays ? (p.stock ?? 0) > 0 : p.refilledOn === this.state.day), (p) => {
       // Balcão que se completa: o módulo pelos vizinhos da mesma cor (items.json: variants.autotile).
       const piece = autotilePiece(this.content.variants, this.state.placed, p.item, p.at);
       return piece ? this.content.items[piece]?.tile : undefined;
@@ -5482,7 +5575,8 @@ export class GameSession {
       seasons: this.content.seasons,
       milestoneMet: (id) => {
         const m = this.content.milestones.milestones.find((x) => x.id === id);
-        return !!m && milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext()));
+        // Conquistado (as metas da estação só valem assim) ou, nas de quantidade, o número já alcançado.
+        return !!m && (this.state.milestones.reached[id] !== undefined || milestoneMet(this.content.milestones, m, this.milestoneValues(), (c) => evaluate(c, this.state, this.storyContext())));
       },
       santaGuest: (npc) => this.santaGuests().includes(npc),
       eventDay: () => this.isEventDay(),

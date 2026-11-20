@@ -677,7 +677,33 @@
       "pieces": "pixellab_market_novos.json",
       "prefix": "market_",
       "layer": "object",
-      "solid": true
+      "solid": true,
+      "overrides": {
+        "chao_c": {
+          "layer": "floor",
+          "solid": false
+        },
+        "parede_lateral_esq": {
+          "layer": "wall",
+          "solid": true
+        },
+        "parede_lateral_dir": {
+          "layer": "wall",
+          "solid": true
+        },
+        "placa_frutas": {
+          "solid": false
+        },
+        "placa_mercearia_icone": {
+          "solid": false
+        },
+        "placa_pet_icone": {
+          "solid": false
+        },
+        "placa_bebidas": {
+          "solid": false
+        }
+      }
     },
     {
       "id": "pixellab_vet",
@@ -696,6 +722,10 @@
       "layer": "object",
       "solid": true,
       "overrides": {
+        "piso_vinil": {
+          "layer": "floor",
+          "solid": false
+        },
         "janela_azul": {
           "layer": "wall",
           "solid": false

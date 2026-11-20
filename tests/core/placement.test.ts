@@ -155,3 +155,24 @@ describe('a entrada do café não fica isolada', () => {
     expect(put(s, 'item.counter_single', [14, 8])).toEqual({ ok: false, reason: 'blocks_door' });
   });
 });
+
+describe('mesa alta: só a célula de baixo tem tampo', () => {
+  it('o vaso vai em cima da célula de baixo; na de cima, não (e não fica preso à mesa)', () => {
+    const state = newGameState(5000, 'map.cafe_main', 9 * 60);
+    state.placed.push({ uid: 't1', item: 'item.table_tall_round', at: [9, 5] }, { uid: 'v1', item: 'item.vase_tulips', at: [9, 6] });
+    const session = new GameSession(content, state);
+    expect(session.placeLift('item.vase_tulips', [9, 6], 'v1')).toBe(30);
+    expect(session.movingGroup('t1').map((p) => p.uid)).toEqual(['t1', 'v1']);
+    // A célula de cima é só o desenho subindo: nada vai em cima dela.
+    expect(session.placeLift('item.vase_tulips', [9, 5])).toBe(0);
+  });
+
+  it('save com o vaso na célula de cima: ele volta para a mochila (estava desenhado uma célula acima, preso à mesa)', () => {
+    const state = newGameState(5000, 'map.cafe_main', 9 * 60);
+    state.placed.push({ uid: 't1', item: 'item.table_tall_round', at: [9, 5] }, { uid: 'v1', item: 'item.vase_tulips', at: [9, 5] });
+    const session = new GameSession(content, state);
+    expect(state.placed.some((p) => p.uid === 'v1')).toBe(false);
+    expect(state.inventory['item.vase_tulips']).toBe(1);
+    expect(session.movingGroup('t1').map((p) => p.uid)).toEqual(['t1']);
+  });
+});

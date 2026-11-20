@@ -2,8 +2,8 @@
 // curto por dia fechado, totais do jogo e as sequências de bom comportamento. Puro: sem Phaser, DOM ou window.
 // O total de clientes atendidos já mora em service.served; gatos já abrigados são as entradas de state.cats.
 
-/** Quantos dias fechados ficam no save (o gráfico mostra os últimos 14; a média usa os últimos 7). */
-export const STATS_HISTORY_DAYS = 28;
+/** Quantos dias fechados ficam no save (uma estação inteira: as metas da estação somam dali; o gráfico mostra os últimos 14; a média usa os últimos 7). */
+export const STATS_HISTORY_DAYS = 30;
 /** A média da semana: os últimos 7 dias fechados, divididos só pelos que o café abriu. */
 export const STATS_WEEK_DAYS = 7;
 
@@ -197,7 +197,7 @@ export function normalizeStats(v: unknown, knownItem: (id: string) => boolean): 
       gaveUp: count(t.gaveUp),
       doses: doseMap(t.doses, knownItem),
       sickAtStart: Array.isArray(t.sickAtStart) ? t.sickAtStart.filter((id): id is string => typeof id === 'string') : [],
-      ...(Array.isArray(t.stars) ? { stars: t.stars.filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= 5) } : {}),
+      ...(Array.isArray(t.stars) ? { stars: t.stars.filter((n): n is number => Number.isInteger(n * 2) && n >= 1 && n <= 5) } : {}),
     },
     days: (Array.isArray(x.days) ? x.days : [])
       .filter((d): d is DayStats => !!d && Number.isInteger(d.day) && d.day >= 1)
@@ -214,6 +214,6 @@ export function normalizeStats(v: unknown, knownItem: (id: string) => boolean): 
       })),
     totals: { openDays: count(x.totals?.openDays), gaveUp: count(x.totals?.gaveUp), doses: doseMap(x.totals?.doses, knownItem) },
     streaks: x.streaks ? { no_gave_up: streak(x.streaks.no_gave_up), cats_cared: streak(x.streaks.cats_cared) } : base.streaks,
-    reviews: (Array.isArray(x.reviews) ? x.reviews : []).filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= 5).slice(-REVIEWS_KEPT),
+    reviews: (Array.isArray(x.reviews) ? x.reviews : []).filter((n): n is number => Number.isInteger(n * 2) && n >= 1 && n <= 5).slice(-REVIEWS_KEPT),
   };
 }

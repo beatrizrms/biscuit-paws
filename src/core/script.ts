@@ -22,7 +22,7 @@ type ScriptAction =
   | { playerFace: Facing }
   | { dialogue: string }
   /** Muda de mapa com fade, levando a personagem (e os NPCs listados) para dentro. */
-  | { enter: string; spawn: Cell; facing?: Facing; npcs?: { npc: string; at: Cell; facing?: Facing }[]; ifAway?: boolean }
+  | { enter: string; spawn: Cell; facing?: Facing; npcs?: { npc: string; at: Cell; facing?: Facing; when?: Condition }[]; ifAway?: boolean }
   /** Mostra um item grande no centro da tela (ex.: a chave). */
   | { showItem: string }
   | { giveItem: string }

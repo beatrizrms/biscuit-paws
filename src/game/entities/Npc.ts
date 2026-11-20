@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { Cell, Facing, NpcBusy, NpcIdle } from '../../core/map';
 import type { NpcDef } from '../../core/script';
 import { ySortDepth } from '../../core/map';
+import { breathPhase, breathScale } from '../breathing';
 
 const SPEED = 70;
 
@@ -24,6 +25,15 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     this.setScale(1 / (def.resolution ?? 1));
     NpcSprite.createAnimations(scene, def);
     this.updateDepth();
+  }
+
+  private readonly breath = breathPhase();
+
+  /** Parado e sem animação tocando: respira (sobe 1 pixel e volta). */
+  protected override preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta);
+    const base = 1 / (this.def.resolution ?? 1);
+    this.setScale(base, this.anims.isPlaying ? base : base * breathScale(time, this.breath, this.height * base));
   }
 
   static createAnimations(scene: Phaser.Scene, def: NpcDef): void {
@@ -70,6 +80,17 @@ export class NpcSprite extends Phaser.GameObjects.Sprite {
     const ty = (row + 1) * ts - 4;
     if (Math.abs(tx - this.x) > 0.5) await this.leg(tx, this.y, tx > this.x ? 'right' : 'left');
     if (Math.abs(ty - this.y) > 0.5) await this.leg(this.x, ty, ty > this.y ? 'down' : 'up');
+  }
+
+  /** Anda em linha reta até a célula (também na diagonal), com a caminhada da direção que mais pesa no trecho. */
+  async walkStraight([col, row]: Cell): Promise<void> {
+    const ts = this.tileSize;
+    const tx = col * ts + ts / 2;
+    const ty = (row + 1) * ts - 4;
+    const dx = tx - this.x;
+    const dy = ty - this.y;
+    if (Math.hypot(dx, dy) <= 0.5) return;
+    await this.leg(tx, ty, Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
   }
 
   /** Direção do trecho que ele está andando (para retomar a caminhada depois de uma parada). */

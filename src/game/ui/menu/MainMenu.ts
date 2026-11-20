@@ -5,6 +5,9 @@ import type { ManualSlot, SlotId } from '../../../core/saveSlots';
 import type { PlayerState } from '../../../core/state';
 import { openCreator } from './CreatorPanel';
 import { gameInfo, t } from '../../i18n';
+
+/** Emblema do logo (assets/_pixellab/logo/emblema_beatriz.png: a v3 do PixelLab retocada à mão pela Beatriz no Pixelorama, copiada para public): o frajola de um olho só, no estilo dos retratos. */
+const LOGO_EMBLEM = 'assets/ui/menu/ui_logo_emblem.png';
 import { services } from '../../services';
 import { openCredits } from './CreditsPanel';
 import { openHowTo } from './HowToPanel';
@@ -43,9 +46,14 @@ export class MainMenu {
     this.el.remove();
   }
 
+  /** O logo: o emblema (o frajola de um olho só, PixelLab) em cima do nome, escrito com a fonte do jogo. */
+  private logoHtml(): string {
+    return `<div class="menu-logo"><img class="menu-emblem" src="${LOGO_EMBLEM}" alt="" /><h1 class="menu-title">${esc(gameInfo.title)}</h1></div>`;
+  }
+
   /** Primeiro toque: o navegador libera o áudio e a música da Home começa. */
   private showTapToStart(): void {
-    this.el.innerHTML = `<h1 class="menu-title">${esc(gameInfo.title)}</h1><button class="menu-tap">${t('home.tapToStart')}</button>`;
+    this.el.innerHTML = `${this.logoHtml()}<button class="menu-tap">${t('home.tapToStart')}</button>`;
     const go = () => {
       window.removeEventListener('keydown', onKey);
       this.handlers.started();
@@ -64,7 +72,7 @@ export class MainMenu {
     const status = recent ? await saves.status(recent) : null;
     const summary = recent && status ? slotText(status) : null;
     this.el.innerHTML = `
-      <h1 class="menu-title">${esc(gameInfo.title)}</h1>
+      ${this.logoHtml()}
       <div class="menu-buttons">
         <button class="menu-btn big" data-act="continue" ${recent ? '' : 'disabled'}>
           ${t('home.continue')}

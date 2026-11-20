@@ -104,7 +104,9 @@ export class ScriptRunner {
       await s.untilIdle();
     } else if ('enter' in step) {
       // ifAway: só leva a personagem se ela estiver em outro lugar (ex.: a Gabi chegou e ela está no mercado).
-      if (!step.ifAway || this.session.location() !== step.enter) await s.enter(step.enter, step.spawn, step.facing ?? 'down', step.npcs ?? []);
+      // Cada NPC da chegada pode ter a condição dele (o convidado que ela já conhece).
+      const npcs = (step.npcs ?? []).filter((n) => !n.when || this.session.holds(n.when));
+      if (!step.ifAway || this.session.location() !== step.enter) await s.enter(step.enter, step.spawn, step.facing ?? 'down', npcs);
     }
     else if ('showItem' in step) await s.showItem(step.showItem);
     else if ('giveItem' in step) this.session.receiveItem(step.giveItem);

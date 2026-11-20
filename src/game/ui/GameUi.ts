@@ -1,6 +1,7 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
 import { itemThumbHtml } from './thumbs';
+import { keyHintHtml } from './keyHint';
 import { byInput, keyless, touch } from '../touch';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
@@ -121,10 +122,10 @@ export class GameUi {
   ) {
     root.innerHTML = `
       <div class="panel hud-goals"></div>
-      <div class="panel hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="panel hud-stack"><div class="hud-money"><span class="hud-weather-icon" hidden></span><span class="day"></span><span class="clock"></span><span class="coin"></span><span class="amount"></span></div>
+      <div class="hud-rep"><span class="label">${uiText.reputation.ratingLabel}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
+      <div class="hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div></div>
       <div class="panel hud-cart" hidden></div>
-      <div class="panel hud-rep"><span class="label">${uiText.reputation.ratingLabel}</span><span class="stars" style="--star:url(${serviceArt.review.star})"><span class="fill"></span></span><span class="value"></span></div>
-      <div class="panel hud-energy"><span class="label">${uiText.energy.label}</span><span class="bar"><span class="fill"></span></span><span class="value"></span></div>
       <div class="hint"></div>
       <div class="toast" role="status"></div>
       <div class="dialogue-layer">
@@ -302,11 +303,8 @@ export class GameUi {
     bus.on('dish.washed', () => this.toast(s.washed));
     bus.on('delivery.picked_up', () => this.toast(uiText.delivery.pickedUp));
     // O café evoluiu: receita nova no caderno (o equipamento e os ingredientes já estão à venda).
-    // A receita que vem de um selo já sai no aviso do selo (o último aviso apagaria o outro).
-    bus.on('recipe.unlocked', ({ recipeId }) => {
-      if (content.milestones.milestones.some((m) => m.reward.kind === 'recipe' && m.reward.ids.includes(recipeId))) return;
-      this.queueUnlock({ recipe: recipeId });
-    });
+    // A receita de uma conquista na mesma tela entra no grupo dela; a de outra estação chega sozinha quando a época começa.
+    bus.on('recipe.unlocked', ({ recipeId }) => this.queueUnlock({ recipe: recipeId }));
     // Caixa de Natal: guardou os enfeites; abriu e saiu um.
     // Encontros da estação: feito (com o presente) ou perdido.
     const gatheringDef = (id: string) => content.festive.gatherings?.find((x) => x.id === id);
@@ -765,6 +763,12 @@ export class GameUi {
         alerts.push(c.sick);
         continue;
       }
+      // Pote ou caixa automáticos abastecidos: feito sozinho; a linha fica, só com os dias guardados.
+      if (ch.done && ch.auto !== undefined) {
+        const days = (ch.auto === 1 ? c.autoDay : c.autoDays).replace('{n}', String(ch.auto));
+        cafe.push(this.row(ch.kind === 'feed' ? c.autoFood : c.autoLitter, { icon: ch.kind === 'feed' ? 'racao_aberta' : 'areia_balde', cls: 'auto', right: `<span class="count">${esc(days)}</span>` }));
+        continue;
+      }
       if (ch.done) {
         doneToday++;
         continue;
@@ -779,6 +783,14 @@ export class GameUi {
         today.push(this.row(line, { icon }));
         continue;
       }
+      if (ch.kind === 'ced_goal') {
+        today.push(this.row(c.cedGoal, { icon: 'caixa_bilhete', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        continue;
+      }
+      if (ch.kind === 'ced_sign') {
+        today.push(this.row(c.cedSign, { icon: 'caixa_bilhete' }));
+        continue;
+      }
       if (ch.kind === 'poop') {
         today.push(this.row(c.poop, { icon: 'areia_balde' }));
         continue;
@@ -790,7 +802,7 @@ export class GameUi {
       // Clínica: consulta de entrada, buscar, pontinho e a latinha do cercadinho.
       if (ch.kind === 'clinic') {
         const text = c.clinic[ch.clinic!].replace('{cat}', ch.catId ? this.session.catName(ch.catId) : '');
-        today.push(this.row(text, { icon: ch.clinic === 'pen_food' ? content.items[content.clinic.pen.food]?.icon : ch.clinic === 'sick' ? 'sinal_termometro' : 'remedio', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        today.push(this.row(text, { icon: ch.clinic === 'pen_food' || ch.clinic === 'pen_wait' ? content.items[content.clinic.pen.food]?.icon : ch.clinic === 'sick' ? 'sinal_termometro' : 'remedio', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       // Gato que acabou de chegar: a confiança.
@@ -815,7 +827,11 @@ export class GameUi {
     for (const v of this.session.gatheringsView()) {
       const t = v.def.texts;
       today.push(this.row(`<b>${esc(v.today ? t.goalToday : t.goal)}</b>`, { html: true }));
-      if (v.prep && t.prep) today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { right: this.pips(v.prep[0], v.prep[1]) }));
+      // O preparo: feito (tudo no lugar), marcado como feito; o quanto falta, só no contador da direita.
+      if (v.prep && t.prep) {
+        const ready = v.prep[0] >= v.prep[1];
+        today.push(this.row(t.prep.replace('{n}', String(v.prep[0])).replace('{count}', String(v.prep[1])), { cls: ready ? 'done' : '', right: this.pips(v.prep[0], v.prep[1]) }));
+      }
     }
     // Pedidos dos amigos (não expiram): quem pediu, o que fazer e quanto falta.
     for (const r of this.session.friendRequests()) {
@@ -831,14 +847,14 @@ export class GameUi {
     if (santa) today.push(santa);
     const hw = this.halloweenLine();
     if (hw) today.push(hw);
-    if (doneToday > 0) today.push(`<li class="done-sum">${esc(g.doneToday.replace('{n}', String(doneToday)))}</li>`);
+    if (doneToday > 0) today.push(`<li class="done-sum">${esc((doneToday === 1 ? g.doneTodayOne : g.doneToday).replace('{n}', String(doneToday)))}</li>`);
 
     const sv = this.session.service;
     // Fora do horário (app Horário): quando abre de novo. Só durante o dia e com o café já atendendo.
     if (sv.enabled() && !sv.isOpen() && this.session.state.time < 22 * 60) cafe.push(this.row(uiText.service.closed.replace('{when}', openingText(this.session)), { icon: 'xicara_limpa' }));
     if (sv.isOpen()) {
       const cap = sv.capacity().total;
-      cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
+      if (cap > 0) cafe.push(this.row(g.service, { icon: 'xicara_limpa', right: this.pips(this.session.state.service.customers.length, cap) }));
       const blocked = sv.arrivalsBlocked();
       if (blocked) alerts.push(uiText.service.blocked[blocked]);
     }
@@ -848,13 +864,13 @@ export class GameUi {
       const item = this.session.state.placed.find((pl) => pl.uid === uid)?.item ?? '';
       alerts.push(uiText.service.brokenAlert.replace('{name}', content.items[item]?.name ?? '').replace('{price}', String(content.service.breakdown?.repairPrice ?? 0)));
     }
-    if (this.session.state.tray) cafe.push(this.row(uiText.service.tray.replace('{n}', String(this.session.state.hands.length)).replace('{max}', String(sv.handsCapacity())), { icon: 'bandeja_vazia' }));
+    if (this.session.state.tray) cafe.push(this.row(uiText.service.tray, { icon: 'bandeja_vazia', right: this.pips(this.session.state.hands.length, sv.handsCapacity()) }));
     for (const h of this.session.state.hands) cafe.push(this.row(uiText.service.hands.replace('{name}', handItemName(h, (id) => this.session.catName(id)))));
     if (this.session.state.sink.washing) cafe.push(this.row(sv.sinkPaused() ? uiText.service.sinkPaused : uiText.service.sinkWashing, { icon: 'xicara_suja' }));
-    else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad.replace('{n}', String(sv.sinkLoad())), { icon: 'xicara_suja' }));
+    else if (sv.sinkLoad() > 0) cafe.push(this.row(uiText.service.sinkLoad, { icon: 'xicara_suja', right: `<span class="count">${sv.sinkLoad()}</span>` }));
     for (const uid of Object.keys(this.session.state.washers)) {
       if (sv.washerProgress(uid) !== undefined) cafe.push(this.row(uiText.service.washerWashing, { icon: 'xicara_suja' }));
-      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad.replace('{n}', String(sv.washerLoad(uid))), { icon: 'xicara_suja' }));
+      else if (sv.washerLoad(uid) > 0) cafe.push(this.row(uiText.service.washerLoad, { icon: 'xicara_suja', right: `<span class="count">${sv.washerLoad(uid)}</span>` }));
     }
     const d = uiText.delivery;
     const next = this.session.nextArrival();
@@ -864,9 +880,9 @@ export class GameUi {
     }
     const n = (stage: 'door' | 'carried' | 'inside') => this.session.boxesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
-    if (atDoor > 0) cafe.push(this.row(d.atDoor.replace('{n}', String(atDoor)), { icon: 'caixa_entrega_fechada' }));
-    if (n('carried')) cafe.push(this.row(d.carried.replace('{n}', String(n('carried'))), { icon: 'caixa_entrega_fechada' }));
-    if (n('inside')) cafe.push(this.row(d.inside.replace('{n}', String(n('inside'))), { icon: 'caixa_entrega_aberta' }));
+    if (atDoor > 0) cafe.push(this.row(d.atDoor, { icon: 'caixa_entrega_fechada', right: `<span class="count">${atDoor}</span>` }));
+    if (n('carried')) cafe.push(this.row(d.carried, { icon: 'caixa_entrega_fechada', right: `<span class="count">${n('carried')}</span>` }));
+    if (n('inside')) cafe.push(this.row(d.inside, { icon: 'caixa_entrega_aberta', right: `<span class="count">${n('inside')}</span>` }));
 
     const section = (title: string, items: string[]) => (items.length ? `<h4>${esc(title)}</h4><ul class="chores">${items.join('')}</ul>` : '');
     // O alerta: a primeira frase vira o título (até o ":"), o resto é o que fazer.
@@ -968,17 +984,20 @@ export class GameUi {
       const track = content.milestones.tracks.find((x) => x.id === m.track);
       return track?.kind === 'streak' ? t.reasonStreak.replace('{track}', track.name).replace('{n}', String(m.at)) : t.reason.replace('{track}', track?.name ?? m.track).replace('{n}', String(m.at));
     };
+    const known = (r: string) => !!this.session.state.flags[`recipe.known.${r}`];
     const groups = ms.map((m) => {
-      const ids = [...new Set(m.reward.ids)];
-      // Receitas destrancadas por este selo sem estar na lista dele (as da estação): no mesmo grupo.
-      const extra = batch.recipes.filter((r) => unlockedBy(r) === m.id);
-      return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${[...ids.map((id) => reward(m.reward.kind, id)), ...extra.map((r) => reward('recipe', r))].join('')}</div></section>`;
+      const all = [...new Set(m.reward.ids)];
+      // Receita: só as que ela já aprendeu (as de outra estação chegam na época delas); mais as destrancadas por esta
+      // conquista sem estar na lista dela.
+      const ids = m.reward.kind === 'recipe' ? [...new Set([...all.filter(known), ...batch.recipes.filter((r) => unlockedBy(r) === m.id)])] : all;
+      const later = m.reward.kind === 'recipe' && all.some((r) => !known(r)) ? `<p class="u-reason">${esc(t.laterSeasons)}</p>` : '';
+      return `<section class="u-group"><h3>${esc(m.name)}</h3><p class="u-reason">${esc(reason(m))}</p><div class="u-cards">${ids.map((id) => reward(m.reward.kind === 'recipe' ? 'recipe' : m.reward.kind, id)).join('')}</div>${later}</section>`;
     });
     // Receitas destrancadas sem selo nesta tela (o selo veio antes): um grupo próprio.
     const special = batch.recipes.filter((r) => content.recipes[r]?.special);
     const loose = batch.recipes.filter((r) => !content.recipes[r]?.special && !ms.some((m) => unlockedBy(r) === m.id));
     const group = (title: string, why: string, cards: string) => `<section class="u-group"><h3>${esc(title)}</h3><p class="u-reason">${esc(why)}</p><div class="u-cards">${cards}</div></section>`;
-    if (loose.length) groups.push(group(t.newRecipes, t.recipesReason, loose.map((r) => reward('recipe', r)).join('')));
+    if (loose.length) groups.push(group(t.newRecipes, loose.every((r) => content.recipes[r]?.seasons || content.recipes[r]?.window) ? t.seasonReason : t.recipesReason, loose.map((r) => reward('recipe', r)).join('')));
     if (special.length) groups.push(group(t.special, t.specialReason, special.map((r) => card(iconHtml(content.recipes[r]?.icon, 32), content.recipes[r]?.name ?? r, t.special)).join('')));
     const inSeal = new Set(ms.filter((m) => m.reward.kind === 'item' || m.reward.kind === 'gift').flatMap((m) => m.reward.ids));
     const items = batch.items.filter((i) => !inSeal.has(i));
@@ -1015,7 +1034,8 @@ export class GameUi {
    * destes pontos (em coordenadas da janela: mouse, personagem) está embaixo deles.
    */
   updateHudFade(points: readonly { x: number; y: number }[], feet: { x: number; y: number }, spots: readonly { x: number; y: number }[] = []): void {
-    for (const el of [this.goals, this.money, ...this.root.querySelectorAll<HTMLElement>('.hud-rep, .hud-energy')]) {
+    // O HUD de cima é um painel só (hora, moedas, nota, energia): fica transparente inteiro.
+    for (const el of [this.goals, this.root.querySelector<HTMLElement>('.hud-stack')!]) {
       if (el.hidden) continue;
       const r = el.getBoundingClientRect();
       // O balão é clicável: só a personagem embaixo dele (não o mouse) deixa ele transparente; a sujeira perto dela, os dois.
@@ -1041,11 +1061,12 @@ export class GameUi {
     const clueText = a.def.model === 'entrega' ? g.ask : g.clue;
     if ('feed' in step) {
       const done = this.session.state.arrivals.active?.fed ?? 0;
-      const f = g.feed.replace('{n}', String(done)).replace('{total}', String(step.feed.times)).replace('{from}', step.feed.hours[0]).replace('{to}', step.feed.hours[1]);
-      return `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(f)}</span></li>`;
+      const f = g.feed.replace('{from}', step.feed.hours[0]).replace('{to}', step.feed.hours[1]);
+      return this.row(f, { icon: 'petisco_biscoito', right: this.pips(done, step.feed.times) });
     }
     const text = 'ask' in step ? g.ask : 'meet' in step ? meetText : 'lead' in step ? g.lead : 'minigame' in step ? (mg[a.def.model] ?? g.minigame) : 'poster' in step ? g.poster : 'choice' in step ? g.choice : 'clue' in step ? clueText : '';
-    return text ? `<li class="job"><span><b>${esc(uiText.arrivals.title)}:</b> ${esc(this.fillNames(text))}</span></li>` : '';
+    // A meta da chegada como as outras: a ação (no imperativo, dizendo que é um gato), sem o "Um gato:" na frente.
+    return text ? this.row(this.fillNames(text), { icon: 'petisco_biscoito' }) : '';
   }
 
   /** Linha do festival no balão (ou vazio, sem evento em andamento). Os textos vêm do festival (festivals.json: texts). */
@@ -1392,17 +1413,17 @@ ${rep}`;
    * A vitrine como a barra: os espaços (com o ícone do que está guardado e quantas porções sobram) lado a lado; tocar
    * (ou 1 a N) tira uma porção dali. Esc, o fundo ou o botão de fechar: nada. Devolve o espaço ou -1.
    */
-  chooseDisplay(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number }[]): Promise<number> {
+  chooseDisplay(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number; premium?: boolean }[]): Promise<number> {
     return this.oneAtATime(() => this.chooseDisplayNow(title, slots, stock));
   }
 
-  private chooseDisplayNow(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number }[]): Promise<number> {
+  private chooseDisplayNow(title: string, slots: number, stock: readonly { icon?: string; name: string; portions: number; premium?: boolean }[]): Promise<number> {
     const el = document.createElement('div');
     el.className = 'confirm-layer';
     const cells = Array.from({ length: slots }, (_, i) => {
       const s = stock[i];
       return s
-        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}<span class="count">${s.portions}</span></button>`
+        ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}${s.premium ? `<span class="prem">${esc(uiText.service.premium)}</span>` : ''}<span class="count">${s.portions}</span></button>`
         : `<span class="slot empty"></span>`;
     }).join('');
     el.innerHTML = `<div class="panel confirm display-pick"><p>${esc(title)}</p><div class="slots">${cells}</div><button class="close">${esc(uiText.service.extraCancel)}</button></div>`;
@@ -1519,11 +1540,14 @@ ${rep}`;
     }
     const extra = this.extrasHtml();
     // Sem meta da história: a meta longa (o próximo selo mais perto), para o jogo sempre ter um rumo.
-    const seal = goal ? '' : this.sealHtml();
-    this.goals.classList.toggle('empty', !goal && !extra && !seal);
+    // Em cima, sem título: as metas da história e, em linhas do mesmo nível, a próxima conquista (sem meta da
+    // história) e a de clientes ("Atenda X clientes"), cada uma com o contador à direita.
+    const rows = (goal ? '' : this.sealRow()) + this.clientsGoalRow();
+    const metas = rows ? `<ul class="chores">${rows}</ul>` : '';
+    this.goals.classList.toggle('empty', !goal && !extra && !metas);
     this.goals.innerHTML = (goal
-      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g, i) => (i === 0 ? this.storyHtml(g, fill) : this.storyHtml(g, fill).replace(/^<h4>[^<]*<\/h4>/, ''))).join('')}`
-      : seal ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${seal}`
+      ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g) => this.storyHtml(g, fill)).join('')}${metas}`
+      : metas ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${metas}`
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
 
@@ -1532,14 +1556,18 @@ ${rep}`;
     this.renderHint();
   }
 
-  /** O próximo selo como meta do balão: o nome, a trilha com o progresso (bolinhas) e o tipo de recompensa. */
-  private sealHtml(): string {
-    const n = this.session.nextAchievement();
+  /** A meta de clientes da próxima receita (a da estação ou a geral, a que falta menos): "Atenda X clientes". */
+  private clientsGoalRow(): string {
+    const goal = this.session.recipeGoals().sort((a, b) => a.at - a.value - (b.at - b.value))[0];
+    if (!goal || goal.at <= goal.value) return '';
+    return this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: this.pips(goal.value, goal.at) });
+  }
+
+  /** A próxima conquista (sem as de receita): a ação dela numa linha, com o contador à direita (sem o nome nem a recompensa). */
+  private sealRow(): string {
+    const n = this.session.nextAchievement(true);
     if (!n) return '';
-    const g = uiText.goals;
-    const reward = uiText.statsApp.rewardKinds[n.reward as keyof typeof uiText.statsApp.rewardKinds] ?? '';
-    const detail = g.nextSealDetail.replace('{track}', n.trackName).replace('{value}', String(n.value)).replace('{at}', String(n.at)).replace('{reward}', reward);
-    return `<div class="g-now"><span class="t">${esc(g.nextSeal.replace('{name}', n.name))}</span></div><p class="g-detail">${esc(detail)}</p>` + (n.at <= 12 ? `<div class="g-progress">${this.pips(n.value, n.at)}</div>` : '');
+    return this.row(n.goal.replace('{n}', String(n.at - n.value)).replace('{at}', String(n.at)), { right: this.pips(n.value, n.at) });
   }
 
   /**
@@ -1552,7 +1580,6 @@ ${rep}`;
     const done = mandatory.filter((s) => s.done).length;
     const open = goal.steps.filter((s) => !s.done);
     const sum = done > 0 ? `<span class="g-sum">${esc(g.stepsDone.replace('{n}', String(done)).replace('{total}', String(mandatory.length)))}</span>` : '';
-    const note = (s: GoalView['steps'][number]) => (this.debug && s.devNote ? `<span class="dev">${esc(s.devNote)}</span>` : '');
     // Passos sem ordem: nenhum em destaque, todos na lista.
     // Os passos extras (opcionais) vão num bloco próprio, embaixo; o passo da vez é o primeiro obrigatório aberto.
     const required = open.filter((s) => !s.optional);
@@ -1562,33 +1589,24 @@ ${rep}`;
     const now = goal.together ? undefined : (required[0] ?? (goal.steps.some((s) => s.optional) ? undefined : open[0]));
     const rest = goal.together ? open.filter((s) => !s.optional) : required.filter((s) => s !== now);
     const nowHtml = now
-      ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span></div>` +
+      ? `<div class="g-now">${now.icon ? iconHtml(now.icon, 12) : ''}<span class="t">${esc(fill(now.text))}</span>${now.progress ? this.pips(now.progress[0], now.progress[1]) : ''}</div>` +
         (now.detail ? `<p class="g-detail">${esc(fill(now.detail))}</p>` : '') +
-        (now.progress || now.doneToday || now.waitUntil !== undefined
-          ? `<div class="g-progress">${now.progress ? this.pips(now.progress[0], now.progress[1]) : ''}${now.doneToday ? `<span class="g-tag">${esc(g.doneToday1)}</span>` : ''}${now.waitUntil !== undefined ? this.waitButton(now.waitUntil) : ''}</div>`
-          : '') +
-        note(now)
+        (now.doneToday || now.waitUntil !== undefined
+          ? `<div class="g-progress">${now.doneToday ? `<span class="g-tag">${esc(g.doneToday1)}</span>` : ''}${now.waitUntil !== undefined ? this.waitButton(now.waitUntil) : ''}</div>`
+          : '')
       : '';
-    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s) })).join('');
+    const others = rest.map((s) => this.row(fill(s.text), { icon: s.icon, right: s.progress ? this.pips(s.progress[0], s.progress[1]) : '' })).join('');
     const op = uiText.opening;
     const extraRows = extras
       .map((s) => {
         const tag = s.done ? '' : s.daily ? `<span class="g-tag${s.doneToday ? '' : ' daily'}">${esc(s.doneToday ? op.dailyDone : op.daily)}</span>` : '';
-        return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : '') + note(s), html: false });
+        return this.row(fill(s.text), { icon: s.icon, cls: s.done ? 'done optional' : 'optional', right: tag + (s.progress ? this.pips(s.progress[0], s.progress[1]) : ''), html: false });
       })
       .join('');
     const extrasHtml = extraRows ? `<p class="g-extras">${esc(goal.extrasTitle ?? op.optionalTitle)}</p><ul class="g-extra-list">${extraRows}</ul>` : '';
     // Os passos obrigatórios feitos hoje, riscados (amanhã saem da lista).
-    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done', right: note(s) })).join('');
-    // Esperando a inauguração: o próximo evento do calendário (o amigo secreto, a ceia, os fogos), para a espera ter rumo.
-    let next = '';
-    if (goal.beatId === 'story.inauguration' && this.session.state.business !== 'inaugurated') {
-      const today = this.session.state.day;
-      const per = content.seasons.daysPerSeason;
-      const e = this.session.calendar(today + 1, today + per).find((x) => x.kind === 'event');
-      if (e) next = `<p class="g-detail">${esc(uiText.opening.nextEvent.replace('{title}', e.title).replace('{day}', String(((e.day - 1) % per) + 1)))}</p>`;
-    }
-    return `<h4>${esc(g.story)}</h4><div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${next}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
+    const doneList = goal.steps.filter((s) => s.done && !s.optional && !s.doneBefore).map((s) => this.row(fill(s.text), { cls: 'done' })).join('');
+    return `<div class="g-card"><div class="g-head"><h3>${esc(fill(goal.title))}</h3>${sum}</div>${nowHtml}${others || doneList ? `<ul>${others}${doneList}</ul>` : ''}${extrasHtml}</div>`;
   }
 
   private renderHint(): void {
@@ -1596,8 +1614,20 @@ ${rep}`;
     // No celular, a dica fala dos botões de toque (sem setas nem teclas); no controle de videogame, dos botões dele.
     const touchText =
       touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : touch.mode === 'pad' ? uiText.padHints[mode as keyof typeof uiText.padHints] : undefined;
-    this.hint.textContent = touchText ?? (
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk);
+    // Andando, depois do prólogo: sem a faixa de teclas (as teclas ficam no Como jogar). Nos modos de posicionar e
+    // mover, e nas falas, a dica continua (só aparece nessas horas).
+    if (mode === 'walk' && this.session.state.flags['prologue.done']) {
+      this.hint.textContent = '';
+      return;
+    }
+    // No toque (e no controle), a frase dos botões; no teclado, as teclas desenhadas com uma palavra (keyHint.ts).
+    if (touchText !== undefined) {
+      this.hint.textContent = touchText;
+      return;
+    }
+    this.hint.innerHTML = keyHintHtml(
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk,
+    );
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */

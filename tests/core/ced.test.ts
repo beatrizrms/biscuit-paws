@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { donate, kitPrice, kitsAffordable, newCrowdfund, remaining, remoteChance, spend, stalled, topUpRoom } from '../../src/core/crowdfund';
 import { CED_SCENES } from '../../src/core/ced';
 import type { EventName, GameEvents } from '../../src/core/events';
@@ -90,6 +90,31 @@ describe('CED: a vaquinha pelo CatPay (ced.ts)', () => {
     state.day = 44;
     session.tickClock(1);
     expect(state.ced.stage).toBe('off');
+  });
+
+  it('depois da ligação, a plaquinha aparece grande; o balão pede para pôr no café até ela ser posicionada', () => {
+    const { state, session, events } = setup();
+    session.tickClock(1);
+    expect(state.inventory[cfg.counter.signItem]).toBe(1);
+    session.finishCutscene(CED_SCENES.intro);
+    expect(events.some((e) => e.name === 'item.found' && (e.payload as { itemId: string }).itemId === cfg.counter.signItem)).toBe(true);
+    expect(session.chores().some((c) => c.kind === 'ced_sign')).toBe(true);
+    state.location = 'map.cafe_main';
+    state.placed.push({ uid: 'sg', item: cfg.counter.signItem, at: [8, 8] });
+    expect(session.chores().some((c) => c.kind === 'ced_sign')).toBe(false);
+    // A meta da vaquinha fica no balão com o quanto já entrou, enquanto ela estiver aberta.
+    const fund = state.ced.crowdfund!;
+    expect(session.chores().find((c) => c.kind === 'ced_goal')).toMatchObject({ progress: [fund.raised, fund.target] });
+  });
+
+  it('num dia de evento (piquenique, festa), a Fernanda não chama; no dia seguinte, sim', () => {
+    const { state, session } = setup();
+    const event = vi.spyOn(session, 'isEventDay').mockReturnValue(true);
+    session.tickClock(1);
+    expect(state.ced.stage).toBe('off');
+    event.mockReturnValue(false);
+    session.tickClock(1);
+    expect(state.ced.stage).toBe('collecting');
   });
 
   it('a Fernanda chama de dia: a vaquinha começa (meta = gatos x kit), com a plaquinha na mochila', () => {

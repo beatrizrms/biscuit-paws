@@ -189,11 +189,11 @@ describe('nota do café (média das avaliações)', () => {
     expect(reviewAverage(s, 50).average).toBeCloseTo(13 / 4);
   });
 
-  it('guarda no máximo REVIEWS_KEPT; o save descarta nota fora de 1 a 5', () => {
+  it('guarda no máximo REVIEWS_KEPT; o save descarta nota fora de 1 a 5 (meia estrela vale: o premium)', () => {
     const s = newStats();
     for (let i = 0; i < REVIEWS_KEPT + 10; i++) recordReview(s, 5);
     expect(s.reviews).toHaveLength(REVIEWS_KEPT);
-    expect(normalizeStats({ ...s, reviews: [5, 0, 2.5, 'x', 3, 6] }, () => true).reviews).toEqual([5, 3]);
+    expect(normalizeStats({ ...s, reviews: [5, 0, 2.5, 2.7, 'x', 3, 6] }, () => true).reviews).toEqual([5, 2.5, 3]);
   });
 });
 

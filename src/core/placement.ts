@@ -15,11 +15,16 @@ export const PLACED_PREFIX = 'placed.';
 export type Footprint = (p: PlacedItem) => Cell[];
 const originOnly: Footprint = (p) => [p.at];
 
-/** Footprint pelo catálogo (todas as células do tile do item). */
+/**
+ * Footprint pelo catálogo: as células do tile do item que recebem coisas em cima (todas; no apoio com topBaseRow, a
+ * mesa alta, só a linha de baixo: um vaso na de cima ficava desenhado uma célula acima, longe da mesa, e preso a ela).
+ */
 export function footprintOf(catalog: TileCatalog, items: Record<string, ItemDef>): Footprint {
   return (p) => {
     const def = catalog.tiles[items[p.item]?.tile ?? ''];
-    return def ? cellsOf(p.at, def) : [p.at];
+    if (!def) return [p.at];
+    const cells = cellsOf(p.at, def);
+    return items[p.item]?.topBaseRow ? cells.filter(([, r]) => r === p.at[1] + def.h - 1) : cells;
   };
 }
 

@@ -75,9 +75,9 @@ export class StatsApp {
       const done = v.reached.map((m) => `<li class="s-done"><b>✓ ${esc(m.name)}</b><span>${esc(rewardText(m))}</span></li>`).join('');
       const n = v.next;
       const next = n
-        ? `<li class="s-next"><b>${esc(n.def.name)}</b><span class="s-progress"><span class="bar"><span class="fill" style="width:${Math.round((n.value / n.def.at) * 100)}%"></span></span><i>${n.value}/${n.def.at}</i></span>
+        ? `<li class="s-next"><b>${esc(n.def.name)}</b><span class="s-progress"><span class="bar"><span class="fill" style="width:${Math.round((n.value / n.at) * 100)}%"></span></span><i>${n.value}/${n.at}</i></span>
             <span class="s-teaser">${esc(t.rewardKinds[n.def.reward.kind])} ?</span>${n.blocked && n.def.whenText ? `<span class="s-when">${esc(n.def.whenText)}</span>` : ''}</li>`
-        : `<li class="s-all">${esc(t.allDone)}</li>`;
+        : `<li class="s-all">${esc(v.track.kind === 'season' && v.hidden > 0 ? t.seasonDone : t.allDone)}</li>`;
       const more = v.hidden > 0 ? `<li class="s-more">${esc((v.hidden === 1 ? t.moreOne : t.more).replace('{n}', String(v.hidden)))}</li>` : '';
       return `<section class="s-track ${v.track.kind}"><h3>${esc(v.track.name)}</h3><ul>${done}${next}${more}</ul></section>`;
     });

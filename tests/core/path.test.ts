@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveMap } from '../../src/core/map';
-import { findPath, pathCorners } from '../../src/core/path';
+import { clearLine, findPath, pathCorners, smoothPath } from '../../src/core/path';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -24,6 +24,34 @@ describe('caminho pelas células livres', () => {
 
   it('esquinas: só onde muda de direção, e o fim', () => {
     expect(pathCorners([[0, 0], [1, 0], [2, 0], [2, 1], [2, 2]])).toEqual([[2, 0], [2, 2]]);
+  });
+
+  it('linha reta: só por células livres, com folga para o corpo; as pontas podem ser sólidas', () => {
+    const open = grid(['.....', '.....', '.....']);
+    expect(clearLine(open, [0, 0], [4, 2])).toBe(true);
+    const pillar = grid(['.....', '..#..', '.....']);
+    expect(clearLine(pillar, [0, 1], [4, 1])).toBe(false);
+    expect(clearLine(pillar, [0, 0], [4, 0])).toBe(true);
+    // A diagonal que raspa na quina do pilar não vale.
+    expect(clearLine(pillar, [1, 0], [3, 2])).toBe(false);
+    expect(clearLine(grid(['..#']), [0, 0], [2, 0])).toBe(true);
+  });
+
+  it('caminho suave: em campo aberto, direto ao fim (na diagonal); com obstáculo, contorna pelo menor número de pontos', () => {
+    const open = grid(['.....', '.....', '.....']);
+    expect(smoothPath(open, findPath(open, [0, 0], [4, 2])!)).toEqual([[4, 2]]);
+    const wall = grid(['.....', '.###.', '.....']);
+    const path = findPath(wall, [0, 1], [4, 1])!;
+    const smooth = smoothPath(wall, path);
+    expect(smooth.at(-1)).toEqual([4, 1]);
+    expect(smooth.length).toBeLessThan(pathCorners(path).length + 1);
+    // Cada trecho é uma linha livre.
+    let from: [number, number] = [0, 1];
+    for (const p of smooth) {
+      expect(clearLine(wall, from, p)).toBe(true);
+      from = p;
+    }
+    expect(smoothPath(open, [[1, 1]])).toEqual([]);
   });
 
   it('no café: do lugar do Tião até a porta da rua', () => {

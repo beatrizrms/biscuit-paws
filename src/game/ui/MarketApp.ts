@@ -7,7 +7,7 @@ import { daysText, workName } from './constructionText';
 import type { GameSession, RoomWork } from '../../core/session';
 import { content, uiText } from '../content';
 import { hoverTips } from './hoverTip';
-import { itemTip } from './ShopPanel';
+import { itemTip, yieldHtml } from './ShopPanel';
 import { itemThumbHtml, tileThumbHtml } from './thumbs';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -184,7 +184,7 @@ export class MarketApp {
     const tip = itemTip(i);
     return `<div class="m-cell"${tip ? ` data-tip="${esc(tip)}"` : ''}><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
         <span class="m-thumb">${itemThumbHtml(i, THUMB)}</span>${this.session.marketNew(id) ? `<span class="m-new">${esc(uiText.market.isNew)}</span>` : ''}
-        <span class="m-name">${esc(i.name)}</span>
+        <span class="m-name">${esc(i.name)}</span>${yieldHtml(i)}
         <span class="m-price">${COIN}${i.price}</span>${status}
       </button>${order}${refund}</div>`;
   }
@@ -254,8 +254,7 @@ export class MarketApp {
         return '';
       })
       .join('');
-    const cats = `<p class="m-hint">${esc(r.cats.replace('{n}', String(this.session.shelteredCats().length)).replace('{max}', String(this.session.catCapacity())))}</p>`;
-    return rows ? `<h3>${esc(r.title)}</h3><p class="m-hint">${esc(r.hint)}</p>${rows}${cats}` : cats;
+    return rows ? `<h3>${esc(r.title)}</h3><p class="m-hint">${esc(r.hint)}</p>${rows}` : '';
   }
 
   /**
@@ -319,7 +318,7 @@ export class MarketApp {
     const t = uiText.upgrade;
     const fee = String(content.upgrades.fee);
     const pick = `<button class="m-row" data-upgrade-pick><span class="m-name">${esc(t.pick)}</span><span class="m-note">${esc(t.pickNote)}</span></button>`;
-    const head = `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint.replace('{fee}', fee))}</p>${pick}`;
+    const head = `<h3>${esc(t.title)}</h3><p class="m-hint">${esc(t.hint).replace('{fee}', `${COIN}${fee}`)}</p>${pick}`;
     const target = this.session.state.placed.find((p) => p.uid === this.upgradeTarget);
     if (!target) return head;
     const options = this.session.upgradeOptions(target.uid);

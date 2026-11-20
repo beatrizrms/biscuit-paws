@@ -780,7 +780,7 @@
             }
           },
           {
-            "text": "Faça a limpeza e reparo do quintal",
+            "text": "Limpe e conserte o quintal",
             "when": {
               "room": "room.backyard",
               "atLeast": "restored"
@@ -1126,7 +1126,7 @@
             }
           },
           {
-            "text": "Inaugure o café dia 26",
+            "text": "Inaugure o café no dia 26",
             "when": {
               "all": [
                 {

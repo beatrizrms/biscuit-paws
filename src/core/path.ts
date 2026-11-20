@@ -45,3 +45,40 @@ export function pathCorners(path: readonly Cell[]): Cell[] {
   }
   return out;
 }
+
+/** Metade da largura de quem anda, em células: a linha reta só vale se o corpo inteiro passa sem raspar num móvel. */
+const BODY_HALF = 0.35;
+
+/** A linha reta de `a` até `b` (centro a centro) passa só por células livres? As pontas podem ser sólidas. */
+export function clearLine(solid: readonly (readonly boolean[])[], a: Cell, b: Cell): boolean {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.1));
+  for (let i = 0; i <= steps; i++) {
+    const x = a[0] + 0.5 + (dx * i) / steps;
+    const y = a[1] + 0.5 + (dy * i) / steps;
+    for (const ox of [-BODY_HALF, BODY_HALF]) for (const oy of [-BODY_HALF, BODY_HALF]) {
+      const c = Math.floor(x + ox);
+      const r = Math.floor(y + oy);
+      if ((c === a[0] && r === a[1]) || (c === b[0] && r === b[1])) continue;
+      if (solid[r]?.[c] !== false) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Os pontos de um caminho para andar com naturalidade (guia de estilo, seção 7): do começo, vai em linha reta (também
+ * na diagonal) até o ponto mais longe do caminho que dá para alcançar sem raspar em nada, e de lá segue. Sem o começo.
+ */
+export function smoothPath(solid: readonly (readonly boolean[])[], path: readonly Cell[]): Cell[] {
+  const out: Cell[] = [];
+  let i = 0;
+  while (i < path.length - 1) {
+    let j = path.length - 1;
+    while (j > i + 1 && !clearLine(solid, path[i]!, path[j]!)) j--;
+    out.push(path[j]!);
+    i = j;
+  }
+  return out;
+}

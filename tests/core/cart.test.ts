@@ -3,6 +3,7 @@ import { Cart } from '../../src/core/cart';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 const price = (id: string) => content.items[id]!.price;
@@ -12,6 +13,7 @@ function market(money: number) {
   // Café já evoluído: todas as receitas destrancadas, então o mercado vende todos os ingredientes.
   state.service.served = 999;
   const session = new GameSession(content, state);
+  learnRecipes(session);
   const events: string[] = [];
   session.bus.onAny((name) => events.push(name));
   return { session, events };

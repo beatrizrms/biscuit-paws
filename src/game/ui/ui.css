@@ -9,7 +9,8 @@
   transform-origin: 0 0;
   z-index: 1;
   pointer-events: none;
-  font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 600;
   font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px));
   line-height: 1.35;
   color: var(--ink);
@@ -143,6 +144,8 @@
 .display-pick .slot { position: relative; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; background: var(--cream2); border: 1px solid var(--cream3); border-radius: 4px; cursor: pointer; }
 .display-pick .slot.empty { cursor: default; opacity: 0.5; }
 .display-pick .slot .key { position: absolute; top: 1px; left: 2px; font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--ink2); }
+/* Premium: a estrelinha na borda de baixo, à esquerda (a quantidade fica à direita). */
+.display-pick .slot .prem { position: absolute; bottom: 0; left: 1px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--c-gold-dark); }
 .display-pick .slot .count { position: absolute; bottom: 1px; right: 2px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
 .display-pick .close { display: block; margin: 0 auto; }
 html.touch-mode .display-pick .slot .key { display: none; }
@@ -198,11 +201,12 @@ html.touch-mode .display-pick .slot .key { display: none; }
   padding: 9px 12px 10px;
   font-size: max(calc(10.5px * var(--fs, 1)), var(--fs-min, 0px));
 }
+/* O nome de quem fala dentro da caixa, na mesma coluna do texto (antes flutuava na borda, alinhado ao retrato). */
 .dialogue .speaker {
-  position: absolute;
-  top: -11px;
-  left: 10px;
-  padding: 1px 7px;
+  display: block;
+  width: fit-content;
+  margin: 0 0 3px;
+  padding: 0 6px;
   background: var(--pink2);
   border: 2px solid var(--wood3);
   border-radius: 4px;
@@ -522,7 +526,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* HUD por cima de algo do cenário (mouse ou personagem embaixo): fica quase transparente */
 .hud-goals, .hud-money { transition: opacity 0.2s; }
-.hud-goals.see-through, .hud-money.see-through, .hud-rep.see-through, .hud-energy.see-through { opacity: 0.18; pointer-events: none; }
+.hud-goals.see-through, .hud-stack.see-through { opacity: 0.18; pointer-events: none; }
 .hud-rep[hidden], .hud-energy[hidden], .hud-money .hud-weather-icon[hidden] { display: none; }
 
 /* Transições suaves entre o que aparece na cena (gato, celular...) */
@@ -583,6 +587,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .day-transition .next { margin: 0; font-size: max(calc(16px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; letter-spacing: 0.1em; }
 
 .hud-goals .count { font-style: normal; font-variant-numeric: tabular-nums; color: var(--c-ink3); }
+/* O contador do passo da vez e da próxima conquista: na mesma linha, à direita. */
+.hud-goals .g-now .count { margin-left: auto; padding-left: 4px; font-weight: normal; }
 .catalog .online { margin: 0 0 4px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-style: italic; color: var(--grey2); }
 
 /* Celular: ligação */
@@ -762,7 +768,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Capacidade no quadro do cardápio */
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 4px 6px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.4; color: var(--ink); background: var(--cream2); border-radius: 4px; }
-.catalog.menu-board .shopping-add { display: block; margin: 3px 0; padding: 2px 6px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-dishes { margin: 4px 0 0; color: var(--cream2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .shopping-add { display: inline-flex; align-items: center; gap: 4px; margin: 3px 0; padding: 2px 6px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.shop .list { overflow-x: hidden; }
 .catalog .cart-row { box-sizing: border-box; }
 
@@ -968,8 +975,12 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .m-thumb { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 4px; background: var(--cream2); }
 .m-thumb .thumb { display: block; image-rendering: pixelated; background-repeat: no-repeat; }
 .m-name { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.15; text-align: center; }
+/* Quanto uma compra rende (a dúzia de ovos: 12), ao lado do nome na loja e embaixo dele no Market. */
+.yield { margin-left: 4px; padding: 0 3px; border-radius: 5px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; white-space: nowrap; }
+.m-card .yield { margin: 0; }
 .m-price { display: flex; align-items: center; gap: 2px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--wood4); }
 .m-price .coin { width: 7px; height: 7px; image-rendering: pixelated; }
+.m-hint .coin { width: 7px; height: 7px; margin: 0 1px; image-rendering: pixelated; vertical-align: -1px; }
 .m-owned { font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.2; text-align: center; color: var(--mint3); }
 .m-owned.coming { color: var(--c-ink3); }
 .m-refund { padding: 0 4px; font: inherit; font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--wood3); background: var(--cream); border: 1px solid var(--cream3); border-radius: 4px; cursor: pointer; }
@@ -983,6 +994,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Aviso no balão: ninguém entra (quadro vazio ou tudo esgotado) */
 .hud-goals .chores li.job.warn { color: var(--berry); font-weight: bold; }
+/* Pote e caixa automáticos abastecidos: feito sozinho, só a informação dos dias. */
+.hud-goals .chores li.auto { color: var(--grey2); }
 
 /* Balão recolhido: só o título da meta; um clique abre os detalhes (.open). Aviso importante: "!" mesmo recolhido. */
 .hud-goals { pointer-events: auto; cursor: pointer; }
@@ -998,15 +1011,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Ícones desenhados (Horário: relógio; Calendário: folhinha com o dia) */
 .p-icon.schedule { background: var(--c-blue-pale); }
 .p-icon.calendar { background: var(--c-cafe-pale); }
-.p-icon .clock-face { position: relative; width: 22px; height: 22px; border-radius: 50%; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; }
-.p-icon .clock-face::before, .p-icon .clock-face::after { content: ""; position: absolute; left: 50%; bottom: 50%; width: 2px; background: var(--wood4); transform-origin: 50% 100%; margin-left: -1px; }
-.p-icon .clock-face::before { height: 7px; }
-.p-icon .clock-face::after { height: 5px; transform: rotate(110deg); }
-.p-icon .cal-face { display: flex; flex-direction: column; align-items: center; width: 24px; height: 24px; border-radius: 3px; overflow: hidden; background: var(--cream); border: 2px solid var(--wood4); box-sizing: border-box; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; line-height: 1; color: var(--wood4); }
-.p-icon .cal-face b { display: block; width: 100%; height: 5px; margin-bottom: 2px; background: var(--berry); }
 /* Ícone das Notas: bloquinho amarelo com linhas (desenhado no CSS, como o relógio e o calendário). */
-.p-icon .notes-face { display: flex; flex-direction: column; justify-content: center; gap: 3px; width: 20px; height: 24px; padding: 0 3px; border-radius: 2px; background: var(--butter2); border: 2px solid var(--wood4); border-top-width: 4px; box-sizing: border-box; }
-.p-icon .notes-face i { display: block; height: 1px; background: var(--wood3); }
 
 /* App Notas (lista de compras): bloco de notas de celular, papel claro, título grande e bolinhas amarelas */
 .phone-ui[data-app='notes'] .phone-bar button, .phone-ui[data-app='notes'] .phone-bar h2 { color: var(--c-butter-dark); }
@@ -1065,11 +1070,6 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* App Café em números (StatsApp): quadrinhos com o número grande, o gráfico de palitos, o consumo e as sequências */
 .p-icon.stats { background: var(--c-paper3); }
-.p-icon .stats-face { display: flex; align-items: flex-end; gap: 2px; width: 22px; height: 20px; padding: 0 2px 2px; border-bottom: 2px solid var(--wood4); box-sizing: border-box; }
-.p-icon .stats-face i { flex: 1; border-radius: 1px 1px 0 0; background: var(--wood4); }
-.p-icon .stats-face i:nth-child(1) { height: 6px; background: var(--mint3); }
-.p-icon .stats-face i:nth-child(2) { height: 11px; background: var(--butter3); }
-.p-icon .stats-face i:nth-child(3) { height: 16px; background: var(--pink3); }
 .stats-app { padding-bottom: 4px; }
 .s-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
 .s-tiles.two { grid-template-columns: repeat(2, 1fr); }
@@ -1123,7 +1123,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .minigame-layer .mg-info { padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--cream); font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
 .minigame-layer .mg-info:empty { display: none; }
 /* Medidor de quadros (só no debug), embaixo à esquerda, por cima do jogo. */
-.minigame-layer .mg-perf { position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 2px 6px; border-radius: 6px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--cream); font: 9px monospace; pointer-events: none; }
+.minigame-layer .mg-perf { position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 2px 6px; border-radius: 6px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--cream); font: 9px monospace; pointer-events: none; white-space: pre-line; }
 /* Resultado do match de adoção: um cartão por par (retrato, gato → família, selo do veredito e o porquê) e o resumo em selos. */
 .minigame-layer .mg-panel[data-game='adoption'] { width: 330px; }
 .minigame-layer .ad-results { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 6px; padding: 0; list-style: none; text-align: left; }
@@ -1220,12 +1220,12 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 
 /* Obras: o aviso da seleção da área (instruções e o orçamento ao vivo), no alto da tela. */
-.area-select-hint { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 8px 14px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 90%, transparent); color: var(--c-paper); font: 15px 'Trebuchet MS', sans-serif; text-align: center; pointer-events: none; }
+.area-select-hint { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 8px 14px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 90%, transparent); color: var(--c-paper); font: 15px 'Nunito', 'Trebuchet MS', sans-serif; text-align: center; pointer-events: none; }
 .area-select-hint b { color: var(--c-butter-pale); }
 .area-select-hint b:empty { display: none; }
 .area-select-hint.low { top: auto; bottom: 10%; }
 .area-select-hint .as-buttons { display: flex; gap: 10px; margin-top: 4px; pointer-events: auto; }
-.area-select-hint .as-buttons button { min-width: 92px; min-height: 36px; padding: 4px 14px; border-radius: 8px; border: 2px solid color-mix(in srgb, var(--c-paper) 67%, transparent); background: var(--c-paper); color: var(--c-ink); font: bold 15px 'Trebuchet MS', sans-serif; touch-action: none; }
+.area-select-hint .as-buttons button { min-width: 92px; min-height: 36px; padding: 4px 14px; border-radius: 8px; border: 2px solid color-mix(in srgb, var(--c-paper) 67%, transparent); background: var(--c-paper); color: var(--c-ink); font: bold 15px 'Nunito', 'Trebuchet MS', sans-serif; touch-action: none; }
 .area-select-hint .as-buttons .as-ok { background: var(--c-butter); }
 .area-select-hint .as-buttons .as-cancel { background: var(--c-sand); }
 .area-select-hint .as-buttons button:disabled { opacity: 0.45; }
@@ -1259,7 +1259,6 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 @keyframes hover-tip-in { from { opacity: 0; } }
 
 /* App CatPay (vaquinha da CED): carteira de app de pagamento, verde-menta com a barra da meta */
-.p-icon .catpay-face { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--mint2); border: 2px solid var(--mint3); box-sizing: border-box; font-size: max(calc(12px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--c-white); text-shadow: 0 1px 0 var(--mint3); }
 .phone-ui[data-app='catpay'] .phone-bar button, .phone-ui[data-app='catpay'] .phone-bar h2 { color: var(--mint3); }
 .phone-ui[data-app='catpay'] .phone-body { background: var(--c-white); }
 .catpay-app { padding: 0 2px 4px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--ink); }
@@ -1355,7 +1354,6 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 
 /* ---------- SocialVilla (SocialApp.ts) ---------- */
 .p-icon.social { background: var(--c-paper3); }
-.p-icon .social-face { display: grid; place-items: center; width: 24px; height: 20px; border-radius: 8px 8px 8px 2px; background: var(--cream); color: var(--c-terra); font-size: 13px; line-height: 1; box-shadow: 0 1px 0 color-mix(in srgb, var(--c-ink) 27%, transparent); }
 .social-app .sv-feed, .social-app .sv-friends { display: flex; flex-direction: column; gap: 6px; }
 .social-app .sv-post, .social-app .sv-friend { display: flex; gap: 6px; padding: 6px; border-radius: 8px; background: var(--c-paper); box-shadow: 0 1px 0 color-mix(in srgb, var(--c-ink) 13%, transparent); }
 .social-app .sv-post.new { box-shadow: 0 0 0 1px var(--c-paper3), 0 1px 0 color-mix(in srgb, var(--c-ink) 13%, transparent); }
@@ -1415,6 +1413,26 @@ html.touch-mode { --fs: 1.25; --fs-min: 8.5px; }
 html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-profit { color: var(--c-green-dark); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-money { color: var(--c-green-dark); font-weight: bold; }
+/* Receita aberta (visual): a conta da despensa com ícones, a faixa do premium, etiquetas e o lucro. */
+.catalog.menu-board .coin-img { width: 7px; height: 7px; margin-right: 1px; image-rendering: pixelated; vertical-align: -1px; }
+.catalog.menu-board .m-coins { display: inline-flex; align-items: center; white-space: nowrap; }
+.catalog.menu-board .m-calc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.catalog.menu-board .m-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border-radius: 8px; background: var(--c-paper); color: var(--ink); font-weight: bold; cursor: pointer; }
+.catalog.menu-board .m-chip.none { background: var(--c-terra); color: var(--c-white); }
+.catalog.menu-board .m-op { color: var(--c-ink3); font-weight: bold; }
+/* A legenda em cima dos ingredientes (por receita ou por fornada). */
+.catalog.menu-board .m-per { margin: 0 0 1px; color: var(--c-ink3); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-prem { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 2px 5px; border-radius: 6px; background: var(--butter2); color: var(--ink); font-weight: bold; }
+.catalog.menu-board .m-prem .m-swaps { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.catalog.menu-board .m-swap { display: inline-flex; align-items: center; gap: 2px; }
+.catalog.menu-board .m-alt { font-weight: normal; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.catalog.menu-board .m-tag { padding: 0 4px; border-radius: 6px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.catalog.menu-board .m-tag.season { color: var(--c-olive); font-weight: bold; }
+.catalog.menu-board .m-foot { display: flex; align-items: center; gap: 4px; }
+.catalog.menu-board .m-foot .m-profit { flex: 1; }
+.catalog.menu-board .m-foot button { align-self: auto; }
+.catalog.menu-board .b-price .coin-img { width: 6px; height: 6px; }
 
 /* Os passos extras da meta (os preparativos da inauguração): um bloco embaixo, com título, marca "1 por dia" / "hoje ✓". */
 .hud-goals .g-extras { margin: 6px 0 2px; padding-top: 4px; border-top: 1px dashed var(--c-sand); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); letter-spacing: 0.04em; color: var(--c-ink3); }
@@ -1430,7 +1448,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .hud-goals:not(.open) .g-icon { display: block; position: relative; width: 14px; height: 6px; background: radial-gradient(circle, var(--c-ink3) 1.6px, transparent 1.9px) 0 0 / 4.7px 6px repeat-x; }
 .hud-goals:not(.open):has(li.warn, .g-alert) .g-icon::after {
   content: "!"; position: absolute; right: -9px; top: -12px; display: grid; place-items: center; width: 9px; height: 9px; border-radius: 50%;
-  background: var(--berry); color: var(--c-white); font: bold max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)) 'Trebuchet MS', sans-serif;
+  background: var(--berry); color: var(--c-white); font: bold max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)) 'Nunito', 'Trebuchet MS', sans-serif;
 }
 .hud-goals:not(.open)::before { width: 6px; height: 6px; left: 3px; bottom: -6px; }
 .hud-goals:not(.open)::after { width: 3px; height: 3px; left: -1px; bottom: -10px; }
@@ -1446,3 +1464,53 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 /* Etiqueta Novo no cartão do Market (2 dias: etapa nova ou receita nova), no canto da miniatura. */
 .m-card { position: relative; }
 .m-card .m-new { position: absolute; top: 2px; left: 2px; padding: 0 4px; border-radius: 6px; background: var(--c-green-pale); color: var(--c-ink2); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
+
+/* Tipografia (plano de polimento, fase 1): Nunito nos textos (o padrão do #ui) e Pixelify Sans nos números e títulos,
+   para a interface combinar com o pixel art. As fontes vêm embutidas (main.ts, @fontsource). */
+#ui { --font-pixel: 'Pixelify Sans', 'Nunito', sans-serif; }
+#ui .hud-money .clock, #ui .hud-money .amount, #ui .count, #ui .price, #ui .m-price, #ui .b-price, #ui .m-coins,
+#ui .hud-goals h2, #ui .catalog h2, #ui .panel h2, #ui .dialogue .speaker, #ui .m-servings {
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Entrada curta dos painéis (plano de polimento, fase 1): em vez de aparecer de uma vez, um esmaecer com leve deslize.
+   Com translate/scale (não transform), para não desfazer o transform de quem se centraliza com ele (mochila, consulta). */
+@keyframes panel-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@keyframes pop-in { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
+#ui .catalog.open, #ui .phone-ui.open { animation: panel-in 0.14s ease-out; }
+#ui .dialogue-layer.open .dialogue { animation: panel-in 0.12s ease-out; }
+#ui .hud-goals.open { animation: pop-in 0.12s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  #ui .catalog.open, #ui .phone-ui.open, #ui .dialogue-layer.open .dialogue, #ui .hud-goals.open { animation: none; }
+}
+
+/* HUD de cima num painel só (plano de polimento, fase 1): hora e moedas em cima; nota do café e energia embaixo,
+   na mesma largura, separadas por uma linha fina (antes eram três caixinhas soltas de larguras diferentes). */
+.hud-stack { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; padding: 0; overflow: hidden; transition: opacity 0.2s; }
+.hud-stack > .hud-money, .hud-stack > .hud-rep, .hud-stack > .hud-energy { position: static; top: auto; right: auto; background: none; border: 0; box-shadow: none; border-radius: 0; }
+.hud-stack > .hud-money { padding: 2px 8px 2px 4px; }
+.hud-stack > .hud-rep, .hud-stack > .hud-energy { justify-content: space-between; padding: 1px 8px; border-top: 1px solid var(--cream3); }
+.hud-stack > .hud-rep .label, .hud-stack > .hud-energy .label { margin-right: auto; }
+.hud-stack > .hud-energy .bar { flex: 1; max-width: 60px; }
+.hud-cart { top: 58px; }
+
+/* Caixa de fala mais compacta (plano de polimento, fase 1): mais estreita e centrada, com menos espaço vazio. */
+.dialogue { left: 0; right: 0; margin: 0 auto; width: min(460px, calc(100% - 40px)); box-sizing: border-box; min-height: 44px; padding: 7px 12px 8px; }
+.dialogue.with-portrait { padding-left: 56px; }
+.dialogue.with-portrait .portrait { left: 6px; top: 6px; width: 40px; height: 40px; }
+
+/* Ícones dos apps do celular (plano de polimento, fase 1): arte do PixelLab no lugar dos desenhos em CSS. O calendário é
+   a folha em branco, com o número do dia por cima (muda todo dia). */
+.p-icon .cal-art { position: relative; display: grid; place-items: center; width: 32px; height: 32px; }
+.p-icon .cal-art b { position: absolute; left: 0; right: 0; top: 13px; text-align: center; font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--c-ink); }
+
+/* Faixa de teclas desenhada (keyHint.ts): tecla em relevo + uma palavra (guia de estilo, seções 6 e 8). */
+.hint .kh-item, .area-select-hint .kh-item { display: inline-flex; align-items: center; gap: 3px; margin: 0 5px; white-space: nowrap; }
+.hint kbd, .area-select-hint kbd {
+  display: inline-block; min-width: 1.6em; padding: 0 3px; border: 1px solid var(--c-wood-dark); border-radius: 3px;
+  background: var(--c-paper); color: var(--c-ink); box-shadow: 0 1px 0 var(--c-wood-dark);
+  font: 600 1em var(--font-pixel, 'Pixelify Sans', sans-serif); line-height: 1.35; text-align: center; text-shadow: none;
+}
+.hint kbd + kbd, .area-select-hint kbd + kbd { margin-left: 1px; }

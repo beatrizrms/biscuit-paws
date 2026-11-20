@@ -45,6 +45,8 @@
   ],
   "dailyDirt": 2,
   "counterLift": 14,
+  "_surfaceDepth": "Louça e objetos soltos num tampo sem item.surfaceY (balcões, móveis do quarto): a base fica surfaceDepth px acima do topLift do móvel (ou do counterLift), logo atrás da borda da frente. As mesas têm a altura medida na arte (items.json: surfaceY).",
+  "surfaceDepth": 3,
   "tools": {
     "sweep": "item.broom"
   }

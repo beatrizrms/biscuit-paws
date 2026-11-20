@@ -1,6 +1,6 @@
 // App "Horário" do celular: em quais dias da semana o café abre e de que horas a que horas (como um agendador).
 // Muda na hora; quem decide se o horário vale (passos, mínimo de horas, limites) é o núcleo (src/core/schedule.ts).
-import { lunchEnd, lunchStart, WEEK, type Schedule } from '../../core/schedule';
+import { lunchEnd, lunchLength, lunchStart, WEEK, type Schedule } from '../../core/schedule';
 import type { GameSession } from '../../core/session';
 import { formatClock, parseClock } from '../../core/time';
 import { content, uiText } from '../content';
@@ -23,6 +23,13 @@ export function daysText(days: boolean[]): string {
   return uiText.weekdays.filter((_, i) => days[i]).join(', ');
 }
 
+/** "30 min", "1 h", "1h30". */
+function lengthText(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h === 0 ? `${m} min` : m === 0 ? `${h} h` : `${h}h${String(m).padStart(2, '0')}`;
+}
+
 export class ScheduleApp {
   constructor(
     private session: GameSession,
@@ -35,13 +42,14 @@ export class ScheduleApp {
     const s = sv.schedule();
     const rules = content.service.schedule;
     const lunch = lunchStart(s, rules);
+    const length = lunchLength(s, rules);
     // O status é o de hoje (mudar no app só vale amanhã).
     const today = sv.todaySchedule();
     const todayLunch = lunchStart(today, rules);
     const status = !sv.enabled()
       ? t.status.disabled
       : sv.lunchNow() && todayLunch
-        ? t.status.lunch.replace('{back}', lunchEnd(todayLunch, rules))
+        ? t.status.lunch.replace('{back}', lunchEnd(todayLunch, lunchLength(today, rules)))
         : sv.isOpen()
           ? t.status.open.replace('{close}', today.close)
           : t.status.closed.replace('{when}', openingText(this.session));
@@ -58,7 +66,8 @@ export class ScheduleApp {
       <h3>${esc(t.hours)}</h3>${time('open', t.opens)}${time('close', t.closes)}
       <h3>${esc(t.lunch)}</h3><div class="s-time"><button class="s-lunch-toggle" data-lunch="toggle" aria-pressed="${!!lunch}">${esc(lunch ? t.lunchOn : t.lunchOff)}</button>
         ${lunch ? `<button data-lunch="-1" title="${t.earlier}">−</button><b>${lunch}</b><button data-lunch="1" title="${t.later}">+</button>` : ''}</div>
-      <p class="s-summary">${esc(t.summary.replace('{days}', daysText(s.days)).replace('{open}', s.open).replace('{close}', s.close) + (lunch ? t.lunchSummary.replace('{from}', lunch).replace('{to}', lunchEnd(lunch, rules)) : ''))}</p>
+      ${lunch ? `<div class="s-time"><span class="s-label">${esc(t.lunchLength)}</span><button data-lunch-len="-1" title="${t.shorter}">−</button><b>${esc(lengthText(length))}</b><button data-lunch-len="1" title="${t.longer}">+</button></div>` : ''}
+      <p class="s-summary">${esc(t.summary.replace('{days}', daysText(s.days)).replace('{open}', s.open).replace('{close}', s.close) + (lunch ? t.lunchSummary.replace('{from}', lunch).replace('{to}', lunchEnd(lunch, length)) : ''))}</p>
       <p class="m-hint">${esc(t.hint)}</p>`;
     body.querySelectorAll<HTMLButtonElement>('[data-day]').forEach((b) =>
       b.addEventListener('click', () => {
@@ -71,8 +80,16 @@ export class ScheduleApp {
       b.addEventListener('click', () => {
         if (b.dataset.lunch === 'toggle') return this.apply({ ...s, lunch: lunch ? null : (rules.default.lunch ?? '12:00') }, body);
         const next = parseClock(lunch ?? '12:00') + Number(b.dataset.lunch) * rules.stepMinutes;
-        const clamped = Math.max(parseClock(rules.earliest), Math.min(parseClock(rules.latest) - rules.lunchMinutes, next));
+        const clamped = Math.max(parseClock(rules.earliest), Math.min(parseClock(rules.latest) - length, next));
         this.apply({ ...s, lunch: formatClock(clamped, rules.stepMinutes) }, body);
+      }),
+    );
+    // Duração do almoço: de stepMinutes em stepMinutes, dentro de lunchRange.
+    body.querySelectorAll<HTMLButtonElement>('[data-lunch-len]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const next = length + Number(b.dataset.lunchLen) * rules.stepMinutes;
+        const clamped = Math.max(rules.lunchRange[0], Math.min(rules.lunchRange[1], next));
+        if (clamped !== length) this.apply({ ...s, lunchMinutes: clamped }, body);
       }),
     );
     body.querySelectorAll<HTMLButtonElement>('[data-time]').forEach((b) =>

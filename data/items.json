@@ -621,6 +621,7 @@
       "description": "Bancada presa na parede para tomar em pé: os clientes do cafezinho rápido ficam embaixo dela, e o balcão fica livre para você trabalhar. Vai na parede, como os quadros.",
       "price": 70,
       "tile": "bar_ledge_front",
+      "surfaceY": 15,
       "stand": { "sides": ["down"], "lean": 6 },
       "topLift": 14,
       "tags": [
@@ -636,6 +637,8 @@
       "description": "Bancada para tomar em pé, presa na parede da esquerda: os clientes ficam de lado, ao longo dela.",
       "price": 60,
       "tile": "bar_ledge_left",
+      "surfaceY": [10, 24],
+      "surfaceX": -4,
       "stand": { "sides": ["right"], "allRows": true, "lean": 21 },
       "tags": [
         "furniture",
@@ -650,6 +653,8 @@
       "description": "Bancada para tomar em pé, presa na parede da direita: os clientes ficam de lado, ao longo dela.",
       "price": 60,
       "tile": "bar_ledge_right",
+      "surfaceY": [10, 24],
+      "surfaceX": 4,
       "stand": { "sides": ["left"], "allRows": true, "lean": 21 },
       "tags": [
         "furniture",
@@ -664,8 +669,10 @@
       "description": "Mesa de bistrô para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
       "price": 55,
       "tile": "table_tall_round",
+      "surfaceY": 31,
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
+      "topBaseRow": true,
       "tags": [
         "furniture",
         "for:guests",
@@ -679,8 +686,10 @@
       "description": "Mesa de bistrô quadrada para tomar em pé: os clientes ficam em volta dela (dos lados e na frente).",
       "price": 55,
       "tile": "table_tall_square",
+      "surfaceY": 30,
       "stand": { "sides": ["left", "right", "down"], "lean": 5 },
       "topLift": 30,
+      "topBaseRow": true,
       "tags": [
         "furniture",
         "for:guests",
@@ -694,6 +703,7 @@
       "description": "Mesa comprida para os clientes: cabem mais cadeiras em volta (cada cadeira encostada vira um lugar).",
       "price": 110,
       "tile": "table_wide_oval",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -708,6 +718,7 @@
       "description": "Mesa quadrada para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_square",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -722,6 +733,7 @@
       "description": "Mesa grande para grupos: cadeiras dos lados e na frente viram lugares.",
       "price": 140,
       "tile": "table_square_big",
+      "surfaceY": [10, 30],
       "topLift": 12,
       "tags": [
         "furniture",
@@ -736,6 +748,7 @@
       "description": "Mesa para os clientes: com uma cadeira ao lado, vira um lugar para pedidos servidos no prato.",
       "price": 60,
       "tile": "table_round",
+      "surfaceY": 18,
       "topLift": 12,
       "tags": [
         "furniture",
@@ -1577,13 +1590,16 @@
       "id": "item.catpay_sign",
       "name": "Plaquinha do CatPay",
       "price": 0,
-      "tile": "vet_placa_cruz_vet",
+      "tile": "pet_placa_catpay",
       "description": "Plaquinha com o código da vaquinha no CatPay. No balcão, os clientes doam enquanto pagam; sem ela, quase ninguém lembra.",
       "tags": [
         "furniture",
         "decor",
         "ced"
       ],
+      "requires": {
+        "cedActive": true
+      },
       "placeOn": "surface",
       "orFloor": true
     },
@@ -2474,6 +2490,7 @@
       "name": "Pote de ração automático",
       "price": 150,
       "tile": "pet_auto_feeder",
+      "fillTiles": { "full": "pet_auto_feeder_cheio" },
       "autoDays": 10,
       "description": "Upgrade da tigela de ração: coloque em cima da tigela comum. Guarda ração para até 10 dias e serve os gatos sozinho.",
       "tags": [
@@ -2492,6 +2509,7 @@
       "name": "Caixa de areia automática",
       "price": 180,
       "tile": "pet_auto_litter",
+      "fillTiles": { "full": "pet_auto_litter_cheia" },
       "autoDays": 10,
       "description": "Upgrade da caixa de areia: coloque em cima da caixa comum. Guarda areia para até 10 dias e se troca sozinha.",
       "tags": [
@@ -2520,7 +2538,7 @@
       "requires": { "milestone": "milestone.machine_dishwasher" },
       "washer": {
         "capacity": 12,
-        "cycleMinutes": 20
+        "cycleMinutes": 12
       }
     },
     {
@@ -3154,6 +3172,7 @@
       "description": "Decoração do quintal: mesa redonda de jardim.",
       "price": 45,
       "tile": "yard_mesa_redonda_branca",
+      "surfaceY": [8, 32],
       "topLift": 12,
       "tags": [
         "furniture",
@@ -3776,8 +3795,8 @@
       { "id": "upg.sofa", "name": "Sofá", "items": ["item.sofa", "item.sofa_rosa", "item.sofa_ceu"] },
       { "id": "upg.cat_bed", "name": "Caminha de gato", "items": ["item.cat_bed", "item.cat_bed_rosa", "item.cat_bed_lilas"] },
       { "id": "upg.cushion", "name": "Almofada", "items": ["item.cushion_pink", "item.cushion_mint", "item.cushion_sky", "item.cushion_lav", "item.cushion_butter", "item.cushion_tufted"] },
-      { "id": "upg.food_bowl", "name": "Tigela de ração", "items": ["item.food_bowl", "item.auto_feeder"] },
-      { "id": "upg.litter_box", "name": "Caixa de areia", "items": ["item.litter_box", "item.auto_litter_box", "item.litter_box_green"] },
+      { "id": "upg.food_bowl", "name": "Tigela de ração", "items": ["item.food_bowl", "item.auto_feeder"], "discount": 0.2 },
+      { "id": "upg.litter_box", "name": "Caixa de areia", "items": ["item.litter_box", "item.auto_litter_box", "item.litter_box_green"], "discount": 0.2 },
       { "id": "upg.yard_chair", "name": "Cadeira de vime", "items": ["item.yard_wicker_chair", "item.yard_wicker_chair_left"] },
       { "id": "upg.yard_lounger", "name": "Espreguiçadeira", "items": ["item.yard_lounger", "item.yard_lounger_left"] },
       { "id": "upg.yard_low_pot", "name": "Vaso baixo", "items": ["item.yard_low_pot_flowers", "item.yard_low_pot_b", "item.yard_low_pot_c"] },

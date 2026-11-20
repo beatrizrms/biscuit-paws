@@ -503,7 +503,7 @@
       },
       "steps": [
         {
-          "text": "Arrumar 3 prateleiras do mercado.",
+          "text": "Arrume 3 prateleiras do mercado",
           "points": [
             "pt.shelf_1",
             "pt.shelf_2",
@@ -525,7 +525,7 @@
       },
       "steps": [
         {
-          "text": "Varrer 3 montes de neve na frente da loja de móveis.",
+          "text": "Varra 3 montes de neve na frente da loja de móveis",
           "points": [
             "pt.snow_1",
             "pt.snow_2",
@@ -547,13 +547,13 @@
       },
       "steps": [
         {
-          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "text": "Pegue a caixa no estoque do mercado, perto dos sacos de ração",
           "points": [
             "pt.parcel_pickup"
           ]
         },
         {
-          "text": "Entregar a caixa na porta da loja de móveis.",
+          "text": "Entregue a caixa na porta da loja de móveis",
           "points": [
             "pt.parcel_dropoff"
           ]
@@ -573,7 +573,7 @@
       },
       "steps": [
         {
-          "text": "Deixar um panfleto em 4 portas da rua.",
+          "text": "Deixe um panfleto em 4 portas da rua",
           "points": [
             "pt.flyer_house_a",
             "pt.flyer_furniture",
@@ -596,13 +596,13 @@
       },
       "steps": [
         {
-          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "text": "Pegue a caixa no estoque do mercado, perto dos sacos de ração",
           "points": [
             "pt.parcel_pickup_house_a"
           ]
         },
         {
-          "text": "Entregar a caixa na porta da casa de tijolos (começo da rua).",
+          "text": "Entregue a caixa na porta da casa de tijolos (começo da rua)",
           "points": [
             "pt.parcel_dropoff_house_a"
           ]
@@ -622,13 +622,13 @@
       },
       "steps": [
         {
-          "text": "Pegar a caixa no estoque do mercado, perto dos sacos de ração.",
+          "text": "Pegue a caixa no estoque do mercado, perto dos sacos de ração",
           "points": [
             "pt.parcel_pickup_house_c"
           ]
         },
         {
-          "text": "Entregar a caixa na porta da casa do fim da rua.",
+          "text": "Entregue a caixa na porta da casa do fim da rua",
           "points": [
             "pt.parcel_dropoff_house_c"
           ]
@@ -648,7 +648,7 @@
       },
       "steps": [
         {
-          "text": "Varrer 3 montes de neve na frente do mercado.",
+          "text": "Varra 3 montes de neve na frente do mercado",
           "points": [
             "pt.snow_market_1",
             "pt.snow_market_2",
@@ -670,7 +670,7 @@
       },
       "steps": [
         {
-          "text": "Arrumar 4 caixotes de frutas e verduras.",
+          "text": "Arrume 4 caixotes de frutas e verduras",
           "points": [
             "pt.crate_apples",
             "pt.crate_greens",
@@ -693,7 +693,7 @@
       },
       "steps": [
         {
-          "text": "Pegar o gatinho que fugiu pela rua (perto da casa azul).",
+          "text": "Pegue o gatinho que fugiu pela rua (perto da casa azul)",
           "points": [
             "pt.runaway_cat"
           ]
@@ -713,7 +713,7 @@
       },
       "steps": [
         {
-          "text": "Procurar o filhote escondido na rua (na calçada em frente ao café).",
+          "text": "Procure o filhote escondido na rua (na calçada em frente ao café)",
           "points": [
             "pt.kitten_hunt"
           ]
@@ -734,7 +734,7 @@
       },
       "steps": [
         {
-          "text": "Levar o café até a casa do freguês (saída na frente do café, ao lado da lousa).",
+          "text": "Leve o café até a casa do freguês (saída na frente do café, ao lado da lousa)",
           "points": [
             "pt.flash_delivery"
           ]
@@ -755,7 +755,7 @@
       },
       "steps": [
         {
-          "text": "Ganhar a confiança do gato assustado perto da clínica, no fim da rua.",
+          "text": "Ganhe a confiança do gato assustado perto da clínica, no fim da rua",
           "points": [
             "pt.scared_cat"
           ]

@@ -38,6 +38,8 @@ export interface Customer {
   /** Quanto da paciência gastou em pé (fila) e sentado (até ser atendido), de 0 a 1: entra na avaliação. */
   /** Recebeu outra coisa (pedido errado): a nota cai (review.wrongOrder). */
   wrongOrder?: boolean;
+  /** Recebeu o pedido premium: a nota ganha review.premium (meia estrela). */
+  premium?: boolean;
   waits?: Waits;
 }
 
@@ -316,6 +318,23 @@ export class CafeService {
     return { servings: runs * yields, missing, each: entries.map(([item], i) => ({ item, servings: per[i]! * yields })) };
   }
 
+  /**
+   * O premium da receita, para o quadro do cardápio: as trocas (o ingrediente comum e o premium no lugar dele, com
+   * quantas porções a troca sozinha rende na despensa) e quantas saem premium agora (todas as trocas juntas). O jeito
+   * alternativo (outro equipamento e ingredientes, sempre premium) vem à parte. Sem premium, null.
+   */
+  premiumView(recipeId: string): { swaps: { from: string; to: string; servings: number }[]; servings: number; alternative?: { equipment: string; items: { item: string; servings: number }[] } } | null {
+    const r = this.recipe(recipeId);
+    if (!r || (!r.premium && !r.alternative)) return null;
+    const subs = r.premium ?? {};
+    const yields = r.batch?.yields ?? 1;
+    const entries = Object.entries(r.ingredients);
+    const swaps = entries.filter(([item]) => subs[item]).map(([item, n]) => ({ from: item, to: subs[item]!, servings: Math.floor(this.doses(subs[item]!) / n) * yields }));
+    const servings = swaps.length > 0 ? Math.min(...entries.map(([item, n]) => Math.floor(this.doses(subs[item] ?? item) / n))) * yields : 0;
+    const alt = r.alternative ? { equipment: r.alternative.equipment, items: Object.entries(r.alternative.ingredients).map(([item, n]) => ({ item, servings: Math.floor(this.doses(item) / n) * yields })) } : undefined;
+    return { swaps, servings, ...(alt ? { alternative: alt } : {}) };
+  }
+
   /** Ingredientes do jeito alternativo (receita.alternative): todos precisam ter doses, e sai sempre premium. */
   private alternativeIngredients(r: RecipeDef): { ok: boolean; quality: Quality; use: [string, number][] } {
     const use = Object.entries(r.alternative?.ingredients ?? {});
@@ -357,7 +376,8 @@ export class CafeService {
    */
   seasonalMenu(yesterday: number): { arrived: string[]; left: string[] } {
     const seasons = this.h.content.seasons;
-    const unlocked = Object.values(this.h.content.recipes).filter((r) => !r.unlock || this.h.evaluate(r.unlock));
+    // Só as que ela já conhece: a que chega pela primeira vez tem a tela de receita nova (announceRecipes).
+    const unlocked = Object.values(this.h.content.recipes).filter((r) => (!r.unlock || this.h.evaluate(r.unlock)) && (!r.unlock || this.st.flags[`recipe.known.${r.id}`]));
     const arrived = unlocked.filter((r) => inSeason(r, seasons, this.st.day) && !inSeason(r, seasons, yesterday)).map((r) => r.id);
     const left = this.st.menu.filter((id) => {
       const r = this.recipe(id);
@@ -424,16 +444,37 @@ export class CafeService {
     const i = this.st.hands.findIndex((h) => this.storable(h));
     if (i < 0) return { ok: false, reason: 'nothing_to_store' };
     const slots = (this.st.displays[uid] ??= []);
-    if (slots.length >= def.slots) return { ok: false, reason: 'display_full' };
+    const held = this.st.hands[i]!;
+    // A mesma receita, na mesma qualidade, empilha no espaço que já tem (outra fornada, ou a fatia que voltou).
+    const premium = (held.kind === 'cake' || held.kind === 'drink') && held.quality === 'premium';
+    const same = held.kind === 'cake' || held.kind === 'drink' ? slots.find((s) => s.recipe === held.recipe && (s.quality === 'premium') === premium) : undefined;
+    if (!same && slots.length >= def.slots) return { ok: false, reason: 'display_full' };
     const [h] = this.st.hands.splice(i, 1);
-    if (h!.kind === 'cake') slots.push({ recipe: h!.recipe, portions: h!.portions, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+    const add = (portions: number) => {
+      if (same) same.portions += portions;
+      else slots.push({ recipe: (h as { recipe: string }).recipe, portions, ...(premium ? { quality: 'premium' as const } : {}) });
+    };
+    if (h!.kind === 'cake') add(h!.portions);
     else if (h!.kind === 'drink') {
       this.st.dishes[h!.vessel] = (this.st.dishes[h!.vessel] ?? 0) + 1;
-      slots.push({ recipe: h!.recipe, portions: 1, ...(h!.quality === 'premium' ? { quality: 'premium' as const } : {}) });
+      add(1);
     }
     this.h.bus.emit('display.stored', { uid, recipeId: h!.kind === 'cake' || h!.kind === 'drink' ? h!.recipe : '' });
     this.handsChanged();
     return { ok: true };
+  }
+
+  /** Save de antes de empilhar: espaços da mesma receita e qualidade na mesma vitrine viram um só. */
+  mergeDisplays(): void {
+    for (const [uid, slots] of Object.entries(this.st.displays)) {
+      const out: typeof slots = [];
+      for (const s of slots) {
+        const same = out.find((o) => o.recipe === s.recipe && o.quality === s.quality);
+        if (same) same.portions += s.portions;
+        else out.push({ ...s });
+      }
+      this.st.displays[uid] = out;
+    }
   }
 
   /** Tira da vitrine um doce (ou uma fatia do bolo do espaço `index`), num prato limpo. */
@@ -534,6 +575,9 @@ export class CafeService {
   recipeStatus(id: string): RecipeStatus {
     const r = this.recipe(id);
     if (!r || (r.unlock && !this.h.evaluate(r.unlock))) return 'locked';
+    // Receita de conquista que ela ainda não aprendeu continua trancada: chega pela fila (no máximo recipesPerDay por
+    // dia) e a de outra estação só entra na fila quando a época começar (session.announceRecipes).
+    if (r.unlock && !r.special && !this.st.flags[`recipe.known.${r.id}`]) return 'locked';
     if (!this.inSeasonNow(r)) return 'season';
     // Já tem pronto (ou a caminho) sem dono: dá para servir mesmo com a despensa sem o ingrediente (o adiantado no balcão).
     if (this.spareReady(r.id) > 0) return 'available';
@@ -553,6 +597,20 @@ export class CafeService {
     const r = this.recipe(id);
     if (r?.alternative && this.stationsFor(r.alternative.equipment).length > 0) return undefined;
     return r?.steps.find((s) => this.stationsFor(s.equipment).length === 0)?.equipment;
+  }
+
+  /**
+   * A fila das receitas novas: as de conquista (ou outra condição) que já valem, na época, e que ela ainda não aprendeu;
+   * na ordem em que as conquistas foram alcançadas (empate: a ordem do arquivo).
+   */
+  recipesToLearn(): RecipeDef[] {
+    const reachedOn = (r: RecipeDef) => {
+      const m = r.unlock && 'milestone' in r.unlock ? r.unlock.milestone : undefined;
+      return m ? this.st.milestones.reached[m] ?? 0 : 0;
+    };
+    return Object.values(this.h.content.recipes)
+      .filter((r) => r.unlock && !r.special && !this.st.flags[`recipe.known.${r.id}`] && this.h.evaluate(r.unlock) && this.inSeasonNow(r))
+      .sort((a, b) => reachedOn(a) - reachedOn(b));
   }
 
   unlockedRecipes(): RecipeDef[] {
@@ -787,7 +845,7 @@ export class CafeService {
     // Primeira mudança do dia: guarda o horário de hoje como estava.
     const sv = this.st.service;
     if (sv.today?.day !== this.st.day) sv.today = { day: this.st.day, schedule: structuredClone(this.schedule()) };
-    this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}) };
+    this.st.schedule = { days: [...s.days], open: s.open, close: s.close, ...(s.lunch !== undefined ? { lunch: s.lunch } : {}), ...(s.lunchMinutes !== undefined ? { lunchMinutes: s.lunchMinutes } : {}) };
     this.h.bus.emit('schedule.changed', { schedule: this.st.schedule });
     return { ok: true };
   }
@@ -808,19 +866,27 @@ export class CafeService {
    * lava-louças lava sozinha). Padrão true (sem cena, como nos testes, a pia lava direto).
    */
   private sinkAttended = true;
+  /**
+   * A lavagem anda só depois do E (começar ou continuar): saindo da frente da pia, para; voltando, espera outro E.
+   * Ao abrir o jogo com louça lavando, fica parada até o E.
+   */
+  private sinkRunning = false;
   /** Minuto do último tick, para saber quanto tempo a lavagem ficou pausada. */
   private lastTickAt: number | null = null;
 
   setSinkAttended(attended: boolean): void {
     if (attended === this.sinkAttended) return;
     this.sinkAttended = attended;
-    // Avisa (o balão do subconsciente troca "lavando" por "parada") só se há lavagem em andamento.
-    if (this.st.sink.washing) this.h.bus.emit('sink.paused', { paused: !attended });
+    if (attended) return;
+    // Saiu da frente da pia: a lavagem para e só volta com o E. Avisa se estava lavando.
+    const was = this.sinkRunning;
+    this.sinkRunning = false;
+    if (this.st.sink.washing && was) this.h.bus.emit('sink.paused', { paused: true });
   }
 
-  /** Lavando na pia, mas pausado (ela saiu da frente da pia). */
+  /** Lavando na pia, mas pausado (ela saiu da frente da pia e ainda não apertou E de novo). */
   sinkPaused(): boolean {
-    return !!this.st.sink.washing && !this.sinkAttended;
+    return !!this.st.sink.washing && !(this.sinkAttended && this.sinkRunning);
   }
 
   /** A cada minuto de jogo: etapas ficam prontas, a pia lava, clientes esperam/consomem/vão embora, chegam novos. */
@@ -867,7 +933,7 @@ export class CafeService {
     }
     // Pia: só lava com ela em frente; fora, o fim da lavagem anda junto com o relógio (pausa).
     const washing = this.st.sink.washing;
-    if (washing && !this.sinkAttended) washing.readyAt += passed;
+    if (washing && this.sinkPaused()) washing.readyAt += passed;
     if (washing && washing.readyAt <= now) {
       for (const v of VESSELS) this.st.dishes[v] = (this.st.dishes[v] ?? 0) + (washing.load[v] ?? 0);
       this.st.sink.washing = null;
@@ -998,7 +1064,7 @@ export class CafeService {
     // Desistiu (a paciência acabou): conta nas estatísticas e quebra a sequência "ninguém sai de mãos vazias".
     if (!happy) recordGaveUp(this.st.stats);
     const cfg = this.cfg.review;
-    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true);
+    const stars = reviewStars(cfg, c.waits ?? { queue: 0, seated: 0 }, this.h.hallDirt(), !happy, c.wrongOrder === true, c.premium === true);
     recordReview(this.st.stats, stars);
     // A reputação do atendimento vem uma vez por dia, pela média (session: statsAtDayEnd).
     this.h.bus.emit('customer.left', { customerId: c.id, happy, stars, reputation: 0 });
@@ -1293,9 +1359,24 @@ export class CafeService {
   extraRecipes(stationUid: string): string[] {
     const equipment = this.equipmentOf(stationUid);
     if (!equipment) return [];
-    // Bolo com fatias na vitrine: não assa outro à toa.
-    const menu = this.st.menu.filter((id) => this.startsAt(this.recipe(id), equipment) && this.recipeStatus(id) !== 'locked' && !(this.recipe(id)?.display && this.displayPortions(id) > 0));
+    const menu = this.st.menu.filter((id) => this.startsAt(this.recipe(id), equipment) && this.recipeStatus(id) !== 'locked');
     return [...menu, ...this.specialRecipes(stationUid)];
+  }
+
+  /**
+   * A lista do E no equipamento: as receitas que dá para começar aqui agora. Com fornada ainda na vitrine, continua na
+   * lista (a cena sempre pergunta e mostra quantas tem); fornada não precisa de prato limpo (só para servir).
+   */
+  prepareOptions(stationUid: string): string[] {
+    const equipment = this.equipmentOf(stationUid);
+    if (!equipment) return [];
+    return this.extraRecipes(stationUid).filter((id) => {
+      const r = this.recipe(id)!;
+      if (r.special) return true;
+      const status = this.recipeStatus(id);
+      if (status !== 'available' && !(status === 'vessel' && r.batch)) return false;
+      return this.ingredientsAt(r, equipment).ok && (!!r.batch || this.cleanFree(r.vessel) > 0);
+    });
   }
 
   /** Os especiais liberados hoje (a ceia de Natal) que começam neste equipamento e têm ingrediente: sem limite de sem dono. */
@@ -1333,6 +1414,8 @@ export class CafeService {
     const status = unlocked.filter((r) => this.st.menu.includes(r.id)).map((r) => this.recipeStatus(r.id));
     if (status.includes('vessel')) return 'no_vessel';
     if (status.includes('ingredients')) return 'no_ingredients';
+    // Fornada ainda na vitrine (o status diz que dá para servir): para outra, falta o ingrediente.
+    if (unlocked.some((r) => this.st.menu.includes(r.id) && r.display && this.displayPortions(r.id) > 0 && !this.ingredientsAt(r, equipment).ok)) return 'no_ingredients';
     return 'nothing_to_prepare';
   }
 
@@ -1415,6 +1498,13 @@ export class CafeService {
     return !!solid[at[1]] && solid[at[1]]![at[0]] === false;
   }
 
+  /** O que está nesta célula está no chão (nenhum móvel embaixo), não num tampo: a cena desenha sem subir. */
+  onFloor(at: Cell): boolean {
+    const { items, catalog } = this.h.content;
+    // Qualquer móvel que não seja de piso (o tapete): objeto ou de parede (a bancada de frente, encostada nela).
+    return !this.st.placed.some((p) => { const layer = catalog.tiles[items[p.item]?.tile ?? '']?.layer; return !!layer && layer !== 'floor' && this.cellsOfPlaced(p.item, p.at).some((c) => same(c, at)); });
+  }
+
   /** Solta o último objeto da mão (o gato e o saco têm ações próprias). `allowFloor`: false = só em superfície. */
   putDown(at: Cell, feet: readonly Cell[], allowFloor = true): ServiceResult {
     const item = this.st.hands[this.st.hands.length - 1];
@@ -1478,6 +1568,7 @@ export class CafeService {
       c.wrongOrder = true;
       c.recipe = served.recipe; // ele toma o que recebeu (a louça e o tempo de consumo são desse)
     }
+    if (quality === 'premium') c.premium = true;
     const r = this.recipe(c.recipe!)!;
     const patienceLeft = (c.until - this.now()) / this.cfg.patienceMinutes;
     c.waits = { queue: c.waits?.queue ?? 0, seated: this.used(c) };
@@ -1499,9 +1590,10 @@ export class CafeService {
     return near(feet, this.sinkCell());
   }
 
-  /** O que a pia faria com um E agora: receber a louça suja das mãos ou começar a lavar. */
-  sinkAction(): 'deposit' | 'wash' | null {
-    if (this.st.hands.some((h) => h.kind === 'dirty')) return 'deposit';
+  /** O que a pia faria com um E agora: receber a louça suja das mãos, começar a lavar ou continuar a lavagem parada. */
+  sinkAction(): 'deposit' | 'wash' | 'resume' | null {
+    if (this.st.hands.some((h) => h.kind === 'dirty') && this.sinkLoad() < this.cfg.sinkCapacity) return 'deposit';
+    if (this.sinkPaused()) return 'resume';
     if (this.st.hands.length === 0 && !this.st.sink.washing && loadCount(this.st.sink.load) > 0) return 'wash';
     return null;
   }
@@ -1510,7 +1602,7 @@ export class CafeService {
   depositDirty(): ServiceResult {
     const dirty = this.st.hands.filter((i) => i.kind === 'dirty');
     if (dirty.length === 0) return { ok: false, reason: 'hands_empty' };
-    let room = this.cfg.sinkCapacity - loadCount(this.st.sink.load);
+    let room = this.cfg.sinkCapacity - this.sinkLoad();
     if (room <= 0) return { ok: false, reason: 'sink_full' };
     const kept: HandItem[] = [];
     for (const h of this.st.hands) {
@@ -1532,7 +1624,16 @@ export class CafeService {
     if (this.st.sink.washing) return { ok: false, reason: 'station_busy' };
     this.st.sink.washing = { readyAt: this.now() + n * this.cfg.washMinutesPerDish, load: { ...this.st.sink.load } };
     this.st.sink.load = emptyLoad();
+    this.sinkRunning = true;
     this.h.bus.emit('sink.changed', { load: 0 });
+    return { ok: true };
+  }
+
+  /** Continua a lavagem parada (ela saiu da pia e voltou): E de novo. */
+  resumeWash(): ServiceResult {
+    if (!this.st.sink.washing) return { ok: false, reason: 'nothing_here' };
+    this.sinkRunning = true;
+    this.h.bus.emit('sink.paused', { paused: false });
     return { ok: true };
   }
 
@@ -1545,8 +1646,9 @@ export class CafeService {
     return Math.min(1, Math.max(0, 1 - (w.readyAt - at) / total));
   }
 
+  /** Louças na pia: as esperando e as que estão sendo lavadas (só saem dela limpas, quando a barra termina). */
   sinkLoad(): number {
-    return loadCount(this.st.sink.load);
+    return loadCount(this.st.sink.load) + loadCount(this.st.sink.washing?.load ?? emptyLoad());
   }
 
   /** Quantas louças cabem na pia. */
@@ -1631,6 +1733,11 @@ export class CafeService {
   /** Louça suja esperando na lava-louças (não conta a que está lavando). */
   washerLoad(uid: string): number {
     return loadCount(this.st.washers[uid]?.load ?? emptyLoad());
+  }
+
+  /** Quantas louças cabem na lava-louças. */
+  washerCapacity(uid: string): number {
+    return this.washerDef(uid)?.capacity ?? 0;
   }
 
   /** Tem louça dentro (esperando ou lavando)? Assim ela não pode ser guardada na mochila. */
@@ -1810,9 +1917,9 @@ export class CafeService {
     return speedFactor(this.st.hands, this.st.tray, this.carry);
   }
 
-  /** Está carregando algo (nas mãos, na bandeja ou no colo)? Correr fica um pouco mais devagar. */
+  /** Está carregando algo (nas mãos, na bandeja ou no colo)? Correr fica um pouco mais devagar. A bandeja vazia não conta. */
   carrying(): boolean {
-    return this.st.hands.length > 0 || !!this.st.tray;
+    return this.st.hands.length > 0;
   }
 
   /** Quantos cabem nas mãos agora (para a interface). */

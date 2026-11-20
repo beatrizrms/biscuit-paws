@@ -85,7 +85,7 @@ export class FishingScene extends MiniGameScene {
     this.line = this.add.graphics().setDepth(30);
     this.bobber = this.add.sprite(0, 0, FISHING.bobber.key, 0).setScale(ART_SCALE).setDepth(31).setVisible(false);
     this.buildBar();
-    this.hint = this.add.text(GAME_WIDTH / 2, 70, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', color: '#3b2a32', backgroundColor: '#fff4e0cc', padding: { x: 6, y: 3 } });
+    this.hint = this.add.text(GAME_WIDTH / 2, 70, '', { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '11px', color: '#3b2a32', backgroundColor: '#fff4e0cc', padding: { x: 6, y: 3 } });
     this.hint.setOrigin(0.5).setDepth(100).setResolution(2);
 
     // Lançar: E/Espaço lança no ponto padrão; clique na água, onde clicou. Fisgar também é E/clique.
@@ -272,7 +272,7 @@ export class FishingScene extends MiniGameScene {
     // O peixe da partida, em meia escala (32 px lógicos), virado para cima como quem nada contra a corrente.
     this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale(0.5).setAngle(-90);
     this.barHelp = this.add
-      .text(BAR.w / 2, BAR.h + 6, uiText.minigames.fishing.reelHelp, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#3b2a32', align: 'center', backgroundColor: '#fff4e0e6', padding: { x: 4, y: 2 } })
+      .text(BAR.w / 2, BAR.h + 6, uiText.minigames.fishing.reelHelp, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#3b2a32', align: 'center', backgroundColor: '#fff4e0e6', padding: { x: 4, y: 2 } })
       .setOrigin(0.5, 0)
       .setResolution(4);
     this.bar.add([this.barGfx, this.barFish, this.barHelp]);

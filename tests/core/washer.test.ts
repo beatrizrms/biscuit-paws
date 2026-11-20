@@ -28,15 +28,15 @@ function cafe(dirty = 0) {
 }
 
 describe('lava-louças', () => {
-  it('dados: 12 peças, ciclo de 20 min; na aba Eletro (tag equipment), de piso', () => {
+  it('dados: 12 peças, ciclo de 12 min; na aba Eletro (tag equipment), de piso', () => {
     const item = content.items['item.dishwasher']!;
-    expect(item.washer).toEqual({ capacity: 12, cycleMinutes: 20 });
+    expect(item.washer).toEqual({ capacity: 12, cycleMinutes: 12 });
     expect(item.tags).toContain('equipment');
     expect(item.placeOn).toBeUndefined();
     expect(content.catalog.tiles[item.tile!]).toMatchObject({ w: 1, h: 1, solid: true });
   });
 
-  it('como a pia: E com louça suja deposita; de mãos livres, liga; em 20 min tudo volta limpo', () => {
+  it('como a pia: E com louça suja deposita; de mãos livres, liga; em 12 min tudo volta limpo', () => {
     const { session, state, sv, uid, events } = cafe(3);
     expect(sv.washerNear([[5, 9]])).toBe(uid);
     expect(sv.washerNear([[9, 9]])).toBeUndefined();
@@ -50,16 +50,16 @@ describe('lava-louças', () => {
     expect(sv.startWasher(uid)).toEqual({ ok: true });
     expect(events).toContain('washer.changed');
     expect(sv.startWasher(uid)).toEqual({ ok: false, reason: 'nothing_here' });
-    advance(session, 10);
+    advance(session, 6);
     expect(sv.washerProgress(uid)).toBeCloseTo(0.5, 1);
-    advance(session, 11);
+    advance(session, 7);
     expect(sv.washerProgress(uid)).toBeUndefined();
     expect(state.dishes.cup).toBe(clean + 3);
     expect(sv.dirtyCount()).toBe(0);
     expect(events).toContain('dish.washed');
   });
 
-  it('ciclo fixo: 12 peças levam os mesmos 20 min (a pia levaria 3 min cada)', () => {
+  it('ciclo fixo: 12 peças levam os mesmos 12 min (a pia levaria 3 min cada)', () => {
     const { session, state, sv, uid } = cafe();
     for (let i = 0; i < 4; i++) {
       state.hands = Array.from({ length: 3 }, () => ({ kind: 'dirty' as const, vessel: 'plate' as const }));
@@ -71,7 +71,7 @@ describe('lava-louças', () => {
     state.hands = [];
     const plates = state.dishes.plate;
     sv.startWasher(uid);
-    advance(session, 21);
+    advance(session, 13);
     expect(state.dishes.plate).toBe(plates + 12);
   });
 

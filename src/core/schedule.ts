@@ -15,6 +15,8 @@ export interface Schedule {
    * Sem o campo (save de antes do almoço): o almoço do horário padrão.
    */
   lunch?: string | null;
+  /** Quanto dura o almoço (minutos), escolhido no app; sem o campo, rules.lunchMinutes. */
+  lunchMinutes?: number;
 }
 
 /** Regras do horário (data/service.json: schedule). */
@@ -28,8 +30,10 @@ export interface ScheduleRules {
   stepMinutes: number;
   /** Aberto pelo menos tantas horas. */
   minHours: number;
-  /** Quanto dura o almoço (minutos). */
+  /** Quanto dura o almoço (minutos) num jogo novo. */
   lunchMinutes: number;
+  /** A duração do almoço que dá para escolher no app: [mínimo, máximo] (minutos, em passos de stepMinutes). */
+  lunchRange: [number, number];
 }
 
 export type ScheduleProblem = 'no_days' | 'too_short' | 'out_of_range' | 'bad_step';
@@ -49,9 +53,14 @@ export function lunchStart(s: Schedule, rules: ScheduleRules): string | null {
   return s.lunch === undefined ? (rules.default.lunch ?? null) : s.lunch;
 }
 
+/** Quanto dura o almoço deste horário (minutos): o escolhido no app ou o padrão. */
+export function lunchLength(s: Schedule, rules: ScheduleRules): number {
+  return s.lunchMinutes ?? rules.lunchMinutes;
+}
+
 /** Hora em que o almoço acaba ("HH:MM"). */
-export function lunchEnd(start: string, rules: ScheduleRules): string {
-  const m = parseClock(start) + rules.lunchMinutes;
+export function lunchEnd(start: string, minutes: number): string {
+  const m = parseClock(start) + minutes;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 }
 
@@ -61,7 +70,7 @@ export function inLunch(s: Schedule, rules: ScheduleRules, minutes: number): boo
   if (!start) return false;
   const from = parseClock(start);
   const t = ((minutes % 1440) + 1440) % 1440;
-  return t >= from && t < from + rules.lunchMinutes;
+  return t >= from && t < from + lunchLength(s, rules);
 }
 
 /** O que está errado no horário (ou null). */
@@ -77,7 +86,11 @@ export function scheduleProblem(s: Schedule, rules: ScheduleRules): ScheduleProb
     if (!/^\d{1,2}:\d{2}$/.test(s.lunch)) return 'bad_step';
     const l = parseClock(s.lunch);
     if (l % rules.stepMinutes !== 0) return 'bad_step';
-    if (l < parseClock(rules.earliest) || l + rules.lunchMinutes > parseClock(rules.latest)) return 'out_of_range';
+    if (l < parseClock(rules.earliest) || l + lunchLength(s, rules) > parseClock(rules.latest)) return 'out_of_range';
+  }
+  if (s.lunchMinutes !== undefined) {
+    if (s.lunchMinutes % rules.stepMinutes !== 0) return 'bad_step';
+    if (s.lunchMinutes < rules.lunchRange[0] || s.lunchMinutes > rules.lunchRange[1]) return 'out_of_range';
   }
   return null;
 }
@@ -101,6 +114,8 @@ export function validateScheduleRules(rules: ScheduleRules, startWeekday: number
   if (!Number.isInteger(startWeekday) || startWeekday < 0 || startWeekday >= WEEK) errors.push('calendar: startWeekday deve ser de 0 (segunda) a 6 (domingo)');
   if (!(rules.stepMinutes > 0) || 60 % rules.stepMinutes !== 0) errors.push('service: schedule.stepMinutes deve dividir 60');
   if (!(rules.lunchMinutes > 0) || rules.lunchMinutes % rules.stepMinutes !== 0) errors.push('service: schedule.lunchMinutes deve ser maior que 0 e em passos de stepMinutes');
+  const [lo, hi] = rules.lunchRange ?? [0, 0];
+  if (!(lo > 0 && hi >= lo && lo % rules.stepMinutes === 0 && hi % rules.stepMinutes === 0 && rules.lunchMinutes >= lo && rules.lunchMinutes <= hi)) errors.push('service: schedule.lunchRange deve ser [mín, máx] em passos de stepMinutes, com lunchMinutes dentro');
   const p = scheduleProblem(rules.default, rules);
   if (p) errors.push(`service: o horário padrão é inválido (${p})`);
   return errors;

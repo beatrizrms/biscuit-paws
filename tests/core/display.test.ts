@@ -4,6 +4,7 @@ import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 const untilChairs = content.story.beats.slice(0, content.story.beats.findIndex((b) => b.id === 'story.chairs') + 1).map((b) => b.id);
@@ -15,13 +16,14 @@ const advance = (session: GameSession, m: number) => {
 function bakery(withDisplay = true) {
   const state = newGameState(5000, 'map.cafe_main', 9 * 60);
   state.flags['has.cat'] = true;
-  state.service.served = 80;
+  state.service.served = 960;
   state.business = 'inaugurated'; // as receitas depois do pão de queijo contam desde a inauguração
   state.story.completed.push(...untilChairs);
   state.placed.push({ uid: 'b1', item: 'item.blender', at: [7, 5] }, { uid: 'o1', item: 'item.oven', at: [8, 5] });
   if (withDisplay) state.placed.push({ uid: 'v1', item: 'item.display_case', at: [10, 5] });
   for (const id of ['item.flour', 'item.eggs', 'item.butter', 'item.chocolate', 'item.sugar']) state.pantry[id] = 3;
   const session = new GameSession(content, state);
+  learnRecipes(session);
   session.receiveItem('item.dishes_set');
   const sv = session.service;
   sv.toggleMenu('recipe.cake_slice');
@@ -45,16 +47,16 @@ describe('vitrine e fornada', () => {
     expect(bakery().sv.recipeStatus('recipe.cake_slice')).toBe('available');
   });
 
-  it('a fornada rende o bolo inteiro (6 fatias) sem usar prato; ele vai para a vitrine', () => {
+  it('a fornada rende o bolo inteiro (8 fatias) sem usar prato; ele vai para a vitrine', () => {
     const { state, sv, bakeCake } = bakery();
     const plates = sv.cleanFree('plate');
     bakeCake();
-    expect(state.hands).toEqual([{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'simple' }]);
+    expect(state.hands).toEqual([{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 8, quality: 'simple' }]);
     expect(sv.cleanFree('plate')).toBe(plates);
     expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
     expect(state.hands).toEqual([]);
-    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 6 }]);
-    expect(sv.displayPortions('recipe.cake_slice')).toBe(6);
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 8 }]);
+    expect(sv.displayPortions('recipe.cake_slice')).toBe(8);
   });
 
   it('tirar uma fatia usa um prato limpo e diminui o bolo; a última fatia libera o espaço', () => {
@@ -81,21 +83,35 @@ describe('vitrine e fornada', () => {
     expect(sv.storeInDisplay('v1')).toEqual({ ok: false, reason: 'nothing_to_store' });
   });
 
-  it('vitrine cheia (6 espaços) não guarda mais', () => {
+  it('vitrine cheia (6 espaços) não guarda outra receita; a igual empilha', () => {
     const { state, sv } = bakery();
     state.displays.v1 = Array.from({ length: 6 }, () => ({ recipe: 'recipe.paw_cookie', portions: 1 }));
-    state.hands = [{ kind: 'drink', recipe: 'recipe.paw_cookie', vessel: 'plate' }];
+    state.hands = [{ kind: 'drink', recipe: 'recipe.cheese_bread', vessel: 'plate' }];
     expect(sv.storeInDisplay('v1')).toEqual({ ok: false, reason: 'display_full' });
+    state.hands = [{ kind: 'drink', recipe: 'recipe.paw_cookie', vessel: 'plate' }];
+    expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
+    expect(state.displays.v1![0]!.portions).toBe(2);
   });
 
-  it('com fatias na vitrine dá para servir mesmo sem ingredientes, e não assa outro bolo à toa', () => {
+  it('com fatias na vitrine dá para servir mesmo sem ingredientes; outro bolo só com ingrediente (e a cena pergunta)', () => {
     const { state, sv } = bakery();
     state.pantry = {};
     state.pantryOpen = {};
     expect(sv.recipeStatus('recipe.cake_slice')).toBe('ingredients');
     state.displays.v1 = [{ recipe: 'recipe.cake_slice', portions: 3 }];
     expect(sv.recipeStatus('recipe.cake_slice')).toBe('available');
-    expect(sv.extraRecipes('b1')).toEqual([]);
+    expect(sv.prepareOptions('b1')).toEqual([]);
+    for (const id of ['item.flour', 'item.eggs', 'item.butter', 'item.chocolate', 'item.sugar']) state.pantry[id] = 3;
+    expect(sv.prepareOptions('b1')).toEqual(['recipe.cake_slice']);
+    expect(sv.displayPortions('recipe.cake_slice')).toBe(3);
+  });
+
+  it('fornada não precisa de prato limpo para começar (só para servir)', () => {
+    const { state, sv } = bakery();
+    state.dishes.plate = 0;
+    expect(sv.recipeStatus('recipe.cake_slice')).toBe('vessel');
+    expect(sv.prepareOptions('b1')).toEqual(['recipe.cake_slice']);
+    expect(sv.prepare('b1', 'recipe.cake_slice')).toEqual({ ok: true });
   });
 
   it('com doces dentro, a vitrine não pode ser recolhida, e desenha a arte cheia', () => {
@@ -151,5 +167,29 @@ describe('meta da vitrine', () => {
     state.inventory['item.display_case'] = 1;
     expect(session.place('item.display_case', [10, 5])).toEqual({ ok: true });
     expect(state.story.completed).toContain('story.display_case');
+  });
+});
+
+describe('vitrine empilha o que é igual', () => {
+  it('outra fornada da mesma receita (e a fatia que volta) vai para o mesmo espaço; premium fica à parte', () => {
+    const { state, sv, bakeCake } = bakery();
+    bakeCake();
+    expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
+    state.hands = [{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'simple' }];
+    expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }]);
+    expect(sv.takeFromDisplay('v1', 0)).toEqual({ ok: true });
+    expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }]);
+    state.hands = [{ kind: 'cake', recipe: 'recipe.cake_slice', portions: 6, quality: 'premium' }];
+    expect(sv.storeInDisplay('v1')).toEqual({ ok: true });
+    expect(sv.displayStock('v1')).toEqual([{ recipe: 'recipe.cake_slice', portions: 14 }, { recipe: 'recipe.cake_slice', portions: 6, quality: 'premium' }]);
+  });
+
+  it('save com a mesma receita em dois espaços: ao abrir, vira um só', () => {
+    const { state, session } = bakery();
+    state.displays.v1 = [{ recipe: 'recipe.cake_slice', portions: 1 }, { recipe: 'recipe.cheese_bread', portions: 4 }, { recipe: 'recipe.cake_slice', portions: 9 }];
+    session.service.mergeDisplays();
+    expect(state.displays.v1).toEqual([{ recipe: 'recipe.cake_slice', portions: 10 }, { recipe: 'recipe.cheese_bread', portions: 4 }]);
   });
 });

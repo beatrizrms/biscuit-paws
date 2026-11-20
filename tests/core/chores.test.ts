@@ -27,6 +27,27 @@ describe('tarefas do dia', () => {
     expect(session.chores().find((c) => c.kind === 'litter')).toMatchObject({ done: true, progress: [1, 1] });
   });
 
+  it('pote e caixa automáticos abastecidos: ração e areia do dia já feitas, com os dias guardados; vazios, voltam a pedir', () => {
+    const { session, state } = cafe();
+    state.placed.push({ uid: 'af', item: 'item.auto_feeder', at: [3, 8], stock: 7 }, { uid: 'al', item: 'item.auto_litter_box', at: [5, 8], stock: 1 });
+    const feed = () => session.chores().find((c) => c.kind === 'feed');
+    const litter = () => session.chores().find((c) => c.kind === 'litter');
+    expect(feed()).toMatchObject({ done: true, auto: 7 });
+    expect(litter()).toMatchObject({ done: true, auto: 1 });
+    state.placed.find((p) => p.uid === 'af')!.stock = 0;
+    expect(feed()).toMatchObject({ done: false, progress: [0, 1] });
+    expect(feed()!.auto).toBeUndefined();
+  });
+
+  it('a varinha guardada na caixa pet conta: a linha só pede para brincar (sem "compre uma varinha")', () => {
+    const { session, state } = cafe();
+    state.cats['cat.first_stray']!.playedOn = 1;
+    const play = () => session.chores().find((c) => c.kind === 'care' && c.need === 'play');
+    expect(play()).toMatchObject({ hasTool: false });
+    state.petBoxes = { box1: { 'item.cat_wand': 1 } };
+    expect(play()).toMatchObject({ hasTool: true });
+  });
+
   it('brinquedos de menos não são uma linha à parte: a linha do gato que quer brincar pede mais brinquedos', () => {
     const { session, state } = cafe();
     state.inventory['item.cat_wand'] = 1;
@@ -59,6 +80,16 @@ describe('gatos em recuperação', () => {
     // Fora da recuperação: some.
     delete cat.clinic;
     expect(line()).toBeUndefined();
+  });
+
+  it('isolado só esperando a consulta de entrada: a linha pede só a comida (não é recuperação)', () => {
+    const { session, state } = cafe();
+    const cat = state.cats['cat.first_stray']!;
+    cat.clinic = { stage: 'intake' };
+    const pen = () => session.chores().find((c) => c.kind === 'clinic' && (c.clinic === 'pen_food' || c.clinic === 'pen_wait'));
+    expect(pen()).toMatchObject({ clinic: 'pen_wait', done: false, progress: [0, 1] });
+    cat.fedOn = state.day;
+    expect(pen()).toMatchObject({ clinic: 'pen_wait', done: true, progress: [1, 1] });
   });
 });
 

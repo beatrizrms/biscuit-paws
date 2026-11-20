@@ -101,6 +101,19 @@ export interface ItemDef {
   /** Apoio (tag surface/bar): quanto o que vai em cima sobe até o tampo (px); sem o campo, world.counterLift. */
   topLift?: number;
   /**
+   * Apoio alto (a mesa alta, 1x2): só a linha de baixo tem tampo; a de cima é o desenho subindo. Sem o campo, todas as
+   * células recebem (bancada de parede deitada, mesa grande 2x2).
+   */
+  topBaseRow?: boolean;
+  /**
+   * Louça e objetos soltos no tampo: a que altura (px acima da base da célula) fica a base deles, logo atrás da borda da
+   * frente do tampo (medido na arte). Lista: um valor por linha do tile, de cima para baixo (mesa 2x2). Sem o campo,
+   * topLift (ou counterLift) mais world.surfaceDepth.
+   */
+  surfaceY?: number | number[];
+  /** Tampo fora do meio da célula (a bancada lateral, encostada na parede): quanto a louça anda para o lado (px). */
+  surfaceX?: number;
+  /**
    * Para tomar em pé (bancada de parede, mesa alta): de que lados das células o cliente fica, virado para ela. Só a
    * linha de baixo (a peça alta sobe no desenho), ou todas (`allRows`: a bancada da parede do lado, deitada no chão).
    */
@@ -109,7 +122,8 @@ export interface ItemDef {
   display?: { slots: number; fullTile?: string };
   /**
    * Tigela e caixa de areia: a arte cheia (`full`, no dia em que ela encheu ou trocou: PlacedItem.refilledOn) e a vazia
-   * (`empty`, nos outros dias). Sem uma delas, vale o `tile` de sempre.
+   * (`empty`, nos outros dias). Nos automáticos (autoDays), cheia com ração ou areia guardada (PlacedItem.stock > 0).
+   * Sem uma delas, vale o `tile` de sempre.
    */
   fillTiles?: { full?: string; empty?: string };
   /** Só à venda nestas estações (a fruta fresca da época); sem o campo, o ano todo. */
@@ -286,6 +300,8 @@ export type Condition =
   | { business: BusinessStage }
   /** Reforma completa: os dois reparos do construtor feitos (interno e da fachada; data/finishes.json construction). */
   | { renovated: true }
+  /** A vaquinha da CED em andamento (a missão da CED: data/ced.json). */
+  | { cedActive: true }
   /** O cômodo já chegou a este estado (data/rooms.json). */
   | { room: string; atLeast: RoomState }
   /** Gatos abrigados. */
@@ -425,6 +441,11 @@ export interface WorldData {
   dailyDirt: number;
   /** Pixels que um equipamento sobe quando está em cima do balcão. */
   counterLift?: number;
+  /**
+   * Louça e objetos soltos num tampo sem item.surfaceY (balcões, móveis do quarto): a base fica este tanto (px) acima
+   * do topLift do móvel (ou do counterLift), para dentro do tampo, longe da borda da frente.
+   */
+  surfaceDepth?: number;
   /** Ação -> item que precisa estar ativo na barra (sweep: varrer sujeira e neve). */
   tools: { sweep: string };
   /**

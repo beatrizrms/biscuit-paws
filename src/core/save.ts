@@ -511,6 +511,8 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
           close: v2.schedule.close,
           // Almoço: campo opcional (sem ele, o do horário padrão); null = sem almoço.
           ...(v2.schedule.lunch === null || (typeof v2.schedule.lunch === 'string' && /^\d{1,2}:\d{2}$/.test(v2.schedule.lunch)) ? { lunch: v2.schedule.lunch } : {}),
+          // A duração do almoço escolhida no app (opcional: sem ela, a padrão).
+          ...(typeof v2.schedule.lunchMinutes === 'number' && Number.isInteger(v2.schedule.lunchMinutes) && v2.schedule.lunchMinutes > 0 ? { lunchMinutes: v2.schedule.lunchMinutes } : {}),
         }
       : null,
     // Energia: campo opcional (sem ele, cheia); valor estranho é descartado.

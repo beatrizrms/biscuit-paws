@@ -4,6 +4,7 @@ import { GameSession } from '../../src/core/session';
 import { newGameState } from '../../src/core/state';
 import { doorAt } from '../../src/core/map';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 /** Com as etapas do Market aos poucos: a história do começo tem que conseguir comprar o que cada meta pede. */
@@ -632,7 +633,7 @@ describe('mercado', () => {
     session.enter('map.market');
     expect(session.interactionAt([[13, 11]])?.action).toEqual({ shop: 'shop.market' });
     expect(session.interactionAt([[13, 11]], [13, 9])?.id).toBe('int.market_cashier');
-    expect(session.interactionAt([[3, 11]])).toBeUndefined(); // longe
+    expect(session.interactionAt([[18, 11]])).toBeUndefined(); // longe
     expect(session.interactionAt([[13, 11]], [12, 5])).toBeUndefined(); // clicou em outra coisa
   });
 
@@ -791,7 +792,7 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta antes do dia 26: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café dia 26');
+    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café no dia 26');
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');
@@ -1439,7 +1440,7 @@ describe('evolução das receitas', () => {
     session.start(true);
     const unlocked = () => session.service.unlockedRecipes().map((r) => r.id);
     expect(unlocked()).toEqual(['recipe.black_coffee']);
-    session.state.service.served = 6;
+    session.state.service.served = 15;
     session.service.toggleMenu('recipe.black_coffee'); // qualquer ação avança a história
     expect(unlocked()).toContain('recipe.black_tea');
     expect(events.filter((e) => e.name === 'recipe.unlocked').map((e) => e.payload)).toEqual([{ recipeId: 'recipe.black_tea' }]);
@@ -1455,7 +1456,8 @@ describe('evolução das receitas', () => {
     expect(session.itemUnlocked('item.teapot')).toBe(false);
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(false);
     expect(session.buy('item.teapot')).toEqual({ ok: false, reason: 'locked' });
-    session.state.service.served = 6;
+    session.state.service.served = 15;
+    learnRecipes(session);
     expect(session.itemUnlocked('item.teapot')).toBe(true);
     expect(session.itemUnlocked('item.tea_black_bag')).toBe(true);
     // O forno só com o pão de queijo; móveis e coisas de gato não mudam.

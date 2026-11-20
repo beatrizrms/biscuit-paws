@@ -75,7 +75,7 @@ describe('tigela e caixa de areia comuns', () => {
 });
 
 describe('automáticos', () => {
-  it('o pote guarda até 10 dias (o saco de 10 kg enche de uma vez) e serve sozinho, avisando quando acaba', () => {
+  it('o pote guarda até 10 dias (o saco de 10 kg enche de uma vez) e serve sozinho, um dia por dia, avisando quando acaba', () => {
     const { session, state, hold } = cafe({ auto: true });
     state.inventory['item.cat_food_basic'] = 12; // saco de 10 kg + 2
     hold('item.cat_food_basic');
@@ -90,9 +90,24 @@ describe('automáticos', () => {
       for (const c of Object.values(state.cats)) Object.assign(c, { happiness: 80, hygiene: 80 });
       session.endDay('home');
     }
-    expect(session.stationStock('p90')).toBe(2);
-    expect(state.cats['cat.second']!.fedOn).toBe(state.day - 1);
+    // Um dia de ração por dia, do dia em que encheu (1) até hoje (9): sobra 1. De manhã ele já serve.
+    expect(session.stationStock('p90')).toBe(1);
+    expect(state.cats['cat.second']!.fedOn).toBe(state.day);
     expect(events.some((e) => e.name === 'pet.low')).toBe(true);
+  });
+
+  it('abasteceu o pote com os gatos com fome: eles comem na hora (sem esperar o fim do dia)', () => {
+    const { session, state, hold } = cafe({ auto: true });
+    state.inventory['item.cat_food_basic'] = 3;
+    hold('item.cat_food_basic');
+    expect(session.feedFromBowl('p90')).toEqual({ ok: true });
+    session.tickClock(5);
+    expect(state.cats['cat.first_stray']!.fedOn).toBe(state.day);
+    expect(state.cats['cat.second']!.fedOn).toBe(state.day);
+    expect(session.stationStock('p90')).toBe(2);
+    // No fim do dia, ninguém come de novo (o pote já serviu hoje).
+    session.endDay('home');
+    expect(session.stationStock('p90')).toBe(1);
   });
 
   it('com a tigela cheia no dia, o pote automático não gasta', () => {
@@ -103,7 +118,8 @@ describe('automáticos', () => {
     session.feedFromBowl('p90');
     session.feedFromBowl('p92');
     session.endDay('home');
-    expect(session.stationStock('p90')).toBe(5);
+    // O dia 1 foi da tigela comum; o pote só serviu a manhã do dia 2.
+    expect(session.stationStock('p90')).toBe(4);
   });
 
   it('a caixa automática troca a areia sozinha; outra ração não entra enquanto houver a de antes', () => {
@@ -131,7 +147,7 @@ describe('automáticos', () => {
     expect(state.placed.filter((p) => p.item === 'item.food_bowl' || p.item === 'item.auto_feeder').length).toBe(2);
   });
 
-  it('pela assistência técnica: a tigela vira o pote no mesmo lugar (diferença + serviço) e a ração guardada volta', () => {
+  it('pela assistência técnica: a tigela vira o pote no mesmo lugar (diferença com desconto + serviço) e a ração guardada volta', () => {
     const { session, state } = cafe({ auto: true });
     state.flags['has.cat'] = true; // os itens de gato só depois do primeiro gato
     state.business = 'inaugurated'; // e os upgrades só depois da inauguração
@@ -150,11 +166,24 @@ describe('automáticos', () => {
     const back = cafe();
     back.state.flags['has.cat'] = true;
     back.state.business = 'inaugurated';
-    const price = content.items['item.auto_feeder']!.price - content.items['item.food_bowl']!.price + content.upgrades.fee;
+    // A diferença com o desconto de troca (20%) + o serviço: bem menos que o pote automático novo.
+    const price = Math.round((content.items['item.auto_feeder']!.price! - content.items['item.food_bowl']!.price!) * 0.8) + content.upgrades.fee;
+    expect(price).toBeLessThan(content.items['item.auto_feeder']!.price! - 20);
     expect(back.session.upgradeOptions('p90')).toEqual([{ itemId: 'item.auto_feeder', cost: price }]);
     expect(back.session.upgradePlaced('p90', 'item.auto_feeder')).toEqual({ ok: true });
     expect(back.state.placed.find((p) => p.uid === 'p90')!.item).toBe('item.auto_feeder');
     expect(back.state.inventory['item.auto_feeder'] ?? 0).toBe(0);
+  });
+
+  it('automáticos: a arte cheia com ração ou areia guardada; sem estoque, a de sempre', () => {
+    const { session, state } = cafe({ auto: true });
+    const tileOf = (uid: string) => session.mapData().objects.find((o) => o.id.endsWith(uid))?.tile;
+    expect(tileOf('p90')).toBe('pet_auto_feeder');
+    expect(tileOf('p91')).toBe('pet_auto_litter');
+    state.placed.find((p) => p.uid === 'p90')!.stock = 4;
+    state.placed.find((p) => p.uid === 'p91')!.stock = 1;
+    expect(tileOf('p90')).toBe('pet_auto_feeder_cheio');
+    expect(tileOf('p91')).toBe('pet_auto_litter_cheia');
   });
 
   it('o estoque dos automáticos e a areia do dia vão no save', () => {

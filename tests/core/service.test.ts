@@ -4,6 +4,7 @@ import { GameSession } from '../../src/core/session';
 import { newGameState, nowAbs } from '../../src/core/state';
 import { validateRecipes, type RecipeDef } from '../../src/core/recipes';
 import { loadContent } from './content';
+import { learnRecipes } from './learn';
 
 const content = loadContent();
 /** Avança o relógio minuto a minuto (como o jogo, quadro a quadro). */
@@ -22,6 +23,7 @@ function openCafe(opts: { counter?: boolean; coffee?: boolean; served?: number; 
   state.service.served = opts.served ?? 0;
   state.story.completed.push(...untilChairs);
   const session = new GameSession(content, state);
+  learnRecipes(session);
   const events: { name: EventName; payload: unknown }[] = [];
   session.bus.onAny((name, payload) => events.push({ name, payload }));
   const put = (item: string, at: [number, number]) => {
@@ -111,7 +113,8 @@ describe('receitas e cardápio', () => {
     expect(sv.recipeStatus('recipe.black_coffee')).toBe('available');
     // Café novo: só o café preto. O chá destranca com clientes atendidos e aí pede o bule.
     expect(sv.recipeStatus('recipe.black_tea')).toBe('locked');
-    session.state.service.served = 15;
+    session.state.service.served = 30;
+    learnRecipes(session);
     expect(sv.recipeStatus('recipe.black_tea')).toBe('equipment');
     expect(sv.recipeStatus('recipe.orange_juice')).toBe('equipment');
     // Receitas para depois ficam bloqueadas até a condição delas.
@@ -182,7 +185,7 @@ describe('receitas e cardápio', () => {
   });
 
   it('o quadro tem slots (dados) e só aceita receita desbloqueada', () => {
-    const { sv, state } = openCafe({ served: 15 });
+    const { session, sv, state } = openCafe({ served: 30 });
     expect(sv.toggleMenu('recipe.cafe_latte')).toEqual({ ok: false, reason: 'not_unlocked' });
     expect(sv.toggleMenu('recipe.black_coffee')).toEqual({ ok: true });
     expect(state.menu).toEqual(['recipe.black_coffee']);
@@ -190,8 +193,9 @@ describe('receitas e cardápio', () => {
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true });
     expect(sv.orderable().map((r) => r.id)).toEqual(['recipe.black_coffee']);
     expect(sv.toggleMenu('recipe.orange_juice')).toEqual({ ok: true });
-    state.service.served = 65;
+    state.service.served = 480;
     state.business = 'inaugurated'; // o chá verde conta desde a inauguração
+    learnRecipes(session);
     expect(sv.toggleMenu('recipe.green_tea')).toEqual({ ok: true });
     expect(sv.toggleMenu('recipe.lemonade')).toEqual({ ok: false, reason: 'menu_full' });
     expect(sv.toggleMenu('recipe.black_tea')).toEqual({ ok: true }); // tirar
@@ -660,6 +664,9 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
     expect(session.buy('item.tray')).toEqual({ ok: false, reason: 'already_owned' });
     expect(session.selectHotbarItem('item.tray')).toBe(true);
     expect(state.tray).toBe(true);
+    // Vazia, a bandeja não deixa lenta (nem andando nem correndo).
+    expect(sv.speed()).toBe(1);
+    expect(sv.carrying()).toBe(false);
     const spots: [number, number][] = [[4, 6], [5, 6], [6, 6], [6, 7], [5, 7], [4, 7], [3, 7]];
     for (const at of spots) state.surfaces.push({ at, item: { kind: 'dirty', vessel: 'cup' } });
     for (const at of spots.slice(0, 6)) expect(sv.pickUp(at)).toEqual({ ok: true });
@@ -760,7 +767,7 @@ describe('fase 2: bandeja, pesados e gato no colo', () => {
 describe('fase 2: forno e receitas em etapas', () => {
   /** Café com fogão, forno, vitrine, mesa, cadeira e ingredientes do pão de queijo; o quadro só com ele. */
   const bakery = () => {
-    const ctx = openCafe({ served: 35 });
+    const ctx = openCafe({ served: 60 });
     const { session, sv } = ctx;
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
@@ -839,7 +846,7 @@ describe('fase 2: forno e receitas em etapas', () => {
   });
 
   it('sem o forno, a receita fica esgotada dizendo o que falta', () => {
-    const { session, sv } = openCafe({ served: 35 });
+    const { session, sv } = openCafe({ served: 60 });
     session.state.business = 'inaugurated'; // o pão de queijo conta desde a inauguração
     session.state.money += 1000;
     for (const [id, at] of [['item.counter_single', [2, 8]], ['item.stove', [2, 8]], ['item.display_case', [6, 8]]] as const) {
@@ -902,7 +909,7 @@ describe('fase 2: qualidade e preferências', () => {
 
 describe('equipamentos em cima do balcão', () => {
   it('só vão em cima de um balcão livre; o balcão não sai com algo em cima; não vira lugar de cliente', () => {
-    const { session, sv, state } = openCafe({ served: 6 });
+    const { session, sv, state } = openCafe({ served: 15 });
     const machine = state.placed.find((p) => p.item === 'item.coffee_machine')!;
     const counter = state.placed.find((p) => p.item === 'item.counter_single' && p.at[0] === 7)!;
     // Já tem a cafeteira em cima: o bule não cabe no mesmo balcão.
@@ -1063,7 +1070,7 @@ describe('avaliação dos clientes (estrelas)', () => {
 });
 
 describe('lavar na pia é à mão', () => {
-  it('fora da frente da pia a lavagem pausa (a barra fica parada); de volta, continua de onde parou', () => {
+  it('fora da frente da pia a lavagem pausa (a barra fica parada); de volta, só continua com o E, de onde parou', () => {
     const { session, sv, state } = openCafe();
     state.sink.load = { cup: 4, glass: 0, plate: 0 }; // 4 peças x 3 min = 12 min
     state.service.nextCustomerAt = 1e9;
@@ -1078,13 +1085,20 @@ describe('lavar na pia é à mão', () => {
     advance(session, 20);
     expect(state.dishes.cup).toBe(cups);
     expect(sv.washProgress()).toBeCloseTo(half, 1);
-    // Voltou: termina no que faltava (uns 6 minutos).
+    // Voltou: parada até o E; com o E, termina no que faltava (uns 6 minutos). A louça conta na pia até ficar limpa.
     sv.setSinkAttended(true);
+    expect(sv.sinkPaused()).toBe(true);
+    expect(sv.sinkLoad()).toBe(4);
+    advance(session, 5);
+    expect(sv.washProgress()).toBeCloseTo(half, 1);
+    expect(sv.sinkAction()).toBe('resume');
+    expect(sv.resumeWash()).toEqual({ ok: true });
     expect(sv.sinkPaused()).toBe(false);
     advance(session, 4);
     expect(state.dishes.cup).toBe(cups);
     advance(session, 4);
     expect(state.dishes.cup).toBe(cups + 4);
+    expect(sv.sinkLoad()).toBe(0);
   });
 });
 
@@ -1146,7 +1160,7 @@ describe('soltar louça', () => {
 describe('espremedor: suco de fruta fresca, sempre premium', () => {
   /** Café com 15 clientes (o suco de laranja destrancado), um equipamento de suco num balcão e polpa, fruta e açúcar. */
   function juiceBar(equipment: 'item.blender' | 'item.juicer') {
-    const ctx = openCafe({ served: 15 });
+    const ctx = openCafe({ served: 30 });
     const { session, state, sv } = ctx;
     state.money = 2000;
     expect(session.buy(equipment)).toEqual({ ok: true });
@@ -1160,7 +1174,7 @@ describe('espremedor: suco de fruta fresca, sempre premium', () => {
 
   it('o espremedor aparece no Market junto com o suco', () => {
     expect(openCafe().session.itemUnlocked('item.juicer')).toBe(false);
-    expect(openCafe({ served: 15 }).session.itemUnlocked('item.juicer')).toBe(true);
+    expect(openCafe({ served: 30 }).session.itemUnlocked('item.juicer')).toBe(true);
   });
 
   it('no liquidificador o suco usa a polpa e sai simples', () => {
@@ -1229,5 +1243,6 @@ describe('a fama traz gente (reputationArrival)', () => {
     }
     if (process.env.SHOW_ARRIVALS) console.log("chegadas em 4 dias", { low, high });
     expect(high).toBeGreaterThan(low * 1.6);
-  });
+    // Simula 8 dias inteiros (uns 2 s sozinho): com a suíte toda junto passava dos 5 s às vezes.
+  }, 30_000);
 });

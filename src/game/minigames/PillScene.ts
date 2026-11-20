@@ -86,7 +86,7 @@ export class PillScene extends MiniGameScene {
     this.catRows = { front: anim('sit'), back: anim('walk_up') };
     this.cat = this.add.sprite(CAT.x, CAT.y, catTexture(variant), this.catRows.front * content.catSprites.columns).setOrigin(0.5, 28 / 32).setScale(CAT.scale * catScale(variant));
     this.mark = this.add
-      .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
+      .text(CAT.x + 34, CAT.y - 128, '', { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#d9475d', stroke: '#fff4e0', strokeThickness: 4, resolution: 4 })
       .setOrigin(0.5);
     this.bar = this.add.graphics().setDepth(100);
     this.tube = this.add.image(0, 0, PILL_KEYS.tube).setScale(TUBE_ART).setDepth(200).setVisible(false);
@@ -228,7 +228,7 @@ export class PillScene extends MiniGameScene {
 
   private float(text: string, color: string): void {
     const label = this.add
-      .text(CAT.x, CAT.y - 150, text, { fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(CAT.x, CAT.y - 150, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '11px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     this.tweens.add({ targets: label, y: label.y - 16, alpha: 0, delay: 400, duration: 700, onComplete: () => label.destroy() });

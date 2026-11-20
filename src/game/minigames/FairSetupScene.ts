@@ -51,7 +51,7 @@ const RULES = { x: 516, y: 52 };
 
 const C = { ok: 0x68ad8a, bad: 0xd9475d, edge: 0x7f4b33, card: 0xfff7e6, pick: 0xe0a94e };
 const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Trebuchet MS, sans-serif',
+  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
   fontSize: `${size}px`,
   fontStyle: bold ? 'bold' : 'normal',
   color,

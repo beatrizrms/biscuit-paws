@@ -148,7 +148,10 @@ function legendMaker() {
     };
     place(kinds.filter((k) => !k.includes('jovem')), 8);
     place(kinds.filter((k) => k.includes('jovem')), 7);
-    return out;
+    // Polimento (decisão 278): as mudinhas soltas na grama saem (pareciam jogadas), o escorregador encosta no balanço e a
+    // pipoca vai para o lado do hot dog. Feito depois do sorteio, para as outras árvores não mudarem de lugar.
+    const moved: Record<string, [number, number]> = { 'obj.praca_escorregador': [4, 10], 'obj.praca_pipoca': [28, 5] };
+    return out.filter((o) => !o.tile.startsWith('prop_arvore_jovem')).map((o) => (moved[o.id] ? { ...o, at: moved[o.id]! } : o));
   }
   write('data/maps/praca.json', {
     comment:
@@ -291,7 +294,15 @@ function legendMaker() {
       obj('sacos_2', 'beco_sacos_lixo', [2, 7]),
       obj('poste', 'prop_poste', [3, 3]),
       obj('caixote', 'beco_caixote_frente', [5, 6]),
-      obj('sacos_3', 'beco_sacos_lixo', [2, 10]),
+      // Polimento (decisão 278): os sacos que ficavam soltos no meio do chão vão para o monte da caçamba, e o muro ganha
+      // as portas dos fundos das casas (beco_porta), cada uma com o seu cantinho encostado no muro.
+      obj('sacos_3', 'beco_sacos_lixo', [1, 7]),
+      { ...obj('porta_1', 'beco_porta', [9, 4]), inWall: true },
+      obj('caixote_2', 'beco_caixote_frente', [8, 6]),
+      obj('vaso_1', 'yard_vaso_baixo_flores', [10, 6]),
+      { ...obj('porta_2', 'beco_porta', [15, 4]), inWall: true },
+      obj('lixeira', 'prop_lixeira', [14, 6]),
+      obj('sacos_4', 'beco_sacos_lixo', [16, 6]),
     ],
     lights: [{ at: [4, 3.45], radius: 40, color: '#ffd59a' }],
     // Saída para a rua: andando para a direita, nas linhas de baixo do beco.

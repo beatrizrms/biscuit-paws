@@ -31,6 +31,8 @@ export interface MapObject {
   lift?: number;
   /** Desenhado tantos pixels para a direita (ex.: o cartaz no meio do poste de 2 tiles). */
   shiftX?: number;
+  /** Espelhado (ex.: a banca de frutas virada, para duas bancas iguais lado a lado não parecerem cópias). */
+  flipX?: boolean;
   /** Embutido na parede (a porta do jardim): pode ter a base na parede e fica atrás de quem passa na frente. */
   inWall?: boolean;
   /** Janela com cortina: o tile com a cortina aberta (a interação "curtain" troca; só a aberta joga luz no piso). */
@@ -185,6 +187,8 @@ export interface MapSprite {
   dirt?: string;
   /** Pixels para a direita (MapObject.shiftX). */
   dx?: number;
+  /** Desenhar espelhado (MapObject.flipX): o quadro já é o da célula do outro lado da peça. */
+  flipX?: boolean;
   /** Pixels para cima (objeto em cima de outro, ex.: cafeteira no balcão). */
   dy?: number;
   /** Cor chapada por cima do desenho (DirtSpot.fill). */
@@ -384,13 +388,17 @@ export function resolveMap(map: MapData, catalog: TileCatalog): ResolvedMap {
     // Arte que sobe acima da peça (rise): mesma profundidade, sem ocupar a célula de cima.
     for (let k = 1; k <= (def.rise ?? 0); k++) {
       for (let dx = 0; dx < def.w; dx++) {
-        const frame = frameOf(catalog, def, dx, -k);
-        sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col: c0 + dx, row: r0 - k, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}) });
+        // Espelhada, o pedaço de cima também troca de lado; o deslocamento (shiftX) vale para a peça inteira.
+        const fx = obj.flipX ? def.w - 1 - dx : dx;
+        const frame = frameOf(catalog, def, fx, -k);
+        sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col: c0 + dx, row: r0 - k, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}), ...(obj.shiftX ? { dx: obj.shiftX } : {}), ...(obj.flipX ? { flipX: true } : {}) });
       }
     }
     for (const [col, row] of cellsOf(obj.at, def)) {
-      const frame = frameOf(catalog, def, col - c0, row - r0, variantAt(def, c0, r0));
-      sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}), ...(obj.shiftX ? { dx: obj.shiftX } : {}) });
+      // Espelhada: cada célula desenha a do lado oposto da peça, virada.
+      const fx = obj.flipX ? def.w - 1 - (col - c0) : col - c0;
+      const frame = frameOf(catalog, def, fx, row - r0, variantAt(def, c0, r0));
+      sprites.push({ obj: obj.id, tile: obj.tile, sheet: def.sheet, frame, col, row, depth: depth + (obj.lift ? 1 : 0), ...(obj.lift ? { dy: obj.lift } : {}), ...(obj.shiftX ? { dx: obj.shiftX } : {}), ...(obj.flipX ? { flipX: true } : {}) });
       if (over) {
         const overFrame = frameOf(catalog, over, col - c0, row - r0);
         sprites.push({ obj: obj.id, tile: over.name, sheet: over.sheet, frame: overFrame, col, row, depth: depth + OVERLAY_LIFT });
@@ -468,7 +476,9 @@ export function solidBoxes(map: MapData, catalog: TileCatalog, baseDepth = 1): P
       if (base[r]?.[c] || done.has(key) || c < 0 || c >= map.size.cols) continue;
       done.add(key);
       const h = Math.round(ts * d);
-      boxes.push({ x: c * ts, y: (r + 1) * ts - h, w: ts, h });
+      // A arte deslocada (shiftX: as prateleiras do mercado) leva a colisão junto: sem isto, a célula da ponta ficava
+      // sólida e vazia (parede invisível) e a arte passava por cima do chão livre.
+      boxes.push({ x: c * ts + (obj.shiftX ?? 0), y: (r + 1) * ts - h, w: ts, h });
     }
   }
   return boxes;

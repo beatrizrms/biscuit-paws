@@ -298,6 +298,56 @@ const SHEETS: Sheet[] = [
       banca_b: { file: 'mercado_C/banca_b.png', w: 3, h: 1 },
       carrinhos_fila: { file: 'mercado_A/obj_10.png', w: 1, h: 1, dy: 3 },
       cestas_vime: { file: 'mercado_A/obj_12.png', w: 1, h: 1, dy: 4 },
+      // Piso novo (polimento, fase 6): lajota creme sem a borda escura (create_tiles_pro, segmentation), sem o brilho
+      // que repetia em grade; duas variações sorteadas por célula.
+      chao_c: { file: '', w: 1, h: 1, variants: 2, build: (v) => remapColors(readPng(`${SRC}/pisos_mercado_clinica/tile_${v ? 6 : 4}.png`), { f9f5de: 'f8e9d2', fff7ec: 'f8e9d2' }) },
+      // Paredes dos lados (polimento, fase 6): uma faixa fina na borda do tile, nas cores da parede do mercado, para
+      // os móveis terem onde encostar (antes o piso ia até a borda da tela).
+      parede_lateral_esq: { file: '', w: 1, h: 1, build: () => sideWall(false) },
+      parede_lateral_dir: { file: '', w: 1, h: 1, build: () => sideWall(true) },
+      // Lote 02 do mercado (polimento, fase 6, aprovado: 48 gerações). Bancas de hortifrúti de perfil para as paredes
+      // dos lados (create_8_direction_object: a vista de leste encosta na parede da esquerda, a de oeste na da direita),
+      // o freezer de ilha e os itens pequenos (placas com ícone, caixotes, baldes de flores, cestos).
+      banca_lado_frutas_esq: { file: '', w: 1, h: 1, build: () => sideProfile('mercado_lote02/bin_frutas_east.png', false, 1) },
+      banca_lado_frutas_dir: { file: '', w: 1, h: 1, build: () => sideProfile('mercado_lote02/bin_frutas_west.png', true, 1) },
+      banca_lado_verduras_esq: { file: '', w: 1, h: 1, build: () => sideProfile('mercado_lote02/bin_verduras_east.png', false, 1) },
+      banca_lado_verduras_dir: { file: '', w: 1, h: 1, build: () => sideProfile('mercado_lote02/bin_verduras_west.png', true, 1) },
+      // As 4 bancas de perfil numa peça só (frutas e verduras alternando, bem sobrepostas), como uma estante inclinada contínua.
+      banca_lado_corrida_esq: { file: '', w: 1, h: 2, build: () => binRun(['mercado_lote02/bin_frutas_east.png', 'mercado_lote02/bin_verduras_east.png'], 4, 18, false) },
+      banca_lado_corrida_dir: { file: '', w: 1, h: 2, build: () => binRun(['mercado_lote02/bin_frutas_west.png', 'mercado_lote02/bin_verduras_west.png'], 4, 18, true) },
+      // Fileira grande (aprovado: 50 gerações): as bancas em dobro, 8 alternando, numa estante contínua de 6 linhas, fatiada
+      // por linha para cada fatia bloquear a passagem.
+      banca_corrida_esq_0: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 0 * TS, TS, TS) },
+      banca_corrida_esq_1: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 1 * TS, TS, TS) },
+      banca_corrida_esq_2: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 2 * TS, TS, TS) },
+      banca_corrida_esq_3: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 3 * TS, TS, TS) },
+      banca_corrida_esq_4: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 4 * TS, TS, TS) },
+      banca_corrida_esq_5: { file: '', w: 1, h: 1, build: () => cropPng(binRun(['mercado_lote02/bin_frutas_g_east.png', 'mercado_lote02/bin_verduras_g_east.png'], 8, 38, false, 6), 0, 5 * TS, TS, TS) },
+      freezer_ilha: { file: 'mercado_lote02/freezer.png', w: 2, h: 1 },
+      placa_frutas: { file: '', w: 1, h: 1, build: () => readPng(`${SRC}/mercado_lote02/prop_0.png`) },
+      placa_mercearia_icone: { file: '', w: 1, h: 1, build: () => readPng(`${SRC}/mercado_lote02/prop_1.png`) },
+      placa_pet_icone: { file: '', w: 1, h: 1, build: () => readPng(`${SRC}/mercado_lote02/prop_2.png`) },
+      placa_bebidas: { file: '', w: 1, h: 1, build: () => readPng(`${SRC}/mercado_lote02/prop_3.png`) },
+      balanca_frutas: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_4.png') },
+      balde_flores: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_5.png') },
+      caixote_melancias: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_6.png') },
+      cesto_paes: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_7.png') },
+      caixotes_laranjas: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_8.png') },
+      cavalete_preco: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_9.png') },
+      caixote_batatas: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_10.png') },
+      caixote_abobora: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_11.png') },
+      balde_girassois: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_12.png') },
+      expositor_geleias: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_13.png') },
+      cesto_ovos: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_14.png') },
+      caixote_limoes: { file: '', w: 1, h: 1, build: () => grounded('mercado_lote02/prop_15.png') },
+      // Corredores (aprovado: 62 gerações): a prateleira e o expositor endireitados de frente (edit Pro Flash) e girados
+      // (create_8_direction_object). A prateleira tem os dois lados abastecidos (frente e verso alternam nas fileiras);
+      // o expositor de perfil fecha a ponta de cada fileira, encostado nela.
+      prateleira_corredor: { file: '', w: 2, h: 1, rise: 1, build: () => grounded('mercado_lote02/prateleira_south.png', 2, 2) },
+      prateleira_corredor_verso: { file: '', w: 2, h: 1, rise: 1, build: () => grounded('mercado_lote02/prateleira_north.png', 2, 2) },
+      expositor_ponta: { file: '', w: 1, h: 1, rise: 1, build: () => grounded('mercado_lote02/expositor_south.png', 1, 2) },
+      expositor_ponta_esq: { file: '', w: 1, h: 1, rise: 1, build: () => sideProfile('mercado_lote02/expositor_west.png', true, 2) },
+      expositor_ponta_dir: { file: '', w: 1, h: 1, rise: 1, build: () => sideProfile('mercado_lote02/expositor_east.png', false, 2) },
     },
   },
   {
@@ -352,6 +402,8 @@ const SHEETS: Sheet[] = [
       // caixinha com a silhueta de um gato (o gato nas mãos dela entre o café e a clínica, ou esperando num canto).
       cercadinho: { file: 'clinica/cercadinho_recuperacao.png', w: 3, h: 2 },
       caixinha_gato: { file: 'clinica/caixinha_transporte.png', w: 1, h: 1, dy: 4 },
+      // Piso novo (polimento, fase 6): vinil sálvia sem rejunte; a segunda variação sem os riscos de brilho.
+      piso_vinil: { file: '', w: 1, h: 1, variants: 2, build: (v) => (v ? remapColors(readPng(`${SRC}/pisos_mercado_clinica/tile_13.png`), { d3dcc9: 'c9d5bf' }) : readPng(`${SRC}/pisos_mercado_clinica/tile_12.png`)) },
     },
   },
   {
@@ -748,6 +800,8 @@ const SHEETS: Sheet[] = [
       // Vieram junto na geração do robô aspirador (robo_aspirador/), à venda na aba Pet: toquinha e arranhador de papelão.
       toquinha: { file: 'robo_aspirador/toquinha.png', w: 1, h: 1 },
       arranhador_papelao: { file: 'robo_aspirador/arranhador_papelao.png', w: 1, h: 1 },
+      // Plaquinha do CatPay da vaquinha da CED (em cima do balcão): Pro Flash 64x64 com o pote como âncora (2026-11-17).
+      placa_catpay: { file: 'automaticos/placa_catpay.png', w: 1, h: 1 },
     },
   },
   {
@@ -931,6 +985,89 @@ const SHEETS: Sheet[] = [
  * Mural de pedidos do mercado (3x1): a moldura da lousa do café, com o fundo limpo
  * (sem os desenhos de café) e papéis de pedido pregados.
  */
+/** Peça de perfil (vista de lado do PixelLab, quadro grande): recorta o desenho e encosta na parede (à direita com
+ * `right`) com a base no fim de um quadro de 1x2. */
+function sideProfile(file: string, right: boolean, tiles = 2): PNG {
+  const src = readPng(`${SRC}/${file}`);
+  let t = src.height, b = 0, l = src.width, r = 0;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+    if (src.data[(y * src.width + x) * 4 + 3]! > 20) { t = Math.min(t, y); b = Math.max(b, y); l = Math.min(l, x); r = Math.max(r, x); }
+  }
+  const art = cropPng(src, l, t, r - l + 1, b - t + 1);
+  const out = blank(TS, tiles * TS);
+  PNG.bitblt(art, out, 0, 0, art.width, art.height, right ? TS - art.width : 0, tiles * TS - art.height);
+  return out;
+}
+
+/** Item de 1 tile com a base no chão: recorta o desenho e encosta no fim do quadro, centrado (as sobras do PixelLab
+ * variam de item para item). */
+function grounded(file: string, wTiles = 1, hTiles = 1): PNG {
+  const src = readPng(`${SRC}/${file}`);
+  let t = src.height, b = 0, l = src.width, r = 0;
+  for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+    if (src.data[(y * src.width + x) * 4 + 3]! > 20) { t = Math.min(t, y); b = Math.max(b, y); l = Math.min(l, x); r = Math.max(r, x); }
+  }
+  const art = cropPng(src, l, t, r - l + 1, b - t + 1);
+  const W = wTiles * TS;
+  const H = hTiles * TS;
+  const out = blank(W, H);
+  PNG.bitblt(art, out, 0, 0, Math.min(art.width, W), Math.min(art.height, H), Math.max(0, Math.floor((W - art.width) / 2)), Math.max(0, H - 2 - art.height));
+  return out;
+}
+
+/** Bancas de perfil emendadas numa peça só: `count` bancas alternando `files`, cada uma `step` pixels abaixo da anterior
+ * (a de baixo, mais perto da câmera, por cima), encostadas na parede (à direita com `right`), num quadro de 1x2. */
+function binRun(files: string[], count: number, step: number, right: boolean, tiles = 2): PNG {
+  const arts = files.map((f) => {
+    const src = readPng(`${SRC}/${f}`);
+    let t = src.height, b = 0, l = src.width, r = 0;
+    for (let y = 0; y < src.height; y++) for (let x = 0; x < src.width; x++) {
+      if (src.data[(y * src.width + x) * 4 + 3]! > 20) { t = Math.min(t, y); b = Math.max(b, y); l = Math.min(l, x); r = Math.max(r, x); }
+    }
+    return cropPng(src, l, t, r - l + 1, b - t + 1);
+  });
+  const tallest = Math.max(...arts.map((a) => a.height));
+  const height = (count - 1) * step + tallest;
+  const out = blank(TS, tiles * TS);
+  const y0 = tiles * TS - height;
+  for (let i = 0; i < count; i++) {
+    const art = arts[i % arts.length]!;
+    const oy = y0 + i * step + (tallest - art.height);
+    // Mais largo que o tile: sobra do lado da parede (o fundo da banca encosta nela e fica atrás da faixa da parede).
+    const ox = right ? 0 : TS - art.width;
+    for (let y = 0; y < art.height; y++) for (let x = 0; x < art.width; x++) {
+      const si = (y * art.width + x) * 4;
+      if (art.data[si + 3]! < 20 || ox + x < 0 || ox + x >= TS) continue;
+      const di = ((oy + y) * TS + ox + x) * 4;
+      for (let c = 0; c < 4; c++) out.data[di + c] = art.data[si + c]!;
+    }
+  }
+  return out;
+}
+
+/** Parede do lado vista de cima: o topo da parede numa faixa na borda de dentro do tile (parede da direita com `right`), o resto vazio. */
+function sideWall(right: boolean): PNG {
+  const png = blank(TS, TS);
+  let seed = 83;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let y = 0; y < TS; y++) for (let i = 0; i < 18; i++) {
+    const rgb: [number, number, number] = i < 3 || i === 17 ? [109, 68, 57] : i >= 14 ? [190, 133, 86] : rnd() < 0.06 ? [214, 188, 152] : [222, 197, 161];
+    // A faixa fica na borda de dentro (a que dá para o salão): a sombra da parede encosta nela.
+    plot(png, right ? 17 - i : TS - 18 + i, y, rgb);
+  }
+  return png;
+}
+
+/** Troca cores exatas ("rrggbb" -> "rrggbb"): tira o brilho que repete em grade num piso. */
+function remapColors(png: PNG, map: Record<string, string>): PNG {
+  const hex = (i: number) => [0, 1, 2].map((c) => png.data[i + c]!.toString(16).padStart(2, '0')).join('');
+  for (let i = 0; i < png.data.length; i += 4) {
+    const to = map[hex(i)];
+    if (to) for (let c = 0; c < 3; c++) png.data[i + c] = parseInt(to.slice(c * 2, c * 2 + 2), 16);
+  }
+  return png;
+}
+
 function jobBoard(): PNG {
   const lousa = readPng(`${SRC}/03_cafe_3/lousa_a.png`);
   const green: [number, number, number] = [57, 66, 57];
@@ -1382,17 +1519,34 @@ function snowPatches(count: number, seed: number): PNG {
 
 /** Monte de neve na guia (inverno): um morrinho branco com sombra azulada e borda de baixo reta. */
 function snowPile(seed: number): PNG {
+  // Monte de neve baixo e irregular, como a neve que se junta na beira da calçada (antes era uma bola, redonda demais):
+  // o topo é um perfil de lombadas de alturas diferentes, que afina em curva nas pontas. Sombreado por faixas que seguem
+  // o topo (borda de cima clara, o corpo creme-azulado, a base na sombra), sem listras verticais.
   const out = blank(TS, TS);
   const rnd = () => (seed = (seed * 16807 + 9) % 2147483647) / 2147483647;
-  const cx = TS / 2, base = TS - 3, rx = 28, ry = 24;
-  for (let y = base - ry - 2; y <= base; y++) for (let x = 2; x < TS - 2; x++) {
-    const d = ((x - cx) / rx) ** 2 + ((y - base) / ry) ** 2;
-    if (d > 1 + rnd() * 0.08) continue;
-    const edge = d > 0.86 || y === base;
-    // Sombra redonda: a luz vem de cima à esquerda (sem o corte reto que parecia um quadrado na calçada).
-    const nx = (x - cx) / rx, ny = (y - base) / ry;
-    const dark = 0.7 * nx + 0.45 * (1 + ny);
-    plot(out, x, y, edge ? [150, 170, 196] : dark > 0.8 ? [204, 220, 238] : dark > 0.58 ? [228, 236, 246] : [248, 251, 255]);
+  const base = TS - 3;
+  const bumps = Array.from({ length: 5 }, (_, k) => ({ x: 8 + k * 12 + rnd() * 6, w: 5 + rnd() * 5, h: 3 + rnd() * 7 }));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const top: number[] = [];
+  for (let x = 0; x < TS; x++) {
+    const taper = smooth(Math.max(0, Math.min(1, x / 16, (TS - 1 - x) / 16)));
+    let h = 2;
+    for (const b of bumps) h += b.h * Math.exp(-(((x - b.x) / b.w) ** 2));
+    top.push(Math.round(base - h * taper));
+  }
+  for (let x = 1; x < TS - 1; x++) {
+    if (top[x]! >= base) continue;
+    const rising = top[x - 1]! > top[x]!; // encosta virada para a esquerda: pega a luz
+    for (let y = top[x]!; y <= base; y++) {
+      const down = y - top[x]!;
+      const fromBase = base - y;
+      let rgb: [number, number, number];
+      if (y === top[x] || y === base || (x > 1 && top[x - 1]! > y && down === 0)) rgb = [150, 170, 196];
+      else if (down <= 1 + (rising ? 1 : 0)) rgb = [252, 253, 255];
+      else if (fromBase <= 1 || (fromBase === 2 && (x + y) % 2 === 0)) rgb = [196, 212, 232];
+      else rgb = (x * 7 + y * 3) % 11 === 0 ? [236, 242, 250] : [228, 236, 246];
+      plot(out, x, y, rgb);
+    }
   }
   return out;
 }
@@ -2361,6 +2515,8 @@ const ICON_SKIP = new Set(['casinha_gato', 'cama_ao_sol', 'mato', 'porta_fechada
     ...(['agua_coco', 'torta_maca', 'fatia_torta_maca'] as const).map((name) => ({ name, file: `${SRC}/comidas_halloween/${name}.png` })),
     // Sinais em cima da cabeça dos gatos: operado (tesoura), doente (termômetro) e doença que passa (micróbio). Pro Flash 64x64, a latinha como estilo.
     ...(['sinal_tesoura', 'sinal_termometro', 'sinal_microbio'] as const).map((name) => ({ name, file: `${SRC}/icones_extra/${name}.png` })),
+    // Bandeja de frente (Pro Flash 64x64, a bandeja diagonal como estilo): nas mãos, de frente e de costas.
+    { name: 'bandeja_frente', file: `${SRC}/icones_extra/bandeja_frente.png` },
   ];
   const cols = 8;
   const out = new PNG({ width: cols * TS, height: Math.ceil(names.length / cols) * TS });
