@@ -34,7 +34,8 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
 const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   // A Gabi refeita (polimento, fase 2, decisão 281): a partir da frente da cliente 04, roupa adulta; a pasta gabi/ é a antiga.
   gabi2: { id: 'npc.gabi', kit: 'fullBox', portrait: true },
-  corretora: { id: 'npc.realtor', kit: 'full', portrait: true },
+  // A corretora refeita no padrão da cliente 04 (decisão 283): linha 5 = as chaves, linha 6 = a prancheta; corretora/ é a antiga.
+  corretora2: { id: 'npc.realtor', kit: 'fullBox', portrait: true },
   neusa: { id: 'npc.neusa', kit: 'full', portrait: true },
   // A Jacque refeita no padrão da cliente 04 (decisão 282); a pasta jacque/ é a antiga (piercing corrigido à mão).
   jacque2: { id: 'npc.jacque', kit: 'full', portrait: true },

@@ -1176,3 +1176,7 @@ Decisão:
 ## 282. A Jacque refeita no padrão (nov/2026)
 Pedido: refazer a Jacque, que estava cabeçuda e larga, depois da Gabi.
 Decisão: primeiro a ficha aprovada pela Beatriz (pele, cabelo preto cacheado na altura do ombro com só um pouco de volume, óculos redondos de armação grossa, argola no septo e nada na boca, camiseta preta com gatinho branco, calça jeans preta, coturno, pulseira); a frente feita do quadro da cliente 04, com a figura antiga da Jacque como imagem de referência das cores (as cores vieram certas de primeira); depois girada, andar (costas pelo skeleton-v3), acenar, a pose de mãos juntas e o retrato (do retrato da Fernanda, com a figura nova como referência de cor). Pasta `assets/_pixellab/personagens/jacque2/`; a `jacque/` antiga, com o piercing corrigido à mão, fica guardada. 25 gerações.
+
+## 283. A corretora refeita no padrão (nov/2026)
+Pedido: a corretora depois da Jacque.
+Decisão: ficha aprovada (chanel castanho-avermelhado na altura do queixo, blazer azul-acinzentado com broche vermelho e crachá, camisa branca, saia lápis azul-marinho, sapato baixo); frente a partir da cliente 04 com a figura antiga como referência de cor; girada, andar (costas pelo skeleton-v3), acenar, e as duas poses que antes eram o mesmo quadro de mãos juntas agora com objeto: o molho de chaves levantado (linha 5) e a prancheta (linha 6, kit `fullBox`); retrato do da Fernanda com a figura nova como referência. Pasta `assets/_pixellab/personagens/corretora2/`. 27 gerações.
