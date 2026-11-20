@@ -1180,3 +1180,7 @@ Decisão: primeiro a ficha aprovada pela Beatriz (pele, cabelo preto cacheado na
 ## 283. A corretora refeita no padrão (nov/2026)
 Pedido: a corretora depois da Jacque.
 Decisão: ficha aprovada (chanel castanho-avermelhado na altura do queixo, blazer azul-acinzentado com broche vermelho e crachá, camisa branca, saia lápis azul-marinho, sapato baixo); frente a partir da cliente 04 com a figura antiga como referência de cor; girada, andar (costas pelo skeleton-v3), acenar, e as duas poses que antes eram o mesmo quadro de mãos juntas agora com objeto: o molho de chaves levantado (linha 5) e a prancheta (linha 6, kit `fullBox`); retrato do da Fernanda com a figura nova como referência. Pasta `assets/_pixellab/personagens/corretora2/`. 27 gerações.
+
+## 284. A Dona Neusa refeita no padrão (nov/2026)
+Pedido: a Dona Neusa depois da corretora.
+Decisão: ficha aprovada (coque branco-acinzentado, óculos redondos finos, cachecol vermelho, cardigã verde-oliva, saia longa roxa); frente a partir da cliente 04, um pouco mais baixa (110 px) e cheinha, por ser idosa, com a figura antiga como referência de cor; girada, andar (costas pelo skeleton-v3), acenar com uma mão só (a antiga acenava com as duas), a xícara de chocolate quente (linha 5) e a bolsa (linha 6, kit `fullBox`; antes as duas eram o mesmo quadro); retrato do da Fernanda com a figura nova como referência. No quadro da bolsa vieram riscos de "susto" soltos em cima da cabeça, tirados por código (só fica o maior grupo de pixels). Pasta `assets/_pixellab/personagens/neusa2/`. 27 gerações.
