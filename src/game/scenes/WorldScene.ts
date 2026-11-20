@@ -374,7 +374,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
     // Controle de videogame: o A é o E no mundo, o Enter nas falas e janelas, a ação nos mini games (gamepad.ts).
-    pad.context = () => (this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isBusy() && !this.ui.isPanelOpen() ? 'ui' : 'world');
+    // Janela aberta (Market, mochila, cardápio, celular): o destaque anda por ela; fala por cima da janela vem antes.
+    pad.context = () =>
+      this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isDialogueOpen() ? 'ui' : this.ui.isPanelOpen() || this.ui.isCatalogOpen() ? 'panel' : this.ui.isBusy() ? 'ui' : 'world';
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => (pad.context = () => 'ui'));
     this.cartBalloon = new CartBalloon(this);
     this.session.bus.on('cart.changed', ({ count, total }) => (this.cartNow = { count, total }));
@@ -4600,7 +4602,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         },
         onEmpty: () => this.ui.toast(t.selectEmpty, 2500),
       },
-      { hint: t.selectHint, hintTouch: t.selectHintTouch, confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },
+      { hint: t.selectHint, hintTouch: t.selectHintTouch, hintPad: t.selectHintPad, confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },
     );
   }
 

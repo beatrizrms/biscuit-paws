@@ -77,3 +77,5 @@
 }
 /* Botão em foco nas janelas e menus: bem marcado (o direcional passa por eles e o A aperta). */
 html.pad-mode button:focus-visible, html.pad-mode button:focus { outline: 2px solid var(--c-green); outline-offset: 2px; }
+/* Janelas com o controle (padNav.ts): o item destacado, por dentro da borda (não some em lista com rolagem). */
+.pad-focus { outline: 2px solid var(--c-green) !important; outline-offset: -2px; }

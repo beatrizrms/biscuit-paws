@@ -11,6 +11,7 @@ import { services } from '../services';
 import { GAME_HEIGHT, GAME_WIDTH } from '../screen';
 import { ART_SCALE, CHASE, ensurePlaceholders, FISHING, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { byInput } from '../touch';
 
 export const FISHING_SCENE = 'MiniGame.fishing';
 
@@ -136,7 +137,7 @@ export class FishingScene extends MiniGameScene {
     this.stage = 'aim';
     this.bobber.setVisible(false);
     this.bar.setVisible(false);
-    this.say(uiText.minigames.fishing.aim);
+    this.say(byInput(uiText.minigames.fishing.aim, uiText.minigames.fishing.aimTouch, uiText.minigames.fishing.aimPad));
   }
 
   /** A boia voa num arco até o ponto e cai na água. */
@@ -272,7 +273,7 @@ export class FishingScene extends MiniGameScene {
     // O peixe da partida, em meia escala (32 px lógicos), virado para cima como quem nada contra a corrente.
     this.barFish = this.add.image(0, 0, FISHING.fish.key, 0).setScale(0.5).setAngle(-90);
     this.barHelp = this.add
-      .text(BAR.w / 2, BAR.h + 6, uiText.minigames.fishing.reelHelp, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#3b2a32', align: 'center', backgroundColor: '#fff4e0e6', padding: { x: 4, y: 2 } })
+      .text(BAR.w / 2, BAR.h + 6, byInput(uiText.minigames.fishing.reelHelp, uiText.minigames.fishing.reelHelpTouch, uiText.minigames.fishing.reelHelpPad), { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#3b2a32', align: 'center', backgroundColor: '#fff4e0e6', padding: { x: 4, y: 2 } })
       .setOrigin(0.5, 0)
       .setResolution(4);
     this.bar.add([this.barGfx, this.barFish, this.barHelp]);

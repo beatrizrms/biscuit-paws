@@ -13,7 +13,7 @@ import { iconHtml } from '../ui/ShopPanel';
 import { isDebugOn } from '../debug';
 import { startPerfMeter } from './perfMeter';
 import { MiniGameControls } from './controls';
-import { keyless, touch } from '../touch';
+import { byInput, keyless, touch } from '../touch';
 
 /** O que a cena recebe de quem abriu (o registro monta). */
 export interface MiniGameLaunch {
@@ -178,7 +178,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
       this.timer?.pause();
       this.physics.pause();
       this.anims.pauseAll();
-      this.overlay(`<h2>${t.paused}</h2><p>${t.pausedHint}</p>
+      this.overlay(`<h2>${t.paused}</h2><p>${byInput(t.pausedHint, t.pausedHintTouch, t.pausedHintPad)}</p>
         <button class="menu-btn" data-act="resume">${t.resume}</button>
         <button class="menu-btn" data-act="skip">${this.skipLabel()}</button>`);
     } else if (this.phase === 'paused') {

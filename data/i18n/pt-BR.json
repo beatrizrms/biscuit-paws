@@ -5,7 +5,9 @@
     "loading": "Carregando..."
   },
   "home": {
-    "tapToStart": "Toque ou clique para começar",
+    "tapToStart": "Clique ou aperte Enter para começar",
+    "tapToStartTouch": "Toque para começar",
+    "tapToStartPad": "Aperte A para começar",
     "continue": "Continuar",
     "newGame": "Novo jogo",
     "load": "Carregar / recuperar saves",
@@ -14,7 +16,8 @@
     "credits": "Créditos",
     "noSave": "Nenhum save ainda",
     "hint": "Setas: escolher · Enter: confirmar · Esc: voltar",
-    "hintTouch": "Toque para escolher"
+    "hintTouch": "Toque para escolher",
+    "hintPad": "Direcional: escolher · A: confirmar · B: voltar"
   },
   "slot": {
     "slot1": "Slot 1",
@@ -66,50 +69,39 @@
   },
   "howTo": {
     "title": "Como jogar",
-    "keysTitle": "Teclado e mouse",
-    "touchTitle": "Toque",
-    "showKeys": "Ver teclado",
-    "showTouch": "Ver toque",
     "close": "Fechar",
-    "keys": [
-      "Setas ou WASD | Andar",
-      "R (segurando) | Correr",
-      "E | Usar o que está perto (a dica do E aparece em cima)",
-      "Clique | Usar o que você clicou",
-      "1 a 8 ou a roda do mouse | Escolher o item ativo na barra",
-      "0 | Mão livre (nada na mão)",
-      "T | Comer ou beber o que está na mão",
-      "C | Market (compras pelo celular)",
-      "I | Mochila",
-      "P | Celular",
-      "M | Cardápio",
-      "F | Mover um móvel (de novo para soltar; Q guarda na mochila)",
-      "G | Girar o móvel na mão (cadeira, banqueta)",
-      "Esc | Pausa"
-    ],
-    "touch": [
-      "Direcional | Andar (na borda, corre)",
-      "Correr | Liga e desliga a corrida",
-      "E | Usar o que está perto (a dica do E aparece em cima)",
-      "Tocar | Usar o que você tocou",
-      "Barra | Escolher o item ativo (a mãozinha é a mão livre)",
-      "Tomar ou Comer | Consumir o que está na mão",
-      "Market | Compras pelo celular",
-      "Mochila | Mochila",
-      "Cel | Celular",
-      "Cardápio | Cardápio",
-      "Mover | Mover um móvel (Soltar solta; Girar gira; Mochila guarda)",
-      "❚❚ | Pausa"
-    ],
-    "activeTitle": "Itens que precisam estar ativos na barra",
+    "modes": { "touch": "Toque", "keys": "Teclado", "pad": "Controle" },
+    "sections": { "move": "Andar", "use": "Usar", "bar": "Barra de itens", "windows": "Janelas", "furniture": "Móveis" },
+    "keys": {
+      "move": ["Setas / WASD | Andar", "R | Correr (segurando)"],
+      "use": ["E | Usar o que está perto", "Clique | Usar o que clicou", "T | Comer ou beber"],
+      "bar": ["1–8 / Roda | Escolher o item", "0 | Mão livre"],
+      "windows": ["C | Market", "I | Mochila", "P | Celular", "M | Cardápio", "Esc | Pausa ou fechar"],
+      "furniture": ["F | Mover", "G | Girar", "Enter / F | Soltar", "Q | Guardar na mochila"]
+    },
+    "touch": {
+      "move": ["Direcional | Andar", "Correr / Borda | Correr"],
+      "use": ["E | Usar o que está perto", "Tocar | Usar o que tocou", "Tomar / Comer | Consumir o que está na mão"],
+      "bar": ["Barra | Escolher o item", "✋ | Mão livre"],
+      "windows": ["Market | Compras pelo celular", "Mochila | Seus itens", "Cel | Celular", "Cardápio | Montar o cardápio", "❚❚ | Pausa"],
+      "furniture": ["Mover | Pegar o móvel", "Girar | Virar o móvel", "Soltar | Pôr no lugar", "Mochila | Guardar na mochila"]
+    },
+    "pad": {
+      "move": ["Analógico / Direcional | Andar", "RT | Correr (ou o analógico no fim)"],
+      "use": ["A | Usar o que está perto", "X | Comer ou beber"],
+      "bar": ["LB / RB | Trocar o item"],
+      "windows": ["R3 | Market", "Y | Mochila", "Select | Celular", "L3 | Cardápio", "Start | Pausa", "A / B | Escolher / voltar", "LB / RB | Trocar a aba"],
+      "furniture": ["LT | Mover", "X | Girar", "A | Soltar", "Y | Guardar na mochila"]
+    },
+    "activeTitle": "Ponha na barra para usar",
     "active": [
-      "Vassoura | Varrer a sujeira",
-      "Ração | Encher a tigela",
-      "Areia | Trocar a areia da caixa",
-      "Escova | Escovar um gato",
-      "Varinha | Brincar com um gato",
-      "Petisco | Dar a um gato",
-      "Remédio | Dar a um gato doente"
+      "Vassoura | varrer",
+      "Ração | encher a tigela",
+      "Areia | trocar a areia",
+      "Escova | escovar",
+      "Varinha | brincar",
+      "Petisco | dar ao gato",
+      "Remédio | gato doente"
     ]
   },
   "credits": {

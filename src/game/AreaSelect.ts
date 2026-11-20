@@ -5,6 +5,7 @@
 // Só desenha e lê a entrada: quem diz quais células contam e quanto custa é a sessão (finishQuote).
 import Phaser from 'phaser';
 import type { Cell } from '../core/map';
+import { touch as input } from './touch';
 import { keyHintHtml } from './ui/keyHint';
 
 export interface AreaSelectOptions {
@@ -24,10 +25,11 @@ export interface AreaSelectOptions {
 
 const DEPTH = 1e6 - 10;
 
-/** Os textos do aviso: as instruções (teclado e mouse, ou toque) e os botões. */
+/** Os textos do aviso: as instruções (teclado e mouse, toque ou controle de videogame) e os botões. */
 export interface AreaSelectTexts {
   hint: string;
   hintTouch: string;
+  hintPad: string;
   confirm: string;
   cancel: string;
   more: string;
@@ -55,12 +57,12 @@ export class AreaSelect {
     this.gfx = scene.add.graphics().setDepth(DEPTH);
     this.label = document.createElement('div');
     this.label.className = 'area-select-hint';
-    const touch = document.documentElement.classList.contains('touch-mode');
+    const touch = input.mode === 'touch';
     this.label.innerHTML = `<span></span><b></b><div class="as-buttons"><button class="as-more"></button><button class="as-cancel"></button><button class="as-ok"></button></div>`;
     const hintEl = this.label.querySelector('span') as HTMLElement;
-    // No teclado, as teclas desenhadas (keyHint.ts); no toque, a frase dos botões.
+    // No teclado e no controle, as teclas (ou botões) desenhadas (keyHint.ts); no toque, a frase dos botões.
     if (touch) hintEl.textContent = texts.hintTouch;
-    else hintEl.innerHTML = keyHintHtml(texts.hint);
+    else hintEl.innerHTML = keyHintHtml(input.mode === 'pad' ? texts.hintPad : texts.hint);
     this.quoteEl = this.label.querySelector('b') as HTMLElement;
     this.moreBtn = this.label.querySelector('.as-more') as HTMLButtonElement;
     const wire = (btn: HTMLButtonElement, text: string, run: () => void) => {
