@@ -24,8 +24,10 @@ export class SocialApp {
 
   /** O app aparece no celular quando ela conhece alguém. */
   visible(): boolean {
-    // Com amigos, ou com posts no feed (os anúncios de adoção dela começam mesmo sem amigos: decisão 291).
-    return this.session.friendsList().length > 0 || this.session.state.social.feed.length > 0;
+    // Chega com a Gabi: na despedida da primeira visita, ela pede para ela seguir na SocialVilla (decisão 296). Os
+    // anúncios de adoção dela (decisão 291) também abrem o app, se vierem antes.
+    const s = this.session.state;
+    return !!s.flags['seen.scr.gabi_visit'] || s.social.feed.some((f) => f.post.startsWith('adopt.post.'));
   }
 
   render(body: HTMLElement): void {

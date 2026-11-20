@@ -805,6 +805,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-slot .count { position: absolute; bottom: 0; right: 1px; font-size: max(calc(5.5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
 .catalog.backpack .tile-thumb { display: inline-block; background-repeat: no-repeat; }
 .catalog.backpack .bp-detail { display: flex; align-items: center; gap: 5px; margin-top: 5px; padding: 4px 5px; min-height: 30px; border-radius: 4px; background: var(--cream2); font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+/* As ações do item escolhido ficam sempre à vista, presas embaixo da janela (sem rolar até elas: decisão 298). */
+.catalog.backpack .bp-detail { position: sticky; bottom: 0; z-index: 1; box-shadow: 0 -2px 0 var(--cream3); }
 .catalog.backpack .bp-detail-icon { flex: none; display: flex; }
 .catalog.backpack .bp-detail-text { flex: 1; line-height: 1.3; }
 .catalog.backpack .bp-detail-text .amount { color: var(--grey2); }
