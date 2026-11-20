@@ -4,6 +4,7 @@
 // No armário da cozinha e na caixa pet, o storage aparece embaixo; os itens passam entre barra, mochila, despensa e
 // caixa pelos ícones do item selecionado (o ícone é o destino) ou arrastando.
 import { padNav } from '../padNav';
+import { touch } from '../touch';
 import { actionIconSvg, type ActionIcon } from './actionIcons';
 import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
@@ -491,9 +492,11 @@ export class BackpackPanel {
       const detail = this.body.querySelector<HTMLElement>('.bp-detail');
       detail?.scrollIntoView({ block: 'nearest' });
       const first = detail?.querySelector<HTMLButtonElement>('.bp-detail-actions button:not(:disabled)');
+      // No controle, o destaque verde vai para a ação; no mouse e no teclado, só o foco (sem um segundo destaque
+      // ao lado do item escolhido).
       if (first) {
         first.focus({ preventScroll: true });
-        padNav.focus(first);
+        if (touch.mode === 'pad') padNav.focus(first);
       }
     }
     this.focusedSel = sel;
