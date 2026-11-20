@@ -16,7 +16,7 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_pixellab/personagens';
 const OUT = 'public/assets/characters/npcs/v64';
-type Kit = 'full' | 'fullBox' | 'walk' | 'customer' | 'dog' | 'builder' | 'clerk';
+type Kit = 'full' | 'fullBox' | 'walk' | 'customer' | 'customer2' | 'dog' | 'builder' | 'clerk';
 
 /** Quadro (largura x altura) e colunas da folha de cada kit. */
 const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
@@ -24,6 +24,7 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
   fullBox: { w: 112, h: 128, columns: 5 },
   walk: { w: 112, h: 128, columns: 5 },
   customer: { w: 112, h: 128, columns: 5 },
+  customer2: { w: 112, h: 128, columns: 5 },
   dog: { w: 64, h: 64, columns: 6 },
   // O construtor: quadros mais largos para o martelo caber (o golpe vai longe para a direita).
   builder: { w: 144, h: 128, columns: 5 },
@@ -48,6 +49,8 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   ...Object.fromEntries(
     Array.from({ length: 10 }, (_, i) => String(i + 1).padStart(2, '0')).map((n) => [`cliente${n}`, { id: `npc.customer_${n}`, kit: 'customer' as Kit, portrait: false }]),
   ),
+  // Clientes refeitos no padrão (decisão 285): a pasta _v2 substitui a antiga (vem depois, então vale ela).
+  ...Object.fromEntries(['02', '05', '07', '08'].map((n) => [`cliente${n}_v2`, { id: `npc.customer_${n}`, kit: 'customer2' as Kit, portrait: false }])),
 };
 
 /** Linha da folha: animação, direção e opções (`mirror`: espelha; `skip`: pula os primeiros quadros). */
@@ -67,6 +70,8 @@ const ROWS: Record<Kit, Row[]> = {
   fullBox: [...WALK, ['wave', 'south'], ['hold', 'south'], ['hold_box', 'south']],
   walk: WALK,
   customer: [...WALK, ['sit', 'south', { skip: 1 }], ['sit', 'west', { skip: 1 }], ['sit', 'west', { skip: 1, mirror: true }], ['sit', 'north', { skip: 1 }]],
+  // Clientes refeitos (decisão 285): o sentar tem 8 quadros (o movimento de sentar, sem cadeira); usa os 2 últimos, já sentado.
+  customer2: [...WALK, ['sit', 'south', { skip: 6 }], ['sit', 'west', { skip: 6 }], ['sit', 'west', { skip: 6, mirror: true }], ['sit', 'north', { skip: 6 }]],
   dog: [...WALK, ['bark', 'south'], ['bark', 'east'], ['sit', 'south'], ['sleep', 'south']],
   // Construtor: caminhada, acenar, segurar (2ª versão) e, na linha 6, martelando para a direita (com o martelo).
   builder: [...WALK, ['wave', 'south'], ['hold_v2', 'south'], ['hammer_v3', 'east']],
