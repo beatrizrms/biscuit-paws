@@ -64,8 +64,8 @@
       "id": "pt.parcel_pickup",
       "map": "map.market",
       "at": [
-        17,
-        6
+        11,
+        2
       ],
       "action": "press",
       "gives": "item.parcel",
@@ -158,8 +158,8 @@
       "id": "pt.parcel_pickup_house_a",
       "map": "map.market",
       "at": [
-        17,
-        6
+        11,
+        2
       ],
       "action": "press",
       "gives": "item.parcel",
@@ -179,8 +179,8 @@
       "id": "pt.parcel_pickup_house_c",
       "map": "map.market",
       "at": [
-        17,
-        6
+        11,
+        2
       ],
       "action": "press",
       "gives": "item.parcel",

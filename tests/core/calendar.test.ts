@@ -107,3 +107,19 @@ describe('virada da estação', () => {
     expect(session.seasonRevealPending('map.street')).toBe('spring');
   });
 });
+
+describe('app Calendário: só o que já foi apresentado', () => {
+  it('jogo do zero: sem o amigo secreto, os fogos e a inauguração; o Natal sempre', () => {
+    const s = new GameSession(content, newGameState(0, 'map.street', 600));
+    const ids = () => s.calendar(1, 30).map((e) => e.id);
+    expect(ids()).toContain('cal.christmas');
+    expect(ids()).not.toContain('cal.secret_santa');
+    expect(ids()).not.toContain('cal.new_year');
+    expect(ids()).not.toContain('cal.inauguration');
+    // Ela soube a data da inauguração (ao entrar na padaria) e já viu o sorteio e os fogos uma vez.
+    s.state.story.completed.push('story.enter_bakery');
+    s.state.flags['seen.scr.xmas_santa_draw'] = true;
+    s.state.flags['seen.scr.new_year'] = true;
+    expect(ids()).toEqual(expect.arrayContaining(['cal.secret_santa', 'cal.new_year', 'cal.inauguration']));
+  });
+});

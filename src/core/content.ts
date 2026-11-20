@@ -1126,7 +1126,10 @@ export function validateContent(raw: RawContent): string[] {
       if (pt && (pt.action !== 'minigame' || pt.minigame?.id !== x.game)) errors.push(`festivals: "${f.id}": o ponto "${x.point}" não abre o mini game "${x.game}"`);
     }
   for (const f of raw.festivals.festivals) if (f.when !== undefined) checkCondition(`festivals: "${f.id}"`, f.when as Condition);
-  for (const e of raw.seasons.events ?? []) if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
+  for (const e of raw.seasons.events ?? []) {
+    if (e.hideWhen) checkCondition(`seasons: evento "${e.id}"`, e.hideWhen as Condition);
+    if (e.showWhen) checkCondition(`seasons: evento "${e.id}"`, e.showWhen as Condition);
+  }
   // Passos de roteiro com condição (when): só rodam se ela valer na hora.
   for (const [id, s] of Object.entries(raw.scripts.scripts)) s.steps.forEach((step, i) => step.when && checkCondition(`roteiro "${id}" passo ${i}`, step.when as Condition));
   for (const f of raw.festive.secretSanta.friends) checkCondition(`festive.secretSanta: ${f.npc}`, f.known);

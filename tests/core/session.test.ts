@@ -1541,3 +1541,13 @@ describe('debug da história e dos cômodos', () => {
     for (const d of content.rooms.doors) expect(session.doorState(d.id)).toBe('open');
   });
 });
+
+describe('Market: ferramentas', () => {
+  it('a varinha (ferramenta vendida no Market) entra no pedido; a vassoura e a bandeja, não', () => {
+    const session = new GameSession(content, newGameState(500, 'map.cafe_main'));
+    session.debugCompleteStory();
+    expect(session.addToOrder('item.cat_wand')).toEqual({ ok: true });
+    expect(session.addToOrder('item.broom')).toEqual({ ok: false, reason: 'unknown_item' });
+    expect(session.addToOrder('item.tray')).toEqual({ ok: false, reason: 'unknown_item' });
+  });
+});

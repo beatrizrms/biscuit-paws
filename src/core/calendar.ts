@@ -25,6 +25,11 @@ export interface CalendarEvent {
   everyYear?: boolean;
   /** Some do calendário quando esta condição vale (ex.: a inauguração já aconteceu). */
   hideWhen?: unknown;
+  /**
+   * Só aparece depois que o jogo apresentou o evento (ex.: o amigo secreto, depois do primeiro sorteio; a inauguração,
+   * depois de ela saber a data). Sem ele, sempre (o Natal).
+   */
+  showWhen?: unknown;
 }
 
 /** Uma marcação no calendário: um evento ou o começo de uma estação. */
@@ -148,7 +153,7 @@ export function yearLength(data: SeasonsData): number {
 
 /**
  * Marcações do calendário de `from` a `to` (dias do jogo, inclusive), em ordem: começos de estação e eventos
- * (os com hideWhen valendo ficam de fora; `hidden` avalia a condição).
+ * (os com hideWhen valendo, ou com showWhen ainda não valendo, ficam de fora; `hidden` avalia as condições).
  */
 export function calendarEntries(data: SeasonsData, from: number, to: number, hidden: (e: CalendarEvent) => boolean = () => false): CalendarEntry[] {
   const out: CalendarEntry[] = [];
