@@ -137,7 +137,7 @@ export class PillScene extends MiniGameScene {
     if (this.s.phase === 'cover') {
       startOffering(this.s, this.p, this.rng);
       this.sfx(this.def.sounds?.ready);
-      if (this.btn) this.btn.textContent = keyless(t.offer);
+      if (this.btn) this.setHudLabel(this.btn, t.offer);
       this.tweens.add({ targets: this.bowl, x: PILL.x + 90, y: PILL.y + 60, scale: 0.75, duration: 300 });
       return;
     }
@@ -149,7 +149,7 @@ export class PillScene extends MiniGameScene {
       // Recusou pelo cheiro: a tigela volta para ela cobrir mais.
       this.sfx(this.def.sounds?.caught);
       this.float(t.smelled, '#d9475d');
-      if (this.btn) this.btn.textContent = keyless(t.ready);
+      if (this.btn) this.setHudLabel(this.btn, t.ready);
       this.tweens.killTweensOf(this.bowl);
       this.tweens.add({ targets: this.bowl, x: PILL.x, y: PILL.y, scale: 1, delay: 360, duration: 300 });
       return;

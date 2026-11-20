@@ -9,6 +9,30 @@ const EDGE = 3;
 const INK = '#3b2a32';
 
 /**
+ * Quanto mover o texto (centrado pela caixa da fonte) para que a letra desenhada fique no meio: a caixa conta o
+ * espaço de acentos e descendentes, e a maiúscula da Nunito ficava baixa e torta no círculo do botão (decisão 300).
+ */
+function glyphNudge(text: Phaser.GameObjects.Text): { x: number; y: number } {
+  const ctx = text.context;
+  // _font e metrics: o que o Phaser mediu da fonte (a base da letra fica em metrics.ascent a partir do topo).
+  const style = text.style as unknown as { _font?: string; metrics?: { ascent: number } };
+  if (!ctx || !style._font) return { x: 0, y: 0 };
+  // Medida 10x maior (no tamanho real o navegador arredonda para o pixel inteiro e o desvio some na conta).
+  const SCALE = 10;
+  ctx.save();
+  ctx.font = style._font.replace(/(\d+(?:\.\d+)?)px/, (_, px: string) => `${Number(px) * SCALE}px`);
+  const m = ctx.measureText(text.text);
+  ctx.restore();
+  const top = m.actualBoundingBoxAscent / SCALE;
+  const bottom = m.actualBoundingBoxDescent / SCALE;
+  const ascent = style.metrics?.ascent ?? top;
+  // Centro da tinta: na horizontal, entre as bordas desenhadas (de -left a right); na vertical, entre o topo e a base.
+  const inkX = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 / SCALE;
+  const inkY = ascent - (top - bottom) / 2;
+  return { x: Math.round((text.width / 2 - inkX) * 4) / 4, y: Math.round((text.height / 2 - inkY) * 4) / 4 };
+}
+
+/**
  * Dica "E" do tutorial: uma plaquinha com a tecla e o que ela faz ali ("E  Varrer"), flutuando em cima
  * do que o E usaria agora (WorldScene.eTarget decide onde). Aparece sempre, mesmo no que ela já usou (decisão 228).
  * Só desenha; some quando não há nada por perto ou quando ela está ocupada.
@@ -63,7 +87,8 @@ export class InteractHint {
       g.lineStyle(1, 0x3b2a32, 0.8).strokeRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
     }
     this.letter.setText(padOn ? 'A' : 'E').setColor(padOn ? '#ffffff' : INK);
-    this.letter.setPosition(kx + KEY / 2, 0);
+    const nudge = glyphNudge(this.letter);
+    this.letter.setPosition(kx + KEY / 2 + nudge.x, nudge.y);
     this.label.setPosition(kx + KEY + PAD, 0);
     this.box.setPosition(x, Math.round(at.y - h / 2 - 5));
   }
