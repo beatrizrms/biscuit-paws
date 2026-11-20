@@ -1200,3 +1200,7 @@ Decisão: as fotos não vão ao PixelLab; os traços entram descritos na ficha. 
 ## 288. Os gatos pedem para brincar em dias diferentes (nov/2026)
 Pedido: com a casa cheia de brinquedos, todos os gatos pediam a varinha no mesmo dia (os que chegaram ou brincaram juntos tinham a mesma conta). Exigir brincadeira continua; o pedido só precisa se espalhar.
 Decisão: com brinquedo suficiente, o intervalo de cada gato ganha um desvio de -2 a +2 dias (`care.play.spreadDays` em `data/health.json`), tirado do id dele e do dia da última brincadeira: fixo até a próxima vez (repetível, nada novo no save) e diferente a cada ciclo (`playOffset` em `src/core/care.ts`). O intervalo nunca fica abaixo de 2 dias. Sem brinquedo suficiente, o pedido continua diário para todos.
+
+## 289. Cada gato fica sujo no seu ritmo (nov/2026)
+Pedido: quando a areia acabou, todos os gatos ficaram sujos ao mesmo tempo (a mesma causa da decisão 288: todos seguiam a mesma conta de higiene).
+Decisão: a queda diária da higiene varia ±1 por gato e por dia (`care.hygieneSpread`) e a perda de um dia sem areia limpa varia ±8 (`care.litterSpread`, em torno de `litterMissed` 16, nunca menos que 1), com o mesmo sorteio fixo por gato e por dia da 288 (`catSpread` e `litterLoss` em `src/core/care.ts`). Com o tempo, cada gato fica com a sua higiene; sem areia, uns sujam mais rápido que outros, e o balão aparece em dias diferentes. O cocô no chão continua igual.

@@ -29,7 +29,7 @@ import { lowIngredients } from './shopping';
 import type { RecipeDef } from './recipes';
 import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
-import { activeTreatment, addCare, careAtDayEnd, careGain, careNeeds, careOf, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
+import { activeTreatment, addCare, careAtDayEnd, careGain, careNeeds, careOf, litterLoss, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
 import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
 import { findPath } from './path';
 
@@ -1029,7 +1029,7 @@ export class GameSession {
         this.addCatAffection(id, this.content.relationships.feedPoints);
       }
     if (!r.litterOk) {
-      for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -this.content.health.care.litterMissed, this.content.health.care);
+      for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -litterLoss(this.content.health.care, id, day), this.content.health.care);
       this.bus.emit('litter.missed', { day });
     }
     // Dias seguidos sem areia limpa: a partir de litterPoop.afterDays, os gatos fazem cocô no chão.
@@ -2913,7 +2913,7 @@ export class GameSession {
       // Isolado (cercadinho, caixinha, consulta de entrada): repouso, e o cercadinho fica limpo. A alegria e a higiene não
       // caem, e o pedido de brincar só começa a contar quando ele volta para a turma.
       if (this.clinic.isolated(id)) cat.playedOn = day;
-      else careAtDayEnd(cat, cfg.care, day, this.playRoom());
+      else careAtDayEnd(cat, cfg.care, day, this.playRoom(), id);
       this.neglectAtDayEnd(id);
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.
