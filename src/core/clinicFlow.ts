@@ -18,6 +18,7 @@ import {
   type NeuterBlock,
   type ProcedureDef,
 } from './clinic';
+import { activeTreatment } from './care';
 import { diseaseContagious } from './health';
 import { ageMonths, fixedRepro, rngForCat, rollRepro, weightKg, type AgeBand, type CatRepro, type FixedRepro, type NeuteredSpec } from './repro';
 import type { EventBus } from './events';
@@ -57,6 +58,8 @@ export interface ClinicHost {
   /** Receita da doença: dias (sorteados) e o preço do remédio por dia. */
   prescriptionDays(catId: string): number;
   removeFromInventory(itemId: string): void;
+  /** A ração comum ativa na barra (a mesma da tigela), para quem só espera a consulta de entrada. */
+  activeRation(): string | null;
 }
 
 /** O que a consulta de entrada mostra (antes de pagar, nada se revela). */
@@ -102,6 +105,7 @@ export type ClinicProblem =
   | 'not_here'
   | 'no_complication'
   | 'needs_recovery_food'
+  | 'needs_pen_food'
   | 'nobody_here'
   | 'needs_pen'
   | 'pen_full';
@@ -263,16 +267,33 @@ export class ClinicFlow {
   }
 
   /**
-   * A latinha (da mochila) no cercadinho (ou na caixinha): alimenta um gato por vez, o próximo com fome de lá (ou
-   * `catId`, se ele estiver lá com fome). Uma latinha por gato.
+   * Só esperando a consulta de entrada (sem cirurgia nem tratamento): pode comer a ração comum (decisão 290). Os outros
+   * (pós-cirurgia, tratamento) só a Recovery.
    */
-  feedIsolated(where: string, catId?: string): { ok: true; fed: string[] } | { ok: false; reason: ClinicProblem } {
-    const food = this.h.clinic.pen.food;
-    const item = (this.st.inventory[food] ?? 0) > 0 ? food : null;
-    if (!item) return { ok: false, reason: 'needs_recovery_food' };
+  waitingIntake(catId: string): boolean {
+    const c = this.st.cats[catId];
+    return !!c && c.clinic?.stage === 'intake' && !activeTreatment(c);
+  }
+
+  /** Com o que dá para alimentar este gato isolado agora: a Recovery da mochila ou, se ele só espera, a ração ativa. */
+  isolatedFood(catId: string): string | null {
+    const recovery = this.h.clinic.pen.food;
+    if ((this.st.inventory[recovery] ?? 0) > 0) return recovery;
+    const ration = this.waitingIntake(catId) ? this.h.activeRation() : null;
+    return ration && (this.st.inventory[ration] ?? 0) > 0 ? ration : null;
+  }
+
+  /**
+   * A latinha (da mochila) no cercadinho (ou na caixinha): alimenta um gato por vez, o próximo com fome de lá (ou
+   * `catId`, se ele estiver lá com fome). Uma latinha por gato; quem só espera a consulta come também a ração ativa.
+   */
+  feedIsolated(where: string, catId?: string): { ok: true; fed: string[]; item: string } | { ok: false; reason: ClinicProblem } {
     const hungry = this.hungryIn(where);
-    const one = catId && hungry.includes(catId) ? catId : hungry[0];
-    if (!one) return { ok: false, reason: 'nobody_here' };
+    if (hungry.length === 0) return { ok: false, reason: 'nobody_here' };
+    const feedable = hungry.filter((id) => this.isolatedFood(id));
+    const one = catId && feedable.includes(catId) ? catId : feedable[0];
+    if (!one) return { ok: false, reason: hungry.some((id) => this.waitingIntake(id)) ? 'needs_pen_food' : 'needs_recovery_food' };
+    const item = this.isolatedFood(one)!;
     const cats = [one];
     this.h.removeFromInventory(item);
     for (const id of cats) {
@@ -280,7 +301,7 @@ export class ClinicFlow {
       this.st.cats[id]!.fedWith = item;
       this.h.bus.emit('cat.fed', { catId: id, itemId: item, bowlUid: where });
     }
-    return { ok: true, fed: cats };
+    return { ok: true, fed: cats, item };
   }
 
   // ---------- Consulta de entrada ----------

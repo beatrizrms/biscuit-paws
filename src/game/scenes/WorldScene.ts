@@ -1459,7 +1459,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         const t = uiText.problems;
         const left = this.session.hungryIsolated(choice.where).length;
         const name = this.session.catName(r.fed[0]!);
-        this.ui.toast((left > 0 ? t.recoveryMore : t.recoveryFed).replace('{cat}', name).replace('{n}', String(left)), 3000);
+        const food = this.session.content.items[r.item]?.name ?? '';
+        this.ui.toast((left > 0 ? t.recoveryMore : t.recoveryFed).replace('{cat}', name).replace('{food}', food).replace('{n}', String(left)), 3000);
       }
       return true;
     }

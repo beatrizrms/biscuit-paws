@@ -334,6 +334,7 @@ export class GameSession {
       holdCat: (id) => this.service.pickUpCat(id).ok,
       prescriptionDays: (id) => prescriptionDays(content.health, this.state.day, id),
       removeFromInventory: (id) => this.removeFromInventory(id),
+      activeRation: () => this.supplyFor('food_bowl'),
     });
     this.ced = new CedFlow({
       state,
@@ -1140,6 +1141,9 @@ export class GameSession {
     this.randomIllness();
     // Clínica: quem foi operado volta (a Fernanda traz ao cercadinho); quem terminou o cercadinho volta para a turma.
     this.clinic.morning();
+    // Gatos novos esperando a consulta de entrada há dias: o aviso da manhã (decisão 290).
+    const overdue = this.intakeOverdue(day + 1);
+    if (overdue.length > 0) this.bus.emit('clinic.intake_overdue', { cats: overdue.length });
     // Vaquinha: quem vai doar pelo CatPay hoje.
     this.ced.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
@@ -2746,9 +2750,16 @@ export class GameSession {
     };
   }
 
-  /** Tem latinha Recovery na mochila e alguém com fome no cercadinho (uid) ou na caixinha ('box')? */
+  /** Tem com o que alimentar alguém com fome no cercadinho (uid) ou na caixinha ('box')? Recovery, ou ração para quem só espera. */
   canFeedIsolated(where: string): boolean {
-    return (this.state.inventory[this.content.clinic.pen.food] ?? 0) > 0 && this.clinic.hungryIn(where).length > 0;
+    return this.clinic.hungryIn(where).some((id) => this.clinic.isolatedFood(id));
+  }
+
+  /** Gatos no cercadinho esperando a consulta de entrada há `stressAfterDays` dias ou mais (decisão 290). */
+  intakeOverdue(day = this.state.day): string[] {
+    const after = this.content.clinic.intake.stressAfterDays;
+    if (after === undefined) return [];
+    return this.shelteredCats().filter((id) => this.clinic.waitingIntake(id) && day - (this.state.cats[id]!.shelteredOn ?? day) >= after);
   }
 
   /** A latinha Recovery no cercadinho (uid) ou na caixinha do canto ('box'). */
@@ -2948,6 +2959,9 @@ export class GameSession {
       // caem, e o pedido de brincar só começa a contar quando ele volta para a turma.
       if (this.clinic.isolated(id)) cat.playedOn = day;
       else careAtDayEnd(cat, cfg.care, day, this.playRoom(), id);
+      // Esperando a consulta de entrada há dias: fica estressado no cercadinho (decisão 290).
+      const stress = this.content.clinic.intake.stressHappiness ?? 0;
+      if (stress > 0 && this.intakeOverdue(day).includes(id)) addCare(cat, 'happiness', -stress, cfg.care);
       this.neglectAtDayEnd(id);
     }
     // Contágio: um doente que já transmite passa a mesma doença para os gatos saudáveis do mesmo lugar.

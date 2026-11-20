@@ -32,8 +32,12 @@ export interface ClinicConfig {
   schemaVersion: 1;
   /** A NPC veterinária: traz o gato operado ao café (a cena da entrega). */
   vet: string;
-  /** A consulta de entrada só é exigida depois desta flag (antes, o gato do prólogo entra direto). */
-  intake: { requiresFlag: string };
+  /**
+   * A consulta de entrada só é exigida depois desta flag (antes, o gato do prólogo entra direto). Esperando a consulta
+   * (decisão 290): come a ração comum ou a Recovery; depois de `stressAfterDays` dias desde o resgate, cada fim de dia
+   * ainda no cercadinho tira `stressHappiness` de felicidade, e de manhã vem o aviso.
+   */
+  intake: { requiresFlag: string; stressAfterDays?: number; stressHappiness?: number };
   /** Desconto de amiga: a partir da fromConsult-ésima consulta paga. */
   discount: { fromConsult: number; share: number };
   /** Fiado: sem dinheiro e sem dívida, fica devendo; paga junto (retroativo) na próxima castração. */
@@ -179,6 +183,10 @@ export function validateClinic(cfg: ClinicConfig, refs: { items: ReadonlySet<str
   if (refs.npcs && !refs.npcs.has(cfg.vet)) err(`vet: NPC inexistente "${cfg.vet}"`);
   for (const id of [cfg.pen.item, cfg.pen.food]) if (!refs.items.has(id)) err(`pen: item inexistente "${id}"`);
   if (!(Number.isInteger(cfg.pen.slots) && cfg.pen.slots >= 1)) err("pen.slots precisa ser um inteiro de 1 ou mais");
+  for (const k of ["stressAfterDays", "stressHappiness"] as const) {
+    const v = cfg.intake[k];
+    if (v !== undefined && !(Number.isInteger(v) && v >= 0)) err(`intake.${k} precisa ser um inteiro de 0 ou mais`);
+  }
   if (!(cfg.discount.fromConsult >= 1)) err('discount.fromConsult precisa ser 1 ou mais');
   if (!(cfg.discount.share >= 0 && cfg.discount.share < 1)) err('discount.share entre 0 e 1');
   if (!(Number.isInteger(cfg.ward.beds) && cfg.ward.beds >= 1)) err('ward.beds precisa ser um inteiro de 1 ou mais');
