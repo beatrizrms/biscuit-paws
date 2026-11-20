@@ -345,6 +345,50 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(session.feedIsolated('p.pen')).toEqual({ ok: false, reason: 'nobody_here' });
   });
 
+  it('esperando a consulta: come a ração da barra; quem voltou da castração, só a Recovery (decisão 290)', () => {
+    const { state, session, id } = setup({ neutered: false });
+    const ration = 'item.cat_food_basic';
+    state.inventory[ration] = 3;
+    state.hotbar.slots[0] = ration;
+    state.hotbar.active = 0;
+    expect(session.canFeedIsolated('box')).toBe(true);
+    expect(session.feedIsolated('box')).toMatchObject({ ok: true, fed: [id] });
+    expect(state.cats[id]!.fedWith).toBe(ration);
+    expect(state.inventory[ration]).toBe(2);
+    // Sem ração na barra nem Recovery: o aviso pede uma das duas.
+    state.hotbar.active = 1; // outro espaço da barra, sem a ração
+    nextDay(session, state);
+    expect(session.feedIsolated('box')).toEqual({ ok: false, reason: 'needs_pen_food' });
+    // Operado (no cercadinho do pós): a ração não serve.
+    state.hotbar.active = 0;
+    session.debugBookNeuter(id);
+    session.debugClinicMorning();
+    state.inventory[content.clinic.pen.food] = 0; // as latinhas que a Fernanda deixou, já usadas
+    expect(session.canFeedIsolated('box')).toBe(false);
+    expect(session.feedIsolated('box')).toEqual({ ok: false, reason: 'needs_recovery_food' });
+  });
+
+  it('esperando a consulta há dias: perde felicidade no cercadinho e de manhã vem o aviso (decisão 290)', () => {
+    const { state, session, id } = setup({ neutered: false });
+    const { stressAfterDays, stressHappiness } = content.clinic.intake;
+    expect(stressAfterDays).toBe(1);
+    const warned: number[] = [];
+    session.bus.on('clinic.intake_overdue', ({ cats }) => warned.push(cats));
+    const start = state.cats[id]!.happiness ?? content.health.care.start.happiness;
+    // O dia do resgate não conta: nada muda e não há aviso... até a manhã seguinte.
+    nextDay(session, state);
+    expect(state.cats[id]!.happiness ?? start).toBe(start);
+    expect(warned).toEqual([1]);
+    // O 2º dia ainda no cercadinho: fica estressado.
+    nextDay(session, state);
+    expect(state.cats[id]!.happiness).toBe(start - stressHappiness!);
+    expect(warned).toEqual([1, 1]);
+    // Depois da consulta, acabou a espera: sem estresse nem aviso.
+    toClinic(session, state, id);
+    expect(session.clinicIntake(id).ok).toBe(true);
+    expect(session.intakeOverdue()).toEqual([]);
+  });
+
   it('com cercadinho, a Fernanda já devolve lá (sem caixinha)', () => {
     const { state, session, id } = setup({ neutered: false });
     state.placed.push({ uid: 'p.pen', item: content.clinic.pen.item, at: [3, 6] });

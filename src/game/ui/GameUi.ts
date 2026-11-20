@@ -394,6 +394,7 @@ export class GameUi {
       this.toast(catSexText(session, session.state.flags[content.health.randomIllness.requiresFlag] ? uiText.health.sick : uiText.health.sickNoClinic, catId).replace('{name}', session.catName(catId)), 4500),
     );
     bus.on('customers.away', ({ sickCats }) => this.toast(uiText.health.customersAway.replace('{n}', String(sickCats)), 5000));
+    bus.on('clinic.intake_overdue', ({ cats }) => this.toast((cats === 1 ? uiText.health.intakeOverdueOne : uiText.health.intakeOverdue).replace('{n}', String(cats)), 5000));
     // Chegada de gatos: a pista, a pergunta (sim/não) e onde o gato foi parar.
     const at = uiText.arrivals;
     bus.on('arrival.started', ({ arrivalId }) => {

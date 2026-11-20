@@ -34,6 +34,8 @@ export interface GameEvents {
   'clinic.delivered': { catId: string; inPen: boolean; first: boolean; isolationDays: number; aftercareDays: number; cans?: number; inflamed?: boolean };
   'clinic.released': { catId: string };
   'clinic.complication': { catId: string; missedFeed: boolean };
+  /** De manhã: gatos esperando a consulta de entrada há dias (decisão 290). */
+  'clinic.intake_overdue': { cats: number };
   'clinic.complication_fixed': { catId: string };
   'clinic.friend_discount': Record<string, never>;
   /** Fiado na clínica: quanto entrou agora e quanto ela deve. */
