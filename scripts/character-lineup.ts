@@ -7,8 +7,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PNG } from 'pngjs';
 import type { CharacterData } from '../src/core/appearance';
 
-/** As referências de proporção escolhidas pela Beatriz (novembro de 2026). */
-const REFERENCES = ['npc.builder', 'npc.fernanda', 'npc.customer_01', 'npc.customer_03', 'npc.customer_04', 'npc.customer_09', 'npc.customer_10'];
+/** As referências de proporção escolhidas pela Beatriz (novembro de 2026); a cliente 04 é a base de todo personagem refeito (decisão 281). */
+const REFERENCES = ['npc.customer_04', 'npc.builder', 'npc.fernanda', 'npc.customer_01', 'npc.customer_03', 'npc.customer_04', 'npc.customer_09', 'npc.customer_10'];
 const ZOOM = 2;
 const CELL_W = 112;
 const CELL_H = 136;
