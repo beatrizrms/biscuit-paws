@@ -1,6 +1,7 @@
 // Junta os arquivos de data/ num Content para a sessão de jogo.
 import type Phaser from 'phaser';
 import type { CatsData } from '../core/cats';
+import type { ControlsConfig } from '../core/controls';
 import tilesJson from '../../data/tiles.json';
 import cafeJson from '../../data/maps/cafe_main.json';
 import streetJson from '../../data/maps/street.json';
@@ -11,6 +12,7 @@ import economyJson from '../../data/economy.json';
 import storyJson from '../../data/story.json';
 import dialogueJson from '../../data/dialogue.json';
 import uiTextJson from '../../data/ui_text.json';
+import controlsJson from '../../data/controls.json';
 import catsJson from '../../data/cats.json';
 import catSpritesJson from '../../data/cat_sprites.json';
 import cutscenesJson from '../../data/cutscenes.json';
@@ -138,6 +140,8 @@ export function emoteImage(scene: Phaser.Scene, x: number, y: number, name: stri
 }
 
 export const uiText = uiTextJson;
+/** Teclas, botões do controle e do toque de cada ação (data/controls.json). */
+export const controls = controlsJson as unknown as ControlsConfig;
 
 /** O que os gatos fazem nos objetos deles, pelo tile (data/cats.json objectUses). */
 export const catObjectUses = (catsJson as unknown as CatsData).objectUses ?? {};

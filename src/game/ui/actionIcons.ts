@@ -138,6 +138,21 @@ const ICONS: Record<string, string[]> = {
     '............',
     '............',
   ],
+  // Carrinho do Market no losango de atalhos (QuickMenu). PLACEHOLDER(arte): desenhado por código.
+  cart: [
+    '#...........',
+    '.#..........',
+    '.##########.',
+    '.#........#.',
+    '..#......#..',
+    '..#......#..',
+    '..########..',
+    '..#.........',
+    '..#########.',
+    '............',
+    '...##...##..',
+    '...##...##..',
+  ],
 };
 
 export type ActionIcon = keyof typeof ICONS;

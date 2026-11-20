@@ -198,7 +198,7 @@
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
-  "hintWalk": "WASD: Andar · R: Correr · E: Usar · T: Comer · 1–8: Barra · C: Market · M: Cardápio · I: Mochila · P: Celular · F: Mover",
+  "hintWalk": "{move}: Andar · {run}: Correr · {interact}: Usar · {eat}: Comer · {hotbar}: Barra · {quickMenu}: Atalhos · {market}: Market · {moveFurniture}: Mover",
   "recipeUnlocked": "Receita nova: {name}! Ponha no quadro (M); o que ela precisa já está à venda.",
   "unlocks": {
     "title": "Nova conquista!",
@@ -221,9 +221,9 @@
   "hotbar": {
     "label": "Barra de itens", "hand": "Mãos livres (0): nada na mão"
   },
-  "hintPlacing": "Enter: Pôr · G: Girar · I: Guardar · Esc: Cancelar",
-  "hintUpgradePick": "E: Escolher · Esc: Cancelar",
-  "hintMovePick": "F: Próximo · Enter: Escolher · Esc: Cancelar",
+  "hintPlacing": "{drop}: Pôr · {rotate}: Girar · {store}: Guardar · {cancel}: Cancelar",
+  "hintUpgradePick": "{interact}: Escolher · {cancel}: Cancelar",
+  "hintMovePick": "{moveFurniture}: Próximo · {interact}: Escolher · {cancel}: Cancelar",
   "friends": {
     "giveAsk": "Dar {item} para {name}?",
     "give": "Dar",
@@ -235,27 +235,22 @@
     "reactions": { "loved": "ama", "liked": "gosta de", "neutral": "acha ok", "disliked": "não gosta de" }
   },
   "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
+  "quickMenu": { "hint": "Setas: escolher · Enter ou Tab: abrir · Esc: fechar", "hintTouch": "Toque para abrir", "hintPad": "Analógico: escolher · A ou Y: abrir · B: fechar" },
   "padText": { "continue": "A: continuar", "close": "A ou B: fechar", "goalsPeek": "", "goalsShow": "", "goalsHide": "" },
   "padHints": {
-    "walk": "Analógico: andar (no fim: correr) · A: interagir · X: comer/beber · LB/RB: barra · Y: mochila · LT: mover móvel · R3: market · L3: cardápio · Select: celular · Start: pausa",
-    "dialogue": "A: continuar",
-    "placing": "Analógico: escolher o lugar · A: posicionar · X: girar · Y: guardar na mochila · B: cancelar",
-    "moving": "Analógico: escolher o lugar · A ou LT: soltar · X: girar · Y: guardar na mochila · B: cancelar",
-    "movingTree": "Analógico: escolher o lugar · A ou LT: soltar · Y: remover a árvore · B: cancelar",
-    "movePick": "O móvel que pisca é o que vai mudar de lugar · LT: próximo · A: escolher · B: cancelar",
-    "upgradePick": "Chegue perto do móvel que brilha e aperte A · B: cancelar"
+    "dialogue": "A: Continuar"
   },
   "touchHints": {
     "walk": "",
     "dialogue": "",
-    "placing": "Toque no lugar (ou use o direcional) · Soltar: posiciona · Girar: gira · Mochila: guarda · ❚❚: cancela",
-    "moving": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Girar: gira · Mochila: guarda · ❚❚: cancela",
-    "movingTree": "Toque no lugar (ou use o direcional) · Soltar: solta aqui · Mochila: remover a árvore · ❚❚: cancela",
-    "movePick": "O móvel dourado é o que vai mudar de lugar · Próximo: o outro · OK (ou toque nele): escolhe · ❚❚: cancela"
+    "placing": "Toque no lugar (ou use o {move}) · {drop}: posiciona · {rotate}: gira · {store}: guarda · {pause}: cancela",
+    "moving": "Toque no lugar (ou use o {move}) · {drop}: solta aqui · {rotate}: gira · {store}: guarda · {pause}: cancela",
+    "movingTree": "Toque no lugar (ou use o {move}) · {drop}: solta aqui · {store}: remover a árvore · {pause}: cancela",
+    "movePick": "O móvel dourado é o que vai mudar de lugar · Próximo: o outro · OK (ou toque nele): escolhe · {pause}: cancela"
   },
-  "hintMovingTree": "Enter: Soltar · Q: Remover · Esc: Cancelar",
+  "hintMovingTree": "{drop}: Soltar · {store}: Remover · {cancel}: Cancelar",
   "trees": { "removeAsk": "Remover esta árvore? Ela some de vez e libera o espaço.", "yes": "Remover", "no": "Deixar", "removed": "Árvore removida." },
-  "hintMoving": "Enter: Soltar · G: Girar · Q: Guardar · Esc: Cancelar",
+  "hintMoving": "{drop}: Soltar · {rotate}: Girar · {store}: Guardar · {cancel}: Cancelar",
   "hintDialogue": "Espaço: Continuar",
   "narrator": "",
   "problems": {
@@ -409,9 +404,9 @@
     "facadeTitle": "Cor da fachada",
     "floorTitle": "Piso",
     "perTile": "/tile",
-    "selectHint": "Arraste para marcar · Ctrl: Mais uma área · Enter: Confirmar · Esc: Cancelar",
+    "selectHint": "Arraste para marcar · Ctrl: Mais uma área · {areaConfirm}: Confirmar · {cancel}: Cancelar",
     "selectHintTouch": "Arraste o dedo para marcar a área. Para marcar mais uma, toque em + Área e arraste de novo.",
-    "selectHintPad": "Analógico: Mover · A: Marcar · Y: Mais uma área · X: Confirmar · B: Cancelar",
+    "selectHintPad": "{move}: Mover · {areaMark}: Marcar · {areaMore}: Mais uma área · {areaConfirm}: Confirmar · {cancel}: Cancelar",
     "selectConfirm": "Confirmar",
     "selectCancel": "Cancelar",
     "selectMore": "+ Área",

@@ -10,7 +10,12 @@ export function keyHintHtml(text: string): string {
     .map((part) => {
       const at = part.indexOf(': ');
       if (at < 0) return `<span class="kh-item">${esc(part)}</span>`;
-      const keys = part.slice(0, at).split('+').map((k) => `<kbd>${esc(k.trim())}</kbd>`).join('');
+      // Mais de uma tecla para a mesma coisa ("Enter / F"): cada uma desenhada, com a barra entre elas.
+      const keys = part
+        .slice(0, at)
+        .split(' / ')
+        .map((alt) => alt.split('+').map((k) => `<kbd>${esc(k.trim())}</kbd>`).join(''))
+        .join('<i class="kh-or">/</i>');
       return `<span class="kh-item">${keys}${esc(part.slice(at + 2))}</span>`;
     })
     .join('');

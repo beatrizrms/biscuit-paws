@@ -1,9 +1,9 @@
 // Janelas com o controle de videogame: um destaque verde anda pelo que dá para clicar na janela de cima (Market,
-// mochila, cardápio, celular, caixas de escolha) e vai para o mais perto na direção apertada; o A clica nele. Não
-// precisa de nada nas janelas: vale o que já é botão ou tem a mãozinha do mouse (cursor: pointer).
+// mochila, cardápio, celular, metas abertas, caixas de escolha) e vai para o mais perto na direção apertada; o A
+// clica nele. Não precisa de nada nas janelas: vale o que já é botão ou tem a mãozinha do mouse (cursor: pointer).
 
 /** As janelas onde o destaque anda (a de cima é a última na página). */
-const LAYERS = '.panel.catalog, .phone-ui, .confirm-layer';
+const LAYERS = '.panel.catalog, .phone-ui, .hud-goals.open, .confirm-layer';
 const BASE = 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 /** Fechar e voltar: nunca o destaque de quando a janela abre. */
 const CLOSE = '.close, .p-close, .p-back';

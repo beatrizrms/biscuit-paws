@@ -4,7 +4,7 @@
 import Phaser from 'phaser';
 import type { InputState } from '../../core/movement';
 import { pad } from '../gamepad';
-import { touch } from '../touch';
+import { touch, touchKey } from '../touch';
 
 const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
@@ -46,7 +46,7 @@ export class MiniGameControls {
     kb.on('keydown-ESC', pause);
     scene.input.on('pointerdown', click);
     // Toque: o botão de ação e a pausa (o direcional entra em direction()).
-    const offTouch = [touch.on('E', () => action()), touch.on('ESC', pause)];
+    const offTouch = [touch.on(touchKey('interact'), () => action()), touch.on(touchKey('pause'), pause)];
     // A cena é reaberta a cada partida: sem isso, os ouvintes da partida anterior continuariam vivos.
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb.off('keydown', move);

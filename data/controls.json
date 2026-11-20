@@ -1,0 +1,56 @@
+{
+  "_comment": "Controles do jogo: as teclas, os botões do controle de videogame e os do toque de cada ação, e o texto do Como jogar e das dicas. actions: cada ação tem label (o que ela faz, no Como jogar), section (o cartão do Como jogar: move, use, bar, windows, furniture; sem section não aparece lá), keys (teclas do Phaser: E, ESC, ENTER, TAB, SPACE, F1...; a primeira é a que o controle e o toque apertam) e show (o texto do controle quando não é uma tecla só: \"Setas / WASD\"; por modo: keys, touch, pad). labels: o texto por modo, quando muda (\"Correr (segurando)\" no teclado). pad: por momento (world: andando; placing: com o móvel na mão ou escolhendo o móvel; minigame; minigameCursor: mini game de mouse, com o cursor; area: marcando a área da obra), botão -> ação. Botões: A, B, X, Y, LB, RB, LT, RT, SELECT, START, L3, R3. Ações só do controle: hotbarPrev e hotbarNext (a barra), mouse e mouseRight (o cursor). Nas janelas (Market, mochila, cardápio, celular), o controle é fixo: direcional anda, A clica, B volta, LB/RB trocam a aba. touch.buttons: os botões da coluna da direita no toque, de cima para baixo (a ação e o texto: o label de touch da ação). quickMenu: o losango de atalhos (Y no controle, Menu no toque, Tab no teclado): up, left, right, down -> o que abre (phone, backpack, menuBoard, goals) e o texto. Nos mini games, nas falas e nos menus, as teclas são fixas (E, Espaço, Enter, Esc, setas): mudar keys das ações mg* só muda o que o controle aperta. As dicas usam {ação} no texto (ui_text: hintWalk, hintPlacing...) e trocam pelo controle em uso.",
+  "keyNames": { "ESC": "Esc", "ENTER": "Enter", "SPACE": "Espaço", "TAB": "Tab", "CTRL+SPACE": "Ctrl + Espaço" },
+  "padNames": { "SELECT": "Select", "START": "Start" },
+  "actions": {
+    "move": { "section": "move", "label": "Andar", "show": { "keys": "Setas / WASD", "touch": "Direcional", "pad": "Analógico / Direcional" } },
+    "run": { "section": "move", "label": "Correr", "keys": ["R"], "labels": { "keys": "Correr (segurando)", "pad": "Correr (ou o analógico no fim)" }, "show": { "touch": "Correr / Borda" } },
+    "interact": { "section": "use", "label": "Usar o que está perto", "keys": ["E"], "show": { "touch": "E" } },
+    "click": { "section": "use", "label": "Usar o que clicou", "labels": { "touch": "Usar o que tocou" }, "show": { "keys": "Clique", "touch": "Tocar" } },
+    "eat": { "section": "use", "label": "Comer ou beber", "keys": ["T"], "show": { "touch": "Tomar / Comer" } },
+    "hotbar": { "section": "bar", "label": "Escolher o item", "show": { "keys": "1–8 / Roda", "touch": "Barra", "pad": "LB / RB" } },
+    "freeHand": { "section": "bar", "label": "Mão livre", "show": { "keys": "0", "touch": "✋" } },
+    "hotbarPrev": { "label": "Item anterior da barra" },
+    "hotbarNext": { "label": "Próximo item da barra" },
+    "quickMenu": { "section": "windows", "label": "Atalhos (celular, mochila, cardápio, metas)", "keys": ["TAB"], "show": { "touch": "Menu" } },
+    "market": { "section": "windows", "label": "Market", "keys": ["C"] },
+    "backpack": { "section": "windows", "label": "Mochila", "keys": ["I"] },
+    "phone": { "section": "windows", "label": "Celular", "keys": ["P"] },
+    "menuBoard": { "section": "windows", "label": "Cardápio", "keys": ["M"] },
+    "pause": { "section": "windows", "label": "Pausa", "keys": ["ESC"], "labels": { "keys": "Pausa ou fechar" }, "show": { "touch": "❚❚" } },
+    "windowPick": { "section": "windows", "label": "Nas janelas: escolher / voltar", "show": { "pad": "A / B" } },
+    "windowTab": { "section": "windows", "label": "Nas janelas: trocar a aba", "show": { "pad": "LB / RB" } },
+    "cancel": { "label": "Cancelar", "keys": ["ESC"] },
+    "confirm": { "label": "Confirmar", "keys": ["ENTER"] },
+    "moveFurniture": { "section": "furniture", "label": "Mover", "keys": ["F"], "labels": { "touch": "Pegar o móvel" }, "show": { "touch": "Mover" } },
+    "rotate": { "section": "furniture", "label": "Girar", "keys": ["G"], "labels": { "touch": "Virar o móvel" }, "show": { "touch": "Girar" } },
+    "drop": { "section": "furniture", "label": "Soltar", "keys": ["ENTER", "F"], "labels": { "touch": "Pôr no lugar" }, "show": { "touch": "Soltar" } },
+    "store": { "section": "furniture", "label": "Guardar na mochila", "keys": ["Q"], "show": { "touch": "Mochila" } },
+    "mgAction": { "label": "Ação do mini game", "keys": ["E"] },
+    "mgAlt": { "label": "Servir, puxar, confirmar", "keys": ["ENTER"] },
+    "mgTreat": { "label": "Petisco", "keys": ["P"] },
+    "mgPause": { "label": "Pausa do mini game", "keys": ["ESC"] },
+    "mgActionAlt": { "label": "Pronto, oferecer, servir", "keys": ["E", "ENTER"], "sendAll": true },
+    "mouse": { "label": "Clicar (cursor)" },
+    "mouseRight": { "label": "Botão direito (cursor)" },
+    "areaMark": { "label": "Marcar o canto", "keys": ["SPACE"] },
+    "areaMore": { "label": "Mais uma área", "keys": ["CTRL+SPACE"] },
+    "areaConfirm": { "label": "Confirmar a área", "keys": ["ENTER"] }
+  },
+  "pad": {
+    "world": { "A": "interact", "B": "cancel", "X": "eat", "Y": "quickMenu", "LB": "hotbarPrev", "RB": "hotbarNext", "LT": "moveFurniture", "RT": "run", "START": "pause", "SELECT": "phone" },
+    "placing": { "A": "drop", "B": "cancel", "X": "rotate", "Y": "store", "LT": "moveFurniture", "START": "cancel" },
+    "minigame": { "A": "mgAction", "B": "mgPause", "X": "mgAlt", "Y": "mgTreat", "START": "mgPause" },
+    "minigameCursor": { "A": "mouse", "B": "mgPause", "X": "mgActionAlt", "Y": "mouseRight", "START": "mgPause" },
+    "area": { "A": "areaMark", "B": "cancel", "X": "areaConfirm", "Y": "areaMore", "START": "cancel" }
+  },
+  "touch": {
+    "buttons": ["pause", "quickMenu", "moveFurniture"]
+  },
+  "quickMenu": {
+    "up": { "opens": "phone", "label": "Celular" },
+    "left": { "opens": "backpack", "label": "Mochila" },
+    "right": { "opens": "menuBoard", "label": "Cardápio" },
+    "down": { "opens": "goals", "label": "Metas" }
+  }
+}

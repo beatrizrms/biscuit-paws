@@ -1,13 +1,16 @@
 // Controle de videogame (gamepad, no layout do Xbox: A, B, X, Y). O jogo inteiro já ouve o teclado (mundo, falas,
-// janelas, mini games), então o controle "aperta" as mesmas teclas: cada botão vira a tecla equivalente (apertar e
-// soltar, para os jogos de segurar), o analógico e o direcional viram as setas e, na borda, o R de correr. Nos mini
-// games de mouse, o analógico move um cursor e o A é o botão do mouse. Só entrada: nenhuma regra do jogo mora aqui.
+// janelas, mini games), então o controle "aperta" as mesmas teclas: cada botão faz uma ação de data/controls.json
+// (pad: botão -> ação, por momento) e a ação aperta a primeira tecla dela (apertar e soltar, para os jogos de
+// segurar); o analógico e o direcional viram as setas e, na borda, a tecla de correr. Nos mini games de mouse, o
+// analógico move um cursor e o A é o botão do mouse. Só entrada: nenhuma regra do jogo mora aqui.
+import { padNameForKey, type PadButton, type PadContextName } from '../core/controls';
+import { controls } from './content';
 import { menuOpen } from './ui/menu/MenuKit';
 import { padNav, topLayer } from './padNav';
 import { padEvents, touch } from './touch';
 
 /** Onde ela está: muda o que o A (e alguns botões) aperta. */
-export type PadContext = 'world' | 'ui' | 'panel' | 'minigame' | 'area';
+export type PadContext = 'world' | 'placing' | 'ui' | 'panel' | 'minigame' | 'area';
 
 interface Key {
   key: string;
@@ -18,30 +21,45 @@ interface Key {
 }
 
 const k = (key: string, code: string, keyCode: number): Key => ({ key, code, keyCode });
-const KEYS = {
-  E: k('e', 'KeyE', 69),
+const SPECIAL: Record<string, Key> = {
   ENTER: k('Enter', 'Enter', 13),
   SPACE: k(' ', 'Space', 32),
-  CTRL_SPACE: { ...k(' ', 'Space', 32), ctrl: true },
+  'CTRL+SPACE': { ...k(' ', 'Space', 32), ctrl: true },
   ESC: k('Escape', 'Escape', 27),
-  T: k('t', 'KeyT', 84),
-  I: k('i', 'KeyI', 73),
-  F: k('f', 'KeyF', 70),
-  P: k('p', 'KeyP', 80),
-  M: k('m', 'KeyM', 77),
-  C: k('c', 'KeyC', 67),
-  R: k('r', 'KeyR', 82),
+  TAB: k('Tab', 'Tab', 9),
   UP: k('ArrowUp', 'ArrowUp', 38),
   DOWN: k('ArrowDown', 'ArrowDown', 40),
   LEFT: k('ArrowLeft', 'ArrowLeft', 37),
   RIGHT: k('ArrowRight', 'ArrowRight', 39),
 };
 
-/** Os botões no mapeamento padrão do navegador (a ordem de Gamepad.buttons). */
-const B = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, SELECT: 8, START: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const;
+/** A tecla pelo nome do Phaser ("E", "ESC", "TAB", "F1", "1"). */
+function keyOf(name: string): Key {
+  if (SPECIAL[name]) return SPECIAL[name]!;
+  if (/^[A-Z]$/.test(name)) return k(name.toLowerCase(), `Key${name}`, name.charCodeAt(0));
+  if (/^[0-9]$/.test(name)) return k(name, `Digit${name}`, name.charCodeAt(0));
+  const f = /^F(\d{1,2})$/.exec(name);
+  if (f) return k(name, name, 111 + Number(f[1]));
+  return k(name, name, 0);
+}
+const KEYS = { ENTER: SPECIAL.ENTER!, ESC: SPECIAL.ESC!, UP: SPECIAL.UP!, DOWN: SPECIAL.DOWN!, LEFT: SPECIAL.LEFT!, RIGHT: SPECIAL.RIGHT! };
 
-/** O nome do botão para cada tecla, nas dicas da tela (o P é o petisco nos mini games e o celular no mundo). */
-const LABELS: Record<string, string> = { E: 'A', Espaço: 'A', Esc: 'B', I: 'Y', T: 'X', F: 'LT', M: 'L3', C: 'R3', R: 'RT' };
+/** Os botões no mapeamento padrão do navegador (a ordem de Gamepad.buttons). */
+const B = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, SELECT: 8, START: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const;
+const BUTTON_OF = Object.fromEntries(Object.entries(B).map(([name, i]) => [i, name])) as Record<number, PadButton>;
+
+/** A tecla que a ação aperta (a primeira; com sendAll, todas: Pronto no E e Servir no Enter de uma vez). */
+function keysOf(action: string): Key[] {
+  const a = controls.actions[action];
+  const keys = a?.keys ?? [];
+  return (a?.sendAll ? keys : keys.slice(0, 1)).map(keyOf);
+}
+
+/** O botão que faz a ação no mundo (o de correr, segurado). */
+function buttonFor(action: string, ctx: PadContextName = 'world'): number | null {
+  const found = Object.entries(controls.pad[ctx] ?? {}).find(([, a]) => a === action);
+  return found ? B[found[0] as keyof typeof B] : null;
+}
 
 /** Analógico: a partir de quanto conta direção (e de quanto solta, um pouco antes, para não piscar) e corrida. */
 const PRESS = 0.5;
@@ -72,15 +90,8 @@ class PadInput {
 
   constructor() {
     if (typeof window === 'undefined') return;
-    // A tecla P tem dois nomes: o petisco nos mini games (Y) e o celular no mundo (Select).
-    // Nos mini games, o Enter é o X; nos de mouse (o A clica), o E também.
-    touch.padLabel = (key) => {
-      const mini = this.context() === 'minigame';
-      if (key === 'P') return mini ? 'Y' : 'Select';
-      if (key === 'Enter' || key === 'ENTER') return mini ? 'X' : 'A';
-      if (key === 'E' && mini && this.cursorOn) return 'X';
-      return LABELS[key] ?? key;
-    };
+    // A mesma tecla tem botões diferentes conforme o momento (o P é o petisco nos mini games e o celular no mundo).
+    touch.padLabel = (key) => padNameForKey(controls, key, this.padContexts());
     const loop = (now: number) => {
       this.poll(now);
       requestAnimationFrame(loop);
@@ -94,6 +105,15 @@ class PadInput {
     this.cursorOn = on;
     if (!on) this.cursor = null;
     this.drawCursor();
+  }
+
+  /** Os momentos do arquivo que valem agora, do mais específico para o geral (para as dicas). */
+  padContexts(): PadContextName[] {
+    const ctx = this.context();
+    if (ctx === 'minigame') return this.cursorOn ? ['minigameCursor', 'minigame'] : ['minigame'];
+    if (ctx === 'area') return ['area', 'world'];
+    if (ctx === 'placing') return ['placing', 'world'];
+    return ['world', 'placing'];
   }
 
   /** A janela onde o destaque anda agora (Market, mochila, celular, caixa de escolha), ou null. */
@@ -149,28 +169,38 @@ class PadInput {
         now,
       );
     }
-    // Correr: o analógico no fim ou o RT segurado (só no mundo).
-    const run = ctx === 'world' && (mag >= RUN_AT || pressed(B.RT));
+    // Correr: o analógico no fim ou o botão de correr segurado (só no mundo).
+    const runButton = buttonFor('run');
+    const run = ctx === 'world' && (mag >= RUN_AT || (runButton !== null && pressed(runButton)));
     if (run !== this.running) {
       this.running = run;
-      send(run ? 'keydown' : 'keyup', KEYS.R);
+      keysOf('run').forEach((key) => send(run ? 'keydown' : 'keyup', key));
     }
   }
 
-  /** A tecla de cada botão agora. */
-  private keyFor(i: number, ctx: PadContext): Key | Key[] | 'mouse' | 'mouse2' | 'confirm' | 'back' | 'tab-' | 'tab+' | 'hotbar-' | 'hotbar+' | null {
-    if (i === B.START) return KEYS.ESC;
-    if (i === B.B) return ctx === 'panel' ? 'back' : KEYS.ESC;
-    if (ctx === 'panel' && (i === B.LB || i === B.RB)) return i === B.RB ? 'tab+' : 'tab-';
-    if (ctx === 'minigame') {
-      // Jogo de mouse: o A clica; o X faz o que o teclado faz (Pronto e Oferecer no E, Servir e Confirmar no Enter).
-      if (this.cursor) return i === B.A ? 'mouse' : i === B.Y ? 'mouse2' : i === B.X ? [KEYS.E, KEYS.ENTER] : null;
-      return i === B.A ? KEYS.E : i === B.X ? KEYS.ENTER : i === B.Y ? KEYS.P : null;
+  /**
+   * O que cada botão faz agora. Janelas, falas e menus têm botões fixos (A escolhe, B volta, LB/RB trocam a aba, o
+   * botão do losango fecha a janela); no resto, data/controls.json (pad).
+   */
+  private keyFor(i: number, ctx: PadContext): Key[] | 'mouse' | 'mouse2' | 'confirm' | 'back' | 'tab-' | 'tab+' | 'hotbar-' | 'hotbar+' | null {
+    const button = BUTTON_OF[i]!;
+    const quick = buttonFor('quickMenu');
+    if (ctx === 'ui' || ctx === 'panel') {
+      if (i === B.A) return 'confirm';
+      if (i === B.B) return ctx === 'panel' ? 'back' : [KEYS.ESC];
+      if (i === B.START) return [KEYS.ESC];
+      if (ctx === 'panel' && (i === B.LB || i === B.RB)) return i === B.RB ? 'tab+' : 'tab-';
+      return i === quick ? keysOf('quickMenu') : null;
     }
-    if (ctx === 'area') return i === B.A ? KEYS.SPACE : i === B.X ? KEYS.ENTER : i === B.Y ? KEYS.CTRL_SPACE : null;
-    if (i === B.A) return ctx === 'ui' || ctx === 'panel' ? 'confirm' : KEYS.E;
-    const map: Partial<Record<number, Key | 'hotbar-' | 'hotbar+'>> = { [B.X]: KEYS.T, [B.Y]: KEYS.I, [B.LT]: KEYS.F, [B.SELECT]: KEYS.P, [B.LS]: KEYS.M, [B.RS]: KEYS.C, [B.LB]: 'hotbar-', [B.RB]: 'hotbar+' };
-    return map[i] ?? null;
+    const name: PadContextName = ctx === 'minigame' ? (this.cursor ? 'minigameCursor' : 'minigame') : ctx;
+    const action = controls.pad[name]?.[button];
+    if (!action || action === 'run') return null; // correr é segurar (poll)
+    if (action === 'hotbarPrev') return 'hotbar-';
+    if (action === 'hotbarNext') return 'hotbar+';
+    if (action === 'mouse') return 'mouse';
+    if (action === 'mouseRight') return 'mouse2';
+    const keys = keysOf(action);
+    return keys.length > 0 ? keys : null;
   }
 
   private press(i: number, ctx: PadContext): void {
@@ -202,9 +232,8 @@ class PadInput {
       }
       return;
     }
-    const keys = Array.isArray(key) ? key : [key];
-    this.held.set(i, keys);
-    keys.forEach((one) => send('keydown', one));
+    this.held.set(i, key);
+    key.forEach((one) => send('keydown', one));
   }
 
   private release(i: number): void {
@@ -244,7 +273,7 @@ class PadInput {
   private releaseAll(): void {
     for (const i of [...this.held.keys()]) this.release(i);
     this.setArrows({ up: false, down: false, left: false, right: false }, 0);
-    if (this.running) send('keyup', KEYS.R);
+    if (this.running) keysOf('run').forEach((key) => send('keyup', key));
     this.running = false;
     if (this.cursor) {
       this.cursor = null;
