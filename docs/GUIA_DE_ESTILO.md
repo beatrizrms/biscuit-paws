@@ -21,6 +21,8 @@ ocupada antes de usar.
 
 ## 2. Personagens
 
+- **Base de todo personagem (decisão 281): o quadro de frente da cliente 04** (`npc.customer_04`). Personagem novo ou refeito
+  é uma edição dele (troca cabelo, rosto e roupa); a frente é aprovada antes de girar e animar.
 - **Proporção da cabeça: uma só para todos.** As referências, escolhidas pela Beatriz em novembro de 2026, são o
   **Tião** (`npc.builder`), a **Fernanda** e os clientes **01, 03, 04, 09 e 10**. A cabeça e o rosto de qualquer
   personagem novo devem ficar do tamanho dos deles. Ficaram fora do padrão, com o rosto maior: a protagonista, a

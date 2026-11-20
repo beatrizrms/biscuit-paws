@@ -16,11 +16,12 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_pixellab/personagens';
 const OUT = 'public/assets/characters/npcs/v64';
-type Kit = 'full' | 'walk' | 'customer' | 'dog' | 'builder' | 'clerk';
+type Kit = 'full' | 'fullBox' | 'walk' | 'customer' | 'dog' | 'builder' | 'clerk';
 
 /** Quadro (largura x altura) e colunas da folha de cada kit. */
 const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
   full: { w: 112, h: 128, columns: 5 },
+  fullBox: { w: 112, h: 128, columns: 5 },
   walk: { w: 112, h: 128, columns: 5 },
   customer: { w: 112, h: 128, columns: 5 },
   dog: { w: 64, h: 64, columns: 6 },
@@ -31,7 +32,8 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
 
 /** Pasta do PixelLab -> id do NPC (data/npcs.json) e o kit: completo (acenar, segurar), só caminhada ou cliente (sentado). */
 const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
-  gabi: { id: 'npc.gabi', kit: 'full', portrait: true },
+  // A Gabi refeita (polimento, fase 2, decisão 281): a partir da frente da cliente 04, roupa adulta; a pasta gabi/ é a antiga.
+  gabi2: { id: 'npc.gabi', kit: 'fullBox', portrait: true },
   corretora: { id: 'npc.realtor', kit: 'full', portrait: true },
   neusa: { id: 'npc.neusa', kit: 'full', portrait: true },
   jacque: { id: 'npc.jacque', kit: 'full', portrait: true },
@@ -58,6 +60,8 @@ const WALK: Row[] = [
 /** Linhas da folha de cada kit -> animação e direção do PixelLab. */
 const ROWS: Record<Kit, Row[]> = {
   full: [...WALK, ['wave', 'south'], ['hold', 'south']],
+  // Completo com duas poses de segurar: linha 5 = o café, linha 6 = a caixa (a Gabi refeita, polimento fase 2).
+  fullBox: [...WALK, ['wave', 'south'], ['hold', 'south'], ['hold_box', 'south']],
   walk: WALK,
   customer: [...WALK, ['sit', 'south', { skip: 1 }], ['sit', 'west', { skip: 1 }], ['sit', 'west', { skip: 1, mirror: true }], ['sit', 'north', { skip: 1 }]],
   dog: [...WALK, ['bark', 'south'], ['bark', 'east'], ['sit', 'south'], ['sleep', 'south']],
