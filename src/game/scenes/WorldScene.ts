@@ -103,6 +103,8 @@ type HintKind = keyof typeof uiText.hints;
  * saem do mesmo plano (planE), então o balão nunca diz uma coisa com o E fazendo outra.
  */
 /** `count`: o contador ao lado do texto da dica ("Pia 3/6", "Pegar 2/6" com a bandeja). */
+/** O que ela usa de costas (máquinas, utensílios, pia, lava-louças, despensa, balcão, vitrine, conserto). */
+const STATION_HINTS: ReadonlySet<string> = new Set(['station', 'sink', 'washer', 'pantry', 'surface', 'display', 'repair']);
 type EPlan = { hint: { x: number; y: number; kind: HintKind; count?: string } | null; run: () => boolean };
 
 /**
@@ -471,7 +473,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Com o móvel na mão (mudando de lugar ou posicionando), E solta: não usa o que está perto (a cafeteira...).
       if (this.placing) return this.dropPlacing();
       const plan = this.planE();
-      plan?.run();
+      if (plan?.run()) this.faceStation(plan);
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
     // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
@@ -3614,7 +3616,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** E ou clique no café: entregar, lavar, dar ao gato, preparar/pegar no equipamento, pegar ou soltar. */
   private serviceInteract(target?: Cell): boolean {
-    return this.servicePlan(target)?.run() ?? false;
+    const plan = this.servicePlan(target);
+    if (!plan?.run()) return false;
+    this.faceStation(plan);
+    return true;
+  }
+
+  /** Usou uma máquina, um utensílio, a pia, a despensa, o balcão ou a vitrine: ela fica de costas, virada para eles. */
+  private faceStation(plan: EPlan): void {
+    if (plan.hint && STATION_HINTS.has(plan.hint.kind)) this.player.face('up');
   }
 
   /** O clique no atendimento: o primeiro do que vale na célula clicada (a ordem da lista). */
@@ -3641,11 +3651,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       out.push({ cells, tier, sticky, weak: !hint && !sticky && tier !== E_TIER.putDown, value: { hint, run } });
     };
     const placedAt = (uid: string) => st.placed.find((p) => p.uid === uid)!.at;
-    const customer = sv.customerToServe(feet);
+    // Só quem já chegou ao lugar (sentado na cadeira): andando até a mesa, ainda não dá para atender.
+    const seated = <C extends { id: string }>(c: C | undefined): C | undefined => (c && this.customerViews.get(c.id)?.arrived !== false ? c : undefined);
+    const customer = seated(sv.customerToServe(feet));
     // Com o pedido na mão e o cliente ao alcance, entregar vence tudo em volta.
     if (customer && !target) add([customer.spot], E_TIER.service, this.hintCell(customer.spot, sv.wrongFor(customer) ? 'customer_wrong' : 'customer'), () => report(sv.serve(customer.id)), true);
     // Só a massa (semipronto) na mão, perto de quem espera: o E no cliente avisa que ainda não está pronto.
-    const waiting = !customer && !target && st.hands.some((h) => h.kind === 'wip') ? sv.waitingCustomerNear(feet) : undefined;
+    const waiting = !customer && !target && st.hands.some((h) => h.kind === 'wip') ? seated(sv.waitingCustomerNear(feet)) : undefined;
     // Não é "só explica" (weak): virada para o cliente, o aviso vence soltar a massa na mesa dele.
     if (waiting) out.push({ cells: [waiting.spot], tier: E_TIER.service, value: { hint: null, run: () => report(sv.serve(waiting.id)) } });
     // Pia: com louça suja na mão, deixa lá; com as mãos livres e louça na pia, começa a lavar.
