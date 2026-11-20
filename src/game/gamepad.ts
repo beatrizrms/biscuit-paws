@@ -128,7 +128,9 @@ class PadInput {
     const ax = axes[0] ?? 0;
     const ay = axes[1] ?? 0;
     const mag = Math.min(1, Math.hypot(ax, ay));
-    const any = pad.any || mag > PRESS || Math.hypot(axes[2] ?? 0, axes[3] ?? 0) > PRESS;
+    // Troca para o controle (as dicas mudam): botão, direcional ou, num controle padrão, o analógico. Eixo de aparelho
+    // fora do padrão (gatilho parado em -1, sensor do celular) não conta: só depois de um botão ele anda com o analógico.
+    const any = pad.any || (pad.standard && (mag > PRESS || Math.hypot(axes[2] ?? 0, axes[3] ?? 0) > PRESS));
     if (any && touch.mode !== 'pad') touch.usePad();
     if (touch.mode !== 'pad') {
       padNav.sync(null);
@@ -350,7 +352,7 @@ const isDown = (b: GamepadButton | undefined) => !!b && (b.pressed || b.value > 
  * navegador, só os padrões contam (os outros têm eixos em outra ordem, e gatilhos parados em -1 moveriam o cursor).
  * Sem nenhum padrão (modo D-input), usa a mesma ordem dos botões e o direcional do eixo 9 (o "hat").
  */
-function readPads(): { pressed: (i: number) => boolean; axes: number[]; any: boolean } | null {
+function readPads(): { pressed: (i: number) => boolean; axes: number[]; any: boolean; standard: boolean } | null {
   let list: Gamepad[];
   try {
     list = [...(navigator.getGamepads?.() ?? [])].filter((p): p is Gamepad => !!p && p.connected);
@@ -364,7 +366,10 @@ function readPads(): { pressed: (i: number) => boolean; axes: number[]; any: boo
     if (p.mapping === 'standard' || p.axes.length < 10) return null;
     const v = p.axes[9]!;
     if (v > 1.1 || v < -1.1) return null; // parado (cerca de 1,29)
-    const at = Math.round(((v + 1) / 2) * 7); // 0 cima, 1 cima-direita, 2 direita ... 7 cima-esquerda
+    // As 8 direções caem em -1, -5/7, -3/7 ... 1; fora delas (0, de um aparelho que não é direcional), não é direção.
+    const k = ((v + 1) / 2) * 7;
+    if (Math.abs(k - Math.round(k)) > 0.15) return null;
+    const at = Math.round(k); // 0 cima, 1 cima-direita, 2 direita ... 7 cima-esquerda
     return { up: at === 7 || at <= 1, right: at >= 1 && at <= 3, down: at >= 3 && at <= 5, left: at >= 5 && at <= 7 };
   };
   const pressed = (i: number) =>
@@ -375,7 +380,7 @@ function readPads(): { pressed: (i: number) => boolean; axes: number[]; any: boo
     });
   const axes = [0, 1, 2, 3].map((a) => pads.reduce((best, p) => (Math.abs(p.axes[a] ?? 0) > Math.abs(best) ? p.axes[a]! : best), 0));
   const any = pads.some((p) => p.buttons.some(isDown) || hat(p) !== null);
-  return { pressed, axes, any };
+  return { pressed, axes, any, standard: standard.length > 0 };
 }
 
 /** O controle do jogo (um só). */

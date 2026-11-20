@@ -88,8 +88,23 @@ const game = new Phaser.Game({
   roundPixels: true,
   scale: { mode: Phaser.Scale.NONE, zoom: integerZoom() / RENDER_SCALE },
   physics: { default: 'arcade', arcade: { debug: false } },
+  // Três dedos ao mesmo tempo (o padrão é um): um toque preso não deixa o jogo surdo (abaixo, o que solta os presos).
+  input: { activePointers: 3 },
   scene: [BootScene, MainMenuScene, WorldScene, ChaseScene, FishingScene, LatteScene, KittenHuntScene, DeliveryScene, TrustScene, AdoptionScene, WandScene, GroomingScene, PillScene, FairSetupScene, CostumeScene, PhotoScene],
 });
+
+// Toque preso no celular: quando o fim de um toque se perde (gesto do sistema, notificação, troca de app), o Phaser
+// continua achando que aquele dedo está na tela e, sem dedo livre, ignora os toques seguintes até recarregar (a página
+// recebia o toque e o jogo não: "página ↓15 · jogo ↓0" no medidor dos mini games). Antes de cada toque novo, o dedo
+// que o Phaser acha que está na tela e não está mais é solto.
+window.addEventListener(
+  'touchstart',
+  (e) => {
+    const live = new Set([...e.touches].map((t) => t.identifier));
+    for (const p of game.input.pointers.slice(1)) if (p.active && !live.has(p.identifier)) p.reset();
+  },
+  { capture: true, passive: true },
+);
 
 // Mini games: id (data/minigames.json) -> cena. Para um jogo novo: a cena acima e uma linha aqui.
 MiniGameRegistry.register('chase', CHASE_SCENE);
