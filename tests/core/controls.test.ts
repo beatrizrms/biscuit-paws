@@ -46,7 +46,7 @@ describe('controles (data/controls.json)', () => {
 
   it('o Como jogar só lista o que o modo tem', () => {
     const pad = howToRows(cfg, 'windows', 'pad').map((r) => r.what);
-    expect(pad).toContain('Atalhos (celular, mochila, cardápio, metas)');
+    expect(pad).toContain('Atalhos (celular, mochila, cardápio, subconsciente)');
     expect(pad).not.toContain('Market');
     expect(howToRows(cfg, 'windows', 'keys').map((r) => r.controls.join(' / '))).toContain('C');
   });
