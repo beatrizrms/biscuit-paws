@@ -669,7 +669,7 @@
     "adoption": {
       "in_care": "Adoção: depois da recuperação",
       "needs_neuter": "Adoção: precisa ser castrad{sex:o|a}",
-      "waiting_age": "Adoção: aguardando idade para castrar (dia {day})"
+      "waiting_age": "Adoção: pode ir como filhote, sem castrar (castra a partir do dia {day})"
     }
   },
   "chores": {

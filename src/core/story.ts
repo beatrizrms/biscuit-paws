@@ -24,6 +24,8 @@ export interface StoryContext {
   milestoneMet?: (id: string) => boolean;
   /** Quantos gatos podem ir à feira de adoção agora (condição fairCats). */
   fairCats?: () => number;
+  /** Todos os gatos do café prontos para a feira (condição catsReady): adultos castrados, sem doença (decisão 291). */
+  catsReady?: () => boolean;
   /** O evento de hoje já está montado: placa, decoração e a feira nos caixotes (condição festivalMounted). */
   festivalMounted?: () => boolean;
   /** O amigo vem para o amigo secreto deste ano (condição santaGuest). */
@@ -118,6 +120,7 @@ export function evaluate(c: Condition, state: GameState, ctx: StoryContext): boo
   if ('fairCats' in c) return (ctx.fairCats?.() ?? 0) >= c.fairCats.gte;
   if ('festivalMounted' in c) return ctx.festivalMounted?.() ?? false;
   if ('catsReady' in c) {
+    if (ctx.catsReady) return ctx.catsReady();
     const cats = Object.values(state.cats).filter((x) => x.sheltered);
     return cats.length > 0 && cats.every((x) => !x.sickness && x.repro?.known === 'neutered');
   }

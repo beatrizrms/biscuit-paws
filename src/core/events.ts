@@ -182,6 +182,10 @@ export interface GameEvents {
   'ced.campaign_done': { cats: number; kept: number };
   /** Depois: alguém adotou um gato da colônia; E num gato do beco com vaga no café (levar?). */
   'ced.cat_adopted': { catId: string; name: string; sex: 'male' | 'female' };
+  /** Adoção on-line (decisão 291): a ideia de anunciar, um interessado vindo e os gatos que foram com a família. */
+  'adoption_online.idea': { cats: number };
+  'adoption_online.visit': { cats: string[] };
+  'adoption_online.adopted': { cats: string[] };
   'ced.take_ask': { catId: string; name: string };
   /** O fim do dia começou (antes de tudo o que ele faz: gato que adoece, ração que acaba...): a tela do dia vem depois. */
   'day.ending': { day: number };

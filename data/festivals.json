@@ -36,7 +36,7 @@
       "when": { "all": [{ "room": "room.backyard", "atLeast": "restored" }, { "cats": { "gte": 9 } }, { "daysSince": { "beat": "story.backyard", "gte": 7 } }, { "catsReady": true }, { "fairCats": { "gte": 1 } }] },
       "cooldownDays": 30,
       "repeatItem": "item.fair_flyers",
-      "repeatWaiting": "Os panfletos ficam guardados na mochila: a feira precisa de 9 gatos ou mais no café, todos castrados e sem doença.",
+      "repeatWaiting": "Os panfletos ficam guardados na mochila: a feira precisa de 9 gatos ou mais no café, todos sem doença e castrados (filhote que ainda não tem idade pode ir sem castrar).",
       "prep": { "points": ["pt.fair_flyer_1", "pt.fair_flyer_2", "pt.fair_flyer_3", "pt.fair_flyer_4"], "daysAfter": 5, "retryDays": 7 },
       "closePoint": { "point": "pt.fair_sign", "tile": "ph_fair_sign", "by": "12:00", "remind": 60 },
       "until": "20:00",

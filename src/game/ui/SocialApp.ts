@@ -24,7 +24,8 @@ export class SocialApp {
 
   /** O app aparece no celular quando ela conhece alguém. */
   visible(): boolean {
-    return this.session.friendsList().length > 0;
+    // Com amigos, ou com posts no feed (os anúncios de adoção dela começam mesmo sem amigos: decisão 291).
+    return this.session.friendsList().length > 0 || this.session.state.social.feed.length > 0;
   }
 
   render(body: HTMLElement): void {

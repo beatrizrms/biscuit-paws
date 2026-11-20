@@ -33,6 +33,7 @@ import { giftKindOf, togoItemId, validateFriendship, type FriendshipData } from 
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
 import { validateAdoption, validateCafeTraits, type AdoptionData } from './adoption';
+import { validateAdoptionOnline } from './adoptionOnline';
 import { validateArrivals, type ArrivalsData } from './arrivals';
 import { validateRequests, type RequestsData } from './requests';
 import { validateGatherings, type GatheringDef } from './gatherings';
@@ -780,6 +781,7 @@ export function validateContent(raw: RawContent): string[] {
   }
   const adoptGame = raw.minigames.games.adoption;
   errors.push(...validateCafeTraits(raw.adoption.fair, raw.adoption.traits));
+  errors.push(...validateAdoptionOnline(raw.adoption.online));
   if (adoptGame) errors.push(...validateAdoption(raw.adoption, { variants: new Set(Object.keys(raw.catSprites.variants)), maxPairs: Math.max(...Object.values(adoptGame.difficulties).map((d) => Number(d.pairs ?? 0))) }));
   for (const [id, g] of Object.entries(raw.minigames.games)) {
     for (const t of [...(g.backdrop?.floor ?? []), g.backdrop?.rug]) if (t && !raw.catalog.tiles[t]) err(`minigames: "${id}" usa no fundo um tile inexistente "${t}"`);

@@ -66,6 +66,7 @@ import playerJson from '../../../data/player.json';
 import { AreaSelect } from '../AreaSelect';
 import { daysText, workName } from '../ui/constructionText';
 import { catSexText, vetLine } from '../ui/vetText';
+import { parseClock } from '../../core/time';
 import { lightsFloor } from '../../core/lights';
 import { catSpots } from '../../core/cats';
 import type { ClinicDelivery } from '../../core/clinic';
@@ -4755,6 +4756,15 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       });
     }
     if (s.state.construction.askPending) this.moments.add({ key: 'builder', ready: inCafe, run: () => this.builderAsk() });
+    // Adoção on-line (decisão 291): a ideia de anunciar e o interessado que vem buscar o gato (com ela no café, no horário).
+    const online = s.adoptionOnline;
+    if (online && s.state.adoptionOnline.stage === 'idea') this.moments.add({ key: 'adopt:idea', ready: inCafe, run: () => this.adoptionIdea() });
+    const visit = online?.pendingVisit();
+    if (visit) {
+      const [from, to] = s.content.adoption.online!.visitHours.map(parseClock);
+      const now = () => s.state.time;
+      this.moments.add({ key: `adopt:visit:${visit.day}`, ready: () => inCafe() && now() >= from! && now() < to! && !s.adoptionVisitHeld(), run: () => this.adoptionVisit() });
+    }
     // A primeira vez dela num cômodo (o porão): a fala com o que ela pensa do lugar, enquanto ela ainda está lá.
     const first = s.firstVisitPending();
     if (first) {
@@ -4816,6 +4826,73 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (free(at)) return { at, facing };
     }
     return null;
+  }
+
+  /** A ideia de anunciar os gatos na SocialVilla (decisão 291): a fala dela, e os anúncios começam. */
+  private async adoptionIdea(): Promise<void> {
+    await this.wait(400);
+    const t = this.session.content.adoption.online!.texts;
+    await this.ui.say([{ speaker: '{player}', text: t.idea! }]);
+    this.session.adoptionOnline?.ideaShown();
+  }
+
+  /**
+   * Alguém viu o anúncio e veio buscar (decisão 291): aparece perto dela, acena, conversa (tela, sem acesso à rua; o
+   * filhote que vai sem castrar: quando castrar) e sai pela porta com o gato.
+   */
+  private async adoptionVisit(): Promise<void> {
+    const s = this.session;
+    const flow = s.adoptionOnline;
+    const visit = flow?.pendingVisit();
+    if (!flow || !visit) {
+      flow?.visitDone();
+      return;
+    }
+    await this.wait(400);
+    const t = s.content.adoption.online!.texts;
+    const looks = s.content.service.customerLooks;
+    const inCafeNow = new Set(s.state.service.customers.map((c) => c.look % looks.length));
+    const lookIndex = Array.from({ length: looks.length }, (_, i) => (visit.look + i) % looks.length).find((i) => !inCafeNow.has(i)) ?? visit.look % looks.length;
+    const npcId = looks[lookIndex]!;
+    const [pc, pr] = this.feetCell();
+    const spot = ([[2, 0], [-2, 0], [0, 2], [1, 1], [-1, 1]] as const).map(([dx, dy]) => [pc + dx, pr + dy] as Cell).find(([c, r]) => this.map.solid[r]?.[c] === false && !s.placedAt([c, r]));
+    if (spot) {
+      this.spawnNpc(npcId, spot, spot[0] < pc ? 'right' : 'left');
+      const npc = this.npcs.get(npcId);
+      if (npc) {
+        npc.setAlpha(0);
+        this.tweens.add({ targets: npc, alpha: 1, duration: 250 });
+        await npc.act('acenar', 1000);
+        npc.face(spot[0] < pc ? 'right' : 'left');
+      }
+    }
+    const one = visit.cats.length === 1;
+    const first = visit.cats[0]!;
+    const names = visit.cats.map((id) => s.catName(id));
+    const list = names.length <= 1 ? names[0]! : `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+    const cat = (text: string) => (one ? catSexText(s, text, first) : text).replace('{cat}', names[0]!).replace('{cats}', list);
+    const them = { speaker: t.speaker!, npc: npcId };
+    const me = { speaker: '{player}' };
+    const lines: { speaker: string; text: string; npc?: string }[] = [
+      { ...them, text: cat(one ? t.interest! : t.interestMany!) },
+      { ...me, text: t.askScreens! },
+      { ...them, text: t.answerScreens! },
+      { ...me, text: t.askStreet! },
+      { ...them, text: t.answerStreet! },
+    ];
+    // Filhote que vai sem castrar: quando já pode castrar.
+    for (const id of visit.cats) {
+      const days = s.kittenNeuterInDays(id);
+      if (days === null) continue;
+      lines.push({ ...me, text: catSexText(s, t.kittenNeuter!, id).replace('{cat}', s.catName(id)).replace('{days}', String(days)) });
+      lines.push({ ...them, text: t.kittenAnswer! });
+    }
+    lines.push({ ...me, text: cat(one ? t.thanks! : t.thanksMany!) }, { ...them, text: t.bye! });
+    await this.ui.say(lines);
+    flow.visitDone();
+    const npc = this.npcs.get(npcId);
+    this.npcs.delete(npcId);
+    if (npc) await this.walkOutAndLeave(npc);
   }
 
   /** O Tião terminou a obra: vem até ela, pergunta se quer mais algum serviço e vai embora (sim abre a aba Construção). */
