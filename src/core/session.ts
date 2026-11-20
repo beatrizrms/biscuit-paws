@@ -345,6 +345,7 @@ export class GameSession {
       hearts: (npc) => hearts(this.state, this.content.relationships, PLAYER, npc),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       npcName: (npc) => this.content.npcs[npc]?.name ?? npc,
+      retireItem: (itemId) => this.retireItem(itemId),
     });
     // Cliente pagou no balcão: com a plaquinha do CatPay, pode doar para a vaquinha.
     this.bus.on('customer.served', ({ customerId }) => {
@@ -1730,9 +1731,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1762,6 +1763,9 @@ export class GameSession {
     // A meta da vaquinha: quanto já entrou (moedas) de quanto precisa, enquanto ela estiver aberta.
     const fund = this.ced.active();
     if (fund) out.push({ kind: 'ced_goal', done: false, progress: [Math.min(fund.raised, fund.target), fund.target] });
+    // A campanha marcada: quantos dias faltam (até o dia dela).
+    const toCampaign = this.ced.daysToCampaign();
+    if (toCampaign !== null) out.push({ kind: 'ced_campaign', done: false, days: toCampaign });
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
     // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só. Com o pote
@@ -3017,6 +3021,27 @@ export class GameSession {
    * Os enfeites de cada caixa fora da estação dela (posicionados ou na mochila) vão para a caixa: na virada da
    * estação, ao carregar um save e depois dos pulos do debug. Na estação da caixa, nada muda.
    */
+  /**
+   * Tira um item de todo lugar: posicionado no café (o que estava em cima dele volta para a mochila), mochila e barra.
+   * Ex.: a plaquinha do CatPay quando a vaquinha bate a meta.
+   */
+  retireItem(itemId: string): void {
+    for (const p of this.state.placed.filter((x) => x.item === itemId)) {
+      for (const top of ridersOf(this.state.placed, this.content.items, p, this.footprint())) {
+        this.state.placed.splice(this.state.placed.indexOf(top), 1);
+        this.state.inventory[top.item] = (this.state.inventory[top.item] ?? 0) + 1;
+      }
+      this.state.placed.splice(this.state.placed.indexOf(p), 1);
+      this.bus.emit('item.removed', { itemId, uid: p.uid });
+    }
+    delete this.state.inventory[itemId];
+    const bar = this.state.hotbar;
+    if (bar.slots.includes(itemId)) {
+      bar.slots = bar.slots.map((s) => (s === itemId ? null : s));
+      this.bus.emit('hotbar.changed', { active: bar.active });
+    }
+  }
+
   packOutOfSeason(): void {
     const season = seasonOf(this.content.seasons, this.state.day);
     for (const box of this.content.festive.boxes) if (season !== box.opensIn) this.packXmasBox(box.item);
@@ -5712,6 +5737,9 @@ export class GameSession {
     const def = this.activeFestival();
     // Marcado desde a ideia (também durante os panfletos).
     if (def && a && a.day !== null && a.day >= from && a.day <= to) out.push({ id: `cal.${def.id}`, day: a.day, title: def.name, kind: 'event' });
+    // A campanha da CED, marcada na ligação para a Gabi.
+    const ced = this.ced.campaignDay();
+    if (ced !== null && ced >= from && ced <= to) out.push({ id: 'cal.ced_campaign', day: ced, title: this.content.ced.campaign.name, kind: 'event' });
     return out.sort((a, b) => a.day - b.day);
   }
 

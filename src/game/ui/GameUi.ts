@@ -192,7 +192,11 @@ export class GameUi {
     };
     this.cutscene = new CutsceneView(root, session, afterOverlay);
     this.quick = new QuickMenu(root);
-    this.cutscene.onSound = (id) => services().audio.jingle(id);
+    // O som da cena: jingle (a inauguração) ou efeito (o apito do celular); só toca o que existir com esse nome.
+    this.cutscene.onSound = (id) => {
+      services().audio.jingle(id);
+      services().audio.sfx(id);
+    };
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
     const problem = (reason: string) => this.problem(reason as keyof typeof uiText.problems);
@@ -254,7 +258,6 @@ export class GameUi {
       if (source === 'boost') void this.npcSay('npc.neusa', text);
       else this.toast(text, 2500);
     });
-    bus.on('crowdfund.completed', ({ raised, target }) => this.toast(ced.goal!.replace('{total}', String(raised)).replace('{target}', String(target)), 4000));
     bus.on('cat.affection_changed', ({ catId, from, to }) => {
       if (to > from) this.toast(`${this.session.catName(catId)} ${'♥'.repeat(Math.min(to, 5))}`);
     });
@@ -814,6 +817,11 @@ export class GameUi {
       }
       if (ch.kind === 'ced_goal') {
         today.push(this.row(c.cedGoal, { icon: 'caixa_bilhete', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
+        continue;
+      }
+      if (ch.kind === 'ced_campaign') {
+        const text = ch.days === 0 ? c.cedCampaignToday : ch.days === 1 ? c.cedCampaignTomorrow : c.cedCampaign.replace('{n}', String(ch.days));
+        today.push(this.row(text, { icon: 'caixa_bilhete' }));
         continue;
       }
       if (ch.kind === 'ced_sign') {
