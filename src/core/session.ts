@@ -3575,6 +3575,16 @@ export class GameSession {
     this.bus.emit('social.posted', { posts: this.state.social.feed.filter((f) => f.day === this.state.day).map((f) => f.post) });
   }
 
+  /**
+   * A primeira manhã com o Vila Hoje no celular (depois do prólogo): avisa uma vez só (o "Bzz!"); nas outras, o jornal
+   * chega sem aviso. Marca no save.
+   */
+  firstNewsMorning(): boolean {
+    if (!this.state.flags['prologue.done'] || this.state.flags['news.arrived_told']) return false;
+    this.state.flags['news.arrived_told'] = true;
+    return true;
+  }
+
   /** O feed da SocialVilla (o mais novo primeiro): quem postou, o texto, o dia e se ela já viu. */
   socialFeed(): { id: string; npc: string; handle: string; text: string; day: number; seen: boolean }[] {
     return this.state.social.feed.flatMap((f) => {

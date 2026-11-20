@@ -681,7 +681,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         cam.fadeIn(600, 27, 33, 64);
         this.changingMap = false;
         if (this.session.arrivingByBus()) void this.arriveByBus();
-        if (this.session.state.flags['prologue.done']) this.ui.toast(uiText.news.arrived);
+        // O "Bzz! Chegou o Vila Hoje" só na primeira manhã (depois, ela já sabe que o jornal chega todo dia).
+        if (this.session.firstNewsMorning()) this.ui.toast(uiText.news.arrived);
       });
     });
 

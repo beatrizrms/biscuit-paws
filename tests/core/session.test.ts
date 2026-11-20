@@ -1551,3 +1551,13 @@ describe('Market: ferramentas', () => {
     expect(session.addToOrder('item.tray')).toEqual({ ok: false, reason: 'unknown_item' });
   });
 });
+
+describe('Vila Hoje: o "Bzz!" da manhã', () => {
+  it('só na primeira manhã depois do prólogo', () => {
+    const session = new GameSession(content, newGameState(0, 'map.cafe_main'));
+    expect(session.firstNewsMorning()).toBe(false); // antes do prólogo, nada
+    session.state.flags['prologue.done'] = true;
+    expect(session.firstNewsMorning()).toBe(true);
+    expect(session.firstNewsMorning()).toBe(false);
+  });
+});
