@@ -782,6 +782,13 @@ export class CafeService {
     return (['vessel', 'ingredients', 'equipment'] as const).find((st) => statuses.includes(st)) ?? 'equipment';
   }
 
+  /** Tem receita no quadro, mas nenhuma sai: falta ingrediente na despensa (decisão 294). */
+  menuNeedsIngredients(): boolean {
+    if (this.st.menu.length === 0) return false;
+    const statuses = this.st.menu.map((id) => this.recipeStatus(id));
+    return !statuses.includes('available') && statuses.includes('ingredients');
+  }
+
   /** O atendimento já existe (marco/condição dos dados), aberto ou não agora. */
   enabled(): boolean {
     return this.h.evaluate(this.cfg.enabledWhen);

@@ -693,6 +693,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Quadro do cardápio e mochila */
 /* Painel de madeira escuro: título, subtítulos e "fechar" em cores claras. */
+/* O quadro do cardápio mais largo que os outros painéis: ingredientes, troca do premium e lucro sem espremer (decisão 293). */
+.catalog.menu-board { width: 290px; }
 .catalog.menu-board h2 { font-size: max(calc(12px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--cream); text-shadow: 0 1px 0 var(--c-shadow); }
 .catalog.menu-board .close { color: var(--pink2); font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); }
 .catalog.menu-board h3 { font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--butter2); }
@@ -1420,7 +1422,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-coins { display: inline-flex; align-items: center; white-space: nowrap; }
 .catalog.menu-board .m-calc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .catalog.menu-board .m-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border-radius: 8px; background: var(--c-paper); color: var(--ink); font-weight: bold; cursor: pointer; }
-.catalog.menu-board .m-chip.none { background: var(--c-terra); color: var(--c-white); }
+.catalog.menu-board .m-chip.none { color: var(--c-terra); }
 .catalog.menu-board .m-op { color: var(--c-ink3); font-weight: bold; }
 /* A legenda em cima dos ingredientes (por receita ou por fornada). */
 .catalog.menu-board .m-per { margin: 0 0 1px; color: var(--c-ink3); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); }

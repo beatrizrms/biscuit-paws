@@ -194,7 +194,8 @@
     "doneToday1": "hoje: feito · volta amanhã",
     "nextSeal": "Próxima conquista: {name}",
     "nextSealDetail": "{track}",
-    "recipeGoal": "Atenda {n} clientes"
+    "recipeGoal": "Atenda {n} clientes",
+    "menuFirst": "Monte o cardápio no quadro (sem ele, ninguém pede)"
   },
   "goalsShow": "Clique para ver os detalhes",
   "goalsHide": "Clique para recolher",
@@ -699,6 +700,7 @@
     },
     "sweep": "Varra a poeira do dia",
     "pantry": "Guarde as compras na despensa",
+    "ingredients": "Compre os ingredientes do cardápio",
     "pantryItems": "Guarde na despensa: {items}",
     "sick": "Gatos doentes sem tratamento: clientes não entram",
     "care": {

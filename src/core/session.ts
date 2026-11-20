@@ -1789,9 +1789,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1877,6 +1877,8 @@ export class GameSession {
     if (left > 0 || this.state.day > 2) out.push({ kind: 'sweep', done: left === 0, progress: [Math.max(0, back - left), back] });
     // Compras de ingrediente na mochila: guardar na despensa (só assim contam para as receitas).
     if (this.service.ingredientsInBag() > 0) out.push({ kind: 'pantry', done: false });
+    // Receita no quadro, mas nada sai por falta de ingrediente (decisão 294); com compras na mochila, a despensa já diz.
+    else if (this.service.menuNeedsIngredients()) out.push({ kind: 'ingredients', done: false });
     return out;
   }
 

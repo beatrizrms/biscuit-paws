@@ -113,7 +113,8 @@
     "scr.request_visit": {
       "steps": [
         { "npcSpawn": "@visitor", "map": "map.cafe_main", "at": [14, 10], "facing": "up" },
-        { "npcWalk": "@visitor", "to": [13, 7] },
+        { "npcWalk": "@visitor", "to": [14, 7] },
+        { "npcBeside": "@visitor" },
         { "emote": "player", "balloon": "exclamation", "ms": 600 },
         { "requestIntro": true },
         { "npcWalk": "@visitor", "to": [14, 10] },
@@ -275,11 +276,7 @@
           ]
         },
         {
-          "npcWalk": "npc.neusa",
-          "to": [
-            12,
-            6
-          ]
+          "npcBeside": "npc.neusa"
         },
         {
           "emote": "player",

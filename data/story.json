@@ -495,9 +495,6 @@
       "after": [
         "story.coffee_machine"
       ],
-      "start": {
-        "nextDay": "story.coffee_machine"
-      },
       "exclusive": true,
       "goal": {
         "title": "Mesa e cadeira",

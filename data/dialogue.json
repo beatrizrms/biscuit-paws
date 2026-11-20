@@ -350,10 +350,6 @@
         {
           "speaker": "",
           "text": "Agora dá para chamar o Tião. Primeiro, os reparos: o de dentro e o da fachada."
-        },
-        {
-          "speaker": "",
-          "text": "Quando a porta se fecha, você ouve lá fora, bem baixinho, um miado."
         }
       ]
     },
@@ -362,6 +358,10 @@
         {
           "speaker": "{player}",
           "text": "Pronto, a cafeteira no balcão! Agora sim, isto aqui parece um café de verdade."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Mas ninguém toma café em pé... Preciso de uma mesa e uma cadeira para os clientes."
         }
       ]
     },
