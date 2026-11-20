@@ -57,6 +57,8 @@ ocupada antes de usar.
   material with 1px highlights on top edges, light from top-left, rounded chunky shapes, rich small details, cute
   paw-print accents".
 - **Âncora de estilo:** `assets/_pixellab/lote01/obj_7.png`, o pote de biscoitos.
+- **Contorno fora do padrão** (preto, cinza ou sem contorno): não precisa gerar de novo. Ponha a peça em `OUTLINE_RECOLOR` ou
+  `OUTLINE_ADD` (`scripts/import-pixellab.ts`) e rode o import da folha (decisão 280). Plantas e folhagem, não.
 - **Paleta quente.** Cinza-azulado, azul liso e branco de plástico só aparecem com sombra quente e contorno marrom. Um
   objeto sem contorno marrom destoa.
 - **Móveis e objetos sempre vazios:** sem gatos, pessoas ou coisas em cima. O conteúdo entra por camada no jogo.
