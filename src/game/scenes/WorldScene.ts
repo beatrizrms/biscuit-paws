@@ -370,7 +370,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   create(): void {
     setupWorldCamera(this);
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: () => this.faceTalkers() }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: (npc) => this.faceTalkers(npc) }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -757,6 +757,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const busy = this.ui.isBusy() || this.ridingBus || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem || this.player.isActing() || this.areaSelect !== null || this.seasonRevealing;
     // Momentos que esperam a vez (a Fernanda com o gato operado, a fala da obra, o Tião perguntando): um de cada vez,
     // só com a tela livre (o resumo do dia fechado, sem fala nem cena) e quando a condição de cada um vale.
+    // Conversa acabou: quem falou por último não vale para a próxima (decisão 292).
+    if (!this.ui.isDialogueOpen()) this.lastTalker = null;
     this.syncMoments();
     this.moments.tick(!busy);
     if (this.waitUntilAbs !== null && nowAbs(this.session.state) >= this.waitUntilAbs) this.waitUntilAbs = null;
@@ -2528,8 +2530,22 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    * A cada fala: quem está perto dela na cena (até 4 células), parado (sem animação nem caminhada) e fora da plateia
    * da festa, se vira para ela (as cenas deixavam alguém de costas no fim da caminhada).
    */
-  private faceTalkers(): void {
+  /** Quem falou por último na conversa (a personagem continua virada para essa pessoa quando é a vez dela). */
+  private lastTalker: string | null = null;
+
+  /**
+   * Uma fala apareceu: quem está conversando fica virado um para o outro (decisão 292). A personagem vira para quem fala
+   * (ou, na vez dela, para quem falou por último) e os NPCs perto viram para ela.
+   */
+  private faceTalkers(speaker?: string): void {
     const ts = this.map.tileSize;
+    if (speaker) this.lastTalker = speaker;
+    const talker = this.lastTalker ? this.npcs.get(this.lastTalker) : undefined;
+    if (talker?.active && !this.session.resting()) {
+      const dx = talker.x - this.player.x;
+      const dy = talker.y - this.player.y;
+      if (Math.hypot(dx, dy) <= 6 * ts) this.player.face(Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    }
     for (const [id, npc] of this.npcs) {
       if (!npc.active || npc.anims.isPlaying || this.crowd.get(id) === npc || this.ambient.get(id) === npc || this.passers.get(id) === npc || this.neighborWalks.has(id)) continue;
       if (this.tweens.getTweensOf(npc).some((t) => t.isPlaying())) continue;

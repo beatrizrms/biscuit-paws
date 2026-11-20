@@ -127,3 +127,23 @@ describe('quebra de equipamento', () => {
     expect(parseSave(readFileSync('tests/fixtures/save_v31.json', 'utf8'), known).state.wear).toEqual({});
   });
 });
+
+describe('tarefa dos ingredientes do cardápio (decisão 294)', () => {
+  it('receita no quadro sem ingrediente na despensa: "Compre os ingredientes do cardápio"; com ingrediente, some', () => {
+    const { state, session, sv } = cafe();
+    state.pantry = {};
+    state.inventory = {};
+    expect(sv.menuNeedsIngredients()).toBe(true);
+    expect(session.chores().some((c) => c.kind === 'ingredients')).toBe(true);
+    // Compras ainda na mochila: a tarefa da despensa vem no lugar.
+    state.inventory['item.coffee_ground'] = 1;
+    expect(session.chores().some((c) => c.kind === 'ingredients')).toBe(false);
+    expect(session.chores().some((c) => c.kind === 'pantry')).toBe(true);
+    // Na despensa, a receita sai: nenhuma das duas.
+    state.inventory = {};
+    state.pantry['item.coffee_ground'] = 5;
+    state.pantry['item.paper_filter'] = 5;
+    expect(sv.menuNeedsIngredients()).toBe(false);
+    expect(session.chores().some((c) => c.kind === 'ingredients' || c.kind === 'pantry')).toBe(false);
+  });
+});

@@ -860,8 +860,8 @@ export class GameUi {
       const feedText = c.feedAll;
       // Despensa: quais compras ainda estão na mochila ("Guarde na despensa: Laranja, Açúcar").
       const pantryText = c.pantryItems.replace('{items}', listNames(this.session.service.ingredientsToStore().map((id) => content.items[id]?.name ?? id)));
-      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? pantryText : c.sweep;
-      const icon = ch.kind === 'feed' ? 'racao_aberta' : ch.kind === 'pantry' ? 'caixas_empilhadas' : 'vassoura';
+      const text = ch.kind === 'feed' ? feedText : ch.kind === 'pantry' ? pantryText : ch.kind === 'ingredients' ? c.ingredients : c.sweep;
+      const icon = ch.kind === 'feed' ? 'racao_aberta' : ch.kind === 'pantry' || ch.kind === 'ingredients' ? 'caixas_empilhadas' : 'vassoura';
       today.push(this.row(text, { icon, right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
     }
     for (const job of this.session.activeJobs()) {
@@ -1604,6 +1604,10 @@ ${rep}`;
 
   /** A meta de clientes da próxima receita (a da estação ou a geral, a que falta menos): "Atenda X clientes". */
   private clientsGoalRow(): string {
+    // Antes do primeiro cliente (a meta da história ensina), a linha ainda não faz sentido (decisão 293).
+    if (!this.session.state.flags['cafe.open']) return '';
+    // Sem nada no quadro, nenhum cliente pede: primeiro o cardápio.
+    if (this.session.state.menu.length === 0) return this.row(uiText.goals.menuFirst, { icon: 'menu_cafe_com_leite' });
     const goal = this.session.recipeGoals().sort((a, b) => a.at - a.value - (b.at - b.value))[0];
     if (!goal || goal.at <= goal.value) return '';
     return this.row(uiText.goals.recipeGoal.replace('{n}', String(goal.at - goal.value)), { icon: 'menu_cafe_com_leite', right: this.pips(goal.value, goal.at) });

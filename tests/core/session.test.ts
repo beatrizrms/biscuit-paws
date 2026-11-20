@@ -211,8 +211,8 @@ describe('começo da história', () => {
     expect(events.some((e) => e.name === 'dialogue.requested' && (e.payload as { dialogueId: string }).dialogueId === 'dlg.coffee_ready')).toBe(true);
     expect(scripts()).toContain('scr.neusa_visit');
     expect(session.painterUnlocked()).toBe(true);
-    // As mesas só no dia seguinte.
-    expect(titles()).toEqual([]);
+    // A meta das mesas já no mesmo dia (decisão 293: antes só no dia seguinte, e ela ficava sem saber o que fazer).
+    expect(titles()).toEqual(['Mesa e cadeira']);
     session.endDay('home');
     expect(titles()).toEqual(['Mesa e cadeira']);
     // Dia 3: comprar a mesa e a cadeira faz a Gabi ligar (ela já está com dinheiro dos pedidos).
