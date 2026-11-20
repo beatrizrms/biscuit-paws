@@ -10,6 +10,8 @@ export interface ScriptStage {
   npcWalk(npcId: string, to: Cell): Promise<void>;
   npcAct(npcId: string, anim: string, ms: number): Promise<void>;
   npcFace(npcId: string, facing: Facing): void;
+  /** O NPC vai para o lado da personagem e os dois se viram um para o outro (conversa de lado). */
+  npcBeside(npcId: string): Promise<void>;
   npcLeave(npcId: string): Promise<void>;
   playerWalk(to: Cell): Promise<void>;
   playerFace(facing: Facing): void;
@@ -83,7 +85,7 @@ export class ScriptRunner {
     const who = this.session.requestVisitor();
     if (!who) return step;
     const out: Record<string, unknown> = { ...step };
-    for (const k of ['npcSpawn', 'npcWalk', 'npcAnim', 'npcFace', 'npcLeave', 'npcToCat', 'emote']) if (out[k] === VISITOR) out[k] = who;
+    for (const k of ['npcSpawn', 'npcWalk', 'npcAnim', 'npcFace', 'npcBeside', 'npcLeave', 'npcToCat', 'emote']) if (out[k] === VISITOR) out[k] = who;
     return out as ScriptStep;
   }
 
@@ -96,6 +98,7 @@ export class ScriptRunner {
     } else if ('npcWalk' in step) await s.npcWalk(step.npcWalk, step.to);
     else if ('npcAnim' in step) await s.npcAct(step.npcAnim, step.anim, step.ms);
     else if ('npcFace' in step) s.npcFace(step.npcFace, step.facing);
+    else if ('npcBeside' in step) await s.npcBeside(step.npcBeside);
     else if ('npcLeave' in step) await s.npcLeave(step.npcLeave);
     else if ('playerWalk' in step) await s.playerWalk(step.playerWalk);
     else if ('playerFace' in step) s.playerFace(step.playerFace);

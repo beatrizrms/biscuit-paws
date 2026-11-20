@@ -4863,6 +4863,34 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.npcs.get(npcId)?.face(facing);
   }
 
+  /**
+   * O NPC vai para o lado da personagem (direita ou esquerda, a célula livre mais perto dele) e os dois ficam de lado,
+   * um virado para o outro: conversa natural, em vez de ficar de frente para a tela.
+   */
+  async npcBeside(npcId: string): Promise<void> {
+    const npc = this.npcs.get(npcId);
+    if (!npc) return;
+    const ts = this.map.tileSize;
+    const [pc, pr] = this.feetCell();
+    const at: Cell = [Math.floor(npc.x / ts), Math.floor(npc.y / ts)];
+    const others = [...this.npcs].filter(([id]) => id !== npcId).map(([, n]): Cell => [Math.floor(n.x / ts), Math.floor(n.y / ts)]);
+    const busy = (c: number, r: number) => this.map.solid[r]?.[c] !== false || others.some(([oc, or]) => oc === c && or === r);
+    const spots = ([[pc + 1, pr], [pc - 1, pr]] as Cell[])
+      .filter(([c, r]) => (c === at[0] && r === at[1]) || !busy(c, r))
+      .sort((a, b) => Math.abs(a[0] - at[0]) + Math.abs(a[1] - at[1]) - (Math.abs(b[0] - at[0]) + Math.abs(b[1] - at[1])));
+    const spot = spots[0];
+    if (spot && (spot[0] !== at[0] || spot[1] !== at[1])) await this.npcWalk(npcId, spot);
+    const nc = spot ? spot[0] : at[0];
+    const nr = spot ? spot[1] : at[1];
+    // Virados um para o outro: de lado quando estão na mesma linha; senão, pelo lado que está mais longe.
+    const dx = nc - pc;
+    const dy = nr - pr;
+    const towardNpc: Facing = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+    const opposite: Record<Facing, Facing> = { left: 'right', right: 'left', up: 'down', down: 'up' };
+    this.player.face(towardNpc);
+    npc.face(opposite[towardNpc]);
+  }
+
   async npcLeave(npcId: string): Promise<void> {
     const npc = this.npcs.get(npcId);
     this.npcs.delete(npcId);

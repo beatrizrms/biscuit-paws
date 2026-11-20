@@ -17,6 +17,11 @@ type ScriptAction =
   | { npcWalk: string; to: Cell }
   | { npcAnim: string; anim: string; ms: number }
   | { npcFace: string; facing: Facing }
+  /**
+   * O NPC vai para o lado da personagem (a célula livre à direita ou à esquerda dela, a mais perto dele) e os dois ficam
+   * de lado, um virado para o outro, para conversar. Sem lugar livre, só se viram um para o outro.
+   */
+  | { npcBeside: string }
   | { npcLeave: string }
   | { playerWalk: Cell }
   | { playerFace: Facing }
@@ -138,6 +143,7 @@ export function validateScripts(data: ScriptsData, refs: ScriptRefs): string[] {
         if (!refs.maps.has(step.map)) errors.push(`${where(i)}: mapa inexistente "${step.map}"`);
       } else if ('npcWalk' in step) npc(step.npcWalk);
       else if ('npcFace' in step) npc(step.npcFace);
+      else if ('npcBeside' in step) npc(step.npcBeside);
       else if ('npcLeave' in step) npc(step.npcLeave);
       else if ('npcAnim' in step) {
         npc(step.npcAnim);
