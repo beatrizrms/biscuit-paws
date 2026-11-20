@@ -1884,11 +1884,21 @@ export class GameSession {
 
   // ---------- Correio ----------
 
+  /**
+   * Dá para encomendar pelo Market? Chave e presente, nunca; ferramenta, só a que o Market vende (tag online: a varinha;
+   * a vassoura e a bandeja, não).
+   */
+  private orderable(item: { kind?: string; tags: string[] }): boolean {
+    const kind = item.kind ?? 'furniture';
+    if (kind === 'key' || kind === 'gift') return false;
+    return kind !== 'tool' || item.tags.includes('online');
+  }
+
   /** Compra no catálogo: desconta já e a caixa chega na porta do café depois (data/delivery.json). */
   order(itemId: string, box?: string): ActionResult {
     const item = this.content.items[itemId];
     if (!item || item.deprecated) return { ok: false, reason: 'unknown_item' };
-    if (['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!this.orderable(item)) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (item.kind === 'fixture' && ((this.state.inventory[itemId] ?? 0) > 0 || this.state.deliveries.some((d) => d.item === itemId))) {
       return { ok: false, reason: 'already_owned' };
@@ -1925,7 +1935,7 @@ export class GameSession {
   /** Celular: põe uma unidade no pedido (o dinheiro só é conferido ao confirmar). */
   addToOrder(itemId: string): ActionResult {
     const item = this.content.items[itemId];
-    if (!item || item.deprecated || ['key', 'tool', 'gift'].includes(item.kind ?? 'furniture')) return { ok: false, reason: 'unknown_item' };
+    if (!item || item.deprecated || !this.orderable(item)) return { ok: false, reason: 'unknown_item' };
     if (!this.itemUnlocked(itemId)) return { ok: false, reason: 'locked' };
     if (this.orderCart.qty(itemId) >= this.orderMax(itemId)) return { ok: false, reason: item.kind === 'fixture' ? 'already_owned' : 'door_full' };
     this.orderCart.add(itemId);
@@ -5894,7 +5904,9 @@ export class GameSession {
 
   /** Marcações do calendário (app "Calendário") de `from` a `to`: começos de estação e eventos ainda valendo. */
   calendar(from: number, to: number): CalendarEntry[] {
-    const out = calendarEntries(this.content.seasons, from, to, (e) => !!e.hideWhen && evaluate(e.hideWhen as Condition, this.state, this.storyContext()));
+    // Só o que já foi apresentado para ela (showWhen) e ainda vale (hideWhen).
+    const holds = (c: unknown) => evaluate(c as Condition, this.state, this.storyContext());
+    const out = calendarEntries(this.content.seasons, from, to, (e) => (!!e.hideWhen && holds(e.hideWhen)) || (!!e.showWhen && !holds(e.showWhen)));
     // O festival marcado, com o nome dele.
     const a = this.state.festivals.active;
     const def = this.activeFestival();

@@ -2012,7 +2012,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
    */
   private hideBangsUnderHint(): void {
     const hint = this.hint.bounds();
-    const bangs = [...this.jobIcons.filter((i) => i.frame.name === 'exclamation'), ...this.brokenIcons.values()];
+    // (A seta dos pontos com marcador, como o monte de neve, é um desenho, sem quadro: fica de fora.)
+    const bangs = [...this.jobIcons.filter((i) => i.frame?.name === 'exclamation'), ...this.brokenIcons.values()];
     for (const icon of bangs) {
       if (!icon.active) continue;
       icon.setAlpha(hint && Phaser.Geom.Intersects.RectangleToRectangle(hint, icon.getBounds()) ? 0 : 1);
