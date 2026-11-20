@@ -36,7 +36,8 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   gabi2: { id: 'npc.gabi', kit: 'fullBox', portrait: true },
   corretora: { id: 'npc.realtor', kit: 'full', portrait: true },
   neusa: { id: 'npc.neusa', kit: 'full', portrait: true },
-  jacque: { id: 'npc.jacque', kit: 'full', portrait: true },
+  // A Jacque refeita no padrão da cliente 04 (decisão 282); a pasta jacque/ é a antiga (piercing corrigido à mão).
+  jacque2: { id: 'npc.jacque', kit: 'full', portrait: true },
   entregadora: { id: 'npc.mail_carrier', kit: 'full', portrait: true },
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },
