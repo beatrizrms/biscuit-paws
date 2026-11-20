@@ -40,3 +40,15 @@ describe('potes e caminhas: só a personagem não atravessa', () => {
   });
 });
 
+
+describe('arte deslocada (shiftX)', () => {
+  it('a colisão do móvel anda junto com o desenho (as pontas das prateleiras do mercado)', () => {
+    const market = new GameSession(content, newGameState(0, 'map.cafe_main')).mapData('map.market');
+    const ts = market.tileSize;
+    const ponta = market.objects.find((o) => o.id === 'obj.market_corredor_1_ponta')!;
+    const boxes = solidBoxes(market, content.catalog, 0.5);
+    const [c, r] = ponta.at;
+    expect(boxes.some((b) => b.x === c * ts + ponta.shiftX! && b.y >= r * ts && b.y < (r + 1) * ts)).toBe(true);
+    expect(boxes.some((b) => b.x === c * ts && b.y >= r * ts && b.y < (r + 1) * ts)).toBe(false);
+  });
+});

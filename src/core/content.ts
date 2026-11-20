@@ -300,6 +300,8 @@ export type Condition =
   | { business: BusinessStage }
   /** Reforma completa: os dois reparos do construtor feitos (interno e da fachada; data/finishes.json construction). */
   | { renovated: true }
+  /** A vaquinha da CED em andamento (a missão da CED: data/ced.json). */
+  | { cedActive: true }
   /** O cômodo já chegou a este estado (data/rooms.json). */
   | { room: string; atLeast: RoomState }
   /** Gatos abrigados. */

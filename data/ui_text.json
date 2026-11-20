@@ -4,7 +4,7 @@
     "isNew": "Novo",
     "newStuff": "Chegou coisa nova no Market",
     "app": "Market",
-    "online": "Compra online: chega pela entregadora, na porta do café, em 1 hora.",
+    "online": "Compra online: Chega na porta em 1h",
     "tabs": [
       {
         "id": "pet",
@@ -916,7 +916,6 @@
     "needsCats": "precisa de mais gatos",
     "needsItem": "precisa da chave",
     "stillDirty": "limpe antes ({n} sujeiras)",
-    "cats": "Gatos no abrigo: {n} de {max}",
     "sleepQuestion": "Dormir no café até amanhã?",
     "sleepYes": "Dormir",
     "sleepNo": "Ainda não",
