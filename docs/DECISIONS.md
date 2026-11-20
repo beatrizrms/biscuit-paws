@@ -1240,3 +1240,11 @@ Decisão: "Inaugure o café no dia 26" virou o primeiro passo (o destaque); emba
 ## 298. Mochila: o foco vai para as ações do item, sem rolar (nov/2026)
 Pedido: ao clicar num item da mochila, levar o foco para onde se escolhe o que fazer com ele; e a mochila estava rolando.
 Decisão: escolhido um item novo, a linha de detalhes (nome, para que serve e as ações) entra na vista e o primeiro botão de ação recebe o foco (teclado e o destaque do controle: `padNav.focus`). A linha de detalhes fica presa embaixo da janela (sticky), sempre à vista. A despensa mostra uma linha de espaços vazios (antes três), crescendo com o que tem: com ela aberta, a mochila cabe sem rolar.
+
+## 299. Botões dos mini games de mouse com o botão certo do controle (nov/2026)
+Pedido: no Remédio escondido, o botão dizia "Pronto (A)", mas apertar A não fazia nada.
+Decisão: nos mini games de mouse, com o controle o A é o clique (espalhar a pasta) e o Pronto/Oferecer é o X (o tutorial do controle já dizia X). O rótulo do botão era calculado uma vez, quando ele era criado, antes de o cursor do controle ligar; ali o E ainda era o A. Agora os botões do mini game guardam o texto original e refazem a tecla quando o jeito de jogar muda (teclado, toque, controle, cursor ligado): com o cursor, "Pronto (X)". Vale para todos os jogos de mouse (`MiniGameScene.refreshHudLabels`, `setHudLabel`).
+
+## 300. A letra da dica do E centrada na tecla (nov/2026)
+Pedido: na plaquinha da dica, o "A" do controle ficava torto dentro do círculo verde.
+Decisão: o texto era centrado pela caixa da fonte (com o espaço de acentos e descendentes), e a maiúscula da Nunito fica fora do meio dessa caixa (meio pixel para baixo, um quarto para o lado; com o zoom 2, aparece). Agora a letra é centrada pela tinta desenhada (`glyphNudge` em `src/game/InteractHint.ts`, medindo em 10x para não arredondar), no círculo do A e no quadradinho do E.

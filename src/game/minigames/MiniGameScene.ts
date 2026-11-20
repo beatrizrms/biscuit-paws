@@ -14,6 +14,7 @@ import { isDebugOn } from '../debug';
 import { startPerfMeter } from './perfMeter';
 import { MiniGameControls } from './controls';
 import { byInput, keyless, touch } from '../touch';
+import { pad } from '../gamepad';
 
 /** O que a cena recebe de quem abriu (o registro monta). */
 export interface MiniGameLaunch {
@@ -74,6 +75,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
+    this.refreshHudLabels();
     if (this.phase !== 'playing') return;
     this.timer?.tick(delta);
     if (this.phase !== 'playing') return; // o fim do tempo pode ter acabado o jogo
@@ -257,6 +259,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   protected hudButton(label: string, onClick: () => void): HTMLButtonElement {
     const b = document.createElement('button');
     b.className = 'menu-btn mg-skip mg-extra';
+    b.dataset.label = label;
     b.textContent = keyless(label);
     b.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -264,6 +267,21 @@ export abstract class MiniGameScene extends Phaser.Scene {
     });
     this.layer?.querySelector('.mg-hud')?.insertBefore(b, this.layer.querySelector('.mg-skip'));
     return b;
+  }
+
+  /** Troca o texto de um botão do jogo (a tecla entre parênteses segue o controle em uso). */
+  protected setHudLabel(b: HTMLElement, label: string): void {
+    b.dataset.label = label;
+    b.textContent = keyless(label);
+  }
+
+  /** O jeito de jogar mudou (teclado, toque, controle; o cursor do controle ligou): a tecla dos botões muda junto. */
+  private hudInput = '';
+  private refreshHudLabels(): void {
+    const now = touch.mode === 'pad' ? `pad:${pad.padContexts().join(',')}` : touch.mode;
+    if (now === this.hudInput) return;
+    this.hudInput = now;
+    this.layer?.querySelectorAll<HTMLElement>('[data-label]').forEach((b) => (b.textContent = keyless(b.dataset.label!)));
   }
 
   private overlay(html: string | null): void {
