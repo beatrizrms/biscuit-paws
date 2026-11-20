@@ -1246,3 +1246,15 @@ describe('a fama traz gente (reputationArrival)', () => {
     // Simula 8 dias inteiros (uns 2 s sozinho): com a suíte toda junto passava dos 5 s às vezes.
   }, 30_000);
 });
+
+describe('clientes: sem a mesma pessoa duas vezes no café', () => {
+  it('quem chega tem um visual que ninguém no café está usando (repete só com todos já lá dentro)', () => {
+    const { session, sv, state } = openCafe();
+    sv.toggleMenu('recipe.black_coffee');
+    const looks = session.content.service.customerLooks.length;
+    for (let i = 0; i < 40 && state.service.customers.length < Math.min(looks, 6); i++) advance(session, 6);
+    const now = state.service.customers.map((c) => c.look);
+    expect(now.length).toBeGreaterThan(1);
+    expect(new Set(now).size).toBe(now.length);
+  });
+});

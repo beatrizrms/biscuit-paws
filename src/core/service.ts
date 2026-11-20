@@ -1002,9 +1002,13 @@ export class CafeService {
     const rng = this.h.rng();
     const pref = this.cfg.preferences;
     const start = queueFree[0] ?? this.cfg.queue[0]!;
+    // O visual: um que não esteja no café agora (a mesma pessoa duas vezes só com todos os visuais já lá dentro).
+    const inUse = new Set(sv.customers.map((x) => x.look % this.cfg.customerLooks.length));
+    const free = this.cfg.customerLooks.map((_, i) => i).filter((i) => !inUse.has(i));
+    const look = free.length > 0 ? free[rng.int(0, free.length - 1)]! : rng.int(0, this.cfg.customerLooks.length - 1);
     const c: Customer = {
       id: `c${sv.nextCustomerId++}`,
-      look: rng.int(0, this.cfg.customerLooks.length - 1),
+      look,
       stage: 'queue',
       kind: 'standing',
       spot: [...start],
