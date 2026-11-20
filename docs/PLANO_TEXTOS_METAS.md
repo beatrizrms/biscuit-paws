@@ -94,7 +94,7 @@ Exemplo, só para mostrar o tamanho (a versão final vai na tabela da etapa 3):
 | | Abrir a porta com a chave (E na porta). | Abra a porta com a chave |
 | | Limpar o quintal (folhas e mato). | Limpe o quintal |
 | | Terminar a reforma (Market, aba Construção). | Termine a reforma do quintal |
-| A inauguração | Fazer os reparos de dentro e de fora do café com o Tião (Market, aba Construção). | Faça os reparos do café com o Tião |
+| A inauguração | Fazer os reparos de dentro e de fora do café com o Tião (Market, aba Construção). | Inaugure o café no dia 26 (em destaque); embaixo: Faça os reparos internos com o Tião · Faça os reparos da fachada com o Tião · Encomende a lousa do café (decisão 297) |
 | | Com os reparos prontos, encomendar a lousa do café (Market, aba Construção, em Fachada) e abrir a caixa. | Encomende a lousa do café |
 | | Inaugurar no dia 26, logo depois do Natal ({faltam}). Sem tudo pronto até lá, no primeiro dia pronto depois (entre 8h e 18h), fora dos dias de festa (como o Ano Novo). | Inaugure o café dia 26 |
 | (opcionais) | Colar 3 cartazes da inauguração pela vila. | Cole 3 cartazes pela vila |

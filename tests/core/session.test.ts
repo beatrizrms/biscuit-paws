@@ -779,6 +779,21 @@ describe('lousa da porta (peça fixa)', () => {
     expect(chalkboardOnStreet(session)).toBe(true);
   });
 
+  it('a meta da inauguração: os reparos internos e os da fachada são passos separados (decisão 297)', () => {
+    const state = newGameState(500, 'map.cafe_main', 10 * 60);
+    const beats = content.story.beats.map((x) => x.id);
+    state.story.completed.push(...beats.slice(0, beats.indexOf('story.first_customer') + 1));
+    state.business = 'soft_open';
+    const session = new GameSession(content, state);
+    const step = (text: string) => session.goals()[0]!.steps.find((s) => s.text === text)!;
+    expect(step('Faça os reparos internos com o Tião').done).toBe(false);
+    state.construction.repaired.push('inside');
+    expect(step('Faça os reparos internos com o Tião').done).toBe(true);
+    expect(step('Faça os reparos da fachada com o Tião').done).toBe(false);
+    state.construction.repaired.push('outside');
+    expect(step('Faça os reparos da fachada com o Tião').done).toBe(true);
+  });
+
   it('a inauguração: reforma completa (com a fachada) + placa + primavera; o negócio passa a inaugurado', () => {
     const state = newGameState(500, 'map.cafe_main', 10 * 60);
     const beats = content.story.beats.map((x) => x.id);
@@ -792,7 +807,10 @@ describe('lousa da porta (peça fixa)', () => {
     session.buy('item.cafe_sign');
     // Pronta antes do dia 26: espera (o passo mostra quantos dias faltam).
     expect(session.state.business).toBe('soft_open');
-    expect(session.goals()[0]!.steps.filter((s) => !s.optional).at(-1)!.text).toBe('Inaugure o café no dia 26');
+    // O passo em destaque é a inauguração (decisão 297); os reparos e a lousa vêm embaixo, já feitos.
+    const required = session.goals()[0]!.steps.filter((s) => !s.optional);
+    expect(required[0]!.text).toBe('Inaugure o café no dia 26');
+    expect(required.filter((s) => !s.done).map((s) => s.text)).toEqual(['Inaugure o café no dia 26']);
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');

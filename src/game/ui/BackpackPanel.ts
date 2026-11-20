@@ -3,6 +3,7 @@
 // até um espaço, clicar no espaço com o item selecionado ou apertar 1 a 8. Arrastar da barra para a grade tira da barra.
 // No armário da cozinha e na caixa pet, o storage aparece embaixo; os itens passam entre barra, mochila, despensa e
 // caixa pelos ícones do item selecionado (o ícone é o destino) ou arrastando.
+import { padNav } from '../padNav';
 import { actionIconSvg, type ActionIcon } from './actionIcons';
 import type { HandItem } from '../../core/carry';
 import type { ItemDef } from '../../core/content';
@@ -18,8 +19,8 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 /** Espaços da grade da mochila (cresce de 8 em 8 se ela tiver mais coisas). */
 const BAG_SLOTS = 16;
-/** Espaços da despensa (3 linhas de 8); com mais ingredientes, ganha linhas. */
-const PANTRY_SLOTS = 24;
+/** Espaços da despensa: uma linha de 8; com mais ingredientes, ganha linhas (três linhas vazias faziam a mochila rolar: decisão 298). */
+const PANTRY_SLOTS = 8;
 
 /** Nome de um objeto da mão (bebida, louça suja, item). */
 export function handItemName(h: HandItem, catName: (id: string) => string = (id) => content.cats[id]?.name ?? ''): string {
@@ -78,6 +79,8 @@ export class BackpackPanel {
   private body: HTMLElement;
   private open = false;
   private selected: Selection = null;
+  /** A escolha que já recebeu o foco (o foco só pula para as ações quando ela muda). */
+  private focusedSel: string | null = null;
 
   constructor(
     root: HTMLElement,
@@ -482,5 +485,17 @@ export class BackpackPanel {
       ${this.boxUid ? this.boxHtml(this.boxUid) : this.atPantry ? this.pantryHtml() : ''}`;
     if (this.atPantry) this.body.querySelector('.bp-pantry')?.scrollIntoView({ block: 'nearest' });
     if (this.boxUid) this.body.querySelector('.bp-box')?.scrollIntoView({ block: 'nearest' });
+    // Item novo escolhido: o foco vai para o que fazer com ele (as ações, à vista; decisão 298).
+    const sel = this.selected ? JSON.stringify(this.selected) : null;
+    if (sel && sel !== this.focusedSel) {
+      const detail = this.body.querySelector<HTMLElement>('.bp-detail');
+      detail?.scrollIntoView({ block: 'nearest' });
+      const first = detail?.querySelector<HTMLButtonElement>('.bp-detail-actions button:not(:disabled)');
+      if (first) {
+        first.focus({ preventScroll: true });
+        padNav.focus(first);
+      }
+    }
+    this.focusedSel = sel;
   }
 }

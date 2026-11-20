@@ -1111,19 +1111,6 @@
         "title": "A inauguração",
         "steps": [
           {
-            "text": "Faça os reparos do café com o Tião",
-            "when": {
-              "renovated": true
-            },
-            "devNote": "Condição renovated = os reparos inside e outside (construction.ts: isRenovated). A troca de papel de parede, lambri, pisos e fachada é opcional."
-          },
-          {
-            "text": "Encomende a lousa do café",
-            "when": {
-              "received": "item.cafe_sign"
-            }
-          },
-          {
             "text": "Inaugure o café no dia 26",
             "when": {
               "all": [
@@ -1138,6 +1125,26 @@
                   }
                 }
               ]
+            },
+            "devNote": "O passo em destaque (o objetivo da meta); os reparos e a lousa vêm embaixo, como o que falta para chegar lá (decisão 297)."
+          },
+          {
+            "text": "Faça os reparos internos com o Tião",
+            "when": {
+              "repaired": "inside"
+            },
+            "devNote": "Os reparos inside e outside (construction.ts). A troca de papel de parede, lambri, pisos e fachada é opcional."
+          },
+          {
+            "text": "Faça os reparos da fachada com o Tião",
+            "when": {
+              "repaired": "outside"
+            }
+          },
+          {
+            "text": "Encomende a lousa do café",
+            "when": {
+              "received": "item.cafe_sign"
             }
           },
           {

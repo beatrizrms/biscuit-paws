@@ -1228,3 +1228,15 @@ Decisão: com receita no quadro e nenhuma saindo por falta de ingrediente na des
 ## 295. A lista de novidades rola; o Horário e o Café em números chegam depois (nov/2026)
 Pedido: na tela "Novidade!" com muitos itens não dava para rolar; o app Horário só depois do primeiro cliente e o Café em números só depois da inauguração. E a fala do primeiro cliente dizia que ele "foi embora sorrindo", mas ele ainda estava consumindo.
 Decisão: o painel da novidade é uma coluna flex e os grupos encolhiam para caber (cortados, sem nada para rolar); agora eles não encolhem (`.u-panel > * { flex: none }`) e a lista rola com o "Oba!" fixo embaixo. No celular, o Horário aparece com a flag `cafe.open` (o primeiro cliente) e o Café em números com `cafe.inaugurated` (antes disso, as conquistas aparecem só na tela de novidade). A fala do primeiro cliente virou "Meu primeiro cliente! Que alegria ver alguém tomando café aqui." (sem gênero, e ele ainda está lá).
+
+## 296. A SocialVilla chega com a Gabi (nov/2026)
+Pedido: o app SocialVilla aparecia sozinho com o primeiro amigo (a Dona Neusa, logo cedo), sem explicação; o momento sugerido e escolhido: a primeira visita da Gabi.
+Decisão: na despedida da primeira visita (`dlg.gabi_bye`), a Gabi pede para ela seguir na SocialVilla ("Lá eu posto tudo da vila... e muita foto do Joca") e uma linha avisa "Novo no celular: o app SocialVilla". O app aparece com a flag `seen.scr.gabi_visit` (saves que já passaram da visita já têm), ou antes, se um anúncio de adoção on-line dela (decisão 291) for para o feed. Os posts dos amigos de antes ficam guardados e aparecem quando o app chega.
+
+## 297. A meta da inauguração com "Inaugure" em destaque e os reparos separados (nov/2026)
+Pedido: na meta da inauguração, o passo em destaque era "Faça os reparos do café com o Tião", com "Encomende a lousa" e "Inaugure o café no dia 26" embaixo, como se fossem partes dele. O título deveria ser inaugurar; embaixo, os reparos internos, os da fachada e a lousa.
+Decisão: "Inaugure o café no dia 26" virou o primeiro passo (o destaque); embaixo, "Faça os reparos internos com o Tião", "Faça os reparos da fachada com o Tião" e "Encomende a lousa do café". Os reparos viraram passos próprios com a condição nova `repaired` (inside ou outside, `construction.repaired`); a inauguração continua precisando dos dois (o passo só conclui com todos feitos).
+
+## 298. Mochila: o foco vai para as ações do item, sem rolar (nov/2026)
+Pedido: ao clicar num item da mochila, levar o foco para onde se escolhe o que fazer com ele; e a mochila estava rolando.
+Decisão: escolhido um item novo, a linha de detalhes (nome, para que serve e as ações) entra na vista e o primeiro botão de ação recebe o foco (teclado e o destaque do controle: `padNav.focus`). A linha de detalhes fica presa embaixo da janela (sticky), sempre à vista. A despensa mostra uma linha de espaços vazios (antes três), crescendo com o que tem: com ela aberta, a mochila cabe sem rolar.

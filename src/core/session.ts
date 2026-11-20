@@ -5397,6 +5397,8 @@ export class GameSession {
     } else if ('money' in c) this.state.money = Math.max(this.state.money, c.money.gte);
     else if ('renovated' in c) {
       for (const side of ['inside', 'outside'] as const) if (!this.state.construction.repaired.includes(side)) this.state.construction.repaired.push(side);
+    } else if ('repaired' in c) {
+      if (!this.state.construction.repaired.includes(c.repaired)) this.state.construction.repaired.push(c.repaired);
     } else if ('received' in c || 'owned' in c) {
       const id = 'received' in c ? c.received : c.owned;
       if (this.content.items[id]?.inBag === false) this.state.flags[`received.${id}`] = true;

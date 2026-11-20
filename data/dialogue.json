@@ -329,7 +329,16 @@
         {
           "speaker": "Gabi",
           "npc": "npc.gabi",
+          "text": "Ah! Me segue na SocialVilla, tá? Lá eu posto tudo da vila... e muita foto do Joca."
+        },
+        {
+          "speaker": "Gabi",
+          "npc": "npc.gabi",
           "text": "Vem, Joca. Tchau, {cat:cat.first_stray}!"
+        },
+        {
+          "speaker": "",
+          "text": "Novo no celular: o app SocialVilla."
         }
       ]
     },

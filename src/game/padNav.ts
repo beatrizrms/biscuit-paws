@@ -94,6 +94,11 @@ class PadNav {
     this.set(this.lastAt ? this.nearest(list, this.lastAt) : list.find((el) => !el.matches(CLOSE)) ?? list[0]!);
   }
 
+  /** Leva o destaque para este elemento (a janela escolheu: o item clicado na mochila põe o destaque nas ações dele). */
+  focus(el: HTMLElement): void {
+    if (this.layer?.contains(el)) this.set(el);
+  }
+
   /** O direcional: vai para o mais perto naquela direção (o que está mais alinhado ganha). */
   move(dir: Dir): void {
     if (!this.layer || !this.current) return;
