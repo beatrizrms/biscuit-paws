@@ -3,15 +3,18 @@
 // soltar, para os jogos de segurar), o analógico e o direcional viram as setas e, na borda, o R de correr. Nos mini
 // games de mouse, o analógico move um cursor e o A é o botão do mouse. Só entrada: nenhuma regra do jogo mora aqui.
 import { menuOpen } from './ui/menu/MenuKit';
+import { padNav, topLayer } from './padNav';
 import { padEvents, touch } from './touch';
 
 /** Onde ela está: muda o que o A (e alguns botões) aperta. */
-export type PadContext = 'world' | 'ui' | 'minigame' | 'area';
+export type PadContext = 'world' | 'ui' | 'panel' | 'minigame' | 'area';
 
 interface Key {
   key: string;
   code: string;
   keyCode: number;
+  /** Com o Ctrl apertado junto (Ctrl + Espaço: mais uma área na obra). */
+  ctrl?: boolean;
 }
 
 const k = (key: string, code: string, keyCode: number): Key => ({ key, code, keyCode });
@@ -19,6 +22,7 @@ const KEYS = {
   E: k('e', 'KeyE', 69),
   ENTER: k('Enter', 'Enter', 13),
   SPACE: k(' ', 'Space', 32),
+  CTRL_SPACE: { ...k(' ', 'Space', 32), ctrl: true },
   ESC: k('Escape', 'Escape', 27),
   T: k('t', 'KeyT', 84),
   I: k('i', 'KeyI', 73),
@@ -92,19 +96,28 @@ class PadInput {
     this.drawCursor();
   }
 
+  /** A janela onde o destaque anda agora (Market, mochila, celular, caixa de escolha), ou null. */
+  private navLayer: HTMLElement | null = null;
+
   private poll(now: number): void {
     const dt = this.last ? Math.min(0.05, (now - this.last) / 1000) : 0;
     this.last = now;
-    const pad = [...(navigator.getGamepads?.() ?? [])].find((p) => p?.connected);
+    const pad = readPads();
     if (!pad) return;
-    const pressed = (i: number) => !!pad.buttons[i] && (pad.buttons[i]!.pressed || pad.buttons[i]!.value > 0.5);
-    const ax = pad.axes[0] ?? 0;
-    const ay = pad.axes[1] ?? 0;
+    const { pressed, axes } = pad;
+    const ax = axes[0] ?? 0;
+    const ay = axes[1] ?? 0;
     const mag = Math.min(1, Math.hypot(ax, ay));
-    const any = pad.buttons.some((_, i) => pressed(i)) || mag > PRESS || Math.hypot(pad.axes[2] ?? 0, pad.axes[3] ?? 0) > PRESS;
+    const any = pad.any || mag > PRESS || Math.hypot(axes[2] ?? 0, axes[3] ?? 0) > PRESS;
     if (any && touch.mode !== 'pad') touch.usePad();
-    if (touch.mode !== 'pad') return this.releaseAll();
+    if (touch.mode !== 'pad') {
+      padNav.sync(null);
+      return this.releaseAll();
+    }
     const ctx = this.context();
+    // Janela aberta: o destaque verde anda por ela (os menus da pausa e da tela inicial andam pelo foco, sozinhos).
+    this.navLayer = ctx === 'panel' ? topLayer() : ctx === 'ui' && !menuOpen() ? topLayer('.confirm-layer') : null;
+    padNav.sync(this.navLayer);
     const cursor = this.cursorOn && ctx === 'minigame';
     if (cursor !== !!this.cursor) {
       this.cursor = cursor ? this.canvasCenter() : null;
@@ -122,8 +135,8 @@ class PadInput {
     const dpad = { up: pressed(B.UP), down: pressed(B.DOWN), left: pressed(B.LEFT), right: pressed(B.RIGHT) };
     if (this.cursor) {
       this.setArrows({ up: false, down: false, left: false, right: false }, now);
-      const rx = pad.axes[2] ?? 0;
-      const ry = pad.axes[3] ?? 0;
+      const rx = axes[2] ?? 0;
+      const ry = axes[3] ?? 0;
       let vx = Math.abs(ax) > DEAD ? ax : Math.abs(rx) > DEAD ? rx : 0;
       let vy = Math.abs(ay) > DEAD ? ay : Math.abs(ry) > DEAD ? ry : 0;
       if (dpad.left || dpad.right) vx = dpad.left ? -0.6 : 0.6;
@@ -145,15 +158,17 @@ class PadInput {
   }
 
   /** A tecla de cada botão agora. */
-  private keyFor(i: number, ctx: PadContext): Key | Key[] | 'mouse' | 'mouse2' | 'confirm' | 'hotbar-' | 'hotbar+' | null {
-    if (i === B.B || i === B.START) return KEYS.ESC;
+  private keyFor(i: number, ctx: PadContext): Key | Key[] | 'mouse' | 'mouse2' | 'confirm' | 'back' | 'tab-' | 'tab+' | 'hotbar-' | 'hotbar+' | null {
+    if (i === B.START) return KEYS.ESC;
+    if (i === B.B) return ctx === 'panel' ? 'back' : KEYS.ESC;
+    if (ctx === 'panel' && (i === B.LB || i === B.RB)) return i === B.RB ? 'tab+' : 'tab-';
     if (ctx === 'minigame') {
       // Jogo de mouse: o A clica; o X faz o que o teclado faz (Pronto e Oferecer no E, Servir e Confirmar no Enter).
       if (this.cursor) return i === B.A ? 'mouse' : i === B.Y ? 'mouse2' : i === B.X ? [KEYS.E, KEYS.ENTER] : null;
       return i === B.A ? KEYS.E : i === B.X ? KEYS.ENTER : i === B.Y ? KEYS.P : null;
     }
-    if (ctx === 'area') return i === B.A ? KEYS.SPACE : i === B.X ? KEYS.ENTER : null;
-    if (i === B.A) return ctx === 'ui' ? 'confirm' : KEYS.E;
+    if (ctx === 'area') return i === B.A ? KEYS.SPACE : i === B.X ? KEYS.ENTER : i === B.Y ? KEYS.CTRL_SPACE : null;
+    if (i === B.A) return ctx === 'ui' || ctx === 'panel' ? 'confirm' : KEYS.E;
     const map: Partial<Record<number, Key | 'hotbar-' | 'hotbar+'>> = { [B.X]: KEYS.T, [B.Y]: KEYS.I, [B.LT]: KEYS.F, [B.SELECT]: KEYS.P, [B.LS]: KEYS.M, [B.RS]: KEYS.C, [B.LB]: 'hotbar-', [B.RB]: 'hotbar+' };
     return map[i] ?? null;
   }
@@ -164,17 +179,23 @@ class PadInput {
     this.held.set(i, []);
     if (key === null) return;
     if (key === 'hotbar-' || key === 'hotbar+') return this.onHotbar(key === 'hotbar+' ? 1 : -1);
+    if (key === 'tab-' || key === 'tab+') return void padNav.tab(key === 'tab+' ? 1 : -1);
+    // B numa janela: no celular, de um app volta para a tela inicial; senão, fecha (Esc).
+    if (key === 'back') {
+      if (padNav.back()) return;
+      this.held.set(i, [KEYS.ESC]);
+      return send('keydown', KEYS.ESC);
+    }
     if (key === 'mouse' || key === 'mouse2') {
       this.held.set(i, key);
       return this.mouse('down', key === 'mouse' ? 0 : 2);
     }
     if (key === 'confirm') {
-      // Menus e caixas de escolha: o A aperta o botão em foco; sem foco, o primeiro ganha o foco (aparece marcado).
-      const layer = focusLayer();
-      const list = layer ? buttons(layer) : [];
+      // Janelas e caixas de escolha: o A clica no destacado. Menus: o botão em foco. Sem nada, é o Enter (falas).
       const active = document.activeElement as HTMLElement | null;
-      if (layer && active && layer.contains(active) && active.matches('button, input')) active.click();
-      else if (list.length > 0 && !menuOpen()) list[0]!.focus();
+      if (this.navLayer && padNav.press()) return;
+      // (A tela inicial é um menu sem .menu-layer: vale qualquer botão em foco com um menu aberto.)
+      if (menuOpen() && active && active.matches('button, input')) active.click();
       else {
         this.held.set(i, [KEYS.ENTER]);
         send('keydown', KEYS.ENTER);
@@ -193,39 +214,31 @@ class PadInput {
     else key?.forEach((one) => send('keyup', one));
   }
 
-  /** Setas apertadas e soltas conforme a direção; segurada, repete. Nas caixas de escolha, passa o foco. */
+  /**
+   * Setas apertadas e soltas conforme a direção; segurada, repete. Com uma janela aberta, em vez das setas, o
+   * destaque anda pela janela.
+   */
   private setArrows(want: typeof this.arrows, now: number): void {
     let pushed = false;
+    const step = (dir: 'up' | 'down' | 'left' | 'right', repeat = false) => {
+      if (this.navLayer) padNav.move(dir);
+      else send('keydown', KEYS[dir.toUpperCase() as 'UP'], repeat);
+    };
     for (const dir of ['up', 'down', 'left', 'right'] as const) {
       if (want[dir] === this.arrows[dir]) continue;
       this.arrows[dir] = want[dir];
-      send(want[dir] ? 'keydown' : 'keyup', KEYS[dir.toUpperCase() as 'UP']);
-      if (want[dir]) {
-        pushed = true;
-        this.repeatAt = now + REPEAT_WAIT;
-        this.moveFocus(dir);
+      if (!want[dir]) {
+        send('keyup', KEYS[dir.toUpperCase() as 'UP']);
+        continue;
       }
+      pushed = true;
+      this.repeatAt = now + REPEAT_WAIT;
+      step(dir);
     }
     if (!pushed && now >= this.repeatAt && (want.up || want.down || want.left || want.right)) {
       this.repeatAt = now + REPEAT_EVERY;
-      for (const dir of ['up', 'down', 'left', 'right'] as const) {
-        if (!want[dir]) continue;
-        send('keydown', KEYS[dir.toUpperCase() as 'UP'], true);
-        this.moveFocus(dir);
-      }
+      for (const dir of ['up', 'down', 'left', 'right'] as const) if (want[dir]) step(dir, true);
     }
-  }
-
-  /** Caixa de escolha aberta (fora dos menus, que andam pelas setas sozinhos): o direcional passa pelos botões. */
-  private moveFocus(dir: 'up' | 'down' | 'left' | 'right'): void {
-    if (this.context() !== 'ui' || menuOpen()) return;
-    const layer = focusLayer();
-    if (!layer) return;
-    const list = buttons(layer);
-    if (list.length === 0) return;
-    const i = list.indexOf(document.activeElement as HTMLElement);
-    const step = dir === 'up' || dir === 'left' ? -1 : 1;
-    list[i < 0 ? 0 : (i + step + list.length) % list.length]!.focus();
   }
 
   private releaseAll(): void {
@@ -292,21 +305,48 @@ class PadInput {
 
 /** A tecla, como se viesse do teclado (o Phaser lê o keyCode, que o navegador não deixa pôr no evento). */
 function send(type: 'keydown' | 'keyup', key: Key, repeat = false): void {
-  const e = new KeyboardEvent(type, { key: key.key, code: key.code, repeat, bubbles: true, cancelable: true });
+  const e = new KeyboardEvent(type, { key: key.key, code: key.code, repeat, ctrlKey: !!key.ctrl, bubbles: true, cancelable: true });
   Object.defineProperty(e, 'keyCode', { get: () => key.keyCode });
   Object.defineProperty(e, 'which', { get: () => key.keyCode });
   padEvents.add(e);
   (document.activeElement ?? document.body).dispatchEvent(e);
 }
 
-/** A camada de botões de cima: um menu (pausa, tela inicial) ou uma caixa de escolha/confirmação. */
-function focusLayer(): HTMLElement | null {
-  const layers = document.querySelectorAll<HTMLElement>('.menu-layer, .confirm-layer');
-  return layers[layers.length - 1] ?? null;
-}
+/** Botão apertado (os gatilhos são analógicos: valem a partir da metade). */
+const isDown = (b: GamepadButton | undefined) => !!b && (b.pressed || b.value > 0.5);
 
-function buttons(layer: HTMLElement): HTMLElement[] {
-  return [...layer.querySelectorAll<HTMLElement>('button:not([disabled])')].filter((b) => b.offsetParent !== null);
+/**
+ * Os controles ligados, somados num só. Alguns aparecem duas vezes (o 8BitDo pelo receptor, por exemplo), e às vezes
+ * o primeiro da lista é o que não manda nada: lendo todos, qualquer um vale. Com algum no mapeamento padrão do
+ * navegador, só os padrões contam (os outros têm eixos em outra ordem, e gatilhos parados em -1 moveriam o cursor).
+ * Sem nenhum padrão (modo D-input), usa a mesma ordem dos botões e o direcional do eixo 9 (o "hat").
+ */
+function readPads(): { pressed: (i: number) => boolean; axes: number[]; any: boolean } | null {
+  let list: Gamepad[];
+  try {
+    list = [...(navigator.getGamepads?.() ?? [])].filter((p): p is Gamepad => !!p && p.connected);
+  } catch {
+    return null; // a página não pode ler controles (fora de https ou de localhost)
+  }
+  if (list.length === 0) return null;
+  const standard = list.filter((p) => p.mapping === 'standard');
+  const pads = standard.length > 0 ? standard : list;
+  const hat = (p: Gamepad) => {
+    if (p.mapping === 'standard' || p.axes.length < 10) return null;
+    const v = p.axes[9]!;
+    if (v > 1.1 || v < -1.1) return null; // parado (cerca de 1,29)
+    const at = Math.round(((v + 1) / 2) * 7); // 0 cima, 1 cima-direita, 2 direita ... 7 cima-esquerda
+    return { up: at === 7 || at <= 1, right: at >= 1 && at <= 3, down: at >= 3 && at <= 5, left: at >= 5 && at <= 7 };
+  };
+  const pressed = (i: number) =>
+    pads.some((p) => {
+      if (isDown(p.buttons[i])) return true;
+      const h = hat(p);
+      return !!h && ((i === B.UP && h.up) || (i === B.DOWN && h.down) || (i === B.LEFT && h.left) || (i === B.RIGHT && h.right));
+    });
+  const axes = [0, 1, 2, 3].map((a) => pads.reduce((best, p) => (Math.abs(p.axes[a] ?? 0) > Math.abs(best) ? p.axes[a]! : best), 0));
+  const any = pads.some((p) => p.buttons.some(isDown) || hat(p) !== null);
+  return { pressed, axes, any };
 }
 
 /** O controle do jogo (um só). */

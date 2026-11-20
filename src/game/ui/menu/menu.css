@@ -25,9 +25,10 @@
 .menu-btn[disabled] { background: var(--c-sand); color: var(--c-ink3); border-color: var(--c-ink3); cursor: default; box-shadow: none; }
 .menu-btn[aria-pressed="false"] { background: var(--c-cafe-pale); }
 .menu-hint { margin: 4px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-paper); text-shadow: 0 1px 0 var(--c-ink); }
-/* A dica da Home: as teclas no computador; no toque (html.touch-mode, touch.ts), "toque para escolher". */
-.menu-hint .touch-hint, html.touch-mode .menu-hint .keys-hint { display: none; }
-html.touch-mode .menu-hint .touch-hint { display: inline; }
+/* A dica da Home e o "para começar": as teclas no computador; no toque (html.touch-mode, touch.ts), "toque para escolher"; no controle de
+   videogame (html.pad-mode), os botões dele. */
+.menu-home .touch-hint, .menu-home .pad-hint, html.touch-mode .menu-home .keys-hint, html.pad-mode .menu-home .keys-hint { display: none; }
+html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { display: inline; }
 .menu-panel {
   max-height: 330px; overflow: auto; min-width: 220px; max-width: 320px; padding: 8px 10px;
   border: 2px solid var(--c-board-line); border-radius: 4px; background: var(--c-paper); color: var(--c-board); box-shadow: 0 3px 0 var(--c-ink);
@@ -82,14 +83,37 @@ html.touch-mode .menu-hint .touch-hint { display: inline; }
 .creator-error { min-height: 10px; margin: 2px 0; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); text-align: center; }
 .menu-btn.primary { background: var(--c-green-pale); }
 
-/* Como jogar: duas colunas (o controle e o que ele faz), rolando se não couber. */
-.menu-panel.howto { max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; text-align: left; }
+/* Como jogar: abas (toque, teclado, controle), os comandos em cartões curtos (2 colunas) com as teclas desenhadas e
+   os itens da barra numa faixa de etiquetas. Rola se não couber. */
+.menu-panel.howto { max-width: 400px; max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; text-align: left; }
 .menu-panel.howto h2 { text-align: center; }
-.menu-panel.howto .howto-mode { margin: 6px 0 2px; font-weight: bold; color: var(--c-ink3); font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
-.howto-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
-.howto-list li { display: contents; }
-.howto-list b { white-space: nowrap; color: var(--c-ink); }
-.howto-list span { color: var(--c-ink2); }
+.ht-tabs { display: flex; justify-content: center; gap: 3px; }
+.ht-tabs .ht-tab { flex: 1; max-width: 90px; padding: 2px 6px; opacity: 0.7; }
+.ht-tabs .ht-tab.on { opacity: 1; background: var(--c-green-pale); border-color: var(--c-green); font-weight: bold; }
+.ht-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-items: start; }
+.ht-card { padding: 3px 5px 4px; border: 1px solid var(--c-cafe-light); border-radius: 4px; background: var(--c-cafe-pale); }
+.ht-card h3 { margin: 0 0 2px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-cafe); }
+.ht-card ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; column-gap: 5px; row-gap: 2px; align-items: center; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+.ht-card li { display: contents; }
+.ht-keys { display: inline-flex; align-items: center; gap: 1px; white-space: nowrap; }
+.ht-keys i { font-style: normal; color: var(--c-ink3); margin: 0 1px; }
+.ht-what { color: var(--c-ink2); }
+.ht-keys kbd {
+  display: inline-block; min-width: 1.5em; padding: 0 3px; border: 1px solid var(--c-wood-dark); border-radius: 3px;
+  background: var(--c-paper); color: var(--c-ink); box-shadow: 0 1px 0 var(--c-wood-dark);
+  font: 600 1em var(--font-pixel, 'Pixelify Sans', sans-serif); line-height: 1.35; text-align: center;
+}
+/* Botões de toque: pílulas, como na tela. Controle: A, B, X e Y redondos e coloridos; o resto, pílula escura. */
+.ht-keys kbd.ht-touch { border-radius: 8px; background: var(--c-ink); color: var(--c-paper); border-color: var(--c-ink); box-shadow: none; font-family: inherit; }
+.ht-keys kbd.ht-pad { border-radius: 6px; background: var(--c-board); color: var(--c-paper); border-color: var(--c-board); }
+.ht-keys kbd.ht-face { min-width: 0; width: 1.45em; height: 1.45em; padding: 0; border-radius: 50%; color: var(--c-paper); border: none; box-shadow: 0 1px 0 var(--c-ink); line-height: 1.45; }
+.ht-keys kbd.ht-a { background: var(--c-green); }
+.ht-keys kbd.ht-b { background: var(--c-terra); }
+.ht-keys kbd.ht-x { background: var(--c-blue); }
+.ht-keys kbd.ht-y { background: var(--c-butter-dark); }
+.ht-active ul { display: flex; flex-wrap: wrap; gap: 3px; }
+.ht-active li { display: inline-block; padding: 1px 5px; border-radius: 8px; background: var(--c-paper); border: 1px solid var(--c-cafe-light); color: var(--c-ink2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.ht-active li b { color: var(--c-ink); }
 
 /* Tipografia (plano de polimento, fase 1): o título do jogo e os dos painéis do menu na fonte pixel. */
 .menu-title, .menu-panel h2 { font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; }

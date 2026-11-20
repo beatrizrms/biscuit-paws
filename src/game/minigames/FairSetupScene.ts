@@ -26,7 +26,7 @@ import type { Cell } from '../../core/map';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
 import { content, uiText } from '../content';
-import { touch } from '../touch';
+import { byInput, touch } from '../touch';
 import { catTexScale, catTexture } from '../entities/Cat';
 import { frameOf } from '../../core/tiles';
 import { addTileImage } from '../tileArt';
@@ -277,7 +277,7 @@ export class FairSetupScene extends MiniGameScene {
       g.lineStyle(picked ? 2 : 1, picked ? C.pick : C.edge, 1).strokeRoundedRect(CATS.x, y, CATS.w, CATS.row - 4, 5);
       add(this.add.sprite(CATS.x + 15, y + 16, this.catTex(c), 0).setScale(0.75 * catTexScale(this.catTex(c))));
       add(this.add.text(CATS.x + 30, y + 5, c.name, textStyle(8, '#5c3428', true)));
-      add(this.add.text(CATS.x + 30, y + 17, housed ? t.catIn : t.catOut, textStyle(7, housed ? '#3f7a4a' : '#8a7a80')));
+      add(this.add.text(CATS.x + 30, y + 17, housed ? t.catIn : byInput(t.catOut, t.catOutTouch, t.catOutPad), textStyle(7, housed ? '#3f7a4a' : '#8a7a80')));
     });
 
     // Paleta (embaixo): ícone, nome e quantas sobram.

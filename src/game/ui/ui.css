@@ -148,7 +148,7 @@
 .display-pick .slot .prem { position: absolute; bottom: 0; left: 1px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--c-gold-dark); }
 .display-pick .slot .count { position: absolute; bottom: 1px; right: 2px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; font-weight: bold; color: var(--ink); text-shadow: 0 0 1px var(--cream); }
 .display-pick .close { display: block; margin: 0 auto; }
-html.touch-mode .display-pick .slot .key { display: none; }
+html.touch-mode .display-pick .slot .key, html.pad-mode .display-pick .slot .key { display: none; }
 .hotbar .slot.active { border: 2px solid var(--butter2); box-shadow: 0 0 0 1px var(--butter3); background: var(--cream); }
 .hotbar .slot .icon { image-rendering: pixelated; }
 .hotbar .key { position: absolute; top: 0; left: 1px; font-size: max(calc(5px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; color: var(--ink2); }
@@ -1333,7 +1333,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Alvos maiores para o dedo: o fechar das janelas ganha área de toque (o texto continua no mesmo lugar). */
 html.touch-mode .catalog .close, html.touch-mode .p-close { padding: 7px 9px; margin: -7px -9px; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); }
 /* As perguntas sem os números (são atalhos do teclado) e com botões mais altos. */
-html.touch-mode .confirm.choose .options b { display: none; }
+html.touch-mode .confirm.choose .options b, html.pad-mode .confirm.choose .options b { display: none; }
 html.touch-mode .confirm.choose .options button { padding: 7px 10px; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); }
 html.touch-mode .confirm .buttons button { min-height: 24px; min-width: 56px; }
 /* A dica do rodapé num fundo escuro (legível em cima do chão claro); vazia, some. */
@@ -1341,7 +1341,9 @@ html.touch-mode .hint { left: 50%; right: auto; width: max-content; max-width: 4
 html.touch-mode .hint:empty { display: none; }
 /* Barra de itens: espaços maiores e sem os números 1 a 8 (teclas). */
 html.touch-mode .hotbar .slot { width: 28px; height: 28px; }
-html.touch-mode .hotbar .key { display: none; }
+html.touch-mode .hotbar .key, html.pad-mode .hotbar .key { display: none; }
+/* O atalho do Pagar (Enter) é do teclado: no toque e no controle, só o botão. */
+html.touch-mode .catalog .cart-bar .pay .key, html.pad-mode .catalog .cart-bar .pay .key { display: none; }
 html.touch-mode .hotbar .count { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
 /* Celular deitado (#stage.sides, main.ts): a barra fica em pé na faixa da esquerda, fora do jogo (o direcional
    fica embaixo dela). */

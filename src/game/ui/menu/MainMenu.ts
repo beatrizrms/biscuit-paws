@@ -53,7 +53,7 @@ export class MainMenu {
 
   /** Primeiro toque: o navegador libera o áudio e a música da Home começa. */
   private showTapToStart(): void {
-    this.el.innerHTML = `${this.logoHtml()}<button class="menu-tap">${t('home.tapToStart')}</button>`;
+    this.el.innerHTML = `${this.logoHtml()}<button class="menu-tap"><span class="keys-hint">${t('home.tapToStart')}</span><span class="touch-hint">${t('home.tapToStartTouch')}</span><span class="pad-hint">${t('home.tapToStartPad')}</span></button>`;
     const go = () => {
       window.removeEventListener('keydown', onKey);
       this.handlers.started();
@@ -85,7 +85,7 @@ export class MainMenu {
         <button class="menu-btn big" data-act="howTo">${t('home.howTo')}</button>
         <button class="menu-btn big" data-act="credits">${t('home.credits')}</button>
       </div>
-      <p class="menu-hint"><span class="keys-hint">${t('home.hint')}</span><span class="touch-hint">${t('home.hintTouch')}</span></p>`;
+      <p class="menu-hint"><span class="keys-hint">${t('home.hint')}</span><span class="touch-hint">${t('home.hintTouch')}</span><span class="pad-hint">${t('home.hintPad')}</span></p>`;
     const again = () => void this.render();
     const on = (act: string, fn: () => void) => (this.el.querySelector(`[data-act="${act}"]`) as HTMLElement).addEventListener('click', fn);
     on('continue', () => recent && void this.play(recent));

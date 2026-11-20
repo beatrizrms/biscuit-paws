@@ -881,7 +881,7 @@ export class GameUi {
     const n = (stage: 'door' | 'carried' | 'inside') => this.session.boxesAt(stage);
     const atDoor = n('door') - this.parcelsOnTheWay;
     if (atDoor > 0) cafe.push(this.row(d.atDoor, { icon: 'caixa_entrega_fechada', right: `<span class="count">${atDoor}</span>` }));
-    if (n('carried')) cafe.push(this.row(d.carried, { icon: 'caixa_entrega_fechada', right: `<span class="count">${n('carried')}</span>` }));
+    if (n('carried')) cafe.push(this.row(keyless(d.carried), { icon: 'caixa_entrega_fechada', right: `<span class="count">${n('carried')}</span>` }));
     if (n('inside')) cafe.push(this.row(d.inside, { icon: 'caixa_entrega_aberta', right: `<span class="count">${n('inside')}</span>` }));
 
     const section = (title: string, items: string[]) => (items.length ? `<h4>${esc(title)}</h4><ul class="chores">${items.join('')}</ul>` : '');
@@ -1005,7 +1005,7 @@ export class GameUi {
     const hasRecipe = ms.some((m) => m.reward.kind === 'recipe') || loose.length > 0;
     const el = document.createElement('div');
     el.className = 'item-reveal unlocks';
-    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : loose.length ? t.titleRecipes : t.titleNew)}</h2><div class="u-groups">${groups.join('')}</div>${hasRecipe ? `<p class="u-tip">${esc(t.recipeTip)}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
+    el.innerHTML = `<div class="rays"></div><div class="u-panel"><h2>${esc(ms.length > 1 ? t.titleMany : ms.length ? t.title : loose.length ? t.titleRecipes : t.titleNew)}</h2><div class="u-groups">${groups.join('')}</div>${hasRecipe ? `<p class="u-tip">${esc(keyless(t.recipeTip))}</p>` : ''}<button class="u-ok">${esc(t.ok)}</button></div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     return new Promise((resolve) => {
@@ -1548,8 +1548,8 @@ ${rep}`;
     this.goals.innerHTML = (goal
       ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${storyGoals.map((g) => this.storyHtml(g, fill)).join('')}${metas}`
       : metas ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2>${metas}`
-      : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek)}</p>` : '') + extra;
-    this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow);
+      : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek, uiText.padText.goalsPeek)}</p>` : '') + extra;
+    this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide, uiText.padText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow, uiText.padText.goalsShow);
 
     this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
     if (this.news?.isOpen()) this.news.render();
