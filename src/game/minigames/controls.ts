@@ -1,8 +1,9 @@
 // Controles dos mini games: teclado (setas/WASD, E/Espaço = ação, Esc = pausa) e mouse (clique = ação no ponto).
-// Tudo passa por aqui, nunca direto pelas cenas: para pôr gamepad depois, basta somar os botões dele em
-// direction() e chamar os mesmos callbacks de ação e pausa.
+// Tudo passa por aqui, nunca direto pelas cenas. O controle de videogame (gamepad.ts) aperta as mesmas teclas (A = E,
+// X = Enter, Y = P, B = Esc, analógico = setas) e, nos jogos de mouse, move um cursor e clica com o A (padCursor).
 import Phaser from 'phaser';
 import type { InputState } from '../../core/movement';
+import { pad } from '../gamepad';
 import { touch } from '../touch';
 
 const MOVE_KEYS: Record<string, 'up' | 'down' | 'left' | 'right'> = {
@@ -55,7 +56,21 @@ export class MiniGameControls {
       scene.input.off('pointerdown', click);
       scene.events.off(Phaser.Scenes.Events.UPDATE, stickSteps);
       offTouch.forEach((off) => off());
+      scene.events.off(Phaser.Scenes.Events.UPDATE, this.syncCursor, this);
+      pad.setCursor(false);
     });
+  }
+
+  private cursorWhen: () => boolean = () => false;
+
+  /** Jogo de mouse: enquanto a condição vale (jogando), o controle de videogame move um cursor e clica com o A. */
+  padCursor(when: () => boolean): void {
+    this.cursorWhen = when;
+    this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.syncCursor, this);
+  }
+
+  private syncCursor(): void {
+    pad.setCursor(this.cursorWhen());
   }
 
   /** Direção pedida agora (mesmo formato da caminhada do jogo). */

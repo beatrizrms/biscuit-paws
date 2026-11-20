@@ -47,6 +47,7 @@ interface ContestCat {
 }
 
 export class CostumeScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: CostumeParams;
   private theme!: CostumeTheme;
   private cats: ContestCat[] = [];

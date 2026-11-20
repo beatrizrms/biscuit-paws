@@ -25,6 +25,7 @@ const CAT_SCALE = 2;
 const BAR_W = 160;
 
 export class WandScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: WandParams;
   private s!: WandState;
   private arena!: Phaser.Geom.Rectangle;

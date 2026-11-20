@@ -59,6 +59,7 @@ const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.
 });
 
 export class FairSetupScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: FairSetupParams;
   private board!: FairBoard;
   private cats: AdoptCat[] = [];

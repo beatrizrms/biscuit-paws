@@ -49,6 +49,7 @@ interface CatView {
 }
 
 export class PhotoScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: PhotoParams;
   private s!: PhotoState;
   private views = new Map<string, CatView>();

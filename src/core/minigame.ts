@@ -73,6 +73,8 @@ export interface MiniGameTutorial {
   lines: string[];
   /** As mesmas linhas para o celular (o direcional, o E e o dedo no lugar de teclas e mouse). */
   touchLines?: string[];
+  /** As mesmas linhas para o controle de videogame (analógico, A, X, Y no lugar de teclas e mouse). */
+  padLines?: string[];
 }
 
 /** Máximo de linhas no tutorial (mais que isso ninguém lê em 2 segundos). */
@@ -260,6 +262,8 @@ export function validateMiniGames(cfg: MiniGamesConfig, refs: { maps: ReadonlySe
       if (n < 1 || n > TUTORIAL_MAX_LINES) err(`"${id}": tutorial precisa de 1 a ${TUTORIAL_MAX_LINES} linhas`);
       const t = g.tutorial.touchLines?.length;
       if (t !== undefined && (t < 1 || t > TUTORIAL_MAX_LINES)) err(`"${id}": touchLines do tutorial precisa de 1 a ${TUTORIAL_MAX_LINES} linhas`);
+      const pl = g.tutorial.padLines?.length;
+      if (pl !== undefined && (pl < 1 || pl > TUTORIAL_MAX_LINES)) err(`"${id}": padLines do tutorial precisa de 1 a ${TUTORIAL_MAX_LINES} linhas`);
       if (g.tutorial.icon && refs.icons && !refs.icons.has(g.tutorial.icon)) err(`"${id}": ícone do tutorial inexistente "${g.tutorial.icon}"`);
     }
     for (const [o, v] of Object.entries(g.reputation ?? {})) if (!Number.isFinite(v)) err(`"${id}": reputation.${o} precisa ser um número`);

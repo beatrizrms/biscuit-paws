@@ -49,6 +49,7 @@ interface SlotView {
 }
 
 export class AdoptionScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: AdoptionParams;
   private cats: AdoptCat[] = [];
   private slots: SlotView[] = [];

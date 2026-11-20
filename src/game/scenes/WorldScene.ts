@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { nextRotation } from '../../core/variants';
+import { pad } from '../gamepad';
 import { touch, type TouchAction } from '../touch';
 import { fillNames } from '../ui/text';
 import { WalkFollowers } from '../WalkFollowers';
@@ -372,6 +373,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.fireworksFx = new FireworksLayer(this);
     this.scripts = new ScriptRunner(this.session, this);
     this.hint = new InteractHint(this);
+    // Controle de videogame: o A é o E no mundo, o Enter nas falas e janelas, a ação nos mini games (gamepad.ts).
+    pad.context = () => (this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isBusy() && !this.ui.isPanelOpen() ? 'ui' : 'world');
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => (pad.context = () => 'ui'));
     this.cartBalloon = new CartBalloon(this);
     this.session.bus.on('cart.changed', ({ count, total }) => (this.cartNow = { count, total }));
     this.careBubbles = new CareBubbles(this, this.session.content.health.care);
@@ -482,13 +486,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (this.ui.backpackNumberKey(n)) return;
       this.session.selectHotbarSlot(n - 1);
     });
-    this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
-      if (this.ui.isBusy() || this.placing || dy === 0) return;
+    const stepHotbar = (dir: number) => {
+      if (this.ui.isBusy() || this.placing || dir === 0) return;
       // A roda passa pela mão livre também (de -1 a HOTBAR_SIZE - 1).
       const { active } = this.session.state.hotbar;
       const n = HOTBAR_SIZE + 1;
-      this.session.selectHotbarSlot(((active + 1 + (dy > 0 ? 1 : -1) + n) % n) - 1);
-    });
+      this.session.selectHotbarSlot(((active + 1 + (dir > 0 ? 1 : -1) + n) % n) - 1);
+    };
+    this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => stepHotbar(dy));
+    // LB/RB do controle de videogame: um espaço por toque, como a roda.
+    pad.onHotbar = (dir) => this.scene.isActive() && !this.miniGameOpen && stepHotbar(dir);
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.moveGhost(p));
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onPointerDown(p));

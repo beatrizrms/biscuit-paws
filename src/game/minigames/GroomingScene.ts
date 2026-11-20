@@ -37,6 +37,7 @@ const FUZZ_STEP_MS = 65;
 const FUZZ_BACK_SHARE = 0.62;
 
 export class GroomingScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: GroomingParams;
   private s!: GroomingState;
   private mats!: MatDef[];

@@ -21,6 +21,7 @@ const MIN_STEP = 1.5;
 const COFFEE_RADII = { x: 72, y: 55 };
 
 export class LatteScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: LatteParams;
   private pattern!: LattePattern;
   private strokes: Pt[][] = [];

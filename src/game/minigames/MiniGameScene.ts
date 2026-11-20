@@ -39,6 +39,8 @@ export abstract class MiniGameScene extends Phaser.Scene {
   protected rng!: Rng;
   protected timer: Countdown | null = null;
   protected phase: Phase = 'intro';
+  /** Jogo de mouse (mirar, arrastar, desenhar): no controle de videogame, o analógico move um cursor. */
+  protected usesPointer = false;
   private layer: HTMLElement | null = null;
   private hud: HTMLElement | null = null;
   private result: MiniGameResult | null = null;
@@ -64,6 +66,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
     setupCamera(this).centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
     this.controls = new MiniGameControls(this);
     this.controls.onPause(() => this.togglePause());
+    this.controls.padCursor(() => this.usesPointer && this.phase === 'playing');
     this.buildLayer();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeLayer());
     this.buildGame();
@@ -154,8 +157,8 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private tutorialHtml(): string {
     const tut = this.def.tutorial;
     if (!tut) return `<p>${esc(this.def.instructions)}</p>`;
-    // No celular, as linhas do toque (touchLines), quando o jogo tem.
-    const lines = touch.mode === 'touch' && tut.touchLines ? tut.touchLines : tut.lines;
+    // No celular, as linhas do toque (touchLines); no controle de videogame, as dele (padLines), quando o jogo tem.
+    const lines = (touch.mode === 'touch' && tut.touchLines) || (touch.mode === 'pad' && tut.padLines) || tut.lines;
     return `<div class="mg-tutorial">${tut.icon ? `<span class="mg-tut-icon">${iconHtml(tut.icon, 32)}</span>` : ''}<ol>${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ol></div>`;
   }
 

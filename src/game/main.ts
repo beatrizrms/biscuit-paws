@@ -21,6 +21,7 @@ import { MiniGameRegistry } from './minigames/MiniGameRegistry';
 import './ui/menu/menu.css';
 import './ui/skin.css';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE, screenInfo } from './screen';
+import './gamepad';
 import { isTouchDevice, touch } from './touch';
 import './touch.css';
 
