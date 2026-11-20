@@ -16,13 +16,14 @@ import { PNG } from 'pngjs';
 
 const SRC = 'assets/_pixellab/personagens';
 const OUT = 'public/assets/characters/npcs/v64';
-type Kit = 'full' | 'fullBox' | 'walk' | 'customer' | 'customer2' | 'dog' | 'builder' | 'clerk';
+type Kit = 'full' | 'fullBox' | 'walk' | 'walkWave' | 'customer' | 'customer2' | 'dog' | 'builder' | 'clerk';
 
 /** Quadro (largura x altura) e colunas da folha de cada kit. */
 const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
   full: { w: 112, h: 128, columns: 5 },
   fullBox: { w: 112, h: 128, columns: 5 },
   walk: { w: 112, h: 128, columns: 5 },
+  walkWave: { w: 112, h: 128, columns: 5 },
   customer: { w: 112, h: 128, columns: 5 },
   customer2: { w: 112, h: 128, columns: 5 },
   dog: { w: 64, h: 64, columns: 6 },
@@ -44,6 +45,9 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean; outline?: 
   entregadora: { id: 'npc.mail_carrier', kit: 'full', portrait: true },
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },
+  // NPCs novos (decisão 287), no padrão da cliente 04: ainda sem lugar no jogo, só a folha e o retrato.
+  camila: { id: 'npc.camila', kit: 'walkWave', portrait: true },
+  nubia: { id: 'npc.nubia', kit: 'walkWave', portrait: true },
   // O Tião veio com o contorno claro e acinzentado: `outline` escurece a borda de fora (decisão 286).
   construtor: { id: 'npc.builder', kit: 'builder', portrait: true, outline: true },
   atendente: { id: 'npc.market_clerk', kit: 'clerk', portrait: false },
@@ -70,6 +74,8 @@ const ROWS: Record<Kit, Row[]> = {
   // Completo com duas poses de segurar: linha 5 = o café, linha 6 = a caixa (a Gabi refeita, polimento fase 2).
   fullBox: [...WALK, ['wave', 'south'], ['hold', 'south'], ['hold_box', 'south']],
   walk: WALK,
+  // Só andar e acenar, sem nada na mão (Camila e Núbia).
+  walkWave: [...WALK, ['wave', 'south']],
   customer: [...WALK, ['sit', 'south', { skip: 1 }], ['sit', 'west', { skip: 1 }], ['sit', 'west', { skip: 1, mirror: true }], ['sit', 'north', { skip: 1 }]],
   // Clientes refeitos (decisão 285): o sentar tem 8 quadros (o movimento de sentar, sem cadeira); usa os 2 últimos, já sentado.
   customer2: [...WALK, ['sit', 'south', { skip: 6 }], ['sit', 'west', { skip: 6 }], ['sit', 'west', { skip: 6, mirror: true }], ['sit', 'north', { skip: 6 }]],
