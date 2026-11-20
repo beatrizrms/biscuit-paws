@@ -388,6 +388,11 @@ export interface Beat {
    * (uma quest por vez, nos primeiros dias). Sem a flag, marcos correm em paralelo.
    */
   exclusive?: boolean;
+  /**
+   * Não fica escondido por um marco exclusivo de antes (a inauguração tem data marcada: o gatinho doente no meio não
+   * pode sumir com ela do balão).
+   */
+  notHeld?: boolean;
   /** Condição extra para concluir. Se houver meta, todos os passos também precisam valer. */
   when?: Condition;
   /** Meta visível no diário enquanto o marco estiver ativo. */

@@ -1579,3 +1579,26 @@ describe('Vila Hoje: o "Bzz!" da manhã', () => {
     expect(session.firstNewsMorning()).toBe(false);
   });
 });
+
+describe('Inauguração com o gatinho doente no meio', () => {
+  it('a meta da inauguração (data marcada) continua ativa com o marco exclusivo do gato doente', () => {
+    const session = new GameSession(storyContent, newGameState(0, 'map.cafe_main', 600));
+    session.debugCompleteStory('story.first_customer');
+    const done = session.state.story.completed;
+    if (done.includes('story.vet_visit')) done.splice(done.indexOf('story.vet_visit'), 1);
+    const ids = session.goals().map((g) => g.beatId);
+    expect(ids).toContain('story.vet_visit');
+    expect(ids).toContain('story.inauguration');
+  });
+});
+
+describe('Market aos poucos: plantas para a inauguração', () => {
+  it('com o café aberto (a meta da inauguração pede 3 plantas), as plantas já estão à venda', () => {
+    const session = new GameSession(storyContent, newGameState(500, 'map.cafe_main', 600));
+    session.debugCompleteStory('story.first_customer');
+    expect(session.state.flags['cafe.open']).toBe(true);
+    expect(session.itemUnlocked('item.plant_pot')).toBe(true);
+    expect(session.itemUnlocked('item.cactus')).toBe(true);
+    expect(session.state.business).not.toBe('inaugurated');
+  });
+});

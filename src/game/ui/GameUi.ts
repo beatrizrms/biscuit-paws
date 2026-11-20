@@ -1685,6 +1685,13 @@ ${rep}`;
     return this.afterDialogue();
   }
 
+  /** Uma fala avulsa da personagem, montada na hora (ex.: o convite da inauguração). */
+  playerSay(text: string): Promise<void> {
+    this.dialogueQueue.push({ speaker: this.fillNames('{player}'), text });
+    this.openDialogueIfFree();
+    return this.afterDialogue();
+  }
+
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */
   npcSay(npcId: string, text: string): Promise<void> {
     this.dialogueQueue.push({ speaker: content.npcs[npcId]?.name ?? '', text, npc: npcId });

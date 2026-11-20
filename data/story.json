@@ -1102,6 +1102,7 @@
     },
     {
       "id": "story.inauguration",
+      "notHeld": true,
       "act": 2,
       "after": [
         "story.first_customer"

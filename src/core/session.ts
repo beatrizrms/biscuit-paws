@@ -12,7 +12,7 @@ import { mapLights } from './lights';
 import type { MapLight } from './map';
 import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
 import type { HandItem } from './carry';
-import { createRng } from './rng';
+import { cellHash, createRng } from './rng';
 import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
@@ -3317,7 +3317,9 @@ export class GameSession {
       if (this.state.time < parseClock(def.hours[0]) || this.state.time >= parseClock(def.hours[1])) continue;
       if (def.when && !this.holds(def.when as Condition)) continue;
       // Nos preparativos da inauguração, os amigos passeiam mais (dá tempo de convidar os 3).
-      const boost = this.openingPrepActive() && this.friendDef(def.npc) ? this.content.business.openingPrep?.friendWalkChance ?? 0 : 0;
+      // Quem ainda não foi convidado passeia todo dia (a pista de onde achar não pode falhar).
+      const notInvited = !(this.state.openingPrep?.invited ?? []).includes(def.npc);
+      const boost = this.openingPrepActive() && this.friendDef(def.npc) ? (notInvited ? 1 : this.content.business.openingPrep?.friendWalkChance ?? 0) : 0;
       const w = walkOfDay(boost > def.chance ? { ...def, chance: boost } : def, this.state.day);
       if (w.walks) out.push({ npc: def.npc, from: w.from, to: w.to, cats: w.cats, companions: def.companions ?? [] });
     }
@@ -3412,12 +3414,19 @@ export class GameSession {
     this.advanceStory();
   }
 
-  /** Na conversa que convidou o amigo hoje, a pista dele: onde costuma achar outro amigo (ou null). */
-  inviteHint(npc: string): string | null {
+  /**
+   * A conversa que convidou o amigo hoje: ela convida (ask), ele responde (yes) e conta onde e quando achar outro amigo
+   * que ela ainda não convidou (sorteado pelo dia entre os que ela conhece; sem nenhum, sem pista). Ou null.
+   */
+  inviteTalk(npc: string): { ask: string; yes: string; hint: string | null } | null {
     const prep = this.state.openingPrep;
-    if (!prep || prep.inviteDay !== this.state.day || prep.invited.at(-1) !== npc) return null;
-    return this.content.business.openingPrep?.inviteHints?.[npc] ?? null;
+    const inv = this.content.business.openingPrep?.invite;
+    if (!inv || !prep || prep.inviteDay !== this.state.day || prep.invited.at(-1) !== npc) return null;
+    const left = Object.keys(inv.whereabouts).filter((f) => f !== npc && !prep.invited.includes(f) && this.friendKnown(f));
+    const pick = left.length > 0 ? left[createRng(cellHash(this.state.day, npc.length * 31 + prep.invited.length)).int(0, left.length - 1)]! : null;
+    return { ask: inv.ask, yes: inv.yes[npc] ?? inv.yesDefault, hint: pick ? `${inv.whereabouts[pick]} ${inv.hintEnd}` : null };
   }
+
 
   /** O bônus da inauguração: os passos extras feitos do marco (reputação e mais clientes no dia). */
   private applyOpeningBonus(): void {

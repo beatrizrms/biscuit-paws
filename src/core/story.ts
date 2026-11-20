@@ -141,12 +141,15 @@ function placedWithTag(c: { placedTag: string; exceptItem?: string }, state: Gam
 
 export function activeBeats(story: StoryData, state: GameState, ctx: StoryContext): Beat[] {
   const active: Beat[] = [];
+  // Depois de um exclusivo, só entram os que não são segurados (notHeld).
+  let held = false;
   for (const b of story.beats) {
     if (isCompleted(b, state)) continue;
+    if (held && !b.notHeld) continue;
     if (!(b.after ?? []).every((dep) => state.story.completed.includes(dep))) continue;
     if (b.start && !evaluate(b.start, state, ctx)) continue;
     active.push(b);
-    if (b.exclusive) break;
+    if (b.exclusive) held = true;
   }
   return active;
 }

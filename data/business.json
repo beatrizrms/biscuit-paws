@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "openingPrep: os preparativos da inauguração (story.inauguration, passos optional): posters = pontos onde ela cola o cartaz (posterTile, desenhado levantado posterLift px, na parede; some depois do dia da inauguração): a loja de móveis, o ponto de ônibus e um poste da praça; posterSpots: por ponto, outro tile (nos postes, ph_opening_poster_post, um objeto ordenado com o poste), outra altura (lift) e o deslocamento para a direita (shiftX, px); convidar = conversar com amigos durante os preparativos (friendWalkChance: enquanto isso, os passeios dos amigos acontecem com pelo menos essa chance; inviteHints: o amigo convidado conta onde costuma achar outro, na mesma conversa); decor: os balões e as bandeirinhas na frente do café, na rua, no dia da inauguração (a cena: scr.inauguration); no dia da inauguração, cada preparativo feito dá reputationPerStep de reputação e o intervalo entre clientes cai arrivalFactorPerStep. Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: as superfícies da reforma do pintor (a troca é opcional; para inaugurar, a condição { renovated: true } pede só os reparos de dentro e de fora com o Tião). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
+  "_comment": "openingPrep: os preparativos da inauguração (story.inauguration, passos optional): posters = pontos onde ela cola o cartaz (posterTile, desenhado levantado posterLift px, na parede; some depois do dia da inauguração): a loja de móveis, o ponto de ônibus e um poste da praça; posterSpots: por ponto, outro tile (nos postes, ph_opening_poster_post, um objeto ordenado com o poste), outra altura (lift) e o deslocamento para a direita (shiftX, px); convidar = conversar com amigos durante os preparativos (friendWalkChance: enquanto isso, os passeios dos amigos acontecem com pelo menos essa chance; invite: na primeira conversa do dia com um amigo, ela convida (ask) e ele responde (yes, por amigo; yesDefault); depois ele conta onde e quando achar outro amigo que ela ainda não convidou (whereabouts, sorteado entre os que faltam; hintEnd no fim). Amigo ainda não convidado passeia todo dia nos preparativos); decor: os balões e as bandeirinhas na frente do café, na rua, no dia da inauguração (a cena: scr.inauguration); no dia da inauguração, cada preparativo feito dá reputationPerStep de reputação e o intervalo entre clientes cai arrivalFactorPerStep. Estágios do negócio: closed (fechado) -> soft_open (funcionamento parcial, sem placa) -> inaugurated (com placa). softOpenWhen: o mínimo para atender e ganhar algum dinheiro antes da inauguração (passa sozinho quando vale). requiredSurfaces: as superfícies da reforma do pintor (a troca é opcional; para inaugurar, a condição { renovated: true } pede só os reparos de dentro e de fora com o Tião). A inauguração em si é o marco story.inauguration (efeito setBusiness). upgradeTag/upgradesWhen: itens com esta tag (os upgrades: pote de ração e caixa de areia automáticos, lava-louças) só aparecem para comprar (Market, mercado e Assistência técnica) quando a condição vale.",
   "upgradeTag": "upgrade",
   "upgradesWhen": {
     "business": "inaugurated"
@@ -43,12 +43,24 @@
     "reputationPerStep": 2,
     "arrivalFactorPerStep": 0.15,
     "friendWalkChance": 0.5,
-    "inviteHints": {
-      "npc.gabi": "Ah, e a Dona Neusa sai cedinho pra comprar pão. Se madrugar, você encontra ela na rua!",
-      "npc.neusa": "O Tião passa por aqui no fim da tarde, voltando pra casa. Chama ele também!",
-      "npc.builder": "A Gabi almoça na praça quase todo dia, com o Joca. Convida ela!",
-      "npc.fernanda": "A Gabi almoça na praça com o Joca quase todo dia. Aposto que ela vai adorar o convite.",
-      "npc.jacque": "A Fernanda vive na clínica, não para um minuto. Passa lá pra chamar ela!"
+    "invite": {
+      "ask": "Dia 26 é a inauguração do café! Você vem?",
+      "yes": {
+        "npc.gabi": "Claro que vou! Vou levar o Joca e contar pra todo mundo.",
+        "npc.neusa": "Ai, que alegria! Pode contar comigo, levo um bolinho.",
+        "npc.builder": "Inauguração? Vou sim! Quero ver a obra pronta com gente dentro.",
+        "npc.fernanda": "Que notícia boa! Vou passar lá depois da clínica.",
+        "npc.jacque": "Vou demais! Se der, levo a Sabrina pra conhecer os gatinhos."
+      },
+      "yesDefault": "Que legal! Pode contar comigo.",
+      "hintEnd": "Chama também!",
+      "whereabouts": {
+        "npc.gabi": "A Gabi almoça na praça com o Joca, entre o meio-dia e as duas da tarde.",
+        "npc.neusa": "A Dona Neusa passa pela rua de manhã, entre as oito e meia e as dez e meia, voltando da padaria.",
+        "npc.builder": "O Tião passa pela rua no fim da tarde, entre as cinco e as sete, voltando do serviço.",
+        "npc.fernanda": "A Fernanda fica na clínica, das nove às seis, de segunda a sábado.",
+        "npc.jacque": "A Jacque leva os gatos pra passear na rua no fim da tarde, entre as quatro e meia e as seis e meia."
+      }
     },
     "decor": [
       {

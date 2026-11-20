@@ -42,14 +42,21 @@ describe('preparativos da inauguração', () => {
     expect(JSON.stringify(fair.start)).toContain('met.jacque');
   });
 
-  it('a conversa que convida traz a pista de onde achar outro amigo (só no dia do convite)', () => {
+  it('a conversa que convida: o convite, a resposta e a pista de outro amigo que falta (só no dia do convite)', () => {
     const { session, state } = cafe();
-    expect(session.inviteHint('npc.gabi')).toBeNull();
+    state.flags['met.old_neighbor'] = true;
+    state.flags['builder.called'] = true;
+    expect(session.inviteTalk('npc.gabi')).toBeNull();
     session.noteFriendChat('npc.gabi');
-    expect(session.inviteHint('npc.gabi')).toBe(cfg.inviteHints!['npc.gabi']);
-    expect(session.inviteHint('npc.neusa')).toBeNull();
+    const talk = session.inviteTalk('npc.gabi')!;
+    expect(talk.ask).toBe(cfg.invite!.ask);
+    expect(talk.yes).toBe(cfg.invite!.yes['npc.gabi']);
+    // A pista é de outro amigo que ela conhece e ainda não convidou (nunca da própria Gabi), com lugar e horário.
+    const others = ['npc.neusa', 'npc.builder'].map((n) => cfg.invite!.whereabouts[n]!);
+    expect(others.some((w) => talk.hint!.startsWith(w))).toBe(true);
+    expect(session.inviteTalk('npc.neusa')).toBeNull();
     state.day += 1;
-    expect(session.inviteHint('npc.gabi')).toBeNull();
+    expect(session.inviteTalk('npc.gabi')).toBeNull();
   });
 
   it('nos preparativos, os amigos passeiam mais (pelo menos friendWalkChance dos dias)', () => {
