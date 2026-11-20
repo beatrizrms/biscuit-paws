@@ -23,6 +23,10 @@ ocupada antes de usar.
 
 - **Base de todo personagem (decisão 281): o quadro de frente da cliente 04** (`npc.customer_04`). Personagem novo ou refeito
   é uma edição dele (troca cabelo, rosto e roupa); a frente é aprovada antes de girar e animar.
+- **A edição da base não pode apagar a personalidade (decisão 286).** Pedir sombreado e pose "exatamente" iguais aos da
+  base, mais uma expressão neutra, deixa a pessoa limpa e genérica. Antes de refazer alguém com caráter forte (marcas,
+  roupa surrada, expressão, corpo), veja se o problema não se resolve por código (contorno, cor); se for gerar, ponha na
+  ficha os traços que fazem a pessoa ser quem é e peça a mesma proporção da base, não o mesmo acabamento.
 - **Ficha antes de gerar** (aprovada pela Beatriz antes de gastar qualquer geração). Cada item com cor em hex quando
   possível, tirada da arte que já existe:
   - **Quem:** nome, idade aproximada, jeito (calma, animada, séria).
@@ -40,7 +44,8 @@ ocupada antes de usar.
 - **Proporção da cabeça: uma só para todos.** As referências, escolhidas pela Beatriz em novembro de 2026, são o
   **Tião** (`npc.builder`), a **Fernanda** e os clientes **01, 03, 04, 09 e 10**. A cabeça e o rosto de qualquer
   personagem novo devem ficar do tamanho dos deles. Ficaram fora do padrão, com o rosto maior: a protagonista, a
-  corretora, a Gabi, a Dona Neusa e os clientes 02, 05 e 08. Eles serão refeitos na fase 2, por último. Antes de
+  corretora, a Gabi, a Dona Neusa e os clientes 02, 05 e 08. Na fase 2 todos foram refeitos (decisões 281 a 285), menos
+  a protagonista, que fica para depois. A entregadora e os clientes 03, 06 e 09 ficam como estão. Antes de
   aprovar, compare o personagem novo com as referências lado a lado (`npm run lineup`).
 - **Rosto:** traço simples, com olhos pequenos e sem brilho grande. Nada de rosto "anime" de olhos enormes.
 - **Contorno e luz:** contorno marrom-escuro fino, de 1 px; 3 a 4 tons por material; luz de cima à esquerda.

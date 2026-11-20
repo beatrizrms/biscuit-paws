@@ -32,7 +32,7 @@ const SIZE: Record<Kit, { w: number; h: number; columns: number }> = {
 };
 
 /** Pasta do PixelLab -> id do NPC (data/npcs.json) e o kit: completo (acenar, segurar), só caminhada ou cliente (sentado). */
-const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
+const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean; outline?: boolean }> = {
   // A Gabi refeita (polimento, fase 2, decisão 281): a partir da frente da cliente 04, roupa adulta; a pasta gabi/ é a antiga.
   gabi2: { id: 'npc.gabi', kit: 'fullBox', portrait: true },
   // A corretora refeita no padrão da cliente 04 (decisão 283): linha 5 = as chaves, linha 6 = a prancheta; corretora/ é a antiga.
@@ -44,7 +44,8 @@ const NPCS: Record<string, { id: string; kit: Kit; portrait: boolean }> = {
   entregadora: { id: 'npc.mail_carrier', kit: 'full', portrait: true },
   fernanda: { id: 'npc.fernanda', kit: 'walk', portrait: true },
   joca: { id: 'npc.joca', kit: 'dog', portrait: false },
-  construtor: { id: 'npc.builder', kit: 'builder', portrait: true },
+  // O Tião veio com o contorno claro e acinzentado: `outline` escurece a borda de fora (decisão 286).
+  construtor: { id: 'npc.builder', kit: 'builder', portrait: true, outline: true },
   atendente: { id: 'npc.market_clerk', kit: 'clerk', portrait: false },
   ...Object.fromEntries(
     Array.from({ length: 10 }, (_, i) => String(i + 1).padStart(2, '0')).map((n) => [`cliente${n}`, { id: `npc.customer_${n}`, kit: 'customer' as Kit, portrait: false }]),
@@ -125,8 +126,53 @@ function blit(dst: PNG, src: PNG, dx: number, dy: number, a: { cx: number; feet:
   }
 }
 
+/**
+ * Contorno no padrão (decisão 286): a borda de fora do quadro (os pixels encostados no transparente de fora, achado por
+ * enchente a partir da beira do quadro) vira marrom-escuro, um pouco mais claro onde a cor era clara. O desenho por
+ * dentro não muda.
+ */
+function darkenOutline(sheet: PNG, x0: number, y0: number, w: number, h: number): void {
+  const op = (x: number, y: number) => sheet.data[(y * sheet.width + x) * 4 + 3]! > 40;
+  const outside = new Uint8Array(w * h);
+  const stack: number[] = [];
+  const seed = (x: number, y: number) => {
+    const k = (y - y0) * w + (x - x0);
+    if (!outside[k] && !op(x, y)) {
+      outside[k] = 1;
+      stack.push(x, y);
+    }
+  };
+  for (let x = x0; x < x0 + w; x++) {
+    seed(x, y0);
+    seed(x, y0 + h - 1);
+  }
+  for (let y = y0; y < y0 + h; y++) {
+    seed(x0, y);
+    seed(x0 + w - 1, y);
+  }
+  const STEPS = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+  while (stack.length) {
+    const y = stack.pop()!;
+    const x = stack.pop()!;
+    for (const [dx, dy] of STEPS) if (x + dx >= x0 && y + dy >= y0 && x + dx < x0 + w && y + dy < y0 + h) seed(x + dx, y + dy);
+  }
+  const isOut = (x: number, y: number) => x < x0 || y < y0 || x >= x0 + w || y >= y0 + h || outside[(y - y0) * w + (x - x0)] === 1;
+  const edge: number[] = [];
+  for (let y = y0; y < y0 + h; y++) {
+    for (let x = x0; x < x0 + w; x++) if (op(x, y) && STEPS.some(([dx, dy]) => isOut(x + dx, y + dy))) edge.push((y * sheet.width + x) * 4);
+  }
+  for (const i of edge) {
+    const t = (0.299 * sheet.data[i]! + 0.587 * sheet.data[i + 1]! + 0.114 * sheet.data[i + 2]!) / 255;
+    // Do marrom quase preto dos clientes (#220201) a um marrom-avermelhado escuro (#4a1a14) onde a cor era clara.
+    sheet.data[i] = Math.round(34 + t * 40);
+    sheet.data[i + 1] = Math.round(2 + t * 24);
+    sheet.data[i + 2] = Math.round(1 + t * 19);
+    sheet.data[i + 3] = 255;
+  }
+}
+
 fs.mkdirSync(OUT, { recursive: true });
-for (const [folder, { id, kit, portrait }] of Object.entries(NPCS)) {
+for (const [folder, { id, kit, portrait, outline }] of Object.entries(NPCS)) {
   if (!fs.existsSync(path.join(SRC, folder))) {
     console.log(`${id}: sem a pasta ${folder} (ainda não gerado), pulei`);
     continue;
@@ -145,6 +191,7 @@ for (const [folder, { id, kit, portrait }] of Object.entries(NPCS)) {
     const a = shared ?? anchor(list);
     list.slice(0, COLUMNS).forEach((p, col) => blit(sheet, p, col * W, row * H, a, W, H, opt?.mirror));
   });
+  if (outline) for (let r = 0; r < rows.length; r++) for (let c = 0; c < COLUMNS; c++) darkenOutline(sheet, c * W, r * H, W, H);
   const name = id.replace('npc.', 'npc_');
   fs.writeFileSync(path.join(OUT, `${name}.png`), PNG.sync.write(sheet));
   if (portrait) fs.copyFileSync(path.join(SRC, folder, `${folder}_retrato_128.png`), path.join(OUT, `${name}_portrait.png`));
