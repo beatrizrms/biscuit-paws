@@ -235,6 +235,16 @@
     "reactions": { "loved": "ama", "liked": "gosta de", "neutral": "acha ok", "disliked": "não gosta de" }
   },
   "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
+  "padText": { "continue": "A: continuar", "close": "A ou B: fechar" },
+  "padHints": {
+    "walk": "Analógico: andar (no fim: correr) · A: interagir · X: comer/beber · LB/RB: barra · Y: mochila · LT: mover móvel · R3: market · L3: cardápio · Select: celular · Start: pausa",
+    "dialogue": "A: continuar",
+    "placing": "Analógico: escolher o lugar · A: posicionar · X: girar · Y: guardar na mochila · B: cancelar",
+    "moving": "Analógico: escolher o lugar · A ou LT: soltar · X: girar · Y: guardar na mochila · B: cancelar",
+    "movingTree": "Analógico: escolher o lugar · A ou LT: soltar · Y: remover a árvore · B: cancelar",
+    "movePick": "O móvel que pisca é o que vai mudar de lugar · LT: próximo · A: escolher · B: cancelar",
+    "upgradePick": "Chegue perto do móvel que brilha e aperte A · B: cancelar"
+  },
   "touchHints": {
     "walk": "",
     "dialogue": "",

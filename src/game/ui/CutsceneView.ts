@@ -33,7 +33,7 @@ export class CutsceneView {
       <div class="cs-snow"></div>
       <div class="cs-stage"></div>
       <div class="cs-text"><span class="speaker"></span><span class="text"></span></div>
-      <div class="cs-hint">${byInput(uiText.hintDialogue, uiText.touchText.continue)}</div>`;
+      <div class="cs-hint">${byInput(uiText.hintDialogue, uiText.touchText.continue, uiText.padText.continue)}</div>`;
     root.appendChild(this.el);
     this.stage = this.el.querySelector('.cs-stage') as HTMLElement;
     this.textBox = this.el.querySelector('.cs-text') as HTMLElement;

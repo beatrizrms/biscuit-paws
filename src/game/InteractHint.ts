@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { touch } from './touch';
 
 const DEPTH = 99_000; // acima do mundo, abaixo do fantasma de posicionar
 const KEY = 13; // a teclinha "E"
@@ -33,7 +34,8 @@ export class InteractHint {
   /** Mostra em cima do ponto (x, y: o topo do objeto, em pixels do mundo) com o texto da ação, ou esconde (null). */
   show(at: { x: number; y: number; label: string } | null): void {
     const view = this.scene.cameras.main.worldView;
-    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.width)}` : '';
+    const padOn = touch.mode === 'pad';
+    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.width)},${padOn}` : '';
     if (key === this.key) return;
     this.key = key;
     this.box.setVisible(!!at);
@@ -51,10 +53,16 @@ export class InteractHint {
     const x = Math.round(Math.min(Math.max(at.x, view.x + w / 2 + EDGE), view.right - w / 2 - EDGE));
     const tip = Math.max(left + 4, Math.min(-left - 4, Math.round(at.x) - x));
     g.fillStyle(0x8a5a44, 1).fillTriangle(tip - 3, h / 2, tip + 3, h / 2, tip, h / 2 + 3);
-    // A tecla: quadradinho branco com borda, como no teclado.
+    // A tecla: quadradinho branco com borda, como no teclado; no controle de videogame, o botão A (bolinha verde).
     const kx = left + PAD;
-    g.fillStyle(0xffffff, 1).fillRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
-    g.lineStyle(1, 0x3b2a32, 0.8).strokeRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
+    if (padOn) {
+      g.fillStyle(0x5aa04a, 1).fillCircle(kx + KEY / 2, 0, KEY / 2);
+      g.lineStyle(1, 0x2f5a28, 1).strokeCircle(kx + KEY / 2, 0, KEY / 2);
+    } else {
+      g.fillStyle(0xffffff, 1).fillRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
+      g.lineStyle(1, 0x3b2a32, 0.8).strokeRoundedRect(kx, -KEY / 2, KEY, KEY, 2);
+    }
+    this.letter.setText(padOn ? 'A' : 'E').setColor(padOn ? '#ffffff' : INK);
     this.letter.setPosition(kx + KEY / 2, 0);
     this.label.setPosition(kx + KEY + PAD, 0);
     this.box.setPosition(x, Math.round(at.y - h / 2 - 5));

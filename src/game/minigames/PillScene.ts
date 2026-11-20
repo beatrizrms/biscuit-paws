@@ -39,6 +39,7 @@ const CAT = { x: 470, y: 250, scale: 3.5 };
 const BAR_W = 120;
 
 export class PillScene extends MiniGameScene {
+  protected usesPointer = true;
   private p!: PillParams;
   private s!: PillState;
   private cat!: Phaser.GameObjects.Sprite;

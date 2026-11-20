@@ -628,7 +628,7 @@ export class GameUi {
         <h2>${esc(name)}</h2>
         <p class="hb-status ${tone}">${esc(status)}</p>
         <table>${rows}</table>${lunch}
-        <p class="hb-close">${esc(byInput(t.close, uiText.touchText.close))}</p>
+        <p class="hb-close">${esc(byInput(t.close, uiText.touchText.close, uiText.padText.close))}</p>
       </div></div>`;
     this.root.appendChild(el);
     const close = () => {
@@ -904,7 +904,7 @@ export class GameUi {
     el.className = 'item-reveal';
     // Imagem própria, ícone ou, sem ícone (móvel como o globo de neve do café), a miniatura da peça do mapa.
     const img = item?.iconImage ? `<img src="${item.iconImage}" alt="" />` : item?.icon ? iconHtml(item.icon, 64) : item ? itemThumbHtml(item, 64) : '';
-    el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${byInput(uiText.itemReveal.continue, uiText.touchText.continue)}</div>`;
+    el.innerHTML = `<div class="rays"></div><div class="item-card">${img}<strong>${item?.name ?? ''}</strong></div><div class="hint">${byInput(uiText.itemReveal.continue, uiText.touchText.continue, uiText.padText.continue)}</div>`;
     this.root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('open'));
     return new Promise((resolve) => {
@@ -1611,15 +1611,16 @@ ${rep}`;
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    // No celular, a dica fala dos botões de toque (sem setas nem teclas).
-    const touchText = touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : undefined;
+    // No celular, a dica fala dos botões de toque (sem setas nem teclas); no controle de videogame, dos botões dele.
+    const touchText =
+      touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : touch.mode === 'pad' ? uiText.padHints[mode as keyof typeof uiText.padHints] : undefined;
     // Andando, depois do prólogo: sem a faixa de teclas (as teclas ficam no Como jogar). Nos modos de posicionar e
     // mover, e nas falas, a dica continua (só aparece nessas horas).
     if (mode === 'walk' && this.session.state.flags['prologue.done']) {
       this.hint.textContent = '';
       return;
     }
-    // No toque, a frase dos botões; no teclado, as teclas desenhadas com uma palavra (keyHint.ts).
+    // No toque (e no controle), a frase dos botões; no teclado, as teclas desenhadas com uma palavra (keyHint.ts).
     if (touchText !== undefined) {
       this.hint.textContent = touchText;
       return;

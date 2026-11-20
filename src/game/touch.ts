@@ -5,6 +5,9 @@
 import type { InputState } from '../core/movement';
 import { uiText } from './content';
 
+/** Eventos de mentira do controle (gamepad.ts): não contam como teclado nem mouse na troca de controle. */
+export const padEvents = new WeakSet<Event>();
+
 /** As ações dos botões: o nome da tecla equivalente (o mesmo do onKey do mundo). */
 export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC' | 'T';
 
@@ -34,8 +37,10 @@ export function isTouchDevice(): boolean {
 }
 
 class TouchInput {
-  /** O último controle usado: com "touch", os botões aparecem. */
-  mode: 'touch' | 'keys' = 'keys';
+  /** O último controle usado: com "touch", os botões aparecem; com "pad", as dicas falam dos botões do controle. */
+  mode: 'touch' | 'keys' | 'pad' = 'keys';
+  /** O nome do botão do controle para uma tecla (gamepad.ts põe; "E" vira "A"). */
+  padLabel: (key: string) => string = (key) => key;
   /** Direção do direcional agora (mesmo formato do teclado). */
   dir: InputState = { up: false, down: false, left: false, right: false };
   /** Direcional empurrado até a borda. */
@@ -136,8 +141,8 @@ class TouchInput {
       b.addEventListener('pointerleave', up);
     });
     // Qual controle ela está usando: o toque mostra os botões; tecla ou mouse esconde.
-    window.addEventListener('pointerdown', (e) => this.setMode(e.pointerType === 'touch' ? 'touch' : 'keys'), true);
-    window.addEventListener('keydown', () => this.setMode('keys'), true);
+    window.addEventListener('pointerdown', (e) => !padEvents.has(e) && this.setMode(e.pointerType === 'touch' ? 'touch' : 'keys'), true);
+    window.addEventListener('keydown', (e) => !padEvents.has(e) && this.setMode('keys'), true);
     // Começa certo: tela de toque sem mouse (celular, tablet), ou ?toque na URL (para testar no PC).
     this.setMode(isTouchDevice() ? 'touch' : 'keys');
   }
@@ -155,13 +160,20 @@ class TouchInput {
     if (on) this.release();
   }
 
-  private setMode(mode: 'touch' | 'keys'): void {
+  /** Usou o controle de videogame (gamepad.ts). */
+  usePad(): void {
+    this.setMode('pad');
+  }
+
+  private setMode(mode: 'touch' | 'keys' | 'pad'): void {
     if (mode === this.mode && this.root?.classList.contains('touch-on') === (mode === 'touch')) return;
     this.mode = mode;
     this.root?.classList.toggle('touch-on', mode === 'touch');
     // A interface inteira sabe que é toque (ui.css: html.touch-mode): textos sem teclas, alvos maiores.
     document.documentElement.classList.toggle('touch-mode', mode === 'touch');
-    if (mode === 'keys') {
+    // Com o controle, o botão em foco das janelas fica bem marcado (ui.css: html.pad-mode).
+    document.documentElement.classList.toggle('pad-mode', mode === 'pad');
+    if (mode !== 'touch') {
       this.release();
       this.setRunLock(false);
     }
@@ -245,13 +257,18 @@ class TouchInput {
 }
 
 /** O texto para o controle em uso: o do toque no celular, o do teclado e mouse no resto. */
-export function byInput<T>(keys: T, touchText: T): T {
-  return touch.mode === 'touch' ? touchText : keys;
+export function byInput<T>(keys: T, touchText: T, padText?: T): T {
+  return touch.mode === 'touch' ? touchText : touch.mode === 'pad' && padText !== undefined ? padText : keys;
 }
 
-/** No toque, tira as teclas entre parênteses dos textos ("Começar (E)" vira "Começar"); no teclado, igual. */
+/**
+ * No toque, tira as teclas entre parênteses dos textos ("Começar (E)" vira "Começar"); no controle, troca pelo botão
+ * ("Começar (A)"); no teclado, igual.
+ */
 export function keyless(text: string): string {
-  return touch.mode === 'touch' ? text.replace(/\s*\((?:E|P|Esc|Enter|ENTER|Espaço|I|M|C|F)\)/g, '') : text;
+  const keys = /\s*\((E|P|Esc|Enter|ENTER|Espaço|I|M|C|F)\)/g;
+  if (touch.mode === 'pad') return text.replace(keys, (_, key: string) => ` (${touch.padLabel(key)})`);
+  return touch.mode === 'touch' ? text.replace(keys, '') : text;
 }
 
 /** Os controles de toque do jogo (um só). */

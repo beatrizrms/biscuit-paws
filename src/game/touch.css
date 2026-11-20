@@ -66,3 +66,14 @@
 
 /* Na Home, na pausa e com janelas abertas (mercado, cardápio, celular, mochila): sem controles por cima. */
 #touch.touch-on.touch-hidden .touch-layer { display: none; }
+
+/* ---------- Controle de videogame (gamepad.ts) ---------- */
+/* Cursor dos mini games de mouse: o analógico move; a ponta é o ponto que clica. */
+.pad-cursor {
+  position: fixed; left: 0; top: 0; z-index: 10000; pointer-events: none;
+  width: 0; height: 0; border-style: solid; border-width: 0 0 18px 12px;
+  border-color: transparent transparent transparent var(--cream);
+  filter: drop-shadow(1px 1px 0 var(--c-ink)) drop-shadow(-1px 0 0 var(--c-ink)) drop-shadow(0 -1px 0 var(--c-ink));
+}
+/* Botão em foco nas janelas e menus: bem marcado (o direcional passa por eles e o A aperta). */
+html.pad-mode button:focus-visible, html.pad-mode button:focus { outline: 2px solid var(--c-green); outline-offset: 2px; }
