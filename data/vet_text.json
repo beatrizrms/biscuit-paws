@@ -50,7 +50,7 @@
     "notYet": "{cat} ainda precisa ficar mais um pouquinho aqui."
   },
   "adoption": {
-    "waitingAge": "Aguardando idade para castrar (dia {day}).",
+    "waitingAge": "Filhote: pode ir para adoção sem castrar; castra a partir do dia {day}.",
     "needsNeuter": "Precisa ser castrado antes da adoção."
   },
   "ced": {

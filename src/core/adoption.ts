@@ -1,6 +1,7 @@
 // Match de adoção: gatos do abrigo da vila e famílias com perfil; a jogadora leva cada gato para uma família.
 // Ao confirmar, cada par ganha um veredito (boa, ok, ruim) e um porquê, pelas regras de data/adoption.json.
 // Puro: sem Phaser, DOM ou window.
+import type { AdoptionOnlineConfig } from './adoptionOnline';
 import type { Outcome } from './minigame';
 import type { Rng } from './rng';
 
@@ -37,6 +38,8 @@ export interface AdoptionData {
   families: FamilyProfile[];
   /** Gatos do café na feira (eventos de data/festivals.json): o jeito pela personalidade e os traços padrão. */
   fair: CafeTraitsConfig;
+  /** Adoção on-line pela SocialVilla (adoptionOnline.ts, decisão 291). */
+  online?: AdoptionOnlineConfig;
 }
 
 export interface CafeTraitsConfig {

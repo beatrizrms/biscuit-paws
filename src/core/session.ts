@@ -17,6 +17,7 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
+import { AdoptionOnlineFlow } from './adoptionOnline';
 import { CedCampaign } from './cedCampaign';
 import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, togoRecipe, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
 import { acceptVisit, completeRequest, countRequest, maybeNewRequest, visitMinute, type FriendRequestDef } from './requests';
@@ -273,6 +274,8 @@ export class GameSession {
   readonly ced: CedFlow;
   /** O dia da campanha da CED no beco (cedCampaign.ts). */
   readonly cedCampaign: CedCampaign;
+  /** Adoção on-line pela SocialVilla (adoptionOnline.ts, decisão 291); null sem a configuração. */
+  readonly adoptionOnline: AdoptionOnlineFlow | null;
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
@@ -382,6 +385,22 @@ export class GameSession {
       const looks = this.content.service.customerLooks;
       if (c && looks.length > 0) this.ced.customerPaid(looks[c.look % looks.length]!, customerId);
     });
+    const online = content.adoption.online;
+    this.adoptionOnline = online
+      ? new AdoptionOnlineFlow({
+          state,
+          bus: this.bus,
+          cfg: online,
+          adoptable: () => this.adoptableCats(),
+          catName: (id) => this.catName(id),
+          adoptOut: (id) => this.adoptOut(id),
+          looks: content.service.customerLooks.length,
+          postSocial: (postId) => {
+            this.state.social.feed.push({ post: postId, day: this.state.day });
+            this.bus.emit('social.posted', { posts: [postId] });
+          },
+        })
+      : null;
     // Save de antes da regra "o abrigo é o café": quem estava no abrigo da vila volta para o café.
     this.arrivals.absorbShelterPool();
     // Cômodo que já teve a limpeza pesada (algum mato pesado limpo): a sujeira pesada nova dele (galhos, toras) também.
@@ -1179,6 +1198,8 @@ export class GameSession {
     const campaignDay = this.ced.campaignDay();
     if (campaignDay !== null && !this.state.ced.campaign && this.state.day >= campaignDay - 1) this.cedCampaign.startEve(campaignDay, this.state.ced.campaignCats, this.state.ced.history.length);
     this.cedCampaign.morning();
+    // Adoção on-line: a ideia, os anúncios, o interessado do dia e as notícias das famílias (decisão 291).
+    this.adoptionOnline?.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
     this.state.stats.today.sickAtStart = this.sickCats();
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.untreatedSickCats().length });
@@ -3050,6 +3071,15 @@ export class GameSession {
     );
   }
 
+  /**
+   * O interessado da adoção on-line espera outro dia (decisão 291): dia de evento (como a chegada de gato novo) ou o
+   * dia da campanha da CED (o café não abre).
+   */
+  adoptionVisitHeld(): boolean {
+    const c = this.state.ced.campaign;
+    return this.isEventDay() || (!!c && c.day === this.state.day && c.stage !== 'done');
+  }
+
   /** Hoje tem evento no quintal (marcado para hoje, ou já aconteceu hoje)? */
   private festivalInYardToday(): boolean {
     const f = this.state.festivals;
@@ -3539,6 +3569,8 @@ export class GameSession {
   socialFeed(): { id: string; npc: string; handle: string; text: string; day: number; seen: boolean }[] {
     return this.state.social.feed.flatMap((f) => {
       // Post da Fernanda sobre a campanha da CED (adoção): o texto sai dos gatos da colônia.
+      const online = this.adoptionPost(f.post);
+      if (online) return [{ id: f.post, npc: online.npc, handle: online.handle, text: online.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
       const ced = this.cedPostText(f.post);
       if (ced) return [{ id: f.post, npc: 'npc.fernanda', handle: this.friendHandle('npc.fernanda'), text: ced, day: f.day, seen: this.state.social.seen.includes(f.post) }];
       const found = findPost(this.content.friendship, f.post);
@@ -3551,6 +3583,28 @@ export class GameSession {
   /** O nome da pessoa na SocialVilla (o handle dos dados ou o nome). */
   private friendHandle(npc: string): string {
     return this.content.friendship.friends.find((f) => f.npc === npc)?.handle ?? this.content.npcs[npc]?.name ?? npc;
+  }
+
+  /** Um post da adoção on-line (adopt.post.*): quem posta (ela ou a família), o nome e o texto. null se não for um. */
+  adoptionPost(postId: string): { npc: string; handle: string; text: string } | null {
+    const flow = this.adoptionOnline;
+    const post = postId.startsWith('adopt.post.') && flow ? flow.postById(postId) : null;
+    if (!post || !flow) return null;
+    const t = this.content.adoption.online!.texts;
+    const names = post.cats.map((id) => flow.nameOf(id));
+    const sexed = (text: string, id: string | undefined) => {
+      const sex = id ? this.state.cats[id]?.repro?.sex : undefined;
+      return sex ? sexText(text, sex) : text.replace(/\{sex:([^|}]*)\|([^}]*)\}/g, '$1');
+    };
+    if (post.kind === 'news') {
+      const looks = this.content.service.customerLooks;
+      const npc = looks.length > 0 ? looks[(post.look ?? 0) % looks.length]! : 'player';
+      const handle = (t.familyHandle ?? '').replace('{cat}', listNames(names));
+      const text = post.cats.length > 1 ? (t.newsPostMany ?? t.newsPost ?? '').replace('{cats}', listNames(names)) : sexed((t.newsPost ?? '').replace('{cat}', names[0] ?? ''), post.cats[0]);
+      return { npc, handle, text };
+    }
+    const text = post.kind === 'listing' ? (t.listingPost ?? '').replace('{cats}', listNames(names)) : sexed((post.cats.length > 1 ? t.adoptedPostMany ?? t.adoptedPost! : t.adoptedPost!).replace('{cat}', names[0] ?? '').replace('{cats}', listNames(names)), post.cats[0]);
+    return { npc: 'player', handle: this.playerName() || (t.playerHandle ?? ''), text };
   }
 
   /** O texto de um post da campanha da CED (ced.post.*), ou null se não for um. */
@@ -4404,9 +4458,33 @@ export class GameSession {
    */
   adoptOut(catId: string): boolean {
     const cat = this.state.cats[catId];
-    if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId) || this.clinic.adoptionBlock(catId)) return false;
+    if (!cat?.sheltered || this.content.adoption.protectedCats.includes(catId) || !this.adoptionReady(catId)) return false;
     cat.sheltered = false;
     return true;
+  }
+
+  /**
+   * Pode ser doado agora (decisão 291): junto da turma (consulta de entrada feita, fora do cercadinho), sem doença e
+   * castrado, ou filhote antes da idade de castrar que a Fernanda indica (vai sem castrar; a família castra depois).
+   */
+  adoptionReady(catId: string): boolean {
+    const cat = this.state.cats[catId];
+    if (!cat?.sheltered || cat.sickness) return false;
+    const block = this.clinic.adoptionBlock(catId);
+    if (block) return block.reason === 'waiting_age';
+    return cat.repro?.known === 'neutered';
+  }
+
+  /** Gatos do café que podem ser doados (sem os da história). */
+  adoptableCats(): string[] {
+    const protectedCats = this.content.adoption.protectedCats;
+    return this.shelteredCats().filter((id) => !protectedCats.includes(id) && this.adoptionReady(id));
+  }
+
+  /** Filhote que vai sem castrar: em quantos dias chega a idade de castrar (null: já pode ou já é castrado). */
+  kittenNeuterInDays(catId: string): number | null {
+    const block = this.clinic.adoptionBlock(catId);
+    return block?.reason === 'waiting_age' && block.readyDay !== undefined ? Math.max(1, block.readyDay - this.state.day) : null;
   }
 
   // ---------- Estatísticas do café ----------
@@ -5497,7 +5575,7 @@ export class GameSession {
     const protectedCats = this.content.adoption.protectedCats;
     return this.shelteredCats().filter((id) => {
       const cat = this.state.cats[id]!;
-      return cat.repro?.known === 'neutered' && !cat.sickness && !this.clinic.adoptionBlock(id) && !protectedCats.includes(id);
+      return !protectedCats.includes(id) && this.adoptionReady(id) && !!cat;
     });
   }
 
@@ -5732,6 +5810,11 @@ export class GameSession {
       },
       halloweenGuest: (npc) => this.halloweenGuests().includes(npc),
       fairCats: () => this.fairCatIds().length,
+      // A feira: todos os gatos do café prontos (castrados, ou filhotes antes da idade de castrar), sem doença.
+      catsReady: () => {
+        const cats = this.shelteredCats();
+        return cats.length > 0 && cats.every((id) => this.adoptionReady(id));
+      },
       festivalMounted: () => this.festivalMounted(),
       playerRoom: () => (this.state.location === this.content.map.id && this.playerCell ? roomAt(this.content.rooms, this.playerCell)?.id : undefined),
     };

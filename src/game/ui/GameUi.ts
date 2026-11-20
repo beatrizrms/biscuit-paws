@@ -1674,6 +1674,13 @@ ${rep}`;
     else this.hint.innerHTML = keyHintHtml(text);
   }
 
+  /** Uma conversa montada na hora, com várias pessoas ({player} no nome dela; npc: o retrato de quem fala). */
+  say(lines: { speaker: string; text: string; npc?: string }[]): Promise<void> {
+    this.dialogueQueue.push(...lines.map((l) => ({ speaker: this.fillNames(l.speaker), text: this.fillNames(l.text), ...(l.npc ? { npc: l.npc } : {}) })));
+    this.openDialogueIfFree();
+    return this.afterDialogue();
+  }
+
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */
   npcSay(npcId: string, text: string): Promise<void> {
     this.dialogueQueue.push({ speaker: content.npcs[npcId]?.name ?? '', text, npc: npcId });

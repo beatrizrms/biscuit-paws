@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Match de adoção (mini game adoption). traits: os traços e os nomes na tela. cats: lista fixa de gatos (id adopt.*) só para testar o mini game pelo debug (no jogo, a feira usa só os gatos castrados do café), com a variante (data/cat_sprites.json) e um valor de cada traço. families: perfis de família; scores dá pontos por traço do gato (positivo combina, negativo não; o que não está aqui vale 0) e notes explica o porquê (1 linha por par, mostrada ao confirmar). Veredito: soma >= verdicts.goodAt = boa; <= verdicts.badAt = ruim; o resto = ok. O motivo mostrado é a nota do traço que mais pesou para o lado do veredito. reputation: quanto cada adoção vale (fase 2, reputação). protectedCats: gatos do café que nunca saem por adoção (os da história). fair: os gatos do café nas feiras (os eventos ficam em data/festivals.json). Gatos do café na feira: traços de adoptionTraits em cats.json ou, sem eles, personalityFrom (personalidade do gato -> jeito) + defaultTraits.",
+  "_comment": "Match de adoção (mini game adoption). traits: os traços e os nomes na tela. cats: lista fixa de gatos (id adopt.*) só para testar o mini game pelo debug (no jogo, a feira usa só os gatos castrados do café), com a variante (data/cat_sprites.json) e um valor de cada traço. families: perfis de família; scores dá pontos por traço do gato (positivo combina, negativo não; o que não está aqui vale 0) e notes explica o porquê (1 linha por par, mostrada ao confirmar). Veredito: soma >= verdicts.goodAt = boa; <= verdicts.badAt = ruim; o resto = ok. O motivo mostrado é a nota do traço que mais pesou para o lado do veredito. reputation: quanto cada adoção vale (fase 2, reputação). protectedCats: gatos do café que nunca saem por adoção (os da história). fair: os gatos do café nas feiras (os eventos ficam em data/festivals.json). Gatos do café na feira: traços de adoptionTraits em cats.json ou, sem eles, personalityFrom (personalidade do gato -> jeito) + defaultTraits. Quem pode ir (feira e on-line): junto da turma, sem doença e castrado, ou filhote antes da idade de castrar (vai sem castrar; a família castra depois). online (decisão 291): com minCats gatos que podem ir, ela tem a ideia de anunciar na SocialVilla e todos os que podem ficam anunciados; um interessado a cada visitEveryDays dias (sorteio), com 1 gato ou, com twoCatsChance, 2; ele vem ao café (com ela lá, no horário visitHours), conversa (tela, sem acesso à rua; filhote: quando castrar) e leva; o post de adotado e, newsAfterDays dias depois, a notícia da família. texts: as falas e os posts ({cat}, {cats}, {days}; {sex:o|a} pelo gato; {g:a|o} pela protagonista).",
   "traits": {
     "personality": { "calm": "Calmo", "playful": "Brincalhão", "shy": "Tímido" },
     "age": { "kitten": "Filhote", "adult": "Adulto", "senior": "Idoso" },
@@ -12,6 +12,35 @@
   "fair": {
     "personalityFrom": { "sweet": "calm", "brave": "playful", "shy": "shy", "curious": "playful", "grumpy": "calm", "needy": "calm" },
     "defaultTraits": { "personality": "calm", "age": "adult", "coat": "short" }
+  },
+  "online": {
+    "minCats": 3,
+    "visitEveryDays": [3, 6],
+    "twoCatsChance": 0.3,
+    "visitHours": ["09:00", "18:00"],
+    "newsAfterDays": [3, 7],
+    "texts": {
+      "idea": "Tanto gatinho pronto para um lar... Vou anunciar na SocialVilla! Quem sabe aparece alguém com um cantinho para eles.",
+      "playerHandle": "Biscuit Paws",
+      "listingPost": "Procurando um lar: {cats}! Castrados (ou filhotes que ainda vão castrar), carinhosos e cheios de personalidade. Quer conhecer? Passa no café!",
+      "adoptedPost": "{cat} foi adotad{sex:o|a}! Boa vida na casa nova, pequen{sex:o|a}.",
+      "adoptedPostMany": "{cats} foram adotados juntos! Boa vida na casa nova, pequenos.",
+      "familyHandle": "Casa nova de {cat}",
+      "newsPost": "Olha {sex:o|a} {cat} já em casa! Dormiu no sofá na primeira noite e agora manda em tudo por aqui.",
+      "newsPostMany": "Olha {cats} já em casa! Dormiram juntinhos no sofá na primeira noite e agora mandam em tudo por aqui.",
+      "speaker": "Visita",
+      "interest": "Oi! Vi o anúncio d{sex:o|a} {cat} na SocialVilla e não paro de pensar. Queria muito adotar!",
+      "interestMany": "Oi! Vi o anúncio de {cats} na SocialVilla. Queria adotar os dois juntos, se puder!",
+      "askScreens": "Que bom! Antes, umas perguntas de sempre: a casa tem tela nas janelas e na varanda?",
+      "answerScreens": "Tem, sim! Coloquei tela em tudo.",
+      "askStreet": "E o gato vai ficar só dentro de casa, sem acesso à rua?",
+      "answerStreet": "Só dentro de casa. Rua, nunca.",
+      "kittenNeuter": "{cat} ainda é filhote e não é castrad{sex:o|a}: daqui a uns {days} dias já pode castrar. Combinado?",
+      "kittenAnswer": "Combinado! Já vou marcar com a veterinária.",
+      "thanks": "Então {cat} vai com você! Muito obrigad{g:a|o} por adotar. Cuida bem del{sex:e|a}?",
+      "thanksMany": "Então {cats} vão com você! Muito obrigad{g:a|o} por adotar.",
+      "bye": "Pode deixar! Vou mandar notícias."
+    }
   },
   "cats": [
     { "id": "adopt.mingau", "name": "Mingau", "variant": "branco", "traits": { "personality": "calm", "age": "senior", "coat": "long" } },

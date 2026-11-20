@@ -9,6 +9,7 @@ import type { Cell } from './map';
 import type { CatSickness } from './health';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
 import type { CatRepro, TestResult } from './repro';
+import { newAdoptionOnline, type AdoptionOnlineState } from './adoptionOnline';
 import { newCed, type CedState } from './ced';
 import { newHotbar, type HotbarState } from './hotbar';
 import type { BusinessStage } from './business';
@@ -151,6 +152,8 @@ export interface GameState {
   clinic: ClinicState;
   /** CED (v37; ced.ts): a vaquinha pelo CatPay, quem já doou hoje e a campanha. */
   ced: CedState;
+  /** Adoção on-line pela SocialVilla (adoptionOnline.ts, decisão 291). */
+  adoptionOnline: AdoptionOnlineState;
   /** Tutorial (v19): quantas vezes ela já usou o E em cada tipo de coisa. Sem uso desde a decisão 228 (a dica "E" aparece sempre); fica no save. */
   hintUses: Record<string, number>;
   /** Preparativos da inauguração: os cartazes colados (pontos), os amigos convidados, o dia e quantos preparativos valeram. */
@@ -322,6 +325,7 @@ export function newGameState(startingMoney: number, startMap = 'map.street', tim
     catDefs: {},
     clinic: newClinic(),
     ced: newCed(),
+    adoptionOnline: newAdoptionOnline(),
     hintUses: {},
     stats: newStats(),
     milestones: newMilestones(),

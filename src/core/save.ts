@@ -21,16 +21,17 @@ import type { MilestonesState } from './milestones';
 import type { SantaRecord, SantaResult } from './secretSanta';
 import type { HalloweenRecord, HalloweenResult } from './halloween';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
+import { normalizeAdoptionOnline } from './adoptionOnline';
 import { newCed, type CedState } from './ced';
 import type { CampaignState } from './cedCampaign';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 import type { FriendState, GiftReaction, SocialState } from './friendship';
 
-export const SAVE_SCHEMA_VERSION = 42;
+export const SAVE_SCHEMA_VERSION = 43;
 
-export interface SaveV42 extends GameState {
-  schemaVersion: 42;
+export interface SaveV43 extends GameState {
+  schemaVersion: 43;
   savedAt: string;
 }
 
@@ -208,6 +209,8 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   40: (save) => ({ ...save, schemaVersion: 41, friends: {}, social: { feed: [], seen: [] } }),
   /** v41 -> v42: o dia em que cada receita entrou (as receitas nas conquistas). Saves antigos: as conhecidas sem o dia. */
   41: (save) => ({ ...save, schemaVersion: 42, recipesOn: {} }),
+  /** v42 -> v43: adoção on-line pela SocialVilla (adoptionOnline.ts). Saves antigos: ainda sem a ideia. */
+  42: (save) => ({ ...save, schemaVersion: 43, adoptionOnline: null }),
 };
 
 const REACTIONS = new Set(['loved', 'liked', 'neutral', 'disliked']);
@@ -237,7 +240,7 @@ function normalizeSocial(raw: unknown): SocialState {
 const OLD_VARIANTS: Record<string, string> = {"biscuit": "siames", "custard": "creme", "domino": "frajola", "freckle": "red_point", "hazel": "tigrado", "marmalade": "ruivo", "midnight": "preto", "misty": "cinza", "patches": "tricolor", "pebble": "lynx_point", "snowdrop": "branco", "toffee": "escaminha"};
 
 export function serializeSave(state: GameState, now: Date): string {
-  const save: SaveV42 = { schemaVersion: 42, savedAt: now.toISOString(), ...state };
+  const save: SaveV43 = { schemaVersion: 43, savedAt: now.toISOString(), ...state };
   return JSON.stringify(save);
 }
 
@@ -291,7 +294,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
   }
 
   const migrated = (save as { pantry?: unknown }).pantry === null;
-  const v2 = save as unknown as Partial<SaveV42>;
+  const v2 = save as unknown as Partial<SaveV43>;
   // Gatos gerados pelas chegadas: a definição vem no próprio save e conta como gato conhecido.
   const catDefs = normalizeCatDefs(v2.catDefs);
   const knownCat = (id: string) => known.cats.has(id) || !!catDefs[id];
@@ -475,6 +478,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
     catDefs,
     clinic: normalizeClinic(v2.clinic),
     ced: normalizeCed(v2.ced),
+    adoptionOnline: normalizeAdoptionOnline(v2.adoptionOnline, knownCat),
     hintUses: Object.fromEntries(
       Object.entries(v2.hintUses ?? {}).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && e[1] > 0),
     ),
