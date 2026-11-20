@@ -25,8 +25,10 @@ export interface CareConfig {
    * Pedido de brincar: com brinquedo suficiente (1 a cada `catsPerToy` gatos do café, itens posicionados com `toyTag`),
    * o gato pede a cada `everyDays` dias, +1 dia por brinquedo além do mínimo e por outro gato, até `maxDays`; ignorar
    * o pedido só deixa o balão. Sem brinquedo suficiente, pede todo dia, e cada dia sem brincar tira `missedHappiness`.
+   * `spreadDays`: cada gato pede até esse tanto de dias antes ou depois (sorteio próprio, novo a cada brincadeira),
+   * para os que chegaram ou brincaram juntos não pedirem todos no mesmo dia.
    */
-  play: { everyDays: number; maxDays: number; catsPerToy: number; toyTag: string; missedHappiness: number };
+  play: { everyDays: number; maxDays: number; catsPerToy: number; toyTag: string; missedHappiness: number; spreadDays?: number };
   /** Ganho de cada mini game de cuidado, por resultado (ok, great). */
   gains: Record<string, Partial<Record<CareStat, { ok: number; great: number }>>>;
 }
@@ -64,9 +66,25 @@ export function playInterval(cfg: CareConfig, room: PlayRoom): number {
   return Math.min(cfg.play.maxDays, cfg.play.everyDays + extraToys + otherCats);
 }
 
-/** Está pedindo para brincar: já faz `interval` dias que ninguém brincou com ele (desde que chegou, se nunca). */
-export function wantsPlay(cat: CatState, day: number, interval: number): boolean {
-  return day - (cat.playedOn ?? cat.shelteredOn) >= interval;
+/**
+ * Desvio do pedido de brincar deste gato, de -spread a +spread dias: vem do id dele e do dia em que brincaram por
+ * último, então é fixo até a próxima brincadeira (repetível, sem RNG no save) e muda a cada ciclo.
+ */
+export function playOffset(catId: string, since: number, spread: number): number {
+  if (spread <= 0) return 0;
+  let h = 2166136261;
+  for (const ch of `${catId}:${since}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return ((h >>> 0) % (2 * spread + 1)) - spread;
+}
+
+/**
+ * Está pedindo para brincar: já faz `interval` dias que ninguém brincou com ele (desde que chegou, se nunca). Com
+ * `catId` e brinquedo suficiente (intervalo maior que 1), o intervalo ganha o desvio do gato (`spreadDays`).
+ */
+export function wantsPlay(cat: CatState, day: number, interval: number, catId?: string, spread = 0): boolean {
+  const since = cat.playedOn ?? cat.shelteredOn;
+  const wait = interval > 1 && catId ? Math.max(2, interval + playOffset(catId, since, spread)) : interval;
+  return day - since >= wait;
 }
 
 /**
@@ -103,14 +121,14 @@ export function isHungry(cat: CatState, day: number): boolean {
 }
 
 /** O que falta, na ordem de urgência: remédio, fome (um dia sem comer), banho, carinho, brincar (o pedido, ainda sem tristeza). */
-export function careNeeds(cat: CatState, day: number, cfg: CareConfig, room: PlayRoom): CareNeed[] {
+export function careNeeds(cat: CatState, day: number, cfg: CareConfig, room: PlayRoom, catId?: string): CareNeed[] {
   const c = careOf(cat, cfg);
   const out: CareNeed[] = [];
   if (needsMedicine(cat, day)) out.push('medicine');
   if (isHungry(cat, day)) out.push('hungry');
   if (c.hygiene < cfg.low.hygiene) out.push('dirty');
   if (c.happiness < cfg.low.happiness) out.push('sad');
-  else if (wantsPlay(cat, day, playInterval(cfg, room))) out.push('play');
+  else if (wantsPlay(cat, day, playInterval(cfg, room), catId, cfg.play.spreadDays)) out.push('play');
   return out;
 }
 
@@ -139,6 +157,7 @@ export function validateCare(cfg: CareConfig): string[] {
   const p = cfg.play;
   if (!(p && Number.isInteger(p.everyDays) && p.everyDays >= 1 && Number.isInteger(p.maxDays) && p.maxDays >= p.everyDays)) errors.push('health.care.play: everyDays >= 1 e maxDays >= everyDays (inteiros)');
   if (p && !(Number.isInteger(p.catsPerToy) && p.catsPerToy >= 1)) errors.push('health.care.play.catsPerToy precisa ser inteiro >= 1');
+  if (p && p.spreadDays !== undefined && !(Number.isInteger(p.spreadDays) && p.spreadDays >= 0 && p.spreadDays < p.everyDays)) errors.push('health.care.play.spreadDays precisa ser inteiro, de 0 a everyDays - 1');
   if (p && !(p.missedHappiness >= 0 && p.missedHappiness <= cfg.max)) errors.push(`health.care.play.missedHappiness precisa estar entre 0 e ${cfg.max}`);
   return errors;
 }

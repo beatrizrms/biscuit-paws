@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf, playInterval, toysMissing } from '../../src/core/care';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, playInterval, playOffset, toysMissing } from '../../src/core/care';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState, type CatState } from '../../src/core/state';
@@ -48,6 +48,27 @@ describe('cuidados (puro)', () => {
     const room = { toys: 1, cats: 1 };
     expect(careNeeds(c, 1 + cfg.play.everyDays - 1, cfg, room)).toEqual([]);
     expect(careNeeds(c, 1 + cfg.play.everyDays, cfg, room)).toEqual(['play']);
+  });
+
+  it('com brinquedo, cada gato pede num dia próprio (desvio de até spreadDays); sem brinquedo, todos todo dia', () => {
+    const spread = cfg.play.spreadDays!;
+    const room = { toys: 4, cats: 10 };
+    const interval = playInterval(cfg, room);
+    // Dez gatos que chegaram no mesmo dia: o primeiro dia do pedido varia de um para outro, dentro da faixa.
+    const firstAsk = Array.from({ length: 10 }, (_, i) => {
+      const c = cat({ shelteredOn: 1 });
+      let day = 1;
+      while (!careNeeds(c, day, cfg, room, `cat.gen_${i}`).includes('play')) day++;
+      return day - 1;
+    });
+    expect(new Set(firstAsk).size).toBeGreaterThan(1);
+    for (const d of firstAsk) expect(Math.abs(d - interval)).toBeLessThanOrEqual(spread);
+    // O desvio muda depois de brincar (é sorteado de novo a cada ciclo) e se repete para o mesmo gato e dia.
+    const offsets = Array.from({ length: 12 }, (_, since) => playOffset('cat.mimi', since, spread));
+    expect(new Set(offsets).size).toBeGreaterThan(1);
+    expect(playOffset('cat.mimi', 3, spread)).toBe(playOffset('cat.mimi', 3, spread));
+    // Sem brinquedo suficiente o pedido é diário para todos, sem desvio.
+    expect(careNeeds(cat({ playedOn: 4 }), 5, cfg, { toys: 0, cats: 2 }, 'cat.gen_1')).toContain('play');
   });
 
   it('o que falta, por urgência: remédio (dose de hoje pendente), banho, carinho', () => {

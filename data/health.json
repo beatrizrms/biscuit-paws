@@ -16,7 +16,7 @@
       "sad": { "emote": "heart" },
       "play": { "item": "item.cat_wand" }
     },
-    "play": { "everyDays": 4, "maxDays": 8, "catsPerToy": 3, "toyTag": "cat:toy", "missedHappiness": 12 },
+    "play": { "everyDays": 4, "maxDays": 8, "catsPerToy": 3, "toyTag": "cat:toy", "missedHappiness": 12, "spreadDays": 2 },
     "gains": {
       "wand": { "happiness": { "ok": 15, "great": 25 } },
       "grooming": { "hygiene": { "ok": 30, "great": 45 }, "happiness": { "ok": 3, "great": 6 } },
