@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { addCare, careAtDayEnd, careGain, careNeeds, careOf, playInterval, playOffset, toysMissing } from '../../src/core/care';
+import { addCare, careAtDayEnd, careGain, careNeeds, careOf, litterLoss, playInterval, playOffset, toysMissing } from '../../src/core/care';
 import { knownIds, parseSave } from '../../src/core/save';
 import { GameSession } from '../../src/core/session';
 import { newGameState, type CatState } from '../../src/core/state';
@@ -8,6 +8,10 @@ import { loadContent } from './content';
 
 const content = loadContent();
 const cfg = content.health.care;
+// A regra base, sem o ritmo próprio de cada gato na higiene (o desvio tem o teste dele, com os valores de health.json).
+const spreads = { hygieneSpread: cfg.hygieneSpread!, litterSpread: cfg.litterSpread! };
+cfg.hygieneSpread = 0;
+cfg.litterSpread = 0;
 // Alimentado (fedOn longe no futuro): estes testes não olham a fome.
 const cat = (over: Partial<CatState> = {}): CatState => ({ sheltered: true, name: 'Mimi', map: 'map.cafe_main', shelteredOn: 1, fedOn: 999, health: 80, sickness: null, ...over });
 
@@ -69,6 +73,22 @@ describe('cuidados (puro)', () => {
     expect(playOffset('cat.mimi', 3, spread)).toBe(playOffset('cat.mimi', 3, spread));
     // Sem brinquedo suficiente o pedido é diário para todos, sem desvio.
     expect(careNeeds(cat({ playedOn: 4 }), 5, cfg, { toys: 0, cats: 2 }, 'cat.gen_1')).toContain('play');
+  });
+
+  it('higiene: cada gato tem o próprio ritmo (queda diária e dia sem areia variam por gato e por dia)', () => {
+    const real = { ...cfg, ...spreads };
+    const ids = Array.from({ length: 10 }, (_, i) => `cat.gen_${i}`);
+    // Dia sem areia: a perda varia de um gato para outro, dentro de litterMissed ± litterSpread, e nunca é zero.
+    const losses = ids.map((id) => litterLoss(real, id, 7));
+    expect(new Set(losses).size).toBeGreaterThan(1);
+    for (const l of losses) {
+      expect(l).toBeGreaterThanOrEqual(Math.max(1, real.litterMissed - real.litterSpread!));
+      expect(l).toBeLessThanOrEqual(real.litterMissed + real.litterSpread!);
+    }
+    // Dez gatos que começam iguais: depois de alguns dias, a higiene deles já não é a mesma.
+    const cats = ids.map(() => cat({ hygiene: 70, playedOn: 99 }));
+    for (let day = 1; day <= 10; day++) cats.forEach((c, i) => careAtDayEnd(c, real, day, { toys: 4, cats: 10 }, ids[i]));
+    expect(new Set(cats.map((c) => c.hygiene)).size).toBeGreaterThan(1);
   });
 
   it('o que falta, por urgência: remédio (dose de hoje pendente), banho, carinho', () => {

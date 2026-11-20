@@ -6,6 +6,9 @@ import { loadContent } from './content';
 
 const content = loadContent();
 const care = content.health.care;
+// Estes testes conferem a regra base: sem o ritmo próprio de cada gato (hygieneSpread, litterSpread; testado em care.test).
+care.hygieneSpread = 0;
+care.litterSpread = 0;
 
 /** Café com dois gatos, a tigela e a caixa de areia (comuns ou automáticas) e o item na barra. */
 function cafe(opts: { auto?: boolean } = {}) {

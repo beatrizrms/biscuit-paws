@@ -15,6 +15,12 @@ export interface CareConfig {
   /** Fim de um dia sem areia limpa (nenhuma caixa trocada nem automática com areia): a higiene cai mais isto. */
   litterMissed: number;
   /**
+   * Cada gato tem o próprio ritmo: a queda diária da higiene varia até `hygieneSpread` para mais ou para menos, e a do dia
+   * sem areia, até `litterSpread` (sorteio por gato e por dia), para os gatos não ficarem sujos todos no mesmo dia.
+   */
+  hygieneSpread?: number;
+  litterSpread?: number;
+  /**
    * Areia suja por `afterDays` dias seguidos: no fim do dia, cada gato do café deixa `perCat` cocô no chão (lugar livre
    * sorteado), até `maxOnFloor` no chão. Os cocôs são as sujeiras do mapa com `tag` (escondidas até a `flag` valer).
    */
@@ -71,10 +77,20 @@ export function playInterval(cfg: CareConfig, room: PlayRoom): number {
  * último, então é fixo até a próxima brincadeira (repetível, sem RNG no save) e muda a cada ciclo.
  */
 export function playOffset(catId: string, since: number, spread: number): number {
-  if (spread <= 0) return 0;
+  return catSpread(`${catId}:${since}`, spread);
+}
+
+/** Desvio de -spread a +spread, fixo para a mesma chave (gato e dia): o ritmo próprio de cada gato, sem RNG no save. */
+export function catSpread(key: string, spread: number): number {
+  if (!spread || spread <= 0) return 0;
   let h = 2166136261;
-  for (const ch of `${catId}:${since}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   return ((h >>> 0) % (2 * spread + 1)) - spread;
+}
+
+/** Quanto a higiene deste gato cai hoje sem areia limpa (litterMissed, com o desvio dele; nunca menos que 1). */
+export function litterLoss(cfg: CareConfig, catId: string, day: number): number {
+  return Math.max(1, cfg.litterMissed + catSpread(`${catId}:litter:${day}`, cfg.litterSpread ?? 0));
 }
 
 /**
@@ -91,9 +107,10 @@ export function wantsPlay(cat: CatState, day: number, interval: number, catId?: 
  * Fim do dia: a higiene cai um pouco; a felicidade só cai sem brinquedo suficiente, se ele pediu e ninguém brincou
  * hoje (com brinquedo, ele se distrai sozinho e o pedido fica só no balão).
  */
-export function careAtDayEnd(cat: CatState, cfg: CareConfig, day: number, room: PlayRoom): void {
+export function careAtDayEnd(cat: CatState, cfg: CareConfig, day: number, room: PlayRoom, catId?: string): void {
   addCare(cat, 'happiness', -cfg.daily.happiness, cfg);
-  addCare(cat, 'hygiene', -cfg.daily.hygiene, cfg);
+  const hygieneJitter = catId ? catSpread(`${catId}:hygiene:${day}`, cfg.hygieneSpread ?? 0) : 0;
+  addCare(cat, 'hygiene', -Math.max(0, cfg.daily.hygiene + hygieneJitter), cfg);
   const interval = playInterval(cfg, room);
   if (interval === 1 && cat.playedOn !== day && wantsPlay(cat, day, interval)) addCare(cat, 'happiness', -cfg.play.missedHappiness, cfg);
 }
@@ -157,6 +174,10 @@ export function validateCare(cfg: CareConfig): string[] {
   const p = cfg.play;
   if (!(p && Number.isInteger(p.everyDays) && p.everyDays >= 1 && Number.isInteger(p.maxDays) && p.maxDays >= p.everyDays)) errors.push('health.care.play: everyDays >= 1 e maxDays >= everyDays (inteiros)');
   if (p && !(Number.isInteger(p.catsPerToy) && p.catsPerToy >= 1)) errors.push('health.care.play.catsPerToy precisa ser inteiro >= 1');
+  for (const k of ['hygieneSpread', 'litterSpread'] as const) {
+    const v = cfg[k];
+    if (v !== undefined && !(Number.isInteger(v) && v >= 0)) errors.push(`health.care.${k} precisa ser inteiro >= 0`);
+  }
   if (p && p.spreadDays !== undefined && !(Number.isInteger(p.spreadDays) && p.spreadDays >= 0 && p.spreadDays < p.everyDays)) errors.push('health.care.play.spreadDays precisa ser inteiro, de 0 a everyDays - 1');
   if (p && !(p.missedHappiness >= 0 && p.missedHappiness <= cfg.max)) errors.push(`health.care.play.missedHappiness precisa estar entre 0 e ${cfg.max}`);
   return errors;
