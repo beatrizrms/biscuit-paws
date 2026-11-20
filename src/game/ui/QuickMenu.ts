@@ -1,4 +1,4 @@
-// O losango de atalhos (Tab no teclado, Y no controle, Menu no toque): celular, mochila, cardápio e metas num lugar
+// O losango de atalhos (Tab no teclado, Y no controle, Menu no toque): celular, mochila, cardápio e subconsciente num lugar
 // só, em quatro pontas (data/controls.json: quickMenu). Direção escolhe (setas, analógico, direcional) e Enter, E,
 // Espaço, A ou o mesmo botão de novo (Tab, Y) abrem; o toque e o clique abrem direto. Esc e B fecham (o mesmo
 // botão também fecha quando nada foi escolhido). Só desenho e entrada: o que cada ponta abre é o mundo quem faz
@@ -40,7 +40,7 @@ export class QuickMenu {
     const t = uiText.quickMenu;
     el.innerHTML = `<div class="qm-diamond">${SLOTS.map((slot) => {
       const q = controls.quickMenu[slot];
-      return `<button class="qm-slot qm-${slot} qm-${q.opens}" data-slot="${slot}" aria-label="${q.label}"><span class="qm-face">${ART[q.opens] ? `<img class="qm-art" src="${ART[q.opens]}" alt="" />` : actionIconSvg(ICON[q.opens] ?? 'cart', 24)}<b>${q.label}</b></span></button>`;
+      return `<button class="qm-slot qm-${slot} qm-${q.opens}" data-slot="${slot}" aria-label="${q.label}"><span class="qm-face">${ART[q.opens] ? `<img class="qm-art" src="${ART[q.opens]}" alt="" />` : actionIconSvg(ICON[q.opens] ?? 'cart', 24)}<b${q.label.length > 10 ? ' class="qm-long"' : ''}>${q.label}</b></span></button>`;
     }).join('')}</div><p class="qm-hint">${byInput(t.hint, t.hintTouch, t.hintPad)}</p>`;
     el.querySelectorAll<HTMLElement>('[data-slot]').forEach((b) => {
       b.addEventListener('pointerenter', () => this.select(b.dataset.slot as QuickSlot));

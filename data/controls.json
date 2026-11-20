@@ -12,7 +12,7 @@
     "freeHand": { "section": "bar", "label": "Mão livre", "show": { "keys": "0", "touch": "✋" } },
     "hotbarPrev": { "label": "Item anterior da barra" },
     "hotbarNext": { "label": "Próximo item da barra" },
-    "quickMenu": { "section": "windows", "label": "Atalhos (celular, mochila, cardápio, metas)", "keys": ["TAB"], "show": { "touch": "Menu" } },
+    "quickMenu": { "section": "windows", "label": "Atalhos (celular, mochila, cardápio, subconsciente)", "keys": ["TAB"], "show": { "touch": "Menu" } },
     "market": { "section": "windows", "label": "Market", "keys": ["C"] },
     "backpack": { "section": "windows", "label": "Mochila", "keys": ["I"] },
     "phone": { "section": "windows", "label": "Celular", "keys": ["P"] },
@@ -51,6 +51,6 @@
     "up": { "opens": "phone", "label": "Celular" },
     "left": { "opens": "backpack", "label": "Mochila" },
     "right": { "opens": "menuBoard", "label": "Cardápio" },
-    "down": { "opens": "goals", "label": "Metas" }
+    "down": { "opens": "goals", "label": "Subconsciente" }
   }
 }
