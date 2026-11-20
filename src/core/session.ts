@@ -5,7 +5,7 @@ import { itemSize, packBoxes } from './parcels';
 import { barkOfDay, chatOfDay, walkOfDay, type WalkCat } from './neighborWalks';
 import { isOpenAt, nextOpening, weekdayOf, lunchEnd, lunchLength, lunchStart } from './schedule';
 import { type QuoteProblem, builderOnShift, builderSpot, cellKey, siteMarkers, finishJobIfDone, isolatedCells, jobDays, quoteBlocker, scheduleJob, surfaceCells, type RepairKind, type ConstructionJob } from './construction';
-import type { Condition, Content, Effect, ItemUse } from './content';
+import type { BusDestination, Condition, Content, Effect, ItemUse } from './content';
 import { seenFlag } from './cutscene';
 import { parseClock } from './time';
 import { mapLights } from './lights';
@@ -247,6 +247,10 @@ const BASEMENT_POINT = 'pt.basement_find';
 const HALL_ROOM = 'room.hall';
 /** A cama do quartinho (data/items.json): dormir no café só com ela posicionada no cômodo do sleep. */
 const BED_TAG = 'bed';
+/** Foi para casa de ônibus (no save): na manhã seguinte, volta de ônibus. */
+const BUS_HOME_FLAG = 'bus.rode_home';
+/** Já dormiu na cama do café (no save): mora no café, o ônibus não leva mais para casa. */
+const SLEPT_FLAG = 'cafe.slept';
 /** Save de antes da cama comprada: o porão reformado tinha a cama fixa aqui; ela vira a cama posicionada. */
 const OLD_BED = { item: 'item.bed', room: 'room.back_room', at: [18, 4] as Cell };
 
@@ -1126,6 +1130,9 @@ export class GameSession {
     for (const n of this.news()) this.state.flags[`news.seen.${n.id}`] = true;
     const sleepRoom = this.sleepRoom();
     const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
+    // Foi para casa de ônibus: volta de ônibus (só se acorda na rua, onde fica o ponto).
+    this.busArrival = !sleepRoom && !!this.state.flags[BUS_HOME_FLAG] && !!this.content.world.bus?.arriveAt;
+    delete this.state.flags[BUS_HOME_FLAG];
     this.state.location = morning.map;
     if (!this.state.visited.includes(morning.map)) this.state.visited.push(morning.map);
     this.dirtComesBack();
@@ -1408,13 +1415,36 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     const dest = this.content.world.bus!.destinations.find((d) => d.id === destinationId)!;
     this.bus.emit('bus.taken', { destination: dest.id });
-    if (dest.goHome) this.endDay('home');
+    if (dest.goHome) {
+      // Foi de ônibus: amanhã volta de ônibus (desce no ponto).
+      this.state.flags[BUS_HOME_FLAG] = true;
+      this.endDay('home');
+    }
     return { ok: true };
+  }
+
+  /**
+   * Os destinos do ponto de ônibus agora. Depois da primeira noite na cama do café, ela mora lá: o "ir para casa" sai
+   * (sem destino, o ponto só avisa).
+   */
+  busDestinations(): BusDestination[] {
+    const all = this.content.world.bus?.destinations ?? [];
+    return this.state.flags[SLEPT_FLAG] ? all.filter((d) => !d.goHome) : all;
+  }
+
+  /** Ela chega de ônibus nesta manhã (foi para casa de ônibus ontem): o mundo mostra o ônibus deixando ela no ponto. */
+  arrivingByBus(): boolean {
+    return this.busArrival;
+  }
+
+  /** O ônibus já deixou ela no ponto (a cena da chegada terminou). */
+  busArrived(): void {
+    this.busArrival = false;
   }
 
   /** Por que não dá para pegar o ônibus para este destino (o jogo pergunta antes de chamar o ônibus). */
   busProblem(destinationId: string): 'not_found' | 'customers_inside' | null {
-    if (!this.content.world.bus?.destinations.some((d) => d.id === destinationId)) return 'not_found';
+    if (!this.busDestinations().some((d) => d.id === destinationId)) return 'not_found';
     if (this.state.service.customers.length > 0) return 'customers_inside';
     return null;
   }
@@ -2213,6 +2243,8 @@ export class GameSession {
   morningSpawn(): Cell {
     const room = this.sleepRoom();
     if (room?.sleep && this.state.location === this.content.map.id) return room.sleep.wake;
+    const arrive = this.content.world.bus?.arriveAt;
+    if (this.busArrival && arrive) return arrive;
     return this.content.world.morning.spawn;
   }
 
@@ -2554,6 +2586,8 @@ export class GameSession {
     if (!this.sleepRoom()) return { ok: false, reason: 'locked' };
     const problem = this.goHomeProblem();
     if (problem) return { ok: false, reason: problem };
+    // A primeira noite na cama: agora ela mora no café (o ônibus para casa sai do ponto).
+    this.state.flags[SLEPT_FLAG] = true;
     this.endDay('sleep');
     return { ok: true };
   }
@@ -3534,6 +3568,8 @@ export class GameSession {
    * convidados ficam até ela sair pela porta da rua e confirmar (endFestiveParty), ou até o dia acabar.
    */
   private party: 'xmas' | 'halloween' | null = null;
+  /** Chegando de ônibus nesta manhã (até a cena da chegada terminar; não vai no save). */
+  private busArrival = false;
   /** Quantas falas cada convidado já disse nesta festa (a próxima é a seguinte, em ordem). */
   private partyChatSaid: Record<string, number> = {};
 
