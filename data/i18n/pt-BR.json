@@ -72,27 +72,6 @@
     "close": "Fechar",
     "modes": { "touch": "Toque", "keys": "Teclado", "pad": "Controle" },
     "sections": { "move": "Andar", "use": "Usar", "bar": "Barra de itens", "windows": "Janelas", "furniture": "Móveis" },
-    "keys": {
-      "move": ["Setas / WASD | Andar", "R | Correr (segurando)"],
-      "use": ["E | Usar o que está perto", "Clique | Usar o que clicou", "T | Comer ou beber"],
-      "bar": ["1–8 / Roda | Escolher o item", "0 | Mão livre"],
-      "windows": ["C | Market", "I | Mochila", "P | Celular", "M | Cardápio", "Esc | Pausa ou fechar"],
-      "furniture": ["F | Mover", "G | Girar", "Enter / F | Soltar", "Q | Guardar na mochila"]
-    },
-    "touch": {
-      "move": ["Direcional | Andar", "Correr / Borda | Correr"],
-      "use": ["E | Usar o que está perto", "Tocar | Usar o que tocou", "Tomar / Comer | Consumir o que está na mão"],
-      "bar": ["Barra | Escolher o item", "✋ | Mão livre"],
-      "windows": ["Market | Compras pelo celular", "Mochila | Seus itens", "Cel | Celular", "Cardápio | Montar o cardápio", "❚❚ | Pausa"],
-      "furniture": ["Mover | Pegar o móvel", "Girar | Virar o móvel", "Soltar | Pôr no lugar", "Mochila | Guardar na mochila"]
-    },
-    "pad": {
-      "move": ["Analógico / Direcional | Andar", "RT | Correr (ou o analógico no fim)"],
-      "use": ["A | Usar o que está perto", "X | Comer ou beber"],
-      "bar": ["LB / RB | Trocar o item"],
-      "windows": ["R3 | Market", "Y | Mochila", "Select | Celular", "L3 | Cardápio", "Start | Pausa", "A / B | Escolher / voltar", "LB / RB | Trocar a aba"],
-      "furniture": ["LT | Mover", "X | Girar", "A | Soltar", "Y | Guardar na mochila"]
-    },
     "activeTitle": "Ponha na barra para usar",
     "active": [
       "Vassoura | varrer",

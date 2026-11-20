@@ -3,12 +3,14 @@
 import { itemThumbHtml } from './thumbs';
 import { keyHintHtml } from './keyHint';
 import { byInput, keyless, touch } from '../touch';
+import { QuickMenu, type QuickOpens } from './QuickMenu';
+import { fillControls } from '../../core/controls';
 import type { GameSession } from '../../core/session';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
 import { dayInSeason, seasonOf } from '../../core/calendar';
 import { formatClock } from '../../core/time';
-import { content, serviceArt, uiText } from '../content';
+import { content, controls, serviceArt, uiText } from '../content';
 import { CutsceneView } from './CutsceneView';
 import { NamingBox } from './NamingBox';
 import { iconHtml, listNames, ShopPanel } from './ShopPanel';
@@ -80,6 +82,8 @@ function seasonFall(season: string): HTMLElement {
 export class GameUi {
   private money: HTMLElement;
   private goals: HTMLElement;
+  /** O losango de atalhos (Tab, Y, Menu). */
+  private quick: QuickMenu;
   private hint: HTMLElement;
   private toastEl: HTMLElement;
   private dialogueLayer: HTMLElement;
@@ -187,6 +191,7 @@ export class GameUi {
       this.openDialogueIfFree();
     };
     this.cutscene = new CutsceneView(root, session, afterOverlay);
+    this.quick = new QuickMenu(root);
     this.cutscene.onSound = (id) => services().audio.jingle(id);
     this.naming = new NamingBox(root, session, afterOverlay, (reason) => this.problem(reason));
     this.shop = new ShopPanel(root, session, () => this.refresh(), () => this.toast(uiText.shop.paid), (reason) => this.problem(reason as keyof typeof uiText.problems));
@@ -511,7 +516,26 @@ export class GameUi {
 
   /** Falas ou catálogo abertos: a personagem não anda. */
   isBusy(): boolean {
-    return this.isDialogueOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.consult.isOpen() || this.reveal !== null || this.paused;
+    return this.isDialogueOpen() || this.quick.isOpen() || this.isCatalogOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.shop.isOpen() || this.news.isOpen() || this.menuBoard.isOpen() || this.backpack.isOpen() || this.consult.isOpen() || this.reveal !== null || this.paused;
+  }
+
+  /** O losango de atalhos: escolhida a ponta, quem chamou abre (o celular, a mochila...). */
+  openQuickMenu(onPick: (opens: QuickOpens) => void): void {
+    this.quick.open(onPick);
+  }
+
+  closeQuickMenu(): void {
+    this.quick.close();
+  }
+
+  isQuickMenuOpen(): boolean {
+    return this.quick.isOpen();
+  }
+
+  /** As metas por inteiro (o mesmo que clicar no balão): abre ou recolhe. */
+  toggleGoals(): void {
+    if (this.goals.classList.contains('empty')) return;
+    this.goals.classList.toggle('open');
   }
 
   /** Menu de pausa aberto (o mundo para e o relógio também). */
@@ -1611,23 +1635,21 @@ ${rep}`;
 
   private renderHint(): void {
     const mode = this.isDialogueOpen() ? 'dialogue' : this.hintMode;
-    // No celular, a dica fala dos botões de toque (sem setas nem teclas); no controle de videogame, dos botões dele.
-    const touchText =
-      touch.mode === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] : touch.mode === 'pad' ? uiText.padHints[mode as keyof typeof uiText.padHints] : undefined;
     // Andando, depois do prólogo: sem a faixa de teclas (as teclas ficam no Como jogar). Nos modos de posicionar e
     // mover, e nas falas, a dica continua (só aparece nessas horas).
     if (mode === 'walk' && this.session.state.flags['prologue.done']) {
       this.hint.textContent = '';
       return;
     }
-    // No toque (e no controle), a frase dos botões; no teclado, as teclas desenhadas com uma palavra (keyHint.ts).
-    if (touchText !== undefined) {
-      this.hint.textContent = touchText;
-      return;
-    }
-    this.hint.innerHTML = keyHintHtml(
-      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk,
-    );
+    // A dica é um modelo com {ação} (data/ui_text.json), trocado pelo controle em uso (data/controls.json). No toque,
+    // a frase dos botões; no teclado e no controle, as teclas (ou botões) desenhadas com uma palavra (keyHint.ts).
+    const input = touch.mode;
+    const keysText =
+      mode === 'dialogue' ? uiText.hintDialogue : mode === 'placing' ? uiText.hintPlacing : mode === 'moving' ? uiText.hintMoving : mode === 'movingTree' ? uiText.hintMovingTree : mode === 'movePick' ? uiText.hintMovePick : mode === 'upgradePick' ? uiText.hintUpgradePick : uiText.hintWalk;
+    const raw = input === 'touch' ? uiText.touchHints[mode as keyof typeof uiText.touchHints] ?? '' : input === 'pad' && mode === 'dialogue' ? uiText.padHints.dialogue : keysText;
+    const text = fillControls(controls, raw, input, mode === 'walk' || mode === 'dialogue' ? ['world'] : ['placing', 'world']);
+    if (input === 'touch') this.hint.textContent = text;
+    else this.hint.innerHTML = keyHintHtml(text);
   }
 
   /** Uma fala avulsa de um NPC (com o retrato dele), montada na hora (ex.: o Tião dizendo quantos dias faltam). */

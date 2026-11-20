@@ -1516,3 +1516,27 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
   font: 600 1em var(--font-pixel, 'Pixelify Sans', sans-serif); line-height: 1.35; text-align: center; text-shadow: none;
 }
 .hint kbd + kbd, .area-select-hint kbd + kbd { margin-left: 1px; }
+
+/* ---------- Losango de atalhos (QuickMenu.ts: Tab, Y no controle, Menu no toque) ---------- */
+/* Quatro quadrados girados (celular em cima, mochila à esquerda, cardápio à direita, metas embaixo) e a dica
+   embaixo; a ponta escolhida fica com a borda verde. O ícone e o nome ficam retos dentro do quadrado girado. */
+.quick-layer { position: absolute; inset: 0; z-index: 60; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: color-mix(in srgb, var(--c-ink) 35%, transparent); opacity: 0; transition: opacity 0.12s; }
+.quick-layer.open { opacity: 1; }
+.qm-diamond { position: relative; width: 170px; height: 170px; }
+.qm-slot { position: absolute; width: 58px; height: 58px; padding: 0; border: 2px solid var(--c-wood-dark); border-radius: 6px; transform: rotate(45deg); background: var(--c-paper); color: var(--c-ink); box-shadow: 0 2px 0 var(--c-ink); cursor: pointer; }
+.qm-slot .qm-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transform: rotate(-45deg); }
+.qm-slot .qm-face b { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; }
+.qm-slot .action-icon { width: 24px; height: 24px; }
+.qm-slot .qm-art { width: 32px; height: 32px; image-rendering: pixelated; }
+.qm-up { left: 56px; top: 4px; }
+.qm-left { left: 15px; top: 56px; }
+.qm-right { left: 97px; top: 56px; }
+.qm-down { left: 56px; top: 108px; }
+.qm-phone { background: var(--c-blue-pale); }
+.qm-backpack { background: var(--c-cafe-pale); }
+.qm-menuBoard { background: var(--c-green-pale); }
+.qm-goals { background: var(--c-butter-pale); }
+.qm-market { background: var(--c-terra-pale); }
+.qm-slot.on, .qm-slot:hover { border-color: var(--c-green); outline: 2px solid var(--c-butter); outline-offset: 1px; z-index: 1; }
+.qm-hint { margin: 0; padding: 2px 8px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 80%, transparent); color: var(--c-paper); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.hint .kh-or, .area-select-hint .kh-or { font-style: normal; margin: 0 1px; opacity: 0.8; }

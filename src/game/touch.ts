@@ -2,29 +2,31 @@
 // O jogo não sabe de onde veio o comando: o mundo e os mini games leem a direção daqui junto com o teclado, e os
 // botões disparam as mesmas ações das teclas (E, I, C, M, P, F, Esc). Aparece sozinho pelo último controle usado:
 // tocou na tela, aparece; usou teclado ou mouse, some. Só desenho e entrada: nenhuma regra do jogo mora aqui.
+import { controlText } from '../core/controls';
 import type { InputState } from '../core/movement';
-import { uiText } from './content';
+import { controls, uiText } from './content';
 
 /** Eventos de mentira do controle (gamepad.ts): não contam como teclado nem mouse na troca de controle. */
 export const padEvents = new WeakSet<Event>();
 
-/** As ações dos botões: o nome da tecla equivalente (o mesmo do onKey do mundo). */
-export type TouchAction = 'E' | 'I' | 'C' | 'M' | 'P' | 'F' | 'ESC' | 'T';
+/** As ações dos botões: o nome da tecla equivalente (o mesmo do onKey do mundo; data/controls.json). */
+export type TouchAction = string;
+
+/** A tecla que o botão de toque de uma ação aperta (a primeira dela em data/controls.json). */
+export function touchKey(action: string): TouchAction {
+  return controls.actions[action]?.keys?.[0] ?? action;
+}
 
 /** Raio do direcional (px da interface, 640 x 360) e a partir de que parte dele conta direção e corrida. */
 const STICK_R = 62;
 const DEAD = 0.3;
 const RUN_AT = 0.92;
 
-/** Os atalhos na coluna da direita (de cima para baixo): tecla e o texto do botão. */
-const SHORTCUTS: [TouchAction, string][] = [
-  ['ESC', '❚❚'],
-  ['P', 'Cel'],
-  ['C', 'Market'],
-  ['M', 'Cardápio'],
-  ['I', 'Mochila'],
-  ['F', 'Mover'],
-];
+/**
+ * Os atalhos na coluna da direita (de cima para baixo): tecla e o texto do botão (data/controls.json: touch.buttons;
+ * o Menu abre o losango com o celular, a mochila, o cardápio e as metas).
+ */
+const SHORTCUTS: [TouchAction, string][] = controls.touch.buttons.map((a) => [touchKey(a), controlText(controls, a, 'touch')]);
 
 /**
  * Celular ou tablet: o controle principal da tela é o dedo (alguns Androids também dizem ter um ponteiro fino, por
@@ -103,9 +105,9 @@ class TouchInput {
     layer.className = 'touch-layer';
     layer.innerHTML = `
       <div class="t-stick"><div class="t-knob"></div></div>
-      <button class="t-btn t-action" data-act="E">E</button>
+      <button class="t-btn t-action" data-act="${touchKey('interact')}">${controlText(controls, 'interact', 'touch')}</button>
       <button class="t-btn t-small t-run" aria-pressed="false">${uiText.touch.run}</button>
-      <button class="t-btn t-small t-drink" data-act="T" hidden>${uiText.touch.drink}</button>
+      <button class="t-btn t-small t-drink" data-act="${touchKey('eat')}" hidden>${uiText.touch.drink}</button>
       <button class="t-btn t-small t-full" aria-label="Tela cheia">⛶</button>
       <div class="t-shortcuts">${SHORTCUTS.map(([a, label]) => `<button class="t-btn t-small" data-act="${a}">${label}</button>`).join('')}</div>`;
     root.appendChild(layer);
@@ -128,12 +130,12 @@ class TouchInput {
       b.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (act === 'E') this.holding = true;
+        if (act === touchKey('interact')) this.holding = true;
         b.classList.add('down');
         this.listeners.get(act)?.forEach((cb) => cb());
       });
       const up = () => {
-        if (act === 'E') this.holding = false;
+        if (act === touchKey('interact')) this.holding = false;
         b.classList.remove('down');
       };
       b.addEventListener('pointerup', up);

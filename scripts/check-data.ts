@@ -1,6 +1,7 @@
 // npm run check: valida todo o conteúdo em data/ (mapas, itens, história, falas, economia, reforma).
 import { readFileSync, readdirSync } from 'node:fs';
 import { validateContent, type RawContent } from '../src/core/content';
+import { validateControls, type ControlsConfig } from '../src/core/controls';
 import type { MapData } from '../src/core/map';
 
 const read = <T>(path: string) => JSON.parse(readFileSync(path, 'utf8')) as T;
@@ -57,7 +58,8 @@ const raw: RawContent = {
   minigames: read('data/minigames.json'),
 };
 
-const errors = validateContent(raw);
+// Os controles (teclas, botões e toque) ficam fora do conteúdo do jogo: só a entrada e os textos dela.
+const errors = [...validateContent(raw), ...validateControls(read<ControlsConfig>('data/controls.json'))];
 if (errors.length > 0) {
   console.error(`✗ conteúdo com problemas:\n  ${errors.join('\n  ')}`);
   process.exit(1);

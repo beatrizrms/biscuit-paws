@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { nextRotation } from '../../core/variants';
 import { pad } from '../gamepad';
-import { touch, type TouchAction } from '../touch';
+import { touch, touchKey, type TouchAction } from '../touch';
+import { fillControls } from '../../core/controls';
 import { fillNames } from '../ui/text';
 import { WalkFollowers } from '../WalkFollowers';
 import type { WalkCat } from '../../core/neighborWalks';
@@ -36,7 +37,7 @@ import { isDebugOn } from '../debug';
 import { RENDER_SCALE, VIEW_HEIGHT, VIEW_WIDTH, WORLD_ZOOM, fixedScreenRect, setupWorldCamera } from '../screen';
 import type { DebugPanel } from '../ui/DebugPanel';
 import { GameUi } from '../ui/GameUi';
-import { broom, catObjectUses, content, emoteImage, itemUse, serviceArt, uiText } from '../content';
+import { broom, catObjectUses, content, controls, emoteImage, itemUse, serviceArt, uiText } from '../content';
 import { DayNightLayer } from '../DayNightLayer';
 import { WeatherLayer } from '../WeatherLayer';
 import { seasonOf } from '../../core/calendar';
@@ -376,7 +377,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Controle de videogame: o A é o E no mundo, o Enter nas falas e janelas, a ação nos mini games (gamepad.ts).
     // Janela aberta (Market, mochila, cardápio, celular): o destaque anda por ela; fala por cima da janela vem antes.
     pad.context = () =>
-      this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isDialogueOpen() ? 'ui' : this.ui.isPanelOpen() || this.ui.isCatalogOpen() ? 'panel' : this.ui.isBusy() ? 'ui' : 'world';
+      this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isDialogueOpen() ? 'ui' : this.ui.isPanelOpen() || this.ui.isCatalogOpen() ? 'panel' : this.ui.isBusy() ? 'ui' : this.placing || this.movePick || this.pickingUpgrade ? 'placing' : 'world';
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => (pad.context = () => 'ui'));
     this.cartBalloon = new CartBalloon(this);
     this.session.bus.on('cart.changed', ({ count, total }) => (this.cartNow = { count, total }));
@@ -386,32 +387,43 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard!.addKeys({
-      up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, run: K.R,
+      up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D,
+      // Correr: a tecla de data/controls.json (run).
+      run: K[(controls.actions.run?.keys?.[0] ?? 'R') as keyof typeof K],
       // Sem captura: senão W, A, S, D não dá para digitar na caixa de nome do gato.
     }, false) as Keys;
-    // Teclas de ação por evento: um toque rápido nunca se perde.
-    // C: o Market do celular (compra online: funciona em qualquer lugar; posicionar só dentro do café).
-    this.onKey('C', () => {
+    // Teclas de ação por evento: um toque rápido nunca se perde. Quais teclas: data/controls.json (cada ação).
+    // Market (C): o Market do celular (compra online: funciona em qualquer lugar; posicionar só dentro do café).
+    const openMarket = () => {
       if (this.ui.isDialogueOpen()) return;
       this.cancelPlacing();
       this.ui.toggleCatalog();
-    });
+    };
+    this.onAction('market', openMarket);
     // T: come ou bebe o que está pronto na mão (recompõe energia: cafeína mais, depois açúcar; um por hora do jogo).
-    this.onKey('T', () => {
+    this.onAction('eat', () => {
       if (this.ui.isDialogueOpen() || this.ui.isBusy()) return;
       // Com o móvel na mão, o botão do T é o Girar (no celular).
       if (this.placing) return this.rotatePlacing();
       this.tryDrinkCoffee();
     });
     // G: gira o móvel na mão (a cadeira, a banqueta...).
-    this.onKey('G', () => this.placing && !this.ui.isBusy() && this.rotatePlacing());
+    this.onAction('rotate', () => this.placing && !this.ui.isBusy() && this.rotatePlacing());
     for (const ev of ['hands.changed', 'hotbar.changed', 'item.received', 'energy.recovered'] as const) this.session.bus.on(ev, () => this.refreshDrinkButton());
     this.refreshDrinkButton();
     // Q: mudando um móvel de lugar, guarda na mochila.
-    this.onKey('Q', () => this.storeMoving());
+    // Guardar: o móvel que estava no café volta para a mochila; o que estava saindo da mochila só volta (cancela).
+    this.onAction('store', () => {
+      if (this.ui.isBusy()) return;
+      if (this.placing && !this.placing.moveUid) {
+        this.parcelQueue = [];
+        return this.cancelPlacing();
+      }
+      this.storeMoving();
+    });
     // F: muda de lugar o móvel ao lado dela, pelo teclado (o botão direito faz o mesmo com o mouse). Com o fantasma
     // na mão, F (ou Enter) solta; setas e WASD andam com ele uma célula por toque e a personagem fica parada.
-    this.onKey('F', () => {
+    this.onAction('moveFurniture', () => {
       if (this.ui.isBusy() || this.areaSelect || this.changingMap || this.scripts.isRunning()) return;
       if (this.pickingUpgrade) return this.pickUpgradeNear();
       if (this.movePick) return this.cycleMovePick();
@@ -421,7 +433,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (uids.length === 0) return this.ui.problem('no_furniture_near');
       this.chooseToMove(uids);
     });
-    this.onKey('ENTER', () => {
+    // Enter (confirm e drop; o F do drop já é o do Mover, acima).
+    this.onAction(['confirm', 'drop'], () => {
       if (this.ui.isBusy()) return;
       if (this.pickingUpgrade) this.pickUpgradeNear();
       else if (this.movePick) this.confirmMovePick();
@@ -432,7 +445,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       if (!step || !this.placing || this.ui.isBusy()) return;
       this.nudgeGhost(step);
     });
-    this.onKey('ESC', () => {
+    this.onAction(['pause', 'cancel'], () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.pickingUpgrade) this.finishUpgradePick(null);
       else if (this.movePick) this.endMovePick();
@@ -445,7 +458,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       } else if (!this.ui.isBusy() && !this.changingMap && !this.scripts.isRunning()) this.openPause();
     });
     // E: interagir com o que estiver perto (o caixa do mercado...). E de novo fecha a loja.
-    this.onKey('E', () => {
+    this.onAction('interact', () => {
       if (this.areaSelect) return;
       if (this.ui.isPanelOpen()) return this.ui.closeShop();
       if (this.ui.isBusy()) return;
@@ -458,12 +471,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     });
     // P: o celular ("Vila Hoje"), depois do prólogo.
     // M: quadro do cardápio; I: mochila (no café ou em qualquer lugar, depois do prólogo).
-    this.onKey('M', () => {
+    const openMenuBoard = () => {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       if (!this.session.atHome()) return this.ui.toastText('notHome');
       this.ui.openMenuBoard();
-    });
-    this.onKey('I', () => {
+    };
+    this.onAction('menuBoard', openMenuBoard);
+    const openBackpack = () => {
       if (this.ui.isBusy()) return this.ui.isPanelOpen() && this.ui.closeShop();
       // Posicionando: o item volta para a mochila (o que estava no mapa é recolhido) e a mochila abre (ex.: pôr na barra).
       if (this.placing) {
@@ -472,11 +486,25 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         else this.cancelPlacing();
       }
       this.ui.openBackpack();
-    });
-    this.onKey('P', () => {
+    };
+    this.onAction('backpack', openBackpack);
+    const openPhone = () => {
       if (this.ui.isNewsOpen()) return this.ui.closeShop();
       if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
       this.ui.openNews('phone');
+    };
+    this.onAction('phone', openPhone);
+    // O losango de atalhos (Tab, Y no controle, Menu no toque): celular, mochila, cardápio e metas num lugar só.
+    // Com uma janela aberta, fecha a janela (o mesmo botão entra e sai).
+    const quick = { phone: openPhone, backpack: openBackpack, menuBoard: openMenuBoard, market: openMarket, goals: () => this.ui.toggleGoals() };
+    this.onAction('quickMenu', () => {
+      if (this.ui.isQuickMenuOpen()) return this.ui.closeQuickMenu();
+      if (this.ui.isPanelOpen() || this.ui.isCatalogOpen()) {
+        this.ui.closeCatalog();
+        return this.ui.closeShop();
+      }
+      if (this.ui.isBusy() || this.placing || this.areaSelect || this.changingMap || this.scripts.isRunning()) return;
+      this.ui.openQuickMenu((opens) => quick[opens]());
     });
     // Barra de itens: 1 a 8 escolhem o espaço (também com a mochila aberta); a roda do mouse passa de um em um.
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
@@ -1502,12 +1530,23 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   }
 
   /**
+   * As teclas destas ações (data/controls.json), cada uma uma vez: Enter de confirmar e de soltar é um ouvinte só. O
+   * F do soltar fica com o Mover (que solta com o móvel na mão).
+   */
+  private onAction(actions: string | string[], fn: () => void): void {
+    const own = new Set(controls.actions.moveFurniture?.keys ?? []);
+    const list = Array.isArray(actions) ? actions : [actions];
+    const keys = new Set(list.flatMap((a) => controls.actions[a]?.keys ?? []));
+    for (const key of keys) if (list.includes('moveFurniture') || !own.has(key)) this.onKey(key, fn);
+  }
+
+  /**
    * Tecla de ação, uma vez por toque. O Phaser às vezes entrega o mesmo keydown de novo ao soltar a tecla
    * (apertar e soltar no mesmo quadro): sem isto, um toque rápido no C abria e fechava o Market.
    */
   private onKey(key: string, fn: () => void): void {
     // O botão de toque da mesma tecla faz o mesmo (só com o mundo ativo: num mini game, os botões são do jogo).
-    if (['E', 'I', 'C', 'M', 'P', 'F', 'ESC', 'T'].includes(key)) touch.on(key as TouchAction, () => this.scene.isActive() && !this.miniGameOpen && fn());
+    touch.on(key as TouchAction, () => this.scene.isActive() && !this.miniGameOpen && fn());
     let last: KeyboardEvent | null = null;
     this.input.keyboard!.on(`keydown-${key}`, (e: KeyboardEvent) => {
       if (e === last) return;
@@ -1721,8 +1760,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (labels !== this.touchLabels) {
       this.touchLabels = labels;
       const t = uiText.touch;
-      touch.setLabel("F", labels === "pick" ? t.next : labels === "place" ? t.drop : undefined);
-      touch.setLabel("E", labels === "pick" ? t.ok : undefined);
+      touch.setLabel(touchKey('moveFurniture'), labels === "pick" ? t.next : labels === "place" ? t.drop : undefined);
+      touch.setLabel(touchKey('interact'), labels === "pick" ? t.ok : undefined);
     }
     const d = touch.dir;
     const step: Cell | null = d.left ? [-1, 0] : d.right ? [1, 0] : d.up ? [0, -1] : d.down ? [0, 1] : null;
@@ -4602,7 +4641,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         },
         onEmpty: () => this.ui.toast(t.selectEmpty, 2500),
       },
-      { hint: t.selectHint, hintTouch: t.selectHintTouch, hintPad: t.selectHintPad, confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },
+      { hint: fillControls(controls, t.selectHint, 'keys', ['area']), hintTouch: t.selectHintTouch, hintPad: fillControls(controls, t.selectHintPad, 'pad', ['area']), confirm: t.selectConfirm, cancel: t.selectCancel, more: t.selectMore },
     );
   }
 
