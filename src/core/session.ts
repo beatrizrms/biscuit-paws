@@ -4053,7 +4053,7 @@ export class GameSession {
     if (!cat?.sheltered) return null;
     const cfg = this.content.health.care;
     // Isolado: só o remédio e a fome (repouso no cercadinho limpo: nada de banho nem brincadeira).
-    const needs = careNeeds(cat, this.state.day, cfg, this.playRoom());
+    const needs = careNeeds(cat, this.state.day, cfg, this.playRoom(), catId);
     return { ...careOf(cat, cfg), needs: this.clinic.isolated(catId) ? needs.filter((n) => n === 'medicine' || n === 'hungry') : needs };
   }
 
