@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost; com builder, o Tião faz a obra: days e site, onde ele trabalha), gatos mínimos, marcos; a porta com requires.item abre com o item. clear (opcional): limpeza pesada do Tião (no quintal, a Limpeza e reparo do quintal), tira toda a sujeira do cômodo, a pesada e a de vassoura (cost, label, builder); com restore.when cleaned, o cômodo fica pronto no fim dela. restore: limpar a sujeira com dirtTag e pagar cost (com builder, pelo Tião, como no unlock) (ou sozinho quando `when` valer: o porão fica pronto limpo, com a cama e mais um móvel ou enfeite; piso e parede, ela reforma pela obra de acabamentos, como no salão). capacity.cats: soma dos cômodos abertos = quantos gatos cabem; capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café, com uma cama comprada no Market, tag bed, posicionada no cômodo; sleep.wake: onde ela acorda), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo. Porta com tiles.open continua desenhada depois de aberta; sem tiles.hidden, escondida não desenha nada (parede lisa). separateView: lugar à parte (chega-se por uma porta, não é vizinho no mapa): dentro dele a câmera mostra só ele, e fora dele ele não aparece na câmera do café. A porta do jardim (door.backyard) fica na parede de cima do salão: a passagem em si são as portas do mapa (door.to_backyard / door.from_backyard em cafe_main.json), que só deixam passar com o jardim aberto. O quartinho virou o porão (mesmo ID room.back_room), com a escadinha (2 tiles) na passagem entre o salão e o porão.",
+  "_comment": "Cômodos do café (um mapa só, câmera contínua; cada cômodo é uma área de data/maps/cafe_main.json). Estados: locked (oculto, escuro) -> discovered (ela sabe; porta aparece fechada) -> abandoned (aberto, sujo) -> restored (reformado). discover: gatilho (key_found, cat_leads, neighbor_tells, renovation; só muda a cena), when (automático) e o momento (fala + destaque da porta). unlock: obra paga no catálogo (cost; com builder, o Tião faz a obra: days e site, onde ele trabalha), gatos mínimos, marcos; a porta com requires.item abre com o item. clear (opcional): limpeza pesada do Tião (no quintal, a Limpeza e reparo do quintal), tira toda a sujeira do cômodo, a pesada e a de vassoura (cost, label, builder); com restore.when cleaned, o cômodo fica pronto no fim dela. restore: limpar a sujeira com dirtTag e pagar cost (com builder, pelo Tião, como no unlock) (ou sozinho quando `when` valer: o porão fica pronto limpo, com a cama e mais um móvel ou enfeite; piso e parede, ela reforma pela obra de acabamentos, como no salão). capacity.cats: soma dos cômodos abertos = quantos gatos cabem (5 por cômodo; o quintal, maior, 8); capacity.customers: só informação (o atendimento não tem teto fixo). features (valem com o cômodo restaurado): service, sleep (dormir no café, com uma cama comprada no Market, tag bed, posicionada no cômodo; sleep.wake: onde ela acorda), playground. look/variants: tiles por letra do mapa (por estado) e objetos (por estado); variant escolhe a variante (quintal: hedge). Novo cômodo: área livre no mapa + entrada aqui. Ritmo: os cômodos vêm depois do café andar sozinho (inauguração, clientes atendidos); são recompensas que facilitam a vida, não o começo do jogo. Porta com tiles.open continua desenhada depois de aberta; sem tiles.hidden, escondida não desenha nada (parede lisa). separateView: lugar à parte (chega-se por uma porta, não é vizinho no mapa): dentro dele a câmera mostra só ele, e fora dele ele não aparece na câmera do café. A porta do jardim (door.backyard) fica na parede de cima do salão: a passagem em si são as portas do mapa (door.to_backyard / door.from_backyard em cafe_main.json), que só deixam passar com o jardim aberto. O quartinho virou o porão (mesmo ID room.back_room), com a escadinha (2 tiles) na passagem entre o salão e o porão.",
   "rooms": [
     {
       "id": "room.hall",
@@ -22,7 +22,7 @@
         }
       },
       "capacity": {
-        "cats": 4,
+        "cats": 5,
         "customers": 8
       },
       "features": [
@@ -71,7 +71,7 @@
         "dialogue": "dlg.room_back_restored"
       },
       "capacity": {
-        "cats": 3,
+        "cats": 5,
         "customers": 0
       },
       "features": [
@@ -143,7 +143,7 @@
         "dialogue": "dlg.room_backyard_restored"
       },
       "capacity": {
-        "cats": 6,
+        "cats": 8,
         "customers": 0
       },
       "features": [

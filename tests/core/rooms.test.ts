@@ -69,7 +69,7 @@ function cleanTag(session: GameSession, tag: string, heavy = false) {
 describe('cômodos: dados e regras', () => {
   it('começo: só o salão aberto; 4 gatos de capacidade; a câmera vê só o salão', () => {
     const state = newGameState(100);
-    expect(catCapacity(content.rooms, state)).toBe(4);
+    expect(catCapacity(content.rooms, state)).toBe(5);
     expect(visibleArea(content.rooms, state)).toEqual({ from: [0, 0], to: [15, 10] });
   });
 
@@ -169,7 +169,7 @@ describe('quartinho: descoberta, obra, limpeza, reforma, dormir', () => {
     expect(state.money).toBe(1000 - 200);
     expect(session.roomState('room.back_room')).toBe('abandoned');
     expect(session.doorState('door.back_room')).toBe('open');
-    expect(session.catCapacity()).toBe(4 + 3);
+    expect(session.catCapacity()).toBe(5 + 5);
     expect(session.roomState('room.backyard')).toBe('locked');
     void events;
     // A passagem aberta não é mais sólida.
@@ -282,7 +282,7 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
     expect(session.useRoomDoor('door.backyard')).toEqual({ ok: true });
     expect(state.inventory['item.key_backyard']).toBeUndefined();
     expect(session.roomState('room.backyard')).toBe('abandoned');
-    expect(session.catCapacity()).toBe(4 + 3 + 6);
+    expect(session.catCapacity()).toBe(5 + 5 + 8);
   });
 
   it('playground: módulo só com o quintal reformado e 10 gatos; só no quintal; dá afeto por dia', () => {
