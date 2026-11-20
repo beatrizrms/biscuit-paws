@@ -356,3 +356,15 @@ describe('obras: cone e fita em volta do Tião', () => {
 function c0(): [number, number] {
   return [...c.repairs.inside.site.at] as [number, number];
 }
+
+describe('reparo interno mantém o café do começo', () => {
+  it('as superfícies voltam à versão nova do mesmo acabamento (sem trocar a cor nem o piso)', () => {
+    const content = loadContent();
+    const repair = content.construction.repairs.inside.finishes;
+    const legend = content.map.legend;
+    const tileOf = (finishId: string) => content.finishes[finishId]?.tile;
+    // O piso do salão e a parede do começo são as versões gastas (_old) do que o reparo devolve.
+    expect(legend['M']).toBe(`${tileOf(repair['surface.hall_floor']!)}_old`);
+    expect(legend['P']).toBe(`${tileOf(repair['surface.wallpaper']!)}`.replace('_cream', '_old'));
+  });
+});
