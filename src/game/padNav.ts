@@ -23,7 +23,15 @@ export function topLayer(only = LAYERS): HTMLElement | null {
 }
 
 /** O que dá para clicar na janela: botões e campos, e o que mostra a mãozinha (o de fora, não os pedaços dele). */
+/**
+ * Janelas em que só alguns pontos valem para o destaque (o resto também tem a mãozinha, mas não é botão): nas metas
+ * abertas, o X de fechar e o "Esperar" (o título inteiro fecha no clique, mas destacado parecia um campo).
+ */
+const ONLY: [layer: string, targets: string][] = [['.hud-goals', 'h2 .toggle, button:not([disabled])']];
+
 function targets(layer: HTMLElement): HTMLElement[] {
+  const only = ONLY.find(([l]) => layer.matches(l))?.[1];
+  if (only) return [...layer.querySelectorAll<HTMLElement>(only)].filter(visible);
   const out: HTMLElement[] = [];
   for (const el of layer.querySelectorAll<HTMLElement>('*')) {
     if (el.matches(BASE)) {
@@ -37,6 +45,29 @@ function targets(layer: HTMLElement): HTMLElement[] {
     if (visible(el)) out.push(el);
   }
   return out;
+}
+
+/** A área que rola dentro da janela (a maior), ou null. */
+function scroller(layer: HTMLElement): HTMLElement | null {
+  let best: HTMLElement | null = null;
+  for (const el of [layer, ...layer.querySelectorAll<HTMLElement>('*')]) {
+    if (el.scrollHeight <= el.clientHeight + 4) continue;
+    const y = getComputedStyle(el).overflowY;
+    if ((y === 'auto' || y === 'scroll') && (!best || el.clientHeight > best.clientHeight)) best = el;
+  }
+  return best;
+}
+
+/**
+ * O elemento está longe da vista da área que rola (mais de meia tela para fora): entre ele e a vista tem texto para
+ * ler, então o direcional rola em vez de pular. Logo ali fora (o próximo cartão do Market), pula direto.
+ */
+function farFromView(el: HTMLElement, sc: HTMLElement): boolean {
+  if (!sc.contains(el)) return false;
+  const r = el.getBoundingClientRect();
+  const v = sc.getBoundingClientRect();
+  const out = r.top > v.bottom ? r.top - v.bottom : r.bottom < v.top ? v.top - r.bottom : 0;
+  return out > v.height * 0.5;
 }
 
 function center(r: DOMRect): { x: number; y: number } {
@@ -82,7 +113,24 @@ class PadNav {
         best = el;
       }
     }
+    // Para cima e para baixo, numa janela que rola (as notícias, a cartilha): o que está fora da vista espera a rolagem;
+    // sem nada clicável à vista naquela direção, o direcional rola o texto (antes, só dava para ir do voltar ao fechar).
+    if (dir === 'up' || dir === 'down') {
+      const sc = scroller(this.layer);
+      if (sc && (!best || farFromView(best, sc))) {
+        const before = sc.scrollTop;
+        sc.scrollBy({ top: (dir === 'down' ? 1 : -1) * Math.round(sc.clientHeight * 0.6) });
+        // Já no fim (ou no começo): aí sim vai para o que estiver lá.
+        if (sc.scrollTop !== before || !best) return;
+      }
+    }
     if (best) this.set(best);
+  }
+
+  /** O analógico direito: rola o texto da janela (px por quadro; para cima, negativo). */
+  scroll(dy: number): void {
+    const sc = this.layer ? scroller(this.layer) : null;
+    if (sc) sc.scrollTop += dy;
   }
 
   /** O A: clica no destacado. Devolve false sem nada para clicar (aí o A vira o Enter). */

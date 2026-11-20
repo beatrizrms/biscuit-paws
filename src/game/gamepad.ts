@@ -71,6 +71,8 @@ const REPEAT_EVERY = 110;
 /** Cursor dos mini games de mouse: fração da largura do jogo por segundo, com o analógico no fim. */
 const CURSOR_SPEED = 0.75;
 const DEAD = 0.18;
+/** Rolagem das janelas com o analógico direito, no fim do curso (px por segundo). */
+const SCROLL_SPEED = 900;
 
 class PadInput {
   /** Onde ela está (o mundo informa; sem mundo, a tela inicial: menus). */
@@ -140,6 +142,9 @@ class PadInput {
     // Janela aberta: o destaque verde anda por ela (os menus da pausa e da tela inicial andam pelo foco, sozinhos).
     this.navLayer = ctx === 'panel' ? topLayer() : ctx === 'ui' && !menuOpen() ? topLayer('.confirm-layer') : null;
     padNav.sync(this.navLayer);
+    // Janela aberta: o analógico direito rola o texto livremente (as notícias, a cartilha, as listas longas).
+    const ry = axes[3] ?? 0;
+    if (this.navLayer && pad.standard && Math.abs(ry) > DEAD) padNav.scroll(ry * SCROLL_SPEED * dt);
     const cursor = this.cursorOn && ctx === 'minigame';
     if (cursor !== !!this.cursor) {
       this.cursor = cursor ? this.canvasCenter() : null;
