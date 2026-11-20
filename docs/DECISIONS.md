@@ -1239,7 +1239,7 @@ Decisão: "Inaugure o café no dia 26" virou o primeiro passo (o destaque); emba
 
 ## 298. Mochila: o foco vai para as ações do item, sem rolar (nov/2026)
 Pedido: ao clicar num item da mochila, levar o foco para onde se escolhe o que fazer com ele; e a mochila estava rolando.
-Decisão: escolhido um item novo, a linha de detalhes (nome, para que serve e as ações) entra na vista e o primeiro botão de ação recebe o foco (teclado e o destaque do controle: `padNav.focus`). A linha de detalhes fica presa embaixo da janela (sticky), sempre à vista. A despensa mostra uma linha de espaços vazios (antes três), crescendo com o que tem: com ela aberta, a mochila cabe sem rolar.
+Decisão: escolhido um item novo, a linha de detalhes (nome, para que serve e as ações) entra na vista e o primeiro botão de ação recebe o foco; o anel verde do controle (`padNav.focus`) só com o controle em uso (no mouse, ele aparecia junto da borda do item: dois destaques). A linha de detalhes fica presa embaixo da janela (sticky), sempre à vista. A despensa mostra uma linha de espaços vazios (antes três), crescendo com o que tem: com ela aberta, a mochila cabe sem rolar.
 
 ## 299. Botões dos mini games de mouse com o botão certo do controle (nov/2026)
 Pedido: no Remédio escondido, o botão dizia "Pronto (A)", mas apertar A não fazia nada.

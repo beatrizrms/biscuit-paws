@@ -303,9 +303,9 @@
         "price": 200,
         "days": 2,
         "finishes": {
-          "surface.wallpaper": "finish.wallpaper_stripe_pink",
+          "surface.wallpaper": "finish.wall_plaster_cream",
           "surface.wainscot": "finish.wainscot_varnished",
-          "surface.hall_floor": "finish.check_pink",
+          "surface.hall_floor": "finish.floor_oak",
           "surface.counter_floor": "finish.wood_parquet"
         },
         "site": {
