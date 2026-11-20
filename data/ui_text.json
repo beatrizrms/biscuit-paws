@@ -235,7 +235,7 @@
     "reactions": { "loved": "ama", "liked": "gosta de", "neutral": "acha ok", "disliked": "não gosta de" }
   },
   "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
-  "quickMenu": { "hint": "Setas: escolher · Enter: abrir · Esc: fechar", "hintTouch": "Toque para abrir", "hintPad": "Analógico: escolher · A: abrir · B: fechar" },
+  "quickMenu": { "hint": "Setas: escolher · Enter ou Tab: abrir · Esc: fechar", "hintTouch": "Toque para abrir", "hintPad": "Analógico: escolher · A ou Y: abrir · B: fechar" },
   "padText": { "continue": "A: continuar", "close": "A ou B: fechar", "goalsPeek": "", "goalsShow": "", "goalsHide": "" },
   "padHints": {
     "dialogue": "A: Continuar"

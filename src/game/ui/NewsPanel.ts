@@ -246,7 +246,9 @@ export class NewsPanel {
     ];
     if (this.socialApp.visible()) apps.push({ id: 'social', name: uiText.socialApp.app, icon: `<img src="${phone.apps.socialvilla}" alt="" />`, badge: this.socialApp.hasNew() });
     if (this.session.ced.appVisible()) apps.push({ id: 'catpay', name: uiText.catPayApp.app, icon: `<img src="${phone.apps.catpay}" alt="" />` });
-    return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${apps
+    // Antes do fim do prólogo, o celular só tem o Market (as compras do começo); os outros apps chegam depois.
+    const shown = this.session.state.flags['prologue.done'] ? apps : apps.filter((a) => a.id === 'market');
+    return `<p class="p-date">${uiText.day} ${this.session.state.day}</p><div class="p-apps">${shown
       .map(
         (a) => `<button class="p-app" data-app="${a.id}"><span class="p-icon ${a.id}">${a.icon}${
           a.badge ? `<img class="p-badge" src="${phone.notification}" alt="" />` : ''

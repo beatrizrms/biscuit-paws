@@ -1,7 +1,8 @@
 // O losango de atalhos (Tab no teclado, Y no controle, Menu no toque): celular, mochila, cardápio e metas num lugar
 // só, em quatro pontas (data/controls.json: quickMenu). Direção escolhe (setas, analógico, direcional) e Enter, E,
-// Espaço ou A abrem; o toque e o clique abrem direto. Esc, B ou o mesmo botão fecham. Só desenho e entrada: o que
-// cada ponta abre é o mundo quem faz (WorldScene).
+// Espaço, A ou o mesmo botão de novo (Tab, Y) abrem; o toque e o clique abrem direto. Esc e B fecham (o mesmo
+// botão também fecha quando nada foi escolhido). Só desenho e entrada: o que cada ponta abre é o mundo quem faz
+// (WorldScene).
 import type { QuickSlot } from '../../core/controls';
 import { controls, uiText } from '../content';
 import { byInput } from '../touch';
@@ -80,7 +81,13 @@ export class QuickMenu {
       if (this.selected) this.pick(this.selected);
       return;
     }
-    if (e.code === 'Escape' || e.code === 'Tab') {
+    // O mesmo botão que abriu (Tab, Y): com uma ponta escolhida, abre ela; sem escolha, fecha.
+    if (e.code === 'Tab') {
+      done();
+      if (this.selected) return this.pick(this.selected);
+      return this.close();
+    }
+    if (e.code === 'Escape') {
       done();
       this.close();
     }

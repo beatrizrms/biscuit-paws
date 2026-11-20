@@ -533,6 +533,11 @@ export class GameUi {
   }
 
   /** As metas por inteiro (o mesmo que clicar no balão): abre ou recolhe. */
+  /** As metas abertas por inteiro (o controle anda pelos botões delas, como numa janela). */
+  isGoalsOpen(): boolean {
+    return this.goals.classList.contains('open');
+  }
+
   toggleGoals(): void {
     if (this.goals.classList.contains('empty')) return;
     this.goals.classList.toggle('open');

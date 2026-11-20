@@ -76,6 +76,7 @@
   filter: drop-shadow(1px 1px 0 var(--c-ink)) drop-shadow(-1px 0 0 var(--c-ink)) drop-shadow(0 -1px 0 var(--c-ink));
 }
 /* Botão em foco nas janelas e menus: bem marcado (o direcional passa por eles e o A aperta). */
-html.pad-mode button:focus-visible, html.pad-mode button:focus { outline: 2px solid var(--c-green); outline-offset: 2px; }
+/* Anel duplo (papel por dentro, verde por fora): aparece em qualquer botão, até nos verdes (Pagar, Confirmar). */
+html.pad-mode button:focus-visible, html.pad-mode button:focus { outline: none; box-shadow: 0 0 0 2px var(--c-paper), 0 0 0 4px var(--c-green) !important; }
 /* Janelas com o controle (padNav.ts): o item destacado, por dentro da borda (não some em lista com rolagem). */
-.pad-focus { outline: 2px solid var(--c-green) !important; outline-offset: -2px; }
+.pad-focus { outline: none !important; box-shadow: 0 0 0 2px var(--c-paper), 0 0 0 4px var(--c-green) !important; }

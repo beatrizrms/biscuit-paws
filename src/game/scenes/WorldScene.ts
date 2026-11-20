@@ -377,7 +377,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Controle de videogame: o A é o E no mundo, o Enter nas falas e janelas, a ação nos mini games (gamepad.ts).
     // Janela aberta (Market, mochila, cardápio, celular): o destaque anda por ela; fala por cima da janela vem antes.
     pad.context = () =>
-      this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isDialogueOpen() ? 'ui' : this.ui.isPanelOpen() || this.ui.isCatalogOpen() ? 'panel' : this.ui.isBusy() ? 'ui' : this.placing || this.movePick || this.pickingUpgrade ? 'placing' : 'world';
+      this.miniGameOpen ? 'minigame' : this.areaSelect ? 'area' : this.ui.isDialogueOpen() ? 'ui' : this.ui.isPanelOpen() || this.ui.isCatalogOpen() || this.ui.isGoalsOpen() ? 'panel' : this.ui.isBusy() ? 'ui' : this.placing || this.movePick || this.pickingUpgrade ? 'placing' : 'world';
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => (pad.context = () => 'ui'));
     this.cartBalloon = new CartBalloon(this);
     this.session.bus.on('cart.changed', ({ count, total }) => (this.cartNow = { count, total }));
@@ -490,7 +490,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.onAction('backpack', openBackpack);
     const openPhone = () => {
       if (this.ui.isNewsOpen()) return this.ui.closeShop();
-      if (this.ui.isBusy() || !this.session.state.flags['prologue.done']) return;
+      // Antes do fim do prólogo, o celular abre só com o Market (NewsPanel).
+      if (this.ui.isBusy()) return;
       this.ui.openNews('phone');
     };
     this.onAction('phone', openPhone);
@@ -499,6 +500,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const quick = { phone: openPhone, backpack: openBackpack, menuBoard: openMenuBoard, market: openMarket, goals: () => this.ui.toggleGoals() };
     this.onAction('quickMenu', () => {
       if (this.ui.isQuickMenuOpen()) return this.ui.closeQuickMenu();
+      if (this.ui.isGoalsOpen()) return this.ui.toggleGoals();
       if (this.ui.isPanelOpen() || this.ui.isCatalogOpen()) {
         this.ui.closeCatalog();
         return this.ui.closeShop();
