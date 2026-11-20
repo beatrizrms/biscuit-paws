@@ -1519,17 +1519,34 @@ function snowPatches(count: number, seed: number): PNG {
 
 /** Monte de neve na guia (inverno): um morrinho branco com sombra azulada e borda de baixo reta. */
 function snowPile(seed: number): PNG {
+  // Monte de neve baixo e irregular, como a neve que se junta na beira da calçada (antes era uma bola, redonda demais):
+  // o topo é um perfil de lombadas de alturas diferentes, que afina em curva nas pontas. Sombreado por faixas que seguem
+  // o topo (borda de cima clara, o corpo creme-azulado, a base na sombra), sem listras verticais.
   const out = blank(TS, TS);
   const rnd = () => (seed = (seed * 16807 + 9) % 2147483647) / 2147483647;
-  const cx = TS / 2, base = TS - 3, rx = 28, ry = 24;
-  for (let y = base - ry - 2; y <= base; y++) for (let x = 2; x < TS - 2; x++) {
-    const d = ((x - cx) / rx) ** 2 + ((y - base) / ry) ** 2;
-    if (d > 1 + rnd() * 0.08) continue;
-    const edge = d > 0.86 || y === base;
-    // Sombra redonda: a luz vem de cima à esquerda (sem o corte reto que parecia um quadrado na calçada).
-    const nx = (x - cx) / rx, ny = (y - base) / ry;
-    const dark = 0.7 * nx + 0.45 * (1 + ny);
-    plot(out, x, y, edge ? [150, 170, 196] : dark > 0.8 ? [204, 220, 238] : dark > 0.58 ? [228, 236, 246] : [248, 251, 255]);
+  const base = TS - 3;
+  const bumps = Array.from({ length: 5 }, (_, k) => ({ x: 8 + k * 12 + rnd() * 6, w: 5 + rnd() * 5, h: 3 + rnd() * 7 }));
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const top: number[] = [];
+  for (let x = 0; x < TS; x++) {
+    const taper = smooth(Math.max(0, Math.min(1, x / 16, (TS - 1 - x) / 16)));
+    let h = 2;
+    for (const b of bumps) h += b.h * Math.exp(-(((x - b.x) / b.w) ** 2));
+    top.push(Math.round(base - h * taper));
+  }
+  for (let x = 1; x < TS - 1; x++) {
+    if (top[x]! >= base) continue;
+    const rising = top[x - 1]! > top[x]!; // encosta virada para a esquerda: pega a luz
+    for (let y = top[x]!; y <= base; y++) {
+      const down = y - top[x]!;
+      const fromBase = base - y;
+      let rgb: [number, number, number];
+      if (y === top[x] || y === base || (x > 1 && top[x - 1]! > y && down === 0)) rgb = [150, 170, 196];
+      else if (down <= 1 + (rising ? 1 : 0)) rgb = [252, 253, 255];
+      else if (fromBase <= 1 || (fromBase === 2 && (x + y) % 2 === 0)) rgb = [196, 212, 232];
+      else rgb = (x * 7 + y * 3) % 11 === 0 ? [236, 242, 250] : [228, 236, 246];
+      plot(out, x, y, rgb);
+    }
   }
   return out;
 }

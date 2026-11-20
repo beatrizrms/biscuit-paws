@@ -1147,3 +1147,10 @@ Decisão:
 - **Arte nova do mercado** (PixelLab, 172 gerações no total): freezer de ilha, 16 itens pequenos, a prateleira de corredor e o expositor (endireitados de frente e girados para os lados, `create_8_direction_object`) e as bancas de hortifrúti de perfil em tamanho grande. Teste que não entrou: a geladeira de perfil (vira um painel liso na nossa câmera).
 - **Mapa:** objetos ganham `flipX` (espelhar); `shiftX` e `flipX` valem também para a parte da arte que sobe acima da peça; a sombra de contato segue o `shiftX`.
 - A regra da perspectiva e do "nada solto" foi para o guia de estilo (seção 5).
+
+## 278. Mapas, fase 6 do polimento: praça, beco e neve da rua (nov/2026)
+Pedido: continuar a fase 6 (nada solto) na rua, na praça e no beco.
+Decisão:
+- **Praça:** saem as 17 mudinhas soltas na grama; o escorregador encosta no balanço (o parquinho) e a pipoca vai para o lado do cachorro-quente. Feito no gerador (`scripts/map-rua-extra.ts`), depois do sorteio, para as outras árvores não mudarem de lugar.
+- **Beco:** o muro ganha as duas portas dos fundos das casas (`beco_porta`, `inWall`), cada uma com o seu cantinho encostado no muro (caixote e vaso; lixeira e sacos); os sacos soltos no meio do chão vão para o monte da caçamba.
+- **Rua:** o monte de neve deixa de ser uma bola e vira um montinho baixo e irregular na beira da calçada (`snowPile` no import, por código).
