@@ -476,7 +476,9 @@ export function solidBoxes(map: MapData, catalog: TileCatalog, baseDepth = 1): P
       if (base[r]?.[c] || done.has(key) || c < 0 || c >= map.size.cols) continue;
       done.add(key);
       const h = Math.round(ts * d);
-      boxes.push({ x: c * ts, y: (r + 1) * ts - h, w: ts, h });
+      // A arte deslocada (shiftX: as prateleiras do mercado) leva a colisão junto: sem isto, a célula da ponta ficava
+      // sólida e vazia (parede invisível) e a arte passava por cima do chão livre.
+      boxes.push({ x: c * ts + (obj.shiftX ?? 0), y: (r + 1) * ts - h, w: ts, h });
     }
   }
   return boxes;

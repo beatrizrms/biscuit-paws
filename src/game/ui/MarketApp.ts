@@ -254,8 +254,7 @@ export class MarketApp {
         return '';
       })
       .join('');
-    const cats = `<p class="m-hint">${esc(r.cats.replace('{n}', String(this.session.shelteredCats().length)).replace('{max}', String(this.session.catCapacity())))}</p>`;
-    return rows ? `<h3>${esc(r.title)}</h3><p class="m-hint">${esc(r.hint)}</p>${rows}${cats}` : cats;
+    return rows ? `<h3>${esc(r.title)}</h3><p class="m-hint">${esc(r.hint)}</p>${rows}` : '';
   }
 
   /**
