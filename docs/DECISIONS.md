@@ -1028,7 +1028,7 @@ Decisão: `npcs[].roam` no mapa (a Fernanda vai entre o armário, a pia, a gaiol
 
 ## 251. Convites da inauguração: pistas faladas e amigos passeando mais (nov/2026)
 Pedido: as sugestões que ficaram da conversa sobre achar os amigos (pistas sem revelar o lugar exato e mais chance de encontrá-los nos preparativos).
-Decisão: `openingPrep.friendWalkChance` (0,5): enquanto os preparativos valem, o passeio de cada amigo (os de friendship.json) acontece com pelo menos essa chance por dia (a Neusa e a Gabi iam de 1 em 3 para 1 em 2; o Tião também; a Jacque já era 1 em 2). `openingPrep.inviteHints`: na conversa que convida, logo depois da fala do dia, o amigo conta onde costuma achar outro (Gabi → a Neusa cedo na rua; Neusa → o Tião no fim da tarde; Tião e Fernanda → a Gabi na praça no almoço; Jacque → a Fernanda na clínica), sem a célula. Só no dia do convite (`session.inviteHint`).
+Decisão: `openingPrep.friendWalkChance` (0,5): enquanto os preparativos valem, o passeio de cada amigo (os de friendship.json) acontece com pelo menos essa chance por dia (a Neusa e a Gabi iam de 1 em 3 para 1 em 2; o Tião também; a Jacque já era 1 em 2). `openingPrep.inviteHints`: na conversa que convida, logo depois da fala do dia, o amigo conta onde costuma achar outro (Gabi → a Neusa cedo na rua; Neusa → o Tião no fim da tarde; Tião e Fernanda → a Gabi na praça no almoço; Jacque → a Fernanda na clínica), sem a célula. Só no dia do convite (`session.inviteHint`). (Substituído pela decisão 301.)
 
 ## 252. A Jacque chega pelo cartaz da inauguração (a feira vira o plano B) (nov/2026)
 Pedido: a Jacque só aparecia na feira de adoção, depois da inauguração; ela deve se apresentar quando as missões dos preparativos liberam, sem que o encontro conte como convite; a feira fica como plano B para quem não colar os cartazes. E revisar as falas para os dois casos.
@@ -1248,3 +1248,7 @@ Decisão: nos mini games de mouse, com o controle o A é o clique (espalhar a pa
 ## 300. A letra da dica do E centrada na tecla (nov/2026)
 Pedido: na plaquinha da dica, o "A" do controle ficava torto dentro do círculo verde.
 Decisão: o texto era centrado pela caixa da fonte (com o espaço de acentos e descendentes), e a maiúscula da Nunito fica fora do meio dessa caixa (meio pixel para baixo, um quarto para o lado; com o zoom 2, aparece). Agora a letra é centrada pela tinta desenhada (`glyphNudge` em `src/game/InteractHint.ts`, medindo em 10x para não arredondar), no círculo do A e no quadradinho do E.
+
+## 301. Convite da inauguração claro e pistas com lugar e horário (nov/2026)
+Pedido: na conversa que convida para a inauguração não ficava claro que era um convite (era a conversa de sempre); as pistas eram vagas ("a Gabi almoça na praça", sem horário, e às 13h40 ela não estava) e quase todas falavam da Gabi.
+Decisão: `openingPrep.invite` (sai `inviteHints`): na conversa que convida, no lugar da fala do dia, ela pergunta (`ask`: "Dia 26 é a inauguração do café! Você vem?"), o amigo responde (`yes`, por amigo) e conta onde e quando achar outro amigo que ela conhece e ainda não convidou (`whereabouts`, com o horário do passeio de cada um; sorteado pelo dia entre os que faltam; `session.inviteTalk`). Nos preparativos, o amigo ainda não convidado passeia todo dia (a pista não falha); os já convidados seguem com `friendWalkChance`.

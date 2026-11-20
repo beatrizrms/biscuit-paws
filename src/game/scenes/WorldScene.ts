@@ -3000,9 +3000,13 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     npc.setData('held', true);
     const [dx, dy] = [this.player.x - npc.x, this.player.y - npc.y];
     npc.face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
-    const hint = this.session.inviteHint(guest[0]);
-    void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(async () => {
-      if (hint) await this.ui.npcSay(guest[0], fillNames(this.session, hint));
+    // Convidou hoje (preparativos da inauguração): no lugar da conversa de sempre, o convite, a resposta e a pista.
+    const invite = this.session.inviteTalk(guest[0]);
+    const say = invite
+      ? this.ui.playerSay(fillNames(this.session, invite.ask)).then(() => this.ui.npcSay(guest[0], fillNames(this.session, invite.yes)))
+      : this.ui.npcSay(guest[0], fillNames(this.session, line));
+    void say.then(async () => {
+      if (invite?.hint) await this.ui.npcSay(guest[0], fillNames(this.session, invite.hint));
       npc.setData('held', false);
       tweens.forEach((t) => t.isPaused() && t.resume());
       if (npc.active) npc.resumeWalk();
@@ -3602,8 +3606,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const at = this.session.builderAt(this.session.location())!.at;
       this.floatHearts((at[0] + 0.5) * this.map.tileSize, (at[1] - 1.2) * this.map.tileSize, points);
     }
-    const hint = this.session.inviteHint(npc);
-    void this.ui.npcSay(npc, text.replace('{work}', work)).then(() => (hint ? this.ui.npcSay(npc, fillNames(this.session, hint)) : undefined));
+    // Convidou hoje: o convite, a resposta e a pista (depois do que ele diz da obra).
+    const invite = this.session.inviteTalk(npc);
+    void this.ui.npcSay(npc, text.replace('{work}', work)).then(async () => {
+      if (!invite) return;
+      await this.ui.playerSay(fillNames(this.session, invite.ask));
+      await this.ui.npcSay(npc, fillNames(this.session, invite.yes));
+      if (invite.hint) await this.ui.npcSay(npc, fillNames(this.session, invite.hint));
+    });
     return true;
   }
 
