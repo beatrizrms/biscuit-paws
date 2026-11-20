@@ -314,6 +314,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private vanBusy = false;
   private vanObjects: Phaser.GameObjects.GameObject[] = [];
   private jobIcons: Phaser.GameObjects.Image[] = [];
+  /** A campanha da CED no beco: as caixas (e a que balança) e os gatos da colônia (fora da lista dos gatos do café). */
+  private cedActors: Phaser.GameObjects.GameObject[] = [];
+  private cedCats = new Map<string, CatSprite>();
   /** Algo da chegada de gato ou dos pedidos está escondido por um roteiro (clearStage, ou a mesma pessoa em cena): no fim, desenha de novo. */
   private stageCleared = false;
   /** Gato (e vizinho) da chegada esperando no mapa. */
@@ -602,6 +605,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const ev of ['arrival.started', 'arrival.step', 'arrival.finished', 'job.accepted', 'job.progress', 'job.completed', 'festival.started', 'festival.scheduled', 'festival.progress', 'festival.finished', 'festival.missed', 'opening.poster', 'room.discovered'] as const) this.session.bus.on(ev, () => this.refreshJobPoints(true));
     // O "!" do porão aparece quando o último cliente sai (e some se alguém entra): só os marcadores, sem redesenhar o mapa.
     for (const ev of ['customer.left', 'customer.arrived'] as const) this.session.bus.on(ev, () => this.refreshJobPoints());
+    for (const ev of ['ced.capture_started', 'ced.trap_set', 'ced.cat_scared', 'ced.cat_back', 'ced.cat_inside', 'ced.cat_caught', 'ced.capture_ended', 'ced.cat_kept', 'ced.release_others', 'ced.cat_released', 'ced.campaign_done', 'ced.cat_adopted'] as const) this.session.bus.on(ev, () => this.refreshJobPoints());
     this.session.bus.on('day.ended', (summary) => (this.lastDay = summary));
     // Correio: o furgão chega se ela estiver na rua; senão, só o aviso.
     this.session.bus.on('delivery.arrived', ({ deliveryId }) => {
@@ -778,6 +782,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateCrowd();
     this.updateAmbient();
     this.updateTraffic();
+    this.updateCedCats();
     // Controles de toque só quando ela pode andar e agir: com qualquer coisa por cima do jogo (fala, pergunta, cena,
     // placa, janela, pausa), somem (a camada deles fica acima da interface e cobriria os botões da janela). Na seleção
     // da área da reforma (o pintor), também: o toque é para escolher os tiles, e os botões cobriam o piso.
@@ -2232,7 +2237,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     if (point) {
       // Sem a vassoura ou com o gato na caixa de transporte: sem dica, o E só explica.
       const needsTool = ['needs_broom', 'carrying_cat'].includes(s.jobPointProblem(point.id) ?? '');
-      const kind: HintKind = point.id.startsWith('pt.opening_poster') ? 'opening_poster' : point.id === 'pt.basement_find' ? 'basement_find' : 'job';
+      const ced = /^pt\.ced_(trap|close|release|take)\./.exec(point.id)?.[1];
+      const kind: HintKind = ced ? (`ced_${ced}` as HintKind) : point.id.startsWith('pt.opening_poster') ? 'opening_poster' : point.id === 'pt.basement_find' ? 'basement_find' : 'job';
       add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, kind), () => this.useJobPoint(point), { weak: needsTool });
     }
     // A tigela ou a caixa de areia: com a ração/areia ativa na barra, encher (ou o porquê de não dar); sem, diz o que falta.
@@ -3344,7 +3350,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
         return g as unknown as Phaser.GameObjects.Image;
       });
     const icons = pending
-      .filter((p) => !p.marker)
+      .filter((p) => !p.marker && !p.quiet)
       .map((p) => {
         if (p.icon) {
           // Caixa para pegar (ícone da folha nova): no chão da célula, do tamanho das caixas do correio na porta.
@@ -3363,6 +3369,56 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       });
     this.jobIcons = [...arrows, ...icons];
     if (this.session.content.scripts[this.scripts.currentId() ?? '']?.clearStage) this.hideStageMarks();
+    this.refreshCedAlley();
+  }
+
+  /**
+   * A campanha da CED no beco (core/cedCampaign.ts): os gatos da colônia no lugar de cada um (o que vem chegando na
+   * caixa aparece mais perto quanto mais perto de entrar; o que fugiu some até voltar), as caixas de transporte (a com
+   * o gato dentro balança; na manhã da soltura, as dos que voltam) e a Fernanda na esquina.
+   */
+  private refreshCedAlley(): void {
+    this.cedActors.forEach((a) => a.destroy());
+    this.cedActors = [];
+    this.cedCats.forEach((c) => c.destroy());
+    this.cedCats.clear();
+    const camp = this.session.cedCampaign;
+    const c = camp.st;
+    if (!c || this.map.id !== camp.cfg.map) return;
+    const ts = this.map.tileSize;
+    const box = this.session.content.catalog.tiles['vet_caixa_transporte'];
+    for (const cat of c.cats) {
+      const [sc, sr] = camp.spotAt(cat);
+      const boxed = cat.status === 'waiting' || cat.status === 'inside' || (cat.status === 'caught' && c.stage === 'release');
+      if (boxed && box) {
+        const img = addTileImage(this, sc * ts, sr * ts, box.sheet, frameOf(this.session.content.catalog, box, 0, 0)).setDepth(ySortDepth((sr + 1) * ts - 1));
+        this.cedActors.push(img);
+        if (cat.status === 'inside') this.tweens.add({ targets: img, angle: { from: -4, to: 4 }, duration: 140, yoyo: true, repeat: -1 });
+      }
+      const visible = cat.status === 'free' || cat.status === 'released' || (cat.status === 'waiting' && cat.scaredUntil === null);
+      if (!visible) continue;
+      const rng = createRng(cellHash(sc, sr) ^ 0xced);
+      const sprite = new CatSprite(this, `colony:${cat.id}`, cat.def.variant, sc * ts + ts / 2, (sr + 1) * ts - 6, rng, ts, () => this.catWalkGrid());
+      sprite.stay(1e9, this.time.now);
+      sprite.setDepth(ySortDepth(sprite.y));
+      this.cedCats.set(cat.id, sprite);
+    }
+    if ((c.stage === 'capture' || (c.stage === 'release' && c.releaseTalked)) && !this.npcs.has('npc.fernanda') && !this.scripts.isRunning()) this.spawnNpc('npc.fernanda', camp.cfg.fernandaAt, 'down');
+  }
+
+  /** O gato que vem chegando na caixa: de longe (à direita) até a caixa, pela espera que já passou. */
+  private updateCedCats(): void {
+    if (this.cedCats.size === 0) return;
+    const camp = this.session.cedCampaign;
+    const ts = this.map.tileSize;
+    for (const [id, sprite] of this.cedCats) {
+      const cat = camp.cat(id);
+      if (!cat || cat.status !== 'waiting') continue;
+      const [sc, sr] = camp.spotAt(cat);
+      const away = 3 * (1 - Math.min(1, cat.progress / Math.max(1, cat.need)));
+      sprite.setPosition(Math.min(this.map.cols - 0.5, sc + 0.5 + away) * ts, (sr + 1) * ts - 6);
+      sprite.setFlipX(true).setDepth(ySortDepth(sprite.y));
+    }
   }
 
   /**

@@ -6,6 +6,7 @@ import { byInput, keyless, touch } from '../touch';
 import { QuickMenu, type QuickOpens } from './QuickMenu';
 import { fillControls } from '../../core/controls';
 import type { GameSession } from '../../core/session';
+import { sexText } from '../../core/repro';
 import type { DayEndReason } from '../../core/events';
 import type { GoalView } from '../../core/story';
 import { dayInSeason, seasonOf } from '../../core/calendar';
@@ -251,6 +252,7 @@ export class GameUi {
       else this.cutscene.request(cutsceneId);
     });
     const ced = content.cedText.lines;
+    this.wireCedCampaign(bus);
     bus.on('crowdfund.donated', ({ donorName, amount, source }) => {
       const line = source === 'boost' ? ced.stallBoost : source === 'player' ? ced.topUp : source === 'counter' ? ced.donationCounter : ced.donationRemote;
       const text = fillNames(session, line!).replace('{donor}', donorName).replace('{amount}', String(amount));
@@ -823,6 +825,12 @@ export class GameUi {
       if (ch.kind === 'ced_campaign') {
         const text = ch.days === 0 ? c.cedCampaignToday : ch.days === 1 ? c.cedCampaignTomorrow : c.cedCampaign.replace('{n}', String(ch.days));
         today.push(this.row(text, { icon: 'caixa_bilhete' }));
+        continue;
+      }
+      // O dia da campanha: encontrar a Fernanda, pegar os gatos (quantos na caixa) e, na manhã seguinte, soltar.
+      if (ch.kind === 'ced_meet' || ch.kind === 'ced_capture' || ch.kind === 'ced_release') {
+        const text = ch.kind === 'ced_meet' ? c.cedMeet : ch.kind === 'ced_capture' ? c.cedCapture : c.cedRelease;
+        today.push(this.row(text, { icon: 'caixa_bilhete', right: ch.progress ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
       }
       if (ch.kind === 'ced_sign') {
@@ -1671,6 +1679,81 @@ ${rep}`;
     this.dialogueQueue.push({ speaker: content.npcs[npcId]?.name ?? '', text, npc: npcId });
     this.openDialogueIfFree();
     return this.afterDialogue();
+  }
+
+  /**
+   * A campanha da CED no beco (core/cedCampaign.ts): a mensagem da véspera, os avisos da captura, a conversa do fim,
+   * a pergunta da vaga (quem fica no café), a soltura, as adoções e o "levar para o café" do beco.
+   */
+  private wireCedCampaign(bus: GameSession['bus']): void {
+    const t = content.cedText.lines as Record<string, string> & { traits?: Record<string, string> };
+    const camp = this.session.cedCampaign;
+    const catText = (text: string, catId: string) => {
+      const cat = camp.cat(catId);
+      return cat ? sexText(text.replace('{cat}', cat.name), cat.sex) : text;
+    };
+    bus.on('ced.campaign_eve', () => bus.emit('cutscene.requested', { cutsceneId: 'cs.ced_eve' }));
+    bus.on('ced.campaign_day', () => this.toast(t.campaignDay!, 4000));
+    bus.on('ced.campaign_rescheduled', () => this.toast(t.rescheduled!, 4000));
+    bus.on('ced.campaign_cancelled', () => this.toast(t.cancelled!, 4000));
+    bus.on('ced.trap_set', () => this.toast(t.trapSet!, 2500));
+    bus.on('ced.cat_scared', () => this.toast(t.scared!, 2500));
+    bus.on('ced.cat_inside', () => this.toast(t.inside!, 2500));
+    bus.on('ced.cat_caught', ({ caught, total }) => {
+      void this.npcSay('npc.fernanda', t.caught!);
+      this.toast(t.caughtCount!.replace('{n}', String(caught)).replace('{total}', String(total)), 2500);
+    });
+    bus.on('ced.capture_ended', ({ caught, total, inAlley }) => {
+      if (!inAlley) {
+        if (caught > 0) this.toast(t.awayEnd!, 5000);
+        return;
+      }
+      this.queueDialogue(caught === 0 ? 'dlg.ced_caught_none' : caught === total ? 'dlg.ced_caught_all' : 'dlg.ced_caught_some');
+      if (caught > 0) bus.emit('cutscene.requested', { cutsceneId: 'cs.ced_clinic' });
+    });
+    // Com vaga no café: quem fica (até max), um por vez; "Nenhum" encerra a pergunta.
+    bus.on('ced.keep_ask', ({ max, cats }) => {
+      void (async () => {
+        await this.afterDialogue();
+        const left = [...cats];
+        let slots = max;
+        let first = true;
+        while (slots > 0 && left.length > 0) {
+          const label = (id: string) => {
+            const cat = camp.cat(id)!;
+            const trait = t.traits?.[cat.def.personality];
+            return trait ? `${cat.name} (${sexText(trait, cat.sex)})` : cat.name;
+          };
+          const i = await this.choose(first ? t.keepAsk!.replace('{n}', String(max)) : t.keepMore!, [...left.map(label), t.keepNone!]);
+          const id = left[i];
+          if (!id) {
+            if (first) await this.npcSay('npc.fernanda', t.keptNone!);
+            break;
+          }
+          if (camp.keep(id)) {
+            await this.npcSay('npc.fernanda', catText(t.kept!, id));
+            slots--;
+          }
+          left.splice(left.indexOf(id), 1);
+          first = false;
+        }
+        camp.afterKeep();
+      })();
+    });
+    bus.on('ced.cat_kept', ({ catId, fromAlley }) => {
+      if (fromAlley) this.toast(catText(t.taken!, catId), 3000);
+    });
+    bus.on('ced.release_others', () => this.queueDialogue('dlg.ced_release_others'));
+    bus.on('ced.cat_released', ({ catId, where }) => this.toast(catText(t.released!, catId).replace('{where}', where), 3500));
+    bus.on('ced.campaign_done', ({ cats }) => {
+      if (cats > 0) this.queueDialogue('dlg.ced_done');
+    });
+    bus.on('ced.cat_adopted', ({ catId }) => this.toast(catText(t.adopted!, catId), 4000));
+    bus.on('ced.take_ask', ({ catId }) => {
+      void this.confirm(catText(t.takeAsk!, catId), t.takeYes!, t.takeNo!).then((yes) => {
+        if (yes) camp.keep(catId);
+      });
+    });
   }
 
   private queueDialogue(dialogueId: string): void {

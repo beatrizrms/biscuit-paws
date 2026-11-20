@@ -160,6 +160,29 @@ export interface GameEvents {
    * "curfew" (deu a hora-limite e amanhã tem expediente), "tired" (a hora-limite da véspera de folga).
    */
   'day.ended': { day: number; reason: DayEndReason; earned: number; jobs: number };
+  /** Campanha da CED (cedCampaign.ts): véspera, o dia, remarcada, cancelada, a manhã da soltura. */
+  'ced.campaign_eve': { day: number };
+  'ced.campaign_day': Record<string, never>;
+  'ced.campaign_rescheduled': Record<string, never>;
+  'ced.campaign_cancelled': Record<string, never>;
+  'ced.release_day': Record<string, never>;
+  /** A captura no beco: caixa posta, o gato chegando que fugiu (e voltou), entrou, a caixa fechada, o fim. */
+  'ced.capture_started': { total: number };
+  'ced.trap_set': { catId: string };
+  'ced.cat_scared': { catId: string };
+  'ced.cat_back': { catId: string };
+  'ced.cat_inside': { catId: string };
+  'ced.cat_caught': { catId: string; caught: number; total: number };
+  'ced.capture_ended': { caught: number; total: number; inAlley: boolean };
+  /** A soltura: a pergunta da vaga, quem ela levou, os que voltam ao beco, cada soltura e o fim. */
+  'ced.keep_ask': { max: number; cats: string[] };
+  'ced.cat_kept': { catId: string; name: string; fromAlley: boolean };
+  'ced.release_others': { count: number };
+  'ced.cat_released': { catId: string; name: string; where: string };
+  'ced.campaign_done': { cats: number; kept: number };
+  /** Depois: alguém adotou um gato da colônia; E num gato do beco com vaga no café (levar?). */
+  'ced.cat_adopted': { catId: string; name: string; sex: 'male' | 'female' };
+  'ced.take_ask': { catId: string; name: string };
   /** O fim do dia começou (antes de tudo o que ele faz: gato que adoece, ração que acaba...): a tela do dia vem depois. */
   'day.ending': { day: number };
   /** A primeira fornada saiu sem vitrine no café: a dica da vitrine (uma vez no jogo). */

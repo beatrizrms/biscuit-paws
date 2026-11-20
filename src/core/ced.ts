@@ -2,6 +2,7 @@
 // materiais e, com a meta batida, ela compra do fornecedor e a protagonista liga para a Gabi (data/ced.json; falas e
 // cenas em data/ced_text.json). Etapa A: a vaquinha. As regiões, a campanha e o gato escolhido vêm depois.
 // Puro: sem Phaser, DOM ou window. A sessão (session.ts) só delega para cá.
+import type { CampaignConfig, CampaignState } from './cedCampaign';
 import type { Condition } from './content';
 import type { CutsceneDef } from './cutscene';
 import { createRng, cellHash } from './rng';
@@ -18,8 +19,8 @@ export interface CedConfig {
   remote: { donors: string[]; base: number; ratingMin: number; heartWeight: number; reach: number; maxChance: number; hours: [string, string] };
   antiStall: { afterDays: number; windowDays: number; minPerDay: number; npc: string; boostShare: number; minBoost: number };
   topUp: { maxShare: number };
-  /** A campanha: marcada daysAfterReady dias depois da ligação para a Gabi (Calendário e balão). */
-  campaign: { daysAfterReady: number; name: string };
+  /** A campanha: marcada daysAfterReady dias depois da ligação para a Gabi (Calendário e balão); o dia dela no beco. */
+  campaign: CampaignConfig;
 }
 
 /** Onde a CED está: desligada, arrecadando, meta batida (falta a ligação do fornecedor), pronta para a campanha. */
@@ -41,10 +42,14 @@ export interface CedState {
   pendingScene: string | null;
   /** O dia da campanha (marcado na ligação para a Gabi), ou null. */
   campaignDay: number | null;
+  /** A campanha no beco (da véspera em diante; cedCampaign.ts), ou null. */
+  campaign: CampaignState | null;
+  /** Campanhas que já acabaram (os posts de adoção continuam no feed). */
+  pastCampaigns: CampaignState[];
 }
 
 export function newCed(): CedState {
-  return { stage: 'off', crowdfund: null, history: [], donatedOn: {}, scheduled: [], campaignCats: 0, pendingScene: null, campaignDay: null };
+  return { stage: 'off', crowdfund: null, history: [], donatedOn: {}, scheduled: [], campaignCats: 0, pendingScene: null, campaignDay: null, campaign: null, pastCampaigns: [] };
 }
 
 export const CED_SCENES = { intro: 'cs.ced_intro', goal: 'cs.ced_goal', supplier: 'cs.ced_supplier', callGabi: 'cs.ced_call_gabi' } as const;
@@ -96,13 +101,17 @@ export class CedFlow {
   campaignDay(): number | null {
     if (this.st.stage !== 'ready') return null;
     if (this.st.campaignDay === null) this.st.campaignDay = this.h.state.day + this.h.ced.campaign.daysAfterReady;
+    // Remarcada (ela faltou): o dia novo.
+    const c = this.st.campaign;
+    if (c && (c.stage === 'eve' || c.stage === 'meet')) return c.day;
     return this.st.campaignDay;
   }
 
-  /** Quantos dias faltam para a campanha (0 = hoje), ou null (sem campanha marcada, ou já passou). */
+  /** Quantos dias faltam para a campanha (0 = hoje), ou null (sem campanha marcada, já passou ou já começou). */
   daysToCampaign(): number | null {
     const day = this.campaignDay();
-    if (day === null || day < this.h.state.day) return null;
+    const c = this.st.campaign;
+    if (day === null || day < this.h.state.day || (c && c.stage !== 'eve' && c.stage !== 'meet')) return null;
     return day - this.h.state.day;
   }
 

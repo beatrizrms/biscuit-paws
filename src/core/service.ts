@@ -791,6 +791,9 @@ export class CafeService {
   isOpen(): boolean {
     // A placa de um evento (feira de adoção, Dia do Gato...) na porta: hoje o atendimento não abre.
     if (festivalClosesCafe(this.st.festivals, this.h.content.festivals, this.st.day)) return false;
+    // O dia da campanha da CED (ela no beco com a Fernanda): o café não abre.
+    const ced = this.st.ced?.campaign;
+    if (ced && ced.day === this.st.day && (ced.stage === 'meet' || ced.stage === 'capture' || ced.stage === 'clinic')) return false;
     // Natal: fecha mais cedo (data/festive.json: secretSanta.closeAt).
     const xmas = this.h.content.festive.secretSanta;
     if (isChristmas(this.h.content.seasons, xmas, this.st.day) && this.st.time >= parseClock(xmas.closeAt)) return false;

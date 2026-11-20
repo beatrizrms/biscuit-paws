@@ -1,6 +1,41 @@
 {
   "schemaVersion": 1,
   "dialogues": {
+    "dlg.ced_meet": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Bom dia, {player}! Chegou na hora."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"A colônia daqui tem {ced:cats} gatos. Hoje a gente leva todos para a clínica."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Gato de rua não se pega no colo: ele se assusta, arranha, e a gente perde a confiança dele."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"O jeito é a caixa. Põe uma com um pouquinho de ração perto de onde ele gosta de ficar, se afasta e espera."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Quando ele entrar, a caixa balança. Aí é só ir lá devagar e fechar a portinha."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Eu fico aqui na esquina com o carro. Cada um que você pegar, eu levo."},
+      {"speaker":"{player}","text":"Pode deixar. Vou com calma."}
+    ] },
+    "dlg.ced_caught_all": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Pronto, todo mundo na caixa! Você leva jeito, {player}."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Vou levar para a clínica. Amanhã cedo a gente se encontra aqui de novo para soltar."}
+    ] },
+    "dlg.ced_caught_some": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Por hoje é isso. Não deu para pegar todos, mas tudo bem: a caixa que sobrou fica guardada para a próxima."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Amanhã cedo a gente se encontra aqui de novo para soltar."}
+    ] },
+    "dlg.ced_caught_none": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Hoje eles estavam desconfiados demais... Acontece. A gente tenta numa próxima, com calma."}
+    ] },
+    "dlg.ced_release_intro": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Bom dia! A noite foi tranquila: todos acordaram bem da anestesia."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Cortei a pontinha da orelha de cada um. Assim, quem vir já sabe que foi castrado e ninguém pega de novo."}
+    ] },
+    "dlg.ced_release_others": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Os outros eu não consigo ficar até alguém adotar. A clínica não tem espaço para tantos."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Mas vou postar nas redes para adoção. Gato castrado e acostumado com gente sai rapidinho, você vai ver."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Até lá, eles ficam aqui, no cantinho deles. Vamos soltar?"}
+    ] },
+    "dlg.ced_done": { "lines": [
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Obrigada, {player}. Hoje são {ced:neutered} gatos que não vão ter mais ninhadas na rua."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"E tudo começou com uma plaquinha no seu balcão. Fica tudo no extrato do CatPay, para quem doou ver."},
+      {"speaker":"{player}","text":"Quando quiser fazer de novo, é só chamar."},
+      {"speaker":"Fernanda","npc":"npc.fernanda","text":"Vou cobrar, hein!"}
+    ] },
     "dlg.intro": {
       "lines": [
         {

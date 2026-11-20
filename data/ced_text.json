@@ -5,9 +5,44 @@
     "donationRemote": "CatPay: +{amount} de {donor}",
     "donationCounter": "{donor} doou {amount} pelo CatPay",
     "stallBoost": "Vi a vaquinha dos gatinhos! Mandei uma ajudinha, viu?",
-    "topUp": "Você completou a vaquinha com {amount} do caixa."
+    "topUp": "Você completou a vaquinha com {amount} do caixa.",
+    "adoptionPost": "Procuram um lar: {names}. Castrados, carinhosos aos poucos e com muito amor para dar. Interessados, falem comigo na clínica! 🐾",
+    "adoptedPost": "{cat} foi adotad{sex:o|a}! Obrigada a todo mundo que compartilhou. 💛",
+    "campaignDay": "Hoje é o dia da campanha da CED. O café fica fechado.",
+    "rescheduled": "Fernanda: Ontem não deu? Tudo bem, a gente tenta hoje. Te espero no beco!",
+    "cancelled": "A Fernanda guardou os materiais da CED para uma próxima vez.",
+    "trapSet": "Caixa pronta. Agora é se afastar e esperar.",
+    "scared": "O gato se assustou e fugiu. Ele volta daqui a pouco.",
+    "inside": "A caixa está balançando!",
+    "caught": "Isso! Mais um a salvo.",
+    "caughtCount": "{n} de {total} na caixa",
+    "awayEnd": "A Fernanda levou os gatos para a clínica. Amanhã cedo, a soltura é no beco.",
+    "keepAsk": "O café tem lugar para mais {n}. Quer ficar com algum deles?",
+    "keepMore": "Quer ficar com mais algum?",
+    "keepNone": "Nenhum",
+    "kept": "{cat} vai adorar o café! Já vai castrad{sex:o|a}, sem preocupação.",
+    "keptNone": "Tudo bem! Lugar de gato também é aqui, onde ele conhece cada cantinho.",
+    "released": "{cat} sai devagar, olha em volta e corre {where}.",
+    "adopted": "{cat} foi adotad{sex:o|a}!",
+    "takeAsk": "Levar {cat} para o café?",
+    "takeYes": "Sim",
+    "takeNo": "Agora não",
+    "taken": "{cat} vai para o café.",
+    "traits": { "brave": "corajos{sex:o|a}", "sweet": "dengos{sex:o|a}", "shy": "tímid{sex:o|a}", "curious": "curios{sex:o|a}", "grumpy": "ranzinza", "needy": "grudent{sex:o|a}" }
   },
   "cutscenes": {
+    "cs.ced_eve": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "phone", "mode": "lock", "app": "Fernanda", "appIcon": "catpay", "title": "Amanhã é o dia! Te espero no beco às 8h. Eu levo as caixas de transporte. 🐾", "lines": [], "time": "{now}", "sound": "new_order" }
+      ]
+    },
+    "cs.ced_clinic": {
+      "background": "#2a2333",
+      "steps": [
+        { "type": "card", "text": "Na clínica, a Fernanda opera um por um. Todos passam a noite em observação." }
+      ]
+    },
     "cs.ced_goal": {
       "background": "#2a2333",
       "steps": [

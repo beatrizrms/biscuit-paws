@@ -25,6 +25,8 @@ export interface JobPoint {
   gives?: string;
   /** Item que ela entrega ao fazer o ponto (precisa ter). */
   takes?: string;
+  /** Sem "!" nem marcador: quem criou o ponto desenha o que ele é (as caixas da CED no beco). */
+  quiet?: boolean;
 }
 
 export interface JobStep {

@@ -17,6 +17,7 @@ import { CafeService } from './service';
 import { moveBetween, stackInto, storeProblem, type StorageContents, type StorageDef, type StorageProblem } from './storage';
 import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
+import { CedCampaign } from './cedCampaign';
 import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, togoRecipe, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
 import { acceptVisit, completeRequest, countRequest, maybeNewRequest, visitMinute, type FriendRequestDef } from './requests';
 import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
@@ -47,7 +48,7 @@ import { ArrivalSystem } from './arrivalSystem';
 import { ClinicFlow, type ArrivalReproInput } from './clinicFlow';
 import { CedFlow } from './ced';
 import { clinicBill, type ClinicDelivery } from './clinic';
-import { ageMonths } from './repro';
+import { ageMonths, sexText } from './repro';
 import { crowdLayout, crowdStays, type CrowdLayout } from './festivalCrowd';
 import { ambientLayout, ambientPasses, passesNow, type AmbientLayout, type AmbientPass } from './ambientPeople';
 import { trafficOfDay, trafficStarting, type TrafficPass } from './traffic';
@@ -254,6 +255,11 @@ const SLEPT_FLAG = 'cafe.slept';
 /** Save de antes da cama comprada: o porão reformado tinha a cama fixa aqui; ela vira a cama posicionada. */
 const OLD_BED = { item: 'item.bed', room: 'room.back_room', at: [18, 4] as Cell };
 
+/** "Nanquim, Pipoca e Bolota" (os nomes no post de adoção da Fernanda). */
+function listNames(names: string[]): string {
+  return names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+}
+
 export class GameSession {
   readonly bus = new EventBus();
 
@@ -265,6 +271,8 @@ export class GameSession {
   readonly clinic: ClinicFlow;
   /** CED: a vaquinha pelo CatPay e a campanha (ced.ts). */
   readonly ced: CedFlow;
+  /** O dia da campanha da CED no beco (cedCampaign.ts). */
+  readonly cedCampaign: CedCampaign;
 
   /** Carrinho do mercado (fora do save: nada foi pago ainda). */
   readonly cart = new Cart();
@@ -347,6 +355,26 @@ export class GameSession {
       addMoney: (delta, reason) => this.addMoney(delta, reason),
       npcName: (npc) => this.content.npcs[npc]?.name ?? npc,
       retireItem: (itemId) => this.retireItem(itemId),
+    });
+    this.cedCampaign = new CedCampaign({
+      state: this.state,
+      bus: this.bus,
+      cfg: this.content.ced.campaign,
+      profiles: this.content.catProfiles,
+      playerCell: () => this.playerCell,
+      sceneFree: () => this.sceneSpotFree() && !this.exclusiveActive(),
+      rating: () => this.rating().average,
+      freeSlots: () => Math.max(0, this.catCapacity() - this.shelteredCats().length),
+      shelterColonyCat: (def) => {
+        this.state.catDefs[def.id] = def;
+        this.shelterCat(def.id, 'healthy', undefined, true, true);
+      },
+      addHearts: (npc, points) => addPoints(this.state, this.content.relationships, PLAYER, npc, points),
+      addReputation: (amount, reason) => this.addReputation(amount, reason),
+      postSocial: (postId) => {
+        this.state.social.feed.push({ post: postId, day: this.state.day });
+        this.bus.emit('social.posted', { posts: [postId] });
+      },
     });
     // Cliente pagou no balcão: com a plaquinha do CatPay, pode doar para a vaquinha.
     this.bus.on('customer.served', ({ customerId }) => {
@@ -1147,6 +1175,10 @@ export class GameSession {
     if (overdue.length > 0) this.bus.emit('clinic.intake_overdue', { cats: overdue.length });
     // Vaquinha: quem vai doar pelo CatPay hoje.
     this.ced.morning();
+    // A campanha da CED: na véspera os gatos aparecem no beco; no dia, ela encontra a Fernanda; depois, a soltura.
+    const campaignDay = this.ced.campaignDay();
+    if (campaignDay !== null && !this.state.ced.campaign && this.state.day >= campaignDay - 1) this.cedCampaign.startEve(campaignDay, this.state.ced.campaignCats, this.state.ced.history.length);
+    this.cedCampaign.morning();
     // Quem amanhece doente precisa do remédio hoje (sequência "bigodes bem cuidados"); quem adoece no meio do dia, só amanhã.
     this.state.stats.today.sickAtStart = this.sickCats();
     if (this.customersAway()) this.bus.emit('customers.away', { sickCats: this.untreatedSickCats().length });
@@ -1207,6 +1239,7 @@ export class GameSession {
       this.checkNewYear();
       this.checkFestivalDeadline();
       this.ced.tick();
+      this.cedCampaign.tick();
     }
   }
 
@@ -1735,9 +1768,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1769,7 +1802,11 @@ export class GameSession {
     if (fund) out.push({ kind: 'ced_goal', done: false, progress: [Math.min(fund.raised, fund.target), fund.target] });
     // A campanha marcada: quantos dias faltam (até o dia dela).
     const toCampaign = this.ced.daysToCampaign();
-    if (toCampaign !== null) out.push({ kind: 'ced_campaign', done: false, days: toCampaign });
+    const campaign = this.state.ced.campaign;
+    if (campaign?.stage === 'meet' && campaign.day === this.state.day) out.push({ kind: 'ced_meet', done: false });
+    else if (toCampaign !== null) out.push({ kind: 'ced_campaign', done: false, days: toCampaign });
+    if (campaign?.stage === 'capture') out.push({ kind: 'ced_capture', done: false, progress: [campaign.cats.filter((x) => x.status === 'caught').length, campaign.cats.length] });
+    if (campaign?.stage === 'release' && this.state.day > campaign.day) out.push({ kind: 'ced_release', done: false });
     // Gato que acabou de chegar: ganhar a confiança dele (E nele).
     for (const id of this.homeCats()) if (this.state.cats[id]!.settling) out.push({ kind: 'settle', catId: id, done: false });
     // Comida: uma tarefa só (a ração no pote serve todos), sempre com quantos já comeram, mesmo com um gato só. Com o pote
@@ -2127,6 +2164,8 @@ export class GameSession {
     }
     // A chegada de gato da vez: o lugar do encontro ou a pista.
     out.push(...this.arrivals.pendingPoints(mapId));
+    // A campanha da CED no beco: pôr e fechar as caixas, soltar, levar um gato para o café (sem o "!": o beco desenha).
+    if (mapId === this.state.location) for (const p of this.cedCampaign.points()) out.push({ id: p.id, map: mapId, at: p.at, action: 'press', reach: 1, quiet: true });
     // Os cartazes da inauguração (durante os preparativos), fora de qualquer pedido.
     if (this.openingPrepActive() && this.state.openingPrep?.posterDay !== this.state.day) {
       const done = new Set(this.state.openingPrep?.posters ?? []);
@@ -2216,6 +2255,7 @@ export class GameSession {
       return { ok: true };
     }
     if (this.content.business.openingPrep?.posters.includes(pointId)) return this.pastePoster(pointId);
+    if (pointId.startsWith('pt.ced_')) return this.cedCampaign.interact(pointId) ? { ok: true } : { ok: false, reason: 'not_found' };
     const arrival = this.arrivals.interact(pointId);
     if (typeof arrival === 'string') return { ok: false, reason: arrival };
     if (arrival) return { ok: true };
@@ -3498,11 +3538,34 @@ export class GameSession {
   /** O feed da SocialVilla (o mais novo primeiro): quem postou, o texto, o dia e se ela já viu. */
   socialFeed(): { id: string; npc: string; handle: string; text: string; day: number; seen: boolean }[] {
     return this.state.social.feed.flatMap((f) => {
+      // Post da Fernanda sobre a campanha da CED (adoção): o texto sai dos gatos da colônia.
+      const ced = this.cedPostText(f.post);
+      if (ced) return [{ id: f.post, npc: 'npc.fernanda', handle: this.friendHandle('npc.fernanda'), text: ced, day: f.day, seen: this.state.social.seen.includes(f.post) }];
       const found = findPost(this.content.friendship, f.post);
       if (!found) return [];
       const npc = found.def.npc;
       return [{ id: f.post, npc, handle: found.def.handle ?? this.content.npcs[npc]?.name ?? npc, text: found.post.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
     });
+  }
+
+  /** O nome da pessoa na SocialVilla (o handle dos dados ou o nome). */
+  private friendHandle(npc: string): string {
+    return this.content.friendship.friends.find((f) => f.npc === npc)?.handle ?? this.content.npcs[npc]?.name ?? npc;
+  }
+
+  /** O texto de um post da campanha da CED (ced.post.*), ou null se não for um. */
+  cedPostText(postId: string): string | null {
+    if (!postId.startsWith('ced.post.')) return null;
+    const lines = this.content.cedText.lines;
+    for (const c of [this.state.ced.campaign, ...this.state.ced.pastCampaigns]) {
+      const post = c?.posts.find((p) => p.id === postId);
+      if (!post) continue;
+      const cats = post.cats.map((id) => c!.cats.find((x) => x.id === id)).filter((x) => !!x);
+      if (post.kind === 'adoption') return (lines.adoptionPost ?? '').replace('{names}', listNames(cats.map((x) => x!.name)));
+      const cat = cats[0];
+      return cat ? sexText((lines.adoptedPost ?? '').replace('{cat}', cat.name), cat.sex) : null;
+    }
+    return null;
   }
 
   /** Abriu a SocialVilla: os posts do feed ficam vistos e os gostos que eles dão a pista, descobertos. */
@@ -4670,6 +4733,7 @@ export class GameSession {
     const gathering = (this.content.festive.gatherings ?? []).find((g) => g.partyScript === scriptId);
     if (gathering) this.finishGathering(gathering);
     this.arrivals.stepFinished({ script: scriptId });
+    this.cedCampaign.scriptFinished(scriptId);
     this.advanceStory();
   }
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_comment": "CED (captura, esterilização e devolução) e a vaquinha (src/core/ced.ts e src/core/crowdfund.ts). Textos e cenas em data/ced_text.json. intro.when: quando a Fernanda chama para a CED (nunca num dia de evento: encontro da estação, festa, evento no quintal) (condição da história; day 45 = o meio da primavera do primeiro ano, dia 15: o jogo começa no inverno, 30 dias por estação); aí o app CatPay aparece e a vaquinha começa. vaquinha: a meta sai de cats gatos x o kit (materiais da cirurgia e do pós por gato, com o preço baixo do fornecedor da Fernanda); deadlineDays: prazo opcional (null = sem prazo). counter: doação no balcão quando o cliente paga: chance com a plaquinha (signItem posicionada) e sem ela; valor sorteado entre amount; + perHeart por coração do cliente com ela. remote: doação pelo app, mesmo longe do café: cada morador de donors pode doar uma vez por dia (no balcão ou pelo app); chance = base x (ratingMin + nota do café/5 x (1 - ratingMin)) x (1 + hearts x heartWeight) x reach, no máximo maxChance; o valor como no balcão; a hora sorteada entre hours. antiStall: abaixo de minPerDay por dia (média dos últimos windowDays dias, depois de afterDays dias), npc doa boostShare do que falta (no mínimo minBoost). topUp: a protagonista completa com o caixa, até maxShare da meta por vaquinha. campaign: depois da ligação para a Gabi, a campanha fica marcada daysAfterReady dias depois (no Calendário, com name, e no balão: quantos dias faltam).",
+  "_comment": "CED (captura, esterilização e devolução) e a vaquinha (src/core/ced.ts e src/core/crowdfund.ts). Textos e cenas em data/ced_text.json. intro.when: quando a Fernanda chama para a CED (nunca num dia de evento: encontro da estação, festa, evento no quintal) (condição da história; day 45 = o meio da primavera do primeiro ano, dia 15: o jogo começa no inverno, 30 dias por estação); aí o app CatPay aparece e a vaquinha começa. vaquinha: a meta sai de cats gatos x o kit (materiais da cirurgia e do pós por gato, com o preço baixo do fornecedor da Fernanda); deadlineDays: prazo opcional (null = sem prazo). counter: doação no balcão quando o cliente paga: chance com a plaquinha (signItem posicionada) e sem ela; valor sorteado entre amount; + perHeart por coração do cliente com ela. remote: doação pelo app, mesmo longe do café: cada morador de donors pode doar uma vez por dia (no balcão ou pelo app); chance = base x (ratingMin + nota do café/5 x (1 - ratingMin)) x (1 + hearts x heartWeight) x reach, no máximo maxChance; o valor como no balcão; a hora sorteada entre hours. antiStall: abaixo de minPerDay por dia (média dos últimos windowDays dias, depois de afterDays dias), npc doa boostShare do que falta (no mínimo minBoost). topUp: a protagonista completa com o caixa, até maxShare da meta por vaquinha. campaign: depois da ligação para a Gabi, a campanha fica marcada daysAfterReady dias depois (no Calendário, com name, e no balão: quantos dias faltam). O dia é no beco (map): na véspera os gatos da colônia aparecem (um por kit, cada um num spot, com um nome de names, que a Fernanda dá); no dia o café não abre, a Fernanda espera em fernandaAt; caixa no spot, ela a awayCells células ou mais e o gato chega (wait minutos, sorteado); a scareCells ou menos com ele chegando, ele foge e volta em scareMinutes; com o gato dentro, E fecha. Às endAt (ou com todos pegos) a Fernanda leva para a clínica; na manhã seguinte, no beco: com vaga no café, ela pergunta se fica com algum; os outros voltam ao spot (where: para onde ele corre) e a Fernanda posta para adoção; alguém adota um a cada adoption.everyDays (um dia a menos com a nota do café a partir de fastRating). rewards: corações com a Fernanda e reputação no fim.",
   "intro": {
     "when": {
       "all": [
@@ -40,5 +40,22 @@
   },
   "antiStall": { "afterDays": 3, "windowDays": 3, "minPerDay": 10, "npc": "npc.neusa", "boostShare": 0.3, "minBoost": 15 },
   "topUp": { "maxShare": 0.3 },
-  "campaign": { "daysAfterReady": 3, "name": "Campanha da CED" }
+  "campaign": {
+    "daysAfterReady": 3,
+    "name": "Campanha da CED",
+    "map": "map.alley",
+    "endAt": "17:00",
+    "fernandaAt": [18, 7],
+    "spots": [
+      { "at": [3, 7], "where": "para perto da caçamba" },
+      { "at": [6, 6], "where": "para trás dos caixotes" },
+      { "at": [9, 6], "where": "para o lado da porta dos fundos" },
+      { "at": [13, 7], "where": "para perto da lixeira" },
+      { "at": [17, 7], "where": "para trás dos sacos de lixo" }
+    ],
+    "names": ["Nanquim", "Pipoca", "Bolota", "Ferrugem", "Fumaça", "Canela", "Tampinha", "Pirata"],
+    "trap": { "wait": [12, 25], "awayCells": 4, "scareCells": 1, "scareMinutes": 20 },
+    "adoption": { "everyDays": [3, 6], "fastRating": 4 },
+    "rewards": { "hearts": 40, "reputation": 5 }
+  }
 }

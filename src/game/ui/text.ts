@@ -21,7 +21,9 @@ export function fillNames(session: GameSession, text: string): string {
     .replace(/\{halloween:(\w+)\}/g, (_, what: string) => halloweenText(session, what))
     .replace(/\{treats\}/g, () => session.santaTreat()?.plural ?? '')
     .replace(/\{treat\}/g, () => session.santaTreat()?.name ?? '')
-    .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
+    .replace(/\{ced:cats\}/g, () => String(session.state.ced.campaign?.cats.length || session.state.ced.campaignCats || session.content.ced.vaquinha.cats))
+    // Os gatos da colônia castrados na campanha (os que não entraram na caixa ficam de fora).
+    .replace(/\{ced:neutered\}/g, () => String(session.state.ced.campaign?.cats.filter((c) => c.status !== 'free').length ?? 0))
     .replace(/\{daysUntil:(\w+)\}/g, (_, season: string) => String(session.daysUntil(season)))
     // Quanto falta para um dia do jogo (o dia 26 da inauguração), em palavras.
     .replace(/\{untilDay:(\d+)\}/g, (_, day: string) => untilDayText(Number(day) - session.state.day))

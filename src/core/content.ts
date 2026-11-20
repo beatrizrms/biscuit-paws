@@ -28,6 +28,7 @@ import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData 
 import { validateHealth, type HealthConfig } from './health';
 import { validateClinic, type ClinicConfig } from './clinic';
 import { validateCed, validateCedText, type CedConfig, type CedText } from './ced';
+import { validateCampaign } from './cedCampaign';
 import { giftKindOf, togoItemId, validateFriendship, type FriendshipData } from './friendship';
 import { validateMiniGames, type MiniGamesConfig } from './minigame';
 import { validateFishTable } from './fishing';
@@ -800,6 +801,7 @@ export function validateContent(raw: RawContent): string[] {
   errors.push(...validateClinic(raw.clinic, { items: new Set(raw.items.items.map((i) => i.id)), npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateVetText(raw.vetText));
   errors.push(...validateCed(raw.ced, { items: new Set(raw.items.items.map((i) => i.id)), npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
+  errors.push(...validateCampaign(raw.ced.campaign, { maps: mapIds }));
   errors.push(...validateCedText(raw.cedText));
   errors.push(...validateHealth(raw.health, { items: new Set(raw.items.items.map((i) => i.id)), maps: mapIds, npcs: new Set(raw.npcs.npcs.map((n) => n.id)) }));
   errors.push(...validateJobs(raw.jobs, raw.news, { maps: mapIds, items: new Set(raw.items.items.map((i) => i.id)), tiles: new Set(Object.keys(raw.catalog.tiles)), sprites: new Set(Object.keys(raw.emotes.frames)), icons: new Set(Object.keys(raw.icons.icons)) }));

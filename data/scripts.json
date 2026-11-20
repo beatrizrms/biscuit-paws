@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "_comment": "Roteiros no mundo. Passos: npcSpawn, npcWalk, npcAnim, npcFace, npcBeside (o NPC vai para o lado da personagem e os dois conversam de lado), npcLeave, playerWalk, playerFace, dialogue, enter, showItem, giveItem, wait, ribbon (a fita da inauguração: show em at, cut), requestIntro (a fala do pedido de amigo). NPC @visitor: quem veio fazer o pedido de amigo (scr.request_visit, chamado pela sessão na hora da visita). clearStage: enquanto roda, os marcadores dos pedidos e a chegada de gato em andamento somem. Ao terminar, flag seen.<id>.",
   "scripts": {
+    "scr.ced_meet": {"here":true,"steps":[{"npcSpawn":"npc.fernanda","map":"map.alley","at":[18,7],"facing":"down"},{"npcBeside":"npc.fernanda"},{"dialogue":"dlg.ced_meet"},{"npcWalk":"npc.fernanda","to":[18,7]},{"npcFace":"npc.fernanda","facing":"down"}]},
+    "scr.ced_release": {"here":true,"steps":[{"npcSpawn":"npc.fernanda","map":"map.alley","at":[18,7],"facing":"down"},{"npcBeside":"npc.fernanda"},{"dialogue":"dlg.ced_release_intro"}]},
     "scr.realtor_tour": {
       "steps": [
         {

@@ -156,7 +156,9 @@ export class ClinicFlow {
     if (!cat) return;
     cat.repro = this.newRepro(catId, this.st.day, input);
     if (cat.repro.earTipped) this.h.bus.emit('cat.ear_tipped', { catId });
-    if (this.intakeRequired() && !this.h.catDef(catId)?.memory) cat.clinic = { stage: 'intake' };
+    // O gato da campanha da CED vem direto da clínica: sem a consulta de entrada.
+    const def = this.h.catDef(catId);
+    if (this.intakeRequired() && !def?.memory && !def?.tags.includes('ced')) cat.clinic = { stage: 'intake' };
   }
 
   // ---------- Onde o gato está ----------

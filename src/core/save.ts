@@ -22,6 +22,7 @@ import type { SantaRecord, SantaResult } from './secretSanta';
 import type { HalloweenRecord, HalloweenResult } from './halloween';
 import { newClinic, type Aftercare, type CatClinicStage, type ClinicState } from './clinic';
 import { newCed, type CedState } from './ced';
+import type { CampaignState } from './cedCampaign';
 import type { Crowdfund } from './crowdfund';
 import type { CatRepro } from './repro';
 import type { FriendState, GiftReaction, SocialState } from './friendship';
@@ -857,6 +858,10 @@ function normalizeCed(c: unknown): CedState {
   out.pendingScene = typeof x.pendingScene === 'string' ? x.pendingScene : null;
   // Sem o dia da campanha (save de antes): a sessão marca quando precisar (ced.campaignDay).
   out.campaignDay = Number.isInteger(x.campaignDay) ? x.campaignDay! : null;
+  // A campanha no beco: guardada como veio (cedCampaign.ts confere o que usa); sem ela, null.
+  const campaignOk = (v: unknown): v is CampaignState => !!v && typeof v === 'object' && Array.isArray((v as CampaignState).cats) && Number.isInteger((v as CampaignState).day);
+  out.campaign = campaignOk(x.campaign) ? x.campaign : null;
+  out.pastCampaigns = (Array.isArray(x.pastCampaigns) ? x.pastCampaigns : []).filter(campaignOk);
   // Arrecadando sem vaquinha (save quebrado): volta a desligada.
   if (out.stage === 'collecting' && !out.crowdfund) out.stage = 'off';
   return out;
