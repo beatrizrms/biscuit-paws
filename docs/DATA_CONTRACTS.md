@@ -334,6 +334,7 @@ Um marco termina quando todos os `after` estão concluídos, todos os passos da 
 Campos de ordem (v6):
 - `"start"`: condição para o marco **começar** (aparecer no balão). Ex.: `{ "nextDay": "story.coffee_machine" }` (só no dia seguinte). Também `{ "daysSince": { "beat": "story.backyard", "gte": 7 } }`: pelo menos 7 dias depois de o marco terminar.
 - `"exclusive": true`: enquanto o marco estiver ativo, os seguintes do arquivo não começam (uma quest por vez, nos primeiros dias). Marcos sem a flag correm em paralelo: é assim que a fase seguinte vai ter várias quests ao mesmo tempo, só mudando os dados.
+- `"notHeld": true`: o marco não é segurado por um exclusivo de antes (aparece junto). Ex.: a inauguração, que tem data marcada, continua no balão com o gatinho doente no meio.
 
 Condições (também `{ "visited": "map.id" }`, `{ "catNamed": "cat.id" }`): `{ "all": [...] }`, `{ "any": [...] }`, `{ "not": ... }`, `{ "flag": "id" }`, `{ "beat": "story.id" }`,
 `{ "placed": "item.id", "gte": n }`, `{ "placedTag": "tag", "gte": n }`, `{ "owned": "item.id", "gte": n }`, `{ "money": { "gte": n } }`.

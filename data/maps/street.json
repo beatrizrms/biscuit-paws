@@ -9,15 +9,16 @@
   "background": "#a9d4ea",
   "lighting": "outdoor",
   "lights": [
-    { "at": [4,6.45], "radius": 46, "color": "#ffe2a0" },
-    { "at": [14,6.45], "radius": 46, "color": "#ffe2a0" },
-    { "at": [19,6.45], "radius": 46, "color": "#ffe2a0" },
-    { "at": [30,6.45], "radius": 46, "color": "#ffe2a0" },
-    { "at": [6.5, 4.2], "radius": 52, "color": "#ffd59a" },
-    { "at": [22, 4.2], "radius": 60, "color": "#ffd59a" },
-    { "at": [1.4, 3.9], "radius": 30, "color": "#ffd59a" },
-    { "at": [28.2, 3.9], "radius": 30, "color": "#ffd59a" },
-    { "at": [33.5, 4.4], "radius": 40, "color": "#ffd59a" }
+    { "at": [4, 7.2], "radius": 46, "color": "#ffe2a0" },
+    { "at": [14, 7.2], "radius": 46, "color": "#ffe2a0" },
+    { "at": [19, 7.2], "radius": 46, "color": "#ffe2a0" },
+    { "at": [30, 7.2], "radius": 46, "color": "#ffe2a0" },
+    { "at": [3.1, 5.2], "radius": 30, "color": "#ffd59a" },
+    { "at": [11.6, 5.1], "radius": 30, "color": "#ffd59a" },
+    { "at": [6.2, 5.5], "radius": 28, "color": "#ffd59a" },
+    { "at": [31, 5.5], "radius": 22, "color": "#ffe9b0" },
+    { "at": [32.2, 5.5], "radius": 22, "color": "#ffe9b0" },
+    { "at": [38.3, 4.2], "radius": 30, "color": "#ffd59a" }
   ],
   "legend": {
     "A": "street_calcada_a",
