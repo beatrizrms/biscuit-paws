@@ -498,6 +498,7 @@
       "exclusive": true,
       "goal": {
         "title": "Mesa e cadeira",
+        "together": true,
         "steps": [
           {
             "text": "Junte 75 moedas fazendo trabalhos para a vila",
