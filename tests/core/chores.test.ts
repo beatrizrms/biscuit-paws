@@ -105,3 +105,39 @@ describe('gato doente sem consulta', () => {
     expect(line()).toBeUndefined();
   });
 });
+
+describe('o que ainda não existe para ela não vira tarefa nem aviso', () => {
+  // O começo do jogo: o primeiro gato já entrou, mas a história ainda não abriu a caixa de areia nem a varinha no Market.
+  const staged = loadContent({ marketStages: true });
+  function early() {
+    const state = newGameState(500, 'map.cafe_main', 9 * 60);
+    state.flags['has.cat'] = true;
+    state.flags['prologue.done'] = true;
+    state.day = 2;
+    state.cats['cat.first_stray'] = { sheltered: true, name: 'Botinhas', map: 'map.cafe_main', shelteredOn: 1, health: 80, sickness: null };
+    const session = new GameSession(staged, state);
+    return { session, state };
+  }
+
+  it('varinha ainda fora do Market: sem a linha "compre uma varinha"; à venda, a linha aparece', () => {
+    const { session, state } = early();
+    state.cats['cat.first_stray']!.playedOn = -10;
+    expect(session.itemUnlocked('item.cat_wand')).toBe(false);
+    expect(session.chores().some((c) => c.kind === 'care' && c.need === 'play')).toBe(false);
+    state.story.completed.push('story.warm_corner');
+    expect(session.itemUnlocked('item.cat_wand')).toBe(true);
+    expect(session.chores().find((c) => c.kind === 'care' && c.need === 'play')).toMatchObject({ hasTool: false });
+  });
+
+  it('fim do dia sem areia: o aviso só sai quando a caixa de areia já está à venda (ou no café)', () => {
+    const { session, state } = early();
+    const missed: number[] = [];
+    session.bus.on('litter.missed', ({ day }) => missed.push(day));
+    expect(session.itemUnlocked('item.litter_box')).toBe(false);
+    session.endDay();
+    expect(missed).toEqual([]);
+    state.story.completed.push('story.litter_surprise');
+    session.endDay();
+    expect(missed).toHaveLength(1);
+  });
+});

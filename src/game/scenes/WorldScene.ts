@@ -2159,7 +2159,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       const drawn = (santa ? s.santaRecord() : s.halloweenRecord())?.drawn;
       return plan(this.hintNpc(sprite, npc === drawn ? 'santa_give' : 'party_chat'), () => (santa ? this.trySantaGive() : this.tryHalloweenGive()));
     }
-    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintFloor(this.facingCell(), 'parcel_drop'), () => this.parcelInteract());
+    if (s.atHome() && s.boxesAt('carried') > 0) return plan(this.hintAbovePlayer('parcel_drop'), () => this.parcelInteract());
     // Gente perto (o Tião na obra, convidados da festa, amigos passeando) entra na mesma regra de tudo: quem está na
     // frente dela vence (antes, o Tião do lado tomava o E da despensa bem na frente).
     const people: ECandidate<EPlan>[] = [];
@@ -2231,12 +2231,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // cortina; a banca ou a gôndola embaixo dela). Todas ao alcance entram: a que está na frente dela vence.
     for (const it of s.interactionsAt(feet)) add(this.interactionCells(it), E_TIER.interaction, this.hintCell(it.at, this.intKind(it)), () => this.useInteraction(it));
     // A sujeira, com a vassoura na mão: toda a que dá para varrer daqui. Sem a vassoura, ela não toma o E de nada.
-    if (s.atHome() && s.activeItem() === s.content.world.tools.sweep) {
+    // O que sai com a mão (o balde da goteira): também com a mão livre.
+    const broom = s.activeItem() === s.content.world.tools.sweep;
+    if (s.atHome() && (broom || s.activeItem() === null)) {
       const { catalog } = s.content;
       for (const d of s.visibleDirt()) {
         const def = catalog.tiles[d.tile];
-        if (!def || d.clearedBy || d.heavy || s.cleanProblem(d.id, feet) !== null) continue;
-        add(cellsOf(d.at, def), E_TIER.dirt, this.hintFloor(d.at, 'dirt'), () => this.sweepDirt(d), { tool: true });
+        if (!def || d.clearedBy || d.heavy || (!broom && !d.byHand) || s.cleanProblem(d.id, feet) !== null) continue;
+        add(cellsOf(d.at, def), E_TIER.dirt, this.hintFloor(d.at, d.byHand ? 'dirt_bucket' : 'dirt'), () => this.sweepDirt(d), { tool: broom });
       }
     }
     // Ponto de pedido (a decoração da feira, um mini game). O que pede a vassoura na barra: sem ela, nada de dica (só explica).
@@ -2411,6 +2413,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private hintFloor([c, r]: Cell, kind: HintKind): EPlan['hint'] {
     const ts = this.map.tileSize;
     return { x: (c + 0.5) * ts, y: (r + 0.4) * ts, kind };
+  }
+
+  /** Em cima da cabeça dela (soltar a caixa que carrega): na célula da frente, a plaquinha tampava a personagem e a caixa. */
+  private hintAbovePlayer(kind: HintKind): NonNullable<EPlan['hint']> {
+    return { x: this.player.x, y: this.player.y - this.player.displayHeight - 4, kind };
   }
 
   /** Nos gatos, um pouco mais alto: o balão de cuidado (careBubbles) fica logo acima da cabeça. */
@@ -3402,7 +3409,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
 
   /** Varre: vassoura na mão balançando, poeira subindo, brilho no fim; aí a sujeira some. */
   private async sweep(dirtId: string, x: number, y: number): Promise<void> {
-    await this.playSweep(x, y);
+    // O balde sai com a mão: sem a varrida.
+    if (!this.session.visibleDirt().find((d) => d.id === dirtId)?.byHand) await this.playSweep(x, y);
     const result = this.session.clean(dirtId, this.playerCells());
     if (!result.ok) this.ui.problem(result.reason);
   }

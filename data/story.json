@@ -83,6 +83,12 @@
             "when": {
               "cleaned": "floor"
             }
+          },
+          {
+            "text": "Tire o balde da goteira",
+            "when": {
+              "cleaned": "bucket"
+            }
           }
         ]
       },

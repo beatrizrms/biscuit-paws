@@ -494,7 +494,7 @@
       "id": "job.market_shelves",
       "title": "Arrumar as prateleiras",
       "giver": "Seu Ademir, do mercado",
-      "description": "Depois das festas, as prateleiras ficaram uma bagunça. Ele paga por uma arrumada.",
+      "description": "As prateleiras do mercado ficaram uma bagunça. Ele paga por uma arrumada.",
       "location": "map.market",
       "reward": 25,
       "repeat": "daily",

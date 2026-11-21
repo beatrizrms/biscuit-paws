@@ -1083,7 +1083,11 @@ export class GameSession {
       }
     if (!r.litterOk) {
       for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -litterLoss(this.content.health.care, id, day), this.content.health.care);
-      this.bus.emit('litter.missed', { day });
+      // O aviso só vale quando ela já pode ter uma caixa de areia (tem uma, ou já está à venda): antes disso a história
+      // ainda vai apresentar a caixa (o cocô no chão) e o aviso falaria de uma coisa que não existe para ela.
+      const items = this.content.items;
+      const boxKnown = this.state.placed.some((p) => stationKind(items[p.item]) === 'litter_box') || Object.values(items).some((i) => stationKind(i) === 'litter_box' && this.itemUnlocked(i.id));
+      if (boxKnown) this.bus.emit('litter.missed', { day });
     }
     // Dias seguidos sem areia limpa: a partir de litterPoop.afterDays, os gatos fazem cocô no chão.
     this.state.litterMissedDays = r.litterOk ? 0 : (this.state.litterMissedDays ?? 0) + 1;
@@ -1868,6 +1872,9 @@ export class GameSession {
       // A fome já tem a tarefa da ração (o pote): o balão basta.
       for (const need of (this.catCare(id)?.needs ?? []).filter((n) => n !== 'hungry')) {
         const use = toolFor[need];
+        // Escova ou varinha que ainda não está à venda (o Market abre aos poucos): sem linha "compre..." para o que
+        // não dá para comprar; o balão em cima do gato continua.
+        if (use && use !== 'medicine' && !owns(use) && !Object.values(this.content.items).some((i) => i.use === use && this.itemUnlocked(i.id))) continue;
         out.push({ kind: 'care', catId: id, need, hasTool: !use || owns(use), ...(need === 'play' && toysShort ? { toysShort: true } : {}), done: false });
       }
     }
@@ -5813,7 +5820,8 @@ export class GameSession {
       const near = cellsOf(d.at, def).some(([c, r]) => from.some(([fc, fr]) => Math.max(Math.abs(c - fc), Math.abs(r - fr)) <= reach));
       if (!near) return 'too_far';
     }
-    return this.toolProblem('sweep');
+    // O que sai com a mão (o balde) não pede a vassoura.
+    return d.byHand ? null : this.toolProblem('sweep');
   }
 
   private storyContext(): StoryContext {

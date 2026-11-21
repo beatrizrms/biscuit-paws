@@ -136,6 +136,9 @@
 /* Some durante falas e cenas (a caixa de fala ocupa o mesmo lugar). */
 .dialogue-layer.open ~ .hotbar, .cutscene.open ~ .hotbar { display: none; }
 .hotbar.top { bottom: auto; top: 4px; }
+/* Com a faixa de teclas embaixo (prólogo, posicionar, mover), a barra sobe um pouco: as teclas desenhadas são mais altas
+   que o texto e ficavam encostadas nela. No toque a barra tem o lugar dela (touch.css e as regras de touch-mode). */
+html:not(.touch-mode) #ui:has(> .hint:not(:empty)) > .hotbar:not(.top) { bottom: 22px; }
 .hotbar .slot {
   position: relative;
   width: 22px;
@@ -213,6 +216,8 @@ html.touch-mode .display-pick .slot .key, html.pad-mode .display-pick .slot .key
   padding: 9px 12px 10px;
   font-size: max(calc(10.5px * var(--fs, 1)), var(--fs-min, 0px));
 }
+/* Com a personagem embaixo na tela, a fala abre em cima (abaixo do painel da hora), para não tampar quem fala. */
+.dialogue.top { bottom: auto; top: 48px; }
 /* O nome de quem fala dentro da caixa, na mesma coluna do texto (antes flutuava na borda, alinhado ao retrato). */
 .dialogue .speaker {
   display: block;

@@ -1252,3 +1252,13 @@ Decisão: o texto era centrado pela caixa da fonte (com o espaço de acentos e d
 ## 301. Convite da inauguração claro e pistas com lugar e horário (nov/2026)
 Pedido: na conversa que convida para a inauguração não ficava claro que era um convite (era a conversa de sempre); as pistas eram vagas ("a Gabi almoça na praça", sem horário, e às 13h40 ela não estava) e quase todas falavam da Gabi.
 Decisão: `openingPrep.invite` (sai `inviteHints`): na conversa que convida, no lugar da fala do dia, ela pergunta (`ask`: "Dia 26 é a inauguração do café! Você vem?"), o amigo responde (`yes`, por amigo) e conta onde e quando achar outro amigo que ela conhece e ainda não convidou (`whereabouts`, com o horário do passeio de cada um; sorteado pelo dia entre os que faltam; `session.inviteTalk`). Nos preparativos, o amigo ainda não convidado passeia todo dia (a pista não falha); os já convidados seguem com `friendWalkChance`.
+
+## 302. Correções do teste de jogador novo (nov/2026)
+Pedido: um teste jogando como quem nunca viu o jogo apontou incoerências e sobreposições nos dois primeiros dias; corrigir as principais.
+Decisão:
+- **Data da introdução:** o celular mostra "Terça-feira, 30 de novembro" (era "Quarta-feira, 24 de dezembro"): o dia seguinte é o Inverno 1 (quarta, "Dezembro" na fala) e o Natal fica no dia 25. O pedido das prateleiras não fala mais em "depois das festas" (ele sai antes do Natal).
+- **Onde se compra:** na tela de novidades, o que não se encomenda pelo celular diz a loja ("Novo no Mercado da Vila": ração, areia; `statsApp.rewardKinds.itemShop`). A regra do que o Market lista virou `marketGroupOf` (`MarketApp.ts`), usada pelo app e pelo aviso.
+- **Nada do que ainda não existe:** o aviso "Ficou sem areia limpa" só sai com caixa de areia no café ou à venda (a queda de higiene e o cocô do dia 2 continuam: são a história); a linha "compre uma varinha" (ou a escova) só entra na lista do dia quando a ferramenta está à venda. O balão em cima do gato continua.
+- **Balde da goteira:** passo próprio na faxina ("Tire o balde da goteira", tag `bucket`), plaquinha "Tirar o balde" e `byHand` na sujeira (`DirtSpot`): sai com a mão livre ou com a vassoura, sem a varrida. Antes contava escondido em "Varra a poeira, os papéis e os cacos" (7/8 sem nada à vista).
+- **Fala sem tampar quem fala:** com a personagem na parte de baixo da tela (pés abaixo de 250 px), a caixa de fala abre em cima, abaixo do painel da hora (`.dialogue.top`); decide ao abrir e fica até a conversa acabar.
+- **Miudezas:** a barra de itens sobe um pouco quando a faixa de teclas está visível; a plaquinha do E desce para caber quando o alvo está no alto da tela; "Soltar a caixa aqui" fica acima da cabeça dela (`hintAbovePlayer`).

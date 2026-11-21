@@ -457,7 +457,7 @@ describe('faxina', () => {
     realtorTour(session);
     const webs = session.visibleDirt().filter((d) => d.tags.includes('web'));
     webs.forEach((d) => session.clean(d.id));
-    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false, false]);
     cleanAll(session);
     expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cleaned' });
     expect(session.goals().map((g) => g.title)).toEqual(['Esse miado...']);
@@ -469,6 +469,15 @@ describe('faxina', () => {
     expect(session.clean(bucket, [[8, 9]])).toEqual({ ok: false, reason: 'too_far' });
     expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: true });
     expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: false, reason: 'not_found' });
+    expect(session.dirtAt([8, 5])).toBeUndefined();
+  });
+
+  it('o balde da goteira sai com a mão livre; a poeira continua pedindo a vassoura', () => {
+    const { session } = newSession();
+    session.selectHotbarSlot(-1); // a mão livre
+    expect(session.activeItem()).toBeNull();
+    expect(session.clean('dirt.dust_a')).toEqual({ ok: false, reason: 'needs_broom' });
+    expect(session.clean('dirt.leak_bucket', [[9, 7]])).toEqual({ ok: true });
     expect(session.dirtAt([8, 5])).toBeUndefined();
   });
 

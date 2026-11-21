@@ -59,7 +59,7 @@ export class InteractHint {
   show(at: { x: number; y: number; label: string } | null): void {
     const view = this.scene.cameras.main.worldView;
     const padOn = touch.mode === 'pad';
-    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.width)},${padOn}` : '';
+    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.y)},${Math.round(view.width)},${padOn}` : '';
     if (key === this.key) return;
     this.key = key;
     this.box.setVisible(!!at);
@@ -90,7 +90,8 @@ export class InteractHint {
     const nudge = glyphNudge(this.letter);
     this.letter.setPosition(kx + KEY / 2 + nudge.x, nudge.y);
     this.label.setPosition(kx + KEY + PAD, 0);
-    this.box.setPosition(x, Math.round(at.y - h / 2 - 5));
+    // No alto da tela (a teia do canto), a plaquinha desce para caber inteira em vez de sair cortada.
+    this.box.setPosition(x, Math.max(Math.round(at.y - h / 2 - 5), Math.ceil(view.y + h / 2 + EDGE + 2)));
   }
 
   /** Onde a plaquinha está agora (px do mundo), ou null se escondida: o "!" que cair embaixo dela some. */
