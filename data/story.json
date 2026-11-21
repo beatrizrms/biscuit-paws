@@ -369,12 +369,6 @@
             }
           },
           {
-            "text": "Compre areia e encha a caixa",
-            "when": {
-              "flag": "litter.refilled"
-            }
-          },
-          {
             "text": "Compre uma caminha",
             "when": {
               "placed": "item.cat_bed"

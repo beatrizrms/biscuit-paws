@@ -559,6 +559,8 @@ export interface Content {
   jobs: Record<string, JobDef>;
   jobPoints: Record<string, JobPoint>;
   maxActiveJobs: number;
+  /** Pedidos de todo dia oferecidos por dia (data/jobs.json: offersPerDay); sem o campo, todos. */
+  jobOffersPerDay?: number;
   news: NewsData;
 }
 
@@ -656,7 +658,7 @@ export function buildContent(raw: RawContent): Content {
   return { catalog: raw.catalog, map: home, maps, world: raw.world, items, finishes, painterUnlockFlag: raw.finishes.unlockFlag, construction: raw.finishes.construction, upgrades: raw.items.upgrades ?? NO_UPGRADES, variants: raw.items.variants ?? NO_VARIANTS, marketStages: raw.items.marketStages ?? [], economy: raw.economy, story: raw.story, dialogue: raw.dialogue,
     cats: Object.fromEntries(raw.cats.cats.map((c) => [c.id, c])), catSprites: raw.catSprites, cutscenes: { ...raw.cutscenes.cutscenes, ...raw.cedText.cutscenes }, relationships: raw.relationships,
     shops: raw.shops.shops, icons: raw.icons,
-    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], npcTalks: raw.npcs.talks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, friendship: raw.friendship, facade: raw.finishes.facade ?? null };
+    npcs: Object.fromEntries(raw.npcs.npcs.map((n) => [n.id, n])), npcWalks: raw.npcs.walks ?? [], npcTalks: raw.npcs.talks ?? [], scripts: raw.scripts.scripts, dayNight: raw.dayNight, recipes: Object.fromEntries(raw.recipes.recipes.map((r) => [r.id, r])), service: raw.service, carry: raw.carry, jobs: Object.fromEntries(raw.jobs.jobs.map((j) => [j.id, j])), jobPoints: Object.fromEntries(raw.jobs.points.map((p) => [p.id, p])), maxActiveJobs: raw.jobs.maxActive, ...(raw.jobs.offersPerDay ? { jobOffersPerDay: raw.jobs.offersPerDay } : {}), news: raw.news, delivery: raw.delivery, health: raw.health, minigames: raw.minigames, business: raw.business, character: raw.character, rooms: raw.rooms, seasons: raw.seasons, adoption: raw.adoption, reputation: raw.reputation, milestones: raw.milestones, festive: raw.festive, requests: raw.requests, catProfiles: raw.catProfiles, clinic: raw.clinic, vetText: raw.vetText, ced: raw.ced, cedText: raw.cedText, arrivals: raw.arrivals, festivals: raw.festivals.festivals, festivalCrowd: raw.festivals.crowd ?? null, ambient: raw.npcs.ambient ?? null, fairSetup: raw.fairSetup, costume: raw.costume, photo: raw.photo, friendship: raw.friendship, facade: raw.finishes.facade ?? null };
 }
 
 /** Palavras de bastidor que não podem aparecer em textos da jogadora (use "devNote"). */

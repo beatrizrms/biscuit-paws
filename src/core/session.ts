@@ -10,7 +10,7 @@ import { seenFlag } from './cutscene';
 import { parseClock } from './time';
 import { mapLights } from './lights';
 import type { MapLight } from './map';
-import { newsForDay, sporadicToday, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
+import { newsForDay, sporadicToday, dailyOffers, type JobDef, type JobPoint, type NewsItem, tipForDay, type CatTip } from './jobs';
 import type { HandItem } from './carry';
 import { cellHash, createRng } from './rng';
 import { CafeService } from './service';
@@ -1060,7 +1060,7 @@ export class GameSession {
     }
     this.removeFromInventory(litter);
     p.refilledOn = this.state.day;
-    // Já trocou a areia alguma vez (passo "Compre areia e encha a caixa" da meta do começo).
+    // Já teve areia alguma vez (a primeira caixa vem com a do dia: place).
     this.state.flags['litter.refilled'] = true;
     this.bus.emit('litter.refilled', { uid: boxUid });
     return { ok: true };
@@ -2159,7 +2159,17 @@ export class GameSession {
     if (job.available && !evaluate(job.available as Condition, this.state, this.storyContext())) return false;
     const last = this.state.jobs.doneOn[job.id];
     if (job.repeat === 'sporadic') return last !== this.state.day && sporadicToday(job.id, this.state.day, job.chance ?? 0);
-    return job.repeat === 'daily' ? last !== this.state.day : last === undefined;
+    if (job.repeat !== 'daily') return last === undefined;
+    return last !== this.state.day && this.offeredToday(job.id);
+  }
+
+  /** Este pedido de todo dia está entre os que a vila oferece hoje? (data/jobs.json: offersPerDay; sem o campo, todos) */
+  private offeredToday(jobId: string): boolean {
+    const count = this.content.jobOffersPerDay;
+    if (!count) return true;
+    // O sorteio é entre os que valem hoje (a condição de cada um), feitos ou não: a lista do dia não muda ao concluir um.
+    const daily = Object.values(this.content.jobs).filter((j) => j.repeat === 'daily' && (!j.available || evaluate(j.available as Condition, this.state, this.storyContext())));
+    return dailyOffers(daily, this.state.day, count).has(jobId);
   }
 
   acceptJob(jobId: string): ActionResult {
@@ -6424,6 +6434,14 @@ export class GameSession {
     const uid = `p${this.state.nextUid++}`;
     this.state.placed.push({ uid, item: piece, at: [at[0], at[1]], ...(this.content.items[piece]?.grows ? { plantedOn: this.state.day } : {}) });
     this.bus.emit('item.placed', { itemId: piece, uid, at: [at[0], at[1]] });
+    // A primeira caixa de areia do jogo já vem com a areia do dia (uma ida a menos ao mercado no dia em que ela aprende a
+    // cuidar do gato); daí em diante, a troca de todo dia é com a areia comprada.
+    const placedItem = this.content.items[piece];
+    if (stationKind(placedItem) === 'litter_box' && !placedItem?.autoDays && !this.state.flags['litter.refilled']) {
+      this.state.placed.find((p) => p.uid === uid)!.refilledOn = this.state.day;
+      this.state.flags['litter.refilled'] = true;
+      this.bus.emit('litter.refilled', { uid });
+    }
     this.advanceStory();
     return { ok: true };
   }

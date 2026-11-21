@@ -72,8 +72,6 @@ function warmCorner(session: GameSession) {
   expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
   buyAndPlace(session, 'item.litter_box', [11, 9]);
   buyAndPlace(session, 'item.cat_bed', [12, 9]);
-  // O passo "Compre areia e encha a caixa" (a primeira troca de areia).
-  session.state.flags['litter.refilled'] = true;
   session.tickClock(1 / content.dayNight.minutesPerSecond);
 }
 
@@ -188,9 +186,8 @@ describe('começo da história', () => {
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     expect(titles()).toEqual(['Tudo que um gatinho precisa']);
     buyAndPlace(session, 'item.litter_box', [11, 9]);
-    // Falta encher a caixa com areia.
-    expect(titles()).toEqual(['Tudo que um gatinho precisa']);
-    session.state.flags['litter.refilled'] = true;
+    // A primeira caixa já vem com a areia do dia.
+    expect(session.state.placed.find((p) => p.item === 'item.litter_box')!.refilledOn).toBe(session.state.day);
     session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(titles()).toEqual(['Uma cafeteira']);
     // A cafeteira e o balcão não cabem no dinheiro: precisa dos pedidos da vila.

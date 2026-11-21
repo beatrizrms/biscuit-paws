@@ -767,7 +767,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     this.updateEatQueue();
     // Onde ela está (as cenas de Natal e Ano Novo só começam com ela no salão).
     if (!this.changingMap) this.session.setPlayerCell(this.feetCell());
-    // O relógio para em falas, cenas, roteiros e transições; com o catálogo ou o celular abertos, o tempo corre.
+    // O relógio para em falas, cenas, roteiros e transições, e com o celular ou a mochila abertos (GameUi.pausesClock).
     const clockPaused = this.ui.pausesClock() || this.changingMap || this.scripts.isRunning() || this.sweeping || this.usingItem;
     if (!clockPaused) this.session.tickClock((this.game.loop.delta / 1000) * (this.waitUntilAbs !== null ? WAIT_SPEED : 1));
     this.updateDayNight();

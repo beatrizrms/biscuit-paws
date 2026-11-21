@@ -1262,3 +1262,11 @@ Decisão:
 - **Balde da goteira:** passo próprio na faxina ("Tire o balde da goteira", tag `bucket`), plaquinha "Tirar o balde" e `byHand` na sujeira (`DirtSpot`): sai com a mão livre ou com a vassoura, sem a varrida. Antes contava escondido em "Varra a poeira, os papéis e os cacos" (7/8 sem nada à vista).
 - **Fala sem tampar quem fala:** com a personagem na parte de baixo da tela (pés abaixo de 250 px), a caixa de fala abre em cima, abaixo do painel da hora (`.dialogue.top`); decide ao abrir e fica até a conversa acabar.
 - **Miudezas:** a barra de itens sobe um pouco quando a faixa de teclas está visível; a plaquinha do E desce para caber quando o alvo está no alto da tela; "Soltar a caixa aqui" fica acima da cabeça dela (`hintAbovePlayer`).
+
+## 303. Começo mais leve: relógio parado no celular, 3 pedidos por dia, areia na primeira caixa (nov/2026)
+Pedido: do teste de jogador novo, as sugestões de ritmo 4, 6, 7 e 8.
+Decisão:
+- **Relógio:** para também com o celular ou a mochila abertos (`GameUi.pausesClock`); antes só parava em falas, cenas e na pausa ("menus não param o tempo"). O mundo continua se mexendo; a prateleira do mercado e o quadro do cardápio não param o tempo.
+- **Pedidos da vila:** `offersPerDay: 3` em `data/jobs.json`. Dos pedidos de todo dia que valem hoje, a vila oferece 3, sorteados pela semente do dia (a mesma lista o dia inteiro, outra no dia seguinte), com no máximo 2 da mesma pessoa (`dailyOffers` em `src/core/jobs.ts`). Os esporádicos entram além deles. Antes apareciam os 9 de uma vez. Nos testes o sorteio fica desligado, a não ser que peçam (`loadContent({ jobOffers: true })`).
+- **Primeira caixa de areia:** a primeira do jogo já vem com a areia do dia (`session.place`); sai o passo "Compre areia e encha a caixa" da meta "Tudo que um gatinho precisa" e a Lia avisa que amanhã compra mais. As caixas seguintes vêm vazias, como antes.
+- **Fim do dia 1:** antes de encher a tigela, a Lia avisa que depois vai para casa (`dlg.ready_to_feed`).

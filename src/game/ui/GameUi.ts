@@ -557,9 +557,13 @@ export class GameUi {
   /** Menu de pausa aberto (o mundo para e o relógio também). */
   paused = false;
 
-  /** O relógio para só em falas, cenas, caixa de nome e transições (menus não param o tempo). */
+  /**
+   * O relógio para em falas, cenas, caixa de nome e transições, e também com o celular ou a mochila abertos (ler o jornal,
+   * escolher o que comprar e arrumar a mochila não gastam o dia: decisão 303). Os outros painéis (prateleira, quadro do
+   * cardápio) não param o tempo.
+   */
   pausesClock(): boolean {
-    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null || this.paused;
+    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null || this.paused || this.news.isOpen() || this.backpack.isOpen();
   }
 
   isDialogueOpen(): boolean {

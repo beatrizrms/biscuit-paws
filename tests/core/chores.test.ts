@@ -20,6 +20,7 @@ describe('tarefas do dia', () => {
   it('troque a areia da caixa: até ela trocar hoje (a automática não entra)', () => {
     const { session, state } = cafe();
     expect(session.chores().some((c) => c.kind === 'litter')).toBe(false);
+    state.flags['litter.refilled'] = true; // não é a primeira caixa do jogo (essa vem com a areia do dia)
     expect(session.buy('item.litter_box')).toEqual({ ok: true });
     expect(session.place('item.litter_box', [12, 8])).toEqual({ ok: true });
     expect(session.chores().find((c) => c.kind === 'litter')).toMatchObject({ done: false, progress: [0, 1] });
@@ -103,6 +104,43 @@ describe('gato doente sem consulta', () => {
     expect(line()).toMatchObject({ catId: 'cat.first_stray', done: false });
     state.cats['cat.first_stray']!.sickness!.treatment = { days: 3, dosesGiven: 0, lastDoseDay: null };
     expect(line()).toBeUndefined();
+  });
+});
+
+describe('começo mais leve', () => {
+  it('a primeira caixa de areia do jogo vem com a areia do dia; a segunda, vazia', () => {
+    const { session, state } = cafe();
+    expect(session.buy('item.litter_box')).toEqual({ ok: true });
+    expect(session.place('item.litter_box', [12, 8])).toEqual({ ok: true });
+    expect(state.placed.find((p) => p.item === 'item.litter_box')!.refilledOn).toBe(state.day);
+    expect(session.chores().find((c) => c.kind === 'litter')).toMatchObject({ done: true });
+    expect(session.buy('item.litter_box')).toEqual({ ok: true });
+    expect(session.place('item.litter_box', [10, 8])).toEqual({ ok: true });
+    expect(state.placed.filter((p) => p.item === 'item.litter_box')[1]!.refilledOn).toBeUndefined();
+  });
+
+  it('pedidos da vila: 3 de todo dia por dia, no máximo 2 da mesma pessoa, a mesma lista o dia inteiro e outra no dia seguinte', () => {
+    const offers = loadContent({ jobOffers: true });
+    const state = newGameState(500, 'map.cafe_main', 9 * 60);
+    state.flags['has.cat'] = true;
+    state.flags['prologue.done'] = true;
+    state.day = 2;
+    state.story.completed.push('story.prologue_end');
+    const session = new GameSession(offers, state);
+    const daily = () => session.availableJobs().filter((j) => j.repeat === 'daily');
+    const today = daily().map((j) => j.id);
+    expect(today).toHaveLength(3);
+    for (const giver of new Set(daily().map((j) => j.giver))) expect(daily().filter((j) => j.giver === giver).length).toBeLessThanOrEqual(2);
+    expect(daily().map((j) => j.id)).toEqual(today);
+    // Fora do sorteio do dia, não dá para aceitar.
+    const out = Object.values(offers.jobs).find((j) => j.repeat === 'daily' && !today.includes(j.id))!;
+    expect(session.acceptJob(out.id)).toEqual({ ok: false, reason: 'job_unavailable' });
+    const lists = new Set<string>();
+    for (let d = 2; d < 12; d++) {
+      state.day = d;
+      lists.add(daily().map((j) => j.id).sort().join());
+    }
+    expect(lists.size).toBeGreaterThan(3);
   });
 });
 

@@ -34,6 +34,7 @@ describe('arte cheia e vazia (fillTiles)', () => {
 
   it('caixa de areia: vazia até ela trocar a areia no dia', () => {
     const { session, state, put } = cafe();
+    state.flags['litter.refilled'] = true; // não é a primeira caixa do jogo (essa vem com a areia do dia)
     const box = put('item.litter_box', [12, 8]);
     expect(tileOf(session, box.uid)).toBe('litter_box_vazia');
     box.refilledOn = state.day;
