@@ -12,6 +12,7 @@ import { GROOMING, loadSheets } from './assets';
 import { fillBarPart } from './bar';
 import { MiniGameScene } from './MiniGameScene';
 import { touch } from '../touch';
+import { FONT } from '../fonts';
 
 export const GROOMING_SCENE = 'MiniGame.grooming';
 
@@ -344,7 +345,7 @@ export class GroomingScene extends MiniGameScene {
 
   private float(text: string, color: string, x: number, y: number): void {
     const label = this.add
-      .text(x, y, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(x, y, text, { fontFamily: FONT, fontSize: '8px', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     this.tweens.add({ targets: label, y: label.y - 16, alpha: 0, delay: 250, duration: 650, onComplete: () => label.destroy() });

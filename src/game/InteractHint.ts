@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { touch } from './touch';
+import { FONT } from './fonts';
 
 const DEPTH = 99_000; // acima do mundo, abaixo do fantasma de posicionar
 const KEY = 13; // a teclinha "E"
@@ -29,7 +30,8 @@ function glyphNudge(text: Phaser.GameObjects.Text): { x: number; y: number } {
   // Centro da tinta: na horizontal, entre as bordas desenhadas (de -left a right); na vertical, entre o topo e a base.
   const inkX = (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2 / SCALE;
   const inkY = ascent - (top - bottom) / 2;
-  return { x: Math.round((text.width / 2 - inkX) * 4) / 4, y: Math.round((text.height / 2 - inkY) * 4) / 4 };
+  // Em meio pixel do mundo (1 pixel do canvas): o pixel da Monogram não sai da grade.
+  return { x: Math.round((text.width / 2 - inkX) * 2) / 2, y: Math.round((text.height / 2 - inkY) * 2) / 2 };
 }
 
 /**
@@ -46,9 +48,9 @@ export class InteractHint {
 
   constructor(private readonly scene: Phaser.Scene) {
     this.bg = scene.add.graphics();
-    const style = { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontStyle: 'bold', color: INK, resolution: 4 };
-    this.letter = scene.add.text(0, 0, 'E', { ...style, fontSize: '10px' }).setOrigin(0.5, 0.5);
-    this.label = scene.add.text(0, 0, '', { ...style, fontSize: '9px' }).setOrigin(0, 0.5);
+    const style = { fontFamily: FONT, color: INK, resolution: 4 };
+    this.letter = scene.add.text(0, 0, 'E', { ...style, fontSize: '16px' }).setOrigin(0.5, 0.5);
+    this.label = scene.add.text(0, 0, '', { ...style, fontSize: '8px' }).setOrigin(0, 0.5);
     // A de dentro sobe e desce devagar (chama a atenção sem piscar); a de fora fica no lugar do objeto.
     const float = scene.add.container(0, 0, [this.bg, this.letter, this.label]);
     scene.tweens.add({ targets: float, y: -1.5, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });

@@ -106,8 +106,9 @@ ocupada antes de usar.
 
 ## 6. Interface
 
-- **Fontes:** Pixelify Sans nos números (hora, moedas, preços, contadores) e nos títulos, com a variável
-  `--font-pixel`. Nunito no texto corrido. As duas são embutidas.
+- **Fonte:** Monogram em tudo (decisão 302), embutida. Os tamanhos só em degraus: `var(--t1)` (etiquetas e textos
+  curtos), `var(--t2)` (falas e leitura), `var(--t3)` e `var(--t4)` (títulos); `line-height` em 0.875, 1 ou 1.125;
+  sem `letter-spacing` e sem negrito. No Phaser, `FONT` e `monoSize` de `src/game/fonts.ts` (8, 16, 24 ou 32 px).
 - **Cores:** só os tokens de `src/game/ui/theme.css` (`--c-paper`, `--c-wood`, `--c-terra`...). Nunca uma cor solta
   no CSS. O Phaser lê os mesmos tokens por `themeColor`/`themeHex`.
 - **Painel:** fundo papel (`--panel-bg`), borda madeira de 2 px (`--panel-edge`), cantos arredondados e sombra sólida

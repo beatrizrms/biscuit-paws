@@ -1,13 +1,7 @@
 import Phaser from 'phaser';
-// Fontes do jogo, embutidas (funcionam offline): Nunito nos textos, Pixelify Sans nos números e títulos (só o alfabeto latino).
-import '@fontsource/nunito/latin-400.css';
-import '@fontsource/nunito/latin-600.css';
-import '@fontsource/nunito/latin-700.css';
-import '@fontsource/nunito/latin-800.css';
-import '@fontsource/pixelify-sans/latin-500.css';
-import '@fontsource/pixelify-sans/latin-600.css';
 import './ui/theme.css';
 import './ui/ui.css';
+import { applyFontSteps } from './fonts';
 import { BootScene } from './scenes/BootScene';
 import { MainMenuScene } from './scenes/MainMenuScene';
 import { WorldScene } from './scenes/WorldScene';
@@ -137,6 +131,8 @@ function layout(): void {
   stage.style.setProperty('--side-l', `${Math.max(0, Math.floor((bar - insets[0]) / zoom))}px`);
   stage.style.setProperty('--side-r', `${Math.max(0, Math.floor((bar - insets[1]) / zoom))}px`);
   stage.classList.toggle('sides', sides);
+  // A letra em degraus que caem inteiros nos pixels desta tela (fonts.ts).
+  applyFontSteps(zoom);
   Object.assign(screenInfo, { w: window.innerWidth, h: window.innerHeight, zoom, bar, insets, touch: TOUCH_DEVICE, sides });
 }
 

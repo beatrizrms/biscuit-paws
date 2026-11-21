@@ -33,6 +33,7 @@ import { addTileImage } from '../tileArt';
 import { services } from '../services';
 import { loadCatVariants } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { FONT, monoSize } from '../fonts';
 
 export const FAIR_SETUP_SCENE = 'MiniGame.fair_setup';
 
@@ -50,10 +51,10 @@ const PALETTE = { y: 284, w: 76, h: 66, gap: 4 };
 const RULES = { x: 516, y: 52 };
 
 const C = { ok: 0x68ad8a, bad: 0xd9475d, edge: 0x7f4b33, card: 0xfff7e6, pick: 0xe0a94e };
-const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-  fontSize: `${size}px`,
-  fontStyle: bold ? 'bold' : 'normal',
+const textStyle = (size: number, color = '#3b2a32', _bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
+  fontFamily: FONT,
+  fontSize: `${monoSize(size)}px`,
+  fontStyle: 'normal', // a Monogram não tem negrito (o de mentira borra): o destaque fica no tamanho e na cor
   color,
   resolution: 4,
 });

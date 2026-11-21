@@ -16,7 +16,7 @@
 }
 .touch-layer .t-btn {
   position: absolute; pointer-events: auto; touch-action: none; border-radius: 50%; border: 2px solid var(--ink, var(--c-ink));
-  background: color-mix(in srgb, var(--c-sand) 95%, transparent); color: var(--ink, var(--c-ink)); font: bold 9px 'Nunito', 'Trebuchet MS', sans-serif; padding: 0;
+  background: color-mix(in srgb, var(--c-sand) 95%, transparent); color: var(--ink, var(--c-ink)); font: var(--t1) 'Monogram', monospace; padding: 0;
 }
 .touch-layer .t-btn.down { background: var(--c-butter); }
 /* Correr: liga e desliga com um toque (ligado, fica dourado). */
@@ -26,13 +26,13 @@
 .touch-layer .t-btn.t-drink { position: absolute; right: 94px; bottom: 66px; background: var(--c-sand); }
 .touch-layer .t-btn.t-drink[hidden] { display: none; }
 #stage.sides .touch-layer .t-btn.t-drink { bottom: 14px; right: 6px; }
-.touch-layer .t-action { right: 16px; bottom: 18px; width: 70px; height: 70px; font-size: 22px; }
+.touch-layer .t-action { right: 16px; bottom: 18px; width: 70px; height: 70px; font-size: var(--t3); }
 .touch-layer .t-shortcuts { position: absolute; right: 8px; top: 86px; display: flex; flex-direction: column; gap: 5px; }
-.touch-layer .t-small { position: static; width: 48px; height: 28px; border-radius: 9px; font-size: 9px; }
+.touch-layer .t-small { position: static; width: 48px; height: 28px; border-radius: 9px; font-size: var(--t1); }
 /* Nos mini games: só o direcional e o botão de ação. */
 #ui.minigame-on ~ #touch .t-shortcuts, #ui.minigame-on ~ #touch .t-run { display: none; }
 /* Tela cheia: acima do direcional (some quando não dá ou já está em tela cheia). */
-.touch-layer .t-full { position: absolute; left: 14px; bottom: 146px; width: 32px; height: 28px; font-size: 12px; }
+.touch-layer .t-full { position: absolute; left: 14px; bottom: 146px; width: 32px; height: 28px; font-size: var(--t2); }
 .touch-layer .t-full[hidden] { display: none; }
 /* Celular deitado com faixas dos lados (#stage.sides, main.ts; --side-l / --side-r: a largura útil de cada uma, em px do jogo): o
    direcional e os botões saem de cima do jogo. Esquerda: a barra de itens (ui.css) e o direcional; direita: os atalhos,
@@ -42,7 +42,7 @@
 #stage.sides .touch-layer .t-action { --w: min(72px, calc(var(--side-r) - 4px)); width: var(--w); height: var(--w); bottom: 6px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); font-size: min(22px, calc(var(--w) / 3)); }
 #stage.sides .touch-layer .t-shortcuts { --w: min(54px, calc(var(--side-r) - 4px)); top: 8px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); }
 /* Os botões cabem na faixa da direita (no celular com o recorte da câmera, ela fica estreita): nunca por cima do jogo. */
-#stage.sides .touch-layer .t-small { width: min(54px, calc(var(--side-r) - 4px)); height: 30px; font-size: 9.5px; overflow: hidden; }
+#stage.sides .touch-layer .t-small { width: min(54px, calc(var(--side-r) - 4px)); height: 30px; font-size: var(--t2); overflow: hidden; }
 #stage.sides .touch-layer .t-btn.t-run { --w: min(54px, calc(var(--side-r) - 4px)); bottom: auto; top: 256px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); }
 #stage.sides .touch-layer .t-full { --w: min(54px, calc(var(--side-r) - 4px)); left: auto; bottom: auto; top: 220px; right: calc(max(2px, (var(--side-r) - var(--w)) / 2) - var(--side-r)); height: 30px; }
 
@@ -51,7 +51,7 @@
 @media (orientation: portrait) and (pointer: coarse) {
   .rotate-hint {
     position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-    background: var(--c-shadow); color: var(--c-paper); font: bold 18px 'Nunito', 'Trebuchet MS', sans-serif; text-align: center;
+    background: var(--c-shadow); color: var(--c-paper); font: var(--t3) 'Monogram', monospace; text-align: center;
   }
   .rotate-hint p { margin: 0; padding: 0 24px; }
   .rotate-phone {

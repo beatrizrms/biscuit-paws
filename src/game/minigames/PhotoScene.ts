@@ -12,6 +12,7 @@ import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { loadCatVariants } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { FONT, monoSize } from '../fonts';
 
 export const PHOTO_SCENE = 'MiniGame.photo';
 
@@ -33,10 +34,10 @@ const DECOR: { tile: string; at: [number, number] }[] = [
   { tile: 'yard_vaso_baixo_b', at: [0, 9] },
 ];
 
-const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-  fontSize: `${size}px`,
-  fontStyle: bold ? 'bold' : 'normal',
+const textStyle = (size: number, color = '#3b2a32', _bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
+  fontFamily: FONT,
+  fontSize: `${monoSize(size)}px`,
+  fontStyle: 'normal', // a Monogram não tem negrito (o de mentira borra): o destaque fica no tamanho e na cor
   color,
   resolution: 4,
 });

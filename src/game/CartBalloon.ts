@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FONT } from './fonts';
 
 const DEPTH = 98_000; // acima do mundo, abaixo da dica do E
 const ICON_KEY = 'hud_cart_full';
@@ -21,7 +22,7 @@ export class CartBalloon {
   constructor(private readonly scene: Phaser.Scene) {
     this.bg = scene.add.graphics();
     this.icon = scene.add.image(0, 0, '__MISSING').setVisible(false);
-    this.label = scene.add.text(0, 0, '', { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontStyle: 'bold', fontSize: '9px', color: INK, resolution: 4 }).setOrigin(0, 0.5);
+    this.label = scene.add.text(0, 0, '', { fontFamily: FONT, fontSize: '8px', color: INK, resolution: 4 }).setOrigin(0, 0.5);
     this.box = scene.add.container(0, 0, [this.bg, this.icon, this.label]).setDepth(DEPTH).setVisible(false);
     // O ícone é o mesmo do HUD (imagem da interface): carrega na hora, se ainda não estiver no jogo.
     const useIcon = () => {
