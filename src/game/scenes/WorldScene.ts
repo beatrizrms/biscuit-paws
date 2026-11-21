@@ -632,7 +632,8 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       const x = view.sprite.x;
       const y = view.sprite.y - 66;
-      const coin = this.add.image(x - 8, y, 'coin16').setDepth(99_600);
+      // A moeda é 32 x 32 (PixelLab): pela metade, 16 px no mundo, nítida.
+      const coin = this.add.image(x - 8, y, 'coin16').setScale(0.5).setDepth(99_600);
       const label = this.add.text(x + 2, y, `+${price + tip}`, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '10px', color: '#7a4f1c', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0, 0.5).setDepth(99_600);
       this.tweens.add({ targets: [coin, label], y: y - 16, alpha: 0, delay: 500, duration: 900, onComplete: () => (coin.destroy(), label.destroy()) });
       // Moedinhas saltando de quem pagou e, na bebida quente, o vapor subindo (guia de estilo, seção 7).
@@ -4287,7 +4288,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   private coinBurst(x: number, y: number): void {
     for (let i = 0; i < COIN_BURST; i++) {
       const dx = (i - (COIN_BURST - 1) / 2) * 7;
-      const coin = this.add.image(x, y, 'coin16').setScale(0.6).setDepth(99_590);
+      const coin = this.add.image(x, y, 'coin16').setScale(0.25).setDepth(99_590);
       this.tweens.add({ targets: coin, x: x + dx, duration: 520, delay: i * 60 });
       this.tweens.add({ targets: coin, y: y - 12 - (i % 2) * 3, duration: 260, delay: i * 60, ease: 'Quad.easeOut', yoyo: true });
       this.tweens.add({ targets: coin, alpha: 0, delay: 420 + i * 60, duration: 200, onComplete: () => coin.destroy() });

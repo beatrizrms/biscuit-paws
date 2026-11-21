@@ -188,7 +188,7 @@ export class ShopPanel {
 }
 
 /** A moeda do HUD, ao lado do preço (o preço não se confunde com a quantidade). */
-const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_16.png" alt="" />';
+const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_32.png" alt="" />';
 
 /** Ícone do item na loja: a imagem própria (iconImage) ou o da folha de ícones. */
 /** Ingrediente que rende mais de uma dose (a dúzia de ovos, o pacote de farinha): "rende 12" ao lado do nome. */
