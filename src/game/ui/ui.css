@@ -927,7 +927,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .phone-status .p-signal { height: 6px; image-rendering: pixelated; filter: brightness(0.45); }
 /* Saldo na barra do celular (o celular cobre as moedas do HUD) */
 .phone-status .p-money { display: flex; align-items: center; gap: 2px; padding: 0 4px; border-radius: 4px; background: var(--c-paper); color: var(--wood4); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
-.phone-status .p-money img { width: 7px; height: 7px; image-rendering: pixelated; }
+.phone-status .p-money img { width: 8px; height: 8px; image-rendering: pixelated; }
 .phone-bar { display: flex; align-items: center; gap: 4px; padding: 2px 4px 4px; border-bottom: 1px solid var(--cream3); }
 .phone-bar h2 { flex: 1; margin: 0; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--wood4); }
 .phone-bar button { border: none; background: none; font: inherit; font-size: max(calc(11px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1; padding: 1px 4px; color: var(--pink3); cursor: pointer; border-radius: 4px; }
@@ -990,8 +990,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .yield { margin-left: 4px; padding: 0 3px; border-radius: 5px; background: var(--c-paper2); color: var(--c-wood-dark); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; white-space: nowrap; }
 .m-card .yield { margin: 0; }
 .m-price { display: flex; align-items: center; gap: 2px; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; color: var(--wood4); }
-.m-price .coin { width: 7px; height: 7px; image-rendering: pixelated; }
-.m-hint .coin { width: 7px; height: 7px; margin: 0 1px; image-rendering: pixelated; vertical-align: -1px; }
+.m-price .coin { width: 8px; height: 8px; image-rendering: pixelated; }
+.m-hint .coin { width: 8px; height: 8px; margin: 0 1px; image-rendering: pixelated; vertical-align: -1px; }
 .m-owned { font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.2; text-align: center; color: var(--mint3); }
 .m-owned.coming { color: var(--c-ink3); }
 .m-refund { padding: 0 4px; font: inherit; font-size: max(calc(6px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--wood3); background: var(--cream); border: 1px solid var(--cream3); border-radius: 4px; cursor: pointer; }
@@ -1430,7 +1430,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-profit { color: var(--c-green-dark); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
 .catalog.menu-board .m-money { color: var(--c-green-dark); font-weight: bold; }
 /* Receita aberta (visual): a conta da despensa com ícones, a faixa do premium, etiquetas e o lucro. */
-.catalog.menu-board .coin-img { width: 7px; height: 7px; margin-right: 1px; image-rendering: pixelated; vertical-align: -1px; }
+.catalog.menu-board .coin-img { width: 8px; height: 8px; margin-right: 1px; image-rendering: pixelated; vertical-align: -1px; }
 .catalog.menu-board .m-coins { display: inline-flex; align-items: center; white-space: nowrap; }
 .catalog.menu-board .m-calc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .catalog.menu-board .m-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border-radius: 8px; background: var(--c-paper); color: var(--ink); font-weight: bold; cursor: pointer; }
@@ -1448,7 +1448,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .catalog.menu-board .m-foot { display: flex; align-items: center; gap: 4px; }
 .catalog.menu-board .m-foot .m-profit { flex: 1; }
 .catalog.menu-board .m-foot button { align-self: auto; }
-.catalog.menu-board .b-price .coin-img { width: 6px; height: 6px; }
+.catalog.menu-board .b-price .coin-img { width: 8px; height: 8px; }
 
 /* Os passos extras da meta (os preparativos da inauguração): um bloco embaixo, com título, marca "1 por dia" / "hoje ✓". */
 .hud-goals .g-extras { margin: 6px 0 2px; padding-top: 4px; border-top: 1px dashed var(--c-sand); font-size: max(calc(6.5px * var(--fs, 1)), var(--fs-min, 0px)); letter-spacing: 0.04em; color: var(--c-ink3); }

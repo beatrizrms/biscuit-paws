@@ -64,7 +64,7 @@ export class NewsPanel {
     this.phoneEl.style.borderImage = `url(${phone.frame}) ${slice.join(' ')} / ${slice.map((n) => `${n}px`).join(' ')} stretch`;
     this.phoneEl.style.borderWidth = slice.map((n) => `${n}px`).join(' ');
     this.phoneEl.innerHTML = `<div class="phone-screen">
-        <div class="phone-status"><span class="p-clock"></span><span class="p-money" title="${uiText.phoneApp.balance}"><img src="assets/ui/hud/ui_coin_16.png" alt="" /><b></b></span><img class="p-signal" src="${phone.status}" alt="" /></div>
+        <div class="phone-status"><span class="p-clock"></span><span class="p-money" title="${uiText.phoneApp.balance}"><img src="assets/ui/hud/ui_coin_32.png" alt="" /><b></b></span><img class="p-signal" src="${phone.status}" alt="" /></div>
         <header class="phone-bar"><button class="p-back" title="${uiText.phoneApp.back}">‹</button><h2></h2><button class="p-close" title="${uiText.phoneApp.close}">✕</button></header>
         <div class="phone-body"></div>
       </div>`;

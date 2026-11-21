@@ -17,7 +17,7 @@ type Tab = (typeof TABS)[number];
 /** Moedas com uma casa só quando precisa (2,3; 12). */
 const coins = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
 /** A moeda do HUD ao lado de todo preço. */
-const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_16.png" alt="" />';
+const COIN = '<img class="coin-img" src="assets/ui/hud/ui_coin_32.png" alt="" />';
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
 export class MenuBoardPanel {

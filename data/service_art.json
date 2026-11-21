@@ -329,13 +329,13 @@
     "assets/ui/hud/ui_progress_bar_7.png",
     "assets/ui/hud/ui_progress_bar_8.png"
   ],
-  "coin": "assets/ui/hud/ui_coin_16.png",
+  "coin": "assets/ui/hud/ui_coin_32.png",
   "review": {
-    "_comment": "Avaliação de quem sai (PixelLab, 24 x 24, desenhada em meia escala): carinha feliz (stars >= happyFrom, sem desistir) ou triste, e a estrela repetida uma vez por ponto da nota. gap: espaço entre os ícones (px do jogo).",
-    "happy": "assets/ui/hud/ui_review_happy.png",
-    "sad": "assets/ui/hud/ui_review_sad.png",
-    "star": "assets/ui/hud/ui_review_star.png",
-    "scale": 0.5,
+    "_comment": "Avaliação de quem sai (PixelLab, 32 x 32, desenhada a 0,375: 12 px no mundo, o tamanho de antes): carinha feliz (stars >= happyFrom, sem desistir) ou triste, e a estrela repetida uma vez por ponto da nota. gap: espaço entre os ícones (px do jogo).",
+    "happy": "assets/ui/hud/ui_review_happy_32.png",
+    "sad": "assets/ui/hud/ui_review_sad_32.png",
+    "star": "assets/ui/hud/ui_review_star_32.png",
+    "scale": 0.375,
     "gap": 1,
     "happyFrom": 3
   },

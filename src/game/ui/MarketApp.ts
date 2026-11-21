@@ -14,7 +14,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 /** Lado da miniatura nos cartões (pixels do jogo). */
 const THUMB = 32;
-const COIN = '<img class="coin" src="assets/ui/hud/ui_coin_16.png" alt="" />';
+const COIN = '<img class="coin" src="assets/ui/hud/ui_coin_32.png" alt="" />';
 
 export interface MarketHost {
   toast(text: string): void;
