@@ -1253,7 +1253,39 @@ Decisão: o texto era centrado pela caixa da fonte (com o espaço de acentos e d
 Pedido: na conversa que convida para a inauguração não ficava claro que era um convite (era a conversa de sempre); as pistas eram vagas ("a Gabi almoça na praça", sem horário, e às 13h40 ela não estava) e quase todas falavam da Gabi.
 Decisão: `openingPrep.invite` (sai `inviteHints`): na conversa que convida, no lugar da fala do dia, ela pergunta (`ask`: "Dia 26 é a inauguração do café! Você vem?"), o amigo responde (`yes`, por amigo) e conta onde e quando achar outro amigo que ela conhece e ainda não convidou (`whereabouts`, com o horário do passeio de cada um; sorteado pelo dia entre os que faltam; `session.inviteTalk`). Nos preparativos, o amigo ainda não convidado passeia todo dia (a pista não falha); os já convidados seguem com `friendWalkChance`.
 
-## 302. Monogram em todo o jogo, em degraus nítidos (nov/2026)
+## 302. Correções do teste de jogador novo (nov/2026)
+Pedido: um teste jogando como quem nunca viu o jogo apontou incoerências e sobreposições nos dois primeiros dias; corrigir as principais.
+Decisão:
+- **Data da introdução:** o celular mostra "Terça-feira, 30 de novembro" (era "Quarta-feira, 24 de dezembro"): o dia seguinte é o Inverno 1 (quarta, "Dezembro" na fala) e o Natal fica no dia 25. O pedido das prateleiras não fala mais em "depois das festas" (ele sai antes do Natal).
+- **Onde se compra:** na tela de novidades, o que não se encomenda pelo celular diz a loja ("Novo no Mercado da Vila": ração, areia; `statsApp.rewardKinds.itemShop`). A regra do que o Market lista virou `marketGroupOf` (`MarketApp.ts`), usada pelo app e pelo aviso.
+- **Nada do que ainda não existe:** o aviso "Ficou sem areia limpa" só sai com caixa de areia no café ou à venda (a queda de higiene e o cocô do dia 2 continuam: são a história); a linha "compre uma varinha" (ou a escova) só entra na lista do dia quando a ferramenta está à venda. O balão em cima do gato continua.
+- **Balde da goteira:** passo próprio na faxina ("Tire o balde da goteira", tag `bucket`), plaquinha "Tirar o balde" e `byHand` na sujeira (`DirtSpot`): sai com a mão livre ou com a vassoura, sem a varrida. Antes contava escondido em "Varra a poeira, os papéis e os cacos" (7/8 sem nada à vista).
+- **Fala sem tampar quem fala:** com a personagem na parte de baixo da tela (pés abaixo de 250 px), a caixa de fala abre em cima, abaixo do painel da hora (`.dialogue.top`); decide ao abrir e fica até a conversa acabar.
+- **Miudezas:** a barra de itens sobe um pouco quando a faixa de teclas está visível; a plaquinha do E desce para caber quando o alvo está no alto da tela; "Soltar a caixa aqui" fica acima da cabeça dela (`hintAbovePlayer`).
+
+## 303. Começo mais leve: relógio parado no celular, 5 pedidos por dia, areia na primeira caixa (nov/2026)
+Pedido: do teste de jogador novo, as sugestões de ritmo 4, 6, 7 e 8.
+Decisão:
+- **Relógio:** para também com o celular ou a mochila abertos (`GameUi.pausesClock`); antes só parava em falas, cenas e na pausa ("menus não param o tempo"). O mundo continua se mexendo; a prateleira do mercado e o quadro do cardápio não param o tempo.
+- **Pedidos da vila:** `offersPerDay: 5` em `data/jobs.json` (começou em 3; na segunda rodada do teste a meta das 205 moedas levou dois dias e uma manhã, com as tardes vazias, e subiu para 5). Dos pedidos de todo dia que valem hoje, a vila oferece 5, sorteados pela semente do dia (a mesma lista o dia inteiro, outra no dia seguinte), com no máximo 2 da mesma pessoa antes de completar com os que sobraram (`dailyOffers` em `src/core/jobs.ts`). Os esporádicos entram além deles. Antes apareciam os 9 de uma vez. Nos testes o sorteio fica desligado, a não ser que peçam (`loadContent({ jobOffers: true })`).
+- **Primeira caixa de areia:** a primeira do jogo já vem com a areia do dia (`session.place`); sai o passo "Compre areia e encha a caixa" da meta "Tudo que um gatinho precisa" e a Lia avisa que amanhã compra mais. As caixas seguintes vêm vazias, como antes.
+- **Fim do dia 1:** antes de encher a tigela, a Lia avisa que depois vai para casa (`dlg.ready_to_feed`).
+
+## 304. Ajustes da segunda rodada do teste de jogador novo (nov/2026)
+Pedido: corrigir os pontos da segunda rodada (do dia 3 aos primeiros clientes).
+Decisão:
+- **Arrumar os caixotes:** os quatro pontos foram para as bancas de frutas e verduras (`pt.crate_*` em `data/jobs.json`); estavam na gôndola de mercearia.
+- **Pedido com mini game:** o cartão diz "10 moedas + bônus" (`news.bonus`): as moedas do pedido são o mínimo e ir bem no jogo rende mais. Errar continua sem moedas (pagar ao errar deixaria repetir o pedido sem concluir para juntar moedas).
+- **Plaquinha do E nos pontos de pedido:** "Pegar", "Entregar", "Varrer" e "Começar" no lugar de "Interagir" (pelo tipo do ponto: gives, takes, sweep, minigame).
+- **Caixa com cafeteira e balcão:** ao posicionar da caixa, o que vai em cima de outro móvel (`placeOn`) sai por último; antes a cafeteira vinha primeiro, não tinha balcão e a fila parava.
+- **Quadro do cardápio:** com ingrediente na mochila, uma linha avisa para guardar na despensa (`menuBoard.inBag`); a barra de itens some com o quadro aberto.
+- **Novidades:** a tela espera o roteiro da cena acabar (`UiHandlers.sceneBusy`); abria entre o "Toc, toc" e a fala da Dona Neusa.
+- **Esperar:** o botão fecha o balão de metas (ficava por cima da cena seguinte).
+- **Plaquinha do E:** se cairia em cima da personagem, sobe para cima da cabeça (`InteractHint.show`, `avoid`).
+- **Textos:** "Capacidade de clientes: 1", "Guardado na despensa. Pacotes: 1.", "+1 moeda", a notícia da neve sem "fim de semana" e a entrega com o horário (9h às 18h).
+- **Ficou como estava:** os botões só com ícone da mochila (decisão anterior), a tela de novidades com muitos itens (já rola, com o "Oba!" fixo), soltar a xícara no chão longe do cliente (é a regra) e a pose de costas ao usar a cafeteira por cima.
+
+## 305. Monogram em todo o jogo, em degraus nítidos (nov/2026)
 Pedido: trocar a Pixelify Sans e a Nunito por uma fonte pixelada; depois de testar Pixel Operator, Monogram e VT323 no jogo, ela escolheu a Monogram em tudo, com os tamanhos ajustados.
 Decisão: a Monogram (datagoblin, CC0, versão `extended`, com acentos) é a única fonte, embutida em `src/game/ui/fonts/`. Ela é uma fonte de grade exata (em 16 px, cada pixel dela é 1 px; maiúscula com 7 de altura, 6 de largura por letra) e só fica nítida quando o pixel dela cai num número inteiro de pixels da tela. Por isso a interface usa só quatro degraus, `--t1` a `--t4`, calculados para a tela de quem joga (`fontSteps` em `src/game/fonts.ts`: zoom inteiro vezes densidade do aparelho, arredondado ao pixel inteiro): `--t1` (etiquetas, onde antes havia 5 a 9 px) dá 8 px do jogo em 1280 x 720 e 10,67 px em 1920 x 1080; `--t2` (falas e leitura, antes 9,5 a 15) dá 16; `--t3` e `--t4` (títulos) dão 24 e 32. No celular, `--t1` fica em 13 px (na tela densa, o meio pixel quase não aparece). As alturas de linha passaram para 0.875, 1 ou 1.125 (linhas inteiras na grade), o espaço entre letras saiu e o negrito também (`font-synthesis: none`: o negrito de mentira borra). Os textos do Phaser usam 8, 16, 24 ou 32 px (`monoSize`: o pixel da fonte cai em 1 a 4 pixels do canvas de 1280). A fonte vale para a página toda e para os botões (antes, a barra de itens saía em Arial). A tecla do E da dica passou para 16 px, com o ajuste de centro (decisão 300) em meio pixel.
 Consequência: em 1280 x 720 as etiquetas ficam menores que com a Nunito, em troca de nitidez; em 1920 x 1080 ficam do mesmo tamanho de antes. Os pacotes @fontsource da Nunito e da Pixelify continuam no package.json, sem uso.

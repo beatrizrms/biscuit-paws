@@ -1,6 +1,6 @@
 // A fonte do jogo: Monogram (datagoblin, CC0), uma fonte pixel de grade exata: em 16 px, cada pixel dela é 1 px (a
 // maiúscula tem 7 de altura e toda letra ocupa 6 de largura). Ela só fica nítida quando o pixel dela cai num número
-// inteiro de pixels da tela; no meio do caminho, o contorno borra (decisão 302).
+// inteiro de pixels da tela; no meio do caminho, o contorno borra (decisão 305).
 
 /** A família, para os textos do Phaser (os da interface vêm do ui.css). */
 export const FONT = 'Monogram, monospace';

@@ -220,7 +220,7 @@ export class MenuBoardPanel {
       <h3>${t.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${tabs}<div class="m-list">${lines}</div>${legend}
       ${off.length ? `<details class="off-season"><summary>${esc(t.offSeason.replace('{n}', String(off.length)))} <span>${esc(offSummary)}</span></summary><ul>${off.map((r) => `<li>${iconHtml(r.icon)}${esc(r.name)} <span>(${esc(seasonLabel(r))})</span></li>`).join('')}</ul></details>` : ''}
-      ${this.dishesHtml()}`;
+      ${this.session.service.ingredientsInBag() > 0 ? `<p class="m-dishes m-in-bag">${esc(uiText.menuBoard.inBag)}</p>` : ''}${this.dishesHtml()}`;
     this.body.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>
       b.addEventListener('click', () => {
         this.tab = b.dataset.tab as Tab;

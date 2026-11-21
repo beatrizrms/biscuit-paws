@@ -1,4 +1,4 @@
-/* A fonte do jogo (decisão 302): Monogram, de datagoblin (CC0). Em 16 px, cada pixel dela é 1 px; os tamanhos vêm em
+/* A fonte do jogo (decisão 305): Monogram, de datagoblin (CC0). Em 16 px, cada pixel dela é 1 px; os tamanhos vêm em
    degraus (--t1 a --t4, fonts.ts) para o pixel dela cair inteiro na tela. Sem negrito nem itálico de mentira. */
 @font-face { font-family: 'Monogram'; src: url('./fonts/monogram-extended.ttf') format('truetype'); font-display: block; }
 html { font-family: 'Monogram', monospace; font-synthesis: none; }
@@ -143,6 +143,9 @@ button, input, select, textarea { font-family: inherit; }
 /* Some durante falas e cenas (a caixa de fala ocupa o mesmo lugar). */
 .dialogue-layer.open ~ .hotbar, .cutscene.open ~ .hotbar { display: none; }
 .hotbar.top { bottom: auto; top: 4px; }
+/* Com a faixa de teclas embaixo (prólogo, posicionar, mover), a barra sobe um pouco: as teclas desenhadas são mais altas
+   que o texto e ficavam encostadas nela. No toque a barra tem o lugar dela (touch.css e as regras de touch-mode). */
+html:not(.touch-mode) #ui:has(> .hint:not(:empty)) > .hotbar:not(.top) { bottom: 22px; }
 .hotbar .slot {
   position: relative;
   width: 22px;
@@ -220,6 +223,8 @@ html.touch-mode .display-pick .slot .key, html.pad-mode .display-pick .slot .key
   padding: 9px 12px 10px;
   font-size: var(--t2);
 }
+/* Com a personagem embaixo na tela, a fala abre em cima (abaixo do painel da hora), para não tampar quem fala. */
+.dialogue.top { bottom: auto; top: 48px; }
 /* O nome de quem fala dentro da caixa, na mesma coluna do texto (antes flutuava na borda, alinhado ao retrato). */
 .dialogue .speaker {
   display: block;
@@ -789,6 +794,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Capacidade no quadro do cardápio */
 .catalog.menu-board .capacity { margin: 4px 0 2px; padding: 4px 6px; font-size: var(--t1); line-height: 1; color: var(--ink); background: var(--cream2); border-radius: 4px; }
+.catalog.menu-board .m-in-bag { color: var(--butter2); }
 .catalog.menu-board .m-dishes { margin: 4px 0 0; color: var(--cream2); font-size: var(--t1); }
 .catalog.menu-board .shopping-add { display: inline-flex; align-items: center; gap: 4px; margin: 3px 0; padding: 2px 6px; font-size: var(--t1); }
 .catalog.shop .list { overflow-x: hidden; }
@@ -1256,6 +1262,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-pantry-slot { opacity: 1; cursor: pointer; }
 /* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */
 #ui:has(.catalog.backpack.open) > .hotbar { display: none; }
+/* O quadro do cardápio também vai até embaixo: a barra de itens ficava por cima da receita aberta. */
+#ui:has(.catalog.menu-board.open) > .hotbar { display: none; }
 .catalog.backpack .bp-pantry .dishes { margin: 4px 0 0; font-size: var(--t1); }
 
 /* Dica de hover (hoverTip.ts): para que serve o item, depois de 3 s com o mouse em cima. */
@@ -1488,7 +1496,7 @@ html.touch-mode .catalog.menu-board .m-row { padding: 5px 6px; }
 .m-card { position: relative; }
 .m-card .m-new { position: absolute; top: 2px; left: 2px; padding: 0 4px; border-radius: 6px; background: var(--c-green-pale); color: var(--c-ink2); font-size: var(--t1); font-weight: bold; }
 
-/* Tipografia: tudo na Monogram (decisão 302); números e títulos com a mesma família, sem negrito (font-synthesis). */
+/* Tipografia: tudo na Monogram (decisão 305); números e títulos com a mesma família, sem negrito (font-synthesis). */
 #ui { --font-pixel: 'Monogram', monospace; }
 #ui .hud-money .clock, #ui .hud-money .amount, #ui .count, #ui .price, #ui .m-price, #ui .b-price, #ui .m-coins,
 #ui .hud-goals h2, #ui .catalog h2, #ui .panel h2, #ui .dialogue .speaker, #ui .m-servings {

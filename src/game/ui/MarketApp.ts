@@ -37,6 +37,18 @@ export interface MarketHost {
 
 type Tab = (typeof uiText.market.tabs)[number];
 
+/**
+ * O grupo do Market em que o item aparece (ou nenhum: não se vende pelo celular). Cada item fica numa aba e num grupo só:
+ * o primeiro que bate (tag, sem as de except), na ordem das abas. As abas da estação (Halloween, Natal) vêm por último na
+ * lista, mas têm a vez primeiro: o enfeite (que também é "decor") fica nelas. A tag online põe no Market o que também se
+ * vende no mercado da vila (o except não vale para ela: a varinha).
+ */
+export function marketGroupOf(tags: readonly string[]): { tag: string; title: string; except?: string[] } | undefined {
+  const seasonalFirst = [...uiText.market.tabs].sort((a, b) => Number('seasonal' in b && !!b.seasonal) - Number('seasonal' in a && !!a.seasonal));
+  const groups: { tag: string; title: string; except?: string[] }[] = seasonalFirst.flatMap((t) => t.groups);
+  return groups.find((g) => tags.includes(g.tag) && (tags.includes('online') || !g.except?.some((x) => tags.includes(x))));
+}
+
 export class MarketApp {
   private tab: string = uiText.market.tabs[0]!.id;
   /** Assistência: o móvel escolhido no café (uid), cujas trocas a aba mostra. */
@@ -141,12 +153,7 @@ export class MarketApp {
   }
 
   private tabHtml(tab: Tab): string {
-    // Cada item fica numa aba e num grupo só: o primeiro que bate (tag, sem as de except), na ordem das abas. As abas da
-    // estação (Halloween, Natal) vêm por último na lista, mas têm a vez primeiro: o enfeite (que também é "decor") fica nelas.
-    const seasonalFirst = [...uiText.market.tabs].sort((a, b) => Number('seasonal' in b && !!b.seasonal) - Number('seasonal' in a && !!a.seasonal));
-    const groups: { tag: string; title: string; except?: string[] }[] = seasonalFirst.flatMap((t) => t.groups);
-    // A tag online põe no Market o que também se vende no mercado da vila (o except não vale para ela: a varinha).
-    const groupOf = (tags: readonly string[]) => groups.find((g) => tags.includes(g.tag) && (tags.includes('online') || !g.except?.some((x) => tags.includes(x))));
+    const groupOf = marketGroupOf;
     // Os móveis fixos do café (armário da despensa, pia) não estão à venda.
     // Famílias (cadeira que gira, balcão que se completa): só a peça principal está à venda.
     const items = Object.values(content.items).filter((i) => !i.deprecated && !i.tags.includes('fixture') && this.session.itemUnlocked(i.id) && !hiddenVariant(content.variants, i.id));

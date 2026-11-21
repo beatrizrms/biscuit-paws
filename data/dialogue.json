@@ -72,6 +72,10 @@
         },
         {
           "speaker": "{player}",
+          "text": "A caixa veio com areia para hoje. Amanhã eu compro mais."
+        },
+        {
+          "speaker": "{player}",
           "text": "Agora, o mais importante: um café sem cafeteira não é café."
         },
         {
@@ -193,6 +197,10 @@
         {
           "speaker": "{player}",
           "text": "Água fresquinha, ração na bolsa. Agora é só encher a tigela."
+        },
+        {
+          "speaker": "{player}",
+          "text": "Depois que ele comer, eu vou para casa. O dia foi longo."
         }
       ]
     },

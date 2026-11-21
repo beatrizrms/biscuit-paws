@@ -83,6 +83,12 @@
             "when": {
               "cleaned": "floor"
             }
+          },
+          {
+            "text": "Tire o balde da goteira",
+            "when": {
+              "cleaned": "bucket"
+            }
           }
         ]
       },
@@ -360,12 +366,6 @@
             "text": "Compre uma caixa de areia",
             "when": {
               "placed": "item.litter_box"
-            }
-          },
-          {
-            "text": "Compre areia e encha a caixa",
-            "when": {
-              "flag": "litter.refilled"
             }
           },
           {

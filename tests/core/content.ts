@@ -64,8 +64,10 @@ export function rawContent(): RawContent {
  * dos testes monta o jogo direto (compra uma mesa num save novo), sem passar pela história. Os testes da história do
  * começo e os do Market aos poucos pedem as etapas.
  */
-export function loadContent(opts: { marketStages?: boolean } = {}): Content {
+export function loadContent(opts: { marketStages?: boolean; jobOffers?: boolean } = {}): Content {
   const raw = rawContent();
+  // Sem o sorteio dos pedidos do dia (jobs.json: offersPerDay), a não ser que peça: os testes aceitam o pedido que querem.
+  if (!opts.jobOffers) raw.jobs = { ...raw.jobs, offersPerDay: undefined };
   if (!opts.marketStages) raw.items = { ...raw.items, marketStages: [] };
   return buildContent(raw);
 }

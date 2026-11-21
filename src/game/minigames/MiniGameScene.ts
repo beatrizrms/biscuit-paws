@@ -200,7 +200,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
   private showResult(r: MiniGameResult): void {
     const t = uiText.minigames;
     const title = r.skipped ? t.skipped : t.outcome[r.outcome];
-    const coins = r.coinsEarned > 0 ? t.coins.replace('{coins}', String(r.coinsEarned)) : t.noCoins;
+    const coins = r.coinsEarned === 1 ? t.coinsOne : r.coinsEarned > 0 ? t.coins.replace('{coins}', String(r.coinsEarned)) : t.noCoins;
     this.renderHud();
     this.overlay(`<h2 class="mg-${r.outcome}">${esc(title)}</h2>${this.resultHtml(r) ?? `<p>${esc(this.resultText(r))}</p>`}<p class="mg-coins">${esc(coins)}</p>
       <button class="menu-btn" data-act="close">${t.continue}</button>`);

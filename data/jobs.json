@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
-  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty, itemId? }; itemId: o pedido da entrega ou o petisco; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia; once = uma vez no jogo; sporadic = só em alguns dias (sorteio pelo dia com a chance de chance), uma vez nesses dias. maxActive: quantos ao mesmo tempo. pt.fair_*: pontos da feira de adoção (data/adoption.json: fair), que não pertencem a nenhum pedido. pt.opening_poster_*: os cartazes da inauguração (business.json: openingPrep), fora de qualquer pedido. pt.basement_find: o \"!\" da porta escondida do porão (depois da ligação da Dona Neusa, com o café vazio), fora de qualquer pedido. pt.arrival_*: pistas das chegadas de gatos (data/arrivals.json), fora de qualquer pedido.",
+  "_comment": "Pedidos da vila (bicos). points: lugares do mapa (E ou clique de perto); action press = apertar, sweep = varrer, minigame = abre um mini game ({ id, difficulty, itemId? }; itemId: o pedido da entrega ou o petisco; o ponto conta se der certo); marker = tile desenhado enquanto pendente; sprite = quadro de emotes.json no lugar da exclamação (a caixa para pegar); gives/takes = item recebido/entregue. jobs: passos com pontos; repeat daily = uma vez por dia; once = uma vez no jogo; sporadic = só em alguns dias (sorteio pelo dia com a chance de chance), uma vez nesses dias. maxActive: quantos ao mesmo tempo. offersPerDay: quantos pedidos de todo dia a vila oferece por dia (sorteio pelo dia, no máximo 2 da mesma pessoa; os esporádicos entram além deles; sem o campo, todos). pt.fair_*: pontos da feira de adoção (data/adoption.json: fair), que não pertencem a nenhum pedido. pt.opening_poster_*: os cartazes da inauguração (business.json: openingPrep), fora de qualquer pedido. pt.basement_find: o \"!\" da porta escondida do porão (depois da ligação da Dona Neusa, com o café vazio), fora de qualquer pedido. pt.arrival_*: pistas das chegadas de gatos (data/arrivals.json), fora de qualquer pedido.",
   "maxActive": 1,
+  "offersPerDay": 5,
   "points": [
     {
       "id": "pt.shelf_1",
@@ -230,7 +231,7 @@
       "id": "pt.crate_apples",
       "map": "map.market",
       "at": [
-        3,
+        12,
         4
       ],
       "action": "press"
@@ -239,7 +240,7 @@
       "id": "pt.crate_greens",
       "map": "map.market",
       "at": [
-        2,
+        12,
         5
       ],
       "action": "press"
@@ -248,7 +249,7 @@
       "id": "pt.crate_bananas",
       "map": "map.market",
       "at": [
-        5,
+        15,
         5
       ],
       "action": "press"
@@ -257,7 +258,7 @@
       "id": "pt.crate_tomatoes",
       "map": "map.market",
       "at": [
-        5,
+        15,
         4
       ],
       "action": "press"
@@ -494,7 +495,7 @@
       "id": "job.market_shelves",
       "title": "Arrumar as prateleiras",
       "giver": "Seu Ademir, do mercado",
-      "description": "Depois das festas, as prateleiras ficaram uma bagunça. Ele paga por uma arrumada.",
+      "description": "As prateleiras do mercado ficaram uma bagunça. Ele paga por uma arrumada.",
       "location": "map.market",
       "reward": 25,
       "repeat": "daily",

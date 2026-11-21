@@ -23,6 +23,7 @@ import { ConsultPanel } from './ConsultPanel';
 import { catSexText, vetLine } from './vetText';
 import { diseaseContagious } from '../../core/health';
 import { Hotbar } from './Hotbar';
+import { marketGroupOf } from './MarketApp';
 import { fillNames } from './text';
 import { services } from '../services';
 import { daysText, workName } from './constructionText';
@@ -30,6 +31,8 @@ import { weatherIconSvg } from './weatherIcons';
 
 /** A coluna de quadros da direita (reputação, energia, clima): onde começa e a distância entre eles (px da interface). */
 const HUD_STACK_TOP = 26;
+/** Pés da personagem abaixo desta altura (px do jogo, de 0 a 360): a caixa de fala, que fica embaixo, taparia ela. */
+const DIALOGUE_TOP_BELOW = 250;
 const HUD_STACK_STEP = 14;
 
 /** A partir de quanto tempo o aviso é "longo" (sobrevive à troca de mapa). */
@@ -59,6 +62,8 @@ export interface UiHandlers {
   onLocateCat(catId: string): boolean;
   /** Uma fala apareceu (npc: quem fala, se é um NPC): a cena vira quem está conversando para a protagonista. */
   onSpeak?(npc: string | undefined): void;
+  /** A cena está no meio de um roteiro (a vizinha batendo à porta, uma visita)? A tela de novidades espera ele acabar. */
+  sceneBusy?(): boolean;
 }
 
 /**
@@ -88,6 +93,8 @@ export class GameUi {
   private hint: HTMLElement;
   private toastEl: HTMLElement;
   private dialogueLayer: HTMLElement;
+  /** Altura dos pés da personagem na tela (px do jogo), do último quadro: decide onde a caixa de fala abre. */
+  private feetY = 0;
   private dialogueBox: HTMLElement;
 
   private dialogueQueue: { speaker: string; text: string; npc?: string }[] = [];
@@ -552,9 +559,13 @@ export class GameUi {
   /** Menu de pausa aberto (o mundo para e o relógio também). */
   paused = false;
 
-  /** O relógio para só em falas, cenas, caixa de nome e transições (menus não param o tempo). */
+  /**
+   * O relógio para em falas, cenas, caixa de nome e transições, e também com o celular ou a mochila abertos (ler o jornal,
+   * escolher o que comprar e arrumar a mochila não gastam o dia: decisão 303). Os outros painéis (prateleira, quadro do
+   * cardápio) não param o tempo.
+   */
   pausesClock(): boolean {
-    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null || this.paused;
+    return this.isDialogueOpen() || this.cutscene.isOpen() || this.naming.isOpen() || this.reveal !== null || this.paused || this.news.isOpen() || this.backpack.isOpen();
   }
 
   isDialogueOpen(): boolean {
@@ -989,7 +1000,7 @@ export class GameUi {
     if (this.unlockTimer !== null) return;
     const tryShow = () => {
       // Espera falas, cenas e janelas fecharem (a tela entra depois, sem atropelar nada).
-      if (this.isBusy()) {
+      if (this.isBusy() || this.handlers.sceneBusy?.()) {
         this.unlockTimer = window.setTimeout(tryShow, 400);
         return;
       }
@@ -1023,7 +1034,9 @@ export class GameUi {
       if (kind === 'costume') return card('<span class="u-glyph">✿</span>', content.costume.pieces.find((p) => p.id === id)?.name ?? id, kinds.costume);
       const item = content.items[id];
       const img = item?.icon ? iconHtml(item.icon, 32) : item ? itemThumbHtml(item, 32) : '';
-      return card(img, item?.name ?? id, kind === 'gift' ? kinds.gift : kinds.item);
+      // O que não se encomenda pelo celular (ração, areia) diz a loja em que se compra: "Novo no Mercado da Vila".
+      const shop = item && !marketGroupOf(item.tags) ? Object.values(content.shops).find((s) => s.items.includes(id)) : undefined;
+      return card(img, item?.name ?? id, kind === 'gift' ? kinds.gift : shop ? kinds.itemShop.replace('{shop}', shop.name) : kinds.item);
     };
     // O motivo: a trilha e o marco ("Clientes atendidos: 50"; sequência: "7 dias seguidos").
     const reason = (m: (typeof ms)[number]) => {
@@ -1092,7 +1105,8 @@ export class GameUi {
       el.classList.toggle('see-through', under && !(el === this.goals && el.classList.contains('open')));
     }
     const root = this.root.getBoundingClientRect();
-    this.hotbar.followPlayer(((feet.y - root.top) / root.height) * 360);
+    this.feetY = ((feet.y - root.top) / root.height) * 360;
+    this.hotbar.followPlayer(this.feetY);
   }
 
   /** Linha da chegada de gato no balão (ou vazio). */
@@ -1597,7 +1611,11 @@ ${rep}`;
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek, uiText.padText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide, uiText.padText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow, uiText.padText.goalsShow);
 
-    this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
+    // Esperar fecha o balão: aberto, ele ficava por cima da cena que vinha depois (a visita, o presente).
+    this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => {
+      this.goals.classList.remove('open');
+      this.handlers.onWait(Number(b.dataset.until));
+    }));
     if (this.news?.isOpen()) this.news.render();
     this.renderHint();
   }
@@ -1791,6 +1809,9 @@ ${rep}`;
     if (this.cutscene?.isOpen() || this.naming?.isOpen()) return; // abre quando elas fecharem
     if (this.inDayTransition) return; // a tela do fim do dia não é interrompida: a fala abre quando ela fechar
     this.closeCatalog();
+    // Ela (e quem conversa com ela) na parte de baixo da tela: a caixa abre em cima, para não tampar quem fala. Decide
+    // ao abrir e fica até a conversa acabar (não pula de lugar no meio).
+    this.dialogueBox.classList.toggle('top', this.feetY > DIALOGUE_TOP_BELOW);
     this.dialogueLayer.classList.add('open');
     this.advanceDialogue();
   }

@@ -58,10 +58,10 @@ export class InteractHint {
   }
 
   /** Mostra em cima do ponto (x, y: o topo do objeto, em pixels do mundo) com o texto da ação, ou esconde (null). */
-  show(at: { x: number; y: number; label: string } | null): void {
+  show(at: { x: number; y: number; label: string } | null, avoid?: { x: number; top: number; bottom: number; halfW: number }): void {
     const view = this.scene.cameras.main.worldView;
     const padOn = touch.mode === 'pad';
-    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.width)},${padOn}` : '';
+    const key = at ? `${Math.round(at.x)},${Math.round(at.y)},${at.label},${Math.round(view.x)},${Math.round(view.y)},${Math.round(view.width)},${padOn},${avoid ? `${Math.round(avoid.x)},${Math.round(avoid.top)}` : ''}` : '';
     if (key === this.key) return;
     this.key = key;
     this.box.setVisible(!!at);
@@ -92,7 +92,11 @@ export class InteractHint {
     const nudge = glyphNudge(this.letter);
     this.letter.setPosition(kx + KEY / 2 + nudge.x, nudge.y);
     this.label.setPosition(kx + KEY + PAD, 0);
-    this.box.setPosition(x, Math.round(at.y - h / 2 - 5));
+    // No alto da tela (a teia do canto), a plaquinha desce para caber inteira em vez de sair cortada.
+    let y = Math.round(at.y - h / 2 - 5);
+    // Em cima da personagem (o alvo está nos pés dela ou logo atrás): a plaquinha sobe para cima da cabeça.
+    if (avoid && x - w / 2 < avoid.x + avoid.halfW && x + w / 2 > avoid.x - avoid.halfW && y + h / 2 + 3 > avoid.top && y - h / 2 < avoid.bottom) y = Math.round(avoid.top - h / 2 - 5);
+    this.box.setPosition(x, Math.max(y, Math.ceil(view.y + h / 2 + EDGE + 2)));
   }
 
   /** Onde a plaquinha está agora (px do mundo), ou null se escondida: o "!" que cair embaixo dela some. */

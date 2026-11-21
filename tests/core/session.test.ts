@@ -72,8 +72,6 @@ function warmCorner(session: GameSession) {
   expect(session.clean('dirt.cat_poop')).toEqual({ ok: true });
   buyAndPlace(session, 'item.litter_box', [11, 9]);
   buyAndPlace(session, 'item.cat_bed', [12, 9]);
-  // O passo "Compre areia e encha a caixa" (a primeira troca de areia).
-  session.state.flags['litter.refilled'] = true;
   session.tickClock(1 / content.dayNight.minutesPerSecond);
 }
 
@@ -188,9 +186,8 @@ describe('começo da história', () => {
     buyAndPlace(session, 'item.cat_bed', [12, 9]);
     expect(titles()).toEqual(['Tudo que um gatinho precisa']);
     buyAndPlace(session, 'item.litter_box', [11, 9]);
-    // Falta encher a caixa com areia.
-    expect(titles()).toEqual(['Tudo que um gatinho precisa']);
-    session.state.flags['litter.refilled'] = true;
+    // A primeira caixa já vem com a areia do dia.
+    expect(session.state.placed.find((p) => p.item === 'item.litter_box')!.refilledOn).toBe(session.state.day);
     session.tickClock(1 / content.dayNight.minutesPerSecond);
     expect(titles()).toEqual(['Uma cafeteira']);
     // A cafeteira e o balcão não cabem no dinheiro: precisa dos pedidos da vila.
@@ -457,7 +454,7 @@ describe('faxina', () => {
     realtorTour(session);
     const webs = session.visibleDirt().filter((d) => d.tags.includes('web'));
     webs.forEach((d) => session.clean(d.id));
-    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false]);
+    expect(session.goals()[0]!.steps.map((s) => s.done)).toEqual([true, false, false]);
     cleanAll(session);
     expect(dialogues().at(-1)).toEqual({ dialogueId: 'dlg.cleaned' });
     expect(session.goals().map((g) => g.title)).toEqual(['Esse miado...']);
@@ -469,6 +466,15 @@ describe('faxina', () => {
     expect(session.clean(bucket, [[8, 9]])).toEqual({ ok: false, reason: 'too_far' });
     expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: true });
     expect(session.clean(bucket, [[9, 7]])).toEqual({ ok: false, reason: 'not_found' });
+    expect(session.dirtAt([8, 5])).toBeUndefined();
+  });
+
+  it('o balde da goteira sai com a mão livre; a poeira continua pedindo a vassoura', () => {
+    const { session } = newSession();
+    session.selectHotbarSlot(-1); // a mão livre
+    expect(session.activeItem()).toBeNull();
+    expect(session.clean('dirt.dust_a')).toEqual({ ok: false, reason: 'needs_broom' });
+    expect(session.clean('dirt.leak_bucket', [[9, 7]])).toEqual({ ok: true });
     expect(session.dirtAt([8, 5])).toBeUndefined();
   });
 

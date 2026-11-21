@@ -62,6 +62,11 @@ export interface JobsData {
   schemaVersion: 1;
   /** Quantos pedidos ao mesmo tempo (1 nos primeiros dias). */
   maxActive: number;
+  /**
+   * Quantos pedidos de todo dia (repeat daily) a vila oferece por dia, sorteados pelo dia (sem o campo: todos). Os
+   * esporádicos e os de uma vez só entram além deles.
+   */
+  offersPerDay?: number;
   points: JobPoint[];
   jobs: JobDef[];
 }
@@ -74,6 +79,30 @@ export function sporadicToday(jobId: string, day: number, chance: number): boole
   let h = 0;
   for (const ch of jobId) h = (h * 31 + ch.charCodeAt(0)) | 0;
   return createRng((h ^ (day * 2654435761)) >>> 0).next() < chance;
+}
+
+/** No máximo quantos pedidos da mesma pessoa entre os oferecidos no dia (enquanto houver de outras). */
+const OFFERS_PER_GIVER = 2;
+
+/**
+ * Os pedidos de todo dia que a vila oferece neste dia: `count` deles, sorteados com a semente do dia (abrir e fechar o
+ * jogo não muda a lista; o dia seguinte traz outros), com no máximo OFFERS_PER_GIVER da mesma pessoa enquanto houver
+ * de outras. `jobs`: os que valem hoje (a condição de cada um), feitos ou não.
+ */
+export function dailyOffers(jobs: readonly { id: string; giver: string }[], day: number, count: number): Set<string> {
+  const rng = createRng((day * 2654435761) >>> 0);
+  const pool = [...jobs].sort((a, b) => (a.id < b.id ? -1 : 1));
+  // Fisher-Yates com o sorteio do dia.
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+  }
+  const picked: { id: string; giver: string }[] = [];
+  const byGiver = (g: string) => picked.filter((p) => p.giver === g).length;
+  for (const j of pool) if (picked.length < count && byGiver(j.giver) < OFFERS_PER_GIVER) picked.push(j);
+  // Sobrou vaga (quase tudo da mesma pessoa): completa com o que ficou de fora.
+  for (const j of pool) if (picked.length < count && !picked.includes(j)) picked.push(j);
+  return new Set(picked.map((p) => p.id));
 }
 
 /** Notícia do "Vila Hoje": fixa num dia (`day`) ou do sorteio a partir de um dia (`fromDay`). */
@@ -129,6 +158,7 @@ export function validateJobs(
 ): string[] {
   const errors: string[] = [];
   if (!(jobs.maxActive >= 1)) errors.push('jobs: maxActive precisa ser 1 ou mais');
+  if (jobs.offersPerDay !== undefined && !(Number.isInteger(jobs.offersPerDay) && jobs.offersPerDay >= 1)) errors.push('jobs: offersPerDay precisa ser um inteiro >= 1');
   const pointIds = new Set<string>();
   for (const p of jobs.points) {
     const where = `jobs: ponto "${p.id}"`;

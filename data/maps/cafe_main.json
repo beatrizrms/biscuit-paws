@@ -362,12 +362,13 @@
     {
       "id": "dirt.leak_bucket",
       "tile": "dirt_balde_goteira",
+      "byHand": true,
       "at": [
         8,
         5
       ],
       "tags": [
-        "floor"
+        "bucket"
       ]
     },
     {
