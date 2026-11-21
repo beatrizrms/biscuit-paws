@@ -804,35 +804,31 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 
 /* Celular: apps no topo (Vila Hoje, Meus gatos); o mural do mercado não tem apps */
 
-/* App "Meus gatos": ficha com o gato sentado (Cosy Cats, linha "sit"), corações e rotina */
+/* App "Meus gatos": cabeçalho (o gato sentado, nome, jeito e dias, corações), as três barras numa grade
+   (rótulo e barra: começam juntas em qualquer tamanho de fonte) e as linhas de cuidado, cada uma com a bolinha. */
 .news .cat-card { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); }
 .news .cat-sprite { flex: none; width: 32px; height: 32px; image-rendering: pixelated; background-repeat: no-repeat; background-position: 0 0; animation: cat-sit 0.8s steps(var(--frames)) infinite; }
 @keyframes cat-sit { to { background-position-x: var(--end); } }
 .news .cat-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .news .cat-info strong { font-size: var(--t1); }
-.news .cat-info .personality { font-size: var(--t1); color: var(--grey2); }
-.news .cat-info .hearts { font-size: var(--t1); line-height: 1; letter-spacing: 0; color: var(--cream3); }
-.news .cat-info .hearts .n { font-size: var(--t1); letter-spacing: 0; color: var(--ink2); }
-.news .cat-info .hearts .on { color: var(--pink3); }
 .news .cat-info .routine { font-size: var(--t1); color: var(--ink2); }
-.news .cat-info .fed { color: var(--c-olive); }
-.news .cat-info .hungry { color: var(--c-ink3); }
-
-/* Saúde no "Meus gatos": barra (verde, amarela quando baixa, vermelha doente) e selo de doente */
-.news .cat-info .health { display: flex; align-items: center; gap: 3px; font-size: var(--t1); color: var(--ink2); }
-.news .cat-info .health .label { min-width: 24px; } /* Saúde, Alegria e Higiene: as barras começam juntas */
-.news .cat-info .health .bar { position: relative; width: 70px; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
-.news .cat-info .health .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--c-ink3); }
-.news .cat-info .health .fill.low { background: var(--butter3); }
-.news .cat-info .health .fill.sick { background: var(--c-ink3); }
-.news .cat-info .sick-badge { font-size: var(--t1); color: var(--c-ink3); font-weight: bold; }
-.news .cat-info .repro { font-size: var(--t1); color: var(--c-board-line); }
-.news .cat-info .clinic-badge { font-size: var(--t1); color: var(--c-blue); font-weight: bold; }
-.news .cat-info .dose, .news .cat-info .exam { font-size: var(--t1); font-weight: bold; }
-.news .cat-info .dose.ok, .news .cat-info .exam.ok { color: var(--c-olive); }
-.news .cat-info .dose.due { color: var(--c-terra); }
-.news .cat-info .exam.due { color: var(--c-cafe); }
-.news .cat-info .adoption { font-size: var(--t1); color: var(--c-cafe); }
+.news .cat-card.cat-profile { flex-direction: column; align-items: stretch; gap: 3px; padding: 3px 6px 5px; }
+.news .cc-head { display: flex; align-items: center; gap: 5px; }
+.news .cc-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.news .cc-name { display: flex; flex-direction: column; gap: 1px; }
+.news .cc-name strong { font-size: var(--t2); line-height: 1; }
+.news .cc-name .personality { font-size: var(--t1); color: var(--grey2); }
+.news .cat-info .hearts { font-size: var(--t1); line-height: 1; color: var(--cream3); }
+.news .cat-info .hearts .on { color: var(--pink3); }
+.news .cc-bars { display: grid; grid-template-columns: max-content 1fr; align-items: center; column-gap: 5px; row-gap: 2px; font-size: var(--t1); line-height: 1; color: var(--ink2); }
+.news .cc-bars .bar { position: relative; height: 4px; border-radius: 2px; background: var(--cream3); overflow: hidden; }
+.news .cc-bars .fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--c-olive); }
+.news .cc-bars .fill.low { background: var(--butter3); }
+.news .cc-bars .fill.sick { background: var(--c-terra); }
+.news .cc-rows { display: flex; flex-direction: column; gap: 1px; font-size: var(--t1); line-height: 1; color: var(--ink2); }
+.news .cc-rows .dose { font-weight: normal; }
+.news .cc-rows .dose.ok { color: var(--c-olive); }
+.news .cc-rows .dose.due { color: var(--c-terra); }
 
 /* Consulta na clínica: ficha no centro */
 .catalog.consult { left: 50%; right: auto; top: 40px; bottom: auto; width: 220px; max-height: 276px; overflow-y: auto; transform: translateX(-50%); }
@@ -1311,7 +1307,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .news .cat-info .c-row { --dot: var(--c-ink3); display: flex; align-items: center; gap: 3px; }
 .news .cat-info .c-ic { flex: none; display: grid; place-items: center; width: 10px; height: 10px; border-radius: 50%; font-style: normal; font-size: var(--t1); line-height: 1; color: var(--c-white); background: var(--dot); }
 .news .cat-info .c-ic:has(> span) { background: none; border-radius: 0; }
-.news .cat-info .c-row.sick-badge { --dot: var(--c-ink3); }
+.news .cat-info .c-row.sick-badge { --dot: var(--c-terra); }
 .news .cat-info .c-row.clinic-badge { --dot: var(--c-blue); }
 .news .cat-info .c-row.ok { --dot: var(--c-olive); }
 .news .cat-info .c-row.dose.due { --dot: var(--c-terra); }
@@ -1319,6 +1315,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .news .cat-info .repro.neutered { --dot: var(--c-olive); }
 .news .cat-info .repro.intact { --dot: var(--c-ink3); }
 .news .cat-info .c-row.adoption { --dot: var(--c-cafe); }
+.news .cat-info .c-row.hungry { --dot: var(--c-terra); }
 
 /* Debug: erro de código na tela (main.ts), por cima de tudo; toque fecha. */
 .debug-error { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 1000; max-height: 60vh; overflow: auto; margin: 0; padding: 8px 10px; background: var(--c-white); color: var(--c-terra-dark); border: 2px solid var(--c-terra); border-radius: 6px; font: 11px/1.35 monospace; white-space: pre-wrap; }

@@ -323,19 +323,19 @@ export class NewsPanel {
     return `<span class="c-row ${cls}"><i class="c-ic">${icon}</i><span>${esc(text)}</span></span>`;
   }
 
-  /** "Doente: Febre do Bigode · remédio 2/5" e, embaixo, a dose de hoje (verde: tomou; laranja: falta). */
+  /** "Barriguinha Enrolada" e, embaixo, o remédio: "Remédio 2/5 · tomou hoje" (✓ verde) ou "· falta hoje" (! laranja). */
   private sickHtml(s: NonNullable<CatProfile['sickness']>): string {
     const t = uiText.cats;
     const name = content.health.diseases.find((d) => d.id === s.disease)?.name ?? s.disease;
     if (!s.treatment) return this.row('sick-badge', '!', t.sickUntreated.replace('{disease}', name));
-    const text = t.sickTreated.replace('{disease}', name).replace('{n}', String(s.treatment.dosesGiven)).replace('{days}', String(s.treatment.days));
-    return this.row('sick-badge', iconHtml(content.health.care.bubbles.medicine.icon ?? '', 10), text) + this.doseHtml(s.treatment.dosedToday);
+    return this.row('sick-badge', '!', t.sickTreated.replace('{disease}', name)) + this.doseHtml(s.treatment.dosesGiven, s.treatment.days, s.treatment.dosedToday);
   }
 
-  /** A dose do dia: "Já tomou o remédio hoje" (✓ verde) ou "Falta o remédio de hoje" (! laranja). */
-  private doseHtml(dosedToday: boolean): string {
+  /** O remédio: quantas doses já foram e a de hoje (verde: tomou; laranja: falta). */
+  private doseHtml(given: number, days: number, dosedToday: boolean, label = uiText.cats.medicine): string {
     const t = uiText.cats;
-    return dosedToday ? this.row('dose ok', '✓', t.dosedToday) : this.row('dose due', '!', t.doseDue);
+    const text = `${label.replace('{n}', String(given)).replace('{days}', String(days))} · ${dosedToday ? t.doseOk : t.doseLate}`;
+    return this.row(dosedToday ? 'dose ok' : 'dose due', dosedToday ? '✓' : '!', text);
   }
 
   /** Felicidade e higiene (core/care.ts), do mesmo jeito da barra de saúde; abaixo do "baixo", fica amarela. */
@@ -344,9 +344,13 @@ export class NewsPanel {
     if (!care) return '';
     const t = uiText.cats;
     const cfg = content.health.care;
-    const bar = (label: string, title: string, v: number, low: number) =>
-      `<span class="health" title="${title.replace('{n}', String(v)).replace('{max}', String(cfg.max))}"><span class="label">${label}</span><span class="bar"><span class="fill${v < low ? ' low' : ''}" style="width:${Math.round((v / cfg.max) * 100)}%"></span></span></span>`;
+    const bar = (label: string, title: string, v: number, low: number) => this.bar(label, title.replace('{n}', String(v)).replace('{max}', String(cfg.max)), v / cfg.max, v < low ? ' low' : '');
     return bar(t.happiness, t.happinessTitle, care.happiness, cfg.low.happiness) + bar(t.hygiene, t.hygieneTitle, care.hygiene, cfg.low.hygiene);
+  }
+
+  /** Uma barra da ficha (rótulo e barra; a cor muda com a classe: low amarela, sick vermelha). */
+  private bar(label: string, title: string, ratio: number, cls: string): string {
+    return `<span class="label" title="${title}">${label}</span><span class="bar" title="${title}"><span class="fill${cls}" style="width:${Math.round(ratio * 100)}%"></span></span>`;
   }
 
   /** Ficha do gato: castração (castrado, não castrado ou "não sei ainda"), clínica/cercadinho, remédio e adoção. */
@@ -363,7 +367,7 @@ export class NewsPanel {
       lines.push(this.row('clinic-badge', '✚', text));
     }
     lines.push(this.row(`repro ${p.repro.known}`, '✂', repro));
-    if (p.aftercare) lines.push(this.row('clinic-badge', iconHtml(content.health.care.bubbles.medicine.icon ?? '', 10), t.aftercare.replace('{given}', String(p.aftercare.dosesGiven)).replace('{days}', String(p.aftercare.days))) + this.doseHtml(p.aftercare.dosedToday));
+    if (p.aftercare) lines.push(this.doseHtml(p.aftercare.dosesGiven, p.aftercare.days, p.aftercare.dosedToday, t.aftercare));
     if (p.adoption && p.adoption.reason !== 'in_care') lines.push(this.row('adoption', '⌂', sexed(t.adoption[p.adoption.reason]).replace('{day}', String(p.adoption.readyDay ?? ''))));
     return lines.join('');
   }
@@ -382,15 +386,19 @@ export class NewsPanel {
       const hearts = Array.from({ length: p.maxHearts }, (_, i) => `<span class="heart${i < p.hearts ? ' on' : ''}">♥</span>`).join('');
       const personality = t.personalities[p.personality as keyof typeof t.personalities] ?? p.personality;
       const days = p.daysInCafe === 1 ? t.firstDay : t.days.replace('{n}', String(p.daysInCafe));
-      return `<div class="cat-card" data-cat="${p.id}" title="${esc(t.locate)}">${sprite}<div class="cat-info">
-          <strong>${esc(p.name)}</strong><span class="personality">${esc(personality)}</span>
-          <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts} <b class="n">${p.hearts}/${p.maxHearts}</b></span>
-          <span class="health" title="${t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth))}"><span class="label">${t.health}</span><span class="bar"><span class="fill${p.sickness ? ' sick' : healthLow(content.health, p.health) ? ' low' : ''}" style="width:${Math.round((p.health / p.maxHealth) * 100)}%"></span></span></span>
-          ${this.careBars(p.id)}
-          ${p.sickness ? this.sickHtml(p.sickness) : ''}
-          ${this.clinicLines(p)}
-          <span class="routine"><span class="${p.fedToday ? 'fed' : 'hungry'}">${p.fedToday ? t.fed : t.hungry}</span> · ${esc(days)}</span>
-        </div></div>`;
+      const health = this.bar(t.health, t.healthTitle.replace('{n}', String(p.health)).replace('{max}', String(p.maxHealth)), p.health / p.maxHealth, p.sickness ? ' sick' : healthLow(content.health, p.health) ? ' low' : '');
+      return `<div class="cat-card cat-profile cat-info" data-cat="${p.id}" title="${esc(t.locate)}">
+          <div class="cc-head">${sprite}<div class="cc-id">
+            <span class="cc-name"><strong>${esc(p.name)}</strong><span class="personality">${esc(personality)} · ${esc(days)}</span></span>
+            <span class="hearts" title="${t.heartsTitle.replace('{n}', String(p.hearts)).replace('{max}', String(p.maxHearts))}">${hearts}</span>
+          </div></div>
+          <div class="cc-bars">${health}${this.careBars(p.id)}</div>
+          <div class="cc-rows">
+            ${p.fedToday ? this.row('fed ok', '✓', t.fed) : this.row('hungry', '!', t.hungry)}
+            ${p.sickness ? this.sickHtml(p.sickness) : ''}
+            ${this.clinicLines(p)}
+          </div>
+        </div>`;
     });
     return cards.join('') || `<p class="empty">${t.none}</p>`;
   }
