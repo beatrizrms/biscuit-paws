@@ -3,6 +3,7 @@
 // moedas, gatos e as sequências de bom comportamento. Selos (session.milestoneTracks, src/core/milestones.ts): por
 // trilha, os conquistados com a recompensa, o próximo com a barra e a recompensa só pelo tipo ("Nova receita ?").
 // Só desenha: as contas são do núcleo.
+import { plural } from '../../core/plural';
 import type { GameSession } from '../../core/session';
 import type { StreakId } from '../../core/stats';
 import type { MilestoneDef } from '../../core/milestones';
@@ -108,7 +109,7 @@ export class StatsApp {
     const bars = v.chart
       .map((d) => {
         const h = Math.round((d.served / top) * 100);
-        const title = t.chartDay.replace('{day}', String(d.day)).replace('{n}', String(d.served)) + (d.open ? '' : ` · ${t.closedDay}`);
+        const title = plural(t.chartDay.replace('{day}', String(d.day)).replace('{n}', String(d.served))) + (d.open ? '' : ` · ${t.closedDay}`);
         return `<span class="s-bar${d.open ? '' : ' closed'}" title="${esc(title)}"><i style="height:${d.open ? Math.max(h, d.served ? 6 : 2) : 100}%"></i></span>`;
       })
       .join('');

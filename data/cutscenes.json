@@ -393,7 +393,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Oi, {player}! Tô contando os dias: a inauguração não é no dia 26? Você me prometeu!"
+          "text": "Oi, {player}! Tô contando os dias pra inauguração! Você me prometeu!"
         },
         {
           "type": "text",
@@ -428,7 +428,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Oi, {player}! O dia 26 tá chegando, e você prometeu a inauguração!"
+          "text": "Oi, {player}! E a inauguração? Você prometeu!"
         },
         {
           "type": "text",
@@ -463,7 +463,7 @@
         {
           "type": "text",
           "speaker": "Gabi",
-          "text": "Oi, {player}! Tudo pronto para o dia 26? Mal posso esperar!"
+          "text": "Oi, {player}! Tudo pronto para a inauguração? Mal posso esperar!"
         },
         {
           "type": "text",

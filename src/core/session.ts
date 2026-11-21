@@ -2137,7 +2137,7 @@ export class GameSession {
 
   /** Notícias do dia no "Vila Hoje". */
   news(): NewsItem[] {
-    return newsForDay(this.content.news, this.state.day);
+    return newsForDay(this.content.news, this.state.day, this.seasonDay().season);
   }
 
   /** A dica de hoje da Cartilha do gato (Vila Hoje). */
@@ -3024,7 +3024,7 @@ export class GameSession {
     const cat = this.state.cats[catId];
     if (!cat?.sheltered || cat.sickness) return;
     const cfg = this.content.health;
-    cat.sickness = { disease: disease ?? pickDisease(cfg, this.state.day, catId), since: this.state.day, treatment: null };
+    cat.sickness = { disease: disease ?? pickDisease(cfg, this.state.day, catId, this.seasonDay().season), since: this.state.day, treatment: null };
     cat.health = Math.min(cat.health, cfg.sickHealth);
     this.bus.emit('cat.sick', { catId, disease: cat.sickness.disease });
   }
@@ -3441,7 +3441,7 @@ export class GameSession {
     if (!inv || !prep || prep.inviteDay !== this.state.day || prep.invited.at(-1) !== npc) return null;
     const left = Object.keys(inv.whereabouts).filter((f) => f !== npc && !prep.invited.includes(f) && this.friendKnown(f));
     const pick = left.length > 0 ? left[createRng(cellHash(this.state.day, npc.length * 31 + prep.invited.length)).int(0, left.length - 1)]! : null;
-    return { ask: inv.ask, yes: inv.yes[npc] ?? inv.yesDefault, hint: pick ? `${inv.whereabouts[pick]} ${inv.hintEnd}` : null };
+    return { ask: inv.late && this.state.day >= inv.late.fromDay ? inv.late.ask : inv.ask, yes: inv.yes[npc] ?? inv.yesDefault, hint: pick ? `${inv.whereabouts[pick]} ${inv.hintEnd}` : null };
   }
 
 

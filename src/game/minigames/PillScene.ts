@@ -2,6 +2,7 @@
 // Passo 1: segurar e arrastar a pasta por cima do comprimido até cobrir (a cobertura aparece em %).
 // Passo 2: oferecer (E, Espaço ou o botão) quando ele estiver distraído (de costas); atento (de frente, "!"), ele
 // desconfia. A regra (cobertura, humor, desconfiança) mora em src/core/pill.ts; aqui só se desenha.
+import { plural } from '../../core/plural';
 import Phaser from 'phaser';
 import type { MiniGameResult } from '../../core/minigame';
 import { paramsOf } from '../../core/minigame';
@@ -125,7 +126,7 @@ export class PillScene extends MiniGameScene {
   protected resultText(r: MiniGameResult): string {
     if (r.skipped) return '';
     const t = uiText.minigames.pill;
-    return r.outcome === 'fail' ? t.failed : t.result.replace('{offers}', String(this.s.offers));
+    return r.outcome === 'fail' ? t.failed : plural(t.result.replace('{offers}', String(this.s.offers)));
   }
 
   // ---------- Ações ----------

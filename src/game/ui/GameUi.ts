@@ -1,5 +1,6 @@
 // Interface em HTML por cima do canvas: dinheiro, diário de metas, falas, catálogo e avisos.
 // Só mostra o estado da sessão e repassa os cliques; as regras ficam no core.
+import { plural } from '../../core/plural';
 import { itemThumbHtml } from './thumbs';
 import { keyHintHtml } from './keyHint';
 import { byInput, keyless, touch } from '../touch';
@@ -298,7 +299,7 @@ export class GameUi {
     const op = uiText.opening;
     bus.on('opening.poster', ({ n, total }) => this.toast(op.poster.replace('{n}', String(n)).replace('{total}', String(total)), 2500));
     bus.on('opening.invited', ({ npc, n }) => this.toast(op.invited.replace('{name}', content.npcs[npc]?.name ?? npc).replace('{n}', String(n)).replace('{total}', '3'), 3000));
-    bus.on('opening.bonus', ({ steps, reputation }) => this.toast(steps > 0 ? op.bonus.replace('{n}', String(steps)).replace('{rep}', String(reputation)) : op.bonusNone, 5000));
+    bus.on('opening.bonus', ({ steps, reputation }) => this.toast(steps > 0 ? plural(op.bonus.replace('{n}', String(steps)).replace('{rep}', String(reputation))) : op.bonusNone, 5000));
     bus.on('heavy.stored', ({ itemId }) => {
       const to = content.items[itemId]?.storesAs;
       this.toast(s.stored.replace('{name}', content.items[to?.item ?? itemId]?.name ?? '').replace('{qty}', String(to?.qty ?? 1)));
@@ -391,7 +392,7 @@ export class GameUi {
     const pet = uiText.pet;
     const itemName = (id: string) => content.items[id]?.name ?? '';
     bus.on('pet.loaded', ({ itemId, days }) => this.toast(pet.loaded.replace('{name}', itemName(itemId)).replace('{days}', String(days)), 3500));
-    bus.on('pet.low', ({ itemId, days }) => this.toast((days > 0 ? pet.low : pet.empty).replace('{name}', itemName(itemId)).replace('{days}', String(days)), 4500));
+    bus.on('pet.low', ({ itemId, days }) => this.toast(plural((days > 0 ? pet.low : pet.empty).replace('{name}', itemName(itemId)).replace('{days}', String(days))), 4500));
     bus.on('litter.missed', () => this.toast(pet.litterMissed, 4500));
     // Save com móveis em conflito no mapa: voltaram para a mochila ao carregar (session.repairPlaced).
     bus.on('save.repaired', ({ itemIds }) => this.toast(uiText.delivery.repairedOnLoad.replace('{names}', [...new Set(itemIds.map(itemName))].join(', ')), 9000));
@@ -1198,7 +1199,7 @@ export class GameUi {
       const visitors = r.setup ? t.visitors.replace('{n}', String(r.setup.visitors)) : r.contest ? t.rank.replace('{n}', String(r.contest.rank)) : r.photo ? t.photo.replace('{n}', String(r.photo.score)) : '';
       return `<li>${esc(t.activity.replace('{game}', game).replace('{outcome}', r.skipped ? t.outcomes.skipped : t.outcomes[r.outcome]) + visitors)}</li>`;
     });
-    if (e.adopted > 0) rows.push(`<li>${esc(t.adopted.replace('{n}', String(e.adopted)))}</li>`);
+    if (e.adopted > 0) rows.push(`<li>${esc(plural(t.adopted.replace('{n}', String(e.adopted))))}</li>`);
     if (e.coins > 0) rows.push(`<li class="gain">${esc(t.coins.replace('{n}', String(e.coins)))}</li>`);
     if (e.reputation > 0) rows.push(`<li class="gain">${esc(t.reputation.replace('{n}', String(e.reputation)))}</li>`);
     const el = document.createElement('div');

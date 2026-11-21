@@ -7,6 +7,7 @@ Novembro de 2026, sobre o main de 13/11 (51d97df).
 
 - `npx tsx scripts/qa/brechas.ts`: cada brecha reproduzida no núcleo, com **ABERTA** ou **fechada**. Rodar depois de cada correção.
 - `npx tsx scripts/qa/jogar-errado.ts <perfil> [dias]`: joga um ano (120 dias) e lista dias com momentos grandes juntos, trechos sem nada para fazer e metas paradas. Log completo em `test-results/qa/<perfil>.json` (fora do Git).
+- `npx tsx scripts/qa/robo-jogadora.ts [--save arquivo] [--ate 60 | --dias N] [--k 8] [--visivel]`: o robô joga no navegador (Playwright), dia a dia, a partir de um save de `scripts/qa/saves/`. Saída em `test-results/qa/robo/<data>/`: `registro.json`, `resumo.txt` e prints das telas novas. Uns 6 minutos por dia de jogo. Ele ainda pula quase todos os mini games e não gasta moedas: serve para achar travas, erros de página e textos fora de lugar, não para medir economia.
   - `parada`: jogo novo, ela não faz nada.
   - `largada`: meio do jogo (depois da inauguração), ela abandona o café.
   - `completa`: tudo liberado; ela só vive os dias.

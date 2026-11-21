@@ -1,6 +1,7 @@
 // Balcão da clínica da Fernanda (E no balcão). Com o gato no colo: a consulta de entrada (testes, castração),
 // a ficha do gato já examinado (castrar, deixar até amanhã, levar), a consulta de doença ou o pontinho inflamado.
 // De mãos livres: buscar quem dormiu na clínica. Quem decide tudo é o núcleo (session -> clinicFlow.ts).
+import { plural } from '../../core/plural';
 import type { GameSession } from '../../core/session';
 import type { ExamResult } from '../../core/clinicFlow';
 import { content, uiText } from '../content';
@@ -9,7 +10,7 @@ import { catSexText, vetLine } from './vetText';
 import { healthLow } from '../../core/health';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-const fill = (s: string, v: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_m, k: string) => String(v[k] ?? ''));
+const fill = (s: string, v: Record<string, string | number>) => plural(s.replace(/\{(\w+)\}/g, (_m, k: string) => String(v[k] ?? '')));
 
 type Mode = { kind: 'sick'; catId: string } | { kind: 'intake'; catId: string } | { kind: 'exam'; catId: string; lines: string[] } | { kind: 'recheck'; catId: string } | { kind: 'pickup'; cats: string[] };
 
@@ -58,7 +59,7 @@ export class ConsultPanel {
         const q = this.session.consultQuote(id);
         if ('problem' in q) return this.onProblem(q.problem);
         this.mode = { kind: 'sick', catId: id };
-      } else if (desk.examined) this.mode = { kind: 'exam', catId: id, lines: [vetLine(this.session, 'intake.hello', {}, id), ...(this.lowImmunity(id) ? [vetLine(this.session, 'intake.lowImmunity', {}, id)] : [])] };
+      } else if (desk.examined) this.mode = { kind: 'exam', catId: id, lines: [vetLine(this.session, 'intake.helloAgain', {}, id), ...(this.lowImmunity(id) ? [vetLine(this.session, 'intake.lowImmunity', {}, id)] : [])] };
       else {
         const q = this.session.consultQuote(id);
         if ('problem' in q) return this.onProblem(q.problem);
@@ -101,7 +102,8 @@ export class ConsultPanel {
       this.onDone(vetLine(s, 'neuter.booked', {}, m.catId));
     } else if (act === 'home' && m.kind === 'exam') {
       this.close();
-      this.onDone(vetLine(s, 'intake.takeHome', {}, m.catId));
+      // Doente: volta para o café, mas fica isolado (não "conhece a turma" ainda).
+      this.onDone(vetLine(s, s.clinic.contagiousSick(m.catId) ? 'intake.takeHomeSick' : 'intake.takeHome', {}, m.catId));
     } else if (act === 'recheck' && m.kind === 'recheck') {
       const r = s.clinicRecheck(m.catId);
       if (!r.ok) return this.onProblem(r.reason);
@@ -167,7 +169,7 @@ export class ConsultPanel {
       if ('problem' in q) return this.close();
       this.body.innerHTML = `
         <p class="patient">${fill(c.intakeTitle, { name })}</p>
-        <p class="vet-line">${esc(vetLine(s, 'intake.hello', {}, m.catId))}</p>
+        <p class="vet-line">${esc(vetLine(s, s.state.cats[m.catId]?.sickness ? 'intake.helloSick' : 'intake.hello', {}, m.catId))}</p>
         <p class="desc">${esc(fill(c.intakeIntro, { name: s.catName(m.catId) }))}</p>
         <div class="bill">
           <span>${c.consultPrice}</span><b>${q.consult} ${cur}</b>

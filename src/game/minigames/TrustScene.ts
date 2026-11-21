@@ -2,6 +2,7 @@
 // Sem cronômetro. Segurar (→, E, Espaço ou o mouse) aproxima devagar; ← se afasta; P dá um petisco.
 // O gato mostra o humor: calmo (sentado, balançando), alerta ("!") e bufando ("Fuzzzz!": costas arqueadas na folha de 64 px; no Cosy, treme e fica vermelho).
 // A regra (tensão, humor, sustos, confiança) mora em src/core/trust.ts; aqui só se desenha.
+import { plural } from '../../core/plural';
 import Phaser from 'phaser';
 import { mapInSeason } from '../../core/calendar';
 import { resolveMap } from '../../core/map';
@@ -156,7 +157,7 @@ export class TrustScene extends MiniGameScene {
     const t = uiText.minigames.trust;
     // O gato do café (que acabou de chegar): a próxima tentativa fica mais fácil, e ela fica sabendo.
     if (r.outcome === 'fail') return this.launch.params.catId ? t.failedSettle : t.failed;
-    return t.result.replace('{scares}', String(this.s.scares));
+    return plural(t.result.replace('{scares}', String(this.s.scares)));
   }
 
   // ---------- Desenho ----------

@@ -121,5 +121,8 @@ describe('app Calendário: só o que já foi apresentado', () => {
     s.state.flags['seen.scr.xmas_santa_draw'] = true;
     s.state.flags['seen.scr.new_year'] = true;
     expect(ids()).toEqual(expect.arrayContaining(['cal.secret_santa', 'cal.new_year', 'cal.inauguration']));
+    // O dia 26 passou sem inauguração: a data sai do calendário (ela inaugura quando tudo estiver pronto).
+    s.state.day = 27;
+    expect(ids()).not.toContain('cal.inauguration');
   });
 });

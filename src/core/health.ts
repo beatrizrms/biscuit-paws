@@ -11,6 +11,8 @@ export interface DiseaseDef {
   description: string;
   /** Passa de gato para gato (tipo gripe): só estas contagiam e, em tratamento, o gato fica isolado da turma. */
   contagious?: boolean;
+  /** Só entra no sorteio nessa estação (ex.: a Fungadinha da Neve, só no inverno). Sem isso, o ano todo. */
+  season?: string;
 }
 
 export interface HealthConfig {
@@ -58,9 +60,11 @@ function rngFor(day: number, catId: string, salt: number) {
   return createRng(cellHash(day, salt) ^ h);
 }
 
-/** Sorteia uma doença da lista. */
-export function pickDisease(cfg: HealthConfig, day: number, catId: string): string {
-  return cfg.diseases[rngFor(day, catId, 11).int(0, cfg.diseases.length - 1)]!.id;
+/** Sorteia uma doença da lista (com a estação dada, só as daquela estação e as do ano todo). */
+export function pickDisease(cfg: HealthConfig, day: number, catId: string, season?: string): string {
+  const inSeason = cfg.diseases.filter((d) => d.season === undefined || season === undefined || d.season === season);
+  const pool = inSeason.length > 0 ? inSeason : cfg.diseases;
+  return pool[rngFor(day, catId, 11).int(0, pool.length - 1)]!.id;
 }
 
 /** Sorteia quantos dias de remédio (entre min e max, inclusive). */
@@ -102,6 +106,7 @@ export function validateHealth(cfg: HealthConfig, refs: { items: ReadonlySet<str
   errors.push(...validateCare(cfg.care));
   if (!(cfg.max > 0) || cfg.start > cfg.max || cfg.sickBelow > cfg.max || cfg.sickHealth >= cfg.sickBelow) err('max, start, sickBelow e sickHealth fora de ordem (sickHealth < sickBelow <= max)');
   if (cfg.diseases.length === 0) err('precisa de pelo menos uma doença');
+  if (cfg.diseases.length > 0 && cfg.diseases.every((d) => d.season !== undefined)) err('precisa de pelo menos uma doença sem estação (que vale o ano todo)');
   const ids = new Set<string>();
   for (const d of cfg.diseases) {
     if (!d.id.startsWith('disease.')) err(`doença "${d.id}" deve começar com "disease."`);

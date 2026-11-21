@@ -817,6 +817,10 @@ describe('lousa da porta (peça fixa)', () => {
     const required = session.goals()[0]!.steps.filter((s) => !s.optional);
     expect(required[0]!.text).toBe('Inaugure o café no dia 26');
     expect(required.filter((s) => !s.done).map((s) => s.text)).toEqual(['Inaugure o café no dia 26']);
+    // Passou do dia 26 sem inaugurar: o passo perde a data e não aparece como feito.
+    session.state.day = 27;
+    const late = session.goals()[0]!.steps[0]!;
+    expect([late.text, late.done]).toEqual(['Inaugure o café', false]);
     session.state.day = 26; // logo depois do Natal
     session.tickClock(2); // o relógio reavalia a história a cada minuto
     expect(session.season()).toBe('winter');
@@ -1041,6 +1045,20 @@ describe('pedidos da vila', () => {
     const a = session.news();
     expect(a).toHaveLength(1);
     expect(session.news()).toEqual(a);
+  });
+
+  it('fora do inverno, o jornal não fala de neve (nem repete a manchete em dias seguidos)', () => {
+    const { session } = afterPrologue();
+    const seen: string[] = [];
+    for (let day = 31; day <= 60; day++) {
+      session.state.day = day;
+      expect(session.seasonDay().season).toBe('spring');
+      const [n] = session.news();
+      expect(n).toBeDefined();
+      expect(`${n!.headline} ${n!.text}`.toLowerCase()).not.toContain('neve');
+      seen.push(n!.id);
+    }
+    for (let i = 1; i < seen.length; i++) expect(seen[i]).not.toBe(seen[i - 1]);
   });
 });
 

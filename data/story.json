@@ -1113,6 +1113,10 @@
         "steps": [
           {
             "text": "Inaugure o café no dia 26",
+            "late": {
+              "fromDay": 27,
+              "text": "Inaugure o café"
+            },
             "when": {
               "all": [
                 {

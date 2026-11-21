@@ -1,5 +1,6 @@
 // Falas da Fernanda sobre a clínica (data/vet_text.json): preenche {cat}, {day}, {days}..., o sexo do gato
 // ({sex:o|a}) e o gênero da protagonista ({g:...}, pelo fillNames).
+import { plural } from '../../core/plural';
 import type { GameSession } from '../../core/session';
 import { sexText } from '../../core/repro';
 import { content } from '../content';
@@ -12,7 +13,7 @@ export function vetLine(session: GameSession, path: string, vars: Record<string,
   const raw = group && typeof group === 'object' ? (group[key] ?? '') : '';
   const sex = catId ? session.state.cats[catId]?.repro?.sex : undefined;
   const withVars = raw.replace(/\{(cat|day|days|aftercare|disease|price|cans)\}/g, (_m, k: string) => (k === 'cat' && catId && vars.cat === undefined ? session.catName(catId) : String(vars[k] ?? '')));
-  return fillNames(session, sex ? sexText(withVars, sex) : withVars.replace(/\{sex:([^|{}]*)\|[^{}]*\}/g, '$1'));
+  return fillNames(session, plural(sex ? sexText(withVars, sex) : withVars.replace(/\{sex:([^|{}]*)\|[^{}]*\}/g, '$1')));
 }
 
 /** Preenche {sex:macho|fêmea} pelo sexo do gato (textos da interface). */

@@ -36,7 +36,7 @@
     { "id": "disease.whisker_fever", "name": "Febre do Bigode", "description": "Os bigodes ficam murchinhos e o nariz, quente." },
     { "id": "disease.purr_hiccups", "name": "Soluço de Ronrom", "description": "O ronrom engasga e vira soluço." },
     { "id": "disease.sleepy_paws", "name": "Patinha Sonolenta", "description": "As patinhas ficam moles e ele só quer dormir." },
-    { "id": "disease.snow_sniffles", "name": "Fungadinha da Neve", "description": "Espirros miúdos de tanto frio na rua.", "contagious": true },
+    { "id": "disease.snow_sniffles", "name": "Fungadinha da Neve", "description": "Espirros miúdos de tanto frio na rua.", "contagious": true, "season": "winter" },
     { "id": "disease.tangled_tummy", "name": "Barriguinha Enrolada", "description": "A barriga ronca e ele recusa a ração." },
     { "id": "disease.dim_meow", "name": "Miado Apagado", "description": "O miado sai fraquinho, quase um sussurro." }
   ],

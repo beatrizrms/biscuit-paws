@@ -45,6 +45,7 @@
     "friendWalkChance": 0.5,
     "invite": {
       "ask": "Dia 26 é a inauguração do café! Você vem?",
+      "late": { "fromDay": 27, "ask": "Vou inaugurar o café! Você vem?" },
       "yes": {
         "npc.gabi": "Claro que vou! Vou levar o Joca e contar pra todo mundo.",
         "npc.neusa": "Ai, que alegria! Pode contar comigo, levo um bolinho.",

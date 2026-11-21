@@ -373,6 +373,11 @@ export interface GoalStep {
   optional?: boolean;
   /** Um por dia (cartazes, convites): o balão marca "1 por dia" e "hoje ✓" quando o de hoje já foi. */
   daily?: boolean;
+  /**
+   * Passo com data marcada que pode passar (a inauguração no dia 26): de fromDay em diante o texto vira este, sem a data,
+   * e o passo só fica feito quando a meta termina.
+   */
+  late?: { fromDay: number; text: string };
   when: Condition;
 }
 
@@ -1300,7 +1305,7 @@ export type VetText = { schemaVersion: 1 } & Record<string, Record<string, strin
 /** As falas que o jogo chama precisam existir. */
 export function validateVetText(t: VetText): string[] {
   const need: Record<string, string[]> = {
-    intake: ['hello', 'tests', 'testsNegative', 'healthy', 'sick', 'neutered', 'earTipped', 'intact', 'tooYoung', 'tooThin', 'tooWeak', 'sickFirst', 'noBeds', 'noSlots', 'stayOvernight', 'takeHome'],
+    intake: ['hello', 'helloSick', 'helloAgain', 'tests', 'testsNegative', 'healthy', 'sick', 'neutered', 'earTipped', 'intact', 'tooYoung', 'tooThin', 'tooWeak', 'sickFirst', 'noBeds', 'noSlots', 'stayOvernight', 'takeHome', 'takeHomeSick'],
     neuter: ['why', 'alreadyNeutered', 'booked', 'delivered', 'deliveredNoPen', 'diapers', 'released', 'aftercare', 'complication', 'complicationFixed', 'missedFeed'],
     discount: ['friend'],
     pickup: ['ready', 'notYet'],

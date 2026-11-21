@@ -45,7 +45,7 @@
     { "id": "cal.inauguration", "title": "Inauguração do café", "day": 26,
       "showWhen": { "beat": "story.enter_bakery" },
       "hideWhen": {
-        "beat": "story.inauguration"
+        "any": [{ "beat": "story.inauguration" }, { "day": { "gte": 27 } }]
       }
     }
   ],

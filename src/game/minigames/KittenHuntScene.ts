@@ -1,6 +1,8 @@
 // Caça ao filhote: a rua da fuga em tela fixa, com esconderijos sorteados. Clique (ou setas + E) para procurar;
 // errou, sobe a dica "quente/frio" em cima do esconderijo, com a cor e o miado mais agudo quanto mais perto.
 // A regra (sorteio, tentativas, calor, resultado) mora em src/core/kittenHunt.ts.
+import { GAME_WIDTH } from '../screen';
+import { plural } from '../../core/plural';
 import Phaser from 'phaser';
 import { heatLevel, huntOutcome, search, setupHunt, type HuntState, type KittenHuntParams } from '../../core/kittenHunt';
 import { mapInSeason } from '../../core/calendar';
@@ -105,10 +107,12 @@ export class KittenHuntScene extends MiniGameScene {
     if (r.skipped) return '';
     const s = this.state;
     if (s.found.length < s.kittens.length) return uiText.minigames.kitten_hunt.lost;
-    return uiText.minigames.kitten_hunt.result
-      .replace('{found}', String(s.found.length))
-      .replace('{total}', String(s.kittens.length))
-      .replace('{used}', String(s.triesUsed));
+    return plural(
+      uiText.minigames.kitten_hunt.result
+        .replace('{found}', String(s.found.length))
+        .replace('{total}', String(s.kittens.length))
+        .replace('{used}', String(s.triesUsed)),
+    );
   }
 
   // ---------- Procurar ----------
@@ -186,6 +190,8 @@ export class KittenHuntScene extends MiniGameScene {
       .text(spot.x, spot.y - spot.displayHeight - 4, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color, stroke: '#3b2a32', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
+    // Esconderijo na borda: o texto não sai da tela.
+    label.x = Phaser.Math.Clamp(label.x, label.width / 2 + 4, GAME_WIDTH - label.width / 2 - 4);
     this.tweens.add({ targets: label, y: label.y - 14, alpha: 0, delay: 700, duration: 600, onComplete: () => label.destroy() });
   }
 
