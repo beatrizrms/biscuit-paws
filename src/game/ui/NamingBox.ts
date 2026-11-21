@@ -23,8 +23,8 @@ export class NamingBox {
         <div class="naming-cat"></div>
         <label>${uiText.naming.prompt}<input name="catName" maxlength="14" autocomplete="off" /></label>
         <div class="naming-buttons">
-          <button type="button" class="another">${uiText.naming.another}</button>
-          <button type="submit" class="confirm">${uiText.naming.confirm}</button>
+          <button type="button" class="menu-btn another">${uiText.naming.another}</button>
+          <button type="submit" class="menu-btn primary confirm">${uiText.naming.confirm}</button>
         </div>
       </form>`;
     root.appendChild(this.el);

@@ -12,18 +12,13 @@
   text-shadow: 0 1px 0 var(--c-ink); animation: menu-blink 1.4s ease-in-out infinite;
 }
 @keyframes menu-blink { 50% { opacity: 0.7; } }
+/* O visual dos botões fica em skin.css (decisão 306); aqui, só tamanho de letra e disposição. */
+.menu-btn { position: relative; font-family: inherit; font-size: var(--t2); }
+.menu-btn.big { flex-direction: column; font-size: var(--t2); }
+.menu-btn.small { font-size: var(--t1); }
+.menu-btn .sub { font-size: var(--t1); color: var(--c-ink3); }
+.menu-btn.primary .sub { color: var(--c-olive-pale); }
 .menu-buttons { display: flex; flex-direction: column; gap: 5px; width: 200px; }
-.menu-btn {
-  position: relative; padding: 4px 10px; border: 2px solid var(--c-board-line); border-radius: 3px;
-  background: var(--c-paper); color: var(--c-board); font: inherit; font-size: var(--t2); cursor: pointer;
-  box-shadow: inset 0 -2px 0 var(--c-sand), 0 2px 0 var(--c-ink);
-}
-.menu-btn.big { display: flex; flex-direction: column; align-items: center; padding: 5px 10px; font-size: var(--t2); font-weight: bold; }
-.menu-btn.small { padding: 1px 7px; font-size: var(--t1); box-shadow: inset 0 -1px 0 var(--c-sand), 0 1px 0 var(--c-ink); }
-.menu-btn .sub { font-size: var(--t1); font-weight: normal; color: var(--c-ink3); }
-.menu-btn:hover, .menu-btn:focus-visible, .menu-btn:focus { outline: none; background: var(--c-paper); border-color: var(--c-ink3); }
-.menu-btn[disabled] { background: var(--c-sand); color: var(--c-ink3); border-color: var(--c-ink3); cursor: default; box-shadow: none; }
-.menu-btn[aria-pressed="false"] { background: var(--c-cafe-pale); }
 .menu-hint { margin: 4px 0 0; font-size: var(--t1); color: var(--c-paper); text-shadow: 0 1px 0 var(--c-ink); }
 /* A dica da Home e o "para começar": as teclas no computador; no toque (html.touch-mode, touch.ts), "toque para escolher"; no controle de
    videogame (html.pad-mode), os botões dele. */
@@ -40,6 +35,10 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .menu-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
 .menu-note { font-size: var(--t1); font-style: italic; color: var(--c-ink3); }
 .menu-slot { padding: 4px 6px; border: 1px solid var(--c-paper3); border-radius: 4px; background: var(--c-paper); }
+/* Texto à esquerda e os botões na mesma faixa, à direita (o slot vazio ocupa uma linha só). */
+.menu-slot { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: center; }
+.menu-slot > :not(.menu-row) { grid-column: 1; }
+.menu-slot > .menu-row { grid-column: 2; grid-row: 1 / span 4; flex-wrap: nowrap; }
 .menu-slot.empty { opacity: 0.85; }
 .menu-slot.corrupt { border-color: var(--c-ink3); background: var(--c-paper); }
 .menu-slot .slot-head { display: flex; gap: 6px; align-items: baseline; }
@@ -64,7 +63,6 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .creator-preview canvas.frame.mannequin { width: 120px; }
 .creator-note { grid-column: 1 / -1; max-width: 150px; margin: 0; font-size: var(--t1); line-height: 1; text-align: center; color: var(--c-wood); }
 .creator-preview .menu-row { gap: 4px; }
-.menu-btn.small { padding: 2px 8px; font-size: var(--t1); min-width: 0; }
 .creator-options { flex: 1; min-width: 0; }
 .creator-name { display: flex; align-items: center; gap: 6px; font-size: var(--t1); font-weight: bold; margin-bottom: 4px; }
 .creator-name input { flex: 1; min-width: 0; font: inherit; font-weight: normal; padding: 2px 5px; border: 1.5px solid var(--c-wood); border-radius: 4px; background: var(--c-paper); color: var(--c-ink); }
@@ -72,24 +70,23 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 /* Ela / Ele: dois botões, o escolhido marcado (como o nome: rótulo à esquerda) */
 .creator-pronoun { display: flex; align-items: center; gap: 4px; font-size: var(--t1); font-weight: bold; margin-bottom: 4px; }
 .creator-pronoun span { margin-right: 2px; }
-.creator-pronoun .menu-btn.small { font-weight: normal; background: var(--c-cafe-pale); color: var(--c-ink3); }
-.creator-pronoun .menu-btn.small.on { background: var(--c-sand); border-color: var(--c-ink3); color: var(--c-olive-dark); font-weight: bold; box-shadow: inset 0 -1px 0 var(--c-olive-light), 0 1px 0 var(--c-ink); }
-.creator-pronoun .menu-btn.small.on::before { content: "✓ "; }
 .creator-row { display: grid; grid-template-columns: 74px 14px 1fr 14px; align-items: center; gap: 2px; font-size: var(--t1); margin: 1px 0; }
 .creator-row .label { color: var(--c-cafe-dark); }
-.creator-row button { font: inherit; color: var(--c-ink); background: var(--c-paper2); border: 1px solid var(--c-terra-light); border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+/* As setas e o valor seguem o secundário (decisão 306), num degrau mais baixo: a sombra de 1 px. */
+.creator-row button { font: inherit; color: var(--c-ink); background: var(--c-paper); border: 1px solid var(--c-wood-light); border-radius: 3px; box-shadow: 0 1px 0 var(--c-wood-light); padding: 1px 2px; cursor: pointer; }
 .creator-row .value { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.creator-row button:focus, .creator-row button:hover { background: var(--c-paper); border-color: var(--c-olive-light); outline: none; }
+.creator-row button:hover { background: var(--c-white); }
+.creator-row button:focus { outline: none; }
+.creator-row button:focus-visible { outline: 1px solid var(--c-butter-dark); outline-offset: 1px; }
+.creator-row button:active { translate: 0 1px; box-shadow: none; }
 .creator-error { min-height: 10px; margin: 2px 0; font-size: var(--t1); color: var(--c-ink3); text-align: center; }
-.menu-btn.primary { background: var(--c-green-pale); }
 
 /* Como jogar: abas (toque, teclado, controle), os comandos em cartões curtos (2 colunas) com as teclas desenhadas e
    os itens da barra numa faixa de etiquetas. Rola se não couber. */
 .menu-panel.howto { max-width: 400px; max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; text-align: left; }
 .menu-panel.howto h2 { text-align: center; }
 .ht-tabs { display: flex; justify-content: center; gap: 3px; }
-.ht-tabs .ht-tab { flex: 1; max-width: 90px; padding: 2px 6px; opacity: 0.7; }
-.ht-tabs .ht-tab.on { opacity: 1; background: var(--c-green-pale); border-color: var(--c-green); font-weight: bold; }
+.ht-tabs .ht-tab { flex: 1; max-width: 90px; padding: 2px 6px; font-size: var(--t1); }
 .ht-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-items: start; }
 .ht-card { padding: 3px 5px 4px; border: 1px solid var(--c-cafe-light); border-radius: 4px; background: var(--c-cafe-pale); }
 .ht-card h3 { margin: 0 0 2px; font-size: var(--t1); text-transform: uppercase; letter-spacing: 0; color: var(--c-cafe); }
@@ -140,15 +137,4 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 }
 @keyframes menu-pulse { 50% { opacity: 0.45; } }
 .menu-home .menu-buttons { width: 180px; gap: 3px; margin-top: 6px; }
-.menu-home .menu-btn.big { padding: 3px 10px; font-size: var(--t2); }
-.menu-home .menu-btn.big {
-  border: 2px solid var(--c-wood); border-radius: 6px; background: var(--c-paper); color: var(--c-wood-dark);
-  box-shadow: inset 0 -2px 0 var(--c-paper3), 0 3px 0 var(--c-wood-dark); transition: translate 0.08s, background 0.08s;
-  font-family: 'Monogram', monospace; font-weight: 600;
-}
-.menu-home .menu-btn.big .sub { font-family: 'Monogram', monospace; }
-.menu-home .menu-btn.big:hover:not([disabled]), .menu-home .menu-btn.big:focus:not([disabled]) {
-  background: var(--c-butter-pale); border-color: var(--c-wood-dark); translate: 0 -1px; box-shadow: inset 0 -2px 0 var(--c-butter), 0 4px 0 var(--c-wood-dark);
-}
-.menu-home .menu-btn.big[disabled] { background: color-mix(in srgb, var(--c-paper2) 85%, transparent); border-color: var(--c-wood-light); color: var(--c-ink3); box-shadow: 0 2px 0 var(--c-wood-light); }
 @media (prefers-reduced-motion: reduce) { .menu-logo, .menu-tap { animation: none; } }

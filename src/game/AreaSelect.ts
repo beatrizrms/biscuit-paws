@@ -58,7 +58,7 @@ export class AreaSelect {
     this.label = document.createElement('div');
     this.label.className = 'area-select-hint';
     const touch = input.mode === 'touch';
-    this.label.innerHTML = `<span></span><b></b><div class="as-buttons"><button class="as-more"></button><button class="as-cancel"></button><button class="as-ok"></button></div>`;
+    this.label.innerHTML = `<span></span><b></b><div class="as-buttons"><button class="menu-btn as-more"></button><button class="menu-btn as-cancel"></button><button class="menu-btn primary as-ok"></button></div>`;
     const hintEl = this.label.querySelector('span') as HTMLElement;
     // No teclado e no controle, as teclas (ou botões) desenhadas (keyHint.ts); no toque, a frase dos botões.
     if (touch) hintEl.textContent = texts.hintTouch;

@@ -5,6 +5,7 @@ import { AUTO_SLOT, MANUAL_SLOTS, type ManualSlot, type SlotId, type SlotStatus 
 import { downloadText, pickTextFile } from '../../../platform/files';
 import { gameInfo, t } from '../../i18n';
 import { services } from '../../services';
+import { icon, type IconName } from '../icons';
 import { confirmBox, esc, menuToast, popLayer, pushLayer, slotName, slotText, type MenuLayer } from './MenuKit';
 
 export interface SlotsHandlers {
@@ -32,15 +33,19 @@ export function openSlots(root: HTMLElement, mode: 'load' | 'new', handlers: Slo
     const backups = Object.fromEntries(await Promise.all(slots.map(async (s) => [s, await saves.hasBackup(s)] as const))) as Record<SlotId, boolean>;
     const card = (slot: SlotId, status: SlotStatus) => {
       const { line, date } = slotText(status);
-      const b = (action: string, label: string, extra = '') => `<button class="menu-btn small" data-action="${action}" data-slot="${slot}" ${extra}>${esc(label)}</button>`;
+      // Com texto (o primário) ou só o ícone, com o nome no title e no aria-label (decisão 306).
+      const b = (action: string, label: string, kind = '', ico?: IconName) =>
+        `<button class="menu-btn small ${kind}" data-action="${action}" data-slot="${slot}">${ico ? icon(ico) : ''}${esc(label)}</button>`;
+      const ib = (action: string, label: string, ico: IconName, kind = '') =>
+        `<button class="menu-btn icon ${kind}" data-action="${action}" data-slot="${slot}" title="${esc(label)}" aria-label="${esc(label)}">${icon(ico)}</button>`;
       const actions: string[] = [];
-      if (mode === 'new') actions.push(b('new', t('slots.useSlot')));
+      if (mode === 'new') actions.push(b('new', t('slots.useSlot'), 'primary'));
       else {
-        if (status.kind === 'ok') actions.push(b('play', t('slots.play')));
-        if (backups[slot]) actions.push(b('restore', t('slots.restore')));
-        if (status.kind === 'ok') actions.push(b('export', t('slots.export')));
-        if (slot !== AUTO_SLOT) actions.push(b('import', t('slots.import')));
-        if (status.kind !== 'empty') actions.push(b('delete', t('slots.delete')));
+        if (backups[slot]) actions.push(ib('restore', t('slots.restore'), 'restore'));
+        if (status.kind === 'ok') actions.push(ib('export', t('slots.export'), 'export'));
+        if (slot !== AUTO_SLOT) actions.push(ib('import', t('slots.import'), 'import'));
+        if (status.kind !== 'empty') actions.push(ib('delete', t('slots.delete'), 'trash', 'danger'));
+        if (status.kind === 'ok') actions.push(b('play', t('slots.play'), 'primary', 'play'));
       }
       return `<div class="menu-slot ${status.kind}">
         <div class="slot-head"><b>${esc(slotName(slot))}</b>${backups[slot] && mode === 'load' ? `<span class="tag">${t('slot.backup')}</span>` : ''}</div>
@@ -77,7 +82,7 @@ export function openSlots(root: HTMLElement, mode: 'load' | 'new', handlers: Slo
       if (await saves.restoreBackup(slot)) menuToast(root, t('slots.restored', { slot: name }));
       await render(slot);
     } else if (action === 'delete') {
-      if (!(await confirmBox(root, t('confirm.delete', { slot: name })))) return;
+      if (!(await confirmBox(root, t('confirm.delete', { slot: name }), true))) return;
       await saves.remove(slot);
       menuToast(root, t('slots.deleted', { slot: name }));
       await render(slot);

@@ -28,7 +28,7 @@ export class ConsultPanel {
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog consult';
-    this.el.innerHTML = `<header><h2>${uiText.consult.title}</h2><button class="close">${uiText.consult.close}</button></header><div class="list"></div>`;
+    this.el.innerHTML = `<header><h2>${uiText.consult.title}</h2><button class="menu-btn small tertiary close">${uiText.consult.close}</button></header><div class="list"></div>`;
     root.appendChild(this.el);
     this.body = this.el.querySelector('.list') as HTMLElement;
     this.title = this.el.querySelector('h2') as HTMLElement;
@@ -153,13 +153,13 @@ export class ConsultPanel {
     if (m.kind === 'sick') return this.renderSick(m.catId);
     if (m.kind === 'pickup') {
       this.body.innerHTML = `<p class="patient">${c.pickupTitle}</p>${m.cats
-        .map((id) => `<button class="pay" data-act="pickup" data-cat="${esc(id)}">${esc(fill(c.pickup, { name: s.catName(id) }))}</button>`)
+        .map((id) => `<button class="menu-btn primary pay" data-act="pickup" data-cat="${esc(id)}">${esc(fill(c.pickup, { name: s.catName(id) }))}</button>`)
         .join('')}`;
       return;
     }
     const name = esc(s.catName(m.catId));
     if (m.kind === 'recheck') {
-      this.body.innerHTML = `<p class="patient">${esc(vetLine(s, 'neuter.complication', {}, m.catId))}</p><button class="pay" data-act="recheck">${c.recheck}</button>`;
+      this.body.innerHTML = `<p class="patient">${esc(vetLine(s, 'neuter.complication', {}, m.catId))}</p><button class="menu-btn primary pay" data-act="recheck">${c.recheck}</button>`;
       return;
     }
     if (m.kind === 'intake') {
@@ -176,7 +176,7 @@ export class ConsultPanel {
           <span class="total">${c.total}</span><b class="total">${q.total} ${cur}</b>
         </div>
         ${q.onCredit ? `<p class="credit">${c.creditNote}</p>` : ''}
-        <button class="pay" data-act="pay-intake">${q.onCredit ? c.payCredit : fill(c.pay, { total: `${q.total} ${cur}` })}</button>`;
+        <button class="menu-btn primary pay" data-act="pay-intake">${q.onCredit ? c.payCredit : fill(c.pay, { total: `${q.total} ${cur}` })}</button>`;
       return;
     }
     // Ficha do gato examinado: o que ela sabe agora e o que fazer.
@@ -204,7 +204,7 @@ export class ConsultPanel {
   // Sem castração a fazer agora (já castrado, novo demais...): o único botão é levar para o café.
   /** Um botão de opção (a fala da Fernanda, acima, já explica o que acontece); `note` só quando ele não dá. */
   private option(act: string, title: string, note = '', disabled = false): string {
-    return `<button class="pay" data-act="${act}"${disabled ? ' disabled' : ''}>${esc(title)}</button>${note ? `<p class="desc note">${esc(note)}</p>` : ''}`;
+    return `<button class="menu-btn primary pay" data-act="${act}"${disabled ? ' disabled' : ''}>${esc(title)}</button>${note ? `<p class="desc note">${esc(note)}</p>` : ''}`;
   }
 
   /** A opção de castrar: à vista (com a conta anterior junto), no fiado ou sem dinheiro. Não opera: sem cartão. */
@@ -244,6 +244,6 @@ export class ConsultPanel {
         <span class="total">${t.total}</span><b class="total">${q.total} ${cur}</b>
       </div>
       ${q.onCredit ? `<p class="credit">${t.credit}</p>` : ''}
-      <button class="pay" data-act="pay-sick">${q.onCredit ? t.payCredit : fill(t.pay, { total: q.total })}</button>`;
+      <button class="menu-btn primary pay" data-act="pay-sick">${q.onCredit ? t.payCredit : fill(t.pay, { total: q.total })}</button>`;
   }
 }

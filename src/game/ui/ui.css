@@ -273,13 +273,7 @@ html.touch-mode .display-pick .slot .key, html.pad-mode .display-pick .slot .key
   margin-bottom: 3px;
 }
 .catalog h2 { margin: 0; font-size: var(--t2); }
-.catalog .close {
-  border: none;
-  background: none;
-  font: inherit;
-  color: var(--pink3);
-  cursor: pointer;
-}
+.catalog .close { font: inherit; }
 .catalog .list { overflow-y: auto; flex: 1; padding-right: 2px; }
 .catalog h3 {
   margin: 5px 0 2px;
@@ -472,17 +466,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
   color: var(--ink);
 }
 .naming-buttons { display: flex; gap: 6px; width: 100%; justify-content: space-between; }
-.naming button {
-  font: inherit;
-  font-size: var(--t1);
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1.5px solid var(--wood3);
-  background: var(--cream2);
-  color: var(--ink);
-  cursor: pointer;
-}
-.naming button.confirm { background: var(--mint2); }
+.naming button { font: inherit; font-size: var(--t1); padding: 3px 8px; }
+/* .naming button.confirm: o visual vem de .menu-btn (decisão 306) */
 
 /* Loja (caixa do mercado): usa o visual do catálogo */
 .catalog.shop { top: 40px; bottom: auto; max-height: 260px; width: 270px; }
@@ -626,20 +611,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .cs-phone.call .accept { background: var(--c-ink3); animation: ring 1.1s ease-in-out infinite; }
 @keyframes ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-6deg); } 40% { transform: rotate(6deg); } 60% { transform: rotate(0); } }
 
-.hud-goals .wait {
-  margin-left: 6px;
-  padding: 1px 6px;
-  border: 1px solid var(--c-ink3);
-  border-radius: 8px;
-  background: var(--c-paper);
-  color: var(--c-ink2);
-  font: inherit;
-  font-size: var(--t1);
-  font-style: normal;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.hud-goals .wait:hover { background: var(--c-olive-pale); }
+.hud-goals .wait { margin-left: 6px; padding: 1px 6px; font: inherit; font-size: var(--t1); font-style: normal; pointer-events: auto; }
+/* .hud-goals .wait:hover: o visual vem de .menu-btn (decisão 306) */
 
 /* Balão: rotina do dia e pedido */
 .hud-goals.empty { display: none; }
@@ -658,8 +631,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .news .job { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: var(--t1); }
 .news .job strong { font-size: var(--t1); }
 .news .job .giver { color: var(--grey2); font-size: var(--t1); }
-.news .job button { align-self: flex-end; margin-top: 2px; padding: 1px 8px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; cursor: pointer; }
-.news .job button:disabled { opacity: 0.5; cursor: default; }
+.news .job button { align-self: flex-end; margin-top: 2px; padding: 1px 8px; font: inherit; }
+/* .news .job button:disabled: o visual vem de .menu-btn (decisão 306) */
 .news .job.active { background: var(--c-paper); }
 .news .job .tag { align-self: flex-end; font-size: var(--t1); font-style: italic; color: var(--c-ink3); }
 .news .empty { font-size: var(--t1); font-style: italic; color: var(--grey2); }
@@ -672,7 +645,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .festival-summary .title { font-weight: bold; font-size: var(--t2); }
 .festival-summary ul { margin: 0; padding: 0; list-style: none; text-align: center; line-height: 1.125; }
 .festival-summary li.gain { color: var(--c-ink2); font-weight: bold; }
-.confirm button { padding: 2px 10px; border: 1px solid var(--cream3); border-radius: 8px; background: var(--cream2); font: inherit; font-size: var(--t1); cursor: pointer; }
+.confirm button { padding: 2px 10px; font: inherit; font-size: var(--t1); }
 /* Quadro de horário (plaquinha da fachada): um mural no centro, moldura de madeira, dois pregos e papel creme. */
 .hours-board { position: relative; width: 190px; padding: 6px; border-radius: 6px; background: var(--wood3, var(--c-cafe)); box-shadow: 0 2px 0 var(--c-wood-dark); }
 .hours-board::before, .hours-board::after { content: ''; position: absolute; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: var(--c-ink2); }
@@ -691,7 +664,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .hb-paper tr.today td { background: var(--cream3, var(--c-paper3)); font-weight: bold; }
 .hb-lunch { margin: 5px 0 0; font-size: var(--t1); color: var(--c-cafe-dark); }
 .hb-close { margin: 6px 0 0; font-size: var(--t1); text-align: center; color: var(--ink2); }
-.confirm .yes { border-color: var(--c-ink3); background: var(--c-paper); color: var(--c-ink2); font-weight: bold; }
+/* .confirm .yes: o visual vem de .menu-btn (decisão 306) */
 
 /* Resumo do dia */
 .day-transition .summary { margin: 6px 0 4px; padding: 0; list-style: none; font-size: var(--t1); text-align: center; color: var(--cream2); }
@@ -720,7 +693,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* O quadro do cardápio mais largo que os outros painéis: ingredientes, troca do premium e lucro sem espremer (decisão 293). */
 .catalog.menu-board { width: 290px; }
 .catalog.menu-board h2 { font-size: var(--t2); color: var(--cream); text-shadow: 0 1px 0 var(--c-shadow); }
-.catalog.menu-board .close { color: var(--pink2); font-size: var(--t1); }
+.catalog.menu-board .close { font-size: var(--t1); }
 .catalog.menu-board h3 { font-size: var(--t1); color: var(--butter2); }
 .catalog.menu-board .recipe { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding: 5px 6px; border-radius: 6px; background: var(--cream2); font-size: var(--t1); }
 .catalog.menu-board .recipe .name { display: flex; align-items: center; gap: 4px; font-size: var(--t2); color: var(--ink); }
@@ -735,7 +708,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.menu-board .recipe .desc { color: var(--ink2); font-size: var(--t1); }
 .catalog.menu-board .recipe .status { font-size: var(--t1); color: var(--c-ink2); }
 .catalog.menu-board .recipe.sold-out .status { color: var(--c-ink3); font-weight: bold; }
-.catalog.menu-board .recipe button { align-self: flex-end; padding: 1px 8px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; cursor: pointer; }
+.catalog.menu-board .recipe button { align-self: flex-end; padding: 1px 8px; font: inherit; }
 .catalog.menu-board .empty { font-size: var(--t1); font-style: italic; color: var(--cream3); }
 .catalog.menu-board .slot-empty { font-style: italic; color: var(--cream3); background: transparent; border: 1px dashed var(--cream3); }
 
@@ -761,13 +734,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog .cart-row .price { display: inline-flex; align-items: center; gap: 2px; margin-right: 6px; font-variant-numeric: tabular-nums; }
 .catalog .cart-row .price .coin-img { width: 8px; height: 8px; image-rendering: pixelated; }
 .catalog .qty { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px; border-radius: 4px; background: var(--cream2); box-shadow: inset 0 0 0 1px var(--wood3); }
-.catalog .qty button, .catalog .cart-row .drop {
-  min-width: 14px; height: 14px; padding: 0 3px;
-  font: inherit; font-weight: bold; line-height: 1;
-  color: var(--ink); background: var(--cream3);
-  border: 1px solid var(--wood3); border-radius: 3px; cursor: pointer;
-}
-.catalog .cart-row .drop { font-weight: normal; font-size: var(--t1); color: var(--pink3); }
+.catalog .qty button, .catalog .cart-row .drop { min-width: 14px; height: 14px; padding: 0 3px; font: inherit; line-height: 1; }
+.catalog .cart-row .drop { font-size: var(--t1); }
 .catalog .qty button:disabled { opacity: 0.35; cursor: default; }
 .catalog .qty .n { min-width: 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .catalog .cart-bar {
@@ -778,11 +746,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog .cart-bar .total { font-weight: bold; }
 .catalog .cart-bar .cart-hint, .catalog .cart-bar .have { font-size: var(--t1); color: var(--ink2); }
 .catalog .cart-bar .missing { flex-basis: 100%; font-size: var(--t1); color: var(--pink3); font-weight: bold; }
-.catalog .cart-bar .pay {
-  margin-left: auto; padding: 2px 8px; font: inherit; font-weight: bold;
-  color: var(--ink); background: var(--mint2); border: 1.5px solid var(--mint3); border-radius: 4px; cursor: pointer;
-}
-.catalog .cart-bar .pay:disabled { opacity: 0.45; cursor: default; }
+.catalog .cart-bar .pay { margin-left: auto; padding: 2px 8px; font: inherit; }
+/* .catalog .cart-bar .pay:disabled: o visual vem de .menu-btn (decisão 306) */
 /* Tecla do atalho (Enter paga) dentro do botão, como uma teclinha. */
 .catalog .cart-bar .pay .key { display: inline-block; margin-left: 3px; padding: 0 2px; border: 1px solid currentColor; border-radius: 2px; font-size: var(--t1); line-height: 1; vertical-align: middle; opacity: 0.85; }
 .catalog .empty { margin: 8px 2px; color: var(--ink2); font-style: italic; }
@@ -804,7 +769,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack { left: 50%; right: auto; top: 34px; bottom: auto; width: 236px; box-sizing: border-box; max-height: calc(100% - 50px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; transform: translateX(-50%); }
 .catalog.backpack .list { overflow: visible; }
 .catalog.backpack .bp-strip { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 4px; margin-bottom: 2px; border-radius: 4px; background: var(--cream2); font-size: var(--t1); }
-.catalog.backpack .bp-strip button { padding: 0 5px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; cursor: pointer; }
+.catalog.backpack .bp-strip button { padding: 0 5px; font: inherit; }
 .catalog.backpack .dishes { display: inline-flex; align-items: center; gap: 4px; }
 .catalog.backpack .vessel { display: inline-flex; align-items: center; gap: 1px; }
 .catalog.backpack .bp-row { display: grid; grid-template-columns: repeat(8, 24px); gap: 3px; }
@@ -825,12 +790,12 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.backpack .bp-detail-text .amount { color: var(--grey2); }
 .catalog.backpack .bp-detail-text .purpose { color: var(--ink2); }
 .catalog.backpack .bp-detail-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.catalog.backpack .bp-detail-actions button { padding: 1px 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: var(--t1); cursor: pointer; white-space: nowrap; }
+.catalog.backpack .bp-detail-actions button { padding: 1px 6px; font: inherit; font-size: var(--t1); white-space: nowrap; }
 .catalog.backpack .bp-detail-actions button:disabled { opacity: 0.5; cursor: default; }
 .catalog.backpack .bp-detail-actions .why { font-size: var(--t1); color: var(--grey2); }
 /* Ações só com ícone (o nome no title): em fileira, quadradinhos; o número pequeno (espaço da barra) do lado. */
 .catalog.backpack .bp-detail-actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
-.catalog.backpack .bp-detail-actions button.bp-icon-btn { display: inline-flex; align-items: center; gap: 1px; padding: 2px; border-radius: 5px; color: var(--c-wood-dark); line-height: 0; }
+.catalog.backpack .bp-detail-actions button.bp-icon-btn { display: inline-flex; align-items: center; gap: 1px; padding: 2px; line-height: 0; }
 .catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon { width: calc(10px * var(--fs, 1)); height: calc(10px * var(--fs, 1)); }
 /* Os ícones com arte (32 x 32 do PixelLab): um pouco maiores, para o desenho aparecer. */
 .catalog.backpack .bp-detail-actions .bp-icon-btn .action-icon.art { width: calc(14px * var(--fs, 1)); height: calc(14px * var(--fs, 1)); image-rendering: pixelated; }
@@ -885,9 +850,9 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .catalog.consult > .list > .desc { margin: 2px 0 4px; font-size: var(--t1); color: var(--ink2); }
 .catalog.consult .options { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin-top: 6px; }
 .catalog.consult .options .pay { margin: 0; }
-.catalog.consult .options .pay:disabled { opacity: 0.5; cursor: default; }
+/* .catalog.consult .options .pay:disabled: o visual vem de .menu-btn (decisão 306) */
 .catalog.consult .options .desc.note { flex-basis: 100%; margin: 0; font-size: var(--t1); text-align: right; color: var(--c-ink2); }
-.catalog.consult .pay { display: block; margin: 6px 0 0 auto; padding: 2px 10px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; cursor: pointer; }
+.catalog.consult .pay { display: block; margin: 6px 0 0 auto; padding: 2px 10px; font: inherit; }
 
 /* Cena com imagem de tela cheia (ex.: a inauguração) */
 .cs-stage .cs-image { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
@@ -970,9 +935,9 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* App Market: abas, cartões com a miniatura do móvel */
 .phone-ui[data-app='market'] .phone-body { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
 .m-tabs { display: flex; flex-wrap: wrap; gap: 1px; padding: 3px 4px; background: var(--cream2); border-bottom: 1px solid var(--cream3); }
-.m-tab { flex: auto; padding: 2px 3px; border: 1px solid transparent; border-radius: 6px; background: none; font: inherit; font-size: var(--t1); font-weight: bold; color: var(--ink2); cursor: pointer; }
-.m-tab:hover { background: var(--cream); }
-.m-tab.on { background: var(--cream); border-color: var(--pink3); color: var(--pink3); }
+.m-tab { flex: auto; padding: 2px 3px; font: inherit; font-size: var(--t1); }
+/* .m-tab:hover: o visual vem de .menu-btn (decisão 306) */
+/* .m-tab.on: o visual vem de .menu-btn (decisão 306) */
 .m-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 7px 8px; }
 .m-online, .m-hint { margin: 3px 0 2px; font-size: var(--t1); font-style: italic; color: var(--ink2); }
 .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
@@ -1007,8 +972,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .m-hint .coin { width: 8px; height: 8px; margin: 0 1px; image-rendering: pixelated; vertical-align: -1px; }
 .m-owned { font-size: var(--t1); line-height: 0.875; text-align: center; color: var(--mint3); }
 .m-owned.coming { color: var(--c-ink3); }
-.m-refund { padding: 0 4px; font: inherit; font-size: var(--t1); color: var(--wood3); background: var(--cream); border: 1px solid var(--cream3); border-radius: 4px; cursor: pointer; }
-.m-refund:hover { border-color: var(--wood3); }
+.m-refund { padding: 0 4px; font: inherit; font-size: var(--t1); }
+/* .m-refund:hover: o visual vem de .menu-btn (decisão 306) */
 .m-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 6px; width: 100%; margin: 0 0 3px; padding: 4px 6px; font: inherit; text-align: left; color: inherit; background: var(--c-paper); border: 1px solid var(--cream3); border-radius: 6px; cursor: pointer; }
 .m-row:hover:not(:disabled) { border-color: var(--wood3); }
 .m-row:disabled { opacity: 0.5; cursor: default; }
@@ -1063,11 +1028,11 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .s-time { display: flex; align-items: center; gap: 5px; margin: 0 0 4px; padding: 3px 6px; border-radius: 6px; background: var(--c-paper); border: 1px solid var(--cream3); }
 .s-time .s-label { flex: 1; font-size: var(--t1); color: var(--ink2); }
 .s-time b { min-width: 30px; text-align: center; font-size: var(--t2); font-variant-numeric: tabular-nums; color: var(--wood4); }
-.s-time button { width: 16px; height: 16px; padding: 0; border: 1px solid var(--cream3); border-radius: 50%; background: var(--cream2); font: inherit; font-size: var(--t2); line-height: 1; color: var(--wood4); cursor: pointer; }
-.s-time button:hover { border-color: var(--wood3); }
+.s-time button { width: 16px; height: 16px; padding: 0; font: inherit; font-size: var(--t2); line-height: 1; }
+/* .s-time button:hover: o visual vem de .menu-btn (decisão 306) */
 /* Almoço: o botão de ligar/desligar ocupa o lugar do rótulo (largo, não redondo). */
-.s-time .s-lunch-toggle { flex: 1; width: auto; height: auto; padding: 2px 6px; border-radius: 5px; font-size: var(--t1); text-align: left; color: var(--grey2); }
-.s-time .s-lunch-toggle[aria-pressed="true"] { background: var(--mint2); border-color: var(--mint3); color: var(--c-ink); }
+.s-time .s-lunch-toggle { flex: 1; width: auto; height: auto; padding: 2px 6px; font-size: var(--t1); justify-content: flex-start; }
+/* .s-time .s-lunch-toggle[aria-pressed="true"]: o visual vem de .menu-btn (decisão 306) */
 .s-summary { margin: 4px 0 2px; font-size: var(--t1); color: var(--ink); }
 
 /* App Calendário */
@@ -1121,8 +1086,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .s-streaks span { font-size: var(--t1); color: var(--ink2); }
 .s-streaks span b { color: var(--mint3); }
 .s-tabs { position: sticky; top: -4px; z-index: 1; display: flex; gap: 3px; margin: 0 -7px 2px; padding: 4px 7px 3px; background: var(--cream); }
-.s-tabs button { flex: 1; padding: 3px 0; border: none; border-radius: 6px; background: var(--c-paper); font: inherit; font-size: var(--t1); color: var(--ink2); cursor: pointer; }
-.s-tabs button.on { background: var(--pink3); color: var(--c-white); font-weight: bold; }
+.s-tabs button { flex: 1; padding: 3px 0; font: inherit; font-size: var(--t1); }
+/* .s-tabs button.on: o visual vem de .menu-btn (decisão 306) */
 .seals .s-track ul { margin: 0; padding: 0; list-style: none; }
 .seals .s-track li { display: flex; flex-direction: column; gap: 1px; margin-bottom: 2px; padding: 3px 6px; border-radius: 4px; background: var(--c-paper); }
 .seals .s-track li b { font-size: var(--t1); color: var(--ink); }
@@ -1190,26 +1155,26 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Cartaz de gato precisando de lar (chegada modelo mural), no mural e no Vila Hoje */
 .news .cat-card.poster { border: 1px dashed var(--pink3); background: var(--c-white); }
 .news .poster-buttons { display: flex; gap: 4px; margin-top: 3px; }
-.news .poster-buttons button { padding: 1px 8px; border: 1px solid var(--pink3); border-radius: 8px; background: var(--cream); color: var(--pink3); font: inherit; font-size: var(--t1); font-weight: bold; cursor: pointer; }
+.news .poster-buttons button { padding: 1px 8px; font: inherit; font-size: var(--t1); }
 
 /* Escolha entre várias opções (dicas dos vizinhos na chegada de gato) */
 .confirm.choose { max-width: 320px; }
 .confirm.choose .options { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-.confirm.choose .options button { padding: 4px 8px; border: 1px solid var(--cream3); border-radius: 6px; background: var(--c-paper); font: inherit; font-size: var(--t1); text-align: left; color: var(--ink); cursor: pointer; }
-.confirm.choose .options button:hover { border-color: var(--wood3); background: var(--c-white); }
+.confirm.choose .options button { padding: 4px 8px; font: inherit; font-size: var(--t1); text-align: left; }
+/* .confirm.choose .options button:hover: o visual vem de .menu-btn (decisão 306) */
 .confirm.choose .options b { color: var(--pink3); margin-right: 3px; }
 
 /* App Market do celular: pedido (como o carrinho do mercado), só compra ao confirmar */
 .m-card.in-order { border-color: var(--pink3); box-shadow: 0 0 0 1px var(--pink3); }
 .m-qty { display: flex; align-items: center; justify-content: center; gap: 3px; font-size: var(--t1); font-weight: bold; color: var(--pink3); }
-.m-less { width: 11px; height: 11px; padding: 0; font: inherit; font-size: var(--t1); line-height: 9px; color: var(--pink3); background: var(--c-white); border: 1px solid var(--pink3); border-radius: 50%; cursor: pointer; }
+.m-less { width: 11px; height: 11px; padding: 0; font: inherit; font-size: var(--t1); line-height: 9px; }
 .m-order { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 4px; padding: 4px 6px; background: var(--cream2); border-top: 1px solid var(--cream3); }
 .m-order-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 5px; font-size: var(--t1); font-weight: bold; }
 .m-order-sum .m-price.short { color: var(--berry); }
 .m-short { flex-basis: 100%; font-size: var(--t1); font-weight: normal; color: var(--berry); }
-.m-order-clear { padding: 2px 4px; font: inherit; font-size: var(--t1); color: var(--ink2); background: none; border: 1px solid var(--cream3); border-radius: 5px; cursor: pointer; }
-.m-order-confirm { padding: 3px 7px; font: inherit; font-size: var(--t1); font-weight: bold; color: var(--c-white); background: var(--pink3); border: 0; border-radius: 6px; box-shadow: 0 1px 0 var(--c-ink3); cursor: pointer; }
-.m-order-confirm:disabled { opacity: 0.45; cursor: default; }
+.m-order-clear { padding: 2px 4px; font: inherit; font-size: var(--t1); }
+.m-order-confirm { padding: 3px 7px; font: inherit; font-size: var(--t1); }
+/* .m-order-confirm:disabled: o visual vem de .menu-btn (decisão 306) */
 
 /* Balão de metas legível: seções, passo da vez em destaque, feitos resumidos, bolinhas e o alerta numa faixa. */
 .hud-goals { max-width: 168px; }
@@ -1249,15 +1214,15 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .area-select-hint b:empty { display: none; }
 .area-select-hint.low { top: auto; bottom: 10%; }
 .area-select-hint .as-buttons { display: flex; gap: 10px; margin-top: 4px; pointer-events: auto; }
-.area-select-hint .as-buttons button { min-width: 92px; min-height: 36px; padding: 4px 14px; border-radius: 8px; border: 2px solid color-mix(in srgb, var(--c-paper) 67%, transparent); background: var(--c-paper); color: var(--c-ink); font: var(--t2) 'Monogram', monospace; touch-action: none; }
-.area-select-hint .as-buttons .as-ok { background: var(--c-butter); }
-.area-select-hint .as-buttons .as-cancel { background: var(--c-sand); }
-.area-select-hint .as-buttons button:disabled { opacity: 0.45; }
+.area-select-hint .as-buttons button { min-width: 92px; min-height: 36px; padding: 4px 14px; font: var(--t2) 'Monogram', monospace; touch-action: none; }
+/* .area-select-hint .as-buttons .as-ok: o visual vem de .menu-btn (decisão 306) */
+/* .area-select-hint .as-buttons .as-cancel: o visual vem de .menu-btn (decisão 306) */
+/* .area-select-hint .as-buttons button:disabled: o visual vem de .menu-btn (decisão 306) */
 
 /* Despensa (armário da cozinha), na mochila: só ver; no armário, o botão de guardar as compras. */
 .catalog.backpack .bp-pantry, .catalog.backpack .bp-box { margin-top: 5px; }
 .catalog.backpack .bp-pantry h3, .catalog.backpack .bp-box h3 { display: flex; align-items: center; gap: 6px; }
-.catalog.backpack .bp-pantry h3 button, .catalog.backpack .bp-box h3 button { padding: 0 6px; border: 1px solid var(--c-ink3); border-radius: 8px; background: var(--c-paper); color: var(--c-ink2); font: inherit; font-size: var(--t1); cursor: pointer; }
+.catalog.backpack .bp-pantry h3 button, .catalog.backpack .bp-box h3 button { padding: 0 6px; font: inherit; font-size: var(--t1); }
 .catalog.backpack .bp-pantry h3 .why { font-size: var(--t1); font-weight: normal; color: var(--grey2); }
 .catalog.backpack .bp-pantry-slot { opacity: 1; cursor: pointer; }
 /* Com a mochila aberta, a barra de baixo some: a mochila já mostra a barra em cima, e a despensa (24 espaços) desce até lá. */
@@ -1298,8 +1263,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .cp-bar i { display: block; height: 100%; background: var(--mint3); border-radius: 3px; }
 .cp-balance { color: var(--ink2); }
 .cp-goal { color: var(--mint3); font-weight: bold; }
-.cp-topup { width: 100%; margin-top: 3px; padding: 3px; border-radius: 4px; border: 1.5px solid var(--mint3); background: var(--mint2); color: var(--ink); font: inherit; font-weight: bold; cursor: pointer; }
-.cp-topup:disabled { opacity: 0.45; cursor: default; }
+.cp-topup { width: 100%; margin-top: 3px; padding: 3px; font: inherit; }
+/* .cp-topup:disabled: o visual vem de .menu-btn (decisão 306) */
 .cp-hint, .cp-empty { color: var(--grey2); font-size: var(--t1); }
 .cp-list { margin: 0; padding: 0; list-style: none; }
 .cp-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 0; border-bottom: 1px solid var(--c-olive-pale); }
@@ -1415,8 +1380,8 @@ html.touch-mode { --fs: 1.25; --t1: 13px; }
 
 /* ---------- Quadro do cardápio: abas pela louça e uma linha por receita (MenuBoardPanel) ---------- */
 .catalog.menu-board .m-tabs { display: flex; gap: 3px; margin: 4px 0; }
-.catalog.menu-board .m-tabs button { flex: 1; padding: 2px 0; border: none; border-radius: 8px; background: var(--cream2); color: var(--ink); font: inherit; font-size: var(--t1); cursor: pointer; }
-.catalog.menu-board .m-tabs button.on { background: var(--c-olive-light); color: var(--c-white); font-weight: bold; }
+.catalog.menu-board .m-tabs button { flex: 1; padding: 2px 0; font: inherit; font-size: var(--t1); }
+/* .catalog.menu-board .m-tabs button.on: o visual vem de .menu-btn (decisão 306) */
 .catalog.menu-board .m-list { border-radius: 6px; overflow: hidden; background: var(--cream2); }
 .catalog.menu-board .m-row { display: flex; align-items: center; gap: 4px; padding: 3px 5px; border-bottom: 1px solid var(--c-sand); font-size: var(--t1); color: var(--ink); cursor: pointer; }
 .catalog.menu-board .m-row.in-menu { background: var(--c-paper); }

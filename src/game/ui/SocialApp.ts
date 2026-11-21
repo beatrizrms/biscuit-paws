@@ -36,7 +36,7 @@ export class SocialApp {
     const feed = this.session.socialFeed();
     for (const p of feed) if (!p.seen) this.fresh.add(p.id);
     const tabs = `<div class="s-tabs">${(['feed', 'friends'] as const)
-      .map((id) => `<button data-tab="${id}" class="${this.tab === id ? 'on' : ''}">${esc(t.tabs[id])}</button>`)
+      .map((id) => `<button data-tab="${id}" class="menu-btn small${this.tab === id ? ' on' : ''}">${esc(t.tabs[id])}</button>`)
       .join('')}</div>`;
     body.innerHTML = `<div class="social-app">${tabs}${this.tab === 'feed' ? this.feedHtml(feed) : this.friendsHtml()}</div>`;
     body.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>

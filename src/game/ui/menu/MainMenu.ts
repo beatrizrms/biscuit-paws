@@ -11,7 +11,7 @@ const LOGO_EMBLEM = 'assets/ui/menu/ui_logo_emblem.png';
 import { services } from '../../services';
 import { openCredits } from './CreditsPanel';
 import { openHowTo } from './HowToPanel';
-import { esc, menuToast, pushLayer, popLayer, slotName, slotText, type MenuLayer } from './MenuKit';
+import { esc, menuToast, pushLayer, popLayer, type MenuLayer } from './MenuKit';
 import { openOptions } from './OptionsPanel';
 import { openSlots } from './SlotsPanel';
 
@@ -70,22 +70,20 @@ export class MainMenu {
     const { saves } = services();
     const recent = await saves.mostRecent();
     const status = recent ? await saves.status(recent) : null;
-    const summary = recent && status ? slotText(status) : null;
     this.el.innerHTML = `
       ${this.logoHtml()}
       <div class="menu-buttons">
-        <button class="menu-btn big" data-act="continue" ${recent ? '' : 'disabled'}>
+        <button class="menu-btn big${recent ? ' primary' : ''}" data-act="continue" ${recent ? '' : 'disabled'}>
           ${t('home.continue')}
-          <span class="sub">${recent && summary ? esc(`${slotName(recent)} · ${summary.line}`) : t('home.noSave')}</span>
-          ${summary?.date ? `<span class="sub">${esc(summary.date)}</span>` : ''}
+          <span class="sub">${status?.kind === 'ok' ? esc(t('home.continueSub', { day: status.summary.day, money: status.summary.money })) : t('home.noSave')}</span>
         </button>
-        <button class="menu-btn big" data-act="new">${t('home.newGame')}</button>
+        <button class="menu-btn big${recent ? '' : ' primary'}" data-act="new">${t('home.newGame')}</button>
         <button class="menu-btn big" data-act="load">${t('home.load')}</button>
         <button class="menu-btn big" data-act="options">${t('home.options')}</button>
         <button class="menu-btn big" data-act="howTo">${t('home.howTo')}</button>
         <button class="menu-btn big" data-act="credits">${t('home.credits')}</button>
       </div>
-      <p class="menu-hint"><span class="keys-hint">${t('home.hint')}</span><span class="touch-hint">${t('home.hintTouch')}</span><span class="pad-hint">${t('home.hintPad')}</span></p>`;
+`;
     const again = () => void this.render();
     const on = (act: string, fn: () => void) => (this.el.querySelector(`[data-act="${act}"]`) as HTMLElement).addEventListener('click', fn);
     on('continue', () => recent && void this.play(recent));

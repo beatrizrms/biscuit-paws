@@ -16,7 +16,7 @@ export function openPause(root: HTMLElement, handlers: PauseHandlers): () => voi
   const el = document.createElement('div');
   el.className = 'menu-layer menu-pause';
   el.innerHTML = `<div class="menu-panel pause"><h2>${t('pause.title')}</h2>
-    <button class="menu-btn big" data-act="resume">${t('pause.resume')}</button>
+    <button class="menu-btn big primary" data-act="resume">${t('pause.resume')}</button>
     <button class="menu-btn big" data-act="options">${t('pause.options')}</button>
     <button class="menu-btn big" data-act="howTo">${t('pause.howTo')}</button>
     <button class="menu-btn big" data-act="save">${t('pause.save')}</button>

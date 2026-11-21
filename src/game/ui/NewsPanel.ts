@@ -49,7 +49,7 @@ export class NewsPanel {
   ) {
     this.board = document.createElement('section');
     this.board.className = 'panel catalog news';
-    this.board.innerHTML = `<header><h2>${uiText.news.boardTitle}</h2><button class="close">${uiText.news.close}</button></header><div class="list"></div>`;
+    this.board.innerHTML = `<header><h2>${uiText.news.boardTitle}</h2><button class="menu-btn small tertiary close">${uiText.news.close}</button></header><div class="list"></div>`;
     root.appendChild(this.board);
     this.boardBody = this.board.querySelector('.list') as HTMLElement;
     (this.board.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
@@ -273,7 +273,7 @@ export class NewsPanel {
     const t = uiText.arrivals.poster;
     const pic = sheet ? `<span class="cat-sprite" style="background-image:url(${sheet});background-size:${sprites.columns * sprites.frameSize}px auto;--frames:4;--end:${-4 * sprites.frameSize}px"></span>` : '';
     return `<div class="cat-card poster">${pic}<div class="cat-info"><strong>${esc(t.title)}</strong><span class="routine">${esc(fillNames(s, t.text))}</span>
-      <span class="poster-buttons"><button data-poster="yes">${esc(t.yes)}</button><button data-poster="no">${esc(t.no)}</button></span></div></div>`;
+      <span class="poster-buttons"><button class="menu-btn small primary" data-poster="yes">${esc(t.yes)}</button><button class="menu-btn small" data-poster="no">${esc(t.no)}</button></span></div></div>`;
   }
 
   /** A Cartilha do gato: a dica de hoje, num quadrinho embaixo das notícias. */
@@ -300,7 +300,7 @@ export class NewsPanel {
     const open = s.availableJobs().map(
       (j) => `<div class="job"><strong>${esc(j.title)}</strong><span class="giver">${esc(j.giver)} · ${j.reward} ${content.economy.currency}${bonusOf(j)}</span>
         <span class="desc">${esc(j.description)}</span>
-        <button data-job="${j.id}" ${full ? `disabled title="${uiText.news.oneAtATime}"` : ''}>${uiText.news.accept}</button></div>`,
+        <button class="menu-btn small" data-job="${j.id}" ${full ? `disabled title="${uiText.news.oneAtATime}"` : ''}>${uiText.news.accept}</button></div>`,
     );
     const jobs = [...active, ...open].join('') || `<p class="empty">${uiText.news.noJobs}</p>`;
     return `${news}${this.posterHtml()}<h3 class="jobs-title">${uiText.news.jobsTitle}</h3>${jobs}`;

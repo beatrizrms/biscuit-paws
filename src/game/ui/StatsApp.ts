@@ -56,7 +56,7 @@ export class StatsApp {
   render(body: HTMLElement): void {
     const t = uiText.statsApp;
     const tabs = `<div class="s-tabs">${(['numbers', 'seals'] as const)
-      .map((id) => `<button data-tab="${id}" class="${this.tab === id ? 'on' : ''}">${esc(t.tabs[id])}</button>`)
+      .map((id) => `<button data-tab="${id}" class="menu-btn small${this.tab === id ? ' on' : ''}">${esc(t.tabs[id])}</button>`)
       .join('')}</div>`;
     body.innerHTML = tabs + (this.tab === 'numbers' ? this.numbersHtml() : this.sealsHtml());
     body.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>

@@ -106,6 +106,9 @@ ocupada antes de usar.
 
 ## 6. Interface
 
+- **Botões:** sempre `menu-btn` com o nível (decisão 306): `primary` na ação principal (uma por tela), o padrão
+  (secundário) no resto, `tertiary` para fechar e saídas discretas, `danger` para apagar e `icon` para só o ícone
+  (`icon()` de `src/game/ui/icons.ts`, com o nome no title). `small` nos botões dentro de cartões e listas.
 - **Fonte:** Monogram em tudo (decisão 305), embutida. Os tamanhos só em degraus: `var(--t1)` (etiquetas e textos
   curtos), `var(--t2)` (falas e leitura), `var(--t3)` e `var(--t4)` (títulos); `line-height` em 0.875, 1 ou 1.125;
   sem `letter-spacing` e sem negrito. No Phaser, `FONT` e `monoSize` de `src/game/fonts.ts` (8, 16, 24 ou 32 px).

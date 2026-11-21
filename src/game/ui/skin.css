@@ -6,52 +6,70 @@
  * Carregado depois de ui.css e menu.css: só troca o visual, não a disposição.
  */
 
-/* ---------- Botões ---------- */
-/* Borda fina e o volume por sombra (a borda de antes tinha 8 px: o padding compensa, nada muda de tamanho). */
-.menu-btn,
-.catalog .cart-bar .pay {
-  border: 2px solid var(--btn-edge);
-  border-radius: 7px;
+/* ---------- Botões (decisão 306) ---------- */
+/* Uma família só, como teclas de madeira: borda de 1 px, a sombra embaixo é a mesma cor da borda (a tecla tem altura) e,
+   apertado, o botão desce até a sombra. Níveis: secundário (o padrão: creme com madeira), primário (.primary e .yes:
+   oliva, a ação principal da tela, uma só), terciário (.tertiary: só o texto, para saídas discretas), perigo (.danger:
+   contorno terracota; .danger.solid preenchido, só na confirmação) e ícone (.icon: quadrado, com o nome no title).
+   Escolhido numa escolha (aba, ligado/desligado, ela/ele): .on ou aria-pressed="true". */
+.menu-btn {
+  --btn-bg: var(--c-paper);
+  --btn-hover: var(--c-white);
+  --btn-edge: var(--c-wood);
+  --btn-text: var(--c-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--btn-edge);
+  border-radius: 3px;
   background: var(--btn-bg);
   color: var(--btn-text);
-  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--btn-edge) 45%, transparent);
-  padding: 6px 10px 8px;
-  line-height: 12px;
+  box-shadow: 0 2px 0 var(--btn-edge);
+  line-height: 1;
+  font-weight: normal;
+  text-shadow: none;
+  cursor: pointer;
+  transition: translate 0.06s, background 0.08s;
 }
-.menu-btn:hover,
-.menu-btn:focus,
-.menu-btn:focus-visible,
-.catalog .cart-bar .pay:hover {
-  outline: none;
-  border-color: var(--btn-edge);
-  background: var(--btn-hover);
-  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--btn-edge) 45%, transparent), 0 0 0 2px var(--c-butter);
-}
-.menu-btn:active:not([disabled]) {
-  box-shadow: none;
-  padding-top: 8px; /* o texto desce junto com o botão */
-  padding-bottom: 6px;
-}
-.menu-btn[disabled],
-.catalog .cart-bar .pay:disabled {
-  --btn-bg: var(--c-paper2);
-  --btn-hover: var(--c-paper2);
-  --btn-edge: var(--c-paper3);
-  color: var(--c-ink3);
-  box-shadow: none;
-}
-.menu-btn.small { padding: 6px 4px 8px; line-height: 9px; }
-.menu-btn.big { padding: 6px 12px 8px; line-height: 13px; }
-.catalog .cart-bar .pay { line-height: 10px; padding: 6px 6px 8px; }
-
-/* Botões principais da Home (bege com marrom, pedido dela); confirmar e pagar (verde); apagar (terracota). */
-.menu-home .menu-btn.big { --btn-bg: var(--c-paper); --btn-hover: var(--c-sand); --btn-edge: var(--c-wood); color: var(--c-wood-dark); text-shadow: none; }
-.menu-home .menu-btn.big[disabled] { --btn-bg: var(--c-paper2); --btn-hover: var(--c-paper2); --btn-edge: var(--c-paper3); color: var(--c-ink3); text-shadow: none; }
-.menu-home .menu-btn.big .sub { color: var(--c-wood); }
+.menu-btn:hover:not([disabled]) { background: var(--btn-hover); border-color: var(--btn-edge); }
+.menu-btn:focus { outline: none; }
+.menu-btn:focus-visible { outline: 1px solid var(--c-butter-dark); outline-offset: 2px; }
+.menu-btn:active:not([disabled]) { translate: 0 2px; box-shadow: none; }
 .menu-btn.primary,
-.menu-btn.yes,
-.catalog .cart-bar .pay { --btn-bg: var(--btn-ok-bg); --btn-hover: var(--c-green-dark); --btn-edge: var(--btn-ok-edge); color: var(--c-white); }
-.menu-slot [data-action='delete'] { --btn-bg: var(--btn-danger-bg); --btn-hover: var(--c-terra-dark); --btn-edge: var(--btn-danger-edge); color: var(--c-white); }
+.menu-btn.yes {
+  --btn-bg: var(--btn-main-bg);
+  --btn-hover: color-mix(in srgb, var(--btn-main-bg) 85%, var(--c-white));
+  --btn-edge: var(--btn-main-edge);
+  --btn-text: var(--c-paper);
+}
+.menu-btn.tertiary {
+  --btn-bg: transparent;
+  --btn-hover: var(--c-paper2);
+  --btn-text: var(--c-cafe);
+  border-color: transparent;
+  box-shadow: none;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.menu-btn.tertiary:hover:not([disabled]) { border-color: transparent; }
+.menu-btn.danger { --btn-edge: var(--btn-danger-bg); --btn-hover: var(--c-terra-pale); --btn-text: var(--btn-danger-edge); }
+.menu-btn.danger.solid { --btn-bg: var(--btn-danger-bg); --btn-hover: color-mix(in srgb, var(--btn-danger-bg) 85%, var(--c-white)); --btn-edge: var(--btn-danger-edge); --btn-text: var(--c-paper); }
+.menu-btn.on,
+.menu-btn[aria-pressed="true"] { --btn-bg: var(--c-green-pale); --btn-hover: var(--c-green-pale); --btn-edge: var(--c-olive); --btn-text: var(--c-olive-dark); }
+.menu-btn.icon { width: 18px; height: 18px; padding: 0; }
+.menu-btn.small { padding: 2px 6px; }
+.menu-btn.big { padding: 4px 10px; }
+.menu-btn[disabled] { opacity: 0.5; box-shadow: none; translate: 0 2px; cursor: default; }
+/* Abas (Market, cardápio, apps do celular): o mesmo botão, sem a tecla em volta; a escolhida ganha o contorno oliva. */
+.m-tab.menu-btn, .m-tabs .menu-btn, .s-tabs .menu-btn { --btn-bg: transparent; --btn-hover: var(--c-paper2); --btn-text: var(--c-cafe); border-color: transparent; box-shadow: none; margin-bottom: 0; padding: 2px 4px; }
+.m-tab.menu-btn.on, .m-tabs .menu-btn.on, .s-tabs .menu-btn.on { --btn-bg: var(--c-green-pale); --btn-hover: var(--c-green-pale); --btn-text: var(--c-olive-dark); border-color: var(--c-olive); }
+.m-tab.menu-btn:active, .m-tabs .menu-btn:active, .s-tabs .menu-btn:active { translate: none; }
+
+/* O ícone: o desenho (icons.ts) é a máscara e a cor é a do texto. 12 x 12, um pixel do desenho por pixel do jogo. */
+.ico { display: inline-block; flex: none; width: 12px; height: 12px; background: currentColor; -webkit-mask: var(--ico) center / 12px 12px no-repeat; mask: var(--ico) center / 12px 12px no-repeat; }
 
 /* ---------- Painéis ---------- */
 .menu-panel,
