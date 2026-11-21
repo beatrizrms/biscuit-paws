@@ -288,15 +288,17 @@ export class NewsPanel {
     const news = withNews
       ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('') + this.tipHtml()
       : '';
+    // Pedido com mini game: as moedas do pedido são o mínimo; ir bem no jogo rende mais ("10 moedas + bônus").
+    const bonusOf = (j: { steps: { points: string[] }[] }) => (j.steps.some((st) => st.points.some((id) => content.jobPoints[id]?.action === 'minigame')) ? ` ${uiText.news.bonus}` : '');
     const active = s.activeJobs().map((j) => {
       const step = j.steps[s.jobStep(j.id)];
       const [done, total] = s.jobStepProgress(j.id);
-      return `<div class="job active"><strong>${esc(j.title)}</strong><span class="giver">${esc(j.giver)} · ${j.reward} ${content.economy.currency}</span>
+      return `<div class="job active"><strong>${esc(j.title)}</strong><span class="giver">${esc(j.giver)} · ${j.reward} ${content.economy.currency}${bonusOf(j)}</span>
         <span class="step">${esc(step?.text ?? '')} ${total > 1 ? `<b>${done}/${total}</b>` : ''}</span><span class="tag">${uiText.news.inProgress}</span></div>`;
     });
     const full = s.activeJobs().length >= content.maxActiveJobs;
     const open = s.availableJobs().map(
-      (j) => `<div class="job"><strong>${esc(j.title)}</strong><span class="giver">${esc(j.giver)} · ${j.reward} ${content.economy.currency}</span>
+      (j) => `<div class="job"><strong>${esc(j.title)}</strong><span class="giver">${esc(j.giver)} · ${j.reward} ${content.economy.currency}${bonusOf(j)}</span>
         <span class="desc">${esc(j.description)}</span>
         <button data-job="${j.id}" ${full ? `disabled title="${uiText.news.oneAtATime}"` : ''}>${uiText.news.accept}</button></div>`,
     );

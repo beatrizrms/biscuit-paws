@@ -62,6 +62,8 @@ export interface UiHandlers {
   onLocateCat(catId: string): boolean;
   /** Uma fala apareceu (npc: quem fala, se é um NPC): a cena vira quem está conversando para a protagonista. */
   onSpeak?(npc: string | undefined): void;
+  /** A cena está no meio de um roteiro (a vizinha batendo à porta, uma visita)? A tela de novidades espera ele acabar. */
+  sceneBusy?(): boolean;
 }
 
 /**
@@ -998,7 +1000,7 @@ export class GameUi {
     if (this.unlockTimer !== null) return;
     const tryShow = () => {
       // Espera falas, cenas e janelas fecharem (a tela entra depois, sem atropelar nada).
-      if (this.isBusy()) {
+      if (this.isBusy() || this.handlers.sceneBusy?.()) {
         this.unlockTimer = window.setTimeout(tryShow, 400);
         return;
       }
@@ -1609,7 +1611,11 @@ ${rep}`;
       : extra ? `<span class="g-icon" aria-hidden="true"></span><h2>${uiText.goalsTitle}<span class="toggle"></span></h2><p class="peek">${byInput(uiText.goalsPeek, uiText.touchText.goalsPeek, uiText.padText.goalsPeek)}</p>` : '') + extra;
     this.goals.title = this.goals.classList.contains('open') ? byInput(uiText.goalsHide, uiText.touchText.goalsHide, uiText.padText.goalsHide) : byInput(uiText.goalsShow, uiText.touchText.goalsShow, uiText.padText.goalsShow);
 
-    this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => this.handlers.onWait(Number(b.dataset.until))));
+    // Esperar fecha o balão: aberto, ele ficava por cima da cena que vinha depois (a visita, o presente).
+    this.goals.querySelectorAll<HTMLButtonElement>('.wait').forEach((b) => b.addEventListener('click', () => {
+      this.goals.classList.remove('open');
+      this.handlers.onWait(Number(b.dataset.until));
+    }));
     if (this.news?.isOpen()) this.news.render();
     this.renderHint();
   }

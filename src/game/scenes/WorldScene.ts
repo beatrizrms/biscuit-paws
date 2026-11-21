@@ -372,7 +372,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   create(): void {
     setupWorldCamera(this);
     const uiRoot = document.getElementById('ui')!;
-    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: (npc) => this.faceTalkers(npc) }, isDebugOn());
+    this.ui = new GameUi(uiRoot, this.session, { onPlace: (id) => this.startPlacing(id), onWait: (until) => (this.waitUntilAbs = until), onSelectArea: (s, f) => this.startAreaSelect(s, f), onPickUpgrade: () => this.startUpgradePick(), onLocateCat: (id) => this.locateCat(id), onSpeak: (npc) => this.faceTalkers(npc), sceneBusy: () => this.scripts?.isRunning() ?? false }, isDebugOn());
 
     this.player = new Player(this, 0, 0);
     this.dayNight = new DayNightLayer(this);
@@ -813,7 +813,9 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     else if (this.time.now - this.hintCheckedAt >= 100) {
       this.hintCheckedAt = this.time.now;
       const at = this.eTarget();
-      this.hint.show(at ? { ...at, label: uiText.hints[at.kind] + (at.count ? ` ${at.count}` : '') } : null);
+      // A plaquinha não tampa a personagem: se cairia em cima dela, sobe para cima da cabeça.
+      const body = { x: this.player.x, top: this.player.y - this.player.displayHeight, bottom: this.player.y, halfW: this.player.displayWidth / 2 };
+      this.hint.show(at ? { ...at, label: uiText.hints[at.kind] + (at.count ? ` ${at.count}` : '') } : null, body);
     }
     // O carrinho em cima da cabeça dela, no mercado (fora dele, o HUD lembra de pagar).
     const shopping = this.cartNow.count > 0 && (this.session.content.world.cartBalloonMaps ?? []).includes(this.map.id) && !this.changingMap;
@@ -2247,7 +2249,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Sem a vassoura ou com o gato na caixa de transporte: sem dica, o E só explica.
       const needsTool = ['needs_broom', 'carrying_cat'].includes(s.jobPointProblem(point.id) ?? '');
       const ced = /^pt\.ced_(trap|close|release|take)\./.exec(point.id)?.[1];
-      const kind: HintKind = ced ? (`ced_${ced}` as HintKind) : point.id.startsWith('pt.opening_poster') ? 'opening_poster' : point.id === 'pt.basement_find' ? 'basement_find' : 'job';
+      const kind: HintKind = ced ? (`ced_${ced}` as HintKind) : point.id.startsWith('pt.opening_poster') ? 'opening_poster' : point.id === 'pt.basement_find' ? 'basement_find' : point.gives ? 'job_pickup' : point.takes ? 'job_deliver' : point.action === 'sweep' ? 'job_sweep' : point.action === 'minigame' ? 'job_minigame' : 'job';
       add([point.at], E_TIER.job, needsTool ? null : this.hintCell(point.at, kind), () => this.useJobPoint(point), { weak: needsTool });
     }
     // A tigela ou a caixa de areia: com a ração/areia ativa na barra, encher (ou o porquê de não dar); sem, diz o que falta.
@@ -3233,7 +3235,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       // Tudo da caixa já está na mochila. Os móveis: ela escolhe posicionar agora (um depois do outro, como tirando da
       // caixa) ou guardar.
       const items = this.session.content.items;
-      const furniture = result.itemIds.filter((id) => (items[id]?.kind ?? 'furniture') === 'furniture');
+      // O que vai em cima de outro móvel (a cafeteira, no balcão) sai por último: o apoio da mesma caixa vai antes.
+      const furniture = result.itemIds
+        .filter((id) => (items[id]?.kind ?? 'furniture') === 'furniture')
+        .sort((a, b) => Number(!!items[a]?.placeOn) - Number(!!items[b]?.placeOn));
       if (furniture.length > 0) {
         const t = uiText.delivery;
         const names = furniture.map((id) => items[id]?.name ?? id).join(', ');

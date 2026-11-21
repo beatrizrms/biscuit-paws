@@ -119,7 +119,7 @@ describe('começo mais leve', () => {
     expect(state.placed.filter((p) => p.item === 'item.litter_box')[1]!.refilledOn).toBeUndefined();
   });
 
-  it('pedidos da vila: 3 de todo dia por dia, no máximo 2 da mesma pessoa, a mesma lista o dia inteiro e outra no dia seguinte', () => {
+  it('pedidos da vila: os de todo dia saem pelo sorteio do dia (offersPerDay), a mesma lista o dia inteiro e outra no dia seguinte', () => {
     const offers = loadContent({ jobOffers: true });
     const state = newGameState(500, 'map.cafe_main', 9 * 60);
     state.flags['has.cat'] = true;
@@ -129,8 +129,9 @@ describe('começo mais leve', () => {
     const session = new GameSession(offers, state);
     const daily = () => session.availableJobs().filter((j) => j.repeat === 'daily');
     const today = daily().map((j) => j.id);
-    expect(today).toHaveLength(3);
-    for (const giver of new Set(daily().map((j) => j.giver))) expect(daily().filter((j) => j.giver === giver).length).toBeLessThanOrEqual(2);
+    expect(today).toHaveLength(offers.jobOffersPerDay!);
+    // Quem tem um pedido só (a Loja de Móveis) entra sempre: no máximo 2 da mesma pessoa antes de completar com o resto.
+    expect(daily().some((j) => j.giver !== 'Seu Ademir, do mercado')).toBe(true);
     expect(daily().map((j) => j.id)).toEqual(today);
     // Fora do sorteio do dia, não dá para aceitar.
     const out = Object.values(offers.jobs).find((j) => j.repeat === 'daily' && !today.includes(j.id))!;
