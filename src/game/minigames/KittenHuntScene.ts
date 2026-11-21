@@ -16,6 +16,7 @@ import { frameOf } from '../../core/tiles';
 import { addTileImage, tileScale } from '../tileArt';
 import { ART_SCALE, CHASE, ensurePlaceholders, HUNT_SHEETS, KITTEN_HUNT, loadCatVariants, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { FONT } from '../fonts';
 
 export const KITTEN_HUNT_SCENE = 'MiniGame.kitten_hunt';
 
@@ -187,7 +188,7 @@ export class KittenHuntScene extends MiniGameScene {
   /** Texto que sobe e some em cima do esconderijo (a dica de calor, "Achou!"). */
   private float(spot: Phaser.GameObjects.Sprite, text: string, color: string): void {
     const label = this.add
-      .text(spot.x, spot.y - spot.displayHeight - 4, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color, stroke: '#3b2a32', strokeThickness: 3, resolution: 4 })
+      .text(spot.x, spot.y - spot.displayHeight - 4, text, { fontFamily: FONT, fontSize: '8px', color, stroke: '#3b2a32', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     // Esconderijo na borda: o texto não sai da tela.

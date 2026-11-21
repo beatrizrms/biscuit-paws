@@ -79,7 +79,7 @@ export class MarketApp {
     const own = (t: (typeof m.tabs)[number]) => ('rooms' in t && t.rooms) || ('renovation' in t && t.renovation) || ('upgrade' in t && t.upgrade);
     const visible = m.tabs.filter((t) => own(t) || this.tabHtml(t) !== '');
     const tab = visible.find((t) => t.id === this.tab) ?? visible[0]!;
-    const tabs = visible.map((t) => `<button class="m-tab${t.id === tab.id ? ' on' : ''}" data-tab="${t.id}">${esc(t.title)}</button>`).join('');
+    const tabs = visible.map((t) => `<button class="menu-btn small m-tab${t.id === tab.id ? ' on' : ''}" data-tab="${t.id}">${esc(t.title)}</button>`).join('');
     const content = this.tabHtml(tab);
     // A tela é redesenhada a cada mudança (dinheiro, entregas): mantém a rolagem se a aba é a mesma.
     const old = body.querySelector<HTMLElement>('.m-scroll');
@@ -183,10 +183,10 @@ export class MarketApp {
     ].join('');
     const inOrder = this.session.orderCart.qty(id);
     const refund =
-      owned > 0 && !fixture && this.session.refundable(id) ? `<button class="m-refund" data-refund="${id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(id)}</button>` : '';
+      owned > 0 && !fixture && this.session.refundable(id) ? `<button class="menu-btn small m-refund" data-refund="${id}" title="${uiText.refund}">${uiText.refund} +${this.session.refundValue(id)}</button>` : '';
     // No pedido: quantos e o "−" (tocar no cartão de novo põe mais um).
     const order =
-      inOrder > 0 ? `<div class="m-qty"><button class="m-less" data-less="${id}">−</button><span>${esc(uiText.market.orderCount.replace('{n}', String(inOrder)))}</span></div>` : '';
+      inOrder > 0 ? `<div class="m-qty"><button class="menu-btn small m-less" data-less="${id}">−</button><span>${esc(uiText.market.orderCount.replace('{n}', String(inOrder)))}</span></div>` : '';
     // Para que serve: no balão de hover (data-tip), não embaixo do nome.
     const tip = itemTip(i);
     return `<div class="m-cell"${tip ? ` data-tip="${esc(tip)}"` : ''}><button class="m-card${owned > 0 ? ' has' : ''}${inOrder > 0 ? ' in-order' : ''}" data-item="${id}" ${disabled ? 'disabled' : ''}>
@@ -206,8 +206,8 @@ export class MarketApp {
     return `<div class="m-order">
         <div class="m-order-sum"><span>${esc(m.items.replace('{n}', String(cart.count())))}</span><span class="m-price${short > 0 ? ' short' : ''}">${COIN}${total}</span>
         ${short > 0 ? `<span class="m-short">${esc(m.notEnough.replace('{n}', String(short)))}</span>` : ''}</div>
-        <button class="m-order-clear" data-order="clear">${esc(m.clear)}</button>
-        <button class="m-order-confirm" data-order="confirm" ${short > 0 ? 'disabled' : ''}>${esc(m.confirm)}</button>
+        <button class="menu-btn small tertiary m-order-clear" data-order="clear">${esc(m.clear)}</button>
+        <button class="menu-btn small primary m-order-confirm" data-order="confirm" ${short > 0 ? 'disabled' : ''}>${esc(m.confirm)}</button>
       </div>`;
   }
 

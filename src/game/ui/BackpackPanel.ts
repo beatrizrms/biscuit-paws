@@ -72,7 +72,7 @@ type Place = 'bar' | 'bag' | 'pantry' | 'box';
  * `badge`: um número pequeno do lado (o espaço da barra, quantos enfeites).
  */
 function iconButton(act: string, icon: ActionIcon, label: string, disabled = false, badge?: string): string {
-  return `<button class="bp-icon-btn" data-act="${act}" title="${esc(label)}" aria-label="${esc(label)}" ${disabled ? 'disabled' : ''}>${actionIconSvg(icon)}${badge ? `<span class="badge">${esc(badge)}</span>` : ''}</button>`;
+  return `<button class="menu-btn small bp-icon-btn" data-act="${act}" title="${esc(label)}" aria-label="${esc(label)}" ${disabled ? 'disabled' : ''}>${actionIconSvg(icon)}${badge ? `<span class="badge">${esc(badge)}</span>` : ''}</button>`;
 }
 
 export class BackpackPanel {
@@ -92,7 +92,7 @@ export class BackpackPanel {
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog backpack';
-    this.el.innerHTML = `<header><h2>${uiText.backpack.title}</h2><button class="close">${uiText.backpack.close}</button></header><div class="list"></div>`;
+    this.el.innerHTML = `<header><h2>${uiText.backpack.title}</h2><button class="menu-btn small tertiary close">${uiText.backpack.close}</button></header><div class="list"></div>`;
     root.appendChild(this.el);
     this.body = this.el.querySelector('.list') as HTMLElement;
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
@@ -469,7 +469,7 @@ export class BackpackPanel {
     if (this.selected && !stillThere) this.selected = null;
     // Faixa de cima: o que está nas mãos e a louça limpa.
     const hands = st.hands.length
-      ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button data-act="stow">${t.stow}</button>` : '') + (st.hands.some((h) => h.kind === 'drink') ? ` <button data-act="togo">${t.togo}</button>` : '')
+      ? st.hands.map((h) => esc(handItemName(h, (id) => this.session.catName(id)))).join(', ') + (st.hands.some((h) => h.kind === 'item') ? ` <button class="menu-btn small" data-act="stow">${t.stow}</button>` : '') + (st.hands.some((h) => h.kind === 'drink') ? ` <button data-act="togo">${t.togo}</button>` : '')
       : t.handsEmpty;
     // A barra (mesmos espaços da barra de baixo da tela).
     const bar = st.hotbar.slots.map((id, i) => this.slotHtml(id, `data-bar="${i}"`, i === st.hotbar.active, i + 1)).join('');

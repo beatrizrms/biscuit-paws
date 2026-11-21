@@ -48,7 +48,7 @@ export class CatPayApp {
     const share = Math.round(content.ced.topUp.maxShare * c.target);
     const topUp = done
       ? `<p class="cp-goal">${esc(t.goalReached)}</p>`
-      : `<button class="cp-topup" data-cp="top-up" ${amount > 0 ? '' : 'disabled'}>${esc(t.topUp.replace('{n}', String(amount)))}</button>
+      : `<button class="menu-btn primary cp-topup" data-cp="top-up" ${amount > 0 ? '' : 'disabled'}>${esc(t.topUp.replace('{n}', String(amount)))}</button>
          <p class="cp-hint">${esc(room > 0 ? (this.session.state.money > 0 ? t.topUpHint.replace('{n}', String(share)) : t.noMoney) : t.topUpDone)}</p>`;
     return `<section class="cp-card">
       <p class="cp-purpose">${esc(this.purposeName(c))}</p>

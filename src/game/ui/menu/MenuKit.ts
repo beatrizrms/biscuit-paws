@@ -1,7 +1,6 @@
 // Peças comuns dos menus (HTML por cima do jogo): camadas empilhadas com navegação por teclado
 // (setas + Enter + Esc), mouse e toque; caixa de confirmação; texto do resumo de um slot.
 import type { SlotId, SlotStatus } from '../../../core/saveSlots';
-import { formatClock } from '../../../core/time';
 import { t } from '../../i18n';
 import { services } from '../../services';
 
@@ -75,19 +74,19 @@ export function menuOpen(): boolean {
   return stack.length > 0;
 }
 
-/** Caixa de sim/não. Resolve true no "Sim". */
-export function confirmBox(root: HTMLElement, question: string): Promise<boolean> {
+/** Caixa de sim/não. Resolve true no "Sim" (danger: o "Sim" apaga algo e vem em terracota). */
+export function confirmBox(root: HTMLElement, question: string, danger = false): Promise<boolean> {
   return new Promise((resolve) => {
     const el = document.createElement('div');
     el.className = 'menu-layer menu-confirm';
-    el.innerHTML = `<div class="menu-panel"><p>${esc(question)}</p><div class="menu-row"><button class="menu-btn no">${t('confirm.no')}</button><button class="menu-btn yes">${t('confirm.yes')}</button></div></div>`;
+    el.innerHTML = `<div class="menu-panel"><p>${esc(question)}</p><div class="menu-row"><button class="menu-btn no">${t('confirm.no')}</button><button class="menu-btn ${danger ? 'danger solid' : 'yes'}" data-yes>${t('confirm.yes')}</button></div></div>`;
     root.appendChild(el);
     const layer: MenuLayer = { el, onBack: () => finish(false) };
     const finish = (answer: boolean) => {
       popLayer(layer);
       resolve(answer);
     };
-    (el.querySelector('.yes') as HTMLElement).addEventListener('click', () => finish(true));
+    (el.querySelector('[data-yes]') as HTMLElement).addEventListener('click', () => finish(true));
     (el.querySelector('.no') as HTMLElement).addEventListener('click', () => finish(false));
     pushLayer(layer, el.querySelector('.no') as HTMLElement);
   });
@@ -116,9 +115,9 @@ export function slotText(status: SlotStatus): { line: string; date: string } {
   if (status.kind === 'empty') return { line: t('slot.empty'), date: '' };
   if (status.kind === 'corrupt') return { line: t('slot.corrupt'), date: '' };
   const s = status.summary;
-  const date = s.savedAt ? new Date(s.savedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+  const date = s.savedAt ? new Date(s.savedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
   return {
-    line: t('slot.summary', { day: s.day, time: formatClock(s.time, 10), money: s.money, cats: s.cats }),
+    line: t('slot.summary', { day: s.day, money: s.money, cats: s.cats }),
     date: date ? t('slot.savedAt', { date }) : '',
   };
 }

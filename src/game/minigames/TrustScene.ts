@@ -17,6 +17,7 @@ import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { ART_SCALE, CHASE, ensurePlaceholders, loadSheets } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { FONT } from '../fonts';
 
 export const TRUST_SCENE = 'MiniGame.trust';
 
@@ -101,7 +102,7 @@ export class TrustScene extends MiniGameScene {
     // PLACEHOLDER(arte): balão "Fuzzzz!" desenhado por código. O bufando (costas arqueadas) só existe nas folhas de 64 px
     // (startle_left); nas do Cosy Cats ele treme e fica avermelhado (lista na memória: assets-pendentes).
     const hissText = this.add
-      .text(0, 0, uiText.minigames.trust.hiss, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color: '#d9475d', resolution: 4 })
+      .text(0, 0, uiText.minigames.trust.hiss, { fontFamily: FONT, fontSize: '8px', color: '#d9475d', resolution: 4 })
       .setOrigin(0.5);
     const bw = Math.ceil(hissText.width) + 10; // o balão acompanha o texto
     const bubbleBg = this.add.graphics().fillStyle(0xfff4e0, 1).fillRoundedRect(-bw / 2, -7, bw, 14, 5).lineStyle(1, 0x3b2a32, 1).strokeRoundedRect(-bw / 2, -7, bw, 14, 5);
@@ -237,7 +238,7 @@ export class TrustScene extends MiniGameScene {
     this.floatStack = this.time.now - this.floatAt < 1000 ? this.floatStack + 1 : 0;
     this.floatAt = this.time.now;
     const label = this.add
-      .text(this.cat.x, this.cat.y - 52 - this.floatStack * 11, text, { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '9px', fontStyle: 'bold', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
+      .text(this.cat.x, this.cat.y - 52 - this.floatStack * 11, text, { fontFamily: FONT, fontSize: '8px', color, stroke: '#fff4e0', strokeThickness: 3, resolution: 4 })
       .setOrigin(0.5, 1)
       .setDepth(1e5);
     this.tweens.add({ targets: label, y: label.y - 14, alpha: 0, delay: 300, duration: 700, onComplete: () => label.destroy() });

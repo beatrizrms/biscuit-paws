@@ -4,27 +4,22 @@
 .menu-layer { display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--c-shadow) 53%, transparent); z-index: 30; }
 .menu-layer.menu-confirm { z-index: 40; }
 .menu-title {
-  margin: 0; font-size: max(calc(32px * var(--fs, 1)), var(--fs-min, 0px)); letter-spacing: 0.04em; color: var(--c-paper);
+  margin: 0; font-size: var(--t4); letter-spacing: 0; color: var(--c-paper);
   text-shadow: 0 2px 0 var(--c-board-line), 2px 0 0 var(--c-board-line), -2px 0 0 var(--c-board-line), 0 -2px 0 var(--c-board-line), 2px 3px 0 var(--c-ink);
 }
 .menu-tap {
-  margin-top: 120px; padding: 5px 14px; border: none; border-radius: 10px; background: color-mix(in srgb, var(--c-shadow) 93%, transparent); color: var(--c-paper); font: inherit; font-size: max(calc(11px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer;
+  margin-top: 120px; padding: 5px 14px; border: none; border-radius: 10px; background: color-mix(in srgb, var(--c-shadow) 93%, transparent); color: var(--c-paper); font: inherit; font-size: var(--t2); cursor: pointer;
   text-shadow: 0 1px 0 var(--c-ink); animation: menu-blink 1.4s ease-in-out infinite;
 }
 @keyframes menu-blink { 50% { opacity: 0.7; } }
+/* O visual dos botões fica em skin.css (decisão 306); aqui, só tamanho de letra e disposição. */
+.menu-btn { position: relative; font-family: inherit; font-size: var(--t2); }
+.menu-btn.big { flex-direction: column; font-size: var(--t2); }
+.menu-btn.small { font-size: var(--t1); }
+.menu-btn .sub { font-size: var(--t1); color: var(--c-ink3); }
+.menu-btn.primary .sub { color: var(--c-olive-pale); }
 .menu-buttons { display: flex; flex-direction: column; gap: 5px; width: 200px; }
-.menu-btn {
-  position: relative; padding: 4px 10px; border: 2px solid var(--c-board-line); border-radius: 3px;
-  background: var(--c-paper); color: var(--c-board); font: inherit; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); cursor: pointer;
-  box-shadow: inset 0 -2px 0 var(--c-sand), 0 2px 0 var(--c-ink);
-}
-.menu-btn.big { display: flex; flex-direction: column; align-items: center; padding: 5px 10px; font-size: max(calc(11px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; }
-.menu-btn.small { padding: 1px 7px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); box-shadow: inset 0 -1px 0 var(--c-sand), 0 1px 0 var(--c-ink); }
-.menu-btn .sub { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: normal; color: var(--c-ink3); }
-.menu-btn:hover, .menu-btn:focus-visible, .menu-btn:focus { outline: none; background: var(--c-paper); border-color: var(--c-ink3); }
-.menu-btn[disabled] { background: var(--c-sand); color: var(--c-ink3); border-color: var(--c-ink3); cursor: default; box-shadow: none; }
-.menu-btn[aria-pressed="false"] { background: var(--c-cafe-pale); }
-.menu-hint { margin: 4px 0 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-paper); text-shadow: 0 1px 0 var(--c-ink); }
+.menu-hint { margin: 4px 0 0; font-size: var(--t1); color: var(--c-paper); text-shadow: 0 1px 0 var(--c-ink); }
 /* A dica da Home e o "para começar": as teclas no computador; no toque (html.touch-mode, touch.ts), "toque para escolher"; no controle de
    videogame (html.pad-mode), os botões dele. */
 .menu-home .touch-hint, .menu-home .pad-hint, html.touch-mode .menu-home .keys-hint, html.pad-mode .menu-home .keys-hint { display: none; }
@@ -32,26 +27,30 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .menu-panel {
   max-height: 330px; overflow: auto; min-width: 220px; max-width: 320px; padding: 8px 10px;
   border: 2px solid var(--c-board-line); border-radius: 4px; background: var(--c-paper); color: var(--c-board); box-shadow: 0 3px 0 var(--c-ink);
-  display: flex; flex-direction: column; gap: 5px; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px));
+  display: flex; flex-direction: column; gap: 5px; font-size: var(--t1);
 }
-.menu-panel h2 { margin: 0 0 2px; font-size: max(calc(12px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); }
+.menu-panel h2 { margin: 0 0 2px; font-size: var(--t2); color: var(--c-ink3); }
 .menu-panel p { margin: 0; }
 .menu-panel.pause { align-items: stretch; min-width: 160px; }
 .menu-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
-.menu-note { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); font-style: italic; color: var(--c-ink3); }
+.menu-note { font-size: var(--t1); font-style: italic; color: var(--c-ink3); }
 .menu-slot { padding: 4px 6px; border: 1px solid var(--c-paper3); border-radius: 4px; background: var(--c-paper); }
+/* Texto à esquerda e os botões na mesma faixa, à direita (o slot vazio ocupa uma linha só). */
+.menu-slot { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: center; }
+.menu-slot > :not(.menu-row) { grid-column: 1; }
+.menu-slot > .menu-row { grid-column: 2; grid-row: 1 / span 4; flex-wrap: nowrap; }
 .menu-slot.empty { opacity: 0.85; }
 .menu-slot.corrupt { border-color: var(--c-ink3); background: var(--c-paper); }
 .menu-slot .slot-head { display: flex; gap: 6px; align-items: baseline; }
-.menu-slot .tag { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-olive); }
-.menu-slot .slot-line { font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); }
-.menu-slot .slot-date { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); }
-.menu-slot .slot-warn { font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); }
+.menu-slot .tag { font-size: var(--t1); color: var(--c-olive); }
+.menu-slot .slot-line { font-size: var(--t1); }
+.menu-slot .slot-date { font-size: var(--t1); color: var(--c-ink3); }
+.menu-slot .slot-warn { font-size: var(--t1); color: var(--c-ink3); }
 .menu-option { display: grid; grid-template-columns: 1fr auto; gap: 3px 6px; align-items: center; }
 .menu-option input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--c-olive-light); }
 .menu-toast {
   position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 50; padding: 3px 8px; border-radius: 6px;
-  background: var(--c-ink); color: var(--c-paper); font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  background: var(--c-ink); color: var(--c-paper); font-size: var(--t1); opacity: 0; transition: opacity 0.25s; pointer-events: none;
 }
 .menu-toast.show { opacity: 1; }
 
@@ -62,38 +61,36 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .creator-preview { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .creator-preview canvas.frame { width: 96px; height: 192px; image-rendering: pixelated; background: var(--c-cafe-pale); border: 2px solid var(--c-wood); border-radius: 6px; }
 .creator-preview canvas.frame.mannequin { width: 120px; }
-.creator-note { grid-column: 1 / -1; max-width: 150px; margin: 0; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); line-height: 1.3; text-align: center; color: var(--c-wood); }
+.creator-note { grid-column: 1 / -1; max-width: 150px; margin: 0; font-size: var(--t1); line-height: 1; text-align: center; color: var(--c-wood); }
 .creator-preview .menu-row { gap: 4px; }
-.menu-btn.small { padding: 2px 8px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); min-width: 0; }
 .creator-options { flex: 1; min-width: 0; }
-.creator-name { display: flex; align-items: center; gap: 6px; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; margin-bottom: 4px; }
+.creator-name { display: flex; align-items: center; gap: 6px; font-size: var(--t1); font-weight: bold; margin-bottom: 4px; }
 .creator-name input { flex: 1; min-width: 0; font: inherit; font-weight: normal; padding: 2px 5px; border: 1.5px solid var(--c-wood); border-radius: 4px; background: var(--c-paper); color: var(--c-ink); }
 .creator-name input:focus { outline: 2px solid var(--c-olive-light); }
 /* Ela / Ele: dois botões, o escolhido marcado (como o nome: rótulo à esquerda) */
-.creator-pronoun { display: flex; align-items: center; gap: 4px; font-size: max(calc(9px * var(--fs, 1)), var(--fs-min, 0px)); font-weight: bold; margin-bottom: 4px; }
+.creator-pronoun { display: flex; align-items: center; gap: 4px; font-size: var(--t1); font-weight: bold; margin-bottom: 4px; }
 .creator-pronoun span { margin-right: 2px; }
-.creator-pronoun .menu-btn.small { font-weight: normal; background: var(--c-cafe-pale); color: var(--c-ink3); }
-.creator-pronoun .menu-btn.small.on { background: var(--c-sand); border-color: var(--c-ink3); color: var(--c-olive-dark); font-weight: bold; box-shadow: inset 0 -1px 0 var(--c-olive-light), 0 1px 0 var(--c-ink); }
-.creator-pronoun .menu-btn.small.on::before { content: "✓ "; }
-.creator-row { display: grid; grid-template-columns: 74px 14px 1fr 14px; align-items: center; gap: 2px; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); margin: 1px 0; }
+.creator-row { display: grid; grid-template-columns: 74px 14px 1fr 14px; align-items: center; gap: 2px; font-size: var(--t1); margin: 1px 0; }
 .creator-row .label { color: var(--c-cafe-dark); }
-.creator-row button { font: inherit; color: var(--c-ink); background: var(--c-paper2); border: 1px solid var(--c-terra-light); border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+/* As setas e o valor seguem o secundário (decisão 306), num degrau mais baixo: a sombra de 1 px. */
+.creator-row button { font: inherit; color: var(--c-ink); background: var(--c-paper); border: 1px solid var(--c-wood-light); border-radius: 3px; box-shadow: 0 1px 0 var(--c-wood-light); padding: 1px 2px; cursor: pointer; }
 .creator-row .value { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.creator-row button:focus, .creator-row button:hover { background: var(--c-paper); border-color: var(--c-olive-light); outline: none; }
-.creator-error { min-height: 10px; margin: 2px 0; font-size: max(calc(8px * var(--fs, 1)), var(--fs-min, 0px)); color: var(--c-ink3); text-align: center; }
-.menu-btn.primary { background: var(--c-green-pale); }
+.creator-row button:hover { background: var(--c-white); }
+.creator-row button:focus { outline: none; }
+.creator-row button:focus-visible { outline: 1px solid var(--c-butter-dark); outline-offset: 1px; }
+.creator-row button:active { translate: 0 1px; box-shadow: none; }
+.creator-error { min-height: 10px; margin: 2px 0; font-size: var(--t1); color: var(--c-ink3); text-align: center; }
 
 /* Como jogar: abas (toque, teclado, controle), os comandos em cartões curtos (2 colunas) com as teclas desenhadas e
    os itens da barra numa faixa de etiquetas. Rola se não couber. */
 .menu-panel.howto { max-width: 400px; max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; text-align: left; }
 .menu-panel.howto h2 { text-align: center; }
 .ht-tabs { display: flex; justify-content: center; gap: 3px; }
-.ht-tabs .ht-tab { flex: 1; max-width: 90px; padding: 2px 6px; opacity: 0.7; }
-.ht-tabs .ht-tab.on { opacity: 1; background: var(--c-green-pale); border-color: var(--c-green); font-weight: bold; }
+.ht-tabs .ht-tab { flex: 1; max-width: 90px; padding: 2px 6px; font-size: var(--t1); }
 .ht-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-items: start; }
 .ht-card { padding: 3px 5px 4px; border: 1px solid var(--c-cafe-light); border-radius: 4px; background: var(--c-cafe-pale); }
-.ht-card h3 { margin: 0 0 2px; font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-cafe); }
-.ht-card ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; column-gap: 5px; row-gap: 2px; align-items: center; font-size: max(calc(7.5px * var(--fs, 1)), var(--fs-min, 0px)); }
+.ht-card h3 { margin: 0 0 2px; font-size: var(--t1); text-transform: uppercase; letter-spacing: 0; color: var(--c-cafe); }
+.ht-card ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; column-gap: 5px; row-gap: 2px; align-items: center; font-size: var(--t1); }
 .ht-card li { display: contents; }
 .ht-keys { display: inline-flex; align-items: center; gap: 1px; white-space: nowrap; }
 .ht-keys i { font-style: normal; color: var(--c-ink3); margin: 0 1px; }
@@ -101,22 +98,22 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .ht-keys kbd {
   display: inline-block; min-width: 1.5em; padding: 0 3px; border: 1px solid var(--c-wood-dark); border-radius: 3px;
   background: var(--c-paper); color: var(--c-ink); box-shadow: 0 1px 0 var(--c-wood-dark);
-  font: 600 1em var(--font-pixel, 'Pixelify Sans', sans-serif); line-height: 1.35; text-align: center;
+  font: 1em 'Monogram', monospace; line-height: 1; text-align: center;
 }
 /* Botões de toque: pílulas, como na tela. Controle: A, B, X e Y redondos e coloridos; o resto, pílula escura. */
 .ht-keys kbd.ht-touch { border-radius: 8px; background: var(--c-ink); color: var(--c-paper); border-color: var(--c-ink); box-shadow: none; font-family: inherit; }
 .ht-keys kbd.ht-pad { border-radius: 6px; background: var(--c-board); color: var(--c-paper); border-color: var(--c-board); }
-.ht-keys kbd.ht-face { min-width: 0; width: 1.45em; height: 1.45em; padding: 0; border-radius: 50%; color: var(--c-paper); border: none; box-shadow: 0 1px 0 var(--c-ink); line-height: 1.45; }
+.ht-keys kbd.ht-face { min-width: 0; width: 1.45em; height: 1.45em; padding: 0; border-radius: 50%; color: var(--c-paper); border: none; box-shadow: 0 1px 0 var(--c-ink); line-height: 1; }
 .ht-keys kbd.ht-a { background: var(--c-green); }
 .ht-keys kbd.ht-b { background: var(--c-terra); }
 .ht-keys kbd.ht-x { background: var(--c-blue); }
 .ht-keys kbd.ht-y { background: var(--c-butter-dark); }
 .ht-active ul { display: flex; flex-wrap: wrap; gap: 3px; }
-.ht-active li { display: inline-block; padding: 1px 5px; border-radius: 8px; background: var(--c-paper); border: 1px solid var(--c-cafe-light); color: var(--c-ink2); font-size: max(calc(7px * var(--fs, 1)), var(--fs-min, 0px)); }
+.ht-active li { display: inline-block; padding: 1px 5px; border-radius: 8px; background: var(--c-paper); border: 1px solid var(--c-cafe-light); color: var(--c-ink2); font-size: var(--t1); }
 .ht-active li b { color: var(--c-ink); }
 
 /* Tipografia (plano de polimento, fase 1): o título do jogo e os dos painéis do menu na fonte pixel. */
-.menu-title, .menu-panel h2 { font-family: 'Pixelify Sans', 'Nunito', sans-serif; font-weight: 600; }
+.menu-title, .menu-panel h2 { font-family: 'Monogram', monospace; font-weight: 600; }
 .menu-panel { animation: pop-in 0.14s ease-out; }
 @media (prefers-reduced-motion: reduce) { .menu-panel { animation: none; } }
 
@@ -126,29 +123,18 @@ html.touch-mode .menu-home .touch-hint, html.pad-mode .menu-home .pad-hint { dis
 .menu-logo { display: flex; flex-direction: column; align-items: center; animation: menu-logo-in 0.9s ease-out both; }
 .menu-emblem { width: 78px; height: 78px; image-rendering: pixelated; margin-bottom: -8px; position: relative; z-index: 1; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--c-butter-pale), var(--c-cafe-light)); border: 3px solid var(--c-wood-dark); box-shadow: inset 0 0 0 2px var(--c-butter), 0 3px 0 var(--c-shadow); object-fit: cover; object-position: 50% 30%; }
 .menu-title {
-  font-family: var(--font-pixel, 'Pixelify Sans', sans-serif); font-weight: 600; font-size: max(calc(30px * var(--fs, 1)), var(--fs-min, 0px));
-  color: var(--c-butter-pale); letter-spacing: 0.03em;
+  font-family: 'Monogram', monospace; font-weight: 600; font-size: var(--t4);
+  color: var(--c-butter-pale); letter-spacing: 0;
   text-shadow: 0 2px 0 var(--c-wood-dark), 2px 0 0 var(--c-wood-dark), -2px 0 0 var(--c-wood-dark), 0 -2px 0 var(--c-wood-dark),
     2px 2px 0 var(--c-wood-dark), -2px 2px 0 var(--c-wood-dark), 2px -2px 0 var(--c-wood-dark), -2px -2px 0 var(--c-wood-dark),
     0 5px 0 var(--c-butter-dark), 2px 5px 0 var(--c-wood-dark), -2px 5px 0 var(--c-wood-dark), 0 7px 0 var(--c-shadow);
 }
 @keyframes menu-logo-in { from { opacity: 0; translate: 0 -8px; } to { opacity: 1; translate: 0 0; } }
 .menu-tap {
-  margin-top: 70px; padding: 2px 6px; border: none; background: none; color: var(--c-paper); font-family: var(--font-pixel, 'Pixelify Sans', sans-serif);
-  font-size: max(calc(12px * var(--fs, 1)), var(--fs-min, 0px)); text-shadow: 0 1px 0 var(--c-ink), 1px 0 0 var(--c-ink), -1px 0 0 var(--c-ink), 0 -1px 0 var(--c-ink);
+  margin-top: 70px; padding: 2px 6px; border: none; background: none; color: var(--c-paper); font-family: 'Monogram', monospace;
+  font-size: var(--t2); text-shadow: 0 1px 0 var(--c-ink), 1px 0 0 var(--c-ink), -1px 0 0 var(--c-ink), 0 -1px 0 var(--c-ink);
   animation: menu-pulse 1.8s ease-in-out infinite;
 }
 @keyframes menu-pulse { 50% { opacity: 0.45; } }
 .menu-home .menu-buttons { width: 180px; gap: 3px; margin-top: 6px; }
-.menu-home .menu-btn.big { padding: 3px 10px; font-size: max(calc(10px * var(--fs, 1)), var(--fs-min, 0px)); }
-.menu-home .menu-btn.big {
-  border: 2px solid var(--c-wood); border-radius: 6px; background: var(--c-paper); color: var(--c-wood-dark);
-  box-shadow: inset 0 -2px 0 var(--c-paper3), 0 3px 0 var(--c-wood-dark); transition: translate 0.08s, background 0.08s;
-  font-family: var(--font-pixel, 'Pixelify Sans', sans-serif); font-weight: 600;
-}
-.menu-home .menu-btn.big .sub { font-family: 'Nunito', sans-serif; }
-.menu-home .menu-btn.big:hover:not([disabled]), .menu-home .menu-btn.big:focus:not([disabled]) {
-  background: var(--c-butter-pale); border-color: var(--c-wood-dark); translate: 0 -1px; box-shadow: inset 0 -2px 0 var(--c-butter), 0 4px 0 var(--c-wood-dark);
-}
-.menu-home .menu-btn.big[disabled] { background: color-mix(in srgb, var(--c-paper2) 85%, transparent); border-color: var(--c-wood-light); color: var(--c-ink3); box-shadow: 0 2px 0 var(--c-wood-light); }
 @media (prefers-reduced-motion: reduce) { .menu-logo, .menu-tap { animation: none; } }

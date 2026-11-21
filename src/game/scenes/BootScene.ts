@@ -15,6 +15,7 @@ import { preloadCreatorLayers } from '../playerLook';
 import { ROBOT_IMAGE, ROBOT_KEY } from '../RobotVacuumView';
 import { WAITER_DIRS, waiterImage, waiterKey } from '../WaiterRobotView';
 import { themeColor, themeHex } from '../theme';
+import { FONT } from '../fonts';
 
 /**
  * Carrega a arte e o áudio (com barra de carregamento) e vai para a Home.
@@ -32,7 +33,7 @@ export class BootScene extends Phaser.Scene {
     const w = 220;
     const x = (GAME_WIDTH - w) / 2;
     const y = GAME_HEIGHT / 2;
-    this.add.text(GAME_WIDTH / 2, y - 16, t('boot.loading'), { fontFamily: 'Nunito, Trebuchet MS, sans-serif', fontSize: '11px', color: themeColor('--c-paper', '#fbf5e8') }).setOrigin(0.5);
+    this.add.text(GAME_WIDTH / 2, y - 16, t('boot.loading'), { fontFamily: FONT, fontSize: '16px', color: themeColor('--c-paper', '#fbf5e8') }).setOrigin(0.5);
     this.add.rectangle(x - 2, y - 2, w + 4, 12, themeHex('--c-ink2', '#6e6252')).setOrigin(0);
     this.add.rectangle(x, y, w, 8, themeHex('--c-paper2', '#f1e7d3')).setOrigin(0);
     const bar = this.add.rectangle(x, y, 1, 8, themeHex('--c-olive', '#7c8a4e')).setOrigin(0);
@@ -100,7 +101,7 @@ export class BootScene extends Phaser.Scene {
     for (const [name, [x, y, w, h]] of Object.entries(emotes.frames)) emoteTex.add(name, 0, x, y, w, h);
     // As fontes do jogo antes do texto desenhado no canvas (dicas do E, balões, mini games): sem elas, o Phaser
     // desenharia com a fonte reserva. Se o navegador não tiver a API, segue sem esperar.
-    await Promise.all(['400 9px Nunito', '700 9px Nunito', '600 9px "Pixelify Sans"'].map((f) => document.fonts?.load(f).catch(() => [])));
+    await Promise.all(['8px Monogram', '16px Monogram'].map((f) => document.fonts?.load(f).catch(() => [])));
     const { saves } = await initServices(this.game);
     const params = new URLSearchParams(window.location.search);
     if (params.has('novo')) {

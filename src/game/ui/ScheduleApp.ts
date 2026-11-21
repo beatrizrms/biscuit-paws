@@ -60,13 +60,13 @@ export class ScheduleApp {
       .map((d, i) => `<button class="s-day${s.days[i] ? ' on' : ''}${i === weekday ? ' today' : ''}" data-day="${i}" aria-pressed="${s.days[i]}">${esc(d)}</button>`)
       .join('');
     const time = (key: 'open' | 'close', label: string) => `<div class="s-time"><span class="s-label">${esc(label)}</span>
-        <button data-time="${key}" data-step="-1" title="${t.earlier}">−</button><b>${s[key]}</b><button data-time="${key}" data-step="1" title="${t.later}">+</button></div>`;
+        <button class="menu-btn small" data-time="${key}" data-step="-1" title="${t.earlier}">−</button><b>${s[key]}</b><button class="menu-btn small" data-time="${key}" data-step="1" title="${t.later}">+</button></div>`;
     body.innerHTML = `<p class="s-status ${sv.isOpen() ? 'open' : 'closed'}">${esc(status)}</p>${pending}
       <h3>${esc(t.days)}</h3><div class="s-days">${days}</div>
       <h3>${esc(t.hours)}</h3>${time('open', t.opens)}${time('close', t.closes)}
-      <h3>${esc(t.lunch)}</h3><div class="s-time"><button class="s-lunch-toggle" data-lunch="toggle" aria-pressed="${!!lunch}">${esc(lunch ? t.lunchOn : t.lunchOff)}</button>
-        ${lunch ? `<button data-lunch="-1" title="${t.earlier}">−</button><b>${lunch}</b><button data-lunch="1" title="${t.later}">+</button>` : ''}</div>
-      ${lunch ? `<div class="s-time"><span class="s-label">${esc(t.lunchLength)}</span><button data-lunch-len="-1" title="${t.shorter}">−</button><b>${esc(lengthText(length))}</b><button data-lunch-len="1" title="${t.longer}">+</button></div>` : ''}
+      <h3>${esc(t.lunch)}</h3><div class="s-time"><button class="menu-btn small s-lunch-toggle" data-lunch="toggle" aria-pressed="${!!lunch}">${esc(lunch ? t.lunchOn : t.lunchOff)}</button>
+        ${lunch ? `<button class="menu-btn small" data-lunch="-1" title="${t.earlier}">−</button><b>${lunch}</b><button class="menu-btn small" data-lunch="1" title="${t.later}">+</button>` : ''}</div>
+      ${lunch ? `<div class="s-time"><span class="s-label">${esc(t.lunchLength)}</span><button class="menu-btn small" data-lunch-len="-1" title="${t.shorter}">−</button><b>${esc(lengthText(length))}</b><button class="menu-btn small" data-lunch-len="1" title="${t.longer}">+</button></div>` : ''}
       <p class="s-summary">${esc(t.summary.replace('{days}', daysText(s.days)).replace('{open}', s.open).replace('{close}', s.close) + (lunch ? t.lunchSummary.replace('{from}', lunch).replace('{to}', lunchEnd(lunch, length)) : ''))}</p>
       <p class="m-hint">${esc(t.hint)}</p>`;
     body.querySelectorAll<HTMLButtonElement>('[data-day]').forEach((b) =>

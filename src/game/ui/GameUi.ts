@@ -771,7 +771,7 @@ export class GameUi {
   }
 
   private waitButton(until: number): string {
-    return `<button class="wait" data-until="${until}" title="${uiText.waitTitle}">${uiText.wait}</button>`;
+    return `<button class="menu-btn small wait" data-until="${until}" title="${uiText.waitTitle}">${uiText.wait}</button>`;
   }
 
   /** Hora de um momento absoluto, dizendo se é amanhã. */
@@ -1204,7 +1204,7 @@ export class GameUi {
     if (e.reputation > 0) rows.push(`<li class="gain">${esc(t.reputation.replace('{n}', String(e.reputation)))}</li>`);
     const el = document.createElement('div');
     el.className = 'confirm-layer';
-    el.innerHTML = `<div class="panel confirm festival-summary"><p class="title">${esc(t.title.replace('{name}', name))}</p><ul>${rows.join('')}</ul><div class="buttons"><button class="yes">${esc(t.close)}</button></div></div>`;
+    el.innerHTML = `<div class="panel confirm festival-summary"><p class="title">${esc(t.title.replace('{name}', name))}</p><ul>${rows.join('')}</ul><div class="buttons"><button class="menu-btn yes">${esc(t.close)}</button></div></div>`;
     this.root.appendChild(el);
     this.reveal = { el, done: () => undefined };
     this.refresh();
@@ -1448,7 +1448,7 @@ ${rep}`;
     const el = document.createElement('div');
     el.className = 'confirm-layer';
     el.innerHTML = `<div class="panel confirm choose"><p>${esc(question)}</p><div class="options">${options
-      .map((o, i) => `<button data-i="${i}"><b>${i + 1}</b> ${esc(o)}</button>`)
+      .map((o, i) => `<button class="menu-btn" data-i="${i}"><b>${i + 1}</b> ${esc(o)}</button>`)
       .join('')}</div></div>`;
     this.root.appendChild(el);
     this.reveal = { el, done: () => undefined };
@@ -1487,7 +1487,7 @@ ${rep}`;
         ? `<button class="slot" data-i="${i}" title="${esc(s.name)}"><span class="key">${i + 1}</span>${iconHtml(s.icon, 32)}${s.premium ? `<span class="prem">${esc(uiText.service.premium)}</span>` : ''}<span class="count">${s.portions}</span></button>`
         : `<span class="slot empty"></span>`;
     }).join('');
-    el.innerHTML = `<div class="panel confirm display-pick"><p>${esc(title)}</p><div class="slots">${cells}</div><button class="close">${esc(uiText.service.extraCancel)}</button></div>`;
+    el.innerHTML = `<div class="panel confirm display-pick"><p>${esc(title)}</p><div class="slots">${cells}</div><button class="menu-btn small tertiary close">${esc(uiText.service.extraCancel)}</button></div>`;
     this.root.appendChild(el);
     this.reveal = { el, done: () => undefined };
     this.refresh();
@@ -1519,7 +1519,7 @@ ${rep}`;
   private confirmNow(question: string, yes: string, no: string): Promise<boolean> {
     const el = document.createElement('div');
     el.className = 'confirm-layer';
-    el.innerHTML = `<div class="panel confirm"><p>${esc(question)}</p><div class="buttons"><button class="no">${esc(no)}</button><button class="yes">${esc(yes)}</button></div></div>`;
+    el.innerHTML = `<div class="panel confirm"><p>${esc(question)}</p><div class="buttons"><button class="menu-btn no">${esc(no)}</button><button class="menu-btn yes">${esc(yes)}</button></div></div>`;
     this.root.appendChild(el);
     this.reveal = { el, done: () => undefined };
     this.refresh();

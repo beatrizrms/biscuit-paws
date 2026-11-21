@@ -13,6 +13,7 @@ import { services } from '../services';
 import { addTileImage } from '../tileArt';
 import { loadCatVariants } from './assets';
 import { MiniGameScene } from './MiniGameScene';
+import { FONT, monoSize } from '../fonts';
 
 export const COSTUME_SCENE = 'MiniGame.costume';
 
@@ -32,10 +33,10 @@ const SLOTS = { x: 362, y: 66, row: 84, btn: 40 };
 const REVIEW_MS = 2400;
 
 const C = { edge: 0x7f4b33, card: 0xfff7e6, pick: 0xe0a94e, on: 0xe4f2e8 };
-const textStyle = (size: number, color = '#3b2a32', bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
-  fontFamily: 'Nunito, Trebuchet MS, sans-serif',
-  fontSize: `${size}px`,
-  fontStyle: bold ? 'bold' : 'normal',
+const textStyle = (size: number, color = '#3b2a32', _bold = false): Phaser.Types.GameObjects.Text.TextStyle => ({
+  fontFamily: FONT,
+  fontSize: `${monoSize(size)}px`,
+  fontStyle: 'normal', // a Monogram não tem negrito (o de mentira borra): o destaque fica no tamanho e na cor
   color,
   resolution: 4,
 });

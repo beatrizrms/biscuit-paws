@@ -37,7 +37,7 @@ export class MenuBoardPanel {
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog menu-board';
-    this.el.innerHTML = `<header><h2>${uiText.menuBoard.title}</h2><button class="close">${uiText.menuBoard.close}</button></header><div class="list"></div>`;
+    this.el.innerHTML = `<header><h2>${uiText.menuBoard.title}</h2><button class="menu-btn small tertiary close">${uiText.menuBoard.close}</button></header><div class="list"></div>`;
     root.appendChild(this.el);
     this.body = this.el.querySelector('.list') as HTMLElement;
     (this.el.querySelector('.close') as HTMLElement).addEventListener('click', () => this.close());
@@ -158,7 +158,7 @@ export class MenuBoardPanel {
       ${this.premiumStrip(r)}
       ${steps || season ? `<div class="m-tags">${steps}${season}</div>` : ''}
       ${why}
-      <div class="m-foot"><span class="m-profit">${esc(t.profit)} ${this.price(profit)}</span><button data-recipe="${r.id}">${action}</button></div></div>`;
+      <div class="m-foot"><span class="m-profit">${esc(t.profit)} ${this.price(profit)}</span><button class="menu-btn small" data-recipe="${r.id}">${action}</button></div></div>`;
   }
 
   /**
@@ -203,7 +203,7 @@ export class MenuBoardPanel {
     const now = all.filter((r) => sv.recipeStatus(r.id) !== 'season');
     const off = all.filter((r) => sv.recipeStatus(r.id) === 'season');
     const byTab = (tab: Tab) => now.filter((r) => r.vessel === tab);
-    const tabs = `<div class="m-tabs">${TABS.map((tab) => `<button data-tab="${tab}" class="${this.tab === tab ? 'on' : ''}">${esc(t.tabs[tab])} (${byTab(tab).length})</button>`).join('')}</div>`;
+    const tabs = `<div class="m-tabs">${TABS.map((tab) => `<button data-tab="${tab}" class="menu-btn small${this.tab === tab ? ' on' : ''}">${esc(t.tabs[tab])} (${byTab(tab).length})</button>`).join('')}</div>`;
     const lines = byTab(this.tab).map((r) => this.line(r, menu.includes(r.id))).join('') || `<p class="empty">${esc(t.noneHere)}</p>`;
     const legend = `<p class="m-legend">${(['ok', 'ingredients', 'equipment'] as const).map((k) => `<span><i class="m-dot ${k === 'ok' ? 'ok' : k === 'equipment' ? 'eq' : 'ing'}"></i>${esc(t.legend[k])}</span>`).join('')}</p>`;
     // Fora de época: quantas por estação (ou janela), e abrindo, os nomes.
@@ -215,7 +215,7 @@ export class MenuBoardPanel {
     const scroll = this.body.scrollTop; // redesenhar não pode mexer na rolagem de quem está lendo
     // A lista de compras logo embaixo do quadro (o que está esgotado e o que está disponível); a capacidade numa linha.
     this.body.innerHTML = `${this.boardHtml(inMenu)}
-      <button class="shopping-add" data-shopping>${iconHtml('caixa_bilhete', 10)}${esc(t.shoppingAdd)}</button>
+      <button class="menu-btn small shopping-add" data-shopping>${iconHtml('caixa_bilhete', 10)}${esc(t.shoppingAdd)}</button>
       ${this.capacityHtml()}
       <h3>${t.slots.replace('{n}', String(inMenu.length)).replace('{max}', String(slots))}</h3>
       ${tabs}<div class="m-list">${lines}</div>${legend}

@@ -14,7 +14,8 @@
 - Mini games (esconderijos, poeira, seta e balões da fuga; água, boia, cais, barra e peixes da pescaria; xícara, jarra e guias da latte art): arte gerada por IA (uso declarado na página da Steam).
 
 ## Fontes
-- Pixelify Sans (Stefie Justprince) e Nunito (Vernon Adams, Cyreal, Jacques Le Bailly): SIL Open Font License 1.1, via Google Fonts, embutidas no jogo pelos pacotes @fontsource. Pixelify Sans nos números e títulos, Nunito nos textos.
+- Monogram (extended), de datagoblin (Vinícius Menézio): https://datagoblin.itch.io/monogram, CC0 (domínio público). A fonte de todo o jogo, embutida em `src/game/ui/fonts/monogram-extended.ttf`. Original guardado em `assets/_originais_pacotes/fontes/monogram/`.
+- Antes (até nov/2026): Pixelify Sans (Stefie Justprince) e Nunito (Vernon Adams, Cyreal, Jacques Le Bailly), SIL Open Font License 1.1.
 
 ## Planejados (marcos futuros)
 - Cosy UI Kit: https://leckie1989.itch.io/cosy-ui-kit-soft-pixel-interface

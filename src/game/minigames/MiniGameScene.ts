@@ -149,7 +149,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
     this.physics.pause();
     this.overlay(`<h2>${esc(this.def.name)}</h2>${this.tutorialHtml()}
       <p class="mg-difficulty">${esc(t.difficulty[this.launch.params.difficulty])}</p>
-      <button class="menu-btn" data-act="start">${t.start}</button>`);
+      <button class="menu-btn primary" data-act="start">${t.start}</button>`);
     // Começa pelo botão / E / Espaço. Com introMs > 0, começa sozinho depois desse tempo; 0 espera a jogadora ler.
     if (content.minigames.introMs > 0) this.time.delayedCall(content.minigames.introMs, () => this.begin());
     this.controls.onAction(() => this.phase === 'intro' && this.begin());
@@ -181,7 +181,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
       this.physics.pause();
       this.anims.pauseAll();
       this.overlay(`<h2>${t.paused}</h2><p>${byInput(t.pausedHint, t.pausedHintTouch, t.pausedHintPad)}</p>
-        <button class="menu-btn" data-act="resume">${t.resume}</button>
+        <button class="menu-btn primary" data-act="resume">${t.resume}</button>
         <button class="menu-btn" data-act="skip">${this.skipLabel()}</button>`);
     } else if (this.phase === 'paused') {
       this.overlay(null);
@@ -203,7 +203,7 @@ export abstract class MiniGameScene extends Phaser.Scene {
     const coins = r.coinsEarned === 1 ? t.coinsOne : r.coinsEarned > 0 ? t.coins.replace('{coins}', String(r.coinsEarned)) : t.noCoins;
     this.renderHud();
     this.overlay(`<h2 class="mg-${r.outcome}">${esc(title)}</h2>${this.resultHtml(r) ?? `<p>${esc(this.resultText(r))}</p>`}<p class="mg-coins">${esc(coins)}</p>
-      <button class="menu-btn" data-act="close">${t.continue}</button>`);
+      <button class="menu-btn primary" data-act="close">${t.continue}</button>`);
     this.controls.onAction(() => this.phase === 'result' && this.close());
   }
 

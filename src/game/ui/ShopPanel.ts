@@ -43,7 +43,7 @@ export class ShopPanel {
   ) {
     this.el = document.createElement('section');
     this.el.className = 'panel catalog shop';
-    this.el.innerHTML = `<header><h2></h2><button class="close">${uiText.shop.close}</button></header><div class="list"></div><footer class="cart-bar"></footer>`;
+    this.el.innerHTML = `<header><h2></h2><button class="menu-btn small tertiary close">${uiText.shop.close}</button></header><div class="list"></div><footer class="cart-bar"></footer>`;
     root.appendChild(this.el);
     this.list = this.el.querySelector('.list') as HTMLElement;
     hoverTips(this.list);
@@ -123,9 +123,9 @@ export class ShopPanel {
   private qtyControls(id: string): string {
     const qty = this.session.cart.qty(id);
     return `<span class="qty" title="${uiText.shop.qtyTitle}">
-        <button data-act="sub" data-item="${id}" ${qty === 0 ? 'disabled' : ''} aria-label="menos">−</button>
+        <button class="menu-btn small" data-act="sub" data-item="${id}" ${qty === 0 ? 'disabled' : ''} aria-label="menos">−</button>
         <span class="n">${qty}</span>
-        <button data-act="add" data-item="${id}" aria-label="${uiText.shop.add}">+</button>
+        <button class="menu-btn small" data-act="add" data-item="${id}" aria-label="${uiText.shop.add}">+</button>
       </span>`;
   }
 
@@ -175,7 +175,7 @@ export class ShopPanel {
         const item = content.items[itemId]!;
         return `<div class="row cart-row in-cart" data-row="${itemId}">
             <span class="name">${shopIcon(item)}${item.name}</span><span class="price">${COIN}${item.price * qty}</span>${this.qtyControls(itemId)}
-            <button class="drop" data-act="drop" data-item="${itemId}">${uiText.shop.removeAll}</button>
+            <button class="menu-btn small tertiary drop" data-act="drop" data-item="${itemId}">${uiText.shop.removeAll}</button>
           </div>`;
       })
       .join('');
@@ -183,7 +183,7 @@ export class ShopPanel {
     this.bar.innerHTML = `<span class="total">${this.cartLine()}</span>
       <span class="have">${fill(uiText.shop.youHave, { money: state.money })}</span>
       ${missing > 0 ? `<span class="missing">${fill(uiText.shop.missing, { missing })}</span>` : ''}
-      <button class="pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })} <span class="key">${uiText.shop.payKey}</span></button>`;
+      <button class="menu-btn primary pay" data-act="pay" ${missing > 0 ? 'disabled' : ''}>${fill(uiText.shop.pay, { total: this.session.cartTotal() })} <span class="key">${uiText.shop.payKey}</span></button>`;
   }
 }
 
