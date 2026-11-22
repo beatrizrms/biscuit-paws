@@ -43,6 +43,12 @@ describe('sorteios da saúde', () => {
     expect(rollsIllness(cfg, 10, CAT)).toBe(rollsIllness(cfg, 10, CAT));
   });
 
+  it('a Fungadinha da Neve só é sorteada no inverno', () => {
+    const pick = (season: string) => new Set(Array.from({ length: 200 }, (_, d) => pickDisease(cfg, d, CAT, season)));
+    expect(pick('winter')).toContain('disease.snow_sniffles');
+    for (const season of ['spring', 'summer', 'autumn']) expect(pick(season)).not.toContain('disease.snow_sniffles');
+  });
+
   it('os dados da saúde são válidos', () => {
     expect(validateHealth(cfg, { items: new Set(Object.keys(content.items)), maps: new Set(Object.keys(content.maps)), npcs: new Set(Object.keys(content.npcs)) })).toEqual([]);
   });

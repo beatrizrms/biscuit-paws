@@ -79,6 +79,26 @@ async function adoptFirstCat(page: Page): Promise<void> {
   await expect(page.locator('.naming-layer')).toHaveClass(/open/);
   await page.click('.naming .confirm');
   await skipDialogue(page);
+  await closeUnlocks(page);
+}
+
+/**
+ * A tela "Novidade!" (coisas novas à venda, conquistas) abre um pouco depois do que a destrancou, quando nada mais
+ * está aberto: espera ela sair da fila e fecha (o skipDialogue pode já ter fechado com o Espaço).
+ */
+async function closeUnlocks(page: Page): Promise<void> {
+  const state = () =>
+    page.evaluate(() => ({
+      pending: (window as unknown as { __biscuitPaws: { cafe: { ui: { unlockTimer: number | null } } } }).__biscuitPaws.cafe.ui.unlockTimer !== null,
+      open: !!document.querySelector('.item-reveal.unlocks'),
+    }));
+  for (let i = 0; i < 150; i++) {
+    const s = await state();
+    if (s.open) await page.locator('.item-reveal.unlocks .u-ok').click();
+    else if (!s.pending) break;
+    await page.waitForTimeout(100);
+  }
+  await expect(page.locator('.item-reveal.unlocks')).toHaveCount(0);
 }
 
 /** Clica no centro de uma célula do mapa (o mapa de 512 x 352 fica centrado na tela de 640 x 360). */
@@ -107,6 +127,14 @@ const teleport = (page: Page, col: number, row: number) =>
     col,
     row,
   ]);
+
+/** F5: o jogo salvo volta pausado (menu de pausa aberto); Continuar devolve o jogo. */
+async function reloadAndResume(page: Page): Promise<void> {
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
+  await page.locator('.menu-panel.pause [data-act="resume"]').click();
+  await expect(page.locator('.menu-panel.pause')).toHaveCount(0);
+}
 
 async function hold(page: Page, key: string, ms: number): Promise<void> {
   await page.keyboard.down(key);
@@ -202,17 +230,23 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
     w.goTo('map.cafe_main');
   });
   await skipDialogue(page);
-  // Abre a caixa no salão (E perto da pilha): o item vai para a mão.
+  // Ela entra carregando a caixa: E solta no chão, E de novo pergunta (abrir, carregar, deixar); aberta, o móvel
+  // sai para posicionar.
   await teleport(page, 14, 5);
   await page.keyboard.press('e');
-  await expect(page.locator('.hint')).toContainText('cancelar');
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { session: { boxesAt(where: string): number } } } }).__biscuitPaws.cafe.session.boxesAt('carried'))).toBe(0);
+  await page.keyboard.press('e');
+  await expect(page.locator('.confirm.choose')).toContainText('Caixa com');
+  await page.locator('.confirm.choose [data-i="0"]').click(); // Abrir
+  await expect(page.locator('.confirm.choose')).toContainText('posicionar agora');
+  await page.locator('.confirm.choose [data-i="0"]').click(); // Posicionar agora
+  await expect(page.locator('.hint')).toContainText('Cancelar');
   await clickCell(page, 12, 9);
   await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   await page.screenshot({ path: testInfo.outputPath('06-caminha.png') });
 
   // Recarrega: sem abertura de novo, dinheiro e móvel continuam lá.
-  await page.reload();
-  await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
+  await reloadAndResume(page);
   await expect(page.locator('.dialogue-layer')).not.toHaveClass(/open/);
   await expect(page.locator('.hud-money')).toContainText('142');
   await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
@@ -220,17 +254,17 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   // Botão direito entra em "mudar de lugar": o móvel continua no café (a meta segue feita); Esc cancela sem mudar nada.
   // Cada passo espera o jogo reagir antes do próximo (sem corrida entre teclas).
   await clickCell(page, 12, 9, 'right');
-  await expect(page.locator('.hint')).toContainText('soltar'); // modo de mudar de lugar
+  await expect(page.locator('.hint')).toContainText('Soltar'); // modo de mudar de lugar
   await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   await page.keyboard.press('Escape');
-  await expect(page.locator('.hint')).toContainText('market'); // voltou a andar
+  await expect(page.locator('.hint')).toContainText('Market'); // voltou a andar
   await expect(page.locator('.hud-goals .g-sum')).toContainText('1 de'); // o passo feito, no resumo da meta
   // Botão direito e Q: guarda na mochila.
   await clickCell(page, 12, 9, 'right');
-  await expect(page.locator('.hint')).toContainText('soltar');
+  await expect(page.locator('.hint')).toContainText('Soltar');
   await page.keyboard.press('q');
   await expect(page.locator('.hud-goals .g-sum')).toHaveCount(0);
-  await expect(page.locator('.hint')).toContainText('market');
+  await expect(page.locator('.hint')).toContainText('Market');
   await page.keyboard.press('c');
   await expect(page.locator('section.phone-ui[data-app="market"]')).toHaveClass(/open/);
   await page.locator('[data-tab="pet"]').click();
@@ -247,11 +281,14 @@ test('modo debug (F9): painel, notas e save separado do jogo normal', async ({ p
   await page.waitForURL(/debug=1/);
   await ready();
   await expect(page.locator('.debug-panel')).toBeVisible();
-  await page.getByRole('button', { name: 'Pular falas' }).click();
-  await page.getByRole('button', { name: '+100 moedas' }).click();
+  // O painel vem com as seções fechadas: abre Ferramentas e Dinheiro.
+  await page.locator('.debug-panel [data-sec="tools"] summary').click();
+  await page.locator('.debug-panel [data-sec="money"] summary').click();
+  await page.locator('.debug-panel [data-act="skip"]').click();
+  await page.locator('.debug-panel [data-act="money"]').click();
   await expect(page.locator('.hud-money')).toContainText('250');
-  await page.getByRole('button', { name: 'Grade' }).click();
-  await page.getByRole('button', { name: 'Colisão' }).click();
+  await page.locator('.debug-panel [data-act="grid"]').click();
+  await page.locator('.debug-panel [data-act="collision"]').click();
   await page.screenshot({ path: testInfo.outputPath('07-debug.png') });
 
   // Desliga: volta ao save normal, que não ganhou as 100 moedas.
@@ -285,8 +322,7 @@ test('obras: reparo pela aba Construção (ligação, adiantado, o save guarda) 
   await page.screenshot({ path: testInfo.outputPath('08-obra-aceita.png') });
 
   // O save guarda a obra: a aba mostra "Em obra" e uma obra por vez.
-  await page.reload();
-  await page.waitForFunction(() => (window as unknown as { __biscuitPaws?: DebugHook }).__biscuitPaws?.cafe?.map);
+  await reloadAndResume(page);
   await page.keyboard.press('c');
   await page.locator('[data-tab="build"]').click();
   await expect(page.locator('.m-busy')).toContainText('Reparo interno');
@@ -374,21 +410,21 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   await skipDialogue(page);
   await enterCafe(page);
   await cleanCafe(page);
-  // Antes do gato, o catálogo não mostra a caminha.
+  // Antes do gato, o catálogo não mostra as tigelas (a caminha vem depois, no dia 2).
   // Espera abrir e fechar de verdade: sem isso o segundo "c" pode chegar antes do jogo ler o primeiro.
   const catalog = page.locator('section.phone-ui[data-app="market"]');
   await page.keyboard.press('c');
   await expect(catalog).toHaveClass(/open/);
-  await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(0);
+  await expect(page.locator('[data-item="item.water_bowl"]')).toHaveCount(0);
   await page.keyboard.press('c');
   await expect(catalog).not.toHaveClass(/open/);
 
-  // Vai até a porta de dentro e sobe: em vez de sair, vem a cena.
-  await teleport(page, 14, 4);
+  // Vai até a porta de dentro (embaixo, no capacho) e desce: em vez de sair, vem a cena.
+  await teleport(page, 14, 9);
   // Segura a seta até a cena abrir (tempo fixo falha com a máquina carregada: quadros lentos, ela anda menos).
-  await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('ArrowDown');
   await expect(page.locator('.cutscene')).toHaveClass(/open/, { timeout: 8000 });
-  await page.keyboard.up('ArrowUp');
+  await page.keyboard.up('ArrowDown');
   expect((await player(page)).map).toBe('map.cafe_main');
   await skipDialogue(page);
 
@@ -411,17 +447,21 @@ test('o miado: a porta mostra o gatinho, a caixa de nome aparece e ele fica no c
   });
   expect(info).toEqual({ n: 1, name: 'Wasabi' });
   await page.keyboard.press('c');
-  await expect(page.locator('[data-item="item.cat_bed"]')).toHaveCount(1);
+  await expect(page.locator('[data-item="item.water_bowl"]')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('15-gato-no-cafe.png') });
 });
 
 test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando para baixo', async ({ page }, testInfo) => {
   await openGame(page);
   await skipDialogue(page);
+  // A prateleira pet só vende depois do gatinho (antes: "Nada à venda aqui por enquanto.").
+  await enterCafe(page);
+  await cleanCafe(page);
+  await adoptFirstCat(page);
   await page.evaluate(() => (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe.goTo('map.market'));
   expect((await player(page)).map).toBe('map.market');
   // Prateleira pet: põe 2 rações no carrinho; nada é cobrado ainda.
-  await teleport(page, 9, 4);
+  await teleport(page, 9, 3); // de frente para a gôndola pet (parede de cima)
   await page.keyboard.press('e');
   await expect(page.locator('.shop')).toHaveClass(/open/);
   const add = page.locator('[data-row="item.cat_food_basic"] [data-act="add"]');
@@ -430,7 +470,8 @@ test('mercado: pega na prateleira (carrinho), paga no caixa (E) e sai andando pa
   await expect(page.locator('[data-row="item.cat_food_basic"] .n')).toHaveText('2');
   await expect(page.locator('.cart-bar .total')).toContainText('2 itens · 30 moedas');
   await expect(page.locator('.hud-money')).toContainText('150');
-  await expect(page.locator('.hud-cart')).toBeVisible();
+  // No mercado o carrinho vai num balão em cima dela (no canvas); o do HUD só aparece fora do mercado.
+  await expect(page.locator('.hud-cart')).toBeHidden();
   await page.screenshot({ path: testInfo.outputPath('16-mercado-prateleira.png') });
   await page.keyboard.press('e'); // E fecha
   await expect(page.locator('.shop')).not.toHaveClass(/open/);
@@ -475,7 +516,13 @@ test('fim do prólogo: ração ativa na barra, E na tigela alimenta, coração, 
   // A ração aparece na mão (animação) antes de encher a tigela.
   await page.waitForTimeout(250);
   await page.screenshot({ path: testInfo.outputPath('16b-racao-na-mao.png') });
-  await expect(page.locator('.toast')).toContainText('♥');
+  // A refeição dá pontos de afeto (o coração inteiro só vem com 100 pontos: sem aviso de ♥ na primeira).
+  const affection = () =>
+    page.evaluate(() => {
+      const w = (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { relationships: Record<string, number> } } } }).__biscuitPaws.cafe;
+      return Math.max(0, ...Object.values(w.sessionState().relationships));
+    });
+  await expect.poll(affection).toBeGreaterThan(0);
   await expect(page.locator('.dialogue')).toContainText('come com vontade');
   // A fala termina e só então vem o cartão final (não abre por cima da fala).
   await expect(page.locator('.cutscene')).not.toHaveClass(/open/);
@@ -497,7 +544,7 @@ test('fim do prólogo: ração ativa na barra, E na tigela alimenta, coração, 
     s.clean('dirt.cat_poop');
   });
   await skipDialogue(page);
-  await expect(page.locator('.hud-goals')).toContainText('Um cantinho quente');
+  await expect(page.locator('.hud-goals')).toContainText('Tudo que um gatinho precisa');
 });
 
 test('corretora: aparece na rua, leva para dentro e a chave aparece no centro da tela', async ({ page }, testInfo) => {
@@ -558,8 +605,11 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
     w.goTo('map.cafe_main', [6, 7]);
   });
   await skipDialogue(page);
+  await closeUnlocks(page); // o atalho abre várias etapas do Market de uma vez: a tela "Novidade!"
   await expect(page.locator('.hud-goals')).toContainText('O primeiro cliente');
   await page.keyboard.press('m');
+  // No quadro, a linha da receita abre os detalhes; o botão de pôr no cardápio fica dentro.
+  await page.locator('[data-open="recipe.black_coffee"]').click();
   await page.locator('[data-recipe="recipe.black_coffee"]').click();
   await page.keyboard.press('m');
   const advance = (m: number) =>
@@ -568,22 +618,36 @@ test('atendimento: cardápio (M), cliente pede, prepara (E), entrega, louça suj
       for (let i = 0; i < m; i++) s.tickClock(1 / s.content.dayNight.minutesPerSecond);
     }, m);
   await advance(6);
-  await expect(page.locator('.hud-goals .pips i.on')).toHaveCount(1); // atendimento: 1 cliente (bolinha)
+  // Chegou 1 cliente (no balão das metas, o atendimento conta "x/y" no lugar das bolinhas).
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { service: { customers: unknown[] } } } } }).__biscuitPaws.cafe.sessionState().service.customers.length))
+    .toBe(1);
   await teleport(page, 7, 6);
   await page.keyboard.press('e');
   await expect(page.locator('.toast')).toContainText('Preparando');
   await advance(11);
   await page.keyboard.press('e');
   await expect(page.locator('.hud-goals')).toContainText('Nas mãos: Café preto');
-  await teleport(page, 5, 6);
+  // Só dá para atender quem já sentou: o relógio foi adiantado, mas o cliente anda até a cadeira em tempo real.
+  await expect
+    .poll(() => page.evaluate(() => [...(window as unknown as { __biscuitPaws: { cafe: { customerViews: Map<string, { arrived: boolean }> } } }).__biscuitPaws.cafe.customerViews.values()].every((v) => v.arrived)), { timeout: 15_000 })
+    .toBe(true);
+  await teleport(page, 12, 8); // ao lado do cliente, sentado na cadeira (11, 8)
   await page.keyboard.press('e');
   await expect(page.locator('.toast')).toContainText('+12');
   await skipDialogue(page);
-  await advance(22);
-  await teleport(page, 4, 6);
+  await closeUnlocks(page); // o primeiro cliente abre o café: mais coisas à venda
+  // Ele toma o café e vai embora (o tempo de consumo vem dos dados): adianta o relógio até ele sair.
+  const firstStillThere = () =>
+    page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { sessionState(): { service: { customers: { id: string }[] } } } } }).__biscuitPaws.cafe.sessionState().service.customers.some((c) => c.id === 'c1'));
+  for (let i = 0; i < 24 && (await firstStillThere()); i++) await advance(5);
+  expect(await firstStillThere()).toBe(false);
+  await teleport(page, 10, 9); // a xícara suja fica na mesa (10, 8)
   await page.keyboard.press('e');
   await expect(page.locator('.hud-goals')).toContainText('Xícara suja');
-  await teleport(page, 1, 4);
+  // De frente para a pia (0, 3): com as mãos livres, o armário da despensa ao lado (1, 3) ganharia o E se ela olhasse para ele.
+  await teleport(page, 0, 4);
+  await hold(page, 'ArrowUp', 60);
   // Pia: um E deixa a louça, outro começa a lavar; leva uns minutos.
   await page.keyboard.press('e');
   await expect(page.locator('.toast')).toContainText('Louça na pia');
@@ -603,12 +667,20 @@ test('mover pelo teclado: F pega a mesa ao lado, setas levam o fantasma, Enter s
         (p) => `${p.item}@${p.at.join(',')}`,
       ),
     );
+  // A mesa só entra à venda depois da cafeteira (Market aos poucos): atalho pela história até lá.
   const ok = await page.evaluate(() => {
     const { session } = (window as unknown as { __biscuitPaws: DebugHook }).__biscuitPaws.cafe;
+    const s = session as unknown as { content: { story: { beats: { id: string }[] } }; state: { story: { completed: string[] }; flags: Record<string, boolean>; cleaned: string[] } };
+    const beats = s.content.story.beats;
+    s.state.story.completed = beats.slice(0, beats.findIndex((b) => b.id === 'story.coffee_machine') + 1).map((b) => b.id);
+    Object.assign(s.state.flags, { 'prologue.done': true, 'has.cat': true });
+    s.state.cleaned = ['*'];
     session.addMoney(100, 'test');
     return session.buy('item.table_round').ok && session.place('item.table_round', [8, 7]).ok;
   });
   expect(ok).toBe(true);
+  await skipDialogue(page);
+  await closeUnlocks(page);
   await teleport(page, 7, 7);
   await hold(page, 'ArrowRight', 60); // virada para a mesa
   await page.keyboard.press('f');

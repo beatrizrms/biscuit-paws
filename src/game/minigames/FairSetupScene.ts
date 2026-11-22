@@ -2,6 +2,7 @@
 // sobra de cada; à esquerda, os gatos do café; à direita, as regras com o que já vale. Clique numa peça e no gramado
 // para pôr; clique numa peça posta para mudar de lugar; botão direito tira. Clique num gato e numa caixa ou
 // cercadinho para levar o gato. A regra (lugar, caminho, pontuação) mora em src/core/fairSetup.ts; aqui só se desenha.
+import { plural } from '../../core/plural';
 import Phaser from 'phaser';
 import {
   fairItemAt,
@@ -120,7 +121,7 @@ export class FairSetupScene extends MiniGameScene {
   protected resultText(r: MiniGameResult): string {
     if (r.skipped || !r.fairSetup) return '';
     const t = uiText.minigames.fair_setup;
-    return [t.result.replace('{score}', String(r.score)).replace('{visitors}', String(r.fairSetup.visitors)), r.fairSetup.extraFamilies > 0 ? t.families.replace('{n}', String(r.fairSetup.extraFamilies)) : ''].filter(Boolean).join('\n');
+    return plural([t.result.replace('{score}', String(r.score)).replace('{visitors}', String(r.fairSetup.visitors)), r.fairSetup.extraFamilies > 0 ? t.families.replace('{n}', String(r.fairSetup.extraFamilies)) : ''].filter(Boolean).join('\n'));
   }
 
   // ---------- Entrada ----------
@@ -312,7 +313,7 @@ export class FairSetupScene extends MiniGameScene {
     rule(4, t.rule.table, r.hasTable ? 1 : 0);
     add(this.add.text(RULES.x, RULES.y + 5 * 26 + 6, t.score.replace('{score}', String(r.score)), textStyle(9, '#5c3428', true)));
     add(this.add.text(RULES.x, RULES.y + 5 * 26 + 22, t.visitors.replace('{n}', String(r.visitors)), textStyle(8, '#5c3428')));
-    if (r.extraFamilies > 0) add(this.add.text(RULES.x, RULES.y + 5 * 26 + 36, t.families.replace('{n}', String(r.extraFamilies)), { ...textStyle(7, '#3f7a4a'), wordWrap: { width: 118 } }));
+    if (r.extraFamilies > 0) add(this.add.text(RULES.x, RULES.y + 5 * 26 + 36, plural(t.families.replace('{n}', String(r.extraFamilies))), { ...textStyle(7, '#3f7a4a'), wordWrap: { width: 118 } }));
     this.setHudInfo(t.hud.replace('{placed}', String(this.board.placed.length)).replace('{cats}', String(Object.keys(this.board.housed).length)).replace('{want}', String(Math.min(this.p.cats, this.cats.length))));
   }
 

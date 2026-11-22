@@ -34,6 +34,7 @@ npm run pixellab    # junta a arte aprovada do PixelLab (assets/_pixellab) em fo
 npm run minigames   # importa a arte dos mini games de assets/_originais_pacotes/minigames para public/assets/minigames
 npm test            # testes da lógica pura (Vitest)
 npm run test:e2e    # teste de fumaça no navegador (Playwright)
+npx tsx scripts/qa/robo-jogadora.ts   # robô de teste: joga vários dias sozinho e grava registro e prints em test-results/qa/robo (docs/QA_JOGAR_ERRADO.md)
 npm run build       # build de produção em dist/
 ```
 

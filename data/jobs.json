@@ -521,9 +521,7 @@
       "location": "map.street",
       "reward": 30,
       "repeat": "daily",
-      "available": {
-        "beat": "story.prologue_end"
-      },
+      "available": { "all": [{ "beat": "story.prologue_end" }, { "season": "winter" }] },
       "steps": [
         {
           "text": "Varra 3 montes de neve na frente da loja de móveis",
@@ -644,9 +642,7 @@
       "location": "map.street",
       "reward": 25,
       "repeat": "daily",
-      "available": {
-        "beat": "story.prologue_end"
-      },
+      "available": { "all": [{ "beat": "story.prologue_end" }, { "season": "winter" }] },
       "steps": [
         {
           "text": "Varra 3 montes de neve na frente do mercado",

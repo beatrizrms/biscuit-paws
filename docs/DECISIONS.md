@@ -1300,3 +1300,18 @@ Consequência: botão novo usa `menu-btn` com o nível; o visual não se escreve
 Pedido: a ficha do gato no celular estava desalinhada (o gato centralizado numa coluna larga, barras começando em lugares diferentes no modo toque, linhas quebrando) e com texto demais.
 Decisão: a ficha virou cabeçalho (o gato sentado ao lado do nome, do jeito com os dias no café e dos corações, sem o "10/10": o número fica no title) + as três barras numa grade (rótulo e barra em duas colunas, então começam juntas em qualquer tamanho de fonte) + as linhas de cuidado, todas com a bolinha na frente (comeu hoje / ainda não comeu também virou linha). Doente: a linha diz só a doença; a do remédio leva a contagem e a dose ("Remédio 2/5 · falta hoje"), igual para o remédio da castração. "Consulta de entrada feita" virou "Consulta feita". O texto fica na cor normal; a cor vai na bolinha (e no remédio que falta).
 Fonte: o "·" da Monogram estendida era um pixel no alto da linha (parecia um acento grave). No arquivo do jogo (`src/game/ui/fonts/monogram-extended.ttf`, CC0, pode alterar) o pixel desceu para o meio da altura das minúsculas; vale para todos os "·" do jogo. O original segue em `assets/_originais_pacotes/fontes/`.
+
+## 308. Robô de teste e correções do que ele e a jogadora de teste acharam (nov/2026)
+Pedido: criar um robô que jogue vários dias sozinho e corrigir os defeitos achados até aqui.
+Decisão:
+- **Robô de teste:** `npx tsx scripts/qa/robo-jogadora.ts` abre o jogo num save (`scripts/qa/saves/`), joga dia a dia (pedidos da vila, compras, tarefas, atendimento, clínica) e grava registro, resumo e prints em `test-results/qa/robo/` (fora do Git). Sobe o próprio Vite, sem recarregar ao editar o código. Detalhes em `docs/QA_JOGAR_ERRADO.md`.
+- **Pedidos de neve só no inverno:** `job.clear_snow` e `job.clear_snow_market` ganharam `{ "season": "winter" }`.
+- **Jornal:** as manchetes sem dia marcado saem em rodízio (`newsForDay`), nunca a mesma em dias seguidos, e podem ter estação (`season`); a da neve e a do gato laranja (o texto fala em neve) são só de inverno.
+- **Doença com estação:** `diseases[].season` em `data/health.json`; a Fungadinha da Neve só é sorteada no inverno (`pickDisease`). Precisa existir pelo menos uma doença sem estação.
+- **Clínica:** falas próprias para gato que chega doente (`intake.helloSick`), para quem volta (`intake.helloAgain`) e para levar para casa com doença que passa (`intake.takeHomeSick`).
+- **Plural:** `plural()` (`src/core/plural.ts`) resolve "(s)" e "(es)" pelo último número do texto ("1 moeda", "2 moedas"); aplicado nos mini games, na consulta, nas estatísticas e nos avisos.
+- **Caça ao filhote:** o "Achou!" não sai mais da tela na borda.
+- **Inauguração sem data depois do dia 26:** passou do dia 26 sem inaugurar, ela inaugura no primeiro dia em que tudo estiver pronto, e a data some: o passo vira "Inaugure o café" e não aparece como feito (`GoalStep.late`), a marcação sai do calendário (`hideWhen` com o dia 27) e o convite vira "Vou inaugurar o café! Você vem?" (`invite.late`). As três ligações de lembrete da Gabi não citam mais o dia (uma delas dizia que o dia 26 estava chegando já na primavera).
+
+**Motivo:** o robô jogou do Inverno 9 à Primavera 29 e mostrou neve no jornal e doença de neve na primavera, e a ligação fora de hora.
+**Consequência:** a primavera fica com duas manchetes em rodízio (falta conteúdo). O robô ainda joga mal alguns pontos (pula o mini game do remédio, não tira o gato do cercadinho, não gasta moedas): o que ele mostra de economia e de ritmo não vale como retrato do jogo. Os testes de fumaça do navegador (`npm run test:e2e`) estão com 9 de 20 falhando por coordenadas antigas (o mercado mudou de lugar depois deles): ficam para uma tarefa própria.

@@ -3,6 +3,8 @@
   "_comment": "Falas da Fernanda sobre a consulta de entrada, castração e recuperação (pt-BR). Arquivo à parte para revisão com um veterinário. {cat} = nome do gato; {days} = dias; {day} = dia; {price} = moedas. Textos curtos, acolhedores, sem sermão. A protagonista pode ser ela ou ele: escrever neutro (ou {g:feminino|masculino}). Chaves usadas pelo jogo; o que está em ced.* ainda não é chamado (fase da CED).",
   "intake": {
     "hello": "Chegou gente nova? Deixa eu dar uma olhada em {cat}.",
+    "helloSick": "{cat} não está bem? Deixa eu dar uma olhada.",
+    "helloAgain": "Oi de novo, {cat}! Deixa eu ver como você está.",
     "tests": "Fiz os testes de FIV e FeLV, que passam de gato para gato. Por isso todo recém-chegado faz antes de conhecer os outros.",
     "testsNegative": "Deu negativo nos dois. Pode ficar {g:tranquila|tranquilo}.",
     "healthy": "Fora isso, {cat} está bem.",
@@ -21,6 +23,7 @@
     "noSlots": "A agenda de cirurgias de hoje lotou. Me traz amanhã que eu encaixo.",
     "stayOvernight": "Pode deixar {cat} aqui esta noite. Amanhã você busca.",
     "takeHome": "Pode levar. No café, {cat} já pode conhecer a turma.",
+    "takeHomeSick": "Pode levar. No café, {cat} fica separad{sex:o|a} da turma até sarar.",
     "checkup": "Já que {cat} veio, aproveitei e fiz os testes de FIV e FeLV e um checkup geral. Deu tudo negativo, e o resto está ótimo."
   },
   "neuter": {

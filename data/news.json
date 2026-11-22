@@ -24,12 +24,14 @@
     {
       "id": "news.snow_back",
       "fromDay": 4,
+      "season": "winter",
       "headline": "A neve volta amanhã",
       "text": "A previsão é de mais neve para amanhã. Bom dia para um café quentinho."
     },
     {
       "id": "news.orange_cat",
       "fromDay": 4,
+      "season": "winter",
       "headline": "Gato laranja é visto no banco da praça",
       "text": "Um gato laranja e gordinho virou atração: dorme todas as tardes no mesmo banco, sem se importar com a neve."
     },

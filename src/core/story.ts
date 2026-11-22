@@ -215,9 +215,10 @@ export function currentGoals(story: StoryData, state: GameState, ctx: StoryConte
       steps: b.goal!.steps.map((s, i) => {
         // Receita de um gato: as doses dadas de todas, e se a de hoje já foi.
         const treatment = s.doses ? state.cats[s.doses]?.sickness?.treatment : undefined;
-        const done = evaluate(s.when, state, ctx);
+        const late = !!s.late && state.day >= s.late.fromDay;
+        const done = !late && evaluate(s.when, state, ctx);
         return {
-          text: s.text,
+          text: late ? s.late!.text : s.text,
           done,
           ...(done && state.goalStepsDone?.[`${b.id}#${i}`] !== undefined ? { doneBefore: true } : {}),
           ...(s.optional ? { optional: true } : {}),

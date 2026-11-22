@@ -112,6 +112,8 @@ export interface NewsItem {
   text: string;
   day?: number;
   fromDay?: number;
+  /** Só nessa estação (ex.: notícia de neve só no inverno). Sem isso, vale o ano todo. */
+  season?: string;
 }
 
 /** Uma dica da Cartilha do gato (uma por dia, no Vila Hoje). */
@@ -141,14 +143,13 @@ export function tipForDay(data: NewsData, day: number, holds: (when: unknown) =>
   return tips[(((Math.max(1, day) - 1) % tips.length) + tips.length) % tips.length]!;
 }
 
-/** Notícias de um dia: as marcadas para aquele dia; sem nenhuma, uma do sorteio (sempre a mesma para o dia). */
-export function newsForDay(data: NewsData, day: number): NewsItem[] {
+/** Notícias de um dia: as marcadas para aquele dia; sem nenhuma, uma das outras (as da estação), em rodízio (nunca a mesma em dias seguidos). */
+export function newsForDay(data: NewsData, day: number, season?: string): NewsItem[] {
   const fixed = data.items.filter((n) => n.day === day);
   if (fixed.length > 0) return fixed;
-  const pool = data.items.filter((n) => n.day === undefined && (n.fromDay ?? 1) <= day);
+  const pool = data.items.filter((n) => n.day === undefined && (n.fromDay ?? 1) <= day && (n.season === undefined || season === undefined || n.season === season));
   if (pool.length === 0) return [];
-  const rng = createRng(day * 7919 + 13);
-  return [pool[rng.int(0, pool.length - 1)]!];
+  return [pool[Math.max(0, day) % pool.length]!];
 }
 
 export function validateJobs(
