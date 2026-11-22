@@ -34,6 +34,11 @@ export interface PillState {
   phase: PillPhase;
   /** Células cobertas (linha a linha). */
   covered: boolean[];
+  /**
+   * Células que contam para a cobertura (linha a linha): só onde o comprimido aparece. A arte tem borda transparente
+   * e pontas redondas; sem isso, era preciso cobrir de pasta o vazio em volta para chegar a 100%.
+   */
+  counts: boolean[];
   mood: PillMood;
   /** Até quando (ms do jogo) o humor atual dura. */
   moodUntil: number;
@@ -51,13 +56,17 @@ export interface PillEvents {
   turned?: PillMood;
 }
 
-export function newPill(p: PillParams, windowScale = 1): PillState {
-  return { phase: 'cover', covered: Array(p.grid[0] * p.grid[1]).fill(false), mood: 'distracted', moodUntil: 0, suspicion: 0, offers: 0, result: null, elapsed: 0, windowScale };
+/** shape: as células onde o comprimido aparece (sem ela, ou vazia, todas contam). */
+export function newPill(p: PillParams, windowScale = 1, shape?: readonly boolean[]): PillState {
+  const n = p.grid[0] * p.grid[1];
+  const counts = shape && shape.length === n && shape.some(Boolean) ? [...shape] : Array<boolean>(n).fill(true);
+  return { phase: 'cover', covered: Array(n).fill(false), counts, mood: 'distracted', moodUntil: 0, suspicion: 0, offers: 0, result: null, elapsed: 0, windowScale };
 }
 
 /** 0 a 1: quanto do comprimido está coberto. */
 export function coverage(s: PillState): number {
-  return s.covered.filter(Boolean).length / s.covered.length;
+  const total = s.counts.filter(Boolean).length;
+  return s.covered.filter((c, i) => c && s.counts[i]).length / total;
 }
 
 /**

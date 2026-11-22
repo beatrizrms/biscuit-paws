@@ -31,6 +31,22 @@ describe('remédio escondido', () => {
     expect(coverage(s)).toBe(1);
   });
 
+  it('só conta onde o comprimido aparece: a borda vazia da arte não precisa de pasta', () => {
+    const [cols, rows] = p.grid;
+    // Comprimido só no miolo (sem a primeira e a última coluna e linha).
+    const shape = Array.from({ length: cols * rows }, (_, i) => {
+      const c = i % cols;
+      const r = Math.floor(i / cols);
+      return c > 0 && c < cols - 1 && r > 0 && r < rows - 1;
+    });
+    const s = newPill(p, 1, shape);
+    for (let v = 0.25; v <= 0.75; v += 0.05) for (let u = 0.15; u <= 0.85; u += 0.05) spread(s, p, u, v);
+    expect(s.covered.some((c, i) => !c && !shape[i])).toBe(true); // a borda ficou sem pasta
+    expect(coverage(s)).toBe(1);
+    // Sem forma (ou vazia), tudo conta.
+    expect(newPill(p, 1, Array(cols * rows).fill(false)).counts.every(Boolean)).toBe(true);
+  });
+
   it('passo 2: o gato alterna distraído e atento, com aviso no fim da distração; repetível pela semente', () => {
     const run = () => {
       const s = newPill(p);

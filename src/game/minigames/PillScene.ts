@@ -67,10 +67,10 @@ export class PillScene extends MiniGameScene {
   protected buildGame(): void {
     this.p = paramsOf<PillParams>(content.minigames, 'pill', this.launch.params.difficulty);
     // O jeito do gato: desconfiado, a distração dura menos (cat_profiles.json: pillWindow).
-    this.s = newPill(this.p, this.launch.pillWindow ?? 1);
+    this.ensureArt();
+    this.s = newPill(this.p, this.launch.pillWindow ?? 1, this.pillShape());
     this.ended = false;
     this.lastPaste = { x: -99, y: -99 };
-    this.ensureArt();
     this.cameras.main.setBackgroundColor('#f3e3cc');
     this.drawBackdrop();
 
@@ -237,6 +237,36 @@ export class PillScene extends MiniGameScene {
 
   private sfx(id: string | undefined): void {
     if (id) services().audio.sfx(id);
+  }
+
+  /**
+   * Onde o comprimido aparece, célula a célula da grade (pill.ts: counts): conta a célula com pelo menos metade dos
+   * pixels da arte opacos. A borda transparente e os cantos das pontas redondas ficam de fora.
+   */
+  private pillShape(): boolean[] | undefined {
+    const [cols, rows] = this.p.grid;
+    const src = this.textures.get(PILL_KEYS.pill).getSourceImage() as CanvasImageSource & { width: number; height: number };
+    if (!src?.width || !src?.height) return undefined;
+    const canvas = document.createElement('canvas');
+    canvas.width = src.width;
+    canvas.height = src.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return undefined;
+    ctx.drawImage(src, 0, 0);
+    const { data, width, height } = ctx.getImageData(0, 0, src.width, src.height);
+    const shape: boolean[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x0 = Math.floor((c * width) / cols);
+        const x1 = Math.max(x0 + 1, Math.floor(((c + 1) * width) / cols));
+        const y0 = Math.floor((r * height) / rows);
+        const y1 = Math.max(y0 + 1, Math.floor(((r + 1) * height) / rows));
+        let opaque = 0;
+        for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (data[(y * width + x) * 4 + 3]! > 128) opaque++;
+        shape.push(opaque * 2 >= (x1 - x0) * (y1 - y0));
+      }
+    }
+    return shape;
   }
 
   /** Placeholders desenhados por código (PILL_KEYS). */
