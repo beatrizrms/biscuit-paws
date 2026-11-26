@@ -35,6 +35,7 @@
     if (cut) return { kind: 'cena', text: txt(cut).slice(0, 400) };
     const dlg = visible('.dialogue-layer.open .dialogue')[0];
     if (dlg) return { kind: 'fala', text: txt(dlg).slice(0, 400) };
+    if (W.__mgOwner) return { kind: 'ocupado', text: 'minijogo jogado por uma rotina' };
     const mg = G().game.scene.getScenes(true).find((s) => /MiniGame/.test(s.sys.settings.key));
     if (mg) return { kind: 'minijogo', text: mg.sys.settings.key + ' ' + W.__vis().slice(0, 200) };
     const confirm = visible('.confirm-layer .panel')[0];
@@ -144,12 +145,50 @@
     return log;
   };
 
+  // ---- Gastar moedas: mais mesa e cadeira quando sobra dinheiro (pelo Market) e as caixas que chegaram ----
+  // Antes o robô só comprava ração, areia e café, e as moedas se acumulavam: a economia dele não dizia nada.
+  // Usa as funções do núcleo que os botões chamam (encomendar, pegar as caixas na porta, abrir e posicionar).
+  W.__spend = async () => {
+    const s = S(); const log = []; const sv = s.service;
+    try {
+      const reserve = 250; const cap = sv.capacity();
+      const pair = ['item.table_round', 'item.chair_front'];
+      const cost = pair.reduce((n, id) => n + (s.content.items[id].price || 0), 0);
+      const coming = s.state.deliveries.length > 0 || pair.some((id) => (s.state.inventory[id] || 0) > 0);
+      if (s.state.business !== 'closed' && !coming && cap.seated < 8 && s.state.money >= reserve + cost && pair.every((id) => s.itemUnlocked(id))) {
+        const box = 'qa' + s.state.day; const r = pair.map((id) => s.order(id, box).ok);
+        log.push('encomendei mesa e cadeira (' + cost + '): ' + JSON.stringify(r) + ', sobrou ' + s.state.money);
+      }
+      if (s.state.deliveries.some((d) => d.stage === 'door')) log.push('caixas na porta: ' + JSON.stringify(s.pickUpParcels()));
+      if (loc() === 'map.cafe_main' && s.state.deliveries.some((d) => d.stage === 'carried')) {
+        const feet = [Math.floor(G().player.x / 32), Math.floor((G().player.y - 1) / 32)];
+        const near = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1]].map(([dx, dy]) => [feet[0] + dx, feet[1] + dy]);
+        const ok = near.some((c) => s.dropParcel(c, [feet]).ok); log.push('soltei as caixas: ' + ok);
+      }
+      if (loc() === 'map.cafe_main' && s.state.deliveries.some((d) => d.stage === 'inside')) { const u = s.unpackParcel(); log.push('abri: ' + JSON.stringify(u)); }
+      // Mesa com a cadeira do lado (direita): procura o primeiro par de células que cabe.
+      if (loc() === 'map.cafe_main' && (s.state.inventory['item.table_round'] || 0) > 0 && (s.state.inventory['item.chair_front'] || 0) > 0) {
+        let done = false;
+        for (let r = 4; r < 12 && !done; r++) for (let c = 2; c < 20 && !done; c++) {
+          if (s.checkPlacement('item.table_round', [c, r]) !== null) continue;
+          if (!s.place('item.table_round', [c, r]).ok) continue;
+          if (s.checkPlacement('item.chair_front', [c + 1, r]) === null && s.place('item.chair_front', [c + 1, r]).ok && sv.spots().some((p) => p.spot[0] === c + 1 && p.spot[1] === r)) { done = true; log.push('pus mesa e cadeira em ' + c + ',' + r); break; }
+          const t = s.state.placed.find((p) => p.item === 'item.table_round' && p.at[0] === c && p.at[1] === r); if (t) s.pickUp(t.uid);
+          const ch = s.state.placed.find((p) => p.item === 'item.chair_front' && p.at[0] === c + 1 && p.at[1] === r); if (ch) s.pickUp(ch.uid);
+        }
+        if (!done) log.push('não achei lugar para a mesa e a cadeira');
+      }
+    } catch (e) { log.push('gastar: erro ' + e); }
+    return log;
+  };
+
   // ---- O dia inteiro ----
   W.__L2 = (m) => W.__L(m);
   W.__playDay = async (opts = {}) => {
     W.__dayRunning = true; W.__dayError = null; const s = S(); const L = W.__L;
     try {
       for (const x of await W.__planner()) L(x);
+      for (const x of await W.__spend()) L(x);
       if (loc() === 'map.street') for (const x of await W.__loosePoints()) L(x);
       // Pedidos da vila (o mercado fecha às 20h: os de lá vão primeiro, de manhã).
       for (const j of s.availableJobs()) {
@@ -172,6 +211,7 @@
       const m = await W.__goMap('map.cafe_main');
       if (m !== 'map.cafe_main') L('não entrei no café: ' + m);
       else {
+        for (const x of await W.__spend()) L(x);
         L(await W.__stash()); L('tarefas: ' + (await W.__choresWalk()).join(', '));
         const sc = await W.__sickCare(); if (sc.length) L('doente: ' + sc.join(' | ').slice(0, 300));
         if (s.state.time < 18 * 60) await W.__serveLoop(opts.serveUntil || 18 * 60, opts.kIdle || 8, opts.kBusy || 3);

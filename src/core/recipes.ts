@@ -148,6 +148,8 @@ export interface ServiceConfig {
   /** Tags dos móveis que são superfícies (balcão, mesa) e onde o cliente fica em pé. */
   surfaceTags: string[];
   standingTag: string;
+  /** Porta por onde os clientes entram (id em cafe_main.json): só valem os lugares com caminho desde ela. */
+  entranceDoor?: string;
   /** Com mesa livre e lugar no balcão: chance de o cliente preferir sentar (0 a 1; sem isso, 0.7). */
   seatChance?: number;
   tableTag: string;

@@ -82,3 +82,38 @@ export function smoothPath(solid: readonly (readonly boolean[])[], path: readonl
   }
   return out;
 }
+
+/**
+ * Até onde se chega andando de `from` (que pode ser sólida: a porta na parede). Devolve quem decide se uma célula é
+ * alcançável: livre e ligada a `from`, ou sólida (uma cadeira) encostada numa livre ligada. Uma busca só, para muitos
+ * destinos (os lugares dos clientes).
+ */
+export function reachable(solid: readonly (readonly boolean[])[], from: Cell): (at: Cell) => boolean {
+  const rows = solid.length;
+  const cols = solid[0]?.length ?? 0;
+  const inside = ([c, r]: Cell) => c >= 0 && r >= 0 && c < cols && r < rows;
+  const seen = new Set<number>();
+  if (inside(from)) {
+    seen.add(from[1] * cols + from[0]);
+    const queue: Cell[] = [from];
+    for (let i = 0; i < queue.length; i++) {
+      const cur = queue[i]!;
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const next: Cell = [cur[0] + dc, cur[1] + dr];
+        const k = next[1] * cols + next[0];
+        if (!inside(next) || seen.has(k) || solid[next[1]]![next[0]]) continue;
+        seen.add(k);
+        queue.push(next);
+      }
+    }
+  }
+  const has = (at: Cell) => inside(at) && seen.has(at[1] * cols + at[0]);
+  return (at) => {
+    if (!inside(at)) return false;
+    if (!solid[at[1]]![at[0]]) return has(at);
+    return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dc, dr]) => {
+      const n: Cell = [at[0] + dc!, at[1] + dr!];
+      return inside(n) && !solid[n[1]]![n[0]] && has(n);
+    });
+  };
+}

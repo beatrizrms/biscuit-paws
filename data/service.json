@@ -134,6 +134,8 @@
   },
   "surfaceTags": ["bar", "table", "stand"],
   "standingTag": "bar",
+  "_entranceDoor": "Porta por onde os clientes entram: lugar sem caminho desde ela (fechado por móveis) não é oferecido nem conta na capacidade.",
+  "entranceDoor": "door.street",
   "_seatChance": "Com mesa livre e lugar livre no balcão, a chance de o cliente preferir sentar (a mesa e o lugar no balcão são sorteados entre os livres).",
   "seatChance": 0.7,
   "tableTag": "table",

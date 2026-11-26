@@ -252,6 +252,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
   /** O enfeite no fantasma saiu da caixa de Natal: ao posicionar, sai o próximo. */
   /** O enfeite sendo posicionado saiu desta caixa (Natal ou Halloween): posicionou, sai o próximo. */
   private placingFromBox: string | null = null;
+  /**
+   * Quando o móvel foi para a mão (performance.now): setas apertadas antes disso não andam com o fantasma. Num quadro
+   * lento, o Phaser entrega a seta da caminhada depois do F que pegou o móvel, e ele andava uma casa a mais.
+   */
+  private placingSince = 0;
   /** Os próximos móveis da caixa do correio a posicionar (um depois do outro). */
   private parcelQueue: string[] = [];
   /** O balão com o nome do gato (Meus gatos > tocar no gato). */
@@ -447,11 +452,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       else if (this.movePick) this.confirmMovePick();
       else if (this.placing) this.dropPlacing();
     });
-    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
+    // Direto do navegador, não da fila do Phaser: num quadro lento a fila é lida duas vezes e uma seta virava dois
+    // passos. Segurar a seta não repete (como antes); setas de antes do móvel ir para a mão não contam.
+    const ghostKey = (e: KeyboardEvent) => {
       const step = GHOST_STEPS[e.code];
-      if (!step || !this.placing || this.ui.isBusy()) return;
+      if (!step || e.repeat || !this.placing || this.ui.isBusy() || e.timeStamp < this.placingSince) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       this.nudgeGhost(step);
-    });
+    };
+    window.addEventListener('keydown', ghostKey);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.removeEventListener('keydown', ghostKey));
     this.onAction(['pause', 'cancel'], () => {
       if (this.areaSelect) return; // a seleção da área trata o Esc (cancela)
       if (this.pickingUpgrade) this.finishUpgradePick(null);
@@ -907,8 +917,10 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     }
 
     // Gatos que moram neste mapa.
+    // Os do playground começam no quintal, perto de um módulo (session.playgroundCats).
+    const playground = new Map(mapId === this.session.content.map.id ? this.session.playgroundCats().map((p) => [p.catId, p.near] as const) : []);
     for (const catId of this.session.shelteredCats()) {
-      if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId);
+      if (this.session.state.cats[catId]!.map === mapId) this.spawnCat(catId, playground.get(catId));
     }
     // NPCs que ficam no mapa (a Fernanda no balcão da clínica).
     this.roamers.clear();
@@ -1571,6 +1583,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Começa na frente dela (dá para levar com as setas); mexendo o mouse, o fantasma vai para o cursor.
     const [fc, fr] = this.feetCell();
     this.placing = { itemId, ghosts, at: [fc, Math.max(0, fr + 1 - (def.h - 1))] };
+    this.placingSince = performance.now();
     this.ui.setHint('placing');
     this.refreshGhost();
     this.refreshDrinkButton();
@@ -1645,6 +1658,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const riders = group.slice(1).map((p) => ({ ...ghostsOf(p.item), lift }));
     riders.forEach((r) => r.ghosts.forEach((g) => g.setDepth(GHOST_DEPTH + 1)));
     this.placing = { itemId: host.item, ghosts: ghostsOf(host.item).ghosts, at: [host.at[0], host.at[1]], moveUid: uid, riders };
+    this.placingSince = performance.now();
     // O original fica no lugar, esmaecido, até soltar (cancelar não muda nada).
     for (const p of group) this.objectImages.get(PLACED_PREFIX + p.uid)?.forEach((img) => img.setAlpha(0.35));
     this.ui.setHint(this.isTree(uid) ? 'movingTree' : 'moving');

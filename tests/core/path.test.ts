@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveMap } from '../../src/core/map';
-import { clearLine, findPath, pathCorners, smoothPath } from '../../src/core/path';
+import { clearLine, findPath, pathCorners, reachable, smoothPath } from '../../src/core/path';
 import { loadContent } from './content';
 
 const content = loadContent();
@@ -58,5 +58,16 @@ describe('caminho pelas células livres', () => {
     const map = resolveMap(content.map, content.catalog);
     const door = map.doors.find((d) => content.world.goHomeDoors.includes(d.id))!;
     expect(findPath(map.solid, [8, 3], door.at)).not.toBeNull();
+  });
+
+  it('alcançável: livre ligada à porta, ou sólida (cadeira) encostada numa livre ligada; o fechado não', () => {
+    // Porta na parede (0, 0); um cercadinho fechado à direita com uma célula livre dentro (3, 1).
+    const solid = grid(['#.###', '..#.#', '..###']);
+    const can = reachable(solid, [0, 0]);
+    expect(can([1, 2])).toBe(true);
+    expect(can([2, 1])).toBe(true); // sólida, encostada em (1, 1)
+    expect(can([3, 1])).toBe(false); // livre, mas fechada
+    expect(can([4, 1])).toBe(false); // sólida, sem vizinha livre alcançável
+    expect(can([9, 9])).toBe(false);
   });
 });

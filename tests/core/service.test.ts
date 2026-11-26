@@ -501,6 +501,16 @@ describe('ciclo do pedido', () => {
     expect(sv.spots().filter((s) => s.kind === 'table')).toEqual([{ kind: 'table', spot: [11, 8], dishAt: [10, 8] }]);
     expect(sv.spots().filter((s) => s.kind === 'standing').map((s) => s.spot)).toEqual([[4, 6]]);
   });
+
+  it('lugar fechado por móveis (sem caminho desde a porta) não é oferecido: ninguém atravessa móvel para sentar', () => {
+    const { sv, state } = openCafe();
+    expect(sv.spots().some((s) => s.kind === 'table')).toBe(true);
+    // Cerca a cadeira (11, 8): a mesa já está à esquerda; fecha em cima, embaixo e à direita (direto no estado, como
+    // um save antigo, sem passar pela regra de posicionar).
+    for (const at of [[11, 7], [11, 9], [12, 8]] as [number, number][]) state.placed.push({ uid: 'block' + at.join('_'), item: 'item.counter_single', at });
+    expect(sv.spots().some((s) => s.kind === 'table')).toBe(false);
+    expect(sv.spots().some((s) => s.kind === 'standing')).toBe(true);
+  });
 });
 
 describe('despensa de volta para a mochila', () => {

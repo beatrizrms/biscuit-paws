@@ -2700,6 +2700,30 @@ export class GameSession {
     for (const catId of this.shelteredCats()) this.addCatAffection(catId, modules * pg.pointsPerModulePerDay);
   }
 
+  /**
+   * Quem passa o dia no playground: o quintal é do outro lado de uma porta e os gatos só passeiam a pé, então sem
+   * isso nenhum gato chegava aos módulos. Com o quintal reformado e módulos lá, um gato por módulo (no máximo a
+   * metade dos gatos do café), sorteado pelo dia (repetível), começa perto de um módulo. `near`: a célula do módulo.
+   */
+  playgroundCats(): { catId: string; near: Cell }[] {
+    const pg = this.content.rooms.playground;
+    const room = this.content.rooms.rooms.find((r) => r.id === pg.room);
+    if (!room || this.roomState(room.id) !== 'restored') return [];
+    const modules = this.state.placed.filter((p) => this.content.items[p.item]?.tags.includes(pg.tag) && inArea(room, p.at));
+    if (modules.length === 0) return [];
+    const home = this.content.map.id;
+    const cats = this.shelteredCats().filter((id) => this.state.cats[id]!.map === home).sort();
+    const rng = createRng(cellHash(this.state.day, 0x9a7d));
+    const pool = [...cats];
+    const out: { catId: string; near: Cell }[] = [];
+    const count = Math.min(modules.length, Math.floor(cats.length / 2));
+    for (let i = 0; i < count; i++) {
+      const catId = pool.splice(rng.int(0, pool.length - 1), 1)[0]!;
+      out.push({ catId, near: [...modules[i]!.at] as Cell });
+    }
+    return out;
+  }
+
   // ---------- Gatos ----------
 
   /** Gatos abrigados (ids). Gatos de lembrança (a Tekinha) nunca contam, nem se um save trouxer um deles. */

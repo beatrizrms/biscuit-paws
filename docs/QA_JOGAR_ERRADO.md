@@ -60,7 +60,8 @@ Gravidade: **alta** = trava o progresso ou quebra uma regra central; **média** 
 **B1. Dava para fechar a entrada do café por dentro.** CORRIGIDO (decisão 223). Correção do relatório: os três móveis em volta da chegada não prendiam (a linha da porta também é chão, ela dá a volta por baixo); prender de verdade pedia fechar essa linha também.
 *Correção:* um móvel sólido que deixaria alguma chegada ao café (da rua, do quintal) sem caminho até dentro é recusado ("fica na frente da passagem"), conferido com `findPath`.
 
-**B2. Cliente atravessa móveis.** Os clientes andam em L até o lugar (sem `findPath`): com o caminho fechado, eles passam por cima dos móveis.
+**B2. Cliente atravessa móveis.** CORRIGIDO (decisão 309). Os clientes já desviavam dos móveis pelo caminho livre, mas com o caminho fechado voltavam a andar em L e passavam por cima deles.
+*Correção:* lugar sem caminho desde a porta da rua não é oferecido ao cliente nem conta na capacidade (`service.spots`, `path.reachable`).
 
 **B3. Dia 30 do inverno empilha.** O aviso do evento, o Ano Novo e o roteiro dos fogos chegam juntos; é o esperado, mas se a feira cair no mesmo dia (A3), são três coisas.
 

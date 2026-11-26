@@ -124,7 +124,9 @@
 
   // Minijogos
   const mgScene = () => G().game.scene.getScenes(true).find((s) => /MiniGame/.test(s.sys.settings.key));
-  W.__pill = async () => {
+  // O vigia (clearScreens, a cada 3 s) pulava o mini game do remédio no meio da rotina: enquanto ela joga, ele espera.
+  W.__pill = async () => { W.__mgOwner = true; try { return await pillPlay(); } finally { W.__mgOwner = false; } };
+  const pillPlay = async () => {
     await __wait(1200); if (!mgScene()) return 'sem minijogo'; await __tap('e'); await __wait(700);
     const cv = document.querySelector('canvas'); const r = cv.getBoundingClientRect();
     const P = (t, x, y, b) => { const o = { clientX: r.left + (x / 800) * r.width, clientY: r.top + (y / 450) * r.height, bubbles: true, pointerId: 1, pointerType: 'mouse', button: 0, buttons: b }; cv.dispatchEvent(new PointerEvent('pointer' + t, o)); cv.dispatchEvent(new MouseEvent('mouse' + t, o)); };
@@ -176,11 +178,24 @@
   };
   W.__sickCare = async () => {
     const s = S(); const log = []; const boxes = G().isoBoxes ? [...G().isoBoxes.entries()] : [];
-    for (const [catId, spr] of boxes) {
-      const at = [Math.floor(spr.x / 32), Math.floor((spr.y - 1) / 32)];
-      if (s.chores().some((c) => c.kind === 'clinic' && c.clinic === 'pen_food' && !c.done) && __slot('item.food_recovery') > 0) { await __sel(__slot('item.food_recovery')); await __useAt(at); await __wait(1200); log.push('recovery'); }
-      const cat = s.state.cats[catId];
-      if (cat.sickness && cat.sickness.treatment && cat.sickness.treatment.lastDoseDay !== s.state.day && __slot('item.vet_medicine') > 0) { await __sel(__slot('item.vet_medicine')); await __useAt(at); log.push(await __pill()); }
+    const cellOf = (spr) => [Math.floor(spr.x / 32), Math.floor((spr.y - 1) / 32)];
+    // A latinha do cercadinho/caixinha (gatos isolados em recuperação).
+    for (const [, spr] of boxes) {
+      if (s.chores().some((c) => c.kind === 'clinic' && c.clinic === 'pen_food' && !c.done) && __slot('item.food_recovery') > 0) { await __sel(__slot('item.food_recovery')); await __useAt(cellOf(spr)); await __wait(1200); log.push('recovery'); }
+    }
+    const pens = s.clinic.pens(); const assign = s.clinic.penAssignments();
+    if (pens.length && s.chores().some((c) => c.kind === 'clinic' && c.clinic === 'pen_food' && !c.done) && __slot('item.food_recovery') > 0) { await __sel(__slot('item.food_recovery')); await __useAt(pens[0].at); await __wait(1200); log.push('recovery no cercadinho'); }
+    // Remédio de hoje para todo gato que precisa (doença ou pós-cirurgia), onde ele estiver: caixinha, cercadinho ou
+    // solto no café. Antes só os da caixinha recebiam, e o mini game do remédio quase nunca era jogado.
+    const due = s.shelteredCats().filter((id) => { const p = s.medicineProblem(id); return p === null || p === 'needs_medicine'; });
+    for (const id of due) {
+      if (__slot('item.vet_medicine') <= 0) { log.push('sem remédio na barra para ' + id); break; }
+      const box = boxes.find(([cid]) => cid === id); const penUid = Object.keys(assign.pen).find((u) => assign.pen[u].includes(id));
+      const pen = penUid && pens.find((p) => p.uid === penUid); const free = G().cats.find((c) => c.catId === id && c.visible);
+      const at = box ? cellOf(box[1]) : pen ? pen.at : free ? free.cell() : null;
+      if (!at) { log.push('remédio: não achei ' + id); continue; }
+      await __sel(__slot('item.vet_medicine')); await __useAt(at, [[0, 1, 'up'], [1, 0, 'left'], [-1, 0, 'right'], [0, -1, 'down']]);
+      log.push((box ? 'caixinha ' : pen ? 'cercadinho ' : 'solto ') + id + ': ' + (await __pill()));
     }
     await __sel(0); return log;
   };

@@ -1315,3 +1315,15 @@ Decisão:
 
 **Motivo:** o robô jogou do Inverno 9 à Primavera 29 e mostrou neve no jornal e doença de neve na primavera, e a ligação fora de hora.
 **Consequência:** a primavera fica com duas manchetes em rodízio (falta conteúdo). O robô ainda joga mal alguns pontos (pula o mini game do remédio, não tira o gato do cercadinho, não gasta moedas): o que ele mostra de economia e de ritmo não vale como retrato do jogo. Os testes de fumaça do navegador (`npm run test:e2e`) estão com 9 de 20 falhando por coordenadas antigas (o mercado mudou de lugar depois deles): ficam para uma tarefa própria.
+
+## 309. Bloco A do plano de mecânicas: lugar sem caminho, playground, setas do móvel e o robô (nov/2026)
+Pedido: fazer o bloco A de `docs/PLANO_MECANICAS.md` (só código).
+Decisão:
+- **Lugar sem caminho (QA B2):** os clientes já desviavam dos móveis, mas com o caminho fechado andavam em L por cima deles. Agora `service.spots` só oferece lugares com caminho desde a porta de entrada (`service.json: entranceDoor`, `path.reachable`: uma busca só para todos os lugares; a cadeira, sólida, vale se encostar numa célula livre alcançável). Lugar fechado também some da capacidade.
+- **Playground:** o quintal fica do outro lado de uma porta e os gatos só passeiam a pé: nenhum chegava aos módulos. `session.playgroundCats()`: com o quintal reformado e módulos lá, um gato por módulo (no máximo metade dos gatos do café), sorteado pelo dia, começa o dia perto de um módulo. Ele pode voltar andando ao salão.
+- **Setas do móvel:** num quadro lento, o Phaser lia a fila de teclas duas vezes e uma seta andava duas casas com o móvel na mão (o teste "mover pelo teclado" falhava às vezes). As setas do fantasma vêm direto do navegador (`keydown` da janela, sem repetir ao segurar), e as apertadas antes de o móvel ir para a mão não contam.
+- **Testes do navegador:** 19 de 20 já passavam; o que falhava era o defeito acima. O do jogo novo ganhou repetição no E de soltar a caixa (o primeiro às vezes chega com a fala ainda fechando). `E2E_PORT` roda a suíte em outra porta, sem pesar no 5173.
+- **Robô de teste:** dá o remédio a todo gato que precisa (caixinha, cercadinho ou solto), pela regra do jogo (`medicineProblem`); o vigia de telas não pula mais o mini game do remédio enquanto a rotina joga. Com mais de 250 moedas sobrando e menos de 8 lugares sentados, encomenda mesa e cadeira no Market, pega as caixas, abre e posiciona. O gato sai do cercadinho sozinho no fim do isolamento (não era tarefa do robô).
+
+**Motivo:** fechar o que o QA e o robô tinham deixado aberto antes das mecânicas novas.
+**Consequência:** em 3 dias (Inverno 9 a 11), o robô cobriu 100% o comprimido e tirou "Perfeito!" todo dia, e pôs duas mesas com cadeira. Suíte do navegador: 19 de 20 na rodada inteira; os dois testes que falhavam às vezes passaram repetidos em paralelo (8 de 8 e 4 de 4).

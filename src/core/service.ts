@@ -5,6 +5,7 @@ import { reviewStars, type Waits } from './review';
 import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
+import { reachable } from './path';
 import { pickWeighted, type Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
 import { inSeason, VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
@@ -744,7 +745,12 @@ export class CafeService {
       const table = tables.find(([tc, tr]) => Math.abs(tc - c) + Math.abs(tr - r) === 1);
       if (table) out.push({ kind: 'table', spot: [c, r], dishAt: table });
     }
-    return out;
+    // Só os lugares com caminho desde a porta da rua (QA B2): fechado por móveis, ninguém senta ali (antes, o cliente
+    // ia em L e passava por cima dos móveis). Também some da capacidade.
+    const door = this.h.content.map.doors?.find((d) => d.id === (this.cfg.entranceDoor ?? 'door.street'))?.at;
+    if (!door) return out;
+    const canReach = reachable(solid, [door[0], door[1]]);
+    return out.filter((s) => canReach(s.spot));
   }
 
   private freeSpots(): { kind: ServiceKind; spot: Cell; dishAt: Cell }[] {

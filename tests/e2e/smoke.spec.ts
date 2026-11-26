@@ -233,8 +233,11 @@ test('jogo novo: abertura, compra, posiciona e o save guarda ao recarregar', asy
   // Ela entra carregando a caixa: E solta no chão, E de novo pergunta (abrir, carregar, deixar); aberta, o móvel
   // sai para posicionar.
   await teleport(page, 14, 5);
-  await page.keyboard.press('e');
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { session: { boxesAt(where: string): number } } } }).__biscuitPaws.cafe.session.boxesAt('carried'))).toBe(0);
+  // Com a máquina carregada, o E logo depois da fala às vezes chega com o jogo ainda ocupado: aperta de novo até soltar.
+  await expect(async () => {
+    await page.keyboard.press('e');
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __biscuitPaws: { cafe: { session: { boxesAt(where: string): number } } } }).__biscuitPaws.cafe.session.boxesAt('carried')), { timeout: 1500 }).toBe(0);
+  }).toPass({ timeout: 10_000 });
   await page.keyboard.press('e');
   await expect(page.locator('.confirm.choose')).toContainText('Caixa com');
   await page.locator('.confirm.choose [data-i="0"]').click(); // Abrir

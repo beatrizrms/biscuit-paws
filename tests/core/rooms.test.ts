@@ -296,7 +296,14 @@ describe('quintal secreto: chave, porta com cadeado, playground', () => {
     expect(session.itemUnlocked('item.playground_tunnel')).toBe(true);
     state.inventory['item.playground_tunnel'] = 1;
     expect(session.checkPlacement('item.playground_tunnel', [10, 8])).toBe('wrong_room');
+    expect(session.playgroundCats()).toEqual([]); // sem módulo, ninguém vai ao quintal
     expect(session.place('item.playground_tunnel', [34, 8])).toEqual({ ok: true });
+    // Um gato por módulo passa o dia no quintal, perto do módulo; o mesmo no mesmo dia, outro sorteio em outro dia.
+    const today = session.playgroundCats();
+    expect(today).toHaveLength(1);
+    expect(today[0]!.near).toEqual([34, 8]);
+    expect(session.shelteredCats()).toContain(today[0]!.catId);
+    expect(session.playgroundCats()).toEqual(today);
     const before = state.relationships['player|cat.first_stray'] ?? 0;
     session.endDay('home');
     expect(state.relationships['player|cat.first_stray']).toBe(before + content.rooms.playground.pointsPerModulePerDay);

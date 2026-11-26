@@ -73,8 +73,8 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 
 ## Marco 2: dia, frio e abrigo
 - [x] Ciclo do dia (manhã, dia, noite)
-- [ ] Rua curta com gatos de rua para encontrar e abrigar
-- [ ] Frio: gatos aquecidos x com frio; meta suave até a noite de Natal
+- [x] Gatos de rua para encontrar e abrigar (sistema de chegadas, `data/arrivals.json`: rastro na neve, gato no poste, no banco, na caixa de entrega, ferido...)
+- [ ] Frio como mecânica: gatos aquecidos x com frio; meta suave até a noite de Natal (hoje a fome e o frio se resolvem só ao entrar no café)
 - [x] `day.ended` / `day.started`
 
 ## Marco 3: save e load
@@ -84,33 +84,45 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 
 ## Marco 4: clientes e café aberto
 - [x] Clientes humanos, pedidos, servir, dinheiro e gorjeta (feito no Atendimento)
-- [ ] Afeto do gato afeta paciência e gorjeta (`cat.affection_changed`)
+- [ ] Afeto do gato afeta paciência e gorjeta (`cat.affection_changed`; o atendimento ainda não usa os corações)
+- [x] Clientes procuram caminho; lugar fechado por móveis não é oferecido (QA B2, decisão 309)
 
 ## Marco 5: reforma e decoração
 - [x] Loja abandonada -> reformada (pintor; a reforma completa libera a inauguração)
 - [x] Obras com o Tião: reparos interno e da fachada (pré-requisito), troca de acabamento por área, ligação e orçamento adiantado (decisão 094)
 - [x] Obras dos cômodos (abrir o porão, reformar porão e quintal) pelo sistema do Tião (decisão 104)
 - [x] Compra e posicionamento de móveis (feito no Marco 0.5)
+- [x] Market aos poucos, por etapas da história (`items.json: marketStages`; docs/PLANO_MARKET_AOS_POUCOS.md)
+- [x] Um item só por móvel: girar (G) e balcão que se completa (`src/core/variants.ts`; docs/PLANO_GIRAR_E_BALCAO.md)
 
 ## Expansão do café
 - [x] Cômodos por dados (`data/rooms.json`): planta contínua, descoberta com momento, obra, limpeza e reforma; save v13
 - [x] Quartinho: dormir no café
 - [x] Quintal secreto: chave, porta com cadeado, variantes de visual, luz de fora
-- [ ] Playground no quintal com gatos de verdade usando os módulos (túnel, casinha, tora, cama ao sol e árvore já entram nos lugares dos gatos, decisão 098; falta conferir se os gatos chegam ao quintal e a tigela de água)
-- [ ] Cozinha, sótão e porão (dados prontos para entrar)
+- [x] Playground no quintal com gatos de verdade: um gato por módulo começa o dia lá (decisão 309); a tigela do quintal é um módulo (`item.playground_bowl`)
+- [ ] Cozinha e sótão como cômodos (hoje: salão, porão e quintal)
+- [x] Máquinas por conquista: lava-louças, robô aspirador, robô de mesas e robô garçom (docs/PROPOSTA_AJUDANTE.md, etapa 1)
+- [ ] A pessoa contratada (ajudante, etapa 2): falta escolher nome e jeito
 
 ## Marco 6: vizinhança
 - [ ] Vizinhos com preconceito que muda com o tempo
 - [ ] Vizinha idosa e a história da padaria (a Dona Neusa já aparece; falta o arco dela)
+- [x] Amizade: presentes, corações e o app SocialVilla (decisões 222, 230 e 231)
+- [ ] Recompensas por coração na amizade (a pensar)
+- [ ] Camila e Núbia no jogo: roteiro, falas, eventos e `data/npcs.json` (arte pronta, decisão 287)
+- [ ] Primavera com mais conteúdo (hoje só duas manchetes em rodízio no jornal; decisão 308)
+- [ ] Prêmio da conquista "Primeira CED"
 
 ## Marco 7: empacotar para a Steam
 - [ ] Electron + integração Steamworks
 - [ ] Salvar em arquivos (a camada `src/platform/` já está pronta para a troca)
 - [ ] Ícone e página da loja (`CREDITS.md` já existe; declarar o uso de IA na arte)
+- [x] Testes do navegador passando (`E2E_PORT` para rodar fora do 5173; decisão 309)
+- [x] Robô de teste dá o remédio em todo gato que precisa e gasta moedas em mesa e cadeira (decisão 309)
 
 ## Arte pendente
 - [x] Moldura de botão e de painel (9 partes) nos menus
-- [ ] Logo do título com o nome Biscuit Paws
+- [x] Logo do título com o nome Biscuit Paws (decisão 279)
 - [x] Arte da inauguração (cena na primavera)
 - [ ] Arte da inauguração nas cores menta e céu da fachada (hoje usa a rosa)
 - [x] Fachada da clínica veterinária nas 4 estações (a mesma arte o ano todo, rua agnóstica)
@@ -118,8 +130,14 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Pose da personagem carregando saco pesado (o pacote não tem; o saco é desenhado na mão)
 - [x] Manequim do PixelLab (64 px) como personagem no jogo, para ver as poses (decisão 075)
 - [x] Personagem em 64 px com roupas e cabelos em camadas sobre o manequim, oficial no criador (decisões 077, 083 e 087)
+- [x] Polimento: guia de estilo, interface, itens na mão, contornos, logo, mapas, movimento e texto (docs/PLANO_POLIMENTO.md, fases 0, 1 e 3 a 8)
+- [ ] Protagonista refeita no padrão (polimento, fase 2; depois, `npm run hands` de novo)
+- [ ] NPCs em 8 direções, com as animações agrupadas (docs/TUTORIAL_PERSONAGENS_PIXELLAB.md, a partir de 08/12)
+- [ ] Diagonais no jogo: personagem e NPCs virando para 8 direções (código; sem arte, usa a de lado)
+- [ ] Trocar os placeholders desenhados por código (`grep "PLACEHOLDER(arte)"`): chuva e neve, pegadas, balão "Fuzzzz!", pose sentada no sofá, carrinho do Market no losango, mãozinha da barra, ícones do clima, ícone da SocialVilla
+- [ ] Interior das casas dos personagens (a sala da Dona Neusa começada no PixelLab)
 
 ## Depois
-- Adoção de gatos (`adoption.completed`)
-- Estações: primavera, verão, outono
+- [x] Adoção de gatos (SocialVilla e o dia da CED, decisão 291)
+- [x] Estações: primavera, verão, outono (calendário de 30 dias por estação)
 - Mais humanos e arte de exterior
