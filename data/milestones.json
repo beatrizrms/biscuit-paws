@@ -14,7 +14,8 @@
     { "id": "reputation", "name": "Reputação", "goal": "Chegue a {at} de reputação", "kind": "count", "stat": "reputation" },
     { "id": "no_gave_up", "name": "Ninguém sai de mãos vazias", "goal": "Passe {at} dias seguidos sem ninguém desistir", "kind": "streak", "stat": "streak.no_gave_up" },
     { "id": "cats_cared", "name": "Bigodes bem cuidados", "goal": "Cuide bem dos gatos {at} dias seguidos", "kind": "streak", "stat": "streak.cats_cared" },
-    { "id": "fairs", "name": "Feiras de adoção", "goal": "Faça mais {n} feiras de adoção", "kind": "count", "stat": "fairsHeld" }
+    { "id": "fairs", "name": "Feiras de adoção", "goal": "Faça mais {n} feiras de adoção", "kind": "count", "stat": "fairsHeld" },
+    { "id": "ced", "name": "Campanhas de castração", "goal": "Faça mais {n} campanhas de castração", "kind": "count", "stat": "cedCampaigns" }
   ],
   "milestones": [
     { "id": "milestone.customers_6", "track": "customers", "name": "Primeira freguesia", "at": 15, "reward": { "kind": "recipe", "ids": ["recipe.black_tea"] } },
@@ -63,6 +64,7 @@
     { "id": "milestone.cats_cared_3", "track": "cats_cared", "name": "Bigodes em dia", "at": 3, "reward": { "kind": "gift", "ids": ["item.cat_treat_biscuit", "item.cat_treat_biscuit", "item.cat_treat_biscuit"] } },
     { "id": "milestone.cats_cared_7", "track": "cats_cared", "name": "Saúde de ferro", "at": 7, "reward": { "kind": "recipe", "ids": ["recipe.paw_cookie"] } },
     { "id": "milestone.cats_cared_14", "track": "cats_cared", "name": "Ninho quentinho", "at": 14, "reward": { "kind": "gift", "ids": ["item.cat_bed_lilas"] } },
-    { "id": "milestone.fairs_1", "track": "fairs", "name": "Feira de adoção", "at": 1, "reward": { "kind": "item", "ids": ["item.fair_flyers"] } }
+    { "id": "milestone.fairs_1", "track": "fairs", "name": "Feira de adoção", "at": 1, "reward": { "kind": "item", "ids": ["item.fair_flyers"] } },
+    { "id": "milestone.ced_1", "track": "ced", "name": "Primeira CED", "at": 1, "reward": { "kind": "voucher", "ids": ["voucher.neuter"] } }
   ]
 }

@@ -74,7 +74,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 ## Marco 2: dia, frio e abrigo
 - [x] Ciclo do dia (manhã, dia, noite)
 - [x] Gatos de rua para encontrar e abrigar (sistema de chegadas, `data/arrivals.json`: rastro na neve, gato no poste, no banco, na caixa de entrega, ferido...)
-- [ ] Frio como mecânica: gatos aquecidos x com frio; meta suave até a noite de Natal (hoje a fome e o frio se resolvem só ao entrar no café)
+- [x] Frio: o gato de rua do inverno chega com frio e se esquenta no cantinho quente (decisão 310)
 - [x] `day.ended` / `day.started`
 
 ## Marco 3: save e load
@@ -84,7 +84,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 
 ## Marco 4: clientes e café aberto
 - [x] Clientes humanos, pedidos, servir, dinheiro e gorjeta (feito no Atendimento)
-- [ ] Afeto do gato afeta paciência e gorjeta (`cat.affection_changed`; o atendimento ainda não usa os corações)
+- [x] Gatos felizes perto do cliente: mais paciência e gorjeta; mal cuidados, menos paciência (decisão 310)
 - [x] Clientes procuram caminho; lugar fechado por móveis não é oferecido (QA B2, decisão 309)
 
 ## Marco 5: reforma e decoração
@@ -111,7 +111,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Recompensas por coração na amizade (a pensar)
 - [ ] Camila e Núbia no jogo: roteiro, falas, eventos e `data/npcs.json` (arte pronta, decisão 287)
 - [ ] Primavera com mais conteúdo (hoje só duas manchetes em rodízio no jornal; decisão 308)
-- [ ] Prêmio da conquista "Primeira CED"
+- [x] Conquista "Primeira CED" com o vale-castração (decisão 310)
 
 ## Marco 7: empacotar para a Steam
 - [ ] Electron + integração Steamworks

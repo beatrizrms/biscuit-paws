@@ -7,7 +7,7 @@ import type { Condition, Effect } from './content';
 import type { StreakId } from './stats';
 
 /** De onde a trilha lê o número. */
-export type MilestoneStat = 'served' | 'servedOpen' | 'servedSeason' | 'catsEver' | 'reputation' | 'fairsHeld' | `streak.${StreakId}`;
+export type MilestoneStat = 'served' | 'servedOpen' | 'servedSeason' | 'catsEver' | 'reputation' | 'fairsHeld' | 'cedCampaigns' | `streak.${StreakId}`;
 /**
  * count: quantidade fixa; streak: sequência (só mimos); season: as metas da estação (decisão 267): o contador zera a
  * cada estação e os selos da trilha são uma fila de recompensas: em cada estação, a meta goals[0] dá o próximo da fila
@@ -15,7 +15,8 @@ export type MilestoneStat = 'served' | 'servedOpen' | 'servedSeason' | 'catsEver
  */
 export type MilestoneKind = 'count' | 'streak' | 'season';
 /** O que o selo dá. A tela mostra só o tipo ("Nova receita ?") até ele ser conquistado. */
-export type RewardKind = 'recipe' | 'room' | 'item' | 'event' | 'gift' | 'costume';
+/** voucher: vale da clínica (ids: voucher.neuter = uma castração sem custo); entra no save da clínica ao conquistar. */
+export type RewardKind = 'recipe' | 'room' | 'item' | 'event' | 'gift' | 'costume' | 'voucher';
 
 export interface MilestoneTrack {
   id: string;
@@ -144,7 +145,7 @@ export function milestoneRefs(c: unknown, out: string[] = []): string[] {
   return out;
 }
 
-const STATS: readonly string[] = ['served', 'servedOpen', 'servedSeason', 'catsEver', 'reputation', 'fairsHeld', 'streak.no_gave_up', 'streak.cats_cared'];
+const STATS: readonly string[] = ['served', 'servedOpen', 'servedSeason', 'catsEver', 'reputation', 'fairsHeld', 'cedCampaigns', 'streak.no_gave_up', 'streak.cats_cared'];
 
 /**
  * Confere os dados. `exists` diz se o id de cada tipo de recompensa existe; `storyRefs` são os selos citados pela

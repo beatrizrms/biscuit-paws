@@ -215,6 +215,11 @@ export class ConsultPanel {
     const c = uiText.clinic;
     const cur = content.economy.currency;
     const price = `${exam.neuterPrice} ${cur}`;
+    // Vale-castração (Primeira CED): a cirurgia sai sem custo; só a conta anterior do fiado, se houver.
+    if (exam.voucher) {
+      if (exam.neuterPay === 'no_money') return this.option('neuter', c.neuterVoucher, fill(c.neuterNoMoney, { debt: `${exam.debt} ${cur}` }), true);
+      return this.option('neuter', exam.debt > 0 ? fill(c.neuterVoucherDebt, { price: `${exam.debt} ${cur}` }) : c.neuterVoucher);
+    }
     if (exam.neuterPay === 'no_money') return this.option('neuter', fill(c.neuter, { price }), fill(c.neuterNoMoney, { debt: `${exam.debt} ${cur}` }), true);
     if (exam.neuterPay === 'credit') return this.option('neuter', c.neuterCredit);
     // A conta anterior (fiado) vem junto no preço.

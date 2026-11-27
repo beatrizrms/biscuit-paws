@@ -14,7 +14,7 @@ Cada item vira uma tarefa própria, com o seu commit, testes do assunto, print c
 As regras de sempre valem para todos: nada trava o jogo, os eventos só avisam, as metas não revelam lugares e os
 textos não têm gênero.
 
-## A. Só código
+## A. Só código (feito: decisão 309)
 
 | # | Item | O que fazer | Tamanho |
 |---|---|---|---|
@@ -25,7 +25,7 @@ textos não têm gênero.
 
 ## B. Mecânicas com proposta
 
-### B1. O afeto dos gatos muda a paciência e a gorjeta
+### B1. O afeto dos gatos muda a paciência e a gorjeta (feito: decisão 310)
 
 **Proposta:** gato feliz deixa o cliente feliz.
 
@@ -39,7 +39,7 @@ textos não têm gênero.
 **Pergunta:** por **proximidade**, como na proposta, ou pela **média de corações** de todos os gatos do café?
 A proximidade é mais visível e faz a disposição dos móveis importar. Recomendo esta.
 
-### B2. Frio no inverno
+### B2. Frio no inverno (feito, jeito A: decisão 310)
 
 **Proposta:** o frio vale para os gatos de rua que chegam no inverno. O café não esfria.
 
@@ -60,7 +60,7 @@ Usa `data/news.json`, com uma frase por tipo de chegada.
 
 **Pergunta:** nenhuma. Só aprovar as frases, que eu escrevo no padrão.
 
-### B4. Prêmio da conquista "Primeira CED"
+### B4. Prêmio da conquista "Primeira CED" (feito: vale-castração, decisão 310)
 
 **Proposta:** um item de decoração exclusivo que já tem arte, entregue na mochila (`reward: gift`), mais reputação.
 Eu levanto 3 opções de itens que ainda não estão à venda para você escolher.

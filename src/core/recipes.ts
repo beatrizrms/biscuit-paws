@@ -1,5 +1,6 @@
 // Receitas, cardápio e configuração do atendimento (data/recipes.json, data/service.json, data/carry.json).
 // Puro: sem Phaser, DOM ou window. Quem decide se dá para fazer é o CafeService (service.ts).
+import type { CatBonusConfig } from './catMood';
 import { dayInSeason, seasonOf, type SeasonsData } from './calendar';
 import type { ReviewConfig } from './review';
 import type { Cell } from './map';
@@ -148,6 +149,8 @@ export interface ServiceConfig {
   /** Tags dos móveis que são superfícies (balcão, mesa) e onde o cliente fica em pé. */
   surfaceTags: string[];
   standingTag: string;
+  /** Gatos perto do cliente: paciência e gorjeta (src/core/catMood.ts). */
+  catBonus?: CatBonusConfig;
   /** Porta por onde os clientes entram (id em cafe_main.json): só valem os lugares com caminho desde ela. */
   entranceDoor?: string;
   /** Com mesa livre e lugar no balcão: chance de o cliente preferir sentar (0 a 1; sem isso, 0.7). */

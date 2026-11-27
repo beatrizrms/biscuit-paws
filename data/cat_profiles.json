@@ -18,6 +18,8 @@
     "kitten": { "health": 70, "age": "kitten" },
     "senior": { "health": 60, "age": "senior" }
   },
+  "_cold": "Frio (src/core/cold.ts, decisão 310): o gato de rua aceito numa das seasons (ou com a condição cold, o ano todo) entra com frio, depois do prólogo. Ele se esquenta sozinho no café em warmMinutes minutos de jogo, desde que haja um móvel com warmTag (caminha, almofada) num cômodo aberto. Cada fim de dia com frio: a alegria cai happinessPerDay. O café não esfria.",
+  "cold": { "warmMinutes": 240, "warmTag": "cat:rest", "happinessPerDay": 10, "seasons": ["winter"] },
   "rescueVetCost": 20,
   "generated": {
     "variants": ["ruivo", "frajola", "preto", "siames", "tricolor", "escaminha", "cinza", "branco", "tigrado", "blue_point", "red_point", "creme", "lynx_point"],

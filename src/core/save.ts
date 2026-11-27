@@ -362,7 +362,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
           if (s && !sickness) warnings.push(`doença "${s.disease}" não existe mais; ${id} ficou saudável`);
           // Felicidade e higiene fora de 0..100 (ou quebradas): somem, e a leitura usa o valor inicial (care.ts: careOf).
           const care = (v: unknown) => (typeof v === 'number' && v >= 0 && v <= 100 ? Math.round(v) : undefined);
-          const { happiness: _h, hygiene: _g, settling: _s, repro: _r, tests: _t, clinic: _c, aftercare: _a, ...rest } = c;
+          const { happiness: _h, hygiene: _g, settling: _s, repro: _r, tests: _t, clinic: _c, aftercare: _a, cold: _f, ...rest } = c;
           const happiness = care(c.happiness);
           const hygiene = care(c.hygiene);
           return [
@@ -375,6 +375,7 @@ export function parseSave(json: string, known: KnownIds): LoadResult {
               ...(happiness !== undefined ? { happiness } : {}),
               ...(hygiene !== undefined ? { hygiene } : {}),
               ...(c.settling === true ? { settling: true } : {}),
+              ...(typeof c.cold === 'number' && c.cold >= 0 ? { cold: Math.round(c.cold) } : {}),
               ...(Number.isInteger(c.settleFails) && (c.settleFails as number) > 0 ? { settleFails: c.settleFails as number } : {}),
               ...catClinicFields(c),
             },
@@ -780,6 +781,7 @@ function normalizeClinic(c: unknown): ClinicState {
   out.consults = Number.isInteger(x.consults) && x.consults! >= 0 ? x.consults! : 0;
   out.friendSaid = x.friendSaid === true;
   out.debt = typeof x.debt === 'number' && x.debt > 0 ? Math.round(x.debt) : 0;
+  if (Number.isInteger(x.vouchers) && x.vouchers! > 0) out.vouchers = x.vouchers;
   const deliveries = (Array.isArray(x.deliveries) ? x.deliveries : []).filter((d) => d && typeof d.catId === 'string' && Number.isInteger(d.isolationDays) && Number.isInteger(d.aftercareDays) && Number.isInteger(d.cans))
     .map((d) => ({ catId: d.catId, inPen: d.inPen === true, first: d.first === true, isolationDays: d.isolationDays, aftercareDays: d.aftercareDays, cans: d.cans, inflamed: d.inflamed === true }));
   if (deliveries.length) out.deliveries = deliveries;

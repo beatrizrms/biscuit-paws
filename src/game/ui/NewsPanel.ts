@@ -395,6 +395,7 @@ export class NewsPanel {
           <div class="cc-bars">${health}${this.careBars(p.id)}</div>
           <div class="cc-rows">
             ${p.fedToday ? this.row('fed ok', '✓', t.fed) : this.row('hungry', '!', t.hungry)}
+            ${p.cold ? this.row('cold', '❄', t.cold) : ''}
             ${p.sickness ? this.sickHtml(p.sickness) : ''}
             ${this.clinicLines(p)}
           </div>

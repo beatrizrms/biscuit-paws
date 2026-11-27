@@ -1268,3 +1268,59 @@ describe('clientes: sem a mesma pessoa duas vezes no café', () => {
     expect(new Set(now).size).toBe(now.length);
   });
 });
+
+describe('gatos perto do cliente (decisão 310)', () => {
+  /** Um gato no café com o bem-estar pedido, na célula ao lado do lugar do cliente (ou longe). */
+  function withCat(mood: 'happy' | 'sad' | 'none', far = false) {
+    const ctx = openCafe();
+    const { session, sv, state } = ctx;
+    sv.toggleMenu('recipe.black_coffee');
+    advance(session, 6);
+    const c = state.service.customers.find((x) => x.stage === 'waiting')!;
+    if (mood !== 'none') {
+      const good = mood === 'happy';
+      state.cats['cat.qa'] = { sheltered: true, name: 'Qa', map: 'map.cafe_main', shelteredOn: 1, health: good ? 100 : 20, sickness: null, happiness: good ? 100 : 10, hygiene: good ? 100 : 10 };
+      state.relationships['player|cat.qa'] = good ? 1000 : 0;
+      const cell: [number, number] = far ? [c.spot[0] + 8, c.spot[1]] : [c.spot[0], c.spot[1] + 1];
+      session.setCatLocator(() => [{ id: 'cat.qa', cell }]);
+    }
+    return { ...ctx, c };
+  }
+
+  it('bem-estar: metade corações, metade as barras', () => {
+    const { session } = withCat('happy');
+    expect(session.catWellbeing('cat.qa')).toBe(100);
+    const { session: s2 } = withCat('sad');
+    expect(s2.catWellbeing('cat.qa')).toBeLessThan(content.service.catBonus!.sadBelow);
+  });
+
+  it('gato feliz perto: a espera dura mais e a gorjeta sobe; mal cuidado perto: dura menos; longe não conta', () => {
+    const shift = (mood: 'happy' | 'sad' | 'none', far = false) => {
+      const { session, c } = withCat(mood, far);
+      const before = c.until;
+      advance(session, 10);
+      return c.until - before;
+    };
+    expect(shift('none')).toBe(0);
+    expect(shift('happy')).toBeGreaterThan(0);
+    expect(shift('sad')).toBeLessThan(0);
+    expect(shift('happy', true)).toBe(0);
+  });
+
+  it('gorjeta: gato feliz perto multiplica e avisa (catTip)', () => {
+    const tipWith = (mood: 'happy' | 'none') => {
+      const { session, sv, events, c } = withCat(mood);
+      c.wantsPremium = false; // o sorteio de quem só dá gorjeta no premium não entra aqui
+      sv.prepare(coffeeMachineUid(session));
+      advance(session, 11);
+      sv.pickUp([7, 5]);
+      sv.serve(c.id);
+      return events.filter((e) => e.name === 'customer.served').at(-1)!.payload as { tip: number; catTip?: boolean };
+    };
+    const plain = tipWith('none');
+    const cat = tipWith('happy');
+    expect(plain.catTip).toBeUndefined();
+    expect(cat.catTip).toBe(true);
+    expect(cat.tip).toBeGreaterThan(plain.tip);
+  });
+});

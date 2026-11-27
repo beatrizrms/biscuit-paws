@@ -252,6 +252,8 @@ export interface CatState {
    * confiança em vez de pegar no colo ou fazer carinho. Ausente = já está de boa no café.
    */
   settling?: boolean;
+  /** Com frio (chegou no inverno, decisão 310): quantos minutos já se esquentou no café; sem o campo, quentinho. */
+  cold?: number;
   /** Tentativas perdidas da confiança na chegada: cada uma deixa a próxima um nível mais fácil (até o fácil). */
   settleFails?: number;
   /** Estado reprodutivo (v36; repro.ts): castrado ou não, sexo, idade, peso, marca na orelha e o que ela sabe. */

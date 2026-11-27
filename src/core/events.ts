@@ -25,6 +25,8 @@ export interface GameEvents {
   'dishes.added': { itemId: string; count: number };
   /** Descuido: saúde, alegria ou higiene em zero por dias seguidos; ele perdeu corações. */
   'cat.neglected': { catId: string; hearts: number };
+  /** O gato que chegou com frio se esquentou no cantinho quente (cold.ts). */
+  'cat.warmed': { catId: string };
   // Clínica (clinicFlow.ts): consulta de entrada, castração e recuperação no cercadinho.
   'cat.examined': { catId: string; status: 'intact' | 'neutered'; earTipped: boolean };
   'cat.neutered': { catId: string; procedure: string };
@@ -40,6 +42,8 @@ export interface GameEvents {
   'clinic.friend_discount': Record<string, never>;
   /** Fiado na clínica: quanto entrou agora e quanto ela deve. */
   'clinic.credit': { amount: number; debt: number };
+  /** Castração paga com o vale-castração (conquista Primeira CED). */
+  'clinic.voucher_used': { catId: string };
   /** A dívida da clínica foi paga (junto da castração). */
   'clinic.debt_paid': { amount: number };
   /** A Fernanda aproveitou outra consulta para os testes e o checkup. */
@@ -262,7 +266,7 @@ export interface GameEvents {
   'prep.ready': { stationUid: string; recipeId: string; final: boolean };
   'customer.arrived': { customerId: string; recipeId: string | null };
   /** wanted: o que ele tinha pedido, quando recebeu outra coisa (pedido errado). */
-  'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium'; wanted?: string };
+  'customer.served': { customerId: string; recipeId: string; price: number; tip: number; quality: 'simple' | 'premium'; wanted?: string; catTip?: boolean };
   'sink.changed': { load: number };
   /** A lavagem na pia pausou (ela saiu da frente da pia) ou voltou a andar. */
   'sink.paused': { paused: boolean };

@@ -433,3 +433,22 @@ describe('consulta de entrada e castração (clinicFlow)', () => {
     expect(state.cats['cat.gen.1']!.repro!.status).toBe('neutered');
   });
 });
+
+describe('vale-castração (conquista Primeira CED, decisão 310)', () => {
+  it('a conquista da primeira campanha dá um vale; com ele, a castração sai sem custo e o vale acaba', () => {
+    const { state, session, id } = setup({ neutered: false });
+    // A primeira campanha da CED terminada: a conquista dá o vale.
+    state.ced.pastCampaigns.push({ stage: 'done' } as (typeof state.ced.pastCampaigns)[number]);
+    nextDay(session, state); // o fim do dia confere as conquistas
+    expect(state.milestones.reached['milestone.ced_1']).toBeDefined();
+    expect(state.clinic.vouchers).toBe(1);
+    toClinic(session, state, id);
+    const intake = session.clinicIntake(id);
+    expect(intake.ok && intake.exam.voucher).toBe(true);
+    expect(intake.ok && intake.exam.neuterPrice).toBe(0);
+    const money = state.money;
+    expect(session.clinicBookNeuter(id).ok).toBe(true);
+    expect(state.money).toBe(money);
+    expect(state.clinic.vouchers).toBeUndefined();
+  });
+});

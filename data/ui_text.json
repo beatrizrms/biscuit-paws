@@ -573,6 +573,9 @@
     "healthy": "Bem",
     "neuter": "Castrar ({price})",
     "neuterCredit": "Castrar no fiado",
+    "neuterVoucher": "Castrar com o vale-castração",
+    "neuterVoucherDebt": "Castrar com o vale-castração (só a conta anterior: {price})",
+    "voucherName": "Vale-castração",
     "neuterNoMoney": "Sem dinheiro para castrar agora: primeiro acertar a conta anterior ({debt}).",
     "takeHome": "Hoje não! Volto outro dia",
     "takeHomeDone": "Levar para o café",
@@ -669,6 +672,7 @@
       "complication": "Pontinho inflamado: levar à clínica"
     },
     "aftercare": "Remédio da castração {n}/{days}",
+    "cold": "Com frio",
     "adoption": {
       "in_care": "Adoção: depois da recuperação",
       "needs_neuter": "Adoção: precisa ser castrad{sex:o|a}",
@@ -713,6 +717,10 @@
       "play": { "do": "Brinque com {cat}", "buy": "Brinque com {cat}: compre uma varinha", "more": "Brinque com {cat}: compre mais brinquedos" }
     },
     "litter": "Troque a areia da caixa",
+    "coldSpot": "Monte um cantinho quente para {cat}",
+    "coldSpotMany": "Monte um cantinho quente para os gatos com frio",
+    "coldWarming": "{cat} está se esquentando",
+    "coldWarmingMany": "{n} gatos estão se esquentando",
     "poop": "Varra o cocô e troque a areia",
     "job": "Trabalho"
   },
@@ -1265,7 +1273,7 @@
     "recipeDay": "dia {day}",
     "recipesLeft": "+{n} receitas para descobrir",
     "recipesLeftOne": "+1 receita para descobrir",
-    "rewardKinds": { "recipe": "Nova receita", "room": "Novo cômodo", "item": "Novo no Market", "itemShop": "Novo no {shop}", "event": "Novo evento", "gift": "Presente", "costume": "Nova peça de fantasia" },
+    "rewardKinds": { "recipe": "Nova receita", "room": "Novo cômodo", "item": "Novo no Market", "itemShop": "Novo no {shop}", "event": "Novo evento", "gift": "Presente", "costume": "Nova peça de fantasia", "voucher": "Vale da clínica" },
     "allDone": "Todas as conquistas desta trilha. Por enquanto!",
     "seasonDone": "As metas desta estação já saíram. Mais receitas dela no ano que vem!",
     "more": "+{n} conquistas depois desta",

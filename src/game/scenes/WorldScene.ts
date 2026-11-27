@@ -633,9 +633,16 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     for (const ev of ['hands.changed', 'prep.ready', 'prep.started', 'customer.left', 'customer.served', 'dish.washed', 'dish.left', 'waiter.picked', 'waiter.serving', 'waiter.served'] as const) this.session.bus.on(ev, () => this.refreshSurfaces());
     this.session.bus.on('customer.left', ({ customerId, happy, stars, reputation }) => stars !== undefined && this.showReview(customerId, happy, stars, reputation ?? 0));
     this.session.bus.on('dish.washed', () => (this.sinkCleanUntil = this.time.now + 1500));
-    this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId }) => {
+    // Onde os gatos estão (o núcleo decide o efeito deles no atendimento: catMood.ts).
+    this.session.setCatLocator(() => (this.map.id === this.session.content.map.id ? this.cats.filter((c) => c.active && c.visible).map((c) => ({ id: c.catId, cell: c.cell() })) : []));
+    this.session.bus.on('customer.served', ({ customerId, price, tip, wanted, recipeId, catTip }) => {
       const view = this.customerViews.get(customerId);
       if (!view) return;
+      // Gato feliz perto deixou a gorjeta maior: um coraçãozinho sobe de quem pagou.
+      if (catTip) {
+        const heart = this.add.text(view.sprite.x, view.sprite.y - 86, '♥', { fontFamily: FONT, fontSize: '12px', color: '#d97890', stroke: '#fff4e0', strokeThickness: 3 }).setOrigin(0.5).setDepth(99_600);
+        this.tweens.add({ targets: heart, y: heart.y - 14, alpha: 0, delay: 700, duration: 900, onComplete: () => heart.destroy() });
+      }
       // Pedido errado: ele mesmo reclama, num balão de fala.
       if (wanted) {
         const name = (id: string) => this.session.content.recipes[id]?.name ?? id;

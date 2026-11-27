@@ -1316,6 +1316,7 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 .news .cat-info .repro.intact { --dot: var(--c-ink3); }
 .news .cat-info .c-row.adoption { --dot: var(--c-cafe); }
 .news .cat-info .c-row.hungry { --dot: var(--c-terra); }
+.news .cat-info .c-row.cold { --dot: var(--c-blue); }
 
 /* Debug: erro de código na tela (main.ts), por cima de tudo; toque fecha. */
 .debug-error { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 1000; max-height: 60vh; overflow: auto; margin: 0; padding: 8px 10px; background: var(--c-white); color: var(--c-terra-dark); border: 2px solid var(--c-terra); border-radius: 6px; font: 11px/1.35 monospace; white-space: pre-wrap; }

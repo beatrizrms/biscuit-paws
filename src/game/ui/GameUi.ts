@@ -853,6 +853,14 @@ export class GameUi {
         today.push(this.row(c.poop, { icon: 'areia_balde' }));
         continue;
       }
+      // Frio (inverno): sem cantinho quente, montar um; com ele, o gato só está se esquentando.
+      if (ch.kind === 'cold') {
+        const n = this.session.coldCats().length;
+        const name = this.session.catName(ch.catId!);
+        const text = ch.warm ? (n > 1 ? c.coldWarmingMany.replace('{n}', String(n)) : c.coldWarming.replace('{cat}', name)) : n > 1 ? c.coldSpotMany : c.coldSpot.replace('{cat}', name);
+        today.push(this.row(text, { icon: 'mantinha' }));
+        continue;
+      }
       if (ch.kind === 'litter') {
         today.push(this.row(c.litter, { icon: 'areia_balde', right: ch.progress && ch.progress[1] > 1 ? this.pips(ch.progress[0], ch.progress[1]) : '' }));
         continue;
@@ -1033,6 +1041,7 @@ export class GameUi {
       if (kind === 'room') return card('<span class="u-glyph">⌂</span>', content.rooms.rooms.find((r) => r.id === id)?.name ?? id, kinds.room);
       if (kind === 'event') return card('<span class="u-glyph">★</span>', content.festivals.find((f) => f.id === id)?.name ?? id, kinds.event);
       if (kind === 'costume') return card('<span class="u-glyph">✿</span>', content.costume.pieces.find((p) => p.id === id)?.name ?? id, kinds.costume);
+      if (kind === 'voucher') return card('<span class="u-glyph">✚</span>', uiText.clinic.voucherName, kinds.voucher);
       const item = content.items[id];
       const img = item?.icon ? iconHtml(item.icon, 32) : item ? itemThumbHtml(item, 32) : '';
       // O que não se encomenda pelo celular (ração, areia) diz a loja em que se compra: "Novo no Mercado da Vila".

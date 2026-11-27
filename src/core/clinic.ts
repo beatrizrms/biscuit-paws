@@ -85,6 +85,8 @@ export interface ClinicState {
   surgeries: Record<string, number>;
   /** Fiado: quanto ela deve à clínica (paga junto na próxima castração; com dívida, não há outro fiado). */
   debt: number;
+  /** Vales-castração (conquista "Primeira CED", decisão 310): cada um paga uma castração inteira. */
+  vouchers?: number;
   /** Gatos operados que a Fernanda trouxe e cuja entrega (a cena com as falas) ela ainda não viu: ficam até a cena. */
   deliveries?: ClinicDelivery[];
 }

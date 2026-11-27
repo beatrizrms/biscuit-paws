@@ -6,6 +6,7 @@ import type { Condition, Content } from './content';
 import type { EventBus } from './events';
 import { cellsOf, solidGrid, type Cell, type MapData } from './map';
 import { reachable } from './path';
+import { catEffect, patienceShift } from './catMood';
 import { pickWeighted, type Rng } from './rng';
 import { exclusive, onTray, speedFactor, vesselOf, type HandItem, type SurfaceItem } from './carry';
 import { inSeason, VESSELS, type Quality, type RecipeDef, type RecipeStatus, type ServiceKind, type Vessel } from './recipes';
@@ -140,6 +141,8 @@ export interface ServiceHost {
   gatheringToday(): GatheringDef | undefined;
   /** No dia da inauguração, o intervalo entre clientes cai pelos preparativos (1 = normal). */
   openingArrivalFactor?(): number;
+  /** Bem-estar (0 a 100) dos gatos perto deste lugar (mesmo cômodo, até catBonus.reach células); sem o jogo, nenhum. */
+  catsNear?(spot: Cell, reach: number): number[];
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -920,6 +923,15 @@ export class CafeService {
         ? passed * (1 - Math.min(1, Math.max(0, this.cfg.awayPatienceRate ?? 1)))
         : 0;
     if (slack > 0) for (const c of sv.customers) if (c.stage === 'queue' || c.stage === 'waiting') c.until += slack;
+    // Gatos perto de quem espera o pedido (decisão 310): feliz, a espera dura mais; mal cuidado, menos.
+    const bonus = this.cfg.catBonus;
+    if (bonus && passed > slack && this.h.catsNear) {
+      for (const c of sv.customers) {
+        if (c.stage !== 'waiting') continue;
+        const eff = catEffect(this.h.catsNear(c.spot, bonus.reach), bonus);
+        c.until += patienceShift(passed - slack, eff.patience);
+      }
+    }
     // Etapas prontas: aparecem no equipamento (a última vira o pedido; as outras, massa para a próxima etapa).
     for (const prep of [...sv.preps]) {
       if (prep.readyAt > now) continue;
@@ -1594,13 +1606,15 @@ export class CafeService {
     c.waits = { queue: c.waits?.queue ?? 0, seated: this.used(c) };
     const satisfied = !wrong && patienceLeft >= this.cfg.tipPatience && (!c.wantsPremium || quality === 'premium');
     const price = this.priceOf(r.id, quality);
-    const tip = satisfied ? Math.max(1, Math.round(price * this.cfg.tipRate)) : 0;
+    // Gato feliz perto: gorjeta maior (decisão 310).
+    const cats = this.cfg.catBonus && this.h.catsNear ? catEffect(this.h.catsNear(c.spot, this.cfg.catBonus.reach), this.cfg.catBonus).tip : 0;
+    const tip = satisfied ? Math.max(1, Math.round(price * this.cfg.tipRate * (1 + cats))) : 0;
     c.stage = 'drinking';
     c.until = this.now() + this.cfg.consumeMinutes[c.kind];
     this.st.service.served++;
     recordServed(this.st.stats);
     this.h.addMoney(price + tip, `sale:${r.id}`);
-    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality, ...(wrong ? { wanted } : {}) });
+    this.h.bus.emit('customer.served', { customerId: c.id, recipeId: r.id, price, tip, quality, ...(wrong ? { wanted } : {}), ...(satisfied && cats > 0 ? { catTip: true } : {}) });
     this.h.advanceStory();
   }
 

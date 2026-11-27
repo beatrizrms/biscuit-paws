@@ -134,6 +134,8 @@
   },
   "surfaceTags": ["bar", "table", "stand"],
   "standingTag": "bar",
+  "_catBonus": "Gatos perto do cliente (mesmo cômodo, até reach células do lugar): bem-estar (0 a 100) = metade corações, metade média de saúde, alegria e higiene. A partir de happyAt, cada gato dá patiencePerCat de paciência (até patienceMax) e tipPerCat de gorjeta (até tipMax); sem nenhum feliz e com algum abaixo de sadBelow, a paciência muda sadPatience (dura 10% menos). Decisão 310.",
+  "catBonus": { "reach": 3, "happyAt": 70, "sadBelow": 40, "patiencePerCat": 0.15, "patienceMax": 0.3, "sadPatience": -0.1, "tipPerCat": 0.25, "tipMax": 0.5 },
   "_entranceDoor": "Porta por onde os clientes entram: lugar sem caminho desde ela (fechado por móveis) não é oferecido nem conta na capacidade.",
   "entranceDoor": "door.street",
   "_seatChance": "Com mesa livre e lugar livre no balcão, a chance de o cliente preferir sentar (a mesa e o lugar no balcão são sorteados entre os livres).",

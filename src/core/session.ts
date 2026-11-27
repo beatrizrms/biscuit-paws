@@ -33,6 +33,8 @@ import { Cart, MAX_QTY_PER_ITEM } from './cart';
 import { DEFAULT_PRONOUN, type Pronoun } from './pronoun';
 import { activeTreatment, addCare, careAtDayEnd, careGain, careNeeds, careOf, litterLoss, needsMedicine, toysMissing, type CareNeed, type CareStat, type PlayRoom } from './care';
 import { load, loadProblem, stationKind, stationsAtDayEnd, type StationKind } from './petcare';
+import { startsCold, warmStep } from './cold';
+import { catWellbeing } from './catMood';
 import { findPath } from './path';
 
 /** Automático com tantos dias ou menos: avisa que está acabando. */
@@ -141,6 +143,8 @@ export interface CatProfile {
   hearts: number;
   maxHearts: number;
   fedToday: boolean;
+  /** Chegou no inverno e ainda está com frio (cold.ts). */
+  cold: boolean;
   daysInCafe: number;
   map: string;
   /** Saúde (0 a maxHealth). */
@@ -266,6 +270,11 @@ export class GameSession {
 
   /** Atendimento do café: cardápio, pedidos, mãos, louça, clientes (service.ts). */
   readonly service: CafeService;
+  /**
+   * Onde estão os gatos agora (o jogo informa: eles andam no Phaser). Só posições; quem decide o efeito é o núcleo
+   * (catMood.ts). Sem o jogo (testes), nenhum gato está em lugar nenhum, a não ser que o teste diga.
+   */
+  private catLocator: () => { id: string; cell: Cell }[] = () => [];
   /** Chegada de gatos (data/arrivals.json). */
   readonly arrivals: ArrivalSystem;
   /** Clínica: consulta de entrada, castração e cercadinho (clinicFlow.ts). */
@@ -294,6 +303,7 @@ export class GameSession {
       rng: () => createRng(state.day * 1009 + state.service.nextCustomerId * 97 + rngCalls++),
       homeMap: () => this.mapData(this.content.map.id),
       openingArrivalFactor: () => this.openingArrivalFactor(),
+      catsNear: (spot, reach) => this.catsNear(spot, reach),
       atHome: () => this.atHome(),
       evaluate: (c) => evaluate(c, this.state, this.storyContext()),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
@@ -1081,6 +1091,9 @@ export class GameSession {
         // O pote automático é a tigela que não precisa encher: o mesmo afeto.
         this.addCatAffection(id, this.content.relationships.feedPoints);
       }
+    // Frio: quem ainda está gelado no fim do dia fica um pouco menos alegre.
+    const coldCfg = this.content.catProfiles.cold;
+    if (coldCfg) for (const id of this.coldCats()) addCare(this.state.cats[id]!, 'happiness', -coldCfg.happinessPerDay, this.content.health.care);
     if (!r.litterOk) {
       for (const id of cats) addCare(this.state.cats[id]!, 'hygiene', -litterLoss(this.content.health.care, id, day), this.content.health.care);
       // O aviso só vale quando ela já pode ter uma caixa de areia (tem uma, ou já está à venda): antes disso a história
@@ -1252,6 +1265,7 @@ export class GameSession {
         this.bus.emit('curfew.soon', { minutes: Math.round(this.curfew() - this.state.time) });
       }
       this.deliverArrived();
+      this.coldTick(Math.floor(this.state.time) - before);
       this.service.tick();
       this.checkBuilderShift();
       this.advanceStory();
@@ -1793,9 +1807,9 @@ export class GameSession {
    * Rotina do dia, depois do prólogo: comida para cada gato do café, o que o balão de cuidado de cada um pede
    * (remédio, escovar, brincar; `hasTool`: já tem a escova/varinha) e a poeira que voltou.
    */
-  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
+  chores(): { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release' | 'cold'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; warm?: boolean; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] {
     if (!this.state.flags['prologue.done']) return [];
-    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
+    const out: { kind: 'feed' | 'settle' | 'sweep' | 'sick' | 'pantry' | 'ingredients' | 'care' | 'poop' | 'clinic' | 'litter' | 'ced_sign' | 'ced_goal' | 'ced_campaign' | 'ced_meet' | 'ced_capture' | 'ced_release' | 'cold'; catId?: string; clinic?: 'intake' | 'pickup' | 'recheck' | 'pen_food' | 'pen_wait' | 'sick'; need?: CareNeed; warm?: boolean; hasTool?: boolean; toysShort?: boolean; done: boolean; progress?: [number, number]; auto?: number; days?: number }[] = [];
     if (this.customersAway()) out.push({ kind: 'sick', done: false, progress: [this.untreatedSickCats().length, this.content.health.customers.stopAtSickCats] });
     // Clínica: levar à consulta de entrada, buscar quem dormiu lá, levar de volta com complicação e a latinha do cercadinho.
     for (const id of this.shelteredCats()) {
@@ -1820,6 +1834,9 @@ export class GameSession {
       const recovering = isolated.some((id) => this.state.cats[id]!.clinic?.stage !== 'intake' || !!activeTreatment(this.state.cats[id]!));
       out.push({ kind: 'clinic', clinic: recovering ? 'pen_food' : 'pen_wait', done: cared === isolated.length, progress: [cared, isolated.length] });
     }
+    // Frio (inverno, decisão 310): sem cantinho quente, montar um; com ele, o gato está se esquentando (só acompanha).
+    const cold = this.coldCats();
+    if (cold.length > 0) out.push({ kind: 'cold', catId: cold[0], warm: this.hasWarmSpot(), done: false });
     // Vaquinha da CED: a plaquinha do CatPay ainda na mochila (ou guardada): pôr no café, que os clientes doam ao pagar.
     if (this.ced.signPending()) out.push({ kind: 'ced_sign', done: false });
     // A meta da vaquinha: quanto já entrou (moedas) de quanto precisa, enquanto ela estiver aberta.
@@ -2789,6 +2806,7 @@ export class GameSession {
         hearts: this.catHearts(id),
         maxHearts: this.content.relationships.maxHearts,
         fedToday: cat.fedOn === this.state.day,
+        cold: cat.cold !== undefined,
         daysInCafe: Math.max(1, this.state.day - cat.shelteredOn + 1),
         map: cat.map,
         health: cat.health,
@@ -4619,6 +4637,7 @@ export class GameSession {
       'streak.no_gave_up': st.no_gave_up.best,
       'streak.cats_cared': st.cats_cared.best,
       fairsHeld: this.state.festivals.held?.['fest.adoption_fair'] ?? 0,
+      cedCampaigns: this.state.ced.pastCampaigns.length + (this.state.ced.campaign?.stage === 'done' ? 1 : 0),
     };
   }
 
@@ -4684,6 +4703,7 @@ export class GameSession {
     if (silent) return;
     for (const m of met) {
       if (m.reward.kind === 'gift') for (const id of m.reward.ids) this.receiveItem(id);
+      if (m.reward.kind === 'voucher') this.state.clinic.vouchers = (this.state.clinic.vouchers ?? 0) + m.reward.ids.filter((id) => id === 'voucher.neuter').length;
       m.effects?.forEach((e) => this.applyEffect(e));
       this.bus.emit('milestone.reached', { milestoneId: m.id });
     }
@@ -4711,6 +4731,56 @@ export class GameSession {
     for (const t of crossed) this.bus.emit('reputation.threshold_reached', { thresholdId: t.id, value: to });
     if (crossed.length > 0) this.maybeStartFestivals();
     this.checkMilestones();
+  }
+
+  /** Há cantinho quente no café (caminha ou almofada, nos cômodos abertos)? */
+  hasWarmSpot(): boolean {
+    const tag = this.content.catProfiles.cold?.warmTag;
+    if (!tag) return false;
+    return this.state.placed.some((p) => this.content.items[p.item]?.tags.includes(tag) && (() => { const room = this.roomAt(p.at); return !room || isOpen(this.roomState(room.id)); })());
+  }
+
+  /** Gatos com frio no café agora. */
+  coldCats(): string[] {
+    return this.shelteredCats().filter((id) => this.state.cats[id]!.cold !== undefined && this.state.cats[id]!.map === this.content.map.id);
+  }
+
+  /** A cada minuto: os gatos com frio se esquentam no cantinho quente (se houver). */
+  private coldTick(minutes: number): void {
+    const cfg = this.content.catProfiles.cold;
+    if (!cfg || minutes <= 0) return;
+    const cats = this.coldCats();
+    if (cats.length === 0) return;
+    const warm = this.hasWarmSpot();
+    for (const id of cats) {
+      const cat = this.state.cats[id]!;
+      const r = warmStep(cat.cold ?? 0, minutes, warm, cfg);
+      if (r.done) {
+        delete cat.cold;
+        this.bus.emit('cat.warmed', { catId: id });
+      } else cat.cold = r.warmed;
+    }
+  }
+
+  /** O jogo diz onde cada gato está (WorldScene, a cada consulta). */
+  setCatLocator(fn: () => { id: string; cell: Cell }[]): void {
+    this.catLocator = fn;
+  }
+
+  /** Bem-estar (0 a 100) de um gato abrigado: metade corações, metade as barras (catMood.ts). */
+  catWellbeing(catId: string): number {
+    const cat = this.state.cats[catId];
+    if (!cat) return 0;
+    const care = careOf(cat, this.content.health.care);
+    return catWellbeing({ hearts: this.catHearts(catId), maxHearts: this.content.relationships.maxHearts, health: cat.health, maxHealth: this.content.health.max, happiness: care.happiness, hygiene: care.hygiene, careMax: this.content.health.care.max });
+  }
+
+  /** Bem-estar dos gatos soltos no mesmo cômodo de `spot` e a até `reach` células dele (atendimento, decisão 310). */
+  private catsNear(spot: Cell, reach: number): number[] {
+    const room = this.roomAt(spot)?.id;
+    return this.catLocator()
+      .filter((c) => this.state.cats[c.id]?.sheltered && this.clinic.withOthers(c.id) && Math.max(Math.abs(c.cell[0] - spot[0]), Math.abs(c.cell[1] - spot[1])) <= reach && this.roomAt(c.cell)?.id === room)
+      .map((c) => this.catWellbeing(c.id));
   }
 
   /** Corações entre a protagonista e um gato. */
@@ -6707,6 +6777,9 @@ export class GameSession {
     };
     // Estado reprodutivo e, com a clínica aberta, a espera pela consulta de entrada (isolado).
     this.clinic.onSheltered(catId, { condition, ...repro });
+    // Inverno: o gato de rua entra gelado e se esquenta no cantinho quente (cold.ts).
+    const cold = this.content.catProfiles.cold;
+    if (cold && !def?.memory && startsCold(condition, this.season(), !!this.state.flags['prologue.done'], cold)) this.state.cats[catId]!.cold = 0;
     this.bus.emit('cat.sheltered', { catId });
     // Chega doente pela condição (ferido) ou pelos dados, a não ser que o vet já tenha cuidado na chegada.
     if (!treated && (profile ? profile.sick : def?.arrivesSick)) this.makeSick(catId);

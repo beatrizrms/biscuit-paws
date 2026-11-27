@@ -1,6 +1,7 @@
 // Perfis de gato (data/cat_profiles.json) e gatos gerados por semente para as chegadas: aparência (variante do
 // Cosy Cats), personalidade e condição sorteadas, com nomes sugeridos. Puro: sem Phaser, DOM ou window.
 // O gato gerado vira uma definição igual às de data/cats.json, guardada no save (state.catDefs).
+import type { ColdConfig } from './cold';
 import type { CatDef } from './cats';
 import { pickWeighted, type Rng } from './rng';
 
@@ -31,6 +32,8 @@ export interface CatProfilesData {
   conditions: Record<string, ConditionProfile>;
   /** O gato ferido que ela levou correndo à clínica (em_perigo): a consulta da Fernanda, paga na hora. */
   rescueVetCost: number;
+  /** Frio no inverno (cold.ts); sem ele, ninguém chega com frio. */
+  cold?: ColdConfig;
   generated: {
     variants: string[];
     names: string[];

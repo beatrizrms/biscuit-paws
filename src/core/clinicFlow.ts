@@ -87,8 +87,10 @@ export interface ExamResult {
   disease: string | null;
   /** Por que não opera (null = pode), e o dia em que terá a idade. */
   neuter: { block: NeuterBlock | 'no_beds' | 'no_slots'; readyDay?: number } | null;
-  /** Preço da castração agora (com o desconto de amiga). */
+  /** Preço da castração agora (com o desconto de amiga; 0 com um vale-castração). */
   neuterPrice: number;
+  /** Tem vale-castração: a castração sai sem custo (a conta anterior do fiado continua). */
+  voucher: boolean;
   /** Fiado: a dívida de agora e como a castração seria paga (à vista com a dívida junto, fiado ou não dá). */
   debt: number;
   neuterPay: 'cash' | 'credit' | 'no_money';
@@ -393,6 +395,7 @@ export class ClinicFlow {
     if (!cat?.repro || !cat.tests) return null;
     const cfg = this.h.clinic;
     const proc = this.neuterDef();
+    const voucher = (this.st.clinic.vouchers ?? 0) > 0;
     const day = this.st.day;
     const block = neuterBlock(cfg, proc, { repro: cat.repro, health: cat.health, sick: !!cat.sickness }, day);
     const booking = block ? null : bookingBlock(cfg, proc, this.st.clinic, this.wardCount(), day);
@@ -406,9 +409,10 @@ export class ClinicFlow {
       tests: { ...cat.tests },
       disease: cat.sickness?.disease ?? null,
       neuter: block ?? (booking ? { block: booking } : null),
-      neuterPrice: clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total,
+      neuterPrice: voucher ? 0 : clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total,
+      voucher,
       debt: this.st.clinic.debt,
-      neuterPay: payPlan(cfg, this.st.clinic, this.st.money, clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total, true).kind,
+      neuterPay: voucher ? (this.st.money >= this.st.clinic.debt ? 'cash' : 'no_money') : payPlan(cfg, this.st.clinic, this.st.money, clinicBill(cfg, this.st.clinic, { consult: 0, medicine: 0, procedure: proc.price }).total, true).kind,
     };
   }
 
@@ -430,6 +434,12 @@ export class ClinicFlow {
       this.st.clinic.debt = 0;
       this.h.addMoney(-old, 'vet:debt');
       this.h.bus.emit('clinic.debt_paid', { amount: old });
+    }
+    // Vale-castração: usa um e não cobra a cirurgia (a conta anterior já foi paga acima).
+    if (exam.voucher) {
+      this.st.clinic.vouchers = (this.st.clinic.vouchers ?? 1) - 1;
+      if (this.st.clinic.vouchers <= 0) delete this.st.clinic.vouchers;
+      this.h.bus.emit('clinic.voucher_used', { catId });
     }
     this.payConsult(exam.neuterPrice, 'vet:neuter', plan.kind === 'credit');
     const day = this.st.day;

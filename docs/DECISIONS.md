@@ -1327,3 +1327,13 @@ Decisão:
 
 **Motivo:** fechar o que o QA e o robô tinham deixado aberto antes das mecânicas novas.
 **Consequência:** em 3 dias (Inverno 9 a 11), o robô cobriu 100% o comprimido e tirou "Perfeito!" todo dia, e pôs duas mesas com cadeira. Suíte do navegador: 19 de 20 na rodada inteira; os dois testes que falhavam às vezes passaram repetidos em paralelo (8 de 8 e 4 de 4).
+
+## 310. Gatos no atendimento, frio no inverno e o vale-castração (nov/2026)
+Pedido: bloco B de `docs/PLANO_MECANICAS.md`, com as escolhas dela: o bônus pelos corações e pela felicidade (todas as barras), com castigo de 10% para gato mal cuidado; frio só nos gatos que chegam (o café não esfria); o prêmio da Primeira CED é um vale-castração.
+Decisão:
+- **Gatos no atendimento (`src/core/catMood.ts`):** bem-estar do gato (0 a 100) = metade corações + metade a média de saúde, alegria e higiene. Contam os gatos soltos no mesmo cômodo do cliente e a até 3 células do lugar dele (o jogo informa onde os gatos estão: `session.setCatLocator`; o núcleo decide). Com bem-estar 70 ou mais, cada gato dá +15% de paciência (até +30%) e +25% de gorjeta (até +50%), e um coraçãozinho sobe de quem pagou (`customer.served: catTip`). Sem nenhum feliz e com algum abaixo de 40, a espera dura 10% menos. Números em `service.json: catBonus`.
+- **Frio (`src/core/cold.ts`):** depois do prólogo, o gato aceito no inverno (ou com a condição `cold`, o ano todo) entra com frio (`cat.cold`, minutos já aquecido; no save, sem mudar a versão). Ele se esquenta sozinho em 4 horas de jogo se houver no café um móvel com a tag `cat:rest` (caminha ou almofada) num cômodo aberto; sem isso, não esquenta. Cada fim de dia com frio, a alegria cai 10. Meta no balão: "Monte um cantinho quente para {gato}", e com o cantinho, "{gato} está se esquentando"; na ficha do "Meus gatos", a linha "❄ Com frio". Configuração em `cat_profiles.json: cold`.
+- **Vale-castração:** trilha nova `ced` (campanhas de castração terminadas, `cedCampaigns`) e a conquista **Primeira CED** (`milestone.ced_1`), com o tipo de prêmio novo `voucher` (`voucher.neuter`). O vale fica no save da clínica (`clinic.vouchers`); na consulta, a castração aparece como "Castrar com o vale-castração" e não custa nada (a conta anterior do fiado continua a ser paga). Usado, o vale acaba (`clinic.voucher_used`).
+
+**Motivo:** fazer o carinho com os gatos aparecer no caixa, dar ao inverno o frio da história sem uma tarefa diária a mais e premiar a primeira campanha com algo do próprio tema.
+**Consequência:** a disposição do salão passa a importar (caminhas e brinquedos perto das mesas). O jornal com os gatos de rua (B3) espera as frases dela; corações dos amigos (B5) e cozinha e sótão (B6) ficam para depois.
