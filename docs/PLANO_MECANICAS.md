@@ -52,7 +52,7 @@ A proximidade é mais visível e faz a disposição dos móveis importar. Recome
 **Pergunta:** só os gatos que chegam, ou o café também esfria (precisando de aquecedor, lareira...)? Recomendo **só
 os que chegam**: o café esfriando é mais uma tarefa diária no começo, que já tem muita coisa.
 
-### B3. Gatos de rua anunciados no jornal
+### B3. Gatos de rua anunciados no jornal (feito: decisão 311)
 
 **Proposta:** quando uma chegada de gato começa, o "Vila Hoje" do dia ganha uma notinha vaga, sem dizer onde
 ("Moradores contam que um gatinho anda pela vila nessas noites frias"). Ler a notícia não muda nada, só dá o clima.

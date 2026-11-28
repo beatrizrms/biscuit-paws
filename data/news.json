@@ -32,8 +32,8 @@
       "id": "news.orange_cat",
       "fromDay": 4,
       "season": "winter",
-      "headline": "Gato laranja é visto no banco da praça",
-      "text": "Um gato laranja e gordinho virou atração: dorme todas as tardes no mesmo banco, sem se importar com a neve."
+      "headline": "Gato laranja vira atração na vila",
+      "text": "Um gato laranja e gordinho virou atração: dorme todas as tardes no mesmo lugar, sem se importar com a neve."
     },
     {
       "id": "news.book_swap",
@@ -48,6 +48,25 @@
       "text": "Gatos adoram caixas de papelão. Ninguém sabe explicar, mas todo mundo já viu."
     }
   ],
+  "_catNotes": "Gato à vista (decisão 311): enquanto uma chegada espera ser achada (primeira etapa), o jornal do dia abre com a notinha dela, com o selo, e o app ganha a bolinha. Nunca diz onde o gato está. A chegada que começa depois do início do dia sai no jornal do dia seguinte. firstTip: na primeira notinha do jogo, a primeira pessoa da lista cujo when vale troca a fala do passeio pelo aviso (uma vez).",
+  "catNotes": {
+    "label": "🐾 Gato à vista",
+    "firstTip": [
+      { "npc": "npc.jacque", "when": { "flag": "met.jacque" }, "text": "Você viu o Vila Hoje? Quando tem gato solto pela vila, sai uma notinha lá. Eu sempre leio." },
+      { "npc": "npc.neusa", "text": "Você lê o Vila Hoje? Quando aparece gato solto pela vila, sai uma notinha lá. Eu leio toda manhã." }
+    ],
+    "notes": [
+      { "arrival": "arr.third_cat", "headline": "Noites geladas na vila", "text": "Moradores contam que um gatinho anda pela vila nessas noites frias. Ninguém consegue chegar perto dele." },
+      { "arrival": "arr.snow_trail", "headline": "Marquinhas na neve", "text": "Quem acorda cedo conta que viu marquinhas de patas na neve fresca. De quem serão?" },
+      { "arrival": "arr.door_meow", "headline": "Miados logo cedo", "text": "Vizinhos ouviram um miado insistente nas primeiras horas da manhã. Parece que alguém procura um lugar para ficar." },
+      { "arrival": "arr.cat_leads", "headline": "Um gato com pressa", "text": "Um gato foi visto correndo de um lado para o outro, como se quisesse mostrar alguma coisa a alguém." },
+      { "arrival": "arr.cat_on_pole", "headline": "Susto na vila", "text": "Moradores ouviram um gato miando assustado, sem parar. Ninguém soube dizer de onde vinha." },
+      { "arrival": "arr.bench_cat", "headline": "Um ruivo muito manso", "text": "Um gato ruivo tem cochilado pela vila. Quem passa por ele ganha um pedido de carinho." },
+      { "arrival": "arr.litter_crates", "headline": "Época de filhotes", "text": "É tempo de ninhadas. Se ouvir miadinhos finos por aí, vale procurar com calma." },
+      { "arrival": "arr.hurt_cat", "headline": "Gatinho mancando", "text": "Moradores viram um gato mancando pela vila e ficaram preocupados. Ele se assusta com quem chega perto." },
+      { "arrival": "arr.mail_cat", "headline": "A entregadora tem companhia", "text": "A entregadora conta que um gato magrinho aparece todo fim de tarde, sempre com fome, mas foge de quem chega perto." }
+    ]
+  },
   "tipsTitle": "Cartilha do gato",
   "tips": [
     { "id": "tip.feed", "title": "Comida todo dia", "text": "Encha a tigela de ração uma vez por dia: uma porção serve todos os gatos do café. Dia sem comer, a saúde deles cai." },

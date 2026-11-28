@@ -2157,6 +2157,45 @@ export class GameSession {
     return newsForDay(this.content.news, this.state.day, this.seasonDay().season);
   }
 
+  /**
+   * Gato à vista: a notinha do jornal de hoje, se uma chegada ainda espera ser achada (primeira etapa). O jornal sai de
+   * manhã: a chegada que começa depois do início do dia só sai no jornal do dia seguinte.
+   */
+  catNote(): { arrivalId: string; label: string; headline: string; text: string } | null {
+    const cfg = this.content.news.catNotes;
+    const a = this.state.arrivals.active;
+    if (!cfg || !a || a.step > 0) return null;
+    const note = cfg.notes.find((n) => n.arrival === a.id);
+    if (!note) return null;
+    const printed = a.startedOn < this.state.day || (a.startedAt ?? Infinity) <= a.startedOn * 1440 + parseClock(this.content.dayNight.dayStart);
+    return printed ? { arrivalId: a.id, label: cfg.label, headline: note.headline, text: note.text } : null;
+  }
+
+  private catNoteKey(): string | null {
+    const a = this.state.arrivals.active;
+    return a && this.catNote() ? `catnote.read.${a.id}.${a.startedOn}` : null;
+  }
+
+  /** A notinha de hoje ainda não foi lida (a bolinha no app do jornal). */
+  catNoteUnread(): boolean {
+    const key = this.catNoteKey();
+    return !!key && !this.state.flags[key];
+  }
+
+  /** Abriu o jornal: a notinha desta chegada fica lida. */
+  markCatNoteRead(): void {
+    const key = this.catNoteKey();
+    if (key) this.state.flags[key] = true;
+  }
+
+  /** O aviso da primeira notinha: a fala de quem conversa agora, se é a vez dessa pessoa (uma vez no jogo). */
+  private catNoteTip(npc: string): string | null {
+    const cfg = this.content.news.catNotes;
+    if (!cfg || this.state.flags['catnote.tipped'] || !this.catNote()) return null;
+    const who = cfg.firstTip.find((t) => t.when === undefined || this.holds(t.when as Condition));
+    return who?.npc === npc ? who.text : null;
+  }
+
   /** A dica de hoje da Cartilha do gato (Vila Hoje). */
   catTip(): CatTip | null {
     return tipForDay(this.content.news, this.state.day, (c) => this.holds(c as Condition));
@@ -3405,7 +3444,7 @@ export class GameSession {
   /** Quem passeia (ou fica num lugar e conversa) tem fala hoje (só olha: a dica do E). */
   neighborHasChat(npc: string): boolean {
     const def = this.chatDef(npc);
-    return !!def && !!chatOfDay(def, this.state.day);
+    return !!def && (!!chatOfDay(def, this.state.day) || !!this.catNoteTip(npc));
   }
 
   /**
@@ -3415,7 +3454,10 @@ export class GameSession {
    */
   neighborChat(npc: string): string | null {
     const def = this.chatDef(npc);
-    const line = def && chatOfDay(def, this.state.day);
+    // A primeira notinha de gato à vista: no lugar da fala do dia, o aviso do anúncio (uma vez no jogo).
+    const tip = this.catNoteTip(npc);
+    if (tip) this.state.flags['catnote.tipped'] = true;
+    const line = tip ?? (def && chatOfDay(def, this.state.day));
     if (!def || !line) return null;
     if (this.friendDef(npc)) this.noteFriendChat(npc);
     else if (this.friendState(npc).chatDay !== this.state.day) {

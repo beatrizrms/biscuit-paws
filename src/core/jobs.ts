@@ -133,6 +133,18 @@ export interface NewsData {
   /** Cartilha do gato: o título da seção e as dicas, em ordem. */
   tipsTitle?: string;
   tips?: CatTip[];
+  /** Notinhas de gato solto pela vila (uma por chegada) e o aviso da primeira vez. */
+  catNotes?: CatNotes;
+}
+
+/**
+ * Gato à vista: enquanto uma chegada espera ser achada, o jornal do dia abre com uma notinha vaga (sem dizer onde).
+ * Na primeira vez, quem conversa com ela no passeio avisa do anúncio (a primeira pessoa de firstTip cujo when vale).
+ */
+export interface CatNotes {
+  label: string;
+  firstTip: { npc: string; when?: unknown; text: string }[];
+  notes: { arrival: string; headline: string; text: string }[];
 }
 
 /** A dica da Cartilha do dia: em ordem, uma por dia (dia 1 = a primeira); depois da última, recomeça. */

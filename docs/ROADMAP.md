@@ -58,7 +58,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Carrinho no mercado (prateleiras + caixa), estágios do negócio (parcial -> inauguração com placa), capacidade por lugares e louça
 - [x] Mais pedidos diários (8): entregas com a caixa visível, neve no mercado, caixotes
 - [x] Passagem dos dias: ~16 min por dia, ir para casa depois das 17h, resumo do dia, rotina (comida e poeira)
-- [ ] Gatos de rua anunciados no jornal (Marco 2)
+- [x] Gatos de rua anunciados no jornal (Marco 2; decisão 311)
 - [x] Ciclo dia/noite (cor por hora e estação, luzes dos postes e vitrines, relógio no HUD, "Você foi para casa")
 - [x] Rua andável, objetos com lógica de cena e praça do Gato em fuga (decisão 103)
 - [x] Ato 1 reorganizado (itens de gato só depois do gato; cantinho quente = caminha + almofada)

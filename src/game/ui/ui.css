@@ -627,6 +627,8 @@ html.dev-notes-off .hud-goals .dev { display: none; }
 /* Cartilha do gato: a dica do dia, num quadrinho. */
 .news article.cat-tip { padding: 4px 6px; background: var(--cream2); border: 1px solid var(--cream3); border-radius: 4px; }
 .news .cat-tip .tip-label { display: block; font-size: var(--t1); font-weight: bold; text-transform: uppercase; letter-spacing: 0; color: var(--mint3); }
+.news article.cat-note { padding: 4px 6px; background: var(--cream2); border: 1px solid var(--c-terra-light); border-radius: 4px; }
+.news .cat-note .tip-label { display: block; font-size: var(--t1); font-weight: bold; text-transform: uppercase; letter-spacing: 0; color: var(--c-terra); }
 .news .jobs-title { margin: 4px 0 3px; }
 .news .job { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; padding: 4px 6px; border-radius: 6px; background: var(--cream2); font-size: var(--t1); }
 .news .job strong { font-size: var(--t1); }

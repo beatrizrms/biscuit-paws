@@ -1337,3 +1337,15 @@ Decisão:
 
 **Motivo:** fazer o carinho com os gatos aparecer no caixa, dar ao inverno o frio da história sem uma tarefa diária a mais e premiar a primeira campanha com algo do próprio tema.
 **Consequência:** a disposição do salão passa a importar (caminhas e brinquedos perto das mesas). O jornal com os gatos de rua (B3) espera as frases dela; corações dos amigos (B5) e cozinha e sótão (B6) ficam para depois.
+
+## 311. Gato à vista no Vila Hoje (nov/2026)
+Pedido: B3 de `docs/PLANO_MECANICAS.md` (gatos de rua anunciados no jornal), com a preocupação dela: a notinha não pode se perder entre as notícias nem se confundir com os pedidos, e alguém deve avisar na primeira vez.
+Decisão:
+- Enquanto uma chegada espera ser achada (primeira etapa), o jornal do dia abre com a notinha dela, com o selo "🐾 Gato à vista" (`news.json: catNotes`). A notinha nunca diz onde o gato está. O jornal sai de manhã: a chegada que começa depois do início do dia só sai no jornal seguinte.
+- Têm notinha as chegadas em que o gato está solto pela vila (pegadas, miado, o gato que guia, o preso no alto, o ruivo, a ninhada, o machucado e o gato da entregadora). As que um vizinho traz, a de dentro do café, a caixa e o cartaz do mural não têm.
+- Nos dias com notinha ainda não lida, o app do jornal ganha a bolinha; abrir o jornal marca como lida (`catnote.read.<chegada>.<dia>`).
+- Na primeira notinha do jogo, a Jacque (ou a Dona Neusa, se a Jacque ainda não apareceu) troca a fala do passeio pelo aviso do anúncio, uma vez só (`catnote.tipped`). Só avisa: se ela não encontrar ninguém, a notinha e a bolinha continuam lá.
+- A notícia do gato laranja deixou de dizer "banco da praça" (revelava o lugar do gato ruivo).
+
+**Motivo:** dar o clima dos gatos de rua pela vila e uma pista de que há um gato para achar, sem entregar onde.
+**Consequência:** o jornal passa a valer a olhada diária. Notinha nova = uma entrada em `catNotes.notes` com o id da chegada (o `check` confere).

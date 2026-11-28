@@ -186,6 +186,7 @@ export class NewsPanel {
     if (this.app === 'cats') body.innerHTML = this.catsHtml();
     else if (this.app === 'news') {
       body.innerHTML = this.jobsHtml(true);
+      this.session.markCatNoteRead();
       this.bindJobs(body);
     } else body.innerHTML = this.homeHtml();
   }
@@ -236,7 +237,7 @@ export class NewsPanel {
       : '';
     const pending = this.session.availableJobs().length;
     const apps: { id: PhoneApp; name: string; icon: string; badge?: boolean }[] = [
-      { id: 'news', name: content.news.app, icon: `<img src="${phone.apps.classificados}" alt="" />`, badge: pending > 0 },
+      { id: 'news', name: content.news.app, icon: `<img src="${phone.apps.classificados}" alt="" />`, badge: pending > 0 || this.session.catNoteUnread() },
       { id: 'cats', name: uiText.cats.app, icon: catIcon },
       { id: 'market', name: uiText.market.app, icon: '<img class="cart" src="assets/ui/hud/icon_cart_full.png" alt="" />' },
       { id: 'schedule', name: uiText.scheduleApp.app, icon: `<img src="${phone.apps.horario}" alt="" />` },
@@ -276,6 +277,13 @@ export class NewsPanel {
       <span class="poster-buttons"><button class="menu-btn small primary" data-poster="yes">${esc(t.yes)}</button><button class="menu-btn small" data-poster="no">${esc(t.no)}</button></span></div></div>`;
   }
 
+  /** Gato à vista: a notinha da chegada, sempre a primeira do jornal, com o selo. */
+  private catNoteHtml(): string {
+    const n = this.session.catNote();
+    if (!n) return '';
+    return `<article class="cat-note"><span class="tip-label">${esc(n.label)}</span><h3>${esc(fillNames(this.session, n.headline))}</h3><p>${esc(fillNames(this.session, n.text))}</p></article>`;
+  }
+
   /** A Cartilha do gato: a dica de hoje, num quadrinho embaixo das notícias. */
   private tipHtml(): string {
     const tip = this.session.catTip();
@@ -286,7 +294,7 @@ export class NewsPanel {
   private jobsHtml(withNews: boolean): string {
     const s = this.session;
     const news = withNews
-      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('') + this.tipHtml()
+      ? `<p class="date">${uiText.day} ${s.state.day}</p>` + this.catNoteHtml() + s.news().map((n) => `<article><h3>${esc(fillNames(s, n.headline))}</h3><p>${esc(fillNames(s, n.text))}</p></article>`).join('') + this.tipHtml()
       : '';
     // Pedido com mini game: as moedas do pedido são o mínimo; ir bem no jogo rende mais ("10 moedas + bônus").
     const bonusOf = (j: { steps: { points: string[] }[] }) => (j.steps.some((st) => st.points.some((id) => content.jobPoints[id]?.action === 'minigame')) ? ` ${uiText.news.bonus}` : '');

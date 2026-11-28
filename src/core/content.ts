@@ -1296,6 +1296,26 @@ export function validateContent(raw: RawContent): string[] {
   for (const [id, d] of Object.entries(raw.dialogue.dialogues)) d.lines.forEach((l) => gameText(`dialogue "${id}"`, l.text));
   for (const [id, cs] of Object.entries(raw.cutscenes.cutscenes)) cutsceneTexts(cs).forEach((t) => gameText(`cutscene "${id}"`, t));
   for (const tip of raw.news.tips ?? []) gameText(`news: dica "${tip.id}"`, tip.text);
+  // Gato à vista: cada notinha é de uma chegada que existe (uma só por chegada); quem avisa conversa no passeio ou num lugar.
+  const catNotes = raw.news.catNotes;
+  if (catNotes) {
+    const arrivalIds = new Set(raw.arrivals.arrivals.map((a) => a.id));
+    const chatters = new Set([...(raw.npcs.walks ?? []).map((w) => w.npc), ...(raw.npcs.talks ?? []).map((t) => t.npc)]);
+    const seen = new Set<string>();
+    for (const n of catNotes.notes) {
+      const where = `news: notinha de "${n.arrival}"`;
+      if (!arrivalIds.has(n.arrival)) errors.push(`${where}: chegada inexistente`);
+      if (seen.has(n.arrival)) errors.push(`${where}: repetida`);
+      seen.add(n.arrival);
+      gameText(where, n.headline);
+      gameText(where, n.text);
+    }
+    if (catNotes.firstTip.length === 0) errors.push('news: catNotes.firstTip precisa de alguém');
+    for (const t of catNotes.firstTip) {
+      if (!chatters.has(t.npc)) errors.push(`news: catNotes.firstTip "${t.npc}" não passeia nem conversa num lugar`);
+      gameText(`news: aviso de ${t.npc}`, t.text);
+    }
+  }
 
   return errors;
 }
