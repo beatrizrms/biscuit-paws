@@ -100,7 +100,6 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [x] Quartinho: dormir no café
 - [x] Quintal secreto: chave, porta com cadeado, variantes de visual, luz de fora
 - [x] Playground no quintal com gatos de verdade: um gato por módulo começa o dia lá (decisão 309); a tigela do quintal é um módulo (`item.playground_bowl`)
-- [ ] Cozinha e sótão como cômodos (hoje: salão, porão e quintal)
 - [x] Máquinas por conquista: lava-louças, robô aspirador, robô de mesas e robô garçom (docs/PROPOSTA_AJUDANTE.md, etapa 1)
 - [ ] A pessoa contratada (ajudante, etapa 2): falta escolher nome e jeito
 

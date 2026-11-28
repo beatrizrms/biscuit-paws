@@ -80,20 +80,9 @@ Eu levanto 3 opções de itens que ainda não estão à venda para você escolhe
 **Pergunta:** gosta dos degraus? Quer escolher você o que cada pessoa dá? Eu monto a tabela por pessoa para você
 aprovar.
 
-### B6. Cozinha e sótão
+### B6. (tirado)
 
-O sistema de cômodos já existe: hoje há salão, porão e quintal. Falta decidir **para que servem**, e cada um precisa
-de um espaço no mapa (com os pisos e paredes que já temos).
-
-**Proposta:**
-
-- **Cozinha:** as estações de preparo saem do salão e ganham espaço. A despensa fica maior. Libera as receitas de
-  forno "grandes" (fornadas com mais porções).
-- **Sótão:** mais lugar para gatos (+5 na capacidade) e um cantinho de descanso para gatos tímidos, que ficam menos
-  estressados lá.
-- Os dois chegam por conquista, depois do porão, como recompensa do café andando.
-
-**Pergunta:** são essas as funções? Este é o item mais longo do bloco B (mapa, dados, obra do Tião, testes).
+Cozinha e sótão como cômodos novos saíram do plano por ora (27/11/2026): eram proposta minha, não pedido dela.
 
 ## C. História (precisa de roteiro)
 
@@ -122,7 +111,7 @@ aprova as minhas.
 1. **Rápidos, para limpar:** A1, B3, B4 e A2.
 2. **Mecânicas que mudam o jogo:** B1 (afeto) e depois B2 (frio).
 3. **Gente nova e história:** C3 (Camila e Núbia), C1 (Dona Neusa), C2 (vizinhos) e C4 (primavera).
-4. **Sistemas maiores:** B5 (corações) e B6 (cozinha e sótão).
+4. **Sistemas maiores:** B5 (corações).
 5. **Antes de lançar:** A3, A4, D1 e D2. D3 e D4 no fim.
 
 ## O que preciso de você para começar
