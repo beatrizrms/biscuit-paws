@@ -108,7 +108,7 @@ Marque as caixas conforme concluir. Cada marco precisa de print conferido, teste
 - [ ] Vizinhos com preconceito que muda com o tempo
 - [ ] Vizinha idosa e a história da padaria (a Dona Neusa já aparece; falta o arco dela)
 - [x] Amizade: presentes, corações e o app SocialVilla (decisões 222, 230 e 231)
-- [ ] Recompensas por coração na amizade (a pensar)
+- [x] Recompensas por coração na amizade (decisão 312)
 - [ ] Camila e Núbia no jogo: roteiro, falas, eventos e `data/npcs.json` (arte pronta, decisão 287)
 - [ ] Primavera com mais conteúdo (hoje só duas manchetes em rodízio no jornal; decisão 308)
 - [x] Conquista "Primeira CED" com o vale-castração (decisão 310)

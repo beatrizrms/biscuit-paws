@@ -285,11 +285,11 @@ export class MarketApp {
     const repairs: string[] = [];
     if (!s.repaired.includes('inside')) {
       const r = c.repairs.inside;
-      repairs.push(`<button class="m-row" data-repair="inside" ${busy || state.money < r.price ? 'disabled' : ''}><span class="m-name">${esc(r.name)}</span><span class="m-price">${coin(r.price)}</span><span class="m-note">${esc(t.insideNote + ' · ' + daysText(r.days))}</span></button>`);
+      repairs.push(`<button class="m-row" data-repair="inside" ${busy || state.money < this.session.builderLabor(r.price) ? 'disabled' : ''}><span class="m-name">${esc(r.name)}</span><span class="m-price">${coin(this.session.builderLabor(r.price))}</span><span class="m-note">${esc(t.insideNote + ' · ' + daysText(r.days))}</span></button>`);
     }
     if (!s.repaired.includes('outside')) {
       const r = c.repairs.outside;
-      const cards = facadeFinishes.map((f) => card(`data-repair="outside" data-finish="${f.id}"`, f.tile, f.name, coin(r.price), busy || state.money < r.price)).join('');
+      const cards = facadeFinishes.map((f) => card(`data-repair="outside" data-finish="${f.id}"`, f.tile, f.name, coin(this.session.builderLabor(r.price)), busy || state.money < this.session.builderLabor(r.price))).join('');
       repairs.push(`<h4>${esc(r.name)}</h4><p class="m-hint">${esc(t.outsideNote + ' · ' + daysText(r.days))}</p><div class="m-grid">${cards}</div>`);
     }
     // Troca de acabamento (depois do reparo interno): cada superfície do café, os acabamentos que servem.
@@ -304,7 +304,7 @@ export class MarketApp {
         const per = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
         const cards = finishes
           .filter((f) => f.kind === surface.kind)
-          .map((f) => card(`data-surface="${surface.id}" data-finish="${f.id}"`, f.tile, f.name, `${coin(per + c.laborPerTile)}${esc(t.perTile)}`, busy || !inside))
+          .map((f) => card(`data-surface="${surface.id}" data-finish="${f.id}"`, f.tile, f.name, `${coin(per + this.session.builderLabor(c.laborPerTile))}${esc(t.perTile)}`, busy || !inside))
           .join('');
         return `<h4>${esc(surface.name)}</h4><div class="m-grid">${cards}</div>`;
       })
@@ -313,7 +313,7 @@ export class MarketApp {
       ? `<h4>${esc(t.facadeTitle)}</h4><div class="m-grid">${facadeFinishes
           .map((f) => {
             const current = state.finishes[content.facade?.surface.id ?? ''] === f.id;
-            return card(`data-facade="${f.id}"`, f.tile, f.name, current ? uiText.current : coin(f.price), busy || current || state.money < f.price, current);
+            return card(`data-facade="${f.id}"`, f.tile, f.name, current ? uiText.current : coin(this.session.builderLabor(f.price)), busy || current || state.money < this.session.builderLabor(f.price), current);
           })
           .join('')}</div>`
       : '';

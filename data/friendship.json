@@ -38,6 +38,11 @@
         { "id": "post.gabi.chamomile", "text": "Me ofereceram chá de camomila no meio do expediente. Querem que eu durma na mesa??", "reveals": ["item.tea_chamomile_box", "recipe.chamomile_honey"] },
         { "id": "post.gabi.strawberry", "text": "Achei morango bonito no mercado e comi metade no caminho de casa. Sem arrependimentos.", "reveals": ["item.strawberry"] },
         { "id": "post.gabi.tulips", "text": "Comprei tulipas pra mesa do trabalho. Ninguém entendeu, mas meu humor agradeceu.", "reveals": ["item.vase_tulips"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "recipe": "recipe.cafe_latte", "text": "Vou te ensinar o meu café com leite. É o que me salva às segundas." },
+        { "hearts": 6, "items": { "item.vase_tulips": 1 }, "text": "Vi essas tulipas e lembrei do café na hora. Combinam com o lugar." },
+        { "hearts": 10, "perk": { "kind": "rush", "weekday": 4, "at": "14:00", "customers": 3 }, "text": "Contei do café pro pessoal do escritório. Agora toda sexta, depois do almoço, a gente vem tomar café aqui. Prepara as mesas!" }
       ]
     },
     {
@@ -72,6 +77,11 @@
         { "id": "post.joca.chocolate", "text": "Lembrete da Gabi: chocolate faz mal pra cachorro! Nada de bolo, nada de chocolate quente. Pode fazer essa cara, Joca.", "reveals": ["item.chocolate", "recipe.cake_slice", "recipe.hot_chocolate", "recipe.pain_au_chocolat"] },
         { "id": "post.joca.apple", "text": "Maçã picadinha no lanche. Crocante. Aprovada pelo comitê de focinhos.", "reveals": ["item.apple"] },
         { "id": "post.joca.croissant", "text": "A Gabi comeu um croissant de frango na minha frente. Sem dividir. Estou anotando tudo.", "reveals": ["recipe.chicken_croissant"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "items": { "item.cat_treat_biscuit": 3 }, "text": "*O Joca larga três petiscos aos seus pés e abana o rabo.* Ele quer que você divida com os gatos." },
+        { "hearts": 6, "items": { "item.playground_tunnel": 1 }, "text": "*O Joca empurra um túnel de pano com o focinho até você.* Ele testou primeiro. Aprovado." },
+        { "hearts": 10, "perk": { "kind": "weekly_item", "weekday": 5, "items": { "item.cat_treat_biscuit": 3 } }, "text": "*O Joca senta na porta do café e late uma vez.* A Gabi diz que agora ele vai passar toda semana para deixar um agradinho." }
       ]
     },
     {
@@ -106,6 +116,11 @@
         { "id": "post.neusa.window", "text": "Minha janela está ficando sem espaço de tanta planta. Mas sempre cabe mais uma, né?", "reveals": ["item.flower_vase", "item.peace_lily"] },
         { "id": "post.neusa.honey", "text": "Mel do bom é o da feira, aquele que cristaliza no pote. O de bisnaga é só açúcar fantasiado.", "reveals": ["item.honey"] },
         { "id": "post.neusa.succulent", "text": "Ganhei uma suculenta da vizinha e já tô conversando com ela toda manhã. Planta gosta de conversa.", "reveals": ["item.succulent_pot", "item.yard_sapling"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "recipe": "recipe.cheese_bread", "text": "Pão de queijo igual ao da minha mãe: o segredo é o queijo meia-cura. Anota aí, meu bem." },
+        { "hearts": 6, "items": { "item.peace_lily": 1 }, "text": "Trouxe uma mudinha de lírio-da-paz. Cuida bem que ela dura a vida inteira." },
+        { "hearts": 10, "perk": { "kind": "weekly_item", "weekday": 0, "items": { "item.honey": 1 } }, "text": "Toda segunda vou deixar um potinho de mel na sua porta. Não precisa agradecer, é de coração." }
       ]
     },
     {
@@ -140,6 +155,11 @@
         { "id": "post.tiao.bread", "text": "Pão com manteiga e café. O resto é luxo.", "reveals": ["recipe.bread"] },
         { "id": "post.tiao.sausage", "text": "Marmita de hoje: arroz, feijão e calabresa acebolada. Quem quiser salada que traga.", "reveals": ["item.sausage"] },
         { "id": "post.tiao.pumpkin", "text": "Outono chegou e minha mãe já tá fazendo bolo de abóbora. Melhor época do ano.", "reveals": ["recipe.pumpkin_cake_slice"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "recipe": "recipe.sausage_croissant", "text": "Esse croissant de calabresa é receita da obra. Segura a fome até o fim do dia." },
+        { "hearts": 6, "items": { "item.yard_garden_bench": 1 }, "text": "Sobrou madeira boa da última obra e fiz isso aqui pro café. Ficou bonito, né?" },
+        { "hearts": 10, "perk": { "kind": "builder_discount", "share": 0.2 }, "text": "A partir de agora, pra você é preço de família: 20% a menos em qualquer obra." }
       ]
     },
     {
@@ -174,6 +194,11 @@
         { "id": "post.fernanda.cupcake", "text": "Recebi um cupcake em forma de gatinho e fiquei com pena de comer. Comi. Mas fiquei com pena.", "reveals": ["recipe.cat_cupcake"] },
         { "id": "post.fernanda.lemon", "text": "Água com limão antes do plantão. Não é dieta, é sobrevivência.", "reveals": ["item.lemon"] },
         { "id": "post.fernanda.paw", "text": "Biscoito com patinha de gato? Eu nem gosto tanto de doce, mas olha essa carinha.", "reveals": ["recipe.paw_cookie"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "recipe": "recipe.lemon_cake_slice", "text": "No plantão, o que me salva é bolo de limão. Te passo a receita." },
+        { "hearts": 6, "items": { "item.cat_blanket": 1 }, "text": "Um cobertorzinho pros seus gatos. No inverno faz toda a diferença." },
+        { "hearts": 10, "perk": { "kind": "neuter_voucher" }, "text": "Os seus gatos já são de casa. Uma castração por estação fica por minha conta, combinado?" }
       ]
     },
     {
@@ -207,6 +232,11 @@
         { "id": "post.jacque.pink", "text": "Tudo rosa demais me dá aflição. Meu guarda-roupa concorda.", "reveals": ["recipe.fish_cookies_pink", "recipe.strawberry_ice_cream"] },
         { "id": "post.jacque.cactus", "text": "Comprei um cacto pra mesa do trabalho. Combina comigo: não precisa de muita atenção e espeta quem chega perto.", "reveals": ["item.cactus", "item.cactus_ball"] },
         { "id": "post.jacque.paw", "text": "Biscoito com patinha. Sim, eu comprei. Não, não é pros gatos.", "reveals": ["recipe.paw_cookie"] }
+      ],
+      "rewards": [
+        { "hearts": 3, "recipe": "recipe.cat_macarons", "text": "Os macarons de gatinho são a minha perdição. Toma a receita, mas faz uns pra mim também!" },
+        { "hearts": 6, "items": { "item.cactus": 1 }, "text": "Um cacto pra você. Os meus gatos não me deixam ter planta, então cuida por mim." },
+        { "hearts": 10, "perk": { "kind": "extra_family", "families": 1 }, "text": "Agora eu posto as feiras de adoção do café no meu perfil. Quem me segue ama gato, pode esperar mais famílias!" }
       ]
     }
   ]

@@ -2,6 +2,7 @@
 // post da SocialVilla ou pela dica de um evento), a conversa do dia e o feed de posts. Puro: sem Phaser, DOM ou
 // window. Os dados ficam em data/friendship.json; o save guarda só IDs e números (GameState.friends e .social).
 import type { Condition } from './content';
+import type { FriendReward } from './friendRewards';
 
 /** Como a pessoa recebe o presente. "neutral": o que não está em nenhuma lista. */
 export type GiftReaction = 'loved' | 'liked' | 'neutral' | 'disliked';
@@ -42,6 +43,8 @@ export interface FriendDef {
   /** Falas para presentes específicos, no lugar da reação comum (o chocolate do Joca: a Gabi dá bronca). */
   special?: { gifts: string[]; text: string }[];
   posts: FriendPost[];
+  /** Recompensas por coração (decisão 312; friendRewards.ts). */
+  rewards?: FriendReward[];
 }
 
 export interface FriendshipData {
@@ -68,6 +71,13 @@ export interface FriendState {
   giftsInWeek?: number;
   /** O último dia da conversa que deu pontos. */
   chatDay?: number;
+  /** Recompensas por coração já entregues (os corações de cada degrau). */
+  rewards?: number[];
+  /** Favor do grupo de clientes: o dia e quantos ainda faltam chegar. */
+  rushDay?: number;
+  rushLeft?: number;
+  /** Favor semanal: o último dia entregue (no vale-castração, o número da estação). */
+  perkDay?: number;
 }
 
 /** O feed da SocialVilla (no save): os posts publicados (o mais novo primeiro) e os já vistos. */

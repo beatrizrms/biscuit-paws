@@ -1349,3 +1349,16 @@ Decisão:
 
 **Motivo:** dar o clima dos gatos de rua pela vila e uma pista de que há um gato para achar, sem entregar onde.
 **Consequência:** o jornal passa a valer a olhada diária. Notinha nova = uma entrada em `catNotes.notes` com o id da chegada (o `check` confere).
+
+## 312. Recompensas por coração na amizade (nov/2026)
+Pedido: B5 de `docs/PLANO_MECANICAS.md`. Os gostos de cada pessoa (o que ela gosta de ganhar) já existiam; faltava o caminho de volta: o que ela dá quando a amizade sobe. Escolhas dela: a receita dos 3 corações é a que a pessoa ama (revela o gosto); o Joca não dá a varinha (já se tem no começo); a Fernanda, que já dava o desconto de amiga da clínica, dá uma castração grátis por estação.
+Decisão:
+- Cada amigo tem três degraus (`friendship.json: rewards`, `src/core/friendRewards.ts`): **3 corações**, uma receita que a pessoa ensina antes da conquista (a receita aceita `{ "flag": "taught.<receita>" }` no unlock; se já sabe, ganha os ingredientes de 2 porções); **6**, um presente que já existe no jogo, de graça, na mochila; **10**, um favor que dura para sempre.
+- Dona Neusa: pão de queijo, lírio-da-paz, um pote de mel na porta toda segunda. Gabi: café com leite, vaso de tulipas, toda sexta a partir das 14h o grupo do escritório (3 clientes que chegam sem esperar o intervalo). Joca: 3 petiscos, túnel de gato, 3 petiscos na porta todo sábado. Tião: croissant de calabresa, banco de jardim, 20% a menos na mão de obra de toda obra (os preços do Market já mostram o desconto). Fernanda: bolo de limão, cobertor de gato, um vale-castração na hora e outro a cada estação nova. Jacque: macarons de gatinho, cacto, uma família a mais em cada adoção da feira.
+- Entrega: na próxima conversa (passeio, presente, festa, o Tião na obra), com a fala da pessoa e o aviso do que ganhou; o Joca entrega junto com a Gabi. Sem conversa até a virada do dia, a fala chega como mensagem na SocialVilla (`reward.<npc>.<corações>`) e o presente vai para a mochila. Nada se perde e nada trava.
+- Na ficha do amigo na SocialVilla, a linha "Presentes" mostra os três degraus: o que já saiu pelo nome, o que falta como "?".
+- Save: `friends.<npc>.rewards` (degraus entregues), `rushDay`/`rushLeft` (o grupo do dia) e `perkDay` (último favor semanal, ou a estação do vale), sem mudar a versão.
+
+**Motivo:** dar um motivo para cuidar das amizades além dos corações na tela, usando só o que já tem arte.
+**Consequência:** saves com amigos já com muitos corações recebem os degraus de uma vez, pela SocialVilla, na primeira virada do dia.
+

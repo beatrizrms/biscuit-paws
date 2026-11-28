@@ -310,6 +310,8 @@ export interface GameEvents {
   'opening.bonus': { steps: number; reputation: number };
   /** Deu um presente a um vizinho (friendship.ts): a reação, os pontos e os corações antes e depois. */
   'friend.gifted': { npc: string; gift: string; reaction: string; points: number; hearts: [number, number] };
+  /** Recompensa por coração entregue (decisão 312): na conversa ou, sem conversa, pela SocialVilla. */
+  'friend.rewarded': { npc: string; hearts: number; via: 'talk' | 'social' };
   /** Descobriu um gosto (pelo presente, por um post da SocialVilla ou pela dica de um evento). */
   'friend.discovered': { npc: string; gift: string; reaction: string; via: 'gift' | 'post' | 'event' };
   /** Posts novos (ou os não vistos, de novo com a data de hoje) na SocialVilla. */

@@ -222,7 +222,7 @@ function normalizeFriends(raw: unknown): Record<string, FriendState> {
   for (const [npc, f] of Object.entries((raw ?? {}) as Record<string, Partial<FriendState> | null>)) {
     if (!f || typeof f !== 'object') continue;
     const tastes = Object.fromEntries(Object.entries(f.tastes ?? {}).filter((e): e is [string, GiftReaction] => REACTIONS.has(String(e[1]))));
-    out[npc] = { tastes, ...(isInt(f.giftWeek) ? { giftWeek: f.giftWeek } : {}), ...(isInt(f.giftsInWeek) ? { giftsInWeek: f.giftsInWeek } : {}), ...(isInt(f.chatDay) ? { chatDay: f.chatDay } : {}) };
+    out[npc] = { tastes, ...(isInt(f.giftWeek) ? { giftWeek: f.giftWeek } : {}), ...(isInt(f.giftsInWeek) ? { giftsInWeek: f.giftsInWeek } : {}), ...(isInt(f.chatDay) ? { chatDay: f.chatDay } : {}), ...(Array.isArray(f.rewards) ? { rewards: (f.rewards as unknown[]).filter(isInt) } : {}), ...(isInt(f.rushDay) ? { rushDay: f.rushDay } : {}), ...(isInt(f.rushLeft) ? { rushLeft: f.rushLeft } : {}), ...(isInt(f.perkDay) ? { perkDay: f.perkDay } : {}) };
   }
   return out;
 }

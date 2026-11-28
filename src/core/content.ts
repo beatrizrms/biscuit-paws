@@ -24,6 +24,7 @@ import { BUSINESS_STAGES, validateBusiness, type BusinessData, type BusinessStag
 import { validateConstruction, type ConstructionData } from './construction';
 import { NO_UPGRADES, validateUpgrades, type UpgradesData } from './upgrades';
 import { validateRecipes, type CarryConfig, type RecipeDef, type RecipesData, type ServiceConfig, type Vessel } from './recipes';
+import { validateFriendRewards } from './friendRewards';
 import { validateJobs, type JobDef, type JobPoint, type JobsData, type NewsData } from './jobs';
 import { validateHealth, type HealthConfig } from './health';
 import { validateClinic, type ClinicConfig } from './clinic';
@@ -1169,6 +1170,15 @@ export function validateContent(raw: RawContent): string[] {
     for (const f of raw.friendship.friends) {
       for (const r of ['loved', 'liked', 'neutral', 'disliked'] as const) f.thanks[r].forEach((l) => playerText(`friendship "${f.npc}"`, l.text));
       f.posts.forEach((p) => playerText(`friendship "${p.id}"`, p.text));
+      errors.push(
+        ...validateFriendRewards(f.npc, f.rewards, {
+          items: new Set(raw.items.items.map((i) => i.id)),
+          recipes: new Set(raw.recipes.recipes.map((r) => r.id)),
+          maxHearts: raw.relationships.maxHearts,
+          recipeUnlock: (id) => raw.recipes.recipes.find((r) => r.id === id)?.unlock,
+        }),
+      );
+      (f.rewards ?? []).forEach((r) => playerText(`friendship "${f.npc}": recompensa de ${r.hearts} corações`, r.text));
     }
   }
   checkCondition('festive.newYear: startWhen', raw.festive.newYear.startWhen);

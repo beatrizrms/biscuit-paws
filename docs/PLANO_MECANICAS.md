@@ -67,7 +67,7 @@ Eu levanto 3 opções de itens que ainda não estão à venda para você escolhe
 
 **Pergunta:** qual item. Ou prefere outra coisa, como uma receita?
 
-### B5. Recompensas por coração (amizade)
+### B5. Recompensas por coração (amizade) (feito: decisão 312)
 
 **Proposta:** cada amigo dá algo em 3 degraus, usando o que já existe:
 

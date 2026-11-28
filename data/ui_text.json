@@ -233,6 +233,7 @@
     "heart": "coração",
     "hearts": "corações",
     "discovered": "Descobriu: {name} {reaction} {item}.",
+    "rewardGot": "Ganhou: {items}",
     "reactions": { "loved": "ama", "liked": "gosta de", "neutral": "acha ok", "disliked": "não gosta de" }
   },
   "touchText": { "continue": "Toque para continuar", "close": "Toque para fechar", "goalsPeek": "toque para ver", "goalsShow": "Toque para ver os detalhes", "goalsHide": "Toque para recolher" },
@@ -1237,6 +1238,9 @@
     "notChatted": "ainda não conversou hoje",
     "gifted": "presente da semana ✓",
     "canGift": "pode ganhar presente",
+    "rewardsTitle": "Presentes",
+    "rewardUnknown": "?",
+    "perks": { "weekly_item": "{items} toda semana ({weekday})", "rush": "Grupo do escritório toda semana ({weekday})", "builder_discount": "{n}% a menos nas obras", "neuter_voucher": "1 castração grátis por estação", "extra_family": "+{n} família na adoção" },
     "heartsTitle": "{n} de {max} corações"
   },
   "statsApp": {

@@ -143,6 +143,10 @@ export interface ServiceHost {
   openingArrivalFactor?(): number;
   /** Bem-estar (0 a 100) dos gatos perto deste lugar (mesmo cômodo, até catBonus.reach células); sem o jogo, nenhum. */
   catsNear?(spot: Cell, reach: number): number[];
+  /** Favor da amizade (o grupo do escritório): chegou a hora de um cliente do grupo, sem esperar o intervalo. */
+  rushDue?(): boolean;
+  /** Um cliente do grupo chegou. */
+  rushSpawned?(): void;
 }
 
 const near = (feet: readonly Cell[], at: Cell, reach = 1) => feet.some((f) => Math.max(Math.abs(f[0] - at[0]), Math.abs(f[1] - at[1])) <= reach);
@@ -1011,7 +1015,8 @@ export class CafeService {
     // Prejuízo: com gatos doentes demais, as pessoas não querem entrar (quem já está fica até o fim).
     if (this.h.customersAway()) return;
     if (sv.nextCustomerAt === null) sv.nextCustomerAt = now + this.cfg.firstArrivalMinutes;
-    if (now < sv.nextCustomerAt) return;
+    const rush = this.h.rushDue?.() ?? false;
+    if (now < sv.nextCustomerAt && !rush) return;
     if (this.orderable().length === 0) return;
     // Lotado (lugares ou louça): quem chega espera na fila, se tiver vaga nela.
     const spot = this.isFull() ? undefined : this.usableSpot();
@@ -1037,6 +1042,7 @@ export class CafeService {
       wantsPremium: rng.chance(pref.premiumLoverChance),
     };
     sv.customers.push(c);
+    if (rush) this.h.rushSpawned?.();
     if (spot) this.seat(c, spot);
     else this.h.bus.emit('customer.arrived', { customerId: c.id, recipeId: null });
     // Antes da inauguração, pouca gente sabe do café: o intervalo entre clientes é maior.

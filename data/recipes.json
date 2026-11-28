@@ -85,9 +85,7 @@
       },
       "vessel": "cup",
       "price": 15,
-      "unlock": {
-        "milestone": "milestone.customers_25"
-      },
+      "unlock": { "any": [{ "milestone": "milestone.customers_25" }, { "flag": "taught.recipe.cafe_latte" }] },
       "premium": {
         "item.coffee_ground": "item.coffee_beans_bag"
       },
@@ -202,9 +200,7 @@
       ],
       "vessel": "plate",
       "price": 18,
-      "unlock": {
-        "milestone": "milestone.customers_35"
-      }
+      "unlock": { "any": [{ "milestone": "milestone.customers_35" }, { "flag": "taught.recipe.cheese_bread" }] }
     },
     {
       "id": "recipe.cake_slice",
@@ -573,9 +569,7 @@
       ],
       "vessel": "plate",
       "price": 20,
-      "unlock": {
-        "milestone": "milestone.season_summer_3"
-      },
+      "unlock": { "any": [{ "milestone": "milestone.season_summer_3" }, { "flag": "taught.recipe.lemon_cake_slice" }] },
       "display": true,
       "seasons": [
         "summer"
@@ -604,9 +598,7 @@
       ],
       "vessel": "plate",
       "price": 17,
-      "unlock": {
-        "milestone": "milestone.season_autumn_3"
-      },
+      "unlock": { "any": [{ "milestone": "milestone.season_autumn_3" }, { "flag": "taught.recipe.sausage_croissant" }] },
       "display": true,
       "seasons": [
         "autumn"
@@ -794,9 +786,7 @@
       ],
       "vessel": "plate",
       "price": 22,
-      "unlock": {
-        "milestone": "milestone.season_autumn_4"
-      },
+      "unlock": { "any": [{ "milestone": "milestone.season_autumn_4" }, { "flag": "taught.recipe.cat_macarons" }] },
       "display": true,
       "seasons": [
         "autumn"

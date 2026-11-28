@@ -3098,6 +3098,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       : this.ui.npcSay(guest[0], fillNames(this.session, line));
     void say.then(async () => {
       if (invite?.hint) await this.ui.npcSay(guest[0], fillNames(this.session, invite.hint));
+      await this.friendRewardTalk(guest[0]);
       npc.setData('held', false);
       tweens.forEach((t) => t.isPaused() && t.resume());
       if (npc.active) npc.resumeWalk();
@@ -3142,7 +3143,11 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
       }
       const at = sprite ? { x: sprite.x, y: sprite.y - sprite.displayHeight } : { x: this.player.x, y: this.player.y - this.player.displayHeight };
       this.floatHearts(at.x, at.y, r.points);
-      void this.ui.npcSay(npc, fillNames(s, r.line)).then(() => (resume(), this.friendNotes(npc, name, r.hearts, r.discovered ? { gift: s.state.friends[npc]?.tastes ?? {}, reaction: r.reaction } : null)));
+      void this.ui.npcSay(npc, fillNames(s, r.line)).then(async () => {
+        this.friendNotes(npc, name, r.hearts, r.discovered ? { gift: s.state.friends[npc]?.tastes ?? {}, reaction: r.reaction } : null);
+        await this.friendRewardTalk(npc);
+        resume();
+      });
     });
     return true;
   }
@@ -3158,6 +3163,14 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     const item = (key.startsWith('recipe.') ? s.content.recipes[key]?.name : s.content.items[key]?.name) ?? '';
     const reaction = t.reactions[found.reaction as keyof typeof t.reactions] ?? '';
     this.ui.toast(t.discovered.replace('{name}', name).replace('{reaction}', reaction).replace('{item}', item.toLowerCase()), 3200);
+  }
+
+  /** Depois da conversa: o que a pessoa (ou quem passeia junto) tem para dar pelos corações, com o aviso do que ganhou. */
+  private async friendRewardTalk(npc: string): Promise<void> {
+    for (const r of this.session.claimFriendRewards(npc)) {
+      await this.ui.npcSay(r.npc, fillNames(this.session, r.text));
+      if (r.got.length > 0) this.ui.toast(uiText.friends.rewardGot.replace('{items}', r.got.join(', ')), 3200);
+    }
   }
 
   /** "+♥" (ou "−♥") subindo de onde estava a pessoa: a amizade mudou. */
@@ -3185,7 +3198,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Vira para ela antes de falar.
     const [dx, dy] = [this.player.x - guest[1].x, this.player.y - guest[1].y];
     guest[1].face(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
-    void this.ui.npcSay(guest[0], fillNames(this.session, line));
+    void this.ui.npcSay(guest[0], fillNames(this.session, line)).then(() => this.friendRewardTalk(guest[0]));
     return true;
   }
 
@@ -3704,6 +3717,7 @@ export class WorldScene extends Phaser.Scene implements ScriptStage {
     // Convidou hoje: o convite, a resposta e a pista (depois do que ele diz da obra).
     const invite = this.session.inviteTalk(npc);
     void this.ui.npcSay(npc, text.replace('{work}', work)).then(async () => {
+      await this.friendRewardTalk(npc);
       if (!invite) return;
       await this.ui.playerSay(fillNames(this.session, invite.ask));
       await this.ui.npcSay(npc, fillNames(this.session, invite.yes));

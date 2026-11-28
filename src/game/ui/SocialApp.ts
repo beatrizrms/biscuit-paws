@@ -99,11 +99,31 @@ export class SocialApp {
         return `<div class="sv-friend">${this.avatar(f.npc)}<div class="sv-body">
           <p class="sv-head"><b>${esc(f.handle)}</b></p>
           <span class="hearts" title="${esc(t.heartsTitle.replace('{n}', String(f.hearts)).replace('{max}', String(f.maxHearts)))}">${hearts} <b class="n">${f.hearts}/${f.maxHearts}</b></span>
-          <p class="sv-status">${status}</p>${rows}
+          <p class="sv-status">${status}</p>${rows}${this.rewardsHtml(f.rewards)}
         </div></div>`;
       })
       .join('');
     return `<p class="sv-hint">${esc(t.friendsHint)}</p><div class="sv-friends">${cards}</div>`;
+  }
+
+  /** Os presentes por coração (3, 6 e 10): o que ganhou aparece pelo nome; o que falta, só "?" (não revela). */
+  private rewardsHtml(rewards: ReturnType<GameSession['friendsList']>[number]['rewards']): string {
+    if (rewards.length === 0) return '';
+    const t = uiText.socialApp;
+    const itemNames = (items: Record<string, number>) => Object.entries(items).map(([id, n]) => `${n > 1 ? `${n} ` : ''}${content.items[id]?.name ?? id}`).join(', ');
+    const label = (r: (typeof rewards)[number]): string => {
+      if (r.recipe) return content.recipes[r.recipe]?.name ?? r.recipe;
+      if (r.items) return itemNames(r.items);
+      const p = r.perk!;
+      const day = 'weekday' in p ? uiText.hoursSign.weekdays[p.weekday] ?? '' : '';
+      if (p.kind === 'weekly_item') return t.perks.weekly_item.replace('{items}', itemNames(p.items)).replace('{weekday}', day);
+      if (p.kind === 'rush') return t.perks.rush.replace('{weekday}', day);
+      if (p.kind === 'builder_discount') return t.perks.builder_discount.replace('{n}', String(Math.round(p.share * 100)));
+      if (p.kind === 'extra_family') return t.perks.extra_family.replace('{n}', String(p.families));
+      return t.perks.neuter_voucher;
+    };
+    const chips = rewards.map((r) => `<span class="sv-chip${r.got ? '' : ' unknown'}"><span class="rw-h">${r.hearts}♥</span> ${esc(r.got ? label(r) : t.rewardUnknown)}</span>`).join('');
+    return `<p class="sv-taste rewards"><b>${esc(t.rewardsTitle)}</b>${chips}</p>`;
   }
 
   /** O ícone do gosto: o da receita (feito no café) ou o do item. */

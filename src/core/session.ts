@@ -19,6 +19,7 @@ import { cleanCatName, suggestCatName, type CatDef } from './cats';
 import { addPoints, hearts, PLAYER } from './relationships';
 import { AdoptionOnlineFlow } from './adoptionOnline';
 import { CedCampaign } from './cedCampaign';
+import { activePerks, pendingRewards, RECIPE_FALLBACK_TIMES, taughtFlag, type FriendPerk, type FriendReward } from './friendRewards';
 import { findPost, giftKey, giftKindOf, giftWeekFull, noteGift, postReveals, publishDay, reactionOf, thanksLine, togoItemId, togoRecipe, weekOf, type FriendDef, type FriendState, type GiftReaction } from './friendship';
 import { acceptVisit, completeRequest, countRequest, maybeNewRequest, visitMinute, type FriendRequestDef } from './requests';
 import { gatheringOfYear, inProposeWindow, isGatheringDay, type GatheringDef, type GatheringRecord } from './gatherings';
@@ -304,6 +305,8 @@ export class GameSession {
       homeMap: () => this.mapData(this.content.map.id),
       openingArrivalFactor: () => this.openingArrivalFactor(),
       catsNear: (spot, reach) => this.catsNear(spot, reach),
+      rushDue: () => this.friendRushDue(),
+      rushSpawned: () => this.friendRushSpawned(),
       atHome: () => this.atHome(),
       evaluate: (c) => evaluate(c, this.state, this.storyContext()),
       addMoney: (delta, reason) => this.addMoney(delta, reason),
@@ -1193,6 +1196,7 @@ export class GameSession {
     this.playgroundDay();
     this.growPlants();
     this.socialDay();
+    this.friendRewardsDay();
     for (const n of this.news()) this.state.flags[`news.seen.${n.id}`] = true;
     const sleepRoom = this.sleepRoom();
     const morning = sleepRoom ? { map: this.content.map.id } : this.content.world.morning;
@@ -2521,7 +2525,7 @@ export class GameSession {
     const s = this.roomState(roomId);
     const out: RoomWork[] = [];
     const add = (kind: RoomWork['kind'], w: { cost?: number; label?: string; builder?: RoomBuilderWork } | undefined) => {
-      if (w?.builder) out.push({ kind, cost: w.cost ?? 0, days: w.builder.days, label: w.label ?? room.name, site: w.builder.site });
+      if (w?.builder) out.push({ kind, cost: this.builderLabor(w.cost ?? 0), days: w.builder.days, label: w.label ?? room.name, site: w.builder.site });
     };
     if (s === 'discovered') add('room_open', room.unlock);
     if (s === 'abandoned') {
@@ -3703,6 +3707,8 @@ export class GameSession {
       // Post da Fernanda sobre a campanha da CED (adoção): o texto sai dos gatos da colônia.
       const online = this.adoptionPost(f.post);
       if (online) return [{ id: f.post, npc: online.npc, handle: online.handle, text: online.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
+      const reward = this.rewardPost(f.post);
+      if (reward) return [{ id: f.post, npc: reward.npc, handle: this.friendHandle(reward.npc), text: reward.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
       const ced = this.cedPostText(f.post);
       if (ced) return [{ id: f.post, npc: 'npc.fernanda', handle: this.friendHandle('npc.fernanda'), text: ced, day: f.day, seen: this.state.social.seen.includes(f.post) }];
       const found = findPost(this.content.friendship, f.post);
@@ -3710,6 +3716,13 @@ export class GameSession {
       const npc = found.def.npc;
       return [{ id: f.post, npc, handle: found.def.handle ?? this.content.npcs[npc]?.name ?? npc, text: found.post.text, day: f.day, seen: this.state.social.seen.includes(f.post) }];
     });
+  }
+
+  /** A mensagem de uma recompensa entregue pela SocialVilla (reward.<npc>.<corações>): quem e a fala. */
+  private rewardPost(id: string): { npc: string; text: string } | null {
+    const m = /^reward\.(.+)\.(\d+)$/.exec(id);
+    const r = m && this.friendDef(m[1]!)?.rewards?.find((x) => x.hearts === Number(m[2]));
+    return m && r ? { npc: m[1]!, text: r.text } : null;
   }
 
   /** O nome da pessoa na SocialVilla (o handle dos dados ou o nome). */
@@ -3767,7 +3780,7 @@ export class GameSession {
   }
 
   /** Os amigos (de quem ela conhece) para a SocialVilla: nome, corações e os gostos descobertos. */
-  friendsList(): { npc: string; name: string; handle: string; hearts: number; maxHearts: number; tastes: { gift: string; name: string; reaction: GiftReaction }[]; giftedThisWeek: boolean; chattedToday: boolean }[] {
+  friendsList(): { npc: string; name: string; handle: string; hearts: number; maxHearts: number; tastes: { gift: string; name: string; reaction: GiftReaction }[]; giftedThisWeek: boolean; chattedToday: boolean; rewards: (FriendReward & { got: boolean })[] }[] {
     const week = weekOf(this.state.day, this.content.seasons.startWeekday);
     const nameOf = (k: string) => (k.startsWith('recipe.') ? this.content.recipes[k]?.name : this.content.items[k]?.name) ?? k;
     return this.content.friendship.friends
@@ -3784,8 +3797,130 @@ export class GameSession {
           tastes: Object.entries(s?.tastes ?? {}).map(([gift, reaction]) => ({ gift, name: nameOf(gift), reaction })),
           giftedThisWeek: giftWeekFull(s, week, this.content.friendship.giftsPerWeek),
           chattedToday: s?.chatDay === this.state.day,
+          rewards: (f.rewards ?? []).map((r) => ({ ...r, got: !!s?.rewards?.includes(r.hearts) })),
         };
       });
+  }
+
+  // ---------- Recompensas por coração (friendRewards.ts, decisão 312) ----------
+
+  /** Os degraus que já valem e ainda não foram entregues. */
+  pendingFriendRewards(npc: string): FriendReward[] {
+    const def = this.friendDef(npc);
+    if (!def?.rewards || !this.friendKnown(npc)) return [];
+    return pendingRewards(def.rewards, hearts(this.state, this.content.relationships, PLAYER, npc), this.state.friends[npc]?.rewards);
+  }
+
+  /**
+   * Conversou com a pessoa (ou deu presente): entrega o que ela tem para dar, dela e de quem passeia junto (o Joca com
+   * a Gabi). Devolve as falas e o que ganhou, na ordem.
+   */
+  claimFriendRewards(npc: string): { npc: string; text: string; got: string[] }[] {
+    const companions = this.content.npcWalks.find((w) => w.npc === npc)?.companions ?? [];
+    return [npc, ...companions].flatMap((who) => this.pendingFriendRewards(who).map((r) => ({ npc: who, text: r.text, got: this.grantFriendReward(who, r, 'talk') })));
+  }
+
+  /** Dá a recompensa (receita, itens, o vale do favor) e marca o degrau. Devolve os nomes do que ganhou. */
+  private grantFriendReward(npc: string, r: FriendReward, via: 'talk' | 'social'): string[] {
+    const got: string[] = [];
+    const add = (id: string, n: number) => {
+      this.state.inventory[id] = (this.state.inventory[id] ?? 0) + n;
+      got.push(`${n > 1 ? `${n} ` : ''}${this.content.items[id]?.name ?? id}`);
+    };
+    if (r.recipe) {
+      const recipe = this.content.recipes[r.recipe];
+      // Já sabe fazer (pela conquista): ganha os ingredientes de algumas porções.
+      if (recipe?.unlock && evaluate(recipe.unlock as Condition, this.state, this.storyContext()))
+        for (const [id, n] of Object.entries(recipe.ingredients)) add(id, n * RECIPE_FALLBACK_TIMES);
+      else {
+        this.state.flags[taughtFlag(r.recipe)] = true;
+        got.push(recipe?.name ?? r.recipe);
+      }
+    }
+    for (const [id, n] of Object.entries(r.items ?? {})) add(id, n);
+    if (r.perk?.kind === 'neuter_voucher') {
+      this.state.clinic.vouchers = (this.state.clinic.vouchers ?? 0) + 1;
+      this.friendState(npc).perkDay = this.seasonNumber();
+    }
+    (this.friendState(npc).rewards ??= []).push(r.hearts);
+    this.bus.emit('friend.rewarded', { npc, hearts: r.hearts, via });
+    this.advanceStory();
+    return got;
+  }
+
+  /** Os favores dos 10 corações que ela já ganhou. */
+  private friendPerks(): { npc: string; perk: FriendPerk }[] {
+    return activePerks(this.content.friendship.friends, (npc) => this.state.friends[npc]?.rewards);
+  }
+
+  /** A mão de obra do Tião, com o desconto de família (favor dos 10 corações). */
+  builderLabor(price: number): number {
+    const share = Math.max(0, ...this.friendPerks().map((p) => (p.perk.kind === 'builder_discount' ? p.perk.share : 0)));
+    return Math.round(price * (1 - share));
+  }
+
+  /** Famílias a mais em cada adoção da feira (a Jacque divulga). */
+  private friendExtraFamilies(): number {
+    return this.friendPerks().reduce((n, p) => n + (p.perk.kind === 'extra_family' ? p.perk.families : 0), 0);
+  }
+
+  /** O número da estação (conta desde o começo do jogo). */
+  private seasonNumber(): number {
+    return Math.floor((Math.max(1, this.state.day) - 1) / this.content.seasons.daysPerSeason);
+  }
+
+  /** Grupo de clientes do favor (a Gabi e o escritório): chegou a hora e ainda falta gente. */
+  private friendRushDue(): boolean {
+    return this.friendPerks().some(({ npc, perk }) => {
+      const s = this.state.friends[npc];
+      return perk.kind === 'rush' && s?.rushDay === this.state.day && (s.rushLeft ?? 0) > 0 && this.state.time >= parseClock(perk.at);
+    });
+  }
+
+  private friendRushSpawned(): void {
+    const p = this.friendPerks().find(({ npc, perk }) => perk.kind === 'rush' && (this.state.friends[npc]?.rushLeft ?? 0) > 0);
+    const s = p && this.state.friends[p.npc];
+    if (s) s.rushLeft = Math.max(0, (s.rushLeft ?? 0) - 1);
+  }
+
+  /**
+   * Virada do dia da amizade: o que ninguém entregou em conversa chega pela SocialVilla (e vai para a mochila); os
+   * favores do dia (itens na porta, o vale da estação, o grupo de clientes).
+   */
+  private friendRewardsDay(): void {
+    const day = this.state.day;
+    const posted: string[] = [];
+    for (const f of this.content.friendship.friends) {
+      for (const r of this.pendingFriendRewards(f.npc)) {
+        this.grantFriendReward(f.npc, r, 'social');
+        const post = `reward.${f.npc}.${r.hearts}`;
+        this.state.social.feed.unshift({ post, day });
+        posted.push(post);
+      }
+    }
+    if (posted.length > 0) {
+      this.state.social.feed.length = Math.min(this.state.social.feed.length, Math.max(this.content.friendship.feedSize, posted.length));
+      this.bus.emit('social.posted', { posts: posted });
+    }
+    const weekday = weekdayOf(day, this.content.seasons.startWeekday);
+    const morning = day * 1440 + parseClock(this.content.dayNight.dayStart);
+    for (const { npc, perk } of this.friendPerks()) {
+      const s = this.friendState(npc);
+      if (perk.kind === 'weekly_item' && perk.weekday === weekday && s.perkDay !== day) {
+        s.perkDay = day;
+        const box = `friend.${npc}.${day}`;
+        for (const [item, n] of Object.entries(perk.items))
+          for (let i = 0; i < n; i++) this.state.deliveries.push({ uid: `d${this.state.nextUid++}`, item, stage: 'shipping', arrivesAt: morning, box });
+      }
+      if (perk.kind === 'neuter_voucher' && s.perkDay !== this.seasonNumber()) {
+        s.perkDay = this.seasonNumber();
+        this.state.clinic.vouchers = (this.state.clinic.vouchers ?? 0) + 1;
+      }
+      if (perk.kind === 'rush' && perk.weekday === weekday) {
+        s.rushDay = day;
+        s.rushLeft = perk.customers;
+      }
+    }
   }
 
   /** Hoje é Natal e a ceia ainda vai acontecer. */
@@ -5790,11 +5925,11 @@ export class GameSession {
     const all = cafeAdoptCats(this.content.adoption, cats);
     if (game === 'fair_setup') return { adoptCats: all };
     const setup = this.state.festivals.active?.results.find((r) => r.setup)?.setup;
-    if (!setup) return { adoptCats: all };
+    if (!setup) return { adoptCats: all, extraFamilies: Math.max(0, Math.min(this.friendExtraFamilies(), this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId))) };
     const picked = setup.cats.map((id) => all.find((c) => c.id === id)).filter((c): c is AdoptCat => !!c);
     // Ninguém escolhido na montagem: vão todos os gatos do café que podem ser adotados (o match é só com eles).
     const chosen = picked.length > 0 ? picked : all;
-    const extra = Math.max(0, Math.min(setup.extraFamilies, this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId)));
+    const extra = Math.max(0, Math.min(setup.extraFamilies + this.friendExtraFamilies(), this.content.fairSetup.maxFamilies - this.adoptionPairs(pointId)));
     return { adoptCats: chosen, extraFamilies: extra };
   }
 
@@ -6112,8 +6247,9 @@ export class GameSession {
     if (problem) return { ok: false, reason: problem };
     const r = this.content.construction.repairs[kind];
     if (kind === 'outside' && this.content.finishes[facadeFinishId ?? '']?.kind !== 'facade') return { ok: false, reason: 'unknown_finish' };
-    if (this.state.money < r.price) return { ok: false, reason: 'no_money' };
-    s.quote = { kind, ...(kind === 'outside' ? { finishId: facadeFinishId } : {}), material: 0, labor: r.price, days: r.days };
+    const price = this.builderLabor(r.price);
+    if (this.state.money < price) return { ok: false, reason: 'no_money' };
+    s.quote = { kind, ...(kind === 'outside' ? { finishId: facadeFinishId } : {}), material: 0, labor: price, days: r.days };
     this.callBuilder(kind);
     return { ok: true };
   }
@@ -6126,8 +6262,9 @@ export class GameSession {
     const finish = this.content.finishes[finishId];
     if (finish?.kind !== 'facade') return { ok: false, reason: 'unknown_finish' };
     if (this.state.finishes[this.content.facade?.surface.id ?? ''] === finishId) return { ok: false, reason: 'already_painted' };
-    if (this.state.money < finish.price) return { ok: false, reason: 'no_money' };
-    s.quote = { kind: 'facade', finishId, material: 0, labor: finish.price, days: this.content.construction.facadeDays };
+    const price = this.builderLabor(finish.price);
+    if (this.state.money < price) return { ok: false, reason: 'no_money' };
+    s.quote = { kind: 'facade', finishId, material: 0, labor: price, days: this.content.construction.facadeDays };
     this.callBuilder('facade');
     return { ok: true };
   }
@@ -6153,7 +6290,7 @@ export class GameSession {
       .filter(([g, cell]) => !seen.has(cellKey(cell)) && (seen.add(cellKey(cell)), this.cellOpen(cell) && this.finishAt(g, cell) !== finishId))
       .map(([, cell]) => cell);
     const perTile = c.materialPerTile[surface.kind as 'floor' | 'wall' | 'wainscot'] ?? 0;
-    return { cells, material: cells.length * perTile, labor: cells.length * c.laborPerTile, days: jobDays(cells.length, c) };
+    return { cells, material: cells.length * perTile, labor: this.builderLabor(cells.length * c.laborPerTile), days: jobDays(cells.length, c) };
   }
 
   /** Pede a troca de acabamento na área (e nas outras marcadas junto): ela compra o material (sai agora) e liga para o construtor. */
